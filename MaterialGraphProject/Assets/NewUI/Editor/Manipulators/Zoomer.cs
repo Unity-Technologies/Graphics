@@ -6,6 +6,9 @@ namespace RMGUI.GraphView
 {
 	public class ContentZoomer : Manipulator
 	{
+		public static readonly Vector3 DefaultMinScale = new Vector3(0.0f, 0.0f, 1.0f);
+		public static readonly Vector3 DefaultMaxScale = new Vector3(3.0f, 3.0f, 1.0f);
+
 		public float zoomStep { get; set; }
 
 		public Vector3 minScale { get; set; }
@@ -14,8 +17,8 @@ namespace RMGUI.GraphView
 		public ContentZoomer()
 		{
 			zoomStep = 0.01f;
-			minScale = new Vector3(0.1f, 0.1f, 1.0f);
-			maxScale = new Vector3(3.0f, 3.0f, 1.0f);
+			minScale = DefaultMinScale;
+			maxScale = DefaultMaxScale;
 		}
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)

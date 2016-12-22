@@ -17,8 +17,7 @@ namespace RMGUI.GraphView.Demo
 			onEnter += SchedulePolling;
 			onLeave += UnschedulePolling;
 			pickingMode = PickingMode.Position;
-			m_ImageHolder = new VisualElement();
-			m_ImageHolder.content = new GUIContent("Loading ...");
+			m_ImageHolder = new VisualElement {content = new GUIContent("Loading ...")};
 			AddChild(m_ImageHolder);
 		}
 

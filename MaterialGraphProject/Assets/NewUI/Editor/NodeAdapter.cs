@@ -53,13 +53,10 @@ namespace RMGUI.GraphView
 
 		IEnumerable<MethodInfo> GetExtensionMethods(Assembly assembly, Type extendedType)
 		{
-			var query = from type in assembly.GetTypes()
-						where type.IsSealed && !type.IsGenericType && !type.IsNested
-						from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-						where method.IsDefined(typeof(ExtensionAttribute), false)
-						where method.GetParameters()[0].ParameterType == extendedType
-						select method;
-			return query;
+			return assembly.GetTypes()
+						   .Where(t => t.IsSealed && !t.IsGenericType && !t.IsNested)
+						   .SelectMany(t => t.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+						   .Where(m => m.IsDefined(typeof(ExtensionAttribute), false) && m.GetParameters()[0].ParameterType == extendedType);
 		}
 
 		public MethodInfo GetAdapter(object a, object b)

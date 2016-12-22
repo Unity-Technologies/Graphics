@@ -10,7 +10,8 @@ namespace RMGUI.GraphView
 		{
 			// snoop events before children
 			phaseInterest = EventPhase.Capture;
-			activateButton = MouseButton.LeftMouse;
+			activateButtons[(int)MouseButton.LeftMouse] = true;
+			activateButtons[(int)MouseButton.RightMouse] = true;
 		}
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)

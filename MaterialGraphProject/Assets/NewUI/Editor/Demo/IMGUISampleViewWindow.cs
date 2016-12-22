@@ -1,9 +1,8 @@
 using UnityEditor;
-using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	public class IMGUISampleViewWindow : EditorWindow
+	public class IMGUISampleViewWindow : GraphViewEditorWindow
 	{
 		[MenuItem("Window/GraphView Demo/IMGUISampleView")]
 		public static void ShowWindow()
@@ -11,20 +10,14 @@ namespace RMGUI.GraphView.Demo
 			GetWindow<IMGUISampleViewWindow>();
 		}
 
-		void OnEnable()
+		protected override GraphView BuildView()
 		{
-			var view = new SimpleContentView
-			{
-				name = "theView",
-				dataSource = CreateInstance<IMGUISampleViewData>()
-			};
-			view.StretchToParentSize();
-            rootVisualContainer.AddChild(view);
+			return new SimpleContentView();
 		}
 
-		void OnDisable()
+		protected override GraphViewPresenter BuildPresenters()
 		{
-            rootVisualContainer.ClearChildren();
+			return CreateInstance<IMGUISampleViewPresenter>();
 		}
 	}
 }

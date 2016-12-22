@@ -16,7 +16,7 @@ namespace RMGUI.GraphView
 
 		public ContentDragger()
 		{
-			activateButton = MouseButton.LeftMouse;
+			activateButtons[(int)MouseButton.LeftMouse] = true;
 			activateModifiers = KeyModifiers.Alt;
 			panSpeed = new Vector2(1, 1);
 			clampToParentEdges = false;
@@ -57,7 +57,7 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (CanStartManipulation(evt))
+					if (CanStartManipulation(evt) && HasModifiers(evt))
 					{
 						this.TakeCapture();
 

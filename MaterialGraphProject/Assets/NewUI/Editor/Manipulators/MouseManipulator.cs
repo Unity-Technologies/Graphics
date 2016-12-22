@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.RMGUI;
 
@@ -5,16 +6,32 @@ namespace RMGUI.GraphView
 {
 	public class MouseManipulator : Manipulator
 	{
-		public MouseButton activateButton { get; set; }
+		MouseButton manipButton { get; set; }
+
+		bool[] m_ActivateButtons = new bool[Enum.GetNames(typeof(MouseButton)).Length];
+		public bool[] activateButtons { get { return m_ActivateButtons; } }
+
 		public KeyModifiers activateModifiers { get; set; }
 
-		public bool CanStartManipulation(Event evt)
+		protected bool CanStartManipulation(Event evt)
 		{
-			if (evt.button != (int) activateButton)
+			if (!activateButtons[evt.button])
 			{
 				return false;
 			}
 
+			manipButton = (MouseButton)evt.button;
+
+			return true;
+		}
+
+		protected bool CanStopManipulation(Event evt)
+		{
+			return (((MouseButton)evt.button == manipButton) && this.HasCapture());
+		}
+
+		protected bool HasModifiers(Event evt)
+		{
 			if (((activateModifiers & KeyModifiers.Alt) != 0 && !evt.alt) ||
 				((activateModifiers & KeyModifiers.Alt) == 0 && evt.alt))
 			{
@@ -40,11 +57,6 @@ namespace RMGUI.GraphView
 			}
 
 			return true;
-		}
-
-		public bool CanStopManipulation(Event evt)
-		{
-			return (evt.button == (int)activateButton && this.HasCapture());
 		}
 	}
 }

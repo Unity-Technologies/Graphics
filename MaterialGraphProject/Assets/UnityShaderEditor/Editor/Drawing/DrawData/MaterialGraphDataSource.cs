@@ -23,7 +23,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             map(typeof(RemapMasterNode), typeof(RemapMasterNodeDrawData));
             map(typeof(MasterRemapInputNode), typeof(RemapInputNodeDrawData));
             map(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterDrawData));
-			map(typeof(EdgeDrawData), typeof(Edge));
+            map(typeof(EdgeDrawData), typeof(Edge));
         }
     }
 }

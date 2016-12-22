@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    public class NodePreviewDrawData : GraphElementData
+    public class NodePreviewDrawData : GraphElementPresenter
     {
         protected NodePreviewDrawData()
         {}
@@ -162,8 +162,6 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             return !MaterialGraphAsset.ShaderHasError(m_PreviewShader);
         }
-
-
 
         /// <summary>
         ///     RenderPreview gets called in OnPreviewGUI. Nodes can override

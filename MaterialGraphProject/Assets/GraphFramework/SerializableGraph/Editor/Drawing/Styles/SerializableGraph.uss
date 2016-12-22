@@ -44,48 +44,50 @@
     margin-top: 2;
 }
 
-.Node .NodeAnchor {
+.Node NodeAnchor {
     height: 26;
-	align-items: center;
+    align-items: center;
 }
 
-.Node .NodeAnchor #connector {
-	background-color:#FF0;
-	border-color:#FF0;
-	/* width is currently hard-coded */
-	border-width: 4;
-	margin-left: 5;
+.Node NodeAnchor #connector {
+    background-color:#FF0;
+    border-color:#FF0;
+    /* width is currently hard-coded */
+    border-width: 4;
+    margin-left: 5;
     margin-right: 5;
+    width: 15;
+    height: 15;
 }
 
-.Node .NodeAnchor #connector.anchorHighlight {
-	background-color:#00F;
+.Node NodeAnchor #connector.anchorHighlight {
+    background-color:#00F;
 }
 
-.Node #input .NodeAnchor {
-	flex-direction: row;
+.Node #input NodeAnchor {
+    flex-direction: row;
 }
 
-.Node #output .NodeAnchor {
-	flex-direction: row-reverse;
+.Node #output NodeAnchor {
+    flex-direction: row-reverse;
 }
 
-.Node .NodeAnchor #type {
-	text-color: rgb(153, 153, 153);
-	flex:1;
+.Node NodeAnchor #type {
+    text-color: rgb(153, 153, 153);
+    flex:1;
 }
 
-.Node #input .NodeAnchor #type {
+.Node #input NodeAnchor #type {
     text-alignment: middle-left;
 }
 
-.Node #output .NodeAnchor #type {
+.Node #output NodeAnchor #type {
     text-alignment: middle-right;
 }
 
 .Node #controls {
-	flex-direction: column;
-	padding-bottom: 2;
+    flex-direction: column;
+    padding-bottom: 2;
     padding-left: 4;
     padding-right: 4;
 }

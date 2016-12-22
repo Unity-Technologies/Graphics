@@ -1,5 +1,6 @@
 WWWImage > * {
 	margin-top: 15;
+	margin-left: -6;
 	width: 200;
 	height: 200;
 	/* will display while the image is loading */

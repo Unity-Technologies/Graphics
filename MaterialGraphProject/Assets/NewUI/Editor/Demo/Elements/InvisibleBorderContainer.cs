@@ -1,6 +1,4 @@
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {

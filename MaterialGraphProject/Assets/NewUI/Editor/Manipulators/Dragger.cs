@@ -10,14 +10,14 @@ namespace RMGUI.GraphView
 
 		public Vector2 panSpeed { get; set; }
 
- 		// hold the data... maybe.
- 		public GraphElementData m_data { get; set; }
+ 		// hold the presenter... maybe.
+ 		public GraphElementPresenter m_presenter { get; set; }
 
 		public bool clampToParentEdges { get; set; }
 
 		public Dragger()
 		{
-			activateButton = MouseButton.LeftMouse;
+			activateButtons[(int)MouseButton.LeftMouse] = true;
 			panSpeed = new Vector2(1, 1);
 			clampToParentEdges = false;
 		}
@@ -51,8 +51,8 @@ namespace RMGUI.GraphView
 			GraphElement ce = finalTarget as GraphElement;
 			if (ce != null)
 			{
-				GraphElementData data = ce.dataProvider;
-				if (data != null && ((data.capabilities & Capabilities.Movable) != Capabilities.Movable))
+				GraphElementPresenter presenter = ce.presenter;
+				if (presenter != null && ((presenter.capabilities & Capabilities.Movable) != Capabilities.Movable))
 				{
 					return EventPropagation.Continue;
 				}
@@ -68,7 +68,7 @@ namespace RMGUI.GraphView
 						var graphElement = target as GraphElement;
 						if (graphElement != null)
 						{
-							m_data = graphElement.dataProvider;
+							m_presenter = graphElement.presenter;
 						}
 
 						m_Start = evt.mousePosition;
@@ -82,11 +82,11 @@ namespace RMGUI.GraphView
 					{
 						Vector2 diff = evt.mousePosition - m_Start;
 
-						if (m_data != null)
+						if (m_presenter != null)
 						{
-							m_data.position = CalculatePosition(m_data.position.x + diff.x,
-																m_data.position.y + diff.y,
-																m_data.position.width, target.position.height);
+							m_presenter.position = CalculatePosition(m_presenter.position.x + diff.x,
+																	 m_presenter.position.y + diff.y,
+																	 m_presenter.position.width, target.position.height);
 						}
 						else
 						{
@@ -102,7 +102,7 @@ namespace RMGUI.GraphView
 				case EventType.MouseUp:
 					if (CanStopManipulation(evt))
 					{
-						m_data = null;
+						m_presenter = null;
 						this.ReleaseCapture();
 						return EventPropagation.Stop;
 					}

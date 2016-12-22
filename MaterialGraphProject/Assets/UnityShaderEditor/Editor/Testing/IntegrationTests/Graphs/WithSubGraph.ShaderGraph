@@ -19,7 +19,7 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"71457791-070e-4627-8b28-c6048b4a2092\",\n
         \   \"m_Name\": \"MetallicMasterNode\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": 1275.5750732421875,\n            \"y\": 461.3199157714844,\n
+        \           \"x\": 771.655517578125,\n            \"y\": 62.28950500488281,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -91,15 +91,15 @@ MonoBehaviour:
         0,\n        \"m_ShadowPass\": false,\n        \"m_FullForwardShadows\": false,\n
         \       \"m_NoAmbient\": false,\n        \"m_NoVertexLights\": false,\n        \"m_NoLightmaps\":
         false,\n        \"m_NoDirLightmap\": false,\n        \"m_NoForwardAdd\": false,\n
-        \       \"m_ApproxView\": false,\n        \"m_HalfAsView\": false,\n        \"m_Expanded\":
-        false\n    }\n}"
+        \       \"m_ApproxView\": false,\n        \"m_HalfAsView\": false,\n        \"m_LOD\":
+        200,\n        \"m_Expanded\": false\n    }\n}"
     - typeInfo:
         fullName: UnityEngine.MaterialGraph.TextureNode
         assemblyName: Assembly-CSharp
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"631f4909-24f0-4658-baba-c8c4572e0335\",\n
         \   \"m_Name\": \"Texture\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": 634.1159057617188,\n            \"y\": -369.87933349609377,\n
+        \           \"x\": 35.42873001098633,\n            \"y\": -404.80279541015627,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -166,7 +166,7 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"66307d31-2630-4f44-96d4-23139633f2d7\",\n
         \   \"m_Name\": \"Texture\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": 631.6298217773438,\n            \"y\": -160.93972778320313,\n
+        \           \"x\": 22.967119216918947,\n            \"y\": -355.47174072265627,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -233,7 +233,7 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"57380e21-ab16-4f46-b629-e589a46b8d13\",\n
         \   \"m_Name\": \"SubGraph\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": 162.98675537109376,\n            \"y\": 649.04541015625,\n
+        \           \"x\": -520.95068359375,\n            \"y\": -103.82339477539063,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -272,7 +272,7 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"56f88f67-3dc3-4baa-a316-d7df81e495f0\",\n
         \   \"m_Name\": \"ColorNode\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": -187.33798217773438,\n            \"y\": 763.9640502929688,\n
+        \           \"x\": -939.8272705078125,\n            \"y\": -210.86141967773438,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -294,7 +294,7 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"3cff1441-893f-42dc-aaa9-4ce425d308b1\",\n
         \   \"m_Name\": \"V1Node\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": -194.9690399169922,\n            \"y\": 648.705322265625,\n
+        \           \"x\": -957.7119140625,\n            \"y\": -609.7997436523438,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -314,7 +314,7 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"a06f837c-0a84-41d7-862d-0c849e64595f\",\n
         \   \"m_Name\": \"SubGraph\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": 179.81907653808595,\n            \"y\": 264.7227478027344,\n
+        \           \"x\": -548.7455444335938,\n            \"y\": -1089.481201171875,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -353,7 +353,7 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"f151e48d-ed62-4dac-a23c-af3d2da11fc4\",\n
         \   \"m_Name\": \"V1Node\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": -265.6796875,\n            \"y\": 430.79071044921877,\n
+        \           \"x\": -942.9769287109375,\n            \"y\": -1118.2293701171875,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -373,7 +373,7 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"c227c9d5-fe87-42cb-a2c0-f3a1b4d3ac4a\",\n
         \   \"m_Name\": \"Sine Time\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": -259.36712646484377,\n            \"y\": 129.54629516601563,\n
+        \           \"x\": -967.4246826171875,\n            \"y\": -1484.412353515625,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -392,7 +392,7 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"5c951bbe-e2db-4d79-b6de-3d5cb7199c84\",\n
         \   \"m_Name\": \"AddNode\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": 609.9285278320313,\n            \"y\": 400.33660888671877,\n
+        \           \"x\": 21.216936111450197,\n            \"y\": -1579.81591796875,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -429,7 +429,7 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"6d741a9b-d9b1-444c-a1f5-2951615bfc25\",\n
         \   \"m_Name\": \"Texture\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": 780.825439453125,\n            \"y\": 719.28857421875,\n
+        \           \"x\": 37.49300003051758,\n            \"y\": -1515.2398681640625,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
@@ -1859,7 +1859,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 4f11dcca31d8421060be15a225392ee5
+          Hash: 9ba1a09ccd43a83dfff46fa0f2d98c45
         m_FromOther: 1
         m_Language: 0
         m_VariantsUser0: []
@@ -2358,7 +2358,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 19711d2f80f8194ae2f5dd5eed78055d
+          Hash: b321da649a84b22d7b293a5c7ed29f5e
         m_FromOther: 1
         m_Language: 0
         m_VariantsUser0:
@@ -2901,7 +2901,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 19711d2f80f8194ae2f5dd5eed78055d
+          Hash: b321da649a84b22d7b293a5c7ed29f5e
         m_FromOther: 1
         m_Language: 0
         m_VariantsUser0:
@@ -2998,7 +2998,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 97c57381357d8b8c95e9e2e4e8005e64
+          Hash: c08b02add17845b514589f4314ee739d
         m_FromOther: 1
         m_Language: 0
         m_VariantsUser0: []
@@ -3468,7 +3468,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 97c57381357d8b8c95e9e2e4e8005e64
+          Hash: c08b02add17845b514589f4314ee739d
         m_FromOther: 1
         m_Language: 0
         m_VariantsUser0:
@@ -3914,7 +3914,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 97c57381357d8b8c95e9e2e4e8005e64
+          Hash: c08b02add17845b514589f4314ee739d
         m_FromOther: 1
         m_Language: 0
         m_VariantsUser0: []
@@ -4089,7 +4089,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 3773ea6d2f72be60552c5d8f76675553
+          Hash: cc11b7d4cb68004027a8aba489c730c3
         m_FromOther: 1
         m_Language: 0
         m_VariantsUser0:

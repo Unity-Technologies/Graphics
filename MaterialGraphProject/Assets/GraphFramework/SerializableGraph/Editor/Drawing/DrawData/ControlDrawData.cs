@@ -6,7 +6,7 @@ using UnityEngine.Graphing;
 namespace UnityEditor.Graphing.Drawing
 {
     [Serializable]
-    public abstract class ControlDrawData : GraphElementData
+    public abstract class ControlDrawData : GraphElementPresenter
     {
         public INode node { get; private set; }
 

@@ -35,7 +35,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public MaterialGraphPreviewGenerator()
         {
             EditorUtility.SetCameraAnimateMaterials(utility.m_Camera, true);
-         
+
             if (s_Meshes[0] == null)
             {
                 var handleGo = (GameObject)EditorGUIUtility.LoadRequired("Previews/PreviewMaterials.fbx");
@@ -137,32 +137,31 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 utility.m_Camera.transform.position = -Vector3.forward * 5;
                 utility.m_Camera.transform.rotation = Quaternion.identity;
-                
             }
             else
             {
                 utility.m_Camera.projectionMatrix = Matrix4x4.identity;
             }
 
-			EditorUtility.SetCameraAnimateMaterialsTime(utility.m_Camera, time);
+            EditorUtility.SetCameraAnimateMaterialsTime(utility.m_Camera, time);
             utility.m_Light[0].intensity = 1.0f;
             utility.m_Light[0].transform.rotation = Quaternion.Euler(50f, 50f, 0);
             utility.m_Light[1].intensity = 1.0f;
-			InternalEditorUtility.SetCustomLighting(utility.m_Light, Color.black);
-			var oldFog = RenderSettings.fog;
-			Unsupported.SetRenderSettingsUseFogNoDirty(false);
+            InternalEditorUtility.SetCustomLighting(utility.m_Light, Color.black);
+            var oldFog = RenderSettings.fog;
+            Unsupported.SetRenderSettingsUseFogNoDirty(false);
             utility.m_Camera.clearFlags = CameraClearFlags.Depth;
 
             utility.DrawMesh(
-				mode == PreviewMode.Preview3D ? s_Meshes[0] : quad,
-				Vector3.zero, 
-				Quaternion.identity,
-				mat,
-				0);
+                mode == PreviewMode.Preview3D ? s_Meshes[0] : quad,
+                Vector3.zero,
+                Quaternion.identity,
+                mat,
+                0);
             utility.m_Camera.Render();
 
-			Unsupported.SetRenderSettingsUseFogNoDirty(oldFog);
-			InternalEditorUtility.RemoveCustomLighting();
+            Unsupported.SetRenderSettingsUseFogNoDirty(oldFog);
+            InternalEditorUtility.RemoveCustomLighting();
 
             return utility.EndPreview();
         }

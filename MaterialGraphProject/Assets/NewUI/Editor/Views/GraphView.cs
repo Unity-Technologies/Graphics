@@ -3,31 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleSheets;
 
 namespace RMGUI.GraphView
 {
 	[StyleSheet("Assets/NewUI/Editor/Views/GraphView.uss")]
 	public abstract class GraphView : DataWatchContainer, ISelection
 	{
-		private IGraphElementDataSource m_DataSource;
+		private GraphViewPresenter m_Presenter;
 
-		public IGraphElementDataSource dataSource
+		public T GetPresenter<T>() where T : GraphViewPresenter
 		{
-			get { return m_DataSource; }
+			return presenter as T;
+		}
+
+		public GraphViewPresenter presenter
+		{
+			get { return m_Presenter; }
 			set
 			{
- 				if (m_DataSource == value)
+ 				if (m_Presenter == value)
 					return;
 
 				RemoveWatch();
-				m_DataSource = value;
+				m_Presenter = value;
 				OnDataChanged();
 				AddWatch();
 			}
 		}
 
-		class ContentiewContainer : VisualContainer
+		class ContentViewContainer : VisualContainer
 		{
 			public override bool Overlaps(Rect r)
 			{
@@ -57,22 +61,23 @@ namespace RMGUI.GraphView
 		{
 			selection = new List<ISelectable>();
 			clipChildren = true;
-			contentViewContainer = new ContentiewContainer
+			contentViewContainer = new ContentViewContainer
 			{
 				name = "contentViewContainer",
 				clipChildren = false,
 				position = new Rect(0, 0, 0, 0)
 			};
+
 			// make it absolute and 0 sized so it acts as a transform to move children to and fro
 			AddChild(contentViewContainer);
 
 			dataMapper = new GraphViewDataMapper();
-			dataMapper[typeof(EdgeData)] = typeof(Edge);
+			dataMapper[typeof(EdgePresenter)] = typeof(Edge);
 		}
 
 		public override void OnDataChanged()
 		{
-			if (m_DataSource == null)
+			if (m_Presenter == null)
 				return;
 
 			// process removals
@@ -81,7 +86,7 @@ namespace RMGUI.GraphView
 			foreach (var c in current)
 			{
 				// been removed?
-				if (!m_DataSource.elements.Contains(c.dataProvider))
+				if (!m_Presenter.elements.Contains(c.presenter))
 				{
 					c.parent.RemoveChild(c);
                     selection.Remove(c);
@@ -91,28 +96,28 @@ namespace RMGUI.GraphView
 			// process additions
 			var elements = contentViewContainer.children.OfType<GraphElement>().ToList();
 			elements.AddRange(children.OfType<GraphElement>().ToList());
-			foreach (var elementData in m_DataSource.elements)
+			foreach (GraphElementPresenter elementPresenter in m_Presenter.elements)
 			{
 				// been added?
 				var found = false;
 
-				// TODO what the heck is a "dc" anyway?
 				foreach (var dc in elements)
 				{
-					if (dc != null && dc.dataProvider == elementData)
+					if (dc != null && dc.presenter == elementPresenter)
 					{
 						found = true;
 						break;
 					}
 				}
+
 				if (!found)
-					InstanciateElement(elementData);
+					InstantiateElement(elementPresenter);
 			}
 		}
 
 		protected override object toWatch
 		{
-			get { return dataSource; }
+			get { return presenter; }
 		}
 
 		// ISelection implementation
@@ -122,8 +127,8 @@ namespace RMGUI.GraphView
 		public virtual void AddToSelection(ISelectable selectable)
 		{
 			var graphElement = selectable as GraphElement;
-			if (graphElement != null && graphElement.dataProvider != null)
-				graphElement.dataProvider.selected = true;
+			if (graphElement != null && graphElement.presenter != null)
+				graphElement.presenter.selected = true;
 			selection.Add(selectable);
 			contentViewContainer.Touch(ChangeType.Repaint);
 		}
@@ -131,8 +136,8 @@ namespace RMGUI.GraphView
 		public virtual void RemoveFromSelection(ISelectable selectable)
 		{
 			var graphElement = selectable as GraphElement;
-			if (graphElement != null && graphElement.dataProvider != null)
-				graphElement.dataProvider.selected = false;
+			if (graphElement != null && graphElement.presenter != null)
+				graphElement.presenter.selected = false;
 			selection.Remove(selectable);
 			contentViewContainer.Touch(ChangeType.Repaint);
 		}
@@ -141,36 +146,34 @@ namespace RMGUI.GraphView
 		{
 			foreach (var graphElement in selection.OfType<GraphElement>())
 			{
-				if (graphElement.dataProvider != null)
-					graphElement.dataProvider.selected = false;
+				if (graphElement.presenter != null)
+					graphElement.presenter.selected = false;
 			}
 
 			selection.Clear();
 			contentViewContainer.Touch(ChangeType.Repaint);
 		}
 
-		private void InstanciateElement(GraphElementData elementData)
+		private void InstantiateElement(GraphElementPresenter elementPresenter)
 		{
 			// call factory
-			GraphElement newElem = dataMapper.Create(elementData);
+			GraphElement newElem = dataMapper.Create(elementPresenter);
 
 			if (newElem == null)
 			{
 				return;
 			}
 
-			newElem.SetPosition(elementData.position);
-			newElem.dataProvider = elementData;
+			newElem.SetPosition(elementPresenter.position);
+			newElem.presenter = elementPresenter;
 
-			if ((elementData.capabilities & Capabilities.Resizable) != 0)
+			if ((elementPresenter.capabilities & Capabilities.Resizable) != 0)
 			{
-				var resizable = new Resizer();
-				newElem.AddManipulator(resizable);
-				newElem.AddDecorator(resizable);
+				newElem.AddChild(new Resizer());
 				newElem.borderBottom = 6;
 			}
 
-			bool attachToContainer = (elementData.capabilities & Capabilities.Floating) == 0;
+			bool attachToContainer = (elementPresenter.capabilities & Capabilities.Floating) == 0;
 			if (attachToContainer)
 				contentViewContainer.AddChild(newElem);
 			else
@@ -180,33 +183,32 @@ namespace RMGUI.GraphView
 		protected EventPropagation DeleteSelection()
 		{
 			// and DeleteSelection would call that method.
-			var nodesContentViewData = dataSource as GraphViewDataSource;
-			if (nodesContentViewData == null)
+			if (presenter == null)
 				return EventPropagation.Stop;
 
-			var elementsToRemove = new HashSet<GraphElementData>();
+			var elementsToRemove = new HashSet<GraphElementPresenter>();
 			foreach (var selectedElement in selection.Cast<GraphElement>()
-													 .Where(e => e != null && e.dataProvider != null))
+													 .Where(e => e != null && e.presenter != null))
 			{
-				if ((selectedElement.dataProvider.capabilities & Capabilities.Deletable) == 0)
+				if ((selectedElement.presenter.capabilities & Capabilities.Deletable) == 0)
 					continue;
 
-				elementsToRemove.Add(selectedElement.dataProvider);
+				elementsToRemove.Add(selectedElement.presenter);
 
-				var connectorColl = selectedElement.dataProvider as IConnectorCollection;
+				var connectorColl = selectedElement.GetPresenter<NodePresenter>();
 				if (connectorColl == null)
 					continue;
 
-				elementsToRemove.UnionWith(connectorColl.inputConnectors.SelectMany(c => c.connections)
-																		.Cast<GraphElementData>()
-																		.Where(d => (d.capabilities & Capabilities.Deletable) != 0));
-				elementsToRemove.UnionWith(connectorColl.outputConnectors.SelectMany(c => c.connections)
-																		 .Cast<GraphElementData>()
-																		 .Where(d => (d.capabilities & Capabilities.Deletable) != 0));
+				elementsToRemove.UnionWith(connectorColl.inputAnchors.SelectMany(c => c.connections)
+																	 .Where(d => (d.capabilities & Capabilities.Deletable) != 0)
+																	 .Cast<GraphElementPresenter>());
+				elementsToRemove.UnionWith(connectorColl.outputAnchors.SelectMany(c => c.connections)
+																	  .Where(d => (d.capabilities & Capabilities.Deletable) != 0)
+																	  .Cast<GraphElementPresenter>());
 			}
 
 			// Notify the ends of connections that the connection is going way.
-			foreach (var connection in elementsToRemove.OfType<IConnection>())
+			foreach (var connection in elementsToRemove.OfType<EdgePresenter>())
 			{
 				if (connection.output != null)
 				{
@@ -220,7 +222,7 @@ namespace RMGUI.GraphView
 			}
 
 			foreach (var b in elementsToRemove)
-				nodesContentViewData.RemoveElement(b);
+				presenter.RemoveElement(b);
 
 			return EventPropagation.Stop;
 		}
@@ -230,7 +232,7 @@ namespace RMGUI.GraphView
 			return Frame(FrameType.All);
 		}
 
-		protected EventPropagation FrameSelection()
+		public EventPropagation FrameSelection()
 		{
 			return Frame(FrameType.Selection);
 		}
@@ -240,14 +242,70 @@ namespace RMGUI.GraphView
 			return Frame(FrameType.Origin);
 		}
 
+		protected EventPropagation FramePrev()
+		{
+			if (contentViewContainer.childrenCount == 0)
+				return EventPropagation.Continue;
+
+			var childrenList = contentViewContainer.children.ToList();
+			childrenList.Reverse();
+			return FramePrevNext(childrenList.GetEnumerator());
+		}
+
+		protected EventPropagation FrameNext()
+		{
+			if (contentViewContainer.childrenCount == 0)
+				return EventPropagation.Continue;
+			return FramePrevNext(contentViewContainer.GetChildren());
+		}
+
+		// TODO: Do we limit to GraphElements or can we tab through ISelectable's?
+		EventPropagation FramePrevNext(List<VisualElement>.Enumerator childrenEnum)
+		{
+			GraphElement graphElement = null;
+
+			// Start from current selection, if any
+			if (selection.Count != 0)
+				graphElement = selection[0] as GraphElement;
+
+			var it = childrenEnum;
+			while (it.MoveNext())
+			{
+				if (graphElement == null)
+				{
+					// Select first item we encounter
+					graphElement = it.Current as GraphElement;
+					break;
+				}
+
+				if (graphElement == it.Current as GraphElement)
+					graphElement = null; // I.e. select next item in line
+			}
+
+			if (graphElement == null)
+			{
+				// It is possible we exhausted the list, so go back to the start
+				it = childrenEnum;
+				it.MoveNext();
+				graphElement = it.Current as GraphElement;
+			}
+
+			if (graphElement == null)
+				return EventPropagation.Continue;
+
+			// New selection...
+			ClearSelection();
+			AddToSelection(graphElement);
+
+			// ...and frame this new selection
+			return Frame(FrameType.Selection);
+		}
+
 		EventPropagation Frame(FrameType frameType)
 		{
 			// Reset container translation, scale and position
-			contentViewContainer.transform *= contentViewContainer.transform.inverse;
-			Rect p = contentViewContainer.position;
-			p.x = 0;
-			p.y = 0;
-			contentViewContainer.position = p;
+			contentViewContainer.transform = Matrix4x4.identity;
+			contentViewContainer.position = Rect.zero;
 
 			if (frameType == FrameType.Origin)
 			{
@@ -274,33 +332,14 @@ namespace RMGUI.GraphView
 			}
 			else /*if (frameType == FrameType.All)*/
 			{
-				bool reachedFirstChild = false;
-				foreach (VisualElement child in contentViewContainer.children)
-				{
-					var graphElement = child as GraphElement;
-					if (graphElement == null ||
-						(graphElement.dataProvider.capabilities & Capabilities.Floating) != 0 ||
-						(graphElement.dataProvider is EdgeData))
-					{
-						continue;
-					}
-
-					if (!reachedFirstChild)
-					{
-						rectToFit = graphElement.localBound;
-						reachedFirstChild = true;
-					}
-					else
-					{
-						rectToFit = RectUtils.Encompass(rectToFit, graphElement.localBound);
-					}
-				}
+				rectToFit = CalculateRectToFitAll(contentViewContainer);
 			}
 
 			Vector3 frameTranslation;
 			Vector3 frameScaling;
+			int frameBorder = 30;
 
-			CalculateFrameTransform(rectToFit, out frameTranslation, out frameScaling);
+			CalculateFrameTransform(rectToFit, position, frameBorder, out frameTranslation, out frameScaling);
 
 			if (m_FrameAnimate)
 			{
@@ -323,18 +362,45 @@ namespace RMGUI.GraphView
 			return EventPropagation.Stop;
 		}
 
-		void CalculateFrameTransform(Rect rectToFit, out Vector3 frameTranslation, out Vector3 frameScaling)
+		public static Rect CalculateRectToFitAll(VisualContainer contentViewContainer)
 		{
-			// Give it full width/height
-			Rect clientRect = position;
+			Rect rectToFit = contentViewContainer.position;
+			bool reachedFirstChild = false;
+			var child = contentViewContainer.GetChildren();
+			while (child.MoveNext())
+			{
+				var graphElement = child.Current as GraphElement;
+				var elementPresenter = (graphElement != null) ? graphElement.GetPresenter<GraphElementPresenter>() : null;
+				if (elementPresenter == null ||
+					(elementPresenter.capabilities & Capabilities.Floating) != 0 ||
+					(elementPresenter is EdgePresenter))
+				{
+					continue;
+				}
 
+				if (!reachedFirstChild)
+				{
+					rectToFit = graphElement.localBound;
+					reachedFirstChild = true;
+				}
+				else
+				{
+					rectToFit = RectUtils.Encompass(rectToFit, graphElement.localBound);
+				}
+			}
+
+			return rectToFit;
+		}
+
+		public static void CalculateFrameTransform(Rect rectToFit, Rect clientRect, int border, out Vector3 frameTranslation, out Vector3 frameScaling)
+		{
 			// bring slightly smaller screen rect into GUI space
 			var screenRect = new Rect
 			{
-				xMin = 30,
-				xMax = clientRect.width - 30,
-				yMin = 30,
-				yMax = clientRect.height - 30
+				xMin = border,
+				xMax = clientRect.width - border,
+				yMin = border,
+				yMax = clientRect.height - border
 			};
 
 			Matrix4x4 m = GUI.matrix;
@@ -345,14 +411,9 @@ namespace RMGUI.GraphView
 			float zoomLevel = Math.Min(identity.width / rectToFit.width, identity.height / rectToFit.height);
 
 			// clamp
-			zoomLevel = Mathf.Clamp(zoomLevel, 0.08f, 1.0f);
+			zoomLevel = Mathf.Clamp(zoomLevel, ContentZoomer.DefaultMinScale.y, 1.0f);
 
-			var cachedScale = new Vector3(transform.GetColumn(0).magnitude,
-										  transform.GetColumn(1).magnitude,
-										  transform.GetColumn(2).magnitude);
-			Vector4 cachedTranslation = transform.GetColumn(3);
-
-			transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(zoomLevel, zoomLevel, 1.0f));
+			var transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(zoomLevel, zoomLevel, 1.0f));
 
 			var edge = new Vector2(clientRect.width, clientRect.height);
 			var origin = new Vector2(0, 0);
@@ -371,8 +432,6 @@ namespace RMGUI.GraphView
 			// Update output values before leaving
 			frameTranslation = new Vector3(offset.x, offset.y, 0.0f);
 			frameScaling = parentScale;
-
-			transform = Matrix4x4.TRS(cachedTranslation, Quaternion.identity, cachedScale);
 
 			GUI.matrix = m;
 		}

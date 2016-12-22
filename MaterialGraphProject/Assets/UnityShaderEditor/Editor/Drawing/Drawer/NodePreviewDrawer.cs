@@ -11,7 +11,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             image = data.Render(new Vector2(200, 200));
 
-            painter.DrawTexture(position, image, new Color(1,1,1,1), scaleMode);
+            painter.DrawTexture(position, image, new Color(1, 1, 1, 1), scaleMode);
             //base.DoRepaint(args);
         }
     }

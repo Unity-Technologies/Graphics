@@ -1,4 +1,3 @@
-﻿using System;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.RMGUI;
@@ -11,6 +10,7 @@ namespace UnityEditor.Graphing.Drawing
         Active
     }
 
+	// TODO JOCE: This is to mimic the behavior of a button. Remove and replace with actual button in TitleBar.
     public class Clicker : MouseManipulator
     {
         public delegate void StateChangeCallback(ClickerState newState);
@@ -22,7 +22,12 @@ namespace UnityEditor.Graphing.Drawing
         VisualElement initialTarget;
         ClickerState state;
 
-        public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
+		public Clicker()
+		{
+			activateButtons[(int)MouseButton.LeftMouse] = true;
+		}
+
+		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
         {
             switch (evt.type)
             {
@@ -50,7 +55,6 @@ namespace UnityEditor.Graphing.Drawing
                         UpdateState(evt);
                     }
                     break;
-
             }
             return this.HasCapture() ? EventPropagation.Stop : EventPropagation.Continue;
         }
@@ -62,7 +66,7 @@ namespace UnityEditor.Graphing.Drawing
                 newState = ClickerState.Active;
             else
                 newState = ClickerState.Inactive;
-            
+
             if (onStateChange != null && state != newState)
                 onStateChange(newState);
             state = newState;

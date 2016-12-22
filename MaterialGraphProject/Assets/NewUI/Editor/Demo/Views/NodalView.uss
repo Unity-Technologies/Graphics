@@ -1,10 +1,16 @@
+* { font:path("Assets/Resources/Roboto/Roboto-Regular.ttf");
+	font-size:12; }
+
 Node #input {
 	flex:1;
 }
 
 Node #output {
 	flex:1;
-	justify-content: flex-end;
+}
+
+Node #nodeMain {
+	flex:1;
 }
 
 NodeAnchor {
@@ -13,18 +19,18 @@ NodeAnchor {
 }
 
 NodeAnchor #connector {
-	background-color:#FF0;
-	border-color:#FF0;
-	/* width is currently hard-coded */
-	border-width: 4;
+	background-color:#111212;
+	border-radius:24;
+	width:10;
+	height:10;
 }
 
 NodeAnchor #connector.anchorHighlight {
-	background-color:#00F;
+	background-color:#F0F0F0;
 }
 
 NodeAnchor #type {
-	text-color:#FFF;
+	text-color:#999;
 	flex:1;
 }
 
@@ -33,17 +39,26 @@ Node.horizontal #output NodeAnchor #type {
 }
 
 Node.horizontal NodeAnchor #connector {
-	margin-left: 5;
-	margin-right: 5;
+	margin-left: 0;
+	margin-right: 4;
+	margin-top:2;
+}
+
+Node.horizontal #output NodeAnchor #connector {
+	margin-left: 4;
+	margin-right: 0;
 }
 
 Node.horizontal {
 	flex-direction: row;
 }
 
+Node.horizontal #nodeMain{
+	flex-direction: row;
+}
+
 Node.horizontal #input, Node.horizontal #output {
-	margin-top: 15;
-	background-color:#444;
+	margin-top: 24;
 }
 
 Node.horizontal #input NodeAnchor {
@@ -78,17 +93,12 @@ Node.vertical #output NodeAnchor {
 	flex-direction: column-reverse;
 }
 
-Node.vertical {
-	border-width: 1;
-	border-color:#CCC;
-	background-color:rgba(100, 100, 100, 0.5);
-}
 /* Example of dynamic properties
 Read from the GridBackground decorator */
-NodesContentView {
-	grid-background-color:#404749;
-	line-color:#20293F;
-	thick-line-color:#030C22;
+GridBackground {
+	grid-background-color:#141515;
+	line-color:#141515;
+	thick-line-color:#141515;
 	spacing:75.0;
-	thick-lines:10;
+	thick-lines:0;
 }
