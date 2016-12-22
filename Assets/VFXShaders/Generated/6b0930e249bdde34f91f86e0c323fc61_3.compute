@@ -7,9 +7,10 @@
 #define NB_THREADS_PER_GROUP 256
 
 CBUFFER_START(initUniforms)
+	float4x4 initUniform0_kVFXTRSToMatrixOp;
+	
 	float3 initUniform5_kVFXCombine3fOp;
 	float initUniform1_kVFXValueOp;
-	float4x4 initUniform0_kVFXTRSToMatrixOp;
 	
 	float3 initUniform6_kVFXCombine3fOp;
 	float initUniform2_kVFXValueOp;
@@ -27,10 +28,12 @@ CBUFFER_START(initUniforms)
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
+	float4x4 updateUniform0_kVFXTRSToMatrixOp;
+	
+	float4x4 updateUniform5_kVFXInverseTRSOp;
+	
 	float3 updateUniform3_kVFXTransformVecOp;
 	float updateUniform1_kVFXValueOp;
-	float4x4 updateUniform0_kVFXTRSToMatrixOp;
-	float4x4 updateUniform5_kVFXInverseTRSOp;
 	
 	float updateUniform2_kVFXValueOp;
 	float updateUniform4_kVFXValueOp;

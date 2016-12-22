@@ -22,12 +22,14 @@ CBUFFER_START(initUniforms)
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
+	float4x4 updateUniform0_kVFXTransformMatrixOp;
+	
+	float4x4 updateUniform3_kVFXInverseTRSOp;
+	
 	float updateUniform1_kVFXValueOp;
 	float updateUniform2_kVFXValueOp;
 	float updateUniform4_kVFXDeltaTimeOp;
 	uint nbMax;
-	float4x4 updateUniform0_kVFXTransformMatrixOp;
-	float4x4 updateUniform3_kVFXInverseTRSOp;
 	
 CBUFFER_END
 
