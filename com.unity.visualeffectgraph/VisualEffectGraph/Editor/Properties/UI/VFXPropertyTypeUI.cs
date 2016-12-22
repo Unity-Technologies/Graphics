@@ -188,6 +188,15 @@ namespace UnityEngine.Experimental.VFX
         protected static MethodInfo s_EditorGUIGradientField;
     }
 
+    public partial class VFXSplineType : VFXPrimitiveType<List<Vector3>>
+    {
+        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
+        {
+            if (GUI.Button(area, "Randomize"))
+                InitRandom(slot);
+        }
+    }
+
     // Proxy types
     public partial class VFXFloat2Type : VFXProxyVectorType
     {

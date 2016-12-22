@@ -226,17 +226,17 @@ namespace UnityEngine.Experimental.VFX
 
         public override bool Default(VFXPropertySlot slot)
         {
-            var points = new List<Vector3>();
-
-            // Random test
-            // TODO Remove that
-
-            points.Add(Random.insideUnitSphere * 5.0f);
-            points.Add(Random.insideUnitSphere * 5.0f);
-            points.Add(Random.insideUnitSphere * 5.0f);
-            points.Add(Random.insideUnitSphere * 5.0f);
-            slot.SetInnerValue(points);
+            InitRandom(slot);
             return true;
+        }
+
+        public void InitRandom(VFXPropertySlot slot)
+        {
+            var points = new List<Vector3>();
+            int nb = Random.Range(4,20);
+            for (int i = 0; i < nb; ++i )
+                points.Add(Random.insideUnitSphere * 5.0f);
+            slot.SetInnerValue(points);
         }
     }
 

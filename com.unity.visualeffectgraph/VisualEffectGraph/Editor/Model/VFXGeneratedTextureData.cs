@@ -320,7 +320,7 @@ namespace UnityEngine.Experimental.VFX
             float totalLength = 0.0f;
             for (int i = 0; i < nbPieces; ++i)
             {
-                int index = i * 4; 
+                int index = i * 3; 
                 Vector3 p0 = points[index];
                 Vector3 p1 = points[index + 1];
                 Vector3 p2 = points[index + 2];
@@ -339,7 +339,7 @@ namespace UnityEngine.Experimental.VFX
 
                     PointData data;
                     data.pos = oneMinusT3 * p0 + 3 * oneMinusT2 * t * p1 + 3 * oneMinusT * t2 * p2 + t3 * p3;
-                    data.tan = 3 * oneMinusT2 * (p1 - p0) + 6 * oneMinusT * (p2 - p1) + 3 * t2 * (p3 - p2);
+                    data.tan = 3 * oneMinusT2 * (p1 - p0) + 6 * oneMinusT * t * (p2 - p1) + 3 * t2 * (p3 - p2);
 
                     float length = 0.0f;
                     if (samples.Count > 0)
