@@ -37,5 +37,13 @@ namespace UnityEngine.MaterialGraph
         {
             m_MaterialSubGraph.PostCreate();
         }
+
+        [SerializeField]
+        private GraphDrawingData m_DrawingData = new GraphDrawingData();
+
+        public GraphDrawingData drawingData
+        {
+            get { return m_DrawingData; }
+        }
     }
 }

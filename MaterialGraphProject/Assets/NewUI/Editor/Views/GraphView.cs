@@ -84,6 +84,7 @@ namespace RMGUI.GraphView
 				if (!m_DataSource.elements.Contains(c.dataProvider))
 				{
 					c.parent.RemoveChild(c);
+                    selection.Remove(c);
 				}
 			}
 
@@ -118,7 +119,7 @@ namespace RMGUI.GraphView
 		public List<ISelectable> selection { get; protected set; }
 
 		// functions to ISelection extensions
-		public void AddToSelection(ISelectable selectable)
+		public virtual void AddToSelection(ISelectable selectable)
 		{
 			var graphElement = selectable as GraphElement;
 			if (graphElement != null && graphElement.dataProvider != null)
@@ -127,7 +128,7 @@ namespace RMGUI.GraphView
 			contentViewContainer.Touch(ChangeType.Repaint);
 		}
 
-		public void RemoveFromSelection(ISelectable selectable)
+		public virtual void RemoveFromSelection(ISelectable selectable)
 		{
 			var graphElement = selectable as GraphElement;
 			if (graphElement != null && graphElement.dataProvider != null)
@@ -136,7 +137,7 @@ namespace RMGUI.GraphView
 			contentViewContainer.Touch(ChangeType.Repaint);
 		}
 
-		public void ClearSelection()
+		public virtual void ClearSelection()
 		{
 			foreach (var graphElement in selection.OfType<GraphElement>())
 			{

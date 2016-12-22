@@ -33,5 +33,13 @@ namespace UnityEngine.MaterialGraph
         {
             graph.OnEnable();
         }
+
+        [SerializeField]
+        private GraphDrawingData m_DrawingData = new GraphDrawingData();
+
+        public GraphDrawingData drawingData
+        {
+            get { return m_DrawingData; }
+        }
     }
 }

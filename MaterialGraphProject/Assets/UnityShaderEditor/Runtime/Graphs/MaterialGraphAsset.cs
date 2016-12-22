@@ -111,5 +111,13 @@ namespace UnityEngine.MaterialGraph
         {
             return m_GeneratedShader == null ? 0 : m_GeneratedShader.GetInstanceID();
         }
+
+        [SerializeField]
+        private GraphDrawingData m_DrawingData = new GraphDrawingData();
+
+        public GraphDrawingData drawingData
+        {
+            get { return m_DrawingData; }
+        }
     }
 }
