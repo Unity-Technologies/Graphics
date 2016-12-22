@@ -256,7 +256,7 @@ position = nPos * Box_size + Box_center;";
     {
         public VFXBlockPositionSpline()
         {
-            Name = "Bezier spline";
+            Name = "Bezier spline TEST";
             Icon = "Curve";
             Category = "Position";
             CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
@@ -266,7 +266,10 @@ position = nPos * Box_size + Box_center;";
             Add(new VFXAttribute(CommonAttrib.Position, true));
 
             Source = @"
-position += SAMPLE_SPLINE_POSITION(Spline,RAND);";
+float t = RAND;
+float3 center = SAMPLE_SPLINE_POSITION(Spline,t);
+float3 tangent = normalize(SAMPLE_SPLINE_TANGENT(Spline,t));
+position += PositionOnCylinderSurface(center,tangent,0.0f,0.25f,0.0f,RAND * UNITY_TWO_PI);";
         }
     }
 }

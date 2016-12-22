@@ -188,8 +188,6 @@ namespace UnityEngine.Experimental.VFX
         protected static MethodInfo s_EditorGUIGradientField;
     }
 
-
-
     public partial class VFXSplineType : VFXPrimitiveType<List<Vector3>>
     {
         UnityEditorInternal.ReorderableList rlist;
@@ -198,7 +196,8 @@ namespace UnityEngine.Experimental.VFX
 
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
-            GUI.Label(area, "Edit Spline in Inspector");
+            if (GUI.Button(area, "Randomize"))
+                InitRandom(slot);
         }
 
         private void InitRList(VFXPropertySlot slot)

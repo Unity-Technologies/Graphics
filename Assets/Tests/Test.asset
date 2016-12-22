@@ -7,7 +7,7 @@ VFXAsset:
   m_PrefabInternal: {fileID: 0}
   m_Name: Test
   m_XmlGraph: "<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<Graph Version=\"10\">\r\n
-    \   <System ModelId=\"0\" WorldSpace=\"False\" MaxNb=\"10000\" SpawnRate=\"10\"
+    \   <System ModelId=\"0\" WorldSpace=\"False\" MaxNb=\"50000\" SpawnRate=\"10\"
     BlendingMode=\"kAdditive\" SoftParticlesFadeDistance=\"0\" OrderPriority=\"0\"
     RenderQueueDelta=\"0\">\r\n        <Context DescId=\"Initialize\" Position=\"-580,-170\"
     Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockPositionSpline\"
@@ -20,10 +20,10 @@ VFXAsset:
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
     \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetLifetimeRandom\"
     Hash=\"680700548\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"1\">\r\n                    <Values>\r\n                        <kFloat>0.5</kFloat>\r\n
+    SlotId=\"1\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \               <Slot SlotId=\"2\">\r\n                    <Values>\r\n                        <kFloat>2.5</kFloat>\r\n
+    \               <Slot SlotId=\"2\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
     \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVelocityConstant\"
@@ -40,10 +40,10 @@ VFXAsset:
     true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
     \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSizeRandomSquare\"
     Hash=\"680700548\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"11\">\r\n                    <Values>\r\n                        <kFloat>0.1</kFloat>\r\n
+    SlotId=\"11\">\r\n                    <Values>\r\n                        <kFloat>0.02</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \               <Slot SlotId=\"12\">\r\n                    <Values>\r\n                        <kFloat>0.1</kFloat>\r\n
+    \               <Slot SlotId=\"12\">\r\n                    <Values>\r\n                        <kFloat>0.02</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
     \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Particle
@@ -60,52 +60,39 @@ VFXAsset:
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
     \               </Slot>\r\n            </Block>\r\n        </Context>\r\n        <Context
     DescId=\"Billboard Output\" Position=\"-580,490\" Collapsed=\"False\">\r\n            <Slot
-    SlotId=\"14\">\r\n                <Values>\r\n                    <kTexture2D>d01d8874889eebc4ab0cde7f2b3309de</kTexture2D>\r\n
+    SlotId=\"14\">\r\n                <Values>\r\n                    <kTexture2D>039eecbca64d7d746baf0dd7d360fe32</kTexture2D>\r\n
     \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
     \           </Slot>\r\n            <Slot SlotId=\"15\">\r\n                <Values>\r\n
     \                   <kFloat>0</kFloat>\r\n                    <kFloat>0</kFloat>\r\n
     \               </Values>\r\n                <Collapsed>true true true</Collapsed>\r\n
     \               <WorldSpace>false false false</WorldSpace>\r\n            </Slot>\r\n
-    \       </Context>\r\n    </System>\r\n    <SpawnerNode ModelId=\"1\" Position=\"-584,-370\">\r\n
-    \       <SpawnerBlock Type=\"kConstantRate\" Collapsed=\"False\">\r\n            <Slot
-    SlotId=\"18\">\r\n                <Values>\r\n                    <kFloat>1000</kFloat>\r\n
+    \           <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetAlphaScale\"
+    Hash=\"-339160254\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"18\">\r\n                    <Values>\r\n                        <kFloat>0.3</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n        </Context>\r\n    </System>\r\n    <DataNode ModelId=\"1\"
+    Position=\"-1280,-180\" Exposed=\"False\">\r\n        <DataBlock DescId=\"UnityEngine.Experimental.VFX.VFXSplineType\"
+    Collapsed=\"False\" ExposedName=\"Bezier spline\">\r\n            <Slot SlotId=\"19\">\r\n
+    \               <Values>\r\n                    <kSpline>\r\n                        <Point
+    x=\"0.2495616\" y=\"-3.321467\" z=\"-3.030015\" />\r\n                        <Point
+    x=\"-1.559892\" y=\"-1.259847\" z=\"0.5043498\" />\r\n                        <Point
+    x=\"-1.725018\" y=\"1.899942\" z=\"-3.597725\" />\r\n                        <Point
+    x=\"-3.092473\" y=\"-0.1228346\" z=\"-3.754852\" />\r\n                        <Point
+    x=\"-4.154773\" y=\"-1.434048\" z=\"1.755726\" />\r\n                        <Point
+    x=\"0.6570027\" y=\"2.814781\" z=\"0.6764576\" />\r\n                        <Point
+    x=\"2.768109\" y=\"-1.978182\" z=\"1.257649\" />\r\n                    </kSpline>\r\n
     \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
-    \           </Slot>\r\n        </SpawnerBlock>\r\n    </SpawnerNode>\r\n    <DataNode
-    ModelId=\"2\" Position=\"-1440,-190\" Exposed=\"False\">\r\n        <DataBlock
-    DescId=\"UnityEngine.Experimental.VFX.VFXSplineType\" Collapsed=\"False\" ExposedName=\"Bezier
-    spline\">\r\n            <Slot SlotId=\"19\">\r\n                <Values>\r\n
-    \                   <kSpline>\r\n                        <Point x=\"-0.9416236\"
-    y=\"-2.119939\" z=\"-1.574697\" />\r\n                        <Point x=\"-1.337555\"
-    y=\"0.03223394\" z=\"-1.694129\" />\r\n                        <Point x=\"-0.1426096\"
-    y=\"2.891109\" z=\"3.238571\" />\r\n                        <Point x=\"-3.655202\"
-    y=\"-1.541922\" z=\"0.1947836\" />\r\n                    </kSpline>\r\n                </Values>\r\n
-    \               <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
-    \           </Slot>\r\n        </DataBlock>\r\n    </DataNode>\r\n    <DataNode
-    ModelId=\"3\" Position=\"-1420,-80\" Exposed=\"False\">\r\n        <DataBlock
-    DescId=\"UnityEngine.Experimental.VFX.VFXSplineType\" Collapsed=\"False\" ExposedName=\"Bezier
-    spline\">\r\n            <Slot SlotId=\"20\">\r\n                <Values>\r\n
-    \                   <kSpline>\r\n                        <Point x=\"-0.3625461\"
-    y=\"-4.144401\" z=\"-2.200617\" />\r\n                        <Point x=\"-0.8281135\"
-    y=\"4.837983\" z=\"-0.6839222\" />\r\n                        <Point x=\"-3.751196\"
-    y=\"-0.5729491\" z=\"-1.041463\" />\r\n                        <Point x=\"-2.097168\"
-    y=\"0.5201819\" z=\"-3.188669\" />\r\n                    </kSpline>\r\n                </Values>\r\n
-    \               <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
-    \           </Slot>\r\n        </DataBlock>\r\n    </DataNode>\r\n    <DataNode
-    ModelId=\"4\" Position=\"-1391,98.70001\" Exposed=\"False\">\r\n        <DataBlock
-    DescId=\"UnityEngine.Experimental.VFX.VFXSplineType\" Collapsed=\"False\" ExposedName=\"Bezier
-    spline\">\r\n            <Slot SlotId=\"21\">\r\n                <Values>\r\n
-    \                   <kSpline>\r\n                        <Point x=\"-2.02715\"
-    y=\"-1.842412\" z=\"-4.038155\" />\r\n                        <Point x=\"-1.832564\"
-    y=\"-4.41063\" z=\"1.305961\" />\r\n                        <Point x=\"4.56894\"
-    y=\"-0.7564522\" z=\"-0.4576842\" />\r\n                        <Point x=\"-0.7080435\"
-    y=\"-0.7611742\" z=\"2.284229\" />\r\n                    </kSpline>\r\n                </Values>\r\n
-    \               <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
-    \           </Slot>\r\n        </DataBlock>\r\n    </DataNode>\r\n    <Connections>\r\n
-    \       <Connection Id=\"20\">0</Connection>\r\n    </Connections>\r\n    <SpawnerConnections
-    Id=\"1\">0</SpawnerConnections>\r\n</Graph>"
+    \           </Slot>\r\n        </DataBlock>\r\n    </DataNode>\r\n    <SpawnerNode
+    ModelId=\"2\" Position=\"-584,-370\">\r\n        <SpawnerBlock Type=\"kConstantRate\"
+    Collapsed=\"False\">\r\n            <Slot SlotId=\"20\">\r\n                <Values>\r\n
+    \                   <kFloat>50000</kFloat>\r\n                </Values>\r\n                <Collapsed>true</Collapsed>\r\n
+    \               <WorldSpace>false</WorldSpace>\r\n            </Slot>\r\n        </SpawnerBlock>\r\n
+    \   </SpawnerNode>\r\n    <Connections>\r\n        <Connection Id=\"19\">0</Connection>\r\n
+    \   </Connections>\r\n    <SpawnerConnections Id=\"2\">0</SpawnerConnections>\r\n</Graph>"
   m_Systems:
   - m_Id: 0
-    m_Capacity: 10000
+    m_Capacity: 50000
     m_SimulationShader: {fileID: 7200000, guid: d910ecf430454bf42b7385e3c293995a,
       type: 3}
     m_OutputShader: {fileID: 4800000, guid: 306ff48f7dcd2fa489aef673d5a40a78, type: 3}
@@ -160,6 +147,12 @@ VFXAsset:
       m_PerPoint: 1
     - m_InitName: attribBuffer4
       m_UpdateName: attribBuffer4
+      m_OutputName: attribBuffer4
+      m_Flags: 512
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: attribBuffer5
+      m_UpdateName: attribBuffer5
       m_OutputName: <noninit>
       m_Flags: 512
       m_Stride: 4
@@ -172,32 +165,34 @@ VFXAsset:
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXValueOp
-        index: 6
-      - name: initUniform1_kVFXValueOp
-        index: 5
-      - name: initUniform2_kVFXValueOp
         index: 7
-      - name: initUniform3_kVFXValueOp
-        index: 9
-      - name: initUniform4_kVFXValueOp
+      - name: initUniform1_kVFXValueOp
+        index: 6
+      - name: initUniform2_kVFXValueOp
         index: 8
+      - name: initUniform3_kVFXValueOp
+        index: 10
+      - name: initUniform4_kVFXValueOp
+        index: 9
       - name: initUniform5_kVFXSystemSeedOp
         index: 0
     m_UpdateUniforms:
       m_Uniforms:
       - name: updateUniform0_kVFXValueOp
-        index: 1
+        index: 5
       - name: updateUniform1_kVFXDeltaTimeOp
         index: 2
     m_OutputUniforms:
       m_Uniforms:
+      - name: outputUniform0_kVFXValueOp
+        index: 1
       - name: outputSampler0_kVFXValueOpTexture
         index: 4
     m_SpawnerIndices: 00000000
   m_Values:
-    m_Values: ffffffff0000003fffffffff00007a440000003f0000803e0000403f00002040cdcccc3dcdcccc3d
+    m_Values: ffffffff9a99993effffffff005043470000003f0000803f0000803e0000403f0000803f0ad7a33c0ad7a33c
     m_Textures:
-    - {fileID: 2800000, guid: d01d8874889eebc4ab0cde7f2b3309de, type: 3}
+    - {fileID: 2800000, guid: 039eecbca64d7d746baf0dd7d360fe32, type: 3}
   m_Expressions:
     m_Expressions:
     - op: 12
@@ -238,13 +233,13 @@ VFXAsset:
       data[3]: 0
     - op: 0
       valueIndex: 5
-      data[0]: 2
+      data[0]: 1
       data[1]: 0
       data[2]: 0
       data[3]: 0
     - op: 0
-      valueIndex: 7
-      data[0]: 1
+      valueIndex: 6
+      data[0]: 2
       data[1]: 0
       data[2]: 0
       data[3]: 0
@@ -256,6 +251,12 @@ VFXAsset:
       data[3]: 0
     - op: 0
       valueIndex: 9
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 10
       data[0]: 1
       data[1]: 0
       data[2]: 0
@@ -274,12 +275,44 @@ VFXAsset:
     m_StopSpawners: 00000000
   m_ExposedExpressions: []
   m_ExposedEditorDescs: []
-  m_GradientTexture: {fileID: 28423091640352472}
-  m_CurveTexture: {fileID: 28916739461058950}
+  m_GradientTexture: {fileID: 28930621413669444}
+  m_CurveTexture: {fileID: 28400094913969470}
   m_Bounds:
     m_Center: {x: 6.9441614, y: -0.31916523, z: -6.405033}
     m_Extent: {x: 13.82081, y: -8.6091385, z: 11.914494}
---- !u!28 &28423091640352472
+--- !u!28 &28400094913969470
+Texture2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  serializedVersion: 2
+  m_Width: 128
+  m_Height: 2
+  m_CompleteImageSize: 2048
+  m_TextureFormat: 17
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapMode: 0
+  m_LightmapFormat: 0
+  m_ColorSpace: 0
+  image data: 2048
+  _typelessdata: fc33a4c20fc2003c2f3283c2d7c1003c5d3060c2a1c1003c0f2d3cc26bc1003c642516c237c1003ccda8efc104c1003c31aec7c1d3c0003c02b19cc1a3c0003cf1b270c175c0003c72b442c149c0003c6fb512c120c0003c6eb6e1c0f1bf003c6eb7adc0a8bf003c38b878c065bf003cbab840c029bf003c3cb907c0f4be003cbfb99abfc6be003c41ba22bfa1be003cc3baa7be84be003c45bb2bbe70be003cc5bbadbd66be003c22bc2ebd65be003c61bcafbc6dbe003c9fbc31bc7fbe003cdcbc69bb99be003c18bd72babcbe003c53bd80b9e8be003c8ebd93b81bbf003cc8bd59b755bf003c01be9ab597bf003c3abed6b3dfbf003c73be9ab016c0003cadbe12aa40c0003ce6bea4296dc0003c20bf2a309cc0003c5cbfba32cec0003c98bf8a3402c1003cd7bf993537c1003c0cc086366fc1003c2ec04c37a8c1003c51c0e437e2c1003c77c024381dc2003c9fc0373857c2003ccac026388fc2003cf6c0de37c5c2003c24c11f37f5c2003c53c114361ec3003c81c1c93440c3003caec198325bc3003cdac1a72e6ec3003c04c27c9c7ac3003c2dc27caf82c3003c3bc2ddb042c3003c47c2ceb1fdc2003c51c2b2b2b9c2003c5bc289b374c2003c64c228b42fc2003c6bc286b4e9c1003c72c2dbb4a3c1003c77c229b55dc1003c7ac26cb517c1003c7cc2a7b5d1c0003c7cc2d9b58ac0003c7ac2ffb543c0003c77c21bb6fabf003c71c22cb66dbf003c69c230b6e0be003c5fc228b654be003c52c213b6c9bd003c42c2f0b53fbd003c30c2c0b5b6bc003c1bc283b530bc003c02c237b559bb003ce7c1deb458ba003cc8c179b45db9003ca7c107b46bb8003c82c115b302b7003c5ac108b241b5003c2fc1ebb02ab3003c01c181aff8af003cd1c017adc5a7003c9fc041a97a2b003c6ac079988a30003c33c0b1280a33003cf4bfcd2cb034003c7fbf352fc635003c06bfc430c836003c8bbee031b837003c0dbeed324b38003c8dbde733b138003c0abd66340f39003c86bccc346639003cffbb2435b539003cf0ba6e35fe39003cdeb9a935413a003ccab8d1357e3a003c69b7e835b53a003c3bb5eb35e83a003c19b2d935163b003cecaab135403b003c412d7235673b003cf8321c358a3b003ca435ad34aa3b003cc7372534c73b003cf2380833e33b003cfc399331fc3b003c023bd72f0a3c003c013c252c153c003c7e3c5512203c003cf83c68ac2a3c003c6f3d9bb0353c003ce23d2cb33f3c003c513ef4b4493c003cbc3e64b6543c003c233fe6b75e3c003c863fbcb8693c003ce63f8db9743c003c204064ba803c003c4c4042bb8b3c003c764012bc973c003c9e4086bca43c003cc440fdbcb13c003ce94075bdbe3c003c0c41f0bdcc3c003c2d416cbeda3c003c4d41eabee93c003c6c4169bff83c003c8941e9bf073d003c6dc52f464d49003c53c540461049003c39c55146d248003c1ec560469448003c03c570465448003ce8c47e461448003cccc48b46a747003cb0c497462447003c94c4a2469f46003c78c4ac461946003c5cc4b4469245003c3fc4bb460945003c23c4bf468044003c07c4c246ed43003cd5c3c246d942003c9ec3c046c641003c67c3bb46b440003c31c3b2464b3f003cfcc2a746363d003cc9c298465a3a003c98c28546c334003c69c26e46d9b1003c3dc2544628b9003c13c2354658bc003cecc1134606be003cc9c1ec459bbf003ca9c1c0458bc0003c8cc191453cc1003c73c15d45dfc1003c5dc1244574c2003c4ac1e744fbc2003c3cc1a54473c3003c31c15d44ddc3003c2bc110441cc4003c28c17c4341c4003c2ac1ca425ec4003c30c10a4273c4003c3bc13b417ec4003c4cc15b4080c4003c62c1d23e76c4003c7fc1c43c61c4003ca3c115393fc4003ccec163280fc4003c01c2e6b89fc3003c3cc230bd02c3003c7ec204c04ac2003cc4c275c17bc1003c0ec3e3c29dc0003c58c322c46dbf003ca2c3cdc49abd003ceac36fc591bb003c18c409c6ebb7003cd5c15cc30e4c003c42c1d2c2f44b003cadc049c2ca4b003c16c0bfc19f4b003cfabe35c1744b003cc4bdabc0484b003c8bbc21c01b4b003c9dba2fbfee4a003c17b81cbec04a003c29b20bbd924a003c1e30f8bb624a003c4a37ddb9324a003c483a90b7014a003c793cecb2d049003cd23d96289e49003c2d3f85346b49003c44402d383849003cf440093a0449003ca441d23bd048003c5342c23c9c48003c01438f3d6848003caf434e3e3448003c2d44fe3e0048003c81449c3f9947003cd34413403447003c23454f40d046003c714580406e46003cbc45a6400f46003c0446c140b345003c4946d1405945003c8b46d5400345003cc946cd40b044003c0447ba406044003c3b479b401344003c6f4771409543003c9f473b400a43003ccc47f53f8542003cf6475c3f0842003c0e48ae3e9141003c1f48e93d2141003c2e480f3db840003c3c481f3c5540003c4948323af23f003c5348fa37463f003c5c487432a73e003c634862af153e003c69483db7903d003c6d4879ba173d003c7048bdbcab3c003c714850be4b3c003c7048f6bff13b003c6e48d6c0623b003c6b48b9c1ec3a003c6648a4c28d3a003c604895c3453a003c584846c4123a003c4f48c4c4f639003c464844c5ee39003c3b48c6c5f939003c2f4849c6143a003c2248cdc6433a003c154852c77f3a003c0748d8c7cb3a003cf0472ec8233b003cd14771c8883b003cb147b3c8f83b003c9147f5c8383c003c6f4736c97a3c003c4e4778c9bf3c003c2b47b8c9083d003c0847f8c9543d003ce54638caa43d003cc14677caf63d003c9e46b5ca4a3e003c7946f3caa13e003c554630cbf93e003c
+  m_StreamData:
+    offset: 0
+    size: 0
+    path: 
+--- !u!28 &28930621413669444
 Texture2D:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -307,38 +340,6 @@ Texture2D:
   m_ColorSpace: 1
   image data: 512
   _typelessdata: 9200ff009200ff329200ff649200ff969200ffc79200fff99200ffff9200ffff9200ffff9000ffff8a00ffff8500ffff7f00ffff7a00ffff7400ffff6e00ffff6900ffff6300ffff5e00ffff5800ffff5300ffff4d00ffff4800ffff4200ffff3e02ffff3d06ffff3c0affff3a0dffff3911ffff3815ffff3619ffff351dffff3421ffff3225ffff3129ffff302cffff2e30ffff2d34ffff2b38ffff2a3cffff2940ffff2744ffff2648ffff254bffff234fffff2253ffff2157ffff1f5bffff1e5fffff1d63ffff1b67ffff1a6affff196effff1772ffff1676ffff157affff137effff1282ffff1086ffff0f89ffff0e8dffff0c91ffff0b95ffff0a99ffff089dffff07a1ffff06a5ffff04a9ffff03acffff02b0ffff00b4ffff03b6ffff08b7ffff0cb9ffff11baffff15bbffff1abdffff1ebeffff23bfffff27c0ffff2cc2ffff30c3ffff35c4ffff39c6ffff3ec7ffff42c8ffff47caffff4bcbffff50ccffff54cdffff59cfffff5dd0ffff62d1ffff66d3fffe6bd4fff76fd5ffef74d7ffe878d8ffe07dd9ffd981dbffd186dcffca8addffc28fdeffbb93e0ffb398e1ffac9ce2ffa4a1e4ff9da5e5ff95aae6ff8eaee8ff87b3e9ff7fb7eaff78bcebff70c0edff69c5eeff61c9efff5acef1ff52d2f2ff4bd7f3ff43dbf5ff3ce0f6ff34e4f7ff2de9f8ff25edfaff1ef2fbff16f6fcff0ffbfeff07ffffff00
-  m_StreamData:
-    offset: 0
-    size: 0
-    path: 
---- !u!28 &28916739461058950
-Texture2D:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  serializedVersion: 2
-  m_Width: 128
-  m_Height: 2
-  m_CompleteImageSize: 2048
-  m_TextureFormat: 17
-  m_MipCount: 1
-  m_IsReadable: 1
-  m_AlphaIsTransparency: 0
-  m_ImageCount: 1
-  m_TextureDimension: 2
-  m_TextureSettings:
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapMode: 0
-  m_LightmapFormat: 0
-  m_ColorSpace: 0
-  image data: 2048
-  _typelessdata: ccb524c466c0003cdbb514c461c0003ceab503c45bc0003cf9b5e5c355c0003c09b6c3c34fc0003c19b6a1c34ac0003c29b680c344c0003c3ab65ec33ec0003c4cb63dc339c0003c5eb61bc333c0003c71b6fac22dc0003c84b6d8c227c0003c98b6b7c221c0003cadb695c21cc0003cc2b673c216c0003cd7b652c210c0003ceeb630c20ac0003c04b70fc204c0003c1bb7edc1febf003c34b7ccc1f2bf003c4db7aac1e6bf003c66b789c1dabf003c81b768c1cfbf003c9bb746c1c3bf003cb7b725c1b7bf003cd4b703c1abbf003cf0b7e2c09fbf003c07b8c0c093bf003c16b89fc087bf003c26b87ec07cbf003c37b85cc070bf003c47b83bc064bf003c58b81ac058bf003c6ab8f1bf4cbf003c7cb8afbf40bf003c8eb86cbf34bf003ca1b829bf28bf003cb5b8e7be1bbf003cc9b8a5be0fbf003cddb862be03bf003cf2b820bef7be003c08b9debdebbe003c1eb99bbddfbe003c35b959bdd3be003c4db917bdc6be003c65b9d5bcbabe003c7eb993bcaebe003c97b951bca2be003cb1b90fbc96be003ccdb99bbb89be003ce8b918bb7dbe003c05ba95ba71be003c22ba12ba64be003c41ba8fb958be003c60ba0cb94cbe003c80ba8ab840be003ca1ba08b833be003cc3ba0cb727be003ce7ba09b61bbe003c0cbb07b50fbe003c31bb05b402be003c58bb09b2f6bd003c81bb08b0eabd003caabb13acdebd003cd5bb8896d2bd003c01bcb52bc6bd003c18bcca2fbabd003c31bcdb31aebd003c4abcce33a2bd003c64bcde3496bd003c7fbcd4358bbd003c9cbcc8367fbd003cbabcb93774bd003cd9bc543869bd003cfabcca385fbd003c1cbd3e3954bd003c40bdb0394abd003c67bd1f3a41bd003c8fbd8b3a38bd003cbabdf43a2fbd003ce7bd593b28bd003c18beb83b22bd003c4bbe083c1dbd003c82be313c1abd003cbcbe543c19bd003cfabe723c1abd003c3abf883c1ebd003c7dbf963c26bd003cbfbf9c3c32bd003c01c0983c42bd003c21c08d3c55bd003c40c07a3c6cbd003c5dc0613c85bd003c78c0443ca2bd003c91c0223cc1bd003ca8c0fb3be3bd003cbec0ac3b07be003cd1c05b3b2dbe003ce3c0063b55be003cf3c0b13a80be003c01c15a3aadbe003c0ec1043adbbe003c18c1af390cbf003c21c15b393fbf003c28c10a3974bf003c2dc1bc38abbf003c31c17238e4bf003c32c12c380fc0003c32c1d9372dc0003c2fc166374cc0003c2bc100376bc0003c25c1a9368bc0003c1dc16236abc0003c14c12a36cbc0003c09c10136ebc0003cfdc0e8350bc1003cf0c0dd352ac1003ce2c0e13549c1003cd2c0f23568c1003cc2c00f3686c1003cb2c03836a3c1003ca1c06c36c0c1003c8fc0a936dcc1003c7dc0ef36f7c1003c6ac03d3712c2003c57c092372dc2003c44c0ef3747c2003c31c0293860c2003cbbcc84c5cf40003cb8cc92c5c640003cb5cc9fc5bd40003cb2ccacc5b440003caeccbac5ab40003cabccc7c5a240003ca8ccd5c59940003ca4cce2c59040003ca1ccf0c58740003c9eccfdc57d40003c9acc0ac67440003c97cc18c66a40003c93cc25c66140003c90cc33c65740003c8ccc40c64d40003c88cc4ec64340003c85cc5bc63940003c81cc69c62e40003c7dcc76c62440003c7acc84c61a40003c76cc91c60f40003c72cc9fc60540003c6eccadc6f43f003c6accbac6de3f003c66ccc8c6c83f003c62ccd5c6b13f003c5ecce3c69b3f003c5accf0c6843f003c56ccfec66c3f003c51cc0bc7553f003c4dcc19c73d3f003c49cc26c7253f003c44cc34c70c3f003c40cc41c7f33e003c3bcc4fc7da3e003c37cc5cc7c03e003c32cc6ac7a73e003c2dcc77c78c3e003c28cc85c7713e003c24cc92c7563e003c1fcca0c73b3e003c1accadc71e3e003c15ccbbc7023e003c0fccc8c7e53d003c0accd5c7c83d003c05cce3c7a93d003cffcbf0c78b3d003cf4cbfdc76c3d003ce9cb05c84c3d003cddcb0cc82c3d003cd1cb12c80b3d003cc5cb19c8e93c003cb9cb1fc8c73c003cadcb26c8a43c003ca0cb2cc8803c003c93cb33c85b3c003c86cb39c8353c003c78cb3fc80f3c003c6acb46c8d03b003c5ccb4cc87f3b003c4ecb52c82d3b003c3fcb58c8d83a003c2fcb5ec8803a003c1fcb64c8263a003c0fcb6ac8ca39003cfeca6fc86939003cedca75c80739003cdbca7bc8a138003cc9ca80c83738003cb6ca85c89437003ca2ca8ac8b036003c8dca8fc8c235003c77ca93c8cb34003c61ca97c89233003c49ca9bc87531003c31ca9fc87a2e003c17caa2c84927003cfbc9a4c844aa003cdec9a6c830b0003cc0c9a8c8f7b2003c9fc9a8c8f7b4003c7cc9a7c88eb6003c57c9a5c821b8003c2fc9a2c80ab9003c03c99dc807ba003cd5c895c816bb003ca4c88bc81bbc003c70c87fc8b3bc003c3ac86fc852bd003c03c85dc8f5bd003c98c748c899be003c2ac731c83dbf003cbdc618c8dfbf003c52c6fbc73fc0003ce8c5c2c78ec0003c80c586c7dcc0003c1ac547c728c1003cb6c405c774c1003c52c4c0c6bfc1003cdfc379c60ac2003c1bc32fc654c2003c58c2e2c59ec2003c96c192c5e7c2003cd5c040c531c3003c14c0eac47ac3003ca9be92c4c3c3003c2abd38c406c4003c5cbbb6c32ac4003c68b8f8c24ec4003cefb136c272c4003c9a3171c196c4003c3c38abc0b8c4003c043bc9bfdbc4003cdd3c3cbefdc4003c303eafbc1dc5003c773f52ba3dc5003c5b4094b65bc5003cf44047a979c5003c88412f3596c5003c18427639b2c5003ca242203ccdc5003c27437f3de7c5003ca743d63e00c6003c1144134018c6003c4d44b7402fc6003c8744584145c6003cbf44f5415bc6003cf6448f4271c6003c
   m_StreamData:
     offset: 0
     size: 0
