@@ -81,7 +81,7 @@ void BuildProabilityTables(uint3 groupId          : SV_GroupID,
             imgIntegralValue += rowIntegralValues[j] / textureSize;
         }
 
-        // Compute marginal densities (normalize).
+        // Compute the CDF. Note: the value at (i = textureSize) is implicitly 1.
         // TODO: run in parallel.
         for (j = 0; j < textureSize; j++)
         {
