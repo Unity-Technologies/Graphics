@@ -212,6 +212,7 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 #define INV_HALF_PI 0.636619772367
 
 #define FLT_EPSILON 1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
+#define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
 
 #define MERGE_NAME(X, Y) X##Y
