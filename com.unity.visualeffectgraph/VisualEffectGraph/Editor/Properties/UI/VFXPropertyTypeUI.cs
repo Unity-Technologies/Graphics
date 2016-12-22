@@ -188,6 +188,105 @@ namespace UnityEngine.Experimental.VFX
         protected static MethodInfo s_EditorGUIGradientField;
     }
 
+
+
+    public partial class VFXSplineType : VFXPrimitiveType<List<Vector3>>
+    {
+        UnityEditorInternal.ReorderableList rlist;
+        List<Vector3> list;
+        VFXPropertySlot currentVFXPropertySlot;
+
+        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
+        {
+            GUI.Label(area, "Edit Spline in Inspector");
+        }
+
+        private void InitRList(VFXPropertySlot slot)
+        {
+            currentVFXPropertySlot = slot;
+            list = slot.Get<List<Vector3>>(false);
+            if (rlist == null)
+            {
+                rlist = new UnityEditorInternal.ReorderableList(list, typeof(Vector3), true, false, true, true);
+                rlist.onSelectCallback = SelectPoint;
+                rlist.onAddCallback = AddPoint;
+                rlist.onRemoveCallback = DeletePoint;
+                rlist.onReorderCallback = ReorderPoint;
+                rlist.drawElementCallback = DrawElement;
+            }
+            else
+            {
+                if(rlist.list != list)
+                {
+                    rlist.list = list;
+                }
+            }
+        }
+
+        public override void OnInspectorGUI(VFXPropertySlot slot)
+        {
+            InitRList(slot);
+
+            EditorGUI.BeginChangeCheck();
+            rlist.DoLayoutList();
+
+            if(rlist.index >= 0)
+            {
+                list[rlist.index] = EditorGUILayout.Vector3Field("Value", list[rlist.index]);
+            }
+
+            if (EditorGUI.EndChangeCheck())
+                Slot(currentVFXPropertySlot, false).NotifyChange(VFXPropertySlot.Event.kValueUpdated);
+        }
+
+        private void AddPoint(UnityEditorInternal.ReorderableList rlist)
+        {
+            list.Add(new Vector3());
+            Slot(currentVFXPropertySlot, false).NotifyChange(VFXPropertySlot.Event.kValueUpdated);
+        }
+
+        private void DeletePoint(UnityEditorInternal.ReorderableList rlist)
+        {
+            list.RemoveAt(rlist.index);
+            Slot(currentVFXPropertySlot, false).NotifyChange(VFXPropertySlot.Event.kValueUpdated);
+        }
+
+        private void ReorderPoint(UnityEditorInternal.ReorderableList rlist)
+        {
+            Slot(currentVFXPropertySlot, false).NotifyChange(VFXPropertySlot.Event.kValueUpdated);
+        }
+
+        private void SelectPoint(UnityEditorInternal.ReorderableList rlist)
+        {
+
+        }
+
+        private void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
+        {
+            if(isActive)
+            {
+                EditorGUI.BeginChangeCheck();
+                list[index] = EditorGUI.Vector3Field(rect, "", list[index]);
+                if (EditorGUI.EndChangeCheck())
+                    Slot(currentVFXPropertySlot, false).NotifyChange(VFXPropertySlot.Event.kValueUpdated);
+            }
+            else
+            {
+                using (new EditorGUI.DisabledGroupScope(true))
+                {
+                    EditorGUI.Vector3Field(rect, "", list[index]);
+                }
+            }
+        }
+
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Transform t)
+        {
+            InitRList(slot);
+            return new VFXUISplineWidget(slot,t, rlist);
+        }
+
+    }
+
     // Proxy types
     public partial class VFXFloat2Type : VFXProxyVectorType
     {

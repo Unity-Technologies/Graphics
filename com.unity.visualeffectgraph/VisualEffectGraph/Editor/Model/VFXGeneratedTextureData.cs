@@ -320,7 +320,7 @@ namespace UnityEngine.Experimental.VFX
             float totalLength = 0.0f;
             for (int i = 0; i < nbPieces; ++i)
             {
-                int index = i * 4; 
+                int index = i * 3; 
                 Vector3 p0 = points[index];
                 Vector3 p1 = points[index + 1];
                 Vector3 p2 = points[index + 2];
