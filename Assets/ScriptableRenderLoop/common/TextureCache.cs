@@ -63,12 +63,8 @@ public class TextureCacheCubemap : TextureCache
     private Texture2DArray m_CacheNoCubeArray;
     private RenderTexture[] m_StagingRTs;
     private int m_NumPanoMipLevels;
-    private int m_PanoWidthTop;
-    private int m_PanoHeightTop;
     private Material m_CubeBlitMaterial;
     private int m_CubeMipLevelPropName;
-    private int m_dstPanoWidthPropName;
-    private int m_dstPanoHeightPropName;
     private int m_cubeSrcTexPropName;
     // alternative panorama path intended for mobile
     // the member variables below are only in use when m_IsNoCubeArray is true.
@@ -128,12 +124,12 @@ public class TextureCacheCubemap : TextureCache
         {
             if(!m_CubeBlitMaterial) m_CubeBlitMaterial = new Material(Shader.Find("Hidden/CubeToPano"));
 
-            m_PanoWidthTop = 4*width;
-            m_PanoHeightTop = 2*width;
+            int panoWidthTop = 4*width;
+            int panoHeightTop = 2*width;
 
             // create panorama 2D array. Hardcoding the render target for now when m_IsNoCubeArray is true. No convenient way atm. to
             // map from TextureFormat to RenderTextureFormat and don't want to deal with sRGB issues for now.
-            m_CacheNoCubeArray = new Texture2DArray(m_PanoWidthTop, m_PanoHeightTop, numCubeMaps, TextureFormat.RGBAHalf, isMipMapped)
+            m_CacheNoCubeArray = new Texture2DArray(panoWidthTop, panoHeightTop, numCubeMaps, TextureFormat.RGBAHalf, isMipMapped)
             {
                 hideFlags = HideFlags.HideAndDontSave,
                 wrapMode = TextureWrapMode.Repeat,
@@ -141,18 +137,16 @@ public class TextureCacheCubemap : TextureCache
                 anisoLevel = 0
             };
 
-            m_NumPanoMipLevels = isMipMapped ? GetNumMips(m_PanoWidthTop, m_PanoHeightTop) : 1;
+            m_NumPanoMipLevels = isMipMapped ? GetNumMips(panoWidthTop, panoHeightTop) : 1;
             m_StagingRTs = new RenderTexture[m_NumPanoMipLevels];
             for(int m=0; m<m_NumPanoMipLevels; m++)
             {
-                m_StagingRTs[m] = new RenderTexture(Mathf.Max(1,m_PanoWidthTop>>m), Mathf.Max(1,m_PanoHeightTop>>m), 0, RenderTextureFormat.ARGBHalf);
+                m_StagingRTs[m] = new RenderTexture(Mathf.Max(1,panoWidthTop>>m), Mathf.Max(1,panoHeightTop>>m), 0, RenderTextureFormat.ARGBHalf);
             }
 
             if(m_CubeBlitMaterial)
             {
                 m_CubeMipLevelPropName = Shader.PropertyToID("_cubeMipLvl");
-                m_dstPanoWidthPropName = Shader.PropertyToID("_dstPanoWidth");
-                m_dstPanoHeightPropName = Shader.PropertyToID("_dstPanoHeight");
                 m_cubeSrcTexPropName = Shader.PropertyToID("_srcCubeTexture");
             }
         }
@@ -191,8 +185,6 @@ public class TextureCacheCubemap : TextureCache
         for(int m=0; m<m_NumPanoMipLevels; m++)
         {
             m_CubeBlitMaterial.SetInt(m_CubeMipLevelPropName, Mathf.Min(m_NumMipLevels-1,m) );
-            m_CubeBlitMaterial.SetInt(m_dstPanoWidthPropName, m_StagingRTs[m].width);
-            m_CubeBlitMaterial.SetInt(m_dstPanoHeightPropName, m_StagingRTs[m].height);
             Graphics.SetRenderTarget(m_StagingRTs[m]);
             Graphics.Blit(null, m_CubeBlitMaterial, 0);
         }
