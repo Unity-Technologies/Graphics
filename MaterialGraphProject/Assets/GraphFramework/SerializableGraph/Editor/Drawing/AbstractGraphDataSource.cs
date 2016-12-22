@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Graphing;
 
@@ -16,7 +17,7 @@ namespace UnityEditor.Graphing.Drawing
         [SerializeField]
         private List<GraphElementData> m_TempElements = new List<GraphElementData>();
 
-        private readonly Dictionary<Type, Type> m_DataMapper = new Dictionary<Type, Type>();
+        private readonly TypeMapper m_DataMapper = new TypeMapper(typeof(NodeDrawData));
 
         public IGraphAsset graphAsset { get; private set; }
 
@@ -91,7 +92,7 @@ namespace UnityEditor.Graphing.Drawing
                 if (m_Elements.OfType<NodeDrawData>().Any(e => e.node == node))
                     continue;
 
-                var type = MapType(node.GetType());
+                var type = m_DataMapper.MapType(node.GetType());
                 var nodeData = (NodeDrawData)CreateInstance(type);
 
                 node.onModified += OnNodeChanged;
@@ -165,29 +166,12 @@ namespace UnityEditor.Graphing.Drawing
             m_Elements.AddRange(drawableEdges.OfType<GraphElementData>());
         }
 
-        private Type MapType(Type type)
-        {
-            Type found = null;
-            while (type != null)
-            {
-                if (m_DataMapper.TryGetValue(type, out found))
-                    break;
-                type = type.BaseType;
-            }
-            return found ?? typeof(NodeDrawData);
-        }
-
-        protected abstract void AddTypeMappings();
-
-        public void AddTypeMapping(Type node, Type drawData)
-        {
-            m_DataMapper[node] = drawData;
-        }
+        protected abstract void AddTypeMappings(Action<Type, Type> map);
 
         public virtual void Initialize(IGraphAsset graphAsset)
         {
             m_DataMapper.Clear();
-            AddTypeMappings();
+            AddTypeMappings(m_DataMapper.AddMapping);
 
             this.graphAsset = graphAsset;
 
