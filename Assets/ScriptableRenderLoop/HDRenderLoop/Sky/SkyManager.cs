@@ -29,12 +29,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     {
         public Matrix4x4                viewProjMatrix;
         public Matrix4x4                invViewProjMatrix;
+        public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
         public Mesh                     skyMesh;
         public RenderLoop               renderLoop;
         public Light                    sunLight;
         public RenderTargetIdentifier   colorBuffer;
         public RenderTargetIdentifier   depthBuffer;
+
+        public static RenderTargetIdentifier invalidRTI = -1;
     }
 
     public class SkyManager
@@ -163,7 +166,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_UpdateRequired = true; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
             }
-            
+
             if (m_SkyboxCubemapRT == null)
             {
                 m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.ARGBHalf);
@@ -273,7 +276,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 builtinParams.screenSize = m_CubemapScreenSize;
                 builtinParams.skyMesh = m_CubemapFaceMesh[i];
                 builtinParams.colorBuffer = target;
-                builtinParams.depthBuffer = new RenderTargetIdentifier();
+                builtinParams.depthBuffer = BuiltinSkyParameters.invalidRTI;
                 m_Renderer.RenderSky(builtinParams, skyParameters);
             }
         }
@@ -429,6 +432,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_BuiltinParameters.sunLight = sunLight;
                     m_BuiltinParameters.invViewProjMatrix = camera.invViewProjectionMatrix;
                     m_BuiltinParameters.viewProjMatrix = camera.viewProjectionMatrix;
+                    m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
                     m_BuiltinParameters.screenSize = camera.screenSize;
                     m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix, false);
                     m_BuiltinParameters.colorBuffer = colorBuffer;
