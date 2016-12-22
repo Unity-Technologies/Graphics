@@ -26,8 +26,6 @@ CGPROGRAM
 UNITY_DECLARE_TEXCUBE(_srcCubeTexture);
 
 uniform int _cubeMipLvl;
-uniform int _dstPanoWidth;
-uniform int _dstPanoHeight;
 
 
 struct v2f {
