@@ -53,7 +53,8 @@ namespace UnityEditor.Graphing.Drawing
             var selectedDrawers = graphDataSource.graphAsset.drawingData.selection
                 .Select(guid => contentViewContainer.children
                             .OfType<NodeDrawer>()
-                            .FirstOrDefault(drawer => ((NodeDrawData) drawer.dataProvider).node.guid == guid));
+                            .FirstOrDefault(drawer => ((NodeDrawData) drawer.dataProvider).node.guid == guid))
+                .ToList();
 
             foreach (var drawer in selectedDrawers)
                 AddToSelection(drawer);
