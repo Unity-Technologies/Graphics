@@ -8,7 +8,7 @@
 
 int cubeFaceId;                          // Cubemap face index
 
-TEXTURE2D(EnvMap)                        // Cubemap face (s.t. MIP 1: [textureSize x textureSize])
+TEXTURE2D(envMap)                        // Cubemap face (s.t. MIP 1: [textureSize x textureSize])
 
 /* --- Output --- */
 
@@ -48,7 +48,7 @@ void BuildProabilityTables(uint3 groupId          : SV_GroupID,
 
         // We use MIP level 1 to account for interpolation during light sampling.
         // Ref: PBRT v3, page 847.
-        float3 color     = LOAD_TEXTURE2D_LOD(EnvMap, int2(i, j), 1).rgb;
+        float3 color     = LOAD_TEXTURE2D_LOD(envMap, int2(i, j), 1).rgb;
         float  intensity = color.r + color.g + color.b;
 
         rowIntegralValue += intensity / textureSize;
