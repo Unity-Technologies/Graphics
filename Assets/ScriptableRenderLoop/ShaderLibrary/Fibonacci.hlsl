@@ -11,7 +11,7 @@ float2 Fibonacci2dSeq(float fibN1, float fibN2, int i)
 }
 
 static const int k_FibonacciSeq[] = {
-    0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377
+    0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610
 };
 
 static const float2 k_Fibonacci2dSeq21[] = {
@@ -133,20 +133,32 @@ static const float2 k_Fibonacci2dSeq55[] = {
     float2(0.98181820, 0.38181686)
 };
 
-// Loads elements from one of the precomputed tables for sequence lengths of 9, 10, 11.
-// Computes the values at runtime otherwise.
-// For sampling, the size of the point set is given by { k_FibonacciSeq[sequenceLength - 1] }.
-float2 Fibonacci2d(uint i, uint sequenceLength)
+// Loads elements from one of the precomputed tables for sample counts of 21, 34, 55.
+// Computes sample positions at runtime otherwise.
+// Sample count must be a Fibonacci number (see 'k_FibonacciSeq').
+float2 Fibonacci2d(uint i, uint sampleCount)
 {
-    int fibN1 = k_FibonacciSeq[sequenceLength - 1];
-    int fibN2 = k_FibonacciSeq[sequenceLength - 2];
-
-    switch (fibN1)
+    switch (sampleCount)
     {
         case 21: return k_Fibonacci2dSeq21[i];
         case 34: return k_Fibonacci2dSeq34[i];
         case 55: return k_Fibonacci2dSeq55[i];
-        default: Fibonacci2dSeq(fibN1, fibN2, i);
+        default:
+        {
+            int fibN1 = sampleCount;
+            int fibN2 = sampleCount;
+
+            // These are all constants, so this loop will be optimized away.
+            for (int j = 0; j < 16; j++)
+            {
+                if (k_FibonacciSeq[j] == fibN1)
+                {
+                    fibN2 = k_FibonacciSeq[j - 1];
+                }
+            }
+
+            return Fibonacci2dSeq(fibN1, fibN2, i);
+        }
     }
 }
 

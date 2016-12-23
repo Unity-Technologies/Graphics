@@ -41,7 +41,6 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
             TEXTURECUBE(_MainTex);
             SAMPLERCUBE(sampler_MainTex);
             float _Level;
-            float _MipMapCount;
             float _InvOmegaP;
 
             half4 Frag(Varyings input) : SV_Target
@@ -56,9 +55,8 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
                                             V,
                                             N,
                                             PerceptualRoughnessToRoughness(perceptualRoughness),
-                                            _MipMapCount,
                                             _InvOmegaP,
-                                            55, // Matches the size of the precomputed Fibonacci point set
+                                            55, // Must be a Fibonacci number
                                             true);
 
                 return val;

@@ -320,9 +320,8 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                     float3 V,
                     float3 N,
                     float roughness,
-                    float mipmapcount,
                     float invOmegaP,
-                    uint sampleCount,      // Matches the size of the precomputed Fibonacci point set
+                    uint sampleCount,      // Must be a Fibonacci number
                     bool prefilter = true) // static bool
 {
     float3 acc       = float3(0.0, 0.0, 0.0);
@@ -335,7 +334,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float2 u = k_Fibonacci2dSeq55[i];
+        float2 u = Fibonacci2d(i, sampleCount);
         u        = frac(u + randNum);
 
         float3 L;
