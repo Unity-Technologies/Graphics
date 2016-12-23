@@ -12,7 +12,7 @@ namespace RMGUI.GraphView
 
 		public RectangleSelector()
 		{
-			activateButtons[(int)MouseButton.LeftMouse] = true;
+			activators.Add(new ManipActivator {button = MouseButton.LeftMouse});
 			m_Rectangle = new RectangleSelect
 			{
 				positionType = PositionType.Absolute,

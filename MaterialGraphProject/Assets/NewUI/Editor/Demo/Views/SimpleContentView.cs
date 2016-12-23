@@ -33,6 +33,7 @@ namespace RMGUI.GraphView.Demo
 			dataMapper[typeof(SimpleElementPresenter)] = typeof(SimpleElement);
 			dataMapper[typeof(WWWImagePresenter)] = typeof(WWWImage);
 			dataMapper[typeof(IMGUIPresenter)] = typeof(IMGUIElement);
+			dataMapper[typeof(CommentPresenter)] = typeof(Comment);
 		}
 	}
 }

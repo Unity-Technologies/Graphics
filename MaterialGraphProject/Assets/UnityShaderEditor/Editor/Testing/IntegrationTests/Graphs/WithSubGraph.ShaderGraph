@@ -563,6 +563,8 @@ MonoBehaviour:
         \   }\n}"
     m_ActiveMasterNodeGUIDSerialized: 64b0bbae-b36d-4a39-a73f-d42252a1f3cc
   m_GeneratedShader: {fileID: 48506289944378500}
+  m_DrawingData:
+    m_SerializableSelection: []
 --- !u!48 &48506289944378500
 Shader:
   m_ObjectHideFlags: 0

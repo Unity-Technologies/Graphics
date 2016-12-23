@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
@@ -56,6 +57,8 @@ namespace RMGUI.GraphView
 				name = "output", // for USS&Flexbox
 				pickingMode = PickingMode.Ignore,
 			};
+
+			elementTypeColor = new Color(0.9f, 0.9f, 0.9f, 0.5f);
 
 			AddChild(mainContainer);
 			mainContainer.AddChild(m_InputContainer);
