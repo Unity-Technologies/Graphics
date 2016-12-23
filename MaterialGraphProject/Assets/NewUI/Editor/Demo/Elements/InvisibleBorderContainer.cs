@@ -13,5 +13,10 @@ namespace RMGUI.GraphView.Demo
 		{
 			return paddingRect.Contains(localPoint);
 		}
+
+		public InvisibleBorderContainer()
+		{
+			elementTypeColor = new Color(0.0f, 1.0f, 0.0f, 0.5f);
+		}
 	}
 }

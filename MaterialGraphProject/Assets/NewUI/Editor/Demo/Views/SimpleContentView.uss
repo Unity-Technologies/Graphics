@@ -55,3 +55,33 @@ InvisibleBorderContainer.graphElement {
 InvisibleBorderContainer.graphElement.selected {
 	border-color:#00F;
 }
+
+Comment.graphElement {
+	background-color:rgba(100, 0, 0, 0.3);
+}
+
+Comment.graphElement.selected {
+	border-color:rgba(0, 0, 0, 0.0);
+}
+
+Comment.graphElement #commentTitle {
+	font:path("Assets/Resources/BebasNeue.otf");
+	font-size:64;
+	text-alignment:upper-left;
+	text-color:rgba(192, 192, 192, 0.8);
+	border-left:3;
+	border-top:3;
+	border-right:3;
+	border-width:3;
+	text-clipping:clip;
+	word-wrap:true;
+}
+
+Comment.graphElement #commentBody {
+	font:path("Assets/Resources/Roboto/Roboto-Regular.ttf");
+	font-size:12;
+	text-alignment:upper-left;
+	text-color:rgba(192, 192, 192, 0.8);
+	text-clipping:clip;
+	word-wrap:true;
+}

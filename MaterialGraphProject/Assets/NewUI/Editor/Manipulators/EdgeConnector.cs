@@ -20,7 +20,7 @@ namespace RMGUI.GraphView
 
 		public EdgeConnector()
 		{
-			activateButtons[(int)MouseButton.LeftMouse] = true;
+			activators.Add(new ManipActivator {button = MouseButton.LeftMouse});
 		}
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)

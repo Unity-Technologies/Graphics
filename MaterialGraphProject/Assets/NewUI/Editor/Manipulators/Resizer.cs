@@ -21,22 +21,9 @@ namespace RMGUI.GraphView
 
 		private readonly Rect k_WidgetTextOffset = new Rect(0, 0, 5, 5);
 
-		public Resizer()
+		public Resizer() :
+			this(new Vector2(30.0f, 30.0f))
 		{
-			m_MinimumSize = new Vector2(30.0f, 30.0f);
-			activateButton = MouseButton.LeftMouse;
-
-			positionType = PositionType.Absolute;
-			positionTop = float.NaN;
-			positionLeft = float.NaN;
-			positionBottom = 0;
-			positionRight = 0;
-
-			// make clickable area bigger than render area
-			paddingLeft = 10;
-			paddingTop = 14;
-			width = 20;
-			height = 20;
 		}
 
 		public Resizer(Vector2 minimumSize)

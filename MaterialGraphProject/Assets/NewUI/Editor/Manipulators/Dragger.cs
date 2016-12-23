@@ -17,7 +17,7 @@ namespace RMGUI.GraphView
 
 		public Dragger()
 		{
-			activateButtons[(int)MouseButton.LeftMouse] = true;
+			activators.Add(new ManipActivator {button = MouseButton.LeftMouse});
 			panSpeed = new Vector2(1, 1);
 			clampToParentEdges = false;
 		}
