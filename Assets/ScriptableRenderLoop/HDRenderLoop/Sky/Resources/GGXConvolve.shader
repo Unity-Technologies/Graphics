@@ -40,6 +40,13 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
 
             TEXTURECUBE(_MainTex);
             SAMPLERCUBE(sampler_MainTex);
+
+            TEXTURE2D(_ConditionalDensities);
+            SAMPLER2D(sampler_ConditionalDensities)
+
+            TEXTURE2D(_MarginalRowDensities);
+            SAMPLER2D(sampler_MarginalRowDensities);
+
             float _Level;
             float _InvOmegaP;
 
