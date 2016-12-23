@@ -4,16 +4,16 @@
 
 /* --- Input --- */
 
-#define textureSize 128                  // TODO: make this dynamic
+#define textureSize 128                  // The size of the MIP level 1 of the input texture
 
 int cubeFaceId;                          // Cubemap face index
 
-TEXTURE2D(EnvMap)                        // Cubemap face
+TEXTURE2D(EnvMap)                        // Cubemap face (s.t. MIP 1: [textureSize x textureSize])
 
 /* --- Output --- */
 
-RWTexture2D<float> marginalRowDensities; // One column per face
-RWTexture2D<float> conditionalDensities; // Cubemap face
+RWTexture2D<float> marginalRowDensities; // One row per face: [textureSize x 8]
+RWTexture2D<float> conditionalDensities; // Cubemap face: [textureSize x textureSize]
 
 /* --- Shared --- */
 
@@ -30,10 +30,10 @@ void BuildProabilityTables(uint3 groupId          : SV_GroupID,
                            uint  groupIndex       : SV_GroupIndex)
 {
     // A single thread group processes a row of 'textureSize' texels.
-    int j = groupThreadId.y;
+    const int j = groupThreadId.y;
 
     // TODO: reduce storage requirements.
-    float temp[textureSize];
+    /* HUGE */ float temp[textureSize];
 
     // Compute the integral of the step function.
     float rowIntegralValue = 0.0;
@@ -74,18 +74,22 @@ void BuildProabilityTables(uint3 groupId          : SV_GroupID,
         float imgIntegralValue = 0.0;
 
         // TODO: run in parallel.
-        for (j = 0; j < textureSize; j++)
+        for (i = 0; i < textureSize; i++)
         {
-            temp[j] = imgIntegralValue;
+            temp[i] = imgIntegralValue;
 
-            imgIntegralValue += rowIntegralValues[j] / textureSize;
+            imgIntegralValue += rowIntegralValues[i] / textureSize;
         }
 
         // Compute the CDF. Note: the value at (i = textureSize) is implicitly 1.
         // TODO: run in parallel.
-        for (j = 0; j < textureSize; j++)
+        for (i = 0; i < textureSize; i++)
         {
-            marginalRowDensities[int2(cubeFaceId, j)] = temp[j] / imgIntegralValue;
+            marginalRowDensities[int2(i, cubeFaceId)] = temp[i] / imgIntegralValue;
         }
+
+        // Store the value of the integral of the entire image.
+        // TODO: find a better place for this.
+        marginalRowDensities[int2(0, 6)] = imgIntegralValue;
     }
 }
