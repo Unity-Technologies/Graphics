@@ -1,95 +1,192 @@
-// TODO: add description
+// Given a cube map (passed as a 2D array), builds CDFs of two distributions:
+// 1. 1D texture with marginal densities, telling us the likelihood of selecting a particular row,
+// 2. 2D texture with conditional densities, which correspond to the PDF of the texel given its row.
+// Ref: PBRT v3, 13.6.7 "Piecewise-Constant 2D Distributions".
 
 #include "Common.hlsl"
 
 /* --- Input --- */
 
-#define textureSize 128                  // The size of the MIP level 1 of the input texture
+#define TEXTURE_SIZE 256                 // The size of the input texture
+#define MIP1_SIZE    TEXTURE_SIZE / 2    // The size of the MIP level 1 of the input texture
 
-int cubeFaceId;                          // Cubemap face index
-
-TEXTURE2D(envMap)                        // Cubemap face (s.t. MIP 1: [textureSize x textureSize])
+TEXTURE2D_ARRAY(envMap)                  // Cubemap as an array: [TEXTURE_SIZE x TEXTURE_SIZE x 6]
 
 /* --- Output --- */
 
-RWTexture2D<float> marginalRowDensities; // One row per face: [textureSize x 8]
-RWTexture2D<float> conditionalDensities; // Cubemap face: [textureSize x textureSize]
-
-/* --- Shared --- */
-
-groupshared float rowIntegralValues[textureSize];
+RWTexture2D<float> marginalRowDensities; // 1D texture: [(6 * MIP1_SIZE + 1) x 1]
+RWTexture2D<float> conditionalDensities; // Array: [MIP1_SIZE x (6 * MIP1_SIZE)]
 
 /* --- Implementation --- */
 
-#pragma kernel BuildProabilityTables
+// Creates an access pattern which avoids shared memory bank conflicts.
+#define NUM_BANKS 32
+#define SHARED_MEM(x) ((x) + (x) / NUM_BANKS)
 
-[numthreads(1, textureSize, 1)]
-void BuildProabilityTables(uint3 groupId          : SV_GroupID,
-                           uint3 groupThreadId    : SV_GroupThreadID,
-                           uint3 dispatchThreadId : SV_DispatchThreadID,
-                           uint  groupIndex       : SV_GroupIndex)
+#pragma kernel ComputeConditionalDensities
+
+groupshared float rowVals[SHARED_MEM(MIP1_SIZE)];
+
+[numthreads(MIP1_SIZE / 2, 1, 1)]
+void ComputeConditionalDensities(uint3 groupId       : SV_GroupID,
+                                 uint3 groupThreadId : SV_GroupThreadID)
 {
-    // A single thread group processes a row of 'textureSize' texels.
-    const int j = groupThreadId.y;
+    // There are (MIP1_SIZE x 6) thread groups.
+    // A single thread group processes a row of MIP1_SIZE texels (2 per thread).
+    const uint n  = MIP1_SIZE;
+    const uint i  = groupThreadId.x;
+    const uint j  = groupId.x;
+    const uint k  = groupId.y;
+    const uint jk = Mad24(k, n, j);
+    const uint i1 = i;
+    const uint i2 = i + n / 2;
 
-    // TODO: reduce storage requirements.
-    /* HUGE */ float temp[textureSize];
+    // --------------------------------------------------------------------
+    // Compute the integral of the step function (row values).
+    // Perform a block-level parallel scan.
+    // Ref: GPU Gems 3, Chapter 39: "Parallel Prefix Sum (Scan) with CUDA".
+    // TODO: process 4 texels per thread, and manually unroll.
+    // --------------------------------------------------------------------
 
-    // Compute the integral of the step function.
-    float rowIntegralValue = 0.0;
+    // Step 1: load the row of data into shared memory.
+    // We use MIP level 1 to account for interpolation during light sampling.
+    // Ref: PBRT v3, page 847.
+    float3 c1 = LOAD_TEXTURE2D_ARRAY_LOD(envMap, uint2(i1, j), k, 1).rgb;
+    float3 c2 = LOAD_TEXTURE2D_ARRAY_LOD(envMap, uint2(i2, j), k, 1).rgb;
+    rowVals[SHARED_MEM(i1)] = c1.r + c1.g + c1.b;
+    rowVals[SHARED_MEM(i2)] = c2.r + c2.g + c2.b;
 
-    // Suppress the D3D compiler warning.
-    int i;
+    uint offset;
 
-    // TODO: run in parallel.
-    for (i = 0; i < textureSize; i++)
+    // Step 2: execute the up-sweep phase.
+    for (offset = 1; offset <= n / 2; offset *= 2)
     {
-        temp[i] = rowIntegralValue;
+        GroupMemoryBarrierWithGroupSync();
 
-        // We use MIP level 1 to account for interpolation during light sampling.
-        // Ref: PBRT v3, page 847.
-        float3 color     = LOAD_TEXTURE2D_LOD(envMap, int2(i, j), 1).rgb;
-        float  intensity = color.r + color.g + color.b;
+        /// a1 = (2 * i + 1) * offset - 1;
+        uint a1 = Mad24(Mad24(2, i, 1), offset, -1);
+        uint a2 = a1 + offset;
 
-        rowIntegralValue += intensity / textureSize;
+        if (a2 < n)
+        {
+            rowVals[SHARED_MEM(a2)] += rowVals[SHARED_MEM(a1)];
+        }
     }
 
-    // Prevent NaNs arising from the division of 0 by 0.
-    rowIntegralValue = max(rowIntegralValue, FLT_MIN);
-
-    // Compute the CDF. Note: the value at (i = textureSize) is implicitly 1.
-    // TODO: run in parallel.
-    for (i = 0; i < textureSize; i++)
-    {
-        conditionalDensities[int2(i, j)] = temp[i] / rowIntegralValue;
-    }
-
-    // Store the value of the integral.
-    rowIntegralValues[j] = rowIntegralValue;
     GroupMemoryBarrierWithGroupSync();
 
-    if (groupIndex == 0)
+    // Prevent NaNs arising from the division of 0 by 0.
+    float rowValSum = max(rowVals[SHARED_MEM(n - 1)], FLT_MIN);
+
+    if (i == 0)
     {
-        // Compute the integral of the step function.
-        float imgIntegralValue = 0.0;
-
-        // TODO: run in parallel.
-        for (i = 0; i < textureSize; i++)
-        {
-            temp[i] = imgIntegralValue;
-
-            imgIntegralValue += rowIntegralValues[i] / textureSize;
-        }
-
-        // Compute the CDF. Note: the value at (i = textureSize) is implicitly 1.
-        // TODO: run in parallel.
-        for (i = 0; i < textureSize; i++)
-        {
-            marginalRowDensities[int2(i, cubeFaceId)] = temp[i] / imgIntegralValue;
-        }
-
-        // Store the value of the integral of the entire image.
-        // TODO: find a better place for this.
-        marginalRowDensities[int2(0, 6)] = imgIntegralValue;
+        float rowIntegralValue = rowValSum / n;
+        marginalRowDensities[uint2(jk, 0)] = rowIntegralValue;
+        // The exclusive scan requires the 1st element to be 0.
+        rowVals[SHARED_MEM(n - 1)] = 0.0;
     }
+
+    // Step 3: execute the down-sweep phase.
+    for (offset = n / 2; offset > 0; offset /= 2)
+    {
+        GroupMemoryBarrierWithGroupSync();
+
+        /// a1 = (2 * i + 1) * offset - 1;
+        uint a1 = Mad24(Mad24(2, i, 1), offset, -1);
+        uint a2 = a1 + offset;
+
+        if (a2 < n)
+        {
+            float t1 = rowVals[SHARED_MEM(a1)];
+            rowVals[SHARED_MEM(a1)]  = rowVals[SHARED_MEM(a2)];
+            rowVals[SHARED_MEM(a2)] += t1;
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Compute the CDF. Note: the value at (i = n) is implicitly 1.
+    conditionalDensities[uint2(i1, jk)] = rowVals[SHARED_MEM(i1)] / rowValSum;
+    conditionalDensities[uint2(i2, jk)] = rowVals[SHARED_MEM(i2)] / rowValSum;
+}
+
+#pragma kernel ComputeMarginalRowDensities
+
+groupshared float rowInts[SHARED_MEM(8 * MIP1_SIZE)];
+
+[numthreads(8 * MIP1_SIZE / 2, 1, 1)]
+void ComputeMarginalRowDensities(uint3 groupThreadId : SV_GroupThreadID)
+{
+    // The size of the input is (6 * MIP1_SIZE).
+    // However, the algorithm only works with inputs of sizes which are powers of 2,
+    // therefore there is a single thread group processing (8 * MIP1_SIZE) texels (2 per thread).
+    const uint sz = 6 * MIP1_SIZE;
+    const uint n  = 8 * MIP1_SIZE;
+    const uint i  = groupThreadId.x;
+    const uint i1 = i;
+    const uint i2 = i + n / 2;
+
+    // --------------------------------------------------------------------
+    // Compute the integral of the step function (row integrals).
+    // Perform a block-level parallel scan.
+    // Ref: GPU Gems 3, Chapter 39: "Parallel Prefix Sum (Scan) with CUDA".
+    // TODO: process 4 texels per thread, and manually unroll.
+    // --------------------------------------------------------------------
+
+    // Step 1: load the row of data into shared memory.
+    rowInts[SHARED_MEM(i1)] = (i1 < sz) ? marginalRowDensities[uint2(i1, 0)] : 0.0;
+    rowInts[SHARED_MEM(i2)] = (i2 < sz) ? marginalRowDensities[uint2(i2, 0)] : 0.0;
+
+    uint offset;
+
+    // Step 2: execute the up-sweep phase.
+    for (offset = 1; offset <= n / 2; offset *= 2)
+    {
+        GroupMemoryBarrierWithGroupSync();
+
+        /// a1 = (2 * i + 1) * offset - 1;
+        uint a1 = Mad24(Mad24(2, i, 1), offset, -1);
+        uint a2 = a1 + offset;
+
+        if (a2 < n)
+        {
+            rowInts[SHARED_MEM(a2)] += rowInts[SHARED_MEM(a1)];
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Prevent NaNs arising from the division of 0 by 0.
+    float rowIntSum = max(rowInts[SHARED_MEM(n - 1)], FLT_MIN);
+
+    if (i == 0)
+    {
+        float imgIntegralValue = rowIntSum / sz;
+        marginalRowDensities[uint2(sz, 0)] = imgIntegralValue;
+        // The exclusive scan requires the 1st element to be 0.
+        rowInts[SHARED_MEM(n - 1)] = 0.0;
+    }
+
+    // Step 3: execute the down-sweep phase.
+    for (offset = n / 2; offset > 0; offset /= 2)
+    {
+        GroupMemoryBarrierWithGroupSync();
+
+        /// a1 = (2 * i + 1) * offset - 1;
+        uint a1 = Mad24(Mad24(2, i, 1), offset, -1);
+        uint a2 = a1 + offset;
+
+        if (a2 < n)
+        {
+            float t1 = rowInts[SHARED_MEM(a1)];
+            rowInts[SHARED_MEM(a1)]  = rowInts[SHARED_MEM(a2)];
+            rowInts[SHARED_MEM(a2)] += t1;
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Compute the CDF. Note: the value at (i = n) is implicitly 1.
+    if (i1 < sz) { marginalRowDensities[uint2(i1, 0)] = rowInts[SHARED_MEM(i1)] / rowIntSum; }
+    if (i2 < sz) { marginalRowDensities[uint2(i2, 0)] = rowInts[SHARED_MEM(i2)] / rowIntSum; }
 }

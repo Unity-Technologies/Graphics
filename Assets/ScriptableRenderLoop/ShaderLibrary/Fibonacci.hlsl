@@ -149,7 +149,7 @@ float2 Fibonacci2d(uint i, uint sampleCount)
             int fibN2 = sampleCount;
 
             // These are all constants, so this loop will be optimized away.
-            for (int j = 0; j < 16; j++)
+            for (int j = 1; j < 16; j++)
             {
                 if (k_FibonacciSeq[j] == fibN1)
                 {
