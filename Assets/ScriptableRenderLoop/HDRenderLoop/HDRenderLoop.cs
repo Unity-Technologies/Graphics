@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
-    public partial class HDRenderLoop : RenderPipeline
+    public partial class HDRenderLoop : RenderPipeline<ICameraProvider>
     {
         const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
@@ -260,7 +260,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
            UnityEngine.Rendering.GraphicsSettings.lightsUseCCT = previousLightsUseCCT;
         }
 
-        void InitAndClearBuffer(Camera camera, RenderLoop renderLoop)
+        void InitAndClearBuffer(Camera camera, ScriptableRenderContext renderLoop)
         {
             using (new Utilities.ProfilingSample("InitAndClearBuffer", renderLoop))
             {
@@ -310,7 +310,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        void RenderOpaqueRenderList(CullResults cull, Camera camera, RenderLoop renderLoop, string passName, RendererConfiguration rendererConfiguration = 0)
+        void RenderOpaqueRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderLoop, string passName, RendererConfiguration rendererConfiguration = 0)
         {
             if (!debugParameters.displayOpaqueObjects)
                 return;
@@ -324,7 +324,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             renderLoop.DrawRenderers(ref settings);
         }
 
-        void RenderTransparentRenderList(CullResults cull, Camera camera, RenderLoop renderLoop, string passName, RendererConfiguration rendererConfiguration = 0)
+        void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderLoop, string passName, RendererConfiguration rendererConfiguration = 0)
         {
             if (!debugParameters.displayTransparentObjects)
                 return;
@@ -338,7 +338,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             renderLoop.DrawRenderers(ref settings);
         }
 
-        void RenderDepthPrepass(CullResults cull, Camera camera, RenderLoop renderLoop)
+        void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderLoop)
         {
             // If we are forward only we will do a depth prepass
             // TODO: Depth prepass should be enabled based on light loop settings. LightLoop define if they need a depth prepass + forward only...
@@ -354,7 +354,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        void RenderGBuffer(CullResults cull, Camera camera, RenderLoop renderLoop)
+        void RenderGBuffer(CullResults cull, Camera camera, ScriptableRenderContext renderLoop)
         {
             if (debugParameters.useForwardRenderingOnly)
             {
@@ -371,7 +371,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 
         // This pass is use in case of forward opaque and deferred rendering. We need to render forward objects before tile lighting pass
-        void RenderForwardOnlyDepthPrepass(CullResults cull, Camera camera, RenderLoop renderLoop)
+        void RenderForwardOnlyDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderLoop)
         {
             // If we are forward only we don't need to render ForwardOpaqueDepth object
             // But in case we request a prepass we render it
@@ -385,7 +385,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        void RenderDebugViewMaterial(CullResults cull, HDCamera hdCamera, RenderLoop renderLoop)
+        void RenderDebugViewMaterial(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderLoop)
         {
             using (new Utilities.ProfilingSample("DebugView Material Mode Pass", renderLoop))
             // Render Opaque forward
@@ -425,7 +425,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        void RenderDeferredLighting(HDCamera hdCamera, RenderLoop renderLoop)
+        void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderLoop)
         {
             if (debugParameters.useForwardRenderingOnly)
             {
@@ -437,17 +437,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_lightLoop.RenderDeferredLighting(hdCamera, renderLoop, m_CameraColorBuffer);
         }
 
-        void UpdateSkyEnvironment(HDCamera hdCamera, RenderLoop renderLoop)
+        void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderLoop)
         {
             m_SkyManager.UpdateEnvironment(hdCamera, m_lightLoop.GetCurrentSunLight(), renderLoop);
         }
 
-        void RenderSky(HDCamera hdCamera, RenderLoop renderLoop)
+        void RenderSky(HDCamera hdCamera, ScriptableRenderContext renderLoop)
         {
             m_SkyManager.RenderSky(hdCamera, m_lightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthBufferRT, renderLoop);
         }
 
-        void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop, bool renderOpaque)
+        void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderLoop, bool renderOpaque)
         {
             // TODO: Currently we can't render opaque object forward when deferred is enabled
             // miss option
@@ -476,7 +476,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         // Render material that are forward opaque only (like eye)
         // TODO: Think about hair that could be render both as opaque and transparent...
-        void RenderForwardOnly(CullResults cullResults, Camera camera, RenderLoop renderLoop)
+        void RenderForwardOnly(CullResults cullResults, Camera camera, ScriptableRenderContext renderLoop)
         {
             using (new Utilities.ProfilingSample("Forward Only Pass", renderLoop))
             {
@@ -490,7 +490,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        void RenderForwardUnlit(CullResults cullResults, Camera camera, RenderLoop renderLoop)
+        void RenderForwardUnlit(CullResults cullResults, Camera camera, ScriptableRenderContext renderLoop)
         {
             using (new Utilities.ProfilingSample("Forward Unlit Pass", renderLoop))
             {
@@ -503,7 +503,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        void RenderVelocity(CullResults cullResults, Camera camera, RenderLoop renderLoop)
+        void RenderVelocity(CullResults cullResults, Camera camera, ScriptableRenderContext renderLoop)
         {
             using (new Utilities.ProfilingSample("Velocity Pass", renderLoop))
             {
@@ -524,7 +524,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        void RenderDistortion(CullResults cullResults, Camera camera, RenderLoop renderLoop)
+        void RenderDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderLoop)
         {
             if (!debugParameters.useDistortion)
                 return ;
@@ -546,7 +546,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        void FinalPass(RenderLoop renderLoop)
+        void FinalPass(ScriptableRenderContext renderLoop)
         {
             using (new Utilities.ProfilingSample("Final Pass", renderLoop))
             {
@@ -611,7 +611,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public void PushGlobalParams(HDCamera hdCamera, RenderLoop renderLoop)
+        public void PushGlobalParams(HDCamera hdCamera, ScriptableRenderContext renderLoop)
         {
             if (m_SkyManager.IsSkyValid())
             {
@@ -651,8 +651,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public override void Render(Camera[] cameras, RenderLoop renderLoop)
+        [NonSerialized]
+        readonly List<Camera> m_CamerasToRender = new List<Camera>();
+
+        public override void Render(ScriptableRenderContext renderLoop)
         {
+            if (realCameraProvider == null)
+                realCameraProvider = new DefaultCameraProvider();
+
+            realCameraProvider.GetCamerasToRender(m_CamerasToRender);
+            
             if (!m_LitRenderLoop.isInit)
             {
                 m_LitRenderLoop.RenderInit(renderLoop);
@@ -666,8 +674,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Set Frame constant buffer
             // TODO...
 
-            foreach (var camera in cameras)
+            foreach (var camera in m_CamerasToRender)
             {
+                if (!camera.enabled)
+                    continue;
+                
                 // Set camera constant buffer
                 // TODO...
 

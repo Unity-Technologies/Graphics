@@ -25,13 +25,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public virtual void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput) { }
         
         // TODO: this should not be part of the interface but for now make something working
-        public virtual void BuildGPULightLists(Camera camera, RenderLoop loop, RenderTargetIdentifier cameraDepthBufferRT) { }
+        public virtual void BuildGPULightLists(Camera camera, ScriptableRenderContext loop, RenderTargetIdentifier cameraDepthBufferRT) { }
 
-        public virtual void PushGlobalParams(Camera camera, RenderLoop loop) {}
+        public virtual void PushGlobalParams(Camera camera, ScriptableRenderContext loop) {}
 
-        public virtual void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT) {}
+        public virtual void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, ScriptableRenderContext renderLoop, RenderTargetIdentifier cameraColorBufferRT) {}
 
-        public virtual void RenderForward(Camera camera, RenderLoop renderLoop, bool renderOpaque) {}
+        public virtual void RenderForward(Camera camera, ScriptableRenderContext renderLoop, bool renderOpaque) {}
 
         public Light GetCurrentSunLight() { return m_CurrentSunLight;  }
     }

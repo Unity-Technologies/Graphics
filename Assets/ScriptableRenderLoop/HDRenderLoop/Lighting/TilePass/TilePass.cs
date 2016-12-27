@@ -1069,7 +1069,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
             }
 
-            public override void BuildGPULightLists(Camera camera, RenderLoop loop, RenderTargetIdentifier cameraDepthBufferRT)
+            public override void BuildGPULightLists(Camera camera, ScriptableRenderContext loop, RenderTargetIdentifier cameraDepthBufferRT)
             {
                 var w = camera.pixelWidth;
                 var h = camera.pixelHeight;
@@ -1143,7 +1143,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.Dispose();
             }
 
-            public override void PushGlobalParams(Camera camera, RenderLoop loop)
+            public override void PushGlobalParams(Camera camera, ScriptableRenderContext loop)
             {
                 Shader.SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
                 Shader.SetGlobalTexture("_CookieCubeTextures", m_CubeCookieTexArray.GetTexCache());
@@ -1205,7 +1205,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 #endif
 
-            public override void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT)
+            public override void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, ScriptableRenderContext renderLoop, RenderTargetIdentifier cameraColorBufferRT)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
@@ -1381,7 +1381,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 } // TilePass - Deferred Lighting Pass
             }
 
-            public override void RenderForward(Camera camera, RenderLoop renderLoop, bool renderOpaque)
+            public override void RenderForward(Camera camera, ScriptableRenderContext renderLoop, bool renderOpaque)
             {
                 // Note: if we use render opaque with deferred tiling we need to render a opque depth pass for these opaque objects
                 bool useFptl = renderOpaque && usingFptl;
