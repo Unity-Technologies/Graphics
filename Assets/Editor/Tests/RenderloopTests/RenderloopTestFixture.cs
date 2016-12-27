@@ -1,24 +1,34 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using NUnit.Framework;
-using UnityEngine.Experimental.ScriptableRenderLoop;
 using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
-public class RenderLoopTestFixture : RenderPipeline
+public class RenderLoopTestFixture : RenderPipeline<ICameraProvider>
 {
-    public delegate void TestDelegate(Camera camera, CullResults cullResults, RenderLoop renderLoop);
+    public delegate void TestDelegate(Camera camera, CullResults cullResults, ScriptableRenderContext renderLoop);
     private static TestDelegate s_Callback;
 
     private static RenderLoopTestFixture m_Instance;
 
-    public override void Render(Camera[] cameras, RenderLoop renderLoop)
+    [NonSerialized]
+    readonly List<Camera> m_CamerasToRender = new List<Camera>();
+
+    public override void Render(ScriptableRenderContext renderLoop)
     {
-        foreach (var camera in cameras)
+        if (realCameraProvider == null)
+            realCameraProvider = new DefaultCameraProvider();
+
+        realCameraProvider.GetCamerasToRender(m_CamerasToRender);
+
+        foreach (var camera in m_CamerasToRender)
         {
+            if (!camera.enabled)
+                continue;
+        
             CullingParameters cullingParams;
             bool gotCullingParams = CullResults.GetCullingParameters(camera, out cullingParams);
             Assert.IsTrue(gotCullingParams);

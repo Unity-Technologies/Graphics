@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
@@ -10,9 +12,8 @@ using UnityEngine.Experimental.Rendering;
 // - This loop also does not setup lightmaps, light probes, reflection probes or light cookies
 
 [ExecuteInEditMode]
-public class BasicRenderLoop : RenderPipeline
+public class BasicRenderLoop : RenderPipeline<ICameraProvider>
 {
-
 #if UNITY_EDITOR
     [UnityEditor.MenuItem("Renderloop/Create BasicRenderLoop")]
     static void CreateBasicRenderLoop()
@@ -23,15 +24,25 @@ public class BasicRenderLoop : RenderPipeline
 #endif
 
     public override void Build()
-    {
-    }
+    {}
 
     public override void Cleanup()
+    {}
+
+    [NonSerialized]
+    readonly List<Camera> m_CamerasToRender = new List<Camera>();
+    public override void Render(ScriptableRenderContext renderLoop)
     {
+        if (realCameraProvider == null)
+            realCameraProvider = new DefaultCameraProvider();
+
+        realCameraProvider.GetCamerasToRender(m_CamerasToRender);
+
+        Render(renderLoop, m_CamerasToRender);
     }
 
     // Main entry point for our scriptable render loop
-    public override void Render(Camera[] cameras, RenderLoop loop)
+    public static void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras)
     {
         foreach (var camera in cameras)
         {
@@ -39,42 +50,42 @@ public class BasicRenderLoop : RenderPipeline
             CullingParameters cullingParams;
             if (!CullResults.GetCullingParameters (camera, out cullingParams))
                 continue;
-            CullResults cull = CullResults.Cull (ref cullingParams, loop);
+            CullResults cull = CullResults.Cull (ref cullingParams, context);
 
             // Setup camera for rendering (sets render target, view/projection matrices and other
             // per-camera built-in shader variables).
-            loop.SetupCameraProperties (camera);
+            context.SetupCameraProperties (camera);
 
             // clear depth buffer
             var cmd = new CommandBuffer();
             cmd.ClearRenderTarget(true, false, Color.black);
-            loop.ExecuteCommandBuffer(cmd);
+            context.ExecuteCommandBuffer(cmd);
             cmd.Release();
 
             // Setup global lighting shader variables
-            SetupLightShaderVariables (cull.visibleLights, loop);
+            SetupLightShaderVariables (cull.visibleLights, context);
 
             // Draw opaque objects using BasicPass shader pass
             var settings = new DrawRendererSettings (cull, camera, new ShaderPassName("BasicPass"));
             settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque ();
-            loop.DrawRenderers (ref settings);
+            context.DrawRenderers (ref settings);
 
             // Draw skybox
-            loop.DrawSkybox (camera);
+            context.DrawSkybox (camera);
 
             // Draw transparent objects using BasicPass shader pass
             settings.sorting.flags = SortFlags.CommonTransparent;
             settings.inputFilter.SetQueuesTransparent ();
-            loop.DrawRenderers (ref settings);
+            context.DrawRenderers (ref settings);
 
-            loop.Submit ();
+            context.Submit ();
         }
     }
 
 
     // Setup lighting variables for shader to use
-    static void SetupLightShaderVariables (VisibleLight[] lights, RenderLoop loop)
+    static void SetupLightShaderVariables (VisibleLight[] lights, ScriptableRenderContext context)
     {
         // We only support up to 8 visible lights here. More complex approaches would
         // be doing some sort of per-object light setups, but here we go for simplest possible
@@ -154,7 +165,7 @@ public class BasicRenderLoop : RenderPipeline
         cmd.SetGlobalVectorArray ("globalLightAtten", lightAtten);
         cmd.SetGlobalVector ("globalLightCount", new Vector4 (lightCount, 0, 0, 0));
         cmd.SetGlobalVectorArray ("globalSH", shConstants);
-        loop.ExecuteCommandBuffer (cmd);
+        context.ExecuteCommandBuffer (cmd);
         cmd.Dispose ();
     }
 
@@ -183,4 +194,5 @@ public class BasicRenderLoop : RenderPipeline
         outCoefficients[6].z = ambientProbe[2, 8];
         outCoefficients[6].w = 1.0f;
     }
+
 }

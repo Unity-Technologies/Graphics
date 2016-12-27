@@ -279,7 +279,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             parameters.shadowDistance = Mathf.Min(m_Settings.maxShadowDistance, parameters.shadowDistance);
         }
 
-        public void Render(RenderLoop loop, CullResults cullResults, out ShadowOutput packedShadows)
+        public void Render(ScriptableRenderContext loop, CullResults cullResults, out ShadowOutput packedShadows)
         {
             if (!m_Settings.enabled)
             {
@@ -299,7 +299,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         //---------------------------------------------------------------------------------------------------------------------------------------------------
         // Render shadows
         //---------------------------------------------------------------------------------------------------------------------------------------------------
-        void RenderPackedShadows(RenderLoop loop, CullResults cullResults, ref ShadowOutput packedShadows)
+        void RenderPackedShadows(ScriptableRenderContext loop, CullResults cullResults, ref ShadowOutput packedShadows)
         {
             var setRenderTargetCommandBuffer = new CommandBuffer();
 
@@ -405,7 +405,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 
         //---------------------------------------------------------------------------------------------------------------------------------------------------
-        private void RenderShadowSplit(ref ShadowSliceData slice, Vector3 lightDirection, Matrix4x4 proj, Matrix4x4 view, ref RenderLoop loop, DrawShadowsSettings settings)
+        private void RenderShadowSplit(ref ShadowSliceData slice, Vector3 lightDirection, Matrix4x4 proj, Matrix4x4 view, ref ScriptableRenderContext loop, DrawShadowsSettings settings)
         {
             var commandBuffer = new CommandBuffer { name = "ShadowSetup" };
 

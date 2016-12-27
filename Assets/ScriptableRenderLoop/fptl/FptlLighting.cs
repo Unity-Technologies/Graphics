@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
-    public class FptlLighting : RenderPipeline
+    public class FptlLighting : RenderPipeline<ICameraProvider>
     {
 #if UNITY_EDITOR
         [UnityEditor.MenuItem("Renderloop/CreateRenderLoopFPTL")]
@@ -276,7 +276,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             //@TODO: render VR occlusion mesh
         }
 
-        static void RenderGBuffer(CullResults cull, Camera camera, RenderLoop loop)
+        static void RenderGBuffer(CullResults cull, Camera camera, ScriptableRenderContext loop)
         {
             // setup GBuffer for rendering
             var cmd = new CommandBuffer { name = "Create G-Buffer" };
@@ -297,7 +297,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             loop.DrawRenderers(ref settings);
         }
 
-        void RenderForward(CullResults cull, Camera camera, RenderLoop loop, bool opaquesOnly)
+        void RenderForward(CullResults cull, Camera camera, ScriptableRenderContext loop, bool opaquesOnly)
         {
             var cmd = new CommandBuffer { name = opaquesOnly ? "Prep Opaques Only Forward Pass" : "Prep Forward Pass" };
 
@@ -323,7 +323,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             loop.DrawRenderers(ref settings);
         }
 
-        static void DepthOnlyForForwardOpaques(CullResults cull, Camera camera, RenderLoop loop)
+        static void DepthOnlyForForwardOpaques(CullResults cull, Camera camera, ScriptableRenderContext loop)
         {
             var cmd = new CommandBuffer { name = "Forward Opaques - Depth Only" };
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_GBufferZ));
@@ -350,7 +350,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
         
-        static void CopyDepthAfterGBuffer(RenderLoop loop)
+        static void CopyDepthAfterGBuffer(ScriptableRenderContext loop)
         {
             var cmd = new CommandBuffer { name = "Copy depth" };
             cmd.CopyTexture(new RenderTargetIdentifier(s_GBufferZ), new RenderTargetIdentifier(s_CameraDepthTexture));
@@ -358,7 +358,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.Dispose();
         }
 
-        void DoTiledDeferredLighting(Camera camera, RenderLoop loop, int numLights, int numDirLights)
+        void DoTiledDeferredLighting(Camera camera, ScriptableRenderContext loop, int numLights, int numDirLights)
         {
             var bUseClusteredForDeferred = !usingFptl;
             var cmd = new CommandBuffer();
@@ -983,10 +983,21 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return numLightsOut + numProbesOut;
         }
 
-        public override void Render(Camera[] cameras, RenderLoop renderLoop)
+        [NonSerialized]
+        readonly List<Camera> m_CamerasToRender = new List<Camera>();
+
+        public override void Render(ScriptableRenderContext renderLoop)
         {
-            foreach (var camera in cameras)
+            if (realCameraProvider == null)
+                realCameraProvider = new DefaultCameraProvider();
+
+            realCameraProvider.GetCamerasToRender(m_CamerasToRender);
+
+            foreach (var camera in m_CamerasToRender)
             {
+                if (!camera.enabled)
+                    continue;
+
                 CullingParameters cullingParams;
                 if (!CullResults.GetCullingParameters(camera, out cullingParams))
                     continue;
@@ -1000,7 +1011,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             renderLoop.Submit();
         }
 
-        void FinalPass(RenderLoop loop)
+        void FinalPass(ScriptableRenderContext loop)
         {
             var cmd = new CommandBuffer { name = "FinalPass" };
             cmd.Blit(s_CameraTarget, BuiltinRenderTextureType.CameraTarget, m_BlitMaterial, 0);
@@ -1008,7 +1019,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.Dispose();
         }
 
-        void ExecuteRenderLoop(Camera camera, CullResults cullResults, RenderLoop loop)
+        void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
         {
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
@@ -1081,7 +1092,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         }
 
-        void DrawLightBoundsDebug(RenderLoop loop, int numLights)
+        void DrawLightBoundsDebug(ScriptableRenderContext loop, int numLights)
         {
             var cmd = new CommandBuffer { name = "DrawLightBoundsDebug" };
             m_DebugLightBoundsMaterial.SetBuffer("g_data", s_ConvexBoundsBuffer);
@@ -1098,7 +1109,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_CubeReflTexArray.NewFrame();
         }
 
-        void RenderShadowMaps(CullResults cullResults, RenderLoop loop)
+        void RenderShadowMaps(CullResults cullResults, ScriptableRenderContext loop)
         {
             ShadowOutput shadows;
             m_ShadowPass.Render(loop, cullResults, out shadows);
@@ -1223,7 +1234,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
         }
 
-        void BuildPerTileLightLists(Camera camera, RenderLoop loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr)
+        void BuildPerTileLightLists(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr)
         {
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
@@ -1286,7 +1297,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.Dispose();
         }
 
-        void PushGlobalParams(Camera camera, RenderLoop loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)
+        void PushGlobalParams(Camera camera, ScriptableRenderContext loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)
         {
             var cmd = new CommandBuffer { name = "Push Global Parameters" };
 
