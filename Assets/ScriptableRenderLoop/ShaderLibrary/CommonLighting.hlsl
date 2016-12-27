@@ -49,6 +49,21 @@ float ComputeCubeToSphereMapSqMagnitude(float3 v)
     return dot(v, v) - v2.x * v2.y - v2.y * v2.z - v2.z * v2.x + v2.x * v2.y * v2.z;
 }
 
+// texelArea = 4.0 / (resolution * resolution).
+// Ref: http://bpeers.com/blog/?itemid=1017
+float ComputeCubemapTexelSolidAngle(float3 L, float texelArea)
+{
+    // Stretch 'L' by (1/d) so that it points at a side of a [-1, 1]^2 cube.
+    float d = Max3(abs(L.x), abs(L.y), abs(L.z));
+    // Since 'L' is a unit vector, we can directly compute its
+    // new (inverse) length without dividing 'L' by 'd' first.
+    float invDist = d;
+
+    // dw = dA * cosTheta / (dist * dist), cosTheta = 1.0 / dist,
+    // where 'dA' is the area of the cube map texel.
+    return texelArea * invDist * invDist * invDist;
+}
+
 //-----------------------------------------------------------------------------
 // Attenuation functions
 //-----------------------------------------------------------------------------

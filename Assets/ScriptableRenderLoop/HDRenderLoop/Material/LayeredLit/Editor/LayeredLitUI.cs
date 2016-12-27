@@ -38,6 +38,12 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
             public readonly GUIContent UVDetailText = new GUIContent("Detail UV Mapping", "Detail UV Mapping mode of the layer.");
+            public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
+            public readonly GUIContent heightOffsetText = new GUIContent("HeightOffset", "Height offset from the previous layer.");
+            public readonly GUIContent heightFactorText = new GUIContent("Height Multiplier", "Scale applied to the height of the layer.");
+            public readonly GUIContent blendSizeText = new GUIContent("Blend Size", "Thickness over which the layer will be blended with the previous one.");
+
+
         }
 
         static StylesLayer s_Styles = null;
@@ -68,13 +74,22 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         MaterialProperty[] layerUVDetail = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
 
+        const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
+        MaterialProperty[] useHeightBasedBlend = new MaterialProperty[kMaxLayerCount-1];
+        const string kHeightOffset = "_HeightOffset";
+        MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount-1];
+        const string kHeightFactor = "_HeightFactor";
+        MaterialProperty[] heightFactor = new MaterialProperty[kMaxLayerCount-1];
+        const string kBlendSize = "_BlendSize";
+        MaterialProperty[] blendSize = new MaterialProperty[kMaxLayerCount-1];
+
         MaterialProperty layerEmissiveColor = null;
         MaterialProperty layerEmissiveColorMap = null;
         MaterialProperty layerEmissiveIntensity = null;
 
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
-			FindMaterialOptionProperties(props);
+            FindMaterialOptionProperties(props);
 
             layerMaskMap = FindProperty(kLayerMaskMap, props);
             layerMaskVertexColor = FindProperty(kLayerMaskVertexColor, props);
@@ -87,6 +102,14 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 layerUVMappingPlanar[i] = FindProperty(string.Format("{0}{1}", kUVMappingPlanar, i), props);
                 layerUVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, i), props);
                 layerUVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, i), props);
+
+                if(i != 0)
+                {
+                    useHeightBasedBlend[i-1] = FindProperty(string.Format("{0}{1}", kUseHeightBasedBlend, i), props);
+                    heightOffset[i-1] = FindProperty(string.Format("{0}{1}", kHeightOffset, i), props);
+                    heightFactor[i-1] = FindProperty(string.Format("{0}{1}", kHeightFactor, i), props);
+                    blendSize[i-1] = FindProperty(string.Format("{0}{1}", kBlendSize, i), props);
+                }
             }
 
             layerEmissiveColor = FindProperty(kEmissiveColor, props);
@@ -110,7 +133,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
         void SynchronizeLayerProperties(int layerIndex)
         {
-			string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVDetailsMappingMask };
+            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVMappingPlanar, kUVDetailsMappingMask };
 
             Material material = m_MaterialEditor.target as Material;
             Material layerMaterial = m_MaterialLayers[layerIndex];
@@ -124,41 +147,41 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                     string propertyName = ShaderUtil.GetPropertyName(layerShader, i);
                     string layerPropertyName = propertyName + layerIndex;
 
-					if(!exclusionList.Contains(propertyName))
-					{
-						if (material.HasProperty(layerPropertyName))
-						{
-							ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
-							switch (type)
-							{
-								case ShaderUtil.ShaderPropertyType.Color:
-								{
-									material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
-									break;
-								}
-								case ShaderUtil.ShaderPropertyType.Float:
-								case ShaderUtil.ShaderPropertyType.Range:
-								{
-									material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
-									break;
-								}
-								case ShaderUtil.ShaderPropertyType.Vector:
-								{
-									material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
-									break;
-								}
-								case ShaderUtil.ShaderPropertyType.TexEnv:
-								{
-									material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
-									material.SetTextureOffset(layerPropertyName, layerMaterial.GetTextureOffset(propertyName));
-									material.SetTextureScale(layerPropertyName, layerMaterial.GetTextureScale(propertyName));
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
+                    if(!exclusionList.Contains(propertyName))
+                    {
+                        if (material.HasProperty(layerPropertyName))
+                        {
+                            ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
+                            switch (type)
+                            {
+                                case ShaderUtil.ShaderPropertyType.Color:
+                                {
+                                    material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
+                                    break;
+                                }
+                                case ShaderUtil.ShaderPropertyType.Float:
+                                case ShaderUtil.ShaderPropertyType.Range:
+                                {
+                                    material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
+                                    break;
+                                }
+                                case ShaderUtil.ShaderPropertyType.Vector:
+                                {
+                                    material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
+                                    break;
+                                }
+                                case ShaderUtil.ShaderPropertyType.TexEnv:
+                                {
+                                    material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
+                                    material.SetTextureOffset(layerPropertyName, layerMaterial.GetTextureOffset(propertyName));
+                                    material.SetTextureScale(layerPropertyName, layerMaterial.GetTextureScale(propertyName));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         void InitializeMaterialLayers(AssetImporter materialImporter)
@@ -372,7 +395,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             m_MaterialEditor.ShaderProperty(layerUVBase[layerIndex], styles.UVBaseText);
             if (EditorGUI.EndChangeCheck())
             {
-				SynchronizeLayerProperties(layerIndex);
+                SynchronizeLayerProperties(layerIndex);
                 result = true;
             }
             if (((LayerUVBaseMapping)layerUVBase[layerIndex].floatValue == LayerUVBaseMapping.Planar) ||
@@ -388,8 +411,27 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 m_MaterialEditor.ShaderProperty(layerUVDetail[layerIndex], styles.UVDetailText);
                 if (EditorGUI.EndChangeCheck())
                 {
-					SynchronizeLayerProperties(layerIndex);
+                    SynchronizeLayerProperties(layerIndex);
                     result = true;
+                }
+            }
+
+            if(layerIndex > 0)
+            {
+                int heightParamIndex = layerIndex - 1;
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = useHeightBasedBlend[heightParamIndex].hasMixedValue;
+                bool enabled = EditorGUILayout.Toggle(styles.useHeightBasedBlendText, useHeightBasedBlend[heightParamIndex].floatValue > 0.0f);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    useHeightBasedBlend[heightParamIndex].floatValue = enabled ? 1.0f : 0.0f;
+                }
+
+                if(enabled)
+                {
+                    m_MaterialEditor.ShaderProperty(heightOffset[heightParamIndex], styles.heightOffsetText);
+                    m_MaterialEditor.ShaderProperty(heightFactor[heightParamIndex], styles.heightFactorText);
+                    m_MaterialEditor.ShaderProperty(blendSize[heightParamIndex], styles.blendSizeText);
                 }
             }
 
@@ -449,10 +491,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             return layerChanged;
         }
 
-		protected override void SetupMaterialKeywords(Material material)
+        protected override void SetupMaterialKeywords(Material material)
         {
-			SetupCommonOptionsKeywords(material);
-			SetupLayersKeywords(material);
+            SetupCommonOptionsKeywords(material);
+            SetupLayersKeywords(material);
 
             // Find first non null layer
             int i = 0;
@@ -464,7 +506,12 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap + i));
                 SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap + i));
                 SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap + i));
-				SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap + i));
+                SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap + i));
+
+                SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", ((DetailMapMode)material.GetFloat(kDetailMapMode)) == DetailMapMode.DetailWithNormal);
+                SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", ((HeightmapMode)material.GetFloat(kHeightMapMode)) == HeightmapMode.Displacement);
+                SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
+                SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
             }
 
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
@@ -492,7 +539,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             SetKeyword(material, "_REQUIRE_UV2_OR_UV3", UV2orUV3needed);
         }
 
-		void SetupLayersKeywords(Material material)
+        void SetupLayersKeywords(Material material)
         {
             if (numLayer == 4)
             {
@@ -583,18 +630,13 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
                 foreach (var obj in m_MaterialEditor.targets)
                 {
-					SetupMaterialKeywords((Material)obj);
+                    SetupMaterialKeywords((Material)obj);
                 }
 
                 SaveMaterialLayers(materialImporter);
             }
 
             m_MaterialEditor.serializedObject.ApplyModifiedProperties();
-
-            if (layerChanged)
-            {
-                materialImporter.SaveAndReimport();
-            }
         }
     }
 } // namespace UnityEditor
