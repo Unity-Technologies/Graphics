@@ -9,7 +9,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public class MaterialGraphAsset : ScriptableObject, IMaterialGraphAsset
+    public class MaterialGraphAsset : AbstractMaterialGraphAsset
     {
         [SerializeField]
         private MaterialGraph m_MaterialGraph = new MaterialGraph();
@@ -17,24 +17,9 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private Shader m_GeneratedShader;
 
-        public IGraph graph
+        public override IGraph graph
         {
             get { return m_MaterialGraph; }
-        }
-
-        public bool shouldRepaint
-        {
-            get { return graph.GetNodes<AbstractMaterialNode>().OfType<IRequiresTime>().Any(); }
-        }
-
-        public ScriptableObject GetScriptableObject()
-        {
-            return this;
-        }
-
-        public void OnEnable()
-        {
-            graph.OnEnable();
         }
 
 #if UNITY_EDITOR
@@ -110,14 +95,6 @@ namespace UnityEngine.MaterialGraph
         private int GetShaderInstanceID()
         {
             return m_GeneratedShader == null ? 0 : m_GeneratedShader.GetInstanceID();
-        }
-
-        [SerializeField]
-        private GraphDrawingData m_DrawingData = new GraphDrawingData();
-
-        public GraphDrawingData drawingData
-        {
-            get { return m_DrawingData; }
         }
     }
 }
