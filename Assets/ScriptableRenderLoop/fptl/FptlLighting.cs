@@ -995,9 +995,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             foreach (var camera in m_CamerasToRender)
             {
-                if (!camera.enabled)
-                    continue;
-
                 CullingParameters cullingParams;
                 if (!CullResults.GetCullingParameters(camera, out cullingParams))
                     continue;
