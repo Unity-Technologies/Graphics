@@ -7,7 +7,7 @@ using NUnit.Framework;
 using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
-public class RenderLoopTestFixture : RenderPipeline<ICameraProvider>
+public class RenderLoopTestFixture : BaseRenderPipeline
 {
     public delegate void TestDelegate(Camera camera, CullResults cullResults, ScriptableRenderContext renderLoop);
     private static TestDelegate s_Callback;
@@ -17,12 +17,9 @@ public class RenderLoopTestFixture : RenderPipeline<ICameraProvider>
     [NonSerialized]
     readonly List<Camera> m_CamerasToRender = new List<Camera>();
 
-    public override void Render(ScriptableRenderContext renderLoop)
+    public override void Render(ScriptableRenderContext renderLoop, IScriptableRenderDataStore dataStore)
     {
-        if (realCameraProvider == null)
-            realCameraProvider = new DefaultCameraProvider();
-
-        realCameraProvider.GetCamerasToRender(m_CamerasToRender);
+        cameraProvider.GetCamerasToRender(m_CamerasToRender);
 
         foreach (var camera in m_CamerasToRender)
         {
@@ -41,17 +38,7 @@ public class RenderLoopTestFixture : RenderPipeline<ICameraProvider>
 
         renderLoop.Submit();
     }
-
-    public override void Build()
-    {
-        
-    }
-
-    public override void Cleanup()
-    {
-        
-    }
-
+    
     public static void Run(TestDelegate renderCallback)
     {
         if (m_Instance == null)
