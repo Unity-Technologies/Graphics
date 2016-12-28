@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
-    public partial class HDRenderLoop : RenderPipeline<ICameraProvider>
+    public partial class HDRenderLoop : BaseRenderPipeline
     {
         const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
@@ -34,6 +34,30 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 #endif
+        private class HDLoopDataStore : BaseScriptableRenderDataStore
+        {
+            public HDLoopDataStore(BaseRenderPipeline owner) : base(owner)
+            { }
+
+            protected override void InternalBuild()
+            {
+                base.InternalBuild();
+                HDRenderLoop realOwner = GetRealOwner<HDRenderLoop>();
+                realOwner.Build();
+            }
+
+            protected override void InternalCleanup()
+            {
+                base.InternalBuild();
+                HDRenderLoop realOwner = GetRealOwner<HDRenderLoop>();
+                realOwner.Cleanup();
+            }
+        }
+
+        public override IScriptableRenderDataStore ConstructDataStore()
+        {
+            return new HDLoopDataStore(this);
+        }
 
         SkyManager m_SkyManager = new SkyManager();
         public SkyManager skyManager
@@ -189,7 +213,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             get { return m_CommonSettings; }
         }
 
-        public override void Build()
+        public void Build()
         {
 #if UNITY_EDITOR
             UnityEditor.SupportedRenderingFeatures.active = new UnityEditor.SupportedRenderingFeatures
@@ -243,7 +267,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_lightLoop.Build(m_TextureSettings);
         }
 
-        public override void Cleanup()
+        public void Cleanup()
         {
             m_lightLoop.Cleanup();
             m_LitRenderLoop.Cleanup();
@@ -654,12 +678,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         [NonSerialized]
         readonly List<Camera> m_CamerasToRender = new List<Camera>();
 
-        public override void Render(ScriptableRenderContext renderLoop)
+        public override void Render(ScriptableRenderContext renderLoop, IScriptableRenderDataStore dataStore)
         {
-            if (realCameraProvider == null)
-                realCameraProvider = new DefaultCameraProvider();
-
-            realCameraProvider.GetCamerasToRender(m_CamerasToRender);
+            base.Render(renderLoop, dataStore);
+            cameraProvider.GetCamerasToRender(m_CamerasToRender);
             
             if (!m_LitRenderLoop.isInit)
             {

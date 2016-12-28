@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
-    public class FptlLighting : RenderPipeline<ICameraProvider>
+    public class FptlLighting : BaseRenderPipeline
     {
 #if UNITY_EDITOR
         [UnityEditor.MenuItem("Renderloop/CreateRenderLoopFPTL")]
@@ -16,8 +16,27 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/renderloopfptl.asset");
             //AssetDatabase.CreateAsset(instance, "Assets/ScriptableRenderLoop/fptl/renderloopfptl.asset");
         }
-
 #endif
+
+        private class FptlLightingDataStore : BaseScriptableRenderDataStore
+        {
+            public FptlLightingDataStore(BaseRenderPipeline owner) : base(owner)
+            {}
+
+            protected override void InternalBuild()
+            {
+                base.InternalBuild();
+                FptlLighting realOwner = GetRealOwner<FptlLighting>();
+                realOwner.Build();
+            }
+            
+            protected override void InternalCleanup()
+            {
+                base.InternalBuild();
+                FptlLighting realOwner = GetRealOwner<FptlLighting>();
+                realOwner.Cleanup();
+            }
+        }
 
         [SerializeField]
         ShadowSettings m_ShadowSettings = ShadowSettings.Default;
@@ -114,7 +133,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         private Texture2D m_LightAttentuationTexture;
         private int m_shadowBufferID;
 
-        public override void Cleanup()
+        public void Cleanup()
         {
             if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
             if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
@@ -165,7 +184,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public override void Build()
+        public void Build()
         {
             s_GBufferAlbedo = Shader.PropertyToID("_CameraGBufferTexture0");
             s_GBufferSpecRough = Shader.PropertyToID("_CameraGBufferTexture1");
@@ -247,6 +266,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             s_BigTileLightList = null;
 
             m_shadowBufferID = Shader.PropertyToID("g_tShadowBuffer");
+        }
+
+        public override IScriptableRenderDataStore ConstructDataStore()
+        {
+            return new FptlLightingDataStore(this);
         }
 
         static void SetupGBuffer(int width, int height, CommandBuffer cmd)
@@ -986,12 +1010,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         [NonSerialized]
         readonly List<Camera> m_CamerasToRender = new List<Camera>();
 
-        public override void Render(ScriptableRenderContext renderLoop)
+        public override void Render(ScriptableRenderContext renderLoop, IScriptableRenderDataStore dataStore)
         {
-            if (realCameraProvider == null)
-                realCameraProvider = new DefaultCameraProvider();
-
-            realCameraProvider.GetCamerasToRender(m_CamerasToRender);
+            base.Render(renderLoop, dataStore);
+            cameraProvider.GetCamerasToRender(m_CamerasToRender);
 
             foreach (var camera in m_CamerasToRender)
             {

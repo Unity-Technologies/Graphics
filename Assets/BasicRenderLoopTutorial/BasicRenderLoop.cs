@@ -12,7 +12,7 @@ using UnityEngine.Experimental.Rendering;
 // - This loop also does not setup lightmaps, light probes, reflection probes or light cookies
 
 [ExecuteInEditMode]
-public class BasicRenderLoop : RenderPipeline<ICameraProvider>
+public class BasicRenderLoop : BaseRenderPipeline
 {
 #if UNITY_EDITOR
     [UnityEditor.MenuItem("Renderloop/Create BasicRenderLoop")]
@@ -23,21 +23,12 @@ public class BasicRenderLoop : RenderPipeline<ICameraProvider>
     }
 #endif
 
-    public override void Build()
-    {}
-
-    public override void Cleanup()
-    {}
-
     [NonSerialized]
     readonly List<Camera> m_CamerasToRender = new List<Camera>();
-    public override void Render(ScriptableRenderContext renderLoop)
+    public override void Render(ScriptableRenderContext renderLoop, IScriptableRenderDataStore dataStore)
     {
-        if (realCameraProvider == null)
-            realCameraProvider = new DefaultCameraProvider();
-
-        realCameraProvider.GetCamerasToRender(m_CamerasToRender);
-
+        base.Render(renderLoop, dataStore);
+        cameraProvider.GetCamerasToRender(m_CamerasToRender);
         Render(renderLoop, m_CamerasToRender);
     }
 
