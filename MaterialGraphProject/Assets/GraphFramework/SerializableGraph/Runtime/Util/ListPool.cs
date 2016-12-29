@@ -12,6 +12,11 @@ namespace UnityEngine.Graphing
             return s_ListPool.Get();
         }
 
+        public static PooledObject<List<T>> GetDisposable()
+        {
+            return s_ListPool.GetDisposable();
+        }
+
         public static void Release(List<T> toRelease)
         {
             s_ListPool.Release(toRelease);

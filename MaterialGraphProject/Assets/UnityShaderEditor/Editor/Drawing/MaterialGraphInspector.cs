@@ -98,13 +98,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             if (node == null)
                 return;
-            var childNodes = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(childNodes, node);
-            foreach (var childNode in childNodes)
+            using (var childNodes = ListPool<INode>.GetDisposable())
             {
-                action(childNode);
+                NodeUtils.DepthFirstCollectNodesFromNode(childNodes.value, node);
+                foreach (var childNode in childNodes.value)
+                {
+                    action(childNode);
+                }
             }
-            ListPool<INode>.Release(childNodes);
         }
     }
 }

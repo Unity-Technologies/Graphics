@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Events;
 
@@ -34,6 +35,11 @@ namespace UnityEngine.Graphing
             if (m_ActionOnGet != null)
                 m_ActionOnGet(element);
             return element;
+        }
+
+        public PooledObject<T> GetDisposable()
+        {
+            return new PooledObject<T>(this, Get());
         }
 
         public void Release(T element)
