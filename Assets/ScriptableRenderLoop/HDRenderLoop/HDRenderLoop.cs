@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             protected override void InternalBuild()
             {
-                base.InternalBuild();
+                base.InternalBuild(); 
                 HDRenderLoop realOwner = GetRealOwner<HDRenderLoop>();
                 realOwner.Build();
             }
@@ -782,6 +782,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 renderLoop.Submit();
             }
+
+            CleanCameras(m_CamerasToRender);
+            m_CamerasToRender.Clear();
 
             // Post effects
         }
