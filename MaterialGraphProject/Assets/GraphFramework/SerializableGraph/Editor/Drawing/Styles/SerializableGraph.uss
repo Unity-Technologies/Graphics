@@ -50,18 +50,20 @@
 }
 
 .Node NodeAnchor #connector {
-    background-color:#FF0;
-    border-color:#FF0;
+    background-color: rgb(20, 21, 21);
+    border-color: rgb(20, 21, 21);
     /* width is currently hard-coded */
     border-width: 4;
     margin-left: 5;
     margin-right: 5;
-    width: 15;
-    height: 15;
+    width: 10;
+    height: 10;
+    border-radius: 15;
 }
 
 .Node NodeAnchor #connector.anchorHighlight {
-    background-color:#00F;
+    background-color: rgb(220, 220, 220);
+    border-color: rgb(220, 220, 220);
 }
 
 .Node #input NodeAnchor {
