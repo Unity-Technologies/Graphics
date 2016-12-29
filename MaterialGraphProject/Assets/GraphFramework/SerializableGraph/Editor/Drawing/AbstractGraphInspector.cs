@@ -11,7 +11,7 @@ namespace UnityEditor.Graphing.Drawing
     {
         private readonly TypeMapper m_DataMapper = new TypeMapper(typeof(BasicNodeInspector));
 
-        [SerializeField] private List<AbstractNodeInspector> m_Inspectors = new List<AbstractNodeInspector>();
+        [SerializeField] protected List<AbstractNodeInspector> m_Inspectors = new List<AbstractNodeInspector>();
 
         protected abstract void AddTypeMappings(Action<Type, Type> map);
 
@@ -25,7 +25,7 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        private void UpdateInspectors()
+        protected virtual void UpdateInspectors()
         {
             var asset = target as IGraphAsset;
             if (asset == null)
@@ -50,7 +50,7 @@ namespace UnityEditor.Graphing.Drawing
             return CreateInstance(type) as AbstractNodeInspector;
         }
 
-        public void OnEnable()
+        public virtual void OnEnable()
         {
             m_DataMapper.Clear();
             AddTypeMappings(m_DataMapper.AddMapping);
