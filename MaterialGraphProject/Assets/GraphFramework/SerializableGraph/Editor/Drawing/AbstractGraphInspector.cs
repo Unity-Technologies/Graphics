@@ -13,6 +13,8 @@ namespace UnityEditor.Graphing.Drawing
 
         [SerializeField] protected List<AbstractNodeInspector> m_Inspectors = new List<AbstractNodeInspector>();
 
+        protected IGraphAsset m_GraphAsset;
+
         protected abstract void AddTypeMappings(Action<Type, Type> map);
 
         public override void OnInspectorGUI()
@@ -27,11 +29,10 @@ namespace UnityEditor.Graphing.Drawing
 
         protected virtual void UpdateInspectors()
         {
-            var asset = target as IGraphAsset;
-            if (asset == null)
+            if (m_GraphAsset == null)
                 return;
 
-            var selectedNodes = asset.drawingData.selection.Select(asset.graph.GetNodeFromGuid).ToList();
+            var selectedNodes = m_GraphAsset.drawingData.selection.Select(m_GraphAsset.graph.GetNodeFromGuid).ToList();
             if (m_Inspectors.All(i => i.node != null) && selectedNodes.Select(n => n.guid).SequenceEqual(m_Inspectors.Select(i => i.nodeGuid)))
                 return;
 
@@ -52,6 +53,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public virtual void OnEnable()
         {
+            m_GraphAsset = target as IGraphAsset;
             m_DataMapper.Clear();
             AddTypeMappings(m_DataMapper.AddMapping);
         }
