@@ -1028,6 +1028,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 
             renderLoop.Submit();
+
+            CleanCameras(m_CamerasToRender);
+            m_CamerasToRender.Clear();
         }
 
         void FinalPass(ScriptableRenderContext loop)

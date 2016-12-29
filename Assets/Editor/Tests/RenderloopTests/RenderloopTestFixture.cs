@@ -37,6 +37,9 @@ public class RenderLoopTestFixture : BaseRenderPipeline
         }
 
         renderLoop.Submit();
+
+        CleanCameras(m_CamerasToRender);
+        m_CamerasToRender.Clear();
     }
     
     public static void Run(TestDelegate renderCallback)

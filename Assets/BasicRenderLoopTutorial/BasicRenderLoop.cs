@@ -30,6 +30,8 @@ public class BasicRenderLoop : BaseRenderPipeline
         base.Render(renderLoop, dataStore);
         cameraProvider.GetCamerasToRender(m_CamerasToRender);
         Render(renderLoop, m_CamerasToRender);
+        CleanCameras(m_CamerasToRender);
+        m_CamerasToRender.Clear();
     }
 
     // Main entry point for our scriptable render loop
