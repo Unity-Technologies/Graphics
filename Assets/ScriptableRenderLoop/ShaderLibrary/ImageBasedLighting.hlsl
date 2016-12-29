@@ -39,25 +39,42 @@ float mipmapLevelToPerceptualRoughness(float mipmapLevel)
     return mipmapLevel / UNITY_SPECCUBE_LOD_STEPS;
 }
 
-// Performs conversion from equiareal map coordinates to cubemap (Cartesian) ones.
+//-----------------------------------------------------------------------------
+// Coordinate system conversion
+//-----------------------------------------------------------------------------
+
+// Converts Cartesian coordinates given in the right-handed coordinate system
+// with Z pointing upwards (OpenGL style) to the coordinates in the left-handed
+// coordinate system with Y pointing up (DirectX style).
+float3 TransformGLtoDX(float x, float y, float z)
+{
+    return float3(x, z, y);
+}
+
+float3 TransformGLtoDX(float3 v)
+{
+    return v.xzy;
+}
+
+// Performs conversion from equiareal map coordinates to Cartesian (DirectX cubemap) ones.
 float3 ConvertEquiarealToCubemap(float u, float v)
 {
     // We have to convert the direction vector from the Spherical to the Cartesian coordinates:
-    //     x = sin(theta) * sin(phi)
-    //     y = cos(theta)
-    //     z = sin(theta) * cos(phi)
+    //     x = sin(theta) * cos(phi)
+    //     y = sin(theta) * sin(phi)
+    //     z = cos(theta)
     // where our Equiareal map is defined as follows:
-    //     phi        = TWO_PI * u
+    //     phi        = TWO_PI * (1.0 - u)
     //     cos(theta) = 1.0 - 2.0 * v
     //     sin(theta) = sqrt(1.0 - cos^2(theta)) = 2.0 * sqrt(v - v * v)
 
     float sinPhi, cosPhi;
-    sincos(TWO_PI * u, sinPhi, cosPhi);
+    sincos(TWO_PI - TWO_PI * u, sinPhi, cosPhi);
 
     float cosTheta = 1.0 - 2.0 * v;
     float sinTheta = 2.0 * sqrt(v - v * v);
 
-    return float3(sinTheta * sinPhi, cosTheta, sinTheta * cosPhi);
+    return TransformGLtoDX(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
 }
 
 // Ref: See "Moving Frostbite to PBR" Listing 22
