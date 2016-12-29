@@ -247,7 +247,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     EditorUtility.SetDirty(renderLoop); // Repaint
 
                     // SetAssetDirty will tell renderloop to rebuild
-                    renderLoop.CleanupAllDataStores();
+                    renderLoop.Cleanup();
                 }
 
                 EditorGUI.BeginChangeCheck();

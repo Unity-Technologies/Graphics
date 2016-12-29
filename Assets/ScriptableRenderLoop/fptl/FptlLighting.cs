@@ -2,11 +2,12 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System;
 using System.Collections.Generic;
+using UnityEngine.ScriptableRenderPipeline;
 
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
-    public class FptlLighting : BaseRenderPipeline
+    public class FptlLighting : RenderPipeline
     {
 #if UNITY_EDITOR
         [UnityEditor.MenuItem("Renderloop/CreateRenderLoopFPTL")]
@@ -18,7 +19,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 #endif
 
-        private class FptlLightingDataStore : BaseScriptableRenderDataStore
+        private class FptlLightingDataStore : RenderingDataStore
         {
             public FptlLightingDataStore(BaseRenderPipeline owner) : base(owner)
             {}

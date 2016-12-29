@@ -2,12 +2,13 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
 using System;
+using UnityEngine.ScriptableRenderPipeline;
 
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
-    public partial class HDRenderLoop : BaseRenderPipeline
+    public partial class HDRenderLoop : RenderPipeline
     {
         const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
@@ -34,7 +35,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 #endif
-        private class HDLoopDataStore : BaseScriptableRenderDataStore
+        private class HDLoopDataStore : RenderingDataStore
         {
             public HDLoopDataStore(BaseRenderPipeline owner) : base(owner)
             { }

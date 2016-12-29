@@ -5,9 +5,10 @@ using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using NUnit.Framework;
 using UnityEngine.Rendering;
+using UnityEngine.ScriptableRenderPipeline;
 
 [ExecuteInEditMode]
-public class RenderLoopTestFixture : BaseRenderPipeline
+public class RenderLoopTestFixture : RenderPipeline
 {
     public delegate void TestDelegate(Camera camera, CullResults cullResults, ScriptableRenderContext renderLoop);
     private static TestDelegate s_Callback;
