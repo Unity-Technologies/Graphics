@@ -11,7 +11,9 @@ namespace UnityEditor.Graphing.Drawing
     {
         private readonly TypeMapper m_DataMapper = new TypeMapper(typeof(BasicNodeInspector));
 
-        [SerializeField] protected List<AbstractNodeInspector> m_Inspectors = new List<AbstractNodeInspector>();
+        protected List<INode> m_SelectedNodes;
+
+        protected List<AbstractNodeInspector> m_Inspectors = new List<AbstractNodeInspector>();
 
         protected IGraphAsset m_GraphAsset;
 
@@ -19,7 +21,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public override void OnInspectorGUI()
         {
-            UpdateInspectors();
+            UpdateSelection();
 
             foreach (var inspector in m_Inspectors)
             {
@@ -27,17 +29,23 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        protected virtual void UpdateInspectors()
+        private void UpdateSelection()
         {
             if (m_GraphAsset == null)
                 return;
 
             var selectedNodes = m_GraphAsset.drawingData.selection.Select(m_GraphAsset.graph.GetNodeFromGuid).ToList();
-            if (m_Inspectors.All(i => i.node != null) && selectedNodes.Select(n => n.guid).SequenceEqual(m_Inspectors.Select(i => i.nodeGuid)))
+            if (m_SelectedNodes != null && m_Inspectors.All(i => i.node != null) && selectedNodes.SequenceEqual(m_SelectedNodes))
                 return;
 
+            OnSelectionChanged(selectedNodes);
+        }
+
+        protected virtual void OnSelectionChanged(List<INode> selectedNodes)
+        {
+            m_SelectedNodes = selectedNodes;
             m_Inspectors.Clear();
-            foreach (var node in selectedNodes.OfType<SerializableNode>())
+            foreach (var node in m_SelectedNodes.OfType<SerializableNode>())
             {
                 var inspector = CreateInspector(node);
                 inspector.Initialize(node);
@@ -56,6 +64,7 @@ namespace UnityEditor.Graphing.Drawing
             m_GraphAsset = target as IGraphAsset;
             m_DataMapper.Clear();
             AddTypeMappings(m_DataMapper.AddMapping);
+            UpdateSelection();
         }
     }
 }

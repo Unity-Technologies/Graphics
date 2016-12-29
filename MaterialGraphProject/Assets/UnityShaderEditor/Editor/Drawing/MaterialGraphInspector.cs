@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine;
@@ -12,7 +13,6 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         private bool m_RequiresTime;
 
-        [SerializeField]
         private AbstractMaterialNode m_PreviewNode;
 
         private AbstractMaterialNode previewNode
@@ -35,28 +35,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        private void ForEachChild(INode node, Action<INode> action)
-        {
-            if (node == null)
-                return;
-            var childNodes = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(childNodes, node);
-            foreach (var childNode in childNodes)
-            {
-                action(childNode);
-            }
-            ListPool<INode>.Release(childNodes);
-        }
-
-        private AbstractMaterialNode m_SelectedNode;
-
-        [SerializeField]
         private NodePreviewDrawData m_NodePreviewPresenter;
 
-        [SerializeField]
-        private bool m_NodePinned;
-
-        private UnityEngine.MaterialGraph.MaterialGraph m_MaterialGraph;
+        private UnityEngine.MaterialGraph.MaterialGraph materialGraph
+        {
+            get { return m_GraphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph; }
+        }
 
         private void OnPreviewNodeModified(INode node, ModificationScope scope)
         {
@@ -66,27 +50,14 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public override void OnEnable()
         {
-            base.OnEnable();
             m_NodePreviewPresenter = CreateInstance<NodePreviewDrawData>();
-            if (m_GraphAsset != null)
-                m_MaterialGraph = m_GraphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph;
+            base.OnEnable();
+            previewNode = materialGraph.masterNode as AbstractMaterialNode;
         }
 
         protected override void AddTypeMappings(Action<Type, Type> map)
         {
             map(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector));
-        }
-
-        protected override void UpdateInspectors()
-        {
-            base.UpdateInspectors();
-
-            m_SelectedNode = m_Inspectors.Select(i => i.node).OfType<AbstractMaterialNode>().FirstOrDefault();
-
-            if (m_MaterialGraph == null || m_NodePinned)
-                return;
-
-            previewNode = m_SelectedNode ?? m_MaterialGraph.masterNode as AbstractMaterialNode;
         }
 
         public override bool HasPreviewGUI()
@@ -99,32 +70,18 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (Event.current.type == EventType.Repaint)
             {
                 var size = Mathf.Min(r.width, r.height);
-                var previewDimension = new Vector2(size, size);
-                var previewPosition = new Vector2(r.x + r.width*0.5f - size*0.5f, r.y + r.height*0.5f - size*0.5f);
-                var image = m_NodePreviewPresenter.Render(previewDimension);
-                GUI.DrawTexture(new Rect(previewPosition, previewDimension), image);
+                var image = m_NodePreviewPresenter.Render(new Vector2(size, size));
+                GUI.DrawTexture(r, image, ScaleMode.ScaleToFit);
                 m_NodePreviewPresenter.modificationScope = ModificationScope.Node;
             }
         }
 
         public override void OnPreviewSettings()
         {
-            if (m_Inspectors.Any() && !(m_NodePinned && m_SelectedNode == m_PreviewNode))
-            {
-                if (GUILayout.Button("Pin selected", "preButton"))
-                {
-                    previewNode = m_SelectedNode;
-                    m_NodePinned = true;
-                }
-            }
-            else if (!m_NodePinned)
-            {
-                if (GUILayout.Button("Pin", "preButton"))
-                    m_NodePinned = true;
-            }
-
-            if (m_NodePinned && GUILayout.Button("Unpin", "preButton"))
-                m_NodePinned = false;
+            GUI.enabled = m_SelectedNodes.Count == 1 && m_SelectedNodes.FirstOrDefault() != previewNode;
+            if (GUILayout.Button("Pin selected", "preButton"))
+                previewNode = m_SelectedNodes.FirstOrDefault() as AbstractMaterialNode;
+            GUI.enabled = true;
         }
 
         public override bool RequiresConstantRepaint()
@@ -135,6 +92,19 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override GUIContent GetPreviewTitle()
         {
             return new GUIContent(m_PreviewNode.name);
+        }
+
+        private void ForEachChild(INode node, Action<INode> action)
+        {
+            if (node == null)
+                return;
+            var childNodes = ListPool<INode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(childNodes, node);
+            foreach (var childNode in childNodes)
+            {
+                action(childNode);
+            }
+            ListPool<INode>.Release(childNodes);
         }
     }
 }
