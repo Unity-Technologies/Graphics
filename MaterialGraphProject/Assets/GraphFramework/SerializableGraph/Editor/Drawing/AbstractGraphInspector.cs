@@ -11,7 +11,7 @@ namespace UnityEditor.Graphing.Drawing
     {
         private readonly TypeMapper m_DataMapper = new TypeMapper(typeof(BasicNodeInspector));
 
-        protected List<INode> m_SelectedNodes;
+        protected List<INode> m_SelectedNodes = new List<INode>();
 
         protected List<AbstractNodeInspector> m_Inspectors = new List<AbstractNodeInspector>();
 
@@ -34,16 +34,18 @@ namespace UnityEditor.Graphing.Drawing
             if (m_GraphAsset == null)
                 return;
 
-            var selectedNodes = m_GraphAsset.drawingData.selection.Select(m_GraphAsset.graph.GetNodeFromGuid).ToList();
-            if (m_SelectedNodes != null && m_Inspectors.All(i => i.node != null) && selectedNodes.SequenceEqual(m_SelectedNodes))
-                return;
-
-            OnSelectionChanged(selectedNodes);
+            using (var selectedNodes = ListPool<INode>.GetDisposable())
+            {
+                selectedNodes.value.AddRange(m_GraphAsset.drawingData.selection.Select(m_GraphAsset.graph.GetNodeFromGuid));
+                if (m_SelectedNodes == null || m_Inspectors.Any(i => i.node == null) || !selectedNodes.value.SequenceEqual(m_SelectedNodes))
+                    OnSelectionChanged(selectedNodes.value);
+            }
         }
 
-        protected virtual void OnSelectionChanged(List<INode> selectedNodes)
+        protected virtual void OnSelectionChanged(IEnumerable<INode> selectedNodes)
         {
-            m_SelectedNodes = selectedNodes;
+            m_SelectedNodes.Clear();
+            m_SelectedNodes.AddRange(selectedNodes);
             m_Inspectors.Clear();
             foreach (var node in m_SelectedNodes.OfType<SerializableNode>())
             {
