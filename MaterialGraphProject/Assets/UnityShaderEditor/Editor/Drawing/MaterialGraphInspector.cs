@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using UnityEditor.Graphing.Drawing;
-using UnityEditor.MaterialGraph.Drawing.NodeInspectors;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
@@ -11,8 +10,14 @@ namespace UnityEditor.MaterialGraph.Drawing
     [CustomEditor(typeof(MaterialGraphAsset))]
     public class MaterialGraphInspector : AbstractGraphInspector
     {
+        [SerializeField]
         private AbstractMaterialNode m_PreviewNode;
+
+        [SerializeField]
         private NodePreviewDrawData m_NodePreviewPresenter;
+
+        [SerializeField]
+        private bool m_NodePinned;
 
         public override void OnEnable()
         {
@@ -28,6 +33,8 @@ namespace UnityEditor.MaterialGraph.Drawing
         protected override void UpdateInspectors()
         {
             base.UpdateInspectors();
+            if (m_NodePinned)
+                return;
             var newPreviewNode = m_Inspectors.Select(i => i.node).OfType<AbstractMaterialNode>().FirstOrDefault();
             if (newPreviewNode != m_PreviewNode)
             {
@@ -54,14 +61,22 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
+        public override void OnPreviewSettings()
+        {
+            if (GUILayout.Button(m_NodePinned ? "Unpin" : "Pin", "preButton"))
+            {
+                m_NodePinned = !m_NodePinned;
+            }
+        }
+
         public override bool RequiresConstantRepaint()
         {
-            return true;
+            return m_PreviewNode != null;
         }
 
         public override GUIContent GetPreviewTitle()
         {
-            return new GUIContent(m_Inspectors.Select(i => i.node.name).FirstOrDefault());
+            return new GUIContent(m_PreviewNode.name);
         }
     }
 }

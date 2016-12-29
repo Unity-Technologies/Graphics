@@ -1,9 +1,7 @@
 ﻿using UnityEditor.Graphing.Drawing;
-using UnityEngine;
-using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.MaterialGraph.Drawing.NodeInspectors
+namespace UnityEditor.MaterialGraph.Drawing
 {
     public class SurfaceMasterNodeInspector : BasicNodeInspector
     {
