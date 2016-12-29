@@ -39,6 +39,27 @@ float mipmapLevelToPerceptualRoughness(float mipmapLevel)
     return mipmapLevel / UNITY_SPECCUBE_LOD_STEPS;
 }
 
+// Performs conversion from equiareal map coordinates to cubemap (Cartesian) ones.
+float3 ConvertEquiarealToCubemap(float u, float v)
+{
+    // We have to convert the direction vector from the Spherical to the Cartesian coordinates:
+    //     x = sin(theta) * sin(phi)
+    //     y = cos(theta)
+    //     z = sin(theta) * cos(phi)
+    // where our Equiareal map is defined as follows:
+    //     phi        = TWO_PI * u
+    //     cos(theta) = 1.0 - 2.0 * v
+    //     sin(theta) = sqrt(1.0 - cos^2(theta)) = 2.0 * sqrt(v - v * v)
+
+    float sinPhi, cosPhi;
+    sincos(TWO_PI * u, sinPhi, cosPhi);
+
+    float cosTheta = 1.0 - 2.0 * v;
+    float sinTheta = 2.0 * sqrt(v - v * v);
+
+    return float3(sinTheta * sinPhi, cosTheta, sinTheta * cosPhi);
+}
+
 // Ref: See "Moving Frostbite to PBR" Listing 22
 // This formulation is for GGX only (with smith joint visibility or regular)
 float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)
