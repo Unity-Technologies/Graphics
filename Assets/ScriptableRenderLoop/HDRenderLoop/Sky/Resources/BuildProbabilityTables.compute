@@ -2,20 +2,23 @@
 // 1. 1D texture with marginal densities, telling us the likelihood of selecting a particular row,
 // 2. 2D texture with conditional densities, which correspond to the PDF of the texel given its row.
 // Ref: PBRT v3, 13.6.7 "Piecewise-Constant 2D Distributions".
+// Note that we use the equiareal mapping instead of the latitude-longitude one.
 
 #include "Common.hlsl"
+#include "ImageBasedLighting.hlsl"
 
 /* --- Input --- */
 
-#define TEXTURE_SIZE 256                 // The size of the input texture
-#define MIP1_SIZE    TEXTURE_SIZE / 2    // The size of the MIP level 1 of the input texture
+#define TEXTURE_HEIGHT 256                // MIS equiareal texture map: cos(theta) = 1.0 - 2.0 * v
+#define TEXTURE_WIDTH  2 * TEXTURE_HEIGHT // MIS equiareal texture map: phi        = TWO_PI * u
 
-TEXTURE2D_ARRAY(envMap)                  // Cubemap as an array: [TEXTURE_SIZE x TEXTURE_SIZE x 6]
+TEXTURECUBE(envMap)                       // Input cubemap
+SAMPLERCUBE(sampler_envMap)
 
 /* --- Output --- */
 
-RWTexture2D<float> marginalRowDensities; // 1D texture: [(6 * MIP1_SIZE + 1) x 1]
-RWTexture2D<float> conditionalDensities; // Array: [MIP1_SIZE x (6 * MIP1_SIZE)]
+RWTexture2D<float> marginalRowDensities;  // [(TEXTURE_HEIGHT + 1) x 1] (+ 1 for the image integral)
+RWTexture2D<float> conditionalDensities;  // [TEXTURE_WIDTH x TEXTURE_HEIGHT]
 
 /* --- Implementation --- */
 
@@ -25,21 +28,30 @@ RWTexture2D<float> conditionalDensities; // Array: [MIP1_SIZE x (6 * MIP1_SIZE)]
 
 #pragma kernel ComputeConditionalDensities
 
-groupshared float rowVals[SHARED_MEM(MIP1_SIZE)];
+groupshared float rowVals[SHARED_MEM(TEXTURE_WIDTH)];
 
-[numthreads(MIP1_SIZE / 2, 1, 1)]
+[numthreads(TEXTURE_WIDTH / 2, 1, 1)]
 void ComputeConditionalDensities(uint3 groupId       : SV_GroupID,
                                  uint3 groupThreadId : SV_GroupThreadID)
 {
-    // There are (MIP1_SIZE x 6) thread groups.
-    // A single thread group processes a row of MIP1_SIZE texels (2 per thread).
-    const uint n  = MIP1_SIZE;
+    // There are TEXTURE_HEIGHT thread groups.
+    // A single thread group processes a row of TEXTURE_WIDTH texels (2 per thread).
+    const uint n  = TEXTURE_WIDTH;
     const uint i  = groupThreadId.x;
     const uint j  = groupId.x;
-    const uint k  = groupId.y;
-    const uint jk = Mad24(k, n, j);
     const uint i1 = i;
     const uint i2 = i + n / 2;
+
+    float w  = TEXTURE_WIDTH;
+    float h  = TEXTURE_HEIGHT;
+    float u1 = i1 / w + 0.5 / w;
+    float u2 = i2 / w + 0.5 / w;
+    float v  = j  / h + 0.5 / h;
+
+    float3 L1 = ConvertEquiarealToCubemap(u1, v);
+    float3 L2 = ConvertEquiarealToCubemap(u2, v);
+    float3 c1 = SAMPLE_TEXTURECUBE_LOD(envMap, sampler_envMap, L1, 0).rgb;
+    float3 c2 = SAMPLE_TEXTURECUBE_LOD(envMap, sampler_envMap, L2, 0).rgb;
 
     // --------------------------------------------------------------------
     // Compute the integral of the step function (row values).
@@ -49,10 +61,6 @@ void ComputeConditionalDensities(uint3 groupId       : SV_GroupID,
     // --------------------------------------------------------------------
 
     // Step 1: load the row of data into shared memory.
-    // We use MIP level 1 to account for interpolation during light sampling.
-    // Ref: PBRT v3, page 847.
-    float3 c1 = LOAD_TEXTURE2D_ARRAY_LOD(envMap, uint2(i1, j), k, 1).rgb;
-    float3 c2 = LOAD_TEXTURE2D_ARRAY_LOD(envMap, uint2(i2, j), k, 1).rgb;
     rowVals[SHARED_MEM(i1)] = c1.r + c1.g + c1.b;
     rowVals[SHARED_MEM(i2)] = c2.r + c2.g + c2.b;
 
@@ -81,7 +89,7 @@ void ComputeConditionalDensities(uint3 groupId       : SV_GroupID,
     if (i == 0)
     {
         float rowIntegralValue = rowValSum / n;
-        marginalRowDensities[uint2(jk, 0)] = rowIntegralValue;
+        marginalRowDensities[uint2(j, 0)] = rowIntegralValue;
         // The exclusive scan requires the 1st element to be 0.
         rowVals[SHARED_MEM(n - 1)] = 0.0;
     }
@@ -106,22 +114,19 @@ void ComputeConditionalDensities(uint3 groupId       : SV_GroupID,
     GroupMemoryBarrierWithGroupSync();
 
     // Compute the CDF. Note: the value at (i = n) is implicitly 1.
-    conditionalDensities[uint2(i1, jk)] = rowVals[SHARED_MEM(i1)] / rowValSum;
-    conditionalDensities[uint2(i2, jk)] = rowVals[SHARED_MEM(i2)] / rowValSum;
+    conditionalDensities[uint2(i1, j)] = rowVals[SHARED_MEM(i1)] / rowValSum;
+    conditionalDensities[uint2(i2, j)] = rowVals[SHARED_MEM(i2)] / rowValSum;
 }
 
 #pragma kernel ComputeMarginalRowDensities
 
-groupshared float rowInts[SHARED_MEM(8 * MIP1_SIZE)];
+groupshared float rowInts[SHARED_MEM(TEXTURE_HEIGHT)];
 
-[numthreads(8 * MIP1_SIZE / 2, 1, 1)]
+[numthreads(TEXTURE_HEIGHT / 2, 1, 1)]
 void ComputeMarginalRowDensities(uint3 groupThreadId : SV_GroupThreadID)
 {
-    // The size of the input is (6 * MIP1_SIZE).
-    // However, the algorithm only works with inputs of sizes which are powers of 2,
-    // therefore there is a single thread group processing (8 * MIP1_SIZE) texels (2 per thread).
-    const uint sz = 6 * MIP1_SIZE;
-    const uint n  = 8 * MIP1_SIZE;
+    // The size of the input is TEXTURE_HEIGHT. There is only one thread group.
+    const uint n  = TEXTURE_HEIGHT;
     const uint i  = groupThreadId.x;
     const uint i1 = i;
     const uint i2 = i + n / 2;
@@ -134,8 +139,8 @@ void ComputeMarginalRowDensities(uint3 groupThreadId : SV_GroupThreadID)
     // --------------------------------------------------------------------
 
     // Step 1: load the row of data into shared memory.
-    rowInts[SHARED_MEM(i1)] = (i1 < sz) ? marginalRowDensities[uint2(i1, 0)] : 0.0;
-    rowInts[SHARED_MEM(i2)] = (i2 < sz) ? marginalRowDensities[uint2(i2, 0)] : 0.0;
+    rowInts[SHARED_MEM(i1)] = marginalRowDensities[uint2(i1, 0)];
+    rowInts[SHARED_MEM(i2)] = marginalRowDensities[uint2(i2, 0)];
 
     uint offset;
 
@@ -161,8 +166,8 @@ void ComputeMarginalRowDensities(uint3 groupThreadId : SV_GroupThreadID)
 
     if (i == 0)
     {
-        float imgIntegralValue = rowIntSum / sz;
-        marginalRowDensities[uint2(sz, 0)] = imgIntegralValue;
+        float imgIntegralValue = rowIntSum / n;
+        marginalRowDensities[uint2(n, 0)] = imgIntegralValue;
         // The exclusive scan requires the 1st element to be 0.
         rowInts[SHARED_MEM(n - 1)] = 0.0;
     }
@@ -187,6 +192,6 @@ void ComputeMarginalRowDensities(uint3 groupThreadId : SV_GroupThreadID)
     GroupMemoryBarrierWithGroupSync();
 
     // Compute the CDF. Note: the value at (i = n) is implicitly 1.
-    if (i1 < sz) { marginalRowDensities[uint2(i1, 0)] = rowInts[SHARED_MEM(i1)] / rowIntSum; }
-    if (i2 < sz) { marginalRowDensities[uint2(i2, 0)] = rowInts[SHARED_MEM(i2)] / rowIntSum; }
+    marginalRowDensities[uint2(i1, 0)] = rowInts[SHARED_MEM(i1)] / rowIntSum;
+    marginalRowDensities[uint2(i2, 0)] = rowInts[SHARED_MEM(i2)] / rowIntSum;
 }
