@@ -13,6 +13,8 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         private bool m_RequiresTime;
 
+        private GUIContent m_Title = new GUIContent();
+
         private AbstractMaterialNode m_PreviewNode;
 
         private AbstractMaterialNode previewNode
@@ -25,6 +27,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 ForEachChild(m_PreviewNode, (node) => node.onModified -= OnPreviewNodeModified);
                 m_PreviewNode = value;
                 m_NodePreviewPresenter.Initialize(value);
+                m_Title.text = m_PreviewNode.name;
                 m_RequiresTime = false;
                 ForEachChild(m_PreviewNode,
                              (node) =>
@@ -48,16 +51,16 @@ namespace UnityEditor.MaterialGraph.Drawing
             Repaint();
         }
 
+        protected override void AddTypeMappings(Action<Type, Type> map)
+        {
+            map(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector));
+        }
+
         public override void OnEnable()
         {
             m_NodePreviewPresenter = CreateInstance<NodePreviewDrawData>();
             base.OnEnable();
             previewNode = materialGraph.masterNode as AbstractMaterialNode;
-        }
-
-        protected override void AddTypeMappings(Action<Type, Type> map)
-        {
-            map(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector));
         }
 
         public override bool HasPreviewGUI()
@@ -91,7 +94,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public override GUIContent GetPreviewTitle()
         {
-            return new GUIContent(m_PreviewNode.name);
+            return m_Title;
         }
 
         private void ForEachChild(INode node, Action<INode> action)
