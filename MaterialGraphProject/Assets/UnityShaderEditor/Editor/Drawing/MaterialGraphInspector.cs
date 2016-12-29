@@ -10,8 +10,45 @@ namespace UnityEditor.MaterialGraph.Drawing
     [CustomEditor(typeof(MaterialGraphAsset))]
     public class MaterialGraphInspector : AbstractGraphInspector
     {
+        private bool m_RequiresTime;
+
         [SerializeField]
         private AbstractMaterialNode m_PreviewNode;
+
+        private AbstractMaterialNode previewNode
+        {
+            get { return m_PreviewNode; }
+            set
+            {
+                if (value == m_PreviewNode)
+                    return;
+                ForEachChild(m_PreviewNode, (node) => node.onModified -= OnPreviewNodeModified);
+                m_PreviewNode = value;
+                m_NodePreviewPresenter.Initialize(value);
+                m_RequiresTime = false;
+                ForEachChild(m_PreviewNode,
+                             (node) =>
+                             {
+                                 node.onModified += OnPreviewNodeModified;
+                                 m_RequiresTime |= node is IRequiresTime;
+                             });
+            }
+        }
+
+        private void ForEachChild(INode node, Action<INode> action)
+        {
+            if (node == null)
+                return;
+            var childNodes = ListPool<INode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(childNodes, node);
+            foreach (var childNode in childNodes)
+            {
+                action(childNode);
+            }
+            ListPool<INode>.Release(childNodes);
+        }
+
+        private AbstractMaterialNode m_SelectedNode;
 
         [SerializeField]
         private NodePreviewDrawData m_NodePreviewPresenter;
@@ -19,10 +56,20 @@ namespace UnityEditor.MaterialGraph.Drawing
         [SerializeField]
         private bool m_NodePinned;
 
+        private UnityEngine.MaterialGraph.MaterialGraph m_MaterialGraph;
+
+        private void OnPreviewNodeModified(INode node, ModificationScope scope)
+        {
+            m_NodePreviewPresenter.modificationScope = scope;
+            Repaint();
+        }
+
         public override void OnEnable()
         {
             base.OnEnable();
             m_NodePreviewPresenter = CreateInstance<NodePreviewDrawData>();
+            if (m_GraphAsset != null)
+                m_MaterialGraph = m_GraphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph;
         }
 
         protected override void AddTypeMappings(Action<Type, Type> map)
@@ -33,14 +80,13 @@ namespace UnityEditor.MaterialGraph.Drawing
         protected override void UpdateInspectors()
         {
             base.UpdateInspectors();
-            if (m_NodePinned)
+
+            m_SelectedNode = m_Inspectors.Select(i => i.node).OfType<AbstractMaterialNode>().FirstOrDefault();
+
+            if (m_MaterialGraph == null || m_NodePinned)
                 return;
-            var newPreviewNode = m_Inspectors.Select(i => i.node).OfType<AbstractMaterialNode>().FirstOrDefault();
-            if (newPreviewNode != m_PreviewNode)
-            {
-                m_PreviewNode = newPreviewNode;
-                m_NodePreviewPresenter.Initialize(m_PreviewNode);
-            }
+
+            previewNode = m_SelectedNode ?? m_MaterialGraph.masterNode as AbstractMaterialNode;
         }
 
         public override bool HasPreviewGUI()
@@ -63,15 +109,27 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public override void OnPreviewSettings()
         {
-            if (GUILayout.Button(m_NodePinned ? "Unpin" : "Pin", "preButton"))
+            if (m_Inspectors.Any() && !(m_NodePinned && m_SelectedNode == m_PreviewNode))
             {
-                m_NodePinned = !m_NodePinned;
+                if (GUILayout.Button("Pin selected", "preButton"))
+                {
+                    previewNode = m_SelectedNode;
+                    m_NodePinned = true;
+                }
             }
+            else if (!m_NodePinned)
+            {
+                if (GUILayout.Button("Pin", "preButton"))
+                    m_NodePinned = true;
+            }
+
+            if (m_NodePinned && GUILayout.Button("Unpin", "preButton"))
+                m_NodePinned = false;
         }
 
         public override bool RequiresConstantRepaint()
         {
-            return m_PreviewNode != null;
+            return m_RequiresTime;
         }
 
         public override GUIContent GetPreviewTitle()
