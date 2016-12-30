@@ -18,15 +18,15 @@
 
 // Texture abstraction
 
-#define TEXTURE2D(textureName) Texture2D textureName;
-#define TEXTURE2D_ARRAY(textureName) Texture2DArray textureName;
-#define TEXTURECUBE(textureName) TextureCube textureName;
-#define TEXTURECUBE_ARRAY(textureName) TextureCubeArray textureName;
-#define TEXTURE3D(textureName) Texture3D textureName;
+#define TEXTURE2D(textureName) Texture2D textureName
+#define TEXTURE2D_ARRAY(textureName) Texture2DArray textureName
+#define TEXTURECUBE(textureName) TextureCube textureName
+#define TEXTURECUBE_ARRAY(textureName) TextureCubeArray textureName
+#define TEXTURE3D(textureName) Texture3D textureName
 
-#define SAMPLER2D(samplerName) SamplerState samplerName;
-#define SAMPLERCUBE(samplerName) SamplerState samplerName;
-#define SAMPLER3D(samplerName) SamplerState samplerName;
+#define SAMPLER2D(samplerName) SamplerState samplerName
+#define SAMPLERCUBE(samplerName) SamplerState samplerName
+#define SAMPLER3D(samplerName) SamplerState samplerName
 #define SAMPLER2D_SHADOW(samplerName) SamplerComparisonState samplerName
 #define SAMPLERCUBE_SHADOW(samplerName) SamplerComparisonState samplerName
 
