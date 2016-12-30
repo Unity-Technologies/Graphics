@@ -56,7 +56,7 @@ uniform float       _RayleighExtinctionFactor;
 uniform float       _MiePhaseAnisotropy;
 uniform float       _MieExtinctionFactor;
 
-SAMPLER2D(sampler_CameraDepthTexture)
+SAMPLER2D(sampler_CameraDepthTexture);
 #define SRL_BilinearSampler sampler_CameraDepthTexture // Used for all textures
 
 TEXTURE2D(_CameraDepthTexture);

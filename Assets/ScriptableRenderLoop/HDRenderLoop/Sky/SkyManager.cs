@@ -206,15 +206,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_SkyboxMarginalRowCdfRT.filterMode = FilterMode.Point;
                     m_SkyboxMarginalRowCdfRT.Create();
 
+                    // TODO: switch the format to R16 (once it's available) to save some bandwidth.
                     m_SkyboxConditionalCdfRT = new RenderTexture(MIS_TEXTURE_WIDTH, MIS_TEXTURE_HEIGHT, 1, RenderTextureFormat.RFloat);
                     m_SkyboxConditionalCdfRT.dimension = TextureDimension.Tex2D;
                     m_SkyboxConditionalCdfRT.useMipMap = false;
                     m_SkyboxConditionalCdfRT.autoGenerateMips = false;
                     m_SkyboxConditionalCdfRT.enableRandomWrite = true;
                     m_SkyboxConditionalCdfRT.filterMode = FilterMode.Point;
+                    m_SkyboxConditionalCdfRT.Create();
                 }
-
-                m_SkyboxConditionalCdfRT.Create();
             }
 
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
@@ -381,8 +381,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (m_useMIS)
                 {
-                    m_GGXConvolveMaterial.SetTexture("_ConditionalDensities", m_SkyboxConditionalCdfRT);
+                    m_GGXConvolveMaterial.EnableKeyword("USE_MIS");
                     m_GGXConvolveMaterial.SetTexture("_MarginalRowDensities", m_SkyboxMarginalRowCdfRT);
+                    m_GGXConvolveMaterial.SetTexture("_ConditionalDensities", m_SkyboxConditionalCdfRT);
                 }
 
                 for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)

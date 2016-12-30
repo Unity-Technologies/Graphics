@@ -12,6 +12,8 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
             #pragma target 5.0
             #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
+            #pragma multi_compile _ USE_MIS
+
             #pragma vertex Vert
             #pragma fragment Frag
 
@@ -41,11 +43,12 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
             TEXTURECUBE(_MainTex);
             SAMPLERCUBE(sampler_MainTex);
 
-            TEXTURE2D(_ConditionalDensities);
-            SAMPLER2D(sampler_ConditionalDensities)
-
-            TEXTURE2D(_MarginalRowDensities);
-            SAMPLER2D(sampler_MarginalRowDensities);
+            #ifdef USE_MIS
+                #define MIS_TEXTURE_HEIGHT 256
+                #define MIS_TEXTURE_WIDTH  2 * MIS_TEXTURE_HEIGHT
+                TEXTURE2D(_MarginalRowDensities);
+                TEXTURE2D(_ConditionalDensities);
+            #endif
 
             float _Level;
             float _InvOmegaP;
