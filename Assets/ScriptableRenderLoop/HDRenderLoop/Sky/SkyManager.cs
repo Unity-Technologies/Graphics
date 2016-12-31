@@ -373,18 +373,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 //for (int f = 0; f < 6; f++)
                 //    Graphics.CopyTexture(input, f, 0, target, f, 0);
 
-                // Do the convolution on remaining mipmaps
-                float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
-
-                m_GGXConvolveMaterial.SetTexture("_MainTex", input);
-                m_GGXConvolveMaterial.SetFloat("_InvOmegaP", invOmegaP);
-
                 if (m_useMIS)
                 {
                     m_GGXConvolveMaterial.EnableKeyword("USE_MIS");
                     m_GGXConvolveMaterial.SetTexture("_MarginalRowDensities", m_SkyboxMarginalRowCdfRT);
                     m_GGXConvolveMaterial.SetTexture("_ConditionalDensities", m_SkyboxConditionalCdfRT);
                 }
+
+                // Do the convolution on remaining mipmaps
+                float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
+
+                m_GGXConvolveMaterial.SetTexture("_MainTex", input);
+                m_GGXConvolveMaterial.SetFloat("_InvOmegaP", invOmegaP);
 
                 for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
                 {

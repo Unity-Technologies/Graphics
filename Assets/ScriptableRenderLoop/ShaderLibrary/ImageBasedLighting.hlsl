@@ -11,7 +11,9 @@
 //-----------------------------------------------------------------------------
 
 // TODO: We need to change this hard limit!
-#define UNITY_SPECCUBE_LOD_STEPS (6)
+#ifndef UNITY_SPECCUBE_LOD_STEPS
+    #define UNITY_SPECCUBE_LOD_STEPS 6
+#endif
 
 float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
 {
@@ -45,7 +47,7 @@ float mipmapLevelToPerceptualRoughness(float mipmapLevel)
 
 // Converts Cartesian coordinates given in the right-handed coordinate system
 // with Z pointing upwards (OpenGL style) to the coordinates in the left-handed
-// coordinate system with Y pointing up (DirectX style).
+// coordinate system with Y pointing up and Z facing forward (DirectX style).
 float3 TransformGLtoDX(float x, float y, float z)
 {
     return float3(x, z, y);
@@ -59,11 +61,11 @@ float3 TransformGLtoDX(float3 v)
 // Performs conversion from equiareal map coordinates to Cartesian (DirectX cubemap) ones.
 float3 ConvertEquiarealToCubemap(float u, float v)
 {
-    // We have to convert the direction vector from the Spherical to the Cartesian coordinates:
+    // We have to convert the direction vector from the spherical to the Cartesian coordinates:
     //     x = sin(theta) * cos(phi)
     //     y = sin(theta) * sin(phi)
     //     z = cos(theta)
-    // where our Equiareal map is defined as follows:
+    // The equiareal mapping is defined as follows:
     //     phi        = TWO_PI * (1.0 - u)
     //     cos(theta) = 1.0 - 2.0 * v
     //     sin(theta) = sqrt(1.0 - cos^2(theta)) = 2.0 * sqrt(v - v * v)
@@ -357,21 +359,20 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                     float3 N,
                     float roughness,
                     float invOmegaP,
-                    uint sampleCount, // static int (must be a Fibonacci number)
+                    uint sampleCount, // static uint (must be a Fibonacci number)
                     bool prefilter)   // static bool
 {
-    float3 acc       = float3(0.0, 0.0, 0.0);
-    float  accWeight = 0;
-
-    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
-
     float3 tangentX, tangentY;
     GetLocalFrame(N, tangentX, tangentY);
 
+    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
+
+    float3 lightInt = float3(0.0, 0.0, 0.0);
+    float  cbsdfInt = 0.0;
+
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float2 u = Fibonacci2d(i, sampleCount);
-        u        = frac(u + randNum);
+        float2 u = frac(randNum + Fibonacci2d(i, sampleCount));
 
         float3 L;
         float  NdotH;
@@ -409,17 +410,141 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             mipLevel        = 0.5 * log2(omegaS * invOmegaP) + 1.0;           // Clamp is not necessary as the hardware will do it
         }
 
-        if (NdotL > 0.0f)
+        if (NdotL > 0.0)
         {
             float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
-            // See p63 equation (53) of moving Frostbite to PBR v2 for the extra NdotL here (both in weight and value)
-            acc             += val * NdotL;
-            accWeight       += NdotL;
+            // *********************************************************************************
+            // Our goal is to use Monte-Carlo integration with importance sampling to evaluate
+            // X(V)   = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
+            // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
+            // PDF    = D * NdotH / (4 * LdotH).
+            // Weight = CBSDF / PDF = F * G * LdotH / (NdotV * NdotH).
+            // Since we perform filtering with the assumption that (V == N),
+            // (LdotH == NdotH) && (NdotV == 1) && (Weight == F * G).
+            // We use the approximation of Brian Karis from "Real Shading in Unreal Engine 4":
+            // Weight ≈ NdotL, which produces nearly identical results in practice.
+            // *********************************************************************************
+
+            lightInt += NdotL * val;
+            cbsdfInt += NdotL;
         }
     }
 
-    return float4(acc * (1.0 / accWeight), 1.0);
+    return float4(lightInt / cbsdfInt, 1.0);
+}
+
+float4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
+                       TEXTURE2D(marginalRowDensities),
+                       TEXTURE2D(conditionalDensities),
+                       float3 V,
+                       float3 N,
+                       float roughness,
+                       float invOmegaP,
+                       uint width,       // static uint
+                       uint height,      // static uint
+                       uint sampleCount, // static uint
+                       bool prefilter)   // static bool
+{
+    float3 tangentX, tangentY;
+    GetLocalFrame(N, tangentX, tangentY);
+
+    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
+
+    float3 lightInt = float3(0.0, 0.0, 0.0);
+    float  cbsdfInt = 0.0;
+
+/*
+    // Dedicate 50% of samples to light sampling at 1.0 roughness.
+    // Only perform BSDF sampling when roughness is below 0.5.
+    const int lightSampleCount = lerp(0, sampleCount / 2, saturate(2.0 * roughness - 1.0));
+    const int bsdfSampleCount  = sampleCount - lightSampleCount;
+*/
+
+    // The value of the integral of intensity values of the environment map (as a 2D step function).
+    float envMapInt2dStep = LOAD_TEXTURE2D(marginalRowDensities, uint2(height, 0)).r;
+    // Since we are using equiareal mapping, we need to divide by the area of the sphere.
+    float envMapIntSphere = envMapInt2dStep * INV_FOUR_PI;
+
+    // Perform light importance sampling.
+    for (uint i = 0; i < sampleCount; i++)
+    {
+        float2 s = frac(randNum + Hammersley2d(i, sampleCount));
+
+        // Sample a row from the marginal distribution.
+        uint  y = height - 1;
+        float d = LOAD_TEXTURE2D(marginalRowDensities, uint2(y, 0)).r;
+
+        if (s.x < d)
+        {
+            y = 0;
+
+            // Perform binary search.
+            for (uint b = 1 << firstbithigh(height - 1); b != 0; b >>= 1)
+            {
+                uint mid = y | b;
+                d = LOAD_TEXTURE2D(marginalRowDensities, uint2(mid, 0)).r;
+                if (d <= s.x) { y = mid; } // Move to the right.
+            }
+        }
+
+        // TODO: early-out.
+
+        // Sample a column from the conditional distribution.
+        uint x = width - 1;
+        d = LOAD_TEXTURE2D(conditionalDensities, uint2(x, y)).r;
+
+        if (s.y < d)
+        {
+            x = 0;
+
+            // Perform binary search.
+            for (uint b = 1 << firstbithigh(width - 1); b != 0; b >>= 1)
+            {
+                uint mid = x | b;
+                d = LOAD_TEXTURE2D(conditionalDensities, uint2(mid, y)).r;
+                if (d <= s.y) { x = mid; } // Move to the right.
+            }
+        }
+
+        // Compute the coordinates of the sample.
+        // Note: we take the sample in between two texels, and also apply the half-texel offset.
+        // We could compute fractional coordinates at the cost of 4 extra texel samples.
+        float  u = saturate((float)x / width  + 1.0 / width);
+        float  v = saturate((float)y / height + 1.0 / height);
+        float3 L = ConvertEquiarealToCubemap(u, v);
+
+        float NdotL = saturate(dot(N, L));
+
+        if (NdotL > 0.0)
+        {
+            float3 val = SAMPLE_TEXTURECUBE_LOD(envMap, sampler_envMap, L, 0).rgb;
+            float  pdf = (val.r + val.g + val.b) / envMapIntSphere;
+
+            if (pdf > 0.0)
+            {
+                // (N == V) && (acos(VdotL) == 2 * acos(NdotH)).
+                float NdotH = sqrt(NdotL * 0.5 + 0.5);
+
+                // *********************************************************************************
+                // Our goal is to use Monte-Carlo integration with importance sampling to evaluate
+                // X(V)   = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
+                // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
+                // Weight = CBSDF / PDF.
+                // We use two approximations of Brian Karis from "Real Shading in Unreal Engine 4":
+                // (F * G ≈ NdotL) && (NdotV == 1).
+                // Weight = D * NdotL / (4 * PDF).
+                // *********************************************************************************
+
+                float weight = D_GGX(NdotH, roughness) * NdotL / (4.0 * pdf);
+
+                lightInt += weight * val;
+                cbsdfInt += weight;
+            }
+        }
+    }
+
+    return float4(lightInt / cbsdfInt, 1.0);
 }
 
 #endif // UNITY_IMAGE_BASED_LIGHTING_INCLUDED

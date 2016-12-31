@@ -57,17 +57,30 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
             {
                 // Vector interpolation is not magnitude-preserving.
                 float3 N = normalize(input.eyeVector);
+                // Remove view-dependency from GGX, effectively making the BSDF isotropic.
                 float3 V = N;
 
                 float perceptualRoughness = mipmapLevelToPerceptualRoughness(_Level);
-                // We approximate the pre-integration with V == N
-                float4 val = IntegrateLD(   TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
-                                            V,
-                                            N,
-                                            PerceptualRoughnessToRoughness(perceptualRoughness),
-                                            _InvOmegaP,
-                                            55, // Must be a Fibonacci number
-                                            true);
+                float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+
+                #ifdef USE_MIS
+                    float4 val = IntegrateLD_MIS(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+                                                 _MarginalRowDensities, _ConditionalDensities,
+                                                 V, N,
+                                                 roughness,
+                                                 _InvOmegaP,
+                                                 MIS_TEXTURE_WIDTH,
+                                                 MIS_TEXTURE_HEIGHT,
+                                                 1024,
+                                                 false);
+                #else
+                    float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+                                             V, N,
+                                             roughness,
+                                             _InvOmegaP,
+                                             55, // Must be a Fibonacci number
+                                             true);
+                #endif
 
                 return val;
             }
