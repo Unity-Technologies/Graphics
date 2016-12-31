@@ -142,29 +142,27 @@ void ImportanceSampleGGXDir(float2 u,
     L = 2.0 * dot(V, H) * H - V;
 }
 
-
-// Special case of ImportanceSampleGGXDir() where N == V.
-// Approximates GGX with a BRDF which is isotropic for all viewing angles.
-void ImportanceSampleGGXViewIndDir(float2 u,
-                                   float3 N,
-                                   float3 tangentX,
-                                   float3 tangentY,
-                                   float roughness,
-                                   out float3 L,
-                                   out float  NdotH)
+// Special case of ImportanceSampleGGXDir() where V == N.
+void ImportanceSampleGGXDirVeqN(float2 u,
+                                float3 N,
+                                float3 tangentX,
+                                float3 tangentY,
+                                float roughness,
+                                out float3 L,
+                                out float  NdotH)
 {
     // GGX NDF sampling
     float cosThetaH = sqrt((1.0 - u.x) / (1.0 + (roughness * roughness - 1.0) * u.x));
     float sinThetaH = sqrt(saturate(1.0 - cosThetaH * cosThetaH));
     float phiH      = TWO_PI * u.y;
 
-    // Transform from spherical into Cartesian.
+    // Transform from spherical to Cartesian
     float3 localH = float3(sinThetaH * cos(phiH), sinThetaH * sin(phiH), cosThetaH);
 
-    // localN == localV == float3(0.0, 0.0, 1.0).
+    // localN == localV == float3(0.0, 0.0, 1.0)
     NdotH = localH.z;
 
-    // Compute { L = reflect(-localV, localH) }.
+    // Compute { L = reflect(-localV, localH) }
     float VdotH = NdotH;
     L = float3(0.0, 0.0, -1.0) + 2.0 * VdotH * localH;
 
@@ -359,8 +357,8 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                     float3 N,
                     float roughness,
                     float invOmegaP,
-                    uint sampleCount,      // Must be a Fibonacci number
-                    bool prefilter = true) // static bool
+                    uint sampleCount, // static int (must be a Fibonacci number)
+                    bool prefilter)   // static bool
 {
     float3 acc       = float3(0.0, 0.0, 0.0);
     float  accWeight = 0;
@@ -377,7 +375,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
         float3 L;
         float  NdotH;
-        ImportanceSampleGGXViewIndDir(u, N, tangentX, tangentY, roughness, L, NdotH);
+        ImportanceSampleGGXDirVeqN(u, N, tangentX, tangentY, roughness, L, NdotH);
 
         float NdotL = saturate(dot(N, L));
 
