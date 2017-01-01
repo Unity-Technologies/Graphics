@@ -434,6 +434,28 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     return float4(lightInt / cbsdfInt, 1.0);
 }
 
+// Searches the row 'j' containing 'n' elements of 'haystack' and
+// returns the index of the first element greater or equal to 'needle'.
+uint BinarySearchRow(uint j, float needle, TEXTURE2D(haystack), uint n)
+{
+	uint  i = n - 1;
+    float v = LOAD_TEXTURE2D(haystack, uint2(i, j)).r;
+
+    if (needle < v)
+    {
+        i = 0;
+
+        for (uint b = 1 << firstbithigh(n - 1); b != 0; b >>= 1)
+        {
+            uint p = i | b;
+            v = LOAD_TEXTURE2D(haystack, uint2(p, j)).r;
+            if (v <= needle) { i = p; } // Move to the right.
+        }
+    }
+
+    return i;
+}
+
 float4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
                        TEXTURE2D(marginalRowDensities),
                        TEXTURE2D(conditionalDensities),
@@ -472,40 +494,10 @@ float4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
         float2 s = frac(randNum + Hammersley2d(i, sampleCount));
 
         // Sample a row from the marginal distribution.
-        uint  y = height - 1;
-        float d = LOAD_TEXTURE2D(marginalRowDensities, uint2(y, 0)).r;
-
-        if (s.x < d)
-        {
-            y = 0;
-
-            // Perform binary search.
-            for (uint b = 1 << firstbithigh(height - 1); b != 0; b >>= 1)
-            {
-                uint mid = y | b;
-                d = LOAD_TEXTURE2D(marginalRowDensities, uint2(mid, 0)).r;
-                if (d <= s.x) { y = mid; } // Move to the right.
-            }
-        }
-
-        // TODO: early-out.
+        uint y = BinarySearchRow(0, s.x, marginalRowDensities, height - 1);
 
         // Sample a column from the conditional distribution.
-        uint x = width - 1;
-        d = LOAD_TEXTURE2D(conditionalDensities, uint2(x, y)).r;
-
-        if (s.y < d)
-        {
-            x = 0;
-
-            // Perform binary search.
-            for (uint b = 1 << firstbithigh(width - 1); b != 0; b >>= 1)
-            {
-                uint mid = x | b;
-                d = LOAD_TEXTURE2D(conditionalDensities, uint2(mid, y)).r;
-                if (d <= s.y) { x = mid; } // Move to the right.
-            }
-        }
+        uint x = BinarySearchRow(y, s.y, conditionalDensities, width - 1);
 
         // Compute the coordinates of the sample.
         // Note: we take the sample in between two texels, and also apply the half-texel offset.
