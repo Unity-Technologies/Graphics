@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 base.InternalCleanup();
                 FptlLighting theOwner = owner as FptlLighting;
-                if (owner != null)
+                if (theOwner != null)
                     theOwner.Cleanup();
             }
         }
