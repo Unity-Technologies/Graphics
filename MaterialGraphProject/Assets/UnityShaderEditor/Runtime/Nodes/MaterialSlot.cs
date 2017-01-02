@@ -21,26 +21,30 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private string m_ShaderOutputName;
 
+        [SerializeField]
+        private bool m_ShowValue;
+
         public MaterialSlot() {}
-
-        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, int priority)
-            : base(slotId, displayName, slotType, priority)
-        {
-            SharedInitialize(shaderOutputName, valueType, defaultValue);
-        }
-
+        
         public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
             : base(slotId, displayName, slotType)
         {
-            SharedInitialize(shaderOutputName, valueType, defaultValue);
+            SharedInitialize(shaderOutputName, valueType, true, defaultValue);
         }
 
-        private void SharedInitialize(string inShaderOutputName, SlotValueType inValueType, Vector4 inDefaultValue)
+        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, bool usesDefaultValue)
+            : base(slotId, displayName, slotType)
+        {
+            SharedInitialize(shaderOutputName, valueType, showValue, defaultValue);
+        }
+
+        private void SharedInitialize(string inShaderOutputName, SlotValueType inValueType, bool usesDefaultValue, Vector4 inDefaultValue)
         {
             m_ShaderOutputName = inShaderOutputName;
             valueType = inValueType;
             m_DefaultValue = inDefaultValue;
             m_CurrentValue = inDefaultValue;
+            m_ShowValue = usesDefaultValue;
         }
 
         private static string ConcreteSlotValueTypeAsString(ConcreteSlotValueType type)
@@ -112,6 +116,12 @@ namespace UnityEngine.MaterialGraph
         {
             get { return m_ShaderOutputName; }
             set { m_ShaderOutputName = value; }
+        }
+
+        public bool showValue
+        {
+            get { return m_ShowValue; }
+            set { m_ShowValue = value; }
         }
 
         public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)

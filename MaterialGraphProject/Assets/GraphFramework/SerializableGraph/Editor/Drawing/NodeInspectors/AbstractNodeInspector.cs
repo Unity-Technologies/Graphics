@@ -18,8 +18,7 @@ namespace UnityEditor.Graphing.Drawing
         public INode node { get; private set; }
 
         public virtual void OnInspectorGUI()
-        {
-        }
+        {}
 
         public virtual void Initialize(SerializableNode node)
         {

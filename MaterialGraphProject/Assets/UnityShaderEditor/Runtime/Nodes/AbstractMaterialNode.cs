@@ -24,8 +24,8 @@ namespace UnityEngine.MaterialGraph
             set { m_OutputPrecision = value; }
         }
 
-        [SerializeField]
-        private OutputPrecision m_OutputPrecision = OutputPrecision.half;
+        //[SerializeField]
+        private OutputPrecision m_OutputPrecision = OutputPrecision.@float;
 
         // Nodes that want to have a preview area can override this and return true
         public virtual bool hasPreview
@@ -295,6 +295,23 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
+        public static PropertyType ConvertConcreteSlotValueTypeToPropertyType(ConcreteSlotValueType slotValue)
+        {
+            switch (slotValue)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    return PropertyType.Float;
+                case ConcreteSlotValueType.Vector2:
+                    return PropertyType.Vector2;
+                case ConcreteSlotValueType.Vector3:
+                    return PropertyType.Vector3;
+                case ConcreteSlotValueType.Vector4:
+                    return PropertyType.Vector4;
+                default:
+                    return PropertyType.Vector4;
+            }
+        }
+
         /*
         public virtual bool DrawSlotDefaultInput(Rect rect, MaterialSlot inputSlot)
         {
@@ -318,8 +335,10 @@ namespace UnityEngine.MaterialGraph
                 var pp = new PreviewProperty
                 {
                     m_Name = GetVariableNameForSlot(s.id),
-                    m_PropType = PropertyType.Vector4,
-                    m_Vector4 = s.currentValue
+                    m_PropType = ConvertConcreteSlotValueTypeToPropertyType(s.concreteValueType),
+                    m_Vector4 = s.currentValue,
+                    m_Float = s.currentValue.x,
+                    m_Color = s.currentValue
                 };
                 properties.Add(pp);
             }
