@@ -70,7 +70,7 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,uint systemSeed,inout uint seed)
+void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,inout uint seed)
 {
 	float u1 = 1.0 * RAND - 0.5;
 	float u2 = UNITY_TWO_PI * RAND;
@@ -105,7 +105,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockPositionCylinder( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXCombine3fOp,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,initUniform5_kVFXSystemSeedOp,local_seed);
+		VFXBlockPositionCylinder( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXCombine3fOp,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,local_seed);
 		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform4_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;

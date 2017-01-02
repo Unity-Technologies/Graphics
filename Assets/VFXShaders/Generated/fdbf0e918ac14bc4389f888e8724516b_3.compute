@@ -108,14 +108,14 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionMap( inout float3 position,VFXSampler2D tex,float4x4 box,float divergence,float3 posmapcenter,uint systemSeed,inout uint seed)
+void VFXBlockSetPositionMap( inout float3 position,VFXSampler2D tex,float4x4 box,float divergence,float3 posmapcenter,inout uint seed)
 {
 	float3 div = (RAND3 - 0.5f) * (divergence * 2.0f);
 	position = (div + SampleTexture(tex,RAND2).rgb) - posmapcenter;
 	position = mul(box,float4(position.xyz,1.0f)).xyz;
 }
 
-void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,inout uint seed)
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,inout uint seed)
 {
 	float s = lerp(MinSize,MaxSize,RAND);
 	size = float2(s,s);
@@ -126,7 +126,7 @@ void VFXBlockApplyScaleRatio( inout float2 size,float Ratio)
 	size *= float2(1.0,Ratio);
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
@@ -195,10 +195,10 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionMap( attrib1.position,initSampler0_kVFXValueOp,initUniform0_kVFXTransformMatrixOp,initUniform1_kVFXValueOp,initUniform2_kVFXCombine3fOp,initUniform8_kVFXSystemSeedOp,local_seed);
-		VFXBlockSizeRandomSquare( attrib2.size,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetPositionMap( attrib1.position,initSampler0_kVFXValueOp,initUniform0_kVFXTransformMatrixOp,initUniform1_kVFXValueOp,initUniform2_kVFXCombine3fOp,local_seed);
+		VFXBlockSizeRandomSquare( attrib2.size,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,local_seed);
 		VFXBlockApplyScaleRatio( attrib2.size,initUniform5_kVFXValueOp);
-		VFXBlockSetLifetimeRandom( attrib3.lifetime,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib3.lifetime,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;

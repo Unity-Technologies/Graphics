@@ -94,14 +94,14 @@ void VFXBlockSetLifetimeConstant( inout float lifetime,float Lifetime)
 	lifetime = max(Lifetime,0.0f);
 }
 
-void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,inout uint seed)
+void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
 	float u2 = UNITY_TWO_PI * RAND;
 	position = VFXPositionOnSphereSurface(Sphere,u1,u2);
 }
 
-void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,inout uint seed)
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,inout uint seed)
 {
 	float s = lerp(MinSize,MaxSize,RAND);
 	size = float2(s,s);
@@ -140,8 +140,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		local_seed = seed;
 		
 		VFXBlockSetLifetimeConstant( attrib0.lifetime,initUniform0_kVFXValueOp);
-		VFXBlockSetPositionSphereSurface( attrib1.position,initUniform1_kVFXCombine3fOp,initUniform2_kVFXValueOp,initUniform5_kVFXSystemSeedOp,local_seed);
-		VFXBlockSizeRandomSquare( attrib2.size,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,initUniform5_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetPositionSphereSurface( attrib1.position,initUniform1_kVFXCombine3fOp,initUniform2_kVFXValueOp,local_seed);
+		VFXBlockSizeRandomSquare( attrib2.size,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;

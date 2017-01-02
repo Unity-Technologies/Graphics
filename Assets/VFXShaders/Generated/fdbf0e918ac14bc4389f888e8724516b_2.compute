@@ -87,19 +87,19 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockPositionCylinderSurface( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,uint systemSeed,inout uint seed)
+void VFXBlockPositionCylinderSurface( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,inout uint seed)
 {
 	float u1 = 1.0 * RAND - 0.5;
 	float u2 = UNITY_TWO_PI * RAND;
 	position = VFXPositionOnCylinderSurface(Cylinder,u1,u2);
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,inout uint seed)
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,inout uint seed)
 {
 	float s = lerp(MinSize,MaxSize,RAND);
 	size = float2(s,s);
@@ -138,9 +138,9 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockPositionCylinderSurface( attrib0.position,initUniform0_kVFXTransformPosOp,initUniform1_kVFXTransformDirOp,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
-		VFXBlockSizeRandomSquare( attrib2.size,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
+		VFXBlockPositionCylinderSurface( attrib0.position,initUniform0_kVFXTransformPosOp,initUniform1_kVFXTransformDirOp,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,local_seed);
+		VFXBlockSizeRandomSquare( attrib2.size,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,local_seed);
 		VFXBlockApplyScaleRatio( attrib2.size,initUniform8_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;
