@@ -36,10 +36,5 @@ namespace UnityEngine.ScriptableRenderPipeline
 		{}
 
 		public IRenderPipeline owner { get; private set; }
-
-		public T GetRealOwner<T>() where T : IRenderPipeline
-		{
-			return (T)owner;
-		}
 	}
 }

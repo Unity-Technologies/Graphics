@@ -27,15 +27,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             protected override void InternalBuild()
             {
                 base.InternalBuild();
-                FptlLighting realOwner = GetRealOwner<FptlLighting>();
-                realOwner.Build();
+                FptlLighting theOwner = owner as FptlLighting;
+                if (theOwner != null)
+                    theOwner.Build();
             }
             
             protected override void InternalCleanup()
             {
-                base.InternalBuild();
-                FptlLighting realOwner = GetRealOwner<FptlLighting>();
-                realOwner.Cleanup();
+                base.InternalCleanup();
+                FptlLighting theOwner = owner as FptlLighting;
+                if (owner != null)
+                    theOwner.Cleanup();
             }
         }
 
