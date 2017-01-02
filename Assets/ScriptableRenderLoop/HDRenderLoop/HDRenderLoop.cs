@@ -43,15 +43,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             protected override void InternalBuild()
             {
                 base.InternalBuild(); 
-                HDRenderLoop realOwner = GetRealOwner<HDRenderLoop>();
-                realOwner.Build();
+                HDRenderLoop theOwner = owner as HDRenderLoop;
+                if (theOwner != null)
+                    theOwner.Build();
             }
 
             protected override void InternalCleanup()
             {
-                base.InternalBuild();
-                HDRenderLoop realOwner = GetRealOwner<HDRenderLoop>();
-                realOwner.Cleanup();
+                base.InternalCleanup();
+                HDRenderLoop theOwner = owner as HDRenderLoop;
+                if (theOwner != null)
+                    theOwner.Cleanup();
             }
         }
 

@@ -24,10 +24,10 @@ namespace UnityEngine.ScriptableRenderPipeline
 		public override void Render(ScriptableRenderContext renderContext, IScriptableRenderDataStore dataStore)
 		{
 			if (dataStore == null)
-				throw new ArgumentException(string.Format("DataStore has been passed into pipe {0}", this));
+				throw new ArgumentException(string.Format("Null DataStore has been passed into pipe {0}", this));
 
 			if (dataStore.owner == null)
-				throw new ArgumentException(string.Format("DataStore owner is not set to {0}", this));
+				throw new ArgumentException(string.Format("DataStore owner is null. It needs o be owned by loop {0}", this));
 
 			if (dataStore.owner != null && !ReferenceEquals(dataStore.owner, this))
 				throw new ArgumentException(string.Format("DataStore {0} has been passed into pipe {1}, but is owned by {2}", dataStore, this, dataStore.owner));
@@ -36,7 +36,7 @@ namespace UnityEngine.ScriptableRenderPipeline
 			dataStore.Build();
 		}
 
-		public override void Cleanup()
+		public override void ClearCachedData()
 		{
 			foreach (var store in m_AssociatedDataStores)
 				store.Cleanup();
