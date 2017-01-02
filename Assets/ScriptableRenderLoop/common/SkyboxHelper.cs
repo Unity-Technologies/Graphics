@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 public class SkyboxHelper
 {
@@ -79,7 +79,7 @@ public class SkyboxHelper
         get { return m_Mesh; }
     }
 
-    public void Draw(RenderLoop loop, Camera camera)
+    public void Draw(ScriptableRenderContext loop, Camera camera)
     {
         if (camera.clearFlags != CameraClearFlags.Skybox)
         {
