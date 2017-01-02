@@ -18,6 +18,9 @@ namespace UnityEditor.Graphing.Drawing
         [SerializeField]
         private TitleBarDrawData m_TitleBar;
 
+        [SerializeField]
+        private EditorWindow m_Container;
+
         public TitleBarDrawData titleBar
         {
             get { return m_TitleBar; }
@@ -39,6 +42,9 @@ namespace UnityEditor.Graphing.Drawing
                 UpdateData();
 
             EditorUtility.SetDirty(graphAsset.GetScriptableObject());
+
+            if (m_Container != null)
+                m_Container.Repaint();
         }
 
         private void UpdateData()
@@ -162,12 +168,13 @@ namespace UnityEditor.Graphing.Drawing
 
         protected abstract void AddTypeMappings(Action<Type, Type> map);
 
-        public virtual void Initialize(IGraphAsset graphAsset)
+        public virtual void Initialize(IGraphAsset graphAsset, EditorWindow container)
         {
             m_DataMapper.Clear();
             AddTypeMappings(m_DataMapper.AddMapping);
 
             this.graphAsset = graphAsset;
+            m_Container = container;
 
             m_TitleBar = CreateInstance<TitleBarDrawData>();
             m_TitleBar.Initialize(graphAsset);

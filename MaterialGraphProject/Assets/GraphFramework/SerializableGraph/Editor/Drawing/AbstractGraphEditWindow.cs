@@ -45,7 +45,7 @@ namespace UnityEditor.Graphing.Drawing
         void OnEnable()
         {
             var source = CreateDataSource();
-            source.Initialize(m_LastSelection);
+            source.Initialize(m_LastSelection, this);
 
             m_GraphEditorDrawer = new GraphEditorDrawer(CreateGraphView(), source);
             rootVisualContainer.AddChild(m_GraphEditorDrawer);
@@ -79,7 +79,7 @@ namespace UnityEditor.Graphing.Drawing
 
 
                     var source = CreateDataSource();
-                    source.Initialize(m_LastSelection);
+                    source.Initialize(m_LastSelection, this);
                     m_GraphEditorDrawer.dataSource = source;
 
                     //m_GraphView.StretchToParentSize();

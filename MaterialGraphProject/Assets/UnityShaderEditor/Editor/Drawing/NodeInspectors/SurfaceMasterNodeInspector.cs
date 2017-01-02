@@ -1,4 +1,6 @@
-﻿using UnityEditor.Graphing.Drawing;
+using UnityEditor.Graphing.Drawing;
+using UnityEngine;
+using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -13,8 +15,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (surfaceNode == null)
                 return;
 
+            GUILayout.Label("Settings", EditorStyles.boldLabel);
+
             var options = surfaceNode.options;
 
+            EditorGUI.BeginChangeCheck();
             options.srcBlend = (SurfaceMaterialOptions.BlendMode) EditorGUILayout.EnumPopup("Src Blend", options.srcBlend);
             options.dstBlend = (SurfaceMaterialOptions.BlendMode) EditorGUILayout.EnumPopup("Dst Blend", options.dstBlend);
             options.cullMode = (SurfaceMaterialOptions.CullMode) EditorGUILayout.EnumPopup("Cull Mode", options.cullMode);
@@ -22,6 +27,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             options.zWrite = (SurfaceMaterialOptions.ZWrite) EditorGUILayout.EnumPopup("Z Write", options.zWrite);
             options.renderQueue = (SurfaceMaterialOptions.RenderQueue) EditorGUILayout.EnumPopup("Render Queue", options.renderQueue);
             options.renderType = (SurfaceMaterialOptions.RenderType) EditorGUILayout.EnumPopup("Render Type", options.renderType);
+
+            if (EditorGUI.EndChangeCheck())
+                node.onModified(node, ModificationScope.Node);
         }
     }
 }
