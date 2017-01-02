@@ -562,6 +562,12 @@ namespace UnityEditor.Experimental
 
             Action<VFXBlockDesc.Flag, List<VFXBlockModel>, HashSet<VFXExpression>> fnBuiltInExpression = delegate (VFXBlockDesc.Flag generatorFlag, List<VFXBlockModel> _blockList, HashSet<VFXExpression> _Uniform)
             {
+                //Dependence for hasRand => SystemSeed
+                if ((VFXBlockDesc.Flag.kHasRand & generatorFlag) == VFXBlockDesc.Flag.kHasRand || _blockList.Any(b => b.Desc.IsSet(VFXBlockDesc.Flag.kHasRand)))
+                {
+                    generatorFlag |= VFXBlockDesc.Flag.kNeedsSystemSeed;
+                }
+
                 foreach (var builtIn in CommonBuiltIn.Expressions)
                 {
                     if ((builtIn.Flag & generatorFlag) == builtIn.Flag || _blockList.Any(b => b.Desc.IsSet(builtIn.Flag)))
@@ -571,6 +577,7 @@ namespace UnityEditor.Experimental
                     }
                 }
             };
+            
             fnBuiltInExpression(initGeneratorFlags, initBlocks, initUniforms);
             fnBuiltInExpression(updateGeneratorFlags, updateBlocks, updateUniforms);
             fnBuiltInExpression(outputGeneratorFlags, outputBlocks, outputUniforms);
