@@ -1,24 +1,32 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using NUnit.Framework;
-using UnityEngine.Experimental.ScriptableRenderLoop;
 using UnityEngine.Rendering;
+using UnityEngine.ScriptableRenderPipeline;
 
 [ExecuteInEditMode]
 public class RenderLoopTestFixture : RenderPipeline
 {
-    public delegate void TestDelegate(Camera camera, CullResults cullResults, RenderLoop renderLoop);
+    public delegate void TestDelegate(Camera camera, CullResults cullResults, ScriptableRenderContext renderLoop);
     private static TestDelegate s_Callback;
 
     private static RenderLoopTestFixture m_Instance;
 
-    public override void Render(Camera[] cameras, RenderLoop renderLoop)
+    [NonSerialized]
+    readonly List<Camera> m_CamerasToRender = new List<Camera>();
+
+    public override void Render(ScriptableRenderContext renderLoop, IScriptableRenderDataStore dataStore)
     {
-        foreach (var camera in cameras)
+        cameraProvider.GetCamerasToRender(m_CamerasToRender);
+
+        foreach (var camera in m_CamerasToRender)
         {
+            if (!camera.enabled)
+                continue;
+        
             CullingParameters cullingParams;
             bool gotCullingParams = CullResults.GetCullingParameters(camera, out cullingParams);
             Assert.IsTrue(gotCullingParams);
@@ -30,18 +38,11 @@ public class RenderLoopTestFixture : RenderPipeline
         }
 
         renderLoop.Submit();
-    }
 
-    public override void Build()
-    {
-        
+        CleanCameras(m_CamerasToRender);
+        m_CamerasToRender.Clear();
     }
-
-    public override void Cleanup()
-    {
-        
-    }
-
+    
     public static void Run(TestDelegate renderCallback)
     {
         if (m_Instance == null)

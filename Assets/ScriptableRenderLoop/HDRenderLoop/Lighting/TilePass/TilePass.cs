@@ -1084,7 +1084,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
             }
 
-            public override void BuildGPULightLists(Camera camera, RenderLoop loop, RenderTargetIdentifier cameraDepthBufferRT)
+            public override void BuildGPULightLists(Camera camera, ScriptableRenderContext loop, RenderTargetIdentifier cameraDepthBufferRT)
             {
                 var w = camera.pixelWidth;
                 var h = camera.pixelHeight;
@@ -1213,7 +1213,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     for (int n = 0; n < numVectors; n++)
                     {
                         for (int i = 0; i < 4; i++)
-                        {
+            {
                             data[4 * n + i] = values[n][i];
                         }
                     }
@@ -1226,7 +1226,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
             }
 
-            private void BindGlobalParams(CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, Camera camera, RenderLoop loop)
+            private void BindGlobalParams(CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, Camera camera, ScriptableRenderContext loop)
             {
                 SetGlobalPropertyRedirect(computeShader, kernelIndex, cmd);
 
@@ -1268,7 +1268,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
             }
 
-            public override void PushGlobalParams(Camera camera, RenderLoop loop)
+            public override void PushGlobalParams(Camera camera, ScriptableRenderContext loop)
             {
                 var cmd = new CommandBuffer { name = "Push Global Parameters" };
 
@@ -1299,7 +1299,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 #endif
 
-            public override void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT)
+            public override void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, ScriptableRenderContext renderLoop, RenderTargetIdentifier cameraColorBufferRT)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
@@ -1364,7 +1364,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture4", Shader.PropertyToID("_GBufferTexture4"));
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "g_tShadowBuffer", Shader.PropertyToID("g_tShadowBuffer"));
 
-   
+
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_PreIntegratedFGD", Shader.GetGlobalTexture("_PreIntegratedFGD"));
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcGGXMatrix", Shader.GetGlobalTexture("_LtcGGXMatrix"));
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcDisneyDiffuseMatrix", Shader.GetGlobalTexture("_LtcDisneyDiffuseMatrix"));
@@ -1391,15 +1391,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                             Texture IESArrayTexture = Shader.GetGlobalTexture("_IESArray");
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_IESArray", IESArrayTexture ? IESArrayTexture : m_DefaultTexture2DArray);
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_SkyTexture", skyTexture ? skyTexture : m_DefaultTexture2DArray);
-                            
+
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "uavOutput", cameraColorBufferRT);
                             cmd.DispatchCompute(shadeOpaqueShader, kernel, numTilesX, numTilesY, 1);
-                        }
-                        else
-                        {
+                    }
+                    else
+                    {
                             // Pixel shader evaluation
-                            if (enableSplitLightEvaluation)
-                            {
+                        if (enableSplitLightEvaluation)
+                        {
                                 Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredDirectMaterial);
                                 m_DeferredDirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                                 m_DeferredDirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
@@ -1412,19 +1412,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                                 m_DeferredIndirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                                 m_DeferredIndirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                                cmd.Blit(null, cameraColorBufferRT, m_DeferredDirectMaterial, 0);
-                                cmd.Blit(null, cameraColorBufferRT, m_DeferredIndirectMaterial, 0);
-                            }
-                            else
-                            {
+                            cmd.Blit(null, cameraColorBufferRT, m_DeferredDirectMaterial, 0);
+                            cmd.Blit(null, cameraColorBufferRT, m_DeferredIndirectMaterial, 0);
+                        }
+                        else
+                        {
                                 Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredAllMaterial);
                                 m_DeferredAllMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                                 m_DeferredAllMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                                 m_DeferredAllMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                                 m_DeferredAllMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                                cmd.Blit(null, cameraColorBufferRT, m_DeferredAllMaterial, 0);
-                            }
+                            cmd.Blit(null, cameraColorBufferRT, m_DeferredAllMaterial, 0);
+                        }
                         }
 
                         // Draw tile debugging
@@ -1448,7 +1448,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 } // TilePass - Deferred Lighting Pass
             }
 
-            public override void RenderForward(Camera camera, RenderLoop renderLoop, bool renderOpaque)
+            public override void RenderForward(Camera camera, ScriptableRenderContext renderLoop, bool renderOpaque)
             {
                 // Note: if we use render opaque with deferred tiling we need to render a opque depth pass for these opaque objects
                 bool useFptl = renderOpaque && usingFptl;
