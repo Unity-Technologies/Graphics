@@ -85,9 +85,31 @@ struct Attribute6
 RWStructuredBuffer<Attribute0> attribBuffer0;
 RWStructuredBuffer<Attribute1> attribBuffer1;
 RWStructuredBuffer<Attribute2> attribBuffer2;
+StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
+StructuredBuffer<Attribute3> attribBuffer3_RO;
 RWStructuredBuffer<Attribute4> attribBuffer4;
+StructuredBuffer<Attribute4> attribBuffer4_RO;
 RWStructuredBuffer<Attribute6> attribBuffer6;
+StructuredBuffer<Attribute6> attribBuffer6_RO;
+
+struct OutputData
+{
+	float3 position;
+	float age;
+	float3 velocity;
+	float lifetime;
+	float3 up;
+	float texIndex;
+	float3 side;
+	uint _PADDING_0;
+	float3 front;
+	uint _PADDING_1;
+	float2 size;
+	uint2 _PADDING_2;
+};
+
+AppendStructuredBuffer<OutputData> outputBuffer;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -120,7 +142,7 @@ float3 sampleSpline(float v,float u)
 	return curveTexture.SampleLevel(samplercurveTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 }
 
-void VFXBlockPositionSpline( inout float3 position,inout float3 velocity,inout float3 front,inout float3 side,inout float3 up,float2 Spline,float radius,uint systemSeed,inout uint seed)
+void VFXBlockPositionSpline( inout float3 position,inout float3 velocity,inout float3 front,inout float3 side,inout float3 up,float2 Spline,float radius,inout uint seed)
 {
 	float t = RAND;
 	float3 center = SAMPLE_SPLINE_POSITION(Spline,t);
@@ -132,17 +154,17 @@ void VFXBlockPositionSpline( inout float3 position,inout float3 velocity,inout f
 	velocity += tangent * RAND;
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,uint systemSeed,inout uint seed)
+void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,inout uint seed)
 {
 	texIndex = lerp(MinIndex,MaxIndex,RAND);
 }
 
-void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,inout uint seed)
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,inout uint seed)
 {
 	float s = lerp(MinSize,MaxSize,RAND);
 	size = float2(s,s);
@@ -200,10 +222,10 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockPositionSpline( attrib0.position,attrib1.velocity,attrib4.front,attrib3.side,attrib2.up,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetSubUVRandom( attrib2.texIndex,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
-		VFXBlockSizeRandomSquare( attrib6.size,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockPositionSpline( attrib0.position,attrib1.velocity,attrib4.front,attrib3.side,attrib2.up,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,local_seed);
+		VFXBlockSetSubUVRandom( attrib2.texIndex,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,local_seed);
+		VFXBlockSizeRandomSquare( attrib6.size,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -226,6 +248,10 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		
 		Attribute0 attrib0 = attribBuffer0[index];
 		Attribute1 attrib1 = attribBuffer1[index];
+		Attribute2 attrib2 = attribBuffer2_RO[index];
+		Attribute3 attrib3 = attribBuffer3_RO[index];
+		Attribute4 attrib4 = attribBuffer4_RO[index];
+		Attribute6 attrib6 = attribBuffer6_RO[index];
 		
 		VFXSampler3D updateSampler0_kVFXValueOp = InitSampler(updateSampler0_kVFXValueOpTexture,samplerupdateSampler0_kVFXValueOpTexture);
 		
@@ -247,6 +273,18 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		{
 			attribBuffer0[index] = attrib0;
 			attribBuffer1[index] = attrib1;
+			
+			OutputData outputData = (OutputData)0;
+			outputData.position = attrib0.position;
+			outputData.age = attrib0.age;
+			outputData.velocity = attrib1.velocity;
+			outputData.lifetime = attrib1.lifetime;
+			outputData.up = attrib2.up;
+			outputData.texIndex = attrib2.texIndex;
+			outputData.side = attrib3.side;
+			outputData.front = attrib4.front;
+			outputData.size = attrib6.size;
+			outputBuffer.Append(outputData);
 		}
 	}
 }

@@ -23,7 +23,8 @@ Shader "Hidden/VFX_2"
 			
 			CBUFFER_START(outputUniforms)
 				float outputUniform0_kVFXValueOp;
-				
+				uint3 outputUniforms_PADDING_0;
+			
 			CBUFFER_END
 			
 			Texture2D outputSampler0_kVFXValueOpTexture;
@@ -58,7 +59,7 @@ Shader "Hidden/VFX_2"
 			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
 			{
 				float ratio = saturate(age / lifetime);
-	float4 rgba = sampleSignal(Gradient,ratio);
+	float4 rgba = SAMPLE(Gradient,ratio);
 	color = rgba.rgb;
 	alpha = rgba.a;
 			}

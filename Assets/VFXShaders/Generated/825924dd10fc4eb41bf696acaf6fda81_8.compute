@@ -72,7 +72,7 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionMap( inout float3 position,VFXSampler2D tex,float4x4 box,float divergence,float3 posmapcenter,uint systemSeed,inout uint seed)
+void VFXBlockSetPositionMap( inout float3 position,VFXSampler2D tex,float4x4 box,float divergence,float3 posmapcenter,inout uint seed)
 {
 	float3 div = (RAND3 - 0.5f) * (divergence * 2.0f);
 	position = (div + SampleTexture(tex,RAND2).rgb) - posmapcenter;
@@ -107,7 +107,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionMap( attrib0.position,initSampler0_kVFXValueOp,initUniform0_kVFXTRSToMatrixOp,initUniform1_kVFXValueOp,initUniform2_kVFXCombine3fOp,initUniform4_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetPositionMap( attrib0.position,initSampler0_kVFXValueOp,initUniform0_kVFXTRSToMatrixOp,initUniform1_kVFXValueOp,initUniform2_kVFXCombine3fOp,local_seed);
 		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform3_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;

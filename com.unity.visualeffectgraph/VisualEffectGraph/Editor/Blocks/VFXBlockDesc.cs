@@ -111,6 +111,7 @@ namespace UnityEngine.Experimental.VFX
             kNeedsInverseTransform = 1 << 2,
             kNeedsDeltaTime = 1 << 3,
             kNeedsTotalTime = 1 << 4,
+            kNeedsSystemSeed = 1 << 5,
         }
 
         private static readonly bool USE_SAFE_FUNCTION_NAME = false; // Set that to true to use longer but function names guaranteed with no collisions

@@ -9,7 +9,6 @@
 CBUFFER_START(initUniforms)
 	float3 initUniform0_kVFXCombine3fOp;
 	float initUniform4_kVFXValueOp;
-	float initUniform8_kVFXValueOp;
 	
 	float3 initUniform1_kVFXCombine3fOp;
 	float initUniform5_kVFXValueOp;
@@ -19,11 +18,12 @@ CBUFFER_START(initUniforms)
 	
 	float initUniform6_kVFXValueOp;
 	float initUniform7_kVFXValueOp;
+	float initUniform8_kVFXValueOp;
 	uint initUniform9_kVFXSystemSeedOp;
-	uint nbSpawned;
 	
+	uint nbSpawned;
 	uint spawnIndex;
-	uint3 initUniforms_PADDING_0;
+	uint2 initUniforms_PADDING_0;
 
 CBUFFER_END
 
@@ -118,7 +118,7 @@ void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
 	velocity += Velocity;
 }
 
-void VFXBlockVelocityRadial( inout float3 velocity,float2 MinMaxAngle,float2 MinMaxSpeed,uint systemSeed,inout uint seed)
+void VFXBlockVelocityRadial( inout float3 velocity,float2 MinMaxAngle,float2 MinMaxSpeed,inout uint seed)
 {
 	float2 z = cos(radians(MinMaxAngle));
 	float u1 = lerp(z.x,z.y,RAND);
@@ -129,19 +129,19 @@ void VFXBlockVelocityRadial( inout float3 velocity,float2 MinMaxAngle,float2 Min
 	velocity += float3(sincosTheta,u1).xzy * lerp(MinMaxSpeed.x,MinMaxSpeed.y,RAND);
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,uint systemSeed,inout uint seed)
+void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,inout uint seed)
 {
 	texIndex = lerp(MinIndex,MaxIndex,RAND);
 }
 
-void VFXBlockSetColorRandomGradient( inout float3 color,inout float alpha,float Gradient,uint systemSeed,inout uint seed)
+void VFXBlockSetColorRandomGradient( inout float3 color,inout float alpha,float Gradient,inout uint seed)
 {
-	float4 rgba = sampleSignal(Gradient,RAND);
+	float4 rgba = SAMPLE(Gradient,RAND);
 	color = rgba.rgb;
 	alpha = rgba.a;
 }
@@ -177,10 +177,10 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		
 		VFXBlockSetPositionPoint( attrib1.position,initUniform0_kVFXCombine3fOp);
 		VFXBlockVelocityConstant( attrib0.velocity,initUniform1_kVFXCombine3fOp);
-		VFXBlockVelocityRadial( attrib0.velocity,initUniform2_kVFXCombine2fOp,initUniform3_kVFXCombine2fOp,initUniform9_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetSubUVRandom( attrib3.texIndex,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetColorRandomGradient( attrib3.color,attrib4.alpha,initUniform8_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
+		VFXBlockVelocityRadial( attrib0.velocity,initUniform2_kVFXCombine2fOp,initUniform3_kVFXCombine2fOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,local_seed);
+		VFXBlockSetSubUVRandom( attrib3.texIndex,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,local_seed);
+		VFXBlockSetColorRandomGradient( attrib3.color,attrib4.alpha,initUniform8_kVFXValueOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;

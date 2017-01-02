@@ -24,10 +24,11 @@ Shader "Hidden/VFX_4"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
+				float4 outputUniform0_kVFXValueOp;
+				
 				float2 outputUniform4_kVFXValueOp;
 				float outputUniform1_kVFXValueOp;
 				float outputUniform2_kVFXValueOp;
-				float4 outputUniform0_kVFXValueOp;
 				
 				float outputUniform3_kVFXValueOp;
 				uint3 outputUniforms_PADDING_0;
@@ -75,6 +76,11 @@ Shader "Hidden/VFX_4"
 				return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 			}
 			
+			float3 sampleSpline(float v,float u)
+			{
+				return curveTexture.SampleLevel(samplercurveTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+			}
+			
 			void VFXBlockOrientAlongVelocity( inout float3 front,inout float3 side,inout float3 up,float3 velocity,float3 position)
 			{
 				up = normalize(velocity);
@@ -86,7 +92,7 @@ Shader "Hidden/VFX_4"
 			void VFXBlockSetAlphaCurveOverLifetime( inout float alpha,float age,float lifetime,float4 Curve)
 			{
 				float ratio = saturate(age / lifetime);
-	alpha = sampleSignal(Curve,ratio);
+	alpha = SAMPLE(Curve,ratio);
 			}
 			
 			void VFXBlockSizeConstantSquare( inout float2 size,float Size)

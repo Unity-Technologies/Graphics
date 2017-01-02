@@ -83,17 +83,17 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,uint systemSeed,inout uint seed)
+void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,inout uint seed)
 {
 	texIndex = lerp(MinIndex,MaxIndex,RAND);
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockSetPositionBox( inout float3 position,float4x4 box,uint systemSeed,inout uint seed)
+void VFXBlockSetPositionBox( inout float3 position,float4x4 box,inout uint seed)
 {
 	position = RAND3 - 0.5f;
 	position = mul(box,float4(position,1.0f)).xyz;
@@ -127,9 +127,9 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetSubUVRandom( attrib0.texIndex,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,initUniform5_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,initUniform5_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetPositionBox( attrib2.position,initUniform4_kVFXTransformMatrixOp,initUniform5_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetSubUVRandom( attrib0.texIndex,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,local_seed);
+		VFXBlockSetPositionBox( attrib2.position,initUniform4_kVFXTransformMatrixOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
