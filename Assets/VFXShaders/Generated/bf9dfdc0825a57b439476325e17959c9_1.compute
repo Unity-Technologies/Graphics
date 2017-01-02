@@ -85,18 +85,18 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockSetPositionAABox( inout float3 position,float3 aabox_center,float3 aabox_size,uint systemSeed,inout uint seed)
+void VFXBlockSetPositionAABox( inout float3 position,float3 aabox_center,float3 aabox_size,inout uint seed)
 {
 	float3 minCoord = (aabox_size * -0.5f) + aabox_center;
 	position = (RAND3 * aabox_size) + minCoord;
 }
 
-void VFXBlockSizeRandomRectangle( inout float2 size,float2 MinSize,float2 MaxSize,uint systemSeed,inout uint seed)
+void VFXBlockSizeRandomRectangle( inout float2 size,float2 MinSize,float2 MaxSize,inout uint seed)
 {
 	float sizeX = lerp(MinSize.x,MaxSize.x,RAND);
 	float sizeY = lerp(MinSize.y,MaxSize.y,RAND);
@@ -131,9 +131,9 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetLifetimeRandom( attrib0.lifetime,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,initUniform6_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetPositionAABox( attrib1.position,initUniform2_kVFXCombine3fOp,initUniform3_kVFXCombine3fOp,initUniform6_kVFXSystemSeedOp,local_seed);
-		VFXBlockSizeRandomRectangle( attrib2.size,initUniform4_kVFXCombine2fOp,initUniform5_kVFXCombine2fOp,initUniform6_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib0.lifetime,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockSetPositionAABox( attrib1.position,initUniform2_kVFXCombine3fOp,initUniform3_kVFXCombine3fOp,local_seed);
+		VFXBlockSizeRandomRectangle( attrib2.size,initUniform4_kVFXCombine2fOp,initUniform5_kVFXCombine2fOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;

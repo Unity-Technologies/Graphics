@@ -93,17 +93,17 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockAngleRandom( inout float angle,float Min,float Max,uint systemSeed,inout uint seed)
+void VFXBlockAngleRandom( inout float angle,float Min,float Max,inout uint seed)
 {
 	angle += lerp(Min,Max,RAND);
 }
 
-void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,inout uint seed)
+void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
 	float u2 = UNITY_TWO_PI * RAND;
@@ -146,9 +146,9 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetLifetimeRandom( attrib0.lifetime,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,initUniform6_kVFXSystemSeedOp,local_seed);
-		VFXBlockAngleRandom( attrib1.angle,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,initUniform6_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetPositionSphereSurface( attrib2.position,initUniform4_kVFXCombine3fOp,initUniform5_kVFXValueOp,initUniform6_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib0.lifetime,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockAngleRandom( attrib1.angle,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,local_seed);
+		VFXBlockSetPositionSphereSurface( attrib2.position,initUniform4_kVFXCombine3fOp,initUniform5_kVFXValueOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;

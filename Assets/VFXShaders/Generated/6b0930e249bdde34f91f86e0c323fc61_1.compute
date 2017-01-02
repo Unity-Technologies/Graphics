@@ -77,7 +77,7 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionSphereVolume( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,inout uint seed)
+void VFXBlockSetPositionSphereVolume( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
 	float u2 = UNITY_TWO_PI * RAND;
@@ -85,12 +85,12 @@ void VFXBlockSetPositionSphereVolume( inout float3 position,float3 Sphere_center
 	position = VFXPositionOnSphere(Sphere,u1,u2,u3);
 }
 
-void VFXBlockAngleRandom( inout float angle,float Min,float Max,uint systemSeed,inout uint seed)
+void VFXBlockAngleRandom( inout float angle,float Min,float Max,inout uint seed)
 {
 	angle += lerp(Min,Max,RAND);
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
@@ -100,7 +100,7 @@ void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
 	velocity += Velocity;
 }
 
-void VFXBlockVelocityRandomVector( inout float3 velocity,float3 Divergence,uint systemSeed,inout uint seed)
+void VFXBlockVelocityRandomVector( inout float3 velocity,float3 Divergence,inout uint seed)
 {
 	velocity += (RAND3 * 2 - 1) * Divergence;
 }
@@ -134,11 +134,11 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionSphereVolume( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
-		VFXBlockAngleRandom( attrib1.angle,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetPositionSphereVolume( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockAngleRandom( attrib1.angle,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,local_seed);
 		VFXBlockVelocityConstant( attrib3.velocity,initUniform6_kVFXCombine3fOp);
-		VFXBlockVelocityRandomVector( attrib3.velocity,initUniform7_kVFXCombine3fOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockVelocityRandomVector( attrib3.velocity,initUniform7_kVFXCombine3fOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;

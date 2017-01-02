@@ -107,19 +107,19 @@ float sampleSignal(float4 curveData,float u) // sample curve
 	return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 }
 
-void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,inout uint seed)
+void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
 	float u2 = UNITY_TWO_PI * RAND;
 	position = VFXPositionOnSphereSurface(Sphere,u1,u2);
 }
 
-void VFXBlockSetColorRandom( inout float3 color,float3 FirstColor,float3 AltColor,uint systemSeed,inout uint seed)
+void VFXBlockSetColorRandom( inout float3 color,float3 FirstColor,float3 AltColor,inout uint seed)
 {
 	color = lerp(FirstColor,AltColor,RAND3);
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
@@ -178,9 +178,9 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0_kVFXTransformPosOp,initUniform1_kVFXValueOp,initUniform7_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetColorRandom( attrib2.color,initUniform2_kVFXCombine3fOp,initUniform3_kVFXCombine3fOp,initUniform7_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetLifetimeRandom( attrib3.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,initUniform7_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0_kVFXTransformPosOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockSetColorRandom( attrib2.color,initUniform2_kVFXCombine3fOp,initUniform3_kVFXCombine3fOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib3.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,local_seed);
 		VFXBlockVelocityConstant( attrib4.velocity,initUniform6_kVFXTransformVecOp);
 		
 		attribBuffer0[index] = attrib0;

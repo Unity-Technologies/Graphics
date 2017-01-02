@@ -80,7 +80,7 @@ void VFXBlockSetLifetimeConstant( inout float lifetime,float Lifetime)
 	lifetime = max(Lifetime,0.0f);
 }
 
-void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,uint systemSeed,inout uint seed)
+void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,inout uint seed)
 {
 	float u1 = 1.0 * RAND - 0.5;
 	float u2 = UNITY_TWO_PI * RAND;
@@ -88,7 +88,7 @@ void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,fl
 	position = VFXPositionOnCylinder(Cylinder,u1,u2,u3);
 }
 
-void VFXBlockVelocityRadialFromOrigin( float3 position,inout float3 velocity,float3 Origin,float2 MinMaxSpeed,uint systemSeed,inout uint seed)
+void VFXBlockVelocityRadialFromOrigin( float3 position,inout float3 velocity,float3 Origin,float2 MinMaxSpeed,inout uint seed)
 {
 	float3 dir = normalize(position - Origin);
 	float speed = lerp(MinMaxSpeed.x,MinMaxSpeed.y,RAND);
@@ -124,8 +124,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		local_seed = seed;
 		
 		VFXBlockSetLifetimeConstant( attrib0.lifetime,initUniform0_kVFXValueOp);
-		VFXBlockPositionCylinder( attrib1.position,initUniform1_kVFXCombine3fOp,initUniform2_kVFXCombine3fOp,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
-		VFXBlockVelocityRadialFromOrigin( attrib1.position,attrib2.velocity,initUniform5_kVFXCombine3fOp,initUniform6_kVFXCombine2fOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockPositionCylinder( attrib1.position,initUniform1_kVFXCombine3fOp,initUniform2_kVFXCombine3fOp,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,local_seed);
+		VFXBlockVelocityRadialFromOrigin( attrib1.position,attrib2.velocity,initUniform5_kVFXCombine3fOp,initUniform6_kVFXCombine2fOp,local_seed);
 		VFXBlockSizeConstantSquare( attrib3.size,initUniform7_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;
