@@ -9,7 +9,6 @@
 CBUFFER_START(initUniforms)
 	float3 initUniform0_kVFXCombine3fOp;
 	float initUniform4_kVFXValueOp;
-	float initUniform8_kVFXValueOp;
 	
 	float3 initUniform1_kVFXCombine3fOp;
 	float initUniform5_kVFXValueOp;
@@ -19,11 +18,12 @@ CBUFFER_START(initUniforms)
 	
 	float initUniform6_kVFXValueOp;
 	float initUniform7_kVFXValueOp;
+	float initUniform8_kVFXValueOp;
 	uint initUniform9_kVFXSystemSeedOp;
-	uint nbSpawned;
 	
+	uint nbSpawned;
 	uint spawnIndex;
-	uint3 initUniforms_PADDING_0;
+	uint2 initUniforms_PADDING_0;
 
 CBUFFER_END
 
@@ -141,7 +141,7 @@ void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,
 
 void VFXBlockSetColorRandomGradient( inout float3 color,inout float alpha,float Gradient,inout uint seed)
 {
-	float4 rgba = sampleSignal(Gradient,RAND);
+	float4 rgba = SAMPLE(Gradient,RAND);
 	color = rgba.rgb;
 	alpha = rgba.a;
 }

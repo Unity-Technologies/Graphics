@@ -24,14 +24,15 @@ Shader "Hidden/VFX_1"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float3 outputUniform0_kVFXCombine3fOp;
 				float4 outputUniform1_kVFXValueOp;
-				float outputUniform2_kVFXValueOp;
+				
 				float4 outputUniform3_kVFXValueOp;
-				uint outputUniforms_PADDING_0;
-			
+				
+				float3 outputUniform0_kVFXCombine3fOp;
+				float outputUniform2_kVFXValueOp;
+				
 				float2 outputUniform4_kVFXValueOp;
-				uint2 outputUniforms_PADDING_1;
+				uint2 outputUniforms_PADDING_0;
 			
 			CBUFFER_END
 			
@@ -94,6 +95,11 @@ Shader "Hidden/VFX_1"
 				return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 			}
 			
+			float3 sampleSpline(float v,float u)
+			{
+				return curveTexture.SampleLevel(samplercurveTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+			}
+			
 			void VFXBlockFaceCameraPosition( inout float3 front,inout float3 side,inout float3 up,float3 position)
 			{
 				front = normalize(VFXCameraPos() - position);
@@ -109,14 +115,14 @@ Shader "Hidden/VFX_1"
 			void VFXBlockSizeOverLifeCurve( inout float2 size,float age,float lifetime,float4 Curve)
 			{
 				float ratio = saturate(age/lifetime);
-	float s = sampleSignal(Curve, ratio);
+	float s = SAMPLE(Curve, ratio);
 	size = float2(s,s);
 			}
 			
 			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
 			{
 				float ratio = saturate(age / lifetime);
-	float4 rgba = sampleSignal(Gradient,ratio);
+	float4 rgba = SAMPLE(Gradient,ratio);
 	color = rgba.rgb;
 	alpha = rgba.a;
 			}
@@ -124,7 +130,7 @@ Shader "Hidden/VFX_1"
 			void VFXBlockSubUVAnimateIndexCurve( float age,float lifetime,inout float texIndex,float4 Curve)
 			{
 				float r = saturate(age/lifetime);
-	texIndex = sampleSignal(Curve, r);
+	texIndex = SAMPLE(Curve, r);
 			}
 			
 			float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)

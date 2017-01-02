@@ -22,9 +22,10 @@ CBUFFER_START(updateUniforms)
 	
 	float4x4 updateUniform12_kVFXInverseTRSOp;
 	
+	float4 updateUniform0_kVFXValueOp;
+	
 	float3 updateUniform1_kVFXTransformPosOp;
 	float updateUniform2_kVFXValueOp;
-	float4 updateUniform0_kVFXValueOp;
 	
 	float updateUniform3_kVFXValueOp;
 	float updateUniform5_kVFXValueOp;
@@ -112,6 +113,11 @@ float sampleSignal(float4 curveData,float u) // sample curve
 	return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 }
 
+float3 sampleSpline(float v,float u)
+{
+	return curveTexture.SampleLevel(samplercurveTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+}
+
 void VFXBlockSetLifetimeConstant( inout float lifetime,float Lifetime)
 {
 	lifetime = max(Lifetime,0.0f);
@@ -127,7 +133,7 @@ void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_cente
 void VFXBlockSizeOverLifeCurve( inout float2 size,float age,float lifetime,float4 Curve)
 {
 	float ratio = saturate(age/lifetime);
-	float s = sampleSignal(Curve, ratio);
+	float s = SAMPLE(Curve, ratio);
 	size = float2(s,s);
 }
 

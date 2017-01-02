@@ -24,12 +24,12 @@ Shader "Hidden/VFX_2"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float2 outputUniform3_kVFXValueOp;
-				float outputUniform2_kVFXValueOp;
 				float4 outputUniform0_kVFXValueOp;
+				
+				float2 outputUniform3_kVFXValueOp;
 				float outputUniform1_kVFXValueOp;
-				uint outputUniforms_PADDING_0;
-			
+				float outputUniform2_kVFXValueOp;
+				
 			CBUFFER_END
 			
 			Texture2D outputSampler0_kVFXValueOpTexture;
@@ -83,17 +83,22 @@ Shader "Hidden/VFX_2"
 				return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 			}
 			
+			float3 sampleSpline(float v,float u)
+			{
+				return curveTexture.SampleLevel(samplercurveTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+			}
+			
 			void VFXBlockSizeOverLifeCurve( inout float2 size,float age,float lifetime,float4 Curve)
 			{
 				float ratio = saturate(age/lifetime);
-	float s = sampleSignal(Curve, ratio);
+	float s = SAMPLE(Curve, ratio);
 	size = float2(s,s);
 			}
 			
 			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
 			{
 				float ratio = saturate(age / lifetime);
-	float4 rgba = sampleSignal(Gradient,ratio);
+	float4 rgba = SAMPLE(Gradient,ratio);
 	color = rgba.rgb;
 	alpha = rgba.a;
 			}

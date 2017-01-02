@@ -24,8 +24,9 @@ Shader "Hidden/VFX_0"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float3 outputUniform0_kVFXCombine3fOp;
 				float4 outputUniform1_kVFXValueOp;
+				
+				float3 outputUniform0_kVFXCombine3fOp;
 				uint outputUniforms_PADDING_0;
 			
 			CBUFFER_END
@@ -72,6 +73,11 @@ Shader "Hidden/VFX_0"
 				return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 			}
 			
+			float3 sampleSpline(float v,float u)
+			{
+				return curveTexture.SampleLevel(samplercurveTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+			}
+			
 			void VFXBlockFaceCameraPosition( inout float3 front,inout float3 side,inout float3 up,float3 position)
 			{
 				front = normalize(VFXCameraPos() - position);
@@ -87,7 +93,7 @@ Shader "Hidden/VFX_0"
 			void VFXBlockSetAlphaCurveOverLifetime( inout float alpha,float age,float lifetime,float4 Curve)
 			{
 				float ratio = saturate(age / lifetime);
-	alpha = sampleSignal(Curve,ratio);
+	alpha = SAMPLE(Curve,ratio);
 			}
 			
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)

@@ -30,54 +30,34 @@ Shader "Hidden/VFX_0"
 			
 			CBUFFER_END
 			
+			CBUFFER_START(Uniform)
+				float systemIndex;
+			CBUFFER_END
+			ByteAddressBuffer nbElements;
+			
 			Texture2D outputSampler0_kVFXValueOpTexture;
 			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
 			Texture2D gradientTexture;
 			SamplerState samplergradientTexture;
 			
-			struct Attribute0
+			struct OutputData
 			{
 				float3 position;
 				float age;
-			};
-			
-			struct Attribute1
-			{
 				float3 velocity;
 				float lifetime;
-			};
-			
-			struct Attribute2
-			{
 				float3 up;
 				float texIndex;
-			};
-			
-			struct Attribute3
-			{
 				float3 side;
 				uint _PADDING_0;
-			};
-			
-			struct Attribute4
-			{
 				float3 front;
-				uint _PADDING_0;
-			};
-			
-			struct Attribute6
-			{
+				uint _PADDING_1;
 				float2 size;
+				uint2 _PADDING_2;
 			};
 			
-			StructuredBuffer<Attribute0> attribBuffer0;
-			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
-			StructuredBuffer<Attribute3> attribBuffer3;
-			StructuredBuffer<Attribute4> attribBuffer4;
-			StructuredBuffer<Attribute6> attribBuffer6;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
@@ -124,36 +104,31 @@ Shader "Hidden/VFX_0"
 			{
 				ps_input o;
 				uint index = (id >> 2) + instanceID * 2048;
-				if (flags[index] == 1)
+				if (index < nbElements.Load(asuint(systemIndex) << 2))
 				{
-					Attribute0 attrib0 = attribBuffer0[index];
-					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
-					Attribute3 attrib3 = attribBuffer3[index];
-					Attribute4 attrib4 = attribBuffer4[index];
-					Attribute6 attrib6 = attribBuffer6[index];
+					OutputData outputData = outputBuffer[index];
 					
 					float3 local_color = (float3)0;
 					float local_alpha = (float)0;
 					
-					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,attrib0.age,attrib1.lifetime,outputUniform0_kVFXValueOp);
-					VFXBlockSubPixelAA( local_alpha,attrib0.position,attrib6.size);
+					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
+					VFXBlockSubPixelAA( local_alpha,outputData.position,outputData.size);
 					
-					float2 size = attrib6.size * 0.5f;
+					float2 size = outputData.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
 					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
 					
-					float3 position = attrib0.position;
+					float3 position = outputData.position;
 					
 					float2 posOffsets = o.offsets.xy;
 					float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
-					float3 side = attrib3.side;
-					float3 up = attrib2.up;
+					float3 side = outputData.side;
+					float3 up = outputData.up;
 					
 					position += side * (posOffsets.x * size.x);
 					position += up * (posOffsets.y * size.y);
 					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-					o.flipbookIndex = attrib2.texIndex;
+					o.flipbookIndex = outputData.texIndex;
 					
 					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
 					o.col = float4(local_color.xyz,local_alpha);
