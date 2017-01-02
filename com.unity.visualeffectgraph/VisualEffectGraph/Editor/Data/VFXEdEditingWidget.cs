@@ -241,6 +241,63 @@ namespace UnityEditor.Experimental
         private VFXPropertySlot m_Position;
     }
 
+    public class VFXUISplineWidget : VFXUIWidget
+    {
+        private VFXPropertySlot m_Spline;
+        private UnityEditorInternal.ReorderableList m_Rlist;
+        public VFXUISplineWidget(VFXPropertySlot slot,Transform t , UnityEditorInternal.ReorderableList rList) : base(slot,t)
+        {
+            m_Spline = slot;
+            m_Rlist = rList;
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            List<Vector3> points = m_Spline.Get<List<Vector3>>(false);
+
+            int selected = m_Rlist.index;
+
+
+            List<Vector3> tpoints = new List<Vector3>();
+            foreach(Vector3 p in points)
+                tpoints.Add(TransformPosition(p));
+
+            if(tpoints.Count >= 4)
+            {
+                int numseg = 1 + (tpoints.Count - 4) / 3;
+                 
+                for(int i = 0; i < numseg; i++)
+                {
+                    int idx = i * 3;
+                    Handles.DrawBezier(tpoints[idx], tpoints[idx + 3], tpoints[idx + 1], tpoints[idx + 2], Color.red, null, 3);
+                }
+            }
+
+            Handles.DrawAAPolyLine(4,tpoints.ToArray());
+            foreach(Vector3 p in tpoints)
+            {
+                Handles.DrawSolidDisc(p, Camera.current.transform.forward, 0.1f);
+            }
+
+            if(selected >= 0)
+            {
+                Vector3 pos = tpoints[selected];
+                EditorGUI.BeginChangeCheck();
+                pos = Handles.PositionHandle(pos, Tools.pivotRotation == PivotRotation.Global ? Quaternion.identity : GetGlobalRotation());
+                if (EditorGUI.EndChangeCheck())
+                {
+                    points[selected] = InvTransformPosition(pos);
+                    m_Spline.Set(points);
+                    m_Spline.NotifyChange(VFXPropertySlot.Event.kValueUpdated);
+                }
+            }
+
+        }
+
+        
+    }
+
+
     public class VFXUIVectorWidget : VFXUIWidget
     {
         public VFXUIVectorWidget(VFXPropertySlot slot, Transform t, bool forceNormalized) : base(slot,t)

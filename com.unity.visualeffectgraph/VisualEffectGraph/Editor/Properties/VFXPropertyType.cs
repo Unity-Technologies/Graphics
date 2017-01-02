@@ -218,6 +218,28 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
+    public partial class VFXSplineType : VFXPrimitiveType<List<Vector3>>
+    {
+        public static Desc Description() { return new Desc("Bezier spline", "Curve", "Curve"); }
+
+        public VFXSplineType() : base(null) { }
+
+        public override bool Default(VFXPropertySlot slot)
+        {
+            InitRandom(slot);
+            return true;
+        }
+
+        public void InitRandom(VFXPropertySlot slot)
+        {
+            var points = new List<Vector3>();
+            int nb = Random.Range(4,20);
+            for (int i = 0; i < nb; ++i )
+                points.Add(Random.insideUnitSphere * 5.0f);
+            slot.SetInnerValue(points);
+        }
+    }
+
     // Proxy types
     // TODO
     public abstract class VFXProxyVectorType : VFXPropertyTypeSemantics

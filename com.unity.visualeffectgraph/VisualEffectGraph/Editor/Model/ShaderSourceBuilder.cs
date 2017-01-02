@@ -200,6 +200,7 @@ namespace UnityEditor.Experimental
                 case VFXValueType.kTexture3D:       Write("VFXSampler3D"); break;
                 case VFXValueType.kCurve:           Write("float4"); break;
                 case VFXValueType.kColorGradient:   Write("float"); break;
+                case VFXValueType.kSpline:          Write("float2"); break;
                 default:                            Write(VFXValue.TypeToName(type)); break;
             }
         }
@@ -213,13 +214,16 @@ namespace UnityEditor.Experimental
 
                 string source = block.Desc.Source;
 
-                bool hasCurve = false;
+                /*bool hasCurve = false;
                 bool hasGradient = false;
+                bool hasSpline = false;
                 foreach (var property in block.Desc.Properties)
                     if (property.m_Type.ValueType == VFXValueType.kColorGradient)
                         hasGradient = true;
                     else if (property.m_Type.ValueType == VFXValueType.kCurve)
                         hasCurve = true;
+                    else if (property.m_Type.ValueType == VFXValueType.kSpline)
+                        hasSpline = true;*/
 
                 // function signature
                 Write("void ");
@@ -258,9 +262,9 @@ namespace UnityEditor.Experimental
                 // function body
                 EnterScope();
 
-                if (hasGradient || hasCurve)
+               /* if (hasGradient || hasCurve || hasSpline)
                     WriteSourceWithSamplesResolved(source,block,texData);
-                else
+                else*/
                     Write(source);
                 WriteLine();
 
@@ -334,7 +338,7 @@ namespace UnityEditor.Experimental
         }
 
         // TODO source shouldnt be a parameter but taken from block
-        private void WriteSourceWithSamplesResolved(string source,VFXBlockModel block, VFXGeneratedTextureData texData)
+        /*private void WriteSourceWithSamplesResolved(string source,VFXBlockModel block, VFXGeneratedTextureData texData)
         {
             int lastIndex = 0;
             int indexSample = 0;
@@ -346,7 +350,7 @@ namespace UnityEditor.Experimental
             }
 
             Write(source, lastIndex, source.Length - lastIndex); // Write the rest of the source
-        }
+        }*/
 
         public VFXValueType ConvertSuitableOutputShaderType(VFXValueType input)
         {

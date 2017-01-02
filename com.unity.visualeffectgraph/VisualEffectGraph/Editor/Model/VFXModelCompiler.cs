@@ -407,7 +407,7 @@ namespace UnityEditor.Experimental
 
             //--------------------------------------------------------------------------
             // OUTPUT BUFFER GENERATION
-            bool useOutputBuffer = updateHasKill && system.BlendingMode != BlendMode.kAlpha; // Let's not use indirect output with alpha blend till we have sorting
+            bool useOutputBuffer = false;// updateHasKill && system.BlendingMode != BlendMode.kAlpha; // Let's not use indirect output with alpha blend till we have sorting
             var outputAttribs = new List<VFXAttribute>();
             AttributeBuffer outputBuffer = useOutputBuffer ? new AttributeBuffer(-1,VFXAttribute.Usage.kUpdateW | VFXAttribute.Usage.kOutputR) : null;
             if (updateHasKill)
@@ -587,6 +587,7 @@ namespace UnityEditor.Experimental
             HashSet<VFXExpression> updateSamplers = CollectAndRemoveSamplers(updateUniforms);
 
             // Check what context needs signal textures
+            // TODO Factorize this shit!
             VFXContextDesc.Type colorTextureContexts = VFXContextDesc.Type.kTypeNone;
             if (HasValueOfType(initUniforms, VFXValueType.kColorGradient))      colorTextureContexts |= VFXContextDesc.Type.kTypeInit;
             if (HasValueOfType(updateUniforms, VFXValueType.kColorGradient))    colorTextureContexts |= VFXContextDesc.Type.kTypeUpdate;
@@ -596,6 +597,10 @@ namespace UnityEditor.Experimental
             if (HasValueOfType(initUniforms, VFXValueType.kCurve))              floatTextureContexts |= VFXContextDesc.Type.kTypeInit;
             if (HasValueOfType(updateUniforms, VFXValueType.kCurve))            floatTextureContexts |= VFXContextDesc.Type.kTypeUpdate;
             if (HasValueOfType(outputUniforms, VFXValueType.kCurve))            floatTextureContexts |= VFXContextDesc.Type.kTypeOutput;
+
+            if (HasValueOfType(initUniforms, VFXValueType.kSpline))             floatTextureContexts |= VFXContextDesc.Type.kTypeInit;
+            if (HasValueOfType(updateUniforms, VFXValueType.kSpline))           floatTextureContexts |= VFXContextDesc.Type.kTypeUpdate;
+            if (HasValueOfType(outputUniforms, VFXValueType.kSpline))           floatTextureContexts |= VFXContextDesc.Type.kTypeOutput;
 
             // Collect the intersection between init and update uniforms / samplers
             HashSet<VFXExpression> globalSamplers = CollectIntersection(initSamplers, updateSamplers);
@@ -993,6 +998,8 @@ namespace UnityEditor.Experimental
             if ((data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
             {
                 data.generatedTextureData.WriteSampleCurveFunction(builder);
+                builder.WriteLine();
+                data.generatedTextureData.WriteSampleSplineFunction(builder);
                 builder.WriteLine();
             }
 
@@ -1417,6 +1424,8 @@ namespace UnityEditor.Experimental
             if ((data.floatTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
             {
                 data.generatedTextureData.WriteSampleCurveFunction(builder);
+                builder.WriteLine();
+                data.generatedTextureData.WriteSampleSplineFunction(builder);
                 builder.WriteLine();
             }
 

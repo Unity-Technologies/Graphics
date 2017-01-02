@@ -335,7 +335,7 @@ namespace UnityEditor.Experimental
 
             List<VFXValue> signals = new List<VFXValue>();
             foreach (var expr in expressionList)
-                if (expr.IsValue(false) && (expr.ValueType == VFXValueType.kColorGradient || expr.ValueType == VFXValueType.kCurve))
+                if (expr.IsValue(false) && (expr.ValueType == VFXValueType.kColorGradient || expr.ValueType == VFXValueType.kCurve || expr.ValueType == VFXValueType.kSpline))
                     signals.Add((VFXValue)expr);
 
             m_TextureData.RemoveAllValues();
@@ -390,6 +390,9 @@ namespace UnityEditor.Experimental
                                 break;
                             case VFXValueType.kColorGradient:
                                 asset.AddFloat(m_TextureData.GetGradientUniform(value));
+                                break;
+                            case VFXValueType.kSpline:
+                                asset.AddVector2(m_TextureData.GetSplineUniform(value));
                                 break;
                             default:
                                 throw new Exception("Invalid value");
@@ -945,7 +948,7 @@ namespace UnityEditor.Experimental
 
         public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
         {
-            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve)
+            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve || slot.ValueType == VFXValueType.kSpline)
             {
                 var system = GetOwner();
                 if (system != null)
@@ -1046,7 +1049,7 @@ namespace UnityEditor.Experimental
     {
         public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
         {
-            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve)
+            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve || slot.ValueType == VFXValueType.kSpline)
             {
                 var context = GetOwner();
                 if (context != null)

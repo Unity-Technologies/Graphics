@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.VFX
         kTransform,
         kCurve,
         kColorGradient,
+        kSpline,
     }
 
     public abstract class VFXExpression
@@ -116,13 +117,17 @@ namespace UnityEngine.Experimental.VFX
         {
             switch (type)
             {
-                case VFXValueType.kFloat:       return 1;
-                case VFXValueType.kFloat2:      return 2;
-                case VFXValueType.kFloat3:      return 3;
-                case VFXValueType.kFloat4:      return 4;
-                case VFXValueType.kInt:         return 1;
-                case VFXValueType.kUint:        return 1;
-                case VFXValueType.kTransform:   return 16;
+                case VFXValueType.kFloat:           return 1;
+                case VFXValueType.kFloat2:          return 2;
+                case VFXValueType.kFloat3:          return 3;
+                case VFXValueType.kFloat4:          return 4;
+                case VFXValueType.kInt:             return 1;
+                case VFXValueType.kUint:            return 1;
+                case VFXValueType.kTransform:       return 16;
+
+                case VFXValueType.kCurve:           return 4; // float4
+                case VFXValueType.kColorGradient:   return 1; // float 
+                case VFXValueType.kSpline:          return 2; // float2
                 default:
                     return 0;
             }
@@ -142,7 +147,8 @@ namespace UnityEngine.Experimental.VFX
             if (t == typeof(Matrix4x4))         return VFXValueType.kTransform;
             if (t == typeof(AnimationCurve))    return VFXValueType.kCurve;
             if (t == typeof(Gradient))          return VFXValueType.kColorGradient;
-
+            if (t == typeof(List<Vector3>))      return VFXValueType.kSpline;
+   
             throw new ArgumentException("Invalid type");
         }
 
@@ -161,6 +167,7 @@ namespace UnityEngine.Experimental.VFX
                 case VFXValueType.kTransform:       return new VFXValueTransform();
                 case VFXValueType.kCurve:           return new VFXValueCurve();
                 case VFXValueType.kColorGradient:   return new VFXValueColorGradient();
+                case VFXValueType.kSpline:          return new VFXValueSpline(); 
                 default:
                     return null;
             }
@@ -278,6 +285,7 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
-    class VFXValueCurve : VFXValue<AnimationCurve>      { public override VFXValueType ValueType { get { return VFXValueType.kCurve; }}}
-    class VFXValueColorGradient : VFXValue<Gradient>    { public override VFXValueType ValueType { get { return VFXValueType.kColorGradient; }}}
+    class VFXValueCurve : VFXValue<AnimationCurve>          { public override VFXValueType ValueType { get { return VFXValueType.kCurve; }}}
+    class VFXValueColorGradient : VFXValue<Gradient>        { public override VFXValueType ValueType { get { return VFXValueType.kColorGradient; }}}
+    class VFXValueSpline : VFXValue<List<Vector3>>          { public override VFXValueType ValueType { get { return VFXValueType.kSpline; }}}
 }
