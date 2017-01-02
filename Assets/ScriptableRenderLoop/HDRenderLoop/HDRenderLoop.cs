@@ -279,7 +279,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     int w = camera.pixelWidth;
                     int h = camera.pixelHeight;
 
-                    cmd.GetTemporaryRT(m_CameraColorBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                    cmd.GetTemporaryRT(m_CameraColorBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1, true);   // Enable UAV
                     cmd.GetTemporaryRT(m_CameraDepthBuffer, w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
                     if (!debugParameters.useForwardRenderingOnly)
                     {
