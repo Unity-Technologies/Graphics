@@ -382,6 +382,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // - OmegaP : Solid angle associated to a pixel of the cubemap
 
             float invPdf    = D_GGX_Inverse(NdotH, roughness) * 4.0;
+            // TODO: check the accuracy of the sample's solid angle fit for GGX.
             float omegaS    = rcp(sampleCount) * invPdf;                      // Solid angle associated with the sample
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth); // Solid angle associated with the pixel of the cubemap
@@ -396,6 +397,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
         if (NdotL > 0.0)
         {
+            // TODO: use a Gaussian-like filter to generate the MIP pyramid.
             float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
             // *********************************************************************************
