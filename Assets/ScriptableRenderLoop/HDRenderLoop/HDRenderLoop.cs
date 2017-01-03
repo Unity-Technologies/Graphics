@@ -6,9 +6,43 @@ using UnityEngine.ScriptableRenderPipeline;
 
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
+    public class HDRenderLoopInstance : RenderPipeline
+    {
+        private readonly HDRenderLoop m_Owner;
+
+        public HDRenderLoopInstance(HDRenderLoop owner)
+        {
+            m_Owner = owner;
+        }
+
+        protected override void InternalBuild()
+        {
+            if (m_Owner != null)
+                m_Owner.Build();
+        }
+
+        protected override void InternalCleanup()
+        {
+            if (m_Owner != null)
+                m_Owner.Cleanup();
+        }
+
+
+        [NonSerialized]
+        readonly List<Camera> m_CamerasToRender = new List<Camera>();
+
+        public override void Render(ScriptableRenderContext renderContext)
+        {
+            cameraProvider.GetCamerasToRender(m_CamerasToRender);
+            m_Owner.Render(renderContext, m_CamerasToRender);
+            CleanCameras(m_CamerasToRender);
+            m_CamerasToRender.Clear();
+        }
+    }
+
     [ExecuteInEditMode]
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
-    public partial class HDRenderLoop : RenderPipeline
+    public class HDRenderLoop : RenderPipelineAsset
     {
         const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
@@ -35,33 +69,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 #endif
-        private class HDLoopDataStore : RenderingDataStore
+
+        protected override IRenderPipeline InternalCreatePipeline()
         {
-            public HDLoopDataStore(BaseRenderPipeline owner) : base(owner)
-            { }
-
-            protected override void InternalBuild()
-            {
-                base.InternalBuild(); 
-                HDRenderLoop theOwner = owner as HDRenderLoop;
-                if (theOwner != null)
-                    theOwner.Build();
-            }
-
-            protected override void InternalCleanup()
-            {
-                base.InternalCleanup();
-                HDRenderLoop theOwner = owner as HDRenderLoop;
-                if (theOwner != null)
-                    theOwner.Cleanup();
-            }
+            return new HDRenderLoopInstance(this);
         }
-
-        public override IScriptableRenderDataStore ConstructDataStore()
-        {
-            return new HDLoopDataStore(this);
-        }
-
+        
         SkyManager m_SkyManager = new SkyManager();
         public SkyManager skyManager
         {
@@ -677,15 +690,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_ShadowSettings.maxShadowDistance = m_CommonSettings.shadowMaxDistance;
             }
         }
-
-        [NonSerialized]
-        readonly List<Camera> m_CamerasToRender = new List<Camera>();
-
-        public override void Render(ScriptableRenderContext renderLoop, IScriptableRenderDataStore dataStore)
+        
+        public void Render(ScriptableRenderContext renderLoop, IEnumerable<Camera> cameras)
         {
-            base.Render(renderLoop, dataStore);
-            cameraProvider.GetCamerasToRender(m_CamerasToRender);
-            
             if (!m_LitRenderLoop.isInit)
             {
                 m_LitRenderLoop.RenderInit(renderLoop);
@@ -699,7 +706,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Set Frame constant buffer
             // TODO...
 
-            foreach (var camera in m_CamerasToRender)
+            foreach (var camera in cameras)
             {
                 // Set camera constant buffer
                 // TODO...
@@ -785,10 +792,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 renderLoop.Submit();
             }
-
-            CleanCameras(m_CamerasToRender);
-            m_CamerasToRender.Clear();
-
+            
             // Post effects
         }
     }
