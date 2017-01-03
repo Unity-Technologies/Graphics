@@ -9,6 +9,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     [System.Serializable]
     public class ShadowSettings
     {
+        public enum ShadowType : int
+        {
+            SCREENSPACE = 0,
+            LIGHTSPACE,
+            SHADOWTYPE_COUNT
+        }
+
         public bool     enabled;
         public int      shadowAtlasWidth;
         public int      shadowAtlasHeight;
@@ -16,7 +23,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float    maxShadowDistance;
         public int      directionalLightCascadeCount;
         public Vector3  directionalLightCascades;
-
+        public int maxShadowLightsSupported;
+        public RenderTextureFormat renderTextureFormat;
+        public ShadowType shadowType;
 
         public static ShadowSettings Default
         {
@@ -29,6 +38,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 settings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
                 settings.directionalLightCascadeCount = 4;
                 settings.maxShadowDistance = 1000.0F;
+                settings.maxShadowLightsSupported = -1;
+                settings.renderTextureFormat = RenderTextureFormat.Shadowmap;
+                settings.shadowType = ShadowType.SCREENSPACE;
                 return settings;
             }
         }
@@ -304,7 +316,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var setRenderTargetCommandBuffer = new CommandBuffer();
 
             setRenderTargetCommandBuffer.name = "Render packed shadows";
-            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowTexName, m_Settings.shadowAtlasWidth, m_Settings.shadowAtlasHeight, k_DepthBuffer, FilterMode.Bilinear, RenderTextureFormat.Shadowmap, RenderTextureReadWrite.Linear);
+            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowTexName, m_Settings.shadowAtlasWidth, m_Settings.shadowAtlasHeight, k_DepthBuffer, FilterMode.Bilinear, m_Settings.renderTextureFormat, RenderTextureReadWrite.Linear);
             setRenderTargetCommandBuffer.SetRenderTarget(new RenderTargetIdentifier(m_ShadowTexName));
 
             setRenderTargetCommandBuffer.ClearRenderTarget(true, true, Color.green);
@@ -314,8 +326,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             VisibleLight[] visibleLights = cullResults.visibleLights;
             var shadowSlices = packedShadows.shadowSlices;
 
+            int shadowLightsCount = (m_Settings.maxShadowLightsSupported > 0)
+                ? Mathf.Min(packedShadows.shadowLights.Length)
+                : packedShadows.shadowLights.Length;
+
             // Render each light's shadow buffer into a subrect of the shared depth texture
-            for (int lightIndex = 0; lightIndex < packedShadows.shadowLights.Length; lightIndex++)
+            for (int lightIndex = 0; lightIndex < shadowLightsCount; lightIndex++)
             {
                 int shadowSliceCount = packedShadows.shadowLights[lightIndex].shadowSliceCount;
                 if (shadowSliceCount == 0)
@@ -391,16 +407,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var matScaleBias = Matrix4x4.identity;
             matScaleBias.m00 = 0.5f;
             matScaleBias.m11 = 0.5f;
-            matScaleBias.m22 = 0.5f;
+            matScaleBias.m22 = 0.5f; 
             matScaleBias.m03 = 0.5f;
-            matScaleBias.m13 = 0.5f;
             matScaleBias.m23 = 0.5f;
+            matScaleBias.m13 = 0.5f;
+
+            // TODO: Projection Matrix is changed after SetViewProjectoinMatrix depending on zbuffer params and api.
+            // TODO: Provide API to check zBuffer direction
+            if (m_Settings.shadowType == ShadowSettings.ShadowType.LIGHTSPACE)
+                matScaleBias.m22 = -0.5f;
 
             var matTile = Matrix4x4.identity;
             matTile.m00 = (float)lightData.shadowResolution / (float)m_Settings.shadowAtlasWidth;
             matTile.m11 = (float)lightData.shadowResolution / (float)m_Settings.shadowAtlasHeight;
             matTile.m03 = (float)lightData.atlasX / (float)m_Settings.shadowAtlasWidth;
             matTile.m13 = (float)lightData.atlasY / (float)m_Settings.shadowAtlasHeight;
+
             lightData.shadowTransform = matTile * matScaleBias * proj * view;
         }
 
@@ -415,6 +437,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             commandBuffer.SetGlobalVector("g_vLightDirWs", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z));
             commandBuffer.SetViewProjectionMatrices(view, proj);
             //	commandBuffer.SetGlobalDepthBias (1.0F, 1.0F);
+
             loop.ExecuteCommandBuffer(commandBuffer);
             commandBuffer.Dispose();
 
