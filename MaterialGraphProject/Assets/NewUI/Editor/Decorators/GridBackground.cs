@@ -105,6 +105,10 @@ namespace RMGUI.GraphView
 			m_Container = graphView.contentViewContainer;
 			Rect clientRect = graphView.position;
 
+			// Since we're always stretch to parent size, we will use (0,0) as (x,y) coordinates
+			clientRect.x = 0;
+			clientRect.y = 0;
+
 			var containerScale = new Vector3(m_Container.transform.GetColumn(0).magnitude,
 				m_Container.transform.GetColumn(1).magnitude,
 				m_Container.transform.GetColumn(2).magnitude);
