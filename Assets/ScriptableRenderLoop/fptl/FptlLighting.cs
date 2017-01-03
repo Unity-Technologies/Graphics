@@ -13,30 +13,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public FptlLightingInstance(FptlLighting owner)
         {
             m_Owner = owner;
-        }
 
-        protected override void InternalBuild()
-        {
             if (m_Owner != null)
                 m_Owner.Build();
         }
 
-        protected override void InternalCleanup()
+        public override void Dispose()
         {
+            base.Dispose();
             if (m_Owner != null)
                 m_Owner.Cleanup();
         }
-
-
-        [NonSerialized]
-        readonly List<Camera> m_CamerasToRender = new List<Camera>();
-
-        public override void Render(ScriptableRenderContext renderContext)
+        
+        public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
-            cameraProvider.GetCamerasToRender(m_CamerasToRender);
-            m_Owner.Render(renderContext, m_CamerasToRender);
-            CleanCameras(m_CamerasToRender);
-            m_CamerasToRender.Clear();
+            base.Render(renderContext, cameras);
+            m_Owner.Render(renderContext, cameras);
         }
     }
 

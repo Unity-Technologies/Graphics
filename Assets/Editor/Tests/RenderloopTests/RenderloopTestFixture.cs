@@ -23,22 +23,12 @@ public class RenderLoopTestFixtureInstance : RenderPipeline
     private static TestDelegate s_Callback;
 
     private static RenderLoopTestFixture m_Instance;
-
-
-    protected override void InternalBuild()
-    {}
-
-    protected override void InternalCleanup()
-    {}
-
-
-    [NonSerialized]
-    readonly List<Camera> m_CamerasToRender = new List<Camera>();
-    public override void Render(ScriptableRenderContext renderLoop)
+    
+    public override void Render(ScriptableRenderContext renderLoop, Camera[] cameras)
     {
-        cameraProvider.GetCamerasToRender(m_CamerasToRender);
+        base.Render(renderLoop, cameras);
 
-        foreach (var camera in m_CamerasToRender)
+        foreach (var camera in cameras)
         {
             if (!camera.enabled)
                 continue;
@@ -54,9 +44,6 @@ public class RenderLoopTestFixtureInstance : RenderPipeline
         }
 
         renderLoop.Submit();
-
-        CleanCameras(m_CamerasToRender);
-        m_CamerasToRender.Clear();
     }
 
     public static void Run(TestDelegate renderCallback)

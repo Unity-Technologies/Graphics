@@ -1,33 +1,22 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.ScriptableRenderPipeline
 {
-    public abstract class RenderPipeline : BaseRenderPipeline
+    public abstract class RenderPipeline : IRenderPipeline
     {
-        private ICameraProvider m_CameraProvider;
-
-        public override ICameraProvider cameraProvider
+        public virtual void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
-            get
-            {
-                if (m_CameraProvider == null)
-                    m_CameraProvider = ConstructCameraProvider();
-
-                return m_CameraProvider;
-            }
-            set { m_CameraProvider = value; }
+            if (disposed)
+                throw new ObjectDisposedException(string.Format("{0} has been disposed. Do not call Render on disposed RenderLoops.", this));
         }
-
-        public override ICameraProvider ConstructCameraProvider()
+        
+        public bool disposed { get; private set; }
+        
+        public virtual void Dispose()
         {
-            return new DefaultCameraProvider();
-        }
-
-        public static void CleanCameras(IEnumerable<Camera> cameras)
-        {
-            foreach (var camera in cameras)
-                camera.ClearIntermediateRenderers();
+            disposed = true;
         }
     }
 }
