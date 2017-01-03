@@ -32,21 +32,11 @@ public class BasicRenderLoop : RenderPipelineAsset
 
 public class BasicRenderLoopInstance : RenderPipeline
 {
-    protected override void InternalBuild()
-    {}
-
-    protected override void InternalCleanup()
-    {}
-
-    [NonSerialized]
-    readonly List<Camera> m_CamerasToRender = new List<Camera>();
-
-    public override void Render(ScriptableRenderContext renderLoop)
+    
+    public override void Render(ScriptableRenderContext renderLoop, Camera[] cameras)
     {
-        cameraProvider.GetCamerasToRender(m_CamerasToRender);
-        BasicRendering.Render(renderLoop, m_CamerasToRender);
-        CleanCameras(m_CamerasToRender);
-        m_CamerasToRender.Clear();
+        base.Render(renderLoop, cameras);
+        BasicRendering.Render(renderLoop, cameras);
     }
 }
 
