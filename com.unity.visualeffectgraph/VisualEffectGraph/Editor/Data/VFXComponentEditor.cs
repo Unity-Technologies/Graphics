@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -216,7 +217,7 @@ public class VFXComponentEditor : Editor
             GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             Handles.BeginGUI();
             Camera cam = sceneCamObj.GetComponent<Camera>();
-            Rect windowRect = new Rect(cam.pixelWidth / 2 - 140, cam.pixelHeight - 80 , 280, 64);
+            Rect windowRect = new Rect(cam.pixelWidth / 2 - 140, cam.pixelHeight - 80 , 324, 96);
             GUI.Window(666, windowRect, DrawPlayControlsWindow, "VFX Playback Control");
         
             Handles.EndGUI();
@@ -287,7 +288,39 @@ public class VFXComponentEditor : Editor
                 toolsMenu.ShowAsContext();
             }
         }
+
+        using (new GUILayout.HorizontalScope())
+        {
+            var stats = VFXComponent.GetSystemComponentsStatsFilter(component);
+            if (stats.Length > 0)
+            {
+                var sum = stats.Aggregate((a, b) => new VFXSystemComponentStat { alive = a.alive + b.alive, capacity = a.capacity + b.capacity });
+                var percentage = (float)sum.alive / (float)sum.capacity;
+
+                GUILayout.Label("Usage", GUILayout.Width(54));
+                var bckpColor = GUI.contentColor;
+                GUI.contentColor = percentage < 0.33f ? Color.red : percentage < 0.66f ? Color.yellow : Color.green;
+                GUILayout.Label(Math.Round(percentage * 100) + "%", GUILayout.Width(32));
+                GUI.contentColor = bckpColor;
+                var details = string.Format("{0} system{1} ", stats.Length, stats.Length > 1 ? "s" : "");
+                details += stats.Select(s => Math.Round((float)s.alive * 100.0f / s.capacity)).OrderByDescending(s => s).Select(s => s.ToString() + "%").Aggregate((a, b) => string.Format("{0} {1}", a, b));
+                GUILayout.Label(details, GUILayout.Width(196));
+
+                /*using (new GUILayout.HorizontalScope())
+                {
+                    if (testCurve.keys.Length > 500)
+                    {
+                        testCurve.RemoveKey(0);
+                        testCurve.keys = testCurve.keys.Select(k => new Keyframe(k.time - 1, k.value)).ToArray();
+                    }
+                    testCurve.AddKey(testCurve.keys.Length, percentage * 100.0f);
+                    EditorGUILayout.CurveField(testCurve);
+                }*/
+            }
+        }
     }
+
+    //static AnimationCurve testCurve = new AnimationCurve();
 
     public override void OnInspectorGUI()
     {
