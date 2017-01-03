@@ -81,7 +81,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (node == null)
                 return;
             var drawstate = node.drawState;
-            drawstate.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, 0, 0);
+
+            Vector3 localPos = contentViewContainer.transform.inverse.MultiplyPoint3x4(posObj.m_Pos);
+            drawstate.position = new Rect(localPos.x, localPos.y, 0, 0);
             node.drawState = drawstate;
 
             var graphDataSource = GetPresenter<AbstractGraphDataSource>();
