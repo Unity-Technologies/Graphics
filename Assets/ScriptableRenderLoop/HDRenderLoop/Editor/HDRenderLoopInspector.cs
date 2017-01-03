@@ -38,7 +38,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public readonly GUIContent bigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
             public readonly GUIContent clustered = new GUIContent("Enable clustered", "Toggle");
             public readonly GUIContent disableTileAndCluster = new GUIContent("Disable Tile/clustered", "Toggle");
-            
+            public readonly GUIContent disableDeferredShadingInCompute = new GUIContent("Disable deferred shading in compute", "Toggle");
+
 
 
             public readonly GUIContent textureSettings = new GUIContent("Texture Settings");
@@ -247,7 +248,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     EditorUtility.SetDirty(renderLoop); // Repaint
 
                     // SetAssetDirty will tell renderloop to rebuild
-                    renderLoop.SetAssetDirty();
+                    renderLoop.ClearCachedData();
                 }
 
                 EditorGUI.BeginChangeCheck();
@@ -255,6 +256,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 tilePass.debugViewTilesFlags = EditorGUILayout.MaskField("DebugView Tiles", tilePass.debugViewTilesFlags, styles.tileLightLoopDebugTileFlagStrings);
                 tilePass.enableSplitLightEvaluation = EditorGUILayout.Toggle(styles.splitLightEvaluation, tilePass.enableSplitLightEvaluation);
                 tilePass.disableTileAndCluster = EditorGUILayout.Toggle(styles.disableTileAndCluster, tilePass.disableTileAndCluster);
+                tilePass.disableDeferredShadingInCompute = EditorGUILayout.Toggle(styles.disableDeferredShadingInCompute, tilePass.disableDeferredShadingInCompute);
 
                 if (EditorGUI.EndChangeCheck())
                 {

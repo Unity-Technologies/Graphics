@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
         public Mesh                     skyMesh;
-        public RenderLoop               renderLoop;
+        public ScriptableRenderContext  renderLoop;
         public Light                    sunLight;
         public RenderTargetIdentifier   colorBuffer;
         public RenderTargetIdentifier   depthBuffer;
@@ -320,7 +320,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        private void BuildProbabilityTables(RenderLoop renderLoop)
+        private void BuildProbabilityTables(ScriptableRenderContext renderLoop)
         {
             // Bind the input cubemap.
             m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "envMap", m_SkyboxCubemapRT);
@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.Dispose();
         }
 
-        private void RenderCubemapGGXConvolution(RenderLoop renderLoop, BuiltinSkyParameters builtinParams, SkyParameters skyParams, Texture input, RenderTexture target)
+        private void RenderCubemapGGXConvolution(ScriptableRenderContext renderLoop, BuiltinSkyParameters builtinParams, SkyParameters skyParams, Texture input, RenderTexture target)
         {
             using (new Utilities.ProfilingSample("Sky Pass: GGX Convolution", renderLoop))
             {
@@ -420,7 +420,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_UpdateRequired = true;
         }
 
-        public void UpdateEnvironment(HDRenderLoop.HDCamera camera, Light sunLight, RenderLoop renderLoop)
+        public void UpdateEnvironment(HDRenderLoop.HDCamera camera, Light sunLight, ScriptableRenderContext renderLoop)
         {
             {
                 using (new Utilities.ProfilingSample("Sky Environment Pass", renderLoop))
@@ -489,7 +489,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public void RenderSky(HDRenderLoop.HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
+        public void RenderSky(HDRenderLoop.HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ScriptableRenderContext renderLoop)
         {
             using (new Utilities.ProfilingSample("Sky Pass", renderLoop))
             {

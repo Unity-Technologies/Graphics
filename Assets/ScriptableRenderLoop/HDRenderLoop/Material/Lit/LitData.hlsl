@@ -284,6 +284,27 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
     return result;
 }
 
+float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, float layerHeight, float heightOffset, float heightFactor, float edgeBlendStrength)
+{
+    float finalLayerHeight = layerHeight * heightFactor + heightOffset;
+
+    edgeBlendStrength = max(0.001, edgeBlendStrength);
+
+    float heightThreshold = previousLayerHeight + edgeBlendStrength;
+
+    if (previousLayerHeight >= finalLayerHeight)
+    {
+        inputFactor = 0.0;
+    }
+    else if (finalLayerHeight > previousLayerHeight && finalLayerHeight < previousLayerHeight + edgeBlendStrength)
+    {
+        inputFactor = inputFactor * pow((finalLayerHeight - previousLayerHeight) / edgeBlendStrength, 0.5);
+    }
+
+    return max(finalLayerHeight, previousLayerHeight);
+}
+
+
 #define SURFACEDATA_BLEND_COLOR(surfaceData, name, mask) BlendLayeredColor(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
 #define SURFACEDATA_BLEND_NORMAL(surfaceData, name, mask) BlendLayeredNormal(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
@@ -322,10 +343,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Transform view vector in tangent space
     float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
-    ApplyDisplacement0(input, viewDirTS, layerTexCoord);
-    ApplyDisplacement1(input, viewDirTS, layerTexCoord);
-    ApplyDisplacement2(input, viewDirTS, layerTexCoord);
-    ApplyDisplacement3(input, viewDirTS, layerTexCoord);
+    float height0 = ApplyDisplacement0(input, viewDirTS, layerTexCoord);
+    float height1 = ApplyDisplacement1(input, viewDirTS, layerTexCoord);
+    float height2 = ApplyDisplacement2(input, viewDirTS, layerTexCoord);
+    float height3 = ApplyDisplacement3(input, viewDirTS, layerTexCoord);
     float depthOffset = 0.0;
 
 #ifdef _DEPTHOFFSET_ON
@@ -347,6 +368,20 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #if defined(_LAYER_MASK_VERTEX_COLOR)
     maskValues *= input.vertexColor.rgb;
 #endif
+
+    float baseLayerHeight = height0;
+    if (_UseHeightBasedBlend1 > 0.0f)
+    {
+        baseLayerHeight = ApplyHeightBasedBlend(maskValues.r, baseLayerHeight, height1, _HeightOffset1, _HeightFactor1, _BlendSize1);
+    }
+    if (_UseHeightBasedBlend2 > 0.0f)
+    {
+        baseLayerHeight = ApplyHeightBasedBlend(maskValues.g, baseLayerHeight, height2, _HeightOffset2 + _HeightOffset1, _HeightFactor2, _BlendSize2);
+    }
+    if (_UseHeightBasedBlend3 > 0.0f)
+    {
+        ApplyHeightBasedBlend(maskValues.b, baseLayerHeight, height3, _HeightOffset3 + _HeightOffset2 + _HeightOffset1, _HeightFactor3, _BlendSize3);
+    }
 
     float weights[_MAX_LAYER];
     ComputeMaskWeights(maskValues, weights);
