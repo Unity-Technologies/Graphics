@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    class VFXContext : VFXModel<VFXSystem, VFXModel>
+    class VFXContext : VFXModel<VFXSystem, VFXSubContext>
     {
         private VFXContext() {} // Used by serialization
 
@@ -24,6 +24,7 @@ namespace UnityEditor.VFX
         {
             base.OnAfterDeserialize();
             // TODO Construct desc based on its type
+            m_Desc = VFXLibrary.GetContext(m_SerializableDesc);
             m_SerializableDesc = null;
         }
 
@@ -31,5 +32,12 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         private string m_SerializableDesc;
+    }
+
+    class VFXSubContext : VFXModel<VFXContext, VFXModel>
+    {
+        // In and out sub context, if null directly connected to the context input/output
+        private VFXSubContext m_In;
+        private VFXSubContext m_Out;
     }
 }
