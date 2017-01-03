@@ -346,6 +346,12 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     {
         float2 u = frac(randNum + Fibonacci2d(i, sampleCount));
 
+        // Bias samples towards the mirror direction to reduce variance.
+        // This will have a side effect of making the reflection sharper.
+        // Ref: Stochastic Screen-Space Reflections, p. 67.
+        const float bias = 0.5;
+        u.x = lerp(u.x, 0.0, bias);
+
         float3 L;
         float  NdotH, VdotH;
         ImportanceSampleGGXDir(u, V, localToWorld, roughness, L, NdotH, VdotH, true);
@@ -380,6 +386,12 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth); // Solid angle associated with the pixel of the cubemap
             mipLevel        = 0.5 * log2(omegaS * invOmegaP) + 1.0;           // Clamp is not necessary as the hardware will do it
+
+            // Bias the MIP map level to compensate for the importance sampling bias.
+            // This will blur the reflection.
+            // TODO: bias more accurately once the 'UNITY_SPECCUBE_MAX_LOD' restriction has been lifted.
+            mipLevel = lerp(mipLevel, UNITY_SPECCUBE_MAX_LOD, sqrt(bias));
+
         }
 
         if (NdotL > 0.0)
