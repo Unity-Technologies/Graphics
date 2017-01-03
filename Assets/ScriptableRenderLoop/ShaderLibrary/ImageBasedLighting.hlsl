@@ -10,11 +10,6 @@
 // Util image based lighting
 //-----------------------------------------------------------------------------
 
-// TODO: We need to change this hard limit!
-#ifndef UNITY_SPECCUBE_LOD_STEPS
-    #define UNITY_SPECCUBE_LOD_STEPS 6
-#endif
-
 float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
 {
     // TODO: Clean a bit this code
@@ -33,12 +28,12 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
 #endif
 
-    return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
+    return perceptualRoughness * UNITY_SPECCUBE_MAX_LOD;
 }
 
 float mipmapLevelToPerceptualRoughness(float mipmapLevel)
 {
-    return mipmapLevel / UNITY_SPECCUBE_LOD_STEPS;
+    return saturate(mipmapLevel / UNITY_SPECCUBE_MAX_LOD);
 }
 
 //-----------------------------------------------------------------------------
