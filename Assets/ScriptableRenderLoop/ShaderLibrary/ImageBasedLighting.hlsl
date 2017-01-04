@@ -28,12 +28,12 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
 #endif
 
-    return perceptualRoughness * UNITY_SPECCUBE_MAX_LOD;
+    return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
 float mipmapLevelToPerceptualRoughness(float mipmapLevel)
 {
-    return saturate(mipmapLevel / UNITY_SPECCUBE_MAX_LOD);
+    return saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
 }
 
 //-----------------------------------------------------------------------------
@@ -387,8 +387,8 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
             // Bias the MIP map level to compensate for the importance sampling bias.
             // This will blur the reflection.
-            // TODO: bias more accurately once the 'UNITY_SPECCUBE_MAX_LOD' restriction has been lifted.
-            mipLevel = lerp(mipLevel, UNITY_SPECCUBE_MAX_LOD, sqrt(bias));
+            // TODO: bias more accurately once the 'UNITY_SPECCUBE_LOD_STEPS' limit has been lifted.
+            mipLevel = lerp(mipLevel, UNITY_SPECCUBE_LOD_STEPS, sqrt(bias));
         }
 
         if (NdotL > 0.0)

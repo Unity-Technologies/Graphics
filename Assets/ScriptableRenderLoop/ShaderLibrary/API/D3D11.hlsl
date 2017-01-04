@@ -10,8 +10,8 @@
 #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL) ? (FRONT) : (BACK))
 
 // TODO: We need to change this hard limit!
-#ifndef UNITY_SPECCUBE_MAX_LOD
-    #define UNITY_SPECCUBE_MAX_LOD 5
+#ifndef UNITY_SPECCUBE_LOD_STEPS
+    #define UNITY_SPECCUBE_LOD_STEPS 6
 #endif
 
 #define CBUFFER_START(name) cbuffer name {
@@ -58,7 +58,7 @@
 #define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) textureName.Sample(samplerName, float3(coord2, index))
 #define SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, index, lod) textureName.SampleLevel(samplerName, float3(coord2, index), lod)
 #define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3) textureName.Sample(samplerName, coord3)
-#define SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod) textureName.SampleLevel(samplerName, coord3, min(lod, UNITY_SPECCUBE_MAX_LOD))
+#define SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3, lod) textureName.SampleLevel(samplerName, coord3, min(lod, UNITY_SPECCUBE_LOD_STEPS))
 #define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index) textureName.Sample(samplerName, float4(coord3, index))
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod) textureName.SampleLevel(samplerName, float4(coord3, index), lod)
 #define SAMPLE_TEXTURE3D(textureName, samplerName, coord3) textureName.Sample(samplerName, coord3)
