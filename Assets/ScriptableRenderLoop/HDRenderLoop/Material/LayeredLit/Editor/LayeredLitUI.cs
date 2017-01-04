@@ -94,7 +94,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             layerMaskMap = FindProperty(kLayerMaskMap, props);
             layerMaskVertexColor = FindProperty(kLayerMaskVertexColor, props);
             layerCount = FindProperty(kLayerCount, props);
-            for (int i = 0; i < numLayer; ++i)
+            for (int i = 0; i < kMaxLayerCount; ++i)
             {
                 layerTexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, i), props);
                 layerUVBase[i] = FindProperty(string.Format("{0}{1}", kUVBase, i), props);
@@ -123,20 +123,32 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             get { return (int)layerCount.floatValue; }
         }
 
+        public static void SynchronizeAllLayers(Material material)
+        {
+            int layerCount = (int)material.GetFloat("_LayerCount");
+            AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
+
+            Material[] layers = null;
+            InitializeMaterialLayers(materialImporter, ref layers);
+            for (int i = 0 ; i < layerCount ; ++i)
+            {
+                SynchronizeLayerProperties(material, layers, i);
+            }
+        }
+
         void SynchronizeAllLayersProperties()
         {
             for (int i = 0; i < numLayer; ++i)
             {
-                SynchronizeLayerProperties(i);
+                SynchronizeLayerProperties(m_MaterialEditor.target as Material, m_MaterialLayers, i);
             }
         }
 
-        void SynchronizeLayerProperties(int layerIndex)
+        static void SynchronizeLayerProperties(Material material, Material[] layers, int layerIndex)
         {
             string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVMappingPlanar, kUVDetailsMappingMask };
 
-            Material material = m_MaterialEditor.target as Material;
-            Material layerMaterial = m_MaterialLayers[layerIndex];
+            Material layerMaterial = layers[layerIndex];
 
             if (layerMaterial != null)
             {
@@ -184,17 +196,17 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             }
         }
 
-        void InitializeMaterialLayers(AssetImporter materialImporter)
+        static void InitializeMaterialLayers(AssetImporter materialImporter, ref Material[] layers)
         {
             if (materialImporter.userData != string.Empty)
             {
                 SerializeableGUIDs layersGUID = JsonUtility.FromJson<SerializeableGUIDs>(materialImporter.userData);
                 if (layersGUID.GUIDArray.Length > 0)
                 {
-                    m_MaterialLayers = new Material[layersGUID.GUIDArray.Length];
+                    layers = new Material[layersGUID.GUIDArray.Length];
                     for (int i = 0; i < layersGUID.GUIDArray.Length; ++i)
                     {
-                        m_MaterialLayers[i] = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(layersGUID.GUIDArray[i]), typeof(Material)) as Material;
+                        layers[i] = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(layersGUID.GUIDArray[i]), typeof(Material)) as Material;
                     }
                 }
             }
@@ -378,6 +390,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         {
             bool result = false;
 
+            Material material = m_MaterialEditor.target as Material;
+
             EditorGUILayout.LabelField(styles.layerLabels[layerIndex]);
 
             EditorGUI.indentLevel++;
@@ -387,7 +401,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(materialImporter, "Change layer material");
-                SynchronizeLayerProperties(layerIndex);
+                SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex);
                 result = true;
             }
 
@@ -395,7 +409,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             m_MaterialEditor.ShaderProperty(layerUVBase[layerIndex], styles.UVBaseText);
             if (EditorGUI.EndChangeCheck())
             {
-                SynchronizeLayerProperties(layerIndex);
+                SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex);
                 result = true;
             }
             if (((LayerUVBaseMapping)layerUVBase[layerIndex].floatValue == LayerUVBaseMapping.Planar) ||
@@ -411,7 +425,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 m_MaterialEditor.ShaderProperty(layerUVDetail[layerIndex], styles.UVDetailText);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    SynchronizeLayerProperties(layerIndex);
+                    SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex);
                     result = true;
                 }
             }
@@ -451,6 +465,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             EditorGUI.indentLevel++;
             GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
 
+            EditorGUI.showMixedValue = layerCount.hasMixedValue;
             EditorGUI.BeginChangeCheck();
             int newLayerCount = EditorGUILayout.IntSlider(styles.layerCountText, (int)layerCount.floatValue, 2, 4);
             if (EditorGUI.EndChangeCheck())
@@ -599,7 +614,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             Material material = m_MaterialEditor.target as Material;
             AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
 
-            InitializeMaterialLayers(materialImporter);
+            InitializeMaterialLayers(materialImporter, ref m_MaterialLayers);
 
             bool optionsChanged = false;
             EditorGUI.BeginChangeCheck();
