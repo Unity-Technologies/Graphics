@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     public class FptlLighting : RenderPipelineAsset
     {
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("Renderloop/CreateRenderLoopFPTL")]
+        [UnityEditor.MenuItem("RenderPipeline/CreateRenderLoopFPTL")]
         static void CreateRenderLoopFPTL()
         {
             var instance = ScriptableObject.CreateInstance<FptlLighting>();
