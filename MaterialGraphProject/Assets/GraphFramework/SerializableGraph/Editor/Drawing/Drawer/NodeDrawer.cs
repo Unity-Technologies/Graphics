@@ -5,6 +5,7 @@ using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.RMGUI;
 using UnityEditor.Graphing.Util;
+using UnityEngine.RMGUI.StyleEnums;
 using UnityEngine.RMGUI.StyleSheets;
 
 namespace UnityEditor.Graphing.Drawing
@@ -30,6 +31,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public override void SetPosition(Rect newPos)
         {
+			positionType = PositionType.Absolute;
             positionLeft = newPos.x;
             positionTop = newPos.y;
         }

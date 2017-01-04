@@ -9,7 +9,7 @@ namespace RMGUI.GraphView
 	{
 		public SelectionDragger()
 		{
-			activateButtons[(int)MouseButton.LeftMouse] = true;
+			activators.Add(new ManipActivator {button = MouseButton.LeftMouse});
 			panSpeed = new Vector2(1, 1);
 			clampToParentEdges = false;
 		}

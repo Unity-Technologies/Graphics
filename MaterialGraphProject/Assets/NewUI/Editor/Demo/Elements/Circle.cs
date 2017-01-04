@@ -35,5 +35,10 @@ namespace RMGUI.GraphView.Demo
 			var p = new Vector2(Mathf.Max(rectangle.x, Mathf.Min(radius, rectangle.xMax)), Mathf.Max(rectangle.y, Mathf.Min(radius, rectangle.yMax)));
 			return Vector2.Distance(new Vector2(radius, radius), p) <= radius;
 		}
+
+		public Circle()
+		{
+			elementTypeColor = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+		}
 	}
 }
