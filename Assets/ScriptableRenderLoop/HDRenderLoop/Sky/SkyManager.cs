@@ -388,6 +388,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
 
                 m_GGXConvolveMaterial.SetTexture("_MainTex", input);
+                m_GGXConvolveMaterial.SetFloat("_MaxLevel", mipCount - 1);
                 m_GGXConvolveMaterial.SetFloat("_InvOmegaP", invOmegaP);
 
                 for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
