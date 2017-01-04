@@ -12,8 +12,7 @@ namespace RMGUI.GraphView.Demo
 		readonly Label m_Label;
 		Dragger m_Dragger;
 
-		readonly Color m_ViewportColor = new Color(1.0f, 1.0f, 0.0f, 0.5f);
-		readonly Color m_ChildrenColor = new Color(1.0f, 1.0f, 1.0f, 0.25f);
+		Color m_ViewportColor = new Color(1.0f, 1.0f, 0.0f, 0.35f);
 		readonly Color m_SelectedChildrenColor = new Color(1.0f, 1.0f, 1.0f, 0.5f);
 
 		// Various rects used by the MiniMap
@@ -269,8 +268,6 @@ namespace RMGUI.GraphView.Demo
 
 			// Display elements in the MiniMap
 			Color currentColor = Handles.color;
-			Handles.color = m_ChildrenColor;
-
 			foreach (var child in container.children)
 			{
 				var elem = child as GraphElement;
@@ -278,7 +275,8 @@ namespace RMGUI.GraphView.Demo
 					continue;
 
 				var rect = CalculateElementRect(elem);
-				Handles.DrawSolidRectangleWithOutline(rect, m_ChildrenColor, m_ChildrenColor);
+				Handles.color = elem.elementTypeColor;
+				Handles.DrawSolidRectangleWithOutline(rect, elem.elementTypeColor, elem.elementTypeColor);
 				var elementPresenter = elem.GetPresenter<GraphElementPresenter>();
 				if (elementPresenter != null && elementPresenter.selected)
 					DrawRectangleOutline(rect, m_SelectedChildrenColor);

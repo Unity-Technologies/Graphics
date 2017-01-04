@@ -89,7 +89,7 @@ namespace RMGUI.GraphView
 				if (!m_Presenter.elements.Contains(c.presenter))
 				{
 					c.parent.RemoveChild(c);
-                    selection.Remove(c);
+					selection.Remove(c);
 				}
 			}
 

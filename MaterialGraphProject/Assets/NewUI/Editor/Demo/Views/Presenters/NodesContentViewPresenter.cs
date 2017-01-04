@@ -105,6 +105,14 @@ namespace RMGUI.GraphView.Demo
 			verticalNodePresenter.position = new Rect(430, 420, 100, 100);
 			AddElement(verticalNodePresenter);
 
+			var commentPresenter = CreateInstance<CommentPresenter>();
+			commentPresenter.position = new Rect(830, 0, 500, 300);
+			commentPresenter.color = new Color(0.4f, 0f, 0f, 0.3f);
+			commentPresenter.titleBar = "My First Comment";
+			commentPresenter.body = "This is my first comment.  It is made of words and a few return carriages.  Nothing more.  I hope we can see this whole line.\n\n" +
+									"This is a new paragraph.  Just to test the CommentPresenter.";
+			AddElement(commentPresenter);
+
 			var miniMapPresenter = CreateInstance<MiniMapPresenter>();
 			miniMapPresenter.position = new Rect(210, 186, 200, 176);
 			AddElement(miniMapPresenter);
@@ -116,6 +124,16 @@ namespace RMGUI.GraphView.Demo
 			nodePresenter.position = pos;
 			nodePresenter.title = title;
 			AddElement(nodePresenter);
+		}
+
+		public void CreateComment(Rect pos, string title, string body, Color color)
+		{
+			var commentPresenter = CreateInstance<CommentPresenter>();
+			commentPresenter.position = pos;
+			commentPresenter.titleBar = title;
+			commentPresenter.color = color;
+			commentPresenter.body = body;
+			AddElement(commentPresenter);
 		}
 
 		protected NodesContentViewPresenter() {}

@@ -8,11 +8,15 @@ namespace RMGUI.GraphView
 	{
 		GraphElementPresenter m_Presenter;
 
+		Color m_ElementTypeColor;
+		public Color elementTypeColor { get { return m_ElementTypeColor; } set { m_ElementTypeColor = value; } }
+
 		static readonly ClassList s_ElementsClassList = new ClassList("graphElement");
 
 		protected GraphElement()
 		{
 			classList = s_ElementsClassList;
+			m_ElementTypeColor = new Color(0.9f, 0.9f, 0.9f, 0.5f);
 		}
 
 		public T GetPresenter<T>() where T : GraphElementPresenter

@@ -5,7 +5,7 @@ namespace RMGUI.GraphView
 {
 	public class IMGUIElement : SimpleElement
 	{
-		private IMGUIContainer m_Container;
+		protected IMGUIContainer m_Container;
 		public IMGUIElement()
 		{
 			m_Container = new IMGUIContainer
