@@ -34,15 +34,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void OnEnable()
         {
-            HDRenderPipeline renderLoop = Utilities.GetHDRenderPipeline();
-            if (renderLoop == null)
+            HDRenderPipeline renderPipeline = Utilities.GetHDRenderPipeline();
+            if (renderPipeline == null)
             {
                 return;
             }
 
-            if (renderLoop.commonSettings == null)
-                renderLoop.commonSettings = this;
-            else if (renderLoop.commonSettings != this)
+            if (renderPipeline.commonSettings == null)
+                renderPipeline.commonSettings = this;
+            else if (renderPipeline.commonSettings != this)
                 Debug.LogWarning("Only one CommonSettings can be setup at a time.");
 
             OnSkyRendererChanged();
@@ -50,14 +50,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void OnDisable()
         {
-            HDRenderPipeline renderLoop = Utilities.GetHDRenderPipeline();
-            if (renderLoop == null)
+            HDRenderPipeline renderPipeline = Utilities.GetHDRenderPipeline();
+            if (renderPipeline == null)
             {
                 return;
             }
 
-            if (renderLoop.commonSettings == this)
-                renderLoop.commonSettings = null;
+            if (renderPipeline.commonSettings == this)
+                renderPipeline.commonSettings = null;
         }
 
         void OnValidate()
@@ -73,18 +73,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void OnSkyRendererChanged()
         {
-            HDRenderPipeline renderLoop = Utilities.GetHDRenderPipeline();
-            if (renderLoop == null)
+            HDRenderPipeline renderPipeline = Utilities.GetHDRenderPipeline();
+            if (renderPipeline == null)
             {
                 return;
             }
 
-            renderLoop.InstantiateSkyRenderer(skyRendererType);
+            renderPipeline.InstantiateSkyRenderer(skyRendererType);
 
             List<SkyParameters> result = new List<SkyParameters>();
             gameObject.GetComponents<SkyParameters>(result);
 
-            Type skyParamType = renderLoop.skyManager.GetSkyParameterType();
+            Type skyParamType = renderPipeline.skyManager.GetSkyParameterType();
 
             // Disable all incompatible sky parameters and enable the compatible one
             bool found = false;

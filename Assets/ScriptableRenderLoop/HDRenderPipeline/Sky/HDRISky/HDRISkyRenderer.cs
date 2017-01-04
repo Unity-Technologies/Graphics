@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             var cmd = new CommandBuffer { name = "" };
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial);
-            builtinParams.renderLoop.ExecuteCommandBuffer(cmd);
+            builtinParams.renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
     }

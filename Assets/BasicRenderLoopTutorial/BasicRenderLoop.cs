@@ -33,10 +33,10 @@ public class BasicRenderLoop : RenderPipelineAsset
 public class BasicRenderLoopInstance : RenderPipeline
 {
     
-    public override void Render(ScriptableRenderContext renderLoop, Camera[] cameras)
+    public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
-        base.Render(renderLoop, cameras);
-        BasicRendering.Render(renderLoop, cameras);
+        base.Render(renderContext, cameras);
+        BasicRendering.Render(renderContext, cameras);
     }
 }
 

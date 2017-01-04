@@ -1299,7 +1299,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 #endif
 
-            public override void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderLoop, RenderTargetIdentifier cameraColorBufferRT)
+            public override void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraColorBufferRT)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
@@ -1312,7 +1312,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
 #endif
 
-                using (new Utilities.ProfilingSample(disableTileAndCluster ? "SinglePass - Deferred Lighting Pass" : "TilePass - Deferred Lighting Pass", renderLoop))
+                using (new Utilities.ProfilingSample(disableTileAndCluster ? "SinglePass - Deferred Lighting Pass" : "TilePass - Deferred Lighting Pass", renderContext))
                 {
                     var cmd = new CommandBuffer();
 
@@ -1354,7 +1354,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                             // Pass global parameters to compute shader
                             // TODO: get rid of this by making global parameters visible to compute shaders
-                            BindGlobalParams(cmd, shadeOpaqueShader, kernel, camera, renderLoop);
+                            BindGlobalParams(cmd, shadeOpaqueShader, kernel, camera, renderContext);
 
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_CameraDepthTexture", Shader.PropertyToID("_CameraDepthTexture"));
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture0", Shader.PropertyToID("_GBufferTexture0"));
@@ -1443,12 +1443,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     SetGlobalPropertyRedirect(null, 0, null);
                     //}
 
-                    renderLoop.ExecuteCommandBuffer(cmd);
+                    renderContext.ExecuteCommandBuffer(cmd);
                     cmd.Dispose();
                 } // TilePass - Deferred Lighting Pass
             }
 
-            public override void RenderForward(Camera camera, ScriptableRenderContext renderLoop, bool renderOpaque)
+            public override void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
             {
                 // Note: if we use render opaque with deferred tiling we need to render a opque depth pass for these opaque objects
                 bool useFptl = renderOpaque && usingFptl;
@@ -1470,7 +1470,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
                 }
 
-                renderLoop.ExecuteCommandBuffer(cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
         }

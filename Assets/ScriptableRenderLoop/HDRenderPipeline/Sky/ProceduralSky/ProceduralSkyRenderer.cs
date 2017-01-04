@@ -158,7 +158,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.SetGlobalTexture("_CameraDepthTexture", builtinParams.depthBuffer);
             }
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial);
-            builtinParams.renderLoop.ExecuteCommandBuffer(cmd);
+            builtinParams.renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
     }

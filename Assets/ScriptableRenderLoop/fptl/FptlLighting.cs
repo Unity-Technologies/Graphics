@@ -1013,7 +1013,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return numLightsOut + numProbesOut;
         }
         
-        public void Render(ScriptableRenderContext renderLoop, IEnumerable<Camera> cameras)
+        public void Render(ScriptableRenderContext renderContext, IEnumerable<Camera> cameras)
         {
             foreach (var camera in cameras)
             {
@@ -1023,11 +1023,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_ShadowPass.UpdateCullingParameters(ref cullingParams);
 
-                var cullResults = CullResults.Cull(ref cullingParams, renderLoop);
-                ExecuteRenderLoop(camera, cullResults, renderLoop);
+                var cullResults = CullResults.Cull(ref cullingParams, renderContext);
+                ExecuteRenderLoop(camera, cullResults, renderContext);
             }
 
-            renderLoop.Submit();
+            renderContext.Submit();
         }
 
         void FinalPass(ScriptableRenderContext loop)
