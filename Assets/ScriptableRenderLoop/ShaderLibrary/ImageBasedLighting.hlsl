@@ -365,7 +365,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
         if (!prefilter) // BRDF importance sampling
         {
-            mipLevel = 0.0;
+            mipLevel = 0;
         }
         else // Prefiltered BRDF importance sampling
         {
@@ -386,13 +386,14 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
             float invPdf    = D_GGX_Inverse(NdotH, roughness) * 4.0;
             // TODO: check the accuracy of the sample's solid angle fit for GGX.
-            float omegaS    = rcp(sampleCount) * invPdf;      // Solid angle associated with the sample
+            float omegaS    = rcp(sampleCount) * invPdf;
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
-            // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth); // Solid angle associated with the pixel of the cubemap
-            mipLevel        = 0.5 * log2(omegaS * invOmegaP); // Clamp is not necessary as the hardware will do it
+            // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth);
+            mipLevel        = 0.5 * log2(omegaS * invOmegaP);
 
             // Bias the MIP map level to compensate for the importance sampling bias.
             // This will blur the reflection.
+            // TODO: find a more accurate MIP bias function.
             mipLevel = lerp(mipLevel, maxMipLevel, bias);
         }
 
