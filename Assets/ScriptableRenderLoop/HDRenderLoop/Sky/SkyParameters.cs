@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         protected void OnEnable()
         {
-            HDRenderLoop renderLoop = Utilities.GetHDRenderLoop();
+            HDRenderPipeline renderLoop = Utilities.GetHDRenderLoop();
             if (renderLoop == null)
             {
                 return;
@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         protected void OnDisable()
         {
-            HDRenderLoop renderLoop = Utilities.GetHDRenderLoop();
+            HDRenderPipeline renderLoop = Utilities.GetHDRenderLoop();
             if (renderLoop == null)
             {
                 return;

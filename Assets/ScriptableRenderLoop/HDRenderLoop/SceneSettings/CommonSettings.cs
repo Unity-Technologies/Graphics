@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void OnEnable()
         {
-            HDRenderLoop renderLoop = Utilities.GetHDRenderLoop();
+            HDRenderPipeline renderLoop = Utilities.GetHDRenderLoop();
             if (renderLoop == null)
             {
                 return;
@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void OnDisable()
         {
-            HDRenderLoop renderLoop = Utilities.GetHDRenderLoop();
+            HDRenderPipeline renderLoop = Utilities.GetHDRenderLoop();
             if (renderLoop == null)
             {
                 return;
@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void OnSkyRendererChanged()
         {
-            HDRenderLoop renderLoop = Utilities.GetHDRenderLoop();
+            HDRenderPipeline renderLoop = Utilities.GetHDRenderLoop();
             if (renderLoop == null)
             {
                 return;

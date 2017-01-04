@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public virtual void PushGlobalParams(Camera camera, ScriptableRenderContext loop) {}
 
-        public virtual void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, ScriptableRenderContext renderLoop, RenderTargetIdentifier cameraColorBufferRT) {}
+        public virtual void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderLoop, RenderTargetIdentifier cameraColorBufferRT) {}
 
         public virtual void RenderForward(Camera camera, ScriptableRenderContext renderLoop, bool renderOpaque) {}
 

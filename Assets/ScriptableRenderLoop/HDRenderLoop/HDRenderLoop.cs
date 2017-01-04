@@ -8,9 +8,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     public class HDRenderLoopInstance : RenderPipeline
     {
-        private readonly HDRenderLoop m_Owner;
+        private readonly HDRenderPipeline m_Owner;
 
-        public HDRenderLoopInstance(HDRenderLoop owner)
+        public HDRenderLoopInstance(HDRenderPipeline owner)
         {
             m_Owner = owner;
 
@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
     [ExecuteInEditMode]
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
-    public class HDRenderLoop : RenderPipelineAsset
+    public class HDRenderPipeline : RenderPipelineAsset
     {
         const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
@@ -43,7 +43,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         [UnityEditor.MenuItem("Renderloop/CreateHDRenderLoop")]
         static void CreateHDRenderLoop()
         {
-            var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
+            var instance = ScriptableObject.CreateInstance<HDRenderPipeline>();
             UnityEditor.AssetDatabase.CreateAsset(instance, k_HDRenderLoopPath);
         }
 
