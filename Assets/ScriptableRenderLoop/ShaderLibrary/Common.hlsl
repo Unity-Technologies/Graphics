@@ -79,6 +79,30 @@ uint BitFieldExtract(uint data, uint size, uint offset)
 #define Clamp clamp
 #endif // INTRINSIC_CLAMP
 
+#ifndef INTRINSIC_MUL24
+int Mul24(int a, int b)
+{
+    return a * b;
+}
+
+uint Mul24(uint a, uint b)
+{
+    return a * b;
+}
+#endif // INTRINSIC_MUL24
+
+#ifndef INTRINSIC_MAD24
+int Mad24(int a, int b, int c)
+{
+    return a * b + c;
+}
+
+uint Mad24(uint a, uint b, uint c)
+{
+    return a * b + c;
+}
+#endif // INTRINSIC_MAD24
+
 #ifndef INTRINSIC_MED3
 float Med3(float a, float b, float c)
 {
@@ -212,6 +236,7 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 #define INV_HALF_PI 0.636619772367
 
 #define FLT_EPSILON 1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
+#define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
 
 #define MERGE_NAME(X, Y) X##Y

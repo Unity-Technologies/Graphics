@@ -1117,10 +1117,10 @@ float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
                                 EnvLightData lightData, BSDFData bsdfData,
                                 uint sampleCount = 2048)
 {
-    float3 N        = bsdfData.normalWS;
-    float3 tangentX = bsdfData.tangentWS;
-    float3 tangentY = bsdfData.bitangentWS;
-    float3 acc      = float3(0.0, 0.0, 0.0);
+    float3   N            = bsdfData.normalWS;
+    float3   tangentX     = bsdfData.tangentWS;
+    float3x3 localToWorld = GetLocalFrame(N, tangentX);
+    float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
@@ -1133,7 +1133,7 @@ float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
         float3 L;
         float NdotL;
         float weightOverPdf;
-        ImportanceSampleLambert(u, N, tangentX, tangentY, L, NdotL, weightOverPdf);
+        ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
 
         if (NdotL > 0.0)
         {
@@ -1151,11 +1151,11 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
                                     float3 V, EnvLightData lightData, BSDFData bsdfData,
                                     uint sampleCount = 2048)
 {
-    float3 N        = bsdfData.normalWS;
-    float3 tangentX = bsdfData.tangentWS;
-    float3 tangentY = bsdfData.bitangentWS;
-    float  NdotV    = GetShiftedNdotV(N, V, false);
-    float3 acc      = float3(0.0, 0.0, 0.0);
+    float3   N            = bsdfData.normalWS;
+    float3   tangentX     = bsdfData.tangentWS;
+    float3x3 localToWorld = GetLocalFrame(N, tangentX);
+    float    NdotV        = GetShiftedNdotV(N, V, false);
+    float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
@@ -1169,10 +1169,10 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
         float NdotL;
         float weightOverPdf;
         // for Disney we still use a Cosine importance sampling, true Disney importance sampling imply a look up table
-        ImportanceSampleLambert(u, N, tangentX, tangentY, L, NdotL, weightOverPdf);
+        ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
 
         if (NdotL > 0.0)
-        {            
+        {
             float3 H = normalize(L + V);
             float LdotH = dot(L, H);
             // Note: we call DisneyDiffuse that require to multiply by Albedo / PI. Divide by PI is already taken into account
@@ -1193,11 +1193,12 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
                                     float3 V, EnvLightData lightData, BSDFData bsdfData,
                                     uint sampleCount = 2048)
 {
-    float3 N        = bsdfData.normalWS;
-    float3 tangentX = bsdfData.tangentWS;
-    float3 tangentY = bsdfData.bitangentWS;
-    float  NdotV    = GetShiftedNdotV(N, V, false);
-    float3 acc      = float3(0.0, 0.0, 0.0);
+    float3   N            = bsdfData.normalWS;
+    float3   tangentX     = bsdfData.tangentWS;
+    float3   tangentY     = bsdfData.bitangentWS;
+    float3x3 localToWorld = GetLocalFrame(N, tangentX);
+    float    NdotV        = GetShiftedNdotV(N, V, false);
+    float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
@@ -1219,7 +1220,7 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
         }
         else
         {
-            ImportanceSampleGGX(u, V, N, tangentX, tangentY, bsdfData.roughness, NdotV, L, VdotH, NdotL, weightOverPdf);
+            ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughness, NdotV, L, VdotH, NdotL, weightOverPdf);
         }
 
 

@@ -183,7 +183,7 @@ CBUFFER_END
 
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
 TEXTURE3D(unity_ProbeVolumeSH);
-SAMPLER3D(samplerunity_ProbeVolumeSH)
+SAMPLER3D(samplerunity_ProbeVolumeSH);
 
 CBUFFER_START(UnityProbeVolume)
 	// x = Disabled(0)/Enabled(1)
