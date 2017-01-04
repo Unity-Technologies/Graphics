@@ -284,8 +284,7 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
 
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum + 0.5);
+        float2 u = frac(randNum + Hammersley2d(i, sampleCount));
 
         float VdotH;
         float NdotL;
