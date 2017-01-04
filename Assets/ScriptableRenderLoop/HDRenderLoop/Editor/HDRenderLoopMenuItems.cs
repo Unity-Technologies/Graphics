@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
+using UnityEngine.Experimental.ScriptableRenderLoop;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.ScriptableRenderLoop
 {
     public class HDRenderLoopMenuItems
     {
@@ -12,7 +14,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             CommonSettings[] settings = Object.FindObjectsOfType(typeof(CommonSettings)) as CommonSettings[];
 
-            if(settings.Length == 0)
+            if (settings.Length == 0)
             {
                 GameObject go = new GameObject();
                 go.name = "SceneSettings";
@@ -21,6 +23,20 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             else
             {
                 Debug.LogWarning("SceneSettings has already been created.");
+            }
+        }
+
+        [UnityEditor.MenuItem("HDRenderLoop/Synchronize all Layered materials")]
+        static void SynchronizeAllLayeredMaterial()
+        {
+            Object[] materials = Resources.FindObjectsOfTypeAll<Material>();
+            foreach (Object obj in materials)
+            {
+                Material mat = obj as Material;
+                if(mat.shader.name == "HDRenderLoop/LayeredLit")
+                {
+                    LayeredLitGUI.SynchronizeAllLayers(mat);
+                }
             }
         }
     }
