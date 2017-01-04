@@ -382,10 +382,10 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
             float invPdf    = D_GGX_Inverse(NdotH, roughness) * 4.0;
             // TODO: check the accuracy of the sample's solid angle fit for GGX.
-            float omegaS    = rcp(sampleCount) * invPdf;                      // Solid angle associated with the sample
+            float omegaS    = rcp(sampleCount) * invPdf;      // Solid angle associated with the sample
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth); // Solid angle associated with the pixel of the cubemap
-            mipLevel        = 0.5 * log2(omegaS * invOmegaP) + 1.0;           // Clamp is not necessary as the hardware will do it
+            mipLevel        = 0.5 * log2(omegaS * invOmegaP); // Clamp is not necessary as the hardware will do it
 
             // Bias the MIP map level to compensate for the importance sampling bias.
             // This will blur the reflection.
