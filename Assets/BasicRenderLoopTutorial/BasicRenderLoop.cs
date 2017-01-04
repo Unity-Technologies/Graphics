@@ -16,7 +16,7 @@ using UnityEngine.ScriptableRenderPipeline;
 public class BasicRenderLoop : RenderPipelineAsset
 {
 #if UNITY_EDITOR
-    [UnityEditor.MenuItem("Renderloop/Create BasicRenderLoop")]
+    [UnityEditor.MenuItem("RenderPipeline/Create BasicRenderLoop")]
     static void CreateBasicRenderLoop()
     {
         var instance = ScriptableObject.CreateInstance<BasicRenderLoop>();
@@ -33,10 +33,10 @@ public class BasicRenderLoop : RenderPipelineAsset
 public class BasicRenderLoopInstance : RenderPipeline
 {
     
-    public override void Render(ScriptableRenderContext renderLoop, Camera[] cameras)
+    public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
-        base.Render(renderLoop, cameras);
-        BasicRendering.Render(renderLoop, cameras);
+        base.Render(renderContext, cameras);
+        BasicRendering.Render(renderContext, cameras);
     }
 }
 
