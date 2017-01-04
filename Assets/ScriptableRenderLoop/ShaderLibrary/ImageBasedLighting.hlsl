@@ -336,14 +336,12 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 {
     float3x3 localToWorld = GetLocalFrame(N);
 
-    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
-
     float3 lightInt = float3(0.0, 0.0, 0.0);
     float  cbsdfInt = 0.0;
 
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float2 u = frac(randNum + Fibonacci2d(i, sampleCount));
+        float2 u = Fibonacci2d(i, sampleCount);
 
         // Bias samples towards the mirror direction to reduce variance.
         // This will have a side effect of making the reflection sharper.
@@ -391,7 +389,6 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // This will blur the reflection.
             // TODO: bias more accurately once the 'UNITY_SPECCUBE_MAX_LOD' restriction has been lifted.
             mipLevel = lerp(mipLevel, UNITY_SPECCUBE_MAX_LOD, sqrt(bias));
-
         }
 
         if (NdotL > 0.0)
