@@ -29,9 +29,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public virtual void PushGlobalParams(Camera camera, ScriptableRenderContext loop) {}
 
-        public virtual void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderLoop, RenderTargetIdentifier cameraColorBufferRT) {}
+        public virtual void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraColorBufferRT) {}
 
-        public virtual void RenderForward(Camera camera, ScriptableRenderContext renderLoop, bool renderOpaque) {}
+        public virtual void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque) {}
 
         public Light GetCurrentSunLight() { return m_CurrentSunLight;  }
     }

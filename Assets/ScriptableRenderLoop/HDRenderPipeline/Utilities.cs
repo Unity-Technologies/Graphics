@@ -22,54 +22,54 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // Render Target Management.
         public const ClearFlag kClearAll = ClearFlag.ClearDepth | ClearFlag.ClearColor;
 
-        public static void SetRenderTarget(ScriptableRenderContext renderLoop, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.ClearNone, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.ClearNone, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var cmd = new CommandBuffer();
             cmd.name = "";
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace);
-            renderLoop.ExecuteCommandBuffer(cmd);
+            renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
-        public static void SetRenderTarget(ScriptableRenderContext renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            SetRenderTarget(renderLoop, colorBuffer, depthBuffer, ClearFlag.ClearNone, new Color(0.0f, 0.0f, 0.0f, 0.0f), miplevel, cubemapFace);
+            SetRenderTarget(renderContext, colorBuffer, depthBuffer, ClearFlag.ClearNone, new Color(0.0f, 0.0f, 0.0f, 0.0f), miplevel, cubemapFace);
         }
 
-        public static void SetRenderTarget(ScriptableRenderContext renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            SetRenderTarget(renderLoop, colorBuffer, depthBuffer, clearFlag, new Color(0.0f, 0.0f, 0.0f, 0.0f), miplevel, cubemapFace);
+            SetRenderTarget(renderContext, colorBuffer, depthBuffer, clearFlag, new Color(0.0f, 0.0f, 0.0f, 0.0f), miplevel, cubemapFace);
         }
 
-        public static void SetRenderTarget(ScriptableRenderContext renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var cmd = new CommandBuffer();
             cmd.name = "";
             cmd.SetRenderTarget(colorBuffer, depthBuffer, miplevel, cubemapFace);
             if (clearFlag != ClearFlag.ClearNone)
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
-            renderLoop.ExecuteCommandBuffer(cmd);
+            renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
-        public static void SetRenderTarget(ScriptableRenderContext renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
+        public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
         {
-            SetRenderTarget(renderLoop, colorBuffers, depthBuffer, ClearFlag.ClearNone, Color.black);
+            SetRenderTarget(renderContext, colorBuffers, depthBuffer, ClearFlag.ClearNone, Color.black);
         }
 
-        public static void SetRenderTarget(ScriptableRenderContext renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag = ClearFlag.ClearNone)
+        public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag = ClearFlag.ClearNone)
         {
-            SetRenderTarget(renderLoop, colorBuffers, depthBuffer, clearFlag, Color.black);
+            SetRenderTarget(renderContext, colorBuffers, depthBuffer, clearFlag, Color.black);
         }
 
-        public static void SetRenderTarget(ScriptableRenderContext renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor)
+        public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
             var cmd = new CommandBuffer();
             cmd.name = "";
             cmd.SetRenderTarget(colorBuffers, depthBuffer);
             if (clearFlag != ClearFlag.ClearNone)
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
-            renderLoop.ExecuteCommandBuffer(cmd);
+            renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
@@ -113,18 +113,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             : IDisposable
         {
             bool        disposed = false;
-            ScriptableRenderContext  renderLoop;
+            ScriptableRenderContext  renderContext;
             string      name;
 
             public ProfilingSample(string _name, ScriptableRenderContext _renderloop)
             {
-                renderLoop = _renderloop;
+                renderContext = _renderloop;
                 name = _name;
 
                 CommandBuffer cmd = new CommandBuffer();
                 cmd.name = "";
                 cmd.BeginSample(name);
-                renderLoop.ExecuteCommandBuffer(cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
 
@@ -149,7 +149,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     CommandBuffer cmd = new CommandBuffer();
                     cmd.name = "";
                     cmd.EndSample(name);
-                    renderLoop.ExecuteCommandBuffer(cmd);
+                    renderContext.ExecuteCommandBuffer(cmd);
                     cmd.Dispose();
                 }
 
@@ -238,14 +238,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public static HDRenderPipeline GetHDRenderPipeline()
         {
-            HDRenderPipeline renderLoop = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderPipeline;
-            if (renderLoop == null)
+            HDRenderPipeline renderContext = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderPipeline;
+            if (renderContext == null)
             {
                 Debug.LogWarning("SkyParameters component can only be used with HDRenderPipeline custom RenderPipeline.");
                 return null;
             }
 
-            return renderLoop;
+            return renderContext;
         }
     }
 }

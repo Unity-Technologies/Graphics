@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
         public Mesh                     skyMesh;
-        public ScriptableRenderContext  renderLoop;
+        public ScriptableRenderContext  renderContext;
         public Light                    sunLight;
         public RenderTargetIdentifier   colorBuffer;
         public RenderTargetIdentifier   depthBuffer;
@@ -71,7 +71,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         bool                    m_UpdateRequired = true;
         float                   m_CurrentUpdateTime = 0.0f;
 
-        const bool              m_useMIS = false;
+        bool                    m_useMIS = false;
 
         SkyParameters           m_SkyParameters = null;
 
@@ -314,7 +314,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             for (int i = 0; i < 6; ++i)
             {
-                Utilities.SetRenderTarget(builtinParams.renderLoop, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
+                Utilities.SetRenderTarget(builtinParams.renderContext, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
 
                 builtinParams.invViewProjMatrix = m_faceCameraInvViewProjectionMatrix[i];
                 builtinParams.viewProjMatrix = m_faceCameraViewProjectionMatrix[i];
@@ -326,7 +326,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        private void BuildProbabilityTables(ScriptableRenderContext renderLoop)
+        private void BuildProbabilityTables(ScriptableRenderContext renderContext)
         {
             // Bind the input cubemap.
             m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "envMap", m_SkyboxCubemapRT);
@@ -339,13 +339,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var cmd = new CommandBuffer() { name = "" };
             cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, (int)LightSamplingParameters.TextureHeight, 1, 1);
             cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
-            renderLoop.ExecuteCommandBuffer(cmd);
+            renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
-        private void RenderCubemapGGXConvolution(ScriptableRenderContext renderLoop, BuiltinSkyParameters builtinParams, SkyParameters skyParams, Texture input, RenderTexture target)
+        private void RenderCubemapGGXConvolution(ScriptableRenderContext renderContext, BuiltinSkyParameters builtinParams, SkyParameters skyParams, Texture input, RenderTexture target)
         {
-            using (new Utilities.ProfilingSample("Sky Pass: GGX Convolution", renderLoop))
+            using (new Utilities.ProfilingSample("Sky Pass: GGX Convolution", renderContext))
             {
                 int mipCount = 1 + (int)Mathf.Log(input.width, 2.0f);
                 if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
@@ -356,7 +356,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (m_useMIS)
                 {
-                    BuildProbabilityTables(renderLoop);
+                    BuildProbabilityTables(renderContext);
                 }
 
                 // Copy the first mip.
@@ -404,11 +404,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     for (int face = 0; face < 6; ++face)
                     {
-                        Utilities.SetRenderTarget(renderLoop, target, ClearFlag.ClearNone, mip, (CubemapFace)face);
+                        Utilities.SetRenderTarget(renderContext, target, ClearFlag.ClearNone, mip, (CubemapFace)face);
 
                         var cmd = new CommandBuffer { name = "" };
                         cmd.DrawMesh(m_CubemapFaceMesh[face], Matrix4x4.identity, m_GGXConvolveMaterial, 0, 0, propertyBlock);
-                        renderLoop.ExecuteCommandBuffer(cmd);
+                        renderContext.ExecuteCommandBuffer(cmd);
                         cmd.Dispose();
                     }
                 }
@@ -431,16 +431,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_UpdateRequired = true;
         }
 
-        public void UpdateEnvironment(HDRenderPipeline.HDCamera camera, Light sunLight, ScriptableRenderContext renderLoop)
+        public void UpdateEnvironment(HDRenderPipeline.HDCamera camera, Light sunLight, ScriptableRenderContext renderContext)
         {
             {
-                using (new Utilities.ProfilingSample("Sky Environment Pass", renderLoop))
+                using (new Utilities.ProfilingSample("Sky Environment Pass", renderContext))
                 {
                     if (IsSkyValid())
                     {
                         m_CurrentUpdateTime += Time.deltaTime;
 
-                        m_BuiltinParameters.renderLoop = renderLoop;
+                        m_BuiltinParameters.renderContext = renderContext;
                         m_BuiltinParameters.sunLight = sunLight;
 
                         // We need one frame delay for this update to work since DynamicGI.UpdateEnvironment is executed direclty but the renderloop is not (so we need to wait for the sky texture to be rendered first)
@@ -467,7 +467,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                             // Render sky into a cubemap - doesn't happen every frame, can be controlled
                             RenderSkyToCubemap(m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT);
                             // Convolve downsampled cubemap
-                            RenderCubemapGGXConvolution(renderLoop, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+                            RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
                             m_NeedLowLevelUpdateEnvironment = true;
                             m_UpdateRequired = false;
@@ -490,8 +490,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         //    DynamicGI.UpdateEnvironment();
 
                         //    // Clear temp cubemap and redo GGX from black
-                        //    Utilities.SetRenderTarget(renderLoop, m_SkyboxCubemapRT, ClearFlag.ClearColor);
-                        //    RenderCubemapGGXConvolution(renderLoop, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+                        //    Utilities.SetRenderTarget(renderContext, m_SkyboxCubemapRT, ClearFlag.ClearColor);
+                        //    RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
                         //    m_SkyParametersHash = 0;
                         //}
@@ -500,13 +500,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public void RenderSky(HDRenderPipeline.HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ScriptableRenderContext renderLoop)
+        public void RenderSky(HDRenderPipeline.HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ScriptableRenderContext renderContext)
         {
-            using (new Utilities.ProfilingSample("Sky Pass", renderLoop))
+            using (new Utilities.ProfilingSample("Sky Pass", renderContext))
             {
                 if (IsSkyValid())
                 {
-                    m_BuiltinParameters.renderLoop = renderLoop;
+                    m_BuiltinParameters.renderContext = renderContext;
                     m_BuiltinParameters.sunLight = sunLight;
                     m_BuiltinParameters.invViewProjMatrix = camera.invViewProjectionMatrix;
                     m_BuiltinParameters.viewProjMatrix = camera.viewProjectionMatrix;
@@ -516,7 +516,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
 
-                    Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer);
+                    Utilities.SetRenderTarget(renderContext, colorBuffer, depthBuffer);
                     m_Renderer.RenderSky(m_BuiltinParameters, skyParameters);
                 }
             }

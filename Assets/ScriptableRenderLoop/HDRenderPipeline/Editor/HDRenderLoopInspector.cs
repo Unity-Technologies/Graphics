@@ -121,9 +121,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        private void DebugParametersUI(HDRenderPipeline renderLoop)
+        private void DebugParametersUI(HDRenderPipeline renderContext)
         {
-            var debugParameters = renderLoop.debugParameters;
+            var debugParameters = renderContext.debugParameters;
 
             EditorGUILayout.LabelField(styles.debugParameters);
             EditorGUI.indentLevel++;
@@ -182,15 +182,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             
             if (EditorGUI.EndChangeCheck())
             {
-                EditorUtility.SetDirty(renderLoop); // Repaint
+                EditorUtility.SetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
         }
 
-        private void ShadowParametersUI(HDRenderPipeline renderLoop)
+        private void ShadowParametersUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
-            var shadowParameters = renderLoop.shadowSettings;
+            var shadowParameters = renderContext.shadowSettings;
 
             EditorGUILayout.LabelField(styles.shadowSettings);
             EditorGUI.indentLevel++;
@@ -202,15 +202,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             if (EditorGUI.EndChangeCheck())
             {
-                EditorUtility.SetDirty(renderLoop); // Repaint
+                EditorUtility.SetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
         }
 
-        private void TextureParametersUI(HDRenderPipeline renderLoop)
+        private void TextureParametersUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
-            var textureParameters = renderLoop.textureSettings;
+            var textureParameters = renderContext.textureSettings;
 
             EditorGUILayout.LabelField(styles.textureSettings);
             EditorGUI.indentLevel++;
@@ -222,18 +222,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             if (EditorGUI.EndChangeCheck())
             {
-                renderLoop.textureSettings = textureParameters;
-                EditorUtility.SetDirty(renderLoop); // Repaint
+                renderContext.textureSettings = textureParameters;
+                EditorUtility.SetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
         }
 
-        private void TilePassUI(HDRenderPipeline renderLoop)
+        private void TilePassUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
 
             // TODO: we should call a virtual method or something similar to setup the UI, inspector should not know about it
-            TilePass.LightLoop tilePass = renderLoop.lightLoop as TilePass.LightLoop;
+            TilePass.LightLoop tilePass = renderContext.lightLoop as TilePass.LightLoop;
             if (tilePass != null)
             {
                 EditorGUILayout.LabelField(styles.tileLightLoopSettings);
@@ -245,10 +245,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    EditorUtility.SetDirty(renderLoop); // Repaint
+                    EditorUtility.SetDirty(renderContext); // Repaint
 
                     // SetAssetDirty will tell renderloop to rebuild
-                    renderLoop.DestroyCreatedInstances();
+                    renderContext.DestroyCreatedInstances();
                 }
 
                 EditorGUI.BeginChangeCheck();
@@ -260,7 +260,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    EditorUtility.SetDirty(renderLoop); // Repaint
+                    EditorUtility.SetDirty(renderContext); // Repaint
                     UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
                 }
                 EditorGUI.indentLevel--;
@@ -269,15 +269,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public override void OnInspectorGUI()
         {
-            var renderLoop = target as HDRenderPipeline;
+            var renderContext = target as HDRenderPipeline;
 
-            if (!renderLoop)
+            if (!renderContext)
                 return;
 
-            DebugParametersUI(renderLoop);
-            ShadowParametersUI(renderLoop);
-            TextureParametersUI(renderLoop);
-            TilePassUI(renderLoop);
+            DebugParametersUI(renderContext);
+            ShadowParametersUI(renderContext);
+            TextureParametersUI(renderContext);
+            TilePassUI(renderContext);
         }
     }
 }

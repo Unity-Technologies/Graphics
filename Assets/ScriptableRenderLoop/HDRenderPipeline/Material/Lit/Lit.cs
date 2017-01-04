@@ -263,12 +263,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 isInit = false;
             }
 
-            public void RenderInit(Rendering.ScriptableRenderContext renderLoop)
+            public void RenderInit(Rendering.ScriptableRenderContext renderContext)
             {
                 var cmd = new CommandBuffer();
                 cmd.name = "Init PreFGD";
                 cmd.Blit(null, new RenderTargetIdentifier(m_PreIntegratedFGD), m_InitPreFGD, 0);
-                renderLoop.ExecuteCommandBuffer(cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
 
                 isInit = true;
