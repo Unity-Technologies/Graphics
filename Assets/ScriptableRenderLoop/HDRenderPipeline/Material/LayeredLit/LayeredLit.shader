@@ -243,7 +243,6 @@ Shader "HDRenderPipeline/LayeredLit"
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-
     #define _MAX_LAYER 4
 
     #if defined(_LAYEREDLIT_4_LAYERS)
@@ -254,84 +253,14 @@ Shader "HDRenderPipeline/LayeredLit"
     #   define _LAYER_COUNT 2
     #endif
 
-    // Set of users variables
-    #define PROP_DECL(type, name) type name, name##0, name##1, name##2, name##3;
-    #define PROP_DECL_TEX2D(name)\
-        TEXTURE2D(name##0); \
-        SAMPLER2D(sampler##name##0); \
-        TEXTURE2D(name##1); \
-        TEXTURE2D(name##2); \
-        TEXTURE2D(name##3);
+    // Explicitely said that we are a layered shader as we share code between lit and layered lit
+    #define LAYERED_LIT_SHADER
 
     //-------------------------------------------------------------------------------------
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    // Set of users variables
-    PROP_DECL(float4, _BaseColor);
-    PROP_DECL_TEX2D(_BaseColorMap);
-    float4 _BaseColorMap0_ST;
-    float4 _BaseColorMap1_ST;
-    float4 _BaseColorMap2_ST;
-    float4 _BaseColorMap3_ST;
-
-    PROP_DECL(float, _Metallic);
-    PROP_DECL(float, _Smoothness);
-    PROP_DECL_TEX2D(_MaskMap);
-    PROP_DECL_TEX2D(_SpecularOcclusionMap);
-
-    PROP_DECL_TEX2D(_NormalMap);
-    PROP_DECL_TEX2D(_HeightMap);
-
-    PROP_DECL_TEX2D(_DetailMask);
-    PROP_DECL_TEX2D(_DetailMap);
-    float4 _DetailMap0_ST;
-    float4 _DetailMap1_ST;
-    float4 _DetailMap2_ST;
-    float4 _DetailMap3_ST;
-    PROP_DECL(float, _UVDetail);
-    PROP_DECL(float, _DetailAlbedoScale);
-    PROP_DECL(float, _DetailNormalScale);
-    PROP_DECL(float, _DetailSmoothnessScale);
-    PROP_DECL(float, _DetailHeightScale);
-    PROP_DECL(float, _DetailAOScale);
-
-    PROP_DECL(float, _HeightScale);
-    PROP_DECL(float, _HeightBias);
-
-    TEXTURE2D(_DiffuseLightingMap);
-    SAMPLER2D(sampler_DiffuseLightingMap);
-
-    TEXTURE2D(_DistortionVectorMap);
-    SAMPLER2D(sampler_DistortionVectorMap);
-
-    TEXTURE2D(_LayerMaskMap);
-    SAMPLER2D(sampler_LayerMaskMap);
-
-    float _UseHeightBasedBlend1;
-    float _UseHeightBasedBlend2;
-    float _UseHeightBasedBlend3;
-    float _HeightOffset1;
-    float _HeightOffset2;
-    float _HeightOffset3;
-    float _HeightFactor1;
-    float _HeightFactor2;
-    float _HeightFactor3;
-    float _BlendSize1;
-    float _BlendSize2;
-    float _BlendSize3;
-
-    float3 _EmissiveColor;
-    TEXTURE2D(_EmissiveColorMap);
-    SAMPLER2D(sampler_EmissiveColorMap);
-    float _EmissiveIntensity;
-
-    PROP_DECL(float, _TexWorldScale);
-    PROP_DECL(float, _UVMappingPlanar);  
-    PROP_DECL(float4, _UVMappingMask);
-    PROP_DECL(float4, _UVDetailsMappingMask);
-
-    float _AlphaCutoff;
+    #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Lit/LitProperties.hlsl"
 
     ENDHLSL
 
@@ -353,7 +282,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #define LAYERED_LIT_SHADER
 
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
@@ -377,7 +305,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
-            #define LAYERED_LIT_SHADER
 
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
@@ -407,7 +334,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #define LAYERED_LIT_SHADER
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../Lit/LitMetaPass.hlsl"
@@ -432,7 +358,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_VELOCITY
-            #define LAYERED_LIT_SHADER
             #include "../../Material/Material.hlsl"         
             #include "../Lit/LitData.hlsl"
             #include "../Lit/LitVelocityPass.hlsl"
@@ -458,7 +383,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #define LAYERED_LIT_SHADER
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../Lit/LitDepthPass.hlsl"
@@ -483,7 +407,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #define LAYERED_LIT_SHADER
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../Lit/LitDepthPass.hlsl"
@@ -509,7 +432,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DISTORTION
-            #define LAYERED_LIT_SHADER
             #include "../../Material/Material.hlsl"         
             #include "../Lit/LitData.hlsl"
             #include "../Lit/LitDistortionPass.hlsl"
@@ -537,7 +459,6 @@ Shader "HDRenderPipeline/LayeredLit"
             // TEMP until pragma work in include
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            #define LAYERED_LIT_SHADER
             //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
 
             #include "../../Lighting/Lighting.hlsl"
