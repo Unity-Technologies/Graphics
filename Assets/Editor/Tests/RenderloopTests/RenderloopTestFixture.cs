@@ -8,25 +8,31 @@ using UnityEngine.Rendering;
 using UnityEngine.ScriptableRenderPipeline;
 
 [ExecuteInEditMode]
-public class RenderLoopTestFixture : RenderPipeline
+public class RenderLoopTestFixture : RenderPipelineAsset
+{
+    protected override IRenderPipeline InternalCreatePipeline()
+    {
+        return new BasicRenderLoopInstance();
+    }
+}
+
+public class RenderLoopTestFixtureInstance : RenderPipeline
 {
     public delegate void TestDelegate(Camera camera, CullResults cullResults, ScriptableRenderContext renderLoop);
+
     private static TestDelegate s_Callback;
 
     private static RenderLoopTestFixture m_Instance;
-
-    [NonSerialized]
-    readonly List<Camera> m_CamerasToRender = new List<Camera>();
-
-    public override void Render(ScriptableRenderContext renderLoop, IScriptableRenderDataStore dataStore)
+    
+    public override void Render(ScriptableRenderContext renderLoop, Camera[] cameras)
     {
-        cameraProvider.GetCamerasToRender(m_CamerasToRender);
+        base.Render(renderLoop, cameras);
 
-        foreach (var camera in m_CamerasToRender)
+        foreach (var camera in cameras)
         {
             if (!camera.enabled)
                 continue;
-        
+
             CullingParameters cullingParams;
             bool gotCullingParams = CullResults.GetCullingParameters(camera, out cullingParams);
             Assert.IsTrue(gotCullingParams);
@@ -38,11 +44,8 @@ public class RenderLoopTestFixture : RenderPipeline
         }
 
         renderLoop.Submit();
-
-        CleanCameras(m_CamerasToRender);
-        m_CamerasToRender.Clear();
     }
-    
+
     public static void Run(TestDelegate renderCallback)
     {
         if (m_Instance == null)
