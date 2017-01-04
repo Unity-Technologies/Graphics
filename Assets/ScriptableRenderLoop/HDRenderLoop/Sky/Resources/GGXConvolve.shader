@@ -44,8 +44,8 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
             SAMPLERCUBE(sampler_MainTex);
 
             #ifdef USE_MIS
-                #define MIS_TEXTURE_HEIGHT 256
-                #define MIS_TEXTURE_WIDTH  2 * MIS_TEXTURE_HEIGHT
+                #define TEXTURE_HEIGHT_MIS 256
+                #define TEXTURE_WIDTH_MIS  2 * TEXTURE_HEIGHT_MIS
                 TEXTURE2D(_MarginalRowDensities);
                 TEXTURE2D(_ConditionalDensities);
             #endif
@@ -69,8 +69,8 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
                                                  V, N,
                                                  roughness,
                                                  _InvOmegaP,
-                                                 MIS_TEXTURE_WIDTH,
-                                                 MIS_TEXTURE_HEIGHT,
+                                                 TEXTURE_WIDTH_MIS,
+                                                 TEXTURE_HEIGHT_MIS,
                                                  1024,
                                                  false);
                 #else
