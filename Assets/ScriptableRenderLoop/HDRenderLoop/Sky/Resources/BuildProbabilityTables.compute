@@ -9,8 +9,8 @@
 
 /* --- Input --- */
 
-#define TEXTURE_HEIGHT 256                // MIS equiareal texture map: cos(theta) = 1.0 - 2.0 * v
-#define TEXTURE_WIDTH  2 * TEXTURE_HEIGHT // MIS equiareal texture map: phi = TWO_PI * (1.0 - u)
+#define TEXTURE_HEIGHT 256                // Equiareal texture map: cos(theta) = 1.0 - 2.0 * v
+#define TEXTURE_WIDTH  2 * TEXTURE_HEIGHT // Equiareal texture map: phi = TWO_PI * (1.0 - u)
 
 TEXTURECUBE(envMap);                      // Input cubemap
 SAMPLERCUBE(sampler_envMap);

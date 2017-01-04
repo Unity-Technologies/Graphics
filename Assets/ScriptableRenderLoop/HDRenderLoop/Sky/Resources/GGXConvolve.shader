@@ -19,6 +19,7 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
 
             #include "Common.hlsl"
             #include "ImageBasedLighting.hlsl"
+            #include "../SkyManager.cs.hlsl"
 
             struct Attributes
             {
@@ -44,8 +45,6 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
             SAMPLERCUBE(sampler_MainTex);
 
             #ifdef USE_MIS
-                #define TEXTURE_HEIGHT_MIS 256
-                #define TEXTURE_WIDTH_MIS  2 * TEXTURE_HEIGHT_MIS
                 TEXTURE2D(_MarginalRowDensities);
                 TEXTURE2D(_ConditionalDensities);
             #endif
@@ -64,37 +63,37 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
                 float perceptualRoughness = mipmapLevelToPerceptualRoughness(_Level);
                 float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
 
-                #ifdef USE_MIS
-                    float4 val = IntegrateLD_MIS(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
-                                                 _MarginalRowDensities, _ConditionalDensities,
-                                                 V, N,
-                                                 roughness,
-                                                 _InvOmegaP,
-                                                 TEXTURE_WIDTH_MIS,
-                                                 TEXTURE_HEIGHT_MIS,
-                                                 1024,
-                                                 false);
-                #else
-                    uint sampleCount = 0;
-
-                    switch (_Level)
-                    {
-                        case 1: sampleCount = 21; break;
-                        case 2: sampleCount = 34; break;
-                        case 3: sampleCount = 55; break;
-                        case 4: sampleCount = 89; break;
-                        case 5: sampleCount = 89; break;
-                        case 6: sampleCount = 89; break; // UNITY_SPECCUBE_LOD_STEPS
-                    }
-
-                    float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+            #ifdef USE_MIS
+                float4 val = IntegrateLD_MIS(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+                                             _MarginalRowDensities, _ConditionalDensities,
                                              V, N,
                                              roughness,
-                                             _MaxLevel,
                                              _InvOmegaP,
-                                             sampleCount, // Must be a Fibonacci number
-                                             true);
-                #endif
+                                             LIGHTSAMPLINGPARAMETERS_TEXTURE_WIDTH,
+                                             LIGHTSAMPLINGPARAMETERS_TEXTURE_HEIGHT,
+                                             1024,
+                                             false);
+            #else
+                uint sampleCount = 0;
+
+                switch (_Level)
+                {
+                    case 1: sampleCount = 21; break;
+                    case 2: sampleCount = 34; break;
+                    case 3: sampleCount = 55; break;
+                    case 4: sampleCount = 89; break;
+                    case 5: sampleCount = 89; break;
+                    case 6: sampleCount = 89; break; // UNITY_SPECCUBE_LOD_STEPS
+                }
+
+                float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+                                         V, N,
+                                         roughness,
+                                         _MaxLevel,
+                                         _InvOmegaP,
+                                         sampleCount, // Must be a Fibonacci number
+                                         true);
+            #endif
 
                 return val;
             }

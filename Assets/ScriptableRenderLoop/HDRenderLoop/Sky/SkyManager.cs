@@ -1,6 +1,5 @@
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
-using System.Collections.Generic;
 using System;
 
 namespace UnityEngine.Experimental.ScriptableRenderLoop
@@ -15,6 +14,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // TODO: Anything above 1024 cause a crash in Unity...
         //SkyResolution2048 = 2048,
         //SkyResolution4096 = 4096
+    }
+
+    [GenerateHLSL(PackingRules.Exact)]
+    public enum LightSamplingParameters
+    {
+        TextureHeight = 256,
+        TextureWidth  = 512
     }
 
     public enum EnvironementUpdateMode
@@ -65,10 +71,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         bool                    m_UpdateRequired = true;
         float                   m_CurrentUpdateTime = 0.0f;
 
-        // Configuration parameters for Multiple Importance Sampling.
-        const bool              m_useMIS           = false;
-        const int               m_TextureHeightMIS = 256;
-        const int               m_TextureWidthMIS  = m_TextureHeightMIS * 2;
+        const bool              m_useMIS = false;
 
         SkyParameters           m_SkyParameters = null;
 
@@ -197,8 +200,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (m_useMIS)
                 {
+                    int width  = (int)LightSamplingParameters.TextureWidth;
+                    int height = (int)LightSamplingParameters.TextureHeight;
+
                     // + 1 because we store the value of the integral of the cubemap at the end of the texture.
-                    m_SkyboxMarginalRowCdfRT = new RenderTexture(m_TextureHeightMIS + 1, 1, 1, RenderTextureFormat.RFloat);
+                    m_SkyboxMarginalRowCdfRT = new RenderTexture(height + 1, 1, 1, RenderTextureFormat.RFloat);
                     m_SkyboxMarginalRowCdfRT.dimension = TextureDimension.Tex2D;
                     m_SkyboxMarginalRowCdfRT.useMipMap = false;
                     m_SkyboxMarginalRowCdfRT.autoGenerateMips = false;
@@ -207,7 +213,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_SkyboxMarginalRowCdfRT.Create();
 
                     // TODO: switch the format to R16 (once it's available) to save some bandwidth.
-                    m_SkyboxConditionalCdfRT = new RenderTexture(m_TextureWidthMIS, m_TextureHeightMIS, 1, RenderTextureFormat.RFloat);
+                    m_SkyboxConditionalCdfRT = new RenderTexture(width, height, 1, RenderTextureFormat.RFloat);
                     m_SkyboxConditionalCdfRT.dimension = TextureDimension.Tex2D;
                     m_SkyboxConditionalCdfRT.useMipMap = false;
                     m_SkyboxConditionalCdfRT.autoGenerateMips = false;
@@ -331,7 +337,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_BuildProbabilityTablesCS.SetTexture(m_MarginalRowDensitiesKernel, "marginalRowDensities", m_SkyboxMarginalRowCdfRT);
 
             var cmd = new CommandBuffer() { name = "" };
-            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, m_TextureHeightMIS, 1, 1);
+            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, (int)LightSamplingParameters.TextureHeight, 1, 1);
             cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
