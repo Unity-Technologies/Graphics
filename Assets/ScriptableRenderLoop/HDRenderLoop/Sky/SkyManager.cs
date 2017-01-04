@@ -1,8 +1,6 @@
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
-using System.Collections.Generic;
 using System;
-
 
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
@@ -16,6 +14,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // TODO: Anything above 1024 cause a crash in Unity...
         //SkyResolution2048 = 2048,
         //SkyResolution4096 = 4096
+    }
+
+    [GenerateHLSL(PackingRules.Exact)]
+    public enum LightSamplingParameters
+    {
+        TextureHeight = 256,
+        TextureWidth  = 512
     }
 
     public enum EnvironementUpdateMode
@@ -32,7 +37,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
         public Mesh                     skyMesh;
-        public ScriptableRenderContext               renderLoop;
+        public ScriptableRenderContext  renderLoop;
         public Light                    sunLight;
         public RenderTargetIdentifier   colorBuffer;
         public RenderTargetIdentifier   depthBuffer;
@@ -44,9 +49,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     {
         RenderTexture           m_SkyboxCubemapRT = null;
         RenderTexture           m_SkyboxGGXCubemapRT = null;
+        RenderTexture           m_SkyboxMarginalRowCdfRT = null;
+        RenderTexture           m_SkyboxConditionalCdfRT = null;
 
         Material                m_StandardSkyboxMaterial = null; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material                m_GGXConvolveMaterial = null; // Apply GGX convolution to cubemap
+
+        ComputeShader           m_BuildProbabilityTablesCS = null;
+        int                     m_ConditionalDensitiesKernel = -1;
+        int                     m_MarginalRowDensitiesKernel = -1;
 
         Vector4                 m_CubemapScreenSize;
         Matrix4x4[]             m_faceCameraViewProjectionMatrix = new Matrix4x4[6];
@@ -59,6 +70,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         bool                    m_NeedLowLevelUpdateEnvironment = false;
         bool                    m_UpdateRequired = true;
         float                   m_CurrentUpdateTime = 0.0f;
+
+        const bool              m_useMIS = false;
 
         SkyParameters           m_SkyParameters = null;
 
@@ -163,6 +176,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 Utilities.Destroy(m_SkyboxCubemapRT);
                 Utilities.Destroy(m_SkyboxGGXCubemapRT);
+                Utilities.Destroy(m_SkyboxMarginalRowCdfRT);
+                Utilities.Destroy(m_SkyboxConditionalCdfRT);
 
                 m_UpdateRequired = true; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
             }
@@ -182,6 +197,30 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_SkyboxGGXCubemapRT.autoGenerateMips = false;
                 m_SkyboxGGXCubemapRT.filterMode = FilterMode.Trilinear;
                 m_SkyboxGGXCubemapRT.Create();
+
+                if (m_useMIS)
+                {
+                    int width  = (int)LightSamplingParameters.TextureWidth;
+                    int height = (int)LightSamplingParameters.TextureHeight;
+
+                    // + 1 because we store the value of the integral of the cubemap at the end of the texture.
+                    m_SkyboxMarginalRowCdfRT = new RenderTexture(height + 1, 1, 1, RenderTextureFormat.RFloat);
+                    m_SkyboxMarginalRowCdfRT.dimension = TextureDimension.Tex2D;
+                    m_SkyboxMarginalRowCdfRT.useMipMap = false;
+                    m_SkyboxMarginalRowCdfRT.autoGenerateMips = false;
+                    m_SkyboxMarginalRowCdfRT.enableRandomWrite = true;
+                    m_SkyboxMarginalRowCdfRT.filterMode = FilterMode.Point;
+                    m_SkyboxMarginalRowCdfRT.Create();
+
+                    // TODO: switch the format to R16 (once it's available) to save some bandwidth.
+                    m_SkyboxConditionalCdfRT = new RenderTexture(width, height, 1, RenderTextureFormat.RFloat);
+                    m_SkyboxConditionalCdfRT.dimension = TextureDimension.Tex2D;
+                    m_SkyboxConditionalCdfRT.useMipMap = false;
+                    m_SkyboxConditionalCdfRT.autoGenerateMips = false;
+                    m_SkyboxConditionalCdfRT.enableRandomWrite = true;
+                    m_SkyboxConditionalCdfRT.filterMode = FilterMode.Point;
+                    m_SkyboxConditionalCdfRT.Create();
+                }
             }
 
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
@@ -243,8 +282,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_Renderer.Build();
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
-            m_StandardSkyboxMaterial = Utilities.CreateEngineMaterial("Skybox/Cubemap");
-            m_GGXConvolveMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/GGXConvolve");
+            m_StandardSkyboxMaterial   = Utilities.CreateEngineMaterial("Skybox/Cubemap");
+            m_GGXConvolveMaterial      = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/GGXConvolve");
+            m_BuildProbabilityTablesCS = Resources.Load<ComputeShader>("BuildProbabilityTables");
+
+            m_ConditionalDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeConditionalDensities");
+            m_MarginalRowDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeMarginalRowDensities");
 
             m_CurrentUpdateTime = 0.0f;
         }
@@ -255,6 +298,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Utilities.Destroy(m_GGXConvolveMaterial);
             Utilities.Destroy(m_SkyboxCubemapRT);
             Utilities.Destroy(m_SkyboxGGXCubemapRT);
+            Utilities.Destroy(m_SkyboxMarginalRowCdfRT);
+            Utilities.Destroy(m_SkyboxConditionalCdfRT);
 
             if(m_Renderer != null)
                 m_Renderer.Cleanup();
@@ -281,6 +326,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
+        private void BuildProbabilityTables(ScriptableRenderContext renderLoop)
+        {
+            // Bind the input cubemap.
+            m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "envMap", m_SkyboxCubemapRT);
+
+            // Bind the outputs.
+            m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "marginalRowDensities", m_SkyboxMarginalRowCdfRT);
+            m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "conditionalDensities", m_SkyboxConditionalCdfRT);
+            m_BuildProbabilityTablesCS.SetTexture(m_MarginalRowDensitiesKernel, "marginalRowDensities", m_SkyboxMarginalRowCdfRT);
+
+            var cmd = new CommandBuffer() { name = "" };
+            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, (int)LightSamplingParameters.TextureHeight, 1, 1);
+            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
+
         private void RenderCubemapGGXConvolution(ScriptableRenderContext renderLoop, BuiltinSkyParameters builtinParams, SkyParameters skyParams, Texture input, RenderTexture target)
         {
             using (new Utilities.ProfilingSample("Sky Pass: GGX Convolution", renderLoop))
@@ -290,6 +352,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     Debug.LogWarning("RenderCubemapGGXConvolution: Cubemap size is too small for GGX convolution, needs at least " + ((int)EnvConstants.SpecCubeLodStep + 1) + " mip levels");
                     return;
+                }
+
+                if (m_useMIS)
+                {
+                    BuildProbabilityTables(renderLoop);
                 }
 
                 // Copy the first mip.
@@ -312,11 +379,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 //for (int f = 0; f < 6; f++)
                 //    Graphics.CopyTexture(input, f, 0, target, f, 0);
 
+                if (m_useMIS)
+                {
+                    m_GGXConvolveMaterial.EnableKeyword("USE_MIS");
+                    m_GGXConvolveMaterial.SetTexture("_MarginalRowDensities", m_SkyboxMarginalRowCdfRT);
+                    m_GGXConvolveMaterial.SetTexture("_ConditionalDensities", m_SkyboxConditionalCdfRT);
+                }
+                else
+                {
+                    m_GGXConvolveMaterial.DisableKeyword("USE_MIS");
+                }
+
                 // Do the convolution on remaining mipmaps
                 float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
 
                 m_GGXConvolveMaterial.SetTexture("_MainTex", input);
-                m_GGXConvolveMaterial.SetFloat("_MipMapCount", mipCount);
+                m_GGXConvolveMaterial.SetFloat("_MaxLevel", mipCount - 1);
                 m_GGXConvolveMaterial.SetFloat("_InvOmegaP", invOmegaP);
 
                 for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)

@@ -170,12 +170,21 @@ float2 GetIESTextureCoordinate(float3x3 lightToWord, float3 L)
 // Get local frame
 //-----------------------------------------------------------------------------
 
-// generate an orthonormalBasis from 3d unit vector.
-void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
+// Generates an orthonormal basis from two orthogonal unit vectors.
+float3x3 GetLocalFrame(float3 localZ, float3 localX)
 {
-    float3 upVector     = abs(N.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
-    tangentX            = normalize(cross(upVector, N));
-    tangentY            = cross(N, tangentX);
+    float3 localY = cross(localZ, localX);
+
+    return float3x3(localX, localY, localZ);
+}
+
+// Generates an orthonormal basis from a unit vector.
+float3x3 GetLocalFrame(float3 localZ)
+{
+    float3 upVector = abs(localZ.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
+    float3 localX   = normalize(cross(upVector, localZ));
+
+    return GetLocalFrame(localZ, localX);
 }
 
 // TODO: test

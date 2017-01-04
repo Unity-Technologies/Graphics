@@ -247,6 +247,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_LtcGGXMatrix                    = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
                 m_LtcDisneyDiffuseMatrix          = LoadLUT(TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
+                // TODO: switch to RGBA64 when it becomes available.
                 m_LtcMultiGGXFresnelDisneyDiffuse = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMagnitudeData,
                                                                                     s_LtcGGXFresnelData,
                                                                                     s_LtcDisneyDiffuseMagnitudeData);
