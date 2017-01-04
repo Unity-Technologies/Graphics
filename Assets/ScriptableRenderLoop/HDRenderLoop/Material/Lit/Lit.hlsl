@@ -596,8 +596,11 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     // Maybe always using aniso maybe a win ?
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
-        float TdotL = saturate(dot(bsdfData.tangentWS, L));
-        float BdotL = saturate(dot(bsdfData.bitangentWS, L));
+        // For anisotropy we must not saturate these values
+        float TdotH = dot(bsdfData.tangentWS, H);
+        float TdotL = dot(bsdfData.tangentWS, L);
+        float BdotH = dot(bsdfData.bitangentWS, H);
+        float BdotL = dot(bsdfData.bitangentWS, L);
 
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
         Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
@@ -608,9 +611,6 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
                                     bsdfData.roughnessT, bsdfData.roughnessB);
         #endif
 
-        // For anisotropy we must not saturate these values
-        float TdotH = dot(bsdfData.tangentWS, H);
-        float BdotH = dot(bsdfData.bitangentWS, H);
         D = D_GGXAniso(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
     }
     else
