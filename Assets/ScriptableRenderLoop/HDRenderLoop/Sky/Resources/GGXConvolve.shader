@@ -74,11 +74,22 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
                                                  1024,
                                                  false);
                 #else
+                    uint sampleCount = 0;
+
+                    switch (_Level)
+                    {
+                        case 1: sampleCount = 21; break;
+                        case 2: sampleCount = 34; break;
+                        case 3: sampleCount = 55; break;
+                        case 4: sampleCount = 55; break;
+                        case 5: sampleCount = 89; break;
+                    }
+
                     float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
                                              V, N,
                                              roughness,
                                              _InvOmegaP,
-                                             55, // Must be a Fibonacci number
+                                             sampleCount, // Must be a Fibonacci number
                                              true);
                 #endif
 
