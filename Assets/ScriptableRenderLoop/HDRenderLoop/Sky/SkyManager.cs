@@ -379,6 +379,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_GGXConvolveMaterial.SetTexture("_MarginalRowDensities", m_SkyboxMarginalRowCdfRT);
                     m_GGXConvolveMaterial.SetTexture("_ConditionalDensities", m_SkyboxConditionalCdfRT);
                 }
+                else
+                {
+                    m_GGXConvolveMaterial.DisableKeyword("USE_MIS");
+                }
 
                 // Do the convolution on remaining mipmaps
                 float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
