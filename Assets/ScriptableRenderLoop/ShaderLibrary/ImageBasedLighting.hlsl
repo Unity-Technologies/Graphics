@@ -6,6 +6,11 @@
 #include "BSDF.hlsl"
 #include "Sampling.hlsl"
 
+// TODO: We need to change this hard limit!
+#ifndef UNITY_SPECCUBE_LOD_STEPS
+    #define UNITY_SPECCUBE_LOD_STEPS 6
+#endif
+
 //-----------------------------------------------------------------------------
 // Util image based lighting
 //-----------------------------------------------------------------------------
@@ -389,6 +394,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // This will blur the reflection.
             // TODO: bias more accurately once the 'UNITY_SPECCUBE_LOD_STEPS' limit has been lifted.
             mipLevel = lerp(mipLevel, UNITY_SPECCUBE_LOD_STEPS, sqrt(bias));
+            mipLevel = min(mipLevel, UNITY_SPECCUBE_LOD_STEPS);
         }
 
         if (NdotL > 0.0)

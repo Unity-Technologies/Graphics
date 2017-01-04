@@ -233,6 +233,8 @@ float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalT
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
 {
+    lod = min(lod, UNITY_SPECCUBE_LOD_STEPS);
+
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
