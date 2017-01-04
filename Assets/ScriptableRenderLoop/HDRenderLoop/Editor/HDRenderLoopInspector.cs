@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
-    [CustomEditor(typeof(HDRenderLoop))]
+    [CustomEditor(typeof(HDRenderPipeline))]
     public class HDRenderLoopInspector : Editor
     {
         private class Styles
@@ -121,7 +121,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        private void DebugParametersUI(HDRenderLoop renderLoop)
+        private void DebugParametersUI(HDRenderPipeline renderLoop)
         {
             var debugParameters = renderLoop.debugParameters;
 
@@ -187,7 +187,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUI.indentLevel--;
         }
 
-        private void ShadowParametersUI(HDRenderLoop renderLoop)
+        private void ShadowParametersUI(HDRenderPipeline renderLoop)
         {
             EditorGUILayout.Space();
             var shadowParameters = renderLoop.shadowSettings;
@@ -207,7 +207,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUI.indentLevel--;
         }
 
-        private void TextureParametersUI(HDRenderLoop renderLoop)
+        private void TextureParametersUI(HDRenderPipeline renderLoop)
         {
             EditorGUILayout.Space();
             var textureParameters = renderLoop.textureSettings;
@@ -228,7 +228,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUI.indentLevel--;
         }
 
-        private void TilePassUI(HDRenderLoop renderLoop)
+        private void TilePassUI(HDRenderPipeline renderLoop)
         {
             EditorGUILayout.Space();
 
@@ -269,7 +269,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public override void OnInspectorGUI()
         {
-            var renderLoop = target as HDRenderLoop;
+            var renderLoop = target as HDRenderPipeline;
 
             if (!renderLoop)
                 return;

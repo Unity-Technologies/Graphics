@@ -431,7 +431,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_UpdateRequired = true;
         }
 
-        public void UpdateEnvironment(HDRenderLoop.HDCamera camera, Light sunLight, ScriptableRenderContext renderLoop)
+        public void UpdateEnvironment(HDRenderPipeline.HDCamera camera, Light sunLight, ScriptableRenderContext renderLoop)
         {
             {
                 using (new Utilities.ProfilingSample("Sky Environment Pass", renderLoop))
@@ -500,7 +500,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public void RenderSky(HDRenderLoop.HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ScriptableRenderContext renderLoop)
+        public void RenderSky(HDRenderPipeline.HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ScriptableRenderContext renderLoop)
         {
             using (new Utilities.ProfilingSample("Sky Pass", renderLoop))
             {

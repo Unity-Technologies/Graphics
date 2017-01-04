@@ -1299,7 +1299,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 #endif
 
-            public override void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, ScriptableRenderContext renderLoop, RenderTargetIdentifier cameraColorBufferRT)
+            public override void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderLoop, RenderTargetIdentifier cameraColorBufferRT)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 

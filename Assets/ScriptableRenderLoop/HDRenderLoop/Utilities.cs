@@ -167,9 +167,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return gpuVP;
         }
 
-        public static HDRenderLoop.HDCamera GetHDCamera(Camera camera)
+        public static HDRenderPipeline.HDCamera GetHDCamera(Camera camera)
         {
-            HDRenderLoop.HDCamera hdCamera = new HDRenderLoop.HDCamera();
+            HDRenderPipeline.HDCamera hdCamera = new HDRenderPipeline.HDCamera();
             hdCamera.camera = camera;
             hdCamera.screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
@@ -184,7 +184,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return hdCamera;
         }
         
-        public static void SetupMaterialHDCamera(HDRenderLoop.HDCamera hdCamera, Material material)
+        public static void SetupMaterialHDCamera(HDRenderPipeline.HDCamera hdCamera, Material material)
         {
             material.SetVector("_ScreenSize", hdCamera.screenSize);
             material.SetMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);
@@ -236,9 +236,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m.DisableKeyword(keyword);
         }
 
-        public static HDRenderLoop GetHDRenderLoop()
+        public static HDRenderPipeline GetHDRenderLoop()
         {
-            HDRenderLoop renderLoop = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderLoop;
+            HDRenderPipeline renderLoop = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderPipeline;
             if (renderLoop == null)
             {
                 Debug.LogWarning("SkyParameters component can only be used with HDRenderLoop custom RenderPipeline.");
