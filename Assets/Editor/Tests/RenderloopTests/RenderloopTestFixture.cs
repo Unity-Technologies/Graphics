@@ -18,15 +18,15 @@ public class RenderLoopTestFixture : RenderPipelineAsset
 
 public class RenderLoopTestFixtureInstance : RenderPipeline
 {
-    public delegate void TestDelegate(Camera camera, CullResults cullResults, ScriptableRenderContext renderLoop);
+    public delegate void TestDelegate(Camera camera, CullResults cullResults, ScriptableRenderContext renderContext);
 
     private static TestDelegate s_Callback;
 
     private static RenderLoopTestFixture m_Instance;
     
-    public override void Render(ScriptableRenderContext renderLoop, Camera[] cameras)
+    public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
-        base.Render(renderLoop, cameras);
+        base.Render(renderContext, cameras);
 
         foreach (var camera in cameras)
         {
@@ -37,13 +37,13 @@ public class RenderLoopTestFixtureInstance : RenderPipeline
             bool gotCullingParams = CullResults.GetCullingParameters(camera, out cullingParams);
             Assert.IsTrue(gotCullingParams);
 
-            CullResults cullResults = CullResults.Cull(ref cullingParams, renderLoop);
+            CullResults cullResults = CullResults.Cull(ref cullingParams, renderContext);
 
             if (s_Callback != null)
-                s_Callback(camera, cullResults, renderLoop);
+                s_Callback(camera, cullResults, renderContext);
         }
 
-        renderLoop.Submit();
+        renderContext.Submit();
     }
 
     public static void Run(TestDelegate renderCallback)

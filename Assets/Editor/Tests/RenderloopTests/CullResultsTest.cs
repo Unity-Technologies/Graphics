@@ -5,7 +5,7 @@ using NUnit.Framework;
 [TestFixture]
 public class CullResultsTest
 {
-    void InspectCullResults(Camera camera, CullResults cullResults, ScriptableRenderContext renderLoop)
+    void InspectCullResults(Camera camera, CullResults cullResults, ScriptableRenderContext renderContext)
     {
         VisibleReflectionProbe[] probes = cullResults.visibleReflectionProbes;
 
