@@ -335,6 +335,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                     float3 V,
                     float3 N,
                     float roughness,
+                    float maxMipLevel,
                     float invOmegaP,
                     uint sampleCount, // Must be a Fibonacci number
                     bool prefilter)
@@ -351,7 +352,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
         // Bias samples towards the mirror direction to reduce variance.
         // This will have a side effect of making the reflection sharper.
         // Ref: Stochastic Screen-Space Reflections, p. 67.
-        const float bias = 0.5;
+        const float bias = 0.2;
         u.x = lerp(u.x, 0.0, bias);
 
         float3 L;
@@ -392,9 +393,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
             // Bias the MIP map level to compensate for the importance sampling bias.
             // This will blur the reflection.
-            // TODO: bias more accurately once the 'UNITY_SPECCUBE_LOD_STEPS' limit has been lifted.
-            mipLevel = lerp(mipLevel, UNITY_SPECCUBE_LOD_STEPS, sqrt(bias));
-            mipLevel = min(mipLevel, UNITY_SPECCUBE_LOD_STEPS);
+            mipLevel = lerp(mipLevel, maxMipLevel, bias);
         }
 
         if (NdotL > 0.0)

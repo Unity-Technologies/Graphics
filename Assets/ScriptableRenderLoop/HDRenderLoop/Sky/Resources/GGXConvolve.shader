@@ -51,6 +51,7 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
             #endif
 
             float _Level;
+            float _MaxLevel;
             float _InvOmegaP;
 
             half4 Frag(Varyings input) : SV_Target
@@ -89,6 +90,7 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
                     float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
                                              V, N,
                                              roughness,
+                                             _MaxLevel,
                                              _InvOmegaP,
                                              sampleCount, // Must be a Fibonacci number
                                              true);
