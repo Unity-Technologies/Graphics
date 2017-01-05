@@ -6,11 +6,37 @@ using UnityEngine.ScriptableRenderPipeline;
 
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
+    public class FptlLightingInstance : RenderPipeline
+    {
+        private readonly FptlLighting m_Owner;
+
+        public FptlLightingInstance(FptlLighting owner)
+        {
+            m_Owner = owner;
+
+            if (m_Owner != null)
+                m_Owner.Build();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            if (m_Owner != null)
+                m_Owner.Cleanup();
+        }
+        
+        public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+        {
+            base.Render(renderContext, cameras);
+            m_Owner.Render(renderContext, cameras);
+        }
+    }
+
     [ExecuteInEditMode]
-    public class FptlLighting : RenderPipeline
+    public class FptlLighting : RenderPipelineAsset
     {
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("Renderloop/CreateRenderLoopFPTL")]
+        [UnityEditor.MenuItem("RenderPipeline/CreateRenderLoopFPTL")]
         static void CreateRenderLoopFPTL()
         {
             var instance = ScriptableObject.CreateInstance<FptlLighting>();
@@ -18,27 +44,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             //AssetDatabase.CreateAsset(instance, "Assets/ScriptableRenderLoop/fptl/renderloopfptl.asset");
         }
 #endif
-
-        private class FptlLightingDataStore : RenderingDataStore
+        protected override IRenderPipeline InternalCreatePipeline()
         {
-            public FptlLightingDataStore(BaseRenderPipeline owner) : base(owner)
-            {}
-
-            protected override void InternalBuild()
-            {
-                base.InternalBuild();
-                FptlLighting theOwner = owner as FptlLighting;
-                if (theOwner != null)
-                    theOwner.Build();
-            }
-            
-            protected override void InternalCleanup()
-            {
-                base.InternalCleanup();
-                FptlLighting theOwner = owner as FptlLighting;
-                if (theOwner != null)
-                    theOwner.Cleanup();
-            }
+            return new FptlLightingInstance(this);
         }
 
         [SerializeField]
@@ -270,12 +278,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             m_shadowBufferID = Shader.PropertyToID("g_tShadowBuffer");
         }
-
-        public override IScriptableRenderDataStore ConstructDataStore()
-        {
-            return new FptlLightingDataStore(this);
-        }
-
+        
         static void SetupGBuffer(int width, int height, CommandBuffer cmd)
         {
             var format10 = RenderTextureFormat.ARGB32;
@@ -1009,16 +1012,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             return numLightsOut + numProbesOut;
         }
-
-        [NonSerialized]
-        readonly List<Camera> m_CamerasToRender = new List<Camera>();
-
-        public override void Render(ScriptableRenderContext renderLoop, IScriptableRenderDataStore dataStore)
+        
+        public void Render(ScriptableRenderContext renderContext, IEnumerable<Camera> cameras)
         {
-            base.Render(renderLoop, dataStore);
-            cameraProvider.GetCamerasToRender(m_CamerasToRender);
-
-            foreach (var camera in m_CamerasToRender)
+            foreach (var camera in cameras)
             {
                 CullingParameters cullingParams;
                 if (!CullResults.GetCullingParameters(camera, out cullingParams))
@@ -1026,14 +1023,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_ShadowPass.UpdateCullingParameters(ref cullingParams);
 
-                var cullResults = CullResults.Cull(ref cullingParams, renderLoop);
-                ExecuteRenderLoop(camera, cullResults, renderLoop);
+                var cullResults = CullResults.Cull(ref cullingParams, renderContext);
+                ExecuteRenderLoop(camera, cullResults, renderContext);
             }
 
-            renderLoop.Submit();
-
-            CleanCameras(m_CamerasToRender);
-            m_CamerasToRender.Clear();
+            renderContext.Submit();
         }
 
         void FinalPass(ScriptableRenderContext loop)

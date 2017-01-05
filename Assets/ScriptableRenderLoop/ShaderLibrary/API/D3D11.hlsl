@@ -18,15 +18,15 @@
 
 // Texture abstraction
 
-#define TEXTURE2D(textureName) Texture2D textureName;
-#define TEXTURE2D_ARRAY(textureName) Texture2DArray textureName;
-#define TEXTURECUBE(textureName) TextureCube textureName;
-#define TEXTURECUBE_ARRAY(textureName) TextureCubeArray textureName;
-#define TEXTURE3D(textureName) Texture3D textureName;
+#define TEXTURE2D(textureName) Texture2D textureName
+#define TEXTURE2D_ARRAY(textureName) Texture2DArray textureName
+#define TEXTURECUBE(textureName) TextureCube textureName
+#define TEXTURECUBE_ARRAY(textureName) TextureCubeArray textureName
+#define TEXTURE3D(textureName) Texture3D textureName
 
-#define SAMPLER2D(samplerName) SamplerState samplerName;
-#define SAMPLERCUBE(samplerName) SamplerState samplerName;
-#define SAMPLER3D(samplerName) SamplerState samplerName;
+#define SAMPLER2D(samplerName) SamplerState samplerName
+#define SAMPLERCUBE(samplerName) SamplerState samplerName
+#define SAMPLER3D(samplerName) SamplerState samplerName
 #define SAMPLER2D_SHADOW(samplerName) SamplerComparisonState samplerName
 #define SAMPLERCUBE_SHADOW(samplerName) SamplerComparisonState samplerName
 
@@ -67,7 +67,10 @@
 #define SAMPLER2D_FLOAT SAMPLER2D
 
 #define LOAD_TEXTURE2D(textureName, unCoord2) textureName.Load(int3(unCoord2, 0))
+#define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod) textureName.Load(int3(unCoord2, lod))
 #define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex) textureName.Load(unCoord2, sampleIndex)
+#define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index) textureName.Load(int4(unCoord2, index, 0))
+#define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod) textureName.Load(int4(unCoord2, index, lod))
 
 #define GATHER_TEXTURE2D(textureName, samplerName, coord2) textureName.Gather(samplerName, coord2)
 #define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) textureName.Gather(samplerName, float3(coord2, index))
