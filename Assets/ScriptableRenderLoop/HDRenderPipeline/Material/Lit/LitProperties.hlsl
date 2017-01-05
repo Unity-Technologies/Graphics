@@ -126,9 +126,6 @@ SAMPLER2D(sampler_DistortionVectorMap);
 TEXTURE2D(_LayerMaskMap);
 SAMPLER2D(sampler_LayerMaskMap);
 
-float _UseHeightBasedBlend1;
-float _UseHeightBasedBlend2;
-float _UseHeightBasedBlend3;
 float _HeightOffset1;
 float _HeightOffset2;
 float _HeightOffset3;
@@ -138,6 +135,7 @@ float _HeightFactor3;
 float _BlendSize1;
 float _BlendSize2;
 float _BlendSize3;
+float _VertexColorHeightFactor;
 
 float3 _EmissiveColor;
 TEXTURE2D(_EmissiveColorMap);
@@ -145,7 +143,7 @@ SAMPLER2D(sampler_EmissiveColorMap);
 float _EmissiveIntensity;
 
 PROP_DECL(float, _TexWorldScale);
-PROP_DECL(float, _UVMappingPlanar);
+PROP_DECL(float, _UVMappingPlanar);  
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
 
