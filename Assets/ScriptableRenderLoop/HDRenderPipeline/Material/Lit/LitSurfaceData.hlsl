@@ -113,7 +113,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     #ifdef _DETAIL_MAP_WITH_NORMAL
     // Resample the detail map but this time for the normal map. This call should be optimize by the compiler
     // We split both call due to trilinear mapping
-    float3 detailNormalTS = SAMPLE_LAYER_NORMALMAP_AG(ADD_IDX(_DetailMap), ADD_ZERO_IDX(sampler_DetailMap), ADD_IDX(layerTexCoord.details));
+    float3 detailNormalTS = SAMPLE_LAYER_NORMALMAP_AG(ADD_IDX(_DetailMap), ADD_ZERO_IDX(sampler_DetailMap), ADD_IDX(layerTexCoord.details), ADD_ZERO_IDX(_DetailNormalScale));
     //float detailAO = 0.0;
     #else
     // TODO: Use heightmap as a derivative with Morten Mikklesen approach, how this work with our abstraction and triplanar ?
@@ -143,14 +143,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
-        float3 normalTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base));
+        float3 normalTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_ZERO_IDX(_NormalScale));
         #ifdef _DETAIL_MAP
         normalTS = lerp(normalTS, BlendNormal(normalTS, detailNormalTS), detailMask);
         #endif
         surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     #else // Object space
-        // TODO: We are suppose to do * 2 - 1 here. how to deal with triplanar...
-        float3 normalOS = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base)).rgb;
+        float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_ZERO_IDX(_NormalScale)).rgb;
         surfaceData.normalWS = TransformObjectToWorldDir(normalOS);
         #ifdef _DETAIL_MAP
         float3 detailNormalWS = TransformTangentToWorld(detailNormalTS, input.tangentToWorld);
@@ -204,10 +203,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // TODO: think about using BC5
 #ifdef _TANGENTMAP
 #ifdef _NORMALMAP_TANGENT_SPACE // Normal and tangent use same space
-    float3 tangentTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base));
+    float3 tangentTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base), 1.0);
     surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.tangentToWorld);
-#else // Object space (TODO: We need to apply the world rotation here! - Require to pass world transform)
-    surfaceData.tangentWS = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base)).rgb;
+#else // Object space
+    float3 tangentOS = SAMPLE_LAYER_NORMALMAP_RGB(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base), 1.0).rgb;
+    surfaceData.tangentWS = TransformObjectToWorldDir(tangentOS);
 #endif
 #else
     surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz);
