@@ -89,10 +89,10 @@ struct LightLoopContext
 // Shadow sampling function
 // ----------------------------------------------------------------------------
 
-float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS)
+float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, uint lightType, float3 positionWS, int index, float3 L, float2 unPositionSS)
 {
     int faceIndex = 0;
-    if (_ShadowDatas[index].lightType == GPULIGHTTYPE_POINT)
+    if (lightType == GPULIGHTTYPE_POINT)
     {
         GetCubeFaceID(L, faceIndex);
     }

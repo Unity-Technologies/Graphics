@@ -458,18 +458,12 @@ struct PreLightData
     float3 specularFGD; // Store preconvole BRDF for both specular and diffuse
     float diffuseFGD;
 
-    // TODO: if we want we can store ambient occlusion here from SSAO pass for example that can be use for IBL specular occlusion
-    // float ambientOcclusion; // Feed from an ambient occlusion buffer
-
     // area light
     float3x3 ltcXformGGX;                // TODO: make sure the compiler not wasting VGPRs on constants
     float3x3 ltcXformDisneyDiffuse;      // TODO: make sure the compiler not wasting VGPRs on constants
     float    ltcGGXFresnelMagnitudeDiff; // The difference of magnitudes of GGX and Fresnel
     float    ltcGGXFresnelMagnitude;
     float    ltcDisneyDiffuseMagnitude;
-
-    // Shadow (sampling rotation disc)
-    float2 unPositionSS;
 };
 
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfData)
@@ -505,10 +499,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     float3 iblR = reflect(-V, iblNormalWS);
     preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness);
 
-    // #if SHADERPASS == SHADERPASS_GBUFFER
-    // preLightData.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusion, posInput.unPositionSS).x;
-    // #endif
-
     // Area light specific
     // UVs for sampling the LUTs
     float theta = FastACos(dot(bsdfData.normalWS, V));
@@ -531,9 +521,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     preLightData.ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r;
     preLightData.ltcGGXFresnelMagnitude     = ltcMagnitude.g;
     preLightData.ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
-
-    // Shadow
-    preLightData.unPositionSS = posInput.unPositionSS;
 
     return preLightData;
 }
@@ -651,7 +638,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
     {
-        float shadowAttenuation = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, preLightData.unPositionSS);
+        float shadowAttenuation = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 
         illuminance *= shadowAttenuation;
     }
@@ -718,6 +705,22 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
+    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
+    {
+        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+        float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
+        illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
+    }
+
+    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+    {
+        float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
+        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+        shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
+
+        illuminance *= shadowAttenuation;
+    }
+
     [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
     {
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
@@ -749,22 +752,6 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
         cookieColor  = cookie.rgb;
         illuminance *= cookie.a;
-    }
-
-    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
-    {
-        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-        float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
-        illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
-    }
-
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
-    {
-        float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, positionWS + offset, lightData.shadowIndex, L, preLightData.unPositionSS);
-        shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
-
-        illuminance *= shadowAttenuation;
     }
 
     [branch] if (illuminance > 0.0)
