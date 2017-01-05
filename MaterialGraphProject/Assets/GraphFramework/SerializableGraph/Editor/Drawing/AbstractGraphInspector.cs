@@ -15,7 +15,10 @@ namespace UnityEditor.Graphing.Drawing
 
         protected List<AbstractNodeInspector> m_Inspectors = new List<AbstractNodeInspector>();
 
-        protected IGraphAsset m_GraphAsset;
+        protected IGraphAsset graphAsset
+        {
+            get { return target as IGraphAsset; }
+        }
 
         protected abstract void AddTypeMappings(Action<Type, Type> map);
 
@@ -31,12 +34,12 @@ namespace UnityEditor.Graphing.Drawing
 
         private void UpdateSelection()
         {
-            if (m_GraphAsset == null)
+            if (graphAsset == null)
                 return;
 
             using (var selectedNodes = ListPool<INode>.GetDisposable())
             {
-                selectedNodes.value.AddRange(m_GraphAsset.drawingData.selection.Select(m_GraphAsset.graph.GetNodeFromGuid));
+                selectedNodes.value.AddRange(graphAsset.drawingData.selection.Select(graphAsset.graph.GetNodeFromGuid));
                 if (m_SelectedNodes == null || m_Inspectors.Any(i => i.node == null) || !selectedNodes.value.SequenceEqual(m_SelectedNodes))
                     OnSelectionChanged(selectedNodes.value);
             }
@@ -63,7 +66,6 @@ namespace UnityEditor.Graphing.Drawing
 
         public virtual void OnEnable()
         {
-            m_GraphAsset = target as IGraphAsset;
             m_DataMapper.Clear();
             AddTypeMappings(m_DataMapper.AddMapping);
             UpdateSelection();
