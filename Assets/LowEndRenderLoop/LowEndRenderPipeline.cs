@@ -229,16 +229,15 @@ public class LowEndRenderPipeline : RenderPipelineAsset
     void SetupShadowShaderVariables(ShadowOutput shadowOutput, ScriptableRenderContext context, float shadowNear, float shadowFar)
     {
         // PSSM distance settings
-        float shadowFrustumDepth = shadowNear - shadowFar;
+        float shadowFrustumDepth = shadowFar - shadowNear;
         Vector3 shadowSplitRatio = m_ShadowSettings.directionalLightCascades;
 
-        // TODO: check z buffer direction to invert eye space depths
-        float[] PSSMDistances =
-        {
+        // We set PSSMDistance to infinity for non active cascades so the comparison test always fails for unavailable cascades
+        Vector4 PSSMDistances = new Vector4(
             shadowNear + shadowSplitRatio.x * shadowFrustumDepth,
-            shadowNear + shadowSplitRatio.y * shadowFrustumDepth,
-            shadowNear + shadowSplitRatio.z * shadowFrustumDepth,
-        };
+            (shadowSplitRatio.y > 0.0f) ? shadowNear + shadowSplitRatio.y * shadowFrustumDepth : Mathf.Infinity,
+            (shadowSplitRatio.z > 0.0f) ? shadowNear + shadowSplitRatio.z * shadowFrustumDepth : Mathf.Infinity,
+            Mathf.Infinity);
 
         Matrix4x4[] shadowMatrices =
         {
@@ -250,7 +249,7 @@ public class LowEndRenderPipeline : RenderPipelineAsset
 
         var setupShadow = new CommandBuffer() { name = "SetupShadowShaderConstants" };
         setupShadow.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
-        setupShadow.SetGlobalFloatArray("_PSSMDistances", PSSMDistances);
+        setupShadow.SetGlobalVector("_PSSMDistances", PSSMDistances);
         context.ExecuteCommandBuffer(setupShadow);
         setupShadow.Dispose();
     }
