@@ -79,12 +79,12 @@ namespace RMGUI.GraphView.Demo
 			AddElement(nodePresenter);
 
 			nodePresenter = InitNodePresenter(typeof(int));
-			nodePresenter.position = new Rect(210, 0, 200, 176);
+			nodePresenter.position = new Rect(300, 0, 200, 176);
 			nodePresenter.title = "Some Nice Operator";
 			AddElement(nodePresenter);
 
 			nodePresenter = InitNodePresenter(typeof(Color));
-			nodePresenter.position = new Rect(420, 0, 200, 176);
+			nodePresenter.position = new Rect(300, 186, 200, 176);
 			nodePresenter.title = "Some Other Operator";
 			AddElement(nodePresenter);
 
@@ -94,19 +94,19 @@ namespace RMGUI.GraphView.Demo
 			AddElement(nodePresenter);
 
 			var verticalNodePresenter = InitVerticalNodePresenter();
-			verticalNodePresenter.position = new Rect(210, 420, 100, 100);
+			verticalNodePresenter.position = new Rect(240, 420, 100, 100);
 			AddElement(verticalNodePresenter);
 
 			verticalNodePresenter = InitVerticalNodePresenter();
-			verticalNodePresenter.position = new Rect(320, 420, 100, 100);
+			verticalNodePresenter.position = new Rect(350, 420, 100, 100);
 			AddElement(verticalNodePresenter);
 
 			verticalNodePresenter = InitVerticalNodePresenter();
-			verticalNodePresenter.position = new Rect(430, 420, 100, 100);
+			verticalNodePresenter.position = new Rect(460, 420, 100, 100);
 			AddElement(verticalNodePresenter);
 
 			var commentPresenter = CreateInstance<CommentPresenter>();
-			commentPresenter.position = new Rect(830, 0, 500, 300);
+			commentPresenter.position = new Rect(850, 0, 500, 300);
 			commentPresenter.color = new Color(0.4f, 0f, 0f, 0.3f);
 			commentPresenter.titleBar = "My First Comment";
 			commentPresenter.body = "This is my first comment.  It is made of words and a few return carriages.  Nothing more.  I hope we can see this whole line.\n\n" +
@@ -114,7 +114,7 @@ namespace RMGUI.GraphView.Demo
 			AddElement(commentPresenter);
 
 			var miniMapPresenter = CreateInstance<MiniMapPresenter>();
-			miniMapPresenter.position = new Rect(210, 186, 200, 176);
+			miniMapPresenter.position = new Rect(0, 372, 200, 176);
 			AddElement(miniMapPresenter);
 		}
 

@@ -29,3 +29,199 @@
 	border-color: #f0f0f0;
 	border-width:1;
 }
+
+.node * {
+	font:path("Assets/Resources/Roboto/Roboto-Regular.ttf");
+	font-size:12;
+}
+
+.node.horizontal {
+	flex-direction: row;
+	align-items: stretch;
+	border-width: 2;
+	border-radius: 5;
+}
+
+.node.horizontal > #pane {
+	flex:1;
+	flex-direction: row;
+
+	align-items: stretch;
+	border-left: 4;
+	border-top: 4;
+	border-right: 4;
+	border-bottom: 4;
+	border-width: 2;
+	border-radius: 5;
+}
+
+.node.vertical > #pane {
+	flex:1;
+	flex-direction: column;
+}
+
+.node.selected {
+	border-color: rgb(210, 152, 0);
+}
+
+.node.horizontal #pane > #left {
+	width: 208;
+	background-color: rgb(45, 45, 45);
+	border-radius: 2;
+	padding-left: 2;
+}
+
+.node.horizontal #pane > #right {
+	margin-left: 2;
+	padding-left: 8;
+	padding-right: 8;
+	border-radius: 2;
+	background-color: rgb(32, 33, 33);
+}
+
+.node #left > #title {
+	flex-direction: row;
+}
+
+.node #left > #title > Label {
+	text-color: #FFFFFF;
+	font-style: bold;
+	text-alignment: middle-left;
+	flex: 2;
+}
+
+.node #left > #title > Button {
+	text-color: rgb(153, 153, 153);
+	flex: 1;
+}
+
+.node.horizontal #left > #input {
+	flex:1;
+	padding-left: 6;
+}
+
+.node.vertical #left > #input {
+	flex:1;
+}
+
+.node #right > #output {
+	flex:1;
+}
+
+.node.vertical #pane > #left {
+	background-color: rgb(45, 45, 45);
+	flex:1;
+}
+
+.node.vertical #pane > #right {
+	background-color: rgb(32, 33, 33);
+	flex:1;
+}
+
+.node.horizontal NodeAnchor {
+	height: 26;
+	align-items: center;
+}
+
+.node.horizontal NodeAnchor #connector {
+	background-color: rgb(20, 21, 21);
+	border-color: rgb(20, 21, 21);
+	/* width is currently hard-coded */
+	border-width: 4;
+	margin-left: 5;
+	margin-right: 5;
+	width: 10;
+	height: 10;
+	border-radius: 15;
+}
+
+.node.vertical NodeAnchor {
+	margin-top:5;
+	margin-bottom:5;
+}
+
+.node.vertical NodeAnchor #connector {
+	background-color:#111212;
+	border-radius:24;
+	width:10;
+	height:10;
+}
+
+.node NodeAnchor #connector.anchorHighlight {
+	background-color: rgb(220, 220, 220);
+	border-color: rgb(220, 220, 220);
+}
+
+.node NodeAnchor #type {
+	text-color: rgb(153, 153, 153);
+	flex:1;
+}
+
+.node.horizontal #output NodeAnchor #type {
+	text-alignment:middle-right;
+}
+
+.node.horizontal #input NodeAnchor #type {
+	text-alignment:middle-left;
+}
+
+.node.horizontal NodeAnchor #connector {
+	margin-left: 0;
+	margin-right: 4;
+	margin-top:2;
+}
+
+.node.horizontal #output NodeAnchor #connector {
+	margin-left: 4;
+	margin-right: 0;
+}
+
+.node.horizontal {
+	flex-direction: row;
+}
+
+.node.horizontal #nodeMain{
+	flex-direction: row;
+}
+
+.node.horizontal #input NodeAnchor {
+	flex-direction: row;
+}
+
+.node.horizontal #output NodeAnchor {
+	flex-direction: row-reverse;
+}
+
+.node.vertical #input, Node.vertical #output {
+	flex: 1;
+	flex-direction: row;
+	justify-content: center;
+}
+
+.node.vertical NodeAnchor {
+	align-items: center;
+}
+
+/* there is currently an issue with text size evaluation
+   which causes layout to "shake", so this is a just to avoid the visual glitch */
+.node.vertical NodeAnchor #type {
+	text-alignment:middle-center;
+}
+
+.node.vertical #input NodeAnchor {
+	flex-direction: column;
+}
+
+.node.vertical #output NodeAnchor {
+	flex-direction: column-reverse;
+}
+
+/* Example of dynamic properties
+Read from the GridBackground decorator */
+GridBackground {
+	grid-background-color:#141515;
+	line-color:#141515;
+	thick-line-color:#141515;
+	spacing:75.0;
+	thick-lines:0;
+}
