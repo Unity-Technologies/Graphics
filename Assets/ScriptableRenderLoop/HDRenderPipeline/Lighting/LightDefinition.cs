@@ -91,10 +91,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // Include scale and bias for shadow atlas if any
         public Matrix4x4 worldToShadow;
 
-        public GPULightType lightType;
         public float bias;
         public float quality;
         public float unused;
+        public float unused2;
         public Vector4 invResolution;
     };
 
