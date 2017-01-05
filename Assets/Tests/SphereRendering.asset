@@ -240,6 +240,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXValueOp
@@ -297,6 +298,7 @@ VFXAsset:
     m_Values: 0000000000000000101b8dbe818d213d00000000ebc93940ebc9394000000000ebc93940ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb81e053effffffffffffffffffffffff0000803f8dec5a3ecdcccc3effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a99193f6666663fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00401c450000803fcc42933fffffffffffffffffffffffff0000a041000000007bf47f3f310c43ba0000003f0c0000000000484200004842cdcccc3d0000803fcdcccc3e0000803f
     m_Textures:
     - {fileID: 11700000, guid: 5796183d03aa8e147bec84edfb7cd610, type: 2}
+    m_Meshes: []
   m_Expressions:
     m_Expressions:
     - op: 0

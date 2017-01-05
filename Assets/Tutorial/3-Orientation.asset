@@ -475,6 +475,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXValueOp
@@ -577,6 +578,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXValueOp
@@ -637,6 +639,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 0
     m_HasIndirectOutput: 0
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -679,6 +682,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 0
     m_HasIndirectOutput: 0
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -763,6 +767,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -813,6 +818,7 @@ VFXAsset:
     - {fileID: 2800000, guid: d01d8874889eebc4ab0cde7f2b3309de, type: 3}
     - {fileID: 2800000, guid: 21f0dd0a84033ad42b9d6c4d2bb7f0c9, type: 3}
     - {fileID: 2800000, guid: 2cfa84f571986a34c9694ea82ba73557, type: 3}
+    m_Meshes: []
   m_Expressions:
     m_Expressions:
     - op: 0
