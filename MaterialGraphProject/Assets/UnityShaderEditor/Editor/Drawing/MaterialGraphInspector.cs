@@ -24,6 +24,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 if (value == m_PreviewNode)
                     return;
+                // ReSharper disable once DelegateSubtraction
+                // This is only an issue when subtracting a list of callbacks
+                // (which will subtract that specific subset, i.e. `{A B C} - {A B} = {C}`, but `{A B C} - {A C} -> {A B C}`)
                 ForEachChild(m_PreviewNode, (node) => node.onModified -= OnPreviewNodeModified);
                 m_PreviewNode = value;
                 m_NodePreviewPresenter.Initialize(value);
