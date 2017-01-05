@@ -243,7 +243,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public void Build()
             {
                 m_InitPreFGD = CreateEngineMaterial("Hidden/HDRenderLoop/PreIntegratedFGD");
-                m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
+                // TODO: switch to RGBA64 when it becomes available.
+                m_PreIntegratedFGD = new RenderTexture(128, 128, 1, RenderTextureFormat.ARGBHalf);
 
                 m_LtcGGXMatrix                    = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
                 m_LtcDisneyDiffuseMatrix          = LoadLUT(TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
