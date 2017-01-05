@@ -206,6 +206,9 @@ namespace UnityEditor.Experimental
                             case VFXValueType.kTransform:
                                 asset.SetMatrix(index,expr.Get<Matrix4x4>());
                                 break;
+							case VFXValueType.kMesh:
+								asset.SetMesh(index,expr.Get<Mesh>());
+								break;
                             // curve and gradient uniform dont change, only the correponding textures are updated
                         }
                     }
@@ -397,6 +400,9 @@ namespace UnityEditor.Experimental
                             case VFXValueType.kColorGradient:
                                 asset.AddFloat(m_TextureData.GetGradientUniform(value));
                                 break;
+							case VFXValueType.kMesh:
+								asset.AddMesh(value.Get<Mesh>());
+								break;
                             default:
                                 throw new Exception("Invalid value");
                         }

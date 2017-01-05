@@ -56,7 +56,7 @@ namespace UnityEditor.Experimental
             m_OrientMode = orientmode;
         }
 
-        public override int[] GetSingleIndexBuffer(ShaderMetaData data) { return new int[0]; } // tmp
+		public override OutputType GetOutputType() { return OutputType.Billboard; }
 
         private bool CanHaveMotionVectors()
         {
@@ -507,7 +507,7 @@ namespace UnityEditor.Experimental
             uniforms.Add(m_Values[SmoothnessSlot]);
         }
 
-        public override int[] GetSingleIndexBuffer(ShaderMetaData data) { return new int[0]; } // tmp
+		public override OutputType GetOutputType() { return OutputType.Billboard; }
 
         public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
         {
@@ -610,5 +610,59 @@ namespace UnityEditor.Experimental
         private VFXValue[] m_Values = new VFXValue[2];
         private bool m_HasSize;
     }
+
+	public class VFXMeshOutputShaderGeneratorModule : VFXOutputShaderGeneratorModule
+	{
+		public VFXMeshOutputShaderGeneratorModule(VFXPropertySlot[] slots)
+        {
+            m_Values[0] = slots[0].ValueRef.Reduce() as VFXValue;
+        }
+
+		public override bool UpdateAttributes(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, ref VFXBlockDesc.Flag flags)
+		{
+			if (!UpdateFlag(attribs, CommonAttrib.Position, VFXContextDesc.Type.kTypeOutput))
+			{
+				Debug.LogError("Position attribute is needed for mesh output context");
+				return false;
+			}
+
+			UpdateFlag(attribs, CommonAttrib.Color, VFXContextDesc.Type.kTypeOutput);
+			UpdateFlag(attribs, CommonAttrib.Alpha, VFXContextDesc.Type.kTypeOutput);
+			return true;
+		}
+
+		public override OutputType GetOutputType() { return OutputType.Mesh; }
+
+		public override bool WriteVertexInputStructure(ShaderSourceBuilder builder, ShaderMetaData data)
+		{
+			builder.WriteLine("struct VertexInput");
+			builder.EnterScope();
+			builder.WriteLine("float3 position : POSITION;");
+			builder.WriteLine("float3 normal : NORMAL;");
+			builder.WriteLine("float4 tangent : TANGENT;");
+			builder.WriteLine("float4 color : COLOR;");
+			builder.WriteLine("float2 uv : TEXCOORD0;");
+			builder.ExitScopeStruct();
+			
+			return true;
+		}
+
+		public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
+		{
+			builder.WriteLine("uint index = instanceID;");
+		}
+
+		public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
+		{
+			builder.Write("float3 worldPos = ");
+			builder.WriteAttrib(CommonAttrib.Position, data);
+			builder.WriteLine(" + input.position;");
+			builder.WriteLineFormat("o.pos = mul({0}, float4(worldPos,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
+		}
+
+		public const int MeshSlot = 0;
+
+		private VFXValue[] m_Values = new VFXValue[1];
+	}
 }
 

@@ -262,6 +262,23 @@ namespace UnityEditor.Experimental
         }
     }
 
+	public class VFXMeshOutputDesc : VFXContextDesc
+	{
+		public VFXMeshOutputDesc()
+			: base(Type.kTypeOutput, "Mesh Output", true)
+		{
+			m_Properties = new VFXProperty[1];
+			m_Properties[VFXMeshOutputShaderGeneratorModule.MeshSlot] = VFXProperty.Create<VFXMeshType>("mesh");
+		}
+
+		public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model)
+		{
+			VFXPropertySlot[] values = new VFXPropertySlot[1];
+			values[VFXMeshOutputShaderGeneratorModule.MeshSlot] = model.GetSlot(VFXMeshOutputShaderGeneratorModule.MeshSlot);
+			return new VFXMeshOutputShaderGeneratorModule(values);
+		}
+	}
+
     public class VFXParticleUpdate : VFXContextDesc
     {
         public VFXParticleUpdate()

@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.VFX
         kTransform,
         kCurve,
         kColorGradient,
+		kMesh,
     }
 
     public abstract class VFXExpression
@@ -141,6 +142,7 @@ namespace UnityEngine.Experimental.VFX
             if (t == typeof(Matrix4x4))         return VFXValueType.kTransform;
             if (t == typeof(AnimationCurve))    return VFXValueType.kCurve;
             if (t == typeof(Gradient))          return VFXValueType.kColorGradient;
+            if (t == typeof(Mesh))				return VFXValueType.kMesh;
 
             throw new ArgumentException("Invalid type");
         }
@@ -160,6 +162,7 @@ namespace UnityEngine.Experimental.VFX
                 case VFXValueType.kTransform:       return new VFXValueTransform();
                 case VFXValueType.kCurve:           return new VFXValueCurve();
                 case VFXValueType.kColorGradient:   return new VFXValueColorGradient();
+                case VFXValueType.kMesh:			return new VFXValueMesh();
                 default:
                     return null;
             }
@@ -279,4 +282,6 @@ namespace UnityEngine.Experimental.VFX
 
     class VFXValueCurve : VFXValue<AnimationCurve>      { public override VFXValueType ValueType { get { return VFXValueType.kCurve; }}}
     class VFXValueColorGradient : VFXValue<Gradient>    { public override VFXValueType ValueType { get { return VFXValueType.kColorGradient; }}}
+
+	class VFXValueMesh : VFXValue<Mesh> { public override VFXValueType ValueType { get { return VFXValueType.kMesh; } } }
 }

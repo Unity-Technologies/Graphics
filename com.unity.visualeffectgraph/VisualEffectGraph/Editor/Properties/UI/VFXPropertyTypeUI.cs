@@ -51,12 +51,12 @@ namespace UnityEngine.Experimental.VFX
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
-            slot.Set((Texture2D)EditorGUI.ObjectField(area, slot.Get<Texture2D>(true), typeof(Texture2D), false),true);
+            slot.Set(EditorGUI.ObjectField(area, slot.Get<Texture2D>(true), typeof(Texture2D), false),true);
         }
 
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
-            slot.Set((Texture2D)EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture2D>(false), typeof(Texture2D), false),false);
+            slot.Set(EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture2D>(false), typeof(Texture2D), false),false);
         }
     }
 
@@ -64,12 +64,12 @@ namespace UnityEngine.Experimental.VFX
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
-            slot.Set((Texture3D)EditorGUI.ObjectField(area, slot.Get<Texture3D>(true), typeof(Texture3D), false),true);
+            slot.Set(EditorGUI.ObjectField(area, slot.Get<Texture3D>(true), typeof(Texture3D), false),true);
         }
 
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
-            slot.Set((Texture3D)EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture3D>(false), typeof(Texture3D), false),false);
+            slot.Set(EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture3D>(false), typeof(Texture3D), false),false);
         }
     }
 
@@ -179,6 +179,19 @@ namespace UnityEngine.Experimental.VFX
         protected static MethodInfo s_EditorGUILayoutGradientField;
         protected static MethodInfo s_EditorGUIGradientField;
     }
+
+	public partial class VFXMeshType : VFXPrimitiveType<Mesh>
+	{
+		public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
+		{
+			slot.Set(EditorGUI.ObjectField(area, slot.Get<Mesh>(true), typeof(Mesh), false), true);
+		}
+
+		public override void OnInspectorGUI(VFXPropertySlot slot)
+		{
+			slot.Set(EditorGUILayout.ObjectField(slot.Name, slot.Get<Mesh>(false), typeof(Mesh), false), false);
+		}
+	}
 
     // Proxy types
     public partial class VFXFloat2Type : VFXProxyVectorType
@@ -370,5 +383,4 @@ namespace UnityEngine.Experimental.VFX
             return new VFXEdCylinderEditingWidget(slot,t);
         }
     }
-
 }

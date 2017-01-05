@@ -53,7 +53,7 @@ namespace UnityEditor.Experimental
         public int UpdateKernel { get { return updateKernel; } }
 
         public uint outputType; // tmp value to pass to C++
-        public bool hasKill;
+		public bool hasKill;
 
         public VFXBufferDesc[] buffersDesc;
 
@@ -601,7 +601,7 @@ namespace UnityEditor.Experimental
 
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader,outputShader);
 
-            rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
+			rtData.outputType = (uint)outputGenerator.GetOutputType();
             rtData.hasKill = shaderMetaData.hasKill;
 
             rtData.m_GeneratedTextureData = system.GeneratedTextureData;
@@ -1277,7 +1277,15 @@ namespace UnityEditor.Experimental
 
             outputGenerator.WriteFunctions(builder, data);
 
-            builder.WriteLine("ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)");
+			if (outputGenerator.WriteVertexInputStructure(builder, data))
+			{
+				builder.WriteLine("ps_input vert (VertexInput input, uint id : SV_VertexID, uint instanceID : SV_InstanceID)");
+			}
+			else
+			{
+				builder.WriteLine("ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)");
+			}
+
             builder.EnterScope();
             builder.WriteLine("ps_input o;");
 
