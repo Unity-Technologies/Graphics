@@ -74,7 +74,7 @@ namespace UnityEditor.Graphing.Drawing
         private void PropagateSelection()
         {
             var graphDataSource = GetPresenter<AbstractGraphDataSource>();
-            if (graphDataSource == null) return;
+            if (graphDataSource == null || graphDataSource.graphAsset == null) return;
 
             var selectedNodeGuids = selection.OfType<NodeDrawer>().Select(x => ((NodeDrawData) x.presenter).node.guid);
             graphDataSource.graphAsset.drawingData.selection = selectedNodeGuids;
