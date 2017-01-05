@@ -280,7 +280,7 @@ void ImportanceSampleAnisoGGX(
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sampleCount)
 {
-    float NdotV     = GetShiftedNdotV(N, V, false);
+    float NdotV     = GetShiftedNdotV(N, V, false); // This fix some rare artifact at edge.
     float4 acc      = float4(0.0, 0.0, 0.0, 0.0);
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
