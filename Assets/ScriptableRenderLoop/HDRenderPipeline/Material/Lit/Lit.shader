@@ -16,6 +16,7 @@ Shader "HDRenderPipeline/Lit"
         _SpecularOcclusionMap("SpecularOcclusion", 2D) = "white" {}
 
         _NormalMap("NormalMap", 2D) = "bump" {}
+        _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
 
         _HeightMap("HeightMap", 2D) = "black" {}
         _HeightScale("Height Scale", Float) = 0.01
