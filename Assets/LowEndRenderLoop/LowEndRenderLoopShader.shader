@@ -91,7 +91,7 @@ Shader "RenderLoop/LowEnd"
 			float _Glossiness;
 
 			float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
-			float _PSSMDistances[MAX_SHADOW_CASCADES - 1];
+			float4 _PSSMDistances;
 
 			struct LightInput
 			{
@@ -145,13 +145,9 @@ Shader "RenderLoop/LowEnd"
 
 			inline int ComputeCascadeIndex(float eyeZ)
 			{
-				for (int index = 0; index < MAX_SHADOW_CASCADES - 1; ++index)
-				{
-					if (eyeZ < _PSSMDistances[index])
-						return index;
-				}
-
-				return MAX_SHADOW_CASCADES - 2;
+				// PSSMDistance is set to infinity for non active cascades. This way the comparison for unavailable cascades will always be zero. 
+				half3 cascadeCompare = step(_PSSMDistances, half3(eyeZ, eyeZ, eyeZ));
+				return dot(cascadeCompare, cascadeCompare);
 			}
 
 			struct VertexInput
@@ -180,11 +176,11 @@ Shader "RenderLoop/LowEnd"
 				o.positionWS = mul(unity_ObjectToWorld, v.vertex).xyz;
 				o.normalWS = UnityObjectToWorldNormal(v.normal);
 				
-				half eyePosZ = mul(UNITY_MATRIX_V, float4(o.positionWS, 1.0)).z;
+				half eyePosZ = -UnityObjectToViewPos(v.vertex).z;
 				half3 diffuseAndSpecularColor = half3(1.0, 1.0, 1.0);
 				half3 viewDir = normalize(_WorldSpaceCameraPos - o.positionWS);
-				int cascadeIndex = ComputeCascadeIndex(eyePosZ);
-				o.shadowCoord = mul(_WorldToShadow[3], float4(o.positionWS, 1.0));
+				int cascadeIndex = ComputeCascadeIndex(eyePosZ); 
+				o.shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(o.positionWS, 1.0));
 				
 				for (int lightIndex = globalLightCount.x; lightIndex < globalLightCount.y; ++lightIndex)
 				{
@@ -247,7 +243,7 @@ Shader "RenderLoop/LowEnd"
 		{
 			Tags { "Lightmode" = "ShadowCaster" }
 
-			ZWrite On ZTest LEqual
+			ZWrite On ZTest LEqual Cull Front
 
 			CGPROGRAM
 
