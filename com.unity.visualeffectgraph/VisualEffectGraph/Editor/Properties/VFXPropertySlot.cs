@@ -113,8 +113,10 @@ namespace UnityEngine.Experimental.VFX
             get { return m_Parent; }
         }
 
-        public T Get<T>(bool linked = false)        { return Semantics.Get<T>(this, linked); }
-        public void Set<T>(T t,bool linked = false) { Semantics.Set(this,t,linked); }
+        public VFXPropertyTypeSemantics GetSemanticsRef(bool linked) { return linked ? CurrentValueRef.Semantics : Semantics; }
+
+        public T Get<T>(bool linked = false)        { return GetSemanticsRef(linked).Get<T>(this, linked); }
+        public void Set<T>(T t,bool linked = false) { GetSemanticsRef(linked).Set(this,t,linked); }
    
         // Direct access to owned value
         // Prefer using get<T> and Set<T> instead to correctly set value depending on the semantics
