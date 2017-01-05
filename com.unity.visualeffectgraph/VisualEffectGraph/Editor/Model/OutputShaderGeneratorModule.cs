@@ -56,7 +56,7 @@ namespace UnityEditor.Experimental
             m_OrientMode = orientmode;
         }
 
-		public override OutputType GetOutputType() { return OutputType.Billboard; }
+		public override OutputType GetOutputType()  { return OutputType.Billboard; }
 
         private bool CanHaveMotionVectors()
         {
@@ -615,7 +615,7 @@ namespace UnityEditor.Experimental
 	{
 		public VFXMeshOutputShaderGeneratorModule(VFXPropertySlot[] slots)
         {
-            m_Values[0] = slots[0].ValueRef.Reduce() as VFXValue;
+            m_MeshExpression = slots[0].ValueRef;
         }
 
 		public override bool UpdateAttributes(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, ref VFXBlockDesc.Flag flags)
@@ -631,12 +631,8 @@ namespace UnityEditor.Experimental
 			return true;
 		}
 
-		/*public override void UpdateUniforms(HashSet<VFXExpression> uniforms)
-		{
-			uniforms.Add(m_Values[0]);
-		}*/
-
 		public override OutputType GetOutputType() { return OutputType.Mesh; }
+        public override VFXExpression GetMesh() { return m_MeshExpression; }
 
 		public override bool WriteVertexInputStructure(ShaderSourceBuilder builder, ShaderMetaData data)
 		{
@@ -666,8 +662,7 @@ namespace UnityEditor.Experimental
 		}
 
 		public const int MeshSlot = 0;
-
-		private VFXValue[] m_Values = new VFXValue[1];
+        private VFXExpression m_MeshExpression = null;
 	}
 }
 

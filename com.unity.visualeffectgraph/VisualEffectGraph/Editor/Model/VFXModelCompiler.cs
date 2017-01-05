@@ -53,6 +53,8 @@ namespace UnityEditor.Experimental
         public int UpdateKernel { get { return updateKernel; } }
 
         public uint outputType; // tmp value to pass to C++
+        public VFXExpression outputMesh;
+
 		public bool hasKill;
 
         public int outputBufferSize;
@@ -613,6 +615,11 @@ namespace UnityEditor.Experimental
             // TODO Change that!
             outputGenerator.UpdateUniforms(rawExpressions, ref outputGeneratorFlags);
 
+            // TODO tmp
+            VFXExpression meshExpression = outputGenerator.GetMesh();
+            if (meshExpression != null)
+                rawExpressions.Add(meshExpression);
+
             // Associate VFXValue to generated name
             var paramToName = new Dictionary<VFXExpression, string>[(int)ShaderMetaData.Pass.kNum];
             for (int iParam = 0; iParam < paramToName.Length; ++iParam)
@@ -723,6 +730,7 @@ namespace UnityEditor.Experimental
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader,outputShader);
 
             rtData.outputType = (uint)outputGenerator.GetOutputType();
+            rtData.outputMesh = meshExpression;
             rtData.hasKill = shaderMetaData.hasKill;
 
             rtData.outputBufferSize = outputBuffer != null ? outputBuffer.GetSizeInBytes(true) : 0;
