@@ -48,6 +48,14 @@ float3 UnpackNormalOctEncode(float2 f)
     return normalize(n);
 }
 
+float3 UnpackNormalRGB(float4 packedNormal, float scale = 1.0)
+{
+    float3 normal;
+    normal.xyz = packedNormal.rgb * 2.0 - 1.0;
+    normal.xy *= scale;
+    return normalize(normal);
+}
+
 float3 UnpackNormalAG(float4 packedNormal, float scale = 1.0)
 {
     float3 normal;
@@ -58,13 +66,14 @@ float3 UnpackNormalAG(float4 packedNormal, float scale = 1.0)
 }
 
 // Unpack normal as DXT5nm (1, y, 0, x) or BC5 (x, y, 0, 1)
-float3 UnpackNormalmapRGorAG(float4 packedNormal)
+float3 UnpackNormalmapRGorAG(float4 packedNormal, float scale = 1.0)
 {
     // This do the trick
     packedNormal.x *= packedNormal.w;
 
     float3 normal;
     normal.xy = packedNormal.xy * 2.0 - 1.0;
+    normal.xy *= scale;
     normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
     return normal;
 }

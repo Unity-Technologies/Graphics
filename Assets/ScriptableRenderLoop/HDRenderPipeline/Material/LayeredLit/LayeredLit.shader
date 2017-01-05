@@ -41,6 +41,11 @@ Shader "HDRenderPipeline/LayeredLit"
         _NormalMap2("NormalMap2", 2D) = "bump" {}
         _NormalMap3("NormalMap3", 2D) = "bump" {}
 
+        _NormalScale0("_NormalScale0", Range(0.0, 2.0)) = 1
+        _NormalScale1("_NormalScale1", Range(0.0, 2.0)) = 1
+        _NormalScale2("_NormalScale2", Range(0.0, 2.0)) = 1
+        _NormalScale3("_NormalScale3", Range(0.0, 2.0)) = 1
+
         _HeightMap0("HeightMap0", 2D) = "black" {}
         _HeightMap1("HeightMap1", 2D) = "black" {}
         _HeightMap2("HeightMap2", 2D) = "black" {}

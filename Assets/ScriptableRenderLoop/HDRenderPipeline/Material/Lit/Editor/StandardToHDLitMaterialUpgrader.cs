@@ -14,6 +14,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_Glossiness", "_Smoothness");
             RenameTexture("_BumpMap", "_NormalMap");
+            RenameFloat("_BumpScale", "_NormalScale");
             RenameColor("_EmissionColor", "_EmissiveColor");
             RenameFloat("_DetailNormalMapScale", "_DetailNormalScale");
 
@@ -21,9 +22,6 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             // mapping the detail normal map, if any, to the detail map, should do the right thing if
             // there is no detail albedo.
             RenameTexture("_DetailNormalMap", "_DetailMap");
-
-            //@Seb: Bumpmap scale doesn't exist in new shader
-            //_BumpScale("Scale", Float) = 1.0
 
             // Metallic uses [Gamma] attribute in standard shader but not in Lit. 
             // @Seb: Should we convert?

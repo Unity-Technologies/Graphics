@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             }
         }
 
-        [UnityEditor.MenuItem("HDRenderLoop/Synchronize all Layered materials")]
+        [UnityEditor.MenuItem("HDRenderPipeline/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
             Object[] materials = Resources.FindObjectsOfTypeAll<Material>();
