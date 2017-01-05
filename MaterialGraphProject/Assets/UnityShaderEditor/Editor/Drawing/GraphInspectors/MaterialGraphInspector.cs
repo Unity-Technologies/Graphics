@@ -7,7 +7,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         private UnityEngine.MaterialGraph.MaterialGraph materialGraph
         {
-            get { return m_GraphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph; }
+            get { return graphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph; }
         }
 
         public override void OnEnable()
