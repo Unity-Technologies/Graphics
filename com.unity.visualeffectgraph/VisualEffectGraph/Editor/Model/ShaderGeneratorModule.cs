@@ -49,7 +49,6 @@ namespace UnityEditor.Experimental
         public virtual void WriteAdditionalPixelOutput(ShaderSourceBuilder builder, ShaderMetaData data) { } // TMP
         public virtual void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data) { } // TMP
 		public virtual OutputType GetOutputType() { return OutputType.Point; }
-        public virtual int GetOutputType() { return -1; }
         public virtual bool CanUseDeferred() { return false; }
     }
 }

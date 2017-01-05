@@ -407,7 +407,7 @@ namespace UnityEditor.Experimental
 
             //--------------------------------------------------------------------------
             // OUTPUT BUFFER GENERATION
-            bool useOutputBuffer = updateHasKill && system.BlendingMode != BlendMode.kAlpha; // Let's not use indirect output with alpha blend till we have sorting
+            bool useOutputBuffer = outputGenerator.GetOutputType() != VFXOutputShaderGeneratorModule.OutputType.Mesh && updateHasKill && system.BlendingMode != BlendMode.kAlpha; // Let's not use indirect output with alpha blend till we have sorting
             var outputAttribs = new List<VFXAttribute>();
             AttributeBuffer outputBuffer = useOutputBuffer ? new AttributeBuffer(-1,VFXAttribute.Usage.kUpdateW | VFXAttribute.Usage.kOutputR) : null;
             if (updateHasKill)
@@ -722,7 +722,7 @@ namespace UnityEditor.Experimental
 
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader,outputShader);
 
-            rtData.outputType = (uint)outputGenerator.GetOutputType(); // This is temp
+            rtData.outputType = (uint)outputGenerator.GetOutputType();
             rtData.hasKill = shaderMetaData.hasKill;
 
             rtData.outputBufferSize = outputBuffer != null ? outputBuffer.GetSizeInBytes(true) : 0;
@@ -1345,7 +1345,7 @@ namespace UnityEditor.Experimental
 
             builder.WriteCBuffer("outputUniforms", data.outputUniforms, data, ShaderMetaData.Pass.kOutput);
 
-            bool quadPatches = outputGenerator.GetOutputType() == 1 && system.MaxNb > 16384;
+            bool quadPatches = outputGenerator.GetOutputType() == VFXOutputShaderGeneratorModule.OutputType.Billboard && system.MaxNb > 16384;
             // Data used not to fetch out of bounds elements when using indirect draw with quad patches
             if (quadPatches && data.UseOutputData())
             {
