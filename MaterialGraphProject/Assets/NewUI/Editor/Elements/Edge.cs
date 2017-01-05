@@ -142,6 +142,11 @@ namespace RMGUI.GraphView
 			DrawEdge(painter);
 		}
 
+	    private NodeAnchorPresenter m_OutputPresenter;
+	    private NodeAnchorPresenter m_InputPresenter;
+	    private GraphElement m_LeftAnchor;
+	    private GraphElement m_RightAnchor;
+
 		protected void GetFromToPoints(ref Vector2 from, ref Vector2 to)
 		{
 			var edgePresenter = GetPresenter<EdgePresenter>();
@@ -153,10 +158,14 @@ namespace RMGUI.GraphView
 
 			if (outputPresenter != null)
 			{
-				GraphElement leftAnchor = parent.allElements.OfType<NodeAnchor>().First(e => e.GetPresenter<NodeAnchorPresenter>() == outputPresenter);
-				if (leftAnchor != null)
+			    if (outputPresenter != m_OutputPresenter)
+			    {
+			        m_LeftAnchor = parent.allElements.OfType<NodeAnchor>().First(e => e.GetPresenter<NodeAnchorPresenter>() == outputPresenter);
+			        m_OutputPresenter = outputPresenter;
+			    }
+				if (m_LeftAnchor != null)
 				{
-					from = leftAnchor.GetGlobalCenter();
+					from = m_LeftAnchor.GetGlobalCenter();
 					from = globalTransform.inverse.MultiplyPoint3x4(from);
 				}
 			}
@@ -167,10 +176,14 @@ namespace RMGUI.GraphView
 
 			if (inputPresenter != null)
 			{
-				GraphElement rightAnchor = parent.allElements.OfType<NodeAnchor>().First(e => e.GetPresenter<NodeAnchorPresenter>() == inputPresenter);
-				if (rightAnchor != null)
+			    if (inputPresenter != m_InputPresenter)
+			    {
+			        m_RightAnchor = parent.allElements.OfType<NodeAnchor>().First(e => e.GetPresenter<NodeAnchorPresenter>() == inputPresenter);
+			        m_InputPresenter = inputPresenter;
+			    }
+				if (m_RightAnchor != null)
 				{
-					to = rightAnchor.GetGlobalCenter();
+					to = m_RightAnchor.GetGlobalCenter();
 					to = globalTransform.inverse.MultiplyPoint3x4(to);
 				}
 			}
@@ -201,7 +214,7 @@ namespace RMGUI.GraphView
 			Vector3[] points, tangents;
 			GetTangents(orientation, from, to, out points, out tangents);
 			Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 2f);
-
+		    
 			// little widget on the middle of the edge
 			// I'll leave this in here for later, might come in handy, but for now it doesn't do anything
 //			Vector3[] allPoints = Handles.MakeBezierPoints(points[0], points[1], tangents[0], tangents[1], 20);
