@@ -34,6 +34,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             public readonly GUIContent emissiveText = new GUIContent("Emissive");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color if enabled)");
             public readonly GUIContent layerMapVertexColorText = new GUIContent("Use Vertex Color", "Layer mask (multiplied by layer mask if enabled)");
+            public readonly GUIContent vertexColorHeightMultiplierText = new GUIContent("Vertex Height Scale", "Scale applied to the vertex color height.");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
@@ -75,13 +76,15 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
 
         const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
-        MaterialProperty[] useHeightBasedBlend = new MaterialProperty[kMaxLayerCount-1];
+        MaterialProperty useHeightBasedBlend = null;
         const string kHeightOffset = "_HeightOffset";
         MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount-1];
         const string kHeightFactor = "_HeightFactor";
         MaterialProperty[] heightFactor = new MaterialProperty[kMaxLayerCount-1];
         const string kBlendSize = "_BlendSize";
         MaterialProperty[] blendSize = new MaterialProperty[kMaxLayerCount-1];
+        const string kVertexColorHeightFactor = "_VertexColorHeightFactor";
+        MaterialProperty vertexColorHeightFactor = null;
 
         MaterialProperty layerEmissiveColor = null;
         MaterialProperty layerEmissiveColorMap = null;
@@ -93,7 +96,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
             layerMaskMap = FindProperty(kLayerMaskMap, props);
             layerMaskVertexColor = FindProperty(kLayerMaskVertexColor, props);
+            vertexColorHeightFactor = FindProperty(kVertexColorHeightFactor, props);
             layerCount = FindProperty(kLayerCount, props);
+            useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
+            
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
                 layerTexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, i), props);
@@ -105,7 +111,6 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
                 if(i != 0)
                 {
-                    useHeightBasedBlend[i-1] = FindProperty(string.Format("{0}{1}", kUseHeightBasedBlend, i), props);
                     heightOffset[i-1] = FindProperty(string.Format("{0}{1}", kHeightOffset, i), props);
                     heightFactor[i-1] = FindProperty(string.Format("{0}{1}", kHeightFactor, i), props);
                     blendSize[i-1] = FindProperty(string.Format("{0}{1}", kBlendSize, i), props);
@@ -432,17 +437,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
             if(layerIndex > 0)
             {
-                int heightParamIndex = layerIndex - 1;
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = useHeightBasedBlend[heightParamIndex].hasMixedValue;
-                bool enabled = EditorGUILayout.Toggle(styles.useHeightBasedBlendText, useHeightBasedBlend[heightParamIndex].floatValue > 0.0f);
-                if(EditorGUI.EndChangeCheck())
+                if (!useHeightBasedBlend.hasMixedValue && useHeightBasedBlend.floatValue != 0.0f)
                 {
-                    useHeightBasedBlend[heightParamIndex].floatValue = enabled ? 1.0f : 0.0f;
-                }
+                    int heightParamIndex = layerIndex - 1;
 
-                if(enabled)
-                {
                     m_MaterialEditor.ShaderProperty(heightOffset[heightParamIndex], styles.heightOffsetText);
                     m_MaterialEditor.ShaderProperty(heightFactor[heightParamIndex], styles.heightFactorText);
                     m_MaterialEditor.ShaderProperty(blendSize[heightParamIndex], styles.blendSizeText);
@@ -476,8 +474,24 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 layerChanged = true;
             }
 
-            m_MaterialEditor.ShaderProperty(layerMaskVertexColor, styles.layerMapVertexColorText);
             m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
+            bool enabled = EditorGUILayout.Toggle(styles.useHeightBasedBlendText, useHeightBasedBlend.floatValue > 0.0f);
+            if (EditorGUI.EndChangeCheck())
+            {
+                useHeightBasedBlend.floatValue = enabled ? 1.0f : 0.0f;
+            }
+            if (enabled)
+            {
+                m_MaterialEditor.ShaderProperty(vertexColorHeightFactor, styles.vertexColorHeightMultiplierText);
+            }
+            else
+            {
+                m_MaterialEditor.ShaderProperty(layerMaskVertexColor, styles.layerMapVertexColorText);
+            }
+
 
             EditorGUILayout.Space();
 
@@ -530,7 +544,17 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             }
 
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-            SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
+            bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
+            if(useHeightBasedBlend)
+            {
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", false);
+                SetKeyword(material, "_HEIGHT_BASED_BLEND", true);
+            }
+            else
+            {
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
+                SetKeyword(material, "_HEIGHT_BASED_BLEND", false);
+            }
 
             // We have to check for each layer if the UV2 or UV3 is needed.
             bool UV2orUV3needed = false;

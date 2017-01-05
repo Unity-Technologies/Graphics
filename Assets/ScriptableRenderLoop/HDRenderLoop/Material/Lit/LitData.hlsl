@@ -284,9 +284,9 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
     return result;
 }
 
-float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, float layerHeight, float heightOffset, float heightFactor, float edgeBlendStrength)
+float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, float layerHeight, float heightOffset, float heightFactor, float edgeBlendStrength, float vertexColor)
 {
-    float finalLayerHeight = layerHeight * heightFactor + heightOffset;
+    float finalLayerHeight = heightFactor * layerHeight + heightOffset + _VertexColorHeightFactor * (vertexColor * 2.0 - 1.0);
 
     edgeBlendStrength = max(0.001, edgeBlendStrength);
 
@@ -365,23 +365,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Mask Values : Layer 1, 2, 3 are r, g, b
     float3 maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
+
 #if defined(_LAYER_MASK_VERTEX_COLOR)
     maskValues *= input.vertexColor.rgb;
 #endif
 
+#if defined(_HEIGHT_BASED_BLEND)
     float baseLayerHeight = height0;
-    if (_UseHeightBasedBlend1 > 0.0f)
-    {
-        baseLayerHeight = ApplyHeightBasedBlend(maskValues.r, baseLayerHeight, height1, _HeightOffset1, _HeightFactor1, _BlendSize1);
-    }
-    if (_UseHeightBasedBlend2 > 0.0f)
-    {
-        baseLayerHeight = ApplyHeightBasedBlend(maskValues.g, baseLayerHeight, height2, _HeightOffset2 + _HeightOffset1, _HeightFactor2, _BlendSize2);
-    }
-    if (_UseHeightBasedBlend3 > 0.0f)
-    {
-        ApplyHeightBasedBlend(maskValues.b, baseLayerHeight, height3, _HeightOffset3 + _HeightOffset2 + _HeightOffset1, _HeightFactor3, _BlendSize3);
-    }
+    baseLayerHeight = ApplyHeightBasedBlend(maskValues.r, baseLayerHeight, height1, _HeightOffset1, _HeightFactor1, _BlendSize1, input.vertexColor.r);
+    baseLayerHeight = ApplyHeightBasedBlend(maskValues.g, baseLayerHeight, height2, _HeightOffset2 + _HeightOffset1, _HeightFactor2, _BlendSize2, input.vertexColor.g);
+    ApplyHeightBasedBlend(maskValues.b, baseLayerHeight, height3, _HeightOffset3 + _HeightOffset2 + _HeightOffset1, _HeightFactor3, _BlendSize3, input.vertexColor.b);
+#endif
 
     float weights[_MAX_LAYER];
     ComputeMaskWeights(maskValues, weights);
