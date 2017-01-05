@@ -631,6 +631,11 @@ namespace UnityEditor.Experimental
 			return true;
 		}
 
+		public override void UpdateUniforms(HashSet<VFXExpression> uniforms)
+		{
+			uniforms.Add(m_Values[0]);
+		}
+
 		public override OutputType GetOutputType() { return OutputType.Mesh; }
 
 		public override bool WriteVertexInputStructure(ShaderSourceBuilder builder, ShaderMetaData data)
