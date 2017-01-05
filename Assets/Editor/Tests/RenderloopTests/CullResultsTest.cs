@@ -5,7 +5,7 @@ using NUnit.Framework;
 [TestFixture]
 public class CullResultsTest
 {
-    void InspectCullResults(Camera camera, CullResults cullResults, ScriptableRenderContext renderLoop)
+    void InspectCullResults(Camera camera, CullResults cullResults, ScriptableRenderContext renderContext)
     {
         VisibleReflectionProbe[] probes = cullResults.visibleReflectionProbes;
 
@@ -31,6 +31,6 @@ public class CullResultsTest
     public void TestReflectionProbes()
     {
         UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Editor/Tests/TestScene.unity");
-        RenderLoopTestFixture.Run(InspectCullResults);
+        RenderLoopTestFixtureInstance.Run(InspectCullResults);
     }
 }
