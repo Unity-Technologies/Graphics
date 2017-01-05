@@ -239,13 +239,13 @@ public class LowEndRenderPipeline : RenderPipelineAsset
             (shadowSplitRatio.z > 0.0f) ? shadowNear + shadowSplitRatio.z * shadowFrustumDepth : Mathf.Infinity,
             Mathf.Infinity);
 
-        Matrix4x4[] shadowMatrices =
-        {
-            shadowOutput.shadowSlices[0].shadowTransform,
-            shadowOutput.shadowSlices[1].shadowTransform,
-            shadowOutput.shadowSlices[2].shadowTransform,
-            shadowOutput.shadowSlices[3].shadowTransform
-        };
+        ShadowSliceData[] shadowSlices = shadowOutput.shadowSlices;
+        int shadowSliceCount = shadowSlices.Length;
+
+        const int maxShadowCascades = 4;
+        Matrix4x4[] shadowMatrices = new Matrix4x4[maxShadowCascades];
+        for (int i = 0; i < shadowSliceCount; ++i)
+            shadowMatrices[i] = (shadowSliceCount >= i) ? shadowSlices[i].shadowTransform : Matrix4x4.identity;
 
         var setupShadow = new CommandBuffer() { name = "SetupShadowShaderConstants" };
         setupShadow.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);

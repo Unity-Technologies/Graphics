@@ -67,7 +67,6 @@ Shader "RenderLoop/LowEnd"
 			#include "UnityStandardBRDF.cginc"
 			#include "UnityStandardUtils.cginc"
 
-			#define DEBUG_CASCADES 0
 			#define MAX_SHADOW_CASCADES 4
 			#define MAX_LIGHTS 8
 
@@ -76,22 +75,22 @@ Shader "RenderLoop/LowEnd"
 			// we use world space positions instead of view space.
 			half4 globalLightColor[MAX_LIGHTS];
 			float4 globalLightPos[MAX_LIGHTS];
-			float4 globalLightSpotDir[MAX_LIGHTS];
-			float4 globalLightAtten[MAX_LIGHTS];
+			half4 globalLightSpotDir[MAX_LIGHTS];
+			half4 globalLightAtten[MAX_LIGHTS];
 			
 			int4  globalLightCount; // x: pixelLightCount, y = totalLightCount (pixel + vert)
 
 			// Global ambient/SH probe, similar to unity_SH* built-in variables.
 			float4 globalSH[7];
 
-			sampler2D _MainTex; float4 _MainTex_ST;
+			sampler2D _MainTex; half4 _MainTex_ST;
 			sampler2D _MetallicGlossMap;
 			sampler2D g_tShadowBuffer;
-			float _Metallic;
-			float _Glossiness;
+			half _Metallic;
+			half _Glossiness;
 
-			float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
-			float4 _PSSMDistances;
+			half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
+			half4 _PSSMDistances;
 
 			struct LightInput
 			{
@@ -101,7 +100,14 @@ Shader "RenderLoop/LowEnd"
 				half4 spotDir;
 			};
 
-			inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half3 specularColor, float3 normal, float3 posWorld, half3 viewDir)
+			inline int ComputeCascadeIndex(half eyeZ)
+			{
+				// PSSMDistance is set to infinity for non active cascades. This way the comparison for unavailable cascades will always be zero. 
+				half3 cascadeCompare = step(_PSSMDistances, half3(eyeZ, eyeZ, eyeZ));
+				return dot(cascadeCompare, cascadeCompare);
+			}
+
+			inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half3 specularColor, half3 normal, float3 posWorld, half3 viewDir)
 			{
 				float3 posToLight = lightInput.pos.xyz;
 				posToLight -= posWorld * lightInput.pos.w;
@@ -127,8 +133,11 @@ Shader "RenderLoop/LowEnd"
 				return diffuse + specular;
 			}
 
-			inline half3 EvaluateOneLightAndShadow(LightInput lightInput, half3 diffuseColor, half3 specularColor, float3 normal, float3 posWorld, half3 viewDir, half3 shadowCoord)
+			inline half3 EvaluateOneLightAndShadow(LightInput lightInput, half3 diffuseColor, half3 specularColor, half3 normal, float4 posWorld, half3 viewDir)
 			{
+				int cascadeIndex = ComputeCascadeIndex(posWorld.w);
+				float3 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
+
 				// TODO: Apply proper bias considering NdotL
 				half bias = 0.001;
 				half shadowDepth = tex2D(g_tShadowBuffer, shadowCoord.xy).r;
@@ -143,13 +152,6 @@ Shader "RenderLoop/LowEnd"
 				return color * shadowAttenuation;
 			}
 
-			inline int ComputeCascadeIndex(float eyeZ)
-			{
-				// PSSMDistance is set to infinity for non active cascades. This way the comparison for unavailable cascades will always be zero. 
-				half3 cascadeCompare = step(_PSSMDistances, half3(eyeZ, eyeZ, eyeZ));
-				return dot(cascadeCompare, cascadeCompare);
-			}
-
 			struct VertexInput
 			{
 				float4 vertex : POSITION;
@@ -157,14 +159,12 @@ Shader "RenderLoop/LowEnd"
 				float3 texcoord : TEXCOORD0;
 			};
 
-			// Vertex shader
 			struct v2f
 			{
 				float2 uv : TEXCOORD0;
-				float3 positionWS : TEXCOORD1;
-				float3 normalWS : TEXCOORD2;
-				float3 color : TEXCOORD3;
-				float3 shadowCoord : TEXCOORD4;
+				float4 posWSEyeZ : TEXCOORD1; // xyz: posWorld, w: eyeZ
+				half3 normalWS : TEXCOORD2;
+				half3 color : TEXCOORD3;
 				float4 hpos : SV_POSITION;
 			};
 
@@ -173,14 +173,13 @@ Shader "RenderLoop/LowEnd"
 				v2f o;
 				o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 				o.hpos = UnityObjectToClipPos(v.vertex);
-				o.positionWS = mul(unity_ObjectToWorld, v.vertex).xyz;
+				o.posWSEyeZ.xyz = mul(unity_ObjectToWorld, v.vertex).xyz;
+				o.posWSEyeZ.w = -UnityObjectToViewPos(v.vertex).z;
+
 				o.normalWS = UnityObjectToWorldNormal(v.normal);
 				
-				half eyePosZ = -UnityObjectToViewPos(v.vertex).z;
 				half3 diffuseAndSpecularColor = half3(1.0, 1.0, 1.0);
-				half3 viewDir = normalize(_WorldSpaceCameraPos - o.positionWS);
-				int cascadeIndex = ComputeCascadeIndex(eyePosZ); 
-				o.shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(o.positionWS, 1.0));
+				half3 viewDir = normalize(_WorldSpaceCameraPos - o.posWSEyeZ);
 				
 				for (int lightIndex = globalLightCount.x; lightIndex < globalLightCount.y; ++lightIndex)
 				{
@@ -189,20 +188,17 @@ Shader "RenderLoop/LowEnd"
 					lightInput.color = globalLightColor[lightIndex];
 					lightInput.atten = globalLightAtten[lightIndex];
 					lightInput.spotDir = globalLightSpotDir[lightIndex];
-					o.color += EvaluateOneLight(lightInput, diffuseAndSpecularColor, diffuseAndSpecularColor, o.normalWS, o.positionWS, viewDir);
+					o.color += EvaluateOneLight(lightInput, diffuseAndSpecularColor, diffuseAndSpecularColor, o.normalWS, o.posWSEyeZ.xyz, viewDir);
 				}
 
-#if DEBUG_CASCADES
-				half4 cascadeColors[MAX_SHADOW_CASCADES] = { half4(0.5, 0, 0, 1) , half4(0, 0.5, 0, 1) , half4(0, 0.0, 0.5, 1) , half4(0.5, 0, 0.5, 1) };
-				o.color = cascadeColors[cascadeIndex];
-#endif
 				return o;
 			}
 
 			half4 frag(v2f i) : SV_Target
 			{
 				i.normalWS = normalize(i.normalWS);
-				half3 viewDir = normalize(_WorldSpaceCameraPos - i.positionWS);
+				float3 posWorld = i.posWSEyeZ.xyz;
+				half3 viewDir = normalize(_WorldSpaceCameraPos - posWorld);
 
 				half4 diffuseAlbedo = tex2D(_MainTex, i.uv);
 				half2 metalSmooth;
@@ -219,7 +215,6 @@ Shader "RenderLoop/LowEnd"
 
 				half3 color = i.color * diffuseAlbedo.rgb;
 
-#if !DEBUG_CASCADES
 				for (int lightIndex = 0; lightIndex < globalLightCount.x; ++lightIndex)
 				{
 					LightInput lightInput;
@@ -229,11 +224,11 @@ Shader "RenderLoop/LowEnd"
 					lightInput.spotDir = globalLightSpotDir[lightIndex];
 
 					if (lightIndex == 0)
-						color += EvaluateOneLightAndShadow(lightInput, diffuse, specColor, i.normalWS, i.positionWS, viewDir, i.shadowCoord); 
+						color += EvaluateOneLightAndShadow(lightInput, diffuse, specColor, i.normalWS, i.posWSEyeZ, viewDir);
 					else
-						color += EvaluateOneLight(lightInput, diffuse, specColor, i.normalWS, i.positionWS, viewDir); 
+						color += EvaluateOneLight(lightInput, diffuse, specColor, i.normalWS, posWorld, viewDir);
 				}
-#endif
+
 				return half4(color, diffuseAlbedo.a);
 			}
 			ENDCG
