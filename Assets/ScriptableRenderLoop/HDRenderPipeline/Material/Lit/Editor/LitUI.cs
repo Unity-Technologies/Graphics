@@ -88,6 +88,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         protected const string kSpecularOcclusionMap = "_SpecularOcclusionMap";
         protected MaterialProperty normalMap = null;
         protected const string kNormalMap = "_NormalMap";
+        protected MaterialProperty normalScale = null;
+        protected const string kNormalScale = "_NormalScale";
         protected MaterialProperty heightMap = null;
         protected const string kHeightMap = "_HeightMap";
         protected MaterialProperty heightScale = null;
@@ -148,6 +150,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             maskMap = FindProperty(kMaskMap, props);
             specularOcclusionMap = FindProperty(kSpecularOcclusionMap, props);
             normalMap = FindProperty(kNormalMap, props);
+            normalScale = FindProperty(kNormalScale, props);           
             heightMap = FindProperty(kHeightMap, props);
             heightScale = FindProperty(kHeightScale, props);
             heightBias = FindProperty(kHeightBias, props);
@@ -206,7 +209,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             W = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
             UVDetailsMappingMask.colorValue = new Color(X, Y, Z, W);
 
-            m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText.text);
+            //m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText.text);
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);
             m_MaterialEditor.ShaderProperty(heightMapMode, Styles.heightMapModeText.text);
             m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText.text);
@@ -236,7 +239,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap);
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap, heightScale, heightBias);
 
@@ -266,8 +269,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             m_MaterialEditor.ShaderProperty(detailAlbedoScale, Styles.detailAlbedoScaleText);
             m_MaterialEditor.ShaderProperty(detailNormalScale, Styles.detailNormalScaleText);
             m_MaterialEditor.ShaderProperty(detailSmoothnessScale, Styles.detailSmoothnessScaleText);
-            m_MaterialEditor.ShaderProperty(detailHeightScale, Styles.detailHeightScaleText);
-            m_MaterialEditor.ShaderProperty(detailAOScale, Styles.detailAOScaleText);
+            //m_MaterialEditor.ShaderProperty(detailHeightScale, Styles.detailHeightScaleText);
+            //m_MaterialEditor.ShaderProperty(detailAOScale, Styles.detailAOScaleText);
             EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();

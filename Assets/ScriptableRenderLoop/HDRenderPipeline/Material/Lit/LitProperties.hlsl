@@ -15,6 +15,7 @@ SAMPLER2D(sampler_SpecularOcclusionMap);
 
 TEXTURE2D(_NormalMap);
 SAMPLER2D(sampler_NormalMap);
+float _NormalScale;
 
 TEXTURE2D(_DetailMask);
 SAMPLER2D(sampler_DetailMask);
@@ -99,6 +100,8 @@ PROP_DECL_TEX2D(_MaskMap);
 PROP_DECL_TEX2D(_SpecularOcclusionMap);
 
 PROP_DECL_TEX2D(_NormalMap);
+PROP_DECL(float, _NormalScale);
+
 PROP_DECL_TEX2D(_HeightMap);
 
 PROP_DECL_TEX2D(_DetailMask);
