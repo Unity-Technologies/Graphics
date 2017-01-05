@@ -97,14 +97,10 @@ Shader "HDRenderLoop/LayeredLit"
         _TexWorldScale2("TexWorldScale2", Float) = 1.0
         _TexWorldScale3("TexWorldScale3", Float) = 1.0
 
-        // Blend mask between layer
+        // Layer blending options
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
-        [ToggleOff]  _LayerMaskVertexColor("Use Vertex Color Mask", Float) = 0.0
-
-        // Height based blend (layer 0 does not need it)
-        _UseHeightBasedBlend1("UseHeightBasedBlend1", Float) = 0.0
-        _UseHeightBasedBlend2("UseHeightBasedBlend2", Float) = 0.0
-        _UseHeightBasedBlend3("UseHeightBasedBlend3", Float) = 0.0
+        [ToggleOff] _LayerMaskVertexColor("Use Vertex Color Mask", Float) = 0.0
+        [ToggleOff] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
 
         _HeightOffset1("_HeightOffset1", Range(-0.3, 0.3)) = 0.0
         _HeightOffset2("_HeightOffset2", Range(-0.3, 0.3)) = 0.0
@@ -117,6 +113,8 @@ Shader "HDRenderLoop/LayeredLit"
         _BlendSize1("_BlendSize1", Range(0, 0.05)) = 0.0
         _BlendSize2("_BlendSize2", Range(0, 0.05)) = 0.0
         _BlendSize3("_BlendSize3", Range(0, 0.05)) = 0.0
+
+        _VertexColorHeightFactor("_VertexColorHeightFactor", Float) = 1.0
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
@@ -215,6 +213,7 @@ Shader "HDRenderLoop/LayeredLit"
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _LAYER_MASK_VERTEX_COLOR
+    #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
@@ -308,9 +307,6 @@ Shader "HDRenderLoop/LayeredLit"
     TEXTURE2D(_LayerMaskMap);
     SAMPLER2D(sampler_LayerMaskMap);
 
-    float _UseHeightBasedBlend1;
-    float _UseHeightBasedBlend2;
-    float _UseHeightBasedBlend3;
     float _HeightOffset1;
     float _HeightOffset2;
     float _HeightOffset3;
@@ -320,6 +316,7 @@ Shader "HDRenderLoop/LayeredLit"
     float _BlendSize1;
     float _BlendSize2;
     float _BlendSize3;
+    float _VertexColorHeightFactor;
 
     float3 _EmissiveColor;
     TEXTURE2D(_EmissiveColorMap);
