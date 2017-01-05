@@ -80,10 +80,10 @@ struct DirectionalLightData
 struct ShadowData
 {
 	float4x4 worldToShadow;
-	int lightType;
 	float bias;
 	float quality;
 	float unused;
+	float unused2;
 	float4 invResolution;
 };
 
@@ -244,10 +244,6 @@ float4x4 GetWorldToShadow(ShadowData value)
 {
 	return value.worldToShadow;
 }
-int GetLightType(ShadowData value)
-{
-	return value.lightType;
-}
 float GetBias(ShadowData value)
 {
 	return value.bias;
@@ -259,6 +255,10 @@ float GetQuality(ShadowData value)
 float GetUnused(ShadowData value)
 {
 	return value.unused;
+}
+float GetUnused2(ShadowData value)
+{
+	return value.unused2;
 }
 float4 GetInvResolution(ShadowData value)
 {
