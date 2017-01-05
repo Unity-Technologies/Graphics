@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace UnityEngine.Graphing
 {
@@ -106,7 +107,12 @@ namespace UnityEngine.Graphing
             T instance;
             try
             {
-                instance = Activator.CreateInstance(type, constructorArgs) as T;
+                instance = Activator.CreateInstance(
+                    type, 
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, 
+                    null, 
+                    constructorArgs, 
+                    null) as T;
             }
             catch (Exception e)
             {

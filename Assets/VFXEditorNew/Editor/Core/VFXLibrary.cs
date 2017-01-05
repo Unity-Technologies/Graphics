@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+using Object = System.Object;
 
 namespace UnityEditor.VFX
 {
@@ -31,7 +35,46 @@ namespace UnityEditor.VFX
 
         private static void LoadContextDescs()
         {
-            m_ContextDescs = new Dictionary<string, VFXContextDesc>(); // Copy On Write
+            // Search for derived type of VFXBlockType in assemblies
+            var contextDescTypes = FindConcreteSubclasses<VFXContextDesc>();
+            var contextDescs = new Dictionary<string, VFXContextDesc>();
+            foreach (var contextDesc in contextDescTypes)
+            {
+                try
+                {
+                    VFXContextDesc instance = (VFXContextDesc)contextDesc.Assembly.CreateInstance(contextDesc.FullName);
+                    contextDescs.Add(contextDesc.FullName, instance);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("Error while loading context desc from type " + contextDesc.FullName + ": " + e.Message);
+                }
+            }
+
+            m_ContextDescs = contextDescs; // atomic set
+        }
+
+        private static IEnumerable<Type> FindConcreteSubclasses<T>()
+        {
+            List<Type> types = new List<Type>();
+            foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type[] assemblyTypes = null;
+                try
+                {
+                    assemblyTypes = domainAssembly.GetTypes();
+                }
+                catch (Exception)
+                {
+                    Debug.Log("Cannot access assembly: " + domainAssembly);
+                    assemblyTypes = null;
+                }
+                if (assemblyTypes != null)
+                    foreach (var assemblyType in assemblyTypes)
+                        if (assemblyType.IsSubclassOf(typeof(T)) && !assemblyType.IsAbstract)
+                            types.Add(assemblyType);
+            }
+            return types;
         }
 
         private static volatile Dictionary<string, VFXContextDesc> m_ContextDescs;
