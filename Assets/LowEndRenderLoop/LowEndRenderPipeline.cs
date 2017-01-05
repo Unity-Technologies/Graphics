@@ -8,8 +8,38 @@ using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-public class LowEndRenderPipeline : RenderPipeline
+
+#region RenderPipelineInstance
+public class LowEndRenderPipelineInstance : RenderPipeline
 {
+    private readonly LowEndRenderPipeline m_Owner;
+
+    public LowEndRenderPipelineInstance(LowEndRenderPipeline owner)
+    {
+        m_Owner = owner;
+        if (m_Owner != null)
+            m_Owner.Build();
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        if (m_Owner != null)
+            m_Owner.Cleanup();
+    }
+
+    public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+    {
+        base.Render(renderContext, cameras);
+        if (m_Owner != null)
+            m_Owner.Render(renderContext, cameras);
+    }
+}
+#endregion
+
+public class LowEndRenderPipeline : RenderPipelineAsset
+{
+#region AssetAndPipelineCreation
 #if UNITY_EDITOR
     [UnityEditor.MenuItem("Renderloop/Create Low End Pipeline")]
     static void CreateLowEndPipeline()
@@ -19,36 +49,21 @@ public class LowEndRenderPipeline : RenderPipeline
     }
 #endif
 
-    private class LowEndRenderPipelineDataStore : RenderingDataStore
+    protected override IRenderPipeline InternalCreatePipeline()
     {
-        public LowEndRenderPipelineDataStore(BaseRenderPipeline pipe) : base(pipe)
-        {
-            
-        }
-
-        protected override void InternalBuild()
-        {
-            base.InternalBuild();
-            LowEndRenderPipeline theOwner = owner as LowEndRenderPipeline;
-            if (theOwner != null)
-                theOwner.Build();
-        }
-
-        protected override void InternalCleanup()
-        {
-            base.InternalCleanup();
-            LowEndRenderPipeline theOwner = owner as LowEndRenderPipeline;
-            if (theOwner != null)
-                theOwner.Cleanup();
-        }
+        return new LowEndRenderPipelineInstance(this);
     }
+#endregion
 
+#region Storage
     public bool m_SupportsVertexLight = true;
 
     [SerializeField]
     ShadowSettings m_ShadowSettings = ShadowSettings.Default;
     ShadowRenderPass m_ShadowPass;
+    #endregion
 
+#region RenderPipelineAssetImplementation
     public void Build()
     {
         BuildShadowSettings();
@@ -59,20 +74,9 @@ public class LowEndRenderPipeline : RenderPipeline
     {
     }
 
-    [NonSerialized]
-    List<Camera> m_CamerasToRender = new List<Camera>();
-
-    public override IScriptableRenderDataStore ConstructDataStore()
+    public void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras)
     {
-        return new LowEndRenderPipelineDataStore(this);
-    }
-
-    public override void Render(ScriptableRenderContext context, IScriptableRenderDataStore dataStore)
-    {
-        base.Render(context, dataStore);
-        cameraProvider.GetCamerasToRender(m_CamerasToRender);
-
-        foreach (Camera camera in m_CamerasToRender)
+        foreach (Camera camera in cameras)
         {
             CullingParameters cullingParameters;
             camera.farClipPlane = 1000.0f;
@@ -107,11 +111,10 @@ public class LowEndRenderPipeline : RenderPipeline
         }
 
         context.Submit();
-
-        CleanCameras(m_CamerasToRender);
-        m_CamerasToRender.Clear();
     }
+    #endregion
 
+#region HelperMethods
     private void BuildShadowSettings()
     {
         m_ShadowSettings = ShadowSettings.Default;
@@ -179,7 +182,6 @@ public class LowEndRenderPipeline : RenderPipeline
             lightIntensity[i] = new Vector4(currLight.light.intensity, 0.0f, 0.0f, 0.0f);
 
             float rangeSq = currLight.range * currLight.range;
-            float minCutoff = 0.01f;
             float quadAtten = (currLight.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;
 
             if (currLight.lightType == LightType.Spot)
@@ -207,7 +209,7 @@ public class LowEndRenderPipeline : RenderPipeline
         SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe * RenderSettings.ambientIntensity;
         GetShaderConstantsFromNormalizedSH(ref ambientSH, shConstants);
 
-        CommandBuffer cmd = new CommandBuffer() {name = "SetupShadowShaderConstants"};
+        CommandBuffer cmd = new CommandBuffer() { name = "SetupShadowShaderConstants" };
         cmd.SetGlobalVectorArray("globalLightPos", lightPositions);
         cmd.SetGlobalVectorArray("globalLightColor", lightColors);
         cmd.SetGlobalVectorArray("globalLightAtten", lightAttenuations);
@@ -250,7 +252,7 @@ public class LowEndRenderPipeline : RenderPipeline
         setupShadow.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
         setupShadow.SetGlobalFloatArray("_PSSMDistances", PSSMDistances);
         context.ExecuteCommandBuffer(setupShadow);
-        setupShadow.Dispose(); 
+        setupShadow.Dispose();
     }
 
     private void GetShaderConstantsFromNormalizedSH(ref SphericalHarmonicsL2 ambientProbe, Vector4[] outCoefficients)
@@ -276,4 +278,5 @@ public class LowEndRenderPipeline : RenderPipeline
         outCoefficients[6].z = ambientProbe[2, 8];
         outCoefficients[6].w = 1.0f;
     }
+#endregion
 }
