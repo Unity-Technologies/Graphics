@@ -2,33 +2,33 @@
 #pragma kernel CSVFXUpdate
 
 #include "HLSLSupport.cginc"
-#include "..\VFXCommon.cginc"
+#include "../VFXCommon.cginc"
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform2_kVFXCombine3fOp;
+	float initUniform0_kVFXValueOp;
+	
+	float3 initUniform3_kVFXCombine3fOp;
+	float initUniform1_kVFXValueOp;
+	
+	float2 initUniform4_kVFXCombine2fOp;
+	float2 initUniform5_kVFXCombine2fOp;
+	
+	uint initUniform6_kVFXSystemSeedOp;
 	uint nbSpawned;
 	uint spawnIndex;
-CBUFFER_END
+	uint initUniforms_PADDING_0;
 
-CBUFFER_START(initUniforms)
-	float initUniform0;
-	float initUniform1;
-	float3 initUniform2;
-	float3 initUniform3;
-	float2 initUniform4;
-	float2 initUniform5;
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
-	float updateUniform0;
+	float updateUniform0_kVFXValueOp;
+	float updateUniform1_kVFXDeltaTimeOp;
+	uint nbMax;
+	uint updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
@@ -39,7 +39,7 @@ struct Attribute0
 struct Attribute1
 {
 	float3 position;
-	float _PADDING_;
+	uint _PADDING_0;
 };
 
 struct Attribute2
@@ -56,8 +56,21 @@ struct Attribute3
 RWStructuredBuffer<Attribute0> attribBuffer0;
 StructuredBuffer<Attribute0> attribBuffer0_RO;
 RWStructuredBuffer<Attribute1> attribBuffer1;
+StructuredBuffer<Attribute1> attribBuffer1_RO;
 RWStructuredBuffer<Attribute2> attribBuffer2;
+StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
+
+struct OutputData
+{
+	float3 position;
+	float lifetime;
+	float2 size;
+	float age;
+	float texIndex;
+};
+
+AppendStructuredBuffer<OutputData> outputBuffer;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -90,7 +103,7 @@ void VFXBlockSizeRandomRectangle( inout float2 size,float2 MinSize,float2 MaxSiz
 	size = float2(sizeX,sizeY);
 }
 
-void VFXBlockSubUVAnimateConstantRate( inout float texIndex,float Framerate)
+void VFXBlockSubUVAnimateConstantRate( inout float texIndex,float Framerate,float deltaTime)
 {
 	texIndex += Framerate * deltaTime;
 }
@@ -110,7 +123,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform6_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -118,9 +131,9 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetLifetimeRandom( attrib0.lifetime,initUniform0,initUniform1,local_seed);
-		VFXBlockSetPositionAABox( attrib1.position,initUniform2,initUniform3,local_seed);
-		VFXBlockSizeRandomRectangle( attrib2.size,initUniform4,initUniform5,local_seed);
+		VFXBlockSetLifetimeRandom( attrib0.lifetime,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockSetPositionAABox( attrib1.position,initUniform2_kVFXCombine3fOp,initUniform3_kVFXCombine3fOp,local_seed);
+		VFXBlockSizeRandomRectangle( attrib2.size,initUniform4_kVFXCombine2fOp,initUniform5_kVFXCombine2fOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -140,12 +153,14 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		bool kill = false;
 		
 		Attribute0 attrib0 = attribBuffer0_RO[index];
+		Attribute1 attrib1 = attribBuffer1_RO[index];
+		Attribute2 attrib2 = attribBuffer2_RO[index];
 		Attribute3 attrib3 = attribBuffer3[index];
 		
 		
-		VFXBlockSubUVAnimateConstantRate( attrib3.texIndex,updateUniform0);
+		VFXBlockSubUVAnimateConstantRate( attrib3.texIndex,updateUniform0_kVFXValueOp,updateUniform1_kVFXDeltaTimeOp);
 		
-		attrib3.age += deltaTime;
+		attrib3.age += updateUniform1_kVFXDeltaTimeOp;
 		if (attrib3.age >= attrib0.lifetime)
 			kill = true;
 		
@@ -157,6 +172,14 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		else
 		{
 			attribBuffer3[index] = attrib3;
+			
+			OutputData outputData = (OutputData)0;
+			outputData.position = attrib1.position;
+			outputData.lifetime = attrib0.lifetime;
+			outputData.size = attrib2.size;
+			outputData.age = attrib3.age;
+			outputData.texIndex = attrib3.texIndex;
+			outputBuffer.Append(outputData);
 		}
 	}
 }

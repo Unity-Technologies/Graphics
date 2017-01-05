@@ -11,7 +11,7 @@ Shader "Hidden/VFX_0"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -21,21 +21,24 @@ Shader "Hidden/VFX_0"
 			#include "UnityCG.cginc"
 			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
-			#include "..\VFXCommon.cginc"
+			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float3 outputUniform0;
-				float outputUniform1;
-				float2 outputUniform2;
+				float3 outputUniform0_kVFXCombine3fOp;
+				float outputUniform1_kVFXValueOp;
+				
+				float2 outputUniform2_kVFXValueOp;
+				uint2 outputUniforms_PADDING_0;
+			
 			CBUFFER_END
 			
-			Texture2D outputSampler0Texture;
-			SamplerState sampleroutputSampler0Texture;
+			Texture2D outputSampler0_kVFXValueOpTexture;
+			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
 			struct Attribute0
 			{
 				float3 position;
-				float _PADDING_;
+				uint _PADDING_0;
 			};
 			
 			struct Attribute1
@@ -54,8 +57,8 @@ Shader "Hidden/VFX_0"
 			
 			struct ps_input
 			{
-				linear noperspective centroid float4 pos : SV_POSITION;
-				nointerpolation float4 col : SV_Target0;
+				/*linear noperspective centroid*/ float4 pos : SV_POSITION;
+				nointerpolation float4 col : COLOR0;
 				float2 offsets : TEXCOORD0;
 				nointerpolation float flipbookIndex : TEXCOORD1;
 			};
@@ -75,7 +78,7 @@ Shader "Hidden/VFX_0"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
+				uint index = (id >> 2) + instanceID * 2048;
 				Attribute0 attrib0 = attribBuffer0[index];
 				Attribute1 attrib1 = attribBuffer1[index];
 				Attribute2 attrib2 = attribBuffer2[index];
@@ -83,7 +86,7 @@ Shader "Hidden/VFX_0"
 				float3 local_color = (float3)0;
 				float local_alpha = (float)0;
 				
-				VFXBlockSetColorAlphaConstant( local_color,local_alpha,outputUniform0,outputUniform1);
+				VFXBlockSetColorAlphaConstant( local_color,local_alpha,outputUniform0_kVFXCombine3fOp,outputUniform1_kVFXValueOp);
 				
 				float2 size = attrib1.size * 0.5f;
 				o.offsets.x = 2.0 * float(id & 1) - 1.0;
@@ -116,16 +119,16 @@ Shader "Hidden/VFX_0"
 				ps_output o = (ps_output)0;
 				
 				float4 color = i.col;
-				float2 dim = outputUniform2;
+				float2 dim = outputUniform2_kVFXValueOp;
 				float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU
 				float ratio = frac(i.flipbookIndex);
 				float index = i.flipbookIndex - ratio;
 				
 				float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);
-				float4 col1 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv1);
+				float4 col1 = outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,uv1);
 				
 				float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);
-				float4 col2 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv2);
+				float4 col2 = outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,uv2);
 				
 				color *= lerp(col1,col2,ratio);
 				

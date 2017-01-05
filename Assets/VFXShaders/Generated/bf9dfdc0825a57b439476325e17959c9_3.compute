@@ -1,31 +1,32 @@
 #pragma kernel CSVFXInit
 
 #include "HLSLSupport.cginc"
-#include "..\VFXCommon.cginc"
+#include "../VFXCommon.cginc"
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
-	uint nbSpawned;
-	uint spawnIndex;
-CBUFFER_END
-
 CBUFFER_START(initUniforms)
-	float3 initUniform0;
-	float3 initUniform1;
-	float3 initUniform2;
+	float3 initUniform0_kVFXCombine3fOp;
+	uint nbSpawned;
+	
+	float3 initUniform1_kVFXCombine3fOp;
+	uint spawnIndex;
+	
+	float3 initUniform2_kVFXCombine3fOp;
+	uint initUniforms_PADDING_0;
+
+CBUFFER_END
+
+CBUFFER_START(updateUniforms)
+	uint nbMax;
+	uint3 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
 {
 	float3 position;
-	float _PADDING_;
+	uint _PADDING_0;
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
@@ -55,7 +56,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		
 		
 		local_particleId = spawnIndex + id.x;
-		VFXBlockPositionAABBSequence( attrib0.position,local_particleId,initUniform0,initUniform1,initUniform2);
+		VFXBlockPositionAABBSequence( attrib0.position,local_particleId,initUniform0_kVFXCombine3fOp,initUniform1_kVFXCombine3fOp,initUniform2_kVFXCombine3fOp);
 		
 		attribBuffer0[index] = attrib0;
 	}

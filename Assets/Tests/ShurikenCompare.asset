@@ -1,0 +1,362 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!203 &20300000
+VFXAsset:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: ShurikenCompare
+  m_XmlGraph: "<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<Graph Version=\"10\">\r\n
+    \   <System ModelId=\"0\" WorldSpace=\"False\" MaxNb=\"30000\" SpawnRate=\"10\"
+    BlendingMode=\"kAlpha\" SoftParticlesFadeDistance=\"0\" OrderPriority=\"0\" RenderQueueDelta=\"0\">\r\n
+    \       <Context DescId=\"Initialize\" Position=\"-710,-210\" Collapsed=\"False\">\r\n
+    \           <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetLifetimeConstant\"
+    Hash=\"-339160254\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"0\">\r\n                    <Values>\r\n                        <kFloat>3</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockPositionCylinder\"
+    Hash=\"-293313664\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"1\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>1</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>1</kFloat>\r\n
+    \                       <kFloat>0.2</kFloat>\r\n                    </Values>\r\n
+    \                   <Collapsed>false true true true true true true true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false false
+    false false false false false false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVelocityRadialFromOrigin\"
+    Hash=\"-1561894315\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"12\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>-2.2</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
+    \               </Slot>\r\n                <Slot SlotId=\"16\">\r\n                    <Values>\r\n
+    \                       <kFloat>5</kFloat>\r\n                        <kFloat>5</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true</Collapsed>\r\n
+    \                   <WorldSpace>false false false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSizeConstantSquare\"
+    Hash=\"-339160254\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"19\">\r\n                    <Values>\r\n                        <kFloat>0.1</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Particle
+    Update\" Position=\"-710,268\" Collapsed=\"False\" />\r\n        <Context DescId=\"Billboard
+    Output\" Position=\"-710,506\" Collapsed=\"False\">\r\n            <Slot SlotId=\"20\">\r\n
+    \               <Values>\r\n                    <kTexture2D>d01d8874889eebc4ab0cde7f2b3309de</kTexture2D>\r\n
+    \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
+    \           </Slot>\r\n            <Slot SlotId=\"21\">\r\n                <Values>\r\n
+    \                   <kFloat>0</kFloat>\r\n                    <kFloat>0</kFloat>\r\n
+    \               </Values>\r\n                <Collapsed>true true true</Collapsed>\r\n
+    \               <WorldSpace>false false false</WorldSpace>\r\n            </Slot>\r\n
+    \           <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetColorGradientOverLifetime\"
+    Hash=\"871710797\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"24\">\r\n                    <Values>\r\n                        <kColorGradient>\r\n
+    \                           <ColorKey t=\"0\" v=\"1,0,0,1\" />\r\n                            <ColorKey
+    t=\"0.1940795\" v=\"1,0,0.8901961,1\" />\r\n                            <ColorKey
+    t=\"0.3466697\" v=\"0.2431373,0,1,1\" />\r\n                            <ColorKey
+    t=\"0.4814832\" v=\"0,0.8352941,1,1\" />\r\n                            <ColorKey
+    t=\"0.6444495\" v=\"0,1,0.09019608,1\" />\r\n                            <ColorKey
+    t=\"0.808896\" v=\"0.945098,1,0,1\" />\r\n                            <ColorKey
+    t=\"1\" v=\"1,0,0,1\" />\r\n                            <AlphaKey t=\"0\" v=\"1\"
+    />\r\n                            <AlphaKey t=\"1\" v=\"1\" />\r\n                        </kColorGradient>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n        </Context>\r\n    </System>\r\n    <SpawnerNode
+    ModelId=\"1\" Position=\"-708,-407\">\r\n        <SpawnerBlock Type=\"kConstantRate\"
+    Collapsed=\"False\">\r\n            <Slot SlotId=\"25\">\r\n                <Values>\r\n
+    \                   <kFloat>10000</kFloat>\r\n                </Values>\r\n                <Collapsed>true</Collapsed>\r\n
+    \               <WorldSpace>false</WorldSpace>\r\n            </Slot>\r\n        </SpawnerBlock>\r\n
+    \   </SpawnerNode>\r\n    <Connections />\r\n    <SpawnerConnections Id=\"1\">0</SpawnerConnections>\r\n</Graph>"
+  m_Systems:
+  - m_Id: 0
+    m_Capacity: 30000
+    m_SimulationShader: {fileID: 7200000, guid: f9db192c51d6b284f8fa2e392a7854bc,
+      type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 7c7c3564caada2c42ae6a5f2733899ae, type: 3}
+    m_BufferDesc:
+    - m_InitName: <noninit>
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
+      m_Flags: 0
+      m_Stride: 4
+      m_PerPoint: 0
+    - m_InitName: flags
+      m_UpdateName: flags
+      m_OutputName: flags
+      m_Flags: 512
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: deadListIn
+      m_UpdateName: deadListOut
+      m_OutputName: <noninit>
+      m_Flags: 514
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: deadListCount
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
+      m_Flags: 768
+      m_Stride: 4
+      m_PerPoint: 0
+    - m_InitName: attribBuffer0
+      m_UpdateName: attribBuffer0_RO
+      m_OutputName: attribBuffer0
+      m_Flags: 512
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: attribBuffer1
+      m_UpdateName: attribBuffer1
+      m_OutputName: attribBuffer1
+      m_Flags: 512
+      m_Stride: 16
+      m_PerPoint: 1
+    - m_InitName: attribBuffer2
+      m_UpdateName: attribBuffer2_RO
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 16
+      m_PerPoint: 1
+    - m_InitName: attribBuffer3
+      m_UpdateName: <noninit>
+      m_OutputName: attribBuffer3
+      m_Flags: 512
+      m_Stride: 8
+      m_PerPoint: 1
+    m_OutputType: 1
+    m_SpawnRate: 10
+    m_OrderPriority: 0
+    m_HasKill: 1
+    m_HasIndirectOutput: 0
+    m_InitUniforms:
+      m_Uniforms:
+      - name: initUniform0_kVFXValueOp
+        index: 19
+      - name: initUniform1_kVFXCombine3fOp
+        index: 18
+      - name: initUniform2_kVFXCombine3fOp
+        index: 17
+      - name: initUniform3_kVFXValueOp
+        index: 20
+      - name: initUniform4_kVFXValueOp
+        index: 23
+      - name: initUniform5_kVFXCombine3fOp
+        index: 22
+      - name: initUniform6_kVFXCombine2fOp
+        index: 21
+      - name: initUniform7_kVFXValueOp
+        index: 15
+      - name: initUniform8_kVFXSystemSeedOp
+        index: 13
+    m_UpdateUniforms:
+      m_Uniforms:
+      - name: updateUniform0_kVFXDeltaTimeOp
+        index: 14
+    m_OutputUniforms:
+      m_Uniforms:
+      - name: outputUniform0_kVFXValueOp
+        index: 16
+      - name: outputSampler0_kVFXValueOpTexture
+        index: 12
+    m_SpawnerIndices: 00000000
+  m_Values:
+    m_Values: 00000000000000000000803fcdcc0cc00000a0400000a040000000000000000000000000000000000000000000401c46ffffffffffffffffcdcccc3d0000003fffffffffffffffffffffffffffffffffffffffffffffffff000040400000803fffffffffffffffffffffffffffffffffffffffffcdcc4c3e
+    m_Textures:
+    - {fileID: 2800000, guid: d01d8874889eebc4ab0cde7f2b3309de, type: 3}
+  m_Expressions:
+    m_Expressions:
+    - op: 0
+      valueIndex: 0
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 1
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 2
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 3
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 4
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 5
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 6
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 7
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 8
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 9
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 10
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 11
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 0
+      data[0]: 7
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 12
+      valueIndex: 12
+      data[0]: 0
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 10
+      valueIndex: 13
+      data[0]: 0
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 14
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 15
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 16
+      data[0]: 9
+      data[1]: 2
+      data[2]: 1
+      data[3]: 0
+    - op: 2
+      valueIndex: 19
+      data[0]: 8
+      data[1]: 7
+      data[2]: 10
+      data[3]: 0
+    - op: 0
+      valueIndex: 22
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 23
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 1
+      valueIndex: 24
+      data[0]: 4
+      data[1]: 5
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 26
+      data[0]: 0
+      data[1]: 3
+      data[2]: 6
+      data[3]: 0
+    - op: 0
+      valueIndex: 29
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    m_NeedsLocalToWorld: 0
+    m_NeedsWorldToLocal: 0
+  m_Spawners:
+  - - m_Type: 0
+      m_ExpressionIndices: 0b000000
+  m_SpawnerEvents:
+  - m_Name: OnStart
+    m_StartSpawners: 00000000
+    m_StopSpawners: 
+  - m_Name: OnStop
+    m_StartSpawners: 
+    m_StopSpawners: 00000000
+  m_ExposedExpressions: []
+  m_ExposedEditorDescs: []
+  m_GradientTexture: {fileID: 28872223357249914}
+  m_CurveTexture: {fileID: 0}
+  m_Bounds:
+    m_Center: {x: 0, y: 8, z: 0}
+    m_Extent: {x: 5, y: 8, z: 5}
+--- !u!28 &28872223357249914
+Texture2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  serializedVersion: 2
+  m_Width: 128
+  m_Height: 1
+  m_CompleteImageSize: 512
+  m_TextureFormat: 4
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapMode: 1
+  m_LightmapFormat: 0
+  m_ColorSpace: 1
+  image data: 512
+  _typelessdata: ff0000ffff0009ffff0012ffff001cffff0025ffff002effff0037ffff0040ffff004affff0053ffff005cffff0065ffff006fffff0078ffff0081ffff008affff0093ffff009dffff00a6ffff00afffff00b8ffff00c1ffff00cbffff00d4ffff00ddfffb00e4fff200e5ffe800e6ffde00e8ffd400e9ffca00ebffc000ecffb600eeffac00efffa200f1ff9800f2ff8e00f3ff8400f5ff7a00f6ff7000f8ff6600f9ff5c00fbff5200fcff4800feff3e00ffff3a0cffff3719ffff3325ffff3031ffff2c3effff284affff2557ffff2163ffff1e70ffff1a7cffff1689ffff1395ffff0fa1ffff0baeffff08baffff04c7ffff01d3ffff00d7f5ff00d9eaff00dbdfff00ddd4ff00dfc9ff00e1bdff00e3b2ff00e5a7ff00e79cff00e991ff00eb85ff00ed7aff00ef6fff00f164ff00f359ff00f54dff00f742ff00f937ff00fb2cff00fd20ff02ff17ff0dff16ff19ff15ff24ff14ff30ff12ff3bff11ff47ff10ff53ff0fff5eff0eff6aff0dff75ff0cff81ff0bff8cff0aff98ff09ffa3ff07ffafff06ffbaff05ffc6ff04ffd1ff03ffddff02ffe9ff01fff1fc00fff2f200fff2e700fff3dd00fff3d200fff4c800fff5bd00fff5b300fff6a800fff69e00fff79300fff88900fff87e00fff97400fff96900fffa5f00fffa5400fffb4a00fffc3f00fffc3500fffd2a00fffd2000fffe1500fffe0b00ffff0000ff
+  m_StreamData:
+    offset: 0
+    size: 0
+    path: 

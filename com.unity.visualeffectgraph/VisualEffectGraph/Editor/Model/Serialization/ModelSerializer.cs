@@ -24,6 +24,17 @@ namespace UnityEditor.Experimental.VFX
             return new Vector2(float.Parse(components[0]), float.Parse(components[1]));
         }
 
+        public static string FromVector3(Vector3 v)
+        {
+            return v.x + "," + v.y + "," + v.z;
+        }
+
+        public static Vector3 ToVector3(string v)
+        {
+            var components = v.Split(',');
+            return new Vector3(float.Parse(components[0]), float.Parse(components[1]), float.Parse(components[2]));
+        }
+
         public static string FromColor(Color c)
         {
             return c.r + "," + c.g + "," + c.b + "," + c.a;
@@ -128,6 +139,41 @@ namespace UnityEditor.Experimental.VFX
             gradient.SetKeys(colorKeys.ToArray(), alphaKeys.ToArray());
             return gradient;
         }
+
+        public static void WriteSpline(XmlWriter writer, List<Vector3> spline)
+        {
+            writer.WriteStartElement(VFXValueType.kSpline.ToString());
+            foreach (var point in spline)
+            {
+                writer.WriteStartElement("Point");
+                writer.WriteAttributeString("x", point.x.ToString());
+                writer.WriteAttributeString("y", point.y.ToString());
+                writer.WriteAttributeString("z", point.z.ToString());
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+        }
+
+        public static List<Vector3> ReadSpline(XmlReader reader)
+        {
+            var spline = new List<Vector3>();
+
+            reader.Read();
+
+            while (reader.IsStartElement("Point"))
+            {
+                Vector3 point;
+                point.x = float.Parse(reader.GetAttribute("x"));
+                point.y = float.Parse(reader.GetAttribute("y"));
+                point.z = float.Parse(reader.GetAttribute("z"));
+                spline.Add(point);
+                reader.Read();
+            }
+
+            return spline;
+        }
+
+
     }
 
     public static class ModelSerializer

@@ -11,7 +11,7 @@ Shader "Hidden/VFX_4"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -21,39 +21,31 @@ Shader "Hidden/VFX_4"
 			#include "UnityCG.cginc"
 			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
-			#include "..\VFXCommon.cginc"
+			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float3 outputUniform0;
-				float outputUniform1;
-				float outputUniform2;
+				float3 outputUniform0_kVFXCombine3fOp;
+				float outputUniform1_kVFXValueOp;
+				
+				float outputUniform2_kVFXValueOp;
+				uint3 outputUniforms_PADDING_0;
+			
 			CBUFFER_END
 			
-			struct Attribute0
+			struct OutputData
 			{
 				float3 position;
-				float _PADDING_;
-			};
-			
-			struct Attribute1
-			{
 				float lifetime;
-			};
-			
-			struct Attribute2
-			{
 				float age;
+				uint3 _PADDING_0;
 			};
 			
-			StructuredBuffer<Attribute0> attribBuffer0;
-			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
-				linear noperspective centroid float4 pos : SV_POSITION;
-				nointerpolation float4 col : SV_Target0;
+				/*linear noperspective centroid*/ float4 pos : SV_POSITION;
+				nointerpolation float4 col : COLOR0;
 			};
 			
 			void VFXBlockSetColorConstant( inout float3 color,float3 Color)
@@ -71,28 +63,17 @@ Shader "Hidden/VFX_4"
 			{
 				ps_input o;
 				uint index = id;
-				if (flags[index] == 1)
-				{
-					Attribute0 attrib0 = attribBuffer0[index];
-					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
-					
-					float3 local_color = (float3)0;
-					float local_alpha = (float)0;
-					
-					VFXBlockSetColorConstant( local_color,outputUniform0);
-					VFXBlockSetAlphaOverLifetime( local_alpha,attrib2.age,attrib1.lifetime,outputUniform1,outputUniform2);
-					
-					float3 worldPos = attrib0.position;
-					o.pos = mul(UNITY_MATRIX_MVP, float4(worldPos,1.0f));
-					o.col = float4(local_color.xyz,local_alpha);
-				}
-				else
-				{
-					o.pos = -1.0;
-					o.col = 0;
-				}
+				OutputData outputData = outputBuffer[index];
 				
+				float3 local_color = (float3)0;
+				float local_alpha = (float)0;
+				
+				VFXBlockSetColorConstant( local_color,outputUniform0_kVFXCombine3fOp);
+				VFXBlockSetAlphaOverLifetime( local_alpha,outputData.age,outputData.lifetime,outputUniform1_kVFXValueOp,outputUniform2_kVFXValueOp);
+				
+				float3 worldPos = outputData.position;
+				o.pos = mul(UNITY_MATRIX_MVP, float4(worldPos,1.0f));
+				o.col = float4(local_color.xyz,local_alpha);
 				return o;
 			}
 			

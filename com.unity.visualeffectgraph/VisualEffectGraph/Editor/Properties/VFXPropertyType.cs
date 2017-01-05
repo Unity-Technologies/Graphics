@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.VFX
 
         public virtual bool CanLink(VFXPropertyTypeSemantics other)
         {
-            return GetType() == other.GetType() || (GetNbChildren() != 0 && ChildrenCanLink(other));
+            return ValueType == other.ValueType;
         }
 
         protected bool ChildrenCanLink(VFXPropertyTypeSemantics other)
@@ -81,8 +81,8 @@ namespace UnityEngine.Experimental.VFX
             slot.Value = VFXValue.Create(ValueType);
         }
 
-        public T Get<T>(VFXPropertySlot slot, bool linked = false)                      { return (T)InnerGet(slot, linked); }
-        public void Set<T>(VFXPropertySlot slot, T t, bool linked = false)              { InnerSet(slot, (object)t, linked); }
+        public T Get<T>(VFXPropertySlot slot, bool linked = false)                      { return (T)slot.GetSemanticsRef(linked).InnerGet(slot, linked); }
+        public void Set<T>(VFXPropertySlot slot, T t, bool linked = false)              { slot.GetSemanticsRef(linked).InnerSet(slot, (object)t, linked); }
 
         protected virtual object InnerGet(VFXPropertySlot slot,bool linked)             { throw new InvalidOperationException(); }
         protected virtual void InnerSet(VFXPropertySlot slot, object value,bool linked) { throw new InvalidOperationException(); }
@@ -215,6 +215,28 @@ namespace UnityEngine.Experimental.VFX
                     );
             slot.SetInnerValue(gradient);
             return true;
+        }
+    }
+
+    public partial class VFXSplineType : VFXPrimitiveType<List<Vector3>>
+    {
+        public static Desc Description() { return new Desc("Bezier spline", "Curve", "Curve"); }
+
+        public VFXSplineType() : base(null) { }
+
+        public override bool Default(VFXPropertySlot slot)
+        {
+            InitRandom(slot);
+            return true;
+        }
+
+        public void InitRandom(VFXPropertySlot slot)
+        {
+            var points = new List<Vector3>();
+            int nb = Random.Range(4,20);
+            for (int i = 0; i < nb; ++i )
+                points.Add(Random.insideUnitSphere * 5.0f);
+            slot.SetInnerValue(points);
         }
     }
 

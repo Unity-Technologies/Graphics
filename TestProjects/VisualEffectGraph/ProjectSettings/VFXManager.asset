@@ -1,0 +1,6 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!204 &1
+VFXManager:
+  m_ObjectHideFlags: 0
+  m_IndirectShader: {fileID: 7200000, guid: 84a17cfa13e40ae4082ef42714f0a81c, type: 3}

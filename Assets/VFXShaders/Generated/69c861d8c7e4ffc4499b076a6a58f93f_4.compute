@@ -2,35 +2,36 @@
 #pragma kernel CSVFXUpdate
 
 #include "HLSLSupport.cginc"
-#include "..\VFXCommon.cginc"
+#include "../VFXCommon.cginc"
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform0_kVFXCombine3fOp;
+	float initUniform1_kVFXValueOp;
+	
+	float2 initUniform2_kVFXCombine2fOp;
+	float initUniform3_kVFXValueOp;
+	float initUniform4_kVFXValueOp;
+	
+	float initUniform5_kVFXValueOp;
+	float initUniform6_kVFXValueOp;
+	float initUniform7_kVFXValueOp;
+	uint initUniform8_kVFXSystemSeedOp;
+	
 	uint nbSpawned;
 	uint spawnIndex;
-CBUFFER_END
+	uint2 initUniforms_PADDING_0;
 
-CBUFFER_START(initUniforms)
-	float3 initUniform0;
-	float initUniform1;
-	float2 initUniform2;
-	float initUniform3;
-	float initUniform4;
-	float initUniform5;
-	float initUniform6;
-	float initUniform7;
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
-	float3 updateUniform0;
+	float3 updateUniform0_kVFXCombine3fOp;
+	float updateUniform1_kVFXDeltaTimeOp;
+	
+	uint nbMax;
+	uint3 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
@@ -47,7 +48,7 @@ struct Attribute1
 struct Attribute2
 {
 	float3 velocity;
-	float _PADDING_;
+	uint _PADDING_0;
 };
 
 struct Attribute3
@@ -69,10 +70,22 @@ RWStructuredBuffer<Attribute0> attribBuffer0;
 RWStructuredBuffer<Attribute1> attribBuffer1;
 RWStructuredBuffer<Attribute2> attribBuffer2;
 RWStructuredBuffer<Attribute3> attribBuffer3;
+StructuredBuffer<Attribute3> attribBuffer3_RO;
 RWStructuredBuffer<Attribute4> attribBuffer4;
 StructuredBuffer<Attribute4> attribBuffer4_RO;
 RWStructuredBuffer<Attribute5> attribBuffer5;
 StructuredBuffer<Attribute5> attribBuffer5_RO;
+
+struct OutputData
+{
+	float3 position;
+	float angle;
+	float2 size;
+	float age;
+	float lifetime;
+};
+
+AppendStructuredBuffer<OutputData> outputBuffer;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -117,7 +130,7 @@ void VFXBlockAngularVelocityRandom( inout float angularVelocity,float Min,float 
 	angularVelocity = lerp(Min,Max,RAND);
 }
 
-void VFXBlockSetForceConstant( inout float3 velocity,float3 Force)
+void VFXBlockSetForceConstant( inout float3 velocity,float3 Force,float deltaTime)
 {
 	velocity += Force * deltaTime;
 }
@@ -139,7 +152,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -147,11 +160,11 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0,initUniform1,local_seed);
-		VFXBlockVelocityRadialFromOrigin( attrib0.position,attrib2.velocity,initUniform0,initUniform2,local_seed);
-		VFXBlockSizeRandomSquare( attrib3.size,initUniform3,initUniform4,local_seed);
-		VFXBlockSetLifetimeConstant( attrib4.lifetime,initUniform5);
-		VFXBlockAngularVelocityRandom( attrib5.angularVelocity,initUniform6,initUniform7,local_seed);
+		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockVelocityRadialFromOrigin( attrib0.position,attrib2.velocity,initUniform0_kVFXCombine3fOp,initUniform2_kVFXCombine2fOp,local_seed);
+		VFXBlockSizeRandomSquare( attrib3.size,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,local_seed);
+		VFXBlockSetLifetimeConstant( attrib4.lifetime,initUniform5_kVFXValueOp);
+		VFXBlockAngularVelocityRandom( attrib5.angularVelocity,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -175,17 +188,18 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute0 attrib0 = attribBuffer0[index];
 		Attribute1 attrib1 = attribBuffer1[index];
 		Attribute2 attrib2 = attribBuffer2[index];
+		Attribute3 attrib3 = attribBuffer3_RO[index];
 		Attribute4 attrib4 = attribBuffer4_RO[index];
 		Attribute5 attrib5 = attribBuffer5_RO[index];
 		
 		
-		VFXBlockSetForceConstant( attrib2.velocity,updateUniform0);
+		VFXBlockSetForceConstant( attrib2.velocity,updateUniform0_kVFXCombine3fOp,updateUniform1_kVFXDeltaTimeOp);
 		
-		attrib0.angle += attrib5.angularVelocity * deltaTime;
+		attrib0.angle += attrib5.angularVelocity * updateUniform1_kVFXDeltaTimeOp;
 		
-		attrib0.position += attrib2.velocity * deltaTime;
+		attrib0.position += attrib2.velocity * updateUniform1_kVFXDeltaTimeOp;
 		
-		attrib1.age += deltaTime;
+		attrib1.age += updateUniform1_kVFXDeltaTimeOp;
 		if (attrib1.age >= attrib4.lifetime)
 			kill = true;
 		
@@ -199,6 +213,14 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			attribBuffer0[index] = attrib0;
 			attribBuffer1[index] = attrib1;
 			attribBuffer2[index] = attrib2;
+			
+			OutputData outputData = (OutputData)0;
+			outputData.position = attrib0.position;
+			outputData.angle = attrib0.angle;
+			outputData.size = attrib3.size;
+			outputData.age = attrib1.age;
+			outputData.lifetime = attrib4.lifetime;
+			outputBuffer.Append(outputData);
 		}
 	}
 }

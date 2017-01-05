@@ -338,23 +338,17 @@ namespace UnityEditor.Experimental
 
             List<VFXValue> signals = new List<VFXValue>();
             foreach (var expr in expressionList)
-                if (expr.IsValue(false) && (expr.ValueType == VFXValueType.kColorGradient || expr.ValueType == VFXValueType.kCurve))
+                if (expr.IsValue(false) && (expr.ValueType == VFXValueType.kColorGradient || expr.ValueType == VFXValueType.kCurve || expr.ValueType == VFXValueType.kSpline))
                     signals.Add((VFXValue)expr);
 
             m_TextureData.RemoveAllValues();
             m_TextureData.AddValues(signals);
-            m_TextureData.Generate();
-
+            
             VFXAsset asset = VFXEditor.asset;
+            m_TextureData.Generate(asset);
 
-            if (m_TextureData.HasColorTexture())
-                asset.SetGradientTexture(m_TextureData.ColorTexture);
-            else
-                asset.SetGradientTexture(null);
-            if (m_TextureData.HasFloatTexture())
-                asset.SetCurveTexture(m_TextureData.FloatTexture);
-            else
-                asset.SetCurveTexture(null);
+            asset.GradientTexture = m_TextureData.ColorTexture;
+            asset.CurveTexture = m_TextureData.FloatTexture;
 
             ProgressBarHelper.IncrementStep("Generate data: Update asset expressions");
             if (asset != null)
@@ -400,9 +394,12 @@ namespace UnityEditor.Experimental
                             case VFXValueType.kColorGradient:
                                 asset.AddFloat(m_TextureData.GetGradientUniform(value));
                                 break;
-							case VFXValueType.kMesh:
-								asset.AddMesh(value.Get<Mesh>());
-								break;
+			case VFXValueType.kMesh:
+				asset.AddMesh(value.Get<Mesh>());
+				break;
+                            case VFXValueType.kSpline:
+                                asset.AddVector2(m_TextureData.GetSplineUniform(value));
+                                break;
                             default:
                                 throw new Exception("Invalid value");
                         }
@@ -411,7 +408,7 @@ namespace UnityEditor.Experimental
                     {
                         // Needs to fill the dependencies
                         VFXExpression[] parents = expr.GetParents();
-                        int nbParents = parents.Length;
+                        int nbParents = parents == null ? 0 : parents.Length;
                         int[] parentIds = new int[4];
                         for (int i = 0; i < nbParents; ++i)
                             parentIds[i] = m_Expressions[parents[i]].index;
@@ -502,30 +499,29 @@ namespace UnityEditor.Experimental
                     if (rtData == null)
                         continue;
 
-                    foreach (var uniform in rtData.uniforms)
+                    for (int iPass = 0; iPass < (int)ShaderMetaData.Pass.kNum; ++iPass)
                     {
-                        int index = m_Expressions[uniform.Key].index;
-                        string name = uniform.Value;
-                        if (uniform.Key.ValueType == VFXValueType.kTexture2D || uniform.Key.ValueType == VFXValueType.kTexture3D)
-                            name += "Texture";
-                        if (uniform.Value.StartsWith("init"))
-                            asset.AddInitUniform(system.Id, name, index);
-                        else if (uniform.Value.StartsWith("update"))
-                            asset.AddUpdateUniform(system.Id, name, index);
-                        else if (uniform.Value.StartsWith("global"))
+                        var uniforms = rtData.uniforms[iPass];
+                        foreach (var uniform in uniforms)
                         {
-                            asset.AddInitUniform(system.Id, name, index);
-                            asset.AddUpdateUniform(system.Id, name, index);
-                        }
-                    }
+                            int index = m_Expressions[uniform.Key].index;
+                            string name = uniform.Value;
+                            if (uniform.Key.ValueType == VFXValueType.kTexture2D || uniform.Key.ValueType == VFXValueType.kTexture3D)
+                                name += "Texture";
 
-                    foreach (var uniform in rtData.outputUniforms)
-                    {
-                        int index = m_Expressions[uniform.Key].index;
-                        string name = uniform.Value;
-                        if (uniform.Key.ValueType == VFXValueType.kTexture2D || uniform.Key.ValueType == VFXValueType.kTexture3D)
-                            name += "Texture";
-                        asset.AddOutputUniform(system.Id, name, index);
+                            if (iPass == (int)ShaderMetaData.Pass.kInit)
+                            {
+                                asset.AddInitUniform(system.Id, name, index);
+                            }
+                            else if (iPass == (int)ShaderMetaData.Pass.kUpdate)
+                            {
+                                asset.AddUpdateUniform(system.Id, name, index);
+                            }
+                            else if (iPass == (int)ShaderMetaData.Pass.kOutput)
+                            {
+                                asset.AddOutputUniform(system.Id, name, index);
+                            }
+                        }
                     }
                 }
             }
@@ -891,12 +887,14 @@ namespace UnityEditor.Experimental
                     m_ID,
                     MaxNb,
                     rtData.SimulationShader,
+                    //rtData.hasKill ? VFXEditor.SyncShader : null,
                     rtData.OutputShader,
                     rtData.buffersDesc,
                     rtData.outputType,
                     SpawnRate,
                     OrderPriority,
-                    rtData.hasKill
+                    rtData.hasKill,
+                    (uint)rtData.outputBufferSize
                 );
 
                 VFXEditor.ForeachComponents(c => c.vfxAsset = VFXEditor.asset);
@@ -956,7 +954,7 @@ namespace UnityEditor.Experimental
 
         public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
         {
-            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve)
+            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve || slot.ValueType == VFXValueType.kSpline)
             {
                 var system = GetOwner();
                 if (system != null)
@@ -1057,7 +1055,7 @@ namespace UnityEditor.Experimental
     {
         public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
         {
-            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve)
+            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve || slot.ValueType == VFXValueType.kSpline)
             {
                 var context = GetOwner();
                 if (context != null)

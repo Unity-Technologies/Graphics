@@ -11,7 +11,7 @@ Shader "Hidden/VFX_1"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -21,57 +21,48 @@ Shader "Hidden/VFX_1"
 			#include "UnityCG.cginc"
 			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
-			#include "..\VFXCommon.cginc"
+			#include "../VFXCommon.cginc"
 			
-			Texture2D outputSampler0Texture;
-			SamplerState sampleroutputSampler0Texture;
+			Texture2D outputSampler0_kVFXValueOpTexture;
+			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
-			struct Attribute0
+			struct OutputData
 			{
 				float3 position;
-				float _PADDING_;
+				uint _PADDING_0;
 			};
 			
-			StructuredBuffer<Attribute0> attribBuffer0;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
-				linear noperspective centroid float4 pos : SV_POSITION;
+				/*linear noperspective centroid*/ float4 pos : SV_POSITION;
 				float2 offsets : TEXCOORD0;
 			};
 			
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
-				if (flags[index] == 1)
-				{
-					Attribute0 attrib0 = attribBuffer0[index];
-					
-					
-					float2 size = float2(0.005,0.005);
-					o.offsets.x = 2.0 * float(id & 1) - 1.0;
-					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-					
-					float3 position = attrib0.position;
-					
-					float2 posOffsets = o.offsets.xy;
-					float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
-					float3 side = UNITY_MATRIX_IT_MV[0].xyz;
-					float3 up = UNITY_MATRIX_IT_MV[1].xyz;
-					
-					position += side * (posOffsets.x * size.x);
-					position += up * (posOffsets.y * size.y);
-					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-					
-					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
-				}
-				else
-				{
-					o.pos = -1.0;
-				}
+				uint index = (id >> 2) + instanceID * 2048;
+				OutputData outputData = outputBuffer[index];
 				
+				
+				float2 size = float2(0.005,0.005);
+				o.offsets.x = 2.0 * float(id & 1) - 1.0;
+				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+				
+				float3 position = outputData.position;
+				
+				float2 posOffsets = o.offsets.xy;
+				float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
+				float3 side = UNITY_MATRIX_IT_MV[0].xyz;
+				float3 up = UNITY_MATRIX_IT_MV[1].xyz;
+				
+				position += side * (posOffsets.x * size.x);
+				position += up * (posOffsets.y * size.y);
+				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
+				
+				o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
 				return o;
 			}
 			
@@ -84,8 +75,8 @@ Shader "Hidden/VFX_1"
 			{
 				ps_output o = (ps_output)0;
 				
-				float4 color = float4(1.0,1.0,1.0,0.5);
-				color *= outputSampler0Texture.Sample(sampleroutputSampler0Texture,i.offsets);
+				float4 color = float4(1.0,1.0,1.0,1.0);
+				color *= outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,i.offsets);
 				
 				o.col = color;
 				return o;

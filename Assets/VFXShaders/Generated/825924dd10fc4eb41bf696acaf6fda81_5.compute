@@ -2,32 +2,34 @@
 #pragma kernel CSVFXUpdate
 
 #include "HLSLSupport.cginc"
-#include "..\VFXCommon.cginc"
+#include "../VFXCommon.cginc"
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform0_kVFXCombine3fOp;
+	float initUniform2_kVFXValueOp;
+	
+	float3 initUniform1_kVFXCombine3fOp;
+	uint initUniform3_kVFXSystemSeedOp;
+	
 	uint nbSpawned;
 	uint spawnIndex;
+	uint2 initUniforms_PADDING_0;
+
 CBUFFER_END
 
-CBUFFER_START(initUniforms)
-	float3 initUniform0;
-	float3 initUniform1;
-	float initUniform2;
+CBUFFER_START(updateUniforms)
+	float updateUniform0_kVFXDeltaTimeOp;
+	uint nbMax;
+	uint2 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
 {
 	float3 position;
-	float _PADDING_;
+	uint _PADDING_0;
 };
 
 struct Attribute1
@@ -41,9 +43,18 @@ struct Attribute2
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
+StructuredBuffer<Attribute0> attribBuffer0_RO;
 RWStructuredBuffer<Attribute1> attribBuffer1;
 StructuredBuffer<Attribute1> attribBuffer1_RO;
 RWStructuredBuffer<Attribute2> attribBuffer2;
+
+struct OutputData
+{
+	float3 position;
+	uint _PADDING_0;
+};
+
+AppendStructuredBuffer<OutputData> outputBuffer;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -83,7 +94,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform3_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -91,8 +102,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionAABox( attrib0.position,initUniform0,initUniform1,local_seed);
-		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform2);
+		VFXBlockSetPositionAABox( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXCombine3fOp,local_seed);
+		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform2_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -110,12 +121,13 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		uint index = id.x;
 		bool kill = false;
 		
+		Attribute0 attrib0 = attribBuffer0_RO[index];
 		Attribute1 attrib1 = attribBuffer1_RO[index];
 		Attribute2 attrib2 = attribBuffer2[index];
 		
 		
 		
-		attrib2.age += deltaTime;
+		attrib2.age += updateUniform0_kVFXDeltaTimeOp;
 		if (attrib2.age >= attrib1.lifetime)
 			kill = true;
 		
@@ -127,6 +139,10 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		else
 		{
 			attribBuffer2[index] = attrib2;
+			
+			OutputData outputData = (OutputData)0;
+			outputData.position = attrib0.position;
+			outputBuffer.Append(outputData);
 		}
 	}
 }

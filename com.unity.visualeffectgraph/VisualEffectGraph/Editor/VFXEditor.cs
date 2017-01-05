@@ -12,6 +12,19 @@ using System.IO;
 
 namespace UnityEditor.Experimental
 {
+    // Initial set up of shader. Now done and serialized directly in VFXManager
+    // TODO Remove that
+    /*[InitializeOnLoad]
+    class VFXStartUp
+    {
+        static VFXStartUp()
+        {
+            string path = "Assets/VFXShaders/VFXFillIndirectArgs.compute";
+            ComputeShader indirectShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
+            VFXComponent.SetIndirectCompute(indirectShader);
+        }
+    }*/
+
     public class VFXEditor : EditorWindow
     {
         public static readonly string ShaderDir = "/VFXShaders/Generated/";

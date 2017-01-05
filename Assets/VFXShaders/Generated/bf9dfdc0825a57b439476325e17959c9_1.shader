@@ -11,7 +11,7 @@ Shader "Hidden/VFX_1"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -21,54 +21,41 @@ Shader "Hidden/VFX_1"
 			#include "UnityCG.cginc"
 			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
-			#include "..\VFXCommon.cginc"
+			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float3 outputUniform0;
-				float outputUniform1;
-				float outputUniform2;
-				float3 outputUniform3;
-				float2 outputUniform4;
+				float3 outputUniform0_kVFXTransformDirOp;
+				float outputUniform1_kVFXValueOp;
+				
+				float3 outputUniform3_kVFXCombine3fOp;
+				float outputUniform2_kVFXValueOp;
+				
+				float2 outputUniform4_kVFXValueOp;
+				uint2 outputUniforms_PADDING_0;
+			
 			CBUFFER_END
 			
-			Texture2D outputSampler0Texture;
-			SamplerState sampleroutputSampler0Texture;
+			Texture2D outputSampler0_kVFXValueOpTexture;
+			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
 			Texture2D gradientTexture;
 			SamplerState samplergradientTexture;
 			
-			struct Attribute0
-			{
-				float lifetime;
-			};
-			
-			struct Attribute1
+			struct OutputData
 			{
 				float3 position;
-				float _PADDING_;
-			};
-			
-			struct Attribute2
-			{
+				float lifetime;
 				float2 size;
-			};
-			
-			struct Attribute3
-			{
 				float age;
 				float texIndex;
 			};
 			
-			StructuredBuffer<Attribute0> attribBuffer0;
-			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
-			StructuredBuffer<Attribute3> attribBuffer3;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
-				linear noperspective centroid float4 pos : SV_POSITION;
-				nointerpolation float4 col : SV_Target0;
+				/*linear noperspective centroid*/ float4 pos : SV_POSITION;
+				nointerpolation float4 col : COLOR0;
 				float2 offsets : TEXCOORD0;
 				nointerpolation float flipbookIndex : TEXCOORD1;
 			};
@@ -89,7 +76,7 @@ Shader "Hidden/VFX_1"
 			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
 			{
 				float ratio = saturate(age / lifetime);
-	float4 rgba = sampleSignal(Gradient,ratio);
+	float4 rgba = SAMPLE(Gradient,ratio);
 	color = rgba.rgb;
 	alpha = rgba.a;
 			}
@@ -113,54 +100,42 @@ Shader "Hidden/VFX_1"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
-				if (flags[index] == 1)
-				{
-					Attribute0 attrib0 = attribBuffer0[index];
-					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
-					Attribute3 attrib3 = attribBuffer3[index];
-					
-					float3 local_front = (float3)0;
-					float3 local_side = (float3)0;
-					float3 local_up = (float3)0;
-					float3 local_color = (float3)0;
-					float local_alpha = (float)0;
-					float3 local_pivot = (float3)0;
-					
-					VFXBlockFixedAxis( local_front,local_side,local_up,attrib1.position,outputUniform0);
-					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,attrib3.age,attrib0.lifetime,outputUniform1);
-					VFXBlockSetColorScale( local_color,outputUniform2);
-					VFXBlockSetPivot( local_pivot,outputUniform3);
-					
-					float2 size = attrib2.size * 0.5f;
-					o.offsets.x = 2.0 * float(id & 1) - 1.0;
-					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-					
-					float3 position = attrib1.position;
-					
-					float2 posOffsets = o.offsets.xy - local_pivot.xy;
-					
-					float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
-					float3 front = local_front;
-					float3 side = local_side;
-					float3 up = local_up;
-					
-					position += side * (posOffsets.x * size.x);
-					position += up * (posOffsets.y * size.y);
-					position -= front * local_pivot.z;
-					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-					o.flipbookIndex = attrib3.texIndex;
-					
-					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
-					o.col = float4(local_color.xyz,local_alpha);
-				}
-				else
-				{
-					o.pos = -1.0;
-					o.col = 0;
-				}
+				uint index = (id >> 2) + instanceID * 2048;
+				OutputData outputData = outputBuffer[index];
 				
+				float3 local_front = (float3)0;
+				float3 local_side = (float3)0;
+				float3 local_up = (float3)0;
+				float3 local_color = (float3)0;
+				float local_alpha = (float)0;
+				float3 local_pivot = (float3)0;
+				
+				VFXBlockFixedAxis( local_front,local_side,local_up,outputData.position,outputUniform0_kVFXTransformDirOp);
+				VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform1_kVFXValueOp);
+				VFXBlockSetColorScale( local_color,outputUniform2_kVFXValueOp);
+				VFXBlockSetPivot( local_pivot,outputUniform3_kVFXCombine3fOp);
+				
+				float2 size = outputData.size * 0.5f;
+				o.offsets.x = 2.0 * float(id & 1) - 1.0;
+				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+				
+				float3 position = outputData.position;
+				
+				float2 posOffsets = o.offsets.xy - local_pivot.xy;
+				
+				float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
+				float3 front = local_front;
+				float3 side = local_side;
+				float3 up = local_up;
+				
+				position += side * (posOffsets.x * size.x);
+				position += up * (posOffsets.y * size.y);
+				position -= front * local_pivot.z;
+				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
+				o.flipbookIndex = outputData.texIndex;
+				
+				o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+				o.col = float4(local_color.xyz,local_alpha);
 				return o;
 			}
 			
@@ -174,16 +149,16 @@ Shader "Hidden/VFX_1"
 				ps_output o = (ps_output)0;
 				
 				float4 color = i.col;
-				float2 dim = outputUniform4;
+				float2 dim = outputUniform4_kVFXValueOp;
 				float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU
 				float ratio = frac(i.flipbookIndex);
 				float index = i.flipbookIndex - ratio;
 				
 				float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);
-				float4 col1 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv1);
+				float4 col1 = outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,uv1);
 				
 				float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);
-				float4 col2 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv2);
+				float4 col2 = outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,uv2);
 				
 				color *= lerp(col1,col2,ratio);
 				

@@ -11,7 +11,7 @@ Shader "Hidden/VFX_0"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -21,18 +21,22 @@ Shader "Hidden/VFX_0"
 			#include "UnityCG.cginc"
 			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
-			#include "..\VFXCommon.cginc"
+			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float3 outputUniform0;
-				float4 outputUniform1;
-				float outputUniform2;
-				float outputUniform3;
-				float2 outputUniform4;
+				float4 outputUniform1_kVFXValueOp;
+				
+				float3 outputUniform0_kVFXCombine3fOp;
+				float outputUniform2_kVFXValueOp;
+				
+				float2 outputUniform4_kVFXValueOp;
+				float outputUniform3_kVFXValueOp;
+				uint outputUniforms_PADDING_0;
+			
 			CBUFFER_END
 			
-			Texture2D outputSampler0Texture;
-			SamplerState sampleroutputSampler0Texture;
+			Texture2D outputSampler0_kVFXValueOpTexture;
+			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
 			Texture2D gradientTexture;
 			SamplerState samplergradientTexture;
@@ -40,37 +44,22 @@ Shader "Hidden/VFX_0"
 			Texture2D curveTexture;
 			SamplerState samplercurveTexture;
 			
-			struct Attribute0
-			{
-				float lifetime;
-			};
-			
-			struct Attribute1
-			{
-				float angle;
-			};
-			
-			struct Attribute2
+			struct OutputData
 			{
 				float3 position;
+				float lifetime;
+				float angle;
 				float age;
-			};
-			
-			struct Attribute3
-			{
 				float texIndex;
+				uint _PADDING_0;
 			};
 			
-			StructuredBuffer<Attribute0> attribBuffer0;
-			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
-			StructuredBuffer<Attribute3> attribBuffer3;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
-				linear noperspective centroid float4 pos : SV_POSITION;
-				nointerpolation float4 col : SV_Target0;
+				/*linear noperspective centroid*/ float4 pos : SV_POSITION;
+				nointerpolation float4 col : COLOR0;
 				float2 offsets : TEXCOORD0;
 				nointerpolation float flipbookIndex : TEXCOORD1;
 			};
@@ -93,6 +82,11 @@ Shader "Hidden/VFX_0"
 				return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 			}
 			
+			float3 sampleSpline(float v,float u)
+			{
+				return curveTexture.SampleLevel(samplercurveTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+			}
+			
 			void VFXBlockLookAtPosition( inout float3 front,inout float3 side,inout float3 up,float3 position,float3 Position)
 			{
 				front = normalize(Position - position);
@@ -103,14 +97,14 @@ Shader "Hidden/VFX_0"
 			void VFXBlockSizeOverLifeCurve( inout float2 size,float age,float lifetime,float4 Curve)
 			{
 				float ratio = saturate(age/lifetime);
-	float s = sampleSignal(Curve, ratio);
+	float s = SAMPLE(Curve, ratio);
 	size = float2(s,s);
 			}
 			
 			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
 			{
 				float ratio = saturate(age / lifetime);
-	float4 rgba = sampleSignal(Gradient,ratio);
+	float4 rgba = SAMPLE(Gradient,ratio);
 	color = rgba.rgb;
 	alpha = rgba.a;
 			}
@@ -129,66 +123,54 @@ Shader "Hidden/VFX_0"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
-				if (flags[index] == 1)
-				{
-					Attribute0 attrib0 = attribBuffer0[index];
-					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
-					Attribute3 attrib3 = attribBuffer3[index];
-					
-					float3 local_front = (float3)0;
-					float3 local_side = (float3)0;
-					float3 local_up = (float3)0;
-					float2 local_size = (float2)0;
-					float3 local_color = (float3)0;
-					float local_alpha = (float)0;
-					
-					VFXBlockLookAtPosition( local_front,local_side,local_up,attrib2.position,outputUniform0);
-					VFXBlockSizeOverLifeCurve( local_size,attrib2.age,attrib0.lifetime,outputUniform1);
-					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,attrib2.age,attrib0.lifetime,outputUniform2);
-					VFXBlockSetColorScale( local_color,outputUniform3);
-					
-					float2 size = local_size * 0.5f;
-					o.offsets.x = 2.0 * float(id & 1) - 1.0;
-					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-					
-					float3 position = attrib2.position;
-					
-					float2 posOffsets = o.offsets.xy;
-					float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
-					float3 front = local_front;
-					float3 side = local_side;
-					float3 up = local_up;
-					
-					float2 sincosA;
-					sincos(radians(attrib1.angle), sincosA.x, sincosA.y);
-					const float c = sincosA.y;
-					const float s = sincosA.x;
-					const float t = 1.0 - c;
-					const float x = front.x;
-					const float y = front.y;
-					const float z = front.z;
-					
-					float3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,
-										t * x * y + s * z, t * y * y + c, t * y * z - s * x,
-										t * x * z - s * y, t * y * z + s * x, t * z * z + c);
-					
-					
-					position += mul(rot,side * posOffsets.x * size.x);
-					position += mul(rot,up * posOffsets.y * size.y);
-					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-					o.flipbookIndex = attrib3.texIndex;
-					
-					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
-					o.col = float4(local_color.xyz,local_alpha);
-				}
-				else
-				{
-					o.pos = -1.0;
-					o.col = 0;
-				}
+				uint index = (id >> 2) + instanceID * 2048;
+				OutputData outputData = outputBuffer[index];
 				
+				float3 local_front = (float3)0;
+				float3 local_side = (float3)0;
+				float3 local_up = (float3)0;
+				float2 local_size = (float2)0;
+				float3 local_color = (float3)0;
+				float local_alpha = (float)0;
+				
+				VFXBlockLookAtPosition( local_front,local_side,local_up,outputData.position,outputUniform0_kVFXCombine3fOp);
+				VFXBlockSizeOverLifeCurve( local_size,outputData.age,outputData.lifetime,outputUniform1_kVFXValueOp);
+				VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform2_kVFXValueOp);
+				VFXBlockSetColorScale( local_color,outputUniform3_kVFXValueOp);
+				
+				float2 size = local_size * 0.5f;
+				o.offsets.x = 2.0 * float(id & 1) - 1.0;
+				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+				
+				float3 position = outputData.position;
+				
+				float2 posOffsets = o.offsets.xy;
+				float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
+				float3 front = local_front;
+				float3 side = local_side;
+				float3 up = local_up;
+				
+				float2 sincosA;
+				sincos(radians(outputData.angle), sincosA.x, sincosA.y);
+				const float c = sincosA.y;
+				const float s = sincosA.x;
+				const float t = 1.0 - c;
+				const float x = front.x;
+				const float y = front.y;
+				const float z = front.z;
+				
+				float3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+									t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+									t * x * z - s * y, t * y * z + s * x, t * z * z + c);
+				
+				
+				position += mul(rot,side * posOffsets.x * size.x);
+				position += mul(rot,up * posOffsets.y * size.y);
+				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
+				o.flipbookIndex = outputData.texIndex;
+				
+				o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+				o.col = float4(local_color.xyz,local_alpha);
 				return o;
 			}
 			
@@ -202,16 +184,16 @@ Shader "Hidden/VFX_0"
 				ps_output o = (ps_output)0;
 				
 				float4 color = i.col;
-				float2 dim = outputUniform4;
+				float2 dim = outputUniform4_kVFXValueOp;
 				float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU
 				float ratio = frac(i.flipbookIndex);
 				float index = i.flipbookIndex - ratio;
 				
 				float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);
-				float4 col1 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv1);
+				float4 col1 = outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,uv1);
 				
 				float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);
-				float4 col2 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv2);
+				float4 col2 = outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,uv2);
 				
 				color *= lerp(col1,col2,ratio);
 				

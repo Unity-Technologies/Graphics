@@ -1,0 +1,65 @@
+#pragma kernel CSVFXSync
+
+#include "HLSLSupport.cginc"
+#include "VFXCommon.cginc"
+
+//#if defined(SHADER_API_D3D11) || defined(SHADER_API_PSSL)
+
+RWStructuredBuffer<uint> systemData;
+
+CBUFFER_START(Uniform)
+	uint nbMax;
+	uint renderType;
+CBUFFER_END
+
+#define NB_THREADS_PER_GROUP 256
+#define NB_INDICES_PER_INSTANCE 16384
+
+[numthreads(1,1,1)]
+void CSVFXSync(uint3 id : SV_DispatchThreadID)
+{
+	uint currentNb = min(nbMax,max(systemData[VFX_DATA_NB_INIT],systemData[VFX_DATA_NB_UPDATE])); 
+	
+	systemData[0] = (currentNb * (NB_THREADS_PER_GROUP - 1)) / NB_THREADS_PER_GROUP;
+	
+	switch (renderType)
+	{
+		case 0: // points
+		{
+			systemData[VFX_DATA_RENDER_ARG_NB_INDEX] = currentNb;
+			systemData[VFX_DATA_RENDER_ARG_NB_INSTANCE] = 1;
+		}
+		break;
+		
+		case 1: // quads
+		{
+			if (currentNb > NB_INDICES_PER_INSTANCE)
+			{
+				systemData[VFX_DATA_RENDER_ARG_NB_INDEX] = NB_INDICES_PER_INSTANCE * 6;
+				systemData[VFX_DATA_RENDER_ARG_NB_INSTANCE] = (currentNb + (NB_INDICES_PER_INSTANCE - 1)) / NB_INDICES_PER_INSTANCE;
+			}
+			else
+			{
+				systemData[VFX_DATA_RENDER_ARG_NB_INDEX] = currentNb * 6;
+				systemData[VFX_DATA_RENDER_ARG_NB_INSTANCE] = 1;
+			}		
+		}
+		break;
+	}
+
+	systemData[VFX_DATA_NB_CURRENT] = currentNb;
+	systemData[VFX_DATA_NB_INIT] = currentNb;
+	systemData[VFX_DATA_NB_UPDATE] = 0;
+	systemData[VFX_DATA_NB_FREE] = max(0,asint(systemData[VFX_DATA_NB_FREE]));
+}
+
+/*#else
+
+// dummy shader
+[numthreads(1,1,1)]
+void CSVFXSync(uint3 id : SV_DispatchThreadID)
+{
+
+}
+
+#endif*/

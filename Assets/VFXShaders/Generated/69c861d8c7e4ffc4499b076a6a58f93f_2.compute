@@ -2,34 +2,36 @@
 #pragma kernel CSVFXUpdate
 
 #include "HLSLSupport.cginc"
-#include "..\VFXCommon.cginc"
+#include "../VFXCommon.cginc"
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform0_kVFXCombine3fOp;
+	float initUniform1_kVFXValueOp;
+	
+	float initUniform2_kVFXValueOp;
+	float initUniform3_kVFXValueOp;
+	float initUniform4_kVFXValueOp;
+	uint initUniform5_kVFXSystemSeedOp;
+	
 	uint nbSpawned;
 	uint spawnIndex;
+	uint2 initUniforms_PADDING_0;
+
 CBUFFER_END
 
-CBUFFER_START(initUniforms)
-	float3 initUniform0;
-	float initUniform1;
-	float initUniform2;
-	float initUniform3;
-	float initUniform4;
+CBUFFER_START(updateUniforms)
+	float updateUniform0_kVFXDeltaTimeOp;
+	uint nbMax;
+	uint2 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
 {
 	float3 position;
-	float _PADDING_;
+	uint _PADDING_0;
 };
 
 struct Attribute1
@@ -48,10 +50,23 @@ struct Attribute3
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
+StructuredBuffer<Attribute0> attribBuffer0_RO;
 RWStructuredBuffer<Attribute1> attribBuffer1;
+StructuredBuffer<Attribute1> attribBuffer1_RO;
 RWStructuredBuffer<Attribute2> attribBuffer2;
 StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
+
+struct OutputData
+{
+	float3 position;
+	float lifetime;
+	float2 size;
+	float age;
+	uint _PADDING_0;
+};
+
+AppendStructuredBuffer<OutputData> outputBuffer;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -99,7 +114,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform5_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -107,9 +122,9 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0,initUniform1,local_seed);
-		VFXBlockSizeRandomSquare( attrib1.size,initUniform2,initUniform3,local_seed);
-		VFXBlockSetLifetimeConstant( attrib2.lifetime,initUniform4);
+		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockSizeRandomSquare( attrib1.size,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,local_seed);
+		VFXBlockSetLifetimeConstant( attrib2.lifetime,initUniform4_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -128,12 +143,14 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		uint index = id.x;
 		bool kill = false;
 		
+		Attribute0 attrib0 = attribBuffer0_RO[index];
+		Attribute1 attrib1 = attribBuffer1_RO[index];
 		Attribute2 attrib2 = attribBuffer2_RO[index];
 		Attribute3 attrib3 = attribBuffer3[index];
 		
 		
 		
-		attrib3.age += deltaTime;
+		attrib3.age += updateUniform0_kVFXDeltaTimeOp;
 		if (attrib3.age >= attrib2.lifetime)
 			kill = true;
 		
@@ -145,6 +162,13 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		else
 		{
 			attribBuffer3[index] = attrib3;
+			
+			OutputData outputData = (OutputData)0;
+			outputData.position = attrib0.position;
+			outputData.lifetime = attrib2.lifetime;
+			outputData.size = attrib1.size;
+			outputData.age = attrib3.age;
+			outputBuffer.Append(outputData);
 		}
 	}
 }

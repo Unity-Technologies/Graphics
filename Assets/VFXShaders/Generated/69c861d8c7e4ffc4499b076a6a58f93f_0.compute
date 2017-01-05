@@ -1,31 +1,31 @@
 #pragma kernel CSVFXInit
 
 #include "HLSLSupport.cginc"
-#include "..\VFXCommon.cginc"
+#include "../VFXCommon.cginc"
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform0_kVFXCombine3fOp;
+	float initUniform1_kVFXValueOp;
+	
+	uint initUniform2_kVFXSystemSeedOp;
 	uint nbSpawned;
 	uint spawnIndex;
+	uint initUniforms_PADDING_0;
+
 CBUFFER_END
 
-CBUFFER_START(initUniforms)
-	float3 initUniform0;
-	float initUniform1;
+CBUFFER_START(updateUniforms)
+	uint nbMax;
+	uint3 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
 {
 	float3 position;
-	float _PADDING_;
+	uint _PADDING_0;
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
@@ -57,7 +57,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform2_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -65,7 +65,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0,initUniform1,local_seed);
+		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXValueOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 	}

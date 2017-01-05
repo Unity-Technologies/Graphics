@@ -2,34 +2,32 @@
 #pragma kernel CSVFXUpdate
 
 #include "HLSLSupport.cginc"
-#include "..\VFXCommon.cginc"
+#include "../VFXCommon.cginc"
 
 #define NB_THREADS_PER_GROUP 100
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform0_kVFXCombine3fOp;
+	float initUniform1_kVFXValueOp;
+	
 	uint nbSpawned;
 	uint spawnIndex;
-CBUFFER_END
+	uint2 initUniforms_PADDING_0;
 
-CBUFFER_START(initUniforms)
-	float3 initUniform0;
-	float initUniform1;
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
-	float updateUniform0;
+	float updateUniform0_kVFXValueOp;
+	float updateUniform1_kVFXDeltaTimeOp;
+	uint nbMax;
+	uint updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
 {
 	float3 position;
-	float _PADDING_;
+	uint _PADDING_0;
 };
 
 struct Attribute1
@@ -58,7 +56,7 @@ void VFXBlockSizeConstantSquare( inout float2 size,float Size)
 	size = float2(Size,Size);
 }
 
-void VFXBlockSubUVAnimateConstantRate( inout float texIndex,float Framerate)
+void VFXBlockSubUVAnimateConstantRate( inout float texIndex,float Framerate,float deltaTime)
 {
 	texIndex += Framerate * deltaTime;
 }
@@ -75,8 +73,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		Attribute2 attrib2 = (Attribute2)0;
 		
 		
-		VFXBlockSetPositionPoint( attrib0.position,initUniform0);
-		VFXBlockSizeConstantSquare( attrib1.size,initUniform1);
+		VFXBlockSetPositionPoint( attrib0.position,initUniform0_kVFXCombine3fOp);
+		VFXBlockSizeConstantSquare( attrib1.size,initUniform1_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -94,7 +92,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute2 attrib2 = attribBuffer2[index];
 		
 		
-		VFXBlockSubUVAnimateConstantRate( attrib2.texIndex,updateUniform0);
+		VFXBlockSubUVAnimateConstantRate( attrib2.texIndex,updateUniform0_kVFXValueOp,updateUniform1_kVFXDeltaTimeOp);
 		
 		attribBuffer2[index] = attrib2;
 	}

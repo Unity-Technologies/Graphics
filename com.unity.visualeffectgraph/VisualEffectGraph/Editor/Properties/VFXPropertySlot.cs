@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.VFX
         void OnSlotEvent(VFXPropertySlot.Event type,VFXPropertySlot slot);
     }
 
-    public struct VFXNamedValue
+    public class VFXNamedValue
     {
         public VFXNamedValue(string name, VFXExpression value)
         {
@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public VFXPropertySlot() {}
-
+        
         protected void Init<T>(VFXPropertySlot parent, VFXProperty desc) where T : VFXPropertySlot, new()
         {
             m_Desc = desc;
@@ -113,8 +113,10 @@ namespace UnityEngine.Experimental.VFX
             get { return m_Parent; }
         }
 
-        public T Get<T>(bool linked = false)        { return Semantics.Get<T>(this, linked); }
-        public void Set<T>(T t,bool linked = false) { Semantics.Set(this,t,linked); }
+        public VFXPropertyTypeSemantics GetSemanticsRef(bool linked) { return linked ? CurrentValueRef.Semantics : Semantics; }
+
+        public T Get<T>(bool linked = false)        { return GetSemanticsRef(linked).Get<T>(this, linked); }
+        public void Set<T>(T t,bool linked = false) { GetSemanticsRef(linked).Set(this,t,linked); }
    
         // Direct access to owned value
         // Prefer using get<T> and Set<T> instead to correctly set value depending on the semantics
@@ -284,9 +286,12 @@ namespace UnityEngine.Experimental.VFX
                     case VFXValueType.kColorGradient:
                         SerializationUtils.WriteGradient(writer, Value.Get<Gradient>());
                         break;
-					case VFXValueType.kMesh:
-						writer.WriteElementString(name, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Value.Get<Mesh>())));
-						break;
+		case VFXValueType.kMesh:
+			writer.WriteElementString(name, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Value.Get<Mesh>())));
+			break;
+                    case VFXValueType.kSpline:
+                        SerializationUtils.WriteSpline(writer, Value.Get<List<Vector3>>());
+                        break;
                     default:
                         Debug.LogWarning("Cannot serialize value of type " + ValueType);
                         break;
@@ -322,7 +327,7 @@ namespace UnityEngine.Experimental.VFX
                         break;
                     case VFXValueType.kUint:
                         reader.MoveToElement();
-                        Set((uint)reader.ReadElementContentAsInt());
+                        Set((uint)reader.ReadElementContentAsLong());
                         break;
                     case VFXValueType.kTexture2D:
                         reader.MoveToElement();
@@ -339,6 +344,10 @@ namespace UnityEngine.Experimental.VFX
                     case VFXValueType.kColorGradient:
                         reader.MoveToElement();
                         Set(SerializationUtils.ReadGradient(reader));
+                        break;
+                    case VFXValueType.kSpline:
+                        reader.MoveToElement();
+                        Set(SerializationUtils.ReadSpline(reader));
                         break;
 					case VFXValueType.kMesh:
 						reader.MoveToElement();
