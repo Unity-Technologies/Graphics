@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -8,16 +9,17 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    [CustomEditor(typeof(MaterialGraphAsset))]
-    public class MaterialGraphInspector : AbstractGraphInspector
+    public abstract class AbstractMaterialGraphInspector : AbstractGraphInspector
     {
         private bool m_RequiresTime;
 
-        private GUIContent m_Title = new GUIContent();
+        protected GUIContent m_Title = new GUIContent();
+        
+        private NodePreviewDrawData m_NodePreviewPresenter;
 
         private AbstractMaterialNode m_PreviewNode;
 
-        private AbstractMaterialNode previewNode
+        protected AbstractMaterialNode previewNode
         {
             get { return m_PreviewNode; }
             set
@@ -41,11 +43,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        private NodePreviewDrawData m_NodePreviewPresenter;
-
-        private UnityEngine.MaterialGraph.MaterialGraph materialGraph
+        protected override void AddTypeMappings(Action<Type, Type> map)
         {
-            get { return m_GraphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph; }
+            map(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector));
         }
 
         private void OnPreviewNodeModified(INode node, ModificationScope scope)
@@ -54,16 +54,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             Repaint();
         }
 
-        protected override void AddTypeMappings(Action<Type, Type> map)
-        {
-            map(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector));
-        }
-
         public override void OnEnable()
         {
             m_NodePreviewPresenter = CreateInstance<NodePreviewDrawData>();
             base.OnEnable();
-            previewNode = materialGraph.masterNode as AbstractMaterialNode;
+            previewNode = null;
         }
 
         public override bool HasPreviewGUI()
