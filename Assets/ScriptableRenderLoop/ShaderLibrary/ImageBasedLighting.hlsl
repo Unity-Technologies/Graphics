@@ -114,7 +114,7 @@ void ImportanceSampleCosDir(float2   u,
                         out float    NdotL)
 {
     // Cosine sampling - ref: http://www.rorydriscoll.com/2009/01/07/better-sampling/
-    float cosTheta = sqrt(saturate(1.0 - u.x));
+    float cosTheta = sqrt(1.0 - u.x);
     float sinTheta = sqrt(u.x);
     float phi      = TWO_PI * u.y;
 
