@@ -1,18 +1,57 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.RMGUI;
+using UnityEngine.RMGUI.StyleEnums;
+using UnityEngine.RMGUI.StyleSheets;
 
 namespace RMGUI.GraphView
 {
-	class Node : SimpleElement
+	class Node : GraphElement
 	{
-		readonly VisualContainer m_InputContainer;
-		readonly VisualContainer m_OutputContainer;
+		protected readonly VisualContainer m_MainContainer;
+		protected readonly VisualContainer m_LeftContainer;
+		protected readonly VisualContainer m_RightContainer;
+		protected readonly VisualContainer m_TitleContainer;
+		protected readonly VisualContainer m_InputContainer;
+		protected readonly VisualContainer m_OutputContainer;
+
+		protected readonly Label m_TitleLabel;
+		protected readonly Button m_CollapseButton;
+
+		public override void SetPosition(Rect newPos)
+		{
+			if (classList.Contains("vertical"))
+			{
+				base.SetPosition(newPos);
+			}
+			else
+			{
+				positionType = PositionType.Absolute;
+				positionLeft = newPos.x;
+				positionTop = newPos.y;
+			}
+		}
 
 		protected virtual void SetLayoutClassLists(NodePresenter nodePresenter)
 		{
 			if (classList.Contains("vertical") || classList.Contains("horizontal"))
 			{
 				return;
+			}
+
+			if (nodePresenter.orientation == Orientation.Vertical)
+			{
+				if (m_LeftContainer.children.Contains(m_TitleContainer))
+				{
+					m_LeftContainer.RemoveChild(m_TitleContainer);
+				}
+			}
+			else
+			{
+				if (!m_LeftContainer.children.Contains(m_TitleContainer))
+				{
+					m_LeftContainer.InsertChild(0, m_TitleContainer);
+				}
 			}
 
 			AddToClassList(nodePresenter.orientation == Orientation.Vertical ? "vertical" : "horizontal");
@@ -37,32 +76,63 @@ namespace RMGUI.GraphView
 				m_OutputContainer.AddChild(NodeAnchor.Create<EdgePresenter>(anchorPresenter));
 			}
 
+			m_TitleLabel.content.text = nodePresenter.title;
+
 			SetLayoutClassLists(nodePresenter);
 		}
 
 		public Node()
 		{
- 			var mainContainer = new VisualContainer()
+			m_MainContainer = new VisualContainer()
  			{
- 				name = "nodeMain", // for USS&Flexbox
+ 				name = "pane",
  				pickingMode = PickingMode.Ignore,
  			};
+			m_LeftContainer = new VisualContainer
+			{
+				name = "left",
+				pickingMode = PickingMode.Ignore,
+			};
+			m_RightContainer = new VisualContainer
+			{
+				name = "right",
+				pickingMode = PickingMode.Ignore,
+			};
+			m_TitleContainer = new VisualContainer
+			{
+				name = "title",
+				pickingMode = PickingMode.Ignore,
+			};
 			m_InputContainer = new VisualContainer
 			{
-				name = "input", // for USS&Flexbox
+				name = "input",
 				pickingMode = PickingMode.Ignore,
 			};
 			m_OutputContainer = new VisualContainer
 			{
-				name = "output", // for USS&Flexbox
+				name = "output",
 				pickingMode = PickingMode.Ignore,
+			};
+
+			m_TitleLabel = new Label(new GUIContent(""));
+			m_CollapseButton = new Button(() => {})
+			{
+				content = new GUIContent("collapse")
 			};
 
 			elementTypeColor = new Color(0.9f, 0.9f, 0.9f, 0.5f);
 
-			AddChild(mainContainer);
-			mainContainer.AddChild(m_InputContainer);
-			mainContainer.AddChild(m_OutputContainer);
+			AddChild(m_MainContainer);
+			m_MainContainer.AddChild(m_LeftContainer);
+			m_MainContainer.AddChild(m_RightContainer);
+
+			m_TitleContainer.AddChild(m_TitleLabel);
+			m_TitleContainer.AddChild(m_CollapseButton);
+
+			m_LeftContainer.AddChild(m_InputContainer);
+			m_RightContainer.AddChild(m_OutputContainer);
+
+			classList = new ClassList("node");
 		}
 	}
 }
