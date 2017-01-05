@@ -68,23 +68,30 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public override bool HasPreviewGUI()
         {
-            return m_PreviewNode != null;
+            return true;
         }
 
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
             if (Event.current.type == EventType.Repaint)
             {
-                var size = Mathf.Min(r.width, r.height);
-                var image = m_NodePreviewPresenter.Render(new Vector2(size, size));
-                GUI.DrawTexture(r, image, ScaleMode.ScaleToFit);
-                m_NodePreviewPresenter.modificationScope = ModificationScope.Node;
+                if (m_PreviewNode != null)
+                {
+                    var size = Mathf.Min(r.width, r.height);
+                    var image = m_NodePreviewPresenter.Render(new Vector2(size, size));
+                    GUI.DrawTexture(r, image, ScaleMode.ScaleToFit);
+                    m_NodePreviewPresenter.modificationScope = ModificationScope.Node;
+                }
+                else
+                {
+                    EditorGUI.DropShadowLabel(r, "No node pinned");
+                }
             }
         }
 
         public override void OnPreviewSettings()
         {
-            GUI.enabled = m_SelectedNodes.Count == 1 && m_SelectedNodes.FirstOrDefault() != previewNode;
+            GUI.enabled = m_SelectedNodes.Count <= 1 && m_SelectedNodes.FirstOrDefault() != previewNode;
             if (GUILayout.Button("Pin selected", "preButton"))
                 previewNode = m_SelectedNodes.FirstOrDefault() as AbstractMaterialNode;
             GUI.enabled = true;
