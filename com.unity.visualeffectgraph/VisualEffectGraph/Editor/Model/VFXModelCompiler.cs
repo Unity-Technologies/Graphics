@@ -215,7 +215,7 @@ namespace UnityEditor.Experimental
 
     public static class VFXModelCompiler
     {
-        const bool USE_DYNAMIC_AABB = false; // experimental
+        const bool USE_DYNAMIC_AABB = true;
 
         public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
@@ -965,7 +965,10 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
             }
 
-            builder.WriteLine("RWStructuredBuffer<uint3> bounds;");
+            if (USE_DYNAMIC_AABB)
+            {
+                builder.WriteLine("RWStructuredBuffer<uint3> bounds;");
+            }
             builder.WriteLine();
 
             // Write functions
