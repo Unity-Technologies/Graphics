@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 using System.Linq;
 
-namespace UnityEditor.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     internal class LayeredLitGUI : LitGUI
     {
