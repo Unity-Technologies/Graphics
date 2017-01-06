@@ -112,6 +112,25 @@
 	flex:1;
 }
 
+.node.horizontal #left > #controls {
+	padding-bottom: 8;
+	padding-left: 4;
+	padding-right: 6;
+}
+
+.node.horizontal #left > #controls > #element {
+	background-color: #FF0000;
+	margin-top: 5;
+}
+
+.node.horizontal #left > #preview {
+	background-color: rgb(45, 45, 45);
+	padding-left: 2;
+	padding-right: 2;
+	padding-bottom: 4;
+	margin-top: 5;
+}
+
 .node.vertical #pane > #left {
 	background-color: rgb(45, 45, 45);
 	flex:1;

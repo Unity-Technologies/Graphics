@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
@@ -8,7 +7,6 @@ using UnityEngine.RMGUI;
 namespace UnityEditor.Graphing.Drawing
 {
     // TODO JOCE Maybe bring SimpleGraphView public. This implements pretty much all that it does.
-    [StyleSheet("Assets/GraphFramework/SerializableGraph/Editor/Drawing/Styles/SerializableGraph.uss")]
     public class SerializableGraphView : GraphView
     {
         public SerializableGraphView()
