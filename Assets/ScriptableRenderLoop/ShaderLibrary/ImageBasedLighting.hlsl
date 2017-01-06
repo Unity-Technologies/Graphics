@@ -266,10 +266,12 @@ void ImportanceSampleAnisoGGX(
     // weightOverPdf = F(H) * 4 * (N.L) * V(V, L) * (L.H) / (N.H) with V(V, L) = G(V, L) / (4 * (N.L) * (N.V))
     // Remind (L.H) == (V.H)
     // F is apply outside the function
+
+    // For anisotropy we must not saturate these values
     float TdotV = dot(tangentX, V);
     float BdotV = dot(tangentY, V);
-    float TdotL = saturate(dot(tangentX, L));
-    float BdotL = saturate(dot(tangentY, L));
+    float TdotL = dot(tangentX, L);
+    float BdotL = dot(tangentY, L);
 
     float Vis = V_SmithJointGGXAniso(TdotV, BdotV, NdotV, TdotL, BdotL, NdotL, roughnessT, roughnessB);
     weightOverPdf = 4.0 * Vis * NdotL * VdotH / NdotH;
