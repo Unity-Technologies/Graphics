@@ -140,8 +140,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this so that the compiler leaves us alone.
 
     // TODO: think about using BC5
-    float3 vertexNormalWS = normalize(input.tangentToWorld[2].xyz);
-
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
         normalTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_ZERO_IDX(_NormalScale));
@@ -162,7 +160,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     float3 oppositeNormalTS = -normalTS;
     #else
     // Mirror the normal with the plane define by vertex normal
-    float3 oppositeNormalTS = reflect(normalTS, vertexNormalWS);
+    float3 oppositeNormalTS = reflect(normalTS, float3(0.0, 0.0, 1.0)); // Reflect around vertex normal (in tangent space this is z)
 #endif
     // TODO : Test if GetOdddNegativeScale() is necessary here in case of normal map, as GetOdddNegativeScale is take into account in CreateTangentToWorld();
     normalTS = input.isFrontFace ?
