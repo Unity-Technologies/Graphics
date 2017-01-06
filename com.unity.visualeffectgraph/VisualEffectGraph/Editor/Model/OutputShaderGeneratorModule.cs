@@ -507,6 +507,7 @@ namespace UnityEditor.Experimental
             }
 
             UpdateFlag(attribs, CommonAttrib.Color, VFXContextDesc.Type.kTypeOutput);
+            UpdateFlag(attribs, CommonAttrib.Alpha, VFXContextDesc.Type.kTypeOutput);
             m_HasSize = UpdateFlag(attribs, CommonAttrib.Size, VFXContextDesc.Type.kTypeOutput);
             return true;
         }
