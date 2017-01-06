@@ -682,7 +682,7 @@ namespace UnityEditor.Experimental
 			}
 
 			builder.Write("float3 worldPos = ");
-			builder.WriteAttrib(CommonAttrib.Position, data);
+			builder.WriteAttrib(CommonAttrib.Position, data, ShaderMetaData.Pass.kOutput);
 			builder.WriteLine(" + ((input.position + pivot) * size);");
 			builder.WriteLineFormat("o.pos = mul({0}, float4(worldPos,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
 		}

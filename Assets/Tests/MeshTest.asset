@@ -107,99 +107,6 @@ VFXAsset:
     m_OutputShader: {fileID: 4800000, guid: 4eb94269cf242d644a83ae7696d3737b, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
-      m_UpdateName: <noninit>
-      m_OutputName: <noninit>
-      m_Flags: 0
-      m_Stride: 4
-      m_PerPoint: 0
-    - m_InitName: flags
-      m_UpdateName: flags
-      m_OutputName: flags
-      m_Flags: 512
-      m_Stride: 4
-      m_PerPoint: 1
-    - m_InitName: deadListIn
-      m_UpdateName: deadListOut
-      m_OutputName: <noninit>
-      m_Flags: 514
-      m_Stride: 4
-      m_PerPoint: 1
-    - m_InitName: deadListCount
-      m_UpdateName: <noninit>
-      m_OutputName: <noninit>
-      m_Flags: 768
-      m_Stride: 4
-      m_PerPoint: 0
-    - m_InitName: attribBuffer0
-      m_UpdateName: attribBuffer0_RO
-      m_OutputName: attribBuffer0
-      m_Flags: 512
-      m_Stride: 4
-      m_PerPoint: 1
-    - m_InitName: attribBuffer1
-      m_UpdateName: attribBuffer1
-      m_OutputName: attribBuffer1
-      m_Flags: 512
-      m_Stride: 16
-      m_PerPoint: 1
-    - m_InitName: attribBuffer2
-      m_UpdateName: <noninit>
-      m_OutputName: attribBuffer2
-      m_Flags: 512
-      m_Stride: 8
-      m_PerPoint: 1
-    - m_InitName: attribBuffer3
-      m_UpdateName: attribBuffer3
-      m_OutputName: <noninit>
-      m_Flags: 512
-      m_Stride: 16
-      m_PerPoint: 1
-    m_OutputType: 2
-    m_SpawnRate: 1000
-    m_OrderPriority: 0
-    m_HasKill: 1
-    m_HasIndirectOutput: 0
-    m_OutputDataIndex: 16
-    m_InitUniforms:
-      m_Uniforms:
-      - name: initUniform0_kVFXValueOp
-        index: 25
-      - name: initUniform1_kVFXCombine3fOp
-        index: 26
-      - name: initUniform2_kVFXValueOp
-        index: 23
-      - name: initUniform3_kVFXValueOp
-        index: 20
-      - name: initUniform4_kVFXValueOp
-        index: 21
-      - name: initUniform5_kVFXSystemSeedOp
-        index: 18
-    m_UpdateUniforms:
-      m_Uniforms:
-      - name: updateUniform0_kVFXTRSToMatrixOp
-        index: 12
-      - name: updateUniform1_kVFXValueOp
-        index: 24
-      - name: updateUniform2_kVFXValueOp
-        index: 14
-      - name: updateUniform3_kVFXInverseTRSOp
-        index: 13
-      - name: updateUniform4_kVFXDeltaTimeOp
-        index: 19
-      - name: updateSampler0_kVFXValueOpTexture
-        index: 22
-    m_OutputUniforms:
-      m_Uniforms:
-      - name: outputUniform0_kVFXValueOp
-        index: 15
-    m_SpawnerIndices: 00000000
-  - m_Id: 1
-    m_Capacity: 100000
-    m_SimulationShader: {fileID: 7200000, guid: e0ce6dd99a0fd0d47a71276cc9838fb6,
-      type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 78ea15cbbda053a44ae3f4819b35b9bb, type: 3}
-    m_BufferDesc:
-    - m_InitName: <noninit>
       m_UpdateName: outputBuffer
       m_OutputName: outputBuffer
       m_Flags: 514
@@ -247,19 +154,45 @@ VFXAsset:
       m_Flags: 512
       m_Stride: 16
       m_PerPoint: 1
-    m_OutputType: 1
+    m_OutputType: 2
     m_SpawnRate: 1000
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
-    m_OutputDataIndex: -1
+    m_OutputDataIndex: 16
     m_InitUniforms:
-      m_Uniforms: []
+      m_Uniforms:
+      - name: initUniform0_kVFXValueOp
+        index: 25
+      - name: initUniform1_kVFXCombine3fOp
+        index: 26
+      - name: initUniform2_kVFXValueOp
+        index: 23
+      - name: initUniform3_kVFXValueOp
+        index: 20
+      - name: initUniform4_kVFXValueOp
+        index: 21
+      - name: initUniform5_kVFXSystemSeedOp
+        index: 18
     m_UpdateUniforms:
-      m_Uniforms: []
+      m_Uniforms:
+      - name: updateUniform0_kVFXTRSToMatrixOp
+        index: 12
+      - name: updateUniform1_kVFXValueOp
+        index: 24
+      - name: updateUniform2_kVFXValueOp
+        index: 14
+      - name: updateUniform3_kVFXInverseTRSOp
+        index: 13
+      - name: updateUniform4_kVFXDeltaTimeOp
+        index: 19
+      - name: updateSampler0_kVFXValueOpTexture
+        index: 22
     m_OutputUniforms:
-      m_Uniforms: []
-    m_SpawnerIndices: 
+      m_Uniforms:
+      - name: outputUniform0_kVFXValueOp
+        index: 15
+    m_SpawnerIndices: 00000000
   m_Values:
     m_Values: 000000000000204000000000000000000000a0400000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000070410000003f00401c46ffffffffffffffff0ad7233c8fc2753c000020400000004000002041ffffffffffffffffffffffff
     m_Textures:
