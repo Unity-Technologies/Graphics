@@ -210,7 +210,7 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        public void Copy(IEnumerable<GraphElementPresenter> selection)
+        private CopyPasteGraph CreateCopyPasteGraph(IEnumerable<GraphElementPresenter> selection)
         {
             var graph = new CopyPasteGraph();
             foreach (var presenter in selection)
@@ -227,15 +227,14 @@ namespace UnityEditor.Graphing.Drawing
                 if (edgeDrawData != null)
                     graph.AddEdge(edgeDrawData.edge);
             }
-
-            EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graph, true);
+            return graph;
         }
 
-        private CopyPasteGraph DeserializeCopyBuffer()
+        private CopyPasteGraph DeserializeCopyBuffer(string copyBuffer)
         {
             try
             {
-                return JsonUtility.FromJson<CopyPasteGraph>(EditorGUIUtility.systemCopyBuffer);
+                return JsonUtility.FromJson<CopyPasteGraph>(copyBuffer);
             }
             catch
             {
@@ -244,16 +243,15 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        public void Paste()
+        private void InsertCopyPasteGraph(CopyPasteGraph graph)
         {
-            var pastedGraph = DeserializeCopyBuffer();
-            if (pastedGraph == null || graphAsset == null || graphAsset.graph == null)
+            if (graph == null || graphAsset == null || graphAsset.graph == null)
                 return;
 
             var addedNodes = new List<INode>();
 
             var nodeGuidMap = new Dictionary<Guid, Guid>();
-            foreach (var node in pastedGraph.GetNodes<INode>())
+            foreach (var node in graph.GetNodes<INode>())
             {
                 var oldGuid = node.guid;
                 var newGuid = node.RewriteGuid();
@@ -273,7 +271,7 @@ namespace UnityEditor.Graphing.Drawing
             // external edges.
             var addedEdges = new List<IEdge>();
 
-            foreach (var edge in pastedGraph.edges)
+            foreach (var edge in graph.edges)
             {
                 var outputSlot = edge.outputSlot;
                 var inputSlot = edge.inputSlot;
@@ -293,6 +291,24 @@ namespace UnityEditor.Graphing.Drawing
             UpdateData();
 
             graphAsset.drawingData.selection = addedNodes.Select(n => n.guid);
+        }
+
+        public void Copy(IEnumerable<GraphElementPresenter> selection)
+        {
+            var graph = CreateCopyPasteGraph(selection);
+            EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graph, true);
+        }
+
+        public void Duplicate(IEnumerable<GraphElementPresenter> selection)
+        {
+            var graph = DeserializeCopyBuffer(JsonUtility.ToJson(CreateCopyPasteGraph(selection), true));
+            InsertCopyPasteGraph(graph);
+        }
+
+        public void Paste()
+        {
+            var pastedGraph = DeserializeCopyBuffer(EditorGUIUtility.systemCopyBuffer);
+            InsertCopyPasteGraph(pastedGraph);
         }
 
         public override void AddElement(EdgePresenter edge)
