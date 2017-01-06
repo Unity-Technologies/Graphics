@@ -1,10 +1,8 @@
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
 using System;
-using UnityEngine.ScriptableRenderPipeline;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipelineInstance : RenderPipeline
     {

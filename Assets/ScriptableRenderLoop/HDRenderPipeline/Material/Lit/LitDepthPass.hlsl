@@ -13,6 +13,7 @@ struct Attributes
     float2 uv0 : TEXCOORD0;
 #endif
 #if NEED_TANGENT_TO_WORLD
+    float3 normalOS  : NORMAL;
     float4 tangentOS : TANGENT;
 #endif
 };
@@ -85,7 +86,7 @@ PackedVaryings Vert(Attributes input)
     Varyings output;
 
     float3 positionWS = TransformObjectToWorld(input.positionOS);
-        output.positionCS = TransformWorldToHClip(positionWS);
+    output.positionCS = TransformWorldToHClip(positionWS);
 
 #if NEED_TEXCOORD0
     output.texCoord0 = input.uv0;

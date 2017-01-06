@@ -100,53 +100,77 @@ float4 SampleLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, floa
 
 // TODO: Handle BC5 format, currently this code is for DXT5nm
 // THis function below must call UnpackNormalmapRGorAG
-float3 SampleNormalLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights)
+float3 SampleNormalLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
 {
     if (layerUV.isTriplanar)
     {
         float3 val = float3(0.0, 0.0, 0.0);
 
         if (weights.x > 0.0)
-            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ));
+            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ), scale);
         if (weights.y > 0.0)
-            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX));
+            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX), scale);
         if (weights.z > 0.0)
-            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY));
+            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY), scale);
 
         return normalize(val);
     }
     else
     {
-        return UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv));
+        return UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv), scale);
     }
 }
 
 // This version is for normalmap with AG encoding only (use with details map)
-float3 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights)
+float3 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
 {
     if (layerUV.isTriplanar)
     {
         float3 val = float3(0.0, 0.0, 0.0);
 
         if (weights.x > 0.0)
-            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ));
+            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ), scale);
         if (weights.y > 0.0)
-            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX));
+            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX), scale);
         if (weights.z > 0.0)
-            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY));
+            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY), scale);
 
         return normalize(val);
     }
     else
     {
-        return UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv));
+        return UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv), scale);
+    }
+}
+
+// This version is for normalmap with RGB encoding only, i.e non encoding. It is necessary to use this abstraction to handle correctly triplanar
+// plus consistent with the normal scale parameter
+float3 SampleNormalLayerRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
+{
+    if (layerUV.isTriplanar)
+    {
+        float3 val = float3(0.0, 0.0, 0.0);
+
+        if (weights.x > 0.0)
+            val += weights.x * UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ), scale);
+        if (weights.y > 0.0)
+            val += weights.y * UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX), scale);
+        if (weights.z > 0.0)
+            val += weights.z * UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY), scale);
+
+        return normalize(val);
+    }
+    else
+    {
+        return UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv), scale);
     }
 }
 
 // Macro to improve readibility of surface data
 #define SAMPLE_LAYER_TEXTURE2D(textureName, samplerName, coord) SampleLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
-#define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord) SampleNormalLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
-#define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord) SampleNormalLayerAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
+#define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord, scale) SampleNormalLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
+#define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord, scale) SampleNormalLayerAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
+#define SAMPLE_LAYER_NORMALMAP_RGB(textureName, samplerName, coord, scale) SampleNormalLayerRGB(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
 
 // Transforms 2D UV by scale/bias property
 #define TRANSFORM_TEX(tex,name) ((tex.xy) * name##_ST.xy + name##_ST.zw)

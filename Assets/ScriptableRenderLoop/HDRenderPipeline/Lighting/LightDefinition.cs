@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     //-----------------------------------------------------------------------------
     // structure definition
@@ -91,10 +91,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // Include scale and bias for shadow atlas if any
         public Matrix4x4 worldToShadow;
 
-        public GPULightType lightType;
         public float bias;
         public float quality;
         public float unused;
+        public float unused2;
         public Vector4 invResolution;
     };
 
@@ -135,4 +135,4 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Vector3 offsetLS;
         public float unused2;
     };
-} // namespace UnityEngine.Experimental.ScriptableRenderLoop
+}
