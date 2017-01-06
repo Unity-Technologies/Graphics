@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d440c0deec24a2f478b3e9021cb66c29, type: 3}
+  m_Name: HDRenderPipeline
+  m_EditorClassIdentifier: 
+  m_ShadowSettings:
+    enabled: 1
+    shadowAtlasWidth: 4096
+    shadowAtlasHeight: 4096
+    maxShadowDistance: 1000
+    directionalLightCascadeCount: 4
+    directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
+  m_TextureSettings:
+    spotCookieSize: 128
+    pointCookieSize: 512
+    reflectionCubemapSize: 128

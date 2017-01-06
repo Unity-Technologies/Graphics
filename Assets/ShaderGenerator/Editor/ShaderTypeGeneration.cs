@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.Rendering
 {
     internal class ShaderTypeGenerator
     {

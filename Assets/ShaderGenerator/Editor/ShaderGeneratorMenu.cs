@@ -1,8 +1,8 @@
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.Rendering
 {
     public class ShaderGeneratorMenu
     {
-        [UnityEditor.MenuItem("Renderloop/Generate Shader Includes")]
+        [UnityEditor.MenuItem("RenderPipeline/Generate Shader Includes")]
         static void GenerateShaderIncludes()
         {
             CSharpToHLSL.GenerateAll();

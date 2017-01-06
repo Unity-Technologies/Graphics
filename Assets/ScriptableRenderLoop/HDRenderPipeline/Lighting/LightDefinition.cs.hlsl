@@ -1,0 +1,321 @@
+//
+// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderPipeline/Lighting/LightDefinition.cs.  Please don't edit by hand.
+//
+
+#ifndef LIGHTDEFINITION_CS_HLSL
+#define LIGHTDEFINITION_CS_HLSL
+//
+// UnityEngine.Experimental.ScriptableRenderLoop.GPULightType:  static fields
+//
+#define GPULIGHTTYPE_DIRECTIONAL (0)
+#define GPULIGHTTYPE_SPOT (1)
+#define GPULIGHTTYPE_POINT (2)
+#define GPULIGHTTYPE_PROJECTOR_ORTHO (3)
+#define GPULIGHTTYPE_PROJECTOR_PYRAMID (4)
+#define GPULIGHTTYPE_RECTANGLE (5)
+#define GPULIGHTTYPE_LINE (6)
+#define GPULIGHTTYPE_SPHERE (7)
+#define GPULIGHTTYPE_DISK (8)
+#define GPULIGHTTYPE_HEMISPHERE (9)
+#define GPULIGHTTYPE_CYLINDER (10)
+
+//
+// UnityEngine.Experimental.ScriptableRenderLoop.EnvShapeType:  static fields
+//
+#define ENVSHAPETYPE_NONE (0)
+#define ENVSHAPETYPE_BOX (1)
+#define ENVSHAPETYPE_SPHERE (2)
+#define ENVSHAPETYPE_SKY (3)
+
+//
+// UnityEngine.Experimental.ScriptableRenderLoop.EnvConstants:  static fields
+//
+#define ENVCONSTANTS_SPEC_CUBE_LOD_STEP (6)
+
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.LightData
+// PackingRules = Exact
+struct LightData
+{
+	float3 positionWS;
+	float invSqrAttenuationRadius;
+	float3 color;
+	float angleScale;
+	float3 forward;
+	float angleOffset;
+	float3 up;
+	float diffuseScale;
+	float3 right;
+	float specularScale;
+	float shadowDimmer;
+	int shadowIndex;
+	int IESIndex;
+	int cookieIndex;
+	int lightType;
+	float2 size;
+	bool twoSided;
+};
+
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.DirectionalLightData
+// PackingRules = Exact
+struct DirectionalLightData
+{
+	float3 forward;
+	float diffuseScale;
+	float3 up;
+	float invScaleY;
+	float3 right;
+	float invScaleX;
+	float3 positionWS;
+	bool tileCookie;
+	float3 color;
+	float specularScale;
+	float cosAngle;
+	float sinAngle;
+	int shadowIndex;
+	int cookieIndex;
+};
+
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.ShadowData
+// PackingRules = Exact
+struct ShadowData
+{
+	float4x4 worldToShadow;
+	float bias;
+	float quality;
+	float unused;
+	float unused2;
+	float4 invResolution;
+};
+
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.EnvLightData
+// PackingRules = Exact
+struct EnvLightData
+{
+	float3 positionWS;
+	int envShapeType;
+	float3 forward;
+	int envIndex;
+	float3 up;
+	float blendDistance;
+	float3 right;
+	int unused0;
+	float3 innerDistance;
+	float unused1;
+	float3 offsetLS;
+	float unused2;
+};
+
+//
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.LightData
+//
+float3 GetPositionWS(LightData value)
+{
+	return value.positionWS;
+}
+float GetInvSqrAttenuationRadius(LightData value)
+{
+	return value.invSqrAttenuationRadius;
+}
+float3 GetColor(LightData value)
+{
+	return value.color;
+}
+float GetAngleScale(LightData value)
+{
+	return value.angleScale;
+}
+float3 GetForward(LightData value)
+{
+	return value.forward;
+}
+float GetAngleOffset(LightData value)
+{
+	return value.angleOffset;
+}
+float3 GetUp(LightData value)
+{
+	return value.up;
+}
+float GetDiffuseScale(LightData value)
+{
+	return value.diffuseScale;
+}
+float3 GetRight(LightData value)
+{
+	return value.right;
+}
+float GetSpecularScale(LightData value)
+{
+	return value.specularScale;
+}
+float GetShadowDimmer(LightData value)
+{
+	return value.shadowDimmer;
+}
+int GetShadowIndex(LightData value)
+{
+	return value.shadowIndex;
+}
+int GetIESIndex(LightData value)
+{
+	return value.IESIndex;
+}
+int GetCookieIndex(LightData value)
+{
+	return value.cookieIndex;
+}
+int GetLightType(LightData value)
+{
+	return value.lightType;
+}
+float2 GetSize(LightData value)
+{
+	return value.size;
+}
+bool GetTwoSided(LightData value)
+{
+	return value.twoSided;
+}
+
+//
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.DirectionalLightData
+//
+float3 GetForward(DirectionalLightData value)
+{
+	return value.forward;
+}
+float GetDiffuseScale(DirectionalLightData value)
+{
+	return value.diffuseScale;
+}
+float3 GetUp(DirectionalLightData value)
+{
+	return value.up;
+}
+float GetInvScaleY(DirectionalLightData value)
+{
+	return value.invScaleY;
+}
+float3 GetRight(DirectionalLightData value)
+{
+	return value.right;
+}
+float GetInvScaleX(DirectionalLightData value)
+{
+	return value.invScaleX;
+}
+float3 GetPositionWS(DirectionalLightData value)
+{
+	return value.positionWS;
+}
+bool GetTileCookie(DirectionalLightData value)
+{
+	return value.tileCookie;
+}
+float3 GetColor(DirectionalLightData value)
+{
+	return value.color;
+}
+float GetSpecularScale(DirectionalLightData value)
+{
+	return value.specularScale;
+}
+float GetCosAngle(DirectionalLightData value)
+{
+	return value.cosAngle;
+}
+float GetSinAngle(DirectionalLightData value)
+{
+	return value.sinAngle;
+}
+int GetShadowIndex(DirectionalLightData value)
+{
+	return value.shadowIndex;
+}
+int GetCookieIndex(DirectionalLightData value)
+{
+	return value.cookieIndex;
+}
+
+//
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.ShadowData
+//
+float4x4 GetWorldToShadow(ShadowData value)
+{
+	return value.worldToShadow;
+}
+float GetBias(ShadowData value)
+{
+	return value.bias;
+}
+float GetQuality(ShadowData value)
+{
+	return value.quality;
+}
+float GetUnused(ShadowData value)
+{
+	return value.unused;
+}
+float GetUnused2(ShadowData value)
+{
+	return value.unused2;
+}
+float4 GetInvResolution(ShadowData value)
+{
+	return value.invResolution;
+}
+
+//
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.EnvLightData
+//
+float3 GetPositionWS(EnvLightData value)
+{
+	return value.positionWS;
+}
+int GetEnvShapeType(EnvLightData value)
+{
+	return value.envShapeType;
+}
+float3 GetForward(EnvLightData value)
+{
+	return value.forward;
+}
+int GetEnvIndex(EnvLightData value)
+{
+	return value.envIndex;
+}
+float3 GetUp(EnvLightData value)
+{
+	return value.up;
+}
+float GetBlendDistance(EnvLightData value)
+{
+	return value.blendDistance;
+}
+float3 GetRight(EnvLightData value)
+{
+	return value.right;
+}
+int GetUnused0(EnvLightData value)
+{
+	return value.unused0;
+}
+float3 GetInnerDistance(EnvLightData value)
+{
+	return value.innerDistance;
+}
+float GetUnused1(EnvLightData value)
+{
+	return value.unused1;
+}
+float3 GetOffsetLS(EnvLightData value)
+{
+	return value.offsetLS;
+}
+float GetUnused2(EnvLightData value)
+{
+	return value.unused2;
+}
+
+
+#endif
