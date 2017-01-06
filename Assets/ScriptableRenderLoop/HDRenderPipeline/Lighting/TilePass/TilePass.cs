@@ -847,7 +847,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_lightList.Clear();
 
-                if (cullResults.visibleLights.Length == 0)
+                if (cullResults.visibleLights.Length == 0 && cullResults.visibleReflectionProbes.Length == 0)
                     return;
 
                 // 1. Count the number of lights and sort all light by category, type and volume
@@ -1394,12 +1394,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "uavOutput", cameraColorBufferRT);
                             cmd.DispatchCompute(shadeOpaqueShader, kernel, numTilesX, numTilesY, 1);
-                    }
-                    else
-                    {
-                            // Pixel shader evaluation
-                        if (enableSplitLightEvaluation)
+                        }
+                        else
                         {
+                            // Pixel shader evaluation
+                            if (enableSplitLightEvaluation)
+                            {
                                 Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredDirectMaterial);
                                 m_DeferredDirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                                 m_DeferredDirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
@@ -1412,19 +1412,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 m_DeferredIndirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                                 m_DeferredIndirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                            cmd.Blit(null, cameraColorBufferRT, m_DeferredDirectMaterial, 0);
-                            cmd.Blit(null, cameraColorBufferRT, m_DeferredIndirectMaterial, 0);
-                        }
-                        else
-                        {
+                                cmd.Blit(null, cameraColorBufferRT, m_DeferredDirectMaterial, 0);
+                                cmd.Blit(null, cameraColorBufferRT, m_DeferredIndirectMaterial, 0);
+                            }
+                            else
+                            {
                                 Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredAllMaterial);
                                 m_DeferredAllMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                                 m_DeferredAllMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                                 m_DeferredAllMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                                 m_DeferredAllMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                            cmd.Blit(null, cameraColorBufferRT, m_DeferredAllMaterial, 0);
-                        }
+                                cmd.Blit(null, cameraColorBufferRT, m_DeferredAllMaterial, 0);
+                            }
                         }
 
                         // Draw tile debugging
@@ -1441,7 +1441,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     SetGlobalPropertyRedirect(null, 0, null);
-                    //}
 
                     renderContext.ExecuteCommandBuffer(cmd);
                     cmd.Dispose();
