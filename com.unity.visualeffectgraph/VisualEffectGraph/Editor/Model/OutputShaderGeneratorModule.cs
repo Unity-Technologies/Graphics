@@ -628,6 +628,9 @@ namespace UnityEditor.Experimental
 
 			UpdateFlag(attribs, CommonAttrib.Color, VFXContextDesc.Type.kTypeOutput);
 			UpdateFlag(attribs, CommonAttrib.Alpha, VFXContextDesc.Type.kTypeOutput);
+			m_HasSize = UpdateFlag(attribs, CommonAttrib.Size, VFXContextDesc.Type.kTypeOutput);
+			m_HasPivot = UpdateFlag(attribs, CommonAttrib.Pivot, VFXContextDesc.Type.kTypeOutput);
+
 			return true;
 		}
 
@@ -655,14 +658,40 @@ namespace UnityEditor.Experimental
 
 		public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
 		{
+			if (m_HasSize)
+			{
+				builder.Write("float3 size = ");
+				builder.WriteAttrib(CommonAttrib.Size, data, ShaderMetaData.Pass.kOutput);
+				builder.WriteLine(".xyx * 0.5f;");	// TODO full correct 3D size
+			}
+			else
+			{
+				builder.WriteLine("float3 size = 0.005f;");
+			}
+
+			if (m_HasPivot)
+			{
+				builder.Write("float3 pivot = ");
+				builder.WriteAttrib(CommonAttrib.Pivot, data, ShaderMetaData.Pass.kOutput);
+				builder.WriteLine(";");
+				builder.WriteLine();
+			}
+			else
+			{
+				builder.WriteLine("float3 pivot = 0.0f;");
+			}
+
 			builder.Write("float3 worldPos = ");
 			builder.WriteAttrib(CommonAttrib.Position, data);
-			builder.WriteLine(" + input.position;");
+			builder.WriteLine(" + ((input.position + pivot) * size);");
 			builder.WriteLineFormat("o.pos = mul({0}, float4(worldPos,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
 		}
 
 		public const int MeshSlot = 0;
         private VFXExpression m_MeshExpression = null;
+
+		private bool m_HasSize;
+		private bool m_HasPivot;
 	}
 }
 

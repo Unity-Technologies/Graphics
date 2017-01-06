@@ -181,11 +181,11 @@ VFXComponent:
   m_Enabled: 1
   m_Asset: {fileID: 20300000, guid: 9ead8a0af8116ba4f8d518b41be2b433, type: 2}
   m_Values:
-    m_Values: 00000000000000000000000000000000000000000000a0420000a042000000000000a042ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000003f9a99993e0000c03f00401c46ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa69b443c6f12833b0000a04100002041ffffffffffffffffffffffff
+    m_Values: 000000000000204000000000000000000000a04000000000000000000000000000000000000020400000000000000000000000000000a0400000a0400000a04000000000000000000000a040000000000000000000000000000000000000a040000000000000000000000000000000000000a040000000000000000000000000000020400000803fcdcc4c3e00000000000000000000000000000000cdcc4c3e00000000000000000000000000000000cdcc4c3e000000000000000000000000000000bf0000803f000070410000003f00401c46282f53068988883c0ad7233c8fc2753c000020400000004000002041000000000000000000002040
     m_Textures:
     - {fileID: 11700000, guid: bbd3617ace03676439e3fad496d298fa, type: 2}
     m_Meshes:
-    - {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    - {fileID: 4300000, guid: 8b90769641be2ee45ab92c1b6c16009c, type: 3}
   m_ExposedNames: []
   m_ExposedData: []
   m_Seed: 106114856
@@ -196,7 +196,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1365559337}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.127, y: -2.44, z: 16.21}
+  m_LocalPosition: {x: 1.38, y: -2.72, z: 11.33}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
