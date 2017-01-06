@@ -93,6 +93,10 @@
 .node #left > #title > Button {
 	text-color: rgb(153, 153, 153);
 	flex: 1;
+	margin-right: 6;
+	padding-right: 0;
+	padding-left: 0;
+	text-alignment: middle-center;
 }
 
 .node.horizontal #left > #input {
