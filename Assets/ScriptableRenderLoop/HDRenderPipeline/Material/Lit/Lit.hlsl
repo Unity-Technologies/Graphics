@@ -583,8 +583,11 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     // Maybe always using aniso maybe a win ?
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
-        float TdotL = saturate(dot(bsdfData.tangentWS, L));
-        float BdotL = saturate(dot(bsdfData.bitangentWS, L));
+        // For anisotropy we must not saturate these values
+        float TdotH = dot(bsdfData.tangentWS, H);
+        float TdotL = dot(bsdfData.tangentWS, L);
+        float BdotH = dot(bsdfData.bitangentWS, H);
+        float BdotL = dot(bsdfData.bitangentWS, L);
 
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
         Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
@@ -595,9 +598,6 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
                                     bsdfData.roughnessT, bsdfData.roughnessB);
         #endif
 
-        // For anisotropy we must not saturate these values
-        float TdotH = dot(bsdfData.tangentWS, H);
-        float BdotH = dot(bsdfData.bitangentWS, H);
         D = D_GGXAniso(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
     }
     else
@@ -938,7 +938,7 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
         float lightPdf = 0.0;               // Pdf of the light sample
 
         float2 u = Hammersley2d(i, sampleCount);
-        u = frac(u + randNum + 0.5);
+        u = frac(u + randNum);
 
         float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
 
@@ -1115,7 +1115,7 @@ float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
     for (uint i = 0; i < sampleCount; ++i)
     {
         float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum + 0.5);
+        u           = frac(u + randNum);
 
         float3 L;
         float NdotL;
@@ -1150,7 +1150,7 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
     for (uint i = 0; i < sampleCount; ++i)
     {
         float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum + 0.5);
+        u           = frac(u + randNum);
 
         float3 L;
         float NdotL;
@@ -1187,13 +1187,14 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
     float    NdotV        = GetShiftedNdotV(N, V, false);
     float3   acc          = float3(0.0, 0.0, 0.0);
 
+
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
 
     for (uint i = 0; i < sampleCount; ++i)
     {
         float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum + 0.5);
+        u           = frac(u + randNum);
 
         float VdotH;
         float NdotL;
@@ -1201,7 +1202,7 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
         float weightOverPdf;
 
         // GGX BRDF
-        if (bsdfData.materialId = MATERIALID_LIT_ANISO)
+        if (bsdfData.materialId == MATERIALID_LIT_ANISO)
         {
             ImportanceSampleAnisoGGX(u, V, N, tangentX, tangentY, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
         }
