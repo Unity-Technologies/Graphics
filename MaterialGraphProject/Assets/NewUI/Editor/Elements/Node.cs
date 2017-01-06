@@ -71,9 +71,27 @@ namespace RMGUI.GraphView
 				m_InputContainer.AddChild(NodeAnchor.Create<EdgePresenter>(anchorPresenter));
 			}
 
+			bool hasOutput = false;
 			foreach (var anchorPresenter in nodePresenter.outputAnchors)
 			{
 				m_OutputContainer.AddChild(NodeAnchor.Create<EdgePresenter>(anchorPresenter));
+				hasOutput = true;
+			}
+
+			// Show output container only if we have one or more child
+			if (hasOutput)
+			{
+				if (!m_MainContainer.children.Contains(m_RightContainer))
+				{
+					m_MainContainer.InsertChild(0, m_RightContainer);
+				}
+			}
+			else
+			{
+				if (m_MainContainer.children.Contains(m_RightContainer))
+				{
+					m_MainContainer.RemoveChild(m_RightContainer);
+				}
 			}
 
 			m_TitleLabel.content.text = nodePresenter.title;
@@ -84,10 +102,10 @@ namespace RMGUI.GraphView
 		public Node()
 		{
 			m_MainContainer = new VisualContainer()
- 			{
- 				name = "pane",
- 				pickingMode = PickingMode.Ignore,
- 			};
+			{
+				name = "pane",
+				pickingMode = PickingMode.Ignore,
+			};
 			m_LeftContainer = new VisualContainer
 			{
 				name = "left",

@@ -28,9 +28,12 @@ namespace RMGUI.GraphView.Demo
 			inputNodeAnchorPresenter.anchorType = typeof(Color);
 			nodePresenter.inputAnchors.Add(inputNodeAnchorPresenter);
 
-			var outputNodeAnchorPresenter = CreateInstance<OutputNodeAnchorPresenter>();
-			outputNodeAnchorPresenter.anchorType = outputType;
-			nodePresenter.outputAnchors.Add(outputNodeAnchorPresenter);
+			if (outputType != null)
+			{
+				var outputNodeAnchorPresenter = CreateInstance<OutputNodeAnchorPresenter>();
+				outputNodeAnchorPresenter.anchorType = outputType;
+				nodePresenter.outputAnchors.Add(outputNodeAnchorPresenter);
+			}
 
 			return nodePresenter;
 		}
@@ -61,15 +64,15 @@ namespace RMGUI.GraphView.Demo
 			// This is a demo, so our data (and thus our presenters) is fixed.
 
 			var containerPresenter = CreateInstance<InvisibleBorderContainerPresenter>();
-			containerPresenter.position = new Rect(630.0f, 0.0f, 200.0f, 200.0f);
+			containerPresenter.position = new Rect(850, 320, 200, 200);
 			AddElement(containerPresenter);
 
 			containerPresenter = CreateInstance<InvisibleBorderContainerPresenter>();
-			containerPresenter.position = new Rect(630.0f, 210.0f, 200.0f, 200.0f);
+			containerPresenter.position = new Rect(1070, 320, 200, 200);
 			AddElement(containerPresenter);
 
 			var circlePresenter = CreateInstance<CirclePresenter>();
-			circlePresenter.position = new Rect(630, 420, 0, 0);
+			circlePresenter.position = new Rect(630, 320, 0, 0);
 			circlePresenter.radius = 200;
 			AddElement(circlePresenter);
 
@@ -91,6 +94,11 @@ namespace RMGUI.GraphView.Demo
 			nodePresenter = InitNodePresenter(typeof(float));
 			nodePresenter.position = new Rect(0, 186, 200, 176);
 			nodePresenter.title = "Another Operator";
+			AddElement(nodePresenter);
+
+			nodePresenter = InitNodePresenter(null);
+			nodePresenter.position = new Rect(600, 0, 200, 176);
+			nodePresenter.title = "No Output";
 			AddElement(nodePresenter);
 
 			var verticalNodePresenter = InitVerticalNodePresenter();
