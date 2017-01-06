@@ -238,6 +238,9 @@ Material:
     - _HeightScale1: 0.1
     - _HeightScale2: 0.05
     - _HeightScale3: 0.06
+    - _InheritBaseLayer1: 1
+    - _InheritBaseLayer2: 1
+    - _InheritBaseLayer3: 1
     - _LayerCount: 4
     - _LayerMaskVertexColor: 0
     - _Metallic: 0
@@ -257,22 +260,22 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SurfaceType: 0
-    - _TexWorldScale0: 1
-    - _TexWorldScale1: 1
-    - _TexWorldScale2: 1
-    - _TexWorldScale3: 1
-    - _UVBase0: 0
-    - _UVBase1: 0
-    - _UVBase2: 0
-    - _UVBase3: 0
+    - _TexWorldScale0: 0.1
+    - _TexWorldScale1: 0.1
+    - _TexWorldScale2: 0.1
+    - _TexWorldScale3: 0.1
+    - _UVBase0: 4
+    - _UVBase1: 4
+    - _UVBase2: 4
+    - _UVBase3: 4
     - _UVDetail0: 0
     - _UVDetail1: 0
     - _UVDetail2: 0
     - _UVDetail3: 0
-    - _UVMappingPlanar0: 0
-    - _UVMappingPlanar1: 0
-    - _UVMappingPlanar2: 0
-    - _UVMappingPlanar3: 0
+    - _UVMappingPlanar0: 1
+    - _UVMappingPlanar1: 1
+    - _UVMappingPlanar2: 1
+    - _UVMappingPlanar3: 1
     - _UVSec: 0
     - _UseHeightBasedBlend: 1
     - _UseHeightBasedBlend1: 1
@@ -293,7 +296,7 @@ Material:
     - _UVDetailsMappingMask1: {r: 1, g: 0, b: 0, a: 0}
     - _UVDetailsMappingMask2: {r: 1, g: 0, b: 0, a: 0}
     - _UVDetailsMappingMask3: {r: 1, g: 0, b: 0, a: 0}
-    - _UVMappingMask0: {r: 1, g: 0, b: 0, a: 0}
-    - _UVMappingMask1: {r: 1, g: 0, b: 0, a: 0}
-    - _UVMappingMask2: {r: 1, g: 0, b: 0, a: 0}
-    - _UVMappingMask3: {r: 1, g: 0, b: 0, a: 0}
+    - _UVMappingMask0: {r: 0, g: 0, b: 0, a: 0}
+    - _UVMappingMask1: {r: 0, g: 0, b: 0, a: 0}
+    - _UVMappingMask2: {r: 0, g: 0, b: 0, a: 0}
+    - _UVMappingMask3: {r: 0, g: 0, b: 0, a: 0}
