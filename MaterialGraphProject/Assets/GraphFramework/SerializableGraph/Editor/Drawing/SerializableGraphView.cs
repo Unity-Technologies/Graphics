@@ -24,7 +24,8 @@ namespace UnityEditor.Graphing.Drawing
                 {Event.KeyboardEvent("#tab"), FramePrev},
                 {Event.KeyboardEvent("tab"), FrameNext},
                 {Event.KeyboardEvent("#c"), CopySelection},
-                {Event.KeyboardEvent("#v"), Paste}
+                {Event.KeyboardEvent("#v"), Paste},
+                {Event.KeyboardEvent("#d"), DuplicateSelection}
             }));
 
             AddManipulator(new ClickGlobalSelector());
@@ -117,6 +118,14 @@ namespace UnityEditor.Graphing.Drawing
             var graphDataSource = GetPresenter<AbstractGraphDataSource>();
             if (selection.Any() && graphDataSource != null)
                 graphDataSource.Copy(selection.OfType<GraphElement>().Select(ge => ge.presenter));
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation DuplicateSelection()
+        {
+            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
+            if (selection.Any() && graphDataSource != null)
+                graphDataSource.Duplicate(selection.OfType<GraphElement>().Select(ge => ge.presenter));
             return EventPropagation.Stop;
         }
 
