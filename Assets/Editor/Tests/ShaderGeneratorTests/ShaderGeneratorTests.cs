@@ -5,8 +5,8 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.ScriptableRenderLoop;
 using NUnit.Framework;
+using UnityEditor.Experimental.Rendering;
 
 [TestFixture]
 public class ShaderGeneratorTests
