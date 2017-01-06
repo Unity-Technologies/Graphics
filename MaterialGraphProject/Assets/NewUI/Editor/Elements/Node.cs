@@ -6,7 +6,7 @@ using UnityEngine.RMGUI.StyleSheets;
 
 namespace RMGUI.GraphView
 {
-	class Node : GraphElement
+	public class Node : GraphElement
 	{
 		protected readonly VisualContainer m_MainContainer;
 		protected readonly VisualContainer m_LeftContainer;

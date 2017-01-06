@@ -1,12 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
-using System.Linq;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    public class NodeDrawData : GraphElementPresenter
+    public class NodeDrawData : NodePresenter
     {
         protected NodeDrawData()
         {}
@@ -16,17 +16,11 @@ namespace UnityEditor.Graphing.Drawing
         public bool expanded = true;
 
         [SerializeField]
-        protected List<GraphElementPresenter> m_Children = new List<GraphElementPresenter>();
-
-        [SerializeField]
-        protected List<AnchorDrawData> m_Anchors = new List<AnchorDrawData>();
-
-        [SerializeField]
         protected List<GraphElementPresenter> m_Controls = new List<GraphElementPresenter>();
 
-        public IEnumerable<GraphElementPresenter> elements
+        public virtual IEnumerable<GraphElementPresenter> elements
         {
-            get { return m_Children.Concat(m_Anchors.Cast<GraphElementPresenter>()).Concat(m_Controls); }
+            get { return inputAnchors.Concat(outputAnchors).Cast<GraphElementPresenter>().Concat(m_Controls); }
         }
 
         public virtual void OnModified(ModificationScope scope)
@@ -36,9 +30,14 @@ namespace UnityEditor.Graphing.Drawing
             if (scope == ModificationScope.Topological)
             {
                 var slots = node.GetSlots<ISlot>().ToList();
-                m_Anchors.RemoveAll(data => !slots.Contains(data.slot));
-                AddSlots(slots.Except(m_Anchors.Select(x => x.slot)));
-                m_Anchors.Sort((x, y) => slots.IndexOf(x.slot) - slots.IndexOf(y.slot));
+
+                m_InputAnchors.RemoveAll(data => !slots.Contains(((AnchorDrawData)data).slot));
+                m_OutputAnchors.RemoveAll(data => !slots.Contains(((AnchorDrawData)data).slot));
+
+                AddSlots(slots.Except(m_InputAnchors.Concat(m_OutputAnchors).Select(data => ((AnchorDrawData)data).slot)));
+
+                m_InputAnchors.Sort((x, y) => slots.IndexOf(((AnchorDrawData)x).slot) - slots.IndexOf(((AnchorDrawData)y).slot));
+                m_OutputAnchors.Sort((x, y) => slots.IndexOf(((AnchorDrawData)x).slot) - slots.IndexOf(((AnchorDrawData)y).slot));
             }
         }
 
@@ -51,33 +50,36 @@ namespace UnityEditor.Graphing.Drawing
 
         protected virtual IEnumerable<GraphElementPresenter> GetControlData()
         {
-            return new ControlDrawData[0];
+            return Enumerable.Empty<GraphElementPresenter>();
         }
 
         protected void AddSlots(IEnumerable<ISlot> slots)
         {
-            foreach (var input in slots)
+            foreach (var slot in slots)
             {
                 var data = CreateInstance<AnchorDrawData>();
-                data.Initialize(input);
-                m_Anchors.Add(data);
+                data.Initialize(slot);
+                if (slot.isOutputSlot)
+                {
+                    outputAnchors.Add(data);
+                }
+                else
+                {
+                    inputAnchors.Add(data);
+                }
             }
         }
 
+        // TODO JOCE: Move to OnEnable??
         public virtual void Initialize(INode inNode)
         {
             node = inNode;
-            capabilities |= Capabilities.Movable;
 
             if (node == null)
                 return;
 
-            name = inNode.name;
+            title = inNode.name;
             expanded = node.drawState.expanded;
-
-            var headerData = CreateInstance<HeaderDrawData>();
-            headerData.Initialize(inNode);
-            m_Children.Add(headerData);
 
             AddSlots(node.GetSlots<ISlot>());
 
@@ -85,7 +87,6 @@ namespace UnityEditor.Graphing.Drawing
             m_Controls.AddRange(controlData);
 
             position = new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0);
-            //position
         }
     }
 }

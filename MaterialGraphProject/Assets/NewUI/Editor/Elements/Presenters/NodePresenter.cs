@@ -5,7 +5,7 @@ using UnityEngine;
 namespace RMGUI.GraphView
 {
 	[Serializable]
-	class NodePresenter : SimpleElementPresenter
+	public class NodePresenter : SimpleElementPresenter
 	{
 		[SerializeField]
 		protected List<NodeAnchorPresenter> m_InputAnchors;
@@ -26,7 +26,6 @@ namespace RMGUI.GraphView
 		public virtual Orientation orientation
 		{
 			get { return m_Orientation; }
-			set { m_Orientation = value; }
 		}
 
 		// TODO make a simple creation function
