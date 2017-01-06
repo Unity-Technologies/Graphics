@@ -67,6 +67,31 @@ float D_GGX_Inverse(float NdotH, float roughness)
     return PI * g;
 }
 
+// Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 19, 29.
+float G_MaskingSmithGGX(float NdotV, float VdotH, float roughness)
+{
+    roughness = max(roughness, UNITY_MIN_ROUGHNESS);
+
+    // G1(V, H)    = HeavisideStep(VdotH) / (1 + Λ(V)).
+    // Λ(V)        = -0.5 + 0.5 * sqrt(1 + 1 / a²).
+    // a           = 1 / (roughness * tan(theta)).
+    // 1 + Λ(V)    = 0.5 + 0.5 * sqrt(1 + roughness² * tan²(theta)).
+    // tan²(theta) = (1 - cos²(theta)) / cos²(theta) = 1 / cos²(theta) - 1.
+
+    float hs = VdotH > 0.0 ? 1.0 : 0.0;
+    float a2 = roughness * roughness;
+    float z2 = NdotV * NdotV;
+
+    return hs / (0.5 + 0.5 * sqrt(1.0 + a2 * (1.0 / z2 - 1.0)));
+}
+
+// Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 12.
+float D_GGX_Visible(float NdotH, float NdotV, float VdotH, float roughness)
+{
+    // Note that we pass 1.0 instead of 'VdotH' since the multiplication will already clamp.
+    return D_GGX(NdotH, roughness) * G_MaskingSmithGGX(NdotV, 1.0, roughness) * VdotH / NdotV;
+}
+
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
 float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
 {
