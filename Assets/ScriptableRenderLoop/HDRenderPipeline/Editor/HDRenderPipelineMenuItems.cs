@@ -5,7 +5,7 @@ using UnityEditor;
 
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipelineMenuItems
     {

@@ -129,7 +129,7 @@ FragInputs UnpackVaryings(PackedVaryings input)
 //-------------------------------------------------------------------------------------
 
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
-PackedVaryings VertDefault(Attributes input)
+PackedVaryings Vert(Attributes input)
 {
     Varyings output;
 
