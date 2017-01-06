@@ -34,7 +34,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 ShadowSettings settings = new ShadowSettings();
                 settings.enabled = true;
                 settings.shadowAtlasHeight = settings.shadowAtlasWidth = 4096;
-                settings.directionalLightCascadeCount = 1;
                 settings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
                 settings.directionalLightCascadeCount = 4;
                 settings.maxShadowDistance = 1000.0F;
@@ -255,7 +254,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return requestedPages.Count != 0;
         }
 
-        static List<InputShadowLightData> GetInputShadowLightData(CullResults cullResults)
+        static List<InputShadowLightData> GetInputShadowLightData(CullResults cullResults, ShadowSettings settings)
         {
             var shadowCasters = new List<InputShadowLightData>();
             var lights = cullResults.visibleLights;
@@ -276,14 +275,37 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
 
                 AdditionalLightData additionalLight = lights[i].light.GetComponent<AdditionalLightData>();
+                int shadowResolution;
+                if (additionalLight != null)
+                    shadowResolution = AdditionalLightData.GetShadowResolution(additionalLight);
+                else
+                    shadowResolution = GetMaxTileResolutionInAtlas(settings.shadowAtlasWidth, settings.shadowAtlasHeight, settings.directionalLightCascadeCount);
 
                 InputShadowLightData light;
                 light.lightIndex = i;
-                light.shadowResolution = AdditionalLightData.GetShadowResolution(additionalLight);
+                light.shadowResolution = shadowResolution;
 
                 shadowCasters.Add(light);
             }
             return shadowCasters;
+        }
+
+        static int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
+        {
+            int resolution = Mathf.Min(atlasWidth, atlasHeight);
+            if (tileCount > Mathf.Log(resolution))
+            {
+                Debug.LogError(String.Format("Cannot fit {0} tiles into current shadowmap atlas of size ({1}, {2}). ShadowMap Resolution set to zero.", tileCount, atlasWidth, atlasHeight));
+                return 0;
+            }
+
+            int currentTileCount = atlasWidth / resolution + atlasHeight / resolution;
+            while (currentTileCount < tileCount)
+            {
+                resolution = resolution >> 1;
+                currentTileCount = atlasWidth / resolution + atlasHeight / resolution;
+            }
+            return resolution;
         }
 
         public void UpdateCullingParameters(ref CullingParameters parameters)
@@ -299,7 +321,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 
             // Pack all shadow quads into the texture
-            if (!AutoPackLightsIntoShadowTexture(GetInputShadowLightData(cullResults), cullResults.visibleLights, out packedShadows))
+            if (!AutoPackLightsIntoShadowTexture(GetInputShadowLightData(cullResults, m_Settings), cullResults.visibleLights, out packedShadows))
             {
                 // No shadowing lights found, so skip all rendering
                 return;

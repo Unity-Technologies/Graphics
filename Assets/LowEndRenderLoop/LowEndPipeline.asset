@@ -12,10 +12,5 @@ MonoBehaviour:
   m_Name: LowEndPipeline
   m_EditorClassIdentifier: 
   m_SupportsVertexLight: 1
-  m_ShadowSettings:
-    enabled: 1
-    shadowAtlasWidth: 4096
-    shadowAtlasHeight: 4096
-    maxShadowDistance: 1000
-    directionalLightCascadeCount: 4
-    directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
+  m_ShadowAtlasWidth: 2048
+  m_ShadowAtlasHeight: 2048
