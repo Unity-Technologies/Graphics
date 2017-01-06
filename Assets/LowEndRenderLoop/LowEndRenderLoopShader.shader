@@ -58,7 +58,6 @@ Shader "RenderLoop/LowEnd"
 			ZWrite[_ZWrite]
 
 			CGPROGRAM
-			#pragma enable_d3d11_debug_symbols
 			#pragma target 2.0
 			#pragma vertex vert
 			#pragma fragment frag
@@ -67,6 +66,7 @@ Shader "RenderLoop/LowEnd"
 			#include "UnityStandardBRDF.cginc"
 			#include "UnityStandardUtils.cginc"
 
+			#define DEBUG_CASCADES 0
 			#define MAX_SHADOW_CASCADES 4
 			#define MAX_LIGHTS 8
 
@@ -137,6 +137,7 @@ Shader "RenderLoop/LowEnd"
 			{
 				int cascadeIndex = ComputeCascadeIndex(posWorld.w);
 				float3 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
+				shadowCoord.z = saturate(shadowCoord.z);
 
 				// TODO: Apply proper bias considering NdotL
 				half bias = 0.001;
@@ -148,8 +149,14 @@ Shader "RenderLoop/LowEnd"
 #else
 				shadowAttenuation = step(shadowCoord.z - bias, shadowDepth);
 #endif
+
+#if DEBUG_CASCADES
+				half4 cascadeColors[MAX_SHADOW_CASCADES] = { half4(1.0, 0.0, 0.0, 1.0), half4(0.0, 1.0, 0.0, 1.0),  half4(0.0, 0.0, 1.0, 1.0),  half4(1.0, 0.0, 1.0, 1.0) };
+				return cascadeColors[cascadeIndex] * diffuseColor * max(shadowAttenuation, 0.5);
+#else
 				half3 color = EvaluateOneLight(lightInput, diffuseColor, specularColor, normal, posWorld, viewDir);
 				return color * shadowAttenuation;
+#endif
 			}
 
 			struct VertexInput
@@ -215,6 +222,14 @@ Shader "RenderLoop/LowEnd"
 
 				half3 color = i.color * diffuseAlbedo.rgb;
 
+#if DEBUG_CASCADES
+				LightInput lightInput;
+				lightInput.pos = globalLightPos[0];
+				lightInput.color = globalLightColor[0];
+				lightInput.atten = globalLightAtten[0];
+				lightInput.spotDir = globalLightSpotDir[0];
+				color = EvaluateOneLightAndShadow(lightInput, diffuse, specColor, i.normalWS, i.posWSEyeZ, viewDir);
+#else
 				for (int lightIndex = 0; lightIndex < globalLightCount.x; ++lightIndex)
 				{
 					LightInput lightInput;
@@ -228,7 +243,7 @@ Shader "RenderLoop/LowEnd"
 					else
 						color += EvaluateOneLight(lightInput, diffuse, specColor, i.normalWS, posWorld, viewDir);
 				}
-
+#endif
 				return half4(color, diffuseAlbedo.a);
 			}
 			ENDCG

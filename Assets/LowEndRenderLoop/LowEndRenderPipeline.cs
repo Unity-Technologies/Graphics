@@ -1,81 +1,29 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.ScriptableRenderLoop;
 using UnityEngine.Rendering;
 using UnityEngine.ScriptableRenderPipeline;
-using System.Collections.Generic;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 #region RenderPipelineInstance
 public class LowEndRenderPipelineInstance : RenderPipeline
 {
-    private readonly LowEndRenderPipeline m_Owner;
+    private readonly LowEndRenderPipeline m_Asset;
 
-    public LowEndRenderPipelineInstance(LowEndRenderPipeline owner)
-    {
-        m_Owner = owner;
-        if (m_Owner != null)
-            m_Owner.Build();
-    }
-
-    public override void Dispose()
-    {
-        base.Dispose();
-        if (m_Owner != null)
-            m_Owner.Cleanup();
-    }
-
-    public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
-    {
-        base.Render(renderContext, cameras);
-        if (m_Owner != null)
-            m_Owner.Render(renderContext, cameras);
-    }
-}
-#endregion
-
-public class LowEndRenderPipeline : RenderPipelineAsset
-{
-#region AssetAndPipelineCreation
-#if UNITY_EDITOR
-    [UnityEditor.MenuItem("Renderloop/Create Low End Pipeline")]
-    static void CreateLowEndPipeline()
-    {
-        var instance = ScriptableObject.CreateInstance<LowEndRenderPipeline>();
-        AssetDatabase.CreateAsset(instance, "Assets/LowEndRenderLoop/LowEndPipeline.asset");
-    }
-#endif
-
-    protected override IRenderPipeline InternalCreatePipeline()
-    {
-        return new LowEndRenderPipelineInstance(this);
-    }
-#endregion
-
-#region Storage
-    public bool m_SupportsVertexLight = true;
-
-    [SerializeField]
-    ShadowSettings m_ShadowSettings = ShadowSettings.Default;
     ShadowRenderPass m_ShadowPass;
-    #endregion
+    ShadowSettings m_ShadowSettings = ShadowSettings.Default;
 
-#region RenderPipelineAssetImplementation
-    public void Build()
+    public LowEndRenderPipelineInstance(LowEndRenderPipeline asset)
     {
+        m_Asset = asset;
+
         BuildShadowSettings();
         m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
     }
 
-    public void Cleanup()
+    public override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
-    }
+        base.Render(context, cameras);
 
-    public void Render(ScriptableRenderContext context, IEnumerable<Camera> cameras)
-    {
         foreach (Camera camera in cameras)
         {
             CullingParameters cullingParameters;
@@ -112,15 +60,13 @@ public class LowEndRenderPipeline : RenderPipelineAsset
 
         context.Submit();
     }
-    #endregion
 
-#region HelperMethods
     private void BuildShadowSettings()
     {
         m_ShadowSettings = ShadowSettings.Default;
-        m_ShadowSettings.directionalLightCascadeCount = QualitySettings.shadowCascades; ;
-        m_ShadowSettings.shadowAtlasWidth = 1024;
-        m_ShadowSettings.shadowAtlasHeight = 1024;
+        m_ShadowSettings.directionalLightCascadeCount = QualitySettings.shadowCascades;
+        m_ShadowSettings.shadowAtlasWidth = m_Asset.ShadowAtlasWidth;
+        m_ShadowSettings.shadowAtlasHeight = m_Asset.ShadowAtlasHeight;
         m_ShadowSettings.maxShadowDistance = QualitySettings.shadowDistance;
         m_ShadowSettings.maxShadowLightsSupported = 1;
         m_ShadowSettings.shadowType = ShadowSettings.ShadowType.LIGHTSPACE;
@@ -147,6 +93,7 @@ public class LowEndRenderPipeline : RenderPipelineAsset
         }
     }
 
+    #region HelperMethods
     private void SetupLightShaderVariables(VisibleLight[] lights, ScriptableRenderContext context)
     {
         if (lights.Length <= 0)
@@ -161,7 +108,7 @@ public class LowEndRenderPipeline : RenderPipelineAsset
 
         // TODO: Sort Lighting Importance
         int pixelLightCount = Mathf.Min(lights.Length, QualitySettings.pixelLightCount);
-        int vertexLightCount = Mathf.Min(lights.Length - pixelLightCount, kMaxLights);
+        int vertexLightCount = (m_Asset.SupportsVertexLight) ? Mathf.Min(lights.Length - pixelLightCount, kMaxLights) : 0;
         int totalLightCount = pixelLightCount + vertexLightCount;
 
         for (int i = 0; i < totalLightCount; ++i)
@@ -221,11 +168,6 @@ public class LowEndRenderPipeline : RenderPipelineAsset
         cmd.Dispose();
     }
 
-    private void RenderShadowPass(CullResults results, ScriptableRenderContext context, out ShadowOutput shadow)
-    {
-        m_ShadowPass.Render(context, results, out shadow);
-    }
-
     void SetupShadowShaderVariables(ShadowOutput shadowOutput, ScriptableRenderContext context, float shadowNear, float shadowFar)
     {
         // PSSM distance settings
@@ -277,5 +219,36 @@ public class LowEndRenderPipeline : RenderPipelineAsset
         outCoefficients[6].z = ambientProbe[2, 8];
         outCoefficients[6].w = 1.0f;
     }
+    #endregion
+}
+#endregion
+
+public class LowEndRenderPipeline : RenderPipelineAsset
+{
+#region AssetAndPipelineCreation
+#if UNITY_EDITOR
+    [UnityEditor.MenuItem("Renderloop/Create Low End Pipeline")]
+    static void CreateLowEndPipeline()
+    {
+        var instance = ScriptableObject.CreateInstance<LowEndRenderPipeline>();
+        UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/LowEndRenderLoop/LowEndPipeline.asset");
+    }
+#endif
+
+    protected override IRenderPipeline InternalCreatePipeline()
+    {
+        return new LowEndRenderPipelineInstance(this);
+    }
+#endregion
+
+#region PipelineAssetSettings
+    public bool m_SupportsVertexLight = true;
+    public int m_ShadowAtlasWidth = 1024;
+    public int m_ShadowAtlasHeight = 1024;
+
+    public bool SupportsVertexLight { get { return m_SupportsVertexLight;} private set { m_SupportsVertexLight = value; } }
+
+    public int ShadowAtlasWidth { get { return m_ShadowAtlasWidth; } private set { m_ShadowAtlasWidth = value; } }
+    public int ShadowAtlasHeight { get { return m_ShadowAtlasHeight; } private set { m_ShadowAtlasHeight = value; } }
 #endregion
 }
