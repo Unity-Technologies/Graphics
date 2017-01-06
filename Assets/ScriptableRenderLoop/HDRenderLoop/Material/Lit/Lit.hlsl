@@ -1215,7 +1215,7 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
         float weightOverPdf;
 
         // GGX BRDF
-        if (bsdfData.materialId = MATERIALID_LIT_ANISO)
+        if (bsdfData.materialId == MATERIALID_LIT_ANISO)
         {
             ImportanceSampleAnisoGGX(u, V, N, tangentX, tangentY, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
         }
