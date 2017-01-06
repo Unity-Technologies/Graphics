@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using NUnit.Framework;
 using UnityEngine.Rendering;
-using UnityEngine.ScriptableRenderPipeline;
 
 [ExecuteInEditMode]
 public class RenderLoopTestFixture : RenderPipelineAsset

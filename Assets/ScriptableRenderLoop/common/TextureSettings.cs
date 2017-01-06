@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering
 {
     [System.Serializable]
     public struct TextureSettings

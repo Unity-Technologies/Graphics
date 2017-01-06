@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.ScriptableRenderPipeline;
 
 // Very basic scriptable rendering loop example:
 // - Use with BasicRenderLoopShader.shader (the loop expects "BasicPass" pass type to exist)

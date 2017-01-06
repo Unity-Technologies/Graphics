@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     //-----------------------------------------------------------------------------
     // structure definition
@@ -135,4 +135,4 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Vector3 offsetLS;
         public float unused2;
     };
-} // namespace UnityEngine.Experimental.ScriptableRenderLoop
+}
