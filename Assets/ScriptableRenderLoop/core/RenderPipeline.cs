@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.ScriptableRenderPipeline
+namespace UnityEngine.Experimental.Rendering
 {
     public abstract class RenderPipeline : IRenderPipeline
     {

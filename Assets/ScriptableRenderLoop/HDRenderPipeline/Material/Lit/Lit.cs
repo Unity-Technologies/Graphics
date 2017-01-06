@@ -1,8 +1,6 @@
-using UnityEngine;
 using UnityEngine.Rendering;
-using System;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     namespace Lit
     {
