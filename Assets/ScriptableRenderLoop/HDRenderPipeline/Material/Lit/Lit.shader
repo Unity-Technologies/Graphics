@@ -149,6 +149,10 @@ Shader "HDRenderPipeline/Lit"
 
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Lit/LitProperties.hlsl"
 
+    // All our shaders use same name for entry point
+    #pragma vertex Vert
+    #pragma fragment Frag
+
     ENDHLSL
 
     SubShader
@@ -164,9 +168,6 @@ Shader "HDRenderPipeline/Lit"
             Cull  [_CullMode]
 
             HLSLPROGRAM
-
-            #pragma vertex VertDefault
-            #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../Material/Material.hlsl"
@@ -186,9 +187,6 @@ Shader "HDRenderPipeline/Lit"
             Cull[_CullMode]
 
             HLSLPROGRAM
-
-            #pragma vertex VertDefault
-            #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
             #include "../../Material/Material.hlsl"
@@ -337,8 +335,7 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #pragma vertex VertDefault
-            #pragma fragment Frag
+
 
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include
