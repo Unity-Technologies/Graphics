@@ -186,8 +186,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ApplyDepthOffsetAttribute(depthOffset, input);
 #endif
 
-    float alpha = GetSurfaceData(input, layerTexCoord, surfaceData);
+    float3 normalTS;
+    float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
+    surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
 }
 
 #else
@@ -239,34 +241,19 @@ void ComputeMaskWeights(float3 inputMasks, out float outWeights[_MAX_LAYER])
     outWeights[0] = left;
 }
 
-float3 BlendLayeredColor(float3 rgb0, float3 rgb1, float3 rgb2, float3 rgb3, float weight[4])
+float3 BlendLayeredFloat3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
 {
     float3 result = float3(0.0, 0.0, 0.0);
 
-    result = rgb0 * weight[0] + rgb1 * weight[1];
+    result = x0 * weight[0] + x1 * weight[1];
 #if _LAYER_COUNT >= 3
-    result += (rgb2 * weight[2]);
+    result += (x2 * weight[2]);
 #endif
 #if _LAYER_COUNT >= 4
-    result += rgb3 * weight[3];
+    result += x3 * weight[3];
 #endif
 
     return result;
-}
-
-float3 BlendLayeredNormal(float3 normal0, float3 normal1, float3 normal2, float3 normal3, float weight[4])
-{
-    float3 result = float3(0.0, 0.0, 0.0);
-
-    result = normal0 * weight[0] + normal1 * weight[1];
-#if _LAYER_COUNT >= 3
-    result += normal2 * weight[2];
-#endif
-#if _LAYER_COUNT >= 4
-    result += normal3 * weight[3];
-#endif
-
-    return normalize(result);
 }
 
 float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4])
@@ -305,8 +292,7 @@ float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, 
 }
 
 
-#define SURFACEDATA_BLEND_COLOR(surfaceData, name, mask) BlendLayeredColor(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
-#define SURFACEDATA_BLEND_NORMAL(surfaceData, name, mask) BlendLayeredNormal(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
+#define SURFACEDATA_BLEND_COLOR(surfaceData, name, mask) BlendLayeredFloat3(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
@@ -358,10 +344,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     SurfaceData surfaceData1;
     SurfaceData surfaceData2;
     SurfaceData surfaceData3;
-    float alpha0 = GetSurfaceData0(input, layerTexCoord, surfaceData0);
-    float alpha1 = GetSurfaceData1(input, layerTexCoord, surfaceData1);
-    float alpha2 = GetSurfaceData2(input, layerTexCoord, surfaceData2);
-    float alpha3 = GetSurfaceData3(input, layerTexCoord, surfaceData3);
+    float3 normalTS0;
+    float3 normalTS1;
+    float3 normalTS2;
+    float3 normalTS3;
+    float alpha0 = GetSurfaceData0(input, layerTexCoord, surfaceData0, normalTS0);
+    float alpha1 = GetSurfaceData1(input, layerTexCoord, surfaceData1, normalTS1);
+    float alpha2 = GetSurfaceData2(input, layerTexCoord, surfaceData2, normalTS2);
+    float alpha3 = GetSurfaceData3(input, layerTexCoord, surfaceData3, normalTS3);
 
     // Mask Values : Layer 1, 2, 3 are r, g, b
     float3 maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
@@ -382,15 +372,26 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     surfaceData.baseColor = SURFACEDATA_BLEND_COLOR(surfaceData, baseColor, weights);
     surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
-    // Note: for normal map (in tangent space) it is possible to have better performance
-    // by blending in tangent space then transform to world and apply flip. 
-    // Sadly this require a specific path (without taking into account that there is detail normal map)
-    // mean it add an extra cost of maintenance. We chose to not do this optimization in favor 
-    // of simpler code and in the future will rely on shader graph to create optimize code.
-    surfaceData.normalWS = SURFACEDATA_BLEND_NORMAL(surfaceData,  normalWS, weights);
     surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
+
+    float3 normalTS;
+#if defined(_HEIGHT_BASED_BLEND)
+    float _InheritBaseLayer0 = 1.0f; // Default value for lerp when all weights but base layer are zero.
+
+    // Compute the combined inheritance factor of layers 1,2 and 3
+    float inheritFactor = PROP_BLEND_SCALAR(_InheritBaseLayer, weights);
+    float3 vertexNormalTS = float3(0.0, 0.0, 1.0);
+    // The idea here is to lerp toward vertex normal. This way when we don't want to inherit, we will combine layer 1/2/3 normal with a vertex normal which is neutral.
+    float3 baseLayerNormalTS = normalize(lerp(vertexNormalTS, normalTS0, inheritFactor));
+    // Blend layer 1/2/3 normals before combining to the base layer. Again we need to have a neutral value for base layer (vertex normal) in case all weights are zero.
+    float3 layersNormalTS = BlendLayeredFloat3(vertexNormalTS, normalTS1, normalTS2, normalTS3, weights);
+    normalTS = BlendNormal(baseLayerNormalTS, layersNormalTS);
+#else
+    normalTS = BlendLayeredFloat3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
+#endif
+    surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
 
     // Init other unused parameter
     surfaceData.materialId = 0;
