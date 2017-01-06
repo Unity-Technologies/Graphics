@@ -24,6 +24,7 @@ namespace UnityEditor.Graphing.Drawing
                 {Event.KeyboardEvent("tab"), FrameNext}
             }));
 
+            AddManipulator(new ClickGlobalSelector());
             AddManipulator(new ContentZoomer());
             AddManipulator(new ContentDragger());
             AddManipulator(new RectangleSelector());
@@ -71,16 +72,22 @@ namespace UnityEditor.Graphing.Drawing
                 AddToSelection(drawer);
         }
 
+        public void SetGlobalSelection()
+        {
+            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
+            if (graphDataSource == null || graphDataSource.graphAsset == null)
+                return;
+            Selection.activeObject = graphDataSource.graphAsset.GetScriptableObject();
+        }
+
         private void PropagateSelection()
         {
             var graphDataSource = GetPresenter<AbstractGraphDataSource>();
-            if (graphDataSource == null || graphDataSource.graphAsset == null) return;
+            if (graphDataSource == null || graphDataSource.graphAsset == null)
+                return;
 
             var selectedNodeGuids = selection.OfType<NodeDrawer>().Select(x => ((NodeDrawData) x.presenter).node.guid);
             graphDataSource.graphAsset.drawingData.selection = selectedNodeGuids;
-
-            // TODO: Maybe put somewhere else
-            Selection.activeObject = graphDataSource.graphAsset.GetScriptableObject();
         }
 
         public override void AddToSelection(ISelectable selectable)
