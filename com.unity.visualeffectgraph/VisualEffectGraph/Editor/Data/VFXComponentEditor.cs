@@ -133,7 +133,13 @@ public class VFXComponentEditor : Editor
     //private List<SlotValueBinder> m_ValueBinders = new List<SlotValueBinder>(); 
 
 
-    // Debug Stats
+    // Debug Stats : To be refactored into Debug Views
+    private bool m_ShowDebugStats = false;
+    private enum DebugStatMode
+    {
+        Efficiency = 0
+    }
+    private DebugStatMode m_DebugStatMode = DebugStatMode.Efficiency;
     private VFXSystemComponentStat[] m_DebugStatCurrentData;
     private List<uint>[] m_DebugStatAliveHistory;
     private uint[] m_DebugStatMaxCapacity;
@@ -231,13 +237,11 @@ public class VFXComponentEditor : Editor
             Handles.BeginGUI();
             Camera cam = sceneCamObj.GetComponent<Camera>();
             Rect windowRect = new Rect(cam.pixelWidth / 2 - 140, cam.pixelHeight - 64 , 324, 68);
-           
+            Rect debugWindowRect = new Rect(10, 28, 480, 300 + m_DebugStatCurrentData.Length * 16);
             GUI.Window(666, windowRect, DrawPlayControlsWindow, "VFX Playback Control");
 
-
-            Rect debugWindowRect = new Rect(10, 28, 480, 300 + m_DebugStatCurrentData.Length * 16);
-
-            GUI.Window(667, debugWindowRect, DrawDebugControlsWindow, "VFX Debug Information");
+            if(m_ShowDebugStats)
+                GUI.Window(667, debugWindowRect, DrawDebugControlsWindow, "VFX Debug Information");
 
             Handles.EndGUI();
             GL.sRGBWrite = false;
@@ -253,6 +257,8 @@ public class VFXComponentEditor : Editor
     public void DrawPlayControlsWindow(int windowID)
     {
         var component = (VFXComponent)target;
+
+        m_ShowDebugStats = GUI.Toggle(new Rect(260,0,64,16),m_ShowDebugStats, m_Contents.infoButton, EditorStyles.miniButton);
 
         // PLAY CONTROLS
         using (new GUILayout.HorizontalScope())
@@ -472,8 +478,9 @@ public class VFXComponentEditor : Editor
             {
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("All Systems Usage");
-                    GUILayout.FlexibleSpace();
+                    GUILayout.Label("Debug Mode", GUILayout.Width(120));
+                    m_DebugStatMode = (DebugStatMode)EditorGUILayout.EnumPopup(m_DebugStatMode);
+                    GUILayout.Space(32);
                 }
 
 
@@ -652,5 +659,7 @@ public class VFXComponentEditor : Editor
         public GUIContent ButtonFrameAdvance = new GUIContent();
 
         public GUIContent ToggleWidget = new GUIContent();
+
+        public GUIContent infoButton = new GUIContent("Debug",EditorGUIUtility.IconContent("console.infoicon").image);
     }
 }
