@@ -3,7 +3,7 @@ using UnityEngine;
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     namespace Builtin
     {

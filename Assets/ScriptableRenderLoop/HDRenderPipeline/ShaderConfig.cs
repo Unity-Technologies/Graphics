@@ -5,7 +5,7 @@ using System;
 // Configuration
 //-----------------------------------------------------------------------------
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [GenerateHLSL(PackingRules.Exact)]
     public enum ShaderOptions

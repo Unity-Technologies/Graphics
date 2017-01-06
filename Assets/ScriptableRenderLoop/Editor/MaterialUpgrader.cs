@@ -1,9 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-namespace UnityEditor.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.Rendering
 {
     public class MaterialUpgrader
     {

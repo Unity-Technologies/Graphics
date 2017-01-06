@@ -1,10 +1,10 @@
-using System;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.Rendering.HDPipeline
+
 {
-    class StandardToHDLitMaterialUpgrader : MaterialUpgrader
+	class StandardToHDLitMaterialUpgrader : MaterialUpgrader
     {
         public StandardToHDLitMaterialUpgrader()
         {

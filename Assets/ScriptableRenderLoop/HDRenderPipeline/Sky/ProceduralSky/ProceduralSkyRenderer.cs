@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class ProceduralSkyRenderer
         : SkyRenderer<ProceduralSkyParameters>
