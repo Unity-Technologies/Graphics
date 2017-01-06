@@ -22,10 +22,19 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         {
             public readonly GUIContent[] layerLabels =
             {
-                new GUIContent("Layer 0"),
+                new GUIContent("Base Layer"),
                 new GUIContent("Layer 1"),
                 new GUIContent("Layer 2"),
                 new GUIContent("Layer 3"),
+            };
+
+
+            public readonly GUIStyle[] layerLabelColors = 
+            {
+                new GUIStyle(EditorStyles.label),
+                new GUIStyle(EditorStyles.label),
+                new GUIStyle(EditorStyles.label),
+                new GUIStyle(EditorStyles.label)
             };
 
             public readonly GUIContent materialLayerText = new GUIContent("Material");
@@ -40,10 +49,18 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
             public readonly GUIContent UVDetailText = new GUIContent("Detail UV Mapping", "Detail UV Mapping mode of the layer.");
             public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
-            public readonly GUIContent heightOffsetText = new GUIContent("HeightOffset", "Height offset from the previous layer.");
+            public readonly GUIContent heightOffsetText = new GUIContent("Height Offset", "Height offset from the previous layer.");
+            public readonly GUIContent inheritBaseLayerText = new GUIContent("Inherit Base Layer Normal", "Inherit the normal from the base layer.");
             public readonly GUIContent heightFactorText = new GUIContent("Height Multiplier", "Scale applied to the height of the layer.");
             public readonly GUIContent blendSizeText = new GUIContent("Blend Size", "Thickness over which the layer will be blended with the previous one.");
 
+
+            public StylesLayer()
+            {
+                layerLabelColors[1].normal.textColor = Color.red;
+                layerLabelColors[2].normal.textColor = Color.green;
+                layerLabelColors[3].normal.textColor = Color.blue;
+            }
 
         }
 
@@ -79,6 +96,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         MaterialProperty useHeightBasedBlend = null;
         const string kHeightOffset = "_HeightOffset";
         MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount-1];
+        const string kInheritBaseLayer = "_InheritBaseLayer";
+        MaterialProperty[] inheritBaseLayer = new MaterialProperty[kMaxLayerCount - 1];
         const string kHeightFactor = "_HeightFactor";
         MaterialProperty[] heightFactor = new MaterialProperty[kMaxLayerCount-1];
         const string kBlendSize = "_BlendSize";
@@ -111,6 +130,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
                 if(i != 0)
                 {
+                    inheritBaseLayer[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseLayer, i), props);
                     heightOffset[i-1] = FindProperty(string.Format("{0}{1}", kHeightOffset, i), props);
                     heightFactor[i-1] = FindProperty(string.Format("{0}{1}", kHeightFactor, i), props);
                     blendSize[i-1] = FindProperty(string.Format("{0}{1}", kBlendSize, i), props);
@@ -397,7 +417,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
             Material material = m_MaterialEditor.target as Material;
 
-            EditorGUILayout.LabelField(styles.layerLabels[layerIndex]);
+            EditorGUILayout.LabelField(styles.layerLabels[layerIndex], styles.layerLabelColors[layerIndex]);
 
             EditorGUI.indentLevel++;
 
@@ -441,6 +461,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 {
                     int heightParamIndex = layerIndex - 1;
 
+                    m_MaterialEditor.ShaderProperty(inheritBaseLayer[heightParamIndex], styles.inheritBaseLayerText);
                     m_MaterialEditor.ShaderProperty(heightOffset[heightParamIndex], styles.heightOffsetText);
                     m_MaterialEditor.ShaderProperty(heightFactor[heightParamIndex], styles.heightFactorText);
                     m_MaterialEditor.ShaderProperty(blendSize[heightParamIndex], styles.blendSizeText);
@@ -448,6 +469,9 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             }
 
             EditorGUI.indentLevel--;
+
+            if(layerIndex == 0)
+                EditorGUILayout.Space();
 
             return result;
         }
