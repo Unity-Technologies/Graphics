@@ -110,15 +110,19 @@ float AnisotropicStrechAtGrazingAngle(float roughness, float perceptualRoughness
 
 void ImportanceSampleCosDir(float2   u,
                             float3x3 localToWorld,
-                        out float3   L)
+                        out float3   L,
+                        out float    NdotL)
 {
     // Cosine sampling - ref: http://www.rorydriscoll.com/2009/01/07/better-sampling/
-    float cosTheta = sqrt(saturate(1.0 - u.x));
+    float cosTheta = sqrt(1.0 - u.x);
     float sinTheta = sqrt(u.x);
     float phi      = TWO_PI * u.y;
 
-    L = SphericalToCartesian(phi, sinTheta, cosTheta);
-    L = mul(L, localToWorld);
+    float3 localL = SphericalToCartesian(phi, sinTheta, cosTheta);
+
+    NdotL = localL.z;
+
+    L = mul(localL, localToWorld);
 }
 
 void ImportanceSampleGGXDir(float2   u,
@@ -126,6 +130,7 @@ void ImportanceSampleGGXDir(float2   u,
                             float3x3 localToWorld,
                             float    roughness,
                         out float3   L,
+                        out float    NdotL,
                         out float    NdotH,
                         out float    VdotH,
                             bool     VeqN = false)
@@ -153,10 +158,12 @@ void ImportanceSampleGGXDir(float2   u,
         VdotH  = saturate(dot(localV, localH));
     }
 
-    // Compute { L = reflect(-localV, localH) }
-    L = -localV + 2.0 * VdotH * localH;
+    // Compute { localL = reflect(-localV, localH) }
+    float3 localL = -localV + 2.0 * VdotH * localH;
 
-    L = mul(L, localToWorld);
+    NdotL = localL.z;
+
+    L = mul(localL, localToWorld);
 }
 
 // ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf p26
@@ -188,9 +195,7 @@ void ImportanceSampleLambert(float2   u,
                          out float    NdotL,
                          out float    weightOverPdf)
 {
-    ImportanceSampleCosDir(u, localToWorld, L);
-
-    NdotL = saturate(dot(localToWorld[2], L));
+    ImportanceSampleCosDir(u, localToWorld, L, NdotL);
 
     // Importance sampling weight for each sample
     // pdf = N.L / PI
@@ -214,11 +219,8 @@ void ImportanceSampleGGX(float2   u,
                      out float    NdotL,
                      out float    weightOverPdf)
 {
-    float3 H;
-    float  NdotH;
-    ImportanceSampleGGXDir(u, V, localToWorld, roughness, L, NdotH, VdotH);
-
-    NdotL = saturate(dot(localToWorld[2], L));
+    float NdotH;
+    ImportanceSampleGGXDir(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH);
 
     // Importance sampling weight for each sample
     // pdf = D(H) * (N.H) / (4 * (L.H))
@@ -264,10 +266,12 @@ void ImportanceSampleAnisoGGX(
     // weightOverPdf = F(H) * 4 * (N.L) * V(V, L) * (L.H) / (N.H) with V(V, L) = G(V, L) / (4 * (N.L) * (N.V))
     // Remind (L.H) == (V.H)
     // F is apply outside the function
+
+    // For anisotropy we must not saturate these values
     float TdotV = dot(tangentX, V);
     float BdotV = dot(tangentY, V);
-    float TdotL = saturate(dot(tangentX, L));
-    float BdotL = saturate(dot(tangentY, L));
+    float TdotL = dot(tangentX, L);
+    float BdotL = dot(tangentY, L);
 
     float Vis = V_SmithJointGGXAniso(TdotV, BdotV, NdotV, TdotL, BdotL, NdotL, roughnessT, roughnessB);
     weightOverPdf = 4.0 * Vis * NdotL * VdotH / NdotH;
@@ -280,7 +284,7 @@ void ImportanceSampleAnisoGGX(
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sampleCount)
 {
-    float NdotV     = GetShiftedNdotV(N, V, false); // This fix some rare artifact at edge.
+    float NdotV     = saturate(dot(N, V));
     float4 acc      = float4(0.0, 0.0, 0.0, 0.0);
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
@@ -356,10 +360,8 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
         u.x = lerp(u.x, 0.0, bias);
 
         float3 L;
-        float  NdotH, VdotH;
-        ImportanceSampleGGXDir(u, V, localToWorld, roughness, L, NdotH, VdotH, true);
-
-        float NdotL = saturate(dot(N, L));
+        float  NdotL, NdotH, VdotH;
+        ImportanceSampleGGXDir(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, true);
 
         float mipLevel;
 
