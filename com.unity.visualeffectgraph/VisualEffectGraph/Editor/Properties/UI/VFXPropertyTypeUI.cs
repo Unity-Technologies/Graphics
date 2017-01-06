@@ -149,7 +149,7 @@ namespace UnityEngine.Experimental.VFX
                 return;
 
             EditorGUI.BeginChangeCheck();
-            s_EditorGUIGradientField.Invoke(null, new object[] { area, slot.Get<Gradient>(true) });
+            s_EditorGUIGradientField.Invoke(null, new object[] { area, slot.Get<Gradient>(true), true });
             if (EditorGUI.EndChangeCheck())
                 Slot(slot, true).NotifyChange(VFXPropertySlot.Event.kValueUpdated); // We need to call this explicitly as the gradient reference has not changed
         }
@@ -161,7 +161,7 @@ namespace UnityEngine.Experimental.VFX
                 return;
 
             EditorGUI.BeginChangeCheck();
-            s_EditorGUILayoutGradientField.Invoke(null, new object[] { slot.Name, slot.Get<Gradient>(false), null });
+            s_EditorGUILayoutGradientField.Invoke(null, new object[] { slot.Name, slot.Get<Gradient>(false), true, null });
             if (EditorGUI.EndChangeCheck())
                 Slot(slot, false).NotifyChange(VFXPropertySlot.Event.kValueUpdated); // We need to call this explicitly as the gradient reference has not changed
         }
@@ -173,11 +173,11 @@ namespace UnityEngine.Experimental.VFX
             {
                 s_GradientFieldMethodInitialized = true;
 
-                s_EditorGUIGradientField = typeof(EditorGUI).GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(Rect), typeof(Gradient) }, null);
+                s_EditorGUIGradientField = typeof(EditorGUI).GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(Rect), typeof(Gradient), typeof(bool) }, null);
                 if (s_EditorGUIGradientField == null)
                     Debug.LogError("Cannot get EditorGUI.GradientField method by reflection");
 
-                s_EditorGUILayoutGradientField = typeof(EditorGUILayout).GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string), typeof(Gradient), typeof(GUILayoutOption[]) }, null);
+				s_EditorGUILayoutGradientField = typeof(EditorGUILayout).GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string), typeof(Gradient), typeof(bool), typeof(GUILayoutOption[]) }, null);
                 if (s_EditorGUILayoutGradientField == null)
                     Debug.LogError("Cannot get EditorGUILayout.GradientField method by reflection");
             }

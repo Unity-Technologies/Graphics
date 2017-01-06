@@ -347,8 +347,7 @@ namespace UnityEditor.Experimental
             VFXAsset asset = VFXEditor.asset;
             m_TextureData.Generate(asset);
 
-            asset.GradientTexture = m_TextureData.ColorTexture;
-            asset.CurveTexture = m_TextureData.FloatTexture;
+            asset.FloatTexture = m_TextureData.FloatTexture;
 
             ProgressBarHelper.IncrementStep("Generate data: Update asset expressions");
             if (asset != null)

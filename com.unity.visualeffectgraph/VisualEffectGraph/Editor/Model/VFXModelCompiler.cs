@@ -42,7 +42,6 @@ namespace UnityEditor.Experimental
         public Shader OutputShader { get { return outputShader; } }
 
         public VFXGeneratedTextureData m_GeneratedTextureData = null;
-        public VFXContextDesc.Type m_ColorTextureContexts;
         public VFXContextDesc.Type m_FloatTextureContexts;
 
         public HashSet<VFXExpression> m_RawExpressions = null;
@@ -199,7 +198,6 @@ namespace UnityEditor.Experimental
         public Dictionary<VFXExpression, string>[] paramToName;
 
         public VFXGeneratedTextureData generatedTextureData;
-        public VFXContextDesc.Type colorTextureContexts;
         public VFXContextDesc.Type floatTextureContexts;
 
         public Dictionary<VFXExpression, VFXExpression> extraUniforms;
@@ -590,12 +588,11 @@ namespace UnityEditor.Experimental
 
             // Check what context needs signal textures
             // TODO Factorize this shit!
-            VFXContextDesc.Type colorTextureContexts = VFXContextDesc.Type.kTypeNone;
-            if (HasValueOfType(initUniforms, VFXValueType.kColorGradient))      colorTextureContexts |= VFXContextDesc.Type.kTypeInit;
-            if (HasValueOfType(updateUniforms, VFXValueType.kColorGradient))    colorTextureContexts |= VFXContextDesc.Type.kTypeUpdate;
-            if (HasValueOfType(outputUniforms, VFXValueType.kColorGradient))    colorTextureContexts |= VFXContextDesc.Type.kTypeOutput;
+			VFXContextDesc.Type floatTextureContexts = VFXContextDesc.Type.kTypeNone;
+			if (HasValueOfType(initUniforms, VFXValueType.kColorGradient))      floatTextureContexts |= VFXContextDesc.Type.kTypeInit;
+			if (HasValueOfType(updateUniforms, VFXValueType.kColorGradient))    floatTextureContexts |= VFXContextDesc.Type.kTypeUpdate;
+			if (HasValueOfType(outputUniforms, VFXValueType.kColorGradient))    floatTextureContexts |= VFXContextDesc.Type.kTypeOutput;
 
-            VFXContextDesc.Type floatTextureContexts = VFXContextDesc.Type.kTypeNone;
             if (HasValueOfType(initUniforms, VFXValueType.kCurve))              floatTextureContexts |= VFXContextDesc.Type.kTypeInit;
             if (HasValueOfType(updateUniforms, VFXValueType.kCurve))            floatTextureContexts |= VFXContextDesc.Type.kTypeUpdate;
             if (HasValueOfType(outputUniforms, VFXValueType.kCurve))            floatTextureContexts |= VFXContextDesc.Type.kTypeOutput;
@@ -661,7 +658,6 @@ namespace UnityEditor.Experimental
             shaderMetaData.outputSamplers = outputSamplers;
             shaderMetaData.paramToName = paramToName;
             shaderMetaData.generatedTextureData = system.GeneratedTextureData;
-            shaderMetaData.colorTextureContexts = colorTextureContexts;
             shaderMetaData.floatTextureContexts = floatTextureContexts;
             shaderMetaData.extraUniforms = generatedUniforms;
             shaderMetaData.outputBuffer = outputBuffer;
@@ -737,7 +733,6 @@ namespace UnityEditor.Experimental
             Debug.Log("OUTPUTBUFFER SIZE: " + rtData.outputBufferSize);
 
             rtData.m_GeneratedTextureData = system.GeneratedTextureData;
-            rtData.m_ColorTextureContexts = colorTextureContexts;
             rtData.m_FloatTextureContexts = floatTextureContexts;
 
             // Build the buffer desc to send to component
@@ -926,10 +921,8 @@ namespace UnityEditor.Experimental
             builder.WriteSamplers(data.updateSamplers, data.paramToName[(int)ShaderMetaData.Pass.kUpdate]);
 
             // Write generated texture samplers
-            if ((data.colorTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
-                builder.WriteSampler(VFXValueType.kTexture2D, "gradientTexture");
             if ((data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
-                builder.WriteSampler(VFXValueType.kTexture2D, "curveTexture");
+                builder.WriteSampler(VFXValueType.kTexture2D, "floatTexture");
 
             // Write attribute struct
             foreach (var attribBuffer in data.attributeBuffers)
@@ -997,14 +990,10 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
             }
 
-            if ((data.colorTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
-            {
-                data.generatedTextureData.WriteSampleGradientFunction(builder);
-                builder.WriteLine();
-            }
-
             if ((data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
             {
+				data.generatedTextureData.WriteSampleGradientFunction(builder);
+				builder.WriteLine();
                 data.generatedTextureData.WriteSampleCurveFunction(builder);
                 builder.WriteLine();
                 data.generatedTextureData.WriteSampleSplineFunction(builder);
@@ -1367,10 +1356,8 @@ namespace UnityEditor.Experimental
             builder.WriteSamplers(data.outputSamplers, data.paramToName[(int)ShaderMetaData.Pass.kOutput]);
 
             // Write generated texture samplers
-            if ((data.colorTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
-                builder.WriteSampler(VFXValueType.kTexture2D,"gradientTexture");
             if ((data.floatTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
-                builder.WriteSampler(VFXValueType.kTexture2D, "curveTexture");
+                builder.WriteSampler(VFXValueType.kTexture2D, "floatTexture");
 
             if (system.HasSoftParticles())
             {
@@ -1423,15 +1410,11 @@ namespace UnityEditor.Experimental
             builder.ExitScopeStruct();
             builder.WriteLine();
 
-            if ((data.colorTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
-            {
-                data.generatedTextureData.WriteSampleGradientFunction(builder);
-                builder.WriteLine();
-            }
-
             if ((data.floatTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
             {
-                data.generatedTextureData.WriteSampleCurveFunction(builder);
+				data.generatedTextureData.WriteSampleGradientFunction(builder);
+				builder.WriteLine();
+				data.generatedTextureData.WriteSampleCurveFunction(builder);
                 builder.WriteLine();
                 data.generatedTextureData.WriteSampleSplineFunction(builder);
                 builder.WriteLine();
