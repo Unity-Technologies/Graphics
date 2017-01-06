@@ -139,6 +139,9 @@ float _BlendSize1;
 float _BlendSize2;
 float _BlendSize3;
 float _VertexColorHeightFactor;
+float _InheritBaseLayer1;
+float _InheritBaseLayer2;
+float _InheritBaseLayer3;
 
 float3 _EmissiveColor;
 TEXTURE2D(_EmissiveColorMap);

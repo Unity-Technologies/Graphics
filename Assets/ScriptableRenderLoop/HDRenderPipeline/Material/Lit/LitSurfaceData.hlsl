@@ -92,7 +92,7 @@ float ADD_IDX(ApplyDisplacement)(inout FragInputs input, float3 viewDirTS, inout
 }
 
 // Return opacity
-float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData)
+float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS)
 {
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     float alpha = ADD_IDX(_BaseColor).a;
@@ -137,40 +137,35 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     //surfaceData.specularOcclusion *= surfaceData.specularOcclusion;
     surfaceData.specularOcclusion = 1.0;
 #endif
+    surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this so that the compiler leaves us alone.
 
     // TODO: think about using BC5
-    float3 vertexNormalWS = normalize(input.tangentToWorld[2].xyz);
-
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
-        float3 normalTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_ZERO_IDX(_NormalScale));
-        #ifdef _DETAIL_MAP
-        normalTS = lerp(normalTS, BlendNormal(normalTS, detailNormalTS), detailMask);
-        #endif
-        surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+        normalTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_ZERO_IDX(_NormalScale));
     #else // Object space
         float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_ZERO_IDX(_NormalScale)).rgb;
-        surfaceData.normalWS = TransformObjectToWorldDir(normalOS);
-        #ifdef _DETAIL_MAP
-        float3 detailNormalWS = TransformTangentToWorld(detailNormalTS, input.tangentToWorld);
-        surfaceData.normalWS = lerp(surfaceData.normalWS, BlendNormal(surfaceData.normalWS, detailNormalWS), detailMask);
-        #endif
+        normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
     #endif
+
+        #ifdef _DETAIL_MAP
+        normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask);
+        #endif
 #else
-    surfaceData.normalWS = vertexNormalWS;
+    normalTS = float3(0.0, 0.0, 1.0);
 #endif
 
 #if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
     #ifdef _DOUBLESIDED_LIGHTING_FLIP
-    float3 oppositeNormalWS = -surfaceData.normalWS;
+    float3 oppositeNormalTS = -normalTS;
     #else
     // Mirror the normal with the plane define by vertex normal
-    float3 oppositeNormalWS = reflect(surfaceData.normalWS, vertexNormalWS);
+    float3 oppositeNormalTS = reflect(normalTS, float3(0.0, 0.0, 1.0)); // Reflect around vertex normal (in tangent space this is z)
 #endif
     // TODO : Test if GetOdddNegativeScale() is necessary here in case of normal map, as GetOdddNegativeScale is take into account in CreateTangentToWorld();
-    surfaceData.normalWS =  input.isFrontFace ? 
-                                (GetOdddNegativeScale() >= 0.0 ? surfaceData.normalWS : oppositeNormalWS) :
-                                (-GetOdddNegativeScale() >= 0.0 ? surfaceData.normalWS : oppositeNormalWS);
+    normalTS = input.isFrontFace ?
+                                (GetOdddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS) :
+                                (-GetOdddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS);
 #endif
 
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
