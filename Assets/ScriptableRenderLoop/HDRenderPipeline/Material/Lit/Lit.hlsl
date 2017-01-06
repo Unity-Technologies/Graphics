@@ -589,6 +589,9 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         float BdotH = dot(bsdfData.bitangentWS, H);
         float BdotL = dot(bsdfData.bitangentWS, L);
 
+        bsdfData.roughnessT = ClampRoughnessForAnalyticalLights(bsdfData.roughnessT);
+        bsdfData.roughnessB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessB);
+
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
         Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
                                             bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXLambdaV);
@@ -602,6 +605,8 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     }
     else
     {
+        bsdfData.roughness = ClampRoughnessForAnalyticalLights(bsdfData.roughness);
+
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
         Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
         #else
