@@ -62,9 +62,14 @@ SAMPLER2D(sampler_CookieTextures);
 TEXTURECUBE_ARRAY(_CookieCubeTextures);
 SAMPLERCUBE(sampler_CookieCubeTextures);
 
-// Use texture array for reflection
+// Use texture array for reflection (or LatLong 2D array for mobile)
+#ifdef CUBE_ARRAY_NOT_SUPPORTED
+TEXTURE2D_ARRAY(_EnvTextures);
+SAMPLER2D(sampler_EnvTextures);
+#else
 TEXTURECUBE_ARRAY(_EnvTextures);
 SAMPLERCUBE(sampler_EnvTextures);
+#endif
 
 TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
@@ -89,10 +94,10 @@ struct LightLoopContext
 // Shadow sampling function
 // ----------------------------------------------------------------------------
 
-float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS)
+float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, uint lightType, float3 positionWS, int index, float3 L, float2 unPositionSS)
 {
     int faceIndex = 0;
-    if (_ShadowDatas[index].lightType == GPULIGHTTYPE_POINT)
+    if (lightType == GPULIGHTTYPE_POINT)
     {
         GetCubeFaceID(L, faceIndex);
     }
@@ -233,12 +238,14 @@ float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalT
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
 {
-    lod = min(lod, UNITY_SPECCUBE_LOD_STEPS);
-
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
+        #ifdef CUBE_ARRAY_NOT_SUPPORTED
+        return SAMPLE_TEXTURE2D_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, DirectionToLatLongCoordinate(texCoord), index, lod);
+        #else
         return SAMPLE_TEXTURECUBE_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, texCoord, index, lod);
+        #endif
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {

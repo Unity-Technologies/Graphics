@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.Rendering
 {
     public class ShaderGeneratorMenu
     {

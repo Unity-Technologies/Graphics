@@ -5,9 +5,10 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEditor;
+using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.Rendering
 {
     public class CSharpToHLSL
     {

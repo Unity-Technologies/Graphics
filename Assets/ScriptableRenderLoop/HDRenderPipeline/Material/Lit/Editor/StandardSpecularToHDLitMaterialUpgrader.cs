@@ -1,8 +1,7 @@
-using System;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class StandardSpecularToHDLitMaterialUpgrader : MaterialUpgrader
     {
@@ -14,12 +13,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_Glossiness", "_Smoothness");
             RenameTexture("_BumpMap", "_NormalMap");
+            RenameFloat("_BumpScale", "_NormalScale");
             RenameColor("_EmissionColor", "_EmissiveColor");
             RenameFloat("_DetailNormalMapScale", "_DetailNormalScale");
             RenameTexture("_DetailNormalMap", "_DetailMap");
-
-            //@Seb: Bumpmap scale doesn't exist in new shader
-            //_BumpScale("Scale", Float) = 1.0
 
             // Anything reasonable that can be done here?
             //RenameFloat("_SpecColor", ...);

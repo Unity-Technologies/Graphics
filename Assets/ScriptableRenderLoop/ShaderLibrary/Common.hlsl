@@ -172,6 +172,13 @@ void Swap(inout float4 a, inout float4 b)
     float4 t = a; a = b; b = t;
 }
 
+#define CUBEMAPFACE_POSITIVE_X 0
+#define CUBEMAPFACE_NEGATIVE_X 1
+#define CUBEMAPFACE_POSITIVE_Y 2
+#define CUBEMAPFACE_NEGATIVE_Y 3
+#define CUBEMAPFACE_POSITIVE_Z 4
+#define CUBEMAPFACE_NEGATIVE_Z 5
+
 #ifndef INTRINSIC_CUBEMAP_FACE_ID
 // TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ?
 /*
@@ -193,14 +200,6 @@ float CubemapFaceID(float3 dir)
     return faceID;
 }
 */
-#endif // INTRINSIC_CUBEMAP_FACE_ID
-
-#define CUBEMAPFACE_POSITIVE_X 0
-#define CUBEMAPFACE_NEGATIVE_X 1
-#define CUBEMAPFACE_POSITIVE_Y 2
-#define CUBEMAPFACE_NEGATIVE_Y 3
-#define CUBEMAPFACE_POSITIVE_Z 4
-#define CUBEMAPFACE_NEGATIVE_Z 5
 
 void GetCubeFaceID(float3 dir, out int faceIndex)
 {
@@ -221,6 +220,8 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
         faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
     }
 }
+
+#endif // INTRINSIC_CUBEMAP_FACE_ID
 
 // ----------------------------------------------------------------------------
 // Common math definition and fastmath function
@@ -332,10 +333,26 @@ float4 PositivePow(float4 base, float4 power)
 }
 
 // ----------------------------------------------------------------------------
+// Texture format sampling
+// ----------------------------------------------------------------------------
+
+float2 DirectionToLatLongCoordinate(float3 dir)
+{
+    // coordinate frame is (-Z, X) meaning negative Z is primary axis and X is secondary axis.
+    return float2(1.0 - 0.5 * INV_PI * atan2(dir.x, -dir.z), asin(dir.y) * INV_PI + 0.5);
+}
+
+// ----------------------------------------------------------------------------
 // World position reconstruction / transformation
 // ----------------------------------------------------------------------------
 
-// Z buffer to linear 0..1 depth
+// Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane)
+float Linear01DepthFromNear(float depth, float4 zBufferParam)
+{
+    return 1.0 / (zBufferParam.x + zBufferParam.y / depth);
+}
+
+// Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane)
 float Linear01Depth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x * depth + zBufferParam.y);

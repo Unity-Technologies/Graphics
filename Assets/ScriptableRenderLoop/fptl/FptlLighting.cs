@@ -1,10 +1,8 @@
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using System;
 using System.Collections.Generic;
-using UnityEngine.ScriptableRenderPipeline;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.Fptl
 {
     public class FptlLightingInstance : RenderPipeline
     {
