@@ -29,9 +29,8 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
 // TODO: optimize!
 float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
 {
-    // return perceptualRoughnessToMipmapLevel(perceptualRoughness);
-
     float m = PerceptualRoughnessToRoughness(perceptualRoughness);
+
     // Remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
     float n = (2.0 / max(FLT_EPSILON, m * m)) - 2.0;
 
@@ -83,7 +82,6 @@ float3 ConvertEquiarealToCubemap(float u, float v)
     // phi        = TWO_PI * (1.0 - u)
     // cos(theta) = 1.0 - 2.0 * v
     // sin(theta) = sqrt(1.0 - cos^2(theta)) = 2.0 * sqrt(v - v * v)
-
 
     float phi      = TWO_PI - TWO_PI * u;
     float cosTheta = 1.0 - 2.0 * v;
