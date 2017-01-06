@@ -324,7 +324,6 @@ float3 TransformTangentToObject(float3 dirTS, float3 worldToTangent[3])
 float3 TransformObjectToTangent(float3 dirOS, float3 worldToTangent[3])
 {
     // TODO check: do we need to normalize ?
-    //return normalize(mul(float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz), mul((float3x3)unity_ObjectToWorld, dirOS)));
-    return normalize(mul(float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz), mul((float3x3)unity_WorldToObject, dirOS)));
+    return normalize(mul(float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz), mul((float3x3)unity_ObjectToWorld, dirOS)));
 }
 #endif // UNITY_SHADER_VARIABLES_INCLUDED
