@@ -210,9 +210,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ApplyDepthOffsetAttribute(depthOffset, input);
 #endif
 
+    // We perform the conversion to world of the normalTS outside of the GetSurfaceData
+    // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
     float3 normalTS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+    // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
 
