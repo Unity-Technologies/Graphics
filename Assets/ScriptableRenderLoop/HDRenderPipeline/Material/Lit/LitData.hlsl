@@ -212,8 +212,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float3 normalTS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
-    GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+    GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
 
 #else
