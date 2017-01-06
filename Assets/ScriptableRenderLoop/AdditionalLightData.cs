@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering
 {
     public enum LightArchetype {Punctual, Rectangle, Line};
 
@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return DefaultShadowResolution;
         }
 
-        [RangeAttribute(0.0F, 100.0F)]
+        [Range(0.0F, 100.0F)]
         private float m_innerSpotPercent = 0.0F;
 
         public float GetInnerSpotPercent01()
@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return Mathf.Clamp(m_innerSpotPercent, 0.0f, 100.0f) / 100.0f;
         }
 
-        [RangeAttribute(0.0F, 1.0F)]
+        [Range(0.0F, 1.0F)]
         public float shadowDimmer = 1.0f;
 
         public bool affectDiffuse = true;
@@ -37,10 +37,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public LightArchetype archetype = LightArchetype.Punctual;
         public bool isDoubleSided = false;
 
-        [RangeAttribute(0.0f, 20.0f)]
+        [Range(0.0f, 20.0f)]
         public float areaLightLength = 0.0f;
 
-        [RangeAttribute(0.0f, 20.0f)]
+        [Range(0.0f, 20.0f)]
         public float areaLightWidth = 0.0f;
     }
 }

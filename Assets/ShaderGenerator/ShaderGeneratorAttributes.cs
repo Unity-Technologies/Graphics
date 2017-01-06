@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering
 {
     public enum PackingRules
     {

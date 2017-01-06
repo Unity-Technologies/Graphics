@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Experimental.ScriptableRenderLoop;
+using UnityEngine.Experimental.Rendering;
 
 [GenerateHLSL]
 public struct SFiniteLightData
