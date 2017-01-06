@@ -414,7 +414,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 baseLayerNormalTS = normalize(lerp(vertexNormalTS, normalTS0, inheritFactor));
     // Blend layer 1/2/3 normals before combining to the base layer. Again we need to have a neutral value for base layer (vertex normal) in case all weights are zero.
     float3 layersNormalTS = BlendLayeredFloat3(vertexNormalTS, normalTS1, normalTS2, normalTS3, weights);
-    normalTS = BlendNormal(baseLayerNormalTS, layersNormalTS);
+    normalTS = BlendNormalRNM(baseLayerNormalTS, layersNormalTS);
 #else
     normalTS = BlendLayeredFloat3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 #endif
