@@ -210,6 +210,91 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
+        public void Copy(IEnumerable<GraphElementPresenter> selection)
+        {
+            var graph = new CopyPasteGraph();
+            foreach (var presenter in selection)
+            {
+                var nodeDrawData = presenter as NodeDrawData;
+                if (nodeDrawData != null)
+                {
+                    graph.AddNode(nodeDrawData.node);
+                    foreach (var edge in NodeUtils.GetAllEdges(nodeDrawData.node))
+                        graph.AddEdge(edge);
+                }
+
+                var edgeDrawData = presenter as EdgeDrawData;
+                if (edgeDrawData != null)
+                    graph.AddEdge(edgeDrawData.edge);
+            }
+
+            EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(graph, true);
+        }
+
+        private CopyPasteGraph DeserializeCopyBuffer()
+        {
+            try
+            {
+                return JsonUtility.FromJson<CopyPasteGraph>(EditorGUIUtility.systemCopyBuffer);
+            }
+            catch
+            {
+                // ignored. just means copy buffer was not a graph :(
+                return null;
+            }
+        }
+
+        public void Paste()
+        {
+            var pastedGraph = DeserializeCopyBuffer();
+            if (pastedGraph == null || graphAsset == null || graphAsset.graph == null)
+                return;
+
+            var addedNodes = new List<INode>();
+
+            var nodeGuidMap = new Dictionary<Guid, Guid>();
+            foreach (var node in pastedGraph.GetNodes<INode>())
+            {
+                var oldGuid = node.guid;
+                var newGuid = node.RewriteGuid();
+                nodeGuidMap[oldGuid] = newGuid;
+
+                var drawState = node.drawState;
+                var position = drawState.position;
+                position.x += 30;
+                position.y += 30;
+                drawState.position = position;
+                node.drawState = drawState;
+                graphAsset.graph.AddNode(node);
+                addedNodes.Add(node);
+            }
+
+            // only connect edges within pasted elements, discard
+            // external edges.
+            var addedEdges = new List<IEdge>();
+
+            foreach (var edge in pastedGraph.edges)
+            {
+                var outputSlot = edge.outputSlot;
+                var inputSlot = edge.inputSlot;
+
+                Guid remappedOutputNodeGuid;
+                Guid remappedInputNodeGuid;
+                if (nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid)
+                    && nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid))
+                {
+                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
+                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
+                    addedEdges.Add(graphAsset.graph.Connect(outputSlotRef, inputSlotRef));
+                }
+            }
+
+            graphAsset.graph.ValidateGraph();
+            UpdateData();
+
+            graphAsset.drawingData.selection = addedNodes.Select(n => n.guid);
+        }
+
         public override void AddElement(EdgePresenter edge)
         {
             Connect(edge.output as AnchorDrawData, edge.input as AnchorDrawData);

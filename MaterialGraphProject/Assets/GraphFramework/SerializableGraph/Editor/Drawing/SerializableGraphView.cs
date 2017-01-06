@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
@@ -21,7 +22,9 @@ namespace UnityEditor.Graphing.Drawing
                 {Event.KeyboardEvent("o"), FrameOrigin},
                 {Event.KeyboardEvent("delete"), DeleteSelection},
                 {Event.KeyboardEvent("#tab"), FramePrev},
-                {Event.KeyboardEvent("tab"), FrameNext}
+                {Event.KeyboardEvent("tab"), FrameNext},
+                {Event.KeyboardEvent("#c"), CopySelection},
+                {Event.KeyboardEvent("#v"), Paste}
             }));
 
             AddManipulator(new ClickGlobalSelector());
@@ -60,7 +63,7 @@ namespace UnityEditor.Graphing.Drawing
                 return;
 
             var graphAsset = graphDataSource.graphAsset;
-            if (graphAsset == null || selection.Count != 0 || !graphAsset.drawingData.selection.Any()) return;
+            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<NodeDrawer>().Select(d => ((NodeDrawData) d.presenter).node.guid))) return;
 
             var selectedDrawers = graphDataSource.graphAsset.drawingData.selection
                 .Select(guid => contentViewContainer.children
@@ -68,6 +71,7 @@ namespace UnityEditor.Graphing.Drawing
                             .FirstOrDefault(drawer => ((NodeDrawData) drawer.presenter).node.guid == guid))
                 .ToList();
 
+            ClearSelection();
             foreach (var drawer in selectedDrawers)
                 AddToSelection(drawer);
         }
@@ -106,6 +110,22 @@ namespace UnityEditor.Graphing.Drawing
         {
             base.ClearSelection();
             PropagateSelection();
+        }
+
+        public EventPropagation CopySelection()
+        {
+            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
+            if (selection.Any() && graphDataSource != null)
+                graphDataSource.Copy(selection.OfType<GraphElement>().Select(ge => ge.presenter));
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation Paste()
+        {
+            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
+            if (graphDataSource != null)
+                graphDataSource.Paste();
+            return EventPropagation.Stop;
         }
     }
 }
