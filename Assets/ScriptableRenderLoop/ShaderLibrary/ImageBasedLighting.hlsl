@@ -15,27 +15,36 @@
 // Util image based lighting
 //-----------------------------------------------------------------------------
 
+// Performs a *non-linear* remapping which improves the perceptual roughness distribution
+// and adds reflection (contact) hardening. The *approximated* version.
 float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
 {
-    // TODO: Clean a bit this code
-    // CAUTION: remap from Morten may work only with offline convolution, see impact with runtime convolution!
-
-    // For now disabled
-#if 0
-    float m = PerceptualRoughnessToRoughness(perceptualRoughness); // m is the real roughness parameter
-    float n = (2.0 / max(FLT_EPSILON, m*m)) - 2.0;		// remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
-
-    n /= 4.0;									    // remap from n_dot_h formulatino to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
-
-    perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);		// remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
-#else
-    // MM: came up with a surprisingly close approximation to what the #if 0'ed out code above does.
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
-#endif
 
     return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
+// Performs a *non-linear* remapping which improves the perceptual roughness distribution
+// and adds reflection (contact) hardening. The *accurate* version.
+// TODO: optimize!
+float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
+{
+    // return perceptualRoughnessToMipmapLevel(perceptualRoughness);
+
+    float m = PerceptualRoughnessToRoughness(perceptualRoughness);
+    // Remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
+    float n = (2.0 / max(FLT_EPSILON, m * m)) - 2.0;
+
+    // Remap from n_dot_h formulation to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
+    n /= (4.0 * max(NdotR, FLT_EPSILON));
+
+    // remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
+    perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);
+
+    return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
+}
+
+// Performs *linear* remapping for runtime EnvMap filtering.
 float mipmapLevelToPerceptualRoughness(float mipmapLevel)
 {
     return saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
