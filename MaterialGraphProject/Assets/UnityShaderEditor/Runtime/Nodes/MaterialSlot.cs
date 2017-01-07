@@ -35,7 +35,7 @@ namespace UnityEngine.MaterialGraph
         public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, bool usesDefaultValue)
             : base(slotId, displayName, slotType)
         {
-            SharedInitialize(shaderOutputName, valueType, showValue, defaultValue);
+			SharedInitialize(shaderOutputName, valueType, usesDefaultValue, defaultValue);
         }
 
         private void SharedInitialize(string inShaderOutputName, SlotValueType inValueType, bool usesDefaultValue, Vector4 inDefaultValue)

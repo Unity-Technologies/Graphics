@@ -21,12 +21,6 @@ namespace UnityEngine.MaterialGraph
         {
             var nextSlotId = GetOutputSlots<ISlot>().Count() + 1;
             AddSlot(new MaterialSlot(-nextSlotId, "Input " + nextSlotId, "Input" + nextSlotId, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
-
-            if (onModified != null)
-            {
-                onModified(this, ModificationScope.Topological);
-            }
-
             return -nextSlotId;
         }
 
@@ -37,11 +31,6 @@ namespace UnityEngine.MaterialGraph
                 return;
 
             RemoveSlot(-lastSlotId);
-
-            if (onModified != null)
-            {
-                onModified(this, ModificationScope.Topological);
-            }
         }
 
         public void DepthFirstCollectNodesFromNodeSlotList(List<INode> nodeList, NodeUtils.IncludeSelf includeSelf)

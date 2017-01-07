@@ -14,8 +14,8 @@ namespace UnityEngine.MaterialGraph
         public override int AddSlot()
         {
             var nextSlotId = GetOutputSlots<ISlot>().Count() + 1;
-            AddSlot(new MaterialSlot(-nextSlotId, "Input " + nextSlotId, "Input" + nextSlotId, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
-            return -nextSlotId;
+            AddSlot(new MaterialSlot(-nextSlotId, "Input " + nextSlotId, "Input" + nextSlotId, SlotType.Output, SlotValueType.Vector4, Vector4.zero, true));
+			return -nextSlotId;
         }
 
         public override void RemoveSlot()
@@ -26,6 +26,16 @@ namespace UnityEngine.MaterialGraph
 
             RemoveSlot(-lastSlotId);
         }
+
+
+		public override void UpdateNodeAfterDeserialization()
+		{
+			base.UpdateNodeAfterDeserialization();
+			foreach (var slot in GetOutputSlots<MaterialSlot>())
+			{
+				slot.showValue = true; 
+			}
+		}
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
@@ -42,17 +52,20 @@ namespace UnityEngine.MaterialGraph
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);
-            foreach (var slot in GetOutputSlots<MaterialSlot>())
-            {
-                properties.Add(
-                    new PreviewProperty
-                {
-                    m_Name = GetVariableNameForSlot(slot.id),
-                    m_PropType = PropertyType.Vector4,
-                    m_Vector4 = slot.defaultValue
-                }
-                    );
-            }
+			foreach (var s in GetOutputSlots<MaterialSlot>()) 
+			{
+				properties.Add
+				(
+					new PreviewProperty 
+					{
+						m_Name = GetVariableNameForSlot (s.id),
+						m_PropType = ConvertConcreteSlotValueTypeToPropertyType (s.concreteValueType),
+						m_Vector4 = s.currentValue,
+						m_Float = s.currentValue.x,
+						m_Color = s.currentValue
+					}
+				);
+			}
         }
     }
 }

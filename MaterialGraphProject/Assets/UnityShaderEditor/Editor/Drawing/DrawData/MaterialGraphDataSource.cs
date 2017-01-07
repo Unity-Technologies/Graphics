@@ -21,7 +21,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             map(typeof(Vector4Node), typeof(Vector4NodeDrawData));
             map(typeof(SubGraphNode), typeof(SubgraphNodeDrawData));
             map(typeof(RemapMasterNode), typeof(RemapMasterNodeDrawData));
-            map(typeof(MasterRemapInputNode), typeof(RemapInputNodeDrawData));
+			map(typeof(MasterRemapInputNode), typeof(RemapInputNodeDrawData));
+			map(typeof(AbstractSubGraphIONode), typeof(SubgraphIONodeDrawData));
             map(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterDrawData));
             map(typeof(EdgeDrawData), typeof(Edge));
         }

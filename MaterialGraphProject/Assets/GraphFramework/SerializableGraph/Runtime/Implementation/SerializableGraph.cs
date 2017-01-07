@@ -164,13 +164,18 @@ namespace UnityEngine.Graphing
         public virtual void OnAfterDeserialize()
         {
             m_Nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GetLegacyTypeRemapping());
-            foreach (var node in m_Nodes)
-                node.owner = this;
+			foreach (var node in m_Nodes) 
+			{
+				node.owner = this;
+				node.UpdateNodeAfterDeserialization ();
+			}
 
             m_SerializableNodes = null;
 
             m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, null);
             m_SerializableEdges = null;
+
+
 
             ValidateGraph();
         }
