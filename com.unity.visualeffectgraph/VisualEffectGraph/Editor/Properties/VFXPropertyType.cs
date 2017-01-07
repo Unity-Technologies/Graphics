@@ -240,6 +240,14 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
+	public partial class VFXMeshType : VFXPrimitiveType<Mesh>
+	{
+		public static Desc Description() { return new Desc("Mesh", "Mesh", "Mesh"); }
+
+		public VFXMeshType() : this(null) { }
+		public VFXMeshType(Mesh defaultValue) : base(defaultValue) { }
+	}
+
     // Proxy types
     // TODO
     public abstract class VFXProxyVectorType : VFXPropertyTypeSemantics

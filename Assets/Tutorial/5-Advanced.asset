@@ -190,6 +190,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXTransformPosOp
@@ -232,6 +233,7 @@ VFXAsset:
     m_Textures:
     - {fileID: 11700000, guid: bbd3617ace03676439e3fad496d298fa, type: 2}
     - {fileID: 2800000, guid: cd45eb663e876d449a2cf586c6b23be9, type: 3}
+    m_Meshes: []
   m_Expressions:
     m_Expressions:
     - op: 0

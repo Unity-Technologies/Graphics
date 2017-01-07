@@ -286,6 +286,9 @@ namespace UnityEngine.Experimental.VFX
                     case VFXValueType.kColorGradient:
                         SerializationUtils.WriteGradient(writer, Value.Get<Gradient>());
                         break;
+		case VFXValueType.kMesh:
+			writer.WriteElementString(name, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Value.Get<Mesh>())));
+			break;
                     case VFXValueType.kSpline:
                         SerializationUtils.WriteSpline(writer, Value.Get<List<Vector3>>());
                         break;
@@ -346,6 +349,10 @@ namespace UnityEngine.Experimental.VFX
                         reader.MoveToElement();
                         Set(SerializationUtils.ReadSpline(reader));
                         break;
+					case VFXValueType.kMesh:
+						reader.MoveToElement();
+						Set(AssetDatabase.LoadAssetAtPath<Mesh>(AssetDatabase.GUIDToAssetPath(reader.ReadElementContentAsString())));
+						break;
                     default:
                         Debug.LogWarning("Cannot deserialize value of type " + ValueType);
                         break;

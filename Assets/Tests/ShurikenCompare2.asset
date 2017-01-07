@@ -129,6 +129,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 0
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXValueOp
@@ -164,6 +165,7 @@ VFXAsset:
     m_Values: 0000803f0000803f0000803fcdcc0cc000000000000000000000a0400000a04000000000000000000000000000000000000000000000803fffffffff0000a040ffffffffffffffffffffffff00002041ffffffff0000803fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000803fcdcc4c3e
     m_Textures:
     - {fileID: 2800000, guid: d01d8874889eebc4ab0cde7f2b3309de, type: 3}
+    m_Meshes: []
   m_Expressions:
     m_Expressions:
     - op: 0

@@ -72,14 +72,6 @@ Shader "Hidden/VFX_0"
 				return gradientTexture.SampleLevel(samplergradientTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 			}
 			
-			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
-			{
-				float ratio = saturate(age / lifetime);
-	float4 rgba = SAMPLE(Gradient,ratio);
-	color = rgba.rgb;
-	alpha = rgba.a;
-			}
-			
 			void VFXBlockSubPixelAA( inout float alpha,float3 position,inout float2 size)
 			{
 				#ifdef VFX_WORLD_SPACE
@@ -92,6 +84,14 @@ Shader "Hidden/VFX_0"
 	float fade = (size.x * size.y) / (clampedSize.x * clampedSize.y);
 	alpha *= fade;
 	size = clampedSize;
+			}
+			
+			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
+			{
+				float ratio = saturate(age / lifetime);
+	float4 rgba = SAMPLE(Gradient,ratio);
+	color = rgba.rgb;
+	alpha = rgba.a;
 			}
 			
 			float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
@@ -108,11 +108,11 @@ Shader "Hidden/VFX_0"
 				{
 					OutputData outputData = outputBuffer[index];
 					
-					float3 local_color = (float3)0;
 					float local_alpha = (float)0;
+					float3 local_color = (float3)0;
 					
-					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
 					VFXBlockSubPixelAA( local_alpha,outputData.position,outputData.size);
+					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
 					
 					float2 size = outputData.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;

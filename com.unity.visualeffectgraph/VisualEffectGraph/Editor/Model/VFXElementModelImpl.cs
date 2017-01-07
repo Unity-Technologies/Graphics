@@ -206,6 +206,9 @@ namespace UnityEditor.Experimental
                             case VFXValueType.kTransform:
                                 asset.SetMatrix(index,expr.Get<Matrix4x4>());
                                 break;
+							case VFXValueType.kMesh:
+								asset.SetMesh(index,expr.Get<Mesh>());
+								break;
                             // curve and gradient uniform dont change, only the correponding textures are updated
                         }
                     }
@@ -344,8 +347,7 @@ namespace UnityEditor.Experimental
             VFXAsset asset = VFXEditor.asset;
             m_TextureData.Generate(asset);
 
-            asset.GradientTexture = m_TextureData.ColorTexture;
-            asset.CurveTexture = m_TextureData.FloatTexture;
+            asset.FloatTexture = m_TextureData.FloatTexture;
 
             ProgressBarHelper.IncrementStep("Generate data: Update asset expressions");
             if (asset != null)
@@ -390,6 +392,9 @@ namespace UnityEditor.Experimental
                                 break;
                             case VFXValueType.kColorGradient:
                                 asset.AddFloat(m_TextureData.GetGradientUniform(value));
+                                break;
+                            case VFXValueType.kMesh:
+                                asset.AddMesh(value.Get<Mesh>());
                                 break;
                             case VFXValueType.kSpline:
                                 asset.AddVector2(m_TextureData.GetSplineUniform(value));
@@ -492,6 +497,15 @@ namespace UnityEditor.Experimental
                     VFXSystemRuntimeData rtData = system.RtData;
                     if (rtData == null)
                         continue;
+
+                    // Find output mesh expression index if any
+                    if (rtData.outputMesh != null)
+                    {
+                        int meshIndex = m_Expressions[rtData.outputMesh].index;
+                        asset.SetOutputData(system.Id, meshIndex);
+                    }
+                    else
+                        asset.SetOutputData(system.Id, -1);
 
                     for (int iPass = 0; iPass < (int)ShaderMetaData.Pass.kNum; ++iPass)
                     {

@@ -357,6 +357,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -429,6 +430,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -501,6 +503,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -577,6 +580,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -653,6 +657,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -735,6 +740,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -807,6 +813,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXTRSToMatrixOp
@@ -877,6 +884,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 0
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -953,6 +961,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXTRSToMatrixOp
@@ -980,6 +989,7 @@ VFXAsset:
     m_Values: 3d051fc180fa523f516a48c0e65b5d4000000000b92549c10000803f575a55400000803f6cf219425ebeee407201a343b709ae43000179400801794008017940b3dbab43a342804336beeac00000803fffffffffffffffffffffffff0000000039e0713f000090b4ffffffffffffffffffffffff000000000000803ff2a5823e0000803f00000000463ff6be9086d13fffffffffffffffffffffffffd8bcd63fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb818523f0000803f000000000000803f0000803f0000803f0000003f0000003f0000003fc3f060c1001090bd7ca86fbf302c773e0000803f000000000000f0410000f0410000f0410000803fdd7cc73f158e0d4040a06c3f000000009be744405e56acc00000803fe02bbe3f75b6b33ed9793fc0baf15f3f9f1699beb201abbe5105ad3e340e32c05b0c693e00000000000000001a323cc000000000000000000000803f0000803f0000000000000000da648a400000803f7237c43e0d2b2ec100000000e10ec73ef7049fbf000000006963c33e0000803f00000000bfcc4c3e0000803fffffffffffffffffffffffff0000803f00409c460000803fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6f12833affffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000803fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000803f0000803f0000803fffffffffffffffffffffffffffffffffffffffffffffffff00000000ffffffffffffffffffffffffffffffffffffffffffffffff0000803fffffffffffffffffffffffff0000803f0000803facc5a7370000803f00000040ffffffffffffffffffffffff0000803f0000803fffffffffffffffffffffffff0000803fffffffffffffffffffffffff0000803f00000040ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff64cda63f01b2423f0000803fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
     m_Textures:
     - {fileID: 2800000, guid: 949dddb053ceef2408c258f01a5c6da1, type: 3}
+    m_Meshes: []
   m_Expressions:
     m_Expressions:
     - op: 0

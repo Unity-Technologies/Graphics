@@ -19,8 +19,7 @@ namespace UnityEngine.Experimental.VFX
             public float scaleU;
         }
 
-        private Texture2D m_ColorTexture; // sRGB data 8bits per component
-        private Texture2D m_FloatTexture; // linear data 16bits per component
+		private Texture2D m_FloatTexture; // linear data 16bits per component
 
         private Dictionary<VFXValue, int> m_ColorSignals = new Dictionary<VFXValue,int>();
         private Dictionary<VFXValue, SignalData> m_CurveSignals = new Dictionary<VFXValue, SignalData>();
@@ -28,13 +27,10 @@ namespace UnityEngine.Experimental.VFX
 
         private HashSet<VFXValue> m_DirtySignals = new HashSet<VFXValue>();
 
-        private bool m_ColorTextureDirty = false;
         private bool m_FloatTextureDirty = false;
 
-        public bool HasColorTexture() { return m_ColorTexture != null; }
         public bool HasFloatTexture() { return m_FloatTexture != null; }
 
-        public Texture2D ColorTexture { get { return m_ColorTexture; } }
         public Texture2D FloatTexture { get { return m_FloatTexture; } }
 
         public void SetDirty(VFXValue value)
@@ -83,69 +79,41 @@ namespace UnityEngine.Experimental.VFX
 
         public void Generate(VFXAsset asset)
         {
-            // gradients
-            int colorHeight = m_ColorSignals.Count;
-
-            if (asset != null && m_ColorTexture != asset.GradientTexture)
-            {
-                DestroyTexture(m_ColorTexture);
-                m_ColorTexture = asset.GradientTexture;
-            }
-
-            Func<int, int> GetExpectedColorHeight = (height) => Mathf.NextPowerOfTwo(colorHeight);
-
-            if (m_ColorTexture != null && m_ColorTexture.height != GetExpectedColorHeight(colorHeight))
-            {
-                DestroyTexture(m_ColorTexture);
-                m_ColorTexture = null;
-            }
-
-            if (colorHeight > 0)
-            {
-                if (m_ColorTexture == null)
-                {
-                    m_ColorTexture = new Texture2D(TEXTURE_WIDTH, GetExpectedColorHeight(colorHeight), TextureFormat.RGBA32, false, false); // sRGB
-                    m_ColorTexture.wrapMode = TextureWrapMode.Clamp;
-                }
-
-                int currentY = 0;
-                var gradients = new List<VFXValue>(m_ColorSignals.Keys);
-                foreach (var gradient in gradients)
-                {
-                    m_ColorSignals[gradient] = currentY;
-                    DiscretizeGradient(gradient.Get<Gradient>(), currentY++);
-                }
-
-                m_ColorTextureDirty = true;
-            }
-
-            // curves
-            int nbCurves = m_CurveSignals.Count;
+            int nbColors = m_ColorSignals.Count;
+			int nbCurves = m_CurveSignals.Count;
             int nbBeziers = m_BezierSignals.Count;
 
-            if (asset != null && m_FloatTexture != asset.CurveTexture)
+            if (asset != null && m_FloatTexture != asset.FloatTexture)
             {
                 DestroyTexture(m_FloatTexture);
-                m_FloatTexture = asset.CurveTexture;
+                m_FloatTexture = asset.FloatTexture;
             }
 
-            Func<int, int, int> GetExpectedFloatHeight = (curveCount, bezierCount) => Mathf.NextPowerOfTwo(bezierCount * 2 + (curveCount + 3) / 4);
+			Func<int, int, int, int> GetExpectedFloatHeight = (colorCount, curveCount, bezierCount) => Mathf.NextPowerOfTwo(colorCount + bezierCount * 2 + (curveCount + 3) / 4);
 
-            if (m_FloatTexture != null && m_FloatTexture.height != GetExpectedFloatHeight(nbCurves,nbBeziers))
+            if (m_FloatTexture != null && m_FloatTexture.height != GetExpectedFloatHeight(nbColors,nbCurves,nbBeziers))
             {
                 DestroyTexture(m_FloatTexture);
                 m_FloatTexture = null;
             }
 
-            if (nbCurves + nbBeziers > 0)
+			if (nbColors + nbCurves + nbBeziers > 0)
             {
                 if (m_FloatTexture == null)
                 {
-                    m_FloatTexture = new Texture2D(TEXTURE_WIDTH, GetExpectedFloatHeight(nbCurves,nbBeziers), TextureFormat.RGBAHalf, false, true); // Linear
+					m_FloatTexture = new Texture2D(TEXTURE_WIDTH, GetExpectedFloatHeight(nbColors, nbCurves, nbBeziers), TextureFormat.RGBAHalf, false, true);
                     m_FloatTexture.wrapMode = TextureWrapMode.Repeat;
                 }
        
                 int currentIndex = 0;
+
+				var gradients = new List<VFXValue>(m_ColorSignals.Keys);
+				foreach (var gradient in gradients)
+				{
+					m_ColorSignals[gradient] = currentIndex;
+					DiscretizeGradient(gradient.Get<Gradient>(), currentIndex++);
+				}
+
                 var curves = new List<VFXValue>(m_CurveSignals.Keys);
                 foreach (var curve in curves)
                 {
@@ -191,7 +159,7 @@ namespace UnityEngine.Experimental.VFX
                             return false;
 
                         DiscretizeGradient(value.Get<Gradient>(), m_ColorSignals[value]);
-                        m_ColorTextureDirty = true;
+						m_FloatTextureDirty = true;
                         return true;
                     }
 
@@ -238,12 +206,6 @@ namespace UnityEngine.Experimental.VFX
 
         public void UploadChanges()
         {
-            if (m_ColorTextureDirty)
-            {
-                m_ColorTexture.Apply();
-                m_ColorTextureDirty = false;
-            }
-
             if (m_FloatTextureDirty)
             {
                 m_FloatTexture.Apply();
@@ -262,7 +224,10 @@ namespace UnityEngine.Experimental.VFX
             for (int i = 0; i < TEXTURE_WIDTH; ++i)
             {
                 Color c = gradient.Evaluate(i / (TEXTURE_WIDTH - 1.0f));
-                m_ColorTexture.SetPixel(i,y,c);
+				c.r = Mathf.GammaToLinearSpace(c.r);
+				c.g = Mathf.GammaToLinearSpace(c.g);
+				c.b = Mathf.GammaToLinearSpace(c.b);
+                m_FloatTexture.SetPixel(i,y,c);
             }
         }
 
@@ -379,7 +344,7 @@ namespace UnityEngine.Experimental.VFX
             builder.WriteLine("float4 sampleSignal(float v,float u) // sample gradient");
             builder.EnterScope();
 
-            builder.Write("return gradientTexture.SampleLevel(samplergradientTexture,float2(");
+            builder.Write("return floatTexture.SampleLevel(samplerfloatTexture,float2(");
             WriteHalfTexelOffset(builder, "saturate(u)");
             builder.WriteLine(",v),0);");
 
@@ -416,7 +381,7 @@ namespace UnityEngine.Experimental.VFX
 
             builder.ExitScope();
 
-            builder.WriteLine("return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];");
+			builder.WriteLine("return floatTexture.SampleLevel(samplerfloatTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];");
 
             builder.ExitScope();
         }
@@ -426,7 +391,7 @@ namespace UnityEngine.Experimental.VFX
             builder.WriteLine("float3 sampleSpline(float v,float u)");
             builder.EnterScope();
 
-            builder.Write("return curveTexture.SampleLevel(samplercurveTexture,float2(");
+			builder.Write("return floatTexture.SampleLevel(samplerfloatTexture,float2(");
             WriteHalfTexelOffset(builder, "saturate(u)");
             builder.WriteLine(",v),0);");
 
@@ -460,7 +425,7 @@ namespace UnityEngine.Experimental.VFX
 
         public float GetGradientUniform(VFXValue gradient) // can throw
         {
-            return (0.5f + m_ColorSignals[gradient]) / m_ColorTexture.height;
+            return (0.5f + m_ColorSignals[gradient]) / m_FloatTexture.height;
         }
 
         public Vector2 GetSplineUniform(VFXValue spline)

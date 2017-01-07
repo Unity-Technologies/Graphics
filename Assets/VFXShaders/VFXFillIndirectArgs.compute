@@ -9,8 +9,14 @@ CBUFFER_END
 #define NB_THREADS_PER_GROUP 64
 #define NB_INDICES_PER_INSTANCE 2048
 
-ByteAddressBuffer nbElements;		// Filled by GPU
-StructuredBuffer<uint> outputTypes; // Filled by CPU
+struct OutputData
+{
+	uint type;
+	uint indexCount;
+};
+
+ByteAddressBuffer nbElements; // Filled by GPU
+StructuredBuffer<OutputData> outputData; // Filled by CPU
 
 RWBuffer<uint> output;
 
@@ -25,7 +31,8 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 
 		uint elementCount = nbElements.Load(id.x << 2);
 
-		switch(outputTypes[id.x])
+		OutputData data = outputData[id.x];
+		switch(data.type)
 		{
 			case 0: // point
 			{
@@ -35,7 +42,6 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 			}
 			
 			case 1: // quads
-			case 2:
 			{
 				if (elementCount > 16384) // Due to 16bits indices
 				{
@@ -47,6 +53,13 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 					vertexCount = elementCount * 6;
 					instanceCount = 1;
 				}
+				break;
+			}
+
+			case 2: // meshes
+			{
+				vertexCount = data.indexCount;
+				instanceCount = elementCount;
 				break;
 			}
 		}
