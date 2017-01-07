@@ -89,31 +89,26 @@ namespace UnityEngine.Experimental.VFX
                 m_FloatTexture = asset.FloatTexture;
             }
 
-			Func<int, int, int, int> GetExpectedFloatHeight = (colorCount, curveCount, bezierCount) => Mathf.NextPowerOfTwo(colorCount + bezierCount * 2 + (curveCount + 3) / 4);
+            // Expected height of texture
+            int textureHeight = Mathf.NextPowerOfTwo(nbColors + nbBeziers * 2 + (nbCurves + 3) / 4);
 
-            if (m_FloatTexture != null && m_FloatTexture.height != GetExpectedFloatHeight(nbColors,nbCurves,nbBeziers))
+            if (m_FloatTexture != null && m_FloatTexture.height != textureHeight)
             {
                 DestroyTexture(m_FloatTexture);
                 m_FloatTexture = null;
             }
 
-			if (nbColors + nbCurves + nbBeziers > 0)
+            if (textureHeight > 0)
             {
                 if (m_FloatTexture == null)
                 {
-					m_FloatTexture = new Texture2D(TEXTURE_WIDTH, GetExpectedFloatHeight(nbColors, nbCurves, nbBeziers), TextureFormat.RGBAHalf, false, true);
+                    m_FloatTexture = new Texture2D(TEXTURE_WIDTH, textureHeight, TextureFormat.RGBAHalf, false, true);
                     m_FloatTexture.wrapMode = TextureWrapMode.Repeat;
                 }
        
                 int currentIndex = 0;
 
-				var gradients = new List<VFXValue>(m_ColorSignals.Keys);
-				foreach (var gradient in gradients)
-				{
-					m_ColorSignals[gradient] = currentIndex;
-					DiscretizeGradient(gradient.Get<Gradient>(), currentIndex++);
-				}
-
+                // For curves index has a component granularity (4 indices per rows)
                 var curves = new List<VFXValue>(m_CurveSignals.Keys);
                 foreach (var curve in curves)
                 {
@@ -129,8 +124,15 @@ namespace UnityEngine.Experimental.VFX
                     ++currentIndex;
                 }
 
-                // pad current index to be at first component
+                // pad current index to be at first component and then divide by four to have the index for next gradient/bezier (with a row granularity)
                 currentIndex = ((currentIndex + 3) & ~3) >> 2;
+
+                var gradients = new List<VFXValue>(m_ColorSignals.Keys);
+                foreach (var gradient in gradients)
+                {
+                    m_ColorSignals[gradient] = currentIndex;
+                    DiscretizeGradient(gradient.Get<Gradient>(), currentIndex++);
+                }
 
                 // add 3d beziers
                 var beziers = new List<VFXValue>(m_BezierSignals.Keys);
@@ -224,10 +226,9 @@ namespace UnityEngine.Experimental.VFX
             for (int i = 0; i < TEXTURE_WIDTH; ++i)
             {
                 Color c = gradient.Evaluate(i / (TEXTURE_WIDTH - 1.0f));
-				c.r = Mathf.GammaToLinearSpace(c.r);
-				c.g = Mathf.GammaToLinearSpace(c.g);
-				c.b = Mathf.GammaToLinearSpace(c.b);
-                m_FloatTexture.SetPixel(i,y,c);
+                if (PlayerSettings.colorSpace == ColorSpace.Linear)
+                    c = c.linear; // gamma to linear conversion before storing to fp16 texture (in linear mode only)
+                m_FloatTexture.SetPixel(i,y,c); 
             }
         }
 
