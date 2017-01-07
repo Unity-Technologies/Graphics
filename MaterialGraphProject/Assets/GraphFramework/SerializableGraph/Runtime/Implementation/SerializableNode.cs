@@ -96,6 +96,11 @@ namespace UnityEngine.Graphing
             m_Slots.RemoveAll(x => x.id == slot.id);
             m_Slots.Add(slot);
             slot.owner = this;
+
+			if (onModified != null)
+			{
+				onModified(this, ModificationScope.Topological);
+			}
         }
 
         public void RemoveSlot(int slotId)
@@ -108,6 +113,11 @@ namespace UnityEngine.Graphing
 
             //remove slots
             m_Slots.RemoveAll(x => x.id == slotId);
+
+			if (onModified != null)
+			{
+				onModified(this, ModificationScope.Topological);
+			}
         }
 
         public void RemoveSlotsNameNotMatching(IEnumerable<int> slotIds)

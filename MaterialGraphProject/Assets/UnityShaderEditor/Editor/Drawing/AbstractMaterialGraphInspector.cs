@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +14,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         private bool m_RequiresTime;
 
         protected GUIContent m_Title = new GUIContent();
-        
+
         private NodePreviewDrawData m_NodePreviewPresenter;
 
         private AbstractMaterialNode m_PreviewNode;
@@ -35,17 +35,19 @@ namespace UnityEditor.MaterialGraph.Drawing
                 m_Title.text = m_PreviewNode.name;
                 m_RequiresTime = false;
                 ForEachChild(m_PreviewNode,
-                             (node) =>
-                             {
-                                 node.onModified += OnPreviewNodeModified;
-                                 m_RequiresTime |= node is IRequiresTime;
-                             });
+                    (node) =>
+                    {
+                        node.onModified += OnPreviewNodeModified;
+                        m_RequiresTime |= node is IRequiresTime;
+                    });
             }
         }
 
         protected override void AddTypeMappings(Action<Type, Type> map)
         {
             map(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector));
+			map(typeof(SubGraphInputNode), typeof(SubgraphInputNodeInspector));
+            map(typeof(SubGraphOutputNode), typeof(SubgraphOutputNodeInspector));
         }
 
         private void OnPreviewNodeModified(INode node, ModificationScope scope)
