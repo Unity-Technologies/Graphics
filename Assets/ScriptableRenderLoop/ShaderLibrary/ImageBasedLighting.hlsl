@@ -293,7 +293,7 @@ void ImportanceSampleAnisoGGX(
 // ----------------------------------------------------------------------------
 
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
-float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sampleCount)
+float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sampleCount = 4096)
 {
     float NdotV     = saturate(dot(N, V));
     float4 acc      = float4(0.0, 0.0, 0.0, 0.0);
