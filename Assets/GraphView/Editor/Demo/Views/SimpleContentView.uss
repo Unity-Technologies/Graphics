@@ -1,0 +1,87 @@
+WWWImage > * {
+	margin-top: 15;
+	margin-left: -6;
+	width: 200;
+	height: 200;
+	/* will display while the image is loading */
+	background-color: #CCC;
+	border-radius: 25;
+	text-alignment:middle-center;
+}
+
+MiniMap Label {
+	position-type:absolute;
+	position-top:0;
+	position-left:0;
+	position-right:0;
+	height: 16;
+}
+
+MiniMap.graphElement {
+	border-color:#CCC;
+	background-color:rgba(100, 100, 100, 0.5);
+	position-type:absolute;
+	padding-top:20;
+}
+
+MiniMap Label {
+	text-clipping:overflow;
+}
+
+MiniMap.anchored {
+	position-left:20;
+	position-bottom:20;
+}
+
+MiniMap.anchored Label{
+	text-color:#aaaa00
+}
+
+InvisibleBorderContainer.graphElement {
+	background-color:#0F0;
+	/* currently border-XXX is only used for layout
+	   where border-width is used to paint text and border.
+	   They must keep in sync until we support variable border
+	   thickness per edge */
+	border-color:#000;
+	border-left:20;
+	border-top:20;
+	border-right:20;
+	border-bottom:20;
+	border-width:20;
+	border-radius: 0;
+}
+
+InvisibleBorderContainer.graphElement.selected {
+	border-color:#00F;
+}
+
+Comment.graphElement {
+	background-color:rgba(100, 0, 0, 0.3);
+}
+
+Comment.graphElement.selected {
+	border-color:rgba(0, 0, 0, 0.0);
+}
+
+Comment.graphElement #commentTitle {
+	font:path("Assets/GraphView/Resources/BebasNeue.otf");
+	font-size:64;
+	text-alignment:upper-left;
+	text-color:rgba(192, 192, 192, 0.8);
+	border-left:3;
+	border-top:3;
+	border-right:3;
+	border-width:3;
+	text-clipping:clip;
+	word-wrap:true;
+}
+
+Comment.graphElement #commentBody {
+	font:path("Assets/GraphView/Resources/Roboto/Roboto-Regular.ttf");
+	font-size:12;
+	text-alignment:upper-left;
+	text-color:rgba(192, 192, 192, 0.8);
+	text-clipping:clip;
+	word-wrap:true;
+}
