@@ -10,6 +10,9 @@ namespace UnityEngine.MaterialGraph
 {
     public static class ShaderGeneratorNames
     {
+        private static string[] UV = {"uv0", "uv1", "uv2", "uv3"};
+        public static int UVCount = 4;
+
         public const string WorldSpaceNormal = "worldSpaceNormal";
         public const string WorldSpaceBitangent = "worldSpaceBitangent";
         public const string WorldSpaceTangent = "worldSpaceTangent";
@@ -17,7 +20,20 @@ namespace UnityEngine.MaterialGraph
         public const string WorldSpaceViewDirection = "worldSpaceViewDirection";
         public const string ScreenPosition = "screenPosition";
         public const string VertexColor = "vertexColor";
-        public static string[] UV = { "uv0", "uv1", "uv2", "uv3" };
+
+
+        public static string GetUVName(this UVChannel channel)
+        {
+            return UV[(int) channel];
+        }
+    }
+
+    public enum UVChannel
+    {
+        uv0 = 0,
+        uv1 = 1,
+        uv2 = 2,
+        uv3 = 3,
     }
 
     public class ShaderGenerator
@@ -256,13 +272,14 @@ namespace UnityEngine.MaterialGraph
                 shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceNormal + " = normalize(IN.worldNormal);", true);
             }
 
-            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UV.Length; ++uvIndex)
+            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
             {
-                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(uvIndex)))
+                var channel = (UVChannel) uvIndex;
+                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
                 {
                     shaderInputVisitor.AddShaderChunk(string.Format("half4 meshUV{0} : TEXCOORD{1};", uvIndex, (uvIndex + 5)), true);
                     vertexShaderBlock.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex == 0 ? "" : uvIndex.ToString()), true);
-                    shaderBodyVisitor.AddShaderChunk(string.Format("half4 {0} = IN.meshUV{1};", ShaderGeneratorNames.UV[uvIndex], uvIndex), true);
+                    shaderBodyVisitor.AddShaderChunk(string.Format("half4 {0} = IN.meshUV{1};", channel.GetUVName(), uvIndex), true);
                 }
             }
 

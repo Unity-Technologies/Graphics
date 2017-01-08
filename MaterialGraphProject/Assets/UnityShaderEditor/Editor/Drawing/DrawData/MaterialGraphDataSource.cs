@@ -15,6 +15,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             map(typeof(AbstractMaterialNode), typeof(MaterialNodeDrawData));
             map(typeof(ColorNode), typeof(ColorNodeDrawData));
             map(typeof(TextureNode), typeof(TextureNodeDrawData));
+            map(typeof(UVNode), typeof(UVNodeDrawData));
             map(typeof(Vector1Node), typeof(Vector1NodeDrawData));
             map(typeof(Vector2Node), typeof(Vector2NodeDrawData));
             map(typeof(Vector3Node), typeof(Vector3NodeDrawData));
