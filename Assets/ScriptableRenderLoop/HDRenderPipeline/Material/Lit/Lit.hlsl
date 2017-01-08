@@ -1106,7 +1106,7 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // Ref: Moving Frostbite to PBR (Appendix A)
 float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
                                 EnvLightData lightData, BSDFData bsdfData,
-                                uint sampleCount = 2048)
+                                uint sampleCount = 4096)
 {
     float3   N            = bsdfData.normalWS;
     float3   tangentX     = bsdfData.tangentWS;
@@ -1140,7 +1140,7 @@ float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
 
 float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
                                     float3 V, EnvLightData lightData, BSDFData bsdfData,
-                                    uint sampleCount = 2048)
+                                    uint sampleCount = 4096)
 {
     float3   N            = bsdfData.normalWS;
     float3   tangentX     = bsdfData.tangentWS;
@@ -1183,7 +1183,7 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
 // Ref: Moving Frostbite to PBR (Appendix A)
 float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
                                     float3 V, EnvLightData lightData, BSDFData bsdfData,
-                                    uint sampleCount = 2048)
+                                    uint sampleCount = 4096)
 {
     float3   N            = bsdfData.normalWS;
     float3   tangentX     = bsdfData.tangentWS;
