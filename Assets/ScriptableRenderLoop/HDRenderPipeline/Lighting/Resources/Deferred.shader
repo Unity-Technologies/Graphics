@@ -88,7 +88,11 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 float3 bakeDiffuseLighting;
                 DECODE_FROM_GBUFFER(gbuffer, bsdfData, bakeDiffuseLighting);
 
-                PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+                // We do not saturate for double-sided lighting.
+                // For single-sided lighting, the normal has already been adjusted during the G-buffer pass.
+                float NdotV = dot(bsdfData.normalWS, V);
+
+                PreLightData preLightData = GetPreLightData(V, NdotV, posInput, bsdfData);
 
                 float3 diffuseLighting;
                 float3 specularLighting;

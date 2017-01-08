@@ -22,7 +22,12 @@ void Frag(  PackedVaryings packedInput,
 	GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
-	PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+
+    bool  twoSided = false;
+    float NdotV    = GetShiftedNdotV(bsdfData.normalWS, V, twoSided);
+
+	PreLightData preLightData = GetPreLightData(V, NdotV, posInput, bsdfData);
+
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
 
     ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, outGBuffer);
