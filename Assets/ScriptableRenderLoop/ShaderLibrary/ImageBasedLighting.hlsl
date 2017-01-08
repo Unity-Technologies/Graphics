@@ -408,6 +408,9 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // This will blur the reflection.
             // TODO: find a more accurate MIP bias function.
             mipLevel = lerp(mipLevel, maxMipLevel, bias);
+
+            // All MIP map levels beyond UNITY_SPECCUBE_LOD_STEPS contain invalid data.
+            mipLevel = min(mipLevel, UNITY_SPECCUBE_LOD_STEPS);
         }
 
         if (NdotL > 0.0)
