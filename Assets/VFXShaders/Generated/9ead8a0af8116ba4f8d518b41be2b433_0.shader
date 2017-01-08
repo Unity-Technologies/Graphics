@@ -1,11 +1,13 @@
-Shader "Hidden/VFX_4"
+Shader "Hidden/VFX_0"
 {
 	SubShader
 	{
+		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
 		Pass
 		{
+			Blend SrcAlpha One
 			ZTest LEqual
-			ZWrite On
+			ZWrite Off
 			Cull Off
 			
 			CGPROGRAM
@@ -22,13 +24,10 @@ Shader "Hidden/VFX_4"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float3 outputUniform1_kVFXCombine3fOp;
 				float outputUniform0_kVFXValueOp;
-				
-			CBUFFER_END
+				uint3 outputUniforms_PADDING_0;
 			
-			Texture2D outputSampler0_kVFXValueOpTexture;
-			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
+			CBUFFER_END
 			
 			Texture2D floatTexture;
 			SamplerState samplerfloatTexture;
@@ -36,10 +35,12 @@ Shader "Hidden/VFX_4"
 			struct OutputData
 			{
 				float3 position;
-				float angle;
-				float2 size;
-				float age;
 				float lifetime;
+				float3 color;
+				float age;
+				float2 size;
+				float alpha;
+				uint _PADDING_0;
 			};
 			
 			StructuredBuffer<OutputData> outputBuffer;
@@ -48,7 +49,6 @@ Shader "Hidden/VFX_4"
 			{
 				/*linear noperspective centroid*/ float4 pos : SV_POSITION;
 				nointerpolation float4 col : COLOR0;
-				float2 offsets : TEXCOORD0;
 			};
 			
 			float4 sampleSignal(float v,float u) // sample gradient
@@ -82,58 +82,27 @@ Shader "Hidden/VFX_4"
 	alpha = rgba.a;
 			}
 			
-			void VFXBlockSetPivot( inout float3 pivot,float3 Pivot)
+			struct VertexInput
 			{
-				pivot = Pivot;
-			}
-			
-			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+				float3 position : POSITION;
+				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
+				float4 color : COLOR;
+				float2 uv : TEXCOORD0;
+			};
+			ps_input vert (VertexInput input, uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 2048;
+				uint index = instanceID;
 				OutputData outputData = outputBuffer[index];
 				
-				float3 local_color = (float3)0;
-				float local_alpha = (float)0;
-				float3 local_pivot = (float3)0;
+				VFXBlockSetColorGradientOverLifetime( outputData.color,outputData.alpha,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
 				
-				VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
-				VFXBlockSetPivot( local_pivot,outputUniform1_kVFXCombine3fOp);
-				
-				float2 size = outputData.size * 0.5f;
-				o.offsets.x = 2.0 * float(id & 1) - 1.0;
-				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-				
-				float3 position = outputData.position;
-				
-				float2 posOffsets = o.offsets.xy - local_pivot.xy;
-				
-				float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
-				float3 front = -UNITY_MATRIX_MV[2].xyz;
-				float3 side = UNITY_MATRIX_IT_MV[0].xyz;
-				float3 up = UNITY_MATRIX_IT_MV[1].xyz;
-				
-				float2 sincosA;
-				sincos(radians(outputData.angle), sincosA.x, sincosA.y);
-				const float c = sincosA.y;
-				const float s = sincosA.x;
-				const float t = 1.0 - c;
-				const float x = front.x;
-				const float y = front.y;
-				const float z = front.z;
-				
-				float3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,
-									t * x * y + s * z, t * y * y + c, t * y * z - s * x,
-									t * x * z - s * y, t * y * z + s * x, t * z * z + c);
-				
-				
-				position += mul(rot,side * posOffsets.x * size.x);
-				position += mul(rot,up * posOffsets.y * size.y);
-				position -= front * local_pivot.z;
-				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-				
-				o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
-				o.col = float4(local_color.xyz,local_alpha);
+				float3 size = outputData.size.xyx * 0.5f;
+				float3 pivot = 0.0f;
+				float3 worldPos = outputData.position + ((input.position + pivot) * size);
+				o.pos = mul(UNITY_MATRIX_MVP, float4(worldPos,1.0f));
+				o.col = float4(outputData.color.xyz,outputData.alpha);
 				return o;
 			}
 			
@@ -147,8 +116,6 @@ Shader "Hidden/VFX_4"
 				ps_output o = (ps_output)0;
 				
 				float4 color = i.col;
-				color *= outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,i.offsets);
-				if (color.a < 0.33333) discard;
 				
 				o.col = color;
 				return o;

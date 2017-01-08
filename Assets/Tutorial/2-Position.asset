@@ -306,9 +306,9 @@ VFXAsset:
   m_Systems:
   - m_Id: 0
     m_Capacity: 20000
-    m_SimulationShader: {fileID: 7200000, guid: e15afb7d25c3efb4aab0aa5b2cd79929,
+    m_SimulationShader: {fileID: 7200000, guid: 1d71948cbc237744ca84fb169a35122e,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 827d9e58a58caf644b5e274813aef269, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 49a4d47e169baca4a8effad97fe922d2, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -379,9 +379,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 1
     m_Capacity: 20000
-    m_SimulationShader: {fileID: 7200000, guid: 80496a4907450ea45b80d89cd67d6ae3,
+    m_SimulationShader: {fileID: 7200000, guid: 1349cfaff8f7e764eb0de34af6d5d464,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: e4f5eaa996e2c4042a60be1c5a075570, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: f569cc82e26b7f44386bac40c3860436, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -452,9 +452,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 2
     m_Capacity: 20000
-    m_SimulationShader: {fileID: 7200000, guid: b5546a0eace20a74c9a070155386bae9,
+    m_SimulationShader: {fileID: 7200000, guid: 2bd9c77cda071c54caad6bfdde3137ee,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: f7b3cf76ec62a8445aaeb4b7b227aad3, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: a000d157601465d4193591fa853f6fb4, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -529,9 +529,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 3
     m_Capacity: 20000
-    m_SimulationShader: {fileID: 7200000, guid: dcbf564cb96bc244a802ade3e0565e55,
+    m_SimulationShader: {fileID: 7200000, guid: d14c0c94ebe8eb644baaf2674453bc9c,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 32fad5391eaa0f940968a012f70fc49f, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: c7a1c2bde2aa8ac49a255758a4944c9c, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -606,9 +606,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 4
     m_Capacity: 20000
-    m_SimulationShader: {fileID: 7200000, guid: a72326cbe283a5b4cae62128cca2d340,
+    m_SimulationShader: {fileID: 7200000, guid: 38a8dc844797dc346a9d886d82434761,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 5cb6d228a6ffd1145b958baf634a222f, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 7c5fadb42bd626b41be82e925bf50a2f, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -689,9 +689,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 5
     m_Capacity: 20000
-    m_SimulationShader: {fileID: 7200000, guid: 2be78638e24c5634aa8735a787e4f58e,
+    m_SimulationShader: {fileID: 7200000, guid: b9990d98e60d5974390956e8819d9f00,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: da3f9f889c6d541458748efba282d72a, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 7eac16b48f2e8264bad61139de1af2ec, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -762,9 +762,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 6
     m_Capacity: 20000
-    m_SimulationShader: {fileID: 7200000, guid: 7252ef6e35d452d44bcd681412d38cf3,
+    m_SimulationShader: {fileID: 7200000, guid: c5a250ed83b0cf9439b7067f9934bc64,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 6b9ce38fddb588d48a1083b3b6f83752, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: f478630a19585c8498496bcea5cead5b, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -833,9 +833,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 7
     m_Capacity: 20000
-    m_SimulationShader: {fileID: 7200000, guid: e89ccfe8915230548b832ef1b8be628e,
+    m_SimulationShader: {fileID: 7200000, guid: 7035517e0b5f5334dbf1ffe077d770aa,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 8b234f6640817c243b3ed5f196b3505b, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: e303c8c246dcc3a4a9ca742538926a83, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: <noninit>
@@ -910,9 +910,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 8
     m_Capacity: 20000
-    m_SimulationShader: {fileID: 7200000, guid: 2f1eea8453ba7b14c8eae84aff942590,
+    m_SimulationShader: {fileID: 7200000, guid: d37f9599df7392b48ad935193ef702ab,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 5ad56a7935e443d4e99295558b248f8a, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: ea3f2482afccaf9459e6f10cb3db70fc, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer

@@ -72,9 +72,9 @@ VFXAsset:
   m_Systems:
   - m_Id: 0
     m_Capacity: 50
-    m_SimulationShader: {fileID: 7200000, guid: 5abda2a15a48d3c49822ca384a5ecc23,
+    m_SimulationShader: {fileID: 7200000, guid: decdb6889e4c5c64d93fc92df14dac79,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 9c15f42b76571f44480870bedc126db0, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 097f2c6e3895565498ea9aead7917571, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: <noninit>

@@ -24,8 +24,10 @@ Shader "Hidden/VFX_0"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float2 outputUniform1_kVFXValueOp;
-				float outputUniform0_kVFXValueOp;
+				float4 outputUniform0_kVFXValueOp;
+				
+				float2 outputUniform2_kVFXValueOp;
+				float outputUniform1_kVFXValueOp;
 				uint outputUniforms_PADDING_0;
 			
 			CBUFFER_END
@@ -38,8 +40,8 @@ Shader "Hidden/VFX_0"
 			Texture2D outputSampler0_kVFXValueOpTexture;
 			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
-			Texture2D gradientTexture;
-			SamplerState samplergradientTexture;
+			Texture2D floatTexture;
+			SamplerState samplerfloatTexture;
 			
 			struct OutputData
 			{
@@ -69,21 +71,32 @@ Shader "Hidden/VFX_0"
 			
 			float4 sampleSignal(float v,float u) // sample gradient
 			{
-				return gradientTexture.SampleLevel(samplergradientTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+				return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 			}
 			
-			void VFXBlockSubPixelAA( inout float alpha,float3 position,inout float2 size)
+			// Non optimized generic function to allow curve edition without recompiling
+			float sampleSignal(float4 curveData,float u) // sample curve
 			{
-				#ifdef VFX_WORLD_SPACE
-	float clipPosW = mul(UNITY_MATRIX_VP,float4(position,1.0f)).w;
-	#else
-	float clipPosW = mul(UNITY_MATRIX_MVP,float4(position,1.0f)).w;
-	#endif
-	float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)); // max size in one pixel
-	float2 clampedSize = max(size,minSize);
-	float fade = (size.x * size.y) / (clampedSize.x * clampedSize.y);
-	alpha *= fade;
-	size = clampedSize;
+				float uNorm = (u * curveData.x) + curveData.y;
+				switch(asuint(curveData.w) >> 2)
+				{
+					case 1: uNorm = ((0.9921875 * frac(min(1.0f - 1e-5f,uNorm))) + 0.00390625); break; // clamp end
+					case 2: uNorm = ((0.9921875 * frac(max(0.0f,uNorm))) + 0.00390625); break; // clamp start
+					case 3: uNorm = ((0.9921875 * saturate(uNorm)) + 0.00390625); break; // clamp both
+				}
+				return floatTexture.SampleLevel(samplerfloatTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
+			}
+			
+			float3 sampleSpline(float v,float u)
+			{
+				return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+			}
+			
+			void VFXBlockSizeOverLifeCurve( inout float2 size,float age,float lifetime,float4 Curve)
+			{
+				float ratio = saturate(age/lifetime);
+	float s = SAMPLE(Curve, ratio);
+	size = float2(s,s);
 			}
 			
 			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
@@ -108,11 +121,11 @@ Shader "Hidden/VFX_0"
 				{
 					OutputData outputData = outputBuffer[index];
 					
-					float local_alpha = (float)0;
 					float3 local_color = (float3)0;
+					float local_alpha = (float)0;
 					
-					VFXBlockSubPixelAA( local_alpha,outputData.position,outputData.size);
-					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
+					VFXBlockSizeOverLifeCurve( outputData.size,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
+					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform1_kVFXValueOp);
 					
 					float2 size = outputData.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
@@ -152,7 +165,7 @@ Shader "Hidden/VFX_0"
 				ps_output o = (ps_output)0;
 				
 				float4 color = i.col;
-				float2 dim = outputUniform1_kVFXValueOp;
+				float2 dim = outputUniform2_kVFXValueOp;
 				float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU
 				float ratio = frac(i.flipbookIndex);
 				float index = i.flipbookIndex - ratio;

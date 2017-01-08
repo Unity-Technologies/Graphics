@@ -78,7 +78,7 @@ VFXAsset:
     true true true true true true true true true true</Collapsed>\r\n                    <WorldSpace>false
     false false false false false false false false false false false false</WorldSpace>\r\n
     \               </Slot>\r\n                <Slot SlotId=\"38\">\r\n                    <Values>\r\n
-    \                       <kFloat>0.1</kFloat>\r\n                    </Values>\r\n
+    \                       <kFloat>0.5</kFloat>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
     \               </Slot>\r\n                <Slot SlotId=\"39\">\r\n                    <Values>\r\n
     \                       <kFloat>0.4</kFloat>\r\n                    </Values>\r\n
@@ -183,9 +183,9 @@ VFXAsset:
   m_Systems:
   - m_Id: 0
     m_Capacity: 50000
-    m_SimulationShader: {fileID: 7200000, guid: bbac994a95e276149bb0bfbbbb6b151e,
+    m_SimulationShader: {fileID: 7200000, guid: 72f5f29bf9afd4641aafe196f705a8a7,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 21f067c13ab4f1c45b50e564530ce999, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 1ab85c7bccd7e3943a92ba1480e72724, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -295,7 +295,7 @@ VFXAsset:
         index: 24
     m_SpawnerIndices: 00000000
   m_Values:
-    m_Values: 0000000000000000101b8dbe818d213d00000000ebc93940ebc9394000000000ebc93940ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb81e053effffffffffffffffffffffff0000803f8dec5a3ecdcccc3effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a99193f6666663fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00401c450000803fcc42933fffffffffffffffffffffffff0000a041000000007bf47f3f310c43ba0000003f0c0000000000484200004842cdcccc3dcdcccc3dcdcccc3e0000803f
+    m_Values: 0000000000000000101b8dbe818d213d00000000ebc93940ebc9394000000000ebc93940ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb81e053effffffffffffffffffffffff0000803f8dec5a3ecdcccc3effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a99193f6666663fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00401c450000803fcc42933fffffffffffffffffffffffff0000a041000000007bf47f3f310c43ba0000003f0c0000000000484200004842cdcccc3d0000003fcdcccc3e0000803f
     m_Textures:
     - {fileID: 11700000, guid: 5796183d03aa8e147bec84edfb7cd610, type: 2}
     m_Meshes: []
