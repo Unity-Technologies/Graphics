@@ -489,7 +489,6 @@ PreLightData GetPreLightData(float3 V, float NdotV, PositionInputs posInput, BSD
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NDotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
-        // iblNdotV = GetShiftedNdotV(iblNormalWS, V), false);
     }
 
     GetPreIntegratedFGD(iblNdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
