@@ -70,10 +70,24 @@ float2 ParallaxOffset(float3 viewDirTS, float height)
     return viewDirTS.xy * height;
 }
 
+// ref https://www.gamedev.net/topic/678043-how-to-blend-world-space-normals/#entry5287707
+// assume compositing in world space
+// Note: Using vtxNormal = float3(0, 0, 1) give the BlendNormalRNM formulation.
+// TODO: Untested
+float3 BlendNormalWorldspaceRNM(float3 n1, float3 n2, float3 vtxNormal)
+{
+    // Build the shortest-arc quaternion
+    float4 q = float4(cross(vtxNormal, n2), dot(vtxNormal, n2) + 1.0) / sqrt(2.0 * (dot(vtxNormal, n2) + 1));
+
+    // Rotate the normal
+    return n1 * (q.w * q.w - dot(q.xyz, q.xyz)) + 2 * q.xyz * dot(q.xyz, n1) + 2 * q.w * cross(q.xyz, n1);
+}
+
 // ref http://blog.selfshadow.com/publications/blending-in-detail/
 // ref https://gist.github.com/selfshadow/8048308
 // Reoriented Normal Mapping
 // Blending when n1 and n2 are already 'unpacked' and normalised
+// assume compositing in tangent space
 float3 BlendNormalRNM(float3 n1, float3 n2)
 {
     float3 t = n1.xyz + float3(0.0, 0.0, 1.0);
@@ -82,6 +96,7 @@ float3 BlendNormalRNM(float3 n1, float3 n2)
     return r;
 }
 
+// assume compositing in tangent space
 float3 BlendNormal(float3 n1, float3 n2)
 {
     return normalize(float3(n1.xy * n2.z + n2.xy * n1.z, n1.z * n2.z));

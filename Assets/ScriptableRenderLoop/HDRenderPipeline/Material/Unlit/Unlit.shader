@@ -70,6 +70,10 @@ Shader "HDRenderPipeline/Unlit"
 
     float _AlphaCutoff;
 
+    // All our shaders use same name for entry point
+    #pragma vertex Vert
+    #pragma fragment Frag
+
     ENDHLSL
 
     SubShader
@@ -87,9 +91,6 @@ Shader "HDRenderPipeline/Unlit"
             Cull[_CullMode]
 
             HLSLPROGRAM
-
-            #pragma vertex VertDefault
-            #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
             #include "../../Material/Material.hlsl"
@@ -113,9 +114,6 @@ Shader "HDRenderPipeline/Unlit"
             Cull [_CullMode]
 
             HLSLPROGRAM
-
-            #pragma vertex VertDefault
-            #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_FORWARD_UNLIT
             #include "../../Material/Material.hlsl"
