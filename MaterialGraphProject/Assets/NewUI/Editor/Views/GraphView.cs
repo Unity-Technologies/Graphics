@@ -227,7 +227,7 @@ namespace RMGUI.GraphView
 			return EventPropagation.Stop;
 		}
 
-		protected EventPropagation FrameAll()
+		public EventPropagation FrameAll()
 		{
 			return Frame(FrameType.All);
 		}
@@ -237,7 +237,7 @@ namespace RMGUI.GraphView
 			return Frame(FrameType.Selection);
 		}
 
-		protected EventPropagation FrameOrigin()
+		public EventPropagation FrameOrigin()
 		{
 			return Frame(FrameType.Origin);
 		}

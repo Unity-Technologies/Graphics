@@ -12,7 +12,7 @@ namespace UnityEditor.Graphing.Drawing
     {
         private GraphView m_GraphView;
 
-        public GraphView GraphView
+        public GraphView graphView
         {
             get { return m_GraphView; }
         }
