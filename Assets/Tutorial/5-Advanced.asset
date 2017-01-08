@@ -133,9 +133,9 @@ VFXAsset:
   m_Systems:
   - m_Id: 0
     m_Capacity: 125000
-    m_SimulationShader: {fileID: 7200000, guid: a1a4bdc44000a3941bc431dc930f0e45,
+    m_SimulationShader: {fileID: 7200000, guid: f97ac1f1a52cb324dac0ff1c258b607e,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 5763047012273b744a0afeba4f154ce1, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: ca75f244a8ab13d48bedd430804fa51e, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -507,12 +507,43 @@ VFXAsset:
   - m_SemanticsTypeID: UnityEngine.Experimental.VFX.VFXColorRGBType
     m_ExposedName: Color
     m_WorldSpace: 0
-  m_GradientTexture: {fileID: 0}
-  m_CurveTexture: {fileID: 28483117946657794}
+  m_FloatTexture: {fileID: 28817179401612722}
   m_Bounds:
     m_Center: {x: 0.099534154, y: -0.02687776, z: -0.12798357}
     m_Extent: {x: -1.1967449, y: 1.3405954, z: -1.4863882}
 --- !u!28 &28483117946657794
+Texture2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  serializedVersion: 2
+  m_Width: 128
+  m_Height: 1
+  m_CompleteImageSize: 1024
+  m_TextureFormat: 17
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapMode: 0
+  m_LightmapFormat: 0
+  m_ColorSpace: 0
+  image data: 1024
+  _typelessdata: 0000cdcdcdcdcdcdc50ccdcdcdcdcdcdbd14cdcdcdcdcdcd4b19cdcdcdcdcdcdad1ccdcdcdcdcdcd411fcdcdcdcdcdcd3021cdcdcdcdcdcd0323cdcdcdcdcdcd8c24cdcdcdcdcdcdb725cdcdcdcdcdcd0227cdcdcdcdcdcd3528cdcdcdcdcdcdf928cdcdcdcdcdcdcb29cdcdcdcdcdcdac2acdcdcdcdcdcd9a2bcdcdcdcdcdcd4b2ccdcdcdcdcdcdd02ccdcdcdcdcdcd5a2dcdcdcdcdcdcdec2dcdcdcdcdcdcd832ecdcdcdcdcdcd1f2fcdcdcdcdcdcdc22fcdcdcdcdcdcd3530cdcdcdcdcdcd8b30cdcdcdcdcdcde430cdcdcdcdcdcd4031cdcdcdcdcdcd9e31cdcdcdcdcdcdfe31cdcdcdcdcdcd6032cdcdcdcdcdcdc432cdcdcdcdcdcd2a33cdcdcdcdcdcd9233cdcdcdcdcdcdfc33cdcdcdcdcdcd3334cdcdcdcdcdcd6a34cdcdcdcdcdcda134cdcdcdcdcdcdd934cdcdcdcdcdcd1235cdcdcdcdcdcd4b35cdcdcdcdcdcd8435cdcdcdcdcdcdbf35cdcdcdcdcdcdf935cdcdcdcdcdcd3436cdcdcdcdcdcd7036cdcdcdcdcdcdab36cdcdcdcdcdcde736cdcdcdcdcdcd2337cdcdcdcdcdcd6037cdcdcdcdcdcd9c37cdcdcdcdcdcdd937cdcdcdcdcdcd0a38cdcdcdcdcdcd2938cdcdcdcdcdcd4738cdcdcdcdcdcd6538cdcdcdcdcdcd8338cdcdcdcdcdcda138cdcdcdcdcdcdbf38cdcdcdcdcdcddc38cdcdcdcdcdcdfa38cdcdcdcdcdcd1739cdcdcdcdcdcd3439cdcdcdcdcdcd5139cdcdcdcdcdcd6e39cdcdcdcdcdcd8a39cdcdcdcdcdcda639cdcdcdcdcdcdc139cdcdcdcdcdcddc39cdcdcdcdcdcdf739cdcdcdcdcdcd123acdcdcdcdcdcd2b3acdcdcdcdcdcd453acdcdcdcdcdcd5e3acdcdcdcdcdcd763acdcdcdcdcdcd8e3acdcdcdcdcdcda63acdcdcdcdcdcdbc3acdcdcdcdcdcdd23acdcdcdcdcdcde83acdcdcdcdcdcdfd3acdcdcdcdcdcd113bcdcdcdcdcdcd243bcdcdcdcdcdcd373bcdcdcdcdcdcd493bcdcdcdcdcdcd5a3bcdcdcdcdcdcd6b3bcdcdcdcdcdcd7a3bcdcdcdcdcdcd893bcdcdcdcdcdcd973bcdcdcdcdcdcda43bcdcdcdcdcdcdb03bcdcdcdcdcdcdbb3bcdcdcdcdcdcdc53bcdcdcdcdcdcdce3bcdcdcdcdcdcdd73bcdcdcdcdcdcdde3bcdcdcdcdcdcde43bcdcdcdcdcdcde93bcdcdcdcdcdcdec3bcdcdcdcdcdcdef3bcdcdcdcdcdcdf13bcdcdcdcdcdcdf13bcdcdcdcdcdcdf03bcdcdcdcdcdcde13bcdcdcdcdcdcdc23bcdcdcdcdcdcd933bcdcdcdcdcdcd553bcdcdcdcdcdcd0b3bcdcdcdcdcdcdb63acdcdcdcdcdcd583acdcdcdcdcdcdf139cdcdcdcdcdcd8439cdcdcdcdcdcd1139cdcdcdcdcdcd9b38cdcdcdcdcdcd2338cdcdcdcdcdcd5637cdcdcdcdcdcd6736cdcdcdcdcdcd7d35cdcdcdcdcdcd9b34cdcdcdcdcdcd8733cdcdcdcdcdcdf531cdcdcdcdcdcd8430cdcdcdcdcdcd792ecdcdcdcdcdcd442ccdcdcdcdcdcdf128cdcdcdcdcdcd8524cdcdcdcdcdcda51ccdcdcdcdcdcd0000cdcdcdcdcdcd
+  m_StreamData:
+    offset: 0
+    size: 0
+    path: 
+--- !u!28 &28817179401612722
 Texture2D:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}

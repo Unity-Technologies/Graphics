@@ -175,9 +175,9 @@ VFXAsset:
   m_Systems:
   - m_Id: 0
     m_Capacity: 100000
-    m_SimulationShader: {fileID: 7200000, guid: cde4a7b3b8ab9044991e8bb0c119b81d,
+    m_SimulationShader: {fileID: 7200000, guid: eae778191dcc8e94480a46aba5198615,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: c6815cd11f9ab7b4f8380e8ffd5d2ec1, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 603c4ae5202abef4f899e77ecb610565, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -270,9 +270,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 1
     m_Capacity: 100000
-    m_SimulationShader: {fileID: 7200000, guid: 3e06fd69e750fd04bb2f0118497216c0,
+    m_SimulationShader: {fileID: 7200000, guid: 644cb260e5c6f874eb8f37cc4c87f006,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 5f03a69550968ab4887762593897be52, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: cfb823faf4152da47b79bf3f34f20ecf, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: outputBuffer
@@ -675,8 +675,7 @@ VFXAsset:
     m_StopSpawners: 00000000
   m_ExposedExpressions: []
   m_ExposedEditorDescs: []
-  m_GradientTexture: {fileID: 28652009736408008}
-  m_CurveTexture: {fileID: 0}
+  m_FloatTexture: {fileID: 28719193156114714}
   m_Bounds:
     m_Center: {x: -0.13987195, y: 0.2382853, z: -0.090073586}
     m_Extent: {x: 1.714448, y: 1.0355465, z: 1.681016}
@@ -708,6 +707,38 @@ Texture2D:
   m_ColorSpace: 1
   image data: 512
   _typelessdata: f9161600f9171611f9171521f9181532f9191542f9191553f91a1463fa1b1474fa1b1484fa1c1495fa1d13a5fa1d13b6fa1e13c6fa1f13d7fa2012e7fa2012f8fa2112fffa2212fffa2211fffa2311fffa2411fffb2410fffb2510fffb2610fffb2610fffb270ffffb280ffffb280ffffb290ffffb2a0efffb2a0efffb2b0efffb2c0efffb2c0dfffb2d0dfffc2e0dfffc2e0dfffc2f0cfffc300cfffc300cfffc310cfffc320bfffc330bfffc330bfffc340afffc350afffc350afffc360afffc3709fffd3709fffd3809fffd3909fffd3908fffd3a08fffd3b08fffd3b08fffd3c07fffd3d07fffd3d07fffd3e07fffd3f06fffd3f06fffd4006fffe4105fffe4105fffe4205fffe4305fffe4404fffe4404fffe4504fffe4604fffe4603fffe4703fffe4803fffe4803fffe4902fffe4a02ffff4a02ffff4b02ffff4c01ffff4c01ffff4d01ffff4e01ffff4e00ffff4f00ffff5505ffff5b09ffff610dffff6712ffff6d16ffff721affff781fffff7e23ffff8427ffff8a2cffff9030ffff9534ffff9b39ffffa13dffffa741ffffad46ffffb24affffb84effffbe53ffffc457ffffca5bffffd060ffffd564ffffdb69ffffe16dffffe771ffffed76fffff075ffffef6dffffee65ffffed5dffffec56f0ffeb4edbffeb46c5ffea3eafffe93699ffe82f83ffe7276dffe61f57ffe61742ffe5102cffe40816ffe30000
+  m_StreamData:
+    offset: 0
+    size: 0
+    path: 
+--- !u!28 &28719193156114714
+Texture2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  serializedVersion: 2
+  m_Width: 128
+  m_Height: 1
+  m_CompleteImageSize: 1024
+  m_TextureFormat: 17
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapMode: 0
+  m_LightmapFormat: 0
+  m_ColorSpace: 0
+  image data: 1024
+  _typelessdata: 943b1b201b200000943b63201b20442c943b6320ad1f2430943bad20ad1f4632943bfa20ad1f2434943bfa20ad1f3535943b4921291f3636a53b9c21291f4737a53b9c21291f2438a53bf221291fac38a53b4a22ab1e2d39a53b4a22ab1eb539a53ba522ab1e363aa53b0323ab1ebe3aa53b6523311e3f3ba53b6523311ec73ba53bc923311e003ca53b1824311e003ca53b1824bd1d003ca53b4d24bd1d003ca53b8424bd1d003cb73b84244e1d003cb73bbc244e1d003cb73bf6244e1d003cb73bf6244e1d003cb73b3125e41c003cb73b6e25e41c003cb73b6e25e41c003cb73bad25e41c003cb73bed257f1c003cb73bed257f1c003cb73b2f267f1c003cb73b72267f1c003cb73b72261f1c003cb73bb7261f1c003cc93bfe261f1c003cc93bfe261f1c003cc93b4627871b003cc93b9127871b003cc93b9127871b003cc93bdc27871b003cc93b1528da1a003cc93b3c28da1a003cc93b3c28da1a003cc93b6528371a003cc93b8e28371a003cc93b8e28371a003cc93bb828371a003cc93be3289819003cdb3be3289819003cdb3b0f299819003cdb3b3c299819003cdb3b3c29f918003cdb3b6a29f918003cdb3b9929f918003cdb3b9929f918003cdb3bc8295918003cdb3bf9295918003cdb3bf9295918003cdb3b2a2a5918003cdb3b5c2a7517003cdb3b5c2a7517003cdb3b8f2a7517003ced3bc42a3716003ced3bc42a3716003ced3bf92a3716003ced3b2f2b3716003ced3b662bf914003ced3b662bf914003ced3b9e2bf914003ced3bd62bf914003ced3bd62b7513003ced3b082c7513003ced3b252c7513003ced3b252c7513003ced3b432cf910003ced3b612cf910003c003c612cf910003c003c802cf910003c003ca02cf90c003c003ca02cf90c003c003cbf2cf90c003c003ce02cf90c003c003ce02c0000003c003c012d0000003c003cd02d3716003c003cb22e9819003c003ca62f1f1c003c003c5730311e003c003ce4301b20003c003c62314921003c003c02320323003c003cad324d24003c003c62333125003c003c11347226003c003c76349127003c003ccf346528003c003c3e353c29003c003cb335f929003c003c2e36c42a003c003caf36d62b003c003c1f37612c003c003cab37e02c003c003c1e38892d003c003c6a38192e003c003cb938b22e003c003c0b397c2f003c003c52391330003c003caa398530003c003c063ae430003c003c643a4831003c003cc63acc31003c003cf83ab131003c003ce73ae430003c003cd73a2a30003c003cc63a012f003c003cb53af42d873b003ca53ae02cde3a003ca53ad62b2e3a003c953a2a2a7d39003c843ab828cc38003c743a46271c38003c643a3125d636003c543a03237535003c543a63202434003c443a4e1d8531003c343af918852d003c253a00000000
   m_StreamData:
     offset: 0
     size: 0

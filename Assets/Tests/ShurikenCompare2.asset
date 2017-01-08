@@ -72,9 +72,9 @@ VFXAsset:
   m_Systems:
   - m_Id: 0
     m_Capacity: 50
-    m_SimulationShader: {fileID: 7200000, guid: f6bc75f117fd38445bfab2cf245c2bb4,
+    m_SimulationShader: {fileID: 7200000, guid: 5abda2a15a48d3c49822ca384a5ecc23,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 6fc1fed82ea51004d831cb2265007e16, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 9c15f42b76571f44480870bedc126db0, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: <noninit>
@@ -356,8 +356,7 @@ VFXAsset:
   - m_SemanticsTypeID: UnityEngine.Experimental.VFX.VFXColorRGBType
     m_ExposedName: Color
     m_WorldSpace: 0
-  m_GradientTexture: {fileID: 0}
-  m_CurveTexture: {fileID: 0}
+  m_FloatTexture: {fileID: 0}
   m_Bounds:
     m_Center: {x: -0.094696045, y: 12.584168, z: 0.27454376}
     m_Extent: {x: 10.211029, y: 12.584168, z: 11.481091}

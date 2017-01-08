@@ -160,9 +160,9 @@ VFXAsset:
   m_Systems:
   - m_Id: 0
     m_Capacity: 1
-    m_SimulationShader: {fileID: 7200000, guid: aeee9fed94f91aa46a3cca23b76efd8d,
+    m_SimulationShader: {fileID: 7200000, guid: 16cc1fbfc0da1e647a8c9eb59f9feb58,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 4b9d0781e77771f4193272ac2db9fac3, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 435b3abf4826d7746870812c4ac22f10, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: <noninit>
@@ -219,9 +219,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 1
     m_Capacity: 1
-    m_SimulationShader: {fileID: 7200000, guid: dc7084ab61126a94f813e3d857c2b1d4,
+    m_SimulationShader: {fileID: 7200000, guid: 6f21f47e47f2da4489c3114dc3c422a6,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 4302f8647d487fc438d8008e0746f254, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 7907e73fda96b654da007e9917bc4577, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: <noninit>
@@ -282,9 +282,9 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 2
     m_Capacity: 100
-    m_SimulationShader: {fileID: 7200000, guid: 9fb3a8c12daea0e4c894c44447d069f3,
+    m_SimulationShader: {fileID: 7200000, guid: 42ddf74d650cfd24390a8980dfc09007,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: bf6b95dff183cc04992ec38fc4e84b76, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: bfbbf6b96f2ca10428d7d83597a089af, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: <noninit>
@@ -639,8 +639,7 @@ VFXAsset:
     m_StopSpawners: 00000000
   m_ExposedExpressions: []
   m_ExposedEditorDescs: []
-  m_GradientTexture: {fileID: 0}
-  m_CurveTexture: {fileID: 0}
+  m_FloatTexture: {fileID: 0}
   m_Bounds:
     m_Center: {x: 0.4388275, y: 0.0770874, z: 0.43437243}
     m_Extent: {x: -7.2501974, y: 2.5858288, z: -2.012629}
