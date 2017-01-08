@@ -311,4 +311,19 @@ float3 TransformWorldToTangent(float3 dirWS, float3 tangentToWorld[3])
     return normalize(mul(float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz), dirWS));
 }
 
+float3 TransformTangentToObject(float3 dirTS, float3 worldToTangent[3])
+{
+    // TODO check: do we need to normalize ?
+    // worldToTangent is orthonormal so inverse <==> transpose
+    float3x3 mWorldToTangent = float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz);
+    float3 normalWS = mul(dirTS, mWorldToTangent);
+    return normalize(mul((float3x3)unity_WorldToObject, normalWS));
+}
+
+// Assume TBN is orthonormal.
+float3 TransformObjectToTangent(float3 dirOS, float3 worldToTangent[3])
+{
+    // TODO check: do we need to normalize ?
+    return normalize(mul(float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz), mul((float3x3)unity_ObjectToWorld, dirOS)));
+}
 #endif // UNITY_SHADER_VARIABLES_INCLUDED

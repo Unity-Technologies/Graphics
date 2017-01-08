@@ -1,24 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
-
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.ScriptableRenderLoop
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipelineMenuItems
     {
-        [UnityEditor.MenuItem("HDRenderPipeline/Create Scene Settings")]
+        [MenuItem("HDRenderPipeline/Create Scene Settings")]
         static void CreateSceneSettings()
         {
-            CommonSettings[] settings = Object.FindObjectsOfType(typeof(CommonSettings)) as CommonSettings[];
+            CommonSettings[] settings = Object.FindObjectsOfType<CommonSettings>();
 
             if (settings.Length == 0)
             {
-                GameObject go = new GameObject();
-                go.name = "SceneSettings";
-                go.AddComponent(typeof(CommonSettings));
+                GameObject go = new GameObject { name = "SceneSettings" };
+                go.AddComponent<CommonSettings>();
+                go.AddComponent<PostProcessing>();
             }
             else
             {
@@ -26,7 +22,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             }
         }
 
-        [UnityEditor.MenuItem("HDRenderPipeline/Synchronize all Layered materials")]
+        [MenuItem("HDRenderPipeline/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
             Object[] materials = Resources.FindObjectsOfTypeAll<Material>();

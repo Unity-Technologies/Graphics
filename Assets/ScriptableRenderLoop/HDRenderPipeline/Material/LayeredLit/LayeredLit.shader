@@ -119,6 +119,10 @@ Shader "HDRenderPipeline/LayeredLit"
         _BlendSize2("_BlendSize2", Range(0, 0.05)) = 0.0
         _BlendSize3("_BlendSize3", Range(0, 0.05)) = 0.0
 
+        _InheritBaseLayer1("_InheritBaseLayer1", Range(0, 1.0)) = 0.0
+        _InheritBaseLayer2("_InheritBaseLayer2", Range(0, 1.0)) = 0.0
+        _InheritBaseLayer3("_InheritBaseLayer3", Range(0, 1.0)) = 0.0
+
         _VertexColorHeightFactor("_VertexColorHeightFactor", Float) = 1.0
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
@@ -266,6 +270,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Lit/LitProperties.hlsl"
 
+    // All our shaders use same name for entry point
+    #pragma vertex Vert
+    #pragma fragment Frag
+
     ENDHLSL
 
     SubShader
@@ -281,9 +289,6 @@ Shader "HDRenderPipeline/LayeredLit"
             Cull  [_CullMode]
 
             HLSLPROGRAM
-
-            #pragma vertex VertDefault
-            #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_GBUFFER
 
@@ -304,9 +309,6 @@ Shader "HDRenderPipeline/LayeredLit"
             Cull[_CullMode]
 
             HLSLPROGRAM
-
-            #pragma vertex VertDefault
-            #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
 
@@ -455,9 +457,6 @@ Shader "HDRenderPipeline/LayeredLit"
             Cull[_CullMode]
 
             HLSLPROGRAM
-
-            #pragma vertex VertDefault
-            #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include
