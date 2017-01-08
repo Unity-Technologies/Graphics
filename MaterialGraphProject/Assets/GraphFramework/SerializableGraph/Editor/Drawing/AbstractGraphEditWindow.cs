@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Remoting.Messaging;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -27,7 +28,7 @@ namespace UnityEditor.Graphing.Drawing
 
         protected GraphView graphView
         {
-            get { return m_GraphEditorDrawer.GraphView; }
+            get { return m_GraphEditorDrawer.graphView; }
         }
 
         private GraphEditorDrawer m_GraphEditorDrawer;
@@ -62,6 +63,13 @@ namespace UnityEditor.Graphing.Drawing
                 Repaint();
         }
 
+        private bool focused { get; set; }
+        private void Focus(TimerState timerState)
+        {
+            m_GraphEditorDrawer.graphView.FrameAll();
+            focused = true;
+        }
+
         void OnSelectionChange()
         {
             if (Selection.activeObject == null || !EditorUtility.IsPersistent(Selection.activeObject))
@@ -81,9 +89,10 @@ namespace UnityEditor.Graphing.Drawing
                     var source = CreateDataSource();
                     source.Initialize(m_LastSelection, this);
                     m_GraphEditorDrawer.dataSource = source;
-
                     //m_GraphView.StretchToParentSize();
                     Repaint();
+                    focused = false;
+                    m_GraphEditorDrawer.graphView.Schedule(Focus).StartingIn(1).Until(() => focused);
                 }
             }
         }
