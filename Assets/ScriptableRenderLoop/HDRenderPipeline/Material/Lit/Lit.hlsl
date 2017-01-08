@@ -466,12 +466,11 @@ struct PreLightData
     float    ltcDisneyDiffuseMagnitude;
 };
 
-PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfData)
+PreLightData GetPreLightData(float3 V, float NdotV, PositionInputs posInput, BSDFData bsdfData)
 {
     PreLightData preLightData;
 
-    // TODO: check Eric idea about doing that when writting into the GBuffer (with our forward decal)
-    preLightData.NdotV = GetShiftedNdotV(bsdfData.normalWS, V, false);
+    preLightData.NdotV = NdotV;
 
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
 
@@ -1145,8 +1144,9 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
 {
     float3   N            = bsdfData.normalWS;
     float3   tangentX     = bsdfData.tangentWS;
-    float3x3 localToWorld = GetLocalFrame(N, tangentX);
+    // This function call may modify the normal.
     float    NdotV        = GetShiftedNdotV(N, V, false);
+    float3x3 localToWorld = GetLocalFrame(N, tangentX);
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
@@ -1188,8 +1188,9 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
     float3   N            = bsdfData.normalWS;
     float3   tangentX     = bsdfData.tangentWS;
     float3   tangentY     = bsdfData.bitangentWS;
-    float3x3 localToWorld = GetLocalFrame(N, tangentX);
+    // This function call may modify the normal.
     float    NdotV        = GetShiftedNdotV(N, V, false);
+    float3x3 localToWorld = GetLocalFrame(N, tangentX);
     float3   acc          = float3(0.0, 0.0, 0.0);
 
 
