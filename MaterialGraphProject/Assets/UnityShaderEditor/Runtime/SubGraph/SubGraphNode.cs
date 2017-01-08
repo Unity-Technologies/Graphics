@@ -186,7 +186,7 @@ namespace UnityEngine.MaterialGraph
             foreach (var slot in GetInputSlots<MaterialSlot>())
             {
                 var varName = subGraphInputNode.GetVariableNameForSlot(slot.id);
-                var varValue = GetSlotValue(slot.id, GenerationMode.ForReals);
+                var varValue = GetSlotValue(slot.id, generationMode);
 
                 var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
                 outputString.AddShaderChunk(
@@ -288,12 +288,12 @@ namespace UnityEngine.MaterialGraph
             return subGraph.activeNodes.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal());
         }
 
-        public bool RequiresMeshUV(int index)
+        public bool RequiresMeshUV(UVChannel channel)
         {
             if (subGraph == null)
                 return false;
 
-            return subGraph.activeNodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(index));
+            return subGraph.activeNodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel));
         }
 
         public bool RequiresScreenPosition()

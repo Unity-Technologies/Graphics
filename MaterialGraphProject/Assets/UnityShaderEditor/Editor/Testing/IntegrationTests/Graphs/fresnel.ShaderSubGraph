@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Name: fresnel
   m_EditorClassIdentifier: 
   m_DrawingData:
-    m_SerializableSelection: []
+    m_SerializableSelection:
+    - c125654a-0be6-44c3-b177-54de0b1d84a7
   m_MaterialSubGraph:
     m_SerializableNodes:
     - typeInfo:
@@ -27,23 +28,23 @@ MonoBehaviour:
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
         \   \\\"m_Id\\\": -1,\\n    \\\"m_DisplayName\\\": \\\"Input 1\\\",\\n    \\\"m_SlotType\\\":
-        1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\": 1,\\n
+        1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\": 4,\\n
         \   \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
-        {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
+        {\\n        \\\"x\\\": 3.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Input1\\\",\\n    \\\"m_ShowValue\\\":
-        false\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
+        1,\\n    \\\"m_ShaderOutputName\\\": \\\"Input1\\\",\\n    \\\"m_ShowValue\\\":
+        true\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
         \   \\\"m_Id\\\": -2,\\n    \\\"m_DisplayName\\\": \\\"Input 2\\\",\\n    \\\"m_SlotType\\\":
-        1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\": 1,\\n
+        1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\": 2,\\n
         \   \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
-        {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
-        0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Input2\\\",\\n    \\\"m_ShowValue\\\":
-        false\\n}\"\n        }\n    ]\n}"
+        {\\n        \\\"x\\\": 1.0,\\n        \\\"y\\\": 1.0,\\n        \\\"z\\\":
+        1.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"Input2\\\",\\n    \\\"m_ShowValue\\\":
+        true\\n}\"\n        }\n    ]\n}"
     - typeInfo:
         fullName: UnityEngine.MaterialGraph.SubGraphOutputNode
         assemblyName: Assembly-CSharp
@@ -56,13 +57,13 @@ MonoBehaviour:
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
         \   \\\"m_Id\\\": 1,\\n    \\\"m_DisplayName\\\": \\\"Output 1\\\",\\n    \\\"m_SlotType\\\":
-        0,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\": 1,\\n
+        0,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\": 2,\\n
         \   \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Output1\\\",\\n    \\\"m_ShowValue\\\":
-        false\\n}\"\n        }\n    ]\n}"
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"Output1\\\",\\n    \\\"m_ShowValue\\\":
+        true\\n}\"\n        }\n    ]\n}"
     - typeInfo:
         fullName: UnityEngine.MaterialGraph.WorldSpaceViewDirectionNode
         assemblyName: Assembly-CSharp
@@ -159,7 +160,7 @@ MonoBehaviour:
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
         1,\\n    \\\"m_ShaderOutputName\\\": \\\"Value\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        }\n    ],\n    \"m_PropertyName\": \"\",\n    \"m_Description\":
-        \"\",\n    \"m_Exposed\": 1,\n    \"m_Value\": 1.0299999713897706\n}"
+        \"\",\n    \"m_Exposed\": 1,\n    \"m_Value\": 1.0\n}"
     - typeInfo:
         fullName: UnityEngine.MaterialGraph.SubtractNode
         assemblyName: Assembly-CSharp
@@ -216,7 +217,7 @@ MonoBehaviour:
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Input1\\\",\\n    \\\"m_ShowValue\\\":
+        1,\\n    \\\"m_ShaderOutputName\\\": \\\"Input1\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
@@ -226,7 +227,7 @@ MonoBehaviour:
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Input2\\\",\\n    \\\"m_ShowValue\\\":
+        1,\\n    \\\"m_ShaderOutputName\\\": \\\"Input2\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
@@ -236,7 +237,7 @@ MonoBehaviour:
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Output\\\",\\n    \\\"m_ShowValue\\\":
+        1,\\n    \\\"m_ShaderOutputName\\\": \\\"Output\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        }\n    ]\n}"
     - typeInfo:
         fullName: UnityEngine.MaterialGraph.MultiplyNode
@@ -255,7 +256,7 @@ MonoBehaviour:
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Input1\\\",\\n    \\\"m_ShowValue\\\":
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"Input1\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
@@ -265,7 +266,7 @@ MonoBehaviour:
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Input2\\\",\\n    \\\"m_ShowValue\\\":
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"Input2\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
@@ -275,7 +276,7 @@ MonoBehaviour:
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Output\\\",\\n    \\\"m_ShowValue\\\":
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"Output\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        }\n    ]\n}"
     m_SerializableEdges:
     - typeInfo:

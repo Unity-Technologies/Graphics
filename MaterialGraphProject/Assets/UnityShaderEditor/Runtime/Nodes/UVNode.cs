@@ -4,7 +4,7 @@ namespace UnityEngine.MaterialGraph
 {
     interface IMayRequireMeshUV
     {
-        bool RequiresMeshUV(int index);
+        bool RequiresMeshUV(UVChannel channel);
     }
 
     [Title("Input/UV Node")]
@@ -13,8 +13,26 @@ namespace UnityEngine.MaterialGraph
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "UV";
 
-        public override bool hasPreview { get { return true; } }
+        [SerializeField]
+        private UVChannel m_OutputChannel;
+        public UVChannel uvChannel
+        {
+            get { return m_OutputChannel; }
+            set
+            {
+                if (m_OutputChannel == value)
+                    return;
 
+                m_OutputChannel = value;
+                if (onModified != null)
+                {
+                    onModified(this, ModificationScope.Graph);
+                }
+            }
+        }
+
+        public override bool hasPreview { get { return true; } }
+        
         public UVNode()
         {
             name = "UV";
@@ -29,12 +47,12 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + ShaderGeneratorNames.UV[0] + ";", true);
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + m_OutputChannel.GetUVName() + ";", true);
         }
 
-        public bool RequiresMeshUV(int index)
+        public bool RequiresMeshUV(UVChannel channel)
         {
-            return index == 0;
+            return channel == uvChannel;
         }
     }
 }

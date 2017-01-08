@@ -137,13 +137,14 @@ namespace UnityEngine.MaterialGraph
             // always add color because why not.
             shaderInputVisitor.AddShaderChunk("float4 color : COLOR;", true);
 
-            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UV.Length; ++uvIndex)
+            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
             {
-                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(uvIndex)))
+                var channel = (UVChannel)uvIndex;
+                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(channel)))
                 {
                     shaderInputVisitor.AddShaderChunk(string.Format("half4 meshUV{0};", uvIndex), true);
                     vertexShaderBlock.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex == 0 ? "" : uvIndex.ToString()), true);
-                    shaderBody.AddShaderChunk(string.Format("half4 {0} = IN.meshUV{1};", ShaderGeneratorNames.UV[uvIndex], uvIndex), true);
+                    shaderBody.AddShaderChunk(string.Format("half4 {0} = IN.meshUV{1};", channel.GetUVName(), uvIndex), true);
                 }
             }
 
