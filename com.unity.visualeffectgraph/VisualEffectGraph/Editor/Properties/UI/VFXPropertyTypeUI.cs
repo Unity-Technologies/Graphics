@@ -59,12 +59,12 @@ namespace UnityEngine.Experimental.VFX
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
-            slot.Set((Texture2D)EditorGUI.ObjectField(area, slot.Get<Texture2D>(true), typeof(Texture2D), false),true);
+            slot.Set(EditorGUI.ObjectField(area, slot.Get<Texture2D>(true), typeof(Texture2D), false),true);
         }
 
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
-            slot.Set((Texture2D)EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture2D>(false), typeof(Texture2D), false),false);
+            slot.Set(EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture2D>(false), typeof(Texture2D), false),false);
         }
     }
 
@@ -72,12 +72,12 @@ namespace UnityEngine.Experimental.VFX
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
-            slot.Set((Texture3D)EditorGUI.ObjectField(area, slot.Get<Texture3D>(true), typeof(Texture3D), false),true);
+            slot.Set(EditorGUI.ObjectField(area, slot.Get<Texture3D>(true), typeof(Texture3D), false),true);
         }
 
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
-            slot.Set((Texture3D)EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture3D>(false), typeof(Texture3D), false),false);
+            slot.Set(EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture3D>(false), typeof(Texture3D), false),false);
         }
     }
 
@@ -149,7 +149,7 @@ namespace UnityEngine.Experimental.VFX
                 return;
 
             EditorGUI.BeginChangeCheck();
-            s_EditorGUIGradientField.Invoke(null, new object[] { area, slot.Get<Gradient>(true) });
+            s_EditorGUIGradientField.Invoke(null, new object[] { area, slot.Get<Gradient>(true), true });
             if (EditorGUI.EndChangeCheck())
                 Slot(slot, true).NotifyChange(VFXPropertySlot.Event.kValueUpdated); // We need to call this explicitly as the gradient reference has not changed
         }
@@ -161,7 +161,7 @@ namespace UnityEngine.Experimental.VFX
                 return;
 
             EditorGUI.BeginChangeCheck();
-            s_EditorGUILayoutGradientField.Invoke(null, new object[] { slot.Name, slot.Get<Gradient>(false), null });
+            s_EditorGUILayoutGradientField.Invoke(null, new object[] { slot.Name, slot.Get<Gradient>(false), true, null });
             if (EditorGUI.EndChangeCheck())
                 Slot(slot, false).NotifyChange(VFXPropertySlot.Event.kValueUpdated); // We need to call this explicitly as the gradient reference has not changed
         }
@@ -173,11 +173,11 @@ namespace UnityEngine.Experimental.VFX
             {
                 s_GradientFieldMethodInitialized = true;
 
-                s_EditorGUIGradientField = typeof(EditorGUI).GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(Rect), typeof(Gradient) }, null);
+                s_EditorGUIGradientField = typeof(EditorGUI).GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(Rect), typeof(Gradient), typeof(bool) }, null);
                 if (s_EditorGUIGradientField == null)
                     Debug.LogError("Cannot get EditorGUI.GradientField method by reflection");
 
-                s_EditorGUILayoutGradientField = typeof(EditorGUILayout).GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string), typeof(Gradient), typeof(GUILayoutOption[]) }, null);
+				s_EditorGUILayoutGradientField = typeof(EditorGUILayout).GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string), typeof(Gradient), typeof(bool), typeof(GUILayoutOption[]) }, null);
                 if (s_EditorGUILayoutGradientField == null)
                     Debug.LogError("Cannot get EditorGUILayout.GradientField method by reflection");
             }
@@ -285,6 +285,19 @@ namespace UnityEngine.Experimental.VFX
         }
 
     }
+
+	public partial class VFXMeshType : VFXPrimitiveType<Mesh>
+	{
+		public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
+		{
+			slot.Set(EditorGUI.ObjectField(area, slot.Get<Mesh>(true), typeof(Mesh), false), true);
+		}
+
+		public override void OnInspectorGUI(VFXPropertySlot slot)
+		{
+			slot.Set(EditorGUILayout.ObjectField(slot.Name, slot.Get<Mesh>(false), typeof(Mesh), false), false);
+		}
+	}
 
     // Proxy types
     public partial class VFXFloat2Type : VFXProxyVectorType
@@ -476,5 +489,4 @@ namespace UnityEngine.Experimental.VFX
             return new VFXEdCylinderEditingWidget(slot,t);
         }
     }
-
 }

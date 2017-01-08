@@ -113,8 +113,10 @@ namespace UnityEngine.Experimental.VFX
             get { return m_Parent; }
         }
 
-        public T Get<T>(bool linked = false)        { return Semantics.Get<T>(this, linked); }
-        public void Set<T>(T t,bool linked = false) { Semantics.Set(this,t,linked); }
+        public VFXPropertyTypeSemantics GetSemanticsRef(bool linked) { return linked ? CurrentValueRef.Semantics : Semantics; }
+
+        public T Get<T>(bool linked = false)        { return GetSemanticsRef(linked).Get<T>(this, linked); }
+        public void Set<T>(T t,bool linked = false) { GetSemanticsRef(linked).Set(this,t,linked); }
    
         // Direct access to owned value
         // Prefer using get<T> and Set<T> instead to correctly set value depending on the semantics
@@ -284,6 +286,9 @@ namespace UnityEngine.Experimental.VFX
                     case VFXValueType.kColorGradient:
                         SerializationUtils.WriteGradient(writer, Value.Get<Gradient>());
                         break;
+		case VFXValueType.kMesh:
+			writer.WriteElementString(name, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Value.Get<Mesh>())));
+			break;
                     case VFXValueType.kSpline:
                         SerializationUtils.WriteSpline(writer, Value.Get<List<Vector3>>());
                         break;
@@ -344,6 +349,10 @@ namespace UnityEngine.Experimental.VFX
                         reader.MoveToElement();
                         Set(SerializationUtils.ReadSpline(reader));
                         break;
+					case VFXValueType.kMesh:
+						reader.MoveToElement();
+						Set(AssetDatabase.LoadAssetAtPath<Mesh>(AssetDatabase.GUIDToAssetPath(reader.ReadElementContentAsString())));
+						break;
                     default:
                         Debug.LogWarning("Cannot deserialize value of type " + ValueType);
                         break;

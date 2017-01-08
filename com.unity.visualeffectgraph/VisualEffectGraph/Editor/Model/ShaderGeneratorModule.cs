@@ -36,12 +36,20 @@ namespace UnityEditor.Experimental
 
     public class VFXOutputShaderGeneratorModule : VFXShaderGeneratorModule
     {
+		public enum OutputType
+		{
+			Point,
+			Billboard,
+			Mesh
+		};
+
+		public virtual bool WriteVertexInputStructure(ShaderSourceBuilder builder, ShaderMetaData data) { return false; }
         public virtual void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data) { builder.WriteLine("uint index = id;"); }
         public virtual void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data) { } // TMP
         public virtual void WriteAdditionalPixelOutput(ShaderSourceBuilder builder, ShaderMetaData data) { } // TMP
         public virtual void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data) { } // TMP
-        public virtual int[] GetSingleIndexBuffer(ShaderMetaData data) { return null; }
-        public virtual int GetOutputType() { return -1; }
+        public virtual OutputType GetOutputType() { return OutputType.Point; }
+        public virtual VFXExpression GetMesh() { return null; }
         public virtual bool CanUseDeferred() { return false; }
     }
 }

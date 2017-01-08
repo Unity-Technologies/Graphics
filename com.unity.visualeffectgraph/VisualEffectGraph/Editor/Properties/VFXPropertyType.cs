@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.VFX
 
         public virtual bool CanLink(VFXPropertyTypeSemantics other)
         {
-            return GetType() == other.GetType() || (GetNbChildren() != 0 && ChildrenCanLink(other));
+            return ValueType == other.ValueType;
         }
 
         protected bool ChildrenCanLink(VFXPropertyTypeSemantics other)
@@ -81,8 +81,8 @@ namespace UnityEngine.Experimental.VFX
             slot.Value = VFXValue.Create(ValueType);
         }
 
-        public T Get<T>(VFXPropertySlot slot, bool linked = false)                      { return (T)InnerGet(slot, linked); }
-        public void Set<T>(VFXPropertySlot slot, T t, bool linked = false)              { InnerSet(slot, (object)t, linked); }
+        public T Get<T>(VFXPropertySlot slot, bool linked = false)                      { return (T)slot.GetSemanticsRef(linked).InnerGet(slot, linked); }
+        public void Set<T>(VFXPropertySlot slot, T t, bool linked = false)              { slot.GetSemanticsRef(linked).InnerSet(slot, (object)t, linked); }
 
         protected virtual object InnerGet(VFXPropertySlot slot,bool linked)             { throw new InvalidOperationException(); }
         protected virtual void InnerSet(VFXPropertySlot slot, object value,bool linked) { throw new InvalidOperationException(); }
@@ -239,6 +239,14 @@ namespace UnityEngine.Experimental.VFX
             slot.SetInnerValue(points);
         }
     }
+
+	public partial class VFXMeshType : VFXPrimitiveType<Mesh>
+	{
+		public static Desc Description() { return new Desc("Mesh", "Mesh", "Mesh"); }
+
+		public VFXMeshType() : this(null) { }
+		public VFXMeshType(Mesh defaultValue) : base(defaultValue) { }
+	}
 
     // Proxy types
     // TODO

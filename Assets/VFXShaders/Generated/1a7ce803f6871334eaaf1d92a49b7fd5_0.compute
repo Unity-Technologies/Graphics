@@ -26,26 +26,20 @@ CBUFFER_END
 CBUFFER_START(updateUniforms)
 	float4x4 updateUniform0_kVFXTRSToMatrixOp;
 	
-	float4x4 updateUniform6_kVFXInverseTRSOp;
+	float4x4 updateUniform3_kVFXInverseTRSOp;
 	
-	float3 updateUniform3_kVFXCombine3fOp;
 	float updateUniform1_kVFXValueOp;
-	
 	float updateUniform2_kVFXValueOp;
-	float updateUniform4_kVFXValueOp;
-	float updateUniform5_kVFXValueOp;
-	float updateUniform7_kVFXDeltaTimeOp;
-	
+	float updateUniform4_kVFXDeltaTimeOp;
 	uint nbMax;
-	uint3 updateUniforms_PADDING_0;
-
+	
 CBUFFER_END
 
 Texture3D updateSampler0_kVFXValueOpTexture;
 SamplerState samplerupdateSampler0_kVFXValueOpTexture;
 
-Texture2D curveTexture;
-SamplerState samplercurveTexture;
+Texture2D floatTexture;
+SamplerState samplerfloatTexture;
 
 struct Attribute0
 {
@@ -124,6 +118,11 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
+float4 sampleSignal(float v,float u) // sample gradient
+{
+	return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+}
+
 // Non optimized generic function to allow curve edition without recompiling
 float sampleSignal(float4 curveData,float u) // sample curve
 {
@@ -134,12 +133,12 @@ float sampleSignal(float4 curveData,float u) // sample curve
 		case 2: uNorm = ((0.9921875 * frac(max(0.0f,uNorm))) + 0.00390625); break; // clamp start
 		case 3: uNorm = ((0.9921875 * saturate(uNorm)) + 0.00390625); break; // clamp both
 	}
-	return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
+	return floatTexture.SampleLevel(samplerfloatTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 }
 
 float3 sampleSpline(float v,float u)
 {
-	return curveTexture.SampleLevel(samplercurveTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+	return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 }
 
 void VFXBlockPositionSpline( inout float3 position,inout float3 velocity,inout float3 front,inout float3 side,inout float3 up,float2 Spline,float radius,inout uint seed)
@@ -177,24 +176,6 @@ void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFX
 	value = mul(Box,float4(value,0.0f)).xyz * Intensity;
 	float3 relativeForce = value - velocity;
 	velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));
-}
-
-void VFXBlockCollideWithSphere( inout float3 position,inout float3 velocity,float3 Sphere_center,float Sphere_radius,float Elasticity,float deltaTime)
-{
-	float3 nextPos = position + velocity * deltaTime;
-	float3 dir = Sphere_center - nextPos;
-	float sqrLength = dot(dir,dir);
-	if (sqrLength <= Sphere_radius * Sphere_radius)
-	{	
-		float dist = sqrt(sqrLength);
-		float3 n = dir / dist;	
-		float projVelocity = dot(n,velocity);
-		
-		if (projVelocity > 0)
-			velocity -= ((1 + Elasticity) * projVelocity) * n;
-			
-		position += n * (dist - Sphere_radius);
-	}
 }
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
@@ -255,12 +236,11 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		
 		VFXSampler3D updateSampler0_kVFXValueOp = InitSampler(updateSampler0_kVFXValueOpTexture,samplerupdateSampler0_kVFXValueOpTexture);
 		
-		VFXBlockVectorFieldRelativeForce( attrib1.velocity,attrib0.position,updateSampler0_kVFXValueOp,updateUniform0_kVFXTRSToMatrixOp,updateUniform6_kVFXInverseTRSOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXValueOp,updateUniform7_kVFXDeltaTimeOp);
-		VFXBlockCollideWithSphere( attrib0.position,attrib1.velocity,updateUniform3_kVFXCombine3fOp,updateUniform4_kVFXValueOp,updateUniform5_kVFXValueOp,updateUniform7_kVFXDeltaTimeOp);
+		VFXBlockVectorFieldRelativeForce( attrib1.velocity,attrib0.position,updateSampler0_kVFXValueOp,updateUniform0_kVFXTRSToMatrixOp,updateUniform3_kVFXInverseTRSOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXValueOp,updateUniform4_kVFXDeltaTimeOp);
 		
-		attrib0.position += attrib1.velocity * updateUniform7_kVFXDeltaTimeOp;
+		attrib0.position += attrib1.velocity * updateUniform4_kVFXDeltaTimeOp;
 		
-		attrib0.age += updateUniform7_kVFXDeltaTimeOp;
+		attrib0.age += updateUniform4_kVFXDeltaTimeOp;
 		if (attrib0.age >= attrib1.lifetime)
 			kill = true;
 		

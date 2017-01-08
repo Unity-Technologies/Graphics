@@ -39,8 +39,8 @@ Shader "Hidden/VFX_0"
 			Texture2D outputSampler0_kVFXValueOpTexture;
 			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
-			Texture2D curveTexture;
-			SamplerState samplercurveTexture;
+			Texture2D floatTexture;
+			SamplerState samplerfloatTexture;
 			
 			struct OutputData
 			{
@@ -60,6 +60,11 @@ Shader "Hidden/VFX_0"
 				float2 offsets : TEXCOORD0;
 			};
 			
+			float4 sampleSignal(float v,float u) // sample gradient
+			{
+				return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+			}
+			
 			// Non optimized generic function to allow curve edition without recompiling
 			float sampleSignal(float4 curveData,float u) // sample curve
 			{
@@ -70,12 +75,12 @@ Shader "Hidden/VFX_0"
 					case 2: uNorm = ((0.9921875 * frac(max(0.0f,uNorm))) + 0.00390625); break; // clamp start
 					case 3: uNorm = ((0.9921875 * saturate(uNorm)) + 0.00390625); break; // clamp both
 				}
-				return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
+				return floatTexture.SampleLevel(samplerfloatTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 			}
 			
 			float3 sampleSpline(float v,float u)
 			{
-				return curveTexture.SampleLevel(samplercurveTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+				return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 			}
 			
 			void VFXBlockFaceCameraPosition( inout float3 front,inout float3 side,inout float3 up,float3 position)
