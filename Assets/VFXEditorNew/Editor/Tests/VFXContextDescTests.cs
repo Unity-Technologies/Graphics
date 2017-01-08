@@ -8,11 +8,28 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXContextDescTests
     {
-        private class ContextDescTest : VFXContextDesc
-        {
-            public ContextDescTest(VFXContextDesc.Type type)
-                : base(type, string.Empty)
-            {}
+        private class ContextDescTestInit : VFXContextDesc {
+            public ContextDescTestInit() : base(VFXContextDesc.Type.kTypeInit, string.Empty) {}
+        }
+
+        private class ContextDescTestUpdate : VFXContextDesc {
+            public ContextDescTestUpdate() : base(VFXContextDesc.Type.kTypeUpdate, string.Empty) {}
+        }
+
+        private class ContextDescTestOutput : VFXContextDesc {
+            public ContextDescTestOutput() : base(VFXContextDesc.Type.kTypeOutput, string.Empty) {}
+        }
+
+        private class ContextDescTestNone : VFXContextDesc {
+            public ContextDescTestNone() : base(VFXContextDesc.Type.kTypeNone, string.Empty) { }
+        }
+
+        private class ContextDescTestInitAndUpdate : VFXContextDesc {
+            public ContextDescTestInitAndUpdate() : base(VFXContextDesc.Type.kInitAndUpdate, string.Empty) {}
+        }
+
+        private class ContextDescTestAll : VFXContextDesc {
+            public ContextDescTestAll() : base(VFXContextDesc.Type.kAll, string.Empty) {}
         }
 
         [Test]
@@ -20,21 +37,21 @@ namespace UnityEditor.VFX.Test
         {
             Assert.DoesNotThrow(() =>
             {
-                new ContextDescTest(VFXContextDesc.Type.kTypeInit);
-                new ContextDescTest(VFXContextDesc.Type.kTypeUpdate);
-                new ContextDescTest(VFXContextDesc.Type.kTypeOutput);
+                new ContextDescTestInit();
+                new ContextDescTestUpdate();
+                new ContextDescTestOutput();
             });
 
             Assert.Throws<ArgumentException>(() => {
-                new ContextDescTest(VFXContextDesc.Type.kTypeNone);
+                new ContextDescTestNone();
             });
 
             Assert.Throws<ArgumentException>(() => {
-                new ContextDescTest(VFXContextDesc.Type.kInitAndUpdate);
+                new ContextDescTestInitAndUpdate();
             });
 
             Assert.Throws<ArgumentException>(() => {
-                new ContextDescTest(VFXContextDesc.Type.kAll);
+                new ContextDescTestAll();
             });
         }
     }

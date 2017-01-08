@@ -14,13 +14,13 @@ namespace UnityEditor.VFX
         public VFXContextDesc Desc              { get { return m_Desc; } }
         public VFXContextDesc.Type ContextType  { get { return Desc.ContextType; } }
 
-        public virtual void OnBeforeSerialize()
+        public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
             m_SerializableDesc = m_Desc.GetType().FullName;
         }
 
-        public virtual void OnAfterDeserialize()
+        public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
             // TODO Construct desc based on its type

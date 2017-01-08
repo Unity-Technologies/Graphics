@@ -3,59 +3,70 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
 using System.Collections.Generic;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.Test
 {
-    class VFXAssetTest : ScriptableObject, ISerializationCallbackReceiver
-    {
-        [NonSerialized]
-        public List<VFXSystem> m_Roots;
-
-        [SerializeField]
-        private List<SerializationHelper.JSONSerializedElement> m_SerializedRoots = null;
- 
-        public virtual void OnBeforeSerialize()
-        {
-            m_SerializedRoots = SerializationHelper.Serialize<VFXSystem>(m_Roots);
-        }
-
-        public virtual void OnAfterDeserialize()
-        {
-            m_Roots = SerializationHelper.Deserialize<VFXSystem>(m_SerializedRoots, null);
-            //m_SerializedRoots = null; // No need to keep it
-        }
-
-        void OnEnable()
-        {
-            if (m_Roots == null)
-                m_Roots = new List<VFXSystem>();
-        }
-    }
-
     [TestFixture]
     public class VFXSerializationTests
     {
-        class VFXContextDescInit : VFXContextDesc
+        private class VFXContextDescInit : VFXContextDesc
         {
             public VFXContextDescInit() : base(VFXContextDesc.Type.kTypeInit, "init") { }
         }
 
-        class VFXContextDescUpdate : VFXContextDesc
+        private class VFXContextDescUpdate : VFXContextDesc
         {
             public VFXContextDescUpdate() : base(VFXContextDesc.Type.kTypeUpdate, "update") { }
         }
 
-        class VFXContextDescOutput : VFXContextDesc
+        private class VFXContextDescOutput : VFXContextDesc
         {
             public VFXContextDescOutput() : base(VFXContextDesc.Type.kTypeOutput, "output") { }
         }
 
+        private readonly static string kTestAssetDir = "Assets/VFXEditorNew/Editor/Tests";
+        private readonly static string kTestAssetName = "TestAsset";
+        private readonly static string kTestAssetPath = kTestAssetDir + "/" + kTestAssetName + ".asset";
+
+        [TestFixtureSetUp]
+        public void TestFixtureSetUp()
+        {
+            string[] guids = AssetDatabase.FindAssets(kTestAssetName, new string[] { kTestAssetDir });
+
+            // If the asset does not exist, create it
+            if (guids.Length == 0)
+            {
+                VFXModelContainer asset = ScriptableObject.CreateInstance<VFXModelContainer>();
+                InitAsset(asset);
+                AssetDatabase.CreateAsset(asset,kTestAssetPath);
+            }
+        }
 
         [Test]
         public void SerializeModel()
         {
-            VFXAssetTest assetSrc = ScriptableObject.CreateInstance<VFXAssetTest>();
-            VFXAssetTest assetDst = ScriptableObject.CreateInstance<VFXAssetTest>();
+            VFXModelContainer assetSrc = ScriptableObject.CreateInstance<VFXModelContainer>();
+            VFXModelContainer assetDst = ScriptableObject.CreateInstance<VFXModelContainer>();
+
+            InitAsset(assetSrc);
+            EditorUtility.CopySerialized(assetSrc, assetDst);
+            CheckAsset(assetDst);
+
+            Object.DestroyImmediate(assetSrc);
+            Object.DestroyImmediate(assetDst);
+        }
+
+        [Test]
+        public void LoadAssetFromPath()
+        {
+            VFXModelContainer asset = AssetDatabase.LoadAssetAtPath<VFXModelContainer>(kTestAssetPath);
+            CheckAsset(asset);
+        }
+
+        private void InitAsset(VFXModelContainer asset)
+        {
+            asset.m_Roots.Clear();
 
             VFXSystem system0 = new VFXSystem();
             system0.AddChild(new VFXContext(new VFXContextDescInit()));
@@ -66,21 +77,21 @@ namespace UnityEditor.VFX.Test
             system1.AddChild(new VFXContext(new VFXContextDescInit()));
             system1.AddChild(new VFXContext(new VFXContextDescOutput()));
 
-            assetSrc.m_Roots.Add(system0);
-            assetSrc.m_Roots.Add(system1);
+            asset.m_Roots.Add(system0);
+            asset.m_Roots.Add(system1);
+        }
 
-            EditorUtility.CopySerialized(assetSrc, assetDst);
+        private void CheckAsset(VFXModelContainer asset)
+        {
+            Assert.AreEqual(2, asset.m_Roots.Count);
+            Assert.AreEqual(3, asset.m_Roots[0].GetNbChildren());
+            Assert.AreEqual(2, asset.m_Roots[1].GetNbChildren());
 
-            Assert.AreEqual(2, assetDst.m_Roots.Count);
-            Assert.AreEqual(3, assetDst.m_Roots[0].GetNbChildren());
-            Assert.AreEqual(2, assetDst.m_Roots[1].GetNbChildren());
-
-            Assert.IsNotNull(assetDst.m_Roots[0].GetChild(0).Desc);
-            Assert.IsNotNull(assetDst.m_Roots[0].GetChild(1).Desc);
-            Assert.IsNotNull(assetDst.m_Roots[0].GetChild(2).Desc);
-            Assert.IsNotNull(assetDst.m_Roots[1].GetChild(0).Desc);
-            Assert.IsNotNull(assetDst.m_Roots[1].GetChild(1).Desc);
-
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(0).Desc);
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(1).Desc);
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(2).Desc);
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(0).Desc);
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(1).Desc);
         }
     }
 }
