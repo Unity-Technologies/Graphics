@@ -215,6 +215,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 normalTS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
+
+    bool twoSided = false;
+    // This will always produce the correct 'NdotV' value, but potentially
+    // reduce the length of the normal at edges of geometry.
+    GetShiftedNdotV(surfaceData.normalWS, V, twoSided);
+
+    // Orthonormalize the basis vectors using the Gram-Schmidt process.
+    // We assume that the length of the surface normal is sufficiently close to 1.
+    surfaceData.tangentWS = normalize(surfaceData.tangentWS - dot(surfaceData.tangentWS, surfaceData.normalWS));
+
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
@@ -419,10 +430,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     normalTS = BlendLayeredFloat3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 #endif
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
+
+    bool twoSided = false;
+    // This will  potentially reduce the length of the normal at edges of geometry.
+    GetShiftedNdotV(surfaceData.normalWS, V, twoSided);
+
+    // Orthonormalize the basis vectors using the Gram-Schmidt process.
+    // We assume that the length of the surface normal is sufficiently close to 1.
+    surfaceData.tangentWS = normalize(surfaceData.tangentWS - dot(surfaceData.tangentWS, surfaceData.normalWS));
 
     // Init other unused parameter
     surfaceData.materialId = 0;
-    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
     surfaceData.subSurfaceRadius = 1.0;

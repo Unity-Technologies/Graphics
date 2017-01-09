@@ -18,7 +18,7 @@ float PolygonRadiance(float4x3 L, bool twoSided)
 {
     // 1. ClipQuadToHorizon
 
-    // detect clipping config	
+    // detect clipping config
     uint config = 0;
     if (L[0].z > 0) config += 1;
     if (L[1].z > 0) config += 2;
@@ -168,9 +168,8 @@ float PolygonRadiance(float4x3 L, bool twoSided)
 // For polygonal lights.
 float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, float3x3 invM)
 {
-    // Construct local orthonormal basis around N, aligned with N
-    // TODO: it could be stored in PreLightData. All LTC lights compute it more than once!
-    // Also consider using 'bsdfData.tangentWS', 'bsdfData.bitangentWS', 'bsdfData.normalWS'.
+    // Construct a view-dependent orthonormal basis around N.
+    // TODO: it could be stored in PreLightData, since all LTC lights compute it more than once.
     float3x3 basis;
     basis[0] = normalize(V - N * NdotV);
     basis[1] = normalize(cross(N, basis[0]));
@@ -202,7 +201,7 @@ float LineFwt(float tLDDL, float l)
 // 'normal' is the direction orthogonal to the tangent. It is the shortest vector between
 // the shaded point and the line, pointing away from the shaded point.
 float LineIrradiance(float l1, float l2, float3 normal, float3 tangent)
-{   
+{
     float d      = length(normal);
     float l1rcpD = l1 * rcp(d);
     float l2rcpD = l2 * rcp(d);
