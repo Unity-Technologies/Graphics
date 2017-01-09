@@ -11,7 +11,7 @@ float2 Fibonacci2dSeq(float fibN1, float fibN2, int i)
 }
 
 static const int k_FibonacciSeq[] = {
-    0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610
+    0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181
 };
 
 static const float2 k_Fibonacci2dSeq21[] = {
@@ -242,7 +242,7 @@ float2 Fibonacci2d(uint i, uint sampleCount)
             int fibN2 = sampleCount;
 
             // These are all constants, so this loop will be optimized away.
-            for (int j = 1; j < 16; j++)
+            for (int j = 1; j < 20; j++)
             {
                 if (k_FibonacciSeq[j] == fibN1)
                 {

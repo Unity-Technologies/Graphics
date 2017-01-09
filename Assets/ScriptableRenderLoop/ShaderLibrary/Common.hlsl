@@ -442,27 +442,4 @@ void ApplyDepthOffsetPositionInput(float V, float depthOffsetVS, inout PositionI
     posInput.positionWS += V * depthOffsetVS;
 }
 
-//-----------------------------------------------------------------------------
-// various helper
-//-----------------------------------------------------------------------------
-
-// NdotV should not be negative for visible pixels, but it can happen due to the
-// perspective projection and the normal mapping + decals. In that case, the normal
-// should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
-// Note: certain applications (e.g. SpeedTree) make use of two-sided lighting.
-float GetShiftedNdotV(inout float3 N, float3 V, bool twoSided)
-{
-    float NdotV = dot(N, V);
-    float limit = 1e-4;
-
-    if (!twoSided && NdotV < limit)
-    {
-        // We do not renormalize the normal because { abs(length(N) - 1.0) < limit }.
-        N    += (-NdotV + limit) * V;
-        NdotV = limit;
-    }
-
-    return NdotV;
-}
-
 #endif // UNITY_COMMON_INCLUDED
