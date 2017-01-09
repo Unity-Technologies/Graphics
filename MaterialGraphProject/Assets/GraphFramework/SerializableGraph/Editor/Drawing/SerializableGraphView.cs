@@ -26,6 +26,12 @@ namespace UnityEditor.Graphing.Drawing
                 {Event.KeyboardEvent("#d"), DuplicateSelection}
             }));
 
+            AddManipulator(new Commandable
+            {
+                { "Duplicate", () => true, () => Debug.Log("Duplicate!") },
+                { "Copy", () => true, () => Debug.Log("Copy!") }
+            });
+
             AddManipulator(new ClickGlobalSelector());
             AddManipulator(new ContentZoomer());
             AddManipulator(new ContentDragger());
