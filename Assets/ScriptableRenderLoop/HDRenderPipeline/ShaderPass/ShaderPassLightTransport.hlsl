@@ -4,10 +4,6 @@
 
 #include "Color.hlsl"
 
-// TODO: This is the max value allowed for emissive (bad name - but keep for now to retrieve it) (It is 8^2.2 (gamma) and 8 is the limit of punctual light slider...), comme from UnityCg.cginc. Fix it!
-// Ask Jesper if this can be change for HDRenderPipeline
-#define EMISSIVE_RGBM_SCALE 97.0
-
 float4 Frag(PackedVaryings packedInput) : SV_Target
 {
     FragInputs input = UnpackVaryings(packedInput);
@@ -41,7 +37,7 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
     {
         // TODO: THIS LIMIT MUST BE REMOVE, IT IS NOT HDR, change when RGB9e5 is here.
         // Do we assume here that emission is [0..1] ?
-        res = PackRGBM(lightTransportData.emissiveColor, EMISSIVE_RGBM_SCALE);
+        res = PackEmissiveRGBM(lightTransportData.emissiveColor);
     }
 
     return res;
