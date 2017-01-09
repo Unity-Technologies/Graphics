@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.VFX
                 Name = name;
                 DeclarationName = VFXValue.TypeToName(type) + " " + name;
             }
+
             public VFXBlockDesc.Flag Flag { get; private set; }
             public VFXExpression Expression { get; private set; }
             public string Name { get; private set; }
@@ -29,8 +30,10 @@ namespace UnityEngine.Experimental.VFX
             new VFXBuiltInExpressionDesc(VFXBlockDesc.Flag.kNeedsSystemSeed, VFXExpressionOp.kVFXSystemSeedOp, VFXValueType.kUint, "systemSeed")
         }.AsReadOnly();
 
+        public static readonly VFXExpression TotalTime = Expressions.First(o => o.Expression.Operation == VFXExpressionOp.kVFXTotalTimeOp).Expression;
         public static readonly VFXExpression DeltaTime = Expressions.First(o => o.Expression.Operation == VFXExpressionOp.kVFXDeltaTimeOp).Expression;
         public static readonly VFXExpression SystemSeed = Expressions.First(o => o.Expression.Operation == VFXExpressionOp.kVFXSystemSeedOp).Expression;
+
         public static readonly Dictionary<VFXExpression, VFXBuiltInExpressionDesc> DictionnaryExpression = Expressions.ToDictionary(e => e.Expression, e => e);
     }
 
@@ -47,7 +50,17 @@ namespace UnityEngine.Experimental.VFX
 
         public override VFXExpressionOp Operation { get { return m_operation; } }
         public override VFXValueType ValueType { get { return m_type; } }
-        public override VFXExpression Reduce() { return this; }
+        public override VFXExpression Reduce()
+        {
+            switch(m_type)
+            {
+                case VFXValueType.kFloat: return new VFXValueFloat();
+                case VFXValueType.kFloat2: return new VFXValueFloat2();
+                case VFXValueType.kFloat3: return new VFXValueFloat3();
+                case VFXValueType.kFloat4: return new VFXValueFloat4();
+            }
+            return this;
+        }
         public override void Invalidate() { }
 
         public override bool Equals(object obj)

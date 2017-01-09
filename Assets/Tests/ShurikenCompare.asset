@@ -41,8 +41,8 @@ VFXAsset:
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
     \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Particle
-    Update\" Position=\"-710,268\" Collapsed=\"False\" />\r\n        <Context DescId=\"Billboard
-    Output\" Position=\"-710,506\" Collapsed=\"False\">\r\n            <Slot SlotId=\"20\">\r\n
+    Update\" Position=\"-710,270\" Collapsed=\"False\" />\r\n        <Context DescId=\"Billboard
+    Output\" Position=\"-710,510\" Collapsed=\"False\">\r\n            <Slot SlotId=\"20\">\r\n
     \               <Values>\r\n                    <kTexture2D>d01d8874889eebc4ab0cde7f2b3309de</kTexture2D>\r\n
     \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
     \           </Slot>\r\n            <Slot SlotId=\"21\">\r\n                <Values>\r\n
@@ -71,9 +71,9 @@ VFXAsset:
   m_Systems:
   - m_Id: 0
     m_Capacity: 30000
-    m_SimulationShader: {fileID: 7200000, guid: f9db192c51d6b284f8fa2e392a7854bc,
+    m_SimulationShader: {fileID: 7200000, guid: f1adde7df9882e74fa3d68b0f2005c47,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 7c7c3564caada2c42ae6a5f2733899ae, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 97f32613029c9e641934feb7a5e62793, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: <noninit>
@@ -128,6 +128,7 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 1
     m_HasIndirectOutput: 0
+    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXValueOp
@@ -163,6 +164,7 @@ VFXAsset:
     m_Values: 00000000000000000000803fcdcc0cc00000a0400000a040000000000000000000000000000000000000000000401c46ffffffffffffffffcdcccc3d0000003fffffffffffffffffffffffffffffffffffffffffffffffff000040400000803fffffffffffffffffffffffffffffffffffffffffcdcc4c3e
     m_Textures:
     - {fileID: 2800000, guid: d01d8874889eebc4ab0cde7f2b3309de, type: 3}
+    m_Meshes: []
   m_Expressions:
     m_Expressions:
     - op: 0
@@ -323,11 +325,42 @@ VFXAsset:
     m_StopSpawners: 00000000
   m_ExposedExpressions: []
   m_ExposedEditorDescs: []
-  m_GradientTexture: {fileID: 28872223357249914}
-  m_CurveTexture: {fileID: 0}
+  m_FloatTexture: {fileID: 28536380612476530}
   m_Bounds:
     m_Center: {x: 0, y: 8, z: 0}
     m_Extent: {x: 5, y: 8, z: 5}
+--- !u!28 &28536380612476530
+Texture2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  serializedVersion: 2
+  m_Width: 128
+  m_Height: 1
+  m_CompleteImageSize: 1024
+  m_TextureFormat: 17
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapMode: 0
+  m_LightmapFormat: 0
+  m_ColorSpace: 0
+  image data: 1024
+  _typelessdata: 003c00000000003c003c00009819003c003c0000311e003c003c0000f221003c003c0000bc24003c003c0000fe26003c003c0000e328003c003c00008f2a003c003c0000612c003c003c0000892d003c003c0000d92e003c003c00002a30003c003c00001631003c003c00000232003c003c00000633003c003c00001134003c003c0000ab34003c003c00006535003c003c00001936003c003c0000db36003c003c0000ab37003c003c00004438003c003c0000c738003c003c00004439003c003c0000c839003cb73b0000343a003c1a3b0000443a003c743a0000543a003cd7390000743a003c44390000843a003cb9380000a53a003c37380000b53a003c7c370000d73a003c99360000e73a003cc7350000093b003c063500001a3b003c533400002b3b003c623300004e3b003c3a3200005f3b003c2f310000823b003c40300000943b003cd92e0000b73b003c662d0000c93b003c252c0000ed3b003c2a2a0000003c003c6a29871b003c003ce328fa20003c003c3c28bc24003c003c9127dc27003c003c72262a2a003c003c6e25612c003c003cbc24192e003c003cc923fc2f003c003ca5222f31003c003c49217332003c003c1b200034003c003cab1ecf34003c003ce41cb335003c003cda1ac536003c003cf918db37003c003cf9149138003c003cf90c3639003c003c00006f394e3b003c00008d39953a003c0000aa39e739003c0000c8394439003c0000e739ac38003c0000063a1238003c0000253a1f37003c0000443a2e36003c0000643a5135003c0000843a8734003c0000a53a8133003c0000c63a3a32003c0000e73a1631003c0000093b1330003c00002b3b642e003c00004e3bbf2c003c0000703bf92a003c0000943be328003c0000b73b7226003c0000db3b6523003cf910003c6320003c1f1c003c1b20003cfa20003cad1f003c8424003c291f003c9127003c311e003c9929003cbd1d003c082c003c4e1d003c892d003ce41c003c292f003c7f1c003c9c30003c1f1c003cb131003c871b003c0633003cda1a003c3234003c371a003c0635003c9819003cdc35003c5918003cdb36003c7517003cdb37003c3716003c8438003cf914003c1939003c7513003cc839003cf910003c843a003cf90c003c093bc93b0000003c1a3b1a3b0000003c1a3b643a0000003c2b3bc8390000003c2b3b27390000003c3c3b9e380000003c4e3b12380000003c4e3b36370000003c5f3b43360000003c5f3b78350000003c703bab340000003c823b00340000003c823bad320000003c943b96310000003c943b85300000003ca53b522f0000003ca53bac2d0000003cb73b612c0000003cc93b5c2a0000003cc93b8e280000003cdb3bed250000003cdb3b65230000003ced3bad1f0000003ced3bda1a0000003c003c00000000003c
+  m_StreamData:
+    offset: 0
+    size: 0
+    path: 
 --- !u!28 &28872223357249914
 Texture2D:
   m_ObjectHideFlags: 1
