@@ -8,24 +8,22 @@ namespace RMGUI.GraphView
 	public class NodePresenter : SimpleElementPresenter
 	{
 		[SerializeField]
-		protected List<NodeAnchorPresenter> m_InputAnchors;
+		private List<NodeAnchorPresenter> m_InputAnchors;
 		public List<NodeAnchorPresenter> inputAnchors
  		{
  			get { return m_InputAnchors ?? (m_InputAnchors = new List<NodeAnchorPresenter>()); }
  		}
 
 		[SerializeField]
-		protected List<NodeAnchorPresenter> m_OutputAnchors;
+		private List<NodeAnchorPresenter> m_OutputAnchors;
 		public List<NodeAnchorPresenter> outputAnchors
 		{
 			get { return m_OutputAnchors ?? (m_OutputAnchors = new List<NodeAnchorPresenter>()); }
 		}
 
-		[SerializeField]
-		protected Orientation m_Orientation;
 		public virtual Orientation orientation
 		{
-			get { return m_Orientation; }
+			get { return Orientation.Horizontal; }
 		}
 
 		// TODO make a simple creation function
@@ -38,7 +36,6 @@ namespace RMGUI.GraphView
 
 		protected NodePresenter()
 		{
-			m_Orientation = Orientation.Horizontal;
 		}
 	}
 }

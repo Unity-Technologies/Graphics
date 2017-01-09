@@ -31,13 +31,13 @@ namespace UnityEditor.Graphing.Drawing
             {
                 var slots = node.GetSlots<ISlot>().ToList();
 
-                m_InputAnchors.RemoveAll(data => !slots.Contains(((AnchorDrawData)data).slot));
-                m_OutputAnchors.RemoveAll(data => !slots.Contains(((AnchorDrawData)data).slot));
+                inputAnchors.RemoveAll(data => !slots.Contains(((AnchorDrawData)data).slot));
+                outputAnchors.RemoveAll(data => !slots.Contains(((AnchorDrawData)data).slot));
 
-                AddSlots(slots.Except(m_InputAnchors.Concat(m_OutputAnchors).Select(data => ((AnchorDrawData)data).slot)));
+                AddSlots(slots.Except(inputAnchors.Concat(outputAnchors).Select(data => ((AnchorDrawData)data).slot)));
 
-                m_InputAnchors.Sort((x, y) => slots.IndexOf(((AnchorDrawData)x).slot) - slots.IndexOf(((AnchorDrawData)y).slot));
-                m_OutputAnchors.Sort((x, y) => slots.IndexOf(((AnchorDrawData)x).slot) - slots.IndexOf(((AnchorDrawData)y).slot));
+                inputAnchors.Sort((x, y) => slots.IndexOf(((AnchorDrawData)x).slot) - slots.IndexOf(((AnchorDrawData)y).slot));
+                outputAnchors.Sort((x, y) => slots.IndexOf(((AnchorDrawData)x).slot) - slots.IndexOf(((AnchorDrawData)y).slot));
             }
         }
 

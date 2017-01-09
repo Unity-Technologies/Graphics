@@ -22,7 +22,7 @@ namespace UnityEditor.Graphing.Drawing
                 pickingMode = PickingMode.Ignore,
             };
 
-            m_LeftContainer.AddChild(m_ControlsContainer);
+            leftContainer.AddChild(m_ControlsContainer);
             m_CurrentControlDrawData = new List<ControlDrawData>();
         }
 
