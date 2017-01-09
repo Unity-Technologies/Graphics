@@ -336,9 +336,6 @@ Shader "HDRenderPipeline/LayeredLit"
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
@@ -359,9 +356,6 @@ Shader "HDRenderPipeline/LayeredLit"
             ZWrite Off // TODO: Test Z equal here.
 
             HLSLPROGRAM
-
-            #pragma vertex Vert
-            #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../Material/Material.hlsl"         
@@ -385,9 +379,6 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
@@ -408,9 +399,6 @@ Shader "HDRenderPipeline/LayeredLit"
             ZWrite On 
 
             HLSLPROGRAM
-
-            #pragma vertex Vert
-            #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"
@@ -433,9 +421,6 @@ Shader "HDRenderPipeline/LayeredLit"
             Cull [_CullMode]
 
             HLSLPROGRAM
-
-            #pragma vertex Vert
-            #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "../../Material/Material.hlsl"         
