@@ -82,15 +82,33 @@ float3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), fl
 // It is required for other platform that aren't supporting this format to implement variant of these functions
 // (But these kind of platform should use regular render loop and not news shaders).
 
-float3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2 uv, float4 transform)
+#define LIGHTMAP_RGBM_RANGE 5.0
+
+// This is temporary. For now baked lightmap are in RGBM and the RGBM range for lightmaps is specific so we can't use the generic method.
+// In the end baked lightmaps are going to be BC6H so the code will be the same as dynamic lightmaps.
+float3 UnpackLightmapRGBM(float4 rgbmInput)
+{
+    return rgbmInput.rgb * rgbmInput.a * LIGHTMAP_RGBM_RANGE;
+}
+
+float3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2 uv, float4 transform, bool lightmapRGBM)
 {
 	// transform is scale and bias
 	uv = uv * transform.xy + transform.zw;
-	// Remark: Lightmap is RGB9E5
+    float3 illuminance = float3(0.0, 0.0, 0.0);
+    // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
+    if (lightmapRGBM)
+    {
+        illuminance = UnpackLightmapRGBM(SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba);
+    }
+    else
+    {
+        illuminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
+    }
 	return SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
 }
 
-float3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS)
+float3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool lightmapRGBM)
 {
 	// In directional mode Enlighten bakes dominant light direction
 	// in a way, that using it for half Lambert and then dividing by a "rebalancing coefficient"
@@ -103,8 +121,16 @@ float3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), T
 	uv = uv * transform.xy + transform.zw;
 
 	float4 direction = SAMPLE_TEXTURE2D(lightmapDirTex, lightmapDirSampler, uv);
-	// Remark: Lightmap is RGB9E5
-	float3 illuminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
+	// Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
+    float3 illuminance = float3(0.0, 0.0, 0.0);
+    if (lightmapRGBM)
+    {
+        illuminance = UnpackLightmapRGBM(SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba);
+    }
+    else
+    {
+        illuminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
+    }
 	float halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
 	return illuminance * halfLambert / max(1e-4, direction.w);
 }
