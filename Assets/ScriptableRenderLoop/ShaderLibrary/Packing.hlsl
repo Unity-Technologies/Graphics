@@ -118,23 +118,6 @@ float3 UnpackLogLuv(float4 vLogLuv)
     return max(vRGB, float3(0.0, 0.0, 0.0));
 }
 
-// TODO: This function is used with the LightTransport pass to encode lightmap or emissive
-float4 PackRGBM(float3 rgb, float maxRGBM)
-{
-    float kOneOverRGBMMaxRange = 1.0 / maxRGBM;
-    const float kMinMultiplier = 2.0 * 1e-2;
-
-    float4 rgbm = float4(rgb * kOneOverRGBMMaxRange, 1.0);
-    rgbm.a = max(max(rgbm.r, rgbm.g), max(rgbm.b, kMinMultiplier));
-    rgbm.a = ceil(rgbm.a * 255.0) / 255.0;
-
-    // Division-by-zero warning from d3d9, so make compiler happy.
-    rgbm.a = max(rgbm.a, kMinMultiplier);
-
-    rgbm.rgb /= rgbm.a;
-    return rgbm;
-}
-
 // Alternative...
 #define RGBMRANGE (8.0)
 float4 PackRGBM(float3 color)
