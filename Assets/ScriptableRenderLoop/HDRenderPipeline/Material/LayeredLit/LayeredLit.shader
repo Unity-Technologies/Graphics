@@ -474,5 +474,5 @@ Shader "HDRenderPipeline/LayeredLit"
         }
     }
 
-	CustomEditor "Experimental.ScriptableRenderLoop.LayeredLitGUI"
+	CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }
