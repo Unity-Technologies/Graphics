@@ -93,7 +93,7 @@ Shader "HDRenderPipeline/LitTesselation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
+    #pragma only_renderers d3d11 // TEMP: until we go futher in dev
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -132,12 +132,14 @@ Shader "HDRenderPipeline/LitTesselation"
     //-------------------------------------------------------------------------------------
 
     #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
+    #define TESSELATION_ON
 
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
     
     #include "common.hlsl"
+    #include "tesselation.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderConfig.cs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderVariables.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Attributes.hlsl"
@@ -223,8 +225,7 @@ Shader "HDRenderPipeline/LitTesselation"
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
-			#pragma hull Hull
-			#pragma domain Domain
+			// No tesselation for Meta pass
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"

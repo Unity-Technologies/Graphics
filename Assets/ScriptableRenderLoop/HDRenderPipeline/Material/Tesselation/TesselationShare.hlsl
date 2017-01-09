@@ -9,14 +9,14 @@ struct TessellationFactors
     float inside : SV_InsideTessFactor;
 };
 
-UnityTessellationFactors HullConstant(InputPatch<AttributesTesselation, 3> input)
+TessellationFactors HullConstant(InputPatch<AttributesTesselation, 3> input)
 {
     Attributes params[3];
     params[0] = AttributesTesselationToAttributes(input[0]);
     params[1] = AttributesTesselationToAttributes(input[1]);
     params[2] = AttributesTesselationToAttributes(input[2]);
  
-    float4 tf = tessEdge(vi[0], vi[1], vi[2]);
+    float4 tf = TesselationEdge(params[0], params[1], params[2]);
 
     TessellationFactors ouput;
     ouput.edge[0] = tf.x;
@@ -39,15 +39,15 @@ AttributesTesselation Hull(InputPatch<AttributesTesselation, 3> input, uint id :
 }
 
 [UNITY_domain("tri")]
-PackedVaryings Domain(UnityTessellationFactors tessFactors, const OutputPatch<AttributesTesselation, 3> input, float3 baryWeight : SV_DomainLocation) 
+PackedVaryings Domain(TessellationFactors tessFactors, const OutputPatch<AttributesTesselation, 3> input, float3 baryWeight : SV_DomainLocation)
 {
     Attributes params = InterpolateWithBary(input[0], input[1], input[2], baryWeight);
 
     // perform displacement
-    displacement(params);
+    Displacement(params);
 
     // Evaluate regular vertex shader
-    PackedVaryings outout = Vert(v);
+    PackedVaryings outout = Vert(params);
 
     return outout;
 }

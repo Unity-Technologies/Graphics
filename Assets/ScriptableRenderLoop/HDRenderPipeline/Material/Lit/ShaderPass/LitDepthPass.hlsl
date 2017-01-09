@@ -6,6 +6,7 @@
 #define NEED_TEXCOORD0 defined(_ALPHATEST_ON)
 #define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && !defined(_HEIGHTMAP_AS_DISPLACEMENT))
 
+// When modifying this structure, update the tesselation code below
 struct Attributes
 {
     float3 positionOS : POSITION;
@@ -47,7 +48,7 @@ AttributesTesselation AttributesToAttributesTesselation(Attributes input)
 
 Attributes AttributesTesselationToAttributes(AttributesTesselation input)
 {
-    AttributesTesselation output;
+    Attributes output;
     output.positionOS = input.positionOS;
 #if NEED_TEXCOORD0
     output.uv0 = input.uv0;

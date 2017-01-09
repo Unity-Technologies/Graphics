@@ -174,6 +174,7 @@ float2 GetIESTextureCoordinate(float3x3 lightToWord, float3 L)
 // perspective projection and the normal mapping + decals. In that case, the normal
 // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
 // Note: certain applications (e.g. SpeedTree) make use of double-sided lighting.
+// This will  potentially reduce the length of the normal at edges of geometry.
 float GetShiftedNdotV(inout float3 N, float3 V, bool twoSided)
 {
     float NdotV = dot(N, V);

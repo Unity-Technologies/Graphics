@@ -11,7 +11,7 @@
 
 struct Attributes
 {
-    float3 positionOS   : ATTRIBUTE_POSITION;
+    float3 positionOS   : POSITION;
     float3 normalOS     : NORMAL;
     float2 uv0          : TEXCOORD0;
     float2 uv1		    : TEXCOORD1;
@@ -26,6 +26,80 @@ struct Attributes
 
     // UNITY_INSTANCE_ID
 };
+
+#ifdef TESSELATION_ON
+// Copy paste of above struct with POSITION rename to INTERNALTESSPOS (internal of unity shader compiler)
+struct AttributesTesselation
+{
+    float3 positionOS   : INTERNALTESSPOS;
+    float3 normalOS     : NORMAL;
+    float2 uv0          : TEXCOORD0;
+    float2 uv1		    : TEXCOORD1;
+#if WANT_UV2
+    float2 uv2		    : TEXCOORD2;
+#endif
+#if WANT_UV3
+    float2 uv3		    : TEXCOORD3;
+#endif
+    float4 tangentOS    : TANGENT;  // Always present as we require it also in case of anisotropic lighting
+    float4 color        : COLOR;
+};
+
+AttributesTesselation AttributesToAttributesTesselation(Attributes input)
+{
+    AttributesTesselation output;
+    output.positionOS = input.positionOS;
+    output.normalOS = input.normalOS;
+    output.uv0 = input.uv0;
+    output.uv1 = input.uv1;
+#if WANT_UV2
+    output.uv2 = input.uv2;
+#endif
+#if WANT_UV3
+    output.uv3 = input.uv3;
+#endif
+    output.tangentOS = input.tangentOS;
+    output.color = input.color;
+}
+
+Attributes AttributesTesselationToAttributes(AttributesTesselation input)
+{
+    Attributes output;
+    output.positionOS = input.positionOS;
+    output.normalOS = input.normalOS;
+    output.uv0 = input.uv0;
+    output.uv1 = input.uv1;
+#if WANT_UV2
+    output.uv2 = input.uv2;
+#endif
+#if WANT_UV3
+    output.uv3 = input.uv3;
+#endif
+    output.tangentOS = input.tangentOS;
+    output.color = input.color;
+}
+
+AttributesTesselation InterpolateWithBary(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryWeight)
+{
+    AttributesTesselation ouput;
+
+    TESSELATION_INTERPOLATE_BARY(positionOS, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(normalOS, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(uv0, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(uv1, baryWeight);
+#if WANT_UV2
+    TESSELATION_INTERPOLATE_BARY(uv2, baryWeight);
+#endif
+#if WANT_UV3
+    TESSELATION_INTERPOLATE_BARY(uv3, baryWeight);
+#endif
+    TESSELATION_INTERPOLATE_BARY(tangentOS, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(color, baryWeight);
+
+    return ouput;
+}
+#endif // TESSELATION_ON
+
 
 struct Varyings
 {
