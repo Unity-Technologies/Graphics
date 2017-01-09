@@ -16,11 +16,12 @@ void Frag(  PackedVaryings packedInput,
     UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
-	SurfaceData surfaceData;
-	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
+    SurfaceData surfaceData;
+    BuiltinData builtinData;
+    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+
 	PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
 	float3 diffuseLighting;

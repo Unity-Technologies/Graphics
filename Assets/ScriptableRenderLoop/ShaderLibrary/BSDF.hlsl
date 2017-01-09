@@ -42,10 +42,13 @@ float3 F_Schlick(float3 f0, float u)
 // With analytical light (not image based light) we clamp the minimun roughness in the NDF to avoid numerical instability.
 #define UNITY_MIN_ROUGHNESS 0.002
 
+float ClampRoughnessForAnalyticalLights(float roughness)
+{
+    return max(roughness, UNITY_MIN_ROUGHNESS);
+}
+
 float D_GGXNoPI(float NdotH, float roughness)
 {
-    roughness = max(roughness, UNITY_MIN_ROUGHNESS);
-
     float a2 = roughness * roughness;
     float f = (NdotH * a2 - NdotH) * NdotH + 1.0;
     return a2 / (f * f);
@@ -58,8 +61,6 @@ float D_GGX(float NdotH, float roughness)
 
 float D_GGX_Inverse(float NdotH, float roughness)
 {
-    roughness = max(roughness, UNITY_MIN_ROUGHNESS);
-
     float a2 = roughness * roughness;
     float f  = (NdotH * a2 - NdotH) * NdotH + 1.0;
     float g  = (f * f) / a2;
@@ -70,8 +71,6 @@ float D_GGX_Inverse(float NdotH, float roughness)
 // Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 19, 29.
 float G_MaskingSmithGGX(float NdotV, float VdotH, float roughness)
 {
-    roughness = max(roughness, UNITY_MIN_ROUGHNESS);
-
     // G1(V, H)    = HeavisideStep(VdotH) / (1 + Λ(V)).
     // Λ(V)        = -0.5 + 0.5 * sqrt(1 + 1 / a²).
     // a           = 1 / (roughness * tan(theta)).
@@ -100,7 +99,7 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
     //  lambda_l    = (-1 + sqrt(a2 * (1 - NdotV2) / NdotV2 + 1)) * 0.5f;
     //  G           = 1 / (1 + lambda_v + lambda_l);
 
-    float a = roughness; 
+    float a = roughness;
     float a2 = a * a;
     // Reorder code to be more optimal
     float lambdaV = NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
@@ -161,9 +160,6 @@ float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness, float lam
 // roughnessB -> roughness in bitangent direction
 float D_GGXAnisoNoPI(float TdotH, float BdotH, float NdotH, float roughnessT, float roughnessB)
 {
-    roughnessT = max(roughnessT, UNITY_MIN_ROUGHNESS);
-    roughnessB = max(roughnessB, UNITY_MIN_ROUGHNESS);
-
     float f = TdotH * TdotH / (roughnessT * roughnessT) + BdotH * BdotH / (roughnessB * roughnessB) + NdotH * NdotH;
     return 1.0 / (roughnessT * roughnessB * f * f);
 }
