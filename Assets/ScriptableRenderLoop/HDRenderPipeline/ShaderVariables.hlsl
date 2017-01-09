@@ -295,7 +295,16 @@ float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
 // Computes world space view direction, from object space position
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
-    return normalize(_WorldSpaceCameraPos.xyz - positionWS);
+    float3 V = _WorldSpaceCameraPos.xyz - positionWS;
+
+    // Uncomment this once the compiler bug is fixed.
+    // if (unity_OrthoParams.w == 1.0)
+    // {
+    //     float4x4 M = GetWorldToViewMatrix();
+    //     V = M[1].xyz;
+    // }
+
+    return normalize(V);
 }
 
 float3 TransformTangentToWorld(float3 dirTS, float3 tangentToWorld[3])

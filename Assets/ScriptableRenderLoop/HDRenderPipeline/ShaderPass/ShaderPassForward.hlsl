@@ -20,18 +20,9 @@ void Frag(  PackedVaryings packedInput,
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-    bool twoSided = false;
-    // This will always produce the correct 'NdotV' value, but potentially
-    // reduce the length of the normal at edges of geometry.
-    float NdotV = GetShiftedNdotV(surfaceData.normalWS, V, twoSided);
-
-    // Orthonormalize the basis vectors using the Gram-Schmidt process.
-    surfaceData.normalWS  = normalize(surfaceData.normalWS);
-    surfaceData.tangentWS = normalize(surfaceData.tangentWS - dot(surfaceData.tangentWS, surfaceData.normalWS));
-
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
-	PreLightData preLightData = GetPreLightData(V, NdotV, posInput, bsdfData);
+	PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
 	float3 diffuseLighting;
 	float3 specularLighting;

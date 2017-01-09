@@ -177,7 +177,7 @@ float2 GetIESTextureCoordinate(float3x3 lightToWord, float3 L)
 float GetShiftedNdotV(inout float3 N, float3 V, bool twoSided)
 {
     float NdotV = dot(N, V);
-    float limit = 1e-4;
+    float limit = rcp(256.0); // Determined mostly by the quality of the G-buffer normal encoding
 
     if (!twoSided && NdotV < limit)
     {

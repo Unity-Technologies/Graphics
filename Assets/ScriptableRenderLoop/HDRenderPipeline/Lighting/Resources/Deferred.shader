@@ -88,10 +88,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 float3 bakeDiffuseLighting;
                 DECODE_FROM_GBUFFER(gbuffer, bsdfData, bakeDiffuseLighting);
 
-                bool twoSided = false;
-                float NdotV = GetShiftedNdotV(bsdfData.normalWS, V, twoSided);
-
-                PreLightData preLightData = GetPreLightData(V, NdotV, posInput, bsdfData);
+                PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 float3 diffuseLighting;
                 float3 specularLighting;
