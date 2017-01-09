@@ -78,14 +78,36 @@ float3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), fl
 }
 
 // Following functions are to sample enlighten lightmaps (or lightmaps encoded the same way as our
-// enlighten implementation). They assume use of RGB9E5 for illuminance map.
+// enlighten implementation). They assume use of RGB9E5 for dynamic illuminance map and RGBM for baked ones.
 // It is required for other platform that aren't supporting this format to implement variant of these functions
 // (But these kind of platform should use regular render loop and not news shaders).
 
 #define LIGHTMAP_RGBM_RANGE 5.0
+// TODO: This is the max value allowed for emissive (bad name - but keep for now to retrieve it) (It is 8^2.2 (gamma) and 8 is the limit of punctual light slider...), comme from UnityCg.cginc. Fix it!
+// Ask Jesper if this can be change for HDRenderPipeline
+#define EMISSIVE_RGBM_SCALE 97.0
 
-// This is temporary. For now baked lightmap are in RGBM and the RGBM range for lightmaps is specific so we can't use the generic method.
+// RGBM stuff is temporary. For now baked lightmap are in RGBM and the RGBM range for lightmaps is specific so we can't use the generic method.
 // In the end baked lightmaps are going to be BC6H so the code will be the same as dynamic lightmaps.
+// Same goes for emissive packed as an input for Enlighten with another hard coded multiplier.
+
+// TODO: This function is used with the LightTransport pass to encode lightmap or emissive
+float4 PackEmissiveRGBM(float3 rgb)
+{
+    float kOneOverRGBMMaxRange = 1.0 / EMISSIVE_RGBM_SCALE;
+    const float kMinMultiplier = 2.0 * 1e-2;
+
+    float4 rgbm = float4(rgb * kOneOverRGBMMaxRange, 1.0);
+        rgbm.a = max(max(rgbm.r, rgbm.g), max(rgbm.b, kMinMultiplier));
+    rgbm.a = ceil(rgbm.a * 255.0) / 255.0;
+
+    // Division-by-zero warning from d3d9, so make compiler happy.
+    rgbm.a = max(rgbm.a, kMinMultiplier);
+
+    rgbm.rgb /= rgbm.a;
+    return rgbm;
+}
+
 float3 UnpackLightmapRGBM(float4 rgbmInput)
 {
     return rgbmInput.rgb * rgbmInput.a * LIGHTMAP_RGBM_RANGE;
