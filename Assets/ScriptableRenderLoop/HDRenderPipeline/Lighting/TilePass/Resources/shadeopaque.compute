@@ -49,10 +49,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float3 bakeDiffuseLighting;
     DECODE_FROM_GBUFFER(gbuffer, bsdfData, bakeDiffuseLighting);
 
-    bool twoSided = false;
-    float NdotV = GetShiftedNdotV(bsdfData.normalWS, V, twoSided);
-
-    PreLightData preLightData = GetPreLightData(V, NdotV, posInput, bsdfData);
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     float3 diffuseLighting;
     float3 specularLighting;

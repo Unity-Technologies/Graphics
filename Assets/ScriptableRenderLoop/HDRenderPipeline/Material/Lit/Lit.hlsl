@@ -465,11 +465,12 @@ struct PreLightData
     float    ltcDisneyDiffuseMagnitude;
 };
 
-PreLightData GetPreLightData(float3 V, float NdotV, PositionInputs posInput, BSDFData bsdfData)
+PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfData)
 {
     PreLightData preLightData;
 
-    preLightData.NdotV = NdotV;
+    // We do not saturate to correctly handle double-sided lighting.
+    preLightData.NdotV = dot(bsdfData.normalWS, V);
 
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
 
@@ -498,7 +499,7 @@ PreLightData GetPreLightData(float3 V, float NdotV, PositionInputs posInput, BSD
 
     // Area light specific
     // UVs for sampling the LUTs
-    float theta = FastACos(dot(bsdfData.normalWS, V));
+    float theta = FastACos(preLightData.NdotV);
     // Scale and bias for the current precomputed table - the constant use here are the one that have been use when the table in LtcData.DisneyDiffuse.cs and LtcData.GGX.cs was use
     float2 uv = 0.0078125 + 0.984375 * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
 
