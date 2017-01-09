@@ -15,8 +15,8 @@
 // Util image based lighting
 //-----------------------------------------------------------------------------
 
-// Performs a *non-linear* remapping which improves the perceptual roughness distribution
-// and adds reflection (contact) hardening. The *approximated* version.
+// The *approximated* version of the non-linear remapping which improves
+// the perceptual roughness distribution and adds reflection (contact) hardening.
 float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
 {
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
@@ -24,8 +24,8 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
     return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
-// Performs a *non-linear* remapping which improves the perceptual roughness distribution
-// and adds reflection (contact) hardening. The *accurate* version.
+// The *accurate* version of the non-linear remapping which improves
+// the perceptual roughness distribution and adds reflection (contact) hardening.
 // TODO: optimize!
 float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
 {
@@ -43,10 +43,13 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
     return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
-// Performs *linear* remapping for runtime EnvMap filtering.
+// The *approximated* version of the non-linear remapping which improves
+// the perceptual roughness distribution and adds reflection (contact) hardening.
 float mipmapLevelToPerceptualRoughness(float mipmapLevel)
 {
-    return saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
+    float perceptualRoughness = saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
+
+    return saturate(1.7 / 1.4 - sqrt(2.89 - 2.8 * perceptualRoughness) / 1.4);
 }
 
 // Ref: See "Moving Frostbite to PBR" Listing 22
