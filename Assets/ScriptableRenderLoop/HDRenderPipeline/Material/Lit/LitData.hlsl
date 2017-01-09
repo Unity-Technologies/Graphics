@@ -217,9 +217,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     surfaceData.tangentWS = input.tangentToWorld[0].xyz;
 
+    // NdotV should not be negative for visible pixels, but it can happen due to the
+    // perspective projection and the normal mapping + decals. In that case, the normal
+    // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
+    // Note: certain applications (e.g. SpeedTree) make use of double-sided lighting.
+    // This will  potentially reduce the length of the normal at edges of geometry.
     bool twoSided = false;
-    // This will always produce the correct 'NdotV' value, but potentially
-    // reduce the length of the normal at edges of geometry.
     GetShiftedNdotV(surfaceData.normalWS, V, twoSided);
 
     // Orthonormalize the basis vectors using the Gram-Schmidt process.
@@ -432,8 +435,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     surfaceData.tangentWS = input.tangentToWorld[0].xyz;
 
-    bool twoSided = false;
+    // NdotV should not be negative for visible pixels, but it can happen due to the
+    // perspective projection and the normal mapping + decals. In that case, the normal
+    // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
+    // Note: certain applications (e.g. SpeedTree) make use of double-sided lighting.
     // This will  potentially reduce the length of the normal at edges of geometry.
+    bool twoSided = false;    
     GetShiftedNdotV(surfaceData.normalWS, V, twoSided);
 
     // Orthonormalize the basis vectors using the Gram-Schmidt process.

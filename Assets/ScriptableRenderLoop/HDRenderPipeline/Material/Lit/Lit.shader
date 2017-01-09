@@ -152,7 +152,6 @@ Shader "HDRenderPipeline/Lit"
     // All our shaders use same name for entry point
     #pragma vertex Vert
     #pragma fragment Frag
-    #define ATTRIBUTE_POSITION POSITION
 
     ENDHLSL
 
