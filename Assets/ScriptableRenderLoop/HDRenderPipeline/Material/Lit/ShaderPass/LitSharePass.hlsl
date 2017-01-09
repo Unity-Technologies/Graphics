@@ -11,7 +11,7 @@
 
 struct Attributes
 {
-    float3 positionOS   : POSITION;
+    float3 positionOS   : ATTRIBUTE_POSITION;
     float3 normalOS     : NORMAL;
     float2 uv0          : TEXCOORD0;
     float2 uv1		    : TEXCOORD1;

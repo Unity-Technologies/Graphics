@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/Lit"
+Shader "HDRenderPipeline/LitTesselation"
 {
     Properties
     {
@@ -152,7 +152,6 @@ Shader "HDRenderPipeline/Lit"
     // All our shaders use same name for entry point
     #pragma vertex Vert
     #pragma fragment Frag
-    #define ATTRIBUTE_POSITION POSITION
 
     ENDHLSL
 
@@ -170,10 +169,15 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+			#pragma hull Hull
+			#pragma domain Domain
+
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../Material/Material.hlsl"
             #include "LitData.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
+            #include "LitTesselation.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -189,10 +193,15 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+			#pragma hull Hull
+			#pragma domain Domain
+
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
             #include "../../Material/Material.hlsl"
             #include "LitData.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
+            #include "LitTesselation.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
             
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
@@ -213,6 +222,9 @@ Shader "HDRenderPipeline/Lit"
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
+
+			#pragma hull Hull
+			#pragma domain Domain
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"
@@ -236,10 +248,15 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+			#pragma hull Hull
+			#pragma domain Domain
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"            
             #include "LitData.hlsl"
             #include "ShaderPass/LitDepthPass.hlsl"
+            #include "LitTesselation.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -257,10 +274,15 @@ Shader "HDRenderPipeline/Lit"
  
             HLSLPROGRAM
 
+			#pragma hull Hull
+			#pragma domain Domain
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"            
             #include "LitData.hlsl"
             #include "ShaderPass/LitDepthPass.hlsl"
+            #include "LitTesselation.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -278,10 +300,15 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+			#pragma hull Hull
+			#pragma domain Domain
+
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../Material/Material.hlsl"         
             #include "LitData.hlsl"
             #include "ShaderPass/LitVelocityPass.hlsl"
+            #include "LitTesselation.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
@@ -300,10 +327,15 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+			#pragma hull Hull
+			#pragma domain Domain
+
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "../../Material/Material.hlsl"         
             #include "LitData.hlsl"
             #include "ShaderPass/LitDistortionPass.hlsl"
+            #include "LitTesselation.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
@@ -321,7 +353,8 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-
+			#pragma hull Hull
+			#pragma domain Domain
 
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include
@@ -332,6 +365,8 @@ Shader "HDRenderPipeline/Lit"
             #include "../../Lighting/Lighting.hlsl"
             #include "LitData.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
+            #include "LitTesselation.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
