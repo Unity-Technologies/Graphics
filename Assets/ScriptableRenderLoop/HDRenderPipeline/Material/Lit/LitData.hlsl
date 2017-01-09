@@ -180,7 +180,7 @@ float3 SampleNormalLayerRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV laye
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name
 #define ADD_ZERO_IDX(Name) Name
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -226,25 +226,25 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 // Generate function for all layer
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name##0
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 
 #define LAYER_INDEX 1
 #define ADD_IDX(Name) Name##1
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 
 #define LAYER_INDEX 2
 #define ADD_IDX(Name) Name##2
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 
 #define LAYER_INDEX 3
 #define ADD_IDX(Name) Name##3
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 

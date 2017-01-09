@@ -294,7 +294,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitSharePass.hlsl"    
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"    
 
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -314,7 +314,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitSharePass.hlsl"
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
@@ -336,13 +336,10 @@ Shader "HDRenderPipeline/LayeredLit"
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitMetaPass.hlsl"
+            #include "../Lit/ShaderPass/LitMetaPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
@@ -360,13 +357,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../Material/Material.hlsl"         
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitVelocityPass.hlsl"
+            #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
@@ -385,13 +379,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitDepthPass.hlsl"
+            #include "../Lit/ShaderPass/LitDepthPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -409,13 +400,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitDepthPass.hlsl"
+            #include "../Lit/ShaderPass/LitDepthPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -434,13 +422,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "../../Material/Material.hlsl"         
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitDistortionPass.hlsl"
+            #include "../Lit/ShaderPass/LitDistortionPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
@@ -466,7 +451,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitSharePass.hlsl"
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
 
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
