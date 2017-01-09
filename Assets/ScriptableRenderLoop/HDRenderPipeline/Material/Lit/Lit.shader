@@ -353,5 +353,5 @@ Shader "HDRenderPipeline/Lit"
         }
     }
 
-    CustomEditor "Experimental.ScriptableRenderLoop.LitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"
 }
