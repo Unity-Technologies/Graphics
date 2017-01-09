@@ -167,15 +167,26 @@ float2 GetIESTextureCoordinate(float3x3 lightToWord, float3 L)
 }
 
 //-----------------------------------------------------------------------------
-// Get local frame
+// Helper functions
 //-----------------------------------------------------------------------------
 
-// Generates an orthonormal basis from two orthogonal unit vectors.
-float3x3 GetLocalFrame(float3 localZ, float3 localX)
+// NdotV should not be negative for visible pixels, but it can happen due to the
+// perspective projection and the normal mapping + decals. In that case, the normal
+// should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
+// Note: certain applications (e.g. SpeedTree) make use of double-sided lighting.
+float GetShiftedNdotV(inout float3 N, float3 V, bool twoSided)
 {
-    float3 localY = cross(localZ, localX);
+    float NdotV = dot(N, V);
+    float limit = 1e-4;
 
-    return float3x3(localX, localY, localZ);
+    if (!twoSided && NdotV < limit)
+    {
+        // We do not renormalize the normal because { abs(length(N) - 1.0) < limit }.
+        N    += (-NdotV + limit) * V;
+        NdotV = limit;
+    }
+
+    return NdotV;
 }
 
 // Generates an orthonormal basis from a unit vector.
@@ -183,8 +194,9 @@ float3x3 GetLocalFrame(float3 localZ)
 {
     float3 upVector = abs(localZ.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
     float3 localX   = normalize(cross(upVector, localZ));
+    float3 localY   = cross(localZ, localX);
 
-    return GetLocalFrame(localZ, localX);
+    return float3x3(localX, localY, localZ);
 }
 
 // TODO: test

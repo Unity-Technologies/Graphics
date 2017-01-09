@@ -16,14 +16,20 @@ void Frag(  PackedVaryings packedInput,
     UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
-	SurfaceData surfaceData;
-	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
+    SurfaceData surfaceData;
+    BuiltinData builtinData;
+    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+    bool twoSided = false;
+    // This will always produce the correct 'NdotV' value, but potentially
+    // reduce the length of the normal at edges of geometry.
+    float NdotV = GetShiftedNdotV(surfaceData.normalWS, V, twoSided);
 
-    bool  twoSided = false;
-    float NdotV    = GetShiftedNdotV(bsdfData.normalWS, V, twoSided);
+    // Orthonormalize the basis vectors using the Gram-Schmidt process.
+    surfaceData.normalWS  = normalize(surfaceData.normalWS);
+    surfaceData.tangentWS = normalize(surfaceData.tangentWS - dot(surfaceData.tangentWS, surfaceData.normalWS));
+
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
 	PreLightData preLightData = GetPreLightData(V, NdotV, posInput, bsdfData);
 

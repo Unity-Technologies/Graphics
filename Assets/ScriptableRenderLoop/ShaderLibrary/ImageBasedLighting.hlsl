@@ -247,20 +247,21 @@ void ImportanceSampleGGX(float2   u,
 }
 
 // weightOverPdf return the weight (without the Fresnel term) over pdf. Fresnel term must be apply by the caller.
-void ImportanceSampleAnisoGGX(
-    float2 u,
-    float3 V,
-    float3 N,
-    float3 tangentX,
-    float3 tangentY,
-    float roughnessT,
-    float roughnessB,
-    float NdotV,
-    out float3 L,
-    out float VdotH,
-    out float NdotL,
-    out float weightOverPdf)
+void ImportanceSampleAnisoGGX(float2   u,
+                              float3   V,
+                              float3x3 localToWorld,
+                              float    roughnessT,
+                              float    roughnessB,
+                              float    NdotV,
+                          out float3   L,
+                          out float    VdotH,
+                          out float    NdotL,
+                          out float    weightOverPdf)
 {
+    float3 tangentX = localToWorld[0];
+    float3 tangentY = localToWorld[1];
+    float3 N        = localToWorld[2];
+
     float3 H;
     SampleAnisoGGXDir(u, V, N, tangentX, tangentY, roughnessT, roughnessB, H, L);
 
