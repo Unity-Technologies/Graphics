@@ -128,6 +128,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty emissiveIntensity = null;
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
 
+        // tesselation params
+        protected MaterialProperty tesselationFactor = null;
+        protected const string kTesselationFactor = "_TesselationFactor";
+
         // These are options that are shared with the LayeredLit shader. Don't put anything that can't be shared here:
         // For instance, properties like BaseColor and such don't exist in the LayeredLit so don't put them here.
         protected void FindMaterialOptionProperties(MaterialProperty[] props)
@@ -176,6 +180,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColor = FindProperty(kEmissiveColor, props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
+
+            tesselationFactor = FindProperty(kTesselationFactor, props);;
         }
 
         override protected void ShaderInputOptionsGUI()
@@ -305,6 +311,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.LightmapEmissionProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
 
             EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
+            
+            if (tesselationFactor != null)
+            {
+                GUILayout.Label(Styles.tesselationText, EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(tesselationFactor, Styles.tesselationFactorText);
+                EditorGUI.indentLevel--;
+            }
+            
         }
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)

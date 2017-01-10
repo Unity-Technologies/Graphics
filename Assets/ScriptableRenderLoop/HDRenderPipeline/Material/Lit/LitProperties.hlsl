@@ -156,3 +156,9 @@ PROP_DECL(float4, _UVDetailsMappingMask);
 float _AlphaCutoff;
 
 #endif // LAYERED_LIT_SHADER
+
+// Tesselation specific
+
+#ifdef TESSELATION_ON
+float _TesselationFactor;
+#endif

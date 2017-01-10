@@ -181,6 +181,9 @@ float3 SampleNormalLayerRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV laye
 #define ADD_IDX(Name) Name
 #define ADD_ZERO_IDX(Name) Name
 #include "LitDataInternal.hlsl"
+#ifdef TESSELATION_ON
+#include "LitTesselation.hlsl"
+#endif
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -241,6 +244,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name##0
 #include "LitDataInternal.hlsl"
+#ifdef TESSELATION_ON
+#include "LitTesselation.hlsl" // Include only one time for layer 0
+#endif
 #undef LAYER_INDEX
 #undef ADD_IDX
 
