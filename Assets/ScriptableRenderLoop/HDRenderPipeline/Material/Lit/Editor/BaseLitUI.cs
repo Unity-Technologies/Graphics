@@ -56,6 +56,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (DXT5) - Need to implement BC5");
  
             public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map");
+            public static GUIContent heightMapAmplitudeText = new GUIContent("Height Map Amplitude", "Height Map amplitude in world units.");
+            public static GUIContent heightMapCenterText = new GUIContent("Height Map Center", "Center of the heightmap in the texture (between 0 and 1)");
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC5) - DXT5 for test");
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
