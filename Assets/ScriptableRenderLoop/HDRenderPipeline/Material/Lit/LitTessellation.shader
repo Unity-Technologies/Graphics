@@ -19,8 +19,8 @@ Shader "HDRenderPipeline/LitTesselation"
         _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
 
         _HeightMap("HeightMap", 2D) = "black" {}
-        _HeightScale("Height Scale", Float) = 0.01
-        _HeightBias("Height Bias", Float) = 0
+        _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units
+        _HeightCenter("Height Center", Float) = 0.5 // In texture space
 
         _TangentMap("TangentMap", 2D) = "bump" {}
         _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
