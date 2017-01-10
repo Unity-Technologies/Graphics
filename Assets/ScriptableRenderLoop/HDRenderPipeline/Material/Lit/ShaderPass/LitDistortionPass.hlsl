@@ -35,6 +35,8 @@ AttributesTesselation AttributesToAttributesTesselation(Attributes input)
     output.normalOS = input.normalOS;
     output.tangentOS = input.tangentOS;
 #endif
+
+    return output;
 }
 
 Attributes AttributesTesselationToAttributes(AttributesTesselation input)
@@ -46,6 +48,8 @@ Attributes AttributesTesselationToAttributes(AttributesTesselation input)
     output.normalOS = input.normalOS;
     output.tangentOS = input.tangentOS;
 #endif
+
+    return output;
 }
 
 AttributesTesselation InterpolateWithBary(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryWeight)

@@ -27,18 +27,18 @@ TessellationFactors HullConstant(InputPatch<AttributesTesselation, 3> input)
     return ouput;
 }
 
-// add [maxtessfactor(15)] ?
-[UNITY_domain("tri")]
-[UNITY_partitioning("fractional_odd")]
-[UNITY_outputtopology("triangle_cw")]
-[UNITY_patchconstantfunc("HullConstant")]
-[UNITY_outputcontrolpoints(3)]
+[maxtessfactor(15.0)] // AMD recommand this value for GCN http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2013/05/GCNPerformanceTweets.pdf
+[domain("tri")]
+[partitioning("fractional_odd")]
+[outputtopology("triangle_cw")]
+[patchconstantfunc("HullConstant")]
+[outputcontrolpoints(3)]
 AttributesTesselation Hull(InputPatch<AttributesTesselation, 3> input, uint id : SV_OutputControlPointID)
 {
     return input[id];
 }
 
-[UNITY_domain("tri")]
+[domain("tri")]
 PackedVaryings Domain(TessellationFactors tessFactors, const OutputPatch<AttributesTesselation, 3> input, float3 baryWeight : SV_DomainLocation)
 {
     Attributes params = InterpolateWithBary(input[0], input[1], input[2], baryWeight);
