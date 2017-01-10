@@ -246,7 +246,7 @@ float PackFloatInt8bit(float f, int i, float maxi)
     return PackFloatInt(f, i, maxi, 255.0);
 }
 
-float UnpackFloatInt8bit(float val, float maxi, out float f, out int i)
+void UnpackFloatInt8bit(float val, float maxi, out float f, out int i)
 {
     UnpackFloatInt(val, maxi, 255.0, f, i);
 }
@@ -256,7 +256,7 @@ float PackFloatInt10bit(float f, int i, float maxi)
     return PackFloatInt(f, i, maxi, 1024.0);
 }
 
-float UnpackFloatInt10bit(float val, float maxi, out float f, out int i)
+void UnpackFloatInt10bit(float val, float maxi, out float f, out int i)
 {
     UnpackFloatInt(val, maxi, 1024.0, f, i);
 }
@@ -266,7 +266,7 @@ float PackFloatInt16bit(float f, int i, float maxi)
     return PackFloatInt(f, i, maxi, 65536.0);
 }
 
-float UnpackFloatInt16bit(float val, float maxi, out float f, out int i)
+void UnpackFloatInt16bit(float val, float maxi, out float f, out int i)
 {
     UnpackFloatInt(val, maxi, 65536.0, f, i);
 }

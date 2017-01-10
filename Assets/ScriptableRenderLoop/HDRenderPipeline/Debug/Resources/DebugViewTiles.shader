@@ -10,7 +10,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
 
             HLSLPROGRAM
             #pragma target 5.0
-            #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
+            #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -141,9 +141,9 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                     float depthMouse = LOAD_TEXTURE2D(_CameraDepthTexture, mousePosInput.unPositionSS).x;
                     UpdatePositionInput(depthMouse, _InvViewProjMatrix, _ViewProjMatrix, mousePosInput);
 
-                    int category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
-                    int start;
-                    int count;
+                    uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
+                    uint start;
+                    uint count;
                     GetCountAndStart(mousePosInput, category, start, count);
 
                     float4 result2 = float4(.1,.1,.1,.9);
