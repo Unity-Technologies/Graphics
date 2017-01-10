@@ -2,16 +2,70 @@
 #error Undefine_SHADERPASS
 #endif
 
-#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && !defined(_HEIGHTMAP_AS_DISPLACEMENT))
+#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))
 
 struct Attributes
 {
     float3 positionOS : POSITION;
     float2 uv0 : TEXCOORD0;
 #if NEED_TANGENT_TO_WORLD
+    float3 normalOS  : NORMAL;
     float4 tangentOS : TANGENT;
 #endif
 };
+
+#ifdef TESSELATION_ON
+// Copy paste of above struct with POSITION rename to INTERNALTESSPOS (internal of unity shader compiler)
+struct AttributesTesselation
+{
+    float3 positionOS : INTERNALTESSPOS;
+    float2 uv0 : TEXCOORD0;
+#if NEED_TANGENT_TO_WORLD
+    float3 normalOS  : NORMAL;
+    float4 tangentOS : TANGENT;
+#endif
+};
+
+AttributesTesselation AttributesToAttributesTesselation(Attributes input)
+{
+    AttributesTesselation output;
+    output.positionOS = input.positionOS;
+    output.uv0 = input.uv0;
+#if NEED_TANGENT_TO_WORLD
+    output.normalOS = input.normalOS;
+    output.tangentOS = input.tangentOS;
+#endif
+
+    return output;
+}
+
+Attributes AttributesTesselationToAttributes(AttributesTesselation input)
+{
+    Attributes output;
+    output.positionOS = input.positionOS;
+    output.uv0 = input.uv0;
+#if NEED_TANGENT_TO_WORLD
+    output.normalOS = input.normalOS;
+    output.tangentOS = input.tangentOS;
+#endif
+
+    return output;
+}
+
+AttributesTesselation InterpolateWithBary(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryWeight)
+{
+    AttributesTesselation ouput;
+
+    TESSELATION_INTERPOLATE_BARY(positionOS, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(uv0, baryWeight);
+#if NEED_TANGENT_TO_WORLD
+    TESSELATION_INTERPOLATE_BARY(normalOS, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(tangentOS, baryWeight);
+#endif
+
+    return ouput;
+}
+#endif // TESSELATION_ON
 
 struct Varyings
 {
