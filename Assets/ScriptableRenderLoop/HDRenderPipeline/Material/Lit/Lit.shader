@@ -18,9 +18,12 @@ Shader "HDRenderPipeline/Lit"
         _NormalMap("NormalMap", 2D) = "bump" {}
         _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
 
+        // Be careful, the scale and bias here is different from the one shown in the GUI
+        // Here both value are in world units and the formula is finalHeight = height * scale + bias
+        // In the GUI it's (height - center) * amplitude
         _HeightMap("HeightMap", 2D) = "black" {}
         _HeightScale("Height Scale", Float) = 0.01
-        _HeightBias("Height Bias", Float) = 0
+        _HeightBias("Height Bias", Float) = -0.005
 
         _TangentMap("TangentMap", 2D) = "bump" {}
         _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
