@@ -12,7 +12,7 @@ namespace RMGUI.GraphView
 		// we watch the data source for destruction and re-create it
 		IDataWatchHandle handle;
 
-		void OnEnable()
+		protected void OnEnable()
 		{
 			m_Presenter = BuildPresenters();
 			graphView = BuildView();
@@ -24,7 +24,7 @@ namespace RMGUI.GraphView
 			rootVisualContainer.AddChild(graphView);
 		}
 
-		void OnDisable()
+		protected void OnDisable()
 		{
 			rootVisualContainer.RemoveChild(graphView);
 		}

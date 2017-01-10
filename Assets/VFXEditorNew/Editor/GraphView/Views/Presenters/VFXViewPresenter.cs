@@ -8,9 +8,7 @@ namespace UnityEditor.VFX.UI
         void OnEnable()
         {
             if (m_ModelContainer == null)
-            {
-                m_ModelContainer = CreateInstance<VFXModelContainer>();
-            }
+                SetModelContainer(CreateInstance<VFXModelContainer>());
         }
 
         public void Init(VFXModelContainer modelContainer)
@@ -30,7 +28,12 @@ namespace UnityEditor.VFX.UI
         public void AddModel(Vector2 pos,VFXModel model)
         {
             m_ModelContainer.m_Roots.Add(model);
+            AddPresentersFromModel(pos,model);
+            EditorUtility.SetDirty(m_ModelContainer);
+        }
 
+        private void AddPresentersFromModel(Vector2 pos,VFXModel model)
+        {
             if (model is VFXContext)
             {
                 var presenter = CreateInstance<VFXContextPresenter>();
@@ -38,11 +41,24 @@ namespace UnityEditor.VFX.UI
                 presenter.position = new Rect(pos.x, pos.y, 256, 256);
                 AddElement(presenter);
             }
+        }
 
-            EditorUtility.SetDirty(m_ModelContainer);
+        public void SetModelContainer(VFXModelContainer container)
+        {
+            if (m_ModelContainer != container)
+            {
+                if (m_ModelContainer != null && !EditorUtility.IsPersistent(m_ModelContainer))
+                    DestroyImmediate(m_ModelContainer);
+
+                m_Elements.Clear();     
+                m_ModelContainer = container;
+
+                if (m_ModelContainer != null)
+                    foreach (var model in m_ModelContainer.m_Roots)
+                        AddPresentersFromModel(Vector2.zero, model);
+            }
         }
 
         VFXModelContainer m_ModelContainer;
-
     }
 }
