@@ -141,6 +141,8 @@ float3 sampleSpline(float v,float u)
 	return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 }
 
+groupshared uint3 boundsLDS[2];
+
 void VFXBlockPositionSpline( inout float3 position,inout float3 velocity,inout float3 front,inout float3 side,inout float3 up,float2 Spline,float radius,inout uint seed)
 {
 	float t = RAND;
@@ -222,6 +224,14 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 {
+	if (groupId.x == 0)
+	{
+		boundsLDS[0] = (uint3)0xFFFFFFFF;
+		boundsLDS[1] = (uint3)0;
+	}
+	
+	GroupMemoryBarrierWithGroupSync();
+	
 	if (id.x < nbMax && flags[id.x] == 1)
 	{
 		uint index = id.x;
@@ -265,7 +275,30 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			outputData.front = attrib4.front;
 			outputData.size = attrib6.size;
 			outputBuffer.Append(outputData);
+			
+			uint3 sortablePos = ConvertFloatToSortableUint(attrib0.position);
+			
+			InterlockedMin(boundsLDS[0].x,sortablePos.x);
+			InterlockedMin(boundsLDS[0].y,sortablePos.y);
+			InterlockedMin(boundsLDS[0].z,sortablePos.z);
+			
+			InterlockedMax(boundsLDS[1].x,sortablePos.x);
+			InterlockedMax(boundsLDS[1].y,sortablePos.y);
+			InterlockedMax(boundsLDS[1].z,sortablePos.z);
 		}
+	}
+	
+	GroupMemoryBarrierWithGroupSync();
+	
+	if (groupId.x == 0)
+	{
+		InterlockedMin(bounds[0].x,boundsLDS[0].x);
+		InterlockedMin(bounds[0].y,boundsLDS[0].y);
+		InterlockedMin(bounds[0].z,boundsLDS[0].z);
+		
+		InterlockedMax(bounds[1].x,boundsLDS[1].x);
+		InterlockedMax(bounds[1].y,boundsLDS[1].y);
+		InterlockedMax(bounds[1].z,boundsLDS[1].z);
 	}
 }
 

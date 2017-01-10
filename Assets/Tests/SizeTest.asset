@@ -185,6 +185,12 @@ VFXAsset:
       m_Flags: 514
       m_Stride: 32
       m_PerPoint: 1
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 24
+      m_PerPoint: 0
     - m_InitName: flags
       m_UpdateName: flags
       m_OutputName: flags
@@ -280,6 +286,12 @@ VFXAsset:
       m_Flags: 514
       m_Stride: 32
       m_PerPoint: 1
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 24
+      m_PerPoint: 0
     - m_InitName: flags
       m_UpdateName: flags
       m_OutputName: flags

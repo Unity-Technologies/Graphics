@@ -320,12 +320,6 @@ namespace UnityEditor.Experimental
                     asset.bounds = VFXEdHandleUtility.BoxHandle(asset.bounds, c.transform.localToWorldMatrix);
                 });
             }
-
-            ForeachComponents(c =>
-            {
-                Bounds bounds = c.GetDynamicBounds();
-                Handles.DrawWireCube(bounds.center, bounds.extents * 2);
-            });
         }
 
         void Update()

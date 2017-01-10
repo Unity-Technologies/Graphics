@@ -215,7 +215,7 @@ namespace UnityEditor.Experimental
 
     public static class VFXModelCompiler
     {
-        const bool USE_DYNAMIC_AABB = false; // experimental
+        const bool USE_DYNAMIC_AABB = true;
 
         public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
@@ -365,6 +365,14 @@ namespace UnityEditor.Experimental
             // Update the usage
             foreach (var attrib in unitializedAttribs)
                 attribs[attrib] = attribs[attrib] | VFXAttribute.Usage.kInitRW;
+
+            if (USE_DYNAMIC_AABB)
+            {
+                if (attribs.ContainsKey(CommonAttrib.Position))
+                {
+                    attribs[CommonAttrib.Position] = attribs[CommonAttrib.Position] | VFXAttribute.Usage.kUpdateR;
+                }
+            }
 
             // Find local attributes and store them aside (as they dont go into buffers but are used locally in shaders)
             Dictionary<VFXAttribute, VFXAttribute.Usage> localAttribs = new Dictionary<VFXAttribute, VFXAttribute.Usage>(new AttribComparer()); 
@@ -966,7 +974,12 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
             }
 
-            builder.WriteLine("RWStructuredBuffer<uint3> bounds;");
+            if (USE_DYNAMIC_AABB)
+            {
+                builder.WriteLine("#if USE_DYNAMIC_AABB");
+                builder.WriteLine("RWStructuredBuffer<uint3> bounds;");
+                builder.WriteLine("#endif");
+            }
             builder.WriteLine();
 
             // Write functions
@@ -1002,8 +1015,10 @@ namespace UnityEditor.Experimental
 
             if (hasUpdate && USE_DYNAMIC_AABB)
             {
+                builder.WriteLine("#if USE_DYNAMIC_AABB");
                 builder.WriteLine("groupshared uint3 boundsLDS[2];");
                 builder.WriteLine();
+                builder.WriteLine("#endif");
             }
 
             var functionNames = new HashSet<string>();
@@ -1130,6 +1145,7 @@ namespace UnityEditor.Experimental
 
                 if (USE_DYNAMIC_AABB)
                 {
+                    builder.WriteLine("#if USE_DYNAMIC_AABB");
                     builder.WriteLine("if (groupId.x == 0)");
                     builder.EnterScope();
 
@@ -1141,6 +1157,7 @@ namespace UnityEditor.Experimental
 
                     builder.WriteLine("GroupMemoryBarrierWithGroupSync();");
                     builder.WriteLine();
+                    builder.WriteLine("#endif");
                 }
 
                 builder.Write("if (id.x < nbMax");
@@ -1244,6 +1261,7 @@ namespace UnityEditor.Experimental
 
                 if (USE_DYNAMIC_AABB)
                 {
+                    builder.WriteLine("#if USE_DYNAMIC_AABB");
                     builder.WriteLine();
                     builder.Write("uint3 sortablePos = ConvertFloatToSortableUint(");
                     builder.WriteAttrib(CommonAttrib.Position, data);
@@ -1255,7 +1273,8 @@ namespace UnityEditor.Experimental
                     builder.WriteLine();
                     builder.WriteLine("InterlockedMax(boundsLDS[1].x,sortablePos.x);");
                     builder.WriteLine("InterlockedMax(boundsLDS[1].y,sortablePos.y);");
-                    builder.WriteLine("InterlockedMax(boundsLDS[1].z,sortablePos.z);");    
+                    builder.WriteLine("InterlockedMax(boundsLDS[1].z,sortablePos.z);");
+                    builder.WriteLine("#endif");
                 }
 
                 if (data.hasKill)
@@ -1265,6 +1284,7 @@ namespace UnityEditor.Experimental
 
                 if (USE_DYNAMIC_AABB)
                 {
+                    builder.WriteLine("#if USE_DYNAMIC_AABB");
                     builder.WriteLine();
                     builder.WriteLine("GroupMemoryBarrierWithGroupSync();");
                     builder.WriteLine();
@@ -1279,6 +1299,7 @@ namespace UnityEditor.Experimental
                     builder.WriteLine("InterlockedMax(bounds[1].y,boundsLDS[1].y);");
                     builder.WriteLine("InterlockedMax(bounds[1].z,boundsLDS[1].z);");
                     builder.ExitScope();
+                    builder.WriteLine("#endif");
                 }
 
                 builder.ExitScope();

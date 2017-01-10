@@ -1,3 +1,6 @@
+//Helper to disable bounding box compute code
+#define USE_DYNAMIC_AABB 1
+
 // Pi variables are redefined here as UnityCG.cginc is not included for compute shader as it adds too many unused uniforms to constant buffers
 #ifndef UNITY_CG_INCLUDED
 #define UNITY_PI			3.14159265359f

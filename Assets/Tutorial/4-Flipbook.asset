@@ -160,15 +160,21 @@ VFXAsset:
   m_Systems:
   - m_Id: 0
     m_Capacity: 1
-    m_SimulationShader: {fileID: 7200000, guid: 307b88d44bf1bb64b81c46dbee3a8abc,
+    m_SimulationShader: {fileID: 7200000, guid: aeee9fed94f91aa46a3cca23b76efd8d,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: bb46e9c41e08d6a489856df3959b8b2b, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 4b9d0781e77771f4193272ac2db9fac3, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: <noninit>
       m_OutputName: <noninit>
       m_Flags: 0
       m_Stride: 4
+      m_PerPoint: 0
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 24
       m_PerPoint: 0
     - m_InitName: attribBuffer0
       m_UpdateName: <noninit>
@@ -193,7 +199,6 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 0
     m_HasIndirectOutput: 0
-    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -219,15 +224,21 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 1
     m_Capacity: 1
-    m_SimulationShader: {fileID: 7200000, guid: cc6c68fd4dbf19f40b88f333ef52a275,
+    m_SimulationShader: {fileID: 7200000, guid: dc7084ab61126a94f813e3d857c2b1d4,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: fbba7cba71cacba409b625434efb7994, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: 4302f8647d487fc438d8008e0746f254, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: <noninit>
       m_OutputName: <noninit>
       m_Flags: 0
       m_Stride: 4
+      m_PerPoint: 0
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 24
       m_PerPoint: 0
     - m_InitName: attribBuffer0
       m_UpdateName: <noninit>
@@ -252,7 +263,6 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 0
     m_HasIndirectOutput: 0
-    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -282,15 +292,21 @@ VFXAsset:
     m_SpawnerIndices: 00000000
   - m_Id: 2
     m_Capacity: 100
-    m_SimulationShader: {fileID: 7200000, guid: 3f8c3896f4222494a9b19b9d26c1137f,
+    m_SimulationShader: {fileID: 7200000, guid: 9fb3a8c12daea0e4c894c44447d069f3,
       type: 3}
-    m_OutputShader: {fileID: 4800000, guid: 0dbcd7f981734974ea6954122507a3ce, type: 3}
+    m_OutputShader: {fileID: 4800000, guid: bf6b95dff183cc04992ec38fc4e84b76, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
       m_UpdateName: <noninit>
       m_OutputName: <noninit>
       m_Flags: 0
       m_Stride: 4
+      m_PerPoint: 0
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 24
       m_PerPoint: 0
     - m_InitName: attribBuffer0
       m_UpdateName: <noninit>
@@ -315,7 +331,6 @@ VFXAsset:
     m_OrderPriority: 0
     m_HasKill: 0
     m_HasIndirectOutput: 0
-    m_OutputDataIndex: -1
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXCombine3fOp
@@ -346,7 +361,6 @@ VFXAsset:
     - {fileID: 2800000, guid: af684cbeb1414d043bb15fba73a8fa90, type: 3}
     - {fileID: 2800000, guid: 9038c33613d02df49971f44d1301e657, type: 3}
     - {fileID: 2800000, guid: 9038c33613d02df49971f44d1301e657, type: 3}
-    m_Meshes: []
   m_Expressions:
     m_Expressions:
     - op: 0
@@ -639,7 +653,8 @@ VFXAsset:
     m_StopSpawners: 00000000
   m_ExposedExpressions: []
   m_ExposedEditorDescs: []
-  m_FloatTexture: {fileID: 0}
+  m_GradientTexture: {fileID: 0}
+  m_CurveTexture: {fileID: 0}
   m_Bounds:
     m_Center: {x: 0.4388275, y: 0.0770874, z: 0.43437243}
     m_Extent: {x: -7.2501974, y: 2.5858288, z: -2.012629}
