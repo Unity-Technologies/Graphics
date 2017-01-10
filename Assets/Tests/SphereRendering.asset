@@ -197,7 +197,7 @@ VFXAsset:
       m_UpdateName: bounds
       m_OutputName: <noninit>
       m_Flags: 512
-      m_Stride: 24
+      m_Stride: 12
       m_PerPoint: 0
     - m_InitName: flags
       m_UpdateName: flags

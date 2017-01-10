@@ -30,8 +30,11 @@ struct Attribute0
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
+StructuredBuffer<Attribute0> attribBuffer0_RO;
 
+#if USE_DYNAMIC_AABB
 RWStructuredBuffer<uint3> bounds;
+#endif
 
 void VFXBlockPositionAABBSequence( inout float3 position,uint particleId,float3 Box_center,float3 Box_size,float3 Number)
 {

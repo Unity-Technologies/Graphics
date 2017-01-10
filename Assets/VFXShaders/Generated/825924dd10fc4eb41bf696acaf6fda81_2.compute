@@ -62,7 +62,9 @@ ConsumeStructuredBuffer<uint> deadListIn;
 AppendStructuredBuffer<uint> deadListOut;
 Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
 
+#if USE_DYNAMIC_AABB
 RWStructuredBuffer<uint3> bounds;
+#endif
 
 float rand(inout uint seed)
 {
@@ -70,8 +72,10 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
+#if USE_DYNAMIC_AABB
 groupshared uint3 boundsLDS[2];
 
+#endif
 void VFXBlockPositionCylinderSurface( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,inout uint seed)
 {
 	float u1 = 1.0 * RAND - 0.5;
@@ -120,6 +124,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 {
+	#if USE_DYNAMIC_AABB
 	if (groupId.x == 0)
 	{
 		boundsLDS[0] = (uint3)0xFFFFFFFF;
@@ -128,6 +133,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 	
 	GroupMemoryBarrierWithGroupSync();
 	
+	#endif
 	if (id.x < nbMax && flags[id.x] == 1)
 	{
 		uint index = id.x;
@@ -155,6 +161,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			OutputData outputData = (OutputData)0;
 			outputData.position = attrib0.position;
 			outputBuffer.Append(outputData);
+			#if USE_DYNAMIC_AABB
 			
 			uint3 sortablePos = ConvertFloatToSortableUint(attrib0.position);
 			
@@ -165,8 +172,10 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			InterlockedMax(boundsLDS[1].x,sortablePos.x);
 			InterlockedMax(boundsLDS[1].y,sortablePos.y);
 			InterlockedMax(boundsLDS[1].z,sortablePos.z);
+			#endif
 		}
 	}
+	#if USE_DYNAMIC_AABB
 	
 	GroupMemoryBarrierWithGroupSync();
 	
@@ -180,5 +189,6 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		InterlockedMax(bounds[1].y,boundsLDS[1].y);
 		InterlockedMax(bounds[1].z,boundsLDS[1].z);
 	}
+	#endif
 }
 

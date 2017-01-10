@@ -29,8 +29,11 @@ struct Attribute0
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
+StructuredBuffer<Attribute0> attribBuffer0_RO;
 
+#if USE_DYNAMIC_AABB
 RWStructuredBuffer<uint3> bounds;
+#endif
 
 float rand(inout uint seed)
 {

@@ -426,7 +426,7 @@ VFXAsset:
       m_UpdateName: bounds
       m_OutputName: <noninit>
       m_Flags: 512
-      m_Stride: 24
+      m_Stride: 12
       m_PerPoint: 0
     - m_InitName: flags
       m_UpdateName: flags
@@ -541,7 +541,7 @@ VFXAsset:
       m_UpdateName: bounds
       m_OutputName: <noninit>
       m_Flags: 512
-      m_Stride: 24
+      m_Stride: 12
       m_PerPoint: 0
     - m_InitName: flags
       m_UpdateName: flags
@@ -565,22 +565,16 @@ VFXAsset:
       m_UpdateName: attribBuffer0_RO
       m_OutputName: <noninit>
       m_Flags: 512
-      m_Stride: 4
+      m_Stride: 16
       m_PerPoint: 1
     - m_InitName: attribBuffer1
       m_UpdateName: attribBuffer1_RO
       m_OutputName: <noninit>
       m_Flags: 512
-      m_Stride: 16
-      m_PerPoint: 1
-    - m_InitName: attribBuffer2
-      m_UpdateName: attribBuffer2_RO
-      m_OutputName: <noninit>
-      m_Flags: 512
       m_Stride: 8
       m_PerPoint: 1
-    - m_InitName: attribBuffer3
-      m_UpdateName: attribBuffer3
+    - m_InitName: attribBuffer2
+      m_UpdateName: attribBuffer2
       m_OutputName: <noninit>
       m_Flags: 512
       m_Stride: 8
@@ -644,10 +638,10 @@ VFXAsset:
       m_UpdateName: bounds
       m_OutputName: <noninit>
       m_Flags: 512
-      m_Stride: 24
+      m_Stride: 12
       m_PerPoint: 0
     - m_InitName: attribBuffer0
-      m_UpdateName: <noninit>
+      m_UpdateName: attribBuffer0_RO
       m_OutputName: attribBuffer0
       m_Flags: 512
       m_Stride: 16
@@ -693,10 +687,10 @@ VFXAsset:
       m_UpdateName: bounds
       m_OutputName: <noninit>
       m_Flags: 512
-      m_Stride: 24
+      m_Stride: 12
       m_PerPoint: 0
     - m_InitName: attribBuffer0
-      m_UpdateName: <noninit>
+      m_UpdateName: attribBuffer0_RO
       m_OutputName: attribBuffer0
       m_Flags: 512
       m_Stride: 16
@@ -742,7 +736,7 @@ VFXAsset:
       m_UpdateName: bounds
       m_OutputName: <noninit>
       m_Flags: 512
-      m_Stride: 24
+      m_Stride: 12
       m_PerPoint: 0
     - m_InitName: flags
       m_UpdateName: flags

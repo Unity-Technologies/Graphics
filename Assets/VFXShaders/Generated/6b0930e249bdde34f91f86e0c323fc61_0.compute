@@ -37,16 +37,11 @@ struct Attribute0
 
 struct Attribute1
 {
+	float3 position;
 	float lifetime;
 };
 
 struct Attribute2
-{
-	float3 position;
-	uint _PADDING_0;
-};
-
-struct Attribute3
 {
 	float phase;
 };
@@ -56,8 +51,6 @@ RWStructuredBuffer<Attribute1> attribBuffer1;
 StructuredBuffer<Attribute1> attribBuffer1_RO;
 RWStructuredBuffer<Attribute2> attribBuffer2;
 StructuredBuffer<Attribute2> attribBuffer2_RO;
-RWStructuredBuffer<Attribute3> attribBuffer3;
-StructuredBuffer<Attribute3> attribBuffer3_RO;
 
 struct OutputData
 {
@@ -75,7 +68,9 @@ ConsumeStructuredBuffer<uint> deadListIn;
 AppendStructuredBuffer<uint> deadListOut;
 Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
 
+#if USE_DYNAMIC_AABB
 RWStructuredBuffer<uint3> bounds;
+#endif
 
 float rand(inout uint seed)
 {
@@ -83,8 +78,10 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
+#if USE_DYNAMIC_AABB
 groupshared uint3 boundsLDS[2];
 
+#endif
 void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,inout uint seed)
 {
 	texIndex = lerp(MinIndex,MaxIndex,RAND);
@@ -116,7 +113,6 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		Attribute0 attrib0 = (Attribute0)0;
 		Attribute1 attrib1 = (Attribute1)0;
 		Attribute2 attrib2 = (Attribute2)0;
-		Attribute3 attrib3 = (Attribute3)0;
 		
 		uint local_seed = (uint)0;
 		
@@ -131,12 +127,11 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		
 		VFXBlockSetSubUVRandom( attrib0.texIndex,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,local_seed);
 		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,local_seed);
-		VFXBlockSetPositionBox( attrib2.position,initUniform4_kVFXTransformMatrixOp,local_seed);
+		VFXBlockSetPositionBox( attrib1.position,initUniform4_kVFXTransformMatrixOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
 		attribBuffer2[index] = attrib2;
-		attribBuffer3[index] = attrib3;
 		
 		flags[index] = 1;
 	}
@@ -145,6 +140,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 {
+	#if USE_DYNAMIC_AABB
 	if (groupId.x == 0)
 	{
 		boundsLDS[0] = (uint3)0xFFFFFFFF;
@@ -153,6 +149,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 	
 	GroupMemoryBarrierWithGroupSync();
 	
+	#endif
 	if (id.x < nbMax && flags[id.x] == 1)
 	{
 		uint index = id.x;
@@ -161,10 +158,9 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute0 attrib0 = attribBuffer0[index];
 		Attribute1 attrib1 = attribBuffer1_RO[index];
 		Attribute2 attrib2 = attribBuffer2_RO[index];
-		Attribute3 attrib3 = attribBuffer3_RO[index];
 		
 		
-		VFXBlockSubUVAnimateRandomRate( attrib0.texIndex,attrib3.phase,updateUniform0_kVFXValueOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXDeltaTimeOp);
+		VFXBlockSubUVAnimateRandomRate( attrib0.texIndex,attrib2.phase,updateUniform0_kVFXValueOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXDeltaTimeOp);
 		
 		attrib0.age += updateUniform2_kVFXDeltaTimeOp;
 		if (attrib0.age >= attrib1.lifetime)
@@ -180,13 +176,14 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			attribBuffer0[index] = attrib0;
 			
 			OutputData outputData = (OutputData)0;
-			outputData.position = attrib2.position;
+			outputData.position = attrib1.position;
 			outputData.age = attrib0.age;
 			outputData.texIndex = attrib0.texIndex;
 			outputData.lifetime = attrib1.lifetime;
 			outputBuffer.Append(outputData);
+			#if USE_DYNAMIC_AABB
 			
-			uint3 sortablePos = ConvertFloatToSortableUint(attrib2.position);
+			uint3 sortablePos = ConvertFloatToSortableUint(attrib1.position);
 			
 			InterlockedMin(boundsLDS[0].x,sortablePos.x);
 			InterlockedMin(boundsLDS[0].y,sortablePos.y);
@@ -195,8 +192,10 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			InterlockedMax(boundsLDS[1].x,sortablePos.x);
 			InterlockedMax(boundsLDS[1].y,sortablePos.y);
 			InterlockedMax(boundsLDS[1].z,sortablePos.z);
+			#endif
 		}
 	}
+	#if USE_DYNAMIC_AABB
 	
 	GroupMemoryBarrierWithGroupSync();
 	
@@ -210,5 +209,6 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		InterlockedMax(bounds[1].y,boundsLDS[1].y);
 		InterlockedMax(bounds[1].z,boundsLDS[1].z);
 	}
+	#endif
 }
 
