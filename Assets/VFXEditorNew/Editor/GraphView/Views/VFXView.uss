@@ -1,0 +1,23 @@
+VFXContextUI.init {
+	rect-color:#FFFF00;
+}
+
+VFXContextUI.update {
+	rect-color:#00FFFF;
+}
+
+VFXContextUI.output {
+	rect-color:#FF0000;
+}
+
+VFXContextUI.graphElement.selected {
+	rect-color:#FFFFFF;
+}
+
+VFXView.GridBackground {
+	grid-background-color:#00FFFF;
+	line-color:#101010;
+	thick-line-color:#FF00FF;
+	spacing:75.0;
+	thick-lines:5;
+}
