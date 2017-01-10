@@ -181,7 +181,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
 
-            tesselationFactor = FindProperty(kTesselationFactor, props);;
+            // tesselation specific, don't care if not found
+            tesselationFactor = FindProperty(kTesselationFactor, props, false);
         }
 
         override protected void ShaderInputOptionsGUI()
@@ -321,7 +322,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(tesselationFactor, Styles.tesselationFactorText);
                 EditorGUI.indentLevel--;
             }
-            
         }
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)

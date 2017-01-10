@@ -29,11 +29,13 @@ void Displacement(inout Attributes v)
     d /= max(0.0001, _Tiling);
     */
 
-#if _HEIGHTMAP
-    float height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
+#ifdef _HEIGHTMAP
+    float height = SAMPLE_TEXTURE2D_LOD(ADD_ZERO_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), v.uv0, 0).r * ADD_ZERO_IDX(_HeightScale) + ADD_ZERO_IDX(_HeightBias);
 #else
     float height = 0.0;
 #endif
 
+#if (SHADERPASS != SHADERPASS_VELOCITY) && (SHADERPASS != SHADERPASS_DISTORTION)
     v.positionOS.xyz += height * v.normalOS;
+#endif
 }
