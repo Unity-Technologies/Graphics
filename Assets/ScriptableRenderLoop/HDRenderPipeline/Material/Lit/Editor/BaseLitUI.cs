@@ -32,7 +32,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent texWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public static GUIContent UVBaseDetailMappingText = new GUIContent("UV set for Base and Detail", "");
             public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
-            public static GUIContent heightMapModeText = new GUIContent("Height Map Mode", "");
+            public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "");
             public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
             public static GUIContent UVDetailMappingText = new GUIContent("UV set for Detail", "");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");

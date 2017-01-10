@@ -4,7 +4,7 @@
 
 // Check if Alpha test is enabled. If it is, check if parallax is enabled on this material
 #define NEED_TEXCOORD0 defined(_ALPHATEST_ON)
-#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && !defined(_HEIGHTMAP_AS_DISPLACEMENT))
+#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))
 
 // When modifying this structure, update the tesselation code below
 struct Attributes

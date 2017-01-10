@@ -55,39 +55,42 @@ Shader "HDRenderPipeline/LitTesselation"
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
-        [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
-        [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
-        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
+            [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
+            [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
+            [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
+            [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
-        [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
-        _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+            [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
+            _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        // Blending state
-        [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
-        [HideInInspector] _BlendMode ("__blendmode", Float) = 0.0
-        [HideInInspector] _SrcBlend ("__src", Float) = 1.0
-        [HideInInspector] _DstBlend ("__dst", Float) = 0.0
-        [HideInInspector] _ZWrite ("__zw", Float) = 1.0
-        [HideInInspector] _CullMode("__cullmode", Float) = 2.0
-        [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
-        
-        // Material Id
-        [HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
+            // Blending state
+            [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
+            [HideInInspector] _BlendMode("__blendmode", Float) = 0.0
+            [HideInInspector] _SrcBlend("__src", Float) = 1.0
+            [HideInInspector] _DstBlend("__dst", Float) = 0.0
+            [HideInInspector] _ZWrite("__zw", Float) = 1.0
+            [HideInInspector] _CullMode("__cullmode", Float) = 2.0
+            [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
-        [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
+            // Material Id
+            [HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
 
-        [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
-        [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
-        _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
-        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1,0,0,0)
-        [HideInInspector] _UVMappingPlanar("_UVMappingPlanar", Float) = 0
-        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
-        [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
-        [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
-        [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1,0,0,0)
-        [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
+            [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
+
+            [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
+            [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
+            _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
+            [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
+            [HideInInspector] _UVMappingPlanar("_UVMappingPlanar", Float) = 0
+            [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
+            [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
+            [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
+            [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
+            [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
+            [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
+
+            // Tesselation specific
+            float _TesselationFactor;
     }
 
     HLSLINCLUDE
@@ -108,7 +111,7 @@ Shader "HDRenderPipeline/LitTesselation"
     #pragma shader_feature _MAPPING_TRIPLANAR
     #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
-    #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
+    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
     #pragma shader_feature _REQUIRE_UV2_OR_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
