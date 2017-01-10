@@ -495,7 +495,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // We need to take into account the modified normal for faking anisotropic here.
     float3 iblR = reflect(-V, iblNormalWS);
-    preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness);
+    preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness, preLightData.NdotV);
 
     // Area light specific
     // UVs for sampling the LUTs
