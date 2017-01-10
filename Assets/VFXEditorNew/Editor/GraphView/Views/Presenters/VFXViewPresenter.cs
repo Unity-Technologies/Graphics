@@ -10,9 +10,6 @@ namespace UnityEditor.VFX.UI
             if (m_ModelContainer == null)
             {
                 m_ModelContainer = CreateInstance<VFXModelContainer>();
-                AddModel(new VFXContext(VFXContextDesc.CreateBasic(VFXContextDesc.Type.kTypeInit)));
-                AddModel(new VFXContext(VFXContextDesc.CreateBasic(VFXContextDesc.Type.kTypeUpdate)));
-                AddModel(new VFXContext(VFXContextDesc.CreateBasic(VFXContextDesc.Type.kTypeOutput)));
             }
         }
 
@@ -21,7 +18,16 @@ namespace UnityEditor.VFX.UI
             m_ModelContainer = modelContainer;
         }
 
-        public void AddModel(VFXModel model)
+        public override void RemoveElement(GraphElementPresenter element)
+        {
+            base.RemoveElement(element);
+            if (element is VFXContextPresenter)
+                m_ModelContainer.m_Roots.Remove(((VFXContextPresenter)element).Model);
+
+            EditorUtility.SetDirty(m_ModelContainer);
+        }
+
+        public void AddModel(Vector2 pos,VFXModel model)
         {
             m_ModelContainer.m_Roots.Add(model);
 
@@ -29,7 +35,7 @@ namespace UnityEditor.VFX.UI
             {
                 var presenter = CreateInstance<VFXContextPresenter>();
                 presenter.Model = (VFXContext)model;
-                presenter.position = new Rect(0, 0, 256, 256);
+                presenter.position = new Rect(pos.x, pos.y, 256, 256);
                 AddElement(presenter);
             }
 

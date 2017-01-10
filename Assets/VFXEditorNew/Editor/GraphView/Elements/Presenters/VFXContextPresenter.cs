@@ -6,6 +6,12 @@ namespace UnityEditor.VFX.UI
 {
     class VFXContextPresenter : GraphElementPresenter
     {
+        protected new void OnEnable()
+        {
+            base.OnEnable();
+            capabilities |= Capabilities.Deletable;
+        }
+
         public VFXContext Model
         {
             get { return m_Model; }

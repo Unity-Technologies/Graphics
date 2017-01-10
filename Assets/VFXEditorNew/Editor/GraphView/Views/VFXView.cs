@@ -29,7 +29,33 @@ namespace UnityEditor.VFX.UI
             var bg = new GridBackground() { name = "vfx" };
             InsertChild(0, bg);
 
+            AddManipulator(new ContextualMenu((evt, customData) =>
+            {
+                var menu = new GenericMenu();
+                Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, evt.mousePosition);
+
+                menu.AddItem(new GUIContent("Add Init"), false,
+                             contentView => AddVFXContext(tPos, VFXContextDesc.Type.kTypeInit),
+                             this);
+
+                menu.AddItem(new GUIContent("Add Update"), false,
+                             contentView => AddVFXContext(tPos, VFXContextDesc.Type.kTypeUpdate),
+                             this);
+
+                menu.AddItem(new GUIContent("Add Output"), false,
+                             contentView => AddVFXContext(tPos, VFXContextDesc.Type.kTypeOutput),
+                             this);
+
+                menu.ShowAsContext();
+                return EventPropagation.Continue;
+            }));
+
             dataMapper[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
         }
+
+        void AddVFXContext(Vector2 pos,VFXContextDesc.Type contextType)
+        {
+            GetPresenter<VFXViewPresenter>().AddModel(pos,new VFXContext(VFXContextDesc.CreateBasic(contextType)));
+        } 
     }
 }

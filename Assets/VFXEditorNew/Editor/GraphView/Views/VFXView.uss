@@ -14,10 +14,10 @@ VFXContextUI.graphElement.selected {
 	rect-color:#FFFFFF;
 }
 
-VFXView.GridBackground {
-	grid-background-color:#00FFFF;
-	line-color:#101010;
-	thick-line-color:#FF00FF;
+#vfx {
+	grid-background-color:#303030;
+	line-color:#252525;
+	thick-line-color:#151515;
 	spacing:75.0;
 	thick-lines:5;
 }
