@@ -92,10 +92,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kNormalScale = "_NormalScale";
         protected MaterialProperty heightMap = null;
         protected const string kHeightMap = "_HeightMap";
-        protected MaterialProperty heightScale = null;
-        protected const string kHeightScale = "_HeightScale";
-        protected MaterialProperty heightBias = null;
-        protected const string kHeightBias= "_HeightBias";
+        protected MaterialProperty heightAmplitude = null;
+        protected const string kHeightAmplitude = "_HeightAmplitude";
+        protected MaterialProperty heightCenter = null;
+        protected const string kHeightCenter = "_HeightCenter";
         protected MaterialProperty tangentMap = null;
         protected const string kTangentMap = "_TangentMap";
         protected MaterialProperty anisotropy = null;
@@ -152,8 +152,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             normalMap = FindProperty(kNormalMap, props);
             normalScale = FindProperty(kNormalScale, props);           
             heightMap = FindProperty(kHeightMap, props);
-            heightScale = FindProperty(kHeightScale, props);
-            heightBias = FindProperty(kHeightBias, props);
+            heightAmplitude = FindProperty(kHeightAmplitude, props);
+            heightCenter = FindProperty(kHeightCenter, props);
             tangentMap = FindProperty(kTangentMap, props);
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
@@ -244,22 +244,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap);
             if(!heightMap.hasMixedValue && heightMap.textureValue != null)
             {
-                // Be careful, the scale and bias here is different from the one shader properties
-                // In the shader values are in world units and the formula is finalHeight = height * scale + bias
-                // In the GUI it's (height - center) * amplitude
                 EditorGUI.indentLevel++;
-                float amplitude = heightScale.floatValue;
-                float center = -heightBias.floatValue / amplitude;
-                // Scale = Amplitude so no need for special handling
-                m_MaterialEditor.ShaderProperty(heightScale, Styles.heightMapAmplitudeText);
-
-                EditorGUI.showMixedValue = heightScale.hasMixedValue;
-                EditorGUI.BeginChangeCheck();
-                float newCenter = EditorGUILayout.FloatField(Styles.heightMapCenterText, center);
-                if(EditorGUI.EndChangeCheck())
-                {
-                    heightBias.floatValue = -newCenter * amplitude;
-                }
+                m_MaterialEditor.ShaderProperty(heightAmplitude, Styles.heightMapAmplitudeText);
+                m_MaterialEditor.ShaderProperty(heightCenter, Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
             }

@@ -51,15 +51,15 @@ Shader "HDRenderPipeline/LayeredLit"
         _HeightMap2("HeightMap2", 2D) = "black" {}
         _HeightMap3("HeightMap3", 2D) = "black" {}
 
-        _HeightScale0("Height Scale0", Float) = 1
-        _HeightScale1("Height Scale1", Float) = 1
-        _HeightScale2("Height Scale2", Float) = 1
-        _HeightScale3("Height Scale3", Float) = 1
+        _HeightAmplitude0("Height Scale0", Float) = 1
+        _HeightAmplitude1("Height Scale1", Float) = 1
+        _HeightAmplitude2("Height Scale2", Float) = 1
+        _HeightAmplitude3("Height Scale3", Float) = 1
 
-        _HeightBias0("Height Bias0", Float) = 0
-        _HeightBias1("Height Bias1", Float) = 0
-        _HeightBias2("Height Bias2", Float) = 0
-        _HeightBias3("Height Bias3", Float) = 0
+        _HeightCenter0("Height Bias0", Float) = 0
+        _HeightCenter1("Height Bias1", Float) = 0
+        _HeightCenter2("Height Bias2", Float) = 0
+        _HeightCenter3("Height Bias3", Float) = 0
 
         _DetailMap0("DetailMap0", 2D) = "black" {}
         _DetailMap1("DetailMap1", 2D) = "black" {}
@@ -115,9 +115,9 @@ Shader "HDRenderPipeline/LayeredLit"
         _HeightFactor2("_HeightFactor2", Range(0, 5)) = 1
         _HeightFactor3("_HeightFactor3", Range(0, 5)) = 1
 
-        _BlendSize1("_BlendSize1", Range(0, 0.05)) = 0.0
-        _BlendSize2("_BlendSize2", Range(0, 0.05)) = 0.0
-        _BlendSize3("_BlendSize3", Range(0, 0.05)) = 0.0
+        _BlendSize1("_BlendSize1", Range(0, 0.30)) = 0.0
+        _BlendSize2("_BlendSize2", Range(0, 0.30)) = 0.0
+        _BlendSize3("_BlendSize3", Range(0, 0.30)) = 0.0
 
         _InheritBaseLayer1("_InheritBaseLayer1", Range(0, 1.0)) = 0.0
         _InheritBaseLayer2("_InheritBaseLayer2", Range(0, 1.0)) = 0.0
