@@ -152,7 +152,6 @@ Shader "HDRenderPipeline/LitTesselation"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Lit/LitProperties.hlsl"
 
     // All our shaders use same name for entry point
-    #pragma vertex Vert
     #pragma fragment Frag
 
     ENDHLSL
@@ -171,6 +170,7 @@ Shader "HDRenderPipeline/LitTesselation"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
 			#pragma hull Hull
 			#pragma domain Domain
 
@@ -195,6 +195,7 @@ Shader "HDRenderPipeline/LitTesselation"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
 			#pragma hull Hull
 			#pragma domain Domain
 
@@ -226,6 +227,7 @@ Shader "HDRenderPipeline/LitTesselation"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
 			// No tesselation for Meta pass
+            #pragma vertex Vert
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"
@@ -249,6 +251,7 @@ Shader "HDRenderPipeline/LitTesselation"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
 			#pragma hull Hull
 			#pragma domain Domain
 
@@ -275,6 +278,7 @@ Shader "HDRenderPipeline/LitTesselation"
  
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
 			#pragma hull Hull
 			#pragma domain Domain
 
@@ -301,6 +305,7 @@ Shader "HDRenderPipeline/LitTesselation"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
 			#pragma hull Hull
 			#pragma domain Domain
 
@@ -328,6 +333,7 @@ Shader "HDRenderPipeline/LitTesselation"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
 			#pragma hull Hull
 			#pragma domain Domain
 
@@ -354,6 +360,7 @@ Shader "HDRenderPipeline/LitTesselation"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
 			#pragma hull Hull
 			#pragma domain Domain
 
@@ -375,5 +382,5 @@ Shader "HDRenderPipeline/LitTesselation"
         }
     }
 
-    CustomEditor "Experimental.ScriptableRenderLoop.LitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"
 }
