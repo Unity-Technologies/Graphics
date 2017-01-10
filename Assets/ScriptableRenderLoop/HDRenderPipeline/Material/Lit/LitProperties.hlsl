@@ -31,8 +31,8 @@ float _DetailAOScale;
 TEXTURE2D(_HeightMap);
 SAMPLER2D(sampler_HeightMap);
 
-float _HeightScale;
-float _HeightBias;
+float _HeightAmplitude;
+float _HeightCenter;
 
 TEXTURE2D(_TangentMap);
 SAMPLER2D(sampler_TangentMap);
@@ -117,8 +117,8 @@ PROP_DECL(float, _DetailSmoothnessScale);
 PROP_DECL(float, _DetailHeightScale);
 PROP_DECL(float, _DetailAOScale);
 
-PROP_DECL(float, _HeightScale);
-PROP_DECL(float, _HeightBias);
+PROP_DECL(float, _HeightAmplitude);
+PROP_DECL(float, _HeightCenter);
 
 TEXTURE2D(_DiffuseLightingMap);
 SAMPLER2D(sampler_DiffuseLightingMap);

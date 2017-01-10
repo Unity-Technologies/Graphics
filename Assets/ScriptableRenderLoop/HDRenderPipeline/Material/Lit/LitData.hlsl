@@ -322,9 +322,7 @@ float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, 
 {
     float finalLayerHeight = heightFactor * layerHeight + heightOffset + _VertexColorHeightFactor * (vertexColor * 2.0 - 1.0);
 
-    edgeBlendStrength = max(0.001, edgeBlendStrength);
-
-    float heightThreshold = previousLayerHeight + edgeBlendStrength;
+    edgeBlendStrength = max(0.00001, edgeBlendStrength);
 
     if (previousLayerHeight >= finalLayerHeight)
     {

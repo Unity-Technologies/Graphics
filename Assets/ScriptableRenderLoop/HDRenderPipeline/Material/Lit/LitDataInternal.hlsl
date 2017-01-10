@@ -57,7 +57,7 @@ float ADD_IDX(ApplyDisplacement)(inout FragInputs input, float3 viewDirTS, inout
     float height = 0.0f;
 
 #ifdef _HEIGHTMAP
-    height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
+    height = (SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r - ADD_IDX(_HeightCenter)) * ADD_IDX(_HeightAmplitude);
 
     //#ifdef _PER_PIXEL_DISPLACEMENT
     // //height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
