@@ -14,6 +14,12 @@ namespace UnityEditor.VFX
         public VFXContextDesc Desc              { get { return m_Desc; } }
         public VFXContextDesc.Type ContextType  { get { return Desc.ContextType; } }
 
+        public Vector2 Position
+        {
+            get { return m_UIPosition; }
+            set { m_UIPosition = value; }
+        }
+
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
@@ -32,6 +38,9 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         private string m_SerializableDesc;
+
+        [SerializeField]
+        private Vector2 m_UIPosition;
     }
 
     class VFXSubContext : VFXModel<VFXContext, VFXModel>

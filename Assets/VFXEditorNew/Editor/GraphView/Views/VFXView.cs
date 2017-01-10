@@ -55,7 +55,9 @@ namespace UnityEditor.VFX.UI
 
         void AddVFXContext(Vector2 pos,VFXContextDesc.Type contextType)
         {
-            GetPresenter<VFXViewPresenter>().AddModel(pos,new VFXContext(VFXContextDesc.CreateBasic(contextType)));
+            var context = new VFXContext(VFXContextDesc.CreateBasic(contextType));
+            context.Position = pos;
+            GetPresenter<VFXViewPresenter>().AddModel(context);
         } 
     }
 }

@@ -18,7 +18,8 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
 
-            VFXContextDesc.Type contextType = GetPresenter<VFXContextPresenter>().Model.ContextType;
+            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
+            VFXContextDesc.Type contextType = presenter.Model.ContextType;
 
             RemoveFromClassList("init", "update", "output");
 
@@ -28,6 +29,12 @@ namespace UnityEditor.VFX.UI
                 case VFXContextDesc.Type.kTypeUpdate: AddToClassList("update"); break;
                 case VFXContextDesc.Type.kTypeOutput: AddToClassList("output"); break;
                 default: throw new Exception();
+            }
+
+            if (presenter.Model.Position != presenter.position.position)
+            {
+                presenter.Model.Position = presenter.position.position;  
+                // Needs to make the modelcontainer dirty
             }
         }
 

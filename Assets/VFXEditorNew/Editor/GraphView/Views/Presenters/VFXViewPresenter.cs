@@ -25,20 +25,21 @@ namespace UnityEditor.VFX.UI
             EditorUtility.SetDirty(m_ModelContainer);
         }
 
-        public void AddModel(Vector2 pos,VFXModel model)
+        public void AddModel(VFXModel model)
         {
             m_ModelContainer.m_Roots.Add(model);
-            AddPresentersFromModel(pos,model);
+            AddPresentersFromModel(model);
             EditorUtility.SetDirty(m_ModelContainer);
         }
 
-        private void AddPresentersFromModel(Vector2 pos,VFXModel model)
+        private void AddPresentersFromModel(VFXModel model)
         {
             if (model is VFXContext)
             {
+                VFXContext context = (VFXContext)model;
                 var presenter = CreateInstance<VFXContextPresenter>();
-                presenter.Model = (VFXContext)model;
-                presenter.position = new Rect(pos.x, pos.y, 256, 256);
+                presenter.Model = context;
+                presenter.position = new Rect(context.Position.x, context.Position.y, 256, 256);
                 AddElement(presenter);
             }
         }
@@ -55,7 +56,7 @@ namespace UnityEditor.VFX.UI
 
                 if (m_ModelContainer != null)
                     foreach (var model in m_ModelContainer.m_Roots)
-                        AddPresentersFromModel(Vector2.zero, model);
+                        AddPresentersFromModel(model);
             }
         }
 
