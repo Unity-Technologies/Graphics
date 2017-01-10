@@ -241,7 +241,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap, heightScale, heightBias);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap);
+            if(!heightMap.hasMixedValue && heightMap.textureValue != null)
+            {
+                // Be careful, the scale and bias here is different from the one shader properties
+                // In the shader values are in world units and the formula is finalHeight = height * scale + bias
+                // In the GUI it's (height - center) * amplitude
+                EditorGUI.indentLevel++;
+                float amplitude = heightScale.floatValue;
+                float center = -heightBias.floatValue / amplitude;
+                // Scale = Amplitude so no need for special handling
+                m_MaterialEditor.ShaderProperty(heightScale, Styles.heightMapAmplitudeText);
+
+                EditorGUI.showMixedValue = heightScale.hasMixedValue;
+                EditorGUI.BeginChangeCheck();
+                float newCenter = EditorGUILayout.FloatField(Styles.heightMapCenterText, center);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    heightBias.floatValue = -newCenter * amplitude;
+                }
+                EditorGUI.showMixedValue = false;
+                EditorGUI.indentLevel--;
+            }
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
 
