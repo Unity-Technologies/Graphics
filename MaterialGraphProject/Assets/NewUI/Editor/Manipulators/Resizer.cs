@@ -62,9 +62,9 @@ namespace RMGUI.GraphView
 						m_Start = this.ChangeCoordinatesTo(parent,evt.mousePosition);
 						m_StartPos = parent.position;
 						// Warn user if target uses a relative CSS position type
-						if (parent.positionType != PositionType.Absolute)
+						if (parent.positionType != PositionType.Manual)
 						{
-							Debug.LogWarning("Attempting to resize an object with a non absolute CSS position type");
+							Debug.LogWarning("Attempting to resize an object with a non manual position");
 						}
 						this.TakeCapture();
 						return EventPropagation.Stop;
@@ -72,7 +72,7 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseDrag:
-					if (this.HasCapture() && parent.positionType == PositionType.Absolute)
+					if (this.HasCapture() && parent.positionType == PositionType.Manual)
 					{
 						Vector2 diff = this.ChangeCoordinatesTo(parent,evt.mousePosition) - m_Start;
 						var newSize = new Vector2(m_StartPos.width + diff.x, m_StartPos.height + diff.y);

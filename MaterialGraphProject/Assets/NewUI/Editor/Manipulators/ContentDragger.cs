@@ -68,7 +68,7 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseDrag:
-					if (this.HasCapture() && graphView.contentViewContainer.positionType == PositionType.Absolute)
+					if (this.HasCapture())
 					{
 						Vector2 diff = graphView.ChangeCoordinatesTo(graphView.contentViewContainer, evt.mousePosition) - m_Start;
 						Matrix4x4 t = graphView.contentViewContainer.transform;

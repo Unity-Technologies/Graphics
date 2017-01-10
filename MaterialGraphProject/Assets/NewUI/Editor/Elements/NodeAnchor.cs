@@ -78,6 +78,7 @@ namespace RMGUI.GraphView
 
 			string anchorName = string.IsNullOrEmpty(anchorPresenter.name) ? anchorType.Name : anchorPresenter.name;
 			m_ConnectorText.content.text = anchorName;
+
 			anchorPresenter.capabilities &= ~Capabilities.Selectable;
 		}
 
