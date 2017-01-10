@@ -162,10 +162,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // Mirror the normal with the plane define by vertex normal
     float3 oppositeNormalTS = reflect(normalTS, float3(0.0, 0.0, 1.0)); // Reflect around vertex normal (in tangent space this is z)
 #endif
-    // TODO : Test if GetOdddNegativeScale() is necessary here in case of normal map, as GetOdddNegativeScale is take into account in CreateTangentToWorld();
+    // TODO : Test if GetOddNegativeScale() is necessary here in case of normal map, as GetOddNegativeScale is take into account in CreateTangentToWorld();
     normalTS = input.isFrontFace ?
-                                (GetOdddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS) :
-                                (-GetOdddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS);
+                                (GetOddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS) :
+                                (-GetOddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS);
 #endif
 
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
