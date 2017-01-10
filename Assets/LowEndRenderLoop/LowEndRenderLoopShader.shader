@@ -63,8 +63,12 @@ Shader "RenderLoop/LowEnd"
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma shader_feature _METALLICGLOSSMAP
+			#pragma shader_feature _NORMALMAP
+			#pragma shader_feature _EMISSION
+			
 			#include "UnityCG.cginc"
 			#include "UnityStandardBRDF.cginc"
+			#include "UnityStandardInput.cginc"
 			#include "UnityStandardUtils.cginc"
 
 			#define DEBUG_CASCADES 0
@@ -95,11 +99,7 @@ Shader "RenderLoop/LowEnd"
 			// Global ambient/SH probe, similar to unity_SH* built-in variables.
 			float4 globalSH[7];
 
-			sampler2D _MainTex; half4 _MainTex_ST;
-			sampler2D _MetallicGlossMap;
 			sampler2D g_tShadowBuffer;
-			half _Metallic;
-			half _Glossiness;
 
 			half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 			half4 _PSSMDistances;
@@ -171,10 +171,11 @@ Shader "RenderLoop/LowEnd"
 				return color * shadowAttenuation;
 			}
 
-			struct VertexInput
+			struct LowendVertexInput
 			{
 				float4 vertex : POSITION;
 				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
 				float3 texcoord : TEXCOORD0;
 				float2 lightmapUV : TEXCOORD1;
 			};
@@ -183,15 +184,17 @@ Shader "RenderLoop/LowEnd"
 			{
 				float2 uv0 : TEXCOORD0;
 				float2 uv1 : TEXCOORD1;
-				half4 normalWS : TEXCOORD2; // xyz: normal, w: fresnel term
-				float4 posWS : TEXCOORD3; // xyz: posWorld, w: eyeZ
-				half4 viewDir : TEXCOORD4; // xyz: viewDir, w: grazingTerm;
-				half3 vertexColor : TEXCOORD5;
+				float4 posWS : TEXCOORD2; // xyz: posWorld, w: eyeZ
+				half4 normalWS : TEXCOORD3; // xyz: normal, w: fresnel term
+				half3 tangentWS : TEXCOORD4;
+				half3 binormalWS : TEXCOORD5;
+				half4 viewDir : TEXCOORD6; // xyz: viewDir, w: grazingTerm;
+				half3 vertexColor : TEXCOORD7;
 				float4 hpos : SV_POSITION;
 			};
 
-			v2f vert(VertexInput v)
-			{
+			v2f vert(LowendVertexInput v)
+			{ 
 				v2f o;
 				o.uv0 = TRANSFORM_TEX(v.texcoord, _MainTex);
 				o.uv1 = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
@@ -203,10 +206,17 @@ Shader "RenderLoop/LowEnd"
 #if !GLOSSMAP
 				o.viewDir.w = GRAZING_TERM;
 #endif
-
 				o.normalWS.xyz = UnityObjectToWorldNormal(v.normal);
 				o.normalWS.w = FRESNEL_TERM(o.normalWS.xyz, o.viewDir.xyz);
-				
+
+#if _NORMALMAP
+				half sign = v.tangent.w * unity_WorldTransformParams.w;
+				o.tangentWS = UnityObjectToWorldDir(v.tangent);
+				o.binormalWS = cross(o.normalWS.xyz, o.tangentWS) * v.tangent.w;
+#else
+				o.tangentWS = half3(1, 0, 0);
+				o.binormalWS = half3(0, 1, 0);
+#endif
 				half3 diffuseAndSpecularColor = half3(1.0, 1.0, 1.0);
 				for (int lightIndex = globalLightCount.x; lightIndex < globalLightCount.y; ++lightIndex)
 				{
@@ -220,7 +230,16 @@ Shader "RenderLoop/LowEnd"
 
 			half4 frag(v2f i) : SV_Target
 			{
-				half3 normalWS = normalize(i.normalWS.xyz);
+#if _NORMALMAP
+				half3 normalmap = UnpackNormal(tex2D(_BumpMap, i.uv0));
+
+				// TODO: This will generate unoptimized code from the glsl compiler. Store the transpose matrix and compute dot manually
+				half3x3 tangentToWorld = half3x3(i.tangentWS, i.binormalWS, i.normalWS.xyx); 
+				half3 normal = mul(normalmap, tangentToWorld);
+#else
+				half3 normal = normalize(i.normalWS.xyz);
+#endif
+
 				float3 posWorld = i.posWS.xyz;
 				half3 viewDir = i.viewDir.xyz;
 
@@ -232,6 +251,8 @@ Shader "RenderLoop/LowEnd"
 				metalSmooth.r = _Metallic;
 				metalSmooth.g = _Glossiness;
 #endif
+				half occlusion = Occlusion(i.uv0.xy);
+				half3 emission = Emission(i.uv0.xy);
 
 				half3 specular;
 				half oneMinuReflectivity;
@@ -239,7 +260,7 @@ Shader "RenderLoop/LowEnd"
 
 				// Indirect Light Contribution
 				UnityIndirect giIndirect;
-				giIndirect.diffuse = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv1));
+				giIndirect.diffuse = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv1)) * occlusion;
 				giIndirect.specular = half3(0, 0, 0);
 				half3 indirectColor = BRDF3_Indirect(diffuse, specular, giIndirect, i.posWS.w, i.normalWS.w);
 
@@ -251,20 +272,20 @@ Shader "RenderLoop/LowEnd"
 				INITIALIZE_LIGHT(mainLight, 0)
 
 #if DEBUG_CASCADES
-				return half4(EvaluateMainLight(mainLight, diffuse, specular, normalWS, i.posWS, viewDir), 1.0);
+				return half4(EvaluateMainLight(mainLight, diffuse, specular, normal, i.posWS, viewDir), 1.0);
 #endif
 
-				directColor += EvaluateMainLight(mainLight, diffuse, specular, normalWS, i.posWS, viewDir); 
+				directColor += EvaluateMainLight(mainLight, diffuse, specular, normal, i.posWS, viewDir); 
 
 				// Compute direct contribution from additional lights.
 				for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)
 				{
 					LightInput additionalLight;
 					INITIALIZE_LIGHT(additionalLight, lightIndex);
-					directColor += EvaluateOneLight(additionalLight, diffuse, specular, normalWS, posWorld, viewDir);
+					directColor += EvaluateOneLight(additionalLight, diffuse, specular, normal, posWorld, viewDir);
 				}
 
-				half3 finalColor = directColor + indirectColor;
+				half3 finalColor = directColor + indirectColor + emission;
 				return half4(finalColor, diffuseAlbedo.a);
 			}
 			ENDCG
