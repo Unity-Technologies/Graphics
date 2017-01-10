@@ -123,7 +123,7 @@ Shader "HDRenderPipeline/LayeredLit"
         _InheritBaseLayer2("_InheritBaseLayer2", Range(0, 1.0)) = 0.0
         _InheritBaseLayer3("_InheritBaseLayer3", Range(0, 1.0)) = 0.0
 
-        _VertexColorHeightFactor("_VertexColorHeightFactor", Float) = 1.0
+        _VertexColorHeightFactor("_VertexColorHeightFactor", Float) = 0.3
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
@@ -221,7 +221,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _DETAIL_MAP
-    #pragma shader_feature _LAYER_MASK_VERTEX_COLOR
+    #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
