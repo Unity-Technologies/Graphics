@@ -142,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             layerEmissiveColor = FindProperty(kEmissiveColor, props);
             layerEmissiveColorMap = FindProperty(kEmissiveColorMap, props);
             layerEmissiveIntensity = FindProperty(kEmissiveIntensity, props);
-            layerTesselationFactor = FindProperty(kTesselationFactor, props);
+            layerTesselationFactor = FindProperty(kTesselationFactor, props, false);
         }
 
         int numLayer

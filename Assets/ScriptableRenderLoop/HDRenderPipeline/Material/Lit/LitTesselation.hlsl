@@ -30,7 +30,7 @@ void Displacement(inout Attributes v)
     */
 
 #ifdef _HEIGHTMAP
-    float height = SAMPLE_TEXTURE2D_LOD(ADD_ZERO_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), v.uv0, 0).r * ADD_ZERO_IDX(_HeightScale) + ADD_ZERO_IDX(_HeightBias);
+    float height = (SAMPLE_TEXTURE2D_LOD(ADD_ZERO_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), v.uv0, 0).r - ADD_ZERO_IDX(_HeightCenter)) * ADD_IDX(_HeightAmplitude);
 #else
     float height = 0.0;
 #endif
