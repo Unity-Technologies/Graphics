@@ -118,23 +118,6 @@ float3 UnpackLogLuv(float4 vLogLuv)
     return max(vRGB, float3(0.0, 0.0, 0.0));
 }
 
-// Alternative...
-#define RGBMRANGE (8.0)
-float4 PackRGBM(float3 color)
-{
-    float4 rgbm;
-    color *= (1.0 / RGBMRANGE);
-    rgbm.a = saturate(max(max(color.r, color.g), max(color.b, 1e-6)));
-    rgbm.a = ceil(rgbm.a * 255.0) / 255.0;
-    rgbm.rgb = color / rgbm.a;
-    return rgbm;
-}
-
-float3 UnpackRGBM(float4 rgbm)
-{
-    return RGBMRANGE * rgbm.rgb * rgbm.a;
-}
-
 // The standard 32-bit HDR color format
 uint PackR11G11B10f(float3 rgb)
 {

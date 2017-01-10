@@ -63,8 +63,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVMappingPlanar = "_UVMappingPlanar";      
         protected MaterialProperty normalMapSpace = null;
         protected const string kNormalMapSpace = "_NormalMapSpace";
-        protected MaterialProperty heightMapMode = null;
-        protected const string kHeightMapMode = "_HeightMapMode";
+        protected MaterialProperty enablePerPixelDisplacement = null;
+        protected const string kEnablePerPixelDisplacement = "_EnablePerPixelDisplacement";
         protected MaterialProperty detailMapMode = null;
         protected const string kDetailMapMode = "_DetailMapMode";
         protected MaterialProperty UVDetail = null;
@@ -128,13 +128,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty emissiveIntensity = null;
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
 
+        // tesselation params
+        protected MaterialProperty tesselationFactor = null;
+        protected const string kTesselationFactor = "_TesselationFactor";
+
         // These are options that are shared with the LayeredLit shader. Don't put anything that can't be shared here:
         // For instance, properties like BaseColor and such don't exist in the LayeredLit so don't put them here.
         protected void FindMaterialOptionProperties(MaterialProperty[] props)
         {   
             smoothnessMapChannel = FindProperty(kSmoothnessTextureChannel, props);
             normalMapSpace = FindProperty(kNormalMapSpace, props);
-            heightMapMode = FindProperty(kHeightMapMode, props);
+            enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
             detailMapMode = FindProperty(kDetailMapMode, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
@@ -176,6 +180,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColor = FindProperty(kEmissiveColor, props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
+
+            // tesselation specific, don't care if not found
+            tesselationFactor = FindProperty(kTesselationFactor, props, false);
         }
 
         override protected void ShaderInputOptionsGUI()
@@ -210,9 +217,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UVDetailsMappingMask.colorValue = new Color(X, Y, Z, W);
 
             //m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText.text);
-            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);
-            m_MaterialEditor.ShaderProperty(heightMapMode, Styles.heightMapModeText.text);
+            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);            
             m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText.text);
+            m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText.text);
             EditorGUI.indentLevel--;
         }
 
@@ -292,6 +299,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.LightmapEmissionProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
 
             EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
+            
+            if (tesselationFactor != null)
+            {
+                GUILayout.Label(Styles.tesselationText, EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(tesselationFactor, Styles.tesselationFactorText);
+                EditorGUI.indentLevel--;
+            }
         }
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
@@ -315,7 +332,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
-            SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", ((HeightmapMode)material.GetFloat(kHeightMapMode)) == HeightmapMode.Displacement);
+            bool perPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) == 1.0;
+            SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", perPixelDisplacement);
             SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", ((DetailMapMode)material.GetFloat(kDetailMapMode)) == DetailMapMode.DetailWithNormal);
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
 

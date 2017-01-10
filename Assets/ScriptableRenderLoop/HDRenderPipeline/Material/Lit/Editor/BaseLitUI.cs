@@ -32,7 +32,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent texWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public static GUIContent UVBaseDetailMappingText = new GUIContent("UV set for Base and Detail", "");
             public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
-            public static GUIContent heightMapModeText = new GUIContent("Height Map Mode", "");
+            public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "");
             public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
             public static GUIContent UVDetailMappingText = new GUIContent("UV set for Detail", "");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
@@ -77,6 +77,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent emissiveWarning = new GUIContent("Emissive value is animated but the material has not been configured to support emissive. Please make sure the material itself has some amount of emissive.");
             public static GUIContent emissiveColorWarning = new GUIContent("Ensure emissive color is non-black for emission to have effect.");
+
+            public static GUIContent tesselationText = new GUIContent("Tesselation options", "Tesselation options");
+            public static GUIContent tesselationFactorText = new GUIContent("Tesselation factor", "Tesselation factor");
         }
 
         public enum SurfaceType

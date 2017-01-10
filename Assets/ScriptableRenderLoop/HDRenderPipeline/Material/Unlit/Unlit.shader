@@ -142,9 +142,6 @@ Shader "HDRenderPipeline/Unlit"
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"
             #include "UnlitData.hlsl"
@@ -160,8 +157,8 @@ Shader "HDRenderPipeline/Unlit"
 
             CBUFFER_END
 
-                // This was not in constant buffer in original unity, so keep outiside. But should be in as ShaderRenderPass frequency
-                float unity_OneOverOutputBoost;
+            // This was not in constant buffer in original unity, so keep outiside. But should be in as ShaderRenderPass frequency
+            float unity_OneOverOutputBoost;
             float unity_MaxOutputValue;
 
             struct Attributes
