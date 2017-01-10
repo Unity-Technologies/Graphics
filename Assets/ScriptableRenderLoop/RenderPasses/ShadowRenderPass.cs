@@ -182,7 +182,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // Start filling lights into texture
             var requestedPages = new List<AtlasEntry>();
-            packedShadows.shadowLights = new ShadowLight[lights.Length];
+            packedShadows.shadowLights = new ShadowLight[shadowLights.Count];
             for (int i = 0; i != shadowIndices.Count; i++)
             {
                 var numShadowSplits = CalculateNumShadowSplits(shadowIndices[i], lights);
@@ -260,7 +260,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var lights = cullResults.visibleLights;
             int directionalLightCount = 0;
 
-            for (int i = 0; i < lights.Length; i++)
+            int lightsCount = (settings.maxShadowLightsSupported > 0) ? Mathf.Min(lights.Length, settings.maxShadowLightsSupported) : lights.Length;
+            for (int i = 0; i < lightsCount; i++)
             {
                 //@TODO: ignore baked. move this logic to c++...
                 if (lights[i].light.shadows == LightShadows.None)
@@ -348,12 +349,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             VisibleLight[] visibleLights = cullResults.visibleLights;
             var shadowSlices = packedShadows.shadowSlices;
 
-            int shadowLightsCount = (m_Settings.maxShadowLightsSupported > 0)
-                ? Mathf.Min(packedShadows.shadowLights.Length)
-                : packedShadows.shadowLights.Length;
-
             // Render each light's shadow buffer into a subrect of the shared depth texture
-            for (int lightIndex = 0; lightIndex < shadowLightsCount; lightIndex++)
+            for (int lightIndex = 0; lightIndex < packedShadows.shadowLights.Length; lightIndex++)
             {
                 int shadowSliceCount = packedShadows.shadowLights[lightIndex].shadowSliceCount;
                 if (shadowSliceCount == 0)
