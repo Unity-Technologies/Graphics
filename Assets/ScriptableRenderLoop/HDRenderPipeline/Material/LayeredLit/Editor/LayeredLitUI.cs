@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent layersText = new GUIContent("Layers");
             public readonly GUIContent emissiveText = new GUIContent("Emissive");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color if enabled)");
-            public readonly GUIContent layerMapVertexColorText = new GUIContent("Use Vertex Color", "Layer mask (multiplied by layer mask if enabled)");
+            public readonly GUIContent layerMapVertexColorText = new GUIContent("Use Vertex Color", "If no layer mask is set, vertex color values between 0 and 1.0 are used as final mask.\nIf a layer mask is set, vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent vertexColorHeightMultiplierText = new GUIContent("Vertex Height Scale", "Scale applied to the vertex color height.");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
@@ -603,12 +603,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
             if(useHeightBasedBlend)
             {
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", false);
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
                 SetKeyword(material, "_HEIGHT_BASED_BLEND", true);
             }
             else
             {
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
+                if (material.GetTexture(kLayerMaskMap) != null)
+                {
+                    SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
+                    SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
+                }
+                else
+                {
+                    SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
+                    SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
+                }
                 SetKeyword(material, "_HEIGHT_BASED_BLEND", false);
             }
 

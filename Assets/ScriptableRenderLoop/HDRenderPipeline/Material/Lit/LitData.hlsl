@@ -403,8 +403,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Mask Values : Layer 1, 2, 3 are r, g, b
     float3 maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
 
-#if defined(_LAYER_MASK_VERTEX_COLOR)
+    // Mutually exclusive with _HEIGHT_BASED_BLEND
+#if defined(_LAYER_MASK_VERTEX_COLOR_MUL) // Used when no layer mask is set
     maskValues *= input.vertexColor.rgb;
+#elif defined(_LAYER_MASK_VERTEX_COLOR_ADD) // When layer mask is set, color is additive to enable user to override it.
+    maskValues = saturate(maskValues + input.vertexColor.rgb * 2.0 - 1.0);
 #endif
 
 #if defined(_HEIGHT_BASED_BLEND)
