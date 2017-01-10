@@ -65,7 +65,7 @@ namespace RMGUI.GraphView
 			{
 				name = "contentViewContainer",
 				clipChildren = false,
-				position = new Rect(0, 0, 0, 0)
+				pickingMode = PickingMode.Ignore
 			};
 
 			// make it absolute and 0 sized so it acts as a transform to move children to and fro
@@ -305,7 +305,8 @@ namespace RMGUI.GraphView
 		{
 			// Reset container translation, scale and position
 			contentViewContainer.transform = Matrix4x4.identity;
-			contentViewContainer.position = Rect.zero;
+			// TODO remove once we clarify Touch()
+			contentViewContainer.Touch(ChangeType.Repaint);
 
 			if (frameType == FrameType.Origin)
 			{

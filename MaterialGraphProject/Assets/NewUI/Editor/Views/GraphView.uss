@@ -43,9 +43,7 @@
 }
 
 .node.horizontal > #pane {
-	flex:1;
 	flex-direction: row;
-
 	align-items: stretch;
 	border-left: 4;
 	border-top: 4;
@@ -177,6 +175,9 @@
 
 .node NodeAnchor #type {
 	text-color: rgb(153, 153, 153);
+}
+
+.node.vertical NodeAnchor #type {
 	flex:1;
 }
 
