@@ -60,6 +60,8 @@ AttributesTesselation AttributesToAttributesTesselation(Attributes input)
 #endif
     output.tangentOS = input.tangentOS;
     output.color = input.color;
+
+    return output;
 }
 
 Attributes AttributesTesselationToAttributes(AttributesTesselation input)
@@ -77,6 +79,8 @@ Attributes AttributesTesselationToAttributes(AttributesTesselation input)
 #endif
     output.tangentOS = input.tangentOS;
     output.color = input.color;
+
+    return output;
 }
 
 AttributesTesselation InterpolateWithBary(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryWeight)
