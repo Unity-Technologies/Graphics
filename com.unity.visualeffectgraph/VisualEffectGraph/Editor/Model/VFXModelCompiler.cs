@@ -366,6 +366,14 @@ namespace UnityEditor.Experimental
             foreach (var attrib in unitializedAttribs)
                 attribs[attrib] = attribs[attrib] | VFXAttribute.Usage.kInitRW;
 
+            if (USE_DYNAMIC_AABB)
+            {
+                if (attribs.ContainsKey(CommonAttrib.Position))
+                {
+                    attribs[CommonAttrib.Position] = attribs[CommonAttrib.Position] | VFXAttribute.Usage.kUpdateR;
+                }
+            }
+
             // Find local attributes and store them aside (as they dont go into buffers but are used locally in shaders)
             Dictionary<VFXAttribute, VFXAttribute.Usage> localAttribs = new Dictionary<VFXAttribute, VFXAttribute.Usage>(new AttribComparer()); 
             foreach (var attrib in attribs)

@@ -213,6 +213,7 @@ public class VFXComponentEditor : Editor
         var component = (VFXComponent)target;
         var stats = VFXComponent.GetSystemComponentsStatsFilter(component);
 
+        //Basic display BBox
         var debugColors = new Color[] { Color.magenta, Color.green, Color.cyan, Color.yellow };
         for (int iStat = 0; iStat < stats.Length; ++iStat)
         {
