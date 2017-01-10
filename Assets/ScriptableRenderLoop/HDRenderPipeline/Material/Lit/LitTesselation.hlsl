@@ -14,7 +14,7 @@ float4 TesselationEdge(Attributes input0, Attributes input1, Attributes input2)
 
  //   return UnityDistanceBasedTess(input0.positionOS, input1.positionOS, input2.positionOS, minDist, maxDist, 0.5 /* _Tess */, unity_ObjectToWorld, _WorldSpaceCameraPos);
 
-    return float4(10.0, 10.0, 10.0, 10.0);
+    return float4(_TesselationFactor, _TesselationFactor, _TesselationFactor, _TesselationFactor);
 }
 
 void Displacement(inout Attributes v)
@@ -28,5 +28,12 @@ void Displacement(inout Attributes v)
     float d = ((tex2Dlod(_DispTex, float4(v.texcoord.xy * _Tiling, 0, 0)).r) - _DisplacementCenter) * (_Displacement * LengthLerp);
     d /= max(0.0001, _Tiling);
     */
-   // v.positionOS.xyz += 10 * float3(0.5, 0.5, 0.5); // v.normalOS * 5.0;
+
+#if _HEIGHTMAP
+    float height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
+#else
+    float height = 0.0;
+#endif
+
+    v.positionOS.xyz += height * v.normalOS;
 }

@@ -77,6 +77,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent emissiveWarning = new GUIContent("Emissive value is animated but the material has not been configured to support emissive. Please make sure the material itself has some amount of emissive.");
             public static GUIContent emissiveColorWarning = new GUIContent("Ensure emissive color is non-black for emission to have effect.");
+
+            public static GUIContent tesselationText = new GUIContent("Tesselation options", "Tesselation options");
+            public static GUIContent tesselationFactorText = new GUIContent("Tesselation factor", "Tesselation factor");
         }
 
         public enum SurfaceType
