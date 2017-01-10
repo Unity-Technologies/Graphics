@@ -206,7 +206,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = 0.0;
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, builtinData.depthOffset, posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
     ApplyDepthOffsetAttribute(depthOffset, input);
 #endif
 
@@ -377,7 +377,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = 0.0;
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, builtinData.depthOffset, posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
     ApplyDepthOffsetAttribute(depthOffset, input);
 #endif
 

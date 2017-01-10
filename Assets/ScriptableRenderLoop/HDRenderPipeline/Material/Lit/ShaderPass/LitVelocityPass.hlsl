@@ -3,7 +3,7 @@
 #endif
 
 #define NEED_TEXCOORD0 defined(_ALPHATEST_ON)
-#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && !defined(_HEIGHTMAP_AS_DISPLACEMENT))
+#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))
 
 struct Attributes
 {
