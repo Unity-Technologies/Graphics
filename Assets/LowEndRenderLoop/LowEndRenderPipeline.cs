@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEditor;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.ScriptableRenderLoop;
 using UnityEngine.Rendering;
@@ -39,6 +41,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
+            VisibleLight[] lights = cull.visibleLights;
             ShadowOutput shadowOutput;
             m_ShadowPass.Render(context, cull, out shadowOutput);
             SetupShadowShaderVariables(shadowOutput, context, camera.nearClipPlane, cullingParameters.shadowDistance);
@@ -49,8 +52,11 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("LowEndForwardBase"));
             settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque();
-            context.DrawRenderers(ref settings);
 
+            if (Lightmapping.bakedGI)
+                settings.rendererConfiguration = settings.rendererConfiguration | RendererConfiguration.PerObjectLightmaps;
+
+            context.DrawRenderers(ref settings);
             context.DrawSkybox(camera);
 
             settings.sorting.flags = SortFlags.CommonTransparent;
@@ -104,9 +110,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         Vector4[] lightColors = new Vector4[kMaxLights];
         Vector4[] lightAttenuations = new Vector4[kMaxLights];
         Vector4[] lightSpotDirections = new Vector4[kMaxLights];
-        Vector4[] lightIntensity = new Vector4[kMaxLights];
 
-        // TODO: Sort Lighting Importance
         int pixelLightCount = Mathf.Min(lights.Length, QualitySettings.pixelLightCount);
         int vertexLightCount = (m_Asset.SupportsVertexLight) ? Mathf.Min(lights.Length - pixelLightCount, kMaxLights) : 0;
         int totalLightCount = pixelLightCount + vertexLightCount;
@@ -116,8 +120,8 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             VisibleLight currLight = lights[i];
             if (currLight.lightType == LightType.Directional)
             {
-                Vector4 dir = currLight.localToWorld.GetColumn(2);
-                lightPositions[i] = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
+                Vector4 dir = -currLight.localToWorld.GetColumn(2);
+                lightPositions[i] = new Vector4(dir.x, dir.y, dir.z, 0.0f);
             }
             else
             {
@@ -126,7 +130,6 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             }
 
             lightColors[i] = currLight.finalColor;
-            lightIntensity[i] = new Vector4(currLight.light.intensity, 0.0f, 0.0f, 0.0f);
 
             float rangeSq = currLight.range * currLight.range;
             float quadAtten = (currLight.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;

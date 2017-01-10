@@ -48,6 +48,7 @@ Shader "RenderLoop/LowEnd"
 		// and objects look just like with a Standard shader.
 		UsePass "Standard/FORWARD"
 		UsePass "Standard/FORWARD_DELTA"
+		//UsePass "Standard/ShadowCaster"
 
 		Pass
 		{
@@ -69,6 +70,17 @@ Shader "RenderLoop/LowEnd"
 			#define DEBUG_CASCADES 0
 			#define MAX_SHADOW_CASCADES 4
 			#define MAX_LIGHTS 8
+
+			#define INITIALIZE_LIGHT(light, lightIndex) \
+				light.pos = globalLightPos[lightIndex]; \
+				light.color = globalLightColor[lightIndex]; \
+				light.atten = globalLightAtten[lightIndex]; \
+				light.spotDir = globalLightSpotDir[lightIndex];
+
+			#define FRESNEL_TERM(normal, viewDir) Pow4(1.0 - saturate(dot(normal, viewDir)))
+
+			// TODO: Add metallic or specular reflectivity
+			#define GRAZING_TERM _Glossiness 
 
 			// The variables are very similar to built-in unity_LightColor, unity_LightPosition,
 			// unity_LightAtten, unity_SpotDirection as used by the VertexLit shaders, except here
@@ -133,7 +145,7 @@ Shader "RenderLoop/LowEnd"
 				return diffuse + specular;
 			}
 
-			inline half3 EvaluateOneLightAndShadow(LightInput lightInput, half3 diffuseColor, half3 specularColor, half3 normal, float4 posWorld, half3 viewDir)
+			inline half3 EvaluateMainLight(LightInput lightInput, half3 diffuseColor, half3 specularColor, half3 normal, float4 posWorld, half3 viewDir)
 			{
 				int cascadeIndex = ComputeCascadeIndex(posWorld.w);
 				float3 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
@@ -143,7 +155,7 @@ Shader "RenderLoop/LowEnd"
 				half bias = 0.001;
 				half shadowDepth = tex2D(g_tShadowBuffer, shadowCoord.xy).r;
 				half shadowAttenuation = 1.0;
-
+				
 #if defined(UNITY_REVERSED_Z)
 				shadowAttenuation = step(shadowDepth - bias, shadowCoord.z);
 #else
@@ -151,12 +163,12 @@ Shader "RenderLoop/LowEnd"
 #endif
 
 #if DEBUG_CASCADES
-				half4 cascadeColors[MAX_SHADOW_CASCADES] = { half4(1.0, 0.0, 0.0, 1.0), half4(0.0, 1.0, 0.0, 1.0),  half4(0.0, 0.0, 1.0, 1.0),  half4(1.0, 0.0, 1.0, 1.0) };
-				return cascadeColors[cascadeIndex] * diffuseColor * max(shadowAttenuation, 0.5);
-#else
+				half3 cascadeColors[MAX_SHADOW_CASCADES] = { half3(1.0, 0.0, 0.0), half3(0.0, 1.0, 0.0),  half3(0.0, 0.0, 1.0),  half3(1.0, 0.0, 1.0) };
+				return cascadeColors[cascadeIndex] * diffuseColor * max(shadowAttenuation, 0.5); 
+#endif
+
 				half3 color = EvaluateOneLight(lightInput, diffuseColor, specularColor, normal, posWorld, viewDir);
 				return color * shadowAttenuation;
-#endif
 			}
 
 			struct VertexInput
@@ -164,38 +176,43 @@ Shader "RenderLoop/LowEnd"
 				float4 vertex : POSITION;
 				float3 normal : NORMAL;
 				float3 texcoord : TEXCOORD0;
+				float2 lightmapUV : TEXCOORD1;
 			};
 
 			struct v2f
 			{
-				float2 uv : TEXCOORD0;
-				float4 posWSEyeZ : TEXCOORD1; // xyz: posWorld, w: eyeZ
-				half3 normalWS : TEXCOORD2;
-				half3 color : TEXCOORD3;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				half4 normalWS : TEXCOORD2; // xyz: normal, w: fresnel term
+				float4 posWS : TEXCOORD3; // xyz: posWorld, w: eyeZ
+				half4 viewDir : TEXCOORD4; // xyz: viewDir, w: grazingTerm;
+				half3 vertexColor : TEXCOORD5;
 				float4 hpos : SV_POSITION;
 			};
 
-			v2f vert(appdata_base v)
+			v2f vert(VertexInput v)
 			{
 				v2f o;
-				o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
+				o.uv0 = TRANSFORM_TEX(v.texcoord, _MainTex);
+				o.uv1 = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
 				o.hpos = UnityObjectToClipPos(v.vertex);
-				o.posWSEyeZ.xyz = mul(unity_ObjectToWorld, v.vertex).xyz;
-				o.posWSEyeZ.w = -UnityObjectToViewPos(v.vertex).z;
+				o.posWS.xyz = mul(unity_ObjectToWorld, v.vertex).xyz;
+				o.posWS.w = -UnityObjectToViewPos(v.vertex).z;
 
-				o.normalWS = UnityObjectToWorldNormal(v.normal);
+				o.viewDir.xyz = normalize(_WorldSpaceCameraPos - o.posWS.xyz);
+#if !GLOSSMAP
+				o.viewDir.w = GRAZING_TERM;
+#endif
+
+				o.normalWS.xyz = UnityObjectToWorldNormal(v.normal);
+				o.normalWS.w = FRESNEL_TERM(o.normalWS.xyz, o.viewDir.xyz);
 				
 				half3 diffuseAndSpecularColor = half3(1.0, 1.0, 1.0);
-				half3 viewDir = normalize(_WorldSpaceCameraPos - o.posWSEyeZ);
-				
 				for (int lightIndex = globalLightCount.x; lightIndex < globalLightCount.y; ++lightIndex)
 				{
 					LightInput lightInput;
-					lightInput.pos = globalLightPos[lightIndex];
-					lightInput.color = globalLightColor[lightIndex];
-					lightInput.atten = globalLightAtten[lightIndex];
-					lightInput.spotDir = globalLightSpotDir[lightIndex];
-					o.color += EvaluateOneLight(lightInput, diffuseAndSpecularColor, diffuseAndSpecularColor, o.normalWS, o.posWSEyeZ.xyz, viewDir);
+					INITIALIZE_LIGHT(lightInput, lightIndex);
+					o.vertexColor += EvaluateOneLight(lightInput, diffuseAndSpecularColor, diffuseAndSpecularColor, o.normalWS, o.posWS.xyz, o.viewDir.xyz);
 				}
 
 				return o;
@@ -203,48 +220,52 @@ Shader "RenderLoop/LowEnd"
 
 			half4 frag(v2f i) : SV_Target
 			{
-				i.normalWS = normalize(i.normalWS);
-				float3 posWorld = i.posWSEyeZ.xyz;
-				half3 viewDir = normalize(_WorldSpaceCameraPos - posWorld);
+				half3 normalWS = normalize(i.normalWS.xyz);
+				float3 posWorld = i.posWS.xyz;
+				half3 viewDir = i.viewDir.xyz;
 
-				half4 diffuseAlbedo = tex2D(_MainTex, i.uv);
+				half4 diffuseAlbedo = tex2D(_MainTex, i.uv0);
 				half2 metalSmooth;
 #ifdef _METALLICGLOSSMAP
-				metalSmooth = tex2D(_MetallicGlossMap, i.uv).ra; 
+				metalSmooth = tex2D(_MetallicGlossMap, i.uv0).ra; 
 #else
 				metalSmooth.r = _Metallic;
 				metalSmooth.g = _Glossiness;
 #endif
 
-				half3 specColor;
+				half3 specular;
 				half oneMinuReflectivity;
-				half3 diffuse = DiffuseAndSpecularFromMetallic(diffuseAlbedo.rgb, metalSmooth.x, specColor, oneMinuReflectivity);
+				half3 diffuse = DiffuseAndSpecularFromMetallic(diffuseAlbedo.rgb, metalSmooth.x, specular, oneMinuReflectivity);
 
-				half3 color = i.color * diffuseAlbedo.rgb;
+				// Indirect Light Contribution
+				UnityIndirect giIndirect;
+				giIndirect.diffuse = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv1));
+				giIndirect.specular = half3(0, 0, 0);
+				half3 indirectColor = BRDF3_Indirect(diffuse, specular, giIndirect, i.posWS.w, i.normalWS.w);
+
+				half3 directColor = i.vertexColor * diffuseAlbedo.rgb;
+
+				// Compute direct contribution from main directional light.
+				// Only a single directional shadow caster is supported.
+				LightInput mainLight;
+				INITIALIZE_LIGHT(mainLight, 0)
 
 #if DEBUG_CASCADES
-				LightInput lightInput;
-				lightInput.pos = globalLightPos[0];
-				lightInput.color = globalLightColor[0];
-				lightInput.atten = globalLightAtten[0];
-				lightInput.spotDir = globalLightSpotDir[0];
-				color = EvaluateOneLightAndShadow(lightInput, diffuse, specColor, i.normalWS, i.posWSEyeZ, viewDir);
-#else
-				for (int lightIndex = 0; lightIndex < globalLightCount.x; ++lightIndex)
-				{
-					LightInput lightInput;
-					lightInput.pos = globalLightPos[lightIndex];
-					lightInput.color = globalLightColor[lightIndex];
-					lightInput.atten = globalLightAtten[lightIndex];
-					lightInput.spotDir = globalLightSpotDir[lightIndex];
-
-					if (lightIndex == 0)
-						color += EvaluateOneLightAndShadow(lightInput, diffuse, specColor, i.normalWS, i.posWSEyeZ, viewDir);
-					else
-						color += EvaluateOneLight(lightInput, diffuse, specColor, i.normalWS, posWorld, viewDir);
-				}
+				return half4(EvaluateMainLight(mainLight, diffuse, specular, normalWS, i.posWS, viewDir), 1.0);
 #endif
-				return half4(color, diffuseAlbedo.a);
+
+				directColor += EvaluateMainLight(mainLight, diffuse, specular, normalWS, i.posWS, viewDir); 
+
+				// Compute direct contribution from additional lights.
+				for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)
+				{
+					LightInput additionalLight;
+					INITIALIZE_LIGHT(additionalLight, lightIndex);
+					directColor += EvaluateOneLight(additionalLight, diffuse, specular, normalWS, posWorld, viewDir);
+				}
+
+				half3 finalColor = directColor + indirectColor;
+				return half4(finalColor, diffuseAlbedo.a);
 			}
 			ENDCG
 		}
@@ -256,9 +277,7 @@ Shader "RenderLoop/LowEnd"
 			ZWrite On ZTest LEqual Cull Front
 
 			CGPROGRAM
-
-			#pragma enable_d3d11_debug_symbols
-			#pragma target 3.0
+			#pragma target 2.0
 			#pragma vertex vert
 			#pragma fragment frag
 
