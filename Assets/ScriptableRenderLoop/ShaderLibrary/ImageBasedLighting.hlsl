@@ -55,13 +55,21 @@ float mipmapLevelToPerceptualRoughness(float mipmapLevel)
     return saturate(1.7 / 1.4 - sqrt(2.89 - 2.8 * perceptualRoughness) / 1.4);
 }
 
-// Ref: See "Moving Frostbite to PBR" Listing 22
-// This formulation is for GGX only (with smith joint visibility or regular)
+// Ref: "Moving Frostbite to PBR", p. 69.
 float3 GetSpecularDominantDir(float3 N, float3 R, float roughness, float NdotV)
 {
-    float a = 1.0 - roughness;
-    // TODO: we could bias this further (and use 'NdotV') to better match the reference.
-    float lerpFactor = a * (sqrt(a) + roughness);
+    float a     = 1.0 - roughness;
+    float s     = sqrt(1.0 - roughness);
+    float sinNV = sqrt(1.0 - NdotV * NdotV);
+
+#ifdef USE_FB_DSD
+    // This is the original formulation.
+    float lerpFactor = a * (s + roughness);
+#else
+    // TODO: tweak this further to achieve a closer match to the reference.
+    float lerpFactor = s * saturate(lerp(s + s, a * a, sinNV));
+#endif
+
     // The result is not normalized as we fetch in a cubemap
     return lerp(N, R, lerpFactor);
 }
