@@ -383,7 +383,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
         // Bias samples towards the mirror direction to reduce variance.
         // This will have a side effect of making the reflection sharper.
         // Ref: Stochastic Screen-Space Reflections, p. 67.
-        const float bias = 0.2;
+        const float bias = 0.3 * roughness;
         u.x = lerp(u.x, 0.0, bias);
 
         float3 L;
