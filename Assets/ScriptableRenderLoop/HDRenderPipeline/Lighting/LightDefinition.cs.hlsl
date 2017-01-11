@@ -5,7 +5,7 @@
 #ifndef LIGHTDEFINITION_CS_HLSL
 #define LIGHTDEFINITION_CS_HLSL
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.GPULightType:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.GPULightType:  static fields
 //
 #define GPULIGHTTYPE_DIRECTIONAL (0)
 #define GPULIGHTTYPE_SPOT (1)
@@ -20,7 +20,7 @@
 #define GPULIGHTTYPE_CYLINDER (10)
 
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.EnvShapeType:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.EnvShapeType:  static fields
 //
 #define ENVSHAPETYPE_NONE (0)
 #define ENVSHAPETYPE_BOX (1)
@@ -28,11 +28,11 @@
 #define ENVSHAPETYPE_SKY (3)
 
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.EnvConstants:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.EnvConstants:  static fields
 //
 #define ENVCONSTANTS_SPEC_CUBE_LOD_STEP (6)
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.LightData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
 // PackingRules = Exact
 struct LightData
 {
@@ -55,7 +55,7 @@ struct LightData
 	bool twoSided;
 };
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.DirectionalLightData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.DirectionalLightData
 // PackingRules = Exact
 struct DirectionalLightData
 {
@@ -75,7 +75,7 @@ struct DirectionalLightData
 	int cookieIndex;
 };
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.ShadowData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.ShadowData
 // PackingRules = Exact
 struct ShadowData
 {
@@ -87,7 +87,7 @@ struct ShadowData
 	float4 invResolution;
 };
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.EnvLightData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
 // PackingRules = Exact
 struct EnvLightData
 {
@@ -106,7 +106,7 @@ struct EnvLightData
 };
 
 //
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.LightData
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.LightData
 //
 float3 GetPositionWS(LightData value)
 {
@@ -178,7 +178,7 @@ bool GetTwoSided(LightData value)
 }
 
 //
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.DirectionalLightData
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DirectionalLightData
 //
 float3 GetForward(DirectionalLightData value)
 {
@@ -238,7 +238,7 @@ int GetCookieIndex(DirectionalLightData value)
 }
 
 //
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.ShadowData
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.ShadowData
 //
 float4x4 GetWorldToShadow(ShadowData value)
 {
@@ -266,7 +266,7 @@ float4 GetInvResolution(ShadowData value)
 }
 
 //
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.EnvLightData
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
 //
 float3 GetPositionWS(EnvLightData value)
 {
