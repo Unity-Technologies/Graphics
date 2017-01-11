@@ -66,7 +66,7 @@ float3 GetSpecularDominantDir(float3 N, float3 R, float roughness, float NdotV)
     float lerpFactor = (s + roughness) * a;
 #else
     // TODO: tweak this further to achieve a closer match to the reference.
-    float lerpFactor = (s + roughness) * saturate(lerp(a * a, a * a + a, NdotV * NdotV));
+    float lerpFactor = (s + roughness) * saturate(a * a + lerp(0.0, a, NdotV * NdotV));
 #endif
 
     // The result is not normalized as we fetch in a cubemap
