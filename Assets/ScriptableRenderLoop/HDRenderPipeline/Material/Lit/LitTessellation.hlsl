@@ -7,7 +7,7 @@ float _DisplacementfalloffNear;
 float _DisplacementfalloffFar;
 */
 
-float4 TesselationEdge(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2)
+float4 TessellationEdge(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2)
 {
     if (_TessellationFactorFixed >= 0.0f)
     {
