@@ -27,6 +27,84 @@ struct Attributes
     // UNITY_INSTANCE_ID
 };
 
+#ifdef TESSELLATION_ON
+// Copy paste of above struct with POSITION rename to INTERNALTESSPOS (internal of unity shader compiler)
+struct AttributesTessellation
+{
+    float3 positionOS   : INTERNALTESSPOS;
+    float3 normalOS     : NORMAL;
+    float2 uv0          : TEXCOORD0;
+    float2 uv1		    : TEXCOORD1;
+#if WANT_UV2
+    float2 uv2		    : TEXCOORD2;
+#endif
+#if WANT_UV3
+    float2 uv3		    : TEXCOORD3;
+#endif
+    float4 tangentOS    : TANGENT;  // Always present as we require it also in case of anisotropic lighting
+    float4 color        : COLOR;
+};
+
+AttributesTessellation AttributesToAttributesTessellation(Attributes input)
+{
+    AttributesTessellation output;
+    output.positionOS = input.positionOS;
+    output.normalOS = input.normalOS;
+    output.uv0 = input.uv0;
+    output.uv1 = input.uv1;
+#if WANT_UV2
+    output.uv2 = input.uv2;
+#endif
+#if WANT_UV3
+    output.uv3 = input.uv3;
+#endif
+    output.tangentOS = input.tangentOS;
+    output.color = input.color;
+
+    return output;
+}
+
+Attributes AttributesTessellationToAttributes(AttributesTessellation input)
+{
+    Attributes output;
+    output.positionOS = input.positionOS;
+    output.normalOS = input.normalOS;
+    output.uv0 = input.uv0;
+    output.uv1 = input.uv1;
+#if WANT_UV2
+    output.uv2 = input.uv2;
+#endif
+#if WANT_UV3
+    output.uv3 = input.uv3;
+#endif
+    output.tangentOS = input.tangentOS;
+    output.color = input.color;
+
+    return output;
+}
+
+AttributesTessellation InterpolateWithBaryCoords(AttributesTessellation input0, AttributesTessellation input1, AttributesTessellation input2, float3 baryCoords)
+{
+    AttributesTessellation ouput;
+
+    TESSELLATION_INTERPOLATE_BARY(positionOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(normalOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(uv0, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(uv1, baryCoords);
+#if WANT_UV2
+    TESSELLATION_INTERPOLATE_BARY(uv2, baryCoords);
+#endif
+#if WANT_UV3
+    TESSELLATION_INTERPOLATE_BARY(uv3, baryCoords);
+#endif
+    TESSELLATION_INTERPOLATE_BARY(tangentOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(color, baryCoords);
+
+    return ouput;
+}
+#endif // TESSELLATION_ON
+
+
 struct Varyings
 {
     float4 positionCS;

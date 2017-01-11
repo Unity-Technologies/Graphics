@@ -54,6 +54,8 @@
 // Include language header
 #if defined(SHADER_API_D3D11)
 #include "API/D3D11.hlsl"
+#elif defined(SHADER_API_PSSL)
+#include "API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
 #include "API/D3D11_1.hlsl"
 #else
@@ -430,7 +432,7 @@ void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4
 }
 
 // depthOffsetVS is always in the direction of the view vector (V)
-void ApplyDepthOffsetPositionInput(float V, float depthOffsetVS, inout PositionInputs posInput)
+void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, inout PositionInputs posInput)
 {
     posInput.depthVS += depthOffsetVS;
     // TODO: it is an approx, need a correct value where we use projection matrix to reproject the depth from VS

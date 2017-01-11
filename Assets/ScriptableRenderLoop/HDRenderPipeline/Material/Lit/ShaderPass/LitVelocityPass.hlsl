@@ -3,7 +3,7 @@
 #endif
 
 #define NEED_TEXCOORD0 defined(_ALPHATEST_ON)
-#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && !defined(_HEIGHTMAP_AS_DISPLACEMENT))
+#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))
 
 struct Attributes
 {
@@ -13,9 +13,75 @@ struct Attributes
     float2 uv0 : TEXCOORD0;
 #endif
 #if NEED_TANGENT_TO_WORLD
+ //    float3 normalOS  : NORMAL; // TODO: This won't compile as we conflict with previousPositionOS. FIXME
     float4 tangentOS : TANGENT;
 #endif
 };
+
+#ifdef TESSELLATION_ON
+// Copy paste of above struct with POSITION rename to INTERNALTESSPOS (internal of unity shader compiler)
+struct AttributesTessellation
+{
+    float3 positionOS : INTERNALTESSPOS;
+    float3 previousPositionOS : NORMAL;
+#if NEED_TEXCOORD0
+    float2 uv0 : TEXCOORD0;
+#endif
+#if NEED_TANGENT_TO_WORLD
+ //   float3 normalOS  : NORMAL;
+    float4 tangentOS : TANGENT;
+#endif
+};
+
+AttributesTessellation AttributesToAttributesTessellation(Attributes input)
+{
+    AttributesTessellation output;
+    output.positionOS = input.positionOS;
+    output.previousPositionOS = input.previousPositionOS;
+#if NEED_TEXCOORD0
+    output.uv0 = input.uv0;
+#endif
+#if NEED_TANGENT_TO_WORLD
+ //   output.normalOS = input.normalOS;
+    output.tangentOS = input.tangentOS;
+#endif
+
+    return output;
+}
+
+Attributes AttributesTessellationToAttributes(AttributesTessellation input)
+{
+    Attributes output;
+    output.positionOS = input.positionOS;
+    output.previousPositionOS = input.previousPositionOS;
+#if NEED_TEXCOORD0
+    output.uv0 = input.uv0;
+#endif
+#if NEED_TANGENT_TO_WORLD
+//    output.normalOS = input.normalOS;
+    output.tangentOS = input.tangentOS;
+#endif
+
+    return output;
+}
+
+AttributesTessellation InterpolateWithBaryCoords(AttributesTessellation input0, AttributesTessellation input1, AttributesTessellation input2, float3 baryCoords)
+{
+    AttributesTessellation ouput;
+
+    TESSELLATION_INTERPOLATE_BARY(positionOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(previousPositionOS, baryCoords);
+#if NEED_TEXCOORD0
+    TESSELLATION_INTERPOLATE_BARY(uv0, baryCoords);
+#endif
+#if NEED_TANGENT_TO_WORLD
+//    TESSELLATION_INTERPOLATE_BARY(normalOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(tangentOS, baryCoords);
+#endif
+
+    return ouput;
+}
+#endif // TESSELLATION_ON
 
 struct Varyings
 {

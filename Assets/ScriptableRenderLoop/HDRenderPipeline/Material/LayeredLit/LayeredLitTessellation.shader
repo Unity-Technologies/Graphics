@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/LayeredLit"
+Shader "HDRenderPipeline/LayeredLitTesselation"
 {
     Properties
     {
@@ -115,9 +115,9 @@ Shader "HDRenderPipeline/LayeredLit"
         _HeightFactor2("_HeightFactor2", Range(0, 5)) = 1
         _HeightFactor3("_HeightFactor3", Range(0, 5)) = 1
 
-        _BlendSize1("_BlendSize1", Range(0, 0.30)) = 0.0
-        _BlendSize2("_BlendSize2", Range(0, 0.30)) = 0.0
-        _BlendSize3("_BlendSize3", Range(0, 0.30)) = 0.0
+        _BlendSize1("_BlendSize1", Range(0, 0.05)) = 0.0
+        _BlendSize2("_BlendSize2", Range(0, 0.05)) = 0.0
+        _BlendSize3("_BlendSize3", Range(0, 0.05)) = 0.0
 
         _InheritBaseLayer1("_InheritBaseLayer1", Range(0, 1.0)) = 0.0
         _InheritBaseLayer2("_InheritBaseLayer2", Range(0, 1.0)) = 0.0
@@ -192,17 +192,29 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _UVDetailsMappingMask1("_UVDetailsMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Color) = (1, 0, 0, 0)
+  
+        // Tesselation specific
+        [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 1
+        _TessellationFactorFixed("Tessellation Factor", Float) = 4.0 // if != -1.0 force fixed factor
+        _TessellationFactorMaxDistance("Tessellation max distance factor", Float) = 12.0
+        _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 20.0
+        _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
+        _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 1.0)) = 0.25
+        [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
+        // TODO: Handle culling mode for backface culling
     }
 
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
+    #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+    // Default is _TESSELATION_PHONG
+    #pragma shader_feature _ _TESSELATION_DISPLACEMENT _TESSELATION_DISPLACEMENT_PHONG
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
@@ -223,7 +235,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _HEIGHT_BASED_BLEND
-    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
+    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS    
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -236,12 +248,14 @@ Shader "HDRenderPipeline/LayeredLit"
     //-------------------------------------------------------------------------------------
 
     #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
+    #define TESSELATION_ON
 
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
 
     #include "common.hlsl"
+    #include "tesselation.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderConfig.cs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderVariables.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Attributes.hlsl"
@@ -271,7 +285,6 @@ Shader "HDRenderPipeline/LayeredLit"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Lit/LitProperties.hlsl"
 
     // All our shaders use same name for entry point
-    #pragma vertex Vert
     #pragma fragment Frag
 
     ENDHLSL
@@ -290,11 +303,16 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define SHADERPASS SHADERPASS_GBUFFER
 
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitSharePass.hlsl"    
             #include "../Lit/LitData.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -310,11 +328,16 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
 
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
@@ -335,6 +358,8 @@ Shader "HDRenderPipeline/LayeredLit"
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
+
+            #pragma vertex Vert
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"            
@@ -357,10 +382,15 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../Material/Material.hlsl"                     
             #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
             #include "../Lit/LitData.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
@@ -379,10 +409,15 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
             #include "../Lit/LitData.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -400,10 +435,15 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
             #include "../Lit/LitData.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -422,10 +462,15 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "../../Material/Material.hlsl"                     
             #include "../Lit/ShaderPass/LitDistortionPass.hlsl"
             #include "../Lit/LitData.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
@@ -443,6 +488,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
+            #pragma vertex VertTesselation
+            #pragma hull Hull
+            #pragma domain Domain
+
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include
             // #include "../../Lighting/Forward.hlsl"
@@ -452,6 +501,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Lighting/Lighting.hlsl"            
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
+            #include "../Tesselation/TesselationShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 

@@ -63,8 +63,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVMappingPlanar = "_UVMappingPlanar";      
         protected MaterialProperty normalMapSpace = null;
         protected const string kNormalMapSpace = "_NormalMapSpace";
-        protected MaterialProperty heightMapMode = null;
-        protected const string kHeightMapMode = "_HeightMapMode";
+        protected MaterialProperty enablePerPixelDisplacement = null;
+        protected const string kEnablePerPixelDisplacement = "_EnablePerPixelDisplacement";
         protected MaterialProperty detailMapMode = null;
         protected const string kDetailMapMode = "_DetailMapMode";
         protected MaterialProperty UVDetail = null;
@@ -92,10 +92,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kNormalScale = "_NormalScale";
         protected MaterialProperty heightMap = null;
         protected const string kHeightMap = "_HeightMap";
-        protected MaterialProperty heightScale = null;
-        protected const string kHeightScale = "_HeightScale";
-        protected MaterialProperty heightBias = null;
-        protected const string kHeightBias= "_HeightBias";
+        protected MaterialProperty heightAmplitude = null;
+        protected const string kHeightAmplitude = "_HeightAmplitude";
+        protected MaterialProperty heightCenter = null;
+        protected const string kHeightCenter = "_HeightCenter";
         protected MaterialProperty tangentMap = null;
         protected const string kTangentMap = "_TangentMap";
         protected MaterialProperty anisotropy = null;
@@ -128,13 +128,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty emissiveIntensity = null;
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
 
+
         // These are options that are shared with the LayeredLit shader. Don't put anything that can't be shared here:
         // For instance, properties like BaseColor and such don't exist in the LayeredLit so don't put them here.
         protected void FindMaterialOptionProperties(MaterialProperty[] props)
         {   
             smoothnessMapChannel = FindProperty(kSmoothnessTextureChannel, props);
             normalMapSpace = FindProperty(kNormalMapSpace, props);
-            heightMapMode = FindProperty(kHeightMapMode, props);
+            enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
             detailMapMode = FindProperty(kDetailMapMode, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
@@ -152,8 +153,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             normalMap = FindProperty(kNormalMap, props);
             normalScale = FindProperty(kNormalScale, props);           
             heightMap = FindProperty(kHeightMap, props);
-            heightScale = FindProperty(kHeightScale, props);
-            heightBias = FindProperty(kHeightBias, props);
+            heightAmplitude = FindProperty(kHeightAmplitude, props);
+            heightCenter = FindProperty(kHeightCenter, props);
             tangentMap = FindProperty(kTangentMap, props);
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
@@ -210,9 +211,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UVDetailsMappingMask.colorValue = new Color(X, Y, Z, W);
 
             //m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText.text);
-            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);
-            m_MaterialEditor.ShaderProperty(heightMapMode, Styles.heightMapModeText.text);
+            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);            
             m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText.text);
+            m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText.text);
             EditorGUI.indentLevel--;
         }
 
@@ -241,7 +242,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap, heightScale, heightBias);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap);
+            if(!heightMap.hasMixedValue && heightMap.textureValue != null)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(heightAmplitude, Styles.heightMapAmplitudeText);
+                m_MaterialEditor.ShaderProperty(heightCenter, Styles.heightMapCenterText);
+                EditorGUI.showMixedValue = false;
+                EditorGUI.indentLevel--;
+            }
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
 
@@ -284,6 +293,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.LightmapEmissionProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
 
             EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
         }
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
@@ -307,7 +318,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
-            SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", ((HeightmapMode)material.GetFloat(kHeightMapMode)) == HeightmapMode.Displacement);
+            bool perPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) == 1.0;
+            SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", perPixelDisplacement);
             SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", ((DetailMapMode)material.GetFloat(kDetailMapMode)) == DetailMapMode.DetailWithNormal);
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
 

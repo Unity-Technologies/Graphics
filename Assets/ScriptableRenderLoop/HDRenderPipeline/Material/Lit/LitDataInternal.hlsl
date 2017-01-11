@@ -57,35 +57,36 @@ float ADD_IDX(ApplyDisplacement)(inout FragInputs input, float3 viewDirTS, inout
     float height = 0.0f;
 
 #ifdef _HEIGHTMAP
-    height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
+    height = (SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r - ADD_IDX(_HeightCenter)) * ADD_IDX(_HeightAmplitude);
 
-   //#ifndef _HEIGHTMAP_AS_DISPLACEMENT
-   // //height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
-   // float2 offset = ParallaxOffset(viewDirTS, height);
+    //#ifdef _PER_PIXEL_DISPLACEMENT
+    // //height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
+    // float2 offset = ParallaxOffset(viewDirTS, height);
 
-   // ADD_IDX(layerTexCoord.base).uv += offset;
-   // ADD_IDX(layerTexCoord.base).uvYZ += offset;
-   // ADD_IDX(layerTexCoord.base).uvZX += offset;
-   // ADD_IDX(layerTexCoord.base).uvXY += offset;
+    // ADD_IDX(layerTexCoord.base).uv += offset;
+    // ADD_IDX(layerTexCoord.base).uvYZ += offset;
+    // ADD_IDX(layerTexCoord.base).uvZX += offset;
+    // ADD_IDX(layerTexCoord.base).uvXY += offset;
 
-   // ADD_IDX(layerTexCoord.details).uv += offset;
-   // ADD_IDX(layerTexCoord.details).uvYZ += offset;
-   // ADD_IDX(layerTexCoord.details).uvZX += offset;
-   // ADD_IDX(layerTexCoord.details).uvXY += offset;
+    // ADD_IDX(layerTexCoord.details).uv += offset;
+    // ADD_IDX(layerTexCoord.details).uvYZ += offset;
+    // ADD_IDX(layerTexCoord.details).uvZX += offset;
+    // ADD_IDX(layerTexCoord.details).uvXY += offset;
 
-   // // Only modify texcoord for first layer, this will be use by for builtin data (like lightmap)
-   // if (LAYER_INDEX == 0)
-   // {
-   //     input.texCoord0 += offset;
-   //     input.texCoord1 += offset;
-   //     input.texCoord2 += offset;
-   //     input.texCoord3 += offset;
-   // }
+    // // Only modify texcoord for first layer, this will be use by for builtin data (like lightmap)
+    // if (LAYER_INDEX == 0)
+    // {
+    //     input.texCoord0 += offset;
+    //     input.texCoord1 += offset;
+    //     input.texCoord2 += offset;
+    //     input.texCoord3 += offset;
+    // }
 
-   // // Need to refetch for the right parallaxed height for layer blending to behave correctly...
-   // height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
+    // // Need to refetch for the right parallaxed height for layer blending to behave correctly...
+    // height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
 
-   // #endif
+    // #endif
+
 #endif
 
     return height;
