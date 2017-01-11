@@ -698,8 +698,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 InitAndClearBuffer(camera, renderContext);
 
-                UpdateSkyEnvironment(hdCamera, renderContext); // TODO: Use async compute here to run sky convolution during other passes
-
                 RenderDepthPrepass(cullResults, camera, renderContext);
 
                 // Forward opaque with deferred/cluster tile require that we fill the depth buffer
@@ -728,7 +726,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_lightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthBufferRT); // TODO: Use async compute here to run light culling during shadow
 
                         PushGlobalParams(hdCamera, renderContext);
-                    }                     
+                    }
+
+                    // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
+                    // must be call after BuildGPULightLists. 
+                    // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
+                    UpdateSkyEnvironment(hdCamera, renderContext); 
 
                     RenderDeferredLighting(hdCamera, renderContext);
 
