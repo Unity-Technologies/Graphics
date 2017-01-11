@@ -466,6 +466,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             // Render sky into a cubemap - doesn't happen every frame, can be controlled
                             RenderSkyToCubemap(m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT);
+                            // Note that m_SkyboxCubemapRT is created with auto-generate mipmap, it mean that here we have also our mipmap correctly box filtered for importance sampling.
+
                             // Convolve downsampled cubemap
                             RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
