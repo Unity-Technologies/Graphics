@@ -4,9 +4,9 @@
 
 // Check if Alpha test is enabled. If it is, check if parallax is enabled on this material
 #define NEED_TEXCOORD0 1 // defined(_ALPHATEST_ON)
-#define NEED_TANGENT_TO_WORLD 1 // NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))  TEMP!!!: until we fix tesselation so it can access normalOS
+#define NEED_TANGENT_TO_WORLD 1 // NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))  TEMP!!!: until we fix tessellation so it can access normalOS
 
-// When modifying this structure, update the tesselation code below
+// When modifying this structure, update the tessellation code below
 struct Attributes
 {
     float3 positionOS : POSITION;
@@ -19,9 +19,9 @@ struct Attributes
 #endif
 };
 
-#ifdef TESSELATION_ON
+#ifdef TESSELLATION_ON
 // Copy paste of above struct with POSITION rename to INTERNALTESSPOS (internal of unity shader compiler)
-struct AttributesTesselation
+struct AttributesTessellation
 {
     float3 positionOS : INTERNALTESSPOS;
 #if NEED_TEXCOORD0
@@ -33,9 +33,9 @@ struct AttributesTesselation
 #endif
 };
 
-AttributesTesselation AttributesToAttributesTesselation(Attributes input)
+AttributesTessellation AttributesToAttributesTessellation(Attributes input)
 {
-    AttributesTesselation output;
+    AttributesTessellation output;
     output.positionOS = input.positionOS;
 #if NEED_TEXCOORD0
     output.uv0 = input.uv0;
@@ -48,7 +48,7 @@ AttributesTesselation AttributesToAttributesTesselation(Attributes input)
     return output;
 }
 
-Attributes AttributesTesselationToAttributes(AttributesTesselation input)
+Attributes AttributesTessellationToAttributes(AttributesTessellation input)
 {
     Attributes output;
     output.positionOS = input.positionOS;
@@ -63,22 +63,22 @@ Attributes AttributesTesselationToAttributes(AttributesTesselation input)
     return output;
 }
 
-AttributesTesselation InterpolateWithBary(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryWeight)
+AttributesTessellation InterpolateWithBaryCoords(AttributesTessellation input0, AttributesTessellation input1, AttributesTessellation input2, float3 baryCoords)
 {
-    AttributesTesselation ouput;
+    AttributesTessellation ouput;
 
-    TESSELATION_INTERPOLATE_BARY(positionOS, baryWeight);
+    TESSELLATION_INTERPOLATE_BARY(positionOS, baryCoords);
 #if NEED_TEXCOORD0
-    TESSELATION_INTERPOLATE_BARY(uv0, baryWeight);
+    TESSELLATION_INTERPOLATE_BARY(uv0, baryCoords);
 #endif
 #if NEED_TANGENT_TO_WORLD
-    TESSELATION_INTERPOLATE_BARY(normalOS, baryWeight);
-    TESSELATION_INTERPOLATE_BARY(tangentOS, baryWeight);
+    TESSELLATION_INTERPOLATE_BARY(normalOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(tangentOS, baryCoords);
 #endif
 
     return ouput;
 }
-#endif // TESSELATION_ON
+#endif // TESSELLATION_ON
 
 struct Varyings
 {

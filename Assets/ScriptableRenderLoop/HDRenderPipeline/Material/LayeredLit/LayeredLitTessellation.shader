@@ -192,9 +192,16 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
         [HideInInspector] _UVDetailsMappingMask1("_UVDetailsMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Color) = (1, 0, 0, 0)
-
+  
         // Tesselation specific
-        _TesselationFactor("Tesselation Factor", Float) = 3.0
+        [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 1
+        _TessellationFactorFixed("Tessellation Factor", Float) = 4.0 // if != -1.0 force fixed factor
+        _TessellationFactorMaxDistance("Tessellation max distance factor", Float) = 12.0
+        _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 20.0
+        _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
+        _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 1.0)) = 0.25
+        [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
+        // TODO: Handle culling mode for backface culling
     }
 
     HLSLINCLUDE
@@ -206,6 +213,8 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+    // Default is _TESSELATION_PHONG
+    #pragma shader_feature _ _TESSELATION_DISPLACEMENT _TESSELATION_DISPLACEMENT_PHONG
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
@@ -226,7 +235,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _HEIGHT_BASED_BLEND
-    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
+    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS    
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
