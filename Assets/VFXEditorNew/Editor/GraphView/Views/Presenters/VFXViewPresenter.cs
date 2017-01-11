@@ -27,22 +27,23 @@ namespace UnityEditor.VFX.UI
             EditorUtility.SetDirty(m_ModelContainer);
         }
 
-        public void AddModel(VFXModel model)
+        public void AddModel(VFXModel model, VFXView view)
         {
             m_ModelContainer.m_Roots.Add(model);
-            AddPresentersFromModel(model);
+            AddPresentersFromModel(model,view);
             EditorUtility.SetDirty(m_ModelContainer);
         }
 
-        private void AddPresentersFromModel(VFXModel model)
+        private void AddPresentersFromModel(VFXModel model,VFXView view)
         {
             if (model is VFXContext)
             {
                 VFXContext context = (VFXContext)model;
                 var presenter = CreateInstance<VFXContextPresenter>();
-                presenter.Model = context;
-                presenter.position = new Rect(context.Position.x, context.Position.y, 256, 256);
+                presenter.InitModel((VFXContext)model);
+                presenter.position = new Rect(context.Position.x, context.Position.y, 100, 100);
                 AddElement(presenter);
+                presenter.m_view = view;
             }
         }
 

@@ -2,12 +2,15 @@ using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.RMGUI;
+using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
     [StyleSheet("Assets/VFXEditorNew/Editor/GraphView/Views/VFXView.uss")]
     class VFXView : GraphView
     {
+        public List<NodeAnchorPresenter> m_FlowAnchorPresenters;
+
         public VFXView()
 		{
             AddManipulator(new ContentZoomer());
@@ -26,7 +29,7 @@ namespace UnityEditor.VFX.UI
 					{Event.KeyboardEvent("tab"), FrameNext}
 				}));
 
-            var bg = new GridBackground() { name = "vfx" };
+            var bg = new GridBackground() { name = "VFXBackgroundGrid" };
             InsertChild(0, bg);
 
             AddManipulator(new ContextualMenu((evt, customData) =>
@@ -51,13 +54,36 @@ namespace UnityEditor.VFX.UI
             }));
 
             dataMapper[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
+            dataMapper[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
+            dataMapper[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
+            dataMapper[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
+
+            m_FlowAnchorPresenters = new List<NodeAnchorPresenter>();
+
         }
 
         void AddVFXContext(Vector2 pos,VFXContextDesc.Type contextType)
         {
             var context = new VFXContext(VFXContextDesc.CreateBasic(contextType));
             context.Position = pos;
-            GetPresenter<VFXViewPresenter>().AddModel(context);
-        } 
+            GetPresenter<VFXViewPresenter>().AddModel(context,this);
+        }
+            
+        public void RegisterFlowAnchorPresenter(NodeAnchorPresenter presenter)
+        {
+            if(!m_FlowAnchorPresenters.Contains(presenter))
+            {
+                m_FlowAnchorPresenters.Add(presenter);
+            }
+        }
+
+        public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
+        {
+            return m_FlowAnchorPresenters
+			.Where(nap => nap.IsConnectable() &&
+							nap.direction != startAnchor.direction &&
+							nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
+			.ToList();
+        }
     }
 }

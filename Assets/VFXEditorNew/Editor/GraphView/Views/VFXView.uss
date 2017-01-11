@@ -1,23 +1,109 @@
-VFXContextUI.init {
+.VFXContext.init {
 	rect-color:#FFFF00;
+
 }
 
-VFXContextUI.update {
+.VFXContext.update {
 	rect-color:#00FFFF;
 }
 
-VFXContextUI.output {
+.VFXContext.output {
 	rect-color:#FF0000;
 }
 
-VFXContextUI.graphElement.selected {
-	rect-color:#FFFFFF;
+.FlowContainer{
+	flex: 1;
+	flex-direction: row;
+	justify-content: space-between;
+	padding-left: 20;
+	padding-right: 20;
 }
 
-#vfx {
+VFXFlowAnchor.InputEdgeConnector {
+	background-image:path("Assets/Editor Default Resources/LayoutFlow_In.psd");
+}
+
+VFXFlowAnchor.OutputEdgeConnector{	
+	background-image:path("Assets/Editor Default Resources/LayoutFlow_Out.psd");
+}
+
+VFXFlowAnchor #type{
+}
+
+VFXFlowAnchor #connector{
+	width: 32;
+	height: 16;
+}
+
+VFXFlowAnchor #connector.anchorHighlight{
+	border-color: #F0F;
+	border-width: 4;
+}
+
+VFXContextUI {
+	font:path("Assets/GraphView/Resources/Roboto/Roboto-Regular.ttf");
+	font-size:12;
+	flex: 1;
+	flex-direction: column;
+	align-items: stretch;	
+	min-height: 100;
+	min-width: 320; 
+}
+
+VFXContextUI.selected > #NodeContents  {
+	border-color: #FFAA22;
+	border-width: 5;
+}
+
+VFXContextUI #NodeContents {
+	text-alignment:upper-center;
+	padding-top: 8;
+	padding-left: 8;
+	padding-bottom: 8;
+	padding-right: 8;
+
+	text-color:#8FC1DF;
+
+	font:path("Assets/GraphView/Resources/Roboto/Roboto-Medium.ttf");
+	font-size:12;
+
+	/* currently border-XXX is only used for layout
+	   where border-width is used to paint text and border.
+	   They must keep in sync until we support variable border
+	   thickness per edge */
+	border-radius: 10;
+	background-color: #2D2D2D;
+}
+
+VFXContextUI #NodeBlockContainer {	
+	flex:1;
+	flex-direction: column;
+	background-color: #444;
+	min-height: 64;
+}
+
+VFXNodeBlockUI.selected {
+	border-color: #FFAA22;
+	border-width: 5;
+	background-color: #F0F;	
+}
+
+VFXNodeBlockUI {
+	flex:1;
+	flex-direction: column;
+	background-color: #333;
+	margin-bottom: 2;
+	min-height: 64;
+}
+
+VFXNodeBlockUI #SlotContainer {
+	background-color: #F0F;
+}
+
+VFXView #VFXBackgroundGrid {
 	grid-background-color:#303030;
-	line-color:#252525;
-	thick-line-color:#151515;
+	line-color:#404040;
+	thick-line-color:#555;
 	spacing:75.0;
 	thick-lines:5;
 }

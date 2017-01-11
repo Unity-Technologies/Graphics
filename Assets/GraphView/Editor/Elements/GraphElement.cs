@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.RMGUI;
 using UnityEngine.RMGUI.StyleSheets;
@@ -93,5 +94,30 @@ namespace RMGUI.GraphView
 			// set absolute position from presenter
 			position = newPos;
 		}
-	}
+
+        // thomasi : implemented selection
+        public virtual EventPropagation Select(VisualContainer selectionContainer, Event evt)
+        {
+            var graphView = selectionContainer as GraphView;
+            
+            if(graphView != null && parent == graphView.contentViewContainer)
+            {
+
+                if (graphView.selection.Contains(this))
+						                {
+							                if (evt.control)
+							                {
+								                graphView.RemoveFromSelection(this);
+								                return EventPropagation.Stop;
+							                }
+						                }
+
+				if (!evt.control)
+					graphView.ClearSelection();
+				graphView.AddToSelection(this);
+			}
+
+            return EventPropagation.Continue;
+        }
+    }
 }

@@ -23,33 +23,23 @@ namespace RMGUI.GraphView
 			}
 
 			var graphView = target as GraphView;
-			if (graphView == null)
+
+            // thomasi : removed to be selectable anywhere
+            /*if (graphView == null)
 			{
 				throw new InvalidOperationException("Manipulator can only be added to a GraphView");
-			}
+			}*/
 
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
 					if (CanStartManipulation(evt))
 					{
-						if (graphView.selection.Contains(selectable))
-						{
-							if (evt.control)
-							{
-								graphView.RemoveFromSelection(selectable);
-								return EventPropagation.Stop;
-							}
-							break;
-						}
-
-						var ve = selectable as VisualElement;
-						if (ve != null && ve.parent == graphView.contentViewContainer)
-						{
-							if (!evt.control)
-								graphView.ClearSelection();
-							graphView.AddToSelection(selectable);
-						}
+						var ve = selectable as GraphElement;
+                        if (ve != null)
+                        {
+                            return ve.Select(graphView, evt);
+                        }
 					}
 					break;
 			}
