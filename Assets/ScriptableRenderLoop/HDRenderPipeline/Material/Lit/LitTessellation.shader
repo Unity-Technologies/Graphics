@@ -90,7 +90,14 @@ Shader "HDRenderPipeline/LitTesselation"
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
 
         // Tesselation specific
-        _TesselationFactor("Tesselation Factor", Float) = 3.0
+        [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 0
+        _TessellationFactorFixed("Tessellation Factor", Float) = -1.0 // if != -1.0 force fixed factor
+        _TessellationFactorMaxDistance("Tessellation max distance factor", Float) = 12.0
+        _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 20.0        
+        _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
+        _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 1.0)) = 0.25
+        [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
+         // TODO: Handle culling mode for backface culling
     }
 
     HLSLINCLUDE
@@ -106,6 +113,8 @@ Shader "HDRenderPipeline/LitTesselation"
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+    // Default is _TESSELATION_PHONG
+    #pragma shader_feature _ _TESSELATION_DISPLACEMENT _TESSELATION_DISPLACEMENT_PHONG
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _MAPPING_TRIPLANAR
@@ -122,7 +131,7 @@ Shader "HDRenderPipeline/LitTesselation"
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
-    #pragma shader_feature _DETAIL_MAP  
+    #pragma shader_feature _DETAIL_MAP      
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED

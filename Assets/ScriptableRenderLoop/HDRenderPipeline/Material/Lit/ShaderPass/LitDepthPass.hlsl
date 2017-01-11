@@ -63,17 +63,17 @@ Attributes AttributesTesselationToAttributes(AttributesTesselation input)
     return output;
 }
 
-AttributesTesselation InterpolateWithBary(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryWeight)
+AttributesTesselation InterpolateWithBaryCoords(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryCoords)
 {
     AttributesTesselation ouput;
 
-    TESSELATION_INTERPOLATE_BARY(positionOS, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(positionOS, baryCoords);
 #if NEED_TEXCOORD0
-    TESSELATION_INTERPOLATE_BARY(uv0, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(uv0, baryCoords);
 #endif
 #if NEED_TANGENT_TO_WORLD
-    TESSELATION_INTERPOLATE_BARY(normalOS, baryWeight);
-    TESSELATION_INTERPOLATE_BARY(tangentOS, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(normalOS, baryCoords);
+    TESSELATION_INTERPOLATE_BARY(tangentOS, baryCoords);
 #endif
 
     return ouput;
