@@ -424,6 +424,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // TODO: find a more accurate MIP bias function.
             mipLevel = lerp(mipLevel, maxMipLevel, bias);
 
+            // TODO: There is a bug currently where autogenerate mipmap for the cubemap seems to clamp the mipLevel to 6. correct it! Then remove this clamp
             // All MIP map levels beyond UNITY_SPECCUBE_LOD_STEPS contain invalid data.
             mipLevel = min(mipLevel, UNITY_SPECCUBE_LOD_STEPS);
         }
@@ -433,7 +434,6 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // TODO: use a Gaussian-like filter to generate the MIP pyramid.
             float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
-            // *********************************************************************************
             // Our goal is to use Monte-Carlo integration with importance sampling to evaluate
             // X(V)   = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
             // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
@@ -443,8 +443,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // (LdotH == NdotH) && (NdotV == 1) && (Weight == F * G).
             // We use the approximation of Brian Karis from "Real Shading in Unreal Engine 4":
             // Weight ≈ NdotL, which produces nearly identical results in practice.
-            // *********************************************************************************
-
+ 
             lightInt += NdotL * val;
             cbsdfInt += NdotL;
         }
