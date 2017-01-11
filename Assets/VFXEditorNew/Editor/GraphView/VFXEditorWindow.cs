@@ -15,7 +15,8 @@ namespace UnityEditor.VFX.UI
 
         protected override GraphView BuildView()
         {
-            return new VFXView();
+            BuildPresenters();
+            return m_ViewPresenter.View;
         }
 
         protected override GraphViewPresenter BuildPresenters()

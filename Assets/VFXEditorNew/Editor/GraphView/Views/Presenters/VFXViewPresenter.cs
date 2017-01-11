@@ -18,6 +18,17 @@ namespace UnityEditor.VFX.UI
             m_ModelContainer = modelContainer;
         }
 
+        public VFXView View 
+        { 
+            get 
+            {
+                // TODO Is that good design
+                if (m_View == null)
+                    m_View = new VFXView();
+                return m_View;
+            } 
+        }
+
         public override void RemoveElement(GraphElementPresenter element)
         {
             base.RemoveElement(element);
@@ -27,14 +38,14 @@ namespace UnityEditor.VFX.UI
             EditorUtility.SetDirty(m_ModelContainer);
         }
 
-        public void AddModel(VFXModel model, VFXView view)
+        public void AddModel(VFXModel model)
         {
             m_ModelContainer.m_Roots.Add(model);
-            AddPresentersFromModel(model,view);
+            AddPresentersFromModel(model);
             EditorUtility.SetDirty(m_ModelContainer);
         }
 
-        private void AddPresentersFromModel(VFXModel model,VFXView view)
+        private void AddPresentersFromModel(VFXModel model)
         {
             if (model is VFXContext)
             {
@@ -43,7 +54,7 @@ namespace UnityEditor.VFX.UI
                 presenter.InitModel(context);
                 presenter.position = new Rect(context.Position.x, context.Position.y, 100, 100);
                 AddElement(presenter);
-                presenter.m_view = view;
+                presenter.m_view = View; // Warning lazy initialization
             }
         }
 
@@ -59,11 +70,13 @@ namespace UnityEditor.VFX.UI
 
                 if (m_ModelContainer != null)
                     foreach (var model in m_ModelContainer.m_Roots)
-                        AddPresentersFromModel(model,null);
+                        AddPresentersFromModel(model);
             }
         }
 
         [SerializeField]
         private VFXModelContainer m_ModelContainer;
+
+        private VFXView m_View;
     }
 }

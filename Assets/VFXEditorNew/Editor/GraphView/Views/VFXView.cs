@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
         {
             var context = new VFXContext(VFXContextDesc.CreateBasic(contextType));
             context.Position = pos;
-            GetPresenter<VFXViewPresenter>().AddModel(context,this);
+            GetPresenter<VFXViewPresenter>().AddModel(context);
         }
             
         public void RegisterFlowAnchorPresenter(NodeAnchorPresenter presenter)
