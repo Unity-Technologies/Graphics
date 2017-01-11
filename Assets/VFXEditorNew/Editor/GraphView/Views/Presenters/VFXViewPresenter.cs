@@ -1,14 +1,16 @@
+using System;
 using RMGUI.GraphView;
 using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
+    [Serializable]
     class VFXViewPresenter : GraphViewPresenter
     {
-        void OnEnable()
+        protected new void OnEnable()
         {
-            if (m_ModelContainer == null)
-                SetModelContainer(CreateInstance<VFXModelContainer>());
+            base.OnEnable();
+            SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>());
         }
 
         public void Init(VFXModelContainer modelContainer)
@@ -60,6 +62,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXModelContainer m_ModelContainer;
+        [SerializeField]
+        private VFXModelContainer m_ModelContainer;
     }
 }

@@ -1,7 +1,10 @@
+using System;
 using RMGUI.GraphView;
+using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
+    [Serializable]
     class VFXViewWindow : GraphViewEditorWindow
     {
         [MenuItem("Window/VFXEditorNew")]
@@ -17,7 +20,8 @@ namespace UnityEditor.VFX.UI
 
         protected override GraphViewPresenter BuildPresenters()
         {
-            m_ViewPresenter = CreateInstance<VFXViewPresenter>();
+            if (m_ViewPresenter == null)
+                m_ViewPresenter = CreateInstance<VFXViewPresenter>();
             return m_ViewPresenter;
         }
 
@@ -45,7 +49,8 @@ namespace UnityEditor.VFX.UI
                     m_ViewPresenter.SetModelContainer(selected);
             }
         }
-
+        
+        [SerializeField]
         private VFXViewPresenter m_ViewPresenter;
     }
 }
