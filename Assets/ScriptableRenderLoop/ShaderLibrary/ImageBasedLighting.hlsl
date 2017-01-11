@@ -15,8 +15,10 @@
 // Util image based lighting
 //-----------------------------------------------------------------------------
 
-// Performs a *non-linear* remapping which improves the perceptual roughness distribution
-// and adds reflection (contact) hardening. The *approximated* version.
+// The *approximated* version of the non-linear remapping. It works by
+// approximating the cone of the specular lobe, and then computing the MIP map level
+// which (approximately) covers the footprint of the lobe with a single texel.
+// Improves the perceptual roughness distribution.
 float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
 {
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
@@ -24,8 +26,10 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
     return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
-// Performs a *non-linear* remapping which improves the perceptual roughness distribution
-// and adds reflection (contact) hardening. The *accurate* version.
+// The *accurate* version of the non-linear remapping. It works by
+// approximating the cone of the specular lobe, and then computing the MIP map level
+// which (approximately) covers the footprint of the lobe with a single texel.
+// Improves the perceptual roughness distribution and adds reflection (contact) hardening.
 // TODO: optimize!
 float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
 {
@@ -43,18 +47,28 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
     return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
-// Performs *linear* remapping for runtime EnvMap filtering.
+// The inverse of the *approximated* version of perceptualRoughnessToMipmapLevel().
 float mipmapLevelToPerceptualRoughness(float mipmapLevel)
 {
-    return saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
+    float perceptualRoughness = saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
+
+    return saturate(1.7 / 1.4 - sqrt(2.89 - 2.8 * perceptualRoughness) / 1.4);
 }
 
-// Ref: See "Moving Frostbite to PBR" Listing 22
-// This formulation is for GGX only (with smith joint visibility or regular)
-float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)
+// Ref: "Moving Frostbite to PBR", p. 69.
+float3 GetSpecularDominantDir(float3 N, float3 R, float roughness, float NdotV)
 {
     float a = 1.0 - roughness;
-    float lerpFactor = a * (sqrt(a) + roughness);
+    float s = sqrt(a);
+
+#ifdef USE_FB_DSD
+    // This is the original formulation.
+    float lerpFactor = (s + roughness) * a;
+#else
+    // TODO: tweak this further to achieve a closer match to the reference.
+    float lerpFactor = (s + roughness) * saturate(a * a + lerp(0.0, a, NdotV * NdotV));
+#endif
+
     // The result is not normalized as we fetch in a cubemap
     return lerp(N, R, lerpFactor);
 }
@@ -368,7 +382,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
         // Bias samples towards the mirror direction to reduce variance.
         // This will have a side effect of making the reflection sharper.
         // Ref: Stochastic Screen-Space Reflections, p. 67.
-        const float bias = 0.2;
+        const float bias = 0.1 + 0.2 * roughness;
         u.x = lerp(u.x, 0.0, bias);
 
         float3 L;
@@ -403,7 +417,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             float omegaS    = rcp(sampleCount) * invPdf;
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth);
-            mipLevel        = 0.5 * log2(omegaS * invOmegaP);
+            mipLevel        = 0.5 * log2(omegaS * invOmegaP + 1.0);
 
             // Bias the MIP map level to compensate for the importance sampling bias.
             // This will blur the reflection.
