@@ -239,7 +239,7 @@ float4x4 GetClipToHWorldMatrix()
     return glstate_matrix_inv_projection;
 }
 
-float GetOdddNegativeScale()
+float GetOddNegativeScale()
 {
     return unity_WorldTransformParams.w;
 }
@@ -286,8 +286,8 @@ float4 TransformWorldToHClip(float3 positionWS)
 float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
 {
     // For odd-negative scale transforms we need to flip the sign
-    float sign = tangentSign * GetOdddNegativeScale();
-    float3 bitangent = cross(normal, tangent) * sign;
+    float sgn = tangentSign * GetOddNegativeScale();
+    float3 bitangent = cross(normal, tangent) * sgn;
 
     return float3x3(tangent, bitangent, normal);
 }
