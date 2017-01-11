@@ -91,7 +91,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         // Tessellation specific
         [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 0
-        _TessellationFactorFixed("Tessellation Factor", Float) = -1.0 // if != -1.0 force fixed factor
+        _TessellationFactorFixed("Tessellation Factor", Float) = 4.0 // if != -1.0 force fixed factor
         _TessellationFactorMaxDistance("Tessellation max distance factor", Float) = 12.0
         _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 20.0        
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong

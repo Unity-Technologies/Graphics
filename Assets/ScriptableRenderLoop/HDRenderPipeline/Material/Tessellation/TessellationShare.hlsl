@@ -28,7 +28,6 @@ TessellationFactors HullConstant(InputPatch<AttributesTessellation, 3> input)
     float3 p2 = TransformObjectToWorld(input[2].positionOS);
     float3 n2 = TransformObjectToWorldNormal(input[2].normalOS);
 
-
     float4 tf = TessellationEdge(p0, p1, p2, n0, n1, n2);
 #else
     float4 tf = float4(0.0, 0.0, 0.0, 0.0);
