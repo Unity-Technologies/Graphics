@@ -9,14 +9,12 @@ float _DisplacementfalloffFar;
 
 float4 TessellationEdge(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2)
 {
-    if (_TessellationFactorFixed >= 0.0f)
+  //  if (_TessellationFactorFixed >= 0.0f)
     {
-        return  _TessellationFactorFixed.xxxx;
+    //    return  _TessellationFactorFixed.xxxx;
     }
  
-    return  _TessellationFactorFixed.xxxx;
-
- //   return UnityDistanceBasedTess(input0.positionOS, input1.positionOS, input2.positionOS, minDist, maxDist, 0.5 /* _Tess */, unity_ObjectToWorld, _WorldSpaceCameraPos);
+    return DistanceBasedTess(p0, p1, p2, 0.0, _TessellationFactorMaxDistance, unity_ObjectToWorld, _WorldSpaceCameraPos) *  _TessellationFactorFixed.xxxx;
 }
 
 void Displacement(inout Attributes v)
