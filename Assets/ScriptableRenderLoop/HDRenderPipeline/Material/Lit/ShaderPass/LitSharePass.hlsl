@@ -83,22 +83,22 @@ Attributes AttributesTesselationToAttributes(AttributesTesselation input)
     return output;
 }
 
-AttributesTesselation InterpolateWithBary(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryWeight)
+AttributesTesselation InterpolateWithBaryCoords(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryCoords)
 {
     AttributesTesselation ouput;
 
-    TESSELATION_INTERPOLATE_BARY(positionOS, baryWeight);
-    TESSELATION_INTERPOLATE_BARY(normalOS, baryWeight);
-    TESSELATION_INTERPOLATE_BARY(uv0, baryWeight);
-    TESSELATION_INTERPOLATE_BARY(uv1, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(positionOS, baryCoords);
+    TESSELATION_INTERPOLATE_BARY(normalOS, baryCoords);
+    TESSELATION_INTERPOLATE_BARY(uv0, baryCoords);
+    TESSELATION_INTERPOLATE_BARY(uv1, baryCoords);
 #if WANT_UV2
-    TESSELATION_INTERPOLATE_BARY(uv2, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(uv2, baryCoords);
 #endif
 #if WANT_UV3
-    TESSELATION_INTERPOLATE_BARY(uv3, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(uv3, baryCoords);
 #endif
-    TESSELATION_INTERPOLATE_BARY(tangentOS, baryWeight);
-    TESSELATION_INTERPOLATE_BARY(color, baryWeight);
+    TESSELATION_INTERPOLATE_BARY(tangentOS, baryCoords);
+    TESSELATION_INTERPOLATE_BARY(color, baryCoords);
 
     return ouput;
 }

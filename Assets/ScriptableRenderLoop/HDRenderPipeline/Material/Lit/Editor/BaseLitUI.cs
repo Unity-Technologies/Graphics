@@ -8,9 +8,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         protected static class Styles
         {
-            public static string OptionText = "Options";
-            public static string SurfaceTypeText = "Surface Type";
-            public static string BlendModeText = "Blend Mode";
+            public static string optionText = "Options";
+            public static string surfaceTypeText = "Surface Type";
+            public static string blendModeText = "Blend Mode";
             public static string detailText = "Inputs Detail";
             public static string lightingText = "Inputs Lighting";
 
@@ -78,8 +78,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent emissiveWarning = new GUIContent("Emissive value is animated but the material has not been configured to support emissive. Please make sure the material itself has some amount of emissive.");
             public static GUIContent emissiveColorWarning = new GUIContent("Ensure emissive color is non-black for emission to have effect.");
 
-            public static GUIContent tesselationText = new GUIContent("Tesselation options", "Tesselation options");
-            public static GUIContent tesselationFactorText = new GUIContent("Tesselation factor", "Tesselation factor");
+            public static string tessellationModeText = "Tesselation Mode";
+            public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
+
+            public static GUIContent tessellationText = new GUIContent("Tessellation options", "Tessellation options");
+            public static GUIContent tessellationFactorFixedText = new GUIContent("Fixed tessellation factor", "If non negative, this value is a fixed tessellation factor use for tessellation");
+            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("Max Distance", "Maximun distance to the camera where triangle are tesselated");
+            public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle. Smaller value mean smaller triangle.");
+            public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tesselation shape (lerp factor)");
+            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If non zero, backface culling is enabled for tessellation, smaller number mean more aggressive culling and better performance");
+            public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Scale displacement taking into account the object scale");
         }
 
         public enum SurfaceType
@@ -87,6 +95,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Opaque,
             Transparent
         }
+
         public enum BlendMode
         {
             Lerp,
@@ -95,6 +104,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Multiply,
             Premultiply
         }
+
         public enum DoubleSidedMode
         {
             None,
@@ -103,13 +113,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             DoubleSidedLightingMirror,
         }
 
+        public enum TessellationMode
+        {
+            Phong,
+            Displacement,
+            DisplacementPhong,
+        }
+
         void SurfaceTypePopup()
         {
             EditorGUI.showMixedValue = surfaceType.hasMixedValue;
             var mode = (SurfaceType)surfaceType.floatValue;
 
             EditorGUI.BeginChangeCheck();
-            mode = (SurfaceType)EditorGUILayout.Popup(Styles.SurfaceTypeText, (int)mode, Styles.surfaceTypeNames);
+            mode = (SurfaceType)EditorGUILayout.Popup(Styles.surfaceTypeText, (int)mode, Styles.surfaceTypeNames);
             if (EditorGUI.EndChangeCheck())
             {
                 m_MaterialEditor.RegisterPropertyChangeUndo("Surface Type");
@@ -119,10 +136,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.showMixedValue = false;
         }
 
+        void TessellationModePopup()
+        {
+            EditorGUI.showMixedValue = tessellationMode.hasMixedValue;
+            var mode = (TessellationMode)tessellationMode.floatValue;
+
+            EditorGUI.BeginChangeCheck();
+            mode = (TessellationMode)EditorGUILayout.Popup(Styles.tessellationModeText, (int)mode, Styles.tessellationModeNames);
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_MaterialEditor.RegisterPropertyChangeUndo("Tessellation Mode");
+                tessellationMode.floatValue = (float)mode;
+            }
+
+            EditorGUI.showMixedValue = false;
+        }
+
         protected void ShaderOptionsGUI()
         {
             EditorGUI.indentLevel++;
-            GUILayout.Label(Styles.OptionText, EditorStyles.boldLabel);
+            GUILayout.Label(Styles.optionText, EditorStyles.boldLabel);
             SurfaceTypePopup();
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
             {
@@ -144,6 +177,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText.text);
 
             EditorGUI.indentLevel--;
+
+            if (tessellationMode != null)
+            {
+                GUILayout.Label(Styles.tessellationText, EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                TessellationModePopup();
+                m_MaterialEditor.ShaderProperty(tessellationFactorFixed, Styles.tessellationFactorFixedText);
+                m_MaterialEditor.ShaderProperty(tessellationFactorMaxDistance, Styles.tessellationFactorMaxDistanceText);
+                m_MaterialEditor.ShaderProperty(tessellationFactorTriangleSize, Styles.tessellationFactorTriangleSizeText);
+                if ((TessellationMode)tessellationMode.floatValue == TessellationMode.Phong ||
+                    (TessellationMode)tessellationMode.floatValue == TessellationMode.DisplacementPhong)
+                {
+                    m_MaterialEditor.ShaderProperty(tessellationShapeFactor, Styles.tessellationShapeFactorText);
+                }
+                m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, Styles.tessellationBackFaceCullEpsilonText);
+                m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
+                EditorGUI.indentLevel--;
+            }
         }
 
         private void BlendModePopup()
@@ -152,7 +203,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var mode = (BlendMode)blendMode.floatValue;
 
             EditorGUI.BeginChangeCheck();
-            mode = (BlendMode)EditorGUILayout.Popup(Styles.BlendModeText, (int)mode, Styles.blendModeNames);
+            mode = (BlendMode)EditorGUILayout.Popup(Styles.blendModeText, (int)mode, Styles.blendModeNames);
             if (EditorGUI.EndChangeCheck())
             {
                 m_MaterialEditor.RegisterPropertyChangeUndo("Blend Mode");
@@ -173,6 +224,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionOnly = FindProperty(kDistortionOnly, props);
             distortionDepthTest = FindProperty(kDistortionDepthTest, props);
             depthOffsetEnable = FindProperty(kDepthOffsetEnable, props);
+
+            // tessellation specific, silent if not found
+            tessellationMode = FindProperty(kTessellationMode, props, false);
+            tessellationFactorFixed = FindProperty(kTessellationFactorFixed, props, false);
+            tessellationFactorMaxDistance = FindProperty(kTessellationFactorMaxDistance, props, false);
+            tessellationFactorTriangleSize = FindProperty(kTessellationFactorTriangleSize, props, false);
+            tessellationShapeFactor = FindProperty(kTessellationShapeFactor, props, false);
+            tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon, props, false);
+            tessellationObjectScale = FindProperty(kTessellationObjectScale, props, false);
         }
 
         protected void SetupCommonOptionsKeywords(Material material)
@@ -181,7 +241,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
             BlendMode blendMode = (BlendMode)material.GetFloat(kBlendMode);
             DoubleSidedMode doubleSidedMode = (DoubleSidedMode)material.GetFloat(kDoubleSidedMode);
- 
+
             if (surfaceType == SurfaceType.Opaque)
             {
                 material.SetOverrideTag("RenderType", alphaTestEnable ? "TransparentCutout" : "");
@@ -301,6 +361,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
             SetupEmissionGIFlags(material);
+
+            if (tessellationMode != null)
+            {
+                TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
+
+                if (tessMode == TessellationMode.Phong)
+                {
+                    material.DisableKeyword("_TESSELATION_DISPLACEMENT");
+                    material.DisableKeyword("_TESSELATION_DISPLACEMENT_PHONG");
+                }
+                else if (tessMode == TessellationMode.Displacement)
+                {
+                    material.EnableKeyword("_TESSELATION_DISPLACEMENT");
+                    material.DisableKeyword("_TESSELATION_DISPLACEMENT_PHONG");
+                }
+                else
+                {
+                    material.DisableKeyword("_TESSELATION_DISPLACEMENT");
+                    material.EnableKeyword("_TESSELATION_DISPLACEMENT_PHONG");
+                }
+            }
         }
 
         protected void SetKeyword(Material m, string keyword, bool state)
@@ -380,24 +461,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialEditor m_MaterialEditor;
 
         MaterialProperty surfaceType = null;
-        MaterialProperty alphaCutoffEnable = null;
-        MaterialProperty blendMode = null;
-        MaterialProperty alphaCutoff = null;
-        MaterialProperty doubleSidedMode = null;
-        MaterialProperty distortionEnable = null;
-        MaterialProperty distortionOnly = null;
-        MaterialProperty distortionDepthTest = null;
-        MaterialProperty depthOffsetEnable = null;
-
         const string kSurfaceType = "_SurfaceType";
-        const string kBlendMode = "_BlendMode";
-        const string kAlphaCutoff = "_AlphaCutoff";
+        MaterialProperty alphaCutoffEnable = null;
         const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
+        MaterialProperty blendMode = null;
+        const string kBlendMode = "_BlendMode";
+        MaterialProperty alphaCutoff = null;
+        const string kAlphaCutoff = "_AlphaCutoff";
+        MaterialProperty doubleSidedMode = null;
         const string kDoubleSidedMode = "_DoubleSidedMode";
+        MaterialProperty distortionEnable = null;
         const string kDistortionEnable = "_DistortionEnable";
+        MaterialProperty distortionOnly = null;
         const string kDistortionOnly = "_DistortionOnly";
+        MaterialProperty distortionDepthTest = null;
         const string kDistortionDepthTest = "_DistortionDepthTest";
+        MaterialProperty depthOffsetEnable = null;       
         const string kDepthOffsetEnable = "_DepthOffsetEnable";
+
+        // tessellation params
+        MaterialProperty tessellationMode = null;
+        const string kTessellationMode = "_TessellationMode";
+        MaterialProperty tessellationFactorFixed = null;
+        const string kTessellationFactorFixed = "_TessellationFactorFixed";
+        MaterialProperty tessellationFactorMaxDistance = null;
+        const string kTessellationFactorMaxDistance = "_TessellationFactorMaxDistance";
+        MaterialProperty tessellationFactorTriangleSize = null;
+        const string kTessellationFactorTriangleSize = "_TessellationFactorTriangleSize";
+        MaterialProperty tessellationShapeFactor = null;
+        const string kTessellationShapeFactor = "_TessellationShapeFactor";
+        MaterialProperty tessellationBackFaceCullEpsilon = null;
+        const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
+        MaterialProperty tessellationObjectScale = null;
+        const string kTessellationObjectScale = "_TessellationObjectScale";
+
         protected static string[] reservedProperties = new string[] { kSurfaceType, kBlendMode, kAlphaCutoff, kAlphaCutoffEnabled, kDoubleSidedMode };
 
         protected abstract void FindMaterialProperties(MaterialProperty[] props);

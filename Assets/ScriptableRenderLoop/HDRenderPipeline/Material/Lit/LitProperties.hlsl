@@ -160,5 +160,10 @@ float _AlphaCutoff;
 // Tesselation specific
 
 #ifdef TESSELATION_ON
-float _TesselationFactor;
+float _TessellationFactorFixed;
+float _TessellationFactorMaxDistance;
+float _TessellationFactorTriangleSize;
+float _TessellationShapeFactor;
+float _TessellationBackFaceCullEpsilon;
+float _TessellationObjectScale;
 #endif

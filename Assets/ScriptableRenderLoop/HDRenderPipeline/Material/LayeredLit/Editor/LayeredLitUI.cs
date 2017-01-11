@@ -108,8 +108,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty layerEmissiveColor = null;
         MaterialProperty layerEmissiveColorMap = null;
         MaterialProperty layerEmissiveIntensity = null;
-        MaterialProperty layerTesselationFactor = null;
-        
 
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
@@ -142,7 +140,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             layerEmissiveColor = FindProperty(kEmissiveColor, props);
             layerEmissiveColorMap = FindProperty(kEmissiveColorMap, props);
             layerEmissiveIntensity = FindProperty(kEmissiveIntensity, props);
-            layerTesselationFactor = FindProperty(kTesselationFactor, props, false);
         }
 
         int numLayer
@@ -729,14 +726,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(layerEmissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.LightmapEmissionProperty(1);
             EditorGUI.indentLevel--;
-
-            if (layerTesselationFactor != null)
-            {
-                GUILayout.Label(Styles.tesselationText, EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(layerTesselationFactor, Styles.tesselationFactorText);
-                EditorGUI.indentLevel--;
-            }
 
             CheckLayerConsistency();
 
