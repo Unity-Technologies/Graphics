@@ -9,19 +9,23 @@ Shader "HDRenderPipeline/Unlit"
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
-        [ToggleOff]     _DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff]     _DistortionDepthTest("Distortion Only", Float) = 0.0
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
+
+        [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
+        [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
+        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
-        [HideInInspector] _BlendMode ("__blendmode", Float) = 0.0
-        [HideInInspector] _SrcBlend ("__src", Float) = 1.0
-        [HideInInspector] _DstBlend ("__dst", Float) = 0.0
-        [HideInInspector] _ZWrite ("__zw", Float) = 1.0
+        [HideInInspector] _BlendMode("__blendmode", Float) = 0.0
+        [HideInInspector] _SrcBlend("__src", Float) = 1.0
+        [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
+        [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
         [Enum(None, 0, DoubleSided, 1)] _DoubleSidedMode("Double sided mode", Float) = 0
     }
@@ -29,13 +33,16 @@ Shader "HDRenderPipeline/Unlit"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
+    #pragma only_renderers d3d11 ps4 // TEMP: unitl we go futher in dev
 
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature _ALPHATEST_ON
+    #pragma shader_feature _DISTORTION_ON
+    #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+
     #pragma shader_feature _EMISSIVE_COLOR_MAP
 
     //-------------------------------------------------------------------------------------
@@ -94,10 +101,36 @@ Shader "HDRenderPipeline/Unlit"
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
             #include "../../Material/Material.hlsl"
-            #include "UnlitData.hlsl"
-            #include "UnlitSharePass.hlsl"
+            #include "UnlitSharePass.hlsl"            
+            #include "UnlitData.hlsl"            
             
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
+
+            ENDHLSL
+        }
+        
+        // ------------------------------------------------------------------
+        //  forward opaque pass
+        // Material opaque that are always forward (i.e can't render in deferred) need to implement ForwardOnlyOpaque pass
+        // (Code is exactly the same as "Forward", it simply allow our system to filter objects correctly
+        // TODO: can we do this another way ? Like relying on QueueIndex ? But it will be require anyway for material with two forward pass like hair
+        Pass
+        {
+            Name "ForwardUnlit"
+            Tags { "LightMode" = "ForwardOnlyOpaque" }
+
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+            #include "../../Material/Material.hlsl"            
+            #include "UnlitSharePass.hlsl"
+            #include "UnlitData.hlsl"
+            
+            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
 
             ENDHLSL
         }
@@ -107,7 +140,7 @@ Shader "HDRenderPipeline/Unlit"
         Pass
         {
             Name "ForwardUnlit"
-            Tags { "LightMode" = "ForwardUnlit" }
+            Tags { "LightMode" = "Forward" }
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
@@ -117,8 +150,8 @@ Shader "HDRenderPipeline/Unlit"
 
             #define SHADERPASS SHADERPASS_FORWARD_UNLIT
             #include "../../Material/Material.hlsl"
-            #include "UnlitData.hlsl"
             #include "UnlitSharePass.hlsl"
+            #include "UnlitData.hlsl"
             
             #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
 
@@ -143,8 +176,8 @@ Shader "HDRenderPipeline/Unlit"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #include "../../Material/Material.hlsl"
             #include "UnlitData.hlsl"
+            #include "../../Material/Material.hlsl"            
 
             CBUFFER_START(UnityMetaPass)
             // x = use uv1 as raster position
@@ -239,7 +272,29 @@ Shader "HDRenderPipeline/Unlit"
 
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "Distortion" // Name is not used
+            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
+
+            Blend One One
+            ZTest [_ZTestMode]
+            ZWrite off
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DISTORTION
+            #include "../../Material/Material.hlsl"                     
+            #include "UnlitSharePass.hlsl"
+            #include "UnlitData.hlsl"
+
+            #include "../../ShaderPass/ShaderPassDistortion.hlsl"
+
+            ENDHLSL
+        }
     }
 
-    CustomEditor "Experimental.ScriptableRenderLoop.UnlitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.UnlitGUI"
 }

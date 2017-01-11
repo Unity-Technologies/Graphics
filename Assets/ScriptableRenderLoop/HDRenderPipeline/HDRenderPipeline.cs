@@ -396,9 +396,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // This pass is use in case of forward opaque and deferred rendering. We need to render forward objects before tile lighting pass
-        void RenderForwardOnlyDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext)
+        void RenderForwardOnlyOpaqueDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext)
         {
-            // If we are forward only we don't need to render ForwardOpaqueDepth object
+            // If we are forward only we don't need to render ForwardOnlyOpaqueDepthOnly object
             // But in case we request a prepass we render it
             if (debugParameters.useForwardRenderingOnly && !debugParameters.useDepthPrepass)
                 return;
@@ -406,7 +406,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new Utilities.ProfilingSample("Forward opaque depth", renderContext))
             {
                 Utilities.SetRenderTarget(renderContext, m_CameraDepthBufferRT);
-                RenderOpaqueRenderList(cull, camera, renderContext, "ForwardOnlyDepthOnly");
+                RenderOpaqueRenderList(cull, camera, renderContext, "ForwardOnlyOpaqueDepthOnly");
             }
         }
 
@@ -471,7 +471,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_SkyManager.RenderSky(hdCamera, m_lightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthBufferRT, renderContext);
         }
-
+        
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
         {
             // TODO: Currently we can't render opaque object forward when deferred is enabled
@@ -499,9 +499,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // Render material that are forward opaque only (like eye)
-        // TODO: Think about hair that could be render both as opaque and transparent...
-        void RenderForwardOnly(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext)
+        // Render material that are forward opaque only (like eye), this include unlit material
+        void RenderForwardOnlyOpaque(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext)
         {
             using (new Utilities.ProfilingSample("Forward Only Pass", renderContext))
             {
@@ -511,20 +510,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
 
                 m_lightLoop.RenderForward(camera, renderContext, true);
-                RenderOpaqueRenderList(cullResults, camera, renderContext, "ForwardOnly");
-            }
-        }
-
-        void RenderForwardUnlit(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext)
-        {
-            using (new Utilities.ProfilingSample("Forward Unlit Pass", renderContext))
-            {
-                // Bind material data
-                m_LitRenderLoop.Bind();
-
-                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
-                RenderOpaqueRenderList(cullResults, camera, renderContext, "ForwardUnlit");
-                RenderTransparentRenderList(cullResults, camera, renderContext, "ForwardUnlit");
+                RenderOpaqueRenderList(cullResults, camera, renderContext, "ForwardOnlyOpaque");
             }
         }
 
@@ -708,12 +694,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 InitAndClearBuffer(camera, renderContext);
 
+                UpdateSkyEnvironment(hdCamera, renderContext); // TODO: Use async compute here to run sky convolution during other passes
+
                 RenderDepthPrepass(cullResults, camera, renderContext);
 
                 // Forward opaque with deferred/cluster tile require that we fill the depth buffer
                 // correctly to build the light list.
                 // TODO: avoid double lighting by tagging stencil or gbuffer that we must not lit.
-                RenderForwardOnlyDepthPrepass(cullResults, camera, renderContext);
+                RenderForwardOnlyOpaqueDepthPrepass(cullResults, camera, renderContext);
                 RenderGBuffer(cullResults, camera, renderContext);
 
                 if (debugParameters.debugViewMaterial != 0)
@@ -733,23 +721,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     using (new Utilities.ProfilingSample("Build Light list", renderContext))
                     {
                         m_lightLoop.PrepareLightsForGPU(m_ShadowSettings, cullResults, camera, ref shadows);
-                        m_lightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthBufferRT);
+                        m_lightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthBufferRT); // TODO: Use async compute here to run light culling during shadow
 
                         PushGlobalParams(hdCamera, renderContext);
-                    } 
-                    
-                    UpdateSkyEnvironment(hdCamera, renderContext);
+                    }                     
 
                     RenderDeferredLighting(hdCamera, renderContext);
 
-                    RenderForward(cullResults, camera, renderContext, true);
-                    RenderForwardOnly(cullResults, camera, renderContext);
+                    // For opaque forward we have split rendering in two categories
+                    // Material that are always forward and material that can be deferred or forward depends on render pipeline options (like switch to rendering forward only mode)
+                    // Material that are always forward are unlit and complex (Like Hair) and don't require sorting, so it is ok to split them.
+                    RenderForward(cullResults, camera, renderContext, true); // Render deferred or forward opaque
+                    RenderForwardOnlyOpaque(cullResults, camera, renderContext);
 
                     RenderSky(hdCamera, renderContext);
 
+                    // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                     RenderForward(cullResults, camera, renderContext, false);
-
-                    RenderForwardUnlit(cullResults, camera, renderContext);
 
                     RenderVelocity(cullResults, camera, renderContext); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
 
