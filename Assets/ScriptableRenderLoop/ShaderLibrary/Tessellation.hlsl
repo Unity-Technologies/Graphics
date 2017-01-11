@@ -1,11 +1,28 @@
-#define TESSELATION_INTERPOLATE_BARY(name, bary) ouput.name = input0.name * bary.x +  input1.name * bary.y +  input2.name * bary.z
+#define TESSELLATION_INTERPOLATE_BARY(name, bary) ouput.name = input0.name * bary.x +  input1.name * bary.y +  input2.name * bary.z
+
+float3 ProjectPointOnPlane(float3 position, float3 planePosition, float3 planeNormal)
+{
+    return position - (dot(position - planePosition, planeNormal) * planeNormal);
+}
+
+// p0, p1, p2 triangle world position
+// p0, p1, p2 triangle world vertex normal
+float3 PhongTessellation(float3 positionWS, float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2, float3 baryCoords, float shape)
+{
+    float3 c0 = ProjectPointOnPlane(positionWS, p0, n0);
+    float3 c1 = ProjectPointOnPlane(positionWS, p1, n1);
+    float3 c2 = ProjectPointOnPlane(positionWS, p2, n2);
+
+    float3 phongPositionWS = baryCoords.x * c0 + baryCoords.y * c1 + baryCoords.z * c2;
+
+    return lerp(positionWS, phongPositionWS, shape);
+}
 
 // ---- utility functions
-float UnityCalcDistanceTessFactor(float3 positionOS, float minDist, float maxDist, float tess, float4x4 objectToWorld, float3 cameraPosWS)
+float CalcDistanceTessFactor(float3 positionWS, float minDist, float maxDist, float4x4 objectToWorld, float3 cameraPosWS)
 {
-    float3 positionWS = mul(objectToWorld, float4(positionOS, 1.0)).xyz;
     float dist = distance(positionWS, cameraPosWS);
-    float f = clamp(1.0 - (dist - minDist) / (maxDist - minDist), 0.01, 1.0) * tess;
+    float f = clamp(1.0 - (dist - minDist) / (maxDist - minDist), 0.01, 1.0);
     return f;
 }
 
@@ -69,12 +86,12 @@ bool UnityWorldViewFrustumCull(float3 wpos0, float3 wpos1, float3 wpos2, float c
 // Distance based tessellation:
 // Tessellation level is "tess" before "minDist" from camera, and linearly decreases to 1
 // up to "maxDist" from camera.
-float4 UnityDistanceBasedTess(float3 positionOS0, float3 positionOS1, float3 positionOS2, float minDist, float maxDist, float tess, float4x4 objectToWorld, float3 cameraPosWS)
+float4 DistanceBasedTess(float3 p0, float3 p1, float3 p2, float minDist, float maxDist, float4x4 objectToWorld, float3 cameraPosWS)
 {
     float3 f;
-    f.x = UnityCalcDistanceTessFactor(positionOS0, minDist, maxDist, tess, objectToWorld, cameraPosWS);
-    f.y = UnityCalcDistanceTessFactor(positionOS1, minDist, maxDist, tess, objectToWorld, cameraPosWS);
-    f.z = UnityCalcDistanceTessFactor(positionOS2, minDist, maxDist, tess, objectToWorld, cameraPosWS);
+    f.x = CalcDistanceTessFactor(p0, minDist, maxDist, objectToWorld, cameraPosWS);
+    f.y = CalcDistanceTessFactor(p1, minDist, maxDist, objectToWorld, cameraPosWS);
+    f.z = CalcDistanceTessFactor(p2, minDist, maxDist, objectToWorld, cameraPosWS);
     return UnityCalcTriEdgeTessFactors(f);
 }
 

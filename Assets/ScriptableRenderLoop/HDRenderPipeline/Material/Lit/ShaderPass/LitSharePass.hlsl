@@ -27,9 +27,9 @@ struct Attributes
     // UNITY_INSTANCE_ID
 };
 
-#ifdef TESSELATION_ON
+#ifdef TESSELLATION_ON
 // Copy paste of above struct with POSITION rename to INTERNALTESSPOS (internal of unity shader compiler)
-struct AttributesTesselation
+struct AttributesTessellation
 {
     float3 positionOS   : INTERNALTESSPOS;
     float3 normalOS     : NORMAL;
@@ -45,9 +45,9 @@ struct AttributesTesselation
     float4 color        : COLOR;
 };
 
-AttributesTesselation AttributesToAttributesTesselation(Attributes input)
+AttributesTessellation AttributesToAttributesTessellation(Attributes input)
 {
-    AttributesTesselation output;
+    AttributesTessellation output;
     output.positionOS = input.positionOS;
     output.normalOS = input.normalOS;
     output.uv0 = input.uv0;
@@ -64,7 +64,7 @@ AttributesTesselation AttributesToAttributesTesselation(Attributes input)
     return output;
 }
 
-Attributes AttributesTesselationToAttributes(AttributesTesselation input)
+Attributes AttributesTessellationToAttributes(AttributesTessellation input)
 {
     Attributes output;
     output.positionOS = input.positionOS;
@@ -83,26 +83,26 @@ Attributes AttributesTesselationToAttributes(AttributesTesselation input)
     return output;
 }
 
-AttributesTesselation InterpolateWithBary(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryWeight)
+AttributesTessellation InterpolateWithBaryCoords(AttributesTessellation input0, AttributesTessellation input1, AttributesTessellation input2, float3 baryCoords)
 {
-    AttributesTesselation ouput;
+    AttributesTessellation ouput;
 
-    TESSELATION_INTERPOLATE_BARY(positionOS, baryWeight);
-    TESSELATION_INTERPOLATE_BARY(normalOS, baryWeight);
-    TESSELATION_INTERPOLATE_BARY(uv0, baryWeight);
-    TESSELATION_INTERPOLATE_BARY(uv1, baryWeight);
+    TESSELLATION_INTERPOLATE_BARY(positionOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(normalOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(uv0, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(uv1, baryCoords);
 #if WANT_UV2
-    TESSELATION_INTERPOLATE_BARY(uv2, baryWeight);
+    TESSELLATION_INTERPOLATE_BARY(uv2, baryCoords);
 #endif
 #if WANT_UV3
-    TESSELATION_INTERPOLATE_BARY(uv3, baryWeight);
+    TESSELLATION_INTERPOLATE_BARY(uv3, baryCoords);
 #endif
-    TESSELATION_INTERPOLATE_BARY(tangentOS, baryWeight);
-    TESSELATION_INTERPOLATE_BARY(color, baryWeight);
+    TESSELLATION_INTERPOLATE_BARY(tangentOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(color, baryCoords);
 
     return ouput;
 }
-#endif // TESSELATION_ON
+#endif // TESSELLATION_ON
 
 
 struct Varyings
