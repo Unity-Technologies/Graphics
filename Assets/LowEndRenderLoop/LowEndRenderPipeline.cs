@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.ScriptableRenderLoop;
 using UnityEngine.Rendering;
@@ -41,7 +39,6 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-            VisibleLight[] lights = cull.visibleLights;
             ShadowOutput shadowOutput;
             m_ShadowPass.Render(context, cull, out shadowOutput);
             SetupShadowShaderVariables(shadowOutput, context, camera.nearClipPlane, cullingParameters.shadowDistance);
@@ -53,8 +50,10 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque();
 
-            if (Lightmapping.bakedGI)
+#if UNITY_EDITOR
+            if (UnityEditor.Lightmapping.bakedGI)
                 settings.rendererConfiguration = settings.rendererConfiguration | RendererConfiguration.PerObjectLightmaps;
+#endif
 
             context.DrawRenderers(ref settings);
             context.DrawSkybox(camera);
@@ -165,7 +164,6 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         cmd.SetGlobalVectorArray("globalLightAtten", lightAttenuations);
         cmd.SetGlobalVectorArray("globalLightSpotDir", lightSpotDirections);
         cmd.SetGlobalVector("globalLightCount", new Vector4(pixelLightCount, totalLightCount, 0.0f, 0.0f));
-
         cmd.SetGlobalVectorArray("globalSH", shConstants);
         context.ExecuteCommandBuffer(cmd);
         cmd.Dispose();

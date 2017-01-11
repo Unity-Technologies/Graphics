@@ -65,6 +65,7 @@ Shader "RenderLoop/LowEnd"
 			#pragma shader_feature _METALLICGLOSSMAP
 			#pragma shader_feature _NORMALMAP
 			#pragma shader_feature _EMISSION
+			#pragma multi_compile_fog
 			
 			#include "UnityCG.cginc"
 			#include "UnityStandardBRDF.cginc"
@@ -189,9 +190,9 @@ Shader "RenderLoop/LowEnd"
 				half3 tangentWS : TEXCOORD4;
 				half3 binormalWS : TEXCOORD5;
 				half4 viewDir : TEXCOORD6; // xyz: viewDir, w: grazingTerm;
-				half3 vertexColor : TEXCOORD7;
+				UNITY_FOG_COORDS_PACKED(7, half4) // x: fogCoord, yzw: vertexColor
 				float4 hpos : SV_POSITION;
-			};
+			}; 
 
 			v2f vert(LowendVertexInput v)
 			{ 
@@ -217,14 +218,16 @@ Shader "RenderLoop/LowEnd"
 				o.tangentWS = half3(1, 0, 0);
 				o.binormalWS = half3(0, 1, 0);
 #endif
+
 				half3 diffuseAndSpecularColor = half3(1.0, 1.0, 1.0);
 				for (int lightIndex = globalLightCount.x; lightIndex < globalLightCount.y; ++lightIndex)
 				{
 					LightInput lightInput;
 					INITIALIZE_LIGHT(lightInput, lightIndex);
-					o.vertexColor += EvaluateOneLight(lightInput, diffuseAndSpecularColor, diffuseAndSpecularColor, o.normalWS, o.posWS.xyz, o.viewDir.xyz);
+					o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecularColor, diffuseAndSpecularColor, o.normalWS, o.posWS.xyz, o.viewDir.xyz);
 				}
 
+				UNITY_TRANSFER_FOG(o, o.hpos);
 				return o;
 			}
 
@@ -264,7 +267,7 @@ Shader "RenderLoop/LowEnd"
 				giIndirect.specular = half3(0, 0, 0);
 				half3 indirectColor = BRDF3_Indirect(diffuse, specular, giIndirect, i.posWS.w, i.normalWS.w);
 
-				half3 directColor = i.vertexColor * diffuseAlbedo.rgb;
+				half3 directColor = i.fogCoord.yzw * diffuseAlbedo.rgb;
 
 				// Compute direct contribution from main directional light.
 				// Only a single directional shadow caster is supported.
@@ -285,8 +288,9 @@ Shader "RenderLoop/LowEnd"
 					directColor += EvaluateOneLight(additionalLight, diffuse, specular, normal, posWorld, viewDir);
 				}
 
-				half3 finalColor = directColor + indirectColor + emission;
-				return half4(finalColor, diffuseAlbedo.a);
+				half3 color = directColor + indirectColor + emission;
+				UNITY_APPLY_FOG(i.fogCoord, color);
+				return half4(color, diffuseAlbedo.a);
 			}
 			ENDCG
 		}
