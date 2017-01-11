@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
 			get { return m_OutputAnchors ?? (m_OutputAnchors = new List<VFXFlowAnchorPresenter>()); }
 		}
 
-        public void InitModel(VFXContext model)
+        public void Init(VFXContext model)
         {
             m_Model = model;
 
@@ -53,23 +53,39 @@ namespace UnityEditor.VFX.UI
 
             // TODO : ACCESS INPUTS AND OUTPUTS
             // WIP STUFF
-            var in_anchor = CreateInstance<VFXFlowInputAnchorPresenter>();
-            in_anchor.anchorType = typeof(int);
-            var in_anchor2 = CreateInstance<VFXFlowInputAnchorPresenter>();
-            in_anchor2.anchorType = typeof(int);
-            var out_anchor = CreateInstance<VFXFlowOutputAnchorPresenter>();
-            out_anchor.anchorType = typeof(int);
-            inputAnchors.Add(in_anchor);
-            inputAnchors.Add(in_anchor2);
-            outputAnchors.Add(out_anchor);
+            if (model.ContextType != VFXContextDesc.Type.kTypeInit)
+            {
+                var in_anchor = CreateInstance<VFXFlowInputAnchorPresenter>();
+                in_anchor.anchorType = typeof(int);
+                inputAnchors.Add(in_anchor);
+            }
+
+            if (model.ContextType != VFXContextDesc.Type.kTypeOutput)
+            {
+                var out_anchor = CreateInstance<VFXFlowOutputAnchorPresenter>();
+                out_anchor.anchorType = typeof(int);
+                outputAnchors.Add(out_anchor);
+            }
+
+            // Recreate
+            nodeBlockPresenters.Clear();
+            foreach (var block in model.GetChildren())
+                AddPresentersFromModel((VFXBlock)block);
         }
 
-        public void AddNodeBlock()
+        public void AddNodeBlock(int index,VFXBlockDesc desc)
         {
-            // need to replug to model
-            var block = CreateInstance<VFXNodeBlockPresenter>();
-            m_NodeBlockPresenters.Add(block);
+            //var block = CreateInstance<VFXNodeBlockPresenter>();
+            var block = new VFXBlock(desc);
+            Model.AddChild(block, index);
+            AddPresentersFromModel(block);
         }
 
+        private void AddPresentersFromModel(VFXBlock block)
+        {
+            var presenter = CreateInstance<VFXNodeBlockPresenter>();
+            presenter.Model = block;
+            m_NodeBlockPresenters.Add(presenter);
+        }
     }
 }

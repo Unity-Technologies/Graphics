@@ -7,7 +7,7 @@ using UnityEngine.RMGUI.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXNodeBlockUI : GraphElement
+    class VFXNodeBlockUI : GraphElement
     {
         static int s_Counter = 0;
 
@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.UI
                 name = "SlotContainer"
             };
 
-            AddChild(new Label(new GUIContent("NodeBlock "+(s_Counter++))));
+            AddChild(new Label(new GUIContent(presenter.Model.Desc.Name+" "+(s_Counter++))));
             AddChild(m_SlotContainer);
         }
 

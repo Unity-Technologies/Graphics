@@ -57,9 +57,15 @@ namespace UnityEditor.VFX.UI
  			m_NodeContainer.AddManipulator(new ContextualMenu((evt, customData) =>
  			{
  				var menu = new GenericMenu();
- 				menu.AddItem(new GUIContent("Add NodeBlock"), false,
- 							 contentView => AddNodeBlock(),
- 							 this);
+
+                // Needs to have the model here to filter compatible node blocks
+                var contextType = GetPresenter<VFXContextPresenter>().Model.ContextType;
+                foreach (var desc in VFXLibrary.GetBlocks())
+                    if ((desc.CompatibleContexts & contextType) != 0)
+                        menu.AddItem(new GUIContent(desc.Name), false,
+                                     contentView => AddNodeBlock(-1, desc),
+                                     this);
+
  				menu.ShowAsContext();
  				return EventPropagation.Continue;
  			}));
@@ -81,10 +87,10 @@ namespace UnityEditor.VFX.UI
 			}
 		}
 
-        private void AddNodeBlock()
+        private void AddNodeBlock(int index,VFXBlockDesc desc)
         {
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-            presenter.AddNodeBlock();
+            presenter.AddNodeBlock(index, desc);
         }
 
         public override void OnDataChanged()
@@ -133,6 +139,10 @@ namespace UnityEditor.VFX.UI
                 var blockUI = VFXNodeBlockPresenter.Create(nodeblock);
                 m_NodeBlockContainer.AddChild(blockUI);
             }
+
+            // Recreate label with good name // Dirty
+            m_NodeContainer.RemoveChildAt(0);
+            m_NodeContainer.InsertChild(0, new Label(new GUIContent(presenter.Model.Desc.Name)));
 
         }
 

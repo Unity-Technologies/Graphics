@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXNodeBlockPresenter : GraphElementPresenter
+    class VFXNodeBlockPresenter : GraphElementPresenter
     {
         public static VFXNodeBlockUI Create(VFXNodeBlockPresenter nodeblock)
         {
@@ -16,5 +16,14 @@ namespace UnityEditor.VFX.UI
         {
             capabilities |= Capabilities.Selectable;
         }
+
+        public VFXBlock Model
+        {
+            get { return m_Model; }
+            set { m_Model = value; }
+        }
+
+        [SerializeField]
+        private VFXBlock m_Model;
     }
 }

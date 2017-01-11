@@ -33,4 +33,9 @@ namespace UnityEditor.VFX
     {
         public VFXOutputBlockTest() : base("Output Block", VFXContextDesc.Type.kTypeOutput) { }
     }
+
+    class VFXInitAndUpdateTest : VFXBlockDesc
+    {
+        public VFXInitAndUpdateTest() : base("Init And Update Block", VFXContextDesc.Type.kInitAndUpdate) { }
+    }
 }

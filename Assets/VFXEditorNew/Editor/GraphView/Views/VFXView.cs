@@ -37,17 +37,10 @@ namespace UnityEditor.VFX.UI
                 var menu = new GenericMenu();
                 Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, evt.mousePosition);
 
-                menu.AddItem(new GUIContent("Add Init"), false,
-                             contentView => AddVFXContext(tPos, VFXContextDesc.Type.kTypeInit),
-                             this);
-
-                menu.AddItem(new GUIContent("Add Update"), false,
-                             contentView => AddVFXContext(tPos, VFXContextDesc.Type.kTypeUpdate),
-                             this);
-
-                menu.AddItem(new GUIContent("Add Output"), false,
-                             contentView => AddVFXContext(tPos, VFXContextDesc.Type.kTypeOutput),
-                             this);
+                foreach(var desc in VFXLibrary.GetContexts())
+                    menu.AddItem(new GUIContent(desc.Name), false,
+                                 contentView => AddVFXContext(tPos, desc),
+                                 this);
 
                 menu.ShowAsContext();
                 return EventPropagation.Continue;
@@ -62,11 +55,9 @@ namespace UnityEditor.VFX.UI
 
         }
 
-        void AddVFXContext(Vector2 pos,VFXContextDesc.Type contextType)
+        void AddVFXContext(Vector2 pos,VFXContextDesc desc)
         {
-            var context = new VFXContext(VFXContextDesc.CreateBasic(contextType));
-            context.Position = pos;
-            GetPresenter<VFXViewPresenter>().AddModel(context);
+            GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc);
         }
             
         public void RegisterFlowAnchorPresenter(NodeAnchorPresenter presenter)
