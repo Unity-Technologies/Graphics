@@ -47,7 +47,7 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
     return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
-// The inverse of perceptualRoughnessToMipmapLevel().
+// The inverse of the *approximated* version of perceptualRoughnessToMipmapLevel().
 float mipmapLevelToPerceptualRoughness(float mipmapLevel)
 {
     float perceptualRoughness = saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
