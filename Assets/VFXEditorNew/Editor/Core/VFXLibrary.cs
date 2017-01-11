@@ -68,7 +68,7 @@ namespace UnityEditor.VFX
                 try
                 {
                     VFXBlockDesc instance = (VFXBlockDesc)blockDesc.Assembly.CreateInstance(blockDesc.FullName);
-                    blockDesc.Add(blockDesc.FullName, instance);
+                    blockDescs.Add(blockDesc.FullName, instance);
                 }
                 catch (Exception e)
                 {

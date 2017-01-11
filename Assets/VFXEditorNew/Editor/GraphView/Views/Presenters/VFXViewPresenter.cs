@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXContext context = (VFXContext)model;
                 var presenter = CreateInstance<VFXContextPresenter>();
-                presenter.InitModel((VFXContext)model);
+                presenter.InitModel(context);
                 presenter.position = new Rect(context.Position.x, context.Position.y, 100, 100);
                 AddElement(presenter);
                 presenter.m_view = view;
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.UI
 
                 if (m_ModelContainer != null)
                     foreach (var model in m_ModelContainer.m_Roots)
-                        AddPresentersFromModel(model);
+                        AddPresentersFromModel(model,null);
             }
         }
 

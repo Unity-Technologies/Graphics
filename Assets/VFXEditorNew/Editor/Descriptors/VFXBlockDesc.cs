@@ -4,7 +4,7 @@ namespace UnityEditor.VFX
     abstract class VFXBlockDesc
     {
         public string Name { get { return m_Name; }}
-        public VFXContextDesc.Type CompatibleContexts { get { return m_CompatibleContexts }}
+        public VFXContextDesc.Type CompatibleContexts { get { return m_CompatibleContexts; }}
 
         protected VFXBlockDesc(string name, VFXContextDesc.Type compatibleContexts)
         {
