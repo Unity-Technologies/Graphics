@@ -12,6 +12,9 @@ namespace UnityEditor.VFX
         public static VFXContextDesc GetContext(string id)      { LoadIfNeeded(); return m_ContextDescs[id]; }
         public static IEnumerable<VFXContextDesc> GetContexts() { LoadIfNeeded(); return m_ContextDescs.Values; }
 
+        public static VFXBlockDesc GetBlock(string id)          { LoadIfNeeded(); return m_BlockDescs[id]; }
+        public static IEnumerable<VFXBlockDesc> GetBlocks()     { LoadIfNeeded(); return m_BlockDescs.Values; }
+
         public static void LoadIfNeeded()
         {
             if (m_Loaded)
@@ -29,6 +32,7 @@ namespace UnityEditor.VFX
             lock(m_Lock)
             {
                 LoadContextDescs();
+                LoadBlockDescs();
                 m_Loaded = true;
             }
         }
@@ -52,6 +56,27 @@ namespace UnityEditor.VFX
             }
 
             m_ContextDescs = contextDescs; // atomic set
+        }
+
+        private static void LoadBlockDescs()
+        {
+            // Search for derived type of VFXBlockType in assemblies
+            var blockDescTypes = FindConcreteSubclasses<VFXBlockDesc>();
+            var blockDescs = new Dictionary<string, VFXBlockDesc>();
+            foreach (var blockDesc in blockDescTypes)
+            {
+                try
+                {
+                    VFXBlockDesc instance = (VFXBlockDesc)blockDesc.Assembly.CreateInstance(blockDesc.FullName);
+                    blockDesc.Add(blockDesc.FullName, instance);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("Error while loading context desc from type " + blockDesc.FullName + ": " + e.Message);
+                }
+            }
+
+            m_BlockDescs = blockDescs; // atomic set
         }
 
         private static IEnumerable<Type> FindConcreteSubclasses<T>()
@@ -78,6 +103,7 @@ namespace UnityEditor.VFX
         }
 
         private static volatile Dictionary<string, VFXContextDesc> m_ContextDescs;
+        private static volatile Dictionary<string, VFXBlockDesc> m_BlockDescs;
 
         private static Object m_Lock = new Object();
         private static volatile bool m_Loaded = false;

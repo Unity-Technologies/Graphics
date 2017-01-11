@@ -77,6 +77,15 @@ namespace UnityEditor.VFX.Test
             system1.AddChild(new VFXContext(new VFXContextDescInit()));
             system1.AddChild(new VFXContext(new VFXContextDescOutput()));
 
+            // Add some block
+            var block0 = new VFXBlock(new VFXInitBlockTest());
+            var block1 = new VFXBlock(new VFXUpdateBlockTest());
+            var block2 = new VFXBlock(new VFXOutputBlockTest());
+
+            system0.GetChild(0).AddChild(block0);
+            system0.GetChild(1).AddChild(block1);
+            system0.GetChild(2).AddChild(block2);
+
             asset.m_Roots.Add(system0);
             asset.m_Roots.Add(system1);
         }
@@ -92,6 +101,10 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(2).Desc);
             Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(0).Desc);
             Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(1).Desc);
+
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(0).GetChild(0).Desc);
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(1).GetChild(0).Desc);
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(2).GetChild(0).Desc);
         }
     }
 }

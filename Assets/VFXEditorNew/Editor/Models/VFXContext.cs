@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    class VFXContext : VFXModel<VFXSystem, VFXSubContext>
+    class VFXContext : VFXModel<VFXSystem, VFXBlock>
     {
         private VFXContext() {} // Used by serialization
 
@@ -20,6 +20,15 @@ namespace UnityEditor.VFX
             set { m_UIPosition = value; }
         }
 
+        public override bool AcceptChild(VFXModel model, int index = -1)
+        {
+            if (!base.AcceptChild(model,index))
+                return false;
+
+            var block = (VFXBlock)model;
+            return (block.Desc.CompatibleContexts & ContextType) != 0;
+        }
+
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
@@ -29,7 +38,6 @@ namespace UnityEditor.VFX
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
-            // TODO Construct desc based on its type
             m_Desc = VFXLibrary.GetContext(m_SerializableDesc);
             m_SerializableDesc = null;
         }
@@ -43,10 +51,11 @@ namespace UnityEditor.VFX
         private Vector2 m_UIPosition;
     }
 
-    class VFXSubContext : VFXModel<VFXContext, VFXModel>
+    // TODO Do that later!
+   /* class VFXSubContext : VFXModel<VFXContext, VFXModel>
     {
         // In and out sub context, if null directly connected to the context input/output
         private VFXSubContext m_In;
         private VFXSubContext m_Out;
-    }
+    }*/
 }
