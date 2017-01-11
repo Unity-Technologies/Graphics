@@ -41,20 +41,25 @@ Shader "HDRenderPipeline/LayeredLit"
         _NormalMap2("NormalMap2", 2D) = "bump" {}
         _NormalMap3("NormalMap3", 2D) = "bump" {}
 
+        _NormalScale0("_NormalScale0", Range(0.0, 2.0)) = 1
+        _NormalScale1("_NormalScale1", Range(0.0, 2.0)) = 1
+        _NormalScale2("_NormalScale2", Range(0.0, 2.0)) = 1
+        _NormalScale3("_NormalScale3", Range(0.0, 2.0)) = 1
+
         _HeightMap0("HeightMap0", 2D) = "black" {}
         _HeightMap1("HeightMap1", 2D) = "black" {}
         _HeightMap2("HeightMap2", 2D) = "black" {}
         _HeightMap3("HeightMap3", 2D) = "black" {}
 
-        _HeightScale0("Height Scale0", Float) = 1
-        _HeightScale1("Height Scale1", Float) = 1
-        _HeightScale2("Height Scale2", Float) = 1
-        _HeightScale3("Height Scale3", Float) = 1
+        _HeightAmplitude0("Height Scale0", Float) = 1
+        _HeightAmplitude1("Height Scale1", Float) = 1
+        _HeightAmplitude2("Height Scale2", Float) = 1
+        _HeightAmplitude3("Height Scale3", Float) = 1
 
-        _HeightBias0("Height Bias0", Float) = 0
-        _HeightBias1("Height Bias1", Float) = 0
-        _HeightBias2("Height Bias2", Float) = 0
-        _HeightBias3("Height Bias3", Float) = 0
+        _HeightCenter0("Height Bias0", Float) = 0
+        _HeightCenter1("Height Bias1", Float) = 0
+        _HeightCenter2("Height Bias2", Float) = 0
+        _HeightCenter3("Height Bias3", Float) = 0
 
         _DetailMap0("DetailMap0", 2D) = "black" {}
         _DetailMap1("DetailMap1", 2D) = "black" {}
@@ -97,14 +102,10 @@ Shader "HDRenderPipeline/LayeredLit"
         _TexWorldScale2("TexWorldScale2", Float) = 1.0
         _TexWorldScale3("TexWorldScale3", Float) = 1.0
 
-        // Blend mask between layer
+        // Layer blending options
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
         [ToggleOff]  _LayerMaskVertexColor("Use Vertex Color Mask", Float) = 0.0
-
-        // Height based blend (layer 0 does not need it)
-        _UseHeightBasedBlend1("UseHeightBasedBlend1", Float) = 0.0
-        _UseHeightBasedBlend2("UseHeightBasedBlend2", Float) = 0.0
-        _UseHeightBasedBlend3("UseHeightBasedBlend3", Float) = 0.0
+        [ToggleOff] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
 
         _HeightOffset1("_HeightOffset1", Range(-0.3, 0.3)) = 0.0
         _HeightOffset2("_HeightOffset2", Range(-0.3, 0.3)) = 0.0
@@ -114,9 +115,15 @@ Shader "HDRenderPipeline/LayeredLit"
         _HeightFactor2("_HeightFactor2", Range(0, 5)) = 1
         _HeightFactor3("_HeightFactor3", Range(0, 5)) = 1
 
-        _BlendSize1("_BlendSize1", Range(0, 0.05)) = 0.0
-        _BlendSize2("_BlendSize2", Range(0, 0.05)) = 0.0
-        _BlendSize3("_BlendSize3", Range(0, 0.05)) = 0.0
+        _BlendSize1("_BlendSize1", Range(0, 0.30)) = 0.0
+        _BlendSize2("_BlendSize2", Range(0, 0.30)) = 0.0
+        _BlendSize3("_BlendSize3", Range(0, 0.30)) = 0.0
+
+        _InheritBaseLayer1("_InheritBaseLayer1", Range(0, 1.0)) = 0.0
+        _InheritBaseLayer2("_InheritBaseLayer2", Range(0, 1.0)) = 0.0
+        _InheritBaseLayer3("_InheritBaseLayer3", Range(0, 1.0)) = 0.0
+
+        _VertexColorHeightFactor("_VertexColorHeightFactor", Float) = 0.3
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
@@ -146,7 +153,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
         [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
-        [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
+        [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
 
@@ -190,7 +197,7 @@ Shader "HDRenderPipeline/LayeredLit"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
+    #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
@@ -204,7 +211,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_3
     #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
-    #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
+    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
     #pragma shader_feature _REQUIRE_UV2_OR_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
@@ -214,7 +221,8 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _DETAIL_MAP
-    #pragma shader_feature _LAYER_MASK_VERTEX_COLOR
+    #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
+    #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
@@ -262,6 +270,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Lit/LitProperties.hlsl"
 
+    // All our shaders use same name for entry point
+    #pragma vertex Vert
+    #pragma fragment Frag
+
     ENDHLSL
 
     SubShader
@@ -278,14 +290,11 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex VertDefault
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_GBUFFER
 
-            #include "../../Material/Material.hlsl"
+            #include "../../Material/Material.hlsl"            
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"    
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitSharePass.hlsl"    
 
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -301,14 +310,11 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex VertDefault
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
 
-            #include "../../Material/Material.hlsl"
+            #include "../../Material/Material.hlsl"            
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitSharePass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
@@ -330,13 +336,10 @@ Shader "HDRenderPipeline/LayeredLit"
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #include "../../Material/Material.hlsl"
+            #include "../../Material/Material.hlsl"            
+            #include "../Lit/ShaderPass/LitMetaPass.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitMetaPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
@@ -354,13 +357,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_VELOCITY
-            #include "../../Material/Material.hlsl"         
+            #include "../../Material/Material.hlsl"                     
+            #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitVelocityPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
@@ -379,13 +379,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "../../Material/Material.hlsl"
+            #include "../../Material/Material.hlsl"            
+            #include "../Lit/ShaderPass/LitDepthPass.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitDepthPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -403,13 +400,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "../../Material/Material.hlsl"
+            #include "../../Material/Material.hlsl"            
+            #include "../Lit/ShaderPass/LitDepthPass.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitDepthPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -428,13 +422,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_DISTORTION
-            #include "../../Material/Material.hlsl"         
+            #include "../../Material/Material.hlsl"                     
+            #include "../Lit/ShaderPass/LitDistortionPass.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitDistortionPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
@@ -452,18 +443,15 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma vertex VertDefault
-            #pragma fragment Frag
-
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
 
-            #include "../../Lighting/Lighting.hlsl"
+            #include "../../Lighting/Lighting.hlsl"            
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
-            #include "../Lit/LitSharePass.hlsl"
 
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
@@ -471,5 +459,5 @@ Shader "HDRenderPipeline/LayeredLit"
         }
     }
 
-	CustomEditor "Experimental.ScriptableRenderLoop.LayeredLitGUI"
+	CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }

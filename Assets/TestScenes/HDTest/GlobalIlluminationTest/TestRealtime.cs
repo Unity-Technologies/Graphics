@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
-using UnityEngine.Experimental.ScriptableRenderLoop;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 public class TestRealtime : MonoBehaviour {
 

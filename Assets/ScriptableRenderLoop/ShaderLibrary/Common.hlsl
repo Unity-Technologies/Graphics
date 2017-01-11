@@ -54,6 +54,8 @@
 // Include language header
 #if defined(SHADER_API_D3D11)
 #include "API/D3D11.hlsl"
+#elif defined(SHADER_API_PSSL)
+#include "API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
 #include "API/D3D11_1.hlsl"
 #else
@@ -172,6 +174,13 @@ void Swap(inout float4 a, inout float4 b)
     float4 t = a; a = b; b = t;
 }
 
+#define CUBEMAPFACE_POSITIVE_X 0
+#define CUBEMAPFACE_NEGATIVE_X 1
+#define CUBEMAPFACE_POSITIVE_Y 2
+#define CUBEMAPFACE_NEGATIVE_Y 3
+#define CUBEMAPFACE_POSITIVE_Z 4
+#define CUBEMAPFACE_NEGATIVE_Z 5
+
 #ifndef INTRINSIC_CUBEMAP_FACE_ID
 // TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ?
 /*
@@ -193,14 +202,6 @@ float CubemapFaceID(float3 dir)
     return faceID;
 }
 */
-#endif // INTRINSIC_CUBEMAP_FACE_ID
-
-#define CUBEMAPFACE_POSITIVE_X 0
-#define CUBEMAPFACE_NEGATIVE_X 1
-#define CUBEMAPFACE_POSITIVE_Y 2
-#define CUBEMAPFACE_NEGATIVE_Y 3
-#define CUBEMAPFACE_POSITIVE_Z 4
-#define CUBEMAPFACE_NEGATIVE_Z 5
 
 void GetCubeFaceID(float3 dir, out int faceIndex)
 {
@@ -221,6 +222,8 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
         faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
     }
 }
+
+#endif // INTRINSIC_CUBEMAP_FACE_ID
 
 // ----------------------------------------------------------------------------
 // Common math definition and fastmath function
@@ -332,10 +335,26 @@ float4 PositivePow(float4 base, float4 power)
 }
 
 // ----------------------------------------------------------------------------
+// Texture format sampling
+// ----------------------------------------------------------------------------
+
+float2 DirectionToLatLongCoordinate(float3 dir)
+{
+    // coordinate frame is (-Z, X) meaning negative Z is primary axis and X is secondary axis.
+    return float2(1.0 - 0.5 * INV_PI * atan2(dir.x, -dir.z), asin(dir.y) * INV_PI + 0.5);
+}
+
+// ----------------------------------------------------------------------------
 // World position reconstruction / transformation
 // ----------------------------------------------------------------------------
 
-// Z buffer to linear 0..1 depth
+// Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane)
+float Linear01DepthFromNear(float depth, float4 zBufferParam)
+{
+    return 1.0 / (zBufferParam.x + zBufferParam.y / depth);
+}
+
+// Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane)
 float Linear01Depth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x * depth + zBufferParam.y);
@@ -413,7 +432,7 @@ void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4
 }
 
 // depthOffsetVS is always in the direction of the view vector (V)
-void ApplyDepthOffsetPositionInput(float V, float depthOffsetVS, inout PositionInputs posInput)
+void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, inout PositionInputs posInput)
 {
     posInput.depthVS += depthOffsetVS;
     // TODO: it is an approx, need a correct value where we use projection matrix to reproject the depth from VS
@@ -423,29 +442,6 @@ void ApplyDepthOffsetPositionInput(float V, float depthOffsetVS, inout PositionI
     posInput.positionCS = float4(posInput.positionSS.xy * 2.0 - 1.0, posInput.depthRaw, 1.0) * posInput.depthVS;
     // Just add the offset along the view vector is sufficiant for world position
     posInput.positionWS += V * depthOffsetVS;
-}
-
-//-----------------------------------------------------------------------------
-// various helper
-//-----------------------------------------------------------------------------
-
-// NdotV should not be negative for visible pixels, but it can happen due to the
-// perspective projection and the normal mapping + decals. In that case, the normal
-// should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
-// Note: certain applications (e.g. SpeedTree) make use of two-sided lighting.
-float GetShiftedNdotV(inout float3 N, float3 V, bool twoSided)
-{
-    float NdotV = dot(N, V);
-    float limit = 1e-4;
-
-    if (!twoSided && NdotV < limit)
-    {
-        // We do not renormalize the normal because { abs(length(N) - 1.0) < limit }.
-        N    += (-NdotV + limit) * V;
-        NdotV = limit;
-    }
-
-    return NdotV;
 }
 
 #endif // UNITY_COMMON_INCLUDED

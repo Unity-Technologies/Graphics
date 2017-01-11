@@ -10,7 +10,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
             HLSLPROGRAM
             #pragma target 5.0
-            #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
+            #pragma only_renderers d3d11 ps4 // TEMP: unitl we go futher in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -82,14 +82,14 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 #ifdef PERFORM_SKY_OCCLUSION_TEST
                     // Determine whether the sky is occluded by the scene geometry.
                     // Do not perform blending with the environment map if the sky is occluded.
-                    float rawDepth     = max(skyDepth, LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r);
-                    float skyTexWeight = (rawDepth > skyDepth) ? 0.0 : 1.0;
+                    float depthRaw     = max(skyDepth, LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r);
+                    float skyTexWeight = (depthRaw > skyDepth) ? 0.0 : 1.0;
                 #else
-                    float rawDepth     = skyDepth;
+                    float depthRaw     = skyDepth;
                     float skyTexWeight = 1.0;
                 #endif
 
-                UpdatePositionInput(rawDepth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
+                UpdatePositionInput(depthRaw, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(posInput.positionWS, c1, c2, c3);

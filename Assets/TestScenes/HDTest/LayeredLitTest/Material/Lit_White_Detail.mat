@@ -13,6 +13,8 @@ Material:
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
+  disabledShaderPasses:
+  - DistortionVectors
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -21,7 +23,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 866df234625deb44a8db971e2f2dca7c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -41,6 +43,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DistortionVectorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -100,6 +106,7 @@ Material:
     - _BumpScale: 1
     - _CullMode: 2
     - _Cutoff: 0.5
+    - _DepthOffsetEnable: 0
     - _DetailAOScale: 1
     - _DetailAlbedoScale: 1
     - _DetailHeightScale: 1
@@ -108,6 +115,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DistortionDepthTest: 0
+    - _DistortionEnable: 0
     - _DistortionOnly: 0
     - _DoubleSidedMode: 0
     - _DstBlend: 0
@@ -134,7 +142,9 @@ Material:
     - _TexWorldScale: 1
     - _UVBase: 0
     - _UVDetail: 0
+    - _UVMappingPlanar: 0
     - _UVSec: 0
+    - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}

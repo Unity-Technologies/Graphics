@@ -15,6 +15,7 @@ SAMPLER2D(sampler_SpecularOcclusionMap);
 
 TEXTURE2D(_NormalMap);
 SAMPLER2D(sampler_NormalMap);
+float _NormalScale;
 
 TEXTURE2D(_DetailMask);
 SAMPLER2D(sampler_DetailMask);
@@ -30,8 +31,8 @@ float _DetailAOScale;
 TEXTURE2D(_HeightMap);
 SAMPLER2D(sampler_HeightMap);
 
-float _HeightScale;
-float _HeightBias;
+float _HeightAmplitude;
+float _HeightCenter;
 
 TEXTURE2D(_TangentMap);
 SAMPLER2D(sampler_TangentMap);
@@ -99,6 +100,8 @@ PROP_DECL_TEX2D(_MaskMap);
 PROP_DECL_TEX2D(_SpecularOcclusionMap);
 
 PROP_DECL_TEX2D(_NormalMap);
+PROP_DECL(float, _NormalScale);
+
 PROP_DECL_TEX2D(_HeightMap);
 
 PROP_DECL_TEX2D(_DetailMask);
@@ -114,8 +117,8 @@ PROP_DECL(float, _DetailSmoothnessScale);
 PROP_DECL(float, _DetailHeightScale);
 PROP_DECL(float, _DetailAOScale);
 
-PROP_DECL(float, _HeightScale);
-PROP_DECL(float, _HeightBias);
+PROP_DECL(float, _HeightAmplitude);
+PROP_DECL(float, _HeightCenter);
 
 TEXTURE2D(_DiffuseLightingMap);
 SAMPLER2D(sampler_DiffuseLightingMap);
@@ -126,9 +129,6 @@ SAMPLER2D(sampler_DistortionVectorMap);
 TEXTURE2D(_LayerMaskMap);
 SAMPLER2D(sampler_LayerMaskMap);
 
-float _UseHeightBasedBlend1;
-float _UseHeightBasedBlend2;
-float _UseHeightBasedBlend3;
 float _HeightOffset1;
 float _HeightOffset2;
 float _HeightOffset3;
@@ -138,6 +138,10 @@ float _HeightFactor3;
 float _BlendSize1;
 float _BlendSize2;
 float _BlendSize3;
+float _VertexColorHeightFactor;
+float _InheritBaseLayer1;
+float _InheritBaseLayer2;
+float _InheritBaseLayer3;
 
 float3 _EmissiveColor;
 TEXTURE2D(_EmissiveColorMap);
@@ -145,10 +149,21 @@ SAMPLER2D(sampler_EmissiveColorMap);
 float _EmissiveIntensity;
 
 PROP_DECL(float, _TexWorldScale);
-PROP_DECL(float, _UVMappingPlanar);
+PROP_DECL(float, _UVMappingPlanar);  
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
 
 float _AlphaCutoff;
 
 #endif // LAYERED_LIT_SHADER
+
+// Tessellation specific
+
+#ifdef TESSELLATION_ON
+float _TessellationFactorFixed;
+float _TessellationFactorMaxDistance;
+float _TessellationFactorTriangleSize;
+float _TessellationShapeFactor;
+float _TessellationBackFaceCullEpsilon;
+float _TessellationObjectScale;
+#endif

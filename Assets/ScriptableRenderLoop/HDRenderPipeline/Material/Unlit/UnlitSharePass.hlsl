@@ -48,7 +48,7 @@ FragInputs UnpackVaryings(PackedVaryings input)
 // Vertex shader
 //-------------------------------------------------------------------------------------
 
-PackedVaryings VertDefault(Attributes input)
+PackedVaryings Vert(Attributes input)
 {
     Varyings output;
 

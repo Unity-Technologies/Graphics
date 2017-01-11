@@ -15,80 +15,60 @@
 // Util image based lighting
 //-----------------------------------------------------------------------------
 
+// The *approximated* version of the non-linear remapping. It works by
+// approximating the cone of the specular lobe, and then computing the MIP map level
+// which (approximately) covers the footprint of the lobe with a single texel.
+// Improves the perceptual roughness distribution.
 float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
 {
-    // TODO: Clean a bit this code
-    // CAUTION: remap from Morten may work only with offline convolution, see impact with runtime convolution!
-
-    // For now disabled
-#if 0
-    float m = PerceptualRoughnessToRoughness(perceptualRoughness); // m is the real roughness parameter
-    float n = (2.0 / max(FLT_EPSILON, m*m)) - 2.0;		// remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
-
-    n /= 4.0;									    // remap from n_dot_h formulatino to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
-
-    perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);		// remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
-#else
-    // MM: came up with a surprisingly close approximation to what the #if 0'ed out code above does.
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
-#endif
 
     return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
+// The *accurate* version of the non-linear remapping. It works by
+// approximating the cone of the specular lobe, and then computing the MIP map level
+// which (approximately) covers the footprint of the lobe with a single texel.
+// Improves the perceptual roughness distribution and adds reflection (contact) hardening.
+// TODO: optimize!
+float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
+{
+    float m = PerceptualRoughnessToRoughness(perceptualRoughness);
+
+    // Remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
+    float n = (2.0 / max(FLT_EPSILON, m * m)) - 2.0;
+
+    // Remap from n_dot_h formulation to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
+    n /= (4.0 * max(NdotR, FLT_EPSILON));
+
+    // remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
+    perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);
+
+    return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
+}
+
+// The inverse of the *approximated* version of perceptualRoughnessToMipmapLevel().
 float mipmapLevelToPerceptualRoughness(float mipmapLevel)
 {
-    return saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
+    float perceptualRoughness = saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
+
+    return saturate(1.7 / 1.4 - sqrt(2.89 - 2.8 * perceptualRoughness) / 1.4);
 }
 
-//-----------------------------------------------------------------------------
-// Coordinate system conversion
-//-----------------------------------------------------------------------------
-
-// Transforms the unit vector from the spherical to the Cartesian (right-handed, Z up) coordinate.
-float3 SphericalToCartesian(float phi, float sinTheta, float cosTheta)
-{
-    float sinPhi, cosPhi;
-    sincos(phi, sinPhi, cosPhi);
-
-    return float3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
-}
-
-// Converts Cartesian coordinates given in the right-handed coordinate system
-// with Z pointing upwards (OpenGL style) to the coordinates in the left-handed
-// coordinate system with Y pointing up and Z facing forward (DirectX style).
-float3 TransformGLtoDX(float x, float y, float z)
-{
-    return float3(x, z, y);
-}
-
-float3 TransformGLtoDX(float3 v)
-{
-    return v.xzy;
-}
-
-// Performs conversion from equiareal map coordinates to Cartesian (DirectX cubemap) ones.
-float3 ConvertEquiarealToCubemap(float u, float v)
-{
-    // The equiareal mapping is defined as follows:
-    // phi        = TWO_PI * (1.0 - u)
-    // cos(theta) = 1.0 - 2.0 * v
-    // sin(theta) = sqrt(1.0 - cos^2(theta)) = 2.0 * sqrt(v - v * v)
-
-
-    float phi      = TWO_PI - TWO_PI * u;
-    float cosTheta = 1.0 - 2.0 * v;
-    float sinTheta = 2.0 * sqrt(v - v * v);
-
-    return TransformGLtoDX(SphericalToCartesian(phi, sinTheta, cosTheta));
-}
-
-// Ref: See "Moving Frostbite to PBR" Listing 22
-// This formulation is for GGX only (with smith joint visibility or regular)
-float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)
+// Ref: "Moving Frostbite to PBR", p. 69.
+float3 GetSpecularDominantDir(float3 N, float3 R, float roughness, float NdotV)
 {
     float a = 1.0 - roughness;
-    float lerpFactor = a * (sqrt(a) + roughness);
+    float s = sqrt(a);
+
+#ifdef USE_FB_DSD
+    // This is the original formulation.
+    float lerpFactor = (s + roughness) * a;
+#else
+    // TODO: tweak this further to achieve a closer match to the reference.
+    float lerpFactor = (s + roughness) * saturate(a * a + lerp(0.0, a, NdotV * NdotV));
+#endif
+
     // The result is not normalized as we fetch in a cubemap
     return lerp(N, R, lerpFactor);
 }
@@ -104,38 +84,91 @@ float AnisotropicStrechAtGrazingAngle(float roughness, float perceptualRoughness
     return roughness * lerp(saturate(NdotV * 2.0), 1.0, perceptualRoughness);
 }
 
+//-----------------------------------------------------------------------------
+// Coordinate system conversion
+//-----------------------------------------------------------------------------
+
+// Transforms the unit vector from the spherical to the Cartesian (right-handed, Z up) coordinate.
+float3 SphericalToCartesian(float phi, float cosTheta)
+{
+    float sinPhi, cosPhi;
+    sincos(phi, sinPhi, cosPhi);
+
+    float sinTheta = sqrt(saturate(1.0 - cosTheta * cosTheta));
+
+    return float3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+}
+
+// Converts Cartesian coordinates given in the right-handed coordinate system
+// with Z pointing upwards (OpenGL style) to the coordinates in the left-handed
+// coordinate system with Y pointing up and Z facing forward (DirectX style).
+float3 TransformGLtoDX(float3 v)
+{
+    return v.xzy;
+}
+
+// Performs conversion from equiareal map coordinates to Cartesian (DirectX cubemap) ones.
+float3 ConvertEquiarealToCubemap(float u, float v)
+{
+    float phi      = TWO_PI - TWO_PI * u;
+    float cosTheta = 1.0 - 2.0 * v;
+
+    return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
+}
+
 // ----------------------------------------------------------------------------
 // Importance sampling BSDF functions
 // ----------------------------------------------------------------------------
 
-void ImportanceSampleCosDir(float2   u,
-                            float3x3 localToWorld,
-                        out float3   L)
+// Performs uniform sampling of the unit disk.
+// Ref: PBRT v3, p. 777.
+float2 SampleDiskUniform(float2 u)
 {
-    // Cosine sampling - ref: http://www.rorydriscoll.com/2009/01/07/better-sampling/
-    float cosTheta = sqrt(saturate(1.0 - u.x));
-    float sinTheta = sqrt(u.x);
-    float phi      = TWO_PI * u.y;
+    float r   = sqrt(u.x);
+    float phi = TWO_PI * u.y;
 
-    L = SphericalToCartesian(phi, sinTheta, cosTheta);
-    L = mul(L, localToWorld);
+    float sinPhi, cosPhi;
+    sincos(phi, sinPhi, cosPhi);
+
+    return r * float2(cosPhi, sinPhi);
 }
 
-void ImportanceSampleGGXDir(float2   u,
-                            float3   V,
+// Performs cosine-weighted sampling of the hemisphere.
+// Ref: PBRT v3, p. 780.
+void SampleHemisphereCosine(float2   u,
                             float3x3 localToWorld,
-                            float    roughness,
                         out float3   L,
-                        out float    NdotH,
-                        out float    VdotH,
-                            bool     VeqN = false)
+                        out float    NdotL)
+{
+    float3 localL;
+
+    // Since we don't really care about the area distortion,
+    // we substitute uniform disk sampling for the concentric one.
+    localL.xy = SampleDiskUniform(u);
+
+    // Project the point from the disk onto the hemisphere.
+    localL.z = sqrt(1.0 - u.x);
+
+    NdotL = localL.z;
+
+    L = mul(localL, localToWorld);
+}
+
+void SampleGGXDir(float2   u,
+                  float3   V,
+                  float3x3 localToWorld,
+                  float    roughness,
+              out float3   L,
+              out float    NdotL,
+              out float    NdotH,
+              out float    VdotH,
+                  bool     VeqN = false)
 {
     // GGX NDF sampling
     float cosTheta = sqrt((1.0 - u.x) / (1.0 + (roughness * roughness - 1.0) * u.x));
-    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
     float phi      = TWO_PI * u.y;
 
-    float3 localH = SphericalToCartesian(phi, sinTheta, cosTheta);
+    float3 localH = SphericalToCartesian(phi, cosTheta);
 
     NdotH = cosTheta;
 
@@ -153,29 +186,28 @@ void ImportanceSampleGGXDir(float2   u,
         VdotH  = saturate(dot(localV, localH));
     }
 
-    // Compute { L = reflect(-localV, localH) }
-    L = -localV + 2.0 * VdotH * localH;
+    // Compute { localL = reflect(-localV, localH) }
+    float3 localL = -localV + 2.0 * VdotH * localH;
 
-    L = mul(L, localToWorld);
+    NdotL = localL.z;
+
+    L = mul(localL, localToWorld);
 }
 
 // ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf p26
-void ImportanceSampleAnisoGGXDir(   float2 u,
-                                    float3 V,
-                                    float3 N,
-                                    float3 tangentX,
-                                    float3 tangentY,
-                                    float roughnessT,
-                                    float roughnessB,
-                                    out float3 H,
-                                    out float3 L)
+void SampleAnisoGGXDir(float2 u,
+                       float3 V,
+                       float3 N,
+                       float3 tangentX,
+                       float3 tangentY,
+                       float  roughnessT,
+                       float  roughnessB,
+                   out float3 H,
+                   out float3 L)
 {
     // AnisoGGX NDF sampling
     H = sqrt(u.x / (1.0 - u.x)) * (roughnessT * cos(TWO_PI * u.y) * tangentX + roughnessB * sin(TWO_PI * u.y) * tangentY) + N;
     H = normalize(H);
-
-    // Local to world
-  //  H = tangentX * H.x + tangentY * H.y + N * H.z;
 
     // Convert sample from half angle to incident angle
     L = 2.0 * saturate(dot(V, H)) * H - V;
@@ -188,9 +220,7 @@ void ImportanceSampleLambert(float2   u,
                          out float    NdotL,
                          out float    weightOverPdf)
 {
-    ImportanceSampleCosDir(u, localToWorld, L);
-
-    NdotL = saturate(dot(localToWorld[2], L));
+    SampleHemisphereCosine(u, localToWorld, L, NdotL);
 
     // Importance sampling weight for each sample
     // pdf = N.L / PI
@@ -214,11 +244,8 @@ void ImportanceSampleGGX(float2   u,
                      out float    NdotL,
                      out float    weightOverPdf)
 {
-    float3 H;
-    float  NdotH;
-    ImportanceSampleGGXDir(u, V, localToWorld, roughness, L, NdotH, VdotH);
-
-    NdotL = saturate(dot(localToWorld[2], L));
+    float NdotH;
+    SampleGGXDir(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH);
 
     // Importance sampling weight for each sample
     // pdf = D(H) * (N.H) / (4 * (L.H))
@@ -234,22 +261,23 @@ void ImportanceSampleGGX(float2   u,
 }
 
 // weightOverPdf return the weight (without the Fresnel term) over pdf. Fresnel term must be apply by the caller.
-void ImportanceSampleAnisoGGX(
-    float2 u,
-    float3 V,
-    float3 N,
-    float3 tangentX,
-    float3 tangentY,
-    float roughnessT,
-    float roughnessB,
-    float NdotV,
-    out float3 L,
-    out float VdotH,
-    out float NdotL,
-    out float weightOverPdf)
+void ImportanceSampleAnisoGGX(float2   u,
+                              float3   V,
+                              float3x3 localToWorld,
+                              float    roughnessT,
+                              float    roughnessB,
+                              float    NdotV,
+                          out float3   L,
+                          out float    VdotH,
+                          out float    NdotL,
+                          out float    weightOverPdf)
 {
+    float3 tangentX = localToWorld[0];
+    float3 tangentY = localToWorld[1];
+    float3 N        = localToWorld[2];
+
     float3 H;
-    ImportanceSampleAnisoGGXDir(u, V, N, tangentX, tangentY, roughnessT, roughnessB, H, L);
+    SampleAnisoGGXDir(u, V, N, tangentX, tangentY, roughnessT, roughnessB, H, L);
 
     float NdotH = saturate(dot(N, H));
     // Note: since L and V are symmetric around H, LdotH == VdotH
@@ -264,10 +292,12 @@ void ImportanceSampleAnisoGGX(
     // weightOverPdf = F(H) * 4 * (N.L) * V(V, L) * (L.H) / (N.H) with V(V, L) = G(V, L) / (4 * (N.L) * (N.V))
     // Remind (L.H) == (V.H)
     // F is apply outside the function
+
+    // For anisotropy we must not saturate these values
     float TdotV = dot(tangentX, V);
     float BdotV = dot(tangentY, V);
-    float TdotL = saturate(dot(tangentX, L));
-    float BdotL = saturate(dot(tangentY, L));
+    float TdotL = dot(tangentX, L);
+    float BdotL = dot(tangentY, L);
 
     float Vis = V_SmithJointGGXAniso(TdotV, BdotV, NdotV, TdotL, BdotL, NdotL, roughnessT, roughnessB);
     weightOverPdf = 4.0 * Vis * NdotL * VdotH / NdotH;
@@ -278,9 +308,9 @@ void ImportanceSampleAnisoGGX(
 // ----------------------------------------------------------------------------
 
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
-float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sampleCount)
+float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sampleCount = 4096)
 {
-    float NdotV     = GetShiftedNdotV(N, V, false);
+    float NdotV     = saturate(dot(N, V));
     float4 acc      = float4(0.0, 0.0, 0.0, 0.0);
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
@@ -352,14 +382,12 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
         // Bias samples towards the mirror direction to reduce variance.
         // This will have a side effect of making the reflection sharper.
         // Ref: Stochastic Screen-Space Reflections, p. 67.
-        const float bias = 0.2;
+        const float bias = 0.1 + 0.2 * roughness;
         u.x = lerp(u.x, 0.0, bias);
 
         float3 L;
-        float  NdotH, VdotH;
-        ImportanceSampleGGXDir(u, V, localToWorld, roughness, L, NdotH, VdotH, true);
-
-        float NdotL = saturate(dot(N, L));
+        float  NdotL, NdotH, VdotH;
+        SampleGGXDir(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, true);
 
         float mipLevel;
 
@@ -389,12 +417,16 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             float omegaS    = rcp(sampleCount) * invPdf;
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth);
-            mipLevel        = 0.5 * log2(omegaS * invOmegaP);
+            mipLevel        = 0.5 * log2(omegaS * invOmegaP + 1.0);
 
             // Bias the MIP map level to compensate for the importance sampling bias.
             // This will blur the reflection.
             // TODO: find a more accurate MIP bias function.
             mipLevel = lerp(mipLevel, maxMipLevel, bias);
+
+            // TODO: There is a bug currently where autogenerate mipmap for the cubemap seems to clamp the mipLevel to 6. correct it! Then remove this clamp
+            // All MIP map levels beyond UNITY_SPECCUBE_LOD_STEPS contain invalid data.
+            mipLevel = min(mipLevel, UNITY_SPECCUBE_LOD_STEPS);
         }
 
         if (NdotL > 0.0)
@@ -402,7 +434,6 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // TODO: use a Gaussian-like filter to generate the MIP pyramid.
             float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
-            // *********************************************************************************
             // Our goal is to use Monte-Carlo integration with importance sampling to evaluate
             // X(V)   = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
             // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
@@ -412,8 +443,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // (LdotH == NdotH) && (NdotV == 1) && (Weight == F * G).
             // We use the approximation of Brian Karis from "Real Shading in Unreal Engine 4":
             // Weight ≈ NdotL, which produces nearly identical results in practice.
-            // *********************************************************************************
-
+ 
             lightInt += NdotL * val;
             cbsdfInt += NdotL;
         }

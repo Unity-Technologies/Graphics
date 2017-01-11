@@ -195,7 +195,7 @@ public class TextureCacheCubemap : TextureCache
 }
 
 
-public abstract class TextureCache : Object
+public abstract class TextureCache
 {
     protected int m_NumMipLevels;
 
