@@ -2,66 +2,149 @@
 #error Undefine_SHADERPASS
 #endif
 
-// Check if Alpha test is enabled. If it is, check if parallax is enabled on this material
-#define NEED_TEXCOORD0 1 // defined(_ALPHATEST_ON)
-#define NEED_TANGENT_TO_WORLD 1 // NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))  TEMP!!!: until we fix tessellation so it can access normalOS
+#define ATTRIBUTES_TESSELATION_WANT_UV (defined(TESSELLATION_ON) && (defined(_TESSELATION_DISPLACEMENT) || defined(_TESSELATION_DISPLACEMENT_PHONG)))
 
-// When modifying this structure, update the tessellation code below
+#define ATTRIBUTES_WANT_NORMAL defined(TESSELLATION_ON) || (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))
+#define ATTRIBUTES_WANT_TANGENT defined(TESSELLATION_ON) || (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))
+#define ATTRIBUTES_WANT_UV0 ATTRIBUTES_TESSELATION_WANT_UV || defined(_ALPHATEST_ON))
+#define ATTRIBUTES_WANT_UV1 (WANT_UV0) && !defined(LAYERED_LIT_SHADER) // Layered shader can use any UV
+#define ATTRIBUTES_WANT_UV2 (WANT_UV0 && _REQUIRE_UV2_OR_UV3) && !defined(LAYERED_LIT_SHADER) // Layered shader can use any UV
+#define ATTRIBUTES_WANT_UV3 ATTRIBUTES_WANT_UV2
+
 struct Attributes
 {
-    float3 positionOS : POSITION;
-#if NEED_TEXCOORD0
-    float2 uv0 : TEXCOORD0;
+    float3 positionOS   : POSITION;
+#if ATTRIBUTES_WANT_NORMAL	
+    float3 normalOS     : NORMAL;
 #endif
-#if NEED_TANGENT_TO_WORLD
-    float3 normalOS  : NORMAL;
-    float4 tangentOS : TANGENT;
+#if ATTRIBUTES_WANT_UV0	
+    float2 uv0          : TEXCOORD0;
+#endif
+#if ATTRIBUTES_WANT_UV1
+    float2 uv1		    : TEXCOORD1;
+#endif
+#if ATTRIBUTES_WANT_UV2
+    float2 uv2		    : TEXCOORD2;
+#endif
+#if ATTRIBUTES_WANT_UV3
+    float2 uv3		    : TEXCOORD3;
+#endif
+#if ATTRIBUTES_WANT_TANGENT
+    float4 tangentOS    : TANGENT;  // Always present as we require it also in case of anisotropic lighting
+#endif
+#if ATTRIBUTES_WANT_COLOR
+    float4 color        : COLOR;
+#endif
+
+    // UNITY_INSTANCE_ID
+};
+
+#define VARYINGDS_WANT_TEXCOORD0 ATTRIBUTES_WANT_UV0
+
+struct VaryingsDS
+{
+    float3 positionWS;
+#ifdef VARYINGDS_WANT_TEXCOORD0 
+    float2 texCoord0;
+#endif
+#ifdef VARYINGDS_WANT_TEXCOORD1
+    float2 texCoord1;
+#endif
+#ifdef VARYINGDS_WANT_TEXCOORD2
+    float2 texCoord2;
+#endif
+#ifdef VARYINGDS_WANT_TEXCOORD3
+    float2 texCoord2;
+#endif
+#ifdef VARYINGDS_WANT_TANGENT_TO_WORLD
+    float3 tangentToWorld[3];
+#endif
+#ifdef VARYINGDS_WANT_COLOR
+    float4 color;
 #endif
 };
+
+struct PackedVaryingsDS
+{
+#if VARYING_DS_WANT_TEXCOORD0 || VARYING_DS_WANT_TEXCOORD1
+    float4 interpolators1 : TEXCOORD1;
+#endif
+#if VARYING_DS_WANT_TEXCOORD2 || VARYING_DS_WANT_TEXCOORD3
+    float4 interpolators2 : TEXCOORD2;
+#endif
+#if VARYING_DS_WANT_TANGENT_TO_WORLD
+    // if present, pack positionWS
+    float4 interpolators3 : TEXCOORD3;
+    float4 interpolators4 : TEXCOORD4;
+    float4 interpolators5 : TEXCOORD5;
+#else
+    float3 interpolators0 : TEXCOORD0; // positionWS
+#endif
+#if VARYING_DS_WANT_COLOR
+    float4 interpolators6 : TEXCOORD6;
+#endif
+};
+
+#define VARYING_WANT_WORLDPOS
+#define VARYING_WANT_TEXCOORD0
+#define VARYING_WANT_TEXCOORD1
+#define VARYING_WANT_TEXCOORD2
+#define VARYING_WANT_TEXCOORD3
+
+struct Varyings
+{
+    float4 positionCS;
+#ifdef VARYING_WANT_WORLDPOS
+    float3 positionWS;
+#endif
+#ifdef VARYING_WANT_TEXCOORD0
+    float2 texCoord0;
+#endif
+#ifdef VARYING_WANT_TEXCOORD1
+    float2 texCoord1;
+#endif
+#ifdef VARYING_WANT_TEXCOORD2
+    float2 texCoord2;
+#endif
+#ifdef VARYING_WANT_TEXCOORD3
+    float2 texCoord2;
+#endif
+    float3 tangentToWorld[3];
+    float4 color;
+};
+
+struct PackedVaryings
+{
+    float4 positionCS : SV_Position;
+#if defined(VARYING_WANT_TEXCOORD0) || defined(VARYING_WANT_TEXCOORD1)
+    float4 interpolators1 : TEXCOORD1;
+#endif
+#if defined(VARYING_WANT_TEXCOORD2) || defined(VARYING_WANT_TEXCOORD3)
+    float4 interpolators2 : TEXCOORD2;
+#endif
+#if defined(VARYING_WANT_TANGENT_TO_WORLD)
+    #ifdef VARYING_WANT_WORLDPOS
+    // if present, pack positionWS
+    float4 interpolators3 : TEXCOORD3;
+    float4 interpolators4 : TEXCOORD4;
+    float4 interpolators5 : TEXCOORD5;
+    #else
+    float3 interpolators3 : TEXCOORD3;
+    float3 interpolators4 : TEXCOORD4;
+    float3 interpolators5 : TEXCOORD5;
+    #endif
+#else
+#ifdef VARYING_WANT_WORLDPOS
+    float4 interpolators1 : TEXCOORD0;
+#endif
+#endif
+#ifdef VARYING_WANT_COLOR
+    float4 interpolators6 : TEXCOORD6;
+#endif
+};
+
 
 #ifdef TESSELLATION_ON
-// Copy paste of above struct with POSITION rename to INTERNALTESSPOS (internal of unity shader compiler)
-struct AttributesTessellation
-{
-    float3 positionOS : INTERNALTESSPOS;
-#if NEED_TEXCOORD0
-    float2 uv0 : TEXCOORD0;
-#endif
-#if NEED_TANGENT_TO_WORLD
-    float3 normalOS  : NORMAL;
-    float4 tangentOS : TANGENT;
-#endif
-};
-
-AttributesTessellation AttributesToAttributesTessellation(Attributes input)
-{
-    AttributesTessellation output;
-    output.positionOS = input.positionOS;
-#if NEED_TEXCOORD0
-    output.uv0 = input.uv0;
-#endif
-#if NEED_TANGENT_TO_WORLD
-    output.normalOS = input.normalOS;
-    output.tangentOS = input.tangentOS;
-#endif
-
-    return output;
-}
-
-Attributes AttributesTessellationToAttributes(AttributesTessellation input)
-{
-    Attributes output;
-    output.positionOS = input.positionOS;
-#if NEED_TEXCOORD0
-    output.uv0 = input.uv0;
-#endif
-#if NEED_TANGENT_TO_WORLD
-    output.normalOS = input.normalOS;
-    output.tangentOS = input.tangentOS;
-#endif
-
-    return output;
-}
 
 AttributesTessellation InterpolateWithBaryCoords(AttributesTessellation input0, AttributesTessellation input1, AttributesTessellation input2, float3 baryCoords)
 {
@@ -80,17 +163,6 @@ AttributesTessellation InterpolateWithBaryCoords(AttributesTessellation input0, 
 }
 #endif // TESSELLATION_ON
 
-struct Varyings
-{
-    float4 positionCS;
-#if NEED_TEXCOORD0
-    float2 texCoord0;
-#endif
-#if NEED_TANGENT_TO_WORLD
-    float3 positionWS;
-    float3 tangentToWorld[3];
-#endif
-};
 
 struct PackedVaryings
 {
