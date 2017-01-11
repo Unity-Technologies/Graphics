@@ -20,6 +20,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Model; }
         }
 
+        [SerializeField]
         private VFXContext m_Model;
 
 		[SerializeField]

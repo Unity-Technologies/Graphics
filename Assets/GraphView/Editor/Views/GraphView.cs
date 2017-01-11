@@ -241,7 +241,7 @@ namespace RMGUI.GraphView
 			return EventPropagation.Stop;
 		}
 
-		protected EventPropagation FrameAll()
+		public EventPropagation FrameAll()
 		{
 			return Frame(FrameType.All);
 		}

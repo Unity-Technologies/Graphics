@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.UI
             if (presenter.Model.Position != presenter.position.position)
             {
                 presenter.Model.Position = presenter.position.position;  
-                // Needs to make the modelcontainer dirty
+                // Needs to make the model dirty
             }
 
             m_FlowInputConnectorContainer.ClearChildren();

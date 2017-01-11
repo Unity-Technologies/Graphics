@@ -13,16 +13,11 @@ namespace UnityEditor.VFX.UI
             SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>());
         }
 
-        public void Init(VFXModelContainer modelContainer)
-        {
-            m_ModelContainer = modelContainer;
-        }
-
         public VFXView View 
         { 
             get 
             {
-                // TODO Is that good design
+                // TODO Is that good design?
                 if (m_View == null)
                     m_View = new VFXView();
                 return m_View;
@@ -54,7 +49,7 @@ namespace UnityEditor.VFX.UI
                 presenter.InitModel(context);
                 presenter.position = new Rect(context.Position.x, context.Position.y, 100, 100);
                 AddElement(presenter);
-                presenter.m_view = View; // Warning lazy initialization
+                presenter.m_view = View;
             }
         }
 
@@ -71,12 +66,15 @@ namespace UnityEditor.VFX.UI
                 if (m_ModelContainer != null)
                     foreach (var model in m_ModelContainer.m_Roots)
                         AddPresentersFromModel(model);
+
+                // Doesnt work for some reasons
+                //View.FrameAll();
             }
         }
 
         [SerializeField]
         private VFXModelContainer m_ModelContainer;
 
-        private VFXView m_View;
+        private VFXView m_View; // Dont call directly as it is lazy initialized
     }
 }
