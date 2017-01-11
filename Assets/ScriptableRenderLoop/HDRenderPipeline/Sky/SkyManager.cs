@@ -1,8 +1,8 @@
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 using System;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
     public enum SkyResolution
@@ -466,6 +466,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         {
                             // Render sky into a cubemap - doesn't happen every frame, can be controlled
                             RenderSkyToCubemap(m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT);
+                            // Note that m_SkyboxCubemapRT is created with auto-generate mipmap, it mean that here we have also our mipmap correctly box filtered for importance sampling.
+
                             // Convolve downsampled cubemap
                             RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 

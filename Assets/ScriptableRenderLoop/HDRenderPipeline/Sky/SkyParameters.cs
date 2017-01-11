@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Reflection;
 using System.Linq;
 
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
     public class SkyParameters : MonoBehaviour

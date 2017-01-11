@@ -112,8 +112,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metallic);
         bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metallic);
 
-        bsdfData.tangentWS = surfaceData.tangentWS;
-        bsdfData.bitangentWS = cross(surfaceData.normalWS, surfaceData.tangentWS);        
+        bsdfData.tangentWS   = surfaceData.tangentWS;
+        bsdfData.bitangentWS = cross(surfaceData.normalWS, surfaceData.tangentWS);
         ConvertAnisotropyToRoughness(bsdfData.roughness, surfaceData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
         bsdfData.anisotropy = surfaceData.anisotropy;
 
@@ -284,7 +284,6 @@ void DecodeFromGBuffer(
         bsdfData.fresnel0 = lerp(float3(specular, specular, specular), baseColor, metallic);
 
         bsdfData.tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
-        // TODO: Do we need to orthonormalize here, IIRC Eric say that we should
         bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
         ConvertAnisotropyToRoughness(bsdfData.roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
         bsdfData.anisotropy = anisotropy;
@@ -454,12 +453,10 @@ struct PreLightData
     float anisoGGXLambdaV;
 
     float3 iblDirWS;    // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
+    float  iblMipLevel;
 
     float3 specularFGD; // Store preconvole BRDF for both specular and diffuse
     float diffuseFGD;
-
-    // TODO: if we want we can store ambient occlusion here from SSAO pass for example that can be use for IBL specular occlusion
-    // float ambientOcclusion; // Feed from an ambient occlusion buffer
 
     // area light
     float3x3 ltcXformGGX;                // TODO: make sure the compiler not wasting VGPRs on constants
@@ -467,17 +464,16 @@ struct PreLightData
     float    ltcGGXFresnelMagnitudeDiff; // The difference of magnitudes of GGX and Fresnel
     float    ltcGGXFresnelMagnitude;
     float    ltcDisneyDiffuseMagnitude;
-
-    // Shadow (sampling rotation disc)
-    float2 unPositionSS;
 };
 
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfData)
 {
     PreLightData preLightData;
 
-    // TODO: check Eric idea about doing that when writting into the GBuffer (with our forward decal)
-    preLightData.NdotV = GetShiftedNdotV(bsdfData.normalWS, V, false);
+    // We have handle the case of NdotV being negative in GetData() function with GetShiftedNdotV.
+    // So we don't need to saturate or take the abs here.
+    // In case a material use negative normal for double sided lighting like speedtree this will be handle in the GetData() code too.
+    preLightData.NdotV = dot(bsdfData.normalWS, V);
 
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
 
@@ -496,22 +492,19 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NDotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
-        // iblNdotV = GetShiftedNdotV(iblNormalWS, V), false);
     }
 
     GetPreIntegratedFGD(iblNdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
 
     // We need to take into account the modified normal for faking anisotropic here.
     float3 iblR = reflect(-V, iblNormalWS);
-    preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness);
+    preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness, preLightData.NdotV);
 
-    // #if SHADERPASS == SHADERPASS_GBUFFER
-    // preLightData.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusion, posInput.unPositionSS).x;
-    // #endif
+    preLightData.iblMipLevel = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
 
     // Area light specific
     // UVs for sampling the LUTs
-    float theta = FastACos(dot(bsdfData.normalWS, V));
+    float theta = FastACos(preLightData.NdotV);
     // Scale and bias for the current precomputed table - the constant use here are the one that have been use when the table in LtcData.DisneyDiffuse.cs and LtcData.GGX.cs was use
     float2 uv = 0.0078125 + 0.984375 * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
 
@@ -531,9 +524,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     preLightData.ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r;
     preLightData.ltcGGXFresnelMagnitude     = ltcMagnitude.g;
     preLightData.ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
-
-    // Shadow
-    preLightData.unPositionSS = posInput.unPositionSS;
 
     return preLightData;
 }
@@ -596,8 +586,14 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     // Maybe always using aniso maybe a win ?
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
-        float TdotL = saturate(dot(bsdfData.tangentWS, L));
-        float BdotL = saturate(dot(bsdfData.bitangentWS, L));
+        // For anisotropy we must not saturate these values
+        float TdotH = dot(bsdfData.tangentWS, H);
+        float TdotL = dot(bsdfData.tangentWS, L);
+        float BdotH = dot(bsdfData.bitangentWS, H);
+        float BdotL = dot(bsdfData.bitangentWS, L);
+
+        bsdfData.roughnessT = ClampRoughnessForAnalyticalLights(bsdfData.roughnessT);
+        bsdfData.roughnessB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessB);
 
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
         Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
@@ -608,13 +604,12 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
                                     bsdfData.roughnessT, bsdfData.roughnessB);
         #endif
 
-        // For anisotropy we must not saturate these values
-        float TdotH = dot(bsdfData.tangentWS, H);
-        float BdotH = dot(bsdfData.bitangentWS, H);
         D = D_GGXAniso(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
     }
     else
     {
+        bsdfData.roughness = ClampRoughnessForAnalyticalLights(bsdfData.roughness);
+
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
         Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
         #else
@@ -651,7 +646,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
     {
-        float shadowAttenuation = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, preLightData.unPositionSS);
+        float shadowAttenuation = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 
         illuminance *= shadowAttenuation;
     }
@@ -718,6 +713,22 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
+    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
+    {
+        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+        float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
+        illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
+    }
+
+    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+    {
+        float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
+        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+        shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
+
+        illuminance *= shadowAttenuation;
+    }
+
     [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
     {
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
@@ -749,22 +760,6 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
         cookieColor  = cookie.rgb;
         illuminance *= cookie.a;
-    }
-
-    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
-    {
-        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-        float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
-        illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
-    }
-
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
-    {
-        float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, positionWS + offset, lightData.shadowIndex, L, preLightData.unPositionSS);
-        shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
-
-        illuminance *= shadowAttenuation;
     }
 
     [branch] if (illuminance > 0.0)
@@ -876,9 +871,8 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     P1 -= positionWS;
     P2 -= positionWS;
 
-    // Construct an orthonormal basis (local coordinate system) around N.
-    // TODO: it could be stored in PreLightData. All LTC lights compute it more than once!
-    // Also consider using 'bsdfData.tangentWS', 'bsdfData.bitangentWS', 'bsdfData.normalWS'.
+    // Construct a view-dependent orthonormal basis around N.
+    // TODO: it could be stored in PreLightData, since all LTC lights compute it more than once.
     float3x3 basis;
     basis[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
     basis[1] = normalize(cross(bsdfData.normalWS, basis[0]));
@@ -951,7 +945,7 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
         float lightPdf = 0.0;               // Pdf of the light sample
 
         float2 u = Hammersley2d(i, sampleCount);
-        u = frac(u + randNum + 0.5);
+        u = frac(u + randNum);
 
         float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
 
@@ -1113,22 +1107,20 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // ----------------------------------------------------------------------------
 
 // Ref: Moving Frostbite to PBR (Appendix A)
-float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
-                                EnvLightData lightData, BSDFData bsdfData,
-                                uint sampleCount = 2048)
+float3 IntegrateLambertIBLRef(LightLoopContext lightLoopContext,
+                              float3 V, EnvLightData lightData, BSDFData bsdfData,
+                              uint sampleCount = 4096)
 {
-    float3   N            = bsdfData.normalWS;
-    float3   tangentX     = bsdfData.tangentWS;
-    float3x3 localToWorld = GetLocalFrame(N, tangentX);
+    float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
-    float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
+    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
 
     for (uint i = 0; i < sampleCount; ++i)
     {
         float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum + 0.5);
+        u           = frac(u + randNum);
 
         float3 L;
         float NdotL;
@@ -1148,22 +1140,19 @@ float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
 }
 
 float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
-                                    float3 V, EnvLightData lightData, BSDFData bsdfData,
-                                    uint sampleCount = 2048)
+                                    float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                                    uint sampleCount = 4096)
 {
-    float3   N            = bsdfData.normalWS;
-    float3   tangentX     = bsdfData.tangentWS;
-    float3x3 localToWorld = GetLocalFrame(N, tangentX);
-    float    NdotV        = GetShiftedNdotV(N, V, false);
+    float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
-    float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
+    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
 
     for (uint i = 0; i < sampleCount; ++i)
     {
         float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum + 0.5);
+        u           = frac(u + randNum);
 
         float3 L;
         float NdotL;
@@ -1177,7 +1166,7 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
             float LdotH = dot(L, H);
             // Note: we call DisneyDiffuse that require to multiply by Albedo / PI. Divide by PI is already taken into account
             // in weightOverPdf of ImportanceSampleLambert call.
-            float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+            float disneyDiffuse = DisneyDiffuse(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
 
             // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
             float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
@@ -1189,15 +1178,11 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
 }
 
 // Ref: Moving Frostbite to PBR (Appendix A)
-float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
-                                    float3 V, EnvLightData lightData, BSDFData bsdfData,
-                                    uint sampleCount = 2048)
+float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
+                                  float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                                  uint sampleCount = 4096)
 {
-    float3   N            = bsdfData.normalWS;
-    float3   tangentX     = bsdfData.tangentWS;
-    float3   tangentY     = bsdfData.bitangentWS;
-    float3x3 localToWorld = GetLocalFrame(N, tangentX);
-    float    NdotV        = GetShiftedNdotV(N, V, false);
+    float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
@@ -1206,7 +1191,7 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
     for (uint i = 0; i < sampleCount; ++i)
     {
         float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum + 0.5);
+        u           = frac(u + randNum);
 
         float VdotH;
         float NdotL;
@@ -1214,13 +1199,13 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
         float weightOverPdf;
 
         // GGX BRDF
-        if (bsdfData.materialId = MATERIALID_LIT_ANISO)
+        if (bsdfData.materialId == MATERIALID_LIT_ANISO)
         {
-            ImportanceSampleAnisoGGX(u, V, N, tangentX, tangentY, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
+            ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, preLightData.NdotV, L, VdotH, NdotL, weightOverPdf);
         }
         else
         {
-            ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughness, NdotV, L, VdotH, NdotL, weightOverPdf);
+            ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughness, preLightData.NdotV, L, VdotH, NdotL, weightOverPdf);
         }
 
 
@@ -1251,13 +1236,13 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 #ifdef LIT_DISPLAY_REFERENCE_IBL
 
-    specularLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, lightData, bsdfData);
+    specularLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
 
 /*
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-    diffuseLighting = IntegrateLambertIBLRef(lightData, bsdfData);
+    diffuseLighting = IntegrateLambertIBLRef(lightData, V, bsdfData);
     #else
-    diffuseLighting = IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, lightData, bsdfData);
+    diffuseLighting = IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
     #endif
 */
     diffuseLighting = float3(0.0, 0.0, 0.0);
@@ -1335,20 +1320,14 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // TODO: we must always perform a weight calculation as due to tiled rendering we need to smooth out cubemap at boundaries.
     // So goal is to split into two category and have an option to say if we parallax correct or not.
 
-    // TODO: compare current Morten version: offline cubemap with a particular remap + the bias in perceptualRoughnessToMipmapLevel
-    // to classic remap like unreal/Frobiste. The function GetSpecularDominantDir can result in a better matching in this case
-    // We let GetSpecularDominantDir currently as it still an improvement but not as good as it could be
-    float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, mip);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
     specularLighting = preLD.rgb * preLightData.specularFGD;
 
     // Apply specular occlusion on it
     specularLighting *= bsdfData.specularOcclusion;
     diffuseLighting = float3(0.0, 0.0, 0.0);
 
-#endif    
+#endif
 }
 
 #endif // #ifdef HAS_LIGHTLOOP
-
-

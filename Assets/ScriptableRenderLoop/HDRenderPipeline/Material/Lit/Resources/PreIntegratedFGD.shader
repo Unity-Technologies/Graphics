@@ -8,7 +8,7 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD"
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 5.0
-            #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
+            #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
 
             #include "Common.hlsl"
             #include "ImageBasedLighting.hlsl"
@@ -43,10 +43,8 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD"
                 float3 V			        = float3(sqrt(1 - NdotV * NdotV), 0, NdotV);
                 float3 N			        = float3(0.0, 0.0, 1.0);
 
-                const int numSamples = 2048;
-        
                 // Pre integrate GGX with smithJoint visibility as well as DisneyDiffuse
-                float4 preFGD = IntegrateGGXAndDisneyFGD(V, N, PerceptualRoughnessToRoughness(perceptualRoughness), numSamples);
+                float4 preFGD = IntegrateGGXAndDisneyFGD(V, N, PerceptualRoughnessToRoughness(perceptualRoughness));
 
                 return float4(preFGD.xyz, 1.0);
             }

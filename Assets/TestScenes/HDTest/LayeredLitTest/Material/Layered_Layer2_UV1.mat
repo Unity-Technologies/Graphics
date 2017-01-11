@@ -14,15 +14,16 @@ Material:
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
+  disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseColorMap0:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 866df234625deb44a8db971e2f2dca7c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap1:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 866df234625deb44a8db971e2f2dca7c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap2:
@@ -78,6 +79,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DistortionVectorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -177,9 +182,13 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _BlendMode: 0
+    - _BlendSize1: 0
+    - _BlendSize2: 0
+    - _BlendSize3: 0
     - _BumpScale: 1
     - _CullMode: 2
     - _Cutoff: 0.5
+    - _DepthOffsetEnable: 0
     - _DetailAOScale0: 1
     - _DetailAOScale1: 1
     - _DetailAOScale2: 1
@@ -203,6 +212,7 @@ Material:
     - _DetailSmoothnessScale2: 1
     - _DetailSmoothnessScale3: 1
     - _DistortionDepthTest: 0
+    - _DistortionEnable: 0
     - _DistortionOnly: 0
     - _DoubleSidedMode: 0
     - _DstBlend: 0
@@ -215,7 +225,13 @@ Material:
     - _HeightBias1: 0
     - _HeightBias2: 0
     - _HeightBias3: 0
+    - _HeightFactor1: 1
+    - _HeightFactor2: 1
+    - _HeightFactor3: 1
     - _HeightMapMode: 0
+    - _HeightOffset1: 0
+    - _HeightOffset2: 0
+    - _HeightOffset3: 0
     - _HeightScale0: 1
     - _HeightScale1: 1
     - _HeightScale2: 1
@@ -258,7 +274,15 @@ Material:
     - _UVDetailsMappingMask1: 0
     - _UVDetailsMappingMask2: 0
     - _UVDetailsMappingMask3: 0
+    - _UVMappingPlanar0: 0
+    - _UVMappingPlanar1: 0
+    - _UVMappingPlanar2: 0
+    - _UVMappingPlanar3: 0
     - _UVSec: 0
+    - _UseHeightBasedBlend1: 0
+    - _UseHeightBasedBlend2: 0
+    - _UseHeightBasedBlend3: 0
+    - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:
     - _BaseColor0: {r: 1, g: 1, b: 1, a: 1}

@@ -1,6 +1,4 @@
-using UnityEngine;
-
-namespace UnityEngine.Experimental.ScriptableRenderLoop
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     namespace Attributes
     {
@@ -29,4 +27,4 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             BakeDiffuseLighting,
         }
     }
-} // namespace UnityEngine.Experimental.ScriptableRenderLoop
+}

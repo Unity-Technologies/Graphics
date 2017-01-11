@@ -100,53 +100,77 @@ float4 SampleLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, floa
 
 // TODO: Handle BC5 format, currently this code is for DXT5nm
 // THis function below must call UnpackNormalmapRGorAG
-float3 SampleNormalLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights)
+float3 SampleNormalLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
 {
     if (layerUV.isTriplanar)
     {
         float3 val = float3(0.0, 0.0, 0.0);
 
         if (weights.x > 0.0)
-            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ));
+            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ), scale);
         if (weights.y > 0.0)
-            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX));
+            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX), scale);
         if (weights.z > 0.0)
-            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY));
+            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY), scale);
 
         return normalize(val);
     }
     else
     {
-        return UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv));
+        return UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv), scale);
     }
 }
 
 // This version is for normalmap with AG encoding only (use with details map)
-float3 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights)
+float3 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
 {
     if (layerUV.isTriplanar)
     {
         float3 val = float3(0.0, 0.0, 0.0);
 
         if (weights.x > 0.0)
-            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ));
+            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ), scale);
         if (weights.y > 0.0)
-            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX));
+            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX), scale);
         if (weights.z > 0.0)
-            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY));
+            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY), scale);
 
         return normalize(val);
     }
     else
     {
-        return UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv));
+        return UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv), scale);
+    }
+}
+
+// This version is for normalmap with RGB encoding only, i.e non encoding. It is necessary to use this abstraction to handle correctly triplanar
+// plus consistent with the normal scale parameter
+float3 SampleNormalLayerRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
+{
+    if (layerUV.isTriplanar)
+    {
+        float3 val = float3(0.0, 0.0, 0.0);
+
+        if (weights.x > 0.0)
+            val += weights.x * UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ), scale);
+        if (weights.y > 0.0)
+            val += weights.y * UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX), scale);
+        if (weights.z > 0.0)
+            val += weights.z * UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY), scale);
+
+        return normalize(val);
+    }
+    else
+    {
+        return UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv), scale);
     }
 }
 
 // Macro to improve readibility of surface data
 #define SAMPLE_LAYER_TEXTURE2D(textureName, samplerName, coord) SampleLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
-#define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord) SampleNormalLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
-#define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord) SampleNormalLayerAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
+#define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord, scale) SampleNormalLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
+#define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord, scale) SampleNormalLayerAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
+#define SAMPLE_LAYER_NORMALMAP_RGB(textureName, samplerName, coord, scale) SampleNormalLayerRGB(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
 
 // Transforms 2D UV by scale/bias property
 #define TRANSFORM_TEX(tex,name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
@@ -156,7 +180,10 @@ float3 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layer
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name
 #define ADD_ZERO_IDX(Name) Name
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
+#ifdef TESSELLATION_ON
+#include "LitTessellation.hlsl"
+#endif
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -182,11 +209,30 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = 0.0;
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, builtinData.depthOffset, posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
     ApplyDepthOffsetAttribute(depthOffset, input);
 #endif
 
-    float alpha = GetSurfaceData(input, layerTexCoord, surfaceData);
+    // We perform the conversion to world of the normalTS outside of the GetSurfaceData
+    // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
+    float3 normalTS;
+    float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
+    surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
+
+    // NdotV should not be negative for visible pixels, but it can happen due to the
+    // perspective projection and the normal mapping + decals. In that case, the normal
+    // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
+    // Note: certain applications (e.g. SpeedTree) make use of double-sided lighting.
+    // This will  potentially reduce the length of the normal at edges of geometry.
+    bool twoSided = false;
+    GetShiftedNdotV(surfaceData.normalWS, V, twoSided);
+
+    // Orthonormalize the basis vectors using the Gram-Schmidt process.
+    // We assume that the length of the surface normal is sufficiently close to 1.
+    surfaceData.tangentWS = normalize(surfaceData.tangentWS - dot(surfaceData.tangentWS, surfaceData.normalWS));
+
+    // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
 
@@ -197,25 +243,28 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 // Generate function for all layer
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name##0
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
+#ifdef TESSELLATION_ON
+#include "LitTessellation.hlsl" // Include only one time for layer 0
+#endif
 #undef LAYER_INDEX
 #undef ADD_IDX
 
 #define LAYER_INDEX 1
 #define ADD_IDX(Name) Name##1
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 
 #define LAYER_INDEX 2
 #define ADD_IDX(Name) Name##2
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 
 #define LAYER_INDEX 3
 #define ADD_IDX(Name) Name##3
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 
@@ -239,34 +288,19 @@ void ComputeMaskWeights(float3 inputMasks, out float outWeights[_MAX_LAYER])
     outWeights[0] = left;
 }
 
-float3 BlendLayeredColor(float3 rgb0, float3 rgb1, float3 rgb2, float3 rgb3, float weight[4])
+float3 BlendLayeredFloat3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
 {
     float3 result = float3(0.0, 0.0, 0.0);
 
-    result = rgb0 * weight[0] + rgb1 * weight[1];
+    result = x0 * weight[0] + x1 * weight[1];
 #if _LAYER_COUNT >= 3
-    result += (rgb2 * weight[2]);
+    result += (x2 * weight[2]);
 #endif
 #if _LAYER_COUNT >= 4
-    result += rgb3 * weight[3];
+    result += x3 * weight[3];
 #endif
 
     return result;
-}
-
-float3 BlendLayeredNormal(float3 normal0, float3 normal1, float3 normal2, float3 normal3, float weight[4])
-{
-    float3 result = float3(0.0, 0.0, 0.0);
-
-    result = normal0 * weight[0] + normal1 * weight[1];
-#if _LAYER_COUNT >= 3
-    result += normal2 * weight[2];
-#endif
-#if _LAYER_COUNT >= 4
-    result += normal3 * weight[3];
-#endif
-
-    return normalize(result);
 }
 
 float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4])
@@ -284,13 +318,11 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
     return result;
 }
 
-float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, float layerHeight, float heightOffset, float heightFactor, float edgeBlendStrength)
+float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, float layerHeight, float heightOffset, float heightFactor, float edgeBlendStrength, float vertexColor)
 {
-    float finalLayerHeight = layerHeight * heightFactor + heightOffset;
+    float finalLayerHeight = heightFactor * layerHeight + heightOffset + _VertexColorHeightFactor * (vertexColor * 2.0 - 1.0);
 
-    edgeBlendStrength = max(0.001, edgeBlendStrength);
-
-    float heightThreshold = previousLayerHeight + edgeBlendStrength;
+    edgeBlendStrength = max(0.00001, edgeBlendStrength);
 
     if (previousLayerHeight >= finalLayerHeight)
     {
@@ -305,8 +337,7 @@ float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, 
 }
 
 
-#define SURFACEDATA_BLEND_COLOR(surfaceData, name, mask) BlendLayeredColor(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
-#define SURFACEDATA_BLEND_NORMAL(surfaceData, name, mask) BlendLayeredNormal(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
+#define SURFACEDATA_BLEND_COLOR(surfaceData, name, mask) BlendLayeredFloat3(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
@@ -350,7 +381,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = 0.0;
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, builtinData.depthOffset, posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
     ApplyDepthOffsetAttribute(depthOffset, input);
 #endif
 
@@ -358,49 +389,73 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     SurfaceData surfaceData1;
     SurfaceData surfaceData2;
     SurfaceData surfaceData3;
-    float alpha0 = GetSurfaceData0(input, layerTexCoord, surfaceData0);
-    float alpha1 = GetSurfaceData1(input, layerTexCoord, surfaceData1);
-    float alpha2 = GetSurfaceData2(input, layerTexCoord, surfaceData2);
-    float alpha3 = GetSurfaceData3(input, layerTexCoord, surfaceData3);
+    float3 normalTS0;
+    float3 normalTS1;
+    float3 normalTS2;
+    float3 normalTS3;
+    float alpha0 = GetSurfaceData0(input, layerTexCoord, surfaceData0, normalTS0);
+    float alpha1 = GetSurfaceData1(input, layerTexCoord, surfaceData1, normalTS1);
+    float alpha2 = GetSurfaceData2(input, layerTexCoord, surfaceData2, normalTS2);
+    float alpha3 = GetSurfaceData3(input, layerTexCoord, surfaceData3, normalTS3);
 
     // Mask Values : Layer 1, 2, 3 are r, g, b
     float3 maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
-#if defined(_LAYER_MASK_VERTEX_COLOR)
+
+    // Mutually exclusive with _HEIGHT_BASED_BLEND
+#if defined(_LAYER_MASK_VERTEX_COLOR_MUL) // Used when no layer mask is set
     maskValues *= input.vertexColor.rgb;
+#elif defined(_LAYER_MASK_VERTEX_COLOR_ADD) // When layer mask is set, color is additive to enable user to override it.
+    maskValues = saturate(maskValues + input.vertexColor.rgb * 2.0 - 1.0);
 #endif
 
+#if defined(_HEIGHT_BASED_BLEND)
     float baseLayerHeight = height0;
-    if (_UseHeightBasedBlend1 > 0.0f)
-    {
-        baseLayerHeight = ApplyHeightBasedBlend(maskValues.r, baseLayerHeight, height1, _HeightOffset1, _HeightFactor1, _BlendSize1);
-    }
-    if (_UseHeightBasedBlend2 > 0.0f)
-    {
-        baseLayerHeight = ApplyHeightBasedBlend(maskValues.g, baseLayerHeight, height2, _HeightOffset2 + _HeightOffset1, _HeightFactor2, _BlendSize2);
-    }
-    if (_UseHeightBasedBlend3 > 0.0f)
-    {
-        ApplyHeightBasedBlend(maskValues.b, baseLayerHeight, height3, _HeightOffset3 + _HeightOffset2 + _HeightOffset1, _HeightFactor3, _BlendSize3);
-    }
+    baseLayerHeight = ApplyHeightBasedBlend(maskValues.r, baseLayerHeight, height1, _HeightOffset1, _HeightFactor1, _BlendSize1, input.vertexColor.r);
+    baseLayerHeight = ApplyHeightBasedBlend(maskValues.g, baseLayerHeight, height2, _HeightOffset2 + _HeightOffset1, _HeightFactor2, _BlendSize2, input.vertexColor.g);
+    ApplyHeightBasedBlend(maskValues.b, baseLayerHeight, height3, _HeightOffset3 + _HeightOffset2 + _HeightOffset1, _HeightFactor3, _BlendSize3, input.vertexColor.b);
+#endif
 
     float weights[_MAX_LAYER];
     ComputeMaskWeights(maskValues, weights);
 
     surfaceData.baseColor = SURFACEDATA_BLEND_COLOR(surfaceData, baseColor, weights);
     surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
-    // Note: for normal map (in tangent space) it is possible to have better performance
-    // by blending in tangent space then transform to world and apply flip. 
-    // Sadly this require a specific path (without taking into account that there is detail normal map)
-    // mean it add an extra cost of maintenance. We chose to not do this optimization in favor 
-    // of simpler code and in the future will rely on shader graph to create optimize code.
-    surfaceData.normalWS = SURFACEDATA_BLEND_NORMAL(surfaceData,  normalWS, weights);
     surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
 
+    float3 normalTS;
+#if defined(_HEIGHT_BASED_BLEND)
+    float _InheritBaseLayer0 = 1.0f; // Default value for lerp when all weights but base layer are zero.
+
+    // Compute the combined inheritance factor of layers 1,2 and 3
+    float inheritFactor = PROP_BLEND_SCALAR(_InheritBaseLayer, weights);
+    float3 vertexNormalTS = float3(0.0, 0.0, 1.0);
+    // The idea here is to lerp toward vertex normal. This way when we don't want to inherit, we will combine layer 1/2/3 normal with a vertex normal which is neutral.
+    float3 baseLayerNormalTS = normalize(lerp(vertexNormalTS, normalTS0, inheritFactor));
+    // Blend layer 1/2/3 normals before combining to the base layer. Again we need to have a neutral value for base layer (vertex normal) in case all weights are zero.
+    float3 layersNormalTS = BlendLayeredFloat3(vertexNormalTS, normalTS1, normalTS2, normalTS3, weights);
+    normalTS = BlendNormalRNM(baseLayerNormalTS, layersNormalTS);
+#else
+    normalTS = BlendLayeredFloat3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
+#endif
+    surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
+
+    // NdotV should not be negative for visible pixels, but it can happen due to the
+    // perspective projection and the normal mapping + decals. In that case, the normal
+    // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
+    // Note: certain applications (e.g. SpeedTree) make use of double-sided lighting.
+    // This will  potentially reduce the length of the normal at edges of geometry.
+    bool twoSided = false;    
+    GetShiftedNdotV(surfaceData.normalWS, V, twoSided);
+
+    // Orthonormalize the basis vectors using the Gram-Schmidt process.
+    // We assume that the length of the surface normal is sufficiently close to 1.
+    surfaceData.tangentWS = normalize(surfaceData.tangentWS - dot(surfaceData.tangentWS, surfaceData.normalWS));
+
     // Init other unused parameter
     surfaceData.materialId = 0;
-    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
     surfaceData.subSurfaceRadius = 1.0;

@@ -48,6 +48,14 @@ float3 UnpackNormalOctEncode(float2 f)
     return normalize(n);
 }
 
+float3 UnpackNormalRGB(float4 packedNormal, float scale = 1.0)
+{
+    float3 normal;
+    normal.xyz = packedNormal.rgb * 2.0 - 1.0;
+    normal.xy *= scale;
+    return normalize(normal);
+}
+
 float3 UnpackNormalAG(float4 packedNormal, float scale = 1.0)
 {
     float3 normal;
@@ -58,13 +66,14 @@ float3 UnpackNormalAG(float4 packedNormal, float scale = 1.0)
 }
 
 // Unpack normal as DXT5nm (1, y, 0, x) or BC5 (x, y, 0, 1)
-float3 UnpackNormalmapRGorAG(float4 packedNormal)
+float3 UnpackNormalmapRGorAG(float4 packedNormal, float scale = 1.0)
 {
     // This do the trick
     packedNormal.x *= packedNormal.w;
 
     float3 normal;
     normal.xy = packedNormal.xy * 2.0 - 1.0;
+    normal.xy *= scale;
     normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
     return normal;
 }
@@ -107,40 +116,6 @@ float3 UnpackLogLuv(float4 vLogLuv)
     Xp_Y_XYZp.x = vLogLuv.x * Xp_Y_XYZp.z;
     float3 vRGB = mul(Xp_Y_XYZp, InverseM);
     return max(vRGB, float3(0.0, 0.0, 0.0));
-}
-
-// TODO: This function is used with the LightTransport pass to encode lightmap or emissive
-float4 PackRGBM(float3 rgb, float maxRGBM)
-{
-    float kOneOverRGBMMaxRange = 1.0 / maxRGBM;
-    const float kMinMultiplier = 2.0 * 1e-2;
-
-    float4 rgbm = float4(rgb * kOneOverRGBMMaxRange, 1.0);
-    rgbm.a = max(max(rgbm.r, rgbm.g), max(rgbm.b, kMinMultiplier));
-    rgbm.a = ceil(rgbm.a * 255.0) / 255.0;
-
-    // Division-by-zero warning from d3d9, so make compiler happy.
-    rgbm.a = max(rgbm.a, kMinMultiplier);
-
-    rgbm.rgb /= rgbm.a;
-    return rgbm;
-}
-
-// Alternative...
-#define RGBMRANGE (8.0)
-float4 PackRGBM(float3 color)
-{
-    float4 rgbm;
-    color *= (1.0 / RGBMRANGE);
-    rgbm.a = saturate(max(max(color.r, color.g), max(color.b, 1e-6)));
-    rgbm.a = ceil(rgbm.a * 255.0) / 255.0;
-    rgbm.rgb = color / rgbm.a;
-    return rgbm;
-}
-
-float3 UnpackRGBM(float4 rgbm)
-{
-    return RGBMRANGE * rgbm.rgb * rgbm.a;
 }
 
 // The standard 32-bit HDR color format
@@ -271,7 +246,7 @@ float PackFloatInt8bit(float f, int i, float maxi)
     return PackFloatInt(f, i, maxi, 255.0);
 }
 
-float UnpackFloatInt8bit(float val, float maxi, out float f, out int i)
+void UnpackFloatInt8bit(float val, float maxi, out float f, out int i)
 {
     UnpackFloatInt(val, maxi, 255.0, f, i);
 }
@@ -281,7 +256,7 @@ float PackFloatInt10bit(float f, int i, float maxi)
     return PackFloatInt(f, i, maxi, 1024.0);
 }
 
-float UnpackFloatInt10bit(float val, float maxi, out float f, out int i)
+void UnpackFloatInt10bit(float val, float maxi, out float f, out int i)
 {
     UnpackFloatInt(val, maxi, 1024.0, f, i);
 }
@@ -291,7 +266,7 @@ float PackFloatInt16bit(float f, int i, float maxi)
     return PackFloatInt(f, i, maxi, 65536.0);
 }
 
-float UnpackFloatInt16bit(float val, float maxi, out float f, out int i)
+void UnpackFloatInt16bit(float val, float maxi, out float f, out int i)
 {
     UnpackFloatInt(val, maxi, 65536.0, f, i);
 }
