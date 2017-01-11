@@ -24,7 +24,7 @@ void Frag(  PackedVaryings packedInput,
     outColor = float4(0.0, 0.0, 0.0, 0.0);
 
 #ifdef _DEPTHOFFSET_ON
-    outputDepth = posInput.rawDepth;
+    outputDepth = posInput.depthRaw;
 #endif
 }
 

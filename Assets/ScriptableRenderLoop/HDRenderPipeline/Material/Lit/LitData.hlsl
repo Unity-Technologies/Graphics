@@ -180,7 +180,10 @@ float3 SampleNormalLayerRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV laye
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name
 #define ADD_ZERO_IDX(Name) Name
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
+#ifdef TESSELLATION_ON
+#include "LitTessellation.hlsl"
+#endif
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -206,7 +209,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = 0.0;
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, builtinData.depthOffset, posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
     ApplyDepthOffsetAttribute(depthOffset, input);
 #endif
 
@@ -217,9 +220,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     surfaceData.tangentWS = input.tangentToWorld[0].xyz;
 
+    // NdotV should not be negative for visible pixels, but it can happen due to the
+    // perspective projection and the normal mapping + decals. In that case, the normal
+    // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
+    // Note: certain applications (e.g. SpeedTree) make use of double-sided lighting.
+    // This will  potentially reduce the length of the normal at edges of geometry.
     bool twoSided = false;
-    // This will always produce the correct 'NdotV' value, but potentially
-    // reduce the length of the normal at edges of geometry.
     GetShiftedNdotV(surfaceData.normalWS, V, twoSided);
 
     // Orthonormalize the basis vectors using the Gram-Schmidt process.
@@ -237,25 +243,28 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 // Generate function for all layer
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name##0
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
+#ifdef TESSELLATION_ON
+#include "LitTessellation.hlsl" // Include only one time for layer 0
+#endif
 #undef LAYER_INDEX
 #undef ADD_IDX
 
 #define LAYER_INDEX 1
 #define ADD_IDX(Name) Name##1
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 
 #define LAYER_INDEX 2
 #define ADD_IDX(Name) Name##2
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 
 #define LAYER_INDEX 3
 #define ADD_IDX(Name) Name##3
-#include "LitSurfaceData.hlsl"
+#include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 
@@ -313,9 +322,7 @@ float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, 
 {
     float finalLayerHeight = heightFactor * layerHeight + heightOffset + _VertexColorHeightFactor * (vertexColor * 2.0 - 1.0);
 
-    edgeBlendStrength = max(0.001, edgeBlendStrength);
-
-    float heightThreshold = previousLayerHeight + edgeBlendStrength;
+    edgeBlendStrength = max(0.00001, edgeBlendStrength);
 
     if (previousLayerHeight >= finalLayerHeight)
     {
@@ -374,7 +381,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = 0.0;
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, builtinData.depthOffset, posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
     ApplyDepthOffsetAttribute(depthOffset, input);
 #endif
 
@@ -394,8 +401,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Mask Values : Layer 1, 2, 3 are r, g, b
     float3 maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
 
-#if defined(_LAYER_MASK_VERTEX_COLOR)
+    // Mutually exclusive with _HEIGHT_BASED_BLEND
+#if defined(_LAYER_MASK_VERTEX_COLOR_MUL) // Used when no layer mask is set
     maskValues *= input.vertexColor.rgb;
+#elif defined(_LAYER_MASK_VERTEX_COLOR_ADD) // When layer mask is set, color is additive to enable user to override it.
+    maskValues = saturate(maskValues + input.vertexColor.rgb * 2.0 - 1.0);
 #endif
 
 #if defined(_HEIGHT_BASED_BLEND)
@@ -432,8 +442,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     surfaceData.tangentWS = input.tangentToWorld[0].xyz;
 
-    bool twoSided = false;
+    // NdotV should not be negative for visible pixels, but it can happen due to the
+    // perspective projection and the normal mapping + decals. In that case, the normal
+    // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
+    // Note: certain applications (e.g. SpeedTree) make use of double-sided lighting.
     // This will  potentially reduce the length of the normal at edges of geometry.
+    bool twoSided = false;    
     GetShiftedNdotV(surfaceData.normalWS, V, twoSided);
 
     // Orthonormalize the basis vectors using the Gram-Schmidt process.

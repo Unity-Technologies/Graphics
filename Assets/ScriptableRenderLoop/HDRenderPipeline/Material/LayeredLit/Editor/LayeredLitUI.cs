@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent layersText = new GUIContent("Layers");
             public readonly GUIContent emissiveText = new GUIContent("Emissive");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color if enabled)");
-            public readonly GUIContent layerMapVertexColorText = new GUIContent("Use Vertex Color", "Layer mask (multiplied by layer mask if enabled)");
+            public readonly GUIContent layerMapVertexColorText = new GUIContent("Use Vertex Color", "If no layer mask is set, vertex color values between 0 and 1.0 are used as final mask.\nIf a layer mask is set, vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent vertexColorHeightMultiplierText = new GUIContent("Vertex Height Scale", "Scale applied to the vertex color height.");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
@@ -284,6 +284,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return result;
         }
 
+        bool CheckInputFloatOptionConsistency(string optionName, ref string outValueNames)
+        {
+            bool result = true;
+            outValueNames = "";
+            for (int i = 0; i < numLayer; ++i)
+            {
+                Material layer = m_MaterialLayers[i];
+                if (layer != null)
+                {
+                    float currentValue = layer.GetFloat(optionName);
+
+                    for (int j = i + 1; j < numLayer; ++j)
+                    {
+                        Material otherLayer = m_MaterialLayers[j];
+                        if (otherLayer != null)
+                        {
+                            if (currentValue != otherLayer.GetFloat(optionName))
+                            {
+                                result = false;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    outValueNames += "X    ";
+                }
+            }
+
+            return result;
+        }
+
         bool CheckInputMapConsistency(string mapName, ref string outValueNames)
         {
             bool result = true;
@@ -328,7 +360,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Input options consistency
             string[] smoothnessSourceShortNames = { "Mask", "Albedo" };
             string[] normalMapShortNames = { "Tan", "Obj" };
-            string[] heightMapShortNames = { "Parallax", "Disp" };
             string[] detailModeShortNames = { "DNormal", "DAOHeight" };
 
             string warningInputOptions = "";
@@ -340,9 +371,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 warningInputOptions += "Normal Map Space:    " + optionValueNames + "\n";
             }
-            if (!CheckInputOptionConsistency(kHeightMapMode, heightMapShortNames, ref optionValueNames))
+            if (!CheckInputFloatOptionConsistency(kEnablePerPixelDisplacement, ref optionValueNames))
             {
-                warningInputOptions += "Height Map Mode:    " + optionValueNames + "\n";
+                warningInputOptions += "Per pixel displacement:    " + optionValueNames + "\n";
             }
             if (!CheckInputOptionConsistency(kDetailMapMode, detailModeShortNames, ref optionValueNames))
             {
@@ -405,7 +436,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 material.SetFloat(kSmoothnessTextureChannel, firstLayer.GetFloat(kSmoothnessTextureChannel));
                 material.SetFloat(kNormalMapSpace, firstLayer.GetFloat(kNormalMapSpace));
-                material.SetFloat(kHeightMapMode, firstLayer.GetFloat(kHeightMapMode));
+                material.SetFloat(kEnablePerPixelDisplacement, firstLayer.GetFloat(kEnablePerPixelDisplacement));
                 // Force emissive to be emissive color
                 material.SetFloat(kEmissiveColorMode, (float)EmissiveColorMode.UseEmissiveColor);
             }
@@ -562,7 +593,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap + i));
 
                 SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", ((DetailMapMode)material.GetFloat(kDetailMapMode)) == DetailMapMode.DetailWithNormal);
-                SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", ((HeightmapMode)material.GetFloat(kHeightMapMode)) == HeightmapMode.Displacement);
+                bool perPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) == 1.0;
+                SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", perPixelDisplacement);
                 SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
                 SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
             }
@@ -571,12 +603,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
             if(useHeightBasedBlend)
             {
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", false);
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
                 SetKeyword(material, "_HEIGHT_BASED_BLEND", true);
             }
             else
             {
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
+                if (material.GetTexture(kLayerMaskMap) != null)
+                {
+                    SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
+                    SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
+                }
+                else
+                {
+                    SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
+                    SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
+                }
                 SetKeyword(material, "_HEIGHT_BASED_BLEND", false);
             }
 

@@ -32,7 +32,7 @@ void Frag(  PackedVaryings packedInput,
     outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
 
 #ifdef _DEPTHOFFSET_ON
-    outputDepth = posInput.rawDepth;
+    outputDepth = posInput.depthRaw;
 #endif
 }
 

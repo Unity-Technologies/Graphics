@@ -158,14 +158,17 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightBias: -0.03
+    - _HeightAmplitude: 0.15
+    - _HeightBias: -0.01
+    - _HeightCenter: 0.5
     - _HeightMapMode: 0
-    - _HeightScale: 0.06
+    - _HeightScale: 0.02
     - _MaterialId: 0
     - _Metallic: 0
     - _Mode: 0
     - _NormalDetailMul: 1
     - _NormalMapSpace: 0
+    - _NormalScale: 1
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _Smoothness: 1

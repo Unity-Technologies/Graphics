@@ -184,9 +184,9 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _BlendMode: 0
-    - _BlendSize1: 0.0035
-    - _BlendSize2: 0.0034
-    - _BlendSize3: 0.0018
+    - _BlendSize1: 0.023
+    - _BlendSize2: 0.011
+    - _BlendSize3: 0.008
     - _BumpScale: 1
     - _CullMode: 2
     - _Cutoff: 0.5
@@ -223,17 +223,25 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _HeightAmplitude0: 0.25
+    - _HeightAmplitude1: 0.15
+    - _HeightAmplitude2: 0.1
+    - _HeightAmplitude3: 0.15
     - _HeightBias0: -0.06
     - _HeightBias1: -0.05
     - _HeightBias2: -0.025
     - _HeightBias3: -0.03
-    - _HeightFactor1: 1.81
+    - _HeightCenter0: 0.5
+    - _HeightCenter1: 0.5
+    - _HeightCenter2: 0.5
+    - _HeightCenter3: 0.5
+    - _HeightFactor1: 1
     - _HeightFactor2: 1
-    - _HeightFactor3: 0.62
+    - _HeightFactor3: 1
     - _HeightMapMode: 0
-    - _HeightOffset1: -0.003
-    - _HeightOffset2: 0.01
-    - _HeightOffset3: 0.003
+    - _HeightOffset1: 0.057
+    - _HeightOffset2: 0.015
+    - _HeightOffset3: 0
     - _HeightScale0: 0.127
     - _HeightScale1: 0.1
     - _HeightScale2: 0.05
@@ -250,6 +258,10 @@ Material:
     - _Metallic3: 0
     - _Mode: 0
     - _NormalMapSpace: 0
+    - _NormalScale0: 1
+    - _NormalScale1: 1
+    - _NormalScale2: 1
+    - _NormalScale3: 1
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _Smoothness0: 0.5
@@ -281,7 +293,7 @@ Material:
     - _UseHeightBasedBlend1: 1
     - _UseHeightBasedBlend2: 1
     - _UseHeightBasedBlend3: 1
-    - _VertexColorHeightFactor: 0.19
+    - _VertexColorHeightFactor: 0.3
     - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:

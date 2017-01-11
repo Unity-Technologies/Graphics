@@ -470,7 +470,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 {
     PreLightData preLightData;
 
-    // We do not saturate to correctly handle double-sided lighting.
+    // We have handle the case of NdotV being negative in GetData() function with GetShiftedNdotV.
+    // So we don't need to saturate or take the abs here.
+    // In case a material use negative normal for double sided lighting like speedtree this will be handle in the GetData() code too.
     preLightData.NdotV = dot(bsdfData.normalWS, V);
 
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
