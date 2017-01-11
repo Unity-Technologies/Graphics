@@ -58,16 +58,15 @@ float mipmapLevelToPerceptualRoughness(float mipmapLevel)
 // Ref: "Moving Frostbite to PBR", p. 69.
 float3 GetSpecularDominantDir(float3 N, float3 R, float roughness, float NdotV)
 {
-    float a     = 1.0 - roughness;
-    float s     = sqrt(1.0 - roughness);
-    float sinNV = sqrt(1.0 - NdotV * NdotV);
+    float a = 1.0 - roughness;
+    float s = sqrt(a);
 
 #ifdef USE_FB_DSD
     // This is the original formulation.
-    float lerpFactor = a * (s + roughness);
+    float lerpFactor = (s + roughness) * a;
 #else
     // TODO: tweak this further to achieve a closer match to the reference.
-    float lerpFactor = s * saturate(lerp(s + s, a * a, sinNV));
+    float lerpFactor = (s + roughness) * saturate(lerp(a * a, a * a + a, NdotV * NdotV));
 #endif
 
     // The result is not normalized as we fetch in a cubemap
