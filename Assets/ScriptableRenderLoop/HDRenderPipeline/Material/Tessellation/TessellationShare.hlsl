@@ -67,8 +67,10 @@ PackedVaryings Domain(TessellationFactors tessFactors, const OutputPatch<Attribu
 #endif
 #endif
 
+#if defined(_TESSELLATION_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT_PHONG)
     // perform displacement
     Displacement(params);
+#endif
 
     // Evaluate regular vertex shader
     PackedVaryings outout = Vert(params);

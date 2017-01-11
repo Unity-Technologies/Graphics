@@ -5,7 +5,7 @@
 #ifndef TILEPASS_CS_HLSL
 #define TILEPASS_CS_HLSL
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightVolumeType:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightVolumeType:  static fields
 //
 #define LIGHTVOLUMETYPE_CONE (0)
 #define LIGHTVOLUMETYPE_SPHERE (1)
@@ -13,7 +13,7 @@
 #define LIGHTVOLUMETYPE_COUNT (3)
 
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightCategory:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightCategory:  static fields
 //
 #define LIGHTCATEGORY_PUNCTUAL (0)
 #define LIGHTCATEGORY_AREA (1)
@@ -21,7 +21,7 @@
 #define LIGHTCATEGORY_COUNT (3)
 
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightDefinitions:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightDefinitions:  static fields
 //
 #define MAX_NR_LIGHTS_PER_CAMERA (1024)
 #define MAX_NR_BIGTILE_LIGHTS_PLUSONE (512)
@@ -32,7 +32,7 @@
 #define IS_BOX_PROJECTED (4)
 #define HAS_SHADOW (8)
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.TilePass.SFiniteLightBound
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.TilePass.SFiniteLightBound
 // PackingRules = Exact
 struct SFiniteLightBound
 {
@@ -44,7 +44,7 @@ struct SFiniteLightBound
 	float radius;
 };
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightVolumeData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightVolumeData
 // PackingRules = Exact
 struct LightVolumeData
 {
@@ -63,7 +63,7 @@ struct LightVolumeData
 };
 
 //
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.TilePass.SFiniteLightBound
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.TilePass.SFiniteLightBound
 //
 float3 GetBoxAxisX(SFiniteLightBound value)
 {
@@ -91,7 +91,7 @@ float GetRadius(SFiniteLightBound value)
 }
 
 //
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightVolumeData
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightVolumeData
 //
 float3 GetLightPos(LightVolumeData value)
 {

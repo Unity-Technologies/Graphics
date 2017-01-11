@@ -5,7 +5,7 @@
 #ifndef LIT_CS_HLSL
 #define LIT_CS_HLSL
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.Lit.MaterialId:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId:  static fields
 //
 #define MATERIALID_LIT_STANDARD (0)
 #define MATERIALID_LIT_SSS (1)
@@ -14,7 +14,7 @@
 #define MATERIALID_LIT_ANISO (4)
 
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.Lit.SurfaceData:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit.SurfaceData:  static fields
 //
 #define DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR (1000)
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_OCCLUSION (1001)
@@ -34,7 +34,7 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1015)
 
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.Lit.BSDFData:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit.BSDFData:  static fields
 //
 #define DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR (1030)
 #define DEBUGVIEW_LIT_BSDFDATA_FRESNEL0 (1031)
@@ -55,11 +55,11 @@
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1046)
 
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.Lit.GBufferMaterial:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit.GBufferMaterial:  static fields
 //
 #define GBUFFERMATERIAL_COUNT (4)
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.Lit.SurfaceData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit.SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
@@ -81,7 +81,7 @@ struct SurfaceData
 	float3 specularColor;
 };
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.Lit.BSDFData
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit.BSDFData
 // PackingRules = Exact
 struct BSDFData
 {
