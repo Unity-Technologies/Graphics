@@ -78,14 +78,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent emissiveWarning = new GUIContent("Emissive value is animated but the material has not been configured to support emissive. Please make sure the material itself has some amount of emissive.");
             public static GUIContent emissiveColorWarning = new GUIContent("Ensure emissive color is non-black for emission to have effect.");
 
-            public static string tessellationModeText = "Tesselation Mode";
+            public static string tessellationModeText = "Tessellation Mode";
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
 
             public static GUIContent tessellationText = new GUIContent("Tessellation options", "Tessellation options");
             public static GUIContent tessellationFactorFixedText = new GUIContent("Fixed tessellation factor", "If non negative, this value is a fixed tessellation factor use for tessellation");
             public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("Max Distance", "Maximun distance to the camera where triangle are tesselated");
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle. Smaller value mean smaller triangle.");
-            public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tesselation shape (lerp factor)");
+            public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor)");
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If non zero, backface culling is enabled for tessellation, smaller number mean more aggressive culling and better performance");
             public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Scale displacement taking into account the object scale");
         }
@@ -368,18 +368,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (tessMode == TessellationMode.Phong)
                 {
-                    material.DisableKeyword("_TESSELATION_DISPLACEMENT");
-                    material.DisableKeyword("_TESSELATION_DISPLACEMENT_PHONG");
+                    material.DisableKeyword("_TESSELLATION_DISPLACEMENT");
+                    material.DisableKeyword("_TESSELLATION_DISPLACEMENT_PHONG");
                 }
                 else if (tessMode == TessellationMode.Displacement)
                 {
-                    material.EnableKeyword("_TESSELATION_DISPLACEMENT");
-                    material.DisableKeyword("_TESSELATION_DISPLACEMENT_PHONG");
+                    material.EnableKeyword("_TESSELLATION_DISPLACEMENT");
+                    material.DisableKeyword("_TESSELLATION_DISPLACEMENT_PHONG");
                 }
                 else
                 {
-                    material.DisableKeyword("_TESSELATION_DISPLACEMENT");
-                    material.EnableKeyword("_TESSELATION_DISPLACEMENT_PHONG");
+                    material.DisableKeyword("_TESSELLATION_DISPLACEMENT");
+                    material.EnableKeyword("_TESSELLATION_DISPLACEMENT_PHONG");
                 }
             }
         }
