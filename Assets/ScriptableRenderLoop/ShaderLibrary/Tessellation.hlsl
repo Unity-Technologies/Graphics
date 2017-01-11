@@ -1,4 +1,22 @@
-#define TESSELATION_INTERPOLATE_BARY(name, bary) ouput.name = input0.name * bary.x +  input1.name * bary.y +  input2.name * bary.z
+#define TESSELLATION_INTERPOLATE_BARY(name, bary) ouput.name = input0.name * bary.x +  input1.name * bary.y +  input2.name * bary.z
+
+float3 ProjectPointOnPlane(float3 position, float3 planePosition, float3 planeNormal)
+{
+    return position - (dot(position - planePosition, planeNormal) * planeNormal);
+}
+
+// p0, p1, p2 triangle world position
+// p0, p1, p2 triangle world vertex normal
+float3 PhongTessellation(float3 positionWS, float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2, float3 baryCoords, float shape)
+{
+    float3 c0 = ProjectPointOnPlane(positionWS, p0, n0);
+    float3 c1 = ProjectPointOnPlane(positionWS, p1, n1);
+    float3 c2 = ProjectPointOnPlane(positionWS, p2, n2);
+
+    float3 phongPositionWS = baryCoords.x * c0 + baryCoords.y * c1 + baryCoords.z * c2;
+
+    return lerp(positionWS, phongPositionWS, shape);
+}
 
 // ---- utility functions
 float UnityCalcDistanceTessFactor(float3 positionOS, float minDist, float maxDist, float tess, float4x4 objectToWorld, float3 cameraPosWS)

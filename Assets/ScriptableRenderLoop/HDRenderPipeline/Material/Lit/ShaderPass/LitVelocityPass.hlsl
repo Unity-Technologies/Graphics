@@ -18,9 +18,9 @@ struct Attributes
 #endif
 };
 
-#ifdef TESSELATION_ON
+#ifdef TESSELLATION_ON
 // Copy paste of above struct with POSITION rename to INTERNALTESSPOS (internal of unity shader compiler)
-struct AttributesTesselation
+struct AttributesTessellation
 {
     float3 positionOS : INTERNALTESSPOS;
     float3 previousPositionOS : NORMAL;
@@ -33,9 +33,9 @@ struct AttributesTesselation
 #endif
 };
 
-AttributesTesselation AttributesToAttributesTesselation(Attributes input)
+AttributesTessellation AttributesToAttributesTessellation(Attributes input)
 {
-    AttributesTesselation output;
+    AttributesTessellation output;
     output.positionOS = input.positionOS;
     output.previousPositionOS = input.previousPositionOS;
 #if NEED_TEXCOORD0
@@ -49,7 +49,7 @@ AttributesTesselation AttributesToAttributesTesselation(Attributes input)
     return output;
 }
 
-Attributes AttributesTesselationToAttributes(AttributesTesselation input)
+Attributes AttributesTessellationToAttributes(AttributesTessellation input)
 {
     Attributes output;
     output.positionOS = input.positionOS;
@@ -65,23 +65,23 @@ Attributes AttributesTesselationToAttributes(AttributesTesselation input)
     return output;
 }
 
-AttributesTesselation InterpolateWithBaryCoords(AttributesTesselation input0, AttributesTesselation input1, AttributesTesselation input2, float3 baryCoords)
+AttributesTessellation InterpolateWithBaryCoords(AttributesTessellation input0, AttributesTessellation input1, AttributesTessellation input2, float3 baryCoords)
 {
-    AttributesTesselation ouput;
+    AttributesTessellation ouput;
 
-    TESSELATION_INTERPOLATE_BARY(positionOS, baryCoords);
-    TESSELATION_INTERPOLATE_BARY(previousPositionOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(positionOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(previousPositionOS, baryCoords);
 #if NEED_TEXCOORD0
-    TESSELATION_INTERPOLATE_BARY(uv0, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(uv0, baryCoords);
 #endif
 #if NEED_TANGENT_TO_WORLD
-//    TESSELATION_INTERPOLATE_BARY(normalOS, baryCoords);
-    TESSELATION_INTERPOLATE_BARY(tangentOS, baryCoords);
+//    TESSELLATION_INTERPOLATE_BARY(normalOS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(tangentOS, baryCoords);
 #endif
 
     return ouput;
 }
-#endif // TESSELATION_ON
+#endif // TESSELLATION_ON
 
 struct Varyings
 {

@@ -157,9 +157,9 @@ float _AlphaCutoff;
 
 #endif // LAYERED_LIT_SHADER
 
-// Tesselation specific
+// Tessellation specific
 
-#ifdef TESSELATION_ON
+#ifdef TESSELLATION_ON
 float _TessellationFactorFixed;
 float _TessellationFactorMaxDistance;
 float _TessellationFactorTriangleSize;
