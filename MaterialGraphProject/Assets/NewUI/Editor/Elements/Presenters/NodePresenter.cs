@@ -21,6 +21,14 @@ namespace RMGUI.GraphView
 			get { return m_OutputAnchors ?? (m_OutputAnchors = new List<NodeAnchorPresenter>()); }
 		}
 
+		[SerializeField]
+		private bool m_expanded;
+		public virtual bool expanded
+		{
+			get { return m_expanded; }
+			set { m_expanded = value; }
+		}
+
 		public virtual Orientation orientation
 		{
 			get { return Orientation.Horizontal; }
@@ -36,6 +44,7 @@ namespace RMGUI.GraphView
 
 		protected NodePresenter()
 		{
+			m_expanded = true;
 		}
 	}
 }

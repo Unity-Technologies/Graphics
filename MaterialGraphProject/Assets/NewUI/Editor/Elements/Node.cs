@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.RMGUI;
@@ -57,25 +58,56 @@ namespace RMGUI.GraphView
 			AddToClassList(nodePresenter.orientation == Orientation.Vertical ? "vertical" : "horizontal");
 		}
 
-		public override void OnDataChanged()
+		public void RefreshAnchors()
 		{
-			base.OnDataChanged();
+			var nodePresenter = GetPresenter<NodePresenter>();
+
+			var currentInputs = inputContainer.allChildren.OfType<NodeAnchor>().ToList();
+			var currentOutputs = outputContainer.allChildren.OfType<NodeAnchor>().ToList();
 
 			outputContainer.ClearChildren();
 			inputContainer.ClearChildren();
 
-			var nodePresenter = GetPresenter<NodePresenter>();
-
 			foreach (var anchorPresenter in nodePresenter.inputAnchors)
 			{
-				inputContainer.AddChild(NodeAnchor.Create<EdgePresenter>(anchorPresenter));
+				var anchor = currentInputs.FirstOrDefault(a => a.GetPresenter<NodeAnchorPresenter>() == anchorPresenter);
+				if (anchor == null)
+				{
+					anchor = NodeAnchor.Create<EdgePresenter>(anchorPresenter);
+				}
+				inputContainer.AddChild(anchor);
+				if (nodePresenter.expanded || anchorPresenter.connected)
+				{
+					anchor.paintFlags &= ~PaintFlags.Invisible;
+					anchor.RemoveFromClassList("hidden");
+				}
+				else
+				{
+					anchor.paintFlags |= PaintFlags.Invisible;
+					anchor.AddToClassList("hidden");
+				}
 			}
 
 			bool hasOutput = false;
 			foreach (var anchorPresenter in nodePresenter.outputAnchors)
 			{
-				outputContainer.AddChild(NodeAnchor.Create<EdgePresenter>(anchorPresenter));
-				hasOutput = true;
+				var anchor = currentOutputs.FirstOrDefault(a => a.GetPresenter<NodeAnchorPresenter>() == anchorPresenter);
+				if (anchor == null)
+				{
+					anchor = NodeAnchor.Create<EdgePresenter>(anchorPresenter);
+				}
+				outputContainer.AddChild(anchor);
+				if (nodePresenter.expanded || anchorPresenter.connected)
+				{
+					anchor.paintFlags &= ~PaintFlags.Invisible;
+					anchor.RemoveFromClassList("hidden");
+					hasOutput = true;
+				}
+				else
+				{
+					anchor.paintFlags |= PaintFlags.Invisible;
+					anchor.AddToClassList("hidden");
+				}
 			}
 
 			// Show output container only if we have one or more child
@@ -83,7 +115,7 @@ namespace RMGUI.GraphView
 			{
 				if (!mainContainer.children.Contains(rightContainer))
 				{
-					mainContainer.InsertChild(0, rightContainer);
+					mainContainer.AddChild(rightContainer);
 				}
 			}
 			else
@@ -93,10 +125,27 @@ namespace RMGUI.GraphView
 					mainContainer.RemoveChild(rightContainer);
 				}
 			}
+		}
+
+		public override void OnDataChanged()
+		{
+			base.OnDataChanged();
+
+			var nodePresenter = GetPresenter<NodePresenter>();
+
+			RefreshAnchors();
 
 			m_TitleLabel.content.text = nodePresenter.title;
 
+			m_CollapseButton.content.text = nodePresenter.expanded ? "collapse" : "expand";
+
 			SetLayoutClassLists(nodePresenter);
+		}
+
+		protected virtual void ToggleCollapse()
+		{
+			var nodePresenter = GetPresenter<NodePresenter>();
+			nodePresenter.expanded = !nodePresenter.expanded;
 		}
 
 		public Node()
@@ -133,7 +182,7 @@ namespace RMGUI.GraphView
 			};
 
 			m_TitleLabel = new Label(new GUIContent(""));
-			m_CollapseButton = new Button(() => {})
+			m_CollapseButton = new Button(ToggleCollapse)
 			{
 				content = new GUIContent("collapse")
 			};
