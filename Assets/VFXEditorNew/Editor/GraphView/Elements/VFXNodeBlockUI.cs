@@ -30,10 +30,10 @@ namespace UnityEditor.VFX.UI
 
         public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
         {
-            if (selectionContainer != parent || !IsSelectable())
-                return EventPropagation.Continue;
+			if (selectionContainer != parent || !IsSelectable())
+				return EventPropagation.Continue;
 
-            foreach(var child in selectionContainer.allChildren)
+			foreach (var child in selectionContainer.allChildren)
             {
                 var block = (child as VFXNodeBlockUI);
                 if (block != null)
@@ -42,11 +42,11 @@ namespace UnityEditor.VFX.UI
 
 			presenter.selected = true;
 
-            var graphView = selectionContainer.parent as GraphView;
-            if(graphView != null)
-			    graphView.contentViewContainer.Touch(ChangeType.Repaint);
+			var graphView = selectionContainer.GetFirstAncestorOfType<GraphView>();
+            if (graphView != null)
+			    graphView.contentViewContainer.Touch(ChangeType.Layout);
 
-            return EventPropagation.Stop;
+            return EventPropagation.Continue;
         }
 
 		public override void SetPosition(Rect newPos)
@@ -55,8 +55,22 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDataChanged()
         {
-            base.OnDataChanged();
-        }
+			if (presenter == null)
+			{
+				return;
+			}
+
+			if (presenter.selected)
+			{
+				AddToClassList("selected");
+			}
+			else
+			{
+				RemoveFromClassList("selected");
+			}
+
+			SetPosition(presenter.position);
+		}
 
         public override void DoRepaint(IStylePainter painter)
         {

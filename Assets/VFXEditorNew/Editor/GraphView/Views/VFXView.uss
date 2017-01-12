@@ -23,7 +23,7 @@ VFXFlowAnchor.InputEdgeConnector {
 	background-image:path("Assets/Editor Default Resources/LayoutFlow_In.psd");
 }
 
-VFXFlowAnchor.OutputEdgeConnector{	
+VFXFlowAnchor.OutputEdgeConnector {
 	background-image:path("Assets/Editor Default Resources/LayoutFlow_Out.psd");
 }
 
@@ -45,9 +45,9 @@ VFXContextUI {
 	font-size:12;
 	flex: 1;
 	flex-direction: column;
-	align-items: stretch;	
+	align-items: stretch;
 	min-height: 100;
-	min-width: 320; 
+	min-width: 320;
 }
 
 VFXContextUI.selected > #NodeContents  {
@@ -75,7 +75,7 @@ VFXContextUI #NodeContents {
 	background-color: #2D2D2D;
 }
 
-VFXContextUI #NodeBlockContainer {	
+VFXContextUI #NodeBlockContainer {
 	flex:1;
 	flex-direction: column;
 	background-color: #444;
@@ -84,8 +84,8 @@ VFXContextUI #NodeBlockContainer {
 
 VFXNodeBlockUI.selected {
 	border-color: #FFAA22;
-	border-width: 5;
-	background-color: #F0F;	
+	border-width: 1;
+	background-color: #555;
 }
 
 VFXNodeBlockUI {

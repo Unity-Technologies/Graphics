@@ -22,8 +22,6 @@ namespace RMGUI.GraphView
 				return EventPropagation.Continue;
 			}
 
-			var graphView = target as GraphView;
-
             // thomasi : removed to be selectable anywhere
             /*if (graphView == null)
 			{
@@ -38,7 +36,7 @@ namespace RMGUI.GraphView
 						var ve = selectable as GraphElement;
                         if (ve != null)
                         {
-                            return ve.Select(graphView, evt);
+                            return ve.Select(target as VisualContainer, evt);
                         }
 					}
 					break;
