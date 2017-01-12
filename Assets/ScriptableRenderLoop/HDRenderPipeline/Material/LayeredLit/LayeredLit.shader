@@ -212,7 +212,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
-    #pragma shader_feature _REQUIRE_UV2_OR_UV3
+    #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
     #pragma shader_feature _NORMALMAP

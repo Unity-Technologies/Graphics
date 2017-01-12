@@ -2,21 +2,13 @@
 #error Undefine_SHADERPASS
 #endif
 
-#define NEED_TEXCOORD0 defined(_ALPHATEST_ON)
-#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))
+// TODO: For now disable per pixel and per vertex displacement mapping with motion vector
+// as vertex normal is not available
+#define ATTRIBUTES_WANT_PREVIOUS_POSITION
 
-struct Attributes
-{
-    float3 positionOS : POSITION;
-    float3 previousPositionOS : NORMAL; // Contain previous transform position (in case of skinning for example)
-#if NEED_TEXCOORD0
-    float2 uv0 : TEXCOORD0;
-#endif
-#if NEED_TANGENT_TO_WORLD
- //    float3 normalOS  : NORMAL; // TODO: This won't compile as we conflict with previousPositionOS. FIXME
-    float4 tangentOS : TANGENT;
-#endif
-};
+#ifdef ATTRIBUTES_WANT_PREVIOUS_POSITION
+float3 previousPositionOS : NORMAL; // Caution : Currently use same semantic than normal, so conflict for tesselation...
+#endif   
 
 #ifdef TESSELLATION_ON
 // Copy paste of above struct with POSITION rename to INTERNALTESSPOS (internal of unity shader compiler)

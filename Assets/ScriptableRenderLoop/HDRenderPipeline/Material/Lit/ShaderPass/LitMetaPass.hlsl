@@ -1,6 +1,7 @@
 #ifndef SHADERPASS
 #error Undefine_SHADERPASS
 #endif
+
 CBUFFER_START(UnityMetaPass)
 // x = use uv1 as raster position
 // y = use uv2 as raster position
@@ -9,57 +10,22 @@ bool4 unity_MetaVertexControl;
 // x = return albedo
 // y = return normal
 bool4 unity_MetaFragmentControl;
-
 CBUFFER_END
 
 // This was not in constant buffer in original unity, so keep outiside. But should be in as ShaderRenderPass frequency
 float unity_OneOverOutputBoost;
 float unity_MaxOutputValue;
 
-struct Attributes
-{
-    float3 positionOS : POSITION;
-    float3 normalOS : NORMAL;
-    float2 uv0 : TEXCOORD0;
-    float2 uv1 : TEXCOORD1;
-    float2 uv2 : TEXCOORD2;
-};
+#define ATTRIBUTES_WANT_NORMAL
+#define ATTRIBUTES_WANT_UV0
+#define ATTRIBUTES_WANT_UV1
+#define ATTRIBUTES_WANT_UV2
 
-struct Varyings
-{
-    float4 positionCS;
-    float2 texCoord0;
-    float2 texCoord1;
-};
+#define VARYING_WANT_TEXCOORD0
+#define VARYING_WANT_TEXCOORD1
 
-struct PackedVaryings
-{
-    float4 positionCS : SV_Position;
-    float4 interpolators[1] : TEXCOORD0;
-};
-
-// Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
-PackedVaryings PackVaryings(Varyings input)
-{
-    PackedVaryings output;
-    output.positionCS = input.positionCS;
-    output.interpolators[0].xy = input.texCoord0;
-    output.interpolators[0].zw = input.texCoord1;
-
-    return output;
-}
-
-FragInputs UnpackVaryings(PackedVaryings input)
-{
-    FragInputs output;
-    ZERO_INITIALIZE(FragInputs, output);
-
-    output.unPositionSS = input.positionCS;  // input.positionCS is SV_Position
-    output.texCoord0 = input.interpolators[0].xy;
-    output.texCoord1 = input.interpolators[0].zw;
-
-    return output;
-}
+// Include structure declaration and packing functions
+#include "LitAttributesVarying.hlsl"
 
 PackedVaryings Vert(Attributes input)
 {
