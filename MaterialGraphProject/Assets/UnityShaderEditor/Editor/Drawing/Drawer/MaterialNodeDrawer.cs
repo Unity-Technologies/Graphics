@@ -113,6 +113,17 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
 
             AddPreview(nodeData);
+
+            if (nodeData.expanded)
+            {
+                m_PreviewContainer.paintFlags &= ~PaintFlags.Invisible;
+                m_PreviewContainer.RemoveFromClassList("hidden");
+            }
+            else
+            {
+                m_PreviewContainer.paintFlags |= PaintFlags.Invisible;
+                m_PreviewContainer.AddToClassList("hidden");
+            }
         }
     }
 }

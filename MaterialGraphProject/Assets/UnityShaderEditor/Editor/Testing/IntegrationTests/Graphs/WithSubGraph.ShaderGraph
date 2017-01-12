@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Name: WithSubGraph
   m_EditorClassIdentifier: 
   m_DrawingData:
-    m_SerializableSelection: []
+    m_SerializableSelection:
+    - 6d741a9b-d9b1-444c-a1f5-2951615bfc25
   m_MaterialGraph:
     m_SerializableNodes:
     - typeInfo:
@@ -256,33 +257,33 @@ MonoBehaviour:
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
-        \   \\\"m_Id\\\": -1,\\n    \\\"m_DisplayName\\\": \\\"Input 1(4)\\\",\\n
+        \   \\\"m_Id\\\": -1,\\n    \\\"m_DisplayName\\\": \\\"Input 1(1)\\\",\\n
         \   \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\":
-        1,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
+        4,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Input1\\\",\\n    \\\"m_ShowValue\\\":
+        1,\\n    \\\"m_ShaderOutputName\\\": \\\"Input1\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
-        \   \\\"m_Id\\\": -2,\\n    \\\"m_DisplayName\\\": \\\"Input 2(4)\\\",\\n
+        \   \\\"m_Id\\\": -2,\\n    \\\"m_DisplayName\\\": \\\"Input 2(3)\\\",\\n
         \   \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\":
-        1,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
+        2,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Input2\\\",\\n    \\\"m_ShowValue\\\":
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"Input2\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
-        \   \\\"m_Id\\\": 1,\\n    \\\"m_DisplayName\\\": \\\"Output 1(4)\\\",\\n
+        \   \\\"m_Id\\\": 1,\\n    \\\"m_DisplayName\\\": \\\"Output 1(3)\\\",\\n
         \   \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\":
-        1,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
+        2,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Output1\\\",\\n    \\\"m_ShowValue\\\":
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"Output1\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        }\n    ],\n    \"m_SerializedSubGraph\": \"{\\n    \\\"subGraph\\\":
         {\\n        \\\"fileID\\\": 11400000,\\n        \\\"guid\\\": \\\"63179f4461979734ba87324ec6b1268d\\\",\\n
         \       \\\"type\\\": 2\\n    }\\n}\"\n}"
@@ -413,7 +414,7 @@ MonoBehaviour:
         assemblyName: Assembly-CSharp
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"5c951bbe-e2db-4d79-b6de-3d5cb7199c84\",\n
         \   \"m_Name\": \"AddNode\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
-        true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
+        false,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
         \           \"x\": 1197.6739501953125,\n            \"y\": 818.5625,\n            \"width\":
         0.0,\n            \"height\": 0.0\n        }\n    },\n    \"m_SerializableSlots\":
         [\n        {\n            \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
@@ -424,7 +425,7 @@ MonoBehaviour:
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Input1\\\",\\n    \\\"m_ShowValue\\\":
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"Input1\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
@@ -434,7 +435,7 @@ MonoBehaviour:
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Input2\\\",\\n    \\\"m_ShowValue\\\":
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"Input2\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
@@ -444,14 +445,14 @@ MonoBehaviour:
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        4,\\n    \\\"m_ShaderOutputName\\\": \\\"Output\\\",\\n    \\\"m_ShowValue\\\":
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"Output\\\",\\n    \\\"m_ShowValue\\\":
         true\\n}\"\n        }\n    ]\n}"
     - typeInfo:
         fullName: UnityEngine.MaterialGraph.TextureNode
         assemblyName: Assembly-CSharp
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"6d741a9b-d9b1-444c-a1f5-2951615bfc25\",\n
         \   \"m_Name\": \"Texture\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
-        true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
+        false,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
         \           \"x\": 1197.2586669921875,\n            \"y\": 1151.0247802734375,\n
         \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
@@ -1870,57 +1871,6 @@ Shader:
   m_DefaultTextures: {}
   m_CompileInfo:
     m_Snippets:
-      18182:
-        serializedVersion: 2
-        m_Code: "#line 84 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n#include
-          \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#line 84
-          \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n/*
-          UNITY: Original start of shader */\n#pragma vertex vert\n#pragma fragment
-          frag\n#pragma target 2.0\n#pragma multi_compile_shadowcaster\n#include \"UnityCG.cginc\"\n\nstruct
-          v2f { \n\tV2F_SHADOW_CASTER;\n};\n\nv2f vert( appdata_base v )\n{\n\tv2f
-          o;\n\tTRANSFER_SHADOW_CASTER_NORMALOFFSET(o)\n\treturn o;\n}\n\nfloat4 frag(
-          v2f i ) : SV_Target\n{\n\tSHADOW_CASTER_FRAGMENT(i)\n}\n"
-        m_AssetPath: Assets/DefaultResourcesExtra
-        m_PlatformMask: 4294967295
-        m_HardwareTierVariantsMask: 0
-        m_StartLine: 86
-        m_TypesMask: 3
-        m_IncludesHash:
-          serializedVersion: 2
-          Hash: 9ba1a09ccd43a83dfff46fa0f2d98c45
-        m_FromOther: 1
-        m_Language: 0
-        m_VariantsUser0: []
-        m_VariantsUser1: []
-        m_VariantsUser2: []
-        m_VariantsUser3: []
-        m_VariantsUser4: []
-        m_VariantsUser5: []
-        m_VariantsBuiltin0:
-        - - SHADOWS_DEPTH
-        - - SHADOWS_CUBE
-        m_VariantsBuiltin1:
-        - - SHADOWS_DEPTH
-        - - SHADOWS_CUBE
-        m_VariantsBuiltin2: []
-        m_VariantsBuiltin3: []
-        m_VariantsBuiltin4: []
-        m_VariantsBuiltin5: []
-        m_Target: 0
-        m_TargetVariants0: []
-        m_TargetVariants1: []
-        m_TargetVariants2:
-        - SHADOWS_SOFT
-        - DIRLIGHTMAP_COMBINED
-        - DIRLIGHTMAP_SEPARATE
-        - DYNAMICLIGHTMAP_ON
-        m_TargetVariants3:
-        - INSTANCING_ON
-        m_TargetVariants4: []
-        m_TargetVariants5:
-        - PROCEDURAL_INSTANCING_ON
-        m_NonStrippedUserKeywords: 
-        m_BuiltinKeywords: SHADOWS_CUBE SHADOWS_DEPTH
       18419:
         serializedVersion: 2
         m_Code: "#line 39 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
@@ -2287,6 +2237,57 @@ Shader:
         m_NonStrippedUserKeywords: FOG_EXP FOG_EXP2 FOG_LINEAR
         m_BuiltinKeywords: DIRECTIONAL DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE DYNAMICLIGHTMAP_ON
           LIGHTMAP_ON SHADOWS_SCREEN VERTEXLIGHT_ON
+      19145:
+        serializedVersion: 2
+        m_Code: "#line 84 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n#include
+          \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#line 84
+          \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n/*
+          UNITY: Original start of shader */\n#pragma vertex vert\n#pragma fragment
+          frag\n#pragma target 2.0\n#pragma multi_compile_shadowcaster\n#include \"UnityCG.cginc\"\n\nstruct
+          v2f { \n\tV2F_SHADOW_CASTER;\n\tUNITY_VERTEX_OUTPUT_STEREO\n};\n\nv2f vert(
+          appdata_base v )\n{\n\tv2f o;\n\tUNITY_SETUP_INSTANCE_ID(v);\n\tUNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);\n\tTRANSFER_SHADOW_CASTER_NORMALOFFSET(o)\n\treturn
+          o;\n}\n\nfloat4 frag( v2f i ) : SV_Target\n{\n\tSHADOW_CASTER_FRAGMENT(i)\n}\n"
+        m_AssetPath: Assets/DefaultResourcesExtra
+        m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 0
+        m_StartLine: 86
+        m_TypesMask: 3
+        m_IncludesHash:
+          serializedVersion: 2
+          Hash: b39ba7a83197fea7e3adb382207e9c27
+        m_FromOther: 1
+        m_Language: 0
+        m_VariantsUser0: []
+        m_VariantsUser1: []
+        m_VariantsUser2: []
+        m_VariantsUser3: []
+        m_VariantsUser4: []
+        m_VariantsUser5: []
+        m_VariantsBuiltin0:
+        - - SHADOWS_DEPTH
+        - - SHADOWS_CUBE
+        m_VariantsBuiltin1:
+        - - SHADOWS_DEPTH
+        - - SHADOWS_CUBE
+        m_VariantsBuiltin2: []
+        m_VariantsBuiltin3: []
+        m_VariantsBuiltin4: []
+        m_VariantsBuiltin5: []
+        m_Target: 0
+        m_TargetVariants0: []
+        m_TargetVariants1: []
+        m_TargetVariants2:
+        - SHADOWS_SOFT
+        - DIRLIGHTMAP_COMBINED
+        - DIRLIGHTMAP_SEPARATE
+        - DYNAMICLIGHTMAP_ON
+        m_TargetVariants3:
+        - INSTANCING_ON
+        m_TargetVariants4: []
+        m_TargetVariants5:
+        - PROCEDURAL_INSTANCING_ON
+        m_NonStrippedUserKeywords: 
+        m_BuiltinKeywords: SHADOWS_CUBE SHADOWS_DEPTH
       59918:
         serializedVersion: 2
         m_Code: "#line 18 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
