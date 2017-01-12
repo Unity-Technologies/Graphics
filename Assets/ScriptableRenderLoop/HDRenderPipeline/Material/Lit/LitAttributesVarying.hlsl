@@ -4,7 +4,7 @@ struct Attributes
 #ifdef ATTRIBUTES_WANT_NORMAL	
     float3 normalOS     : NORMAL;
 #endif
-#ifdef ATTRIBUTES_WANT_TANGENT_TO_WORLD
+#ifdef ATTRIBUTES_WANT_TANGENT
     float4 tangentOS    : TANGENT; // Store sign in w
 #endif
 #ifdef ATTRIBUTES_WANT_UV0	
@@ -87,6 +87,10 @@ struct PackedVaryings
 
 #ifdef VARYING_WANT_COLOR
     float4 interpolators6 : TEXCOORD6;
+#endif
+
+#if defined(VARYING_WANT_CULLFACE) && SHADER_STAGE_FRAGMENT
+    FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMATIC;
 #endif
 };
 
@@ -173,6 +177,10 @@ FragInputs UnpackVaryings(PackedVaryings input)
     output.color = input.interpolators6;
 #endif
 
+#if defined(VARYING_WANT_CULLFACE) && SHADER_STAGE_FRAGMENT
+    output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
+#endif
+
     return output;
 }
 
@@ -183,7 +191,8 @@ FragInputs UnpackVaryings(PackedVaryings input)
 // We need to pass to DS any varying required by pixel shader
 // If we have required an attribute it mean we will use it at least for DS
 #ifdef VARYING_WANT_TANGENT_TO_WORLD
-#define VARYING_DS_WANT_TANGENT_TO_WORLD
+#define VARYING_DS_WANT_NORMAL
+#define VARYING_DS_WANT_TANGENT
 #endif
 #if defined(VARYING_WANT_TEXCOORD0) || defined(ATTRIBUTES_WANT_UV0)
 #define VARYING_DS_WANT_TEXCOORD0
@@ -200,15 +209,18 @@ FragInputs UnpackVaryings(PackedVaryings input)
 #if defined(VARYING_WANT_COLOR) || defined(ATTRIBUTES_WANT_COLOR)
 float4 VARYING_DS_WANT_COLOR;
 #endif
-#endif
+
+#endif // TESSELLATION_ON
 
 // Varying for domain shader
 // Position and normal are always present (for tessellation) and in world space
 struct VaryingsDS
 {
     float3 positionWS;
+#ifdef VARYING_DS_WANT_NORMAL
     float3 normalWS;
-#ifdef VARYING_DS_WANT_TANGENT_TO_WORLD
+#endif
+#ifdef VARYING_DS_WANT_TANGENT
     float4 tangentWS;
 #endif
 #ifdef VARYING_DS_WANT_TEXCOORD0 
@@ -230,28 +242,30 @@ struct VaryingsDS
 
 struct PackedVaryingsDS
 {
-    float3 interpolators0 : TEXCOORD0; // positionWS
-    float3 interpolators1 : TEXCOORD1; // normalWS
+    float3 interpolators0 : INTERNALTESSPOS; // positionWS
 
-#ifdef VARYING_DS_WANT_TANGENT_TO_WORLD
-    float4 interpolators2 : TEXCOORD2;
+#ifdef VARYING_DS_WANT_NORMAL
+    float3 interpolators1 : NORMAL;
+#endif
+#ifdef VARYING_DS_WANT_TANGENT
+    float4 interpolators2 : TANGENT;
 #endif
 
     // Allocate only necessary space if shader compiler in the future are able to automatically pack
 #ifdef VARYING_DS_WANT_TEXCOORD1
-    float4 interpolators3 : TEXCOORD3;
+    float4 interpolators3 : TEXCOORD0;
 #elif defined(VARYING_DS_WANT_TEXCOORD0)
-    float2 interpolators3 : TEXCOORD3;
+    float2 interpolators3 : TEXCOORD0;
 #endif
 
 #ifdef VARYING_DS_WANT_TEXCOORD3
-    float4 interpolators4 : TEXCOORD4;
+    float4 interpolators4 : TEXCOORD1;
 #elif defined(VARYING_DS_WANT_TEXCOORD2)
-    float2 interpolators4 : TEXCOORD4;
+    float2 interpolators4 : TEXCOORD1;
 #endif
 
 #ifdef VARYING_DS_WANT_COLOR
-    float4 interpolators5 : TEXCOORD5;
+    float4 interpolators5 : TEXCOORD2;
 #endif
 };
 
@@ -261,8 +275,10 @@ PackedVaryingsDS PackVaryingsDS(VaryingsDS input)
     PackedVaryingsDS output;
 
     output.interpolators0 = input.positionWS;
+#ifdef VARYING_DS_WANT_NORMAL
     output.interpolators1 = input.normalWS;
-#ifdef VARYING_DS_WANT_TANGENT_TO_WORLD
+#endif
+#ifdef VARYING_DS_WANT_TANGENT
     output.interpolators2 = input.tangentWS;
 #endif
 #ifdef VARYING_DS_WANT_TEXCOORD0 
@@ -289,8 +305,10 @@ VaryingsDS UnpackVaryingsDS(PackedVaryingsDS input)
     VaryingsDS output;
 
     output.positionWS = input.interpolators0;
+#ifdef VARYING_DS_WANT_NORMAL
     output.normalWS = input.interpolators1;
-#ifdef VARYING_DS_WANT_TANGENT_TO_WORLD
+#endif
+#ifdef VARYING_DS_WANT_TANGENT
     output.tangentWS = input.interpolators2;
 #endif
 #ifdef VARYING_DS_WANT_TEXCOORD0 
@@ -317,8 +335,10 @@ VaryingsDS InterpolateWithBaryCoords(VaryingsDS input0, VaryingsDS input1, Varyi
     VaryingsDS ouput;
 
     TESSELLATION_INTERPOLATE_BARY(positionWS, baryCoords);
+#ifdef VARYING_DS_WANT_NORMAL
     TESSELLATION_INTERPOLATE_BARY(normalWS, baryCoords);
-#ifdef VARYING_DS_WANT_TANGENT_TO_WORLD
+#endif
+#ifdef VARYING_DS_WANT_TANGENT
     TESSELLATION_INTERPOLATE_BARY(tangentWS, baryCoords);
 #endif
 #ifdef VARYING_DS_WANT_TEXCOORD0 
