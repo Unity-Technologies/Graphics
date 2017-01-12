@@ -106,20 +106,14 @@ namespace RMGUI.GraphView
 						this.ReleaseCapture();
 						NodeAnchorPresenter endAnchor = null;
 
-						foreach (var compatibleAnchor in m_CompatibleAnchors)
+						if (m_GraphView != null)
 						{
-							compatibleAnchor.highlight = false;
-
-							if (m_GraphView != null)
+							foreach (var compatibleAnchor in m_CompatibleAnchors)
 							{
+								compatibleAnchor.highlight = false;
 								NodeAnchor anchorElement = m_GraphView.allElements.OfType<NodeAnchor>().First(e => e.GetPresenter<NodeAnchorPresenter>() == compatibleAnchor);
-								if (anchorElement != null)
-								{
-									if (anchorElement.globalBound.Contains(target.LocalToGlobal(evt.mousePosition)))
-									{
-										endAnchor = compatibleAnchor;
-									}
-								}
+								if (anchorElement != null && anchorElement.globalBound.Contains(target.LocalToGlobal(evt.mousePosition)))
+									endAnchor = compatibleAnchor;
 							}
 						}
 
