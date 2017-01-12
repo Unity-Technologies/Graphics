@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.ScriptableRenderLoop;
 using UnityEngine.Rendering;
-using UnityEngine.ScriptableRenderPipeline;
 
 #region RenderPipelineInstance
 public class LowEndRenderPipelineInstance : RenderPipeline
