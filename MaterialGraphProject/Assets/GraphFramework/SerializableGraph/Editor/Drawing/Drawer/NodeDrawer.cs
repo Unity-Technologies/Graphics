@@ -79,11 +79,6 @@ namespace UnityEditor.Graphing.Drawing
                 return;
             }
 
-            if (!nodeData.expanded)
-                AddToClassList("collapsed");
-            else
-                RemoveFromClassList("collapsed");
-
             AddControls(nodeData);
         }
     }
