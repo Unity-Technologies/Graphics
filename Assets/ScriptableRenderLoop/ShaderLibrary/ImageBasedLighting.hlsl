@@ -417,7 +417,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             float omegaS    = rcp(sampleCount) * invPdf;
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth);
-            mipLevel        = 0.5 * log2(omegaS * invOmegaP + 1.0);
+            mipLevel        = 0.5 * log2(omegaS * invOmegaP);
 
             // Bias the MIP map level to compensate for the importance sampling bias.
             // This will blur the reflection.
