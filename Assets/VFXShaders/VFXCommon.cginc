@@ -7,17 +7,21 @@
 #define UNITY_TWO_PI		6.28318530718f
 #define UNITY_FOUR_PI		12.56637061436f
 #define UNITY_INV_PI		0.31830988618f
-#define UNITY_INV_TWO_PI	0.15915494309f							
+#define UNITY_INV_TWO_PI	0.15915494309f
 #define UNITY_INV_FOUR_PI	0.07957747155f
 #define UNITY_HALF_PI		1.57079632679f
 #define UNITY_INV_HALF_PI	0.636619772367f
 #endif
 
 // Special semantics for VFX blocks
-#define RAND rand(seed)
+#define RAND randLcg(seed)
 #define RAND2 float2(RAND,RAND)
 #define RAND3 float3(RAND,RAND,RAND)
 #define RAND4 float4(RAND,RAND,RAND,RAND)
+#define FIXED_RAND(x) FixedRand4(particleId ^ x).x
+#define FIXED_RAND2(x) FixedRand4(particleId ^ x).xy
+#define FIXED_RAND3(x) FixedRand4(particleId ^ x).xyz
+#define FIXED_RAND4(x) FixedRand4(particleId ^ x).xyzw
 #define KILL {kill = true;}
 #define SAMPLE sampleSignal
 #define SAMPLE_SPLINE_POSITION(v,u) sampleSpline(v.x,u)
@@ -141,3 +145,39 @@ uint3 ConvertFloatToSortableUint(float3 f)
 	res.z = ConvertFloatToSortableUint(f.z);
 	return res;
 }
+uint WangHash(uint seed)
+{
+	seed = (seed ^ 61) ^ (seed >> 16);
+	seed *= 9;
+	seed = seed ^ (seed >> 4);
+	seed *= 0x27d4eb2d;
+	seed = seed ^ (seed >> 15);
+	return seed;
+}
+
+float randLcg(inout uint seed)
+{
+	uint multiplier = 0x0019660d;
+	uint increment = 0x3c6ef35f;
+
+#if defined(SHADER_API_PSSL)
+	seed = mad24(multiplier, seed, increment);
+#else
+	seed = multiplier * seed + increment;
+#endif
+	//return float(seed & 0x007fffff) / float(0x007fffff);
+	return asfloat((seed & 0x007fffff) | 0x3f800000) - 1.0f;
+}
+
+float4 FixedRand4(uint baseSeed)
+{ 
+	uint currentSeed = WangHash(baseSeed);
+	float4 r;
+	[unroll(4)]
+	for (uint i=0; i<4; ++i)
+	{
+		r[i] = randLcg(currentSeed);
+	}
+	return r;
+}
+
