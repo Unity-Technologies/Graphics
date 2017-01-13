@@ -34,7 +34,11 @@ float3 GetDisplacement(VaryingsMeshToDS input)
         float2(0.0, 0.0),
 #endif
         input.positionWS, 
+#ifdef VARYINGS_DS_NEED_NORMAL
         input.normalWS,
+#else
+        float3(0.0, 0.0, 1.0),
+#endif
         layerTexCoord);
 
     // TODO: For now just use Layer0, but we are suppose to apply the same heightmap blending than in the pixel shader

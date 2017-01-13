@@ -2,11 +2,11 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#include "TessellationShare.hlsl"
 #include "Color.hlsl"
 int _DebugViewMaterial;
 
 #include "VertMesh.hlsl"
+#include "TessellationShare.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
