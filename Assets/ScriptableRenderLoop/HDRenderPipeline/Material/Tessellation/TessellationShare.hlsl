@@ -1,37 +1,17 @@
-AttributesTessellation VertTessellation(Attributes input)
-{
-    return AttributesToAttributesTessellation(input);
-}
-
 struct TessellationFactors
 {
     float edge[3] : SV_TessFactor;
     float inside : SV_InsideTessFactor;
 };
 
-TessellationFactors HullConstant(InputPatch<AttributesTessellation, 3> input)
-{
-    Attributes params[3];
-    params[0] = AttributesTessellationToAttributes(input[0]);
-    params[1] = AttributesTessellationToAttributes(input[1]);
-    params[2] = AttributesTessellationToAttributes(input[2]);
- 
-#if (SHADERPASS != SHADERPASS_VELOCITY) && (SHADERPASS != SHADERPASS_DISTORTION)
+TessellationFactors HullConstant(InputPatch<PackedVaryingsDS, 3> input)
+{ 
+    VaryingsDS varyingDS0 = UnpackVaryingsDS(input[0]);
+    VaryingsDS varyingDS1 = UnpackVaryingsDS(input[1]);
+    VaryingsDS varyingDS2 = UnpackVaryingsDS(input[2]);
 
-    // TEMP: We will provide world position but for now convert to world position here
-    float3 p0 = TransformObjectToWorld(input[0].positionOS);
-    float3 n0 = TransformObjectToWorldNormal(input[0].normalOS);
-
-    float3 p1 = TransformObjectToWorld(input[1].positionOS);
-    float3 n1 = TransformObjectToWorldNormal(input[1].normalOS);
-
-    float3 p2 = TransformObjectToWorld(input[2].positionOS);
-    float3 n2 = TransformObjectToWorldNormal(input[2].normalOS);
-
-    float4 tf = TessellationEdge(p0, p1, p2, n0, n1, n2);
-#else
-    float4 tf = float4(0.0, 0.0, 0.0, 0.0);
-#endif
+    float4 tf = TessellationEdge(   varyingDS0.positionWS, varyingDS1.positionWS, varyingDS2.positionWS, 
+                                    varyingDS0.normalWS, varyingDS1.normalWS, varyingDS2.normalWS);
 
     TessellationFactors ouput;
     ouput.edge[0] = tf.x;
@@ -48,32 +28,35 @@ TessellationFactors HullConstant(InputPatch<AttributesTessellation, 3> input)
 [outputtopology("triangle_cw")]
 [patchconstantfunc("HullConstant")]
 [outputcontrolpoints(3)]
-AttributesTessellation Hull(InputPatch<AttributesTessellation, 3> input, uint id : SV_OutputControlPointID)
+PackedVaryingsDS Hull(InputPatch<PackedVaryingsDS, 3> input, uint id : SV_OutputControlPointID)
 {
+    // Pass-through
     return input[id];
 }
 
 [domain("tri")]
-PackedVaryings Domain(TessellationFactors tessFactors, const OutputPatch<AttributesTessellation, 3> input, float3 baryCoords : SV_DomainLocation)
+PackedVaryings Domain(TessellationFactors tessFactors, const OutputPatch<PackedVaryingsDS, 3> input, float3 baryCoords : SV_DomainLocation)
 {
-    Attributes params = InterpolateWithBaryCoords(input[0], input[1], input[2], baryCoords);
+    VaryingsDS varyingDS0 = UnpackVaryingsDS(input[0]);
+    VaryingsDS varyingDS1 = UnpackVaryingsDS(input[1]);
+    VaryingsDS varyingDS2 = UnpackVaryingsDS(input[2]);
 
-#ifndef _TESSELLATION_DISPLACEMENT // We have Phong tessellation in all case where we don't have only displacement
-#if (SHADERPASS != SHADERPASS_VELOCITY) && (SHADERPASS != SHADERPASS_DISTORTION)
-    params.positionOS = PhongTessellation(  params.positionOS,
-                                            input[0].positionOS, input[1].positionOS, input[2].positionOS,
-                                            input[0].normalOS, input[1].normalOS, input[2].normalOS,
-                                            baryCoords, _TessellationShapeFactor);
-#endif
+    VaryingsDS varyingDS = InterpolateWithBaryCoords(varyingDS0, varyingDS1, varyingDS2, baryCoords);
+
+    // We have Phong tessellation in all case where we don't have displacement only
+#ifndef _TESSELLATION_DISPLACEMENT
+    varyingDS.positionWS = PhongTessellation(   varyingDS.positionWS,
+                                                varyingDS0.positionWS, varyingDS1.positionWS, varyingDS2.positionWS,
+                                                varyingDS0.normalWS, varyingDS1.normalWS, varyingDS2.normalWS,
+                                                baryCoords, _TessellationShapeFactor);
 #endif
 
 #if defined(_TESSELLATION_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT_PHONG)
-    // perform displacement
-    Displacement(params);
+    varyingDS.positionWS = GetDisplacement(varyingDS);
 #endif
 
-    // Evaluate regular vertex shader
-    PackedVaryings outout = Vert(params);
+    // Evaluate part of the vertex shader not done
+    PackedVaryings outout = VertTesselation(varyingDS);
 
     return outout;
 }

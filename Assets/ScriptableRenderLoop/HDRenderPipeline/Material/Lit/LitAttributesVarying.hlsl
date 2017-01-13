@@ -339,6 +339,7 @@ VaryingsDS InterpolateWithBaryCoords(VaryingsDS input0, VaryingsDS input1, Varyi
     TESSELLATION_INTERPOLATE_BARY(normalWS, baryCoords);
 #endif
 #ifdef VARYING_DS_WANT_TANGENT
+    // This will interpolate the sign but should be ok in practice as we may expect a triangle to have same sign (? TO CHECK)
     TESSELLATION_INTERPOLATE_BARY(tangentWS, baryCoords);
 #endif
 #ifdef VARYING_DS_WANT_TEXCOORD0 

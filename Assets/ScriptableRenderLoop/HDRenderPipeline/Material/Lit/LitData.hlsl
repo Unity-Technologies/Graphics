@@ -98,6 +98,27 @@ float4 SampleLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, floa
     }
 }
 
+float4 SampleLayerLod(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float lod)
+{
+    if (layerUV.isTriplanar)
+    {
+        float4 val = float4(0.0, 0.0, 0.0, 0.0);
+
+        if (weights.x > 0.0)
+            val += weights.x * SAMPLE_TEXTURE2D_LOD(layerTex, layerSampler, layerUV.uvYZ, lod);
+        if (weights.y > 0.0)
+            val += weights.y * SAMPLE_TEXTURE2D_LOD(layerTex, layerSampler, layerUV.uvZX, lod);
+        if (weights.z > 0.0)
+            val += weights.z * SAMPLE_TEXTURE2D_LOD(layerTex, layerSampler, layerUV.uvXY, lod);
+
+        return val;
+    }
+    else
+    {
+        return SAMPLE_TEXTURE2D_LOD(layerTex, layerSampler, layerUV.uv, lod);
+    }
+}
+
 // TODO: Handle BC5 format, currently this code is for DXT5nm
 // THis function below must call UnpackNormalmapRGorAG
 float3 SampleNormalLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
@@ -168,6 +189,7 @@ float3 SampleNormalLayerRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV laye
 
 // Macro to improve readibility of surface data
 #define SAMPLE_LAYER_TEXTURE2D(textureName, samplerName, coord) SampleLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
+#define SAMPLE_LAYER_TEXTURE2D_LOD(textureName, samplerName, coord, lod) SampleLayerLod(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, lod)
 #define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord, scale) SampleNormalLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
 #define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord, scale) SampleNormalLayerAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
 #define SAMPLE_LAYER_NORMALMAP_RGB(textureName, samplerName, coord, scale) SampleNormalLayerRGB(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
@@ -181,18 +203,15 @@ float3 SampleNormalLayerRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV laye
 #define ADD_IDX(Name) Name
 #define ADD_ZERO_IDX(Name) Name
 #include "LitDataInternal.hlsl"
-#ifdef TESSELLATION_ON
-#include "LitTessellation.hlsl"
-#endif
 
-void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
+                      float3 positionWS, float3 normalWS, out LayerTexCoord layerTexCoord)
 {
-    LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
 
 #ifdef _MAPPING_TRIPLANAR
     // one weight for each direction XYZ - Use vertex normal for triplanar
-    layerTexCoord.weights = ComputeTriplanarWeights(input.tangentToWorld[2].xyz);
+    layerTexCoord.weights = ComputeTriplanarWeights(normalWS);
 #endif
 
     // Be sure that the compiler is aware that we don't touch UV1 to UV3 for base layer in case of non layer shader
@@ -202,7 +221,16 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _MAPPING_TRIPLANAR
     isTriplanar = true;
 #endif
-    ComputeLayerTexCoord(input, isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, 
+                            positionWS, normalWS, isTriplanar, layerTexCoord);
+}
+
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+{
+    LayerTexCoord layerTexCoord;
+    GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
+                     input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
+
     // Transform view vector in tangent space
     float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
     ApplyDisplacement(input, viewDirTS, layerTexCoord);
@@ -244,9 +272,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name##0
 #include "LitDataInternal.hlsl"
-#ifdef TESSELLATION_ON
-#include "LitTessellation.hlsl" // Include only one time for layer 0
-#endif
 #undef LAYER_INDEX
 #undef ADD_IDX
 
@@ -341,36 +366,50 @@ float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, 
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
-void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
+                      float3 positionWS, float3 normalWS, out LayerTexCoord layerTexCoord)
 {
-    LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
 
 #if defined(_LAYER_MAPPING_TRIPLANAR_0) || defined(_LAYER_MAPPING_TRIPLANAR_1) || defined(_LAYER_MAPPING_TRIPLANAR_2) || defined(_LAYER_MAPPING_TRIPLANAR_3)
     // one weight for each direction XYZ - Use vertex normal for triplanar
-    layerTexCoord.weights = ComputeTriplanarWeights(input.tangentToWorld[2].xyz);
+    layerTexCoord.weights = ComputeTriplanarWeights(normalWS);
 #endif
 
     bool isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_0
     isTriplanar = true;
 #endif
-    ComputeLayerTexCoord0(input, isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, 
+                            positionWS, normalWS, isTriplanar, layerTexCoord);
+
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_1
     isTriplanar = true;
 #endif
-    ComputeLayerTexCoord1(input, isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, 
+                            positionWS, normalWS, isTriplanar, layerTexCoord);
+
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_2
     isTriplanar = true;
 #endif
-    ComputeLayerTexCoord2(input, isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, 
+                            positionWS, normalWS, isTriplanar, layerTexCoord);
+
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_3
     isTriplanar = true;
 #endif
-    ComputeLayerTexCoord3(input, isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, 
+                            positionWS, normalWS, isTriplanar, layerTexCoord);
+}
+
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+{
+    LayerTexCoord layerTexCoord;
+    GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
+                     input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
 
     // Transform view vector in tangent space
     float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
@@ -470,3 +509,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 }
 
 #endif // #ifndef LAYERED_LIT_SHADER
+
+#ifdef TESSELLATION_ON
+#include "LitTessellation.hlsl" // Must be after GetLayerTexCoord() declaration
+#endif

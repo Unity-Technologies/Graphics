@@ -106,7 +106,6 @@ float3 BlendNormal(float3 n1, float3 n2)
 float3 ComputeTriplanarWeights(float3 normal)
 { 
     // Determine the blend weights for the 3 planar projections.  
-    // N_orig is the vertex-interpolated normal vector.  
     float3 blendWeights = abs(normal);
     // Tighten up the blending zone
     blendWeights = (blendWeights - 0.2) * 7.0;

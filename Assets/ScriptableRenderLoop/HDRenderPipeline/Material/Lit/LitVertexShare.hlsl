@@ -46,3 +46,38 @@ PackedVaryingsType Vert(Attributes input)
 
     return PackVaryingsType(output);
 }
+
+#ifdef TESSELLATION_ON
+
+PackedVaryings VertTesselation(VaryingDS input)
+{
+    VaryingsType output;
+
+    output.positionCS = TransformWorldToHClip(input.positionWS);
+#ifdef VARYING_WANT_TANGENT_TO_WORLD
+    float3x3 tangentToWorld = CreateTangentToWorld(input.normalWS, input.tangentWS.xyz, input.tangentWS.w);
+    output.tangentToWorld[0] = tangentToWorld[0];
+    output.tangentToWorld[1] = tangentToWorld[1];
+    output.tangentToWorld[2] = tangentToWorld[2];
+#endif
+
+#ifdef VARYING_WANT_TEXCOORD0
+    output.texCoord0 = input.uv0;
+#endif
+#ifdef VARYING_WANT_TEXCOORD1
+    output.texCoord1 = input.uv1;
+#endif
+#ifdef VARYING_WANT_TEXCOORD2
+    output.texCoord2 = input.uv2;
+#endif
+#ifdef VARYING_WANT_TEXCOORD3
+    output.texCoord3 = input.uv3;
+#endif
+#ifdef VARYING_WANT_COLOR
+    output.color = input.color;
+#endif
+
+    return PackVaryingsType(output);
+}
+
+#endif // TESSELLATION_ON
