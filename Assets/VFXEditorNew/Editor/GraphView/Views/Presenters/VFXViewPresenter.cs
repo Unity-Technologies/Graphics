@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using RMGUI.GraphView;
 using UnityEngine;
 
@@ -28,7 +30,12 @@ namespace UnityEditor.VFX.UI
         {
             base.RemoveElement(element);
             if (element is VFXContextPresenter)
-                m_ModelContainer.m_Roots.Remove(((VFXContextPresenter)element).Model);
+            {
+                VFXContext context = ((VFXContextPresenter)element).Model;
+                if (context.GetParent().GetNbChildren() == 1) // Context is the only child of system, delete the system
+                    m_ModelContainer.m_Roots.Remove(context.GetParent());
+                context.Detach();
+            }
 
             EditorUtility.SetDirty(m_ModelContainer);
         }
@@ -38,14 +45,32 @@ namespace UnityEditor.VFX.UI
             var model = new VFXContext(desc);
             model.Position = pos;
 
-            m_ModelContainer.m_Roots.Add(model);
-            AddPresentersFromModel(model);
+            // needs to create a temp system to hold the context
+            var system = new VFXSystem();
+            system.AddChild(model);
+
+            m_ModelContainer.m_Roots.Add(system);
+            AddPresentersFromModel(system);
             EditorUtility.SetDirty(m_ModelContainer);
         }
 
         private void AddPresentersFromModel(VFXModel model)
         {
-            if (model is VFXContext)
+            if (model is VFXSystem)
+            {
+                VFXSystem system = (VFXSystem)model;
+                foreach (var context in system.GetChildren())
+                    AddPresentersFromModel(context);
+                // Add the connections if any
+                for (int i = 0; i < system.GetNbChildren() - 1; ++i)
+                {
+                    var inModel = system.GetChild(i);
+                    var outModel = system.GetChild(i + 1);
+                    var inPresenter = elements.OfType<VFXContextPresenter>().First(x => x.Model == inModel);
+                    var outPresenter = elements.OfType<VFXContextPresenter>().First(x => x.Model == outModel);
+                }
+            }
+            else if (model is VFXContext)
             {
                 VFXContext context = (VFXContext)model;
                 var presenter = CreateInstance<VFXContextPresenter>();
