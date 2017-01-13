@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.UI
     {
         [SerializeField]
         private VFXModel m_Owner;
-        public VFXModel Model { get { return m_Owner; } }
+        public VFXModel Owner { get { return m_Owner; } }
 
         public void Init(VFXModel owner)
         {

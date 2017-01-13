@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UI
     class VFXViewPresenter : GraphViewPresenter
     {
         [SerializeField]
-        public List<NodeAnchorPresenter> m_FlowAnchorPresenters;
+        public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;
 
         protected new void OnEnable()
         {
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
             SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>());
 
             if (m_FlowAnchorPresenters == null)
-                m_FlowAnchorPresenters = new List<NodeAnchorPresenter>();
+                m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
         }
 
         public VFXView View 
@@ -47,24 +47,49 @@ namespace UnityEditor.VFX.UI
             EditorUtility.SetDirty(m_ModelContainer);
         }
 
-        public void RegisterFlowAnchorPresenter(NodeAnchorPresenter presenter)
+        public void RegisterFlowAnchorPresenter(VFXFlowAnchorPresenter presenter)
         {
             if (!m_FlowAnchorPresenters.Contains(presenter))
                 m_FlowAnchorPresenters.Add(presenter);
         }
 
-        public void UnregisterFlowAnchorPresenter(NodeAnchorPresenter presenter)
+        public void UnregisterFlowAnchorPresenter(VFXFlowAnchorPresenter presenter)
         {
             m_FlowAnchorPresenters.Remove(presenter);
         }
 
         public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
         {
-            return m_FlowAnchorPresenters
-            .Where(nap => nap.IsConnectable() &&
-                            nap.direction != startAnchor.direction &&
-                            nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
-            .ToList();
+            var res = new List<NodeAnchorPresenter>();
+
+            if (!(startAnchor is VFXFlowAnchorPresenter))
+                return res;
+
+            var startFlowAnchor = (VFXFlowAnchorPresenter)startAnchor;
+
+            foreach (var anchor in m_FlowAnchorPresenters)
+            {
+                VFXModel owner = anchor.Owner;
+                if (owner == null ||
+                    startAnchor == anchor || 
+                    !anchor.IsConnectable() || 
+                    startAnchor.direction == anchor.direction ||
+                    owner == startFlowAnchor.Owner)
+                    continue;
+
+                if (owner is VFXContext)
+                {
+                    VFXSystem system = ((VFXContext)owner).GetParent();
+                    if (system == null)
+                        continue;
+
+                    int indexOffset = startAnchor.direction == Direction.Output ? 0 : 1;
+                    if (system.AcceptChild(startFlowAnchor.Owner, system.GetIndex(owner) + indexOffset))
+                        res.Add(anchor);
+                }
+            }
+
+            return res;
         }
 
         public void AddVFXContext(Vector2 pos,VFXContextDesc desc)
