@@ -4,62 +4,70 @@
 
 // TODO: For now disable per pixel and per vertex displacement mapping with motion vector
 // as vertex normal is not available + force UV0 for alpha test (not compatible with layered system...)
+#define VARYING_WANT_POSITION_WS
+#define VARYING_WANT_PASS_SPECIFIC
 
-struct Attributes
+#if defined(_ALPHATEST_ON)
+#define ATTRIBUTES_WANT_UV0
+    #ifdef LAYERED_LIT_SHADER
+    #define ATTRIBUTES_WANT_UV1
+        #if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3)
+        #define ATTRIBUTES_WANT_UV2
+        #endif
+        #if defined(_REQUIRE_UV3)
+        #define ATTRIBUTES_WANT_UV3
+        #endif
+    #endif
+#endif
+
+#if defined(_ALPHATEST_ON)
+#define VARYING_WANT_TEXCOORD0
+    #ifdef LAYERED_LIT_SHADER
+    #define VARYING_WANT_TEXCOORD1
+        #if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3)
+        #define VARYING_WANT_TEXCOORD2
+        #endif
+        #if defined(_REQUIRE_UV3)
+        #define VARYING_WANT_TEXCOORD3
+        #endif
+    #endif
+#endif
+
+// Available semantic start from TEXCOORD4
+struct AttributesPass
 {
-    float3 positionOS : POSITION;
     float3 previousPositionOS : NORMAL; // Contain previous transform position (in case of skinning for example)
-    float2 uv0 : TEXCOORD0;
 };
 
-struct Varyings
+struct VaryingsPass
 {
-    float4 positionCS;
-    float3 positionWS;
     // Note: Z component is not use
     float4 transferPositionCS;
     float4 transferPreviousPositionCS;
-    float2 texCoord0;
 };
 
-struct PackedVaryings
+// Available interpolator start from TEXCOORD8
+struct PackedVaryingsPass
 {
-    float4 positionCS : SV_Position;
-#if NEED_TANGENT_TO_WORLD
-    float4 interpolators[5] : TEXCOORD0;
-#elif NEED_TEXCOORD0
-    float4 interpolators[3] : TEXCOORD0;
-#else
-    float4 interpolators[3] : TEXCOORD0;
-#endif
+    // Note: Z component is not use
+    float3 interpolators0 : TEXCOORD8
+    float3 interpolators1 : TEXCOORD9;
 };
 
-// Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
-PackedVaryings PackVaryings(Varyings input)
+PackedVaryingsPass PackVaryingsPass(VaryingsPass input)
 {
-    PackedVaryings output;
-    output.positionCS = input.positionCS;
-    output.interpolators[0] = float4(input.positionWS, 0.0);
-    output.interpolators[1] = float4(input.transferPositionCS.xyw, 0.0);
-    output.interpolators[2] = float4(input.transferPreviousPositionCS.xyw, 0.0);
-
-#if NEED_TANGENT_TO_WORLD
-    output.interpolators[0].w = input.texCoord0.x;
-    output.interpolators[1].w = input.texCoord0.y;
-
-    output.interpolators[3].xyz = input.tangentToWorld[0];
-    output.interpolators[4].xyz = input.tangentToWorld[1];
-
-    output.interpolators[2].w = input.tangentToWorld[2].x;
-    output.interpolators[3].w = input.tangentToWorld[2].y;
-    output.interpolators[4].w = input.tangentToWorld[2].z;
-#elif NEED_TEXCOORD0
-    output.interpolators[0].w = input.texCoord0.x;
-    output.interpolators[1].w = input.texCoord0.y;
-#endif
-
-    return output;
+    PackedVaryingsPass output;
+    output.interpolators0 = float3(input.transferPositionCS.xyw);
+    output.interpolators1 = float3(input.transferPreviousPositionCS.xyw);
 }
+
+VaryingsPass UnpackVaryingsPass(PackedVaryingsPass input)
+{
+    PackedVaryingsPass output;
+    output.interpolators0 = float3(input.transferPositionCS.xyw);
+    output.interpolators1 = float3(input.transferPreviousPositionCS.xyw);
+}
+
 
 FragInputs UnpackVaryings(PackedVaryings input)
 {
