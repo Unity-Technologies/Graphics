@@ -7,21 +7,12 @@ namespace UnityEditor.VFX.UI
 {
     class VFXContextPresenter : GraphElementPresenter
     {
-        public VFXView m_view;
-
-        protected new void OnEnable()
-        {
-            base.OnEnable();
-            capabilities |= Capabilities.Deletable;
-        }
-
-        public VFXContext Model
-        {
-            get { return m_Model; }
-        }
-
+        private VFXViewPresenter m_viewPresenter;
+        public VFXViewPresenter ViewPresenter { get { return m_viewPresenter; } }
+        
         [SerializeField]
         private VFXContext m_Model;
+        public VFXContext Model { get { return m_Model; } }
 
 		[SerializeField]
         private List<VFXNodeBlockPresenter> m_NodeBlockPresenters;
@@ -44,8 +35,15 @@ namespace UnityEditor.VFX.UI
 			get { return m_OutputAnchors ?? (m_OutputAnchors = new List<VFXFlowAnchorPresenter>()); }
 		}
 
-        public void Init(VFXContext model)
+        protected new void OnEnable()
         {
+            base.OnEnable();
+            capabilities |= Capabilities.Deletable;
+        }
+
+        public void Init(VFXViewPresenter viewPresenter,VFXContext model)
+        {
+            m_viewPresenter = viewPresenter;
             m_Model = model;
 
             inputAnchors.Clear();

@@ -75,20 +75,6 @@ namespace RMGUI.GraphView
 			dataMapper[typeof(EdgePresenter)] = typeof(Edge);
 		}
 
-        // thomasi : added a method to be overloaded
-        public virtual List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
-        {
-            return allChildren
-			.OfType<NodeAnchor>()
-			.Select(na => na.GetPresenter<NodeAnchorPresenter>())
-			.Where(nap => nap.IsConnectable() &&
-							nap.orientation == startAnchor.orientation &&
-							nap.direction != startAnchor.direction &&
-							nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
-			.ToList();
-        }
-
-
 		public override void OnDataChanged()
 		{
 			if (m_Presenter == null)

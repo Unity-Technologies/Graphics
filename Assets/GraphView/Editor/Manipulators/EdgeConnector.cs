@@ -59,7 +59,7 @@ namespace RMGUI.GraphView
 					this.TakeCapture();
 
                     // thomasi: get all available connectors
-                    m_CompatibleAnchors = m_GraphView.GetCompatibleAnchors(startAnchor, s_nodeAdapter);
+                    m_CompatibleAnchors = m_GraphViewPresenter.GetCompatibleAnchors(startAnchor, s_nodeAdapter);
 
 					foreach (var compatibleAnchor in m_CompatibleAnchors)
 					{

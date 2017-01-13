@@ -9,8 +9,6 @@ namespace UnityEditor.VFX.UI
     [StyleSheet("Assets/VFXEditorNew/Editor/GraphView/Views/VFXView.uss")]
     class VFXView : GraphView
     {
-        public List<NodeAnchorPresenter> m_FlowAnchorPresenters;
-
         public VFXView()
 		{
             AddManipulator(new ContentZoomer());
@@ -50,31 +48,12 @@ namespace UnityEditor.VFX.UI
             dataMapper[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
             dataMapper[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
             dataMapper[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
-
-            m_FlowAnchorPresenters = new List<NodeAnchorPresenter>();
-
         }
 
         void AddVFXContext(Vector2 pos,VFXContextDesc desc)
         {
             GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc);
         }
-            
-        public void RegisterFlowAnchorPresenter(NodeAnchorPresenter presenter)
-        {
-            if(!m_FlowAnchorPresenters.Contains(presenter))
-            {
-                m_FlowAnchorPresenters.Add(presenter);
-            }
-        }
-
-        public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
-        {
-            return m_FlowAnchorPresenters
-			.Where(nap => nap.IsConnectable() &&
-							nap.direction != startAnchor.direction &&
-							nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
-			.ToList();
-        }
+           
     }
 }

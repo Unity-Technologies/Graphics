@@ -123,14 +123,14 @@ namespace UnityEditor.VFX.UI
             {
                 var edge = VFXFlowAnchor.Create<VFXFlowEdgePresenter>(inanchorpresenter);
                 m_FlowInputConnectorContainer.AddChild(edge);
-                presenter.m_view.RegisterFlowAnchorPresenter(inanchorpresenter);
+                presenter.ViewPresenter.RegisterFlowAnchorPresenter(inanchorpresenter);
             }
 
             foreach(var outanchorpresenter in presenter.outputAnchors)
             {
                 var edge = VFXFlowAnchor.Create<VFXFlowEdgePresenter>(outanchorpresenter);
                 m_FlowOutputConnectorContainer.AddChild(edge);
-                presenter.m_view.RegisterFlowAnchorPresenter(outanchorpresenter);
+                presenter.ViewPresenter.RegisterFlowAnchorPresenter(outanchorpresenter);
             }
 
             m_NodeBlockContainer.ClearChildren();

@@ -56,5 +56,17 @@ namespace RMGUI.GraphView
 		{
 			m_TempElements.Clear();
 		}
+
+        public virtual List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
+        {
+            return elements
+            .OfType<NodeAnchor>()
+            .Select(na => na.GetPresenter<NodeAnchorPresenter>())
+            .Where(nap => nap.IsConnectable() &&
+                            nap.orientation == startAnchor.orientation &&
+                            nap.direction != startAnchor.direction &&
+                            nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
+            .ToList();
+        }
 	}
 }

@@ -10,10 +10,16 @@ namespace UnityEditor.VFX.UI
     [Serializable]
     class VFXViewPresenter : GraphViewPresenter
     {
+        [SerializeField]
+        public List<NodeAnchorPresenter> m_FlowAnchorPresenters;
+
         protected new void OnEnable()
         {
             base.OnEnable();
             SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>());
+
+            if (m_FlowAnchorPresenters == null)
+                m_FlowAnchorPresenters = new List<NodeAnchorPresenter>();
         }
 
         public VFXView View 
@@ -39,6 +45,26 @@ namespace UnityEditor.VFX.UI
             }
 
             EditorUtility.SetDirty(m_ModelContainer);
+        }
+
+        public void RegisterFlowAnchorPresenter(NodeAnchorPresenter presenter)
+        {
+            if (!m_FlowAnchorPresenters.Contains(presenter))
+                m_FlowAnchorPresenters.Add(presenter);
+        }
+
+        public void UnregisterFlowAnchorPresenter(NodeAnchorPresenter presenter)
+        {
+            m_FlowAnchorPresenters.Remove(presenter);
+        }
+
+        public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
+        {
+            return m_FlowAnchorPresenters
+            .Where(nap => nap.IsConnectable() &&
+                            nap.direction != startAnchor.direction &&
+                            nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
+            .ToList();
         }
 
         public void AddVFXContext(Vector2 pos,VFXContextDesc desc)
@@ -75,10 +101,9 @@ namespace UnityEditor.VFX.UI
             {
                 VFXContext context = (VFXContext)model;
                 var presenter = CreateInstance<VFXContextPresenter>();
-                presenter.Init(context);
+                presenter.Init(this,context);
                 presenter.position = new Rect(context.Position.x, context.Position.y, 100, 100);
                 AddElement(presenter);
-                presenter.m_view = View;
             }
         }
 
