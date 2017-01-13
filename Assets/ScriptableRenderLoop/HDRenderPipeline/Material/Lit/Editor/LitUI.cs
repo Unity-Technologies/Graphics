@@ -332,8 +332,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
 			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
 
-            bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0);
-            bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0);
+            bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
+            bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
 
             if (needUV3)
             {

@@ -2,6 +2,7 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
+#include "TessellationShare.hlsl"
 #include "VertMesh.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
@@ -22,9 +23,9 @@ PackVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-float4 Frag(PackedVaryings packedInput) : SV_Target
+float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 {
-    FragInputs input = UnpackVaryingsMeshToPS(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.unPositionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);

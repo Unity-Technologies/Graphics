@@ -42,16 +42,16 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     }
 
     float3 positionWS = TransformObjectToWorld(inputMesh.positionOS);
-    output.positionCS = TransformWorldToHClip(positionWS);
-    output.texCoord0 = inputMesh.uv0;
-    output.texCoord1 = inputMesh.uv1;
+    output.vmesh.positionCS = TransformWorldToHClip(positionWS);
+    output.vmesh.texCoord0 = inputMesh.uv0;
+    output.vmesh.texCoord1 = inputMesh.uv1;
 
     return PackVaryingsToPS(output);
 }
 
 float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 {
-    FragInputs input = UnpackVaryingsMeshToPS(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.unPositionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
