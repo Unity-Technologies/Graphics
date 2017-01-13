@@ -189,8 +189,10 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 // We can deduce these defines from the other defines
 // We need to pass to DS any varying required by pixel shader
 // If we have required an attributes that is not present in varyings it mean we will be for DS
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+#if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(ATTRIBUTES_NEED_NORMAL)
 #define VARYINGS_DS_NEED_NORMAL
+#endif
+#if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(ATTRIBUTES_NEED_TANGENT)
 #define VARYINGS_DS_NEED_TANGENT
 #endif
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(ATTRIBUTES_NEED_TEXCOORD0)

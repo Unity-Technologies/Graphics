@@ -115,9 +115,9 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
         _HeightFactor2("_HeightFactor2", Range(0, 5)) = 1
         _HeightFactor3("_HeightFactor3", Range(0, 5)) = 1
 
-        _BlendSize1("_BlendSize1", Range(0, 0.05)) = 0.0
-        _BlendSize2("_BlendSize2", Range(0, 0.05)) = 0.0
-        _BlendSize3("_BlendSize3", Range(0, 0.05)) = 0.0
+        _BlendSize1("_BlendSize1", Range(0, 0.30)) = 0.0
+        _BlendSize2("_BlendSize2", Range(0, 0.30)) = 0.0
+        _BlendSize3("_BlendSize3", Range(0, 0.30)) = 0.0
 
         _InheritBaseLayer1("_InheritBaseLayer1", Range(0, 1.0)) = 0.0
         _InheritBaseLayer2("_InheritBaseLayer2", Range(0, 1.0)) = 0.0
@@ -213,8 +213,8 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
-    // Default is _TESSELATION_PHONG
-    #pragma shader_feature _ _TESSELATION_DISPLACEMENT _TESSELATION_DISPLACEMENT_PHONG
+    // Default is _TESSELLATION_PHONG
+    #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
@@ -235,7 +235,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _HEIGHT_BASED_BLEND
-    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS    
+    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -247,8 +247,8 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     // Define
     //-------------------------------------------------------------------------------------
 
-    #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-    #define TESSELATION_ON
+    #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl    
+    #define TESSELLATION_ON
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -276,8 +276,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #endif
 
     // Explicitely said that we are a layered shader as we share code between lit and layered lit
-    #define LAYERED_LIT_SHADER
-    #define TESSELLATION_ON
+    #define LAYERED_LIT_SHADER    
 
     //-------------------------------------------------------------------------------------
     // variable declaration

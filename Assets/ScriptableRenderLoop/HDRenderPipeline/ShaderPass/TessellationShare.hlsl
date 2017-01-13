@@ -61,7 +61,7 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
 #endif
 
 #if defined(_TESSELLATION_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT_PHONG)
-    varying.vmesh.positionWS = GetDisplacement(varying.vmesh);
+    varying.vmesh.positionWS += GetDisplacement(varying.vmesh);
 #endif
 
     return VertTesselation(varying);
