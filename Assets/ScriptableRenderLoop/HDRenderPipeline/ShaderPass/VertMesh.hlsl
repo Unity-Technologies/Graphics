@@ -1,7 +1,7 @@
 struct VaryingsToPS
 {
     VaryingsMeshToPS vmesh;
-#ifdef VARYINGS_DS_NEED_PASS
+#ifdef VARYINGS_NEED_PASS
     VaryingsPassToPS vpass;
 #endif
 };
@@ -9,7 +9,7 @@ struct VaryingsToPS
 struct PackedVaryingsToPS
 {
     PackedVaryingsMeshToPS vmesh;
-#ifdef VARYINGS_DS_NEED_PASS
+#ifdef VARYINGS_NEED_PASS
     PackedVaryingsPassToPS vpass;
 #endif
 };
@@ -18,18 +18,11 @@ PackedVaryingsToPS PackVaryingsToPS(VaryingsToPS input)
 {
     PackedVaryingsToPS output;
     output.vmesh = PackVaryingsMeshToPS(input.vmesh);
-#ifdef VARYINGS_DS_NEED_PASS
+#ifdef VARYINGS_NEED_PASS
     output.vpass = PackVaryingsPassToPS(input.vpass);
 #endif
-}
 
-VaryingsToPS UnpackVaryingsToPS(PackedVaryingsToPS input)
-{
-    VaryingsToDS output;
-    output.vmesh = UnpackVaryingsMeshToPS(input.vmesh);
-#ifdef VARYINGS_DS_NEED_PASS
-    output.vpass = UnpackVaryingsPassToPS(input.vpass);
-#endif
+    return output;
 }
 
 #ifdef TESSELLATION_ON
@@ -37,7 +30,7 @@ VaryingsToPS UnpackVaryingsToPS(PackedVaryingsToPS input)
 struct VaryingsToDS
 {
     VaryingsMeshToDS vmesh;
-#ifdef VARYINGS_DS_NEED_PASS
+#ifdef VARYINGS_NEED_PASS
     VaryingsPassToDS vpass;
 #endif
 };
@@ -45,7 +38,7 @@ struct VaryingsToDS
 struct PackedVaryingsToDS
 {
     PackedVaryingsDS vmesh;
-#ifdef VARYINGS_DS_NEED_PASS
+#ifdef VARYINGS_NEED_PASS
     PackedVaryingsPassDS vpass;
 #endif
 };
@@ -54,18 +47,22 @@ PackedVaryingsToDS PackVaryingsToDS(VaryingsToDS input)
 {
     PackedVaryingsToDS output;
     output.vmesh = PackVaryingsMeshToDS(input.vmesh);
-#ifdef VARYINGS_DS_NEED_PASS
+#ifdef VARYINGS_NEED_PASS
     output.vpass = PackVaryingsPassToDS(input.vpass);
 #endif
+
+    return output;
 }
 
 VaryingsToDS UnpackVaryingsToDS(PackedVaryingsToDS input)
 {
     VaryingsToDS output;
     output.vmesh = UnpackVaryingsMeshToDS(input.vmesh);
-#ifdef VARYINGS_DS_NEED_PASS
+#ifdef VARYINGS_NEED_PASS
     output.vpass = UnpackVaryingsPassToDS(input.vpass);
 #endif
+
+    return output;
 }
 
 VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS input1, VaryingsToDS input2, float3 baryCoords)
@@ -73,7 +70,7 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
     VaryingsToDS ouput;
 
     ouput.vmesh = InterpolateWithBaryCoordsMeshToDS(input0.vmesh, input1.vmesh, input2.vmesh, baryCoords);
-#ifdef VARYINGS_DS_NEED_PASS
+#ifdef VARYINGS_NEED_PASS
     ouput.vpass = InterpolateWithBaryCoordsPassToDS(input0.vpass, input1.vpass, input2.vpass, baryCoords);
 #endif
 
@@ -84,18 +81,20 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 
 #ifdef TESSELLATION_ON
 #define VaryingsType VaryingsToDS
+#define VaryingsMeshType VaryingsMeshToDS
 #define PackedVaryingsType PackedVaryingsToDS
 #define PackVaryingsType PackVaryingsToDS
 #else
 #define VaryingsType VaryingsToPS
+#define VaryingsMeshType VaryingsMeshToPS
 #define PackedVaryingsType PackedVaryingsToPS
 #define PackVaryingsType PackVaryingsToPS
 #endif
 
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
-VaryingsType VertMesh(AttributesMesh input)
+VaryingsMeshType VertMesh(AttributesMesh input)
 {
-    VaryingsType output;
+    VaryingsMeshType output;
 
 #if defined(TESSELLATION_ON)
     output.positionWS = TransformObjectToWorld(input.positionOS);

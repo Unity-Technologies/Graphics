@@ -117,8 +117,7 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
     #endif
 #else
     #ifdef VARYINGS_NEED_POSITION_WS
-    output.interpolators0.xyz = input.positionWS;
-    output.interpolators0.w = 0.0;
+    output.interpolators0 = input.positionWS;
     #endif
 #endif
 
@@ -142,7 +141,7 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
     return output;
 }
 
-FragInputs UnpackVaryingsMeshToPS(PackedVaryingsMeshToPS input)
+FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 {
     FragInputs output;
     ZERO_INITIALIZE(FragInputs, output);
@@ -175,7 +174,7 @@ FragInputs UnpackVaryingsMeshToPS(PackedVaryingsMeshToPS input)
     output.texCoord3 = input.interpolators5.zw;
 #endif
 #ifdef VARYINGS_NEED_COLOR
-    output.color = input.interpolators6;
+    output.vertexColor = input.interpolators6;
 #endif
 
 #if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT

@@ -1,3 +1,5 @@
+#ifdef TESSELLATION_ON 
+
 struct TessellationFactors
 {
     float edge[3] : SV_TessFactor;
@@ -57,3 +59,5 @@ PackedVaryings Domain(TessellationFactors tessFactors, const OutputPatch<PackedV
 
     return VertTesselation(varying);
 }
+
+#endif // TESSELLATION_ON

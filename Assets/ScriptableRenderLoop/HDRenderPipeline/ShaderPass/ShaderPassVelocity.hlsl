@@ -2,6 +2,8 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
+#include "TessellationShare.hlsl"
+
 // Available semantic start from TEXCOORD4
 struct AttributesPass
 {
@@ -32,6 +34,8 @@ PackedVaryingsPassToPS PackVaryingsPassToPS(VaryingsPassToPS input)
     PackedVaryingsPassToPS output;
     output.interpolators0 = float3(input.positionCS.xyw);
     output.interpolators1 = float3(input.previousPositionCS.xyw);
+
+    return output;
 }
 
 VaryingsPassToPS UnpackVaryingsPassToPS(PackedVaryingsPassToPS input)
@@ -39,6 +43,8 @@ VaryingsPassToPS UnpackVaryingsPassToPS(PackedVaryingsPassToPS input)
     VaryingsPassToPS output;
     output.positionCS = float4(input.interpolators0.xy, 0.0, input.interpolators0.z);
     output.previousPositionCS = float4(input.interpolators1.xy, 0.0, input.interpolators1.z);
+
+    return output;
 }
 
 #ifdef TESSELLATION_ON
@@ -63,8 +69,14 @@ VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, Vary
 
 #endif // TESSELLATION_ON
 
+#ifdef TESSELLATION_ON
+#define VaryingsPassType VaryingsPassToDS
+#else
+#define VaryingsPassType VaryingsPassToPS
+#endif
+
 // We will use custom attributes for this pass
-#define VARYINGS_DS_NEED_PASS
+#define VARYINGS_NEED_PASS
 #include "VertMesh.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh,
@@ -73,7 +85,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
 
-    VaryingsPass varyingPass;
+    VaryingsPassType varyingPass;
     // It is not possible to correctly generate the motion vector for tesselated geometry as tessellation parameters can change 
     // from one frame to another (adaptative, lod) + in Unity we only receive information for one non tesselated vertex.
     // So motion vetor will be based on interpolate previous position at vertex level instead.
@@ -100,7 +112,7 @@ PackVaryingsToPS VertTesselation(VaryingsToDS input)
 
 float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 {
-    FragInputs input = UnpackVaryingsMeshToPS(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.unPositionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
