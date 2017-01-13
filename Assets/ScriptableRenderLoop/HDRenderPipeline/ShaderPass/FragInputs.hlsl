@@ -19,22 +19,9 @@ struct FragInputs
     float3 tangentToWorld[3];
     float4 vertexColor;
 
-    // CAUTION: Only use with velocity currently, null else
-    // Note: Z component is not use currently
-    // This is the clip space position. Warning, do not confuse with the value of positionCS in PackedVarying which is SV_POSITION and store in unPositionSS
-    float4 positionCS;
-    float4 previousPositionCS;
-    // end velocity specific
-
     // For two sided lighting
     bool isFrontFace;
 };
-
-void ApplyDepthOffsetAttribute(float depthOffsetVS, inout FragInputs fragInput)
-{
-    fragInput.positionCS.w += depthOffsetVS;
-    fragInput.previousPositionCS.w += depthOffsetVS;
-}
 
 void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, inout bool needLinearToSRGB)
 {

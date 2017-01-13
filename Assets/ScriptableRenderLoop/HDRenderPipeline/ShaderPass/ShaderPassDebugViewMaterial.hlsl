@@ -4,10 +4,30 @@
 
 #include "Color.hlsl"
 int _DebugViewMaterial;
+
+#include "VertMesh.hlsl"
+
+PackedVaryingsType Vert(AttributesMesh inputMesh)
+{
+    VaryingsType varyingsType;
+    varyingsType.vmesh = VertMesh(inputMesh);
+    return PackVaryingsType(varyingsType);
+}
+
+#ifdef TESSELLATION_ON
+
+PackVaryingsToPS VertTesselation(VaryingsToDS input)
+{
+    VaryingsToPS output;
+    output.vmesh = VertMeshTesselation(input.vmesh);
+    return PackVaryingsToPS(output);
+}
+
+#endif // TESSELLATION_ON
 			
 float4 Frag(PackedVaryings packedInput) : SV_Target
 {
-    FragInputs input = UnpackVaryings(packedInput);
+    FragInputs input = UnpackVaryingsMeshToPS(packedInput.vmesh);
 
     // input.unPositionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);

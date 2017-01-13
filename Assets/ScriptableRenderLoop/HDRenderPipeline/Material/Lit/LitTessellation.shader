@@ -154,7 +154,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #include "tessellation.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderConfig.cs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderVariables.hlsl"
-    #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Attributes.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/FragInputs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
     //-------------------------------------------------------------------------------------
@@ -191,7 +191,6 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"            
             #include "../Tessellation/TessellationShare.hlsl"
-
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -214,7 +213,6 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"            
             #include "../Tessellation/TessellationShare.hlsl"
-            
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
             ENDHLSL
@@ -241,7 +239,6 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "../../Material/Material.hlsl"            
             #include "ShaderPass/LitMetaPass.hlsl"
             #include "LitData.hlsl"
-
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -267,7 +264,6 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "ShaderPass/LitDepthPass.hlsl"
             #include "LitData.hlsl"            
             #include "../Tessellation/TessellationShare.hlsl"
-
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -292,7 +288,6 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "ShaderPass/LitDepthPass.hlsl"
             #include "LitData.hlsl"            
             #include "../Tessellation/TessellationShare.hlsl"
-
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -316,7 +311,6 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "ShaderPass/LitVelocityPass.hlsl"
             #include "LitData.hlsl"            
             #include "../Tessellation/TessellationShare.hlsl"
-
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
@@ -342,7 +336,6 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "ShaderPass/LitDistortionPass.hlsl"
             #include "LitData.hlsl"
             #include "../Tessellation/TessellationShare.hlsl"
-
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
@@ -372,7 +365,6 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
             #include "../Tessellation/TessellationShare.hlsl"
-
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL

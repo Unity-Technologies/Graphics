@@ -30,7 +30,7 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
     builtinData.emissiveColor = float3(0.0, 0.0, 0.0);
 #endif
 
-    builtinData.velocity = CalculateVelocity(input.positionCS, input.previousPositionCS);
+    builtinData.velocity = float2(0.0, 0.0);
 
 #ifdef _DISTORTION_ON
     float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
@@ -238,7 +238,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 #ifdef _DEPTHOFFSET_ON
     ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
-    ApplyDepthOffsetAttribute(depthOffset, input);
 #endif
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
