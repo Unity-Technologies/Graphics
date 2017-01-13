@@ -23,6 +23,19 @@ struct FragInputs
     bool isFrontFace;
 };
 
+// FragInputs use dir vector that are normalized in the code even if not used
+// so we initialize them to a valid != 0 to shutdown compiler warning
+FragInputs InitializeFragInputs()
+{
+    FragInputs output;
+    ZERO_INITIALIZE(FragInputs, output);
+
+    output.tangentToWorld[0] = float3(0.0, 0.0, 1.0);
+    output.tangentToWorld[2] = float3(0.0, 0.0, 1.0);
+
+    return output;
+}
+
 void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, inout bool needLinearToSRGB)
 {
     switch (paramId)

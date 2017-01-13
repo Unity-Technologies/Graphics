@@ -100,17 +100,20 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #if defined(TESSELLATION_ON)
     output.positionWS = TransformObjectToWorld(input.positionOS);
     // TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)  
-#if defined(VARYING_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_NORMAL)
+    #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_NORMAL)
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
-#endif
-#if defined(VARYING_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
+    #endif
+    #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
     output.tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
-#endif
+    #endif
 #else
     float3 positionWS = TransformObjectToWorld(input.positionOS);
     // TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
+    #ifdef VARYINGS_NEED_POSITION_WS
+    output.positionWS = positionWS;
+    #endif
     output.positionCS = TransformWorldToHClip(positionWS);
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 
@@ -118,7 +121,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     output.tangentToWorld[0] = tangentToWorld[0];
     output.tangentToWorld[1] = tangentToWorld[1];
     output.tangentToWorld[2] = tangentToWorld[2];
-#endif
+    #endif
 #endif
 
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
@@ -146,6 +149,9 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 {
     VaryingsMeshToPS output;
 
+#ifdef VARYINGS_NEED_POSITION_WS
+    output.positionWS = input.positionWS;
+#endif
     output.positionCS = TransformWorldToHClip(input.positionWS);
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     float3x3 tangentToWorld = CreateTangentToWorld(input.normalWS, input.tangentWS.xyz, input.tangentWS.w);

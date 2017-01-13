@@ -313,8 +313,6 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-
-
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include
             // #include "../../Lighting/Forward.hlsl"

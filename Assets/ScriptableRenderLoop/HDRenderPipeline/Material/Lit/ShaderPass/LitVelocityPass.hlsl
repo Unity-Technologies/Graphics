@@ -41,7 +41,11 @@
 // This second set of define allow to say which varyings will be output in the vertex (no more tesselation)
 #define VARYINGS_NEED_POSITION_WS
 
-#if defined(_ALPHATEST_ON)
+#if REQUIRE_TANGENT_TO_WORLD
+#define VARYINGS_NEED_TANGENT_TO_WORLD
+#endif
+
+#if REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON)
 #define VARYINGS_NEED_TEXCOORD0
     #ifdef LAYERED_LIT_SHADER
     #define VARYINGS_NEED_TEXCOORD1
