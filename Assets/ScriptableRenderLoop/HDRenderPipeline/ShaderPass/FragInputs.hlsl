@@ -17,7 +17,7 @@ struct FragInputs
     float2 texCoord2;
     float2 texCoord3;
     float3 tangentToWorld[3];
-    float4 vertexColor;
+    float4 color; // vertex color
 
     // For two sided lighting
     bool isFrontFace;
@@ -49,10 +49,10 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
         result = input.tangentToWorld[2].xyz * 0.5 + 0.5;
         break;
     case DEBUGVIEWVARYING_VERTEX_COLOR:
-        result = input.vertexColor.rgb; needLinearToSRGB = true;
+        result = input.color.rgb; needLinearToSRGB = true;
         break;
     case DEBUGVIEWVARYING_VERTEX_COLOR_ALPHA:
-        result = input.vertexColor.aaa;
+        result = input.color.aaa;
         break;
     }
 }
