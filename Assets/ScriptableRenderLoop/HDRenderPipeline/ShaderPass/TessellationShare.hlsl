@@ -1,5 +1,3 @@
-#ifdef TESSELLATION_ON 
-
 struct TessellationFactors
 {
     float edge[3] : SV_TessFactor;
@@ -13,7 +11,12 @@ TessellationFactors HullConstant(InputPatch<PackedVaryingsToDS, 3> input)
     VaryingsToDS varying2 = UnpackVaryingsToDS(input[2]);
 
     float4 tf = TessellationEdge(   varying0.vmesh.positionWS, varying1.vmesh.positionWS, varying2.vmesh.positionWS,
-                                    varying0.vmesh.normalWS, varying1.vmesh.normalWS, varying2.vmesh.normalWS);
+                                    #ifdef VARYINGS_DS_NEED_NORMAL
+                                    varying0.vmesh.normalWS, varying1.vmesh.normalWS, varying2.vmesh.normalWS
+                                    #else
+                                    float3(0.0, 0.0, 1.0), float3(0.0, 0.0, 1.0), float3(0.0, 0.0, 1.0)
+                                    #endif
+                                    );
 
     TessellationFactors ouput;
     ouput.edge[0] = tf.x;
@@ -37,19 +40,23 @@ PackedVaryingsToDS Hull(InputPatch<PackedVaryingsToDS, 3> input, uint id : SV_Ou
 }
 
 [domain("tri")]
-PackedVaryings Domain(TessellationFactors tessFactors, const OutputPatch<PackedVaryingsToDS, 3> input, float3 baryCoords : SV_DomainLocation)
+PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<PackedVaryingsToDS, 3> input, float3 baryCoords : SV_DomainLocation)
 {
     VaryingsToDS varying0 = UnpackVaryingsToDS(input[0]);
     VaryingsToDS varying1 = UnpackVaryingsToDS(input[1]);
     VaryingsToDS varying2 = UnpackVaryingsToDS(input[2]);
 
-    VaryingsToDS varying = InterpolateWithBaryCoords(varying0, varying1, varying2, baryCoords);
+    VaryingsToDS varying = InterpolateWithBaryCoordsToDS(varying0, varying1, varying2, baryCoords);
 
     // We have Phong tessellation in all case where we don't have displacement only
 #ifndef _TESSELLATION_DISPLACEMENT
-    varying.vmesh.positionWS = PhongTessellation(   varying.positionWS,
+    varying.vmesh.positionWS = PhongTessellation(   varying.vmesh.positionWS,
                                                     varying0.vmesh.positionWS, varying1.vmesh.positionWS, varying2.vmesh.positionWS,
+                                                    #ifdef VARYINGS_DS_NEED_NORMAL
                                                     varying0.vmesh.normalWS, varying1.vmesh.normalWS, varying2.vmesh.normalWS,
+                                                    #else
+                                                    float3(0.0, 0.0, 1.0), float3(0.0, 0.0, 1.0), float3(0.0, 0.0, 1.0),
+                                                    #endif
                                                     baryCoords, _TessellationShapeFactor);
 #endif
 
@@ -60,4 +67,3 @@ PackedVaryings Domain(TessellationFactors tessFactors, const OutputPatch<PackedV
     return VertTesselation(varying);
 }
 
-#endif // TESSELLATION_ON

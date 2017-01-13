@@ -440,16 +440,16 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Mutually exclusive with _HEIGHT_BASED_BLEND
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL) // Used when no layer mask is set
-    maskValues *= input.vertexColor.rgb;
+    maskValues *= input.color.rgb;
 #elif defined(_LAYER_MASK_VERTEX_COLOR_ADD) // When layer mask is set, color is additive to enable user to override it.
-    maskValues = saturate(maskValues + input.vertexColor.rgb * 2.0 - 1.0);
+    maskValues = saturate(maskValues + input.color.rgb * 2.0 - 1.0);
 #endif
 
 #if defined(_HEIGHT_BASED_BLEND)
     float baseLayerHeight = height0;
-    baseLayerHeight = ApplyHeightBasedBlend(maskValues.r, baseLayerHeight, height1, _HeightOffset1, _HeightFactor1, _BlendSize1, input.vertexColor.r);
-    baseLayerHeight = ApplyHeightBasedBlend(maskValues.g, baseLayerHeight, height2, _HeightOffset2 + _HeightOffset1, _HeightFactor2, _BlendSize2, input.vertexColor.g);
-    ApplyHeightBasedBlend(maskValues.b, baseLayerHeight, height3, _HeightOffset3 + _HeightOffset2 + _HeightOffset1, _HeightFactor3, _BlendSize3, input.vertexColor.b);
+    baseLayerHeight = ApplyHeightBasedBlend(maskValues.r, baseLayerHeight, height1, _HeightOffset1, _HeightFactor1, _BlendSize1, input.color.r);
+    baseLayerHeight = ApplyHeightBasedBlend(maskValues.g, baseLayerHeight, height2, _HeightOffset2 + _HeightOffset1, _HeightFactor2, _BlendSize2, input.color.g);
+    ApplyHeightBasedBlend(maskValues.b, baseLayerHeight, height3, _HeightOffset3 + _HeightOffset2 + _HeightOffset1, _HeightFactor3, _BlendSize3, input.color.b);
 #endif
 
     float weights[_MAX_LAYER];

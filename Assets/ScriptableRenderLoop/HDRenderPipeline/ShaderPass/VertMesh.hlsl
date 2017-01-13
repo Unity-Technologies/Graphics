@@ -27,6 +27,7 @@ PackedVaryingsToPS PackVaryingsToPS(VaryingsToPS input)
 
 #ifdef TESSELLATION_ON
 
+
 struct VaryingsToDS
 {
     VaryingsMeshToDS vmesh;
@@ -37,7 +38,7 @@ struct VaryingsToDS
 
 struct PackedVaryingsToDS
 {
-    PackedVaryingsToDS vmesh;
+    PackedVaryingsMeshToDS vmesh;
 #ifdef VARYINGS_NEED_PASS
     PackedVaryingsPassToDS vpass;
 #endif
@@ -67,11 +68,11 @@ VaryingsToDS UnpackVaryingsToDS(PackedVaryingsToDS input)
 
 VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS input1, VaryingsToDS input2, float3 baryCoords)
 {
-    VaryingsToDS ouput;
+    VaryingsToDS output;
 
-    ouput.vmesh = InterpolateWithBaryCoordsMeshToDS(input0.vmesh, input1.vmesh, input2.vmesh, baryCoords);
+    output.vmesh = InterpolateWithBaryCoordsMeshToDS(input0.vmesh, input1.vmesh, input2.vmesh, baryCoords);
 #ifdef VARYINGS_NEED_PASS
-    ouput.vpass = InterpolateWithBaryCoordsPassToDS(input0.vpass, input1.vpass, input2.vpass, baryCoords);
+    output.vpass = InterpolateWithBaryCoordsPassToDS(input0.vpass, input1.vpass, input2.vpass, baryCoords);
 #endif
 
     return output;
@@ -141,9 +142,9 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 
 #ifdef TESSELLATION_ON
 
-VaryingMeshToPS VertMeshTesselation(VaryingMeshToDS input)
+VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 {
-    VaryingMeshToPS output;
+    VaryingsMeshToPS output;
 
     output.positionCS = TransformWorldToHClip(input.positionWS);
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
@@ -154,20 +155,22 @@ VaryingMeshToPS VertMeshTesselation(VaryingMeshToDS input)
 #endif
 
 #ifdef VARYINGS_NEED_TEXCOORD0
-    output.texCoord0 = input.uv0;
+    output.texCoord0 = input.texCoord0;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD1
-    output.texCoord1 = input.uv1;
+    output.texCoord1 = input.texCoord1;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD2
-    output.texCoord2 = input.uv2;
+    output.texCoord2 = input.texCoord2;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD3
-    output.texCoord3 = input.uv3;
+    output.texCoord3 = input.texCoord3;
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.color = input.color;
 #endif
+
+    return output;
 }
 
 #endif // TESSELLATION_ON

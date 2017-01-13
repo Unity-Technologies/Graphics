@@ -57,10 +57,10 @@ VaryingsPassToPS UnpackVaryingsPassToPS(PackedVaryingsPassToPS input)
 
 VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, VaryingsPassToDS input1, VaryingsPassToDS input2, float3 baryCoords)
 {
-    VaryingsPassToDS varyingsPass;
+    VaryingsPassToDS ouput;
 
-    TESSELLATION_INTERPOLATE_BARY(varyingsPass.positionCS, baryCoords);
-    TESSELLATION_INTERPOLATE_BARY(varyingsPass.previousPositionCS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(positionCS, baryCoords);
+    TESSELLATION_INTERPOLATE_BARY(previousPositionCS, baryCoords);
 
     return ouput;
 }
@@ -76,7 +76,6 @@ VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, Vary
 // We will use custom attributes for this pass
 #define VARYINGS_NEED_PASS
 #include "VertMesh.hlsl"
-#include "TessellationShare.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh,
                         AttributesPass inputPass)
@@ -96,16 +95,19 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
 
 #ifdef TESSELLATION_ON
 
-PackVaryingsToPS VertTesselation(VaryingsToDS input)
+PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
 
     output.vmesh = VertMeshTesselation(input.vmesh);
-    output.vpass.positionCS = input.vmesh.positionCS;
-    output.vpass.previousPositionCS = input.vmesh.previousPositionCS;
+
+    output.vpass.positionCS = input.vpass.positionCS;
+    output.vpass.previousPositionCS = input.vpass.previousPositionCS;
 
     return PackVaryingsToPS(output);
 }
+
+#include "TessellationShare.hlsl"
 
 #endif // TESSELLATION_ON
 

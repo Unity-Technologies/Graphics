@@ -6,7 +6,6 @@
 int _DebugViewMaterial;
 
 #include "VertMesh.hlsl"
-#include "TessellationShare.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
@@ -17,12 +16,14 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 
 #ifdef TESSELLATION_ON
 
-PackVaryingsToPS VertTesselation(VaryingsToDS input)
+PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
     output.vmesh = VertMeshTesselation(input.vmesh);
     return PackVaryingsToPS(output);
 }
+
+#include "TessellationShare.hlsl"
 
 #endif // TESSELLATION_ON
 			
