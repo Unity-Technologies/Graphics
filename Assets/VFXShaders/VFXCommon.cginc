@@ -18,10 +18,10 @@
 #define RAND2 float2(RAND,RAND)
 #define RAND3 float3(RAND,RAND,RAND)
 #define RAND4 float4(RAND,RAND,RAND,RAND)
-#define FIXED_RAND(x) FixedRand4(particleId ^ x).x
-#define FIXED_RAND2(x) FixedRand4(particleId ^ x).xy
-#define FIXED_RAND3(x) FixedRand4(particleId ^ x).xyz
-#define FIXED_RAND4(x) FixedRand4(particleId ^ x).xyzw
+#define FIXED_RAND(s) FixedRand4(particleId ^ s).x
+#define FIXED_RAND2(s) FixedRand4(particleId ^ s).xy
+#define FIXED_RAND3(s) FixedRand4(particleId ^ s).xyz
+#define FIXED_RAND4(s) FixedRand4(particleId ^ s).xyzw
 #define KILL {kill = true;}
 #define SAMPLE sampleSignal
 #define SAMPLE_SPLINE_POSITION(v,u) sampleSpline(v.x,u)
@@ -159,14 +159,20 @@ float randLcg(inout uint seed)
 {
 	uint multiplier = 0x0019660d;
 	uint increment = 0x3c6ef35f;
-
-#if defined(SHADER_API_PSSL)
-	seed = mad24(multiplier, seed, increment);
-#else
+#if 1
 	seed = multiplier * seed + increment;
-#endif
-	//return float(seed & 0x007fffff) / float(0x007fffff);
+	return asfloat((seed >> 9) | 0x3f800000) - 1.0f;
+#else //Using mad24 keeping consitency between platform
+	#if defined(SHADER_API_PSSL)
+		seed = mad24(multiplier, seed, increment);
+	#else
+		seed = multiplier * seed + increment;
+	#endif
+	//Using >> 9 instead of &0x007fffff seems to lead to a better random, but with this way, the result is the same between PS4 & PC
+	//We need to find a LCG considering the mul24 operation instead of mul32
+	//possible variant : return float(seed & 0x007fffff) / float(0x007fffff)
 	return asfloat((seed & 0x007fffff) | 0x3f800000) - 1.0f;
+#endif
 }
 
 float4 FixedRand4(uint baseSeed)
