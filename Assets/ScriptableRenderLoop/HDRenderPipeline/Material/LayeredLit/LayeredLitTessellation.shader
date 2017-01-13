@@ -277,6 +277,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
 
     // Explicitely said that we are a layered shader as we share code between lit and layered lit
     #define LAYERED_LIT_SHADER
+    #define TESSELLATION_ON
 
     //-------------------------------------------------------------------------------------
     // variable declaration

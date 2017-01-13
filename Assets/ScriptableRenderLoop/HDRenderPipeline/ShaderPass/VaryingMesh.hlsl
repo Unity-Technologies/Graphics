@@ -143,8 +143,7 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
 
 FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 {
-    FragInputs output;
-    ZERO_INITIALIZE(FragInputs, output);
+    FragInputs output = InitializeFragInputs();
 
     output.unPositionSS = input.positionCS; // input.positionCS is SV_Position
 
