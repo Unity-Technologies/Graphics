@@ -353,7 +353,7 @@ namespace UnityEditor.Experimental
             List<VFXAttribute> unitializedAttribs = new List<VFXAttribute>(); 
             foreach (var attrib in attribs)
             {
-                if ((attrib.Value & VFXAttribute.Usage.kInitRW) == 0 && (attrib.Value & VFXAttribute.Usage.kUpdateRW) != 0) // Unitialized attribute
+                if ((attrib.Value & VFXAttribute.Usage.kInitW) == 0 && (attrib.Value & VFXAttribute.Usage.kUpdateRW) != 0) // Unitialized attribute
                 {
                     if (attrib.Key.m_Name != "seed" || attrib.Key.m_Name != "age") // Dont log anything for those as initialization is implicit
                         Debug.LogWarning(attrib.Key.m_Name + " is used in update but not initialized. Use default value (0)");
@@ -982,27 +982,6 @@ namespace UnityEditor.Experimental
             }
             builder.WriteLine();
 
-            // Write functions
-            if (data.hasRand)
-            {
-                builder.WriteLine("float rand(inout uint seed)");
-                builder.EnterScope();
-
-                builder.WriteLine("seed = 1664525 * seed + 1013904223;");
-                builder.WriteLine("return float(seed) / 4294967296.0;");
-
-                // XOR Style 
-                /*
-                builder.WriteLine("seed ^= (seed << 13);");
-                builder.WriteLine("seed ^= (seed >> 17);");
-                builder.WriteLine("seed ^= (seed << 5);");
-                builder.WriteLine("return float(seed) / 4294967296.0;");
-                */
-
-                builder.ExitScope();
-                builder.WriteLine();
-            }
-
             if ((data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
             {
 				data.generatedTextureData.WriteSampleGradientFunction(builder);
@@ -1076,15 +1055,8 @@ namespace UnityEditor.Experimental
                 if (data.hasRand)
                 {
                     // Find rand attribute
-                    builder.WriteLineFormat("uint seed = (id.x + spawnIndex) ^ {0};", data.paramToName[(int)ShaderMetaData.Pass.kInit][CommonBuiltIn.SystemSeed]);
-                    builder.WriteLine("seed = (seed ^ 61) ^ (seed >> 16);");
-                    builder.WriteLine("seed *= 9;");
-                    builder.WriteLine("seed = seed ^ (seed >> 4);");
-                    builder.WriteLine("seed *= 0x27d4eb2d;");
-                    builder.WriteLine("seed = seed ^ (seed >> 15);");
                     builder.WriteAttrib(CommonAttrib.Seed, data);
-                    builder.WriteLine(" = seed;");
-                    builder.WriteLine();
+                    builder.WriteLineFormat(" = WangHash((id.x + spawnIndex) ^ {0});", data.paramToName[(int)ShaderMetaData.Pass.kInit][CommonBuiltIn.SystemSeed]);
                 }
 
                 if (data.HasAttribute(CommonAttrib.ParticleId))
@@ -1097,7 +1069,7 @@ namespace UnityEditor.Experimental
                 if (HasPhaseShift)
                 {
                     builder.WriteAttrib(CommonAttrib.Phase, data);
-                    builder.Write(" = rand(");
+                    builder.Write(" = randLcg(");
                     builder.WriteAttrib(CommonAttrib.Seed, data);
                     builder.WriteLine(");");
                     builder.WriteLine();
