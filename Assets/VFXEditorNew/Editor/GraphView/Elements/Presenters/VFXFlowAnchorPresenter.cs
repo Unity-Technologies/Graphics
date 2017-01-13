@@ -5,8 +5,18 @@ using RMGUI.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    public abstract class VFXFlowAnchorPresenter : NodeAnchorPresenter
+    abstract class VFXFlowAnchorPresenter : NodeAnchorPresenter
     {
+        [SerializeField]
+        private VFXModel m_Owner;
+        public VFXModel Model { get { return m_Owner; } }
+
+        public void Init(VFXModel owner)
+        {
+            m_Owner = owner;
+            anchorType = typeof(int); // We dont care about that atm!
+        }
+
 		public override void Connect(EdgePresenter edgePresenter)
 		{
 			if (edgePresenter == null)
@@ -31,7 +41,7 @@ namespace UnityEditor.VFX.UI
 		}
     }
 
-    public class VFXFlowInputAnchorPresenter : VFXFlowAnchorPresenter
+    class VFXFlowInputAnchorPresenter : VFXFlowAnchorPresenter
     {
         public override Direction direction
         {
@@ -42,7 +52,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    public class VFXFlowOutputAnchorPresenter : VFXFlowAnchorPresenter
+    class VFXFlowOutputAnchorPresenter : VFXFlowAnchorPresenter
     {
         public override Direction direction
         {

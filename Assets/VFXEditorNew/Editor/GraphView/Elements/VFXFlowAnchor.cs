@@ -7,7 +7,7 @@ using UnityEngine.RMGUI.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXFlowAnchor : NodeAnchor
+    class VFXFlowAnchor : NodeAnchor
     {
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static VFXFlowAnchor Create<TEdgePresenter>(VFXFlowAnchorPresenter presenter) where TEdgePresenter : VFXFlowEdgePresenter

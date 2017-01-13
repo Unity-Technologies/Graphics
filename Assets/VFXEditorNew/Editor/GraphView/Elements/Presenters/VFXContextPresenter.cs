@@ -51,23 +51,25 @@ namespace UnityEditor.VFX.UI
 
             // TODO : ACCESS INPUTS AND OUTPUTS
             // WIP STUFF
-            if (model.ContextType != VFXContextDesc.Type.kTypeInit)
+            if (Model.ContextType != VFXContextDesc.Type.kTypeInit)
             {
-                var in_anchor = CreateInstance<VFXFlowInputAnchorPresenter>();
-                in_anchor.anchorType = typeof(int);
-                inputAnchors.Add(in_anchor);
+                var inAnchor = CreateInstance<VFXFlowInputAnchorPresenter>();
+                inAnchor.Init(Model);
+                inputAnchors.Add(inAnchor);
+                ViewPresenter.RegisterFlowAnchorPresenter(inAnchor);
             }
 
-            if (model.ContextType != VFXContextDesc.Type.kTypeOutput)
+            if (Model.ContextType != VFXContextDesc.Type.kTypeOutput)
             {
-                var out_anchor = CreateInstance<VFXFlowOutputAnchorPresenter>();
-                out_anchor.anchorType = typeof(int);
-                outputAnchors.Add(out_anchor);
+                var outAnchor = CreateInstance<VFXFlowOutputAnchorPresenter>();
+                outAnchor.Init(Model);
+                outputAnchors.Add(outAnchor);
+                ViewPresenter.RegisterFlowAnchorPresenter(outAnchor);
             }
 
             // Recreate presenters from model
             nodeBlockPresenters.Clear();
-            foreach (var block in model.GetChildren())
+            foreach (var block in Model.GetChildren())
                 AddPresentersFromModel((VFXBlock)block);
         }
 
