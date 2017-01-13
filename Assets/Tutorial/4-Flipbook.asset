@@ -170,8 +170,14 @@ VFXAsset:
       m_Flags: 0
       m_Stride: 4
       m_PerPoint: 0
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 12
+      m_PerPoint: 0
     - m_InitName: attribBuffer0
-      m_UpdateName: <noninit>
+      m_UpdateName: attribBuffer0_RO
       m_OutputName: attribBuffer0
       m_Flags: 512
       m_Stride: 16
@@ -229,8 +235,14 @@ VFXAsset:
       m_Flags: 0
       m_Stride: 4
       m_PerPoint: 0
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 12
+      m_PerPoint: 0
     - m_InitName: attribBuffer0
-      m_UpdateName: <noninit>
+      m_UpdateName: attribBuffer0_RO
       m_OutputName: attribBuffer0
       m_Flags: 512
       m_Stride: 16
@@ -292,8 +304,14 @@ VFXAsset:
       m_Flags: 0
       m_Stride: 4
       m_PerPoint: 0
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 12
+      m_PerPoint: 0
     - m_InitName: attribBuffer0
-      m_UpdateName: <noninit>
+      m_UpdateName: attribBuffer0_RO
       m_OutputName: attribBuffer0
       m_Flags: 512
       m_Stride: 16

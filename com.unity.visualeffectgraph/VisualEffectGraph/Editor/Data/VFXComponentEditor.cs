@@ -210,8 +210,25 @@ public class VFXComponentEditor : Editor
     {
         InitializeGUI();
 
-        GameObject sceneCamObj = GameObject.Find( "SceneCamera");
-        if ( sceneCamObj != null )
+        var component = (VFXComponent)target;
+        var stats = VFXComponent.GetSystemComponentsStatsFilter(component);
+
+        //Basic display BBox
+        var debugColors = new Color[] { Color.magenta, Color.green, Color.cyan, Color.yellow };
+        for (int iStat = 0; iStat < stats.Length; ++iStat)
+        {
+            var stat = stats[iStat];
+
+            var transform = component.GetComponent<Transform>();
+            var bckpMatrix = Handles.matrix;
+            Handles.matrix = transform.localToWorldMatrix;
+            Handles.color = debugColors[iStat % debugColors.Length];
+            Handles.DrawWireCube(stat.localBounds.center, stat.localBounds.extents * 2);
+            Handles.matrix = bckpMatrix;
+        }
+
+        GameObject sceneCamObj = GameObject.Find("SceneCamera");
+        if (sceneCamObj != null)
         {
             GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             Handles.BeginGUI();
@@ -222,6 +239,7 @@ public class VFXComponentEditor : Editor
             Handles.EndGUI();
             GL.sRGBWrite = false;
         }
+
 
         CanSetOverride = true;
         foreach (var exposed in m_ExposedData)

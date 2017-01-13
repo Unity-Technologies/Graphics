@@ -24,10 +24,8 @@ Shader "Hidden/VFX_0"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float4 outputUniform0_kVFXValueOp;
-				
-				float2 outputUniform2_kVFXValueOp;
-				float outputUniform1_kVFXValueOp;
+				float2 outputUniform1_kVFXValueOp;
+				float outputUniform0_kVFXValueOp;
 				uint outputUniforms_PADDING_0;
 			
 			CBUFFER_END
@@ -92,19 +90,26 @@ Shader "Hidden/VFX_0"
 				return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 			}
 			
-			void VFXBlockSizeOverLifeCurve( inout float2 size,float age,float lifetime,float4 Curve)
-			{
-				float ratio = saturate(age/lifetime);
-	float s = SAMPLE(Curve, ratio);
-	size = float2(s,s);
-			}
-			
 			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
 			{
 				float ratio = saturate(age / lifetime);
 	float4 rgba = SAMPLE(Gradient,ratio);
 	color = rgba.rgb;
 	alpha = rgba.a;
+			}
+			
+			void VFXBlockSubPixelAA( inout float alpha,float3 position,inout float2 size)
+			{
+				#ifdef VFX_WORLD_SPACE
+	float clipPosW = mul(UNITY_MATRIX_VP,float4(position,1.0f)).w;
+	#else
+	float clipPosW = mul(UNITY_MATRIX_MVP,float4(position,1.0f)).w;
+	#endif
+	float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)); // max size in one pixel
+	float2 clampedSize = max(size,minSize);
+	float fade = (size.x * size.y) / (clampedSize.x * clampedSize.y);
+	alpha *= fade;
+	size = clampedSize;
 			}
 			
 			float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
@@ -124,8 +129,8 @@ Shader "Hidden/VFX_0"
 					float3 local_color = (float3)0;
 					float local_alpha = (float)0;
 					
-					VFXBlockSizeOverLifeCurve( outputData.size,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
-					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform1_kVFXValueOp);
+					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
+					VFXBlockSubPixelAA( local_alpha,outputData.position,outputData.size);
 					
 					float2 size = outputData.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
@@ -165,7 +170,7 @@ Shader "Hidden/VFX_0"
 				ps_output o = (ps_output)0;
 				
 				float4 color = i.col;
-				float2 dim = outputUniform2_kVFXValueOp;
+				float2 dim = outputUniform1_kVFXValueOp;
 				float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU
 				float ratio = frac(i.flipbookIndex);
 				float index = i.flipbookIndex - ratio;

@@ -215,7 +215,7 @@ namespace UnityEditor.Experimental
 
     public static class VFXModelCompiler
     {
-        const bool USE_DYNAMIC_AABB = false; // experimental
+        const bool USE_DYNAMIC_AABB = true;
 
         public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
@@ -353,7 +353,7 @@ namespace UnityEditor.Experimental
             List<VFXAttribute> unitializedAttribs = new List<VFXAttribute>(); 
             foreach (var attrib in attribs)
             {
-                if ((attrib.Value & VFXAttribute.Usage.kInitRW) == 0 && (attrib.Value & VFXAttribute.Usage.kUpdateRW) != 0) // Unitialized attribute
+                if ((attrib.Value & VFXAttribute.Usage.kInitW) == 0 && (attrib.Value & VFXAttribute.Usage.kUpdateRW) != 0) // Unitialized attribute
                 {
                     if (attrib.Key.m_Name != "seed" || attrib.Key.m_Name != "age") // Dont log anything for those as initialization is implicit
                         Debug.LogWarning(attrib.Key.m_Name + " is used in update but not initialized. Use default value (0)");
@@ -365,6 +365,14 @@ namespace UnityEditor.Experimental
             // Update the usage
             foreach (var attrib in unitializedAttribs)
                 attribs[attrib] = attribs[attrib] | VFXAttribute.Usage.kInitRW;
+
+            if (USE_DYNAMIC_AABB)
+            {
+                if (attribs.ContainsKey(CommonAttrib.Position))
+                {
+                    attribs[CommonAttrib.Position] = attribs[CommonAttrib.Position] | VFXAttribute.Usage.kUpdateR;
+                }
+            }
 
             // Find local attributes and store them aside (as they dont go into buffers but are used locally in shaders)
             Dictionary<VFXAttribute, VFXAttribute.Usage> localAttribs = new Dictionary<VFXAttribute, VFXAttribute.Usage>(new AttribComparer()); 
@@ -966,29 +974,13 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
             }
 
-            builder.WriteLine("RWStructuredBuffer<uint3> bounds;");
-            builder.WriteLine();
-
-            // Write functions
-            if (data.hasRand)
+            if (USE_DYNAMIC_AABB)
             {
-                builder.WriteLine("float rand(inout uint seed)");
-                builder.EnterScope();
-
-                builder.WriteLine("seed = 1664525 * seed + 1013904223;");
-                builder.WriteLine("return float(seed) / 4294967296.0;");
-
-                // XOR Style 
-                /*
-                builder.WriteLine("seed ^= (seed << 13);");
-                builder.WriteLine("seed ^= (seed >> 17);");
-                builder.WriteLine("seed ^= (seed << 5);");
-                builder.WriteLine("return float(seed) / 4294967296.0;");
-                */
-
-                builder.ExitScope();
-                builder.WriteLine();
+                builder.WriteLine("#if USE_DYNAMIC_AABB");
+                builder.WriteLine("RWStructuredBuffer<uint3> bounds;");
+                builder.WriteLine("#endif");
             }
+            builder.WriteLine();
 
             if ((data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
             {
@@ -1002,8 +994,10 @@ namespace UnityEditor.Experimental
 
             if (hasUpdate && USE_DYNAMIC_AABB)
             {
+                builder.WriteLine("#if USE_DYNAMIC_AABB");
                 builder.WriteLine("groupshared uint3 boundsLDS[2];");
                 builder.WriteLine();
+                builder.WriteLine("#endif");
             }
 
             var functionNames = new HashSet<string>();
@@ -1061,15 +1055,8 @@ namespace UnityEditor.Experimental
                 if (data.hasRand)
                 {
                     // Find rand attribute
-                    builder.WriteLineFormat("uint seed = (id.x + spawnIndex) ^ {0};", data.paramToName[(int)ShaderMetaData.Pass.kInit][CommonBuiltIn.SystemSeed]);
-                    builder.WriteLine("seed = (seed ^ 61) ^ (seed >> 16);");
-                    builder.WriteLine("seed *= 9;");
-                    builder.WriteLine("seed = seed ^ (seed >> 4);");
-                    builder.WriteLine("seed *= 0x27d4eb2d;");
-                    builder.WriteLine("seed = seed ^ (seed >> 15);");
                     builder.WriteAttrib(CommonAttrib.Seed, data);
-                    builder.WriteLine(" = seed;");
-                    builder.WriteLine();
+                    builder.WriteLineFormat(" = WangHash((id.x + spawnIndex) ^ {0});", data.paramToName[(int)ShaderMetaData.Pass.kInit][CommonBuiltIn.SystemSeed]);
                 }
 
                 if (data.HasAttribute(CommonAttrib.ParticleId))
@@ -1082,7 +1069,7 @@ namespace UnityEditor.Experimental
                 if (HasPhaseShift)
                 {
                     builder.WriteAttrib(CommonAttrib.Phase, data);
-                    builder.Write(" = rand(");
+                    builder.Write(" = randLcg(");
                     builder.WriteAttrib(CommonAttrib.Seed, data);
                     builder.WriteLine(");");
                     builder.WriteLine();
@@ -1130,6 +1117,7 @@ namespace UnityEditor.Experimental
 
                 if (USE_DYNAMIC_AABB)
                 {
+                    builder.WriteLine("#if USE_DYNAMIC_AABB");
                     builder.WriteLine("if (groupId.x == 0)");
                     builder.EnterScope();
 
@@ -1141,6 +1129,7 @@ namespace UnityEditor.Experimental
 
                     builder.WriteLine("GroupMemoryBarrierWithGroupSync();");
                     builder.WriteLine();
+                    builder.WriteLine("#endif");
                 }
 
                 builder.Write("if (id.x < nbMax");
@@ -1244,6 +1233,7 @@ namespace UnityEditor.Experimental
 
                 if (USE_DYNAMIC_AABB)
                 {
+                    builder.WriteLine("#if USE_DYNAMIC_AABB");
                     builder.WriteLine();
                     builder.Write("uint3 sortablePos = ConvertFloatToSortableUint(");
                     builder.WriteAttrib(CommonAttrib.Position, data);
@@ -1255,7 +1245,8 @@ namespace UnityEditor.Experimental
                     builder.WriteLine();
                     builder.WriteLine("InterlockedMax(boundsLDS[1].x,sortablePos.x);");
                     builder.WriteLine("InterlockedMax(boundsLDS[1].y,sortablePos.y);");
-                    builder.WriteLine("InterlockedMax(boundsLDS[1].z,sortablePos.z);");    
+                    builder.WriteLine("InterlockedMax(boundsLDS[1].z,sortablePos.z);");
+                    builder.WriteLine("#endif");
                 }
 
                 if (data.hasKill)
@@ -1265,6 +1256,7 @@ namespace UnityEditor.Experimental
 
                 if (USE_DYNAMIC_AABB)
                 {
+                    builder.WriteLine("#if USE_DYNAMIC_AABB");
                     builder.WriteLine();
                     builder.WriteLine("GroupMemoryBarrierWithGroupSync();");
                     builder.WriteLine();
@@ -1279,6 +1271,7 @@ namespace UnityEditor.Experimental
                     builder.WriteLine("InterlockedMax(bounds[1].y,boundsLDS[1].y);");
                     builder.WriteLine("InterlockedMax(bounds[1].z,boundsLDS[1].z);");
                     builder.ExitScope();
+                    builder.WriteLine("#endif");
                 }
 
                 builder.ExitScope();

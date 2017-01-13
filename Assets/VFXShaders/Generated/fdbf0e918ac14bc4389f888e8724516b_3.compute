@@ -100,14 +100,14 @@ ConsumeStructuredBuffer<uint> deadListIn;
 AppendStructuredBuffer<uint> deadListOut;
 Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
 
+#if USE_DYNAMIC_AABB
 RWStructuredBuffer<uint3> bounds;
+#endif
 
-float rand(inout uint seed)
-{
-	seed = 1664525 * seed + 1013904223;
-	return float(seed) / 4294967296.0;
-}
+#if USE_DYNAMIC_AABB
+groupshared uint3 boundsLDS[2];
 
+#endif
 void VFXBlockSetPositionMap( inout float3 position,VFXSampler2D tex,float4x4 box,float divergence,float3 posmapcenter,inout uint seed)
 {
 	float3 div = (RAND3 - 0.5f) * (divergence * 2.0f);
@@ -187,14 +187,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		
 		VFXSampler2D initSampler0_kVFXValueOp = InitSampler(initSampler0_kVFXValueOpTexture,samplerinitSampler0_kVFXValueOpTexture);
 		
-		uint seed = (id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp;
-		seed = (seed ^ 61) ^ (seed >> 16);
-		seed *= 9;
-		seed = seed ^ (seed >> 4);
-		seed *= 0x27d4eb2d;
-		seed = seed ^ (seed >> 15);
-		local_seed = seed;
-		
+		local_seed = WangHash((id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp);
 		VFXBlockSetPositionMap( attrib1.position,initSampler0_kVFXValueOp,initUniform0_kVFXTransformMatrixOp,initUniform1_kVFXValueOp,initUniform2_kVFXCombine3fOp,local_seed);
 		VFXBlockSizeRandomSquare( attrib2.size,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,local_seed);
 		VFXBlockApplyScaleRatio( attrib2.size,initUniform5_kVFXValueOp);
@@ -212,6 +205,16 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 {
+	#if USE_DYNAMIC_AABB
+	if (groupId.x == 0)
+	{
+		boundsLDS[0] = (uint3)0xFFFFFFFF;
+		boundsLDS[1] = (uint3)0;
+	}
+	
+	GroupMemoryBarrierWithGroupSync();
+	
+	#endif
 	if (id.x < nbMax && flags[id.x] == 1)
 	{
 		uint index = id.x;
@@ -251,7 +254,34 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			outputData.lifetime = attrib3.lifetime;
 			outputData.size = attrib2.size;
 			outputBuffer.Append(outputData);
+			#if USE_DYNAMIC_AABB
+			
+			uint3 sortablePos = ConvertFloatToSortableUint(attrib1.position);
+			
+			InterlockedMin(boundsLDS[0].x,sortablePos.x);
+			InterlockedMin(boundsLDS[0].y,sortablePos.y);
+			InterlockedMin(boundsLDS[0].z,sortablePos.z);
+			
+			InterlockedMax(boundsLDS[1].x,sortablePos.x);
+			InterlockedMax(boundsLDS[1].y,sortablePos.y);
+			InterlockedMax(boundsLDS[1].z,sortablePos.z);
+			#endif
 		}
 	}
+	#if USE_DYNAMIC_AABB
+	
+	GroupMemoryBarrierWithGroupSync();
+	
+	if (groupId.x == 0)
+	{
+		InterlockedMin(bounds[0].x,boundsLDS[0].x);
+		InterlockedMin(bounds[0].y,boundsLDS[0].y);
+		InterlockedMin(bounds[0].z,boundsLDS[0].z);
+		
+		InterlockedMax(bounds[1].x,boundsLDS[1].x);
+		InterlockedMax(bounds[1].y,boundsLDS[1].y);
+		InterlockedMax(bounds[1].z,boundsLDS[1].z);
+	}
+	#endif
 }
 

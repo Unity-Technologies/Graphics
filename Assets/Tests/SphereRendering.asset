@@ -188,24 +188,30 @@ VFXAsset:
     m_OutputShader: {fileID: 4800000, guid: 1ab85c7bccd7e3943a92ba1480e72724, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
-      m_UpdateName: outputBuffer
-      m_OutputName: outputBuffer
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
       m_Flags: 514
       m_Stride: 32
       m_PerPoint: 1
-    - m_InitName: flags
-      m_UpdateName: flags
-      m_OutputName: flags
+    - m_InitName: <noninit>
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 12
+      m_PerPoint: 0
+    - m_InitName: <noninit>
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
       m_Flags: 512
       m_Stride: 4
       m_PerPoint: 1
-    - m_InitName: deadListIn
-      m_UpdateName: deadListOut
+    - m_InitName: <noninit>
+      m_UpdateName: <noninit>
       m_OutputName: <noninit>
       m_Flags: 514
       m_Stride: 4
       m_PerPoint: 1
-    - m_InitName: deadListCount
+    - m_InitName: <noninit>
       m_UpdateName: <noninit>
       m_OutputName: <noninit>
       m_Flags: 768

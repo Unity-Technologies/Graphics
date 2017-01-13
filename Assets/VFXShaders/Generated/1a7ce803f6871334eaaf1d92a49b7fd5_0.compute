@@ -26,13 +26,19 @@ CBUFFER_END
 CBUFFER_START(updateUniforms)
 	float4x4 updateUniform0_kVFXTRSToMatrixOp;
 	
-	float4x4 updateUniform3_kVFXInverseTRSOp;
+	float4x4 updateUniform6_kVFXInverseTRSOp;
 	
+	float3 updateUniform3_kVFXCombine3fOp;
 	float updateUniform1_kVFXValueOp;
-	float updateUniform2_kVFXValueOp;
-	float updateUniform4_kVFXDeltaTimeOp;
-	uint nbMax;
 	
+	float updateUniform2_kVFXValueOp;
+	float updateUniform4_kVFXValueOp;
+	float updateUniform5_kVFXValueOp;
+	float updateUniform7_kVFXDeltaTimeOp;
+	
+	uint nbMax;
+	uint3 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 Texture3D updateSampler0_kVFXValueOpTexture;
@@ -110,13 +116,9 @@ ConsumeStructuredBuffer<uint> deadListIn;
 AppendStructuredBuffer<uint> deadListOut;
 Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
 
+#if USE_DYNAMIC_AABB
 RWStructuredBuffer<uint3> bounds;
-
-float rand(inout uint seed)
-{
-	seed = 1664525 * seed + 1013904223;
-	return float(seed) / 4294967296.0;
-}
+#endif
 
 float4 sampleSignal(float v,float u) // sample gradient
 {
@@ -141,6 +143,10 @@ float3 sampleSpline(float v,float u)
 	return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 }
 
+#if USE_DYNAMIC_AABB
+groupshared uint3 boundsLDS[2];
+
+#endif
 void VFXBlockPositionSpline( inout float3 position,inout float3 velocity,inout float3 front,inout float3 side,inout float3 up,float2 Spline,float radius,inout uint seed)
 {
 	float t = RAND;
@@ -178,6 +184,24 @@ void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFX
 	velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));
 }
 
+void VFXBlockCollideWithSphere( inout float3 position,inout float3 velocity,float3 Sphere_center,float Sphere_radius,float Elasticity,float deltaTime)
+{
+	float3 nextPos = position + velocity * deltaTime;
+	float3 dir = Sphere_center - nextPos;
+	float sqrLength = dot(dir,dir);
+	if (sqrLength <= Sphere_radius * Sphere_radius)
+	{	
+		float dist = sqrt(sqrLength);
+		float3 n = dir / dist;	
+		float projVelocity = dot(n,velocity);
+		
+		if (projVelocity > 0)
+			velocity -= ((1 + Elasticity) * projVelocity) * n;
+			
+		position += n * (dist - Sphere_radius);
+	}
+}
+
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 {
@@ -195,14 +219,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp;
-		seed = (seed ^ 61) ^ (seed >> 16);
-		seed *= 9;
-		seed = seed ^ (seed >> 4);
-		seed *= 0x27d4eb2d;
-		seed = seed ^ (seed >> 15);
-		local_seed = seed;
-		
+		local_seed = WangHash((id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp);
 		VFXBlockPositionSpline( attrib0.position,attrib1.velocity,attrib4.front,attrib3.side,attrib2.up,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,local_seed);
 		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,local_seed);
 		VFXBlockSetSubUVRandom( attrib2.texIndex,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,local_seed);
@@ -222,6 +239,16 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 {
+	#if USE_DYNAMIC_AABB
+	if (groupId.x == 0)
+	{
+		boundsLDS[0] = (uint3)0xFFFFFFFF;
+		boundsLDS[1] = (uint3)0;
+	}
+	
+	GroupMemoryBarrierWithGroupSync();
+	
+	#endif
 	if (id.x < nbMax && flags[id.x] == 1)
 	{
 		uint index = id.x;
@@ -236,11 +263,12 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		
 		VFXSampler3D updateSampler0_kVFXValueOp = InitSampler(updateSampler0_kVFXValueOpTexture,samplerupdateSampler0_kVFXValueOpTexture);
 		
-		VFXBlockVectorFieldRelativeForce( attrib1.velocity,attrib0.position,updateSampler0_kVFXValueOp,updateUniform0_kVFXTRSToMatrixOp,updateUniform3_kVFXInverseTRSOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXValueOp,updateUniform4_kVFXDeltaTimeOp);
+		VFXBlockVectorFieldRelativeForce( attrib1.velocity,attrib0.position,updateSampler0_kVFXValueOp,updateUniform0_kVFXTRSToMatrixOp,updateUniform6_kVFXInverseTRSOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXValueOp,updateUniform7_kVFXDeltaTimeOp);
+		VFXBlockCollideWithSphere( attrib0.position,attrib1.velocity,updateUniform3_kVFXCombine3fOp,updateUniform4_kVFXValueOp,updateUniform5_kVFXValueOp,updateUniform7_kVFXDeltaTimeOp);
 		
-		attrib0.position += attrib1.velocity * updateUniform4_kVFXDeltaTimeOp;
+		attrib0.position += attrib1.velocity * updateUniform7_kVFXDeltaTimeOp;
 		
-		attrib0.age += updateUniform4_kVFXDeltaTimeOp;
+		attrib0.age += updateUniform7_kVFXDeltaTimeOp;
 		if (attrib0.age >= attrib1.lifetime)
 			kill = true;
 		
@@ -265,7 +293,34 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			outputData.front = attrib4.front;
 			outputData.size = attrib6.size;
 			outputBuffer.Append(outputData);
+			#if USE_DYNAMIC_AABB
+			
+			uint3 sortablePos = ConvertFloatToSortableUint(attrib0.position);
+			
+			InterlockedMin(boundsLDS[0].x,sortablePos.x);
+			InterlockedMin(boundsLDS[0].y,sortablePos.y);
+			InterlockedMin(boundsLDS[0].z,sortablePos.z);
+			
+			InterlockedMax(boundsLDS[1].x,sortablePos.x);
+			InterlockedMax(boundsLDS[1].y,sortablePos.y);
+			InterlockedMax(boundsLDS[1].z,sortablePos.z);
+			#endif
 		}
 	}
+	#if USE_DYNAMIC_AABB
+	
+	GroupMemoryBarrierWithGroupSync();
+	
+	if (groupId.x == 0)
+	{
+		InterlockedMin(bounds[0].x,boundsLDS[0].x);
+		InterlockedMin(bounds[0].y,boundsLDS[0].y);
+		InterlockedMin(bounds[0].z,boundsLDS[0].z);
+		
+		InterlockedMax(bounds[1].x,boundsLDS[1].x);
+		InterlockedMax(bounds[1].y,boundsLDS[1].y);
+		InterlockedMax(bounds[1].z,boundsLDS[1].z);
+	}
+	#endif
 }
 

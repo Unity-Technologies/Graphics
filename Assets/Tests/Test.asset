@@ -13,10 +13,17 @@ VFXAsset:
     Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockPositionSpline\"
     Hash=\"-1433902301\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
     SlotId=\"0\">\r\n                    <Values>\r\n                        <kSpline>\r\n
-    \                           <Point x=\"-3.869566\" y=\"-1.066869\" z=\"2.260548\"
-    />\r\n                            <Point x=\"-1.09837\" y=\"3.346914\" z=\"-2.057544\"
-    />\r\n                            <Point x=\"-8.34582\" y=\"-1.689365\" z=\"-6.807812\"
-    />\r\n                            <Point x=\"-6.538065\" y=\"-8.862341\" z=\"-4.043756\"
+    \                           <Point x=\"0.1613657\" y=\"0.2907431\" z=\"-0.5979553\"
+    />\r\n                            <Point x=\"-3.448523\" y=\"-1.932088\" z=\"-2.841525\"
+    />\r\n                            <Point x=\"-2.582632\" y=\"1.545648\" z=\"-3.627093\"
+    />\r\n                            <Point x=\"1.666253\" y=\"3.687078\" z=\"-0.9075528\"
+    />\r\n                            <Point x=\"3.39813\" y=\"-0.1042874\" z=\"-0.8174407\"
+    />\r\n                            <Point x=\"0.8242316\" y=\"2.141305\" z=\"1.733946\"
+    />\r\n                            <Point x=\"-2.268938\" y=\"-4.006692\" z=\"-1.181871\"
+    />\r\n                            <Point x=\"-0.8205233\" y=\"2.264424\" z=\"-2.30199\"
+    />\r\n                            <Point x=\"-1.976883\" y=\"-0.0293909\" z=\"3.083139\"
+    />\r\n                            <Point x=\"-0.7179533\" y=\"3.479834\" z=\"1.336628\"
+    />\r\n                            <Point x=\"2.681427\" y=\"1.692508\" z=\"-1.389072\"
     />\r\n                        </kSpline>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
     \               </Slot>\r\n                <Slot SlotId=\"1\">\r\n                    <Values>\r\n
@@ -30,87 +37,96 @@ VFXAsset:
     \               <Slot SlotId=\"3\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetSubUVRandom\"
-    Hash=\"680700548\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVelocityConstant\"
+    Hash=\"-754220764\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
     SlotId=\"4\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>1</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVelocityRandomVector\"
+    Hash=\"-754220764\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
+    SlotId=\"8\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
+    \                       <kFloat>1</kFloat>\r\n                        <kFloat>1</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetSubUVRandom\"
+    Hash=\"680700548\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"12\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \               <Slot SlotId=\"5\">\r\n                    <Values>\r\n                        <kFloat>4</kFloat>\r\n
+    \               <Slot SlotId=\"13\">\r\n                    <Values>\r\n                        <kFloat>4</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
     \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSizeRandomSquare\"
     Hash=\"680700548\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"6\">\r\n                    <Values>\r\n                        <kFloat>0.05</kFloat>\r\n
+    SlotId=\"14\">\r\n                    <Values>\r\n                        <kFloat>0.05</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \               <Slot SlotId=\"7\">\r\n                    <Values>\r\n                        <kFloat>0.05</kFloat>\r\n
+    \               <Slot SlotId=\"15\">\r\n                    <Values>\r\n                        <kFloat>0.05</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
     \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Particle
-    Update\" Position=\"-360,430\" Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVectorFieldRelativeForce\"
+    Update\" Position=\"-160,310\" Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVectorFieldRelativeForce\"
     Hash=\"744917403\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"8\">\r\n                    <Values>\r\n                        <kTexture3D>5796183d03aa8e147bec84edfb7cd610</kTexture3D>\r\n
+    SlotId=\"16\">\r\n                    <Values>\r\n                        <kTexture3D>5796183d03aa8e147bec84edfb7cd610</kTexture3D>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \               <Slot SlotId=\"9\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \               <Slot SlotId=\"17\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
     \                       <kFloat>0</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
     \                       <kFloat>0</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
-    \                       <kFloat>0</kFloat>\r\n                        <kFloat>4.223594</kFloat>\r\n
-    \                       <kFloat>4.223599</kFloat>\r\n                        <kFloat>4.223599</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>2.300861</kFloat>\r\n
+    \                       <kFloat>2.300863</kFloat>\r\n                        <kFloat>2.300863</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true true true
     true true true true true true true true true true</Collapsed>\r\n                    <WorldSpace>false
     false false false false false false false false false false false false</WorldSpace>\r\n
-    \               </Slot>\r\n                <Slot SlotId=\"22\">\r\n                    <Values>\r\n
+    \               </Slot>\r\n                <Slot SlotId=\"30\">\r\n                    <Values>\r\n
     \                       <kFloat>1</kFloat>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
-    \               </Slot>\r\n                <Slot SlotId=\"23\">\r\n                    <Values>\r\n
+    \               </Slot>\r\n                <Slot SlotId=\"31\">\r\n                    <Values>\r\n
     \                       <kFloat>10</kFloat>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
     \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockCollideWithSphere\"
-    Hash=\"-1921841491\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
-    SlotId=\"24\">\r\n                    <Values>\r\n                        <kFloat>-1.273289</kFloat>\r\n
-    \                       <kFloat>0.7697644</kFloat>\r\n                        <kFloat>-1.137809</kFloat>\r\n
-    \                       <kFloat>5.876549</kFloat>\r\n                    </Values>\r\n
-    \                   <Collapsed>false true true true true true</Collapsed>\r\n
-    \                   <WorldSpace>false false false false false false</WorldSpace>\r\n
-    \               </Slot>\r\n                <Slot SlotId=\"30\">\r\n                    <Values>\r\n
-    \                       <kFloat>0.66666</kFloat>\r\n                    </Values>\r\n
-    \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
-    \               </Slot>\r\n            </Block>\r\n        </Context>\r\n        <Context
-    DescId=\"Quad Output\" Position=\"-420,940\" Collapsed=\"False\">\r\n            <Slot
-    SlotId=\"31\">\r\n                <Values>\r\n                    <kTexture2D>a9af9aadccfa3d64087bf3354877cf6d</kTexture2D>\r\n
+    Hash=\"-1921841491\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"32\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0.7697644</kFloat>\r\n                        <kFloat>3.952805</kFloat>\r\n
+    \                       <kFloat>1</kFloat>\r\n                    </Values>\r\n
+    \                   <Collapsed>true true true true true true</Collapsed>\r\n                    <WorldSpace>false
+    false false false false false</WorldSpace>\r\n                </Slot>\r\n                <Slot
+    SlotId=\"38\">\r\n                    <Values>\r\n                        <kFloat>0.66666</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Quad Output\"
+    Position=\"-650,850\" Collapsed=\"False\">\r\n            <Slot SlotId=\"39\">\r\n
+    \               <Values>\r\n                    <kTexture2D>a9af9aadccfa3d64087bf3354877cf6d</kTexture2D>\r\n
     \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
-    \           </Slot>\r\n            <Slot SlotId=\"32\">\r\n                <Values>\r\n
+    \           </Slot>\r\n            <Slot SlotId=\"40\">\r\n                <Values>\r\n
     \                   <kFloat>4</kFloat>\r\n                    <kFloat>1</kFloat>\r\n
     \               </Values>\r\n                <Collapsed>true true true</Collapsed>\r\n
     \               <WorldSpace>false false false</WorldSpace>\r\n            </Slot>\r\n
-    \           <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSizeOverLifeCurve\"
-    Hash=\"-2014196462\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"35\">\r\n                    <Values>\r\n                        <kCurve
-    PreWrapMode=\"ClampForever\" PostWrapMode=\"ClampForever\">\r\n                            <KeyFrame
-    t=\"0.00661157\" v=\"0.1025641\" inT=\"0\" outT=\"0\" tMode=\"0\" />\r\n                            <KeyFrame
-    t=\"1.006612\" v=\"7.450581E-09\" inT=\"0\" outT=\"0\" tMode=\"0\" />\r\n                        </kCurve>\r\n
-    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
-    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetColorGradientOverLifetime\"
+    \           <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetColorGradientOverLifetime\"
     Hash=\"871710797\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"36\">\r\n                    <Values>\r\n                        <kColorGradient>\r\n
-    \                           <ColorKey t=\"0\" v=\"1,0,0,1\" />\r\n                            <ColorKey
-    t=\"0.4029602\" v=\"1,0.3098039,0,1\" />\r\n                            <ColorKey
-    t=\"0.54963\" v=\"1,0.6431373,0,1\" />\r\n                            <ColorKey
-    t=\"1\" v=\"1,0.8901961,0,1\" />\r\n                            <AlphaKey t=\"0\"
-    v=\"0\" />\r\n                            <AlphaKey t=\"0.1214771\" v=\"1\" />\r\n
-    \                           <AlphaKey t=\"0.9081407\" v=\"1\" />\r\n                            <AlphaKey
+    SlotId=\"43\">\r\n                    <Values>\r\n                        <kColorGradient>\r\n
+    \                           <ColorKey t=\"0\" v=\"1,1,1,1\" />\r\n                            <ColorKey
+    t=\"0.14963\" v=\"1,0.972549,0,1\" />\r\n                            <ColorKey
+    t=\"0.6607462\" v=\"1,0.3098039,0,1\" />\r\n                            <ColorKey
+    t=\"0.8785229\" v=\"1,0.227451,0,1\" />\r\n                            <ColorKey
+    t=\"1\" v=\"0,0.6588235,0.8745098,1\" />\r\n                            <AlphaKey
+    t=\"0\" v=\"0\" />\r\n                            <AlphaKey t=\"0.0770428\" v=\"1\"
+    />\r\n                            <AlphaKey t=\"0.9081407\" v=\"1\" />\r\n                            <AlphaKey
     t=\"1\" v=\"0\" />\r\n                        </kColorGradient>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
     \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSubPixelAA\"
-    Hash=\"0\" Collapsed=\"False\" Enabled=\"False\" />\r\n        </Context>\r\n
-    \   </System>\r\n    <SpawnerNode ModelId=\"1\" Position=\"-584,-370\">\r\n        <SpawnerBlock
-    Type=\"kConstantRate\" Collapsed=\"False\">\r\n            <Slot SlotId=\"37\">\r\n
-    \               <Values>\r\n                    <kFloat>40000</kFloat>\r\n                </Values>\r\n
-    \               <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
-    \           </Slot>\r\n        </SpawnerBlock>\r\n    </SpawnerNode>\r\n    <Connections
-    />\r\n    <SpawnerConnections Id=\"1\">0</SpawnerConnections>\r\n</Graph>"
+    Hash=\"0\" Collapsed=\"False\" Enabled=\"True\" />\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetAlphaScale\"
+    Hash=\"-339160254\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
+    SlotId=\"44\">\r\n                    <Values>\r\n                        <kFloat>0.3</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n        </Context>\r\n    </System>\r\n    <SpawnerNode
+    ModelId=\"1\" Position=\"-584,-370\">\r\n        <SpawnerBlock Type=\"kConstantRate\"
+    Collapsed=\"False\">\r\n            <Slot SlotId=\"45\">\r\n                <Values>\r\n
+    \                   <kFloat>40000</kFloat>\r\n                </Values>\r\n                <Collapsed>true</Collapsed>\r\n
+    \               <WorldSpace>false</WorldSpace>\r\n            </Slot>\r\n        </SpawnerBlock>\r\n
+    \   </SpawnerNode>\r\n    <Connections />\r\n    <SpawnerConnections Id=\"1\">0</SpawnerConnections>\r\n</Graph>"
   m_Systems:
   - m_Id: 0
     m_Capacity: 100000
@@ -119,24 +135,30 @@ VFXAsset:
     m_OutputShader: {fileID: 4800000, guid: 23d358a86e7f736478e9290752a2e37b, type: 3}
     m_BufferDesc:
     - m_InitName: <noninit>
-      m_UpdateName: outputBuffer
-      m_OutputName: outputBuffer
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
       m_Flags: 514
       m_Stride: 96
       m_PerPoint: 1
-    - m_InitName: flags
-      m_UpdateName: flags
-      m_OutputName: flags
+    - m_InitName: <noninit>
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 12
+      m_PerPoint: 0
+    - m_InitName: <noninit>
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
       m_Flags: 512
       m_Stride: 4
       m_PerPoint: 1
-    - m_InitName: deadListIn
-      m_UpdateName: deadListOut
+    - m_InitName: <noninit>
+      m_UpdateName: <noninit>
       m_OutputName: <noninit>
       m_Flags: 514
       m_Stride: 4
       m_PerPoint: 1
-    - m_InitName: deadListCount
+    - m_InitName: <noninit>
       m_UpdateName: <noninit>
       m_OutputName: <noninit>
       m_Flags: 768
@@ -187,50 +209,54 @@ VFXAsset:
     m_InitUniforms:
       m_Uniforms:
       - name: initUniform0_kVFXValueOp
-        index: 29
+        index: 36
       - name: initUniform1_kVFXValueOp
-        index: 28
+        index: 35
       - name: initUniform2_kVFXValueOp
-        index: 31
+        index: 34
       - name: initUniform3_kVFXValueOp
-        index: 30
-      - name: initUniform4_kVFXValueOp
         index: 27
-      - name: initUniform5_kVFXValueOp
-        index: 24
-      - name: initUniform6_kVFXValueOp
-        index: 23
-      - name: initUniform7_kVFXValueOp
+      - name: initUniform4_kVFXValueOp
         index: 26
+      - name: initUniform5_kVFXValueOp
+        index: 25
+      - name: initUniform6_kVFXValueOp
+        index: 30
+      - name: initUniform7_kVFXValueOp
+        index: 29
       - name: initUniform8_kVFXSystemSeedOp
-        index: 20
+        index: 23
     m_UpdateUniforms:
       m_Uniforms:
       - name: updateUniform0_kVFXTRSToMatrixOp
-        index: 12
-      - name: updateUniform1_kVFXValueOp
-        index: 22
-      - name: updateUniform2_kVFXValueOp
         index: 14
-      - name: updateUniform3_kVFXInverseTRSOp
-        index: 13
-      - name: updateUniform4_kVFXDeltaTimeOp
-        index: 21
+      - name: updateUniform1_kVFXValueOp
+        index: 31
+      - name: updateUniform2_kVFXValueOp
+        index: 32
+      - name: updateUniform3_kVFXCombine3fOp
+        index: 33
+      - name: updateUniform4_kVFXValueOp
+        index: 18
+      - name: updateUniform5_kVFXValueOp
+        index: 17
+      - name: updateUniform6_kVFXInverseTRSOp
+        index: 22
+      - name: updateUniform7_kVFXDeltaTimeOp
+        index: 24
       - name: updateSampler0_kVFXValueOpTexture
-        index: 25
+        index: 28
     m_OutputUniforms:
       m_Uniforms:
       - name: outputUniform0_kVFXValueOp
-        index: 15
-      - name: outputUniform1_kVFXValueOp
         index: 16
-      - name: outputUniform2_kVFXValueOp
-        index: 17
+      - name: outputUniform1_kVFXValueOp
+        index: 20
       - name: outputSampler0_kVFXValueOpTexture
         index: 19
     m_SpawnerIndices: 00000000
   m_Values:
-    m_Values: 0000000000000000000000000000000000000000b9278740b927874000000000af278740ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00002041faff7f3fd9a5d8bb0000003e0c0000000000c03e000080400000803f00401c47ffffffffffffffff0000803fcdcc4c3d00008040cdcc4c3d00000000cdcccc3d0000203f0000603f0000803f0000803f
+    m_Values: 0000000000000000000000000000000000000000574113404e4113400000000057411340ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff480f453fc2fa7c40ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000003e3baa2a3f0000803f000080400000803f00401c47ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00008040000000000000803fcdcc4c3dcdcc4c3d0000803f00002041ffffffffffffffffffffffff0000803fcdcccc3d0000c03e0000203f
     m_Textures:
     - {fileID: 2800000, guid: a9af9aadccfa3d64087bf3354877cf6d, type: 3}
     - {fileID: 11700000, guid: 5796183d03aa8e147bec84edfb7cd610, type: 2}
@@ -293,60 +319,60 @@ VFXAsset:
       data[3]: 0
     - op: 2
       valueIndex: 9
-      data[0]: 1
-      data[1]: 4
-      data[2]: 7
+      data[0]: 6
+      data[1]: 5
+      data[2]: 8
       data[3]: 0
     - op: 2
       valueIndex: 12
-      data[0]: 8
-      data[1]: 5
-      data[2]: 6
+      data[0]: 0
+      data[1]: 1
+      data[2]: 7
       data[3]: 0
     - op: 2
       valueIndex: 15
-      data[0]: 2
-      data[1]: 3
+      data[0]: 3
+      data[1]: 4
+      data[2]: 2
+      data[3]: 0
+    - op: 0
+      valueIndex: 18
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 19
+      data[0]: 1
+      data[1]: 0
       data[2]: 0
       data[3]: 0
     - op: 4
-      valueIndex: 18
+      valueIndex: 20
       data[0]: 11
-      data[1]: 9
-      data[2]: 10
-      data[3]: 0
-    - op: 5
-      valueIndex: 34
-      data[0]: 12
-      data[1]: 0
-      data[2]: 0
+      data[1]: 10
+      data[2]: 9
       data[3]: 0
     - op: 0
-      valueIndex: 50
+      valueIndex: 36
       data[0]: 1
       data[1]: 0
       data[2]: 0
       data[3]: 0
     - op: 0
-      valueIndex: 51
-      data[0]: 4
-      data[1]: 0
-      data[2]: 0
-      data[3]: 0
-    - op: 0
-      valueIndex: 55
+      valueIndex: 37
       data[0]: 1
       data[1]: 0
       data[2]: 0
       data[3]: 0
     - op: 0
-      valueIndex: 56
-      data[0]: 2
+      valueIndex: 38
+      data[0]: 1
       data[1]: 0
       data[2]: 0
       data[3]: 0
     - op: 0
-      valueIndex: 58
+      valueIndex: 39
       data[0]: 1
       data[1]: 0
       data[2]: 0
@@ -354,6 +380,24 @@ VFXAsset:
     - op: 0
       valueIndex: 0
       data[0]: 7
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 40
+      data[0]: 2
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 42
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 5
+      valueIndex: 43
+      data[0]: 14
       data[1]: 0
       data[2]: 0
       data[3]: 0
@@ -413,19 +457,31 @@ VFXAsset:
       data[3]: 0
     - op: 0
       valueIndex: 67
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 68
+      data[0]: 15
+      data[1]: 12
+      data[2]: 13
+      data[3]: 0
+    - op: 0
+      valueIndex: 71
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 72
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 73
       data[0]: 2
-      data[1]: 0
-      data[2]: 0
-      data[3]: 0
-    - op: 0
-      valueIndex: 69
-      data[0]: 1
-      data[1]: 0
-      data[2]: 0
-      data[3]: 0
-    - op: 0
-      valueIndex: 70
-      data[0]: 1
       data[1]: 0
       data[2]: 0
       data[3]: 0
@@ -433,7 +489,7 @@ VFXAsset:
     m_NeedsWorldToLocal: 0
   m_Spawners:
   - - m_Type: 0
-      m_ExpressionIndices: 12000000
+      m_ExpressionIndices: 15000000
   m_SpawnerEvents:
   - m_Name: OnStart
     m_StartSpawners: 00000000
@@ -443,11 +499,11 @@ VFXAsset:
     m_StopSpawners: 00000000
   m_ExposedExpressions: []
   m_ExposedEditorDescs: []
-  m_FloatTexture: {fileID: 28014331729926344}
+  m_FloatTexture: {fileID: 28905438374308192}
   m_Bounds:
-    m_Center: {x: -4.3596067, y: -2.872355, z: -1.2107024}
-    m_Extent: {x: 3.6318064, y: -5.2504363, z: 4.5123363}
---- !u!28 &28014331729926344
+    m_Center: {x: -0.12995338, y: -1.6785784, z: -6.405033}
+    m_Extent: {x: 20.894926, y: -14.473576, z: 11.914494}
+--- !u!28 &28263029669532728
 Texture2D:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -458,9 +514,9 @@ Texture2D:
     Hash: 00000000000000000000000000000000
   serializedVersion: 2
   m_Width: 128
-  m_Height: 4
-  m_CompleteImageSize: 4096
-  m_TextureFormat: 17
+  m_Height: 1
+  m_CompleteImageSize: 512
+  m_TextureFormat: 4
   m_MipCount: 1
   m_IsReadable: 1
   m_AlphaIsTransparency: 0
@@ -470,11 +526,11 @@ Texture2D:
     m_FilterMode: 1
     m_Aniso: 1
     m_MipBias: 0
-    m_WrapMode: 0
+    m_WrapMode: 1
   m_LightmapFormat: 0
-  m_ColorSpace: 0
-  image data: 4096
-  _typelessdata: 902e902e00000000902e902e0000442c8f2e8f2e000024308d2e8d2e000046328b2e8b2e00002434882e882e00003535852e852e00003636812e812e000047377d2e7d2e00002438782e782e0000ac38722e722e00002d396c2e6c2e0000b539662e662e0000363a5f2e5f2e0000be3a572e572e00003f3b4f2e4f2e0000c73b472e472e0000003c3e2e3e2e0000003c342e342e0000003c2a2e2a2e0000003c202e202e0000003c152e152e0000003c0a2e0a2e0000003cff2dff2d0000003cf32df32d0000003ce62de62d0000003cd92dd92d0000003ccc2dcc2d0000003cbf2dbf2d0000003cb12db12d0000003ca32da32d0000003c942d942d0000003c862d862d0000003c762d762d0000003c672d672d0000003c572d572d0000003c472d472d0000003c372d372d0000003c272d272d0000003c162d162d0000003c052d052d0000003cf42cf42c0000003ce22ce22c0000003cd02cd02c0000003cbf2cbf2c0000003cac2cac2c0000003c9a2c9a2c0000003c882c882c0000003c752c752c0000003c622c622c0000003c502c502c0000003c3d2c3d2c0000003c292c292c0000003c162c162c0000003c032c032c0000003cdf2bdf2b0000003cb82bb82b0000003c912b912b0000003c6a2b6a2b0000003c422b422b0000003c1b2b1b2b0000003cf32af32a0000003ccb2acb2a0000003ca42aa42a0000003c7c2a7c2a0000003c542a542a0000003c2d2a2d2a0000003c052a052a0000003cde29de290000003cb629b6290000003c8f298f290000003c682968290000003c412941290000003c1a291a290000003cf328f3280000003ccc28cc280000003ca628a6280000003c802880280000003c5a285a280000003c352835280000003c102810280000003cd627d6270000003c8d278d270000003c452745270000003cfd26fd260000003cb726b7260000003c712671260000003c2c262c260000003ce825e8250000003ca525a5250000003c632563250000003c222522250000003ce224e2240000003ca324a3240000003c652465240000003c292429240000003cdb23db230000003c682368230000003cf622f6220000003c882288220000003c1c221c220000003cb321b3210000003c4d214d210000003cea20ea200000003c8b208b200000003c2e202e200000003caa1faa1f0000003cfe1efe1e0000003c591e591e0000003cbb1dbb1d0000003c241d241d0000003c941c941c0000003c0c1c0c1c0000003c181b181b0000003c261a261a0000003c451945190000003c741874180000873b671767170000de3a0716071600002e3aca14ca1400007d39601360130000cc387211721100001c389b0f9b0f0000d636e50ce50c000075358909890900002434f204f204000085313e013e010000852d0000000000000000003c000000000000003cf9100000442c003c751300002430003c371600004632003c751700002434003cf91800003535003c981900003636003cda1a00004737003c871b00002438003c7f1c0000ac38003ce41c00002d39003cbd1d0000b539003cab1e0000363a003c291f0000be3a003c1b2000003f3b003c63200000c73b003cfa200000003c003c49210000003c003cf2210000003c003c4a220000003c003c03230000003c003c65230000003c003c18240000003c003c84240000003c003cbc240000003c003c31250000003c003c6e250000003c003ced250000003c003c2f260000003c003cb7260000003c003cfe260000003c003c91270000003c003cdc270000003c003c3c280000003c003c65280000003c003cb8280000003c003c0f290000003c003c3c290000003c003c99290000003c003cc8290000003c003c2a2a0000003c003c5c2a0000003c003cc42a0000003c003cf92a0000003c003c662b0000003c003c9e2b0000003c003c082c0000003c003c432c0000003c003c612c0000003c003ca02c0000003c003cbf2c0000003c003c012d0000003c003c892d0000003c003c192e0000003c003cd92e0000003c003c7c2f0000003c003c2a300000003c003c9c300000003c003cfd300000003c003c7c310000003c003ce7310000003c003c73320000003c003ce8320000003c003c81330000003c003c11340000003c003c53340000003c003cab340000003c003cf3340000003c003c51350000003c003c9f350000003c003cf0350000003c003c05360000003c003c19360000003c003c43360000003c003c59360000003c003c6e360000003c003c84360000003c003c99360000003c003caf360000003c003cc5360000003c003cdb360000003c003cf2360000003c003c08370000003c003c36370000003c003c4d370000003c003c64370000003c003c7c370000003c003c93370000003c003cab370000003c003cc3370000003c003cdb370000003c003cf3370000003c003c05380000003c003c1e380000003c003c2a380000003c003c37380000003c003c44380000003c003c50380000003c003c5d380000003c003c6a380000003c003c77380000003c003c84380000003c003c91380000003c003cac380000003c003cb9380000003c003cc7380000003c003cd4380000003c003ce2380000003c003cf0380000003c003cfd380000003c003c0b390000003c003c19390000003c003c27390000003c003c44390000003c003c52390000003c003c61390000003c003c6f390000873b003c7e390000de3a003c8d3900002e3a003c9b3900007d39003caa390000cc38003cb93900001c38003cc8390000d636003ce73900007535003cf63900002434003c063a00008531003c153a0000852d003c253a00000000bdc344bc8540003ca2c3dfbb5b40003c89c337bb3040003c70c391ba0440003c58c3ecb9af3f003c41c34ab9543f003c2bc3aab8f73e003c16c30cb8983e003c01c3e2b6373e003ceec2b1b5d43d003cdcc287b46f3d003cccc2c8b2083d003cbcc28fb09f3c003caec2ceac343c003ca2c208a18e3b003c96c2ce2ab03a003c8dc2472fcd39003c85c27b31e638003c7ec23c33f837003c7ac271341d36003c77c237353a34003c76c2ef35a430003c76c298364126003c79c230373cae003c7ec2b7370cb3003c84c216387fb5003c8dc248387bb7003c97c27138bcb8003ca4c28f38bab9003cb2c2a538b8ba003cc2c2b138b5bb003cd3c2b33858bc003ce7c2ab38d5bc003cfbc29a3850bd003c11c38038cabd003c29c35c3843be003c42c32f38babe003c5bc3f5372fbf003c76c37937a1bf003c92c3ee3609c0003cafc3533640c0003cccc3a93576c0003ceac3ef34acc0003c04c42934dfc0003c14c4aa3212c1003c24c4e93044c1003c34c41c2e74c1003c44c46b28a4c1003c54c474a7d2c1003c65c41baeffc1003c75c441b12bc2003c86c489b356c2003c96c4f3b47fc2003ca7c42ab6a8c2003cb7c46bb7cfc2003cc8c45ab8f6c2003cd9c403b91bc3003ce9c4b0b93fc3003cf9c461ba62c3003c0ac516bb84c3003c1ac5cebba5c3003c2ac545bcc5c3003c3ac5a5bce4c3003c49c507bd01c4003c59c56abd0fc4003c68c5cfbd1dc4003c78c535be2ac4003c87c59dbe37c4003c95c506bf44c4003ca4c571bf4fc4003cb2c5ddbf5bc4003cc0c525c066c4003ccec55cc070c4003cdcc594c07ac4003ce9c5cdc084c4003cf6c506c18cc4003c03c63fc195c4003c0fc67ac19dc4003c1bc6b4c1a4c4003c27c6f0c1abc4003c33c62bc2b2c4003c3ec667c2b8c4003c48c6a4c2bec4003c53c6e1c2c3c4003c5dc61ec3c8c4003c67c65cc3ccc4003c70c69ac3cfc4003c79c6d9c3d3c4003c81c60cc4d6c4003c89c62bc4d8c4003c91c64bc4dac4003c99c66ac4dbc4003c9fc68ac4dcc4003ca6c6aac4ddc4003cacc6cac4ddc4003cb2c6ebc4ddc4003cb7c60bc5dcc4003cbcc62bc5dac4003cc0c64bc5d9c4003cc4c66cc5d7c4003cc8c68cc5d4c4003ccbc6acc5d1c4003ccdc6cdc5cec4003cd0c6edc5cac4003cd1c60dc6c6c4003cd3c62ec6c2c4003cd4c64ec6bdc4003cd4c66ec6b8c4003cd4c68ec6b2c4003cd4c6aec6acc4003cd3c6cec6a6c4003cd2c6eec69fc4003cd0c60ec798c4003ccec62ec791c4003cccc64dc789c4003cc9c66dc781c4003cc6c68cc779c4003cc2c6acc770c4003cbec6cbc767c4003cbac6eac75ec4003cb5c604c855c4003cb0c613c84bc4003caac623c841c4003ca4c632c836c4003c9ec641c82cc4003c97c650c821c4003c90c65fc816c4003c89c66ec80bc4003c28489e4a7aca003cef47704a7cca003c8d47424a7eca003c2b47134a7fca003cc846e34980ca003c6546b24981ca003c0146814982ca003c9c454f4983ca003c37451c4983ca003cd144e94883ca003c6b44b54882ca003c0544804881ca003c3d434a4880ca003c6f4214487eca003ca141ba477cca003cd3404a4779ca003c0540d94676ca003c6f3e664673ca003cd53cf3456fca003c7b3a7e456aca003ca236084565ca003ccb2591445fca003cd6b5194458ca003cfbb9414351ca003c7fbc4f4249ca003cfabd5d4140ca003c6dbf6b4037ca003c6bc0f13e2dca003c1cc10e3d23ca003cc7c15c3a17ca003c6dc241350bca003c0cc34cb0ffc9003ca6c3bdb8f1c9003c1dc42fbce3c9003c63c4fabdd5c9003ca7c4bebfc6c9003ce7c4bec0b6c9003c24c59ac1a6c9003c5dc572c295c9003c94c547c384c9003cc7c50cc472c9003cf7c572c460c9003c24c6d7c44ec9003c4dc63ac53bc9003c74c69bc527c9003c98c6fbc513c9003cb9c658c6ffc8003cd7c6b4c6ebc8003cf2c60ec7d6c8003c0ac767c7c1c8003c20c7bdc7abc8003c34c709c895c8003c44c733c87fc8003c53c75cc868c8003c5fc784c851c8003c68c7acc83ac8003c70c7d3c823c8003c75c7f9c80bc8003c78c71ec9e7c7003c79c743c9b6c7003c77c767c985c7003c74c78bc953c7003c6fc7adc921c7003c67c7d0c9eec6003c5ec7f1c9bbc6003c52c713ca87c6003c45c733ca53c6003c36c753ca1ec6003c25c773cae9c5003c13c791cab3c5003cffc6b0ca7dc5003ce8c6ceca46c5003cd1c6ebca0fc5003cb7c608cbd8c4003c9cc624cba0c4003c7fc640cb67c4003c61c65bcb2ec4003c41c676cbeac3003c20c691cb76c3003cfdc5abcb02c3003cd8c5c4cb8dc2003cb2c5decb17c2003c8bc5f6cba0c1003c62c507cc28c1003c38c513ccb0c0003c0cc51fcc37c0003cdfc42acc7cbf003cb1c435cc87be003c81c440cc92bd003c51c44bcc9bbc003c1fc456cc46bb003cd7c360cc54b9003c6fc36accc1b6003c03c374cca9b1003c96c27ecc6e2c003c27c288cc0e35003cb5c191cc8238003c41c19bcc7e3a003cccc0a4cc3e3c003c54c0accc3d3d003cb6bfb5cc3d3e003cbfbebecc3e3f003cc5bdc6cc1f40003cc8bccecca040003c8ebbd6cc2041003c87b9decca141003cf3b6e5cc2242003c99b1edcca342003c902df4cc2443003c9f35fbcca543003cf23802cd1344003c1a3b09cd5344003ca33c0fcd9344003cbb3d16cdd444003cd53e1ccd1445003cf13f22cd5445003c874028cd9445003c17412ecdd445003ca74134cd1446003c394239cd5346003ccb423fcd9346003c5d4344cdd246003cf04349cd1147003c42444ecd5047003c8c4453cd8f47003cd64458cdce47003c21455ccd0648003c6c4561cd2548003c
+  m_ColorSpace: 1
+  image data: 512
+  _typelessdata: ffffff00fffff21afffee434fffed74efffec968fffdbc82fffdae9cfffca1b6fffc94d0fffc86ebfffb79fffffb6bfffffb5efffffa51fffffa43fffff936fffff928fffff91bfffff80dfffff800fffff500fffff300fffff000ffffee00ffffeb00ffffe800ffffe600ffffe300ffffe100ffffde00ffffdb00ffffd900ffffd600ffffd400ffffd100ffffce00ffffcc00ffffc900ffffc700ffffc400ffffc100ffffbf00ffffbc00ffffba00ffffb700ffffb400ffffb200ffffaf00ffffad00ffffaa00ffffa700ffffa500ffffa200ffff9f00ffff9d00ffff9a00ffff9800ffff9500ffff9200ffff9000ffff8d00ffff8b00ffff8800ffff8500ffff8300ffff8000ffff7e00ffff7b00ffff7800ffff7600ffff7300ffff7100ffff6e00ffff6b00ffff6900ffff6600ffff6400ffff6100ffff5e00ffff5c00ffff5900ffff5700ffff5400ffff5100ffff4f00ffff4e00ffff4d00ffff4d00ffff4c00ffff4b00ffff4a00ffff4a00ffff4900ffff4800ffff4700ffff4700ffff4600ffff4500ffff4400ffff4400ffff4300ffff4200ffff4100ffff4100ffff4000ffff3f00ffff3e00ffff3d00ffff3d00ffff3c00ffff3b00ffff3a00fff83d06ffe74415ffd74b23ffc65232ffb65a40f0a5614edb95685dc5846f6baf74767a99637d88835384976d428ba5573293b442219ac22c11a1d11600a8df00
   m_StreamData:
     offset: 0
     size: 0
@@ -506,12 +562,12 @@ Texture2D:
   m_LightmapFormat: 0
   m_ColorSpace: 0
   image data: 2048
-  _typelessdata: bdc344bc8540003ca2c3dfbb5b40003c89c337bb3040003c70c391ba0440003c58c3ecb9af3f003c41c34ab9543f003c2bc3aab8f73e003c16c30cb8983e003c01c3e2b6373e003ceec2b1b5d43d003cdcc287b46f3d003cccc2c8b2083d003cbcc28fb09f3c003caec2ceac343c003ca2c208a18e3b003c96c2ce2ab03a003c8dc2472fcd39003c85c27b31e638003c7ec23c33f837003c7ac271341d36003c77c237353a34003c76c2ef35a430003c76c298364126003c79c230373cae003c7ec2b7370cb3003c84c216387fb5003c8dc248387bb7003c97c27138bcb8003ca4c28f38bab9003cb2c2a538b8ba003cc2c2b138b5bb003cd3c2b33858bc003ce7c2ab38d5bc003cfbc29a3850bd003c11c38038cabd003c29c35c3843be003c42c32f38babe003c5bc3f5372fbf003c76c37937a1bf003c92c3ee3609c0003cafc3533640c0003cccc3a93576c0003ceac3ef34acc0003c04c42934dfc0003c14c4aa3212c1003c24c4e93044c1003c34c41c2e74c1003c44c46b28a4c1003c54c474a7d2c1003c65c41baeffc1003c75c441b12bc2003c86c489b356c2003c96c4f3b47fc2003ca7c42ab6a8c2003cb7c46bb7cfc2003cc8c45ab8f6c2003cd9c403b91bc3003ce9c4b0b93fc3003cf9c461ba62c3003c0ac516bb84c3003c1ac5cebba5c3003c2ac545bcc5c3003c3ac5a5bce4c3003c49c507bd01c4003c59c56abd0fc4003c68c5cfbd1dc4003c78c535be2ac4003c87c59dbe37c4003c95c506bf44c4003ca4c571bf4fc4003cb2c5ddbf5bc4003cc0c525c066c4003ccec55cc070c4003cdcc594c07ac4003ce9c5cdc084c4003cf6c506c18cc4003c03c63fc195c4003c0fc67ac19dc4003c1bc6b4c1a4c4003c27c6f0c1abc4003c33c62bc2b2c4003c3ec667c2b8c4003c48c6a4c2bec4003c53c6e1c2c3c4003c5dc61ec3c8c4003c67c65cc3ccc4003c70c69ac3cfc4003c79c6d9c3d3c4003c81c60cc4d6c4003c89c62bc4d8c4003c91c64bc4dac4003c99c66ac4dbc4003c9fc68ac4dcc4003ca6c6aac4ddc4003cacc6cac4ddc4003cb2c6ebc4ddc4003cb7c60bc5dcc4003cbcc62bc5dac4003cc0c64bc5d9c4003cc4c66cc5d7c4003cc8c68cc5d4c4003ccbc6acc5d1c4003ccdc6cdc5cec4003cd0c6edc5cac4003cd1c60dc6c6c4003cd3c62ec6c2c4003cd4c64ec6bdc4003cd4c66ec6b8c4003cd4c68ec6b2c4003cd4c6aec6acc4003cd3c6cec6a6c4003cd2c6eec69fc4003cd0c60ec798c4003ccec62ec791c4003cccc64dc789c4003cc9c66dc781c4003cc6c68cc779c4003cc2c6acc770c4003cbec6cbc767c4003cbac6eac75ec4003cb5c604c855c4003cb0c613c84bc4003caac623c841c4003ca4c632c836c4003c9ec641c82cc4003c97c650c821c4003c90c65fc816c4003c89c66ec80bc4003c28489e4a7aca003cef47704a7cca003c8d47424a7eca003c2b47134a7fca003cc846e34980ca003c6546b24981ca003c0146814982ca003c9c454f4983ca003c37451c4983ca003cd144e94883ca003c6b44b54882ca003c0544804881ca003c3d434a4880ca003c6f4214487eca003ca141ba477cca003cd3404a4779ca003c0540d94676ca003c6f3e664673ca003cd53cf3456fca003c7b3a7e456aca003ca236084565ca003ccb2591445fca003cd6b5194458ca003cfbb9414351ca003c7fbc4f4249ca003cfabd5d4140ca003c6dbf6b4037ca003c6bc0f13e2dca003c1cc10e3d23ca003cc7c15c3a17ca003c6dc241350bca003c0cc34cb0ffc9003ca6c3bdb8f1c9003c1dc42fbce3c9003c63c4fabdd5c9003ca7c4bebfc6c9003ce7c4bec0b6c9003c24c59ac1a6c9003c5dc572c295c9003c94c547c384c9003cc7c50cc472c9003cf7c572c460c9003c24c6d7c44ec9003c4dc63ac53bc9003c74c69bc527c9003c98c6fbc513c9003cb9c658c6ffc8003cd7c6b4c6ebc8003cf2c60ec7d6c8003c0ac767c7c1c8003c20c7bdc7abc8003c34c709c895c8003c44c733c87fc8003c53c75cc868c8003c5fc784c851c8003c68c7acc83ac8003c70c7d3c823c8003c75c7f9c80bc8003c78c71ec9e7c7003c79c743c9b6c7003c77c767c985c7003c74c78bc953c7003c6fc7adc921c7003c67c7d0c9eec6003c5ec7f1c9bbc6003c52c713ca87c6003c45c733ca53c6003c36c753ca1ec6003c25c773cae9c5003c13c791cab3c5003cffc6b0ca7dc5003ce8c6ceca46c5003cd1c6ebca0fc5003cb7c608cbd8c4003c9cc624cba0c4003c7fc640cb67c4003c61c65bcb2ec4003c41c676cbeac3003c20c691cb76c3003cfdc5abcb02c3003cd8c5c4cb8dc2003cb2c5decb17c2003c8bc5f6cba0c1003c62c507cc28c1003c38c513ccb0c0003c0cc51fcc37c0003cdfc42acc7cbf003cb1c435cc87be003c81c440cc92bd003c51c44bcc9bbc003c1fc456cc46bb003cd7c360cc54b9003c6fc36accc1b6003c03c374cca9b1003c96c27ecc6e2c003c27c288cc0e35003cb5c191cc8238003c41c19bcc7e3a003cccc0a4cc3e3c003c54c0accc3d3d003cb6bfb5cc3d3e003cbfbebecc3e3f003cc5bdc6cc1f40003cc8bccecca040003c8ebbd6cc2041003c87b9decca141003cf3b6e5cc2242003c99b1edcca342003c902df4cc2443003c9f35fbcca543003cf23802cd1344003c1a3b09cd5344003ca33c0fcd9344003cbb3d16cdd444003cd53e1ccd1445003cf13f22cd5445003c874028cd9445003c17412ecdd445003ca74134cd1446003c394239cd5346003ccb423fcd9346003c5d4344cdd246003cf04349cd1147003c42444ecd5047003c8c4453cd8f47003cd64458cdce47003c21455ccd0648003c6c4561cd2548003c
+  _typelessdata: 2931a634c8b8003c739c1b329db9003c77b1142e77ba003c68b5d11b57bb003c0cb842ad1ebc003c66b931b195bc003cc0ba86b30fbd003c0ebccbb48dbd003cbcbca9b511be003c69bd52b69abe003c14beb6b629bf003cbcbebeb6bfbf003c5abf43b62ec0003ce3bf10b57ec0003c21c0e3b1c8c0003c33c0969703c1003c26c07b322ac1003c06c08a363ec1003cb1bfde3845c1003c44bf683a43c1003cccbee13b39c1003c4abea53c29c1003cc1bd533d15c1003c32bdfa3dfdc0003c9fbc9b3ee2c0003c09bc373fc3c0003cdebacd3fa2c0003ca4b92f407fc0003c66b8754059c0003c48b6b84031c0003c78b3fa4008c0003ca5ac3941bbbf003cbc2d774162bf003c0c34b24106bf003caf36eb41a7be003caa38234246be003c003a5942e2bd003c563b8d427dbd003c573cbf4215bd003c043df042aabc003cb13d1f433ebc003c5f3e4c43a1bb003cdf3e25433bbb003c393fbe4226bb003c903f564204bb003ce23fee41d5ba003c1740864195ba003c38401c4141ba003c5440b340d8b9003c6840494054b9003c7240c23fb5b8003c6e40f53ef5b7003c5a40323e55b6003c34407d3da3b4003cfe3fd53cf9b1003c7b3f3a3ce4ad003ce73e503bdaa0003c473e353aa22b003ca03d1e395c2f003cf53c07380631003c493cd935f631003c3a3b35338832003ce6393e2dc132003c963820acac32003c9c36d8b24e32003c1934dcb5b031003c972e2cb8d830003ce8a96fb9972f003c1fb2b7ba202d003c53b502bcad28003c86b7aabcfca1003cd4b854bd1bac003cdfb900beb3af003ce2baadbec1b1003cdebb5cbfc4b3003c6abc06c0eeb4003ce1bc5ec005b6003c56bdb8c025b7003cc8bd11c127b8003c37be6bc1c0b8003ca3bec6c15cb9003c0dbf21c2fcb9003c74bf7cc2a0ba003cd9bfd7c246bb003c1ec033c3eebb003c4ec08fc34dbc003c7dc0ebc3a4bc003c77c0b2c3d5bc003c5ec046c3f7bc003c45c0d9c214bd003c2dc06cc22dbd003c15c0ffc141bd003cfbbf91c14fbd003cccbf23c157bd003c9ebfb5c058bd003c71bf47c051bd003c44bfb2bf43bd003c19bfd7be2bbd003cf0befcbd09bd003cc8be24bddcbc003ca1be4ebca2bc003c7dbef6ba5cbc003c5cbe5bb908bc003c3dbe97b74bbb003c21be96b469ba003c09bee5ae69b9003cf4bde82b4eb8003ce1bd123336b6003cd2bdeb3548b3003cc5bd133874ab003cbabd1e398c2f003cb1bd1b3ac934003ca7bd0f3bbd37003c9dbdfe3b5b39003c91bd773cd63a003c82bdf53c253c003c6ebd7d3dd73c003c52bd143e7a3d003c2cbdc03e063e003cfbbc803f6f3e003cc0bc2840ac3e003c7fbc9340c03e003c3bbcfe40b23e003cebbb67418a3e003c5fbbcd41503e003cd3ba3242073e003c48ba9442b43d003cbeb9f542583d003c6ac9abc6bbc6003c34c923c697c6003cfcc898c571c6003cc2c80ac549c6003c85c876c41dc6003c44c8bdc3edc5003cffc781c2b9c5003c6cc737c180c5003ccdc6bcbf40c5003c20c6e3bcf8c4003c62c56eb7a5c4003c8cc4953544c4003c31c3ea3ca1c3003c00c1584088c2003c21bd49423ec1003cceaa0644b8bf003c3e3cbd4411bd003c10404b4548b9003cc241b945e7ae003c444310467136003c50445546083b003cf0448d46513d003c8445b946073f003c0e46dc465540003c9046f8461e41003c0a470d47e141003c7f471c479e42003cee4727475643003c2c482d470444003c5f482f475c44003c90482e47b244003cbf4829470645003ced4821475845003c19491747a945003c44490a47f945003c6d49fb464746003c9649ea469546003cbd49d646e146003ce349c1462d47003c084aaa467747003c2d4a9246c147003c504a78460448003cee4481c9b636003c74442dc97039003ce743d9c8843b003cd74283c8ca3c003cb6412bc8d03d003c8140a5c7cf3e003c6f3ef3c6c13f003c583b43c65040003cca3199c5af40003cbeb8fec4f640003c89bd7cc41b41003c51c01bc41941003cc7c1c3c3ed40003c1dc399c39c40003c28c4b1c32c40003cb1c400c4483f003c2bc53fc4103e003c97c58fc4bc3c003cf8c5eec4a63a003c4ec659c56437003c9cc6ccc54c2d003ce1c646c6dcb4003c1fc7c6c68fb9003c58c749c75abc003c8bc7cfc7edbd003cb9c72bc87fbf003ce2c770c887c0003c04c8b5c84ec1003c15c8fbc813c2003c25c840c9d6c2003c33c885c997c3003c40c8cac92bc4003c4cc80fca8ac4003c57c854cae7c4003c62c898ca44c5003c6bc8dcca9fc5003c73c81fcbf9c5003c7bc862cb53c6003c82c8a4cbabc6003c89c8e6cb03c7003c8fc813cc59c7003c94c834ccafc7003c9ac854cc01c8003c9ec874cc2bc8003ca2c894cc55c8003c3644984c10c2003c0944724c2dc1003cb6434c4c48c0003c5843254cc0be003cfa42fc4becbc003c9a42ac4b29ba003c39425b4be1b4003cd741084b4231003c7441b44a1639003c10415e4a703c003cab40074a553e003c4740b0491d40003cc43f57490d41003cfc3efe48fa41003c363ea548e042003c753d4d48bf43003cbb3cee474944003c0b3c4647ab44003cd03aa5460345003ca8390d465045003ca53881459045003c96370345c145003c3f369444e245003c4b353644f145003cc234d343ee45003cad346143d645003c16351843a845003c0c36fe426145003c9d371743fe44003cf3386b437a44003c7f3a0244a643003c3c3c72440942003c693d07452a40003cb63eb445483c003c05406d46f529003cad40294793bb003c4e41e04794bf003ce841494896c1003c7a429f484bc3003c0743f34875c4003c8d4343493dc5003c
   m_StreamData:
     offset: 0
     size: 0
     path: 
---- !u!28 &28308276999895404
+--- !u!28 &28905438374308192
 Texture2D:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -522,9 +578,9 @@ Texture2D:
     Hash: 00000000000000000000000000000000
   serializedVersion: 2
   m_Width: 128
-  m_Height: 1
-  m_CompleteImageSize: 512
-  m_TextureFormat: 4
+  m_Height: 4
+  m_CompleteImageSize: 4096
+  m_TextureFormat: 17
   m_MipCount: 1
   m_IsReadable: 1
   m_AlphaIsTransparency: 0
@@ -534,11 +590,11 @@ Texture2D:
     m_FilterMode: 1
     m_Aniso: 1
     m_MipBias: 0
-    m_WrapMode: 1
+    m_WrapMode: 0
   m_LightmapFormat: 0
-  m_ColorSpace: 1
-  image data: 512
-  _typelessdata: ff000000ff020011ff030021ff050032ff060042ff080053ff090063ff0b0074ff0c0084ff0e0095ff0f00a5ff1100b6ff1300c6ff1400d7ff1600e7ff1700f8ff1900ffff1a00ffff1c00ffff1d00ffff1f00ffff2000ffff2200ffff2400ffff2500ffff2700ffff2800ffff2a00ffff2b00ffff2d00ffff2e00ffff3000ffff3100ffff3300ffff3400ffff3600ffff3800ffff3900ffff3b00ffff3c00ffff3e00ffff3f00ffff4100ffff4200ffff4400ffff4500ffff4700ffff4900ffff4a00ffff4c00ffff4d00ffff4f00ffff5300ffff5700ffff5c00ffff6000ffff6500ffff6a00ffff6e00ffff7300ffff7700ffff7c00ffff8000ffff8500ffff8a00ffff8e00ffff9300ffff9700ffff9c00ffffa000ffffa400ffffa500ffffa600ffffa800ffffa900ffffaa00ffffab00ffffac00ffffad00ffffae00ffffaf00ffffb000ffffb100ffffb300ffffb400ffffb500ffffb600ffffb700ffffb800ffffb900ffffba00ffffbb00ffffbc00ffffbe00ffffbf00ffffc000ffffc100ffffc200ffffc300ffffc400ffffc500ffffc600ffffc700ffffc900ffffca00ffffcb00ffffcc00ffffcd00ffffce00ffffcf00ffffd000ffffd100ffffd200ffffd400ffffd500ffffd600ffffd700f0ffd800dbffd900c5ffda00afffdb0099ffdc0083ffdd006dffdf0057ffe00042ffe1002cffe20016ffe30000
+  m_ColorSpace: 0
+  image data: 4096
+  _typelessdata: 003c003c003c0000003c003c1a3b862e003ced3b343a8632003ced3b6f39e434003ced3bac388636003cdb3b05381438003cdb3bc536e438003cc93bb335b539003cc93bbc34863a003cc93ba0335f3b003cb73b1e32003c003cb73bb430003c003cb73b292f003c003ca53b442d003c003ca53b2f2b003c003c943bb828003c003c943b6e25003c003c943b9c21003c003c823b1f1c003c003c823b0000003c003c4e3b0000003c003c2b3b0000003c003cf83a0000003c003cd73a0000003c003ca53a0000003c003c743a0000003c003c543a0000003c003c253a0000003c003c063a0000003c003cd7390000003c003caa390000003c003c8d390000003c003c61390000003c003c44390000003c003c19390000003c003cf0380000003c003cd4380000003c003cac380000003c003c91380000003c003c6a380000003c003c44380000003c003c2a380000003c003c05380000003c003cdb370000003c003c93370000003c003c4d370000003c003c1f370000003c003cdb360000003c003caf360000003c003c6e360000003c003c2e360000003c003c05360000003c003cc7350000003c003c8c350000003c003c65350000003c003c2b350000003c003c06350000003c003ccf340000003c003c99340000003c003c76340000003c003c42340000003c003c21340000003c003ce0330000003c003c81330000003c003c43330000003c003ce8320000003c003cad320000003c003c56320000003c003c02320000003c003ccc310000003c003c7c310000003c003c48310000003c003cfd300000003c003cb4300000003c003c85300000003c003c40300000003c003c13300000003c003ca62f0000003c003c292f0000003c003cd92e0000003c003c642e0000003c003c192e0000003c003cac2d0000003c003c442d0000003c003c012d0000003c003ce02c0000003c003cbf2c0000003c003cbf2c0000003c003ca02c0000003c003c802c0000003c003c612c0000003c003c612c0000003c003c432c0000003c003c252c0000003c003c082c0000003c003c082c0000003c003cd62b0000003c003c9e2b0000003c003c662b0000003c003c662b0000003c003c2f2b0000003c003cf92a0000003c003cc42a0000003c003cc42a0000003c003c8f2a0000003c003c5c2a0000003c003c2a2a0000003c003cf9290000003c003cf9290000003c003cc8290000003c003c99290000003c003c6a290000003c823bf9297517003c643a662bad1f003c6f39802c4d24003c8438662d1528003c7c378b2e8f2a873b0536a62fe02cde3acf346e30012f2e3a62331631b4307d399631cc313a32cc38fc2f9032e0331c38892d6233f334d636f92a2134053675351528ab344d372434c9232b3550388531bd1db3351939852d00004336e73900002931a634c8b8003c739c1b329db9003c77b1142e77ba003c68b5d11b57bb003c0cb842ad1ebc003c66b931b195bc003cc0ba86b30fbd003c0ebccbb48dbd003cbcbca9b511be003c69bd52b69abe003c14beb6b629bf003cbcbebeb6bfbf003c5abf43b62ec0003ce3bf10b57ec0003c21c0e3b1c8c0003c33c0969703c1003c26c07b322ac1003c06c08a363ec1003cb1bfde3845c1003c44bf683a43c1003cccbee13b39c1003c4abea53c29c1003cc1bd533d15c1003c32bdfa3dfdc0003c9fbc9b3ee2c0003c09bc373fc3c0003cdebacd3fa2c0003ca4b92f407fc0003c66b8754059c0003c48b6b84031c0003c78b3fa4008c0003ca5ac3941bbbf003cbc2d774162bf003c0c34b24106bf003caf36eb41a7be003caa38234246be003c003a5942e2bd003c563b8d427dbd003c573cbf4215bd003c043df042aabc003cb13d1f433ebc003c5f3e4c43a1bb003cdf3e25433bbb003c393fbe4226bb003c903f564204bb003ce23fee41d5ba003c1740864195ba003c38401c4141ba003c5440b340d8b9003c6840494054b9003c7240c23fb5b8003c6e40f53ef5b7003c5a40323e55b6003c34407d3da3b4003cfe3fd53cf9b1003c7b3f3a3ce4ad003ce73e503bdaa0003c473e353aa22b003ca03d1e395c2f003cf53c07380631003c493cd935f631003c3a3b35338832003ce6393e2dc132003c963820acac32003c9c36d8b24e32003c1934dcb5b031003c972e2cb8d830003ce8a96fb9972f003c1fb2b7ba202d003c53b502bcad28003c86b7aabcfca1003cd4b854bd1bac003cdfb900beb3af003ce2baadbec1b1003cdebb5cbfc4b3003c6abc06c0eeb4003ce1bc5ec005b6003c56bdb8c025b7003cc8bd11c127b8003c37be6bc1c0b8003ca3bec6c15cb9003c0dbf21c2fcb9003c74bf7cc2a0ba003cd9bfd7c246bb003c1ec033c3eebb003c4ec08fc34dbc003c7dc0ebc3a4bc003c77c0b2c3d5bc003c5ec046c3f7bc003c45c0d9c214bd003c2dc06cc22dbd003c15c0ffc141bd003cfbbf91c14fbd003cccbf23c157bd003c9ebfb5c058bd003c71bf47c051bd003c44bfb2bf43bd003c19bfd7be2bbd003cf0befcbd09bd003cc8be24bddcbc003ca1be4ebca2bc003c7dbef6ba5cbc003c5cbe5bb908bc003c3dbe97b74bbb003c21be96b469ba003c09bee5ae69b9003cf4bde82b4eb8003ce1bd123336b6003cd2bdeb3548b3003cc5bd133874ab003cbabd1e398c2f003cb1bd1b3ac934003ca7bd0f3bbd37003c9dbdfe3b5b39003c91bd773cd63a003c82bdf53c253c003c6ebd7d3dd73c003c52bd143e7a3d003c2cbdc03e063e003cfbbc803f6f3e003cc0bc2840ac3e003c7fbc9340c03e003c3bbcfe40b23e003cebbb67418a3e003c5fbbcd41503e003cd3ba3242073e003c48ba9442b43d003cbeb9f542583d003c6ac9abc6bbc6003c34c923c697c6003cfcc898c571c6003cc2c80ac549c6003c85c876c41dc6003c44c8bdc3edc5003cffc781c2b9c5003c6cc737c180c5003ccdc6bcbf40c5003c20c6e3bcf8c4003c62c56eb7a5c4003c8cc4953544c4003c31c3ea3ca1c3003c00c1584088c2003c21bd49423ec1003cceaa0644b8bf003c3e3cbd4411bd003c10404b4548b9003cc241b945e7ae003c444310467136003c50445546083b003cf0448d46513d003c8445b946073f003c0e46dc465540003c9046f8461e41003c0a470d47e141003c7f471c479e42003cee4727475643003c2c482d470444003c5f482f475c44003c90482e47b244003cbf4829470645003ced4821475845003c19491747a945003c44490a47f945003c6d49fb464746003c9649ea469546003cbd49d646e146003ce349c1462d47003c084aaa467747003c2d4a9246c147003c504a78460448003cee4481c9b636003c74442dc97039003ce743d9c8843b003cd74283c8ca3c003cb6412bc8d03d003c8140a5c7cf3e003c6f3ef3c6c13f003c583b43c65040003cca3199c5af40003cbeb8fec4f640003c89bd7cc41b41003c51c01bc41941003cc7c1c3c3ed40003c1dc399c39c40003c28c4b1c32c40003cb1c400c4483f003c2bc53fc4103e003c97c58fc4bc3c003cf8c5eec4a63a003c4ec659c56437003c9cc6ccc54c2d003ce1c646c6dcb4003c1fc7c6c68fb9003c58c749c75abc003c8bc7cfc7edbd003cb9c72bc87fbf003ce2c770c887c0003c04c8b5c84ec1003c15c8fbc813c2003c25c840c9d6c2003c33c885c997c3003c40c8cac92bc4003c4cc80fca8ac4003c57c854cae7c4003c62c898ca44c5003c6bc8dcca9fc5003c73c81fcbf9c5003c7bc862cb53c6003c82c8a4cbabc6003c89c8e6cb03c7003c8fc813cc59c7003c94c834ccafc7003c9ac854cc01c8003c9ec874cc2bc8003ca2c894cc55c8003c3644984c10c2003c0944724c2dc1003cb6434c4c48c0003c5843254cc0be003cfa42fc4becbc003c9a42ac4b29ba003c39425b4be1b4003cd741084b4231003c7441b44a1639003c10415e4a703c003cab40074a553e003c4740b0491d40003cc43f57490d41003cfc3efe48fa41003c363ea548e042003c753d4d48bf43003cbb3cee474944003c0b3c4647ab44003cd03aa5460345003ca8390d465045003ca53881459045003c96370345c145003c3f369444e245003c4b353644f145003cc234d343ee45003cad346143d645003c16351843a845003c0c36fe426145003c9d371743fe44003cf3386b437a44003c7f3a0244a643003c3c3c72440942003c693d07452a40003cb63eb445483c003c05406d46f529003cad40294793bb003c4e41e04794bf003ce841494896c1003c7a429f484bc3003c0743f34875c4003c8d4343493dc5003ccdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
   m_StreamData:
     offset: 0
     size: 0

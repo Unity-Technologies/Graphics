@@ -35,22 +35,16 @@ Shader "Hidden/VFX_7"
 			struct Attribute0
 			{
 				float3 position;
-				uint _PADDING_0;
-			};
-			
-			struct Attribute1
-			{
 				float lifetime;
 			};
 			
-			struct Attribute2
+			struct Attribute1
 			{
 				float age;
 			};
 			
 			StructuredBuffer<Attribute0> attribBuffer0;
 			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
 			StructuredBuffer<int> flags;
 			
 			struct ps_input
@@ -78,13 +72,12 @@ Shader "Hidden/VFX_7"
 				{
 					Attribute0 attrib0 = attribBuffer0[index];
 					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
 					
 					float3 local_color = (float3)0;
 					float local_alpha = (float)0;
 					
 					VFXBlockSetColorConstant( local_color,outputUniform0_kVFXCombine3fOp);
-					VFXBlockSetAlphaOverLifetime( local_alpha,attrib2.age,attrib1.lifetime,outputUniform1_kVFXValueOp,outputUniform2_kVFXValueOp);
+					VFXBlockSetAlphaOverLifetime( local_alpha,attrib1.age,attrib0.lifetime,outputUniform1_kVFXValueOp,outputUniform2_kVFXValueOp);
 					
 					float3 worldPos = attrib0.position;
 					o.pos = mul(UNITY_MATRIX_MVP, float4(worldPos,1.0f));
