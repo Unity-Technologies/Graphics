@@ -131,7 +131,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
-    #pragma shader_feature _DETAIL_MAP      
+    #pragma shader_feature _DETAIL_MAP  
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -183,8 +183,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../Material/Material.hlsl"
@@ -204,8 +204,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
             #include "../../Material/Material.hlsl"
@@ -254,8 +254,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"            
@@ -277,8 +277,8 @@ Shader "HDRenderPipeline/LitTessellation"
  
             HLSLPROGRAM
 
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"            
@@ -323,8 +323,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "../../Material/Material.hlsl"
@@ -346,8 +346,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include

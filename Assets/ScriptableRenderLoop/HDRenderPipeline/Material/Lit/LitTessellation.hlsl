@@ -49,8 +49,8 @@ float3 GetDisplacement(VaryingsMeshToDS input)
 #endif
 
 #ifdef VARYINGS_DS_NEED_NORMAL
-    return input.positionWS + height * input.normalWS;
+    return height * input.normalWS;
 #else
-    return input.positionWS;
+    return float3(0.0, 0.0, 0.0);
 #endif
 }
