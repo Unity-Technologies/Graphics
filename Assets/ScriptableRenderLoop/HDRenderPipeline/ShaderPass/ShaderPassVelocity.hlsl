@@ -2,6 +2,12 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
+#if SHADER_STAGE_VERTEX
+
+#endif
+
+#if SHADER_STAGE_FRAGMENT
+
 float4 Frag(PackedVaryings packedInput) : SV_Target
 {
     FragInputs input = UnpackVaryings(packedInput);
@@ -20,4 +26,8 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
     EncodeVelocity(builtinData.velocity, outBuffer);
     return outBuffer;
 }
+
+#endif
+
+
 

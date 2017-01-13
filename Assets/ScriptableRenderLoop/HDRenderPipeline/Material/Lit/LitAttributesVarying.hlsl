@@ -22,6 +22,11 @@ struct Attributes
 #ifdef ATTRIBUTES_WANT_COLOR
     float4 color        : COLOR;
 #endif
+
+#ifdef VARYING_WANT_PASS_SPECIFIC
+    AttributesPass attributesPass;
+#endif
+
     // UNITY_INSTANCE_ID
 };
 
@@ -49,6 +54,9 @@ struct Varyings
 #ifdef VARYING_WANT_COLOR   
     float4 color;
 #endif
+#ifdef VARYING_WANT_PASS_SPECIFIC
+    VaryingsPass varyingPass;
+#endif
 };
 
 struct PackedVaryings
@@ -74,19 +82,23 @@ struct PackedVaryings
 
     // Allocate only necessary space if shader compiler in the future are able to automatically pack
 #ifdef VARYING_WANT_TEXCOORD1
-    float4 interpolators4 : TEXCOORD3;
+    float4 interpolators4 : TEXCOORD4;
 #elif defined(VARYING_WANT_TEXCOORD0)
-    float2 interpolators4 : TEXCOORD3;
+    float2 interpolators4 : TEXCOORD4;
 #endif
 
 #ifdef VARYING_WANT_TEXCOORD3
-    float4 interpolators5 : TEXCOORD4;
+    float4 interpolators5 : TEXCOORD5;
 #elif defined(VARYING_WANT_TEXCOORD2)
-    float2 interpolators5 : TEXCOORD4;
+    float2 interpolators5 : TEXCOORD5;
 #endif
 
 #ifdef VARYING_WANT_COLOR
     float4 interpolators6 : TEXCOORD6;
+#endif
+
+#ifdef VARYING_WANT_PASS_SPECIFIC
+    PackedVaryingsPass packedVaryingsPass;
 #endif
 
 #if defined(VARYING_WANT_CULLFACE) && SHADER_STAGE_FRAGMENT
@@ -138,6 +150,10 @@ PackedVaryings PackVaryings(Varyings input)
     output.interpolators6 = input.color;
 #endif
 
+#ifdef VARYING_WANT_PASS_SPECIFIC
+    output.packedVaryingsPass = PackVaryingsPass(input.varyingPass);
+#endif
+
     return output;
 }
 
@@ -177,6 +193,10 @@ FragInputs UnpackVaryings(PackedVaryings input)
     output.color = input.interpolators6;
 #endif
 
+#ifdef VARYING_WANT_PASS_SPECIFIC
+    output.varyingPass = UnpackVaryingsPass(input.packedVaryingsPass);
+#endif
+
 #if defined(VARYING_WANT_CULLFACE) && SHADER_STAGE_FRAGMENT
     output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
 #endif
@@ -209,8 +229,6 @@ FragInputs UnpackVaryings(PackedVaryings input)
 #if defined(VARYING_WANT_COLOR) || defined(ATTRIBUTES_WANT_COLOR)
 float4 VARYING_DS_WANT_COLOR;
 #endif
-
-#endif // TESSELLATION_ON
 
 // Varying for domain shader
 // Position and normal are always present (for tessellation) and in world space
