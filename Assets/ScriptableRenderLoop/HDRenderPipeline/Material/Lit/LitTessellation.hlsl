@@ -8,27 +8,27 @@ float4 TessellationEdge(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, f
     return DistanceBasedTess(p0, p1, p2, 0.0, _TessellationFactorMaxDistance, _WorldSpaceCameraPos) * _TessellationFactorFixed.xxxx;
 }
 
-float3 GetDisplacement(VaryingsDS input)
+float3 GetDisplacement(VaryingsMeshToDS input)
 {
     // This call will work for both LayeredLit and Lit shader
     LayerTexCoord layerTexCoord;
     GetLayerTexCoord(
-#ifdef VARYING_DS_WANT_TEXCOORD0
+#ifdef VARYINGS_DS_NEED_TEXCOORD0
         input.texCoord0,
 #else
         float2(0.0, 0.0),
 #endif
-#ifdef VARYING_DS_WANT_TEXCOORD1
+#ifdef VARYINGS_DS_NEED_TEXCOORD1
         input.texCoord1,
 #else
         float2(0.0, 0.0),
 #endif
-#ifdef VARYING_DS_WANT_TEXCOORD2
+#ifdef VARYINGS_DS_NEED_TEXCOORD2
         input.texCoord2,
 #else
         float2(0.0, 0.0),
 #endif
-#ifdef VARYING_DS_WANT_TEXCOORD3
+#ifdef VARYINGS_DS_NEED_TEXCOORD3
         input.texCoord3,
 #else
         float2(0.0, 0.0),
@@ -44,5 +44,9 @@ float3 GetDisplacement(VaryingsDS input)
     float height = 0.0;
 #endif
 
+#ifdef VARYINGS_DS_NEED_NORMAL
     return input.positionWS + height * input.normalWS;
+#else
+    return input.positionWS;
+#endif
 }
