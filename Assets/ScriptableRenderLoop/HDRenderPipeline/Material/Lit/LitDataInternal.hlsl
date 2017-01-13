@@ -1,23 +1,24 @@
-void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isTriplanar, inout LayerTexCoord layerTexCoord)
+void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
+                                    float3 positionWS, float3 normalWS, bool isTriplanar, inout LayerTexCoord layerTexCoord)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
-    float2 uvBase = ADD_IDX(_UVMappingMask).x * input.texCoord0 +
-                    ADD_IDX(_UVMappingMask).y * input.texCoord1 + 
-                    ADD_IDX(_UVMappingMask).z * input.texCoord2 +
-                    ADD_IDX(_UVMappingMask).w * input.texCoord3;
+    float2 uvBase = ADD_IDX(_UVMappingMask).x * texCoord0 +
+                    ADD_IDX(_UVMappingMask).y * texCoord1 + 
+                    ADD_IDX(_UVMappingMask).z * texCoord2 +
+                    ADD_IDX(_UVMappingMask).w * texCoord3;
                     
 
-    float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * input.texCoord0 +
-                        ADD_IDX(_UVDetailsMappingMask).y * input.texCoord1 +
-                        ADD_IDX(_UVDetailsMappingMask).z * input.texCoord2 +
-                        ADD_IDX(_UVDetailsMappingMask).w * input.texCoord3;
+    float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * texCoord0 +
+                        ADD_IDX(_UVDetailsMappingMask).y * texCoord1 +
+                        ADD_IDX(_UVDetailsMappingMask).z * texCoord2 +
+                        ADD_IDX(_UVDetailsMappingMask).w * texCoord3;
 
     // Note that if base is planar/triplanar, detail map is too
 
     // planar
     // TODO: Do we want to manage local or world triplanar/planar
-    //float3 position = localTriplanar ? TransformWorldToObject(input.positionWS) : input.positionWS;
-    float3 position = input.positionWS;
+    //float3 position = localTriplanar ? TransformWorldToObject(positionWS) : positionWS;
+    float3 position = positionWS;
     position *= ADD_IDX(_TexWorldScale);
 
     if (ADD_IDX(_UVMappingPlanar) > 0.0)
@@ -32,7 +33,7 @@ void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isTriplanar, inout Lay
     // triplanar
     ADD_IDX(layerTexCoord.base).isTriplanar = isTriplanar;
 
-    float3 direction = sign(input.tangentToWorld[2].xyz);
+    float3 direction = sign(normalWS);
 
     // In triplanar, if we are facing away from the world axis, a different axis will be flipped for each direction.
     // This is particularly problematic for tangent space normal maps which need to be in the right direction.
