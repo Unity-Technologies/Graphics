@@ -2,8 +2,6 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#include "TessellationShare.hlsl"
-
 // Available semantic start from TEXCOORD4
 struct AttributesPass
 {
@@ -78,6 +76,7 @@ VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, Vary
 // We will use custom attributes for this pass
 #define VARYINGS_NEED_PASS
 #include "VertMesh.hlsl"
+#include "TessellationShare.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh,
                         AttributesPass inputPass)

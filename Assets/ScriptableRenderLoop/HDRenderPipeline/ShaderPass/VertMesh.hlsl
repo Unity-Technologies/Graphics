@@ -37,9 +37,9 @@ struct VaryingsToDS
 
 struct PackedVaryingsToDS
 {
-    PackedVaryingsDS vmesh;
+    PackedVaryingsToDS vmesh;
 #ifdef VARYINGS_NEED_PASS
-    PackedVaryingsPassDS vpass;
+    PackedVaryingsPassToDS vpass;
 #endif
 };
 

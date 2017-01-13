@@ -268,7 +268,7 @@ struct PackedVaryingsMeshToDS
 };
 
 // Functions to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
-PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsDS input)
+PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
 {
     PackedVaryingsMeshToDS output;
 
@@ -300,7 +300,7 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsDS input)
 
 VaryingsMeshToDS UnpackVaryingsMeshToDS(PackedVaryingsMeshToDS input)
 {
-    VaryingsDS output;
+    VaryingsMeshToDS output;
 
     output.positionWS = input.interpolators0;
 #ifdef VARYINGS_DS_NEED_NORMAL
