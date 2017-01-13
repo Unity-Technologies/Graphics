@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.UI
                 outputAnchors.Add(out_anchor);
             }
 
-            // Recreate
+            // Recreate presenters from model
             nodeBlockPresenters.Clear();
             foreach (var block in model.GetChildren())
                 AddPresentersFromModel((VFXBlock)block);
@@ -75,7 +75,6 @@ namespace UnityEditor.VFX.UI
 
         public void AddNodeBlock(int index,VFXBlockDesc desc)
         {
-            //var block = CreateInstance<VFXNodeBlockPresenter>();
             var block = new VFXBlock(desc);
             Model.AddChild(block, index);
             AddPresentersFromModel(block);

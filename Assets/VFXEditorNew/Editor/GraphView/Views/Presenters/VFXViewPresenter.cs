@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
 using UnityEngine;
+using UnityEngine.RMGUI;
 
 namespace UnityEditor.VFX.UI
 {
@@ -95,7 +96,10 @@ namespace UnityEditor.VFX.UI
                     foreach (var model in m_ModelContainer.m_Roots)
                         AddPresentersFromModel(model);
 
+                Debug.Log("SET MODEL CONTAINER TO " + (container == null ? "null" : container.ToString()));
+
                 // Doesnt work for some reasons
+                View.contentViewContainer.Touch(ChangeType.Repaint);
                 //View.FrameAll();
             }
         }

@@ -7,8 +7,7 @@ namespace UnityEditor.VFX.UI
 {
     public abstract class VFXFlowAnchorPresenter : NodeAnchorPresenter
     {
-        // thomasi : need to override
-		public virtual void Connect(EdgePresenter edgePresenter)
+		public override void Connect(EdgePresenter edgePresenter)
 		{
 			if (edgePresenter == null)
 			{
@@ -21,8 +20,7 @@ namespace UnityEditor.VFX.UI
 			}
 		}
 
-        // thomasi : need to override
-		public virtual void Disconnect(EdgePresenter edgePresenter)
+        public override void Disconnect(EdgePresenter edgePresenter)
 		{
 			if (edgePresenter == null)
 			{

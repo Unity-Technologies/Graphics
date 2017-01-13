@@ -29,18 +29,16 @@ namespace UnityEditor.VFX.UI
         protected new void OnEnable()
         {
             base.OnEnable();
-            Selection.selectionChanged += OnSelectionChanged;
-            OnSelectionChanged(); // Call when enabled to retrieve the current selection
+            OnSelectionChange(); // Call when enabled to retrieve the current selection
         }
 
         protected new void OnDisable()
         {
             m_ViewPresenter.SetModelContainer(null);
-            Selection.selectionChanged -= OnSelectionChanged;
             base.OnDisable();
         }
 
-        void OnSelectionChanged()
+        void OnSelectionChange()
         {
             var assets = Selection.assetGUIDs;
             if (assets.Length == 1)
