@@ -82,24 +82,24 @@ VFXAsset:
       m_Stride: 4
       m_PerPoint: 0
     - m_InitName: <noninit>
-      m_UpdateName: bounds
+      m_UpdateName: <noninit>
       m_OutputName: <noninit>
       m_Flags: 512
       m_Stride: 12
       m_PerPoint: 0
-    - m_InitName: flags
-      m_UpdateName: flags
-      m_OutputName: flags
+    - m_InitName: <noninit>
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
       m_Flags: 512
       m_Stride: 4
       m_PerPoint: 1
-    - m_InitName: deadListIn
-      m_UpdateName: deadListOut
+    - m_InitName: <noninit>
+      m_UpdateName: <noninit>
       m_OutputName: <noninit>
       m_Flags: 514
       m_Stride: 4
       m_PerPoint: 1
-    - m_InitName: deadListCount
+    - m_InitName: <noninit>
       m_UpdateName: <noninit>
       m_OutputName: <noninit>
       m_Flags: 768

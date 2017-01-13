@@ -120,12 +120,6 @@ Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count 
 RWStructuredBuffer<uint3> bounds;
 #endif
 
-float rand(inout uint seed)
-{
-	seed = 1664525 * seed + 1013904223;
-	return float(seed) / 4294967296.0;
-}
-
 float4 sampleSignal(float v,float u) // sample gradient
 {
 	return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
@@ -225,14 +219,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp;
-		seed = (seed ^ 61) ^ (seed >> 16);
-		seed *= 9;
-		seed = seed ^ (seed >> 4);
-		seed *= 0x27d4eb2d;
-		seed = seed ^ (seed >> 15);
-		local_seed = seed;
-		
+		local_seed = WangHash((id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp);
 		VFXBlockPositionSpline( attrib0.position,attrib1.velocity,attrib4.front,attrib3.side,attrib2.up,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,local_seed);
 		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,local_seed);
 		VFXBlockSetSubUVRandom( attrib2.texIndex,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,local_seed);
