@@ -2,188 +2,61 @@
 #error Undefine_SHADERPASS
 #endif
 
-#define NEED_TEXCOORD0 defined(_ALPHATEST_ON)
-#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))
+// TODO: Caution - For now the tesselation doesn't displace along the normal with Velocity shader as the previous previous position
+// conflict with the normal in the semantic. This need to be fix! Also no per pixel displacement is possible either.
 
-struct Attributes
-{
-    float3 positionOS : POSITION;
-    float3 previousPositionOS : NORMAL; // Contain previous transform position (in case of skinning for example)
-#if NEED_TEXCOORD0
-    float2 uv0 : TEXCOORD0;
-#endif
-#if NEED_TANGENT_TO_WORLD
- //    float3 normalOS  : NORMAL; // TODO: This won't compile as we conflict with previousPositionOS. FIXME
-    float4 tangentOS : TANGENT;
-#endif
-};
+// Attributes
+#define REQUIRE_UV_FOR_TESSELATION (defined(TESSELLATION_ON) && (defined(_TESSELATION_DISPLACEMENT) || defined(_TESSELATION_DISPLACEMENT_PHONG)))
+#define REQUIRE_TANGENT_TO_WORLD 0 /* (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT)) */
 
-#ifdef TESSELLATION_ON
-// Copy paste of above struct with POSITION rename to INTERNALTESSPOS (internal of unity shader compiler)
-struct AttributesTessellation
-{
-    float3 positionOS : INTERNALTESSPOS;
-    float3 previousPositionOS : NORMAL;
-#if NEED_TEXCOORD0
-    float2 uv0 : TEXCOORD0;
-#endif
-#if NEED_TANGENT_TO_WORLD
- //   float3 normalOS  : NORMAL;
-    float4 tangentOS : TANGENT;
-#endif
-};
+// This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
 
-AttributesTessellation AttributesToAttributesTessellation(Attributes input)
-{
-    AttributesTessellation output;
-    output.positionOS = input.positionOS;
-    output.previousPositionOS = input.previousPositionOS;
-#if NEED_TEXCOORD0
-    output.uv0 = input.uv0;
+// Tesselation require normal
+#if defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD
+// #define ATTRIBUTES_NEED_NORMAL
 #endif
-#if NEED_TANGENT_TO_WORLD
- //   output.normalOS = input.normalOS;
-    output.tangentOS = input.tangentOS;
+#if REQUIRE_TANGENT_TO_WORLD
+#define ATTRIBUTES_NEED_TANGENT
 #endif
 
-    return output;
-}
+// About UV
+// If we have a lit shader, only the UV0 is available for opacity or heightmap
+// If we have a layered shader, any UV can be use for this. To reduce the number of variant we groupt UV0/UV1 and UV2/UV3 instead of having variant for UV0/UV1/UV2/UV3
+// When UVX is present, we assume that UVX - 1 ... UV0 is present
 
-Attributes AttributesTessellationToAttributes(AttributesTessellation input)
-{
-    Attributes output;
-    output.positionOS = input.positionOS;
-    output.previousPositionOS = input.previousPositionOS;
-#if NEED_TEXCOORD0
-    output.uv0 = input.uv0;
-#endif
-#if NEED_TANGENT_TO_WORLD
-//    output.normalOS = input.normalOS;
-    output.tangentOS = input.tangentOS;
-#endif
-
-    return output;
-}
-
-AttributesTessellation InterpolateWithBaryCoords(AttributesTessellation input0, AttributesTessellation input1, AttributesTessellation input2, float3 baryCoords)
-{
-    AttributesTessellation ouput;
-
-    TESSELLATION_INTERPOLATE_BARY(positionOS, baryCoords);
-    TESSELLATION_INTERPOLATE_BARY(previousPositionOS, baryCoords);
-#if NEED_TEXCOORD0
-    TESSELLATION_INTERPOLATE_BARY(uv0, baryCoords);
-#endif
-#if NEED_TANGENT_TO_WORLD
-//    TESSELLATION_INTERPOLATE_BARY(normalOS, baryCoords);
-    TESSELLATION_INTERPOLATE_BARY(tangentOS, baryCoords);
+#if defined(_ALPHATEST_ON)
+#define ATTRIBUTES_NEED_TEXCOORD0
+    #ifdef LAYERED_LIT_SHADER
+    #define ATTRIBUTES_NEED_TEXCOORD1
+        #if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3)
+        #define ATTRIBUTES_NEED_TEXCOORD2
+        #endif
+        #if defined(_REQUIRE_UV3)
+        #define ATTRIBUTES_NEED_TEXCOORD3
+        #endif
+    #endif
 #endif
 
-    return ouput;
-}
-#endif // TESSELLATION_ON
+// Varying - Use for pixel shader
+// This second set of define allow to say which varyings will be output in the vertex (no more tesselation)
+#define VARYINGS_NEED_POSITION_WS
 
-struct Varyings
-{
-    float4 positionCS;
-    float3 positionWS;
-    // Note: Z component is not use
-    float4 transferPositionCS;
-    float4 transferPreviousPositionCS;
-#if NEED_TEXCOORD0
-    float2 texCoord0;
-#endif
-#if NEED_TANGENT_TO_WORLD
-    float3 tangentToWorld[3];
-#endif
-};
-
-struct PackedVaryings
-{
-    float4 positionCS : SV_Position;
-#if NEED_TANGENT_TO_WORLD
-    float4 interpolators[5] : TEXCOORD0;
-#elif NEED_TEXCOORD0
-    float4 interpolators[3] : TEXCOORD0;
-#else
-    float4 interpolators[3] : TEXCOORD0;
-#endif
-};
-
-// Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
-PackedVaryings PackVaryings(Varyings input)
-{
-    PackedVaryings output;
-    output.positionCS = input.positionCS;
-    output.interpolators[0] = float4(input.positionWS, 0.0);
-    output.interpolators[1] = float4(input.transferPositionCS.xyw, 0.0);
-    output.interpolators[2] = float4(input.transferPreviousPositionCS.xyw, 0.0);
-
-#if NEED_TANGENT_TO_WORLD
-    output.interpolators[0].w = input.texCoord0.x;
-    output.interpolators[1].w = input.texCoord0.y;
-
-    output.interpolators[3].xyz = input.tangentToWorld[0];
-    output.interpolators[4].xyz = input.tangentToWorld[1];
-
-    output.interpolators[2].w = input.tangentToWorld[2].x;
-    output.interpolators[3].w = input.tangentToWorld[2].y;
-    output.interpolators[4].w = input.tangentToWorld[2].z;
-#elif NEED_TEXCOORD0
-    output.interpolators[0].w = input.texCoord0.x;
-    output.interpolators[1].w = input.texCoord0.y;
+#if REQUIRE_TANGENT_TO_WORLD
+#define VARYINGS_NEED_TANGENT_TO_WORLD
 #endif
 
-    return output;
-}
-
-FragInputs UnpackVaryings(PackedVaryings input)
-{
-    FragInputs output;
-    ZERO_INITIALIZE(FragInputs, output);
-
-    output.unPositionSS = input.positionCS; // input.positionCS is SV_Position
-    output.positionWS = input.interpolators[0].xyz;
-    output.positionCS = float4(input.interpolators[1].xy, 0.0, input.interpolators[1].z);
-    output.previousPositionCS = float4(input.interpolators[1].xy, 0.0, input.interpolators[2].z);
-
-#if NEED_TANGENT_TO_WORLD
-    output.texCoord0.xy = float2(input.interpolators[0].w, input.interpolators[1].w);
-    output.tangentToWorld[0] = input.interpolators[3].xyz;
-    output.tangentToWorld[1] = input.interpolators[4].xyz;
-    output.tangentToWorld[2] = float3(input.interpolators[2].w, input.interpolators[3].w, input.interpolators[4].w);
-#elif NEED_TEXCOORD0
-    output.texCoord0.xy = float2(input.interpolators[0].w, input.interpolators[1].w);
+#if REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON)
+#define VARYINGS_NEED_TEXCOORD0
+    #ifdef LAYERED_LIT_SHADER
+    #define VARYINGS_NEED_TEXCOORD1
+        #if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3)
+        #define VARYINGS_NEED_TEXCOORD2
+        #endif
+        #if defined(_REQUIRE_UV3)
+        #define VARYINGS_NEED_TEXCOORD3
+        #endif
+    #endif
 #endif
 
-    return output;
-}
-
-PackedVaryings Vert(Attributes input)
-{
-    Varyings output;
-
-    output.positionWS = TransformObjectToWorld(input.positionOS);
-    // TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
-    output.positionCS = TransformWorldToHClip(output.positionWS);
-
-    // TODO: Clean this code, put in function ?
-    output.transferPositionCS = mul(_NonJitteredVP, mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)));
-    output.transferPreviousPositionCS = mul(_PreviousVP, mul(_PreviousM, _HasLastPositionData ? float4(input.previousPositionOS, 1.0) : float4(input.positionOS, 1.0)));
-
-#if NEED_TEXCOORD0
-    output.texCoord0 = input.uv0;
-#endif
-
-#if NEED_TANGENT_TO_WORLD
-    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
-    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
-
-    float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
-    output.tangentToWorld[0] = tangentToWorld[0];
-    output.tangentToWorld[1] = tangentToWorld[1];
-    output.tangentToWorld[2] = tangentToWorld[2];
-#endif
-
-    return PackVaryings(output);
-}
+// This include will define the various Attributes/Varyings structure
+#include "../../ShaderPass/VaryingMesh.hlsl"

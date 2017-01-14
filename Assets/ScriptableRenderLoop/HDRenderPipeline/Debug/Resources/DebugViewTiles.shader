@@ -153,9 +153,9 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                     int n = -1;
                     if(tileCoord.x == 0)
                     {
-                        n = count;
+                        n = (int)count;
                     }
-                    else if(lightListIndex >= 0 && lightListIndex < count)
+                    else if(lightListIndex >= 0 && lightListIndex < (int)count)
                     {
                         n = FetchIndex(start, lightListIndex);
                     }

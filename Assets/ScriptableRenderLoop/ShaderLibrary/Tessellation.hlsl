@@ -19,7 +19,7 @@ float3 PhongTessellation(float3 positionWS, float3 p0, float3 p1, float3 p2, flo
 }
 
 // ---- utility functions
-float CalcDistanceTessFactor(float3 positionWS, float minDist, float maxDist, float4x4 objectToWorld, float3 cameraPosWS)
+float CalcDistanceTessFactor(float3 positionWS, float minDist, float maxDist, float3 cameraPosWS)
 {
     float dist = distance(positionWS, cameraPosWS);
     float f = clamp(1.0 - (dist - minDist) / (maxDist - minDist), 0.01, 1.0);
@@ -86,12 +86,12 @@ bool UnityWorldViewFrustumCull(float3 wpos0, float3 wpos1, float3 wpos2, float c
 // Distance based tessellation:
 // Tessellation level is "tess" before "minDist" from camera, and linearly decreases to 1
 // up to "maxDist" from camera.
-float4 DistanceBasedTess(float3 p0, float3 p1, float3 p2, float minDist, float maxDist, float4x4 objectToWorld, float3 cameraPosWS)
+float4 DistanceBasedTess(float3 p0, float3 p1, float3 p2, float minDist, float maxDist, float3 cameraPosWS)
 {
     float3 f;
-    f.x = CalcDistanceTessFactor(p0, minDist, maxDist, objectToWorld, cameraPosWS);
-    f.y = CalcDistanceTessFactor(p1, minDist, maxDist, objectToWorld, cameraPosWS);
-    f.z = CalcDistanceTessFactor(p2, minDist, maxDist, objectToWorld, cameraPosWS);
+    f.x = CalcDistanceTessFactor(p0, minDist, maxDist, cameraPosWS);
+    f.y = CalcDistanceTessFactor(p1, minDist, maxDist, cameraPosWS);
+    f.z = CalcDistanceTessFactor(p2, minDist, maxDist, cameraPosWS);
     return UnityCalcTriEdgeTessFactors(f);
 }
 
