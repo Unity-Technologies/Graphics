@@ -82,11 +82,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
 
             public static GUIContent tessellationText = new GUIContent("Tessellation options", "Tessellation options");
-            public static GUIContent tessellationFactorFixedText = new GUIContent("Fixed tessellation factor", "If non negative, this value is a fixed tessellation factor use for tessellation");
-            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("Max Distance", "Maximun distance to the camera where triangle are tesselated");
-            public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle. Smaller value mean smaller triangle.");
+            public static GUIContent tessellationFactorText = new GUIContent("Tessellation factor", "This value is the tessellation factor use for tessellation, higher mean more tessellated");
+            public static GUIContent tessellationFactorMinDistanceText = new GUIContent("Start fade distance", "Distance (in unity unit) at which the tessellation start to fade out. Must be inferior at Max distance");
+            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End fade distance", "Maximum distance (in unity unit) to the camera where triangle are tessellated");
+            public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle (in pixel). Smaller value mean smaller triangle.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor)");
-            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If non zero, backface culling is enabled for tessellation, smaller number mean more aggressive culling and better performance");
+            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
             public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Scale displacement taking into account the object scale");
         }
 
@@ -183,8 +184,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GUILayout.Label(Styles.tessellationText, EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
                 TessellationModePopup();
-                m_MaterialEditor.ShaderProperty(tessellationFactorFixed, Styles.tessellationFactorFixedText);
+                m_MaterialEditor.ShaderProperty(tessellationFactor, Styles.tessellationFactorText);
+                m_MaterialEditor.ShaderProperty(tessellationFactorMinDistance, Styles.tessellationFactorMinDistanceText);
                 m_MaterialEditor.ShaderProperty(tessellationFactorMaxDistance, Styles.tessellationFactorMaxDistanceText);
+                tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
                 m_MaterialEditor.ShaderProperty(tessellationFactorTriangleSize, Styles.tessellationFactorTriangleSizeText);
                 if ((TessellationMode)tessellationMode.floatValue == TessellationMode.Phong ||
                     (TessellationMode)tessellationMode.floatValue == TessellationMode.DisplacementPhong)
@@ -227,7 +230,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // tessellation specific, silent if not found
             tessellationMode = FindProperty(kTessellationMode, props, false);
-            tessellationFactorFixed = FindProperty(kTessellationFactorFixed, props, false);
+            tessellationFactor = FindProperty(kTessellationFactor, props, false);
+            tessellationFactorMinDistance = FindProperty(kTessellationFactorMinDistance, props, false);
             tessellationFactorMaxDistance = FindProperty(kTessellationFactorMaxDistance, props, false);
             tessellationFactorTriangleSize = FindProperty(kTessellationFactorTriangleSize, props, false);
             tessellationShapeFactor = FindProperty(kTessellationShapeFactor, props, false);
@@ -482,8 +486,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // tessellation params
         MaterialProperty tessellationMode = null;
         const string kTessellationMode = "_TessellationMode";
-        MaterialProperty tessellationFactorFixed = null;
-        const string kTessellationFactorFixed = "_TessellationFactorFixed";
+        MaterialProperty tessellationFactor = null;
+        const string kTessellationFactor = "_TessellationFactor";
+        MaterialProperty tessellationFactorMinDistance = null;
+        const string kTessellationFactorMinDistance = "_TessellationFactorMinDistance";
         MaterialProperty tessellationFactorMaxDistance = null;
         const string kTessellationFactorMaxDistance = "_TessellationFactorMaxDistance";
         MaterialProperty tessellationFactorTriangleSize = null;

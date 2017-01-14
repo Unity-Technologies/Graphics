@@ -10,21 +10,28 @@ TessellationFactors HullConstant(InputPatch<PackedVaryingsToDS, 3> input)
     VaryingsToDS varying1 = UnpackVaryingsToDS(input[1]);
     VaryingsToDS varying2 = UnpackVaryingsToDS(input[2]);
 
-    float4 tf = TessellationEdge(   varying0.vmesh.positionWS, varying1.vmesh.positionWS, varying2.vmesh.positionWS,
-                                    #ifdef VARYINGS_DS_NEED_NORMAL
-                                    varying0.vmesh.normalWS, varying1.vmesh.normalWS, varying2.vmesh.normalWS
-                                    #else
-                                    float3(0.0, 0.0, 1.0), float3(0.0, 0.0, 1.0), float3(0.0, 0.0, 1.0)
-                                    #endif
-                                    );
+    float3 p0 = varying0.vmesh.positionWS;
+    float3 p1 = varying1.vmesh.positionWS;
+    float3 p2 = varying2.vmesh.positionWS;
 
-    TessellationFactors ouput;
-    ouput.edge[0] = tf.x;
-    ouput.edge[1] = tf.y;
-    ouput.edge[2] = tf.z;
-    ouput.inside = tf.w;
+#ifdef VARYINGS_DS_NEED_NORMAL
+    float3 n0 = varying0.vmesh.normalWS;
+    float3 n1 = varying1.vmesh.normalWS;
+    float3 n2 = varying2.vmesh.normalWS;
+#else
+    float3 n0 = float3(0.0, 0.0, 0.0);
+    float3 n1 = float3(0.0, 0.0, 0.0);
+    float3 n2 = float3(0.0, 0.0, 0.0);
+#endif    
 
-    return ouput;
+    float4 tf = TessellationEdge(p0, p1, p2, n0, n1, n2);
+    TessellationFactors output;
+    output.edge[0] = tf.x;
+    output.edge[1] = tf.y;
+    output.edge[2] = tf.z;
+    output.inside = tf.w;
+
+    return output;
 }
 
 [maxtessfactor(15.0)] // AMD recommand this value for GCN http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2013/05/GCNPerformanceTweets.pdf
@@ -50,13 +57,23 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
 
     // We have Phong tessellation in all case where we don't have displacement only
 #ifndef _TESSELLATION_DISPLACEMENT
+
+    float3 p0 = varying0.vmesh.positionWS;
+    float3 p1 = varying1.vmesh.positionWS;
+    float3 p2 = varying2.vmesh.positionWS;
+
+#ifdef VARYINGS_DS_NEED_NORMAL
+    float3 n0 = varying0.vmesh.normalWS;
+    float3 n1 = varying1.vmesh.normalWS;
+    float3 n2 = varying2.vmesh.normalWS;
+#else
+    float3 n0 = float3(0.0, 0.0, 0.0);
+    float3 n1 = float3(0.0, 0.0, 0.0);
+    float3 n2 = float3(0.0, 0.0, 0.0);
+#endif
+
     varying.vmesh.positionWS = PhongTessellation(   varying.vmesh.positionWS,
-                                                    varying0.vmesh.positionWS, varying1.vmesh.positionWS, varying2.vmesh.positionWS,
-                                                    #ifdef VARYINGS_DS_NEED_NORMAL
-                                                    varying0.vmesh.normalWS, varying1.vmesh.normalWS, varying2.vmesh.normalWS,
-                                                    #else
-                                                    float3(0.0, 0.0, 1.0), float3(0.0, 0.0, 1.0), float3(0.0, 0.0, 1.0),
-                                                    #endif
+                                                    p0, p1, p2, n0, n1, n2,
                                                     baryCoords, _TessellationShapeFactor);
 #endif
 
