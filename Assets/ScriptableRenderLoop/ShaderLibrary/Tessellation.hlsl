@@ -1,5 +1,6 @@
 #define TESSELLATION_INTERPOLATE_BARY(name, bary) ouput.name = input0.name * bary.x +  input1.name * bary.y +  input2.name * bary.z
 
+// TODO: Move in geomtry.hlsl
 float3 ProjectPointOnPlane(float3 position, float3 planePosition, float3 planeNormal)
 {
     return position - (dot(position - planePosition, planeNormal) * planeNormal);
@@ -92,8 +93,8 @@ float4 CalcTriEdgeTessFactors(float3 triVertexFactors)
     return tess;
 }
 
-/*
-float UnityDistanceFromPlane(float3 pos, float4 plane)
+// TODO: Move in geomtry.hlsl
+float DistanceFromPlane(float3 pos, float4 plane)
 {
     float d = dot(float4(pos, 1.0f), plane);
     return d;
@@ -101,28 +102,27 @@ float UnityDistanceFromPlane(float3 pos, float4 plane)
 
 // Returns true if triangle with given 3 world positions is outside of camera's view frustum.
 // cullEps is distance outside of frustum that is still considered to be inside (i.e. max displacement)
-bool UnityWorldViewFrustumCull(float3 wpos0, float3 wpos1, float3 wpos2, float cullEps)
+bool WorldViewFrustumCull(float3 p0, float3 p1, float3 p2, float cullEps, float4 cameraWorldClipPlanes[4])
 {
     float4 planeTest;
 
     // left
-    planeTest.x = ((UnityDistanceFromPlane(wpos0, unity_CameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos1, unity_CameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos2, unity_CameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f);
-    // right
-    planeTest.y = ((UnityDistanceFromPlane(wpos0, unity_CameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos1, unity_CameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos2, unity_CameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f);
-    // top
-    planeTest.z = ((UnityDistanceFromPlane(wpos0, unity_CameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos1, unity_CameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos2, unity_CameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f);
-    // bottom
-    planeTest.w = ((UnityDistanceFromPlane(wpos0, unity_CameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos1, unity_CameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos2, unity_CameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f);
+    planeTest.x =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f);
+    // right                                   
+    planeTest.y =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f);
+    // top                                     
+    planeTest.z =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f);
+    // bottom                                  
+    planeTest.w =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f);
 
     // has to pass all 4 plane tests to be visible
     return !all(planeTest);
 }
-*/
