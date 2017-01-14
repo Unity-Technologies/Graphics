@@ -332,10 +332,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
 			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
 
-            SetKeyword(material, "_REQUIRE_UV2_OR_UV3", (
-                                                            ((UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3)
-                                                            && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0)
-                                                            );
-        }
+            bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
+            bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
+
+            if (needUV3)
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.EnableKeyword("_REQUIRE_UV3");
+            }
+            else if (needUV2)
+            {
+                material.EnableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
+            }
+            else
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
+            }
+         }
     }
 } // namespace UnityEditor

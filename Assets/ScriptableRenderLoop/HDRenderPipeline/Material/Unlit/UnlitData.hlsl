@@ -39,25 +39,3 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     builtinData.depthOffset = 0.0;
 }
-
-#ifdef TESSELLATION_ON
-
-float4 TessellationEdge(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2)
-{
-    return DistanceBasedTess(p0, p1, p2, 0.0, _TessellationFactorMaxDistance, unity_ObjectToWorld, _WorldSpaceCameraPos) *  _TessellationFactorFixed.xxxx;
-}
-
-void Displacement(inout Attributes v)
-{
-#ifdef _HEIGHTMAP
-    float height = (SAMPLE_TEXTURE2D_LOD(ADD_ZERO_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), v.uv0, 0).r - ADD_ZERO_IDX(_HeightCenter)) * ADD_IDX(_HeightAmplitude);
-#else
-    float height = 0.0;
-#endif
-
-#if (SHADERPASS != SHADERPASS_VELOCITY) && (SHADERPASS != SHADERPASS_DISTORTION)
-    v.positionOS.xyz += height * v.normalOS;
-#endif
-}
-
-#endif
