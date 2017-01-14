@@ -1,23 +1,41 @@
 float4 TessellationEdge(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2)
 {
+    float maxDisplacement = ADD_ZERO_IDX(_HeightAmplitude);
+#ifdef _LAYER_COUNT
+    maxDisplacement = max(maxDisplacement, _HeightAmplitude1);
+    #if _LAYER_COUNT >= 3
+    maxDisplacement = max(maxDisplacement, _HeightAmplitude2);
+    #endif
+    #if _LAYER_COUNT >= 4
+    maxDisplacement = max(maxDisplacement, _HeightAmplitude3);
+#endif
+#endif
+
+    bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])unity_CameraWorldClipPlanes);
+        
+    bool faceCull = false;
     // TODO: Handle inverse culling (for mirror)!
     if (_TessellationBackFaceCullEpsilon > -0.99) // Is backface culling enabled ?
     {
-        if (BackFaceCullTriangle(p0, p1, p2, _TessellationBackFaceCullEpsilon, _WorldSpaceCameraPos))
-        {
-            return float4(0.0, 0.0, 0.0, 0.0);
-        }
+        faceCull = BackFaceCullTriangle(p0, p1, p2, _TessellationBackFaceCullEpsilon, _WorldSpaceCameraPos);
+    }
+
+    if (frustumCulled || faceCull)
+    {
+        // Settings factor to 0 will kill the triangle
+        return float4(0.0, 0.0, 0.0, 0.0);
     }
 
     float3 tessFactor = float3(1.0, 1.0, 1.0);
 
-    // Aaptive tessellation
+    // Aaptive screen space tessellation
     if (_TessellationFactorTriangleSize > 0.0)
     {
         // return a value between 0 and 1
         tessFactor *= GetScreenSpaceTessFactor( p0, p1, p2, GetWorldToHClipMatrix(), _ScreenParams,  _TessellationFactorTriangleSize);
     }
 
+    // Distance based tessellation
     if (_TessellationFactorMaxDistance > 0.0)
     {
         tessFactor *= GetDistanceBasedTessFactor(p0, p1, p2, _WorldSpaceCameraPos, _TessellationFactorMinDistance, _TessellationFactorMaxDistance);
