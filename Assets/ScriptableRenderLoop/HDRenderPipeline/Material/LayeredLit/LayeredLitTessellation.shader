@@ -195,11 +195,12 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
   
         // Tesselation specific
         [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 1
-        _TessellationFactorFixed("Tessellation Factor", Float) = 4.0 // if != -1.0 force fixed factor
-        _TessellationFactorMaxDistance("Tessellation max distance factor", Float) = 12.0
-        _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 20.0
+        _TessellationFactor("Tessellation Factor", Range(0.0, 15.0)) = 4.0
+        _TessellationFactorMinDistance("Tessellation start fading distance", Float) = 20.0
+        _TessellationFactorMaxDistance("Tessellation end fading distance", Float) = 50.0
+        _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 100.0      
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
-        _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 1.0)) = 0.25
+        _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
         [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
         // TODO: Handle culling mode for backface culling
     }
