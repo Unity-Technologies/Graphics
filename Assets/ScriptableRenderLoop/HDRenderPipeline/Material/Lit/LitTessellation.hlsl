@@ -25,8 +25,8 @@ float4 TessellationEdge(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, f
 
     tessFactor *= _TessellationFactor;
 
-    // Clamp to be minimun 0.01
-    tessFactor.xyz = float3(max(0.01, tessFactor.x), max(0.01, tessFactor.y), max(0.01, tessFactor.z));
+    // TessFactor below 1.0 have no effect. At 0 it kill the triangle, so clamp it to 1.0
+    tessFactor.xyz = float3(max(1.0, tessFactor.x), max(1.0, tessFactor.y), max(1.0, tessFactor.z));
 
     return CalcTriEdgeTessFactors(tessFactor);
 }
