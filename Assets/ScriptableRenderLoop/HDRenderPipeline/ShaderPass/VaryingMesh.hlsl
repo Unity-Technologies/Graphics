@@ -151,7 +151,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     output.tangentToWorld[0] = input.interpolators1.xyz;
     output.tangentToWorld[1] = input.interpolators2.xyz;
     output.tangentToWorld[2] = input.interpolators3.xyz;
-    #ifdef WANT_PER_PIXEL_WORLDPOS
+    #ifdef VARYINGS_NEED_POSITION_WS
     output.positionWS.xyz = float3(input.interpolators1.w, input.interpolators2.w, input.interpolators3.w);
     #endif
 #else
