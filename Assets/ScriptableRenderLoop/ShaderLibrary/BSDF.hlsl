@@ -59,15 +59,6 @@ float D_GGX(float NdotH, float roughness)
     return INV_PI * D_GGXNoPI(NdotH, roughness);
 }
 
-float D_GGX_Inverse(float NdotH, float roughness)
-{
-    float a2 = roughness * roughness;
-    float f  = (NdotH * a2 - NdotH) * NdotH + 1.0;
-    float g  = (f * f) / a2;
-
-    return PI * g;
-}
-
 // Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 19, 29.
 float G_MaskingSmithGGX(float NdotV, float VdotH, float roughness)
 {
