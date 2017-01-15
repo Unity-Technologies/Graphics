@@ -44,6 +44,8 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             TEXTURECUBE(_MainTex);
             SAMPLERCUBE(sampler_MainTex);
 
+            TEXTURE2D(_IblGgxSamples);
+
             #ifdef USE_MIS
                 TEXTURE2D(_MarginalRowDensities);
                 TEXTURE2D(_ConditionalDensities);
@@ -87,11 +89,14 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
                 }
 
                 float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+                                         _IblGgxSamples,
                                          V, N,
                                          roughness,
+                                         _Level - 1,
                                          _MaxLevel,
                                          _InvOmegaP,
                                          sampleCount, // Must be a Fibonacci number
+                                         true,
                                          true);
             #endif
 

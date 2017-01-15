@@ -362,32 +362,50 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
 
 // Ref: Listing 19 in "Moving Frostbite to PBR"
 float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
-                    float3 V,
-                    float3 N,
-                    float roughness,
-                    float maxMipLevel,
-                    float invOmegaP,
-                    uint sampleCount, // Must be a Fibonacci number
-                    bool prefilter)
+                   TEXTURE2D(iblGgxSamples),
+                   float3 V,
+                   float3 N,
+                   float roughness,
+                   float index,      // Current MIP level minus one
+                   float maxMipLevel,
+                   float invOmegaP,
+                   uint sampleCount, // Must be a Fibonacci number
+                   bool prefilter,
+                   bool usePrecomputedSamples)
 {
     float3x3 localToWorld = GetLocalFrame(N);
+
+    // Bias samples towards the mirror direction to reduce variance.
+    // This will have a side effect of making the reflection sharper.
+    // Ref: Stochastic Screen-Space Reflections, p. 67.
+    const float bias = 0.5 * roughness;
 
     float3 lightInt = float3(0.0, 0.0, 0.0);
     float  cbsdfInt = 0.0;
 
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float2 u = Fibonacci2d(i, sampleCount);
-
-        // Bias samples towards the mirror direction to reduce variance.
-        // This will have a side effect of making the reflection sharper.
-        // Ref: Stochastic Screen-Space Reflections, p. 67.
-        const float bias = 0.1 + 0.2 * roughness;
-        u.x = lerp(u.x, 0.0, bias);
-
         float3 L;
         float  NdotL, NdotH, VdotH;
-        SampleGGXDir(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, true);
+        bool   isValid;
+
+        if (usePrecomputedSamples)
+        {
+            float3 localL = LOAD_TEXTURE2D(iblGgxSamples, uint2(i, index)).xyz;
+
+            L       = mul(localL, localToWorld);
+            NdotL   = localL.z;
+            isValid = true;
+        }
+        else
+        {
+            float2 u = Fibonacci2d(i, sampleCount);
+            u.x = lerp(u.x, 0.0, bias);
+
+            SampleGGXDir(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, true);
+
+            isValid = NdotL > 0.0;
+        }
 
         float mipLevel;
 
@@ -409,28 +427,39 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // can be simplified:
             // pdf = D * NdotH / (4 * LdotH) = D * 0.25;
             //
-            // - OmegaS : Solid angle associated to a sample
-            // - OmegaP : Solid angle associated to a pixel of the cubemap
+            // - OmegaS : Solid angle associated with the sample
+            // - OmegaP : Solid angle associated with the texel of the cubemap
 
-            float invPdf    = D_GGX_Inverse(NdotH, roughness) * 4.0;
-            // TODO: check the accuracy of the sample's solid angle fit for GGX.
-            float omegaS    = rcp(sampleCount) * invPdf;
+            float omegaS;
+
+            if (usePrecomputedSamples)
+            {
+                omegaS = LOAD_TEXTURE2D(iblGgxSamples, uint2(i, index)).w;
+            }
+            else
+            {
+                float pdf = D_GGX(NdotH, roughness) * 0.25;
+                // TODO: check the accuracy of the sample's solid angle fit for GGX.
+                omegaS = rcp(sampleCount) / pdf;
+            }
+
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth);
             mipLevel        = 0.5 * log2(omegaS * invOmegaP);
+        }
 
+        if (isValid)
+        {
             // Bias the MIP map level to compensate for the importance sampling bias.
             // This will blur the reflection.
             // TODO: find a more accurate MIP bias function.
             mipLevel = lerp(mipLevel, maxMipLevel, bias);
 
-            // TODO: There is a bug currently where autogenerate mipmap for the cubemap seems to clamp the mipLevel to 6. correct it! Then remove this clamp
+            // TODO: There is a bug currently where autogenerate mipmap for the cubemap seems to
+            // clamp the mipLevel to 6. correct it! Then remove this clamp
             // All MIP map levels beyond UNITY_SPECCUBE_LOD_STEPS contain invalid data.
             mipLevel = min(mipLevel, UNITY_SPECCUBE_LOD_STEPS);
-        }
 
-        if (NdotL > 0.0)
-        {
             // TODO: use a Gaussian-like filter to generate the MIP pyramid.
             float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
@@ -443,7 +472,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // (LdotH == NdotH) && (NdotV == 1) && (Weight == F * G).
             // We use the approximation of Brian Karis from "Real Shading in Unreal Engine 4":
             // Weight ≈ NdotL, which produces nearly identical results in practice.
- 
+
             lightInt += NdotL * val;
             cbsdfInt += NdotL;
         }

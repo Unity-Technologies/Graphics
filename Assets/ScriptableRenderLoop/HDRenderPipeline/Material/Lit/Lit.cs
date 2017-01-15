@@ -153,11 +153,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Init precomputed texture
             //-----------------------------------------------------------------------------
 
-            public bool isInit;                      
+            public bool isInit;
 
             // For image based lighting
-            private Material m_InitPreFGD;  
+            private Material      m_InitPreFGD;
             private RenderTexture m_PreIntegratedFGD;
+            private Texture2D     m_IblGgxSamples;
+            const int             k_IblGgxMaxSampleCount   = 89;
+            const int             k_IblGgxMipCountMinusOne = 6;  // UNITY_SPECCUBE_LOD_STEPS
 
             // For area lighting
             private Texture2D m_LtcGGXMatrix;                    // RGBA
@@ -172,7 +175,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Material mat = new Material(Shader.Find(shaderPath) as Shader);
                 mat.hideFlags = HideFlags.HideAndDontSave;
                 return mat;
-            }            
+            }
 
             Texture2D CreateLUT(int width, int height, TextureFormat format, Color[] pixels)
             {
@@ -184,13 +187,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return tex;
             }
 
+            // Load LUT with four scalars in a tex2D
+            Texture2D LoadLUT(TextureFormat format, int width, int height, float[,] data)
+            {
+                int count = width * height;
+                Color[] pixels = new Color[count];
+
+                for (int i = 0; i < count; i++)
+                {
+                    pixels[i] = new Color(data[i, 0], data[i, 1], data[i, 2], data[i, 3]);
+                }
+
+                return CreateLUT(width, height, format, pixels);
+            }
+
             // Load LUT with one scalar in alpha of a tex2D
             Texture2D LoadLUT(TextureFormat format, float[] LUTScalar)
             {
                 const int count = k_LtcLUTResolution * k_LtcLUTResolution;
                 Color[] pixels = new Color[count];
 
-                // amplitude
                 for (int i = 0; i < count; i++)
                 {
                     pixels[i] = new Color(0, 0, 0, LUTScalar[i]);
@@ -205,7 +221,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 const int count = k_LtcLUTResolution * k_LtcLUTResolution;
                 Color[] pixels = new Color[count];
 
-                // transformInv
                 for (int i = 0; i < count; i++)
                 {
                     // Both GGX and Disney Diffuse BRDFs have zero values in columns 1, 3, 5, 7.
@@ -236,13 +251,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 return CreateLUT(k_LtcLUTResolution, k_LtcLUTResolution, format, pixels);
-            }            
+            }
 
             public void Build()
             {
                 m_InitPreFGD = CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
                 // TODO: switch to RGBA64 when it becomes available.
                 m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
+                m_IblGgxSamples    = LoadLUT(TextureFormat.RGBAFloat, k_IblGgxMaxSampleCount, k_IblGgxMipCountMinusOne, s_IblGgxSampleData);
 
                 m_LtcGGXMatrix                    = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
                 m_LtcDisneyDiffuseMatrix          = LoadLUT(TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
@@ -257,6 +273,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void Cleanup()
             {
                 Utilities.Destroy(m_InitPreFGD);
+                Utilities.Destroy(m_IblGgxSamples);
 
                 // TODO: how to delete RenderTexture ? or do we need to do it ?
                 isInit = false;
@@ -276,6 +293,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void Bind()
             {
                 Shader.SetGlobalTexture("_PreIntegratedFGD",                m_PreIntegratedFGD);
+                Shader.SetGlobalTexture("_IblGgxSamples",                   m_IblGgxSamples);
+                
                 Shader.SetGlobalTexture("_LtcGGXMatrix",                    m_LtcGGXMatrix);
                 Shader.SetGlobalTexture("_LtcDisneyDiffuseMatrix",          m_LtcDisneyDiffuseMatrix);
                 Shader.SetGlobalTexture("_LtcMultiGGXFresnelDisneyDiffuse", m_LtcMultiGGXFresnelDisneyDiffuse);
