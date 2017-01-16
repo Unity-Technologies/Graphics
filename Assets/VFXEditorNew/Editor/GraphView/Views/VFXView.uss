@@ -74,6 +74,15 @@ VFXContextUI #NodeContents {
 	border-radius: 10;
 	background-color: #2D2D2D;
 }
+VFXContextUI #NodeContents Label{
+	height:20;
+	text-alignment:upper-center;
+
+	text-color:#8FC1DF;
+
+	font:path("Assets/GraphView/Resources/Roboto/Roboto-Medium.ttf");
+	font-size:12;
+}
 
 VFXContextUI #NodeBlockContainer {
 	flex:1;
