@@ -187,6 +187,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(tessellationFactor, Styles.tessellationFactorText);
                 m_MaterialEditor.ShaderProperty(tessellationFactorMinDistance, Styles.tessellationFactorMinDistanceText);
                 m_MaterialEditor.ShaderProperty(tessellationFactorMaxDistance, Styles.tessellationFactorMaxDistanceText);
+                // clamp min distance to be below max distance
                 tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
                 m_MaterialEditor.ShaderProperty(tessellationFactorTriangleSize, Styles.tessellationFactorTriangleSizeText);
                 if ((TessellationMode)tessellationMode.floatValue == TessellationMode.Phong ||
@@ -194,8 +195,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     m_MaterialEditor.ShaderProperty(tessellationShapeFactor, Styles.tessellationShapeFactorText);
                 }
-                m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, Styles.tessellationBackFaceCullEpsilonText);
-                m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
+                if ((DoubleSidedMode)doubleSidedMode.floatValue == DoubleSidedMode.None)
+                {
+                    m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, Styles.tessellationBackFaceCullEpsilonText);
+                }  
+                // TODO: Implement
+                // m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
                 EditorGUI.indentLevel--;
             }
         }
@@ -300,16 +305,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (doubleSidedMode == DoubleSidedMode.DoubleSidedLightingFlip)
             {
+
+                material.DisableKeyword("_DOUBLESIDED");
                 material.EnableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
                 material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
             }
             else if (doubleSidedMode == DoubleSidedMode.DoubleSidedLightingMirror)
             {
+                material.DisableKeyword("_DOUBLESIDED");
                 material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
                 material.EnableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
             }
+            else if (doubleSidedMode == DoubleSidedMode.DoubleSided)
+            {
+                material.EnableKeyword("_DOUBLESIDED");
+                material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
+                material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
+            }
             else
             {
+                material.DisableKeyword("_DOUBLESIDED");
                 material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
                 material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
             }

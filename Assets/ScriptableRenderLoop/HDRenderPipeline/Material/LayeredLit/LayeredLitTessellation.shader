@@ -213,7 +213,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
-    #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+    #pragma shader_feature _ _DOUBLESIDED _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
 
