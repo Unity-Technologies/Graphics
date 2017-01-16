@@ -358,11 +358,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (m_useMIS)
                 {
-                    m_iblFilterGgx.FilterCubemapGgxMis(renderContext, mipCount, input, target, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT, m_CubemapFaceMesh);
+                    m_iblFilterGgx.FilterCubemapMIS(renderContext, input, target, mipCount, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT, m_CubemapFaceMesh);
                 }
                 else
                 {
-                    m_iblFilterGgx.FilterCubemapGgx(renderContext, mipCount, input, target, m_CubemapFaceMesh);
+                    m_iblFilterGgx.FilterCubemap(renderContext, input, target, mipCount, m_CubemapFaceMesh);
                 }
             }
         }
