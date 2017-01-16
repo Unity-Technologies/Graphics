@@ -48,10 +48,8 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque();
 
-#if UNITY_EDITOR
-            if (UnityEditor.Lightmapping.bakedGI)
+            if (m_Asset.EnableLightmap)
                 settings.rendererConfiguration = settings.rendererConfiguration | RendererConfiguration.PerObjectLightmaps;
-#endif
 
             context.DrawRenderers(ref settings);
             context.DrawSkybox(camera);
@@ -242,10 +240,13 @@ public class LowEndRenderPipeline : RenderPipelineAsset
 
 #region PipelineAssetSettings
     public bool m_SupportsVertexLight = true;
+    public bool m_EnableLightmaps = true;
     public int m_ShadowAtlasWidth = 1024;
     public int m_ShadowAtlasHeight = 1024;
 
     public bool SupportsVertexLight { get { return m_SupportsVertexLight;} private set { m_SupportsVertexLight = value; } }
+
+    public bool EnableLightmap { get { return m_EnableLightmaps;} private set { m_EnableLightmaps = value; } }
 
     public int ShadowAtlasWidth { get { return m_ShadowAtlasWidth; } private set { m_ShadowAtlasWidth = value; } }
     public int ShadowAtlasHeight { get { return m_ShadowAtlasHeight; } private set { m_ShadowAtlasHeight = value; } }
