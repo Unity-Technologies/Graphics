@@ -51,18 +51,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTexture           m_SkyboxGGXCubemapRT = null;
         RenderTexture           m_SkyboxMarginalRowCdfRT = null;
         RenderTexture           m_SkyboxConditionalCdfRT = null;
-        RenderTexture           m_IblGgxSamples = null;
 
         Material                m_StandardSkyboxMaterial = null; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
-        Material                m_GGXConvolveMaterial = null; // Apply GGX convolution to cubemap
 
-        ComputeShader           m_InitIblGgxSamples = null;
-        const int               k_IblGgxMaxSampleCount = 89;
-        const int               k_IblGgxMipCountMinusOne = 6;  // UNITY_SPECCUBE_LOD_STEPS
-
-        ComputeShader           m_BuildProbabilityTablesCS = null;
-        int                     m_ConditionalDensitiesKernel = -1;
-        int                     m_MarginalRowDensitiesKernel = -1;
+        IBLFilterGGX            m_iblFilterGgx = null;
 
         Vector4                 m_CubemapScreenSize;
         Matrix4x4[]             m_faceCameraViewProjectionMatrix = new Matrix4x4[6];
@@ -286,24 +278,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Renderer != null)
                 m_Renderer.Build();
 
-            m_InitIblGgxSamples = Resources.Load<ComputeShader>("PrecomputeIblGgxData");
+            // Create unititialized. Lazy initialization is performed later.
+            m_iblFilterGgx = new IBLFilterGGX();
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_StandardSkyboxMaterial   = Utilities.CreateEngineMaterial("Skybox/Cubemap");
-            m_GGXConvolveMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/GGXConvolve");
-            m_BuildProbabilityTablesCS = Resources.Load<ComputeShader>("BuildProbabilityTables");
-
-            m_ConditionalDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeConditionalDensities");
-            m_MarginalRowDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeMarginalRowDensities");
 
             m_CurrentUpdateTime = 0.0f;
         }
 
         public void Cleanup()
         {
-            Utilities.Destroy(m_IblGgxSamples);
             Utilities.Destroy(m_StandardSkyboxMaterial);
-            Utilities.Destroy(m_GGXConvolveMaterial);
             Utilities.Destroy(m_SkyboxCubemapRT);
             Utilities.Destroy(m_SkyboxGGXCubemapRT);
             Utilities.Destroy(m_SkyboxMarginalRowCdfRT);
@@ -334,23 +320,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        private void BuildProbabilityTables(ScriptableRenderContext renderContext)
-        {
-            // Bind the input cubemap.
-            m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "envMap", m_SkyboxCubemapRT);
-
-            // Bind the outputs.
-            m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "marginalRowDensities", m_SkyboxMarginalRowCdfRT);
-            m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "conditionalDensities", m_SkyboxConditionalCdfRT);
-            m_BuildProbabilityTablesCS.SetTexture(m_MarginalRowDensitiesKernel, "marginalRowDensities", m_SkyboxMarginalRowCdfRT);
-
-            var cmd = new CommandBuffer() { name = "" };
-            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, (int)LightSamplingParameters.TextureHeight, 1, 1);
-            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
-        }
-
         private void RenderCubemapGGXConvolution(ScriptableRenderContext renderContext, BuiltinSkyParameters builtinParams, SkyParameters skyParams, Texture input, RenderTexture target)
         {
             using (new Utilities.ProfilingSample("Sky Pass: GGX Convolution", renderContext))
@@ -362,30 +331,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 }
 
-                if (m_IblGgxSamples == null)
+                if (!m_iblFilterGgx.IsInitialized())
                 {
-                    // Precompute the samples. It is done only once (lazy initialization).
-                    m_IblGgxSamples = new RenderTexture(k_IblGgxMaxSampleCount, k_IblGgxMipCountMinusOne, 1, RenderTextureFormat.ARGBFloat);
-                    m_IblGgxSamples.dimension = TextureDimension.Tex2D;
-                    m_IblGgxSamples.useMipMap = false;
-                    m_IblGgxSamples.autoGenerateMips = false;
-                    m_IblGgxSamples.enableRandomWrite = true;
-                    m_IblGgxSamples.filterMode = FilterMode.Point;
-                    m_IblGgxSamples.Create();
-               
-                    int kernel = m_InitIblGgxSamples.FindKernel("PrecomputeIblGgxData");
-                    m_InitIblGgxSamples.SetTexture(kernel, "output", m_IblGgxSamples);
-
-                    var cmd = new CommandBuffer();
-                    cmd.name = "Init IBL GGX Samples";
-                    cmd.DispatchCompute(m_InitIblGgxSamples, kernel, 1, 1, 1);
-                    renderContext.ExecuteCommandBuffer(cmd);
-                    cmd.Dispose();
-                }
-
-                if (m_useMIS)
-                {
-                    BuildProbabilityTables(renderContext);
+                    m_iblFilterGgx.Initialize(renderContext);
                 }
 
                 // Copy the first mip.
@@ -410,39 +358,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (m_useMIS)
                 {
-                    m_GGXConvolveMaterial.EnableKeyword("USE_MIS");
-                    m_GGXConvolveMaterial.SetTexture("_MarginalRowDensities", m_SkyboxMarginalRowCdfRT);
-                    m_GGXConvolveMaterial.SetTexture("_ConditionalDensities", m_SkyboxConditionalCdfRT);
+                    m_iblFilterGgx.FilterCubemapGgxMis(renderContext, mipCount, input, target, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT, m_CubemapFaceMesh);
                 }
                 else
                 {
-                    m_GGXConvolveMaterial.DisableKeyword("USE_MIS");
+                    m_iblFilterGgx.FilterCubemapGgx(renderContext, mipCount, input, target, m_CubemapFaceMesh);
                 }
-
-                // Do the convolution on remaining mipmaps
-                float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
-
-                m_GGXConvolveMaterial.SetTexture("_MainTex", input);
-                m_GGXConvolveMaterial.SetTexture("_IblGgxSamples", m_IblGgxSamples);
-                m_GGXConvolveMaterial.SetFloat("_MaxLevel", mipCount - 1);
-                m_GGXConvolveMaterial.SetFloat("_InvOmegaP", invOmegaP);
-
-                for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
-                {
-                    MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
-                    propertyBlock.SetFloat("_Level", mip);
-
-                    for (int face = 0; face < 6; ++face)
-                    {
-                        Utilities.SetRenderTarget(renderContext, target, ClearFlag.ClearNone, mip, (CubemapFace)face);
-
-                        var cmd = new CommandBuffer { name = "" };
-                        cmd.DrawMesh(m_CubemapFaceMesh[face], Matrix4x4.identity, m_GGXConvolveMaterial, 0, 0, propertyBlock);
-                        renderContext.ExecuteCommandBuffer(cmd);
-                        cmd.Dispose();
-                    }
-                }
-
             }
         }
 

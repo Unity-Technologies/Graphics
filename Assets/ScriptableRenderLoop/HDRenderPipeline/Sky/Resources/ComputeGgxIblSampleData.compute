@@ -7,10 +7,10 @@
 
 RWTexture2D<float4> output; // [MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS]
 
-#pragma kernel PrecomputeIblGgxData
+#pragma kernel ComputeGgxIblSampleData
 
 [numthreads(MAX_IBL_SAMPLE_CNT, UNITY_SPECCUBE_LOD_STEPS, 1)]
-void PrecomputeIblGgxData(uint3 groupThreadId : SV_GroupThreadID)
+void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
 {
     uint sampleIndex = groupThreadId.x;
     uint mipLevel    = groupThreadId.y + 1;
