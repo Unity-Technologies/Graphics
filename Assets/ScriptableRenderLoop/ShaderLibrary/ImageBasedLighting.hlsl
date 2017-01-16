@@ -19,7 +19,7 @@
 // approximating the cone of the specular lobe, and then computing the MIP map level
 // which (approximately) covers the footprint of the lobe with a single texel.
 // Improves the perceptual roughness distribution.
-float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
+float PerceptualRoughnessToMipmapLevel(float perceptualRoughness)
 {
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
 
@@ -31,7 +31,7 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
 // which (approximately) covers the footprint of the lobe with a single texel.
 // Improves the perceptual roughness distribution and adds reflection (contact) hardening.
 // TODO: optimize!
-float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
+float PerceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
 {
     float m = PerceptualRoughnessToRoughness(perceptualRoughness);
 
@@ -48,7 +48,7 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
 }
 
 // The inverse of the *approximated* version of perceptualRoughnessToMipmapLevel().
-float mipmapLevelToPerceptualRoughness(float mipmapLevel)
+float MipmapLevelToPerceptualRoughness(float mipmapLevel)
 {
     float perceptualRoughness = saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
 
@@ -358,6 +358,23 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
     }
 
     return acc / sampleCount;
+}
+
+uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
+{
+    uint sampleCount = 0;
+
+    switch (mipLevel)
+    {
+        case 1: sampleCount = 21; break;
+        case 2: sampleCount = 34; break;
+        case 3: sampleCount = 55; break;
+        case 4: sampleCount = 89; break;
+        case 5: sampleCount = 89; break;
+        case 6: sampleCount = 89; break; // UNITY_SPECCUBE_LOD_STEPS
+    }
+
+    return sampleCount;
 }
 
 // Ref: Listing 19 in "Moving Frostbite to PBR"

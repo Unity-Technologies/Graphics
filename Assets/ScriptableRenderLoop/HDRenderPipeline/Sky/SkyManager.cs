@@ -51,9 +51,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTexture           m_SkyboxGGXCubemapRT = null;
         RenderTexture           m_SkyboxMarginalRowCdfRT = null;
         RenderTexture           m_SkyboxConditionalCdfRT = null;
+        RenderTexture           m_IblGgxSamples = null;
 
         Material                m_StandardSkyboxMaterial = null; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material                m_GGXConvolveMaterial = null; // Apply GGX convolution to cubemap
+
+        ComputeShader           m_InitIblGgxSamples = null;
+        const int               k_IblGgxMaxSampleCount = 89;
+        const int               k_IblGgxMipCountMinusOne = 6;  // UNITY_SPECCUBE_LOD_STEPS
 
         ComputeShader           m_BuildProbabilityTablesCS = null;
         int                     m_ConditionalDensitiesKernel = -1;
@@ -281,6 +286,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Renderer != null)
                 m_Renderer.Build();
 
+            m_InitIblGgxSamples = Resources.Load<ComputeShader>("PrecomputeIblGgxData");
+
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_StandardSkyboxMaterial   = Utilities.CreateEngineMaterial("Skybox/Cubemap");
             m_GGXConvolveMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/GGXConvolve");
@@ -294,6 +301,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Cleanup()
         {
+            Utilities.Destroy(m_IblGgxSamples);
             Utilities.Destroy(m_StandardSkyboxMaterial);
             Utilities.Destroy(m_GGXConvolveMaterial);
             Utilities.Destroy(m_SkyboxCubemapRT);
@@ -354,6 +362,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 }
 
+                if (m_IblGgxSamples == null)
+                {
+                    // Precompute the samples. It is done only once (lazy initialization).
+                    m_IblGgxSamples = new RenderTexture(k_IblGgxMaxSampleCount, k_IblGgxMipCountMinusOne, 1, RenderTextureFormat.ARGBFloat);
+                    m_IblGgxSamples.dimension = TextureDimension.Tex2D;
+                    m_IblGgxSamples.useMipMap = false;
+                    m_IblGgxSamples.autoGenerateMips = false;
+                    m_IblGgxSamples.enableRandomWrite = true;
+                    m_IblGgxSamples.filterMode = FilterMode.Point;
+                    m_IblGgxSamples.Create();
+               
+                    int kernel = m_InitIblGgxSamples.FindKernel("PrecomputeIblGgxData");
+                    m_InitIblGgxSamples.SetTexture(kernel, "output", m_IblGgxSamples);
+
+                    var cmd = new CommandBuffer();
+                    cmd.name = "Init IBL GGX Samples";
+                    cmd.DispatchCompute(m_InitIblGgxSamples, kernel, 1, 1, 1);
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    cmd.Dispose();
+                }
+
                 if (m_useMIS)
                 {
                     BuildProbabilityTables(renderContext);
@@ -394,6 +423,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
 
                 m_GGXConvolveMaterial.SetTexture("_MainTex", input);
+                m_GGXConvolveMaterial.SetTexture("_IblGgxSamples", m_IblGgxSamples);
                 m_GGXConvolveMaterial.SetFloat("_MaxLevel", mipCount - 1);
                 m_GGXConvolveMaterial.SetFloat("_InvOmegaP", invOmegaP);
 

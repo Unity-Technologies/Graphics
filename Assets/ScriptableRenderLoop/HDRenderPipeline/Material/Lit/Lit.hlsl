@@ -500,7 +500,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     float3 iblR = reflect(-V, iblNormalWS);
     preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness, preLightData.NdotV);
 
-    preLightData.iblMipLevel = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
+    preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
 
     // Area light specific
     // UVs for sampling the LUTs
