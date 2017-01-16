@@ -55,9 +55,19 @@ namespace UnityEditor.VFX.UI
             if (element is VFXContextPresenter)
             {
                 VFXContext context = ((VFXContextPresenter)element).Model;
-                if (context.GetParent().GetNbChildren() == 1) // Context is the only child of system, delete the system
-                    m_ModelContainer.m_Roots.Remove(context.GetParent());
+
+                // First we need to disconnect context if needed
+                VFXSystem.DisconnectContext(context, m_ModelContainer);
+                var system = context.GetParent();
+                var index = system.GetIndex(context);
+                if (index < system.GetNbChildren() - 1)
+                    VFXSystem.DisconnectContext(system.GetChild(index + 1), m_ModelContainer);
+
+                // now context should be in its own system
+                m_ModelContainer.m_Roots.Remove(context.GetParent());
                 context.Detach();
+
+                RecreateFlowEdges();
             }
             else if (element is VFXFlowEdgePresenter)
             {
