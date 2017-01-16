@@ -98,15 +98,15 @@ namespace UnityEditor.VFX.UI
             base.OnDataChanged();
             
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-            VFXContextDesc.Type contextType = presenter.Model.ContextType;
+            VFXContextType contextType = presenter.Model.ContextType;
 
             RemoveFromClassList("init", "update", "output");
 
             switch (contextType)
             {
-                case VFXContextDesc.Type.kTypeInit: AddToClassList("init"); break;
-                case VFXContextDesc.Type.kTypeUpdate: AddToClassList("update"); break;
-                case VFXContextDesc.Type.kTypeOutput: AddToClassList("output"); break;
+                case VFXContextType.kInit:      AddToClassList("init"); break;
+                case VFXContextType.kUpdate:    AddToClassList("update"); break;
+                case VFXContextType.kOutput:    AddToClassList("output"); break;
                 default: throw new Exception();
             }
 

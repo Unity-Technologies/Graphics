@@ -9,28 +9,28 @@ namespace UnityEditor.VFX.Test
     public class VFXContextDescTests
     {
         private class ContextDescTestInit : VFXContextDesc {
-            public ContextDescTestInit() : base(VFXContextDesc.Type.kTypeInit, string.Empty) {}
+            public ContextDescTestInit() : base(VFXContextType.kInit, string.Empty) {}
         }
 
         private class ContextDescTestUpdate : VFXContextDesc {
-            public ContextDescTestUpdate() : base(VFXContextDesc.Type.kTypeUpdate, string.Empty) {}
+            public ContextDescTestUpdate() : base(VFXContextType.kUpdate, string.Empty) {}
         }
 
         private class ContextDescTestOutput : VFXContextDesc {
-            public ContextDescTestOutput() : base(VFXContextDesc.Type.kTypeOutput, string.Empty) {}
+            public ContextDescTestOutput() : base(VFXContextType.kOutput, string.Empty) {}
         }
 
         // TODO Add attributes to fill the Library instead of reflection before uncommenting this !
         /*private class ContextDescTestNone : VFXContextDesc {
-            public ContextDescTestNone() : base(VFXContextDesc.Type.kTypeNone, string.Empty) { }
+            public ContextDescTestNone() : base(VFXContextType.None, string.Empty) { }
         }
 
         private class ContextDescTestInitAndUpdate : VFXContextDesc {
-            public ContextDescTestInitAndUpdate() : base(VFXContextDesc.Type.kInitAndUpdate, string.Empty) {}
+            public ContextDescTestInitAndUpdate() : base(VFXContextType.kInitAndUpdate, string.Empty) {}
         }
 
         private class ContextDescTestAll : VFXContextDesc {
-            public ContextDescTestAll() : base(VFXContextDesc.Type.kAll, string.Empty) {}
+            public ContextDescTestAll() : base(VFXContextType.kAll, string.Empty) {}
         }*/
 
         [Test]

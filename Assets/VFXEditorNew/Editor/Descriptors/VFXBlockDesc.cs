@@ -4,38 +4,38 @@ namespace UnityEditor.VFX
     abstract class VFXBlockDesc
     {
         public string Name { get { return m_Name; }}
-        public VFXContextDesc.Type CompatibleContexts { get { return m_CompatibleContexts; }}
+        public VFXContextType CompatibleContexts { get { return m_CompatibleContexts; }}
 
-        protected VFXBlockDesc(string name, VFXContextDesc.Type compatibleContexts)
+        protected VFXBlockDesc(string name, VFXContextType compatibleContexts)
         {
             m_Name = name;
             m_CompatibleContexts = compatibleContexts;
         }
 
         private string m_Name;
-        private VFXContextDesc.Type m_CompatibleContexts;
+        private VFXContextType m_CompatibleContexts;
     }
 
     // Test blocks only !
-    // TODO Rmeove that!
+    // TODO Remove that!
 
     class VFXInitBlockTest : VFXBlockDesc
     {
-        public VFXInitBlockTest() : base("Init Block", VFXContextDesc.Type.kTypeInit) { }
+        public VFXInitBlockTest() : base("Init Block", VFXContextType.kInit) { }
     }
 
     class VFXUpdateBlockTest : VFXBlockDesc
     {
-        public VFXUpdateBlockTest() : base("Update Block", VFXContextDesc.Type.kTypeUpdate) { }
+        public VFXUpdateBlockTest() : base("Update Block", VFXContextType.kUpdate) { }
     }
 
     class VFXOutputBlockTest : VFXBlockDesc
     {
-        public VFXOutputBlockTest() : base("Output Block", VFXContextDesc.Type.kTypeOutput) { }
+        public VFXOutputBlockTest() : base("Output Block", VFXContextType.kOutput) { }
     }
 
     class VFXInitAndUpdateTest : VFXBlockDesc
     {
-        public VFXInitAndUpdateTest() : base("Init And Update Block", VFXContextDesc.Type.kInitAndUpdate) { }
+        public VFXInitAndUpdateTest() : base("Init And Update Block", VFXContextType.kInitAndUpdate) { }
     }
 }

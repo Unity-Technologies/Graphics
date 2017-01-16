@@ -12,17 +12,17 @@ namespace UnityEditor.VFX.Test
     {
         private class VFXContextDescInit : VFXContextDesc
         {
-            public VFXContextDescInit() : base(VFXContextDesc.Type.kTypeInit, "init") { }
+            public VFXContextDescInit() : base(VFXContextType.kInit, "init") { }
         }
 
         private class VFXContextDescUpdate : VFXContextDesc
         {
-            public VFXContextDescUpdate() : base(VFXContextDesc.Type.kTypeUpdate, "update") { }
+            public VFXContextDescUpdate() : base(VFXContextType.kUpdate, "update") { }
         }
 
         private class VFXContextDescOutput : VFXContextDesc
         {
-            public VFXContextDescOutput() : base(VFXContextDesc.Type.kTypeOutput, "output") { }
+            public VFXContextDescOutput() : base(VFXContextType.kOutput, "output") { }
         }
 
         private readonly static string kTestAssetDir = "Assets/VFXEditorNew/Editor/Tests";
