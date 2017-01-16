@@ -181,14 +181,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_SkyboxCubemapRT == null)
             {
-                m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf);
+                m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 m_SkyboxCubemapRT.dimension = TextureDimension.Cube;
                 m_SkyboxCubemapRT.useMipMap = true;
                 m_SkyboxCubemapRT.autoGenerateMips = true; // Generate regular mipmap for filtered importance sampling
                 m_SkyboxCubemapRT.filterMode = FilterMode.Trilinear;
                 m_SkyboxCubemapRT.Create();
 
-                m_SkyboxGGXCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf);
+                m_SkyboxGGXCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 m_SkyboxGGXCubemapRT.dimension = TextureDimension.Cube;
                 m_SkyboxGGXCubemapRT.useMipMap = true;
                 m_SkyboxGGXCubemapRT.autoGenerateMips = false;
@@ -201,7 +201,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int height = (int)LightSamplingParameters.TextureHeight;
 
                     // + 1 because we store the value of the integral of the cubemap at the end of the texture.
-                    m_SkyboxMarginalRowCdfRT = new RenderTexture(height + 1, 1, 0, RenderTextureFormat.RFloat);
+                    m_SkyboxMarginalRowCdfRT = new RenderTexture(height + 1, 1, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
                     m_SkyboxMarginalRowCdfRT.useMipMap = false;
                     m_SkyboxMarginalRowCdfRT.autoGenerateMips = false;
                     m_SkyboxMarginalRowCdfRT.enableRandomWrite = true;
@@ -209,7 +209,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_SkyboxMarginalRowCdfRT.Create();
 
                     // TODO: switch the format to R16 (once it's available) to save some bandwidth.
-                    m_SkyboxConditionalCdfRT = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat);
+                    m_SkyboxConditionalCdfRT = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
                     m_SkyboxConditionalCdfRT.useMipMap = false;
                     m_SkyboxConditionalCdfRT.autoGenerateMips = false;
                     m_SkyboxConditionalCdfRT.enableRandomWrite = true;
