@@ -41,10 +41,25 @@ namespace UnityEditor.VFX.UI
             capabilities |= Capabilities.Deletable;
         }
 
+        protected new void OnDisable()
+        {
+            UnregisterAnchors();
+        }
+
+        private void UnregisterAnchors()
+        {
+            foreach (var anchor in inputAnchors)
+                ViewPresenter.UnregisterFlowAnchorPresenter(anchor);
+            foreach (var anchor in outputAnchors)
+                ViewPresenter.UnregisterFlowAnchorPresenter(anchor);
+        }
+
         public void Init(VFXViewPresenter viewPresenter,VFXContext model)
         {
             m_viewPresenter = viewPresenter;
             m_Model = model;
+
+            UnregisterAnchors();
 
             inputAnchors.Clear();
             outputAnchors.Clear();

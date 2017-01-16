@@ -33,15 +33,37 @@ namespace UnityEditor.VFX.UI
             } 
         }
 
+        public override void AddElement(EdgePresenter edge)
+        {
+            if (edge is VFXFlowEdgePresenter)
+            {
+                var flowEdge = (VFXFlowEdgePresenter)edge;
+
+                var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner as VFXContext;
+                var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner as VFXContext;
+
+                VFXSystem.ConnectContexts(context0, context1, m_ModelContainer);
+                RecreateFlowEdges();
+            }
+        }
+
         public override void RemoveElement(GraphElementPresenter element)
         {
             base.RemoveElement(element);
+
             if (element is VFXContextPresenter)
             {
                 VFXContext context = ((VFXContextPresenter)element).Model;
                 if (context.GetParent().GetNbChildren() == 1) // Context is the only child of system, delete the system
                     m_ModelContainer.m_Roots.Remove(context.GetParent());
                 context.Detach();
+            }
+            else if (element is VFXFlowEdgePresenter)
+            {
+                var anchorPresenter = ((VFXFlowEdgePresenter)element).input;
+                var context = ((VFXFlowAnchorPresenter)anchorPresenter).Owner as VFXContext;
+                if (context != null)
+                    VFXSystem.DisconnectContext(context, m_ModelContainer);
             }
 
             EditorUtility.SetDirty(m_ModelContainer);
@@ -106,21 +128,42 @@ namespace UnityEditor.VFX.UI
             EditorUtility.SetDirty(m_ModelContainer);
         }
 
+        private void RecreateFlowEdges()
+        {
+            m_Elements.RemoveAll(element => element is VFXFlowEdgePresenter);
+
+            foreach (var model in m_ModelContainer.m_Roots)
+                if (model is VFXSystem)
+                    CreateFlowEdges((VFXSystem)model);
+        }
+
+        private void CreateFlowEdges(VFXSystem system)
+        {
+            for (int i = 0; i < system.GetNbChildren() - 1; ++i)
+            {
+                var inModel = system.GetChild(i);
+                var outModel = system.GetChild(i + 1);
+                var inPresenter = elements.OfType<VFXContextPresenter>().First(x => x.Model == inModel);
+                var outPresenter = elements.OfType<VFXContextPresenter>().First(x => x.Model == outModel);
+
+                var edgePresenter = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
+                edgePresenter.output = inPresenter.outputAnchors[0];
+                edgePresenter.input = outPresenter.inputAnchors[0];
+                base.AddElement(edgePresenter);
+            }
+        }
+
         private void AddPresentersFromModel(VFXModel model)
         {
             if (model is VFXSystem)
             {
                 VFXSystem system = (VFXSystem)model;
+
                 foreach (var context in system.GetChildren())
                     AddPresentersFromModel(context);
+
                 // Add the connections if any
-                for (int i = 0; i < system.GetNbChildren() - 1; ++i)
-                {
-                    var inModel = system.GetChild(i);
-                    var outModel = system.GetChild(i + 1);
-                    var inPresenter = elements.OfType<VFXContextPresenter>().First(x => x.Model == inModel);
-                    var outPresenter = elements.OfType<VFXContextPresenter>().First(x => x.Model == outModel);
-                }
+                CreateFlowEdges(system);
             }
             else if (model is VFXContext)
             {

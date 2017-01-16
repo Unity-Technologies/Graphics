@@ -21,6 +21,8 @@ namespace UnityEditor.VFX
             return true;
         }
 
+        // Helper function
+        // Connect context0 to context1 and recreate another system if necessary
         public static bool ConnectContexts(VFXContext context0, VFXContext context1, VFXModelContainer root)
         {
             if (context0 == context1)
@@ -55,6 +57,8 @@ namespace UnityEditor.VFX
             return true;
         }
 
+        // Helper function
+        // Disconnect a context (from its input) and create another system if necessary
         public static bool DisconnectContext(VFXContext context, VFXModelContainer root)
         {
             VFXSystem system = context.GetParent();
