@@ -153,10 +153,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Init precomputed texture
             //-----------------------------------------------------------------------------
 
-            public bool isInit;                      
+            public bool isInit;
 
             // For image based lighting
-            private Material m_InitPreFGD;  
+            private Material      m_InitPreFGD;
             private RenderTexture m_PreIntegratedFGD;
 
             // For area lighting
@@ -172,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Material mat = new Material(Shader.Find(shaderPath) as Shader);
                 mat.hideFlags = HideFlags.HideAndDontSave;
                 return mat;
-            }            
+            }
 
             Texture2D CreateLUT(int width, int height, TextureFormat format, Color[] pixels)
             {
@@ -190,7 +190,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 const int count = k_LtcLUTResolution * k_LtcLUTResolution;
                 Color[] pixels = new Color[count];
 
-                // amplitude
                 for (int i = 0; i < count; i++)
                 {
                     pixels[i] = new Color(0, 0, 0, LUTScalar[i]);
@@ -205,7 +204,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 const int count = k_LtcLUTResolution * k_LtcLUTResolution;
                 Color[] pixels = new Color[count];
 
-                // transformInv
                 for (int i = 0; i < count; i++)
                 {
                     // Both GGX and Disney Diffuse BRDFs have zero values in columns 1, 3, 5, 7.
@@ -236,11 +234,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 return CreateLUT(k_LtcLUTResolution, k_LtcLUTResolution, format, pixels);
-            }            
+            }
 
             public void Build()
             {
                 m_InitPreFGD = CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
+
                 // TODO: switch to RGBA64 when it becomes available.
                 m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
 
