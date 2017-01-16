@@ -104,12 +104,6 @@ Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count 
 RWStructuredBuffer<uint3> bounds;
 #endif
 
-float rand(inout uint seed)
-{
-	seed = 1664525 * seed + 1013904223;
-	return float(seed) / 4294967296.0;
-}
-
 #if USE_DYNAMIC_AABB
 groupshared uint3 boundsLDS[2];
 
@@ -193,14 +187,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		
 		VFXSampler2D initSampler0_kVFXValueOp = InitSampler(initSampler0_kVFXValueOpTexture,samplerinitSampler0_kVFXValueOpTexture);
 		
-		uint seed = (id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp;
-		seed = (seed ^ 61) ^ (seed >> 16);
-		seed *= 9;
-		seed = seed ^ (seed >> 4);
-		seed *= 0x27d4eb2d;
-		seed = seed ^ (seed >> 15);
-		local_seed = seed;
-		
+		local_seed = WangHash((id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp);
 		VFXBlockSetPositionMap( attrib1.position,initSampler0_kVFXValueOp,initUniform0_kVFXTransformMatrixOp,initUniform1_kVFXValueOp,initUniform2_kVFXCombine3fOp,local_seed);
 		VFXBlockSizeRandomSquare( attrib2.size,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,local_seed);
 		VFXBlockApplyScaleRatio( attrib2.size,initUniform5_kVFXValueOp);

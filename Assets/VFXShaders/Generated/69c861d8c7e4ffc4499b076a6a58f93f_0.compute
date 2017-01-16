@@ -35,12 +35,6 @@ StructuredBuffer<Attribute0> attribBuffer0_RO;
 RWStructuredBuffer<uint3> bounds;
 #endif
 
-float rand(inout uint seed)
-{
-	seed = 1664525 * seed + 1013904223;
-	return float(seed) / 4294967296.0;
-}
-
 void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
@@ -60,14 +54,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ initUniform2_kVFXSystemSeedOp;
-		seed = (seed ^ 61) ^ (seed >> 16);
-		seed *= 9;
-		seed = seed ^ (seed >> 4);
-		seed *= 0x27d4eb2d;
-		seed = seed ^ (seed >> 15);
-		local_seed = seed;
-		
+		local_seed = WangHash((id.x + spawnIndex) ^ initUniform2_kVFXSystemSeedOp);
 		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXValueOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
