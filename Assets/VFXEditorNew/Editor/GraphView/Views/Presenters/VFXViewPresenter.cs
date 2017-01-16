@@ -16,10 +16,11 @@ namespace UnityEditor.VFX.UI
         protected new void OnEnable()
         {
             base.OnEnable();
-            SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>());
-
+            
             if (m_FlowAnchorPresenters == null)
                 m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
+
+            SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>());
         }
 
         public VFXView View 
@@ -182,7 +183,8 @@ namespace UnityEditor.VFX.UI
                 if (m_ModelContainer != null && !EditorUtility.IsPersistent(m_ModelContainer))
                     DestroyImmediate(m_ModelContainer);
 
-                m_Elements.Clear();     
+                m_Elements.Clear();
+                m_FlowAnchorPresenters.Clear();
                 m_ModelContainer = container;
 
                 if (m_ModelContainer != null)
