@@ -384,7 +384,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                    float3 N,
                    float roughness,
                    float index,      // Current MIP level minus one
-                   float maxMipLevel,
+                   float lastMipLevel,
                    float invOmegaP,
                    uint sampleCount, // Must be a Fibonacci number
                    bool prefilter,
@@ -470,7 +470,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // Bias the MIP map level to compensate for the importance sampling bias.
             // This will blur the reflection.
             // TODO: find a more accurate MIP bias function.
-            mipLevel = lerp(mipLevel, maxMipLevel, bias);
+            mipLevel = lerp(mipLevel, lastMipLevel, bias);
 
             // TODO: There is a bug currently where autogenerate mipmap for the cubemap seems to
             // clamp the mipLevel to 6. correct it! Then remove this clamp
