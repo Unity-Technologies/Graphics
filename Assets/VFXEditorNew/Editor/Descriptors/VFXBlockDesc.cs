@@ -1,6 +1,13 @@
+using System;
 
 namespace UnityEditor.VFX
 {
+    [AttributeUsage(AttributeTargets.Class)]
+    public class VFXBlockAttribute : Attribute
+    {
+        // TODO
+    }
+
     abstract class VFXBlockDesc
     {
         public string Name { get { return m_Name; }}
@@ -19,21 +26,25 @@ namespace UnityEditor.VFX
     // Test blocks only !
     // TODO Remove that!
 
+    [VFXBlock]
     class VFXInitBlockTest : VFXBlockDesc
     {
         public VFXInitBlockTest() : base("Init Block", VFXContextType.kInit) { }
     }
 
+    [VFXBlock]
     class VFXUpdateBlockTest : VFXBlockDesc
     {
         public VFXUpdateBlockTest() : base("Update Block", VFXContextType.kUpdate) { }
     }
 
+    [VFXBlock]
     class VFXOutputBlockTest : VFXBlockDesc
     {
         public VFXOutputBlockTest() : base("Output Block", VFXContextType.kOutput) { }
     }
 
+    [VFXBlock]
     class VFXInitAndUpdateTest : VFXBlockDesc
     {
         public VFXInitAndUpdateTest() : base("Init And Update Block", VFXContextType.kInitAndUpdate) { }

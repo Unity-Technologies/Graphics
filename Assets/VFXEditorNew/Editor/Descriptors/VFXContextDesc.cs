@@ -15,6 +15,12 @@ namespace UnityEditor.VFX
         kAll = kInit | kUpdate | kOutput,
     };
 
+    [AttributeUsage(AttributeTargets.Class)]
+    public class VFXContextAttribute : Attribute
+    {
+        // TODO
+    }
+
     abstract class VFXContextDesc
     {
         public static VFXContextDesc CreateBasic(VFXContextType type)
@@ -48,16 +54,19 @@ namespace UnityEditor.VFX
         //private bool m_ShowBlock;
     }
 
+    [VFXContext]
     class VFXBasicInitialize : VFXContextDesc
     {
         public VFXBasicInitialize() : base(VFXContextType.kInit, "Initialize", false) { }
     }
 
+    [VFXContext]
     class VFXBasicUpdate : VFXContextDesc
     {
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, "Update", false) { }
     }
 
+    [VFXContext]
     class VFXBasicOutput : VFXContextDesc
     {
         public VFXBasicOutput() : base(VFXContextType.kOutput, "Output", false) { }
