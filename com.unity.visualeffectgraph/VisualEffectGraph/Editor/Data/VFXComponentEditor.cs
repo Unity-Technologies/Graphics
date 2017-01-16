@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -131,16 +132,20 @@ public class VFXComponentEditor : Editor
     //private List<VFXOutputSlot> m_Slots = new List<VFXOutputSlot>();
     //private List<SlotValueBinder> m_ValueBinders = new List<SlotValueBinder>(); 
 
+    private VFXComponentDebugPanel m_DebugPanel;
+    private bool m_ShowDebugStats = false;
+
     void OnEnable()
     {
         m_RandomSeed = serializedObject.FindProperty("m_Seed");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
-
+        m_DebugPanel = new VFXComponentDebugPanel((VFXComponent)target);
         InitSlots();
     }
 
     void OnDisable()
     {
+        m_DebugPanel = null;
         foreach (var exposed in m_ExposedData)
             exposed.slot.RemoveAllObservers();
     }
@@ -210,21 +215,10 @@ public class VFXComponentEditor : Editor
     {
         InitializeGUI();
 
-        var component = (VFXComponent)target;
-        var stats = VFXComponent.GetSystemComponentsStatsFilter(component);
-
-        //Basic display BBox
-        var debugColors = new Color[] { Color.magenta, Color.green, Color.cyan, Color.yellow };
-        for (int iStat = 0; iStat < stats.Length; ++iStat)
+        if(m_ShowDebugStats)
         {
-            var stat = stats[iStat];
-
-            var transform = component.GetComponent<Transform>();
-            var bckpMatrix = Handles.matrix;
-            Handles.matrix = transform.localToWorldMatrix;
-            Handles.color = debugColors[iStat % debugColors.Length];
-            Handles.DrawWireCube(stat.localBounds.center, stat.localBounds.extents * 2);
-            Handles.matrix = bckpMatrix;
+            m_DebugPanel.UpdateDebugData();
+            m_DebugPanel.OnSceneGUI();
         }
 
         GameObject sceneCamObj = GameObject.Find("SceneCamera");
@@ -233,9 +227,12 @@ public class VFXComponentEditor : Editor
             GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             Handles.BeginGUI();
             Camera cam = sceneCamObj.GetComponent<Camera>();
-            Rect windowRect = new Rect(cam.pixelWidth / 2 - 140, cam.pixelHeight - 80 , 280, 64);
+            Rect windowRect = new Rect(cam.pixelWidth / 2 - 140, cam.pixelHeight - 64 , 324, 68);
             GUI.Window(666, windowRect, DrawPlayControlsWindow, "VFX Playback Control");
-        
+
+            if(m_ShowDebugStats)
+                m_DebugPanel.OnWindowGUI();
+
             Handles.EndGUI();
             GL.sRGBWrite = false;
         }
@@ -246,12 +243,13 @@ public class VFXComponentEditor : Editor
             if (exposed.widget != null)
                 exposed.widget.OnSceneGUI(SceneView.currentDrawingSceneView);
         CanSetOverride = false;
-
     }
 
     public void DrawPlayControlsWindow(int windowID)
     {
         var component = (VFXComponent)target;
+
+        m_ShowDebugStats = GUI.Toggle(new Rect(260,0,64,16),m_ShowDebugStats, m_Contents.infoButton, EditorStyles.miniButton);
 
         // PLAY CONTROLS
         using (new GUILayout.HorizontalScope())
@@ -305,6 +303,10 @@ public class VFXComponentEditor : Editor
                 toolsMenu.ShowAsContext();
             }
         }
+
+        // Handle click in window to avoid unselecting asset
+        if (Event.current.type == EventType.mouseDown)
+            Event.current.Use();
     }
 
     public override void OnInspectorGUI()
@@ -402,7 +404,6 @@ public class VFXComponentEditor : Editor
         public GUILayoutOption MiniButtonWidth = GUILayout.Width(48);
         public GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
 
-
         public Styles()
         {
             InspectorHeader = new GUIStyle("ShurikenModuleTitle");
@@ -426,6 +427,7 @@ public class VFXComponentEditor : Editor
             ToggleGizmo.onFocused.background = showIcon;
             ToggleGizmo.hover.background = hideIcon;
             ToggleGizmo.onHover.background = showIcon;
+
         }
     }
 
@@ -450,5 +452,7 @@ public class VFXComponentEditor : Editor
         public GUIContent ButtonFrameAdvance = new GUIContent();
 
         public GUIContent ToggleWidget = new GUIContent();
+
+        public GUIContent infoButton = new GUIContent("Debug",EditorGUIUtility.IconContent("console.infoicon").image);
     }
 }
