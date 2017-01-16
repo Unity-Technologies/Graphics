@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         const int     k_GgxIblMipCountMinusOne        = 6;    // Height (UNITY_SPECCUBE_LOD_STEPS)
 
         ComputeShader m_ComputeGgxIblSampleDataCS     = null;
-        int           m_ComputeIblGgxSampleDataKernel = -1;
+        int           m_ComputeGgxIblSampleDataKernel = -1;
 
         ComputeShader m_BuildProbabilityTablesCS      = null;
         int           m_ConditionalDensitiesKernel    = -1;
@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_ComputeGgxIblSampleDataCS)
             {
                 m_ComputeGgxIblSampleDataCS     = Resources.Load<ComputeShader>("ComputeGgxIblSampleData");
-                m_ComputeIblGgxSampleDataKernel = m_ComputeGgxIblSampleDataCS.FindKernel("ComputeGgxIblSampleData");
+                m_ComputeGgxIblSampleDataKernel = m_ComputeGgxIblSampleDataCS.FindKernel("ComputeGgxIblSampleData");
             }
 
             if (!m_BuildProbabilityTablesCS)
@@ -54,10 +54,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GgxIblSampleData.filterMode = FilterMode.Point;
                 m_GgxIblSampleData.Create();
 
-                m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeIblGgxSampleDataKernel, "output", m_GgxIblSampleData);
+                m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "output", m_GgxIblSampleData);
 
                 var cmd = new CommandBuffer() { name = "Compute GGX IBL Sample Data" };
-                cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeIblGgxSampleDataKernel, 1, 1, 1);
+                cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
