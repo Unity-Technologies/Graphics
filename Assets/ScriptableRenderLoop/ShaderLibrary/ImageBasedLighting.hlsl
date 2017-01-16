@@ -379,7 +379,7 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
 
 // Ref: Listing 19 in "Moving Frostbite to PBR"
 float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
-                   TEXTURE2D(iblGgxSamples),
+                   TEXTURE2D(ggxIblSamples),
                    float3 V,
                    float3 N,
                    float roughness,
@@ -408,7 +408,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
         if (usePrecomputedSamples)
         {
-            float3 localL = LOAD_TEXTURE2D(iblGgxSamples, uint2(i, index)).xyz;
+            float3 localL = LOAD_TEXTURE2D(ggxIblSamples, uint2(i, index)).xyz;
 
             L       = mul(localL, localToWorld);
             NdotL   = localL.z;
@@ -451,7 +451,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
             if (usePrecomputedSamples)
             {
-                omegaS = LOAD_TEXTURE2D(iblGgxSamples, uint2(i, index)).w;
+                omegaS = LOAD_TEXTURE2D(ggxIblSamples, uint2(i, index)).w;
             }
             else
             {
