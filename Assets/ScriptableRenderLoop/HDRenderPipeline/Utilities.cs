@@ -91,6 +91,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.Dispose();
         }
 
+        // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
+        public static void DrawFullscreen(ScriptableRenderContext context, Material material, RenderTargetIdentifier[] colorBuffers, int shaderPassID = 0)
+        {
+            var cmd = new CommandBuffer() { name = material.GetPassName(shaderPassID) };
+
+            // A workaround for the deficiency of the CommandBuffer.SetRenderTarget() API.
+            const int tempDepthBufferID = 95485683;
+            cmd.GetTemporaryRT(tempDepthBufferID, 2281, 767, 24, FilterMode.Point, RenderTextureFormat.Depth);
+            RenderTargetIdentifier tempDepthBuffer = new RenderTargetIdentifier(tempDepthBufferID);
+
+            cmd.SetRenderTarget(colorBuffers, tempDepthBuffer);
+            cmd.DrawMesh(m_ScreenSpaceTriangle, Matrix4x4.identity, material, 0, shaderPassID);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
+
         // Miscellanous
         public static Material CreateEngineMaterial(string shaderPath)
         {
