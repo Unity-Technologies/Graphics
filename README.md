@@ -14,4 +14,4 @@ Did we mention it's a very WIP, no promises, may or might not ship feature, anyt
 
 ## For Unity 5.6 beta users
 
-* Unity 5.6 beta 1 and beta 2 should use an older revision of this project, [tagged unity-5.6.0b1](../../releases/tag/unity-5.6.0b1) (commit `acc230b` on 2016 Nov 23). "BasicRenderLoopScene" scene is the basic example, with the scriptable render loop defaulting to off; enable it by enabling the component on the camera. All the other scenes may or might not work. Use of Windows/DX11 is preferred.
+* Unity 5.6 **beta 1, 2 and 3** should use an older revision of this project, [tagged unity-5.6.0b1](../../releases/tag/unity-5.6.0b1) (commit `acc230b` on 2016 Nov 23). "BasicRenderLoopScene" scene is the basic example, with the scriptable render loop defaulting to off; enable it by enabling the component on the camera. All the other scenes may or might not work. Use of Windows/DX11 is preferred.

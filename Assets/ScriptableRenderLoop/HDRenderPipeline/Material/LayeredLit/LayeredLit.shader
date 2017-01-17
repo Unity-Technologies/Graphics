@@ -202,7 +202,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
-    #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+    #pragma shader_feature _ _DOUBLESIDED _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
@@ -212,7 +212,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
-    #pragma shader_feature _REQUIRE_UV2_OR_UV3
+    #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
     #pragma shader_feature _NORMALMAP
@@ -244,7 +244,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #include "common.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderConfig.cs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderVariables.hlsl"
-    #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Attributes.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderPass/ShaderPass.cs.hlsl"    
 
     //-------------------------------------------------------------------------------------
@@ -295,7 +295,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitSharePass.hlsl"    
             #include "../Lit/LitData.hlsl"
-
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -315,7 +314,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
-
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
             ENDHLSL
@@ -340,7 +338,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitMetaPass.hlsl"
             #include "../Lit/LitData.hlsl"
-
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -361,7 +358,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Material/Material.hlsl"                     
             #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
             #include "../Lit/LitData.hlsl"
-
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
@@ -383,7 +379,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
             #include "../Lit/LitData.hlsl"
-
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -404,7 +399,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
             #include "../Lit/LitData.hlsl"
-
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -426,7 +420,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Material/Material.hlsl"                     
             #include "../Lit/ShaderPass/LitDistortionPass.hlsl"
             #include "../Lit/LitData.hlsl"
-
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
@@ -452,7 +445,6 @@ Shader "HDRenderPipeline/LayeredLit"
             #include "../../Lighting/Lighting.hlsl"            
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
-
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL

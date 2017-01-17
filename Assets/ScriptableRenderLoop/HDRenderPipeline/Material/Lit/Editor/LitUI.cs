@@ -128,9 +128,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty emissiveIntensity = null;
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
 
-        // tesselation params
-        protected MaterialProperty tesselationFactor = null;
-        protected const string kTesselationFactor = "_TesselationFactor";
 
         // These are options that are shared with the LayeredLit shader. Don't put anything that can't be shared here:
         // For instance, properties like BaseColor and such don't exist in the LayeredLit so don't put them here.
@@ -180,9 +177,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColor = FindProperty(kEmissiveColor, props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
-
-            // tesselation specific, don't care if not found
-            tesselationFactor = FindProperty(kTesselationFactor, props, false);
         }
 
         override protected void ShaderInputOptionsGUI()
@@ -253,6 +247,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(heightAmplitude, Styles.heightMapAmplitudeText);
+                heightAmplitude.floatValue = Math.Max(0.0f, heightAmplitude.floatValue); // Must be positive
                 m_MaterialEditor.ShaderProperty(heightCenter, Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
@@ -301,14 +296,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();
-            
-            if (tesselationFactor != null)
-            {
-                GUILayout.Label(Styles.tesselationText, EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(tesselationFactor, Styles.tesselationFactorText);
-                EditorGUI.indentLevel--;
-            }
         }
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
@@ -346,10 +333,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
 			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
 
-            SetKeyword(material, "_REQUIRE_UV2_OR_UV3", (
-                                                            ((UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3)
-                                                            && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0)
-                                                            );
-        }
+            bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
+            bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
+
+            if (needUV3)
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.EnableKeyword("_REQUIRE_UV3");
+            }
+            else if (needUV2)
+            {
+                material.EnableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
+            }
+            else
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
+            }
+         }
     }
 } // namespace UnityEditor

@@ -156,6 +156,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (builtinParams.depthBuffer != BuiltinSkyParameters.invalidRTI)
             {
                 cmd.SetGlobalTexture("_CameraDepthTexture", builtinParams.depthBuffer);
+                cmd.SetGlobalFloat("_DisableSkyOcclusionTest", 0.0f);
+            }
+            else
+            {
+                // For some reason, disabling the 'PERFORM_SKY_OCCLUSION_TEST' keyword has no effect.
+                cmd.SetGlobalFloat("_DisableSkyOcclusionTest", 1.0f);
             }
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial);
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);

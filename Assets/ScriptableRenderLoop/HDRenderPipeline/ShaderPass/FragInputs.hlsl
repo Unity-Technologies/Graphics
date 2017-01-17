@@ -17,23 +17,23 @@ struct FragInputs
     float2 texCoord2;
     float2 texCoord3;
     float3 tangentToWorld[3];
-    float4 vertexColor;
-
-    // CAUTION: Only use with velocity currently, null else
-    // Note: Z component is not use currently
-    // This is the clip space position. Warning, do not confuse with the value of positionCS in PackedVarying which is SV_POSITION and store in unPositionSS
-    float4 positionCS;
-    float4 previousPositionCS;
-    // end velocity specific
+    float4 color; // vertex color
 
     // For two sided lighting
     bool isFrontFace;
 };
 
-void ApplyDepthOffsetAttribute(float depthOffsetVS, inout FragInputs fragInput)
+// FragInputs use dir vector that are normalized in the code even if not used
+// so we initialize them to a valid != 0 to shutdown compiler warning
+FragInputs InitializeFragInputs()
 {
-    fragInput.positionCS.w += depthOffsetVS;
-    fragInput.previousPositionCS.w += depthOffsetVS;
+    FragInputs output;
+    ZERO_INITIALIZE(FragInputs, output);
+
+    output.tangentToWorld[0] = float3(0.0, 0.0, 1.0);
+    output.tangentToWorld[2] = float3(0.0, 0.0, 1.0);
+
+    return output;
 }
 
 void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, inout bool needLinearToSRGB)
@@ -62,10 +62,10 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
         result = input.tangentToWorld[2].xyz * 0.5 + 0.5;
         break;
     case DEBUGVIEWVARYING_VERTEX_COLOR:
-        result = input.vertexColor.rgb; needLinearToSRGB = true;
+        result = input.color.rgb; needLinearToSRGB = true;
         break;
     case DEBUGVIEWVARYING_VERTEX_COLOR_ALPHA:
-        result = input.vertexColor.aaa;
+        result = input.color.aaa;
         break;
     }
 }

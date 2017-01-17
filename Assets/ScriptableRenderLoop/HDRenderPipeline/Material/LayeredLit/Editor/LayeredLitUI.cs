@@ -108,8 +108,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty layerEmissiveColor = null;
         MaterialProperty layerEmissiveColorMap = null;
         MaterialProperty layerEmissiveIntensity = null;
-        MaterialProperty layerTesselationFactor = null;
-        
 
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
@@ -142,7 +140,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             layerEmissiveColor = FindProperty(kEmissiveColor, props);
             layerEmissiveColorMap = FindProperty(kEmissiveColorMap, props);
             layerEmissiveIntensity = FindProperty(kEmissiveIntensity, props);
-            layerTesselationFactor = FindProperty(kTesselationFactor, props, false);
         }
 
         int numLayer
@@ -626,25 +623,42 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             // We have to check for each layer if the UV2 or UV3 is needed.
-            bool UV2orUV3needed = false;
+            bool needUV3 = false;
+            bool needUV2 = false;
             for (int layer = 0; layer < numLayer; ++layer)
             {
                 string uvBase = string.Format("{0}{1}", kUVBase, layer);
                 string uvDetail = string.Format("{0}{1}", kUVDetail, layer);
 
-                if (
-                        ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) ||
-                        ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV2) ||
-                        ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
-                        ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV3)
-                    )
+                if (    ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) ||
+                        ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV2) )
                 {
-                    UV2orUV3needed = true;
-                    break;
+                    needUV2 = true;
+                }
+
+                if (    ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
+                        ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV3) )
+                {
+                    needUV3 = true;
+                    break; // If we find it UV3 let's early out
                 }
             }
 
-            SetKeyword(material, "_REQUIRE_UV2_OR_UV3", UV2orUV3needed);
+            if (needUV3)
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.EnableKeyword("_REQUIRE_UV3");
+            }
+            else if (needUV2)
+            {
+                material.EnableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
+            }
+            else
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
+            }
         }
 
         void SetupLayersKeywords(Material material)
@@ -729,14 +743,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(layerEmissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.LightmapEmissionProperty(1);
             EditorGUI.indentLevel--;
-
-            if (layerTesselationFactor != null)
-            {
-                GUILayout.Label(Styles.tesselationText, EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(layerTesselationFactor, Styles.tesselationFactorText);
-                EditorGUI.indentLevel--;
-            }
 
             CheckLayerConsistency();
 

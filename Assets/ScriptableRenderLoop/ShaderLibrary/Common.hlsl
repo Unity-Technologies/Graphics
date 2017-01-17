@@ -302,14 +302,14 @@ float smoothstep01(float x)
     return x * x * (3.0 - (2.0 * x));
 }
 
-const float3x3 k_identity3x3 = {1.0, 0.0, 0.0,
-                                0.0, 1.0, 0.0,
-                                0.0, 0.0, 1.0};
+static const float3x3 k_identity3x3 = {1.0, 0.0, 0.0,
+                                       0.0, 1.0, 0.0,
+                                       0.0, 0.0, 1.0};
 
-const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
-                                0.0, 1.0, 0.0, 0.0,
-                                0.0, 0.0, 1.0, 0.0,
-                                0.0, 0.0, 0.0, 1.0 };
+static const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
+                                       0.0, 1.0, 0.0, 0.0,
+                                       0.0, 0.0, 1.0, 0.0,
+                                       0.0, 0.0, 0.0, 1.0};
 
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"

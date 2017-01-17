@@ -5,7 +5,7 @@
 #ifndef SKYMANAGER_CS_HLSL
 #define SKYMANAGER_CS_HLSL
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.LightSamplingParameters:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.LightSamplingParameters:  static fields
 //
 #define LIGHTSAMPLINGPARAMETERS_TEXTURE_HEIGHT (256)
 #define LIGHTSAMPLINGPARAMETERS_TEXTURE_WIDTH (512)
