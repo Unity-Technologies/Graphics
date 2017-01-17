@@ -7,17 +7,17 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    class Vector2ControlDrawData : ControlDrawData
+    class Vector4ControlPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
         {
             base.OnGUIHandler();
 
-            var tNode = node as UnityEngine.MaterialGraph.Vector2Node;
+            var tNode = node as UnityEngine.MaterialGraph.Vector4Node;
             if (tNode == null)
                 return;
 
-            tNode.value = EditorGUILayout.Vector2Field("", tNode.value);
+            tNode.value = EditorGUILayout.Vector4Field("", tNode.value);
         }
 
         public override float GetHeight()
@@ -27,11 +27,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-    public class Vector2NodeDrawData : PropertyNodeDrawData
+    public class Vector4NodePresenter : PropertyNodePresenter
     {
         protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
-            var instance = CreateInstance<Vector2ControlDrawData>();
+            var instance = CreateInstance<Vector4ControlPresenter>();
             instance.Initialize(node);
             return new List<GraphElementPresenter>(base.GetControlData()) { instance };
         }

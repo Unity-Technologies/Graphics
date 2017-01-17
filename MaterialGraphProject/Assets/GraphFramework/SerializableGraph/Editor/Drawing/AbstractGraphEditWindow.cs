@@ -33,9 +33,9 @@ namespace UnityEditor.Graphing.Drawing
 
         private GraphEditorDrawer m_GraphEditorDrawer;
 
-        public virtual AbstractGraphDataSource CreateDataSource()
+        public virtual AbstractGraphPresenter CreateDataSource()
         {
-            return CreateInstance<SerializedGraphDataSource>();
+            return CreateInstance<SerializedGraphPresenter>();
         }
 
         public virtual GraphView CreateGraphView()
@@ -88,7 +88,7 @@ namespace UnityEditor.Graphing.Drawing
 
                     var source = CreateDataSource();
                     source.Initialize(m_LastSelection, this);
-                    m_GraphEditorDrawer.dataSource = source;
+                    m_GraphEditorDrawer.presenter = source;
                     //m_GraphView.StretchToParentSize();
                     Repaint();
                     focused = false;
@@ -100,14 +100,14 @@ namespace UnityEditor.Graphing.Drawing
         /*
         private void ConvertSelectionToSubGraph()
         {
-            if (m_Canvas.dataSource == null)
+            if (m_Canvas.presenter == null)
                 return;
 
-            var dataSource = m_Canvas.dataSource as GraphDataSource;
-            if (dataSource == null)
+            var presenter = m_Canvas.presenter as GraphDataSource;
+            if (presenter == null)
                 return;
 
-            var asset = dataSource.graphAsset;
+            var asset = presenter.graphAsset;
             if (asset == null)
                 return;
 
@@ -225,7 +225,7 @@ namespace UnityEditor.Graphing.Drawing
             }
 
             var toDelete = m_Canvas.selection.Where(x => x is DrawableNode).ToList();
-            dataSource.DeleteElements(toDelete);
+            presenter.DeleteElements(toDelete);
 
             targetGraph.ValidateGraph();
             m_Canvas.ReloadData();

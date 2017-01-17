@@ -7,17 +7,17 @@ using UnityEngine.MaterialGraph;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    class SurfaceMasterContolDrawData : ControlDrawData
+    class UVNodeContolPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
         {
             base.OnGUIHandler();
 
-            var cNode = node as AbstractSurfaceMasterNode;
+            var cNode = node as UVNode;
             if (cNode == null)
                 return;
 
-            cNode.options.lod = EditorGUILayout.IntField("LOD", cNode.options.lod);
+            cNode.uvChannel = (UVChannel) EditorGUILayout.EnumPopup("Channel", cNode.uvChannel);
         }
 
         public override float GetHeight()
@@ -27,15 +27,13 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-    public class SurfaceMasterDrawData : MasterNodeDrawData
+    public class UVNodePresenter : MaterialNodePresenter
     {
         protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
-            var instance = CreateInstance<SurfaceMasterContolDrawData>();
+            var instance = CreateInstance<UVNodeContolPresenter>();
             instance.Initialize(node);
-            var controls = new List<GraphElementPresenter>(base.GetControlData());
-            controls.Add(instance);
-            return controls;
+            return new List<GraphElementPresenter> { instance };
         }
     }
 }

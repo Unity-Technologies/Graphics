@@ -41,19 +41,19 @@ namespace UnityEditor.Graphing.Drawing
 
             InsertChild(0, new GridBackground());
 
-            dataMapper[typeof(NodeDrawData)] = typeof(NodeDrawer);
+            dataMapper[typeof(GraphNodePresenter)] = typeof(NodeDrawer);
         }
 
         // TODO JOCE Remove the "new" here. Use the base class' impl
         private new EventPropagation DeleteSelection()
         {
-            var nodalViewData = GetPresenter<AbstractGraphDataSource>();
+            var nodalViewData = GetPresenter<AbstractGraphPresenter>();
             if (nodalViewData == null)
                 return EventPropagation.Stop;
 
             nodalViewData.RemoveElements(
-                selection.OfType<NodeDrawer>().Select(x => x.GetPresenter<NodeDrawData>()),
-                selection.OfType<Edge>().Select(x => x.GetPresenter<EdgeDrawData>())
+                selection.OfType<NodeDrawer>().Select(x => x.GetPresenter<GraphNodePresenter>()),
+                selection.OfType<Edge>().Select(x => x.GetPresenter<GraphEdgePresenter>())
                 );
 
             return EventPropagation.Stop;
@@ -63,17 +63,17 @@ namespace UnityEditor.Graphing.Drawing
         {
             base.OnDataChanged();
 
-            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
+            var graphDataSource = GetPresenter<AbstractGraphPresenter>();
             if (graphDataSource == null)
                 return;
 
             var graphAsset = graphDataSource.graphAsset;
-            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<NodeDrawer>().Select(d => ((NodeDrawData) d.presenter).node.guid))) return;
+            if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<NodeDrawer>().Select(d => ((GraphNodePresenter) d.presenter).node.guid))) return;
 
             var selectedDrawers = graphDataSource.graphAsset.drawingData.selection
                 .Select(guid => contentViewContainer.children
                             .OfType<NodeDrawer>()
-                            .FirstOrDefault(drawer => ((NodeDrawData) drawer.presenter).node.guid == guid))
+                            .FirstOrDefault(drawer => ((GraphNodePresenter) drawer.presenter).node.guid == guid))
                 .ToList();
 
             ClearSelection();
@@ -83,7 +83,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public void SetGlobalSelection()
         {
-            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
+            var graphDataSource = GetPresenter<AbstractGraphPresenter>();
             if (graphDataSource == null || graphDataSource.graphAsset == null)
                 return;
             Selection.activeObject = graphDataSource.graphAsset.GetScriptableObject();
@@ -91,11 +91,11 @@ namespace UnityEditor.Graphing.Drawing
 
         private void PropagateSelection()
         {
-            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
+            var graphDataSource = GetPresenter<AbstractGraphPresenter>();
             if (graphDataSource == null || graphDataSource.graphAsset == null)
                 return;
 
-            var selectedNodeGuids = selection.OfType<NodeDrawer>().Select(x => ((NodeDrawData) x.presenter).node.guid);
+            var selectedNodeGuids = selection.OfType<NodeDrawer>().Select(x => ((GraphNodePresenter) x.presenter).node.guid);
             graphDataSource.graphAsset.drawingData.selection = selectedNodeGuids;
         }
 
@@ -119,7 +119,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public EventPropagation CopySelection()
         {
-            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
+            var graphDataSource = GetPresenter<AbstractGraphPresenter>();
             if (selection.Any() && graphDataSource != null)
                 graphDataSource.Copy(selection.OfType<GraphElement>().Select(ge => ge.presenter));
             return EventPropagation.Stop;
@@ -127,7 +127,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public EventPropagation DuplicateSelection()
         {
-            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
+            var graphDataSource = GetPresenter<AbstractGraphPresenter>();
             if (selection.Any() && graphDataSource != null)
                 graphDataSource.Duplicate(selection.OfType<GraphElement>().Select(ge => ge.presenter));
             return EventPropagation.Stop;
@@ -135,7 +135,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public EventPropagation Paste()
         {
-            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
+            var graphDataSource = GetPresenter<AbstractGraphPresenter>();
             if (graphDataSource != null)
                 graphDataSource.Paste();
             return EventPropagation.Stop;

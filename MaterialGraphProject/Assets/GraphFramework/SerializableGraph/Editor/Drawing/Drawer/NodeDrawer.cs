@@ -10,7 +10,7 @@ namespace UnityEditor.Graphing.Drawing
     public class NodeDrawer : Node
     {
         private readonly VisualContainer m_ControlsContainer;
-        private readonly List<ControlDrawData> m_CurrentControlDrawData;
+        private readonly List<GraphControlPresenter> m_CurrentControlPresenter;
 
         public NodeDrawer()
         {
@@ -23,25 +23,25 @@ namespace UnityEditor.Graphing.Drawing
             };
 
             leftContainer.AddChild(m_ControlsContainer);
-            m_CurrentControlDrawData = new List<ControlDrawData>();
+            m_CurrentControlPresenter = new List<GraphControlPresenter>();
         }
 
-        private void AddControls(NodeDrawData nodeData)
+        private void AddControls(GraphNodePresenter nodeData)
         {
-            var controlDrawData = nodeData.elements.OfType<ControlDrawData>().ToList();
+            var controlPresenters = nodeData.elements.OfType<GraphControlPresenter>().ToList();
 
             if (!nodeData.expanded)
             {
                 m_ControlsContainer.ClearChildren();
-                m_CurrentControlDrawData.Clear();
+                m_CurrentControlPresenter.Clear();
                 return;
             }
 
-            if (controlDrawData.ItemsReferenceEquals(m_CurrentControlDrawData))
+            if (controlPresenters.ItemsReferenceEquals(m_CurrentControlPresenter))
             {
-                for (int i = 0; i < controlDrawData.Count; i++)
+                for (int i = 0; i < controlPresenters.Count; i++)
                 {
-                    var controlData = controlDrawData[i];
+                    var controlData = controlPresenters[i];
                     var imContainer = m_ControlsContainer.GetChildAtIndex(i) as IMGUIContainer;
                     imContainer.OnGUIHandler = controlData.OnGUIHandler;
                     imContainer.height = controlData.GetHeight();
@@ -50,9 +50,9 @@ namespace UnityEditor.Graphing.Drawing
             else
             {
                 m_ControlsContainer.ClearChildren();
-                m_CurrentControlDrawData.Clear();
+                m_CurrentControlPresenter.Clear();
 
-                foreach (var controlData in controlDrawData)
+                foreach (var controlData in controlPresenters)
                 {
                     var imContainer = new IMGUIContainer()
                     {
@@ -62,7 +62,7 @@ namespace UnityEditor.Graphing.Drawing
                         height = controlData.GetHeight()
                     };
                     m_ControlsContainer.AddChild(imContainer);
-                    m_CurrentControlDrawData.Add(controlData);
+                    m_CurrentControlPresenter.Add(controlData);
                 }
             }
         }
@@ -71,7 +71,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             base.OnDataChanged();
 
-            var nodeData = GetPresenter<NodeDrawData>();
+            var nodeData = GetPresenter<GraphNodePresenter>();
 
             if (nodeData == null)
             {

@@ -8,20 +8,20 @@ using UnityEngine.MaterialGraph;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-	class SubgraphIONodeControlDrawData : ControlDrawData
+    class RemapInputControlPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
         {
             base.OnGUIHandler();
 
-			var ioNode = node as AbstractSubGraphIONode;
-			if (ioNode == null)
+            var remapNode = node as MasterRemapInputNode;
+            if (remapNode == null)
                 return;
 
             if (GUILayout.Button("Add Slot"))
-				ioNode.AddSlot();
+                remapNode.AddSlot();
             if (GUILayout.Button("Remove Slot"))
-				ioNode.RemoveSlot();
+                remapNode.RemoveSlot();
         }
 
         public override float GetHeight()
@@ -31,11 +31,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-	public class SubgraphIONodeDrawData : MaterialNodeDrawData
+    public class RemapInputNodePresenter : MaterialNodePresenter
     {
         protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
-			var instance = CreateInstance<SubgraphIONodeControlDrawData>();
+            var instance = CreateInstance<RemapInputControlPresenter>();
             instance.Initialize(node);
             return new List<GraphElementPresenter> { instance };
         }

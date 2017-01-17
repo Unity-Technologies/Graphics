@@ -6,11 +6,11 @@ using UnityEngine.Graphing;
 namespace UnityEditor.Graphing.Drawing
 {
     [Serializable]
-    public abstract class ControlDrawData : GraphElementPresenter
+    public abstract class GraphControlPresenter : GraphElementPresenter
     {
         public INode node { get; private set; }
 
-        protected ControlDrawData()
+        protected GraphControlPresenter()
         {}
 
         public void Initialize(INode inNode)

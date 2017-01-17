@@ -1,27 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEditor.Graphing.Drawing;
-using UnityEngine;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    class RemapMasterControlDrawData : ControlDrawData
+    class SurfaceMasterContolPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
         {
             base.OnGUIHandler();
 
-            var remapNode = node as RemapMasterNode;
-            if (remapNode == null)
+            var cNode = node as AbstractSurfaceMasterNode;
+            if (cNode == null)
                 return;
 
-            remapNode.remapAsset = (MaterialRemapAsset)EditorGUILayout.MiniThumbnailObjectField(
-                new GUIContent("Remap Asset"), 
-                remapNode.remapAsset, 
-                typeof(MaterialRemapAsset), null);
+            cNode.options.lod = EditorGUILayout.IntField("LOD", cNode.options.lod);
         }
 
         public override float GetHeight()
@@ -31,11 +27,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-    public class RemapMasterNodeDrawData : MasterNodeDrawData
+    public class SurfaceMasterPresenter : MasterNodePresenter
     {
         protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
-            var instance = CreateInstance<RemapMasterControlDrawData>();
+            var instance = CreateInstance<SurfaceMasterContolPresenter>();
             instance.Initialize(node);
             var controls = new List<GraphElementPresenter>(base.GetControlData());
             controls.Add(instance);

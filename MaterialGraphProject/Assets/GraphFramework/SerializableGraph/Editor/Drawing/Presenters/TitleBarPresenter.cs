@@ -5,48 +5,48 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    // TODO JOCE: Should most probably derive from GraphElementPresenter.
-    public class TitleBarDrawData : ScriptableObject
+    // TODO JOCE: Not sure the title bar requires a presenter at all.
+    public class TitleBarPresenter : ScriptableObject
     {
-        List<TitleBarButtonDrawData> m_leftItems;
-        List<TitleBarButtonDrawData> m_rightItems;
+        List<TitleBarButtonPresenter> m_leftItems;
+        List<TitleBarButtonPresenter> m_rightItems;
         IGraphAsset m_graphAsset;
 
-        public IEnumerable<TitleBarButtonDrawData> leftItems
+        public IEnumerable<TitleBarButtonPresenter> leftItems
         {
             get { return m_leftItems; }
         }
 
-        public IEnumerable<TitleBarButtonDrawData> rightItems
+        public IEnumerable<TitleBarButtonPresenter> rightItems
         {
             get { return m_rightItems; }
         }
 
-        protected TitleBarDrawData()
+        protected TitleBarPresenter()
         {
         }
 
         public void Initialize(IGraphAsset graphAsset)
         {
             m_graphAsset = graphAsset;
-            m_leftItems = new List<TitleBarButtonDrawData>();
-            m_rightItems = new List<TitleBarButtonDrawData>();
+            m_leftItems = new List<TitleBarButtonPresenter>();
+            m_rightItems = new List<TitleBarButtonPresenter>();
 
-            var currentGraphItem = CreateInstance<TitleBarButtonDrawData>();
+            var currentGraphItem = CreateInstance<TitleBarButtonPresenter>();
             currentGraphItem.text = graphAsset != null ? graphAsset.GetScriptableObject().name : "";
             m_leftItems.Add(currentGraphItem);
 
-            var updateAsset = CreateInstance<TitleBarButtonDrawData>();
+            var updateAsset = CreateInstance<TitleBarButtonPresenter>();
             updateAsset.text = "Update Asset";
             updateAsset.onClick += UpdateAsset;
             m_leftItems.Add(updateAsset);
 
-            var showInProjectItem = CreateInstance<TitleBarButtonDrawData>();
+            var showInProjectItem = CreateInstance<TitleBarButtonPresenter>();
             showInProjectItem.text = "Show in project";
             showInProjectItem.onClick += OnShowInProjectClick;
             m_leftItems.Add(showInProjectItem);
 
-            var optionsItem = CreateInstance<TitleBarButtonDrawData>();
+            var optionsItem = CreateInstance<TitleBarButtonPresenter>();
             optionsItem.text = "Options";
             m_rightItems.Add(optionsItem);
         }

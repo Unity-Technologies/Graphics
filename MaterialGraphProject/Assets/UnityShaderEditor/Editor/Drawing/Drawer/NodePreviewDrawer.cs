@@ -5,7 +5,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 {
     public class NodePreviewDrawer : Image
     {
-        public NodePreviewDrawData data;
+        public NodePreviewPresenter data;
 
         public override void DoRepaint(IStylePainter painter)
         {

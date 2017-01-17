@@ -12,11 +12,11 @@ namespace UnityEditor.Graphing.Drawing
     [StyleSheet("Assets/GraphFramework/SerializableGraph/Editor/Drawing/Styles/TitleBar.uss")]
     public class TitleBarDrawer : DataWatchContainer
     {
-        TitleBarDrawData m_DataProvider;
+        TitleBarPresenter m_DataProvider;
         VisualContainer m_LeftContainer;
         VisualContainer m_RightContainer;
 
-        public TitleBarDrawData dataProvider
+        public TitleBarPresenter dataProvider
         {
             get { return m_DataProvider; }
             set
@@ -30,7 +30,7 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        public TitleBarDrawer(TitleBarDrawData dataProvider)
+        public TitleBarDrawer(TitleBarPresenter dataProvider)
         {
             classList = ClassList.empty;
             name = "TitleBar";
@@ -65,7 +65,7 @@ namespace UnityEditor.Graphing.Drawing
             UpdateContainer(m_RightContainer, m_DataProvider.rightItems);
         }
 
-        void UpdateContainer(VisualContainer container, IEnumerable<TitleBarButtonDrawData> itemDatas)
+        void UpdateContainer(VisualContainer container, IEnumerable<TitleBarButtonPresenter> itemDatas)
         {
             // The number of items can't change for now.
             foreach (var pair in itemDatas.Zip(container.children.OfType<TitleBarButtonDrawer>()))

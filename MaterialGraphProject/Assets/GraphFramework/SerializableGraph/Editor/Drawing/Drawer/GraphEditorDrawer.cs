@@ -4,8 +4,6 @@ using UnityEngine.RMGUI;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    // TODO JOCE Remove all traces of dataSource
-
     // TODO JOCE: Maybe this needs to dereive from something we already have?
     [StyleSheet("Assets/GraphFramework/SerializableGraph/Editor/Drawing/Styles/GraphEditor.uss")]
     public class GraphEditorDrawer : DataWatchContainer
@@ -20,37 +18,37 @@ namespace UnityEditor.Graphing.Drawing
         private TitleBarDrawer m_TitleBarDrawer;
 
         // TODO: Create graphView from here rather than have it passed in through constructor
-        public GraphEditorDrawer(GraphView graphView, AbstractGraphDataSource dataSource)
+        public GraphEditorDrawer(GraphView graphView, AbstractGraphPresenter presenter)
         {
             m_GraphView = graphView;
             m_GraphView.name = "GraphView";
-            m_TitleBarDrawer = new TitleBarDrawer(dataSource.titleBar);
+            m_TitleBarDrawer = new TitleBarDrawer(presenter.titleBar);
             m_TitleBarDrawer.name = "TitleBar";
 
             AddChild(m_TitleBarDrawer);
             AddChild(m_GraphView);
 
-            this.dataSource = dataSource;
+            this.presenter = presenter;
         }
 
         public override void OnDataChanged()
         {
-            m_GraphView.presenter = m_DataSource;
-            m_TitleBarDrawer.dataProvider = m_DataSource.titleBar;
+            m_GraphView.presenter = m_Presenter;
+            m_TitleBarDrawer.dataProvider = m_Presenter.titleBar;
         }
 
-        private AbstractGraphDataSource m_DataSource;
+        private AbstractGraphPresenter m_Presenter;
 
-        public AbstractGraphDataSource dataSource
+        public AbstractGraphPresenter presenter
         {
-            get { return m_DataSource; }
+            get { return m_Presenter; }
             set
             {
-                if (m_DataSource == value)
+                if (m_Presenter == value)
                     return;
 
                 RemoveWatch();
-                m_DataSource = value;
+                m_Presenter = value;
                 OnDataChanged();
                 AddWatch();
             }
@@ -58,7 +56,7 @@ namespace UnityEditor.Graphing.Drawing
 
         protected override object toWatch
         {
-            get { return m_DataSource; }
+            get { return m_Presenter; }
         }
     }
 }

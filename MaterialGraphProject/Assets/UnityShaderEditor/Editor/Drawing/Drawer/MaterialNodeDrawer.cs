@@ -12,7 +12,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     public class MaterialNodeDrawer : NodeDrawer
     {
         VisualContainer m_PreviewContainer;
-        private List<NodePreviewDrawData> m_currentPreviewData;
+        private List<NodePreviewPresenter> m_currentPreviewData;
         bool m_IsScheduled;
 
         public MaterialNodeDrawer()
@@ -34,7 +34,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             };
             leftContainer.AddChild(m_PreviewContainer);
 
-            m_currentPreviewData = new List<NodePreviewDrawData>();
+            m_currentPreviewData = new List<NodePreviewPresenter>();
         }
 
         private void SchedulePolling()
@@ -66,7 +66,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void InvalidateUIIfNeedsTime(TimerState timerState)
         {
-            var data = GetPresenter<MaterialNodeDrawData>();
+            var data = GetPresenter<MaterialNodePresenter>();
             var childrenNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes, data.node);
             if (childrenNodes.OfType<IRequiresTime>().Any())
@@ -76,12 +76,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             ListPool<INode>.Release(childrenNodes);
         }
 
-        private void AddPreview(MaterialNodeDrawData nodeData)
+        private void AddPreview(MaterialNodePresenter nodeData)
         {
-            if (!nodeData.elements.OfType<NodePreviewDrawData>().Any())
+            if (!nodeData.elements.OfType<NodePreviewPresenter>().Any())
                 return;
 
-            var previews = nodeData.elements.OfType<NodePreviewDrawData>().ToList();
+            var previews = nodeData.elements.OfType<NodePreviewPresenter>().ToList();
 
             if (!previews.ItemsReferenceEquals(m_currentPreviewData))
             {
@@ -104,7 +104,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnDataChanged();
 
-            var nodeData = GetPresenter<MaterialNodeDrawData>();
+            var nodeData = GetPresenter<MaterialNodePresenter>();
             if (nodeData == null)
             {
                 m_PreviewContainer.ClearChildren();

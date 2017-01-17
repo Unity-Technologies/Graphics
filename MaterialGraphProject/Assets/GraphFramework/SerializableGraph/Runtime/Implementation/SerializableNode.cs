@@ -17,7 +17,7 @@ namespace UnityEngine.Graphing
         private string m_Name;
 
         [SerializeField]
-        private DrawingData m_DrawData;
+        private DrawState m_DrawState;
 
         [NonSerialized]
         private List<ISlot> m_Slots = new List<ISlot>();
@@ -43,12 +43,12 @@ namespace UnityEngine.Graphing
             get { return true; }
         }
 
-        public DrawingData drawState
+        public DrawState drawState
         {
-            get { return m_DrawData; }
+            get { return m_DrawState; }
             set
             {
-                m_DrawData = value;
+                m_DrawState = value;
                 if (onModified != null)
                     onModified(this, ModificationScope.Node);
             }
@@ -58,7 +58,7 @@ namespace UnityEngine.Graphing
 
         public SerializableNode()
         {
-            m_DrawData.expanded = true;
+            m_DrawState.expanded = true;
             m_Guid = Guid.NewGuid();
         }
 
