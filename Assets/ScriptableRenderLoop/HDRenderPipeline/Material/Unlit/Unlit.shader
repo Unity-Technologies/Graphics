@@ -29,7 +29,7 @@ Shader "HDRenderPipeline/Unlit"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
+    #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
 
     //-------------------------------------------------------------------------------------
     // Variant

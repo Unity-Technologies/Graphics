@@ -322,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 builtinParams.skyMesh = m_CubemapFaceMesh[i];
                 builtinParams.colorBuffer = target;
                 builtinParams.depthBuffer = BuiltinSkyParameters.invalidRTI;
-                m_Renderer.RenderSky(builtinParams, skyParameters);
+                m_Renderer.RenderSky(builtinParams, skyParameters, true);
             }
         }
 
@@ -517,7 +517,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.depthBuffer = depthBuffer;
 
                     Utilities.SetRenderTarget(renderContext, colorBuffer, depthBuffer);
-                    m_Renderer.RenderSky(m_BuiltinParameters, skyParameters);
+                    m_Renderer.RenderSky(m_BuiltinParameters, skyParameters, false);
                 }
             }
         }
