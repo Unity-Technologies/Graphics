@@ -73,6 +73,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.Dispose();
         }
 
+        static Mesh m_ScreenSpaceTriangle = new Mesh
+        {
+            // Note: the vertex data is not actually used if the vertex shader computes vertices using 'SV_VertexID'.
+            // However, there is currently no way to bind a NULL vertex buffer.
+            vertices  = new [] { new Vector3(-1, -1, 1), new Vector3(3, -1, 1), new Vector3(-1, 3, 1) },
+            triangles = new [] { 0, 1, 2 }
+        };
+
+        // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
+        public static void DrawFullscreen(ScriptableRenderContext context, Material material, RenderTargetIdentifier colorBuffer, int shaderPassID = 0)
+        {
+            var cmd = new CommandBuffer() { name = material.GetPassName(shaderPassID) };
+            cmd.SetRenderTarget(colorBuffer);
+            cmd.DrawMesh(m_ScreenSpaceTriangle, Matrix4x4.identity, material, 0, shaderPassID);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
+
         // Miscellanous
         public static Material CreateEngineMaterial(string shaderPath)
         {

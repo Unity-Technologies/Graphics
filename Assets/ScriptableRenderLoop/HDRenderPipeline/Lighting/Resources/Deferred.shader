@@ -38,25 +38,25 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             #include "Common.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
-            // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem), 
+            // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderConfig.cs.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderVariables.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Lighting/Lighting.hlsl" // This include Material.hlsl
- 
+
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
- 
+
  			TEXTURE2D(_CameraDepthTexture);
 			SAMPLER2D(sampler_CameraDepthTexture);
 
             struct Attributes
             {
-                float3 positionOS : POSITION;
+                uint vertexId : SV_VertexID;
             };
 
             struct Varyings
@@ -66,12 +66,12 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             Varyings Vert(Attributes input)
             {
-                // TODO: implement SV_vertexID full screen quad
-                // Lights are draw as one fullscreen quad
                 Varyings output;
-                float3 positionWS = TransformObjectToWorld(input.positionOS);
-                output.positionCS = TransformWorldToHClip(positionWS);
 
+                // Generate a triangle in homogeneous clip space, s.t.
+			    // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
+			    output.positionCS = float4(float(input.vertexId % 2) * 4.0 - 1.0,
+			    						   float(input.vertexId / 2) * 4.0 - 1.0, 1.0, 1.0);
                 return output;
             }
 
