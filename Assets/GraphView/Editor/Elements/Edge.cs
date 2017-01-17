@@ -22,7 +22,7 @@ namespace RMGUI.GraphView
 		protected static void GetTangents(Orientation orientation, Vector2 from, Vector2 to, out Vector3[] points, out Vector3[] tangents)
         {
             bool invert = false;
-            if (from.x < to.x)
+            if ((orientation == Orientation.Horizontal && from.x < to.x))
             {
                 Vector3 t = to;
                 to = from;
@@ -48,9 +48,12 @@ namespace RMGUI.GraphView
             }
             else
             {
-                float inverse = (invert) ? 1.0f : -1.0f;
-                tangents[0] = to + new Vector2(y, inverse * ((from.x - to.x) * weight + minTangent)) * cleverness;
-                tangents[1] = from + new Vector2(-y, inverse * ((from.x - to.x) * -weight2 - minTangent)) * cleverness;
+                float tangentSize = to.y - from.y + 100.0f;
+                tangentSize = Mathf.Min((to - from).magnitude, tangentSize);
+                if (tangentSize < 0.0f) tangentSize = -tangentSize;
+              
+                tangents[0] = to + new Vector2(0, tangentSize * -0.5f);
+                tangents[1] = from + new Vector2(0, tangentSize * 0.5f);
             }
         }
 
