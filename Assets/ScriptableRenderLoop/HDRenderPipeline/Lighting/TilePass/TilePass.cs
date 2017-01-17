@@ -1336,7 +1336,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_SingleDeferredMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         m_SingleDeferredMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
 
-                        cmd.Blit(null, cameraColorBufferRT, m_SingleDeferredMaterial, 0);
+                        Utilities.DrawFullscreen(renderContext, m_SingleDeferredMaterial, cameraColorBufferRT, 0);
                     }
                     else
                     {
