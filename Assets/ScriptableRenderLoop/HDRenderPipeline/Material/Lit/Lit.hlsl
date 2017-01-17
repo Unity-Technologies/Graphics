@@ -453,6 +453,7 @@ struct PreLightData
     float anisoGGXLambdaV;
 
     float3 iblDirWS;    // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
+    float  iblMipLevel;
 
     float3 specularFGD; // Store preconvole BRDF for both specular and diffuse
     float diffuseFGD;
@@ -497,7 +498,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // We need to take into account the modified normal for faking anisotropic here.
     float3 iblR = reflect(-V, iblNormalWS);
-    preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness);
+    preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness, preLightData.NdotV);
+
+    preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
 
     // Area light specific
     // UVs for sampling the LUTs
@@ -1317,11 +1320,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // TODO: we must always perform a weight calculation as due to tiled rendering we need to smooth out cubemap at boundaries.
     // So goal is to split into two category and have an option to say if we parallax correct or not.
 
-    // TODO: compare current Morten version: offline cubemap with a particular remap + the bias in perceptualRoughnessToMipmapLevel
-    // to classic remap like unreal/Frobiste. The function GetSpecularDominantDir can result in a better matching in this case
-    // We let GetSpecularDominantDir currently as it still an improvement but not as good as it could be
-    float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, mip);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, preLightData.iblMipLevel);
     specularLighting = preLD.rgb * preLightData.specularFGD;
 
     // Apply specular occlusion on it

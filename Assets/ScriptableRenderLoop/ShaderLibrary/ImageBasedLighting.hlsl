@@ -15,19 +15,23 @@
 // Util image based lighting
 //-----------------------------------------------------------------------------
 
-// Performs a *non-linear* remapping which improves the perceptual roughness distribution
-// and adds reflection (contact) hardening. The *approximated* version.
-float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
+// The *approximated* version of the non-linear remapping. It works by
+// approximating the cone of the specular lobe, and then computing the MIP map level
+// which (approximately) covers the footprint of the lobe with a single texel.
+// Improves the perceptual roughness distribution.
+float PerceptualRoughnessToMipmapLevel(float perceptualRoughness)
 {
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
 
     return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
-// Performs a *non-linear* remapping which improves the perceptual roughness distribution
-// and adds reflection (contact) hardening. The *accurate* version.
+// The *accurate* version of the non-linear remapping. It works by
+// approximating the cone of the specular lobe, and then computing the MIP map level
+// which (approximately) covers the footprint of the lobe with a single texel.
+// Improves the perceptual roughness distribution and adds reflection (contact) hardening.
 // TODO: optimize!
-float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
+float PerceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
 {
     float m = PerceptualRoughnessToRoughness(perceptualRoughness);
 
@@ -43,18 +47,28 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness, float NdotR)
     return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
-// Performs *linear* remapping for runtime EnvMap filtering.
-float mipmapLevelToPerceptualRoughness(float mipmapLevel)
+// The inverse of the *approximated* version of perceptualRoughnessToMipmapLevel().
+float MipmapLevelToPerceptualRoughness(float mipmapLevel)
 {
-    return saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
+    float perceptualRoughness = saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
+
+    return saturate(1.7 / 1.4 - sqrt(2.89 - 2.8 * perceptualRoughness) / 1.4);
 }
 
-// Ref: See "Moving Frostbite to PBR" Listing 22
-// This formulation is for GGX only (with smith joint visibility or regular)
-float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)
+// Ref: "Moving Frostbite to PBR", p. 69.
+float3 GetSpecularDominantDir(float3 N, float3 R, float roughness, float NdotV)
 {
     float a = 1.0 - roughness;
-    float lerpFactor = a * (sqrt(a) + roughness);
+    float s = sqrt(a);
+
+#ifdef USE_FB_DSD
+    // This is the original formulation.
+    float lerpFactor = (s + roughness) * a;
+#else
+    // TODO: tweak this further to achieve a closer match to the reference.
+    float lerpFactor = (s + roughness) * saturate(a * a + lerp(0.0, a, NdotV * NdotV));
+#endif
+
     // The result is not normalized as we fetch in a cubemap
     return lerp(N, R, lerpFactor);
 }
@@ -346,34 +360,69 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
     return acc / sampleCount;
 }
 
+uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
+{
+    uint sampleCount = 0;
+
+    switch (mipLevel)
+    {
+        case 1: sampleCount = 21; break;
+        case 2: sampleCount = 34; break;
+        case 3: sampleCount = 55; break;
+        case 4: sampleCount = 89; break;
+        case 5: sampleCount = 89; break;
+        case 6: sampleCount = 89; break; // UNITY_SPECCUBE_LOD_STEPS
+    }
+
+    return sampleCount;
+}
+
 // Ref: Listing 19 in "Moving Frostbite to PBR"
 float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
-                    float3 V,
-                    float3 N,
-                    float roughness,
-                    float maxMipLevel,
-                    float invOmegaP,
-                    uint sampleCount, // Must be a Fibonacci number
-                    bool prefilter)
+                   TEXTURE2D(ggxIblSamples),
+                   float3 V,
+                   float3 N,
+                   float roughness,
+                   float index,      // Current MIP level minus one
+                   float lastMipLevel,
+                   float invOmegaP,
+                   uint sampleCount, // Must be a Fibonacci number
+                   bool prefilter,
+                   bool usePrecomputedSamples)
 {
     float3x3 localToWorld = GetLocalFrame(N);
+
+    // Bias samples towards the mirror direction to reduce variance.
+    // This will have a side effect of making the reflection sharper.
+    // Ref: Stochastic Screen-Space Reflections, p. 67.
+    const float bias = 0.5 * roughness;
 
     float3 lightInt = float3(0.0, 0.0, 0.0);
     float  cbsdfInt = 0.0;
 
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float2 u = Fibonacci2d(i, sampleCount);
-
-        // Bias samples towards the mirror direction to reduce variance.
-        // This will have a side effect of making the reflection sharper.
-        // Ref: Stochastic Screen-Space Reflections, p. 67.
-        const float bias = 0.2;
-        u.x = lerp(u.x, 0.0, bias);
-
         float3 L;
         float  NdotL, NdotH, VdotH;
-        SampleGGXDir(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, true);
+        bool   isValid;
+
+        if (usePrecomputedSamples)
+        {
+            float3 localL = LOAD_TEXTURE2D(ggxIblSamples, uint2(i, index)).xyz;
+
+            L       = mul(localL, localToWorld);
+            NdotL   = localL.z;
+            isValid = true;
+        }
+        else
+        {
+            float2 u = Fibonacci2d(i, sampleCount);
+            u.x = lerp(u.x, 0.0, bias);
+
+            SampleGGXDir(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, true);
+
+            isValid = NdotL > 0.0;
+        }
 
         float mipLevel;
 
@@ -395,31 +444,42 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // can be simplified:
             // pdf = D * NdotH / (4 * LdotH) = D * 0.25;
             //
-            // - OmegaS : Solid angle associated to a sample
-            // - OmegaP : Solid angle associated to a pixel of the cubemap
+            // - OmegaS : Solid angle associated with the sample
+            // - OmegaP : Solid angle associated with the texel of the cubemap
 
-            float invPdf    = D_GGX_Inverse(NdotH, roughness) * 4.0;
-            // TODO: check the accuracy of the sample's solid angle fit for GGX.
-            float omegaS    = rcp(sampleCount) * invPdf;
+            float omegaS;
+
+            if (usePrecomputedSamples)
+            {
+                omegaS = LOAD_TEXTURE2D(ggxIblSamples, uint2(i, index)).w;
+            }
+            else
+            {
+                float pdf = D_GGX(NdotH, roughness) * 0.25;
+                // TODO: check the accuracy of the sample's solid angle fit for GGX.
+                omegaS = rcp(sampleCount) / pdf;
+            }
+
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth);
             mipLevel        = 0.5 * log2(omegaS * invOmegaP);
+        }
 
+        if (isValid)
+        {
             // Bias the MIP map level to compensate for the importance sampling bias.
             // This will blur the reflection.
             // TODO: find a more accurate MIP bias function.
-            mipLevel = lerp(mipLevel, maxMipLevel, bias);
+            mipLevel = lerp(mipLevel, lastMipLevel, bias);
 
+            // TODO: There is a bug currently where autogenerate mipmap for the cubemap seems to
+            // clamp the mipLevel to 6. correct it! Then remove this clamp
             // All MIP map levels beyond UNITY_SPECCUBE_LOD_STEPS contain invalid data.
             mipLevel = min(mipLevel, UNITY_SPECCUBE_LOD_STEPS);
-        }
 
-        if (NdotL > 0.0)
-        {
             // TODO: use a Gaussian-like filter to generate the MIP pyramid.
             float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
-            // *********************************************************************************
             // Our goal is to use Monte-Carlo integration with importance sampling to evaluate
             // X(V)   = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
             // CBSDF  = F * D * G * NdotL / (4 * NdotL * NdotV) = F * D * G / (4 * NdotV).
@@ -429,7 +489,6 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // (LdotH == NdotH) && (NdotV == 1) && (Weight == F * G).
             // We use the approximation of Brian Karis from "Real Shading in Unreal Engine 4":
             // Weight ≈ NdotL, which produces nearly identical results in practice.
-            // *********************************************************************************
 
             lightInt += NdotL * val;
             cbsdfInt += NdotL;

@@ -10,7 +10,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
 
             HLSLPROGRAM
             #pragma target 5.0
-            #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
+            #pragma only_renderers d3d11 ps4 // TEMP: unitl we go futher in dev
 
             #pragma multi_compile _ USE_MIS
 
@@ -44,13 +44,15 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             TEXTURECUBE(_MainTex);
             SAMPLERCUBE(sampler_MainTex);
 
+            TEXTURE2D(_GgxIblSamples);
+
             #ifdef USE_MIS
                 TEXTURE2D(_MarginalRowDensities);
                 TEXTURE2D(_ConditionalDensities);
             #endif
 
             float _Level;
-            float _MaxLevel;
+            float _LastLevel;
             float _InvOmegaP;
 
             half4 Frag(Varyings input) : SV_Target
@@ -60,8 +62,9 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
                 // Remove view-dependency from GGX, effectively making the BSDF isotropic.
                 float3 V = N;
 
-                float perceptualRoughness = mipmapLevelToPerceptualRoughness(_Level);
+                float perceptualRoughness = MipmapLevelToPerceptualRoughness(_Level);
                 float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+                uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level);
 
             #ifdef USE_MIS
                 float4 val = IntegrateLD_MIS(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
@@ -74,24 +77,15 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
                                              1024,
                                              false);
             #else
-                uint sampleCount = 0;
-
-                switch (_Level)
-                {
-                    case 1: sampleCount = 21; break;
-                    case 2: sampleCount = 34; break;
-                    case 3: sampleCount = 55; break;
-                    case 4: sampleCount = 89; break;
-                    case 5: sampleCount = 89; break;
-                    case 6: sampleCount = 89; break; // UNITY_SPECCUBE_LOD_STEPS
-                }
-
                 float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
+                                         _GgxIblSamples,
                                          V, N,
                                          roughness,
-                                         _MaxLevel,
+                                         _Level - 1,
+                                         _LastLevel,
                                          _InvOmegaP,
                                          sampleCount, // Must be a Fibonacci number
+                                         true,
                                          true);
             #endif
 

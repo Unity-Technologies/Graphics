@@ -5,7 +5,7 @@
 #ifndef DEBUGVIEWMATERIAL_CS_HLSL
 #define DEBUGVIEWMATERIAL_CS_HLSL
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.Attributes.DebugViewVarying:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewVarying:  static fields
 //
 #define DEBUGVIEWVARYING_TEXCOORD0 (1)
 #define DEBUGVIEWVARYING_TEXCOORD1 (2)
@@ -18,7 +18,7 @@
 #define DEBUGVIEWVARYING_VERTEX_COLOR_ALPHA (9)
 
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.Attributes.DebugViewGbuffer:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewGbuffer:  static fields
 //
 #define DEBUGVIEWGBUFFER_DEPTH (10)
 #define DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING (11)
