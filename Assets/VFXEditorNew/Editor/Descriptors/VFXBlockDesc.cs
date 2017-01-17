@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class VFXBlockAttribute : Attribute
     {
         // TODO

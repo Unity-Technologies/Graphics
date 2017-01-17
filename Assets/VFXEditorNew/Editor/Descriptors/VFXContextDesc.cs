@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
         kAll = kInit | kUpdate | kOutput,
     };
 
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class VFXContextAttribute : Attribute
     {
         // TODO

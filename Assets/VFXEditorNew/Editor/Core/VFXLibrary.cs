@@ -40,7 +40,7 @@ namespace UnityEditor.VFX
         private static void LoadContextDescs()
         {
             // Search for derived type of VFXBlockType in assemblies
-            var contextDescTypes = FindConcreteSubclasses<VFXContextDesc>();
+            var contextDescTypes = FindConcreteSubclasses<VFXContextDesc,VFXContextAttribute>();
             var contextDescs = new Dictionary<string, VFXContextDesc>();
             foreach (var contextDesc in contextDescTypes)
             {
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
         private static void LoadBlockDescs()
         {
             // Search for derived type of VFXBlockType in assemblies
-            var blockDescTypes = FindConcreteSubclasses<VFXBlockDesc>();
+            var blockDescTypes = FindConcreteSubclasses<VFXBlockDesc,VFXBlockAttribute>();
             var blockDescs = new Dictionary<string, VFXBlockDesc>();
             foreach (var blockDesc in blockDescTypes)
             {
@@ -79,7 +79,7 @@ namespace UnityEditor.VFX
             m_BlockDescs = blockDescs; // atomic set
         }
 
-        private static IEnumerable<Type> FindConcreteSubclasses<T>()
+        private static IEnumerable<Type> FindConcreteSubclasses<T,U>()
         {
             List<Type> types = new List<Type>();
             foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
                         if (assemblyType.IsSubclassOf(typeof(T)) && !assemblyType.IsAbstract)
                             types.Add(assemblyType);
             }
-            return types;
+            return types.Where(type => type.GetCustomAttributes(typeof(U), false).Length == 1);
         }
 
         private static volatile Dictionary<string, VFXContextDesc> m_ContextDescs;
