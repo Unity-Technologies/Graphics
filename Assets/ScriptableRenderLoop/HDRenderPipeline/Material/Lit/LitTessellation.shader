@@ -96,7 +96,7 @@ Shader "HDRenderPipeline/LitTesselation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 // TEMP: until we go futher in dev
+    #pragma only_renderers d3d11 ps4// TEMP: until we go futher in dev
 
     //-------------------------------------------------------------------------------------
     // Variant

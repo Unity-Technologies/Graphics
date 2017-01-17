@@ -5,12 +5,12 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
         Pass
         {
             ZWrite Off
-            ZTest LEqual
+            ZTest Always
             Blend One OneMinusSrcAlpha, Zero One
 
             HLSLPROGRAM
             #pragma target 5.0
-            #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
+            #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
