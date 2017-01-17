@@ -1,40 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
+using RMGUI.GraphView;
+using UnityEngine;
+using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Util
 {
-    public class TypeMapper
+    public class TypeMapper : BaseDataMapper<INode, ScriptableObject>
     {
-        private readonly Dictionary<Type, Type> m_Mappings = new Dictionary<Type, Type>();
-        private readonly Type m_Default;
-
-        public TypeMapper() : this(null) {}
-
-        public TypeMapper(Type defaultType)
+        public TypeMapper(Type fallbackType) : base(fallbackType)
         {
-            m_Default = defaultType;
         }
 
-        public void Clear()
+        protected override ScriptableObject InternalCreate(Type valueType)
         {
-            m_Mappings.Clear();
-        }
-
-        public void AddMapping(Type from, Type to)
-        {
-            m_Mappings[from] = to;
-        }
-
-        public Type MapType(Type type)
-        {
-            Type found = null;
-            while (type != null)
-            {
-                if (m_Mappings.TryGetValue(type, out found))
-                    break;
-                type = type.BaseType;
-            }
-            return found ?? m_Default;
+            return ScriptableObject.CreateInstance(valueType);
         }
     }
 }
