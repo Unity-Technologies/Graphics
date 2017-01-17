@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -43,11 +41,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        protected override void AddTypeMappings(Action<Type, Type> map)
+        protected AbstractMaterialGraphInspector()
         {
-            map(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector));
-			map(typeof(SubGraphInputNode), typeof(SubgraphInputNodeInspector));
-            map(typeof(SubGraphOutputNode), typeof(SubgraphOutputNodeInspector));
+            dataMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodeInspector);
+            dataMapper[typeof(SubGraphInputNode)] = typeof(SubgraphInputNodeInspector);
+            dataMapper[typeof(SubGraphOutputNode)] = typeof(SubgraphOutputNodeInspector);
         }
 
         private void OnPreviewNodeModified(INode node, ModificationScope scope)

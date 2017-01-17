@@ -11,7 +11,7 @@ namespace UnityEditor.Graphing.Drawing
     [Serializable]
     public abstract class AbstractGraphPresenter : GraphViewPresenter
     {
-        private readonly TypeMapper m_DataMapper = new TypeMapper(typeof(GraphNodePresenter));
+        protected TypeMapper dataMapper { get; set; }
 
         public IGraphAsset graphAsset { get; private set; }
 
@@ -24,6 +24,11 @@ namespace UnityEditor.Graphing.Drawing
         public TitleBarPresenter titleBar
         {
             get { return m_TitleBar; }
+        }
+
+        protected AbstractGraphPresenter()
+        {
+            dataMapper = new TypeMapper(typeof(GraphNodePresenter));
         }
 
         void OnNodeChanged(INode inNode, ModificationScope scope)
@@ -92,8 +97,7 @@ namespace UnityEditor.Graphing.Drawing
                 if (m_Elements.OfType<GraphNodePresenter>().Any(e => e.node == node))
                     continue;
 
-                var type = m_DataMapper.MapType(node.GetType());
-                var nodeData = (GraphNodePresenter)CreateInstance(type);
+                var nodeData = (GraphNodePresenter)dataMapper.Create(node);
 
                 node.onModified += OnNodeChanged;
 
@@ -166,13 +170,8 @@ namespace UnityEditor.Graphing.Drawing
             m_Elements.AddRange(drawableEdges.OfType<GraphElementPresenter>());
         }
 
-        protected abstract void AddTypeMappings(Action<Type, Type> map);
-
         public virtual void Initialize(IGraphAsset graphAsset, EditorWindow container)
         {
-            m_DataMapper.Clear();
-            AddTypeMappings(m_DataMapper.AddMapping);
-
             this.graphAsset = graphAsset;
             m_Container = container;
 

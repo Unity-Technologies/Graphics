@@ -1,15 +1,13 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing.Util;
-using UnityEngine;
 using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
     public abstract class AbstractGraphInspector : Editor
     {
-        private readonly TypeMapper m_DataMapper = new TypeMapper(typeof(BasicNodeInspector));
+        protected TypeMapper dataMapper { get; set; }
 
         protected List<INode> m_SelectedNodes = new List<INode>();
 
@@ -20,7 +18,10 @@ namespace UnityEditor.Graphing.Drawing
             get { return target as IGraphAsset; }
         }
 
-        protected abstract void AddTypeMappings(Action<Type, Type> map);
+        protected AbstractGraphInspector()
+        {
+            dataMapper = new TypeMapper(typeof(BasicNodeInspector));
+        }
 
         public override void OnInspectorGUI()
         {
@@ -52,22 +53,14 @@ namespace UnityEditor.Graphing.Drawing
             m_Inspectors.Clear();
             foreach (var node in m_SelectedNodes.OfType<SerializableNode>())
             {
-                var inspector = CreateInspector(node);
+                var inspector = (AbstractNodeInspector)dataMapper.Create(node);
                 inspector.Initialize(node);
                 m_Inspectors.Add(inspector);
             }
         }
 
-        private AbstractNodeInspector CreateInspector(INode node)
-        {
-            var type = m_DataMapper.MapType(node.GetType());
-            return CreateInstance(type) as AbstractNodeInspector;
-        }
-
         public virtual void OnEnable()
         {
-            m_DataMapper.Clear();
-            AddTypeMappings(m_DataMapper.AddMapping);
             UpdateSelection();
         }
     }
