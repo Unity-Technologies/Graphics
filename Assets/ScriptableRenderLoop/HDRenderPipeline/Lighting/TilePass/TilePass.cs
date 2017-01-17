@@ -1299,7 +1299,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
-            public override void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraColorBufferRT)
+            public override void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier[] cameraColorBufferRTs)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
@@ -1336,7 +1336,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_SingleDeferredMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         m_SingleDeferredMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
 
-                        Utilities.DrawFullscreen(renderContext, m_SingleDeferredMaterial, cameraColorBufferRT, 0);
+                        Utilities.DrawFullscreen(cmd, m_SingleDeferredMaterial, cameraColorBufferRTs, 0);
                     }
                     else
                     {
@@ -1392,7 +1392,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_IESArray", IESArrayTexture ? IESArrayTexture : m_DefaultTexture2DArray);
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_SkyTexture", skyTexture ? skyTexture : m_DefaultTexture2DArray);
 
-                            cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "uavOutput", cameraColorBufferRT);
+                            cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "combinedLightingUAV", cameraColorBufferRTs[0]);
+                            cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "diffuseLightingUAV",  cameraColorBufferRTs[1]);
                             cmd.DispatchCompute(shadeOpaqueShader, kernel, numTilesX, numTilesY, 1);
                         }
                         else
@@ -1412,8 +1413,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 m_DeferredIndirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                                 m_DeferredIndirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                                cmd.Blit(null, cameraColorBufferRT, m_DeferredDirectMaterial, 0);
-                                cmd.Blit(null, cameraColorBufferRT, m_DeferredIndirectMaterial, 0);
+                                Utilities.DrawFullscreen(cmd, m_DeferredDirectMaterial,   cameraColorBufferRTs, 0);
+                                Utilities.DrawFullscreen(cmd, m_DeferredIndirectMaterial, cameraColorBufferRTs, 0);
                             }
                             else
                             {
@@ -1423,7 +1424,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 m_DeferredAllMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                                 m_DeferredAllMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                                cmd.Blit(null, cameraColorBufferRT, m_DeferredAllMaterial, 0);
+                                Utilities.DrawFullscreen(cmd, m_DeferredAllMaterial, cameraColorBufferRTs, 0);
                             }
                         }
 
@@ -1436,7 +1437,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                             m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                            cmd.Blit(null, cameraColorBufferRT, m_DebugViewTilesMaterial, 0);
+                            cmd.Blit(null, cameraColorBufferRTs[0], m_DebugViewTilesMaterial, 0);
                         }
                     }
 

@@ -32,7 +32,8 @@ DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 TEXTURE2D(_CameraDepthTexture);
 SAMPLER2D(sampler_CameraDepthTexture);
 
-RWTexture2D<float4> uavOutput;
+RWTexture2D<float4> combinedLightingUAV;
+RWTexture2D<float3> diffuseLightingUAV;
 
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
@@ -55,6 +56,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float3 specularLighting;
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
-    uavOutput[pixelCoord] = float4(diffuseLighting + specularLighting, 1.0);
+    combinedLightingUAV[pixelCoord] = float4(diffuseLighting + specularLighting, 1.0);
+    diffuseLightingUAV[pixelCoord]  = float3(diffuseLighting);
 }
 

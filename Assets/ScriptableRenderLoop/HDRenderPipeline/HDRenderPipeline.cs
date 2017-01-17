@@ -176,11 +176,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Various buffer
         int m_CameraColorBuffer;
+        int m_CameraDiffuseLightingBuffer;
         int m_CameraDepthBuffer;
         int m_VelocityBuffer;
         int m_DistortionBuffer;
 
         RenderTargetIdentifier m_CameraColorBufferRT;
+        RenderTargetIdentifier m_CameraDiffuseLightingBufferRT;
         RenderTargetIdentifier m_CameraDepthBufferRT;
         RenderTargetIdentifier m_VelocityBufferRT;
         RenderTargetIdentifier m_DistortionBufferRT;
@@ -234,11 +236,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity = true;
             UnityEngine.Rendering.GraphicsSettings.lightsUseCCT = true;
 
-            m_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
-            m_CameraDepthBuffer  = Shader.PropertyToID("_CameraDepthTexture");
+            m_CameraColorBuffer           = Shader.PropertyToID("_CameraColorTexture");
+            m_CameraDiffuseLightingBuffer = Shader.PropertyToID("_CameraDiffuseLightingBuffer");
+            m_CameraDepthBuffer           = Shader.PropertyToID("_CameraDepthTexture");
 
-            m_CameraColorBufferRT = new RenderTargetIdentifier(m_CameraColorBuffer);
-            m_CameraDepthBufferRT = new RenderTargetIdentifier(m_CameraDepthBuffer);
+            m_CameraColorBufferRT           = new RenderTargetIdentifier(m_CameraColorBuffer);
+            m_CameraDiffuseLightingBufferRT = new RenderTargetIdentifier(m_CameraDiffuseLightingBuffer);
+            m_CameraDepthBufferRT           = new RenderTargetIdentifier(m_CameraDepthBuffer);
 
             m_SkyManager.Build();
 
@@ -308,26 +312,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int w = camera.pixelWidth;
                     int h = camera.pixelHeight;
 
-                    cmd.GetTemporaryRT(m_CameraColorBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1, true);   // Enable UAV
-                    cmd.GetTemporaryRT(m_CameraDepthBuffer, w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                    cmd.GetTemporaryRT(m_CameraColorBuffer,           w, h,  0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    cmd.GetTemporaryRT(m_CameraDiffuseLightingBuffer, w, h,  0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    cmd.GetTemporaryRT(m_CameraDepthBuffer,           w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
+
                     if (!debugParameters.ShouldUseForwardRenderingOnly())
                     {
                         m_gbufferManager.InitGBuffers(w, h, cmd);
                     }
+
                     renderContext.ExecuteCommandBuffer(cmd);
                     cmd.Dispose();
 
-                    Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT, ClearFlag.ClearDepth);
+                    RenderTargetIdentifier[] colorRTs = { m_CameraColorBuffer, m_CameraDiffuseLightingBufferRT };
+                    Utilities.SetRenderTarget(renderContext, colorRTs, m_CameraDepthBufferRT, ClearFlag.ClearDepth);
                 }
 
                 // TEMP: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
 
-                // Clear HDR target
+                // Clear the HDR target
                 using (new Utilities.ProfilingSample("Clear HDR target", renderContext))
                 {
                     Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT, ClearFlag.ClearColor, Color.black);
                 }
 
+                // Clear the diffuse lighting target
+                using (new Utilities.ProfilingSample("Clear diffuse lighting target", renderContext))
+                {
+                    Utilities.SetRenderTarget(renderContext, m_CameraDiffuseLightingBufferRT, m_CameraDepthBufferRT, ClearFlag.ClearColor, Color.black);
+                }
 
                 // Clear GBuffers
                 using (new Utilities.ProfilingSample("Clear GBuffer", renderContext))
@@ -463,7 +476,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Bind material data
             m_LitRenderLoop.Bind();
-            m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, m_CameraColorBuffer);
+            RenderTargetIdentifier[] colorRTs = { m_CameraColorBuffer, m_CameraDiffuseLightingBufferRT };
+            m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs);
         }
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext)
@@ -488,7 +502,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Bind material data
                 m_LitRenderLoop.Bind();
 
-                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
+                RenderTargetIdentifier[] colorRTs = { m_CameraColorBuffer, m_CameraDiffuseLightingBufferRT };
+                Utilities.SetRenderTarget(renderContext, colorRTs, m_CameraDepthBufferRT);
 
                 m_lightLoop.RenderForward(camera, renderContext, renderOpaque);
 
@@ -511,7 +526,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Bind material data
                 m_LitRenderLoop.Bind();
 
-                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
+                RenderTargetIdentifier[] colorRTs = { m_CameraColorBuffer, m_CameraDiffuseLightingBufferRT };
+                Utilities.SetRenderTarget(renderContext, colorRTs, m_CameraDepthBufferRT);
 
                 m_lightLoop.RenderForward(camera, renderContext, true);
                 RenderOpaqueRenderList(cullResults, camera, renderContext, "ForwardOnlyOpaque");

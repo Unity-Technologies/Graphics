@@ -64,6 +64,12 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 float4 positionCS : SV_POSITION;
             };
 
+            struct Outputs
+            {
+            	float4 combinedLighting : SV_Target0;
+            	float3 diffuseLighting  : SV_Target1;
+            };
+
             Varyings Vert(Attributes input)
             {
                 Varyings output;
@@ -75,7 +81,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 return output;
             }
 
-            float4 Frag(Varyings input) : SV_Target
+            Outputs Frag(Varyings input)
             {
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
@@ -94,7 +100,10 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 float3 specularLighting;
                 LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
-                return float4(diffuseLighting + specularLighting, 1.0);
+                Outputs outputs;
+                outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
+                outputs.diffuseLighting  = float3(diffuseLighting);
+                return outputs;
             }
 
         ENDHLSL

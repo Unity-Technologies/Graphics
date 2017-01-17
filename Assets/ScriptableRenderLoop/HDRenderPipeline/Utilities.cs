@@ -82,29 +82,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
-        public static void DrawFullscreen(ScriptableRenderContext context, Material material, RenderTargetIdentifier colorBuffer, int shaderPassID = 0)
+        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, RenderTargetIdentifier colorBuffer, int shaderPassID = 0)
         {
-            var cmd = new CommandBuffer() { name = material.GetPassName(shaderPassID) };
-            cmd.SetRenderTarget(colorBuffer);
-            cmd.DrawMesh(m_ScreenSpaceTriangle, Matrix4x4.identity, material, 0, shaderPassID);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            commandBuffer.SetRenderTarget(colorBuffer);
+            commandBuffer.DrawMesh(m_ScreenSpaceTriangle, Matrix4x4.identity, material, 0, shaderPassID);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
-        public static void DrawFullscreen(ScriptableRenderContext context, Material material, RenderTargetIdentifier[] colorBuffers, int shaderPassID = 0)
+        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, RenderTargetIdentifier[] colorBuffers, int shaderPassID = 0)
         {
-            var cmd = new CommandBuffer() { name = material.GetPassName(shaderPassID) };
-
             // A workaround for the deficiency of the CommandBuffer.SetRenderTarget() API.
             const int tempDepthBufferID = 95485683;
-            cmd.GetTemporaryRT(tempDepthBufferID, 2281, 767, 24, FilterMode.Point, RenderTextureFormat.Depth);
+            commandBuffer.GetTemporaryRT(tempDepthBufferID, 2283, 767, 24, FilterMode.Point, RenderTextureFormat.Depth);
             RenderTargetIdentifier tempDepthBuffer = new RenderTargetIdentifier(tempDepthBufferID);
 
-            cmd.SetRenderTarget(colorBuffers, tempDepthBuffer);
-            cmd.DrawMesh(m_ScreenSpaceTriangle, Matrix4x4.identity, material, 0, shaderPassID);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            commandBuffer.SetRenderTarget(colorBuffers, tempDepthBuffer);
+            commandBuffer.DrawMesh(m_ScreenSpaceTriangle, Matrix4x4.identity, material, 0, shaderPassID);
         }
 
         // Miscellanous
