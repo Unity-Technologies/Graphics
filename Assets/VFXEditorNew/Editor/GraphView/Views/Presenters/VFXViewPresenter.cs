@@ -23,15 +23,15 @@ namespace UnityEditor.VFX.UI
             SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>());
         }
 
-        public VFXView View 
-        { 
-            get 
+        public VFXView View
+        {
+            get
             {
                 // TODO Is that good design?
                 if (m_View == null)
                     m_View = new VFXView();
                 return m_View;
-            } 
+            }
         }
 
         public override void AddElement(EdgePresenter edge)
@@ -201,17 +201,30 @@ namespace UnityEditor.VFX.UI
                     foreach (var model in m_ModelContainer.m_Roots)
                         AddPresentersFromModel(model);
 
-                Debug.Log("SET MODEL CONTAINER TO " + (container == null ? "null" : container.ToString()));
-
-                // Doesnt work for some reasons
-                View.contentViewContainer.Touch(ChangeType.Repaint);
+                // Doesn't work for some reason
                 //View.FrameAll();
             }
         }
 
+		public void RegisterFlowAnchorPresenter(NodeAnchorPresenter presenter)
+		{
+			if (!m_FlowAnchorPresenters.Contains(presenter))
+			{
+				m_FlowAnchorPresenters.Add(presenter);
+			}
+		}
+
+		public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
+		{
+			return m_FlowAnchorPresenters
+			.Where(nap => nap.IsConnectable() &&
+							nap.direction != startAnchor.direction &&
+							nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
+			.ToList();
+		}
         [SerializeField]
         private VFXModelContainer m_ModelContainer;
 
-        private VFXView m_View; // Dont call directly as it is lazy initialized
+        private VFXView m_View; // Don't call directly as it is lazy initialized
     }
 }

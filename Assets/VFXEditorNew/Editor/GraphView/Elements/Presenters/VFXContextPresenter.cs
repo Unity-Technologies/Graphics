@@ -2,13 +2,14 @@ using System;
 using RMGUI.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
     class VFXContextPresenter : GraphElementPresenter
     {
-        private VFXViewPresenter m_viewPresenter;
-        public VFXViewPresenter ViewPresenter { get { return m_viewPresenter; } }
+        private VFXViewPresenter m_ViewPresenter;
+        public VFXViewPresenter ViewPresenter { get { return m_ViewPresenter; } }
         
         [SerializeField]
         private VFXContext m_Model;
@@ -54,9 +55,9 @@ namespace UnityEditor.VFX.UI
                 ViewPresenter.UnregisterFlowAnchorPresenter(anchor);
         }
 
-        public void Init(VFXViewPresenter viewPresenter,VFXContext model)
+        public void Init(VFXViewPresenter viewPresenter, VFXContext model)
         {
-            m_viewPresenter = viewPresenter;
+            m_ViewPresenter = viewPresenter;
             m_Model = model;
 
             UnregisterAnchors();

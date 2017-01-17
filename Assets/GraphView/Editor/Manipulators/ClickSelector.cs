@@ -12,6 +12,8 @@ namespace RMGUI.GraphView
 			phaseInterest = EventPhase.Capture;
 			activators.Add(new ManipActivator {button = MouseButton.LeftMouse});
 			activators.Add(new ManipActivator {button = MouseButton.RightMouse});
+			activators.Add(new ManipActivator {button = MouseButton.LeftMouse, modifiers = KeyModifiers.Ctrl});
+			activators.Add(new ManipActivator { button = MouseButton.LeftMouse, modifiers = KeyModifiers.Shift});
 		}
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)

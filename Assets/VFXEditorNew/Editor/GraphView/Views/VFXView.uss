@@ -1,6 +1,5 @@
 .VFXContext.init {
 	rect-color:#FFFF00;
-
 }
 
 .VFXContext.update {
@@ -50,6 +49,15 @@ VFXContextUI {
 	min-width: 320;
 }
 
+VFXContextUI #Title {
+	min-height: 20;
+	background-color: #FFF;
+	padding-top: 2;
+	padding-left: 2;
+	padding-bottom: 2;
+	padding-right: 2;
+}
+
 VFXContextUI.selected > #NodeContents  {
 	border-color: #FFAA22;
 	border-width: 5;
@@ -74,6 +82,7 @@ VFXContextUI #NodeContents {
 	border-radius: 10;
 	background-color: #2D2D2D;
 }
+
 VFXContextUI #NodeContents Label{
 	height:20;
 	text-alignment:upper-center;
@@ -84,7 +93,7 @@ VFXContextUI #NodeContents Label{
 	font-size:12;
 }
 
-VFXContextUI #NodeBlockContainer {
+NodeBlockContainer {
 	flex:1;
 	flex-direction: column;
 	background-color: #444;
@@ -107,6 +116,16 @@ VFXNodeBlockUI {
 
 VFXNodeBlockUI #SlotContainer {
 	background-color: #F0F;
+}
+
+VFXNodeBlockUI #Title {
+	min-height: 20;
+	text-color:#8FA1DF;
+	background-color: #555;
+	padding-top: 2;
+	padding-left: 2;
+	padding-bottom: 2;
+	padding-right: 2;
 }
 
 VFXView #VFXBackgroundGrid {

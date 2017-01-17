@@ -11,12 +11,12 @@ namespace UnityEditor.VFX.UI
     {
         static int s_Counter = 0;
 
+	    Label m_Title;
         VisualContainer m_SlotContainer;
 
-        public VFXNodeBlockUI(VFXNodeBlockPresenter presenter)
+		public VFXNodeBlockUI()
         {
             pickingMode = PickingMode.Position;
-            this.presenter = presenter;
             classList = ClassList.empty;
 
             m_SlotContainer = new VisualContainer()
@@ -24,37 +24,42 @@ namespace UnityEditor.VFX.UI
                 name = "SlotContainer"
             };
 
-            AddChild(new Label(new GUIContent(presenter.Model.Desc.Name+" "+(s_Counter++))));
+		    m_Title = new Label(new GUIContent("")) {name = "Title"};
+			AddChild(m_Title);
             AddChild(m_SlotContainer);
         }
 
         public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
         {
-			if (selectionContainer != parent || !IsSelectable())
+			NodeBlockContainer nodeBlockContainer = selectionContainer as NodeBlockContainer;
+			if (nodeBlockContainer == null || nodeBlockContainer != parent || !IsSelectable())
 				return EventPropagation.Continue;
 
-			foreach (var child in selectionContainer.allChildren)
-            {
-                var block = (child as VFXNodeBlockUI);
-                if (block != null)
-                    block.presenter.selected = false;
-            }
+			if (nodeBlockContainer.selection.Contains(this))
+			{
+				if (evt.control)
+				{
+					nodeBlockContainer.RemoveFromSelection(this);
+					return EventPropagation.Stop;
+				}
+			}
 
-			presenter.selected = true;
+			if (!evt.control)
+				nodeBlockContainer.ClearSelection();
+			nodeBlockContainer.AddToSelection(this);
 
-			var graphView = selectionContainer.GetFirstAncestorOfType<GraphView>();
-            if (graphView != null)
-			    graphView.contentViewContainer.Touch(ChangeType.Layout);
-
-            return EventPropagation.Continue;
+			return EventPropagation.Continue;
         }
 
+        // On purpose -- until we support Drag&Drop I suppose
 		public override void SetPosition(Rect newPos)
 		{
 		}
 
         public override void OnDataChanged()
         {
+			var presenter = GetPresenter<VFXNodeBlockPresenter>();
+
 			if (presenter == null)
 			{
 				return;
@@ -62,12 +67,14 @@ namespace UnityEditor.VFX.UI
 
 			if (presenter.selected)
 			{
-				AddToClassList("selected");
+				AddToClassListConditional("selected");
 			}
 			else
 			{
 				RemoveFromClassList("selected");
 			}
+
+			m_Title.content.text = presenter.Model.Desc.Name + " " + (s_Counter++);
 
 			SetPosition(presenter.position);
 		}

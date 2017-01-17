@@ -54,6 +54,5 @@ namespace UnityEditor.VFX.UI
         {
             GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc);
         }
-           
     }
 }
