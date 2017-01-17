@@ -9,19 +9,19 @@ using UnityEngine.Graphing;
 namespace UnityEditor.Graphing.Drawing
 {
     [Serializable]
-    public abstract class AbstractGraphDataSource : GraphViewPresenter
+    public abstract class AbstractGraphPresenter : GraphViewPresenter
     {
-        private readonly TypeMapper m_DataMapper = new TypeMapper(typeof(NodeDrawData));
+        private readonly TypeMapper m_DataMapper = new TypeMapper(typeof(GraphNodePresenter));
 
         public IGraphAsset graphAsset { get; private set; }
 
         [SerializeField]
-        private TitleBarDrawData m_TitleBar;
+        private TitleBarPresenter m_TitleBar;
 
         [SerializeField]
         private EditorWindow m_Container;
 
-        public TitleBarDrawData titleBar
+        public TitleBarPresenter titleBar
         {
             get { return m_TitleBar; }
         }
@@ -32,7 +32,7 @@ namespace UnityEditor.Graphing.Drawing
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
             {
-                var theElements = m_Elements.OfType<NodeDrawData>().ToList();
+                var theElements = m_Elements.OfType<GraphNodePresenter>().ToList();
                 var found = theElements.Where(x => x.node.guid == node.guid).ToList();
                 foreach (var drawableNodeData in found)
                     drawableNodeData.OnModified(scope);
@@ -51,12 +51,12 @@ namespace UnityEditor.Graphing.Drawing
         {
             // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
             var deletedElements = m_Elements
-                .OfType<NodeDrawData>()
+                .OfType<GraphNodePresenter>()
                 .Where(nd => !graphAsset.graph.GetNodes<INode>().Contains(nd.node))
                 .OfType<GraphElementPresenter>()
                 .ToList();
 
-            var deletedEdges = m_Elements.OfType<EdgeDrawData>()
+            var deletedEdges = m_Elements.OfType<GraphEdgePresenter>()
                 .Where(ed => !graphAsset.graph.edges.Contains(ed.edge));
 
             // Find all edges currently being drawn which are no longer in the graph (i.e. deleted)
@@ -67,7 +67,7 @@ namespace UnityEditor.Graphing.Drawing
                 edgeData.input.Disconnect(edgeData);
 
                 var toNodeGuid = edgeData.edge.inputSlot.nodeGuid;
-                var toNode = m_Elements.OfType<NodeDrawData>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
+                var toNode = m_Elements.OfType<GraphNodePresenter>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
                 if (toNode != null)
                 {
                     // Make the input node (i.e. right side of the connection) re-render
@@ -83,17 +83,17 @@ namespace UnityEditor.Graphing.Drawing
                 m_Elements.Remove(deletedElement);
             }
 
-            var addedNodes = new List<NodeDrawData>();
+            var addedNodes = new List<GraphNodePresenter>();
 
             // Find all new nodes and mark for addition
             foreach (var node in graphAsset.graph.GetNodes<INode>())
             {
                 // Check whether node already exists
-                if (m_Elements.OfType<NodeDrawData>().Any(e => e.node == node))
+                if (m_Elements.OfType<GraphNodePresenter>().Any(e => e.node == node))
                     continue;
 
                 var type = m_DataMapper.MapType(node.GetType());
-                var nodeData = (NodeDrawData)CreateInstance(type);
+                var nodeData = (GraphNodePresenter)CreateInstance(type);
 
                 node.onModified += OnNodeChanged;
 
@@ -102,13 +102,13 @@ namespace UnityEditor.Graphing.Drawing
             }
 
             // Create edge data for nodes marked for addition
-            var drawableEdges = new List<EdgeDrawData>();
+            var drawableEdges = new List<GraphEdgePresenter>();
             foreach (var addedNode in addedNodes)
             {
                 var baseNode = addedNode.node;
                 foreach (var slot in baseNode.GetOutputSlots<ISlot>())
                 {
-                    var sourceAnchors = addedNode.elements.OfType<AnchorDrawData>();
+                    var sourceAnchors = addedNode.elements.OfType<GraphAnchorPresenter>();
                     var sourceAnchor = sourceAnchors.FirstOrDefault(x => x.slot == slot);
 
                     var edges = baseNode.owner.GetEdges(new SlotReference(baseNode.guid, slot.id));
@@ -117,10 +117,10 @@ namespace UnityEditor.Graphing.Drawing
                         var toNode = baseNode.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                         var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
                         var targetNode = addedNodes.FirstOrDefault(x => x.node == toNode);
-                        var targetAnchors = targetNode.elements.OfType<AnchorDrawData>();
+                        var targetAnchors = targetNode.elements.OfType<GraphAnchorPresenter>();
                         var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
 
-                        var edgeData = CreateInstance<EdgeDrawData>();
+                        var edgeData = CreateInstance<GraphEdgePresenter>();
                         edgeData.Initialize(edge);
                         edgeData.output = sourceAnchor;
                         edgeData.output.Connect(edgeData);
@@ -137,23 +137,23 @@ namespace UnityEditor.Graphing.Drawing
             // Find edges in the graph that are not being drawn and create edge data for them
             foreach (var edge in graphAsset.graph.edges)
             {
-                if (!m_Elements.OfType<EdgeDrawData>().Any(ed => ed.edge == edge))
+                if (!m_Elements.OfType<GraphEdgePresenter>().Any(ed => ed.edge == edge))
                 {
                     var fromNode = graphAsset.graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
                     var fromSlot = fromNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
-                    var sourceNode = m_Elements.OfType<NodeDrawData>().FirstOrDefault(x => x.node == fromNode);
-                    var sourceAnchors = sourceNode.elements.OfType<AnchorDrawData>();
+                    var sourceNode = m_Elements.OfType<GraphNodePresenter>().FirstOrDefault(x => x.node == fromNode);
+                    var sourceAnchors = sourceNode.elements.OfType<GraphAnchorPresenter>();
                     var sourceAnchor = sourceAnchors.FirstOrDefault(x => x.slot == fromSlot);
 
                     var toNode = graphAsset.graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                     var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
-                    var targetNode = m_Elements.OfType<NodeDrawData>().FirstOrDefault(x => x.node == toNode);
-                    var targetAnchors = targetNode.elements.OfType<AnchorDrawData>();
+                    var targetNode = m_Elements.OfType<GraphNodePresenter>().FirstOrDefault(x => x.node == toNode);
+                    var targetAnchors = targetNode.elements.OfType<GraphAnchorPresenter>();
                     var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
 
                     OnNodeChanged(targetNode.node, ModificationScope.Graph);
 
-                    var edgeData = CreateInstance<EdgeDrawData>();
+                    var edgeData = CreateInstance<GraphEdgePresenter>();
                     edgeData.Initialize(edge);
                     edgeData.output = sourceAnchor;
                     edgeData.output.Connect(edgeData);
@@ -176,7 +176,7 @@ namespace UnityEditor.Graphing.Drawing
             this.graphAsset = graphAsset;
             m_Container = container;
 
-            m_TitleBar = CreateInstance<TitleBarDrawData>();
+            m_TitleBar = CreateInstance<TitleBarPresenter>();
             m_TitleBar.Initialize(graphAsset);
 
             if (graphAsset == null)
@@ -192,7 +192,7 @@ namespace UnityEditor.Graphing.Drawing
             UpdateData();
         }
 
-        public void RemoveElements(IEnumerable<NodeDrawData> nodes, IEnumerable<EdgeDrawData> edges)
+        public void RemoveElements(IEnumerable<GraphNodePresenter> nodes, IEnumerable<GraphEdgePresenter> edges)
         {
             graphAsset.graph.RemoveElements(nodes.Select(x => x.node), edges.Select(x => x.edge));
             graphAsset.graph.ValidateGraph();
@@ -200,7 +200,7 @@ namespace UnityEditor.Graphing.Drawing
             UpdateData();
         }
 
-        public void Connect(AnchorDrawData left, AnchorDrawData right)
+        public void Connect(GraphAnchorPresenter left, GraphAnchorPresenter right)
         {
             if (left != null && right != null)
             {
@@ -215,17 +215,17 @@ namespace UnityEditor.Graphing.Drawing
             var graph = new CopyPasteGraph();
             foreach (var presenter in selection)
             {
-                var nodeDrawData = presenter as NodeDrawData;
-                if (nodeDrawData != null)
+                var nodePresenter = presenter as GraphNodePresenter;
+                if (nodePresenter != null)
                 {
-                    graph.AddNode(nodeDrawData.node);
-                    foreach (var edge in NodeUtils.GetAllEdges(nodeDrawData.node))
+                    graph.AddNode(nodePresenter.node);
+                    foreach (var edge in NodeUtils.GetAllEdges(nodePresenter.node))
                         graph.AddEdge(edge);
                 }
 
-                var edgeDrawData = presenter as EdgeDrawData;
-                if (edgeDrawData != null)
-                    graph.AddEdge(edgeDrawData.edge);
+                var edgePresenter = presenter as GraphEdgePresenter;
+                if (edgePresenter != null)
+                    graph.AddEdge(edgePresenter.edge);
             }
             return graph;
         }
@@ -313,7 +313,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public override void AddElement(EdgePresenter edge)
         {
-            Connect(edge.output as AnchorDrawData, edge.input as AnchorDrawData);
+            Connect(edge.output as GraphAnchorPresenter, edge.input as GraphAnchorPresenter);
         }
 
         public override void AddElement(GraphElementPresenter element)

@@ -31,7 +31,7 @@ namespace UnityEngine.Graphing
         T FindInputSlot<T>(int slotId) where T : ISlot;
         T FindOutputSlot<T>(int slotId) where T : ISlot;
         IEnumerable<ISlot> GetInputsWithNoConnection();
-        DrawingData drawState { get; set; }
+        DrawState drawState { get; set; }
         bool hasError { get; }
         void ValidateNode();
         void UpdateNodeAfterDeserialization();

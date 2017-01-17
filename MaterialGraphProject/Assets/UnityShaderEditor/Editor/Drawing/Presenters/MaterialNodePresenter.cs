@@ -9,9 +9,9 @@ using UnityEngine.MaterialGraph;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    public class MaterialNodeDrawData : NodeDrawData
+    public class MaterialNodePresenter : GraphNodePresenter
     {
-        NodePreviewDrawData m_NodePreviewDrawData;
+        NodePreviewPresenter m_NodePreviewPresenter;
 
         public bool requiresTime
         {
@@ -27,7 +27,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 {
                     yield return element;
                 }
-                yield return m_NodePreviewDrawData;
+                yield return m_NodePreviewPresenter;
             }
         }
 
@@ -35,11 +35,11 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnModified(scope);
             // TODO: Propagate callback rather than setting property
-            if (m_NodePreviewDrawData != null)
-                m_NodePreviewDrawData.modificationScope = scope;
+            if (m_NodePreviewPresenter != null)
+                m_NodePreviewPresenter.modificationScope = scope;
         }
 
-        protected MaterialNodeDrawData()
+        protected MaterialNodePresenter()
         {}
 
         public override void Initialize(INode inNode)
@@ -54,9 +54,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (materialNode == null || !materialNode.hasPreview)
                 return;
 
-            m_NodePreviewDrawData = CreateInstance<NodePreviewDrawData>();
-            m_NodePreviewDrawData.Initialize(materialNode);
-//            m_Children.Add(m_NodePreviewDrawData);
+            m_NodePreviewPresenter = CreateInstance<NodePreviewPresenter>();
+            m_NodePreviewPresenter.Initialize(materialNode);
         }
     }
 }

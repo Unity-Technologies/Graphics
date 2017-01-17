@@ -6,7 +6,7 @@ using UnityEditor.Graphing.Drawing;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    class ColorContolDrawData : ControlDrawData
+    class ColorContolPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
         {
@@ -26,11 +26,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-    public class ColorNodeDrawData : MaterialNodeDrawData
+    public class ColorNodePresenter : MaterialNodePresenter
     {
         protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
-            var instance = CreateInstance<ColorContolDrawData>();
+            var instance = CreateInstance<ColorContolPresenter>();
             instance.Initialize(node);
             return new List<GraphElementPresenter> { instance };
         }

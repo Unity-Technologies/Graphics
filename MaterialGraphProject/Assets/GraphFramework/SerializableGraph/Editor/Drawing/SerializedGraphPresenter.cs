@@ -4,14 +4,14 @@ using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    public class SerializedGraphDataSource : AbstractGraphDataSource
+    public class SerializedGraphPresenter : AbstractGraphPresenter
     {
-        protected SerializedGraphDataSource()
+        protected SerializedGraphPresenter()
         {}
 
         protected override void AddTypeMappings(Action<Type, Type> map)
         {
-            map(typeof(SerializableNode), typeof(NodeDrawData));
+            map(typeof(SerializableNode), typeof(GraphNodePresenter));
         }
     }
 }

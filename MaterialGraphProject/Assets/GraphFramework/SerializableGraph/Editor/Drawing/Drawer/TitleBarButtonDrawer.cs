@@ -7,11 +7,11 @@ namespace UnityEditor.Graphing.Drawing
 {
     public class TitleBarButtonDrawer : DataWatchContainer
     {
-        TitleBarButtonDrawData m_dataProvider;
+        TitleBarButtonPresenter m_dataProvider;
         Clicker m_clicker;
         VisualElement m_label;
 
-        public TitleBarButtonDrawData dataProvider
+        public TitleBarButtonPresenter dataProvider
         {
             get { return m_dataProvider; }
             set
@@ -25,7 +25,7 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        public TitleBarButtonDrawer(TitleBarButtonDrawData dataProvider)
+        public TitleBarButtonDrawer(TitleBarButtonPresenter dataProvider)
         {
             classList = new ClassList("titleBarItem");
 

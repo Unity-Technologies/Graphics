@@ -8,7 +8,7 @@ using UnityEngine.MaterialGraph;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    class SubgraphContolDrawData : ControlDrawData
+    class SubgraphContolPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
         {
@@ -31,11 +31,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-    public class SubgraphNodeDrawData : MaterialNodeDrawData
+    public class SubgraphNodePresenter : MaterialNodePresenter
     {
         protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
-            var instance = CreateInstance<SubgraphContolDrawData>();
+            var instance = CreateInstance<SubgraphContolPresenter>();
             instance.Initialize(node);
             return new List<GraphElementPresenter> { instance };
         }

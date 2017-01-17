@@ -6,9 +6,9 @@ using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    public class NodeDrawData : NodePresenter
+    public class GraphNodePresenter : NodePresenter
     {
-        protected NodeDrawData()
+        protected GraphNodePresenter()
         {}
 
         public INode node { get; private set; }
@@ -29,7 +29,7 @@ namespace UnityEditor.Graphing.Drawing
                 if (base.expanded != value)
                 {
                     base.expanded = value;
-                    DrawingData ds = node.drawState;
+                    DrawState ds = node.drawState;
                     ds.expanded = value;
                     node.drawState = ds;
                 }
@@ -44,21 +44,21 @@ namespace UnityEditor.Graphing.Drawing
             {
                 var slots = node.GetSlots<ISlot>().ToList();
 
-                inputAnchors.RemoveAll(data => !slots.Contains(((AnchorDrawData)data).slot));
-                outputAnchors.RemoveAll(data => !slots.Contains(((AnchorDrawData)data).slot));
+                inputAnchors.RemoveAll(data => !slots.Contains(((GraphAnchorPresenter)data).slot));
+                outputAnchors.RemoveAll(data => !slots.Contains(((GraphAnchorPresenter)data).slot));
 
-                AddSlots(slots.Except(inputAnchors.Concat(outputAnchors).Select(data => ((AnchorDrawData)data).slot)));
+                AddSlots(slots.Except(inputAnchors.Concat(outputAnchors).Select(data => ((GraphAnchorPresenter)data).slot)));
 
-                inputAnchors.Sort((x, y) => slots.IndexOf(((AnchorDrawData)x).slot) - slots.IndexOf(((AnchorDrawData)y).slot));
-                outputAnchors.Sort((x, y) => slots.IndexOf(((AnchorDrawData)x).slot) - slots.IndexOf(((AnchorDrawData)y).slot));
+                inputAnchors.Sort((x, y) => slots.IndexOf(((GraphAnchorPresenter)x).slot) - slots.IndexOf(((GraphAnchorPresenter)y).slot));
+                outputAnchors.Sort((x, y) => slots.IndexOf(((GraphAnchorPresenter)x).slot) - slots.IndexOf(((GraphAnchorPresenter)y).slot));
             }
         }
 
         public override void CommitChanges()
         {
-            var drawData = node.drawState;
-            drawData.position = position;
-            node.drawState = drawData;
+            var drawState = node.drawState;
+            drawState.position = position;
+            node.drawState = drawState;
         }
 
         protected virtual IEnumerable<GraphElementPresenter> GetControlData()
@@ -70,7 +70,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             foreach (var slot in slots)
             {
-                var data = CreateInstance<AnchorDrawData>();
+                var data = CreateInstance<GraphAnchorPresenter>();
                 data.Initialize(slot);
                 if (slot.isOutputSlot)
                 {

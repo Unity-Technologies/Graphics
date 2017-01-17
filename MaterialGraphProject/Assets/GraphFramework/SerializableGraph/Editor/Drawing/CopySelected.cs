@@ -159,14 +159,14 @@ namespace UnityEditor.Graphing.Drawing
             if (pastedGraph == null)
                 return;
 
-            if (parent.dataSource == null)
+            if (parent.presenter == null)
                 return;
 
-            var dataSource = parent.dataSource as GraphDataSource;
-            if (dataSource == null)
+            var presenter = parent.presenter as GraphDataSource;
+            if (presenter == null)
                 return;
 
-            var asset = dataSource.graphAsset;
+            var asset = presenter.graphAsset;
             if (asset == null)
                 return;
 

@@ -15,7 +15,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         protected GUIContent m_Title = new GUIContent();
 
-        private NodePreviewDrawData m_NodePreviewPresenter;
+        private NodePreviewPresenter m_NodePreviewPresenter;
 
         private AbstractMaterialNode m_PreviewNode;
 
@@ -58,7 +58,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public override void OnEnable()
         {
-            m_NodePreviewPresenter = CreateInstance<NodePreviewDrawData>();
+            m_NodePreviewPresenter = CreateInstance<NodePreviewPresenter>();
             base.OnEnable();
             previewNode = null;
         }

@@ -10,9 +10,9 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-    public class NodePreviewDrawData : GraphElementPresenter
+    public class NodePreviewPresenter : GraphElementPresenter
     {
-        protected NodePreviewDrawData()
+        protected NodePreviewPresenter()
         {}
 
         private MaterialGraphPreviewGenerator m_PreviewGenerator;
@@ -120,7 +120,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var localNode = (IMasterNode)m_Node;
                 if (localNode == null)
                     return string.Empty;
-                
+
                 List<PropertyGenerator.TextureInfo> defaultTextures;
                 var resultShader =  ((IMasterNode) m_Node).GetFullShader(GenerationMode.Preview, out defaultTextures);
                 m_GeneratedShaderMode = PreviewMode.Preview3D;

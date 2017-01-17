@@ -7,7 +7,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    class Vector3ControlDrawData : ControlDrawData
+    class Vector3ControlPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
         {
@@ -27,11 +27,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-    public class Vector3NodeDrawData : PropertyNodeDrawData
+    public class Vector3NodePresenter : PropertyNodePresenter
     {
         protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
-            var instance = CreateInstance<Vector3ControlDrawData>();
+            var instance = CreateInstance<Vector3ControlPresenter>();
             instance.Initialize(node);
             return new List<GraphElementPresenter>(base.GetControlData()) { instance };
         }

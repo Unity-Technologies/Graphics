@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.Graphing
 {
     [Serializable]
-    public struct DrawingData
+    public struct DrawState
     {
         [SerializeField]
         private bool m_Expanded;

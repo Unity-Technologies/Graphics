@@ -16,9 +16,9 @@ namespace UnityEditor.Graphing.Drawing
     // TODO JOCE Use GraphView's Input and Output node anchors instead.
 
     [Serializable]
-    public class AnchorDrawData : NodeAnchorPresenter
+    public class GraphAnchorPresenter : NodeAnchorPresenter
     {
-        protected AnchorDrawData()
+        protected GraphAnchorPresenter()
         {}
 
         public ISlot slot { get; private set; }

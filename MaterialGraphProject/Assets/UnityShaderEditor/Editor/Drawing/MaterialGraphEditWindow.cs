@@ -12,9 +12,9 @@ namespace UnityEditor.MaterialGraph.Drawing
             GetWindow<MaterialGraphEditWindow>();
         }
 
-        public override AbstractGraphDataSource CreateDataSource()
+        public override AbstractGraphPresenter CreateDataSource()
         {
-            return CreateInstance<MaterialGraphDataSource>();
+            return CreateInstance<MaterialGraphPresenter>();
         }
 
         public override GraphView CreateGraphView()
