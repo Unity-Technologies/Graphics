@@ -11,6 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d440c0deec24a2f478b3e9021cb66c29, type: 3}
   m_Name: HDRenderPipeline
   m_EditorClassIdentifier: 
+  m_setup: {fileID: 11400000, guid: c90ada6c2ed7b4e4b85a303678826111, type: 2}
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096
