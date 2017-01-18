@@ -5,9 +5,9 @@ using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Util
 {
-    public class TypeMapper : BaseTypeMapper<INode, ScriptableObject>
+    public class GraphTypeMapper : BaseTypeMapper<INode, ScriptableObject>
     {
-        public TypeMapper(Type fallbackType) : base(fallbackType)
+        public GraphTypeMapper(Type fallbackType) : base(fallbackType)
         {
         }
 

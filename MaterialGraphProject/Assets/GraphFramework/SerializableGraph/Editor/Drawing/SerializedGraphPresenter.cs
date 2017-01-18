@@ -6,7 +6,7 @@ namespace UnityEditor.Graphing.Drawing
     {
         protected SerializedGraphPresenter()
         {
-            dataMapper[typeof(SerializableNode)] = typeof(GraphNodePresenter);
+            typeMapper[typeof(SerializableNode)] = typeof(GraphNodePresenter);
         }
     }
 }

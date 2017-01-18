@@ -43,9 +43,9 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         protected AbstractMaterialGraphInspector()
         {
-            dataMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodeInspector);
-            dataMapper[typeof(SubGraphInputNode)] = typeof(SubgraphInputNodeInspector);
-            dataMapper[typeof(SubGraphOutputNode)] = typeof(SubgraphOutputNodeInspector);
+            typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodeInspector);
+            typeMapper[typeof(SubGraphInputNode)] = typeof(SubgraphInputNodeInspector);
+            typeMapper[typeof(SubGraphOutputNode)] = typeof(SubgraphOutputNodeInspector);
         }
 
         private void OnPreviewNodeModified(INode node, ModificationScope scope)

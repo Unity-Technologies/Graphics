@@ -11,7 +11,7 @@ namespace UnityEditor.Graphing.Drawing
     [Serializable]
     public abstract class AbstractGraphPresenter : GraphViewPresenter
     {
-        protected TypeMapper dataMapper { get; set; }
+        protected GraphTypeMapper typeMapper { get; set; }
 
         public IGraphAsset graphAsset { get; private set; }
 
@@ -28,7 +28,7 @@ namespace UnityEditor.Graphing.Drawing
 
         protected AbstractGraphPresenter()
         {
-            dataMapper = new TypeMapper(typeof(GraphNodePresenter));
+            typeMapper = new GraphTypeMapper(typeof(GraphNodePresenter));
         }
 
         void OnNodeChanged(INode inNode, ModificationScope scope)
@@ -97,7 +97,7 @@ namespace UnityEditor.Graphing.Drawing
                 if (m_Elements.OfType<GraphNodePresenter>().Any(e => e.node == node))
                     continue;
 
-                var nodeData = (GraphNodePresenter)dataMapper.Create(node);
+                var nodeData = (GraphNodePresenter)typeMapper.Create(node);
 
                 node.onModified += OnNodeChanged;
 
