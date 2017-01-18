@@ -194,46 +194,6 @@ float3 SampleLayerNormalRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV laye
 #define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord, scale) SampleLayerNormalAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
 #define SAMPLE_LAYER_NORMALMAP_RGB(textureName, samplerName, coord, scale) SampleLayerNormalRGB(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
 
-// This function apply per pixel displacement mapping algorithm
-// It will determine offset for uv coordinate to apply.
-// Note that we also need to affect ligthmaps uv, so FragInputs will be modfy too
-// This function return current sampled heights (up to 4) + height at intersection
-void ApplyDisplacement(FragInputs input, inout LayerTexCoord layerTexCoord)
-{
-#if defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT)
-
-    // ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
-    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
-    // Change the number of samples per ray depending on the viewing angle for the surface. 
-    // Oblique angles require  smaller step sizes to achieve more accurate precision for computing displacement.
-    int numSteps = (int)lerp(_PPPMaxSamples, _PPPMinSamples, viewDirTS.z);
-
-    // View vector is from the point to the camera, but we want to raymarch from camera to point, so reverse the sign
-    // The length of viewDirTS vector determines the furthest amount of displacement:
-    // float parallaxLimit = -length(viewDirTS.xy) / viewDirTS.z;
-    // float2 parallaxDir = normalize(Out.viewDirTS.xy);
-    // float2 parallaxMaxOffsetTS = parallaxDir * parallaxLimit;
-    // Above code simplify to
-    float2 parallaxMaxOffsetTS = (viewDirTS.xy / -viewDirTS.z) /*  * _POMHeightMapScale.x */;
-
-
-    
-    float2 texOffsetPerStep = stepSize * parallaxMaxOffsetTS;
-
-#ifdef _LAYER_COUNT
-    ParallaxOcclusionMappingLayer0(layerTexCoord, numSteps, texOffsetPerStep);
-    ParallaxOcclusionMappingLayer1(layerTexCoord, numSteps, texOffsetPerStep);
-    ParallaxOcclusionMappingLayer2(layerTexCoord, numSteps, texOffsetPerStep);
-    ParallaxOcclusionMappingLayer3(layerTexCoord, numSteps, texOffsetPerStep);
-#else
-    ParallaxOcclusionMappingLayer(layerTexCoord, numSteps, texOffsetPerStep);
-#endif
-
-    // TODO: We are supposed to modify lightmaps coordinate (fetch in GetBuiltin), but this isn't the same uv mapping, so can't apply the offset here...
-    // Let's assume it will be "fine" as indirect diffuse is often low frequency
-#endif
-}
-
 #ifndef LAYERED_LIT_SHADER
 
 #define LAYER_INDEX 0
@@ -262,6 +222,24 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                             positionWS, normalWS, isTriplanar, layerTexCoord);
 }
 
+void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
+{
+#if defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT)
+
+    // ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
+    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
+    // Change the number of samples per ray depending on the viewing angle for the surface. 
+    // Oblique angles require  smaller step sizes to achieve more accurate precision for computing displacement.
+    // int numSteps = (int)lerp(_PPPMaxSamples, _PPPMinSamples, viewDirTS.z);
+    int numSteps = (int)lerp(15, 15, viewDirTS.z);
+
+    ParallaxOcclusionMappingLayer(layerTexCoord, numSteps, viewDirTS);
+
+    // TODO: We are supposed to modify lightmaps coordinate (fetch in GetBuiltin), but this isn't the same uv mapping, so can't apply the offset here...
+    // Let's assume it will be "fine" as indirect diffuse is often low frequency
+#endif
+}
+
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     LayerTexCoord layerTexCoord;
@@ -269,7 +247,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
                      input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
 
 
-    ApplyDisplacement(input, layerTexCoord);
+    ApplyPerPixelDisplacement(input, V, layerTexCoord);
     float depthOffset = 0.0;
 
 #ifdef _DEPTHOFFSET_ON
@@ -440,13 +418,26 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                             positionWS, normalWS, isTriplanar, layerTexCoord);
 }
 
+void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
+{
+#if defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT)
+    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
+    int numSteps = (int)lerp(15, 15, viewDirTS.z);
+
+    ParallaxOcclusionMappingLayer0(layerTexCoord, numSteps, viewDirTS);
+    ParallaxOcclusionMappingLayer1(layerTexCoord, numSteps, viewDirTS);
+    ParallaxOcclusionMappingLayer2(layerTexCoord, numSteps, viewDirTS);
+    ParallaxOcclusionMappingLayer3(layerTexCoord, numSteps, viewDirTS);
+#endif
+}
+
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     LayerTexCoord layerTexCoord;
     GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
                      input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
 
-    ApplyDisplacement(input, layerTexCoord);
+    ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
     float height0 = SampleHeightmap0(LayerTexCoord layerTexCoord);
     float height1 = SampleHeightmap1(LayerTexCoord layerTexCoord);
