@@ -121,7 +121,7 @@ float4 SampleLayerLod(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, f
 
 // TODO: Handle BC5 format, currently this code is for DXT5nm
 // THis function below must call UnpackNormalmapRGorAG
-float3 SampleNormalLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
+float3 SampleLayerNormal(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
 {
     if (layerUV.isTriplanar)
     {
@@ -143,7 +143,7 @@ float3 SampleNormalLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV
 }
 
 // This version is for normalmap with AG encoding only (use with details map)
-float3 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
+float3 SampleLayerNormalAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
 {
     if (layerUV.isTriplanar)
     {
@@ -166,7 +166,7 @@ float3 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layer
 
 // This version is for normalmap with RGB encoding only, i.e non encoding. It is necessary to use this abstraction to handle correctly triplanar
 // plus consistent with the normal scale parameter
-float3 SampleNormalLayerRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
+float3 SampleLayerNormalRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
 {
     if (layerUV.isTriplanar)
     {
@@ -190,12 +190,49 @@ float3 SampleNormalLayerRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV laye
 // Macro to improve readibility of surface data
 #define SAMPLE_LAYER_TEXTURE2D(textureName, samplerName, coord) SampleLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
 #define SAMPLE_LAYER_TEXTURE2D_LOD(textureName, samplerName, coord, lod) SampleLayerLod(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, lod)
-#define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord, scale) SampleNormalLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
-#define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord, scale) SampleNormalLayerAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
-#define SAMPLE_LAYER_NORMALMAP_RGB(textureName, samplerName, coord, scale) SampleNormalLayerRGB(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
+#define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord, scale) SampleLayerNormal(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
+#define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord, scale) SampleLayerNormalAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
+#define SAMPLE_LAYER_NORMALMAP_RGB(textureName, samplerName, coord, scale) SampleLayerNormalRGB(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
 
-// Transforms 2D UV by scale/bias property
-#define TRANSFORM_TEX(tex,name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
+// This function apply per pixel displacement mapping algorithm
+// It will determine offset for uv coordinate to apply.
+// Note that we also need to affect ligthmaps uv, so FragInputs will be modfy too
+// This function return current sampled heights (up to 4) + height at intersection
+void ApplyDisplacement(FragInputs input, inout LayerTexCoord layerTexCoord)
+{
+#if defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT)
+
+    // ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
+    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
+    // Change the number of samples per ray depending on the viewing angle for the surface. 
+    // Oblique angles require  smaller step sizes to achieve more accurate precision for computing displacement.
+    int numSteps = (int)lerp(_PPPMaxSamples, _PPPMinSamples, viewDirTS.z);
+
+    // View vector is from the point to the camera, but we want to raymarch from camera to point, so reverse the sign
+    // The length of viewDirTS vector determines the furthest amount of displacement:
+    // float parallaxLimit = -length(viewDirTS.xy) / viewDirTS.z;
+    // float2 parallaxDir = normalize(Out.viewDirTS.xy);
+    // float2 parallaxMaxOffsetTS = parallaxDir * parallaxLimit;
+    // Above code simplify to
+    float2 parallaxMaxOffsetTS = (viewDirTS.xy / -viewDirTS.z) /*  * _POMHeightMapScale.x */;
+
+
+    
+    float2 texOffsetPerStep = stepSize * parallaxMaxOffsetTS;
+
+#ifdef _LAYER_COUNT
+    ParallaxOcclusionMappingLayer0(layerTexCoord, numSteps, texOffsetPerStep);
+    ParallaxOcclusionMappingLayer1(layerTexCoord, numSteps, texOffsetPerStep);
+    ParallaxOcclusionMappingLayer2(layerTexCoord, numSteps, texOffsetPerStep);
+    ParallaxOcclusionMappingLayer3(layerTexCoord, numSteps, texOffsetPerStep);
+#else
+    ParallaxOcclusionMappingLayer(layerTexCoord, numSteps, texOffsetPerStep);
+#endif
+
+    // TODO: We are supposed to modify lightmaps coordinate (fetch in GetBuiltin), but this isn't the same uv mapping, so can't apply the offset here...
+    // Let's assume it will be "fine" as indirect diffuse is often low frequency
+#endif
+}
 
 #ifndef LAYERED_LIT_SHADER
 
@@ -231,9 +268,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
                      input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
 
-    // Transform view vector in tangent space
-    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
-    ApplyDisplacement(input, viewDirTS, layerTexCoord);
+
+    ApplyDisplacement(input, layerTexCoord);
     float depthOffset = 0.0;
 
 #ifdef _DEPTHOFFSET_ON
@@ -410,14 +446,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
                      input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
 
-    // Transform view vector in tangent space
-    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
-    float height0 = ApplyDisplacement0(input, viewDirTS, layerTexCoord);
-    float height1 = ApplyDisplacement1(input, viewDirTS, layerTexCoord);
-    float height2 = ApplyDisplacement2(input, viewDirTS, layerTexCoord);
-    float height3 = ApplyDisplacement3(input, viewDirTS, layerTexCoord);
-    float depthOffset = 0.0;
+    ApplyDisplacement(input, layerTexCoord);
 
+    float height0 = SampleHeightmap0(LayerTexCoord layerTexCoord);
+    float height1 = SampleHeightmap1(LayerTexCoord layerTexCoord);
+    float height2 = SampleHeightmap2(LayerTexCoord layerTexCoord);
+    float height3 = SampleHeightmap3(LayerTexCoord layerTexCoord);
+
+    float depthOffset = 0.0;
 #ifdef _DEPTHOFFSET_ON
     ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
 #endif

@@ -53,6 +53,66 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_DetailMap));
 }
 
+float ADD_IDX(SampleHeightmap)(LayerTexCoord layerTexCoord)
+{
+#if defined(_HEIGHTMAP)
+    return (SAMPLE_TEXTURE2D(ADD_IDX(_HeightMap), ADD_IDX(sampler_HeightMap)).r - ADD_IDX(_HeightCenter)) * ADD_IDX(_HeightAmplitude);
+#else
+    return 0.0;
+#endif
+}
+
+void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, float numSteps, float2 texOffsetPerStep)
+{
+    float2 uv = ADD_IDX(layerTexCoord.base).uv;
+
+    // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion
+    float stepSize = 1.0 / (float)numSteps;
+
+    // Compute lod as we will sample inside a lop (so can't use regular sampling)
+    float lod = CALCULATE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_IDX(sampler_HeightMap), uv);
+
+    // Do a first step before the loop to init all value correctly
+    float2 texOffsetCurrent = uv;
+    float prevHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_IDX(sampler_HeightMap), texOffsetCurrent, lod).r * ADD_IDX(_HeightAmplitude);
+    texOffsetCurrent += texOffsetPerStep;
+    float currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_IDX(sampler_HeightMap), texOffsetCurrent, lod).r * ADD_IDX(_HeightAmplitude);
+    float rayHeight = 1.0 - stepSize; // Start at top less one sample
+
+    // Linear search
+    for (int stepIndex = 0; stepIndex < numSteps; ++stepIndex)
+    {
+        // Have we found a height below our ray height ? then we have an intersection
+        if (currHeight > rayHeight)
+            break; // end the loop
+
+        prevHeight = currHeight;
+        rayHeight -= stepSize;
+        texOffsetCurrent += texOffsetPerStep;
+
+        // Sample height map which in this case is stored in the alpha channel of the normal map:
+        currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_IDX(sampler_HeightMap), texOffsetCurrent, lod).r * ADD_IDX(_HeightAmplitude);
+    }
+
+    // Found below and above points, now perform line interesection (ray) with piecewise linear heightfield approximation
+    float t0 = rayHeight + stepSize;
+    float t1 = rayHeight; 
+    float delta0 = t0 - prevHeight;
+    float delta1 = t1 - currHeight;
+
+#define POM_REFINE 0
+#if POM_REFINE
+
+#else
+    float t = (t0 * delta1 - t1 * delta0) / (delta1 - delta0);
+    float2 offset = uv + (1 - t) * texOffsetPerStep * numSteps;
+#endif
+
+    // Apply offset
+    ADD_IDX(layerTexCoord.base).uv += offset;
+    ADD_IDX(layerTexCoord.details).uv += offset;    
+}
+
 // Return opacity
 float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData, out float3 normalTS)
 {
