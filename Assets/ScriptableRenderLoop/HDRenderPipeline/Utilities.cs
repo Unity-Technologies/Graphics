@@ -89,14 +89,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
+        // Important: the first RenderTarget must be created with 0 depth bits!
         public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, RenderTargetIdentifier[] colorBuffers, int shaderPassID = 0)
         {
-            // A workaround for the deficiency of the CommandBuffer.SetRenderTarget() API.
-            const int tempDepthBufferID = 95485683;
-            commandBuffer.GetTemporaryRT(tempDepthBufferID, 2283, 767, 24, FilterMode.Point, RenderTextureFormat.Depth);
-            RenderTargetIdentifier tempDepthBuffer = new RenderTargetIdentifier(tempDepthBufferID);
-
-            commandBuffer.SetRenderTarget(colorBuffers, tempDepthBuffer);
+            // It is currently not possible to have MRT without also setting a depth target.
+            // To work around this deficiency of the CommandBuffer.SetRenderTarget() API,
+            // we pass the first color target as the depth target. If it has 0 depth bits,
+            // no depth target ends up being bound.
+            commandBuffer.SetRenderTarget(colorBuffers, colorBuffers[0]);
             commandBuffer.DrawMesh(m_ScreenSpaceTriangle, Matrix4x4.identity, material, 0, shaderPassID);
         }
 
