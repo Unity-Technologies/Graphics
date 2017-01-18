@@ -26,6 +26,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return GetParameters(skyParameters).skyHDRI != null;
         }
 
+        public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
+        {
+            if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
+            {
+                Utilities.SetRenderTarget(builtinParams.renderContext, builtinParams.colorBuffer);
+            }
+            else
+            {
+                Utilities.SetRenderTarget(builtinParams.renderContext, builtinParams.colorBuffer, builtinParams.depthBuffer);
+            }
+        }
+
         override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, bool renderForCubemap)
         {
             HDRISkyParameters hdriSkyParams = GetParameters(skyParameters);
