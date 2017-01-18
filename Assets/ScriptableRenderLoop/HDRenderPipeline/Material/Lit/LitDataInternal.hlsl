@@ -53,44 +53,83 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_DetailMap));
 }
 
-float ADD_IDX(ApplyDisplacement)(inout FragInputs input, float3 viewDirTS, inout LayerTexCoord layerTexCoord)
+float ADD_IDX(SampleHeightmap)(LayerTexCoord layerTexCoord)
 {
-    float height = 0.0f;
-
 #ifdef _HEIGHTMAP
-    height = (SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r - ADD_IDX(_HeightCenter)) * ADD_IDX(_HeightAmplitude);
+    return (SAMPLE_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base).uv).r - ADD_IDX(_HeightCenter)) * ADD_IDX(_HeightAmplitude);
+#else
+    return 0.0;
+#endif
+}
 
-    //#ifdef _PER_PIXEL_DISPLACEMENT
-    // //height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
-    // float2 offset = ParallaxOffset(viewDirTS, height);
+void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, int numSteps, float3 viewDirTS)
+{
+    // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion
+    float stepSize = 1.0 / (float)numSteps;
 
-    // ADD_IDX(layerTexCoord.base).uv += offset;
-    // ADD_IDX(layerTexCoord.base).uvYZ += offset;
-    // ADD_IDX(layerTexCoord.base).uvZX += offset;
-    // ADD_IDX(layerTexCoord.base).uvXY += offset;
+    // View vector is from the point to the camera, but we want to raymarch from camera to point, so reverse the sign
+    // The length of viewDirTS vector determines the furthest amount of displacement:
+    // float parallaxLimit = -length(viewDirTS.xy) / viewDirTS.z;
+    // float2 parallaxDir = normalize(Out.viewDirTS.xy);
+    // float2 parallaxMaxOffsetTS = parallaxDir * parallaxLimit;
+    // Above code simplify to
+    float2 parallaxMaxOffsetTS = (viewDirTS.xy / -viewDirTS.z) * ADD_IDX(_HeightAmplitude);
+    float2 texOffsetPerStep = stepSize * parallaxMaxOffsetTS;
 
-    // ADD_IDX(layerTexCoord.details).uv += offset;
-    // ADD_IDX(layerTexCoord.details).uvYZ += offset;
-    // ADD_IDX(layerTexCoord.details).uvZX += offset;
-    // ADD_IDX(layerTexCoord.details).uvXY += offset;
+    float2 uv = ADD_IDX(layerTexCoord.base).uv;
 
-    // // Only modify texcoord for first layer, this will be use by for builtin data (like lightmap)
-    // if (LAYER_INDEX == 0)
-    // {
-    //     input.texCoord0 += offset;
-    //     input.texCoord1 += offset;
-    //     input.texCoord2 += offset;
-    //     input.texCoord3 += offset;
-    // }
+    // Compute lod as we will sample inside a lop (so can't use regular sampling)
+    float lod = CALCULATE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv);
 
-    // // Need to refetch for the right parallaxed height for layer blending to behave correctly...
-    // height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
+    // Do a first step before the loop to init all value correctly
+    float2 texOffsetCurrent = uv;
+    float prevHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
+    texOffsetCurrent += texOffsetPerStep;
+    float currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
+    float rayHeight = 1.0 - stepSize; // Start at top less one sample
 
-    // #endif
+    // Linear search
+    for (int stepIndex = 0; stepIndex < numSteps; ++stepIndex)
+    {
+        // Have we found a height below our ray height ? then we have an intersection
+        if (currHeight > rayHeight)
+            break; // end the loop
+
+        prevHeight = currHeight;
+        rayHeight -= stepSize;
+        texOffsetCurrent += texOffsetPerStep;
+
+        // Sample height map which in this case is stored in the alpha channel of the normal map:
+        currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
+    }
+
+    // Found below and above points, now perform line interesection (ray) with piecewise linear heightfield approximation
+
+
+#define POM_REFINE 0
+#if POM_REFINE
+
+#else
+    /*
+    float t0 = rayHeight + stepSize;
+    float t1 = rayHeight; 
+    float delta0 = t0 - prevHeight;
+    float delta1 = t1 - currHeight;
+    float t = (t0 * delta1 - t1 * delta0) / (delta1 - delta0);
+    float2 offset = uv + (1 - t) * texOffsetPerStep * numSteps;
+    */
+        
+    float delta0 = currHeight - rayHeight;
+    float delta1 = (rayHeight + stepSize) - prevHeight;
+    float ratio = delta0 / (delta0 + delta1);
+    float2 offset = (ratio) * (texOffsetCurrent - texOffsetPerStep) + (1.0 - ratio) * texOffsetCurrent; 
 
 #endif
 
-    return height;
+    // Apply offset only on base. Details could use another mapping and will not be consistant...
+    // Don't know if this will still ok.
+    // TODO: check with artists
+    ADD_IDX(layerTexCoord.base).uv += offset;
 }
 
 // Return opacity
