@@ -142,7 +142,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
-        override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters)
+        override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, bool renderForCubemap)
         {
             ProceduralSkyParameters proceduralSkyParams = GetParameters(skyParameters);
 
