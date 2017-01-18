@@ -4,14 +4,14 @@ using System.Linq;
 
 namespace RMGUI.GraphView
 {
-	public abstract class BaseDataMapper<TKey, TValue>
+	public abstract class BaseTypeMapper<TKey, TValue>
 	{
 		private readonly Dictionary<Type, Type> m_Mappings = new Dictionary<Type, Type>();
 		private readonly Type m_FallbackType;
 		private static readonly Type k_KeyType;
 		private static readonly Type k_ValueType;
 
-		static BaseDataMapper()
+		static BaseTypeMapper()
 		{
 			k_KeyType = typeof(TKey);
 			k_ValueType = typeof(TValue);
@@ -57,7 +57,7 @@ namespace RMGUI.GraphView
 			return InternalCreate(valueType);
 		}
 
-		protected BaseDataMapper(Type fallbackType)
+		protected BaseTypeMapper(Type fallbackType)
 		{
 			m_FallbackType = fallbackType;
 		}

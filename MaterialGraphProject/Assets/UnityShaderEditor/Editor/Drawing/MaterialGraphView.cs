@@ -18,9 +18,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             AddManipulator(new ContextualMenu(DoContextMenu));
 
-            dataMapper[typeof(MaterialNodePresenter)] = typeof(MaterialNodeDrawer);
-            dataMapper[typeof(GraphAnchorPresenter)] = typeof(NodeAnchor);
-            dataMapper[typeof(EdgePresenter)] = typeof(Edge);
+            typeMapper[typeof(MaterialNodePresenter)] = typeof(MaterialNodeDrawer);
+            typeMapper[typeof(GraphAnchorPresenter)] = typeof(NodeAnchor);
+            typeMapper[typeof(EdgePresenter)] = typeof(Edge);
         }
 
         public virtual bool CanAddToNodeMenu(Type type)
