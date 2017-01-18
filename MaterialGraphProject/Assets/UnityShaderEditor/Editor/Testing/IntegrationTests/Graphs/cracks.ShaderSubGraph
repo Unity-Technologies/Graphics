@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Name: cracks
   m_EditorClassIdentifier: 
   m_DrawingData:
-    m_SerializableSelection:
-    - f1a71249-a296-4de6-a298-98da37ae3e1e
+    m_SerializableSelection: []
   m_MaterialSubGraph:
     m_SerializableNodes:
     - typeInfo:
