@@ -40,7 +40,7 @@ float4 TessellationEdge(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, f
     // Distance based tessellation
     if (_TessellationFactorMaxDistance > 0.0)
     {
-        float distFactor = GetDistanceBasedTessFactor(p0, p1, p2, _WorldSpaceCameraPos, _TessellationFactorMinDistance, _TessellationFactorMaxDistance);
+        float3 distFactor = GetDistanceBasedTessFactor(p0, p1, p2, _WorldSpaceCameraPos, _TessellationFactorMinDistance, _TessellationFactorMaxDistance);
         // We square the disance factor as it allow a better percptual descrease of vertex density.
         tessFactor *= distFactor * distFactor;
     }
