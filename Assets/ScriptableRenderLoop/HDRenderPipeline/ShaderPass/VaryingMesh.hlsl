@@ -110,10 +110,6 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
     output.interpolators1.w = input.positionWS.x;
     output.interpolators2.w = input.positionWS.y;
     output.interpolators3.w = input.positionWS.z;
-    #else
-    output.interpolators1.w = 0.0;
-    output.interpolators2.w = 0.0;
-    output.interpolators3.w = 0.0;
     #endif
 #else
     #ifdef VARYINGS_NEED_POSITION_WS
