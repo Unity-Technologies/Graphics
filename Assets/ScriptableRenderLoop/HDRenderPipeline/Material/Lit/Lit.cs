@@ -179,6 +179,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Texture2D tex = new Texture2D(width, height, format, false /*mipmap*/, true /*linear*/);
                 tex.hideFlags = HideFlags.HideAndDontSave;
                 tex.wrapMode = TextureWrapMode.Clamp;
+                tex.filterMode = FilterMode.Bilinear;
                 tex.SetPixels(pixels);
                 tex.Apply();
                 return tex;
@@ -242,6 +243,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: switch to RGBA64 when it becomes available.
                 m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
+                m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
+                m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
+                m_PreIntegratedFGD.Create();
 
                 m_LtcGGXMatrix                    = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
                 m_LtcDisneyDiffuseMatrix          = LoadLUT(TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
