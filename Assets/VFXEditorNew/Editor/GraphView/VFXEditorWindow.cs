@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.UI
     [Serializable]
     class VFXViewWindow : GraphViewEditorWindow
     {
-        [MenuItem("Window/VFXEditorNew")] 
+        [MenuItem("Window/VFXEditorNew")]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX.UI
                     m_ViewPresenter.SetModelContainer(selected);
             }
         }
-        
+
         [SerializeField]
         private VFXViewPresenter m_ViewPresenter;
     }

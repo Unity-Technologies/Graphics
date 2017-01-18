@@ -95,26 +95,30 @@ namespace RMGUI.GraphView
 			position = newPos;
 		}
 
-        // thomasi : implemented selection
-        public virtual EventPropagation Select(VisualContainer selectionContainer, Event evt)
+		public virtual EventPropagation Select(VisualContainer selectionContainer, Event evt)
         {
-            var graphView = selectionContainer as GraphView;
-            
-            if(graphView != null && parent == graphView.contentViewContainer)
-            {
+        	var selectable = this.GetFirstOfType<ISelectable>();
+			if (selectable == null || !selectable.IsSelectable())
+			{
+				return EventPropagation.Continue;
+			}
 
-                if (graphView.selection.Contains(this))
-						                {
-							                if (evt.control)
-							                {
-								                graphView.RemoveFromSelection(this);
-								                return EventPropagation.Stop;
-							                }
-						                }
+            var graphView = selectionContainer as GraphView;
+            if (graphView != null && parent == graphView.contentViewContainer)
+            {
+				if (graphView.selection.Contains(selectable))
+				{
+					if (evt.control)
+					{
+						graphView.RemoveFromSelection(selectable);
+						return EventPropagation.Stop;
+					}
+					return EventPropagation.Continue;
+				}
 
 				if (!evt.control)
 					graphView.ClearSelection();
-				graphView.AddToSelection(this);
+				graphView.AddToSelection(selectable);
 			}
 
             return EventPropagation.Continue;

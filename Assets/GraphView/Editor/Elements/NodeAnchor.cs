@@ -5,15 +5,11 @@ using UnityEngine.RMGUI.StyleSheets;
 
 namespace RMGUI.GraphView
 {
-    // thomasi: made it public to inherit in VFX Editor
-    // also set some to protected for inheritance
 	public class NodeAnchor : GraphElement
 	{
-        // thomasi: set protected
 		protected EdgeConnector m_EdgeConnector;
-        // thomasi: set protected
+
 		protected VisualElement m_ConnectorBox;
-        // thomasi: set protected
 		protected VisualElement m_ConnectorText;
 
 		// TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
@@ -24,7 +20,6 @@ namespace RMGUI.GraphView
 			return anchor;
 		}
 
-        // thomasi: set protected
 		protected NodeAnchor(NodeAnchorPresenter presenter)
 		{
 			// currently we don't want to be styled as .graphElement since we're contained in a Node
@@ -83,6 +78,7 @@ namespace RMGUI.GraphView
 
 			string anchorName = string.IsNullOrEmpty(anchorPresenter.name) ? anchorType.Name : anchorPresenter.name;
 			m_ConnectorText.content.text = anchorName;
+
 			anchorPresenter.capabilities &= ~Capabilities.Selectable;
 		}
 

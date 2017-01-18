@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.UI
     {
         private VFXViewPresenter m_ViewPresenter;
         public VFXViewPresenter ViewPresenter { get { return m_ViewPresenter; } }
-        
+
         [SerializeField]
         private VFXContext m_Model;
         public VFXContext Model { get { return m_Model; } }
@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.UI
             capabilities |= Capabilities.Deletable;
         }
 
-        protected new void OnDisable()
+        protected void OnDisable()
         {
             UnregisterAnchors();
         }

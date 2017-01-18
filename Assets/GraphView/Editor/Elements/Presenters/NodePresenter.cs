@@ -22,6 +22,13 @@ namespace RMGUI.GraphView
 		}
 
 		[SerializeField]
+		private bool m_expanded;
+		public virtual bool expanded
+		{
+			get { return m_expanded; }
+			set { m_expanded = value; }
+		}
+
 		protected Orientation m_Orientation;
 		public virtual Orientation orientation
 		{
@@ -38,6 +45,7 @@ namespace RMGUI.GraphView
 
 		protected NodePresenter()
 		{
+			m_expanded = true;
 			m_Orientation = Orientation.Horizontal;
 		}
 	}

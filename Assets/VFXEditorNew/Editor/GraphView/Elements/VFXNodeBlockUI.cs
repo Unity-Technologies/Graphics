@@ -31,11 +31,20 @@ namespace UnityEditor.VFX.UI
 
         public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
         {
-			NodeBlockContainer nodeBlockContainer = selectionContainer as NodeBlockContainer;
+            NodeBlockContainer nodeBlockContainer = selectionContainer as NodeBlockContainer;
 			if (nodeBlockContainer == null || nodeBlockContainer != parent || !IsSelectable())
 				return EventPropagation.Continue;
 
-			if (nodeBlockContainer.selection.Contains(this))
+            // Make sure we select the container context node
+            var contextUI = nodeBlockContainer.parent.parent as VFXContextUI;
+            if (contextUI != null)
+            {
+                var tmpEvt = new Event(evt);
+                tmpEvt.modifiers = EventModifiers.None;
+                contextUI.Select(this.GetFirstAncestorOfType<GraphView>(), tmpEvt);
+            }
+
+            if (nodeBlockContainer.selection.Contains(this))
 			{
 				if (evt.control)
 				{
@@ -67,7 +76,7 @@ namespace UnityEditor.VFX.UI
 
 			if (presenter.selected)
 			{
-				AddToClassListConditional("selected");
+				AddToClassList("selected");
 			}
 			else
 			{

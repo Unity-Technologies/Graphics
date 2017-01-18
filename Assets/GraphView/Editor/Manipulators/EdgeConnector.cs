@@ -5,9 +5,6 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-
-    // thomasi: made it public to inherit in VFX Editor
-    // also set some to protected for inheritance
 	public abstract class EdgeConnector : MouseManipulator
 	{ }
 
@@ -58,7 +55,6 @@ namespace RMGUI.GraphView
 
 					this.TakeCapture();
 
-                    // thomasi: get all available connectors
                     m_CompatibleAnchors = m_GraphViewPresenter.GetCompatibleAnchors(startAnchor, s_nodeAdapter);
 
 					foreach (var compatibleAnchor in m_CompatibleAnchors)
@@ -102,20 +98,14 @@ namespace RMGUI.GraphView
 						this.ReleaseCapture();
 						NodeAnchorPresenter endAnchor = null;
 
-						foreach (var compatibleAnchor in m_CompatibleAnchors)
+						if (m_GraphView != null)
 						{
-							compatibleAnchor.highlight = false;
-
-							if (m_GraphView != null)
+							foreach (var compatibleAnchor in m_CompatibleAnchors)
 							{
+								compatibleAnchor.highlight = false;
 								NodeAnchor anchorElement = m_GraphView.allElements.OfType<NodeAnchor>().First(e => e.GetPresenter<NodeAnchorPresenter>() == compatibleAnchor);
-								if (anchorElement != null)
-								{
-									if (anchorElement.globalBound.Contains(target.LocalToGlobal(evt.mousePosition)))
-									{
-										endAnchor = compatibleAnchor;
-									}
-								}
+								if (anchorElement != null && anchorElement.globalBound.Contains(target.LocalToGlobal(evt.mousePosition)))
+									endAnchor = compatibleAnchor;
 							}
 						}
 

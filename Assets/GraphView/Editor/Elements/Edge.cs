@@ -21,13 +21,11 @@ namespace RMGUI.GraphView
 
 		protected static void GetTangents(Orientation orientation, Vector2 from, Vector2 to, out Vector3[] points, out Vector3[] tangents)
         {
-            bool invert = false;
             if ((orientation == Orientation.Horizontal && from.x < to.x))
             {
                 Vector3 t = to;
                 to = from;
                 from = t;
-                invert = true;
             }
 
             points = new Vector3[] {to, from};

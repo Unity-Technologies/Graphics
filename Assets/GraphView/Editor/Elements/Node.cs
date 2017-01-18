@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.RMGUI;
@@ -8,15 +9,15 @@ namespace RMGUI.GraphView
 {
 	public class Node : GraphElement
 	{
-		protected readonly VisualContainer m_MainContainer;
-		protected readonly VisualContainer m_LeftContainer;
-		protected readonly VisualContainer m_RightContainer;
-		protected readonly VisualContainer m_TitleContainer;
-		protected readonly VisualContainer m_InputContainer;
-		protected readonly VisualContainer m_OutputContainer;
+		protected virtual VisualContainer mainContainer { get; private set; }
+		protected virtual VisualContainer leftContainer { get; private set; }
+		protected virtual VisualContainer rightContainer { get; private set; }
+		protected virtual VisualContainer titleContainer { get; private set; }
+		protected virtual VisualContainer inputContainer { get; private set; }
+		protected virtual VisualContainer outputContainer { get; private set; }
 
-		protected readonly Label m_TitleLabel;
-		protected readonly Button m_CollapseButton;
+		private readonly Label m_TitleLabel;
+		private readonly Button m_CollapseButton;
 
 		public override void SetPosition(Rect newPos)
 		{
@@ -41,114 +42,162 @@ namespace RMGUI.GraphView
 
 			if (nodePresenter.orientation == Orientation.Vertical)
 			{
-				if (m_LeftContainer.children.Contains(m_TitleContainer))
+				if (leftContainer.children.Contains(titleContainer))
 				{
-					m_LeftContainer.RemoveChild(m_TitleContainer);
+					leftContainer.RemoveChild(titleContainer);
 				}
 			}
 			else
 			{
-				if (!m_LeftContainer.children.Contains(m_TitleContainer))
+				if (!leftContainer.children.Contains(titleContainer))
 				{
-					m_LeftContainer.InsertChild(0, m_TitleContainer);
+					leftContainer.InsertChild(0, titleContainer);
 				}
 			}
 
 			AddToClassList(nodePresenter.orientation == Orientation.Vertical ? "vertical" : "horizontal");
 		}
 
-		public override void OnDataChanged()
+		public void RefreshAnchors()
 		{
-			base.OnDataChanged();
-
-			m_OutputContainer.ClearChildren();
-			m_InputContainer.ClearChildren();
-
 			var nodePresenter = GetPresenter<NodePresenter>();
+
+			var currentInputs = inputContainer.allChildren.OfType<NodeAnchor>().ToList();
+			var currentOutputs = outputContainer.allChildren.OfType<NodeAnchor>().ToList();
+
+			outputContainer.ClearChildren();
+			inputContainer.ClearChildren();
 
 			foreach (var anchorPresenter in nodePresenter.inputAnchors)
 			{
-				m_InputContainer.AddChild(NodeAnchor.Create<EdgePresenter>(anchorPresenter));
+				var anchor = currentInputs.FirstOrDefault(a => a.GetPresenter<NodeAnchorPresenter>() == anchorPresenter);
+				if (anchor == null)
+				{
+					anchor = NodeAnchor.Create<EdgePresenter>(anchorPresenter);
+				}
+				inputContainer.AddChild(anchor);
+				if (nodePresenter.expanded || anchorPresenter.connected)
+				{
+					anchor.paintFlags &= ~PaintFlags.Invisible;
+					anchor.RemoveFromClassList("hidden");
+				}
+				else
+				{
+					anchor.paintFlags |= PaintFlags.Invisible;
+					anchor.AddToClassList("hidden");
+				}
 			}
 
 			bool hasOutput = false;
 			foreach (var anchorPresenter in nodePresenter.outputAnchors)
 			{
-				m_OutputContainer.AddChild(NodeAnchor.Create<EdgePresenter>(anchorPresenter));
-				hasOutput = true;
+				var anchor = currentOutputs.FirstOrDefault(a => a.GetPresenter<NodeAnchorPresenter>() == anchorPresenter);
+				if (anchor == null)
+				{
+					anchor = NodeAnchor.Create<EdgePresenter>(anchorPresenter);
+				}
+				outputContainer.AddChild(anchor);
+				if (nodePresenter.expanded || anchorPresenter.connected)
+				{
+					anchor.paintFlags &= ~PaintFlags.Invisible;
+					anchor.RemoveFromClassList("hidden");
+					hasOutput = true;
+				}
+				else
+				{
+					anchor.paintFlags |= PaintFlags.Invisible;
+					anchor.AddToClassList("hidden");
+				}
 			}
 
 			// Show output container only if we have one or more child
 			if (hasOutput)
 			{
-				if (!m_MainContainer.children.Contains(m_RightContainer))
+				if (!mainContainer.children.Contains(rightContainer))
 				{
-					m_MainContainer.InsertChild(0, m_RightContainer);
+					mainContainer.AddChild(rightContainer);
 				}
 			}
 			else
 			{
-				if (m_MainContainer.children.Contains(m_RightContainer))
+				if (mainContainer.children.Contains(rightContainer))
 				{
-					m_MainContainer.RemoveChild(m_RightContainer);
+					mainContainer.RemoveChild(rightContainer);
 				}
 			}
+		}
+
+		public override void OnDataChanged()
+		{
+			base.OnDataChanged();
+
+			var nodePresenter = GetPresenter<NodePresenter>();
+
+			RefreshAnchors();
 
 			m_TitleLabel.content.text = nodePresenter.title;
+
+			m_CollapseButton.content.text = nodePresenter.expanded ? "collapse" : "expand";
 
 			SetLayoutClassLists(nodePresenter);
 		}
 
+		protected virtual void ToggleCollapse()
+		{
+			var nodePresenter = GetPresenter<NodePresenter>();
+			nodePresenter.expanded = !nodePresenter.expanded;
+		}
+
 		public Node()
 		{
-			m_MainContainer = new VisualContainer()
+			mainContainer = new VisualContainer()
 			{
 				name = "pane",
 				pickingMode = PickingMode.Ignore,
 			};
-			m_LeftContainer = new VisualContainer
+			leftContainer = new VisualContainer
 			{
 				name = "left",
 				pickingMode = PickingMode.Ignore,
 			};
-			m_RightContainer = new VisualContainer
+			rightContainer = new VisualContainer
 			{
 				name = "right",
 				pickingMode = PickingMode.Ignore,
 			};
-			m_TitleContainer = new VisualContainer
+			titleContainer = new VisualContainer
 			{
 				name = "title",
 				pickingMode = PickingMode.Ignore,
 			};
-			m_InputContainer = new VisualContainer
+			inputContainer = new VisualContainer
 			{
 				name = "input",
 				pickingMode = PickingMode.Ignore,
 			};
-			m_OutputContainer = new VisualContainer
+			outputContainer = new VisualContainer
 			{
 				name = "output",
 				pickingMode = PickingMode.Ignore,
 			};
 
 			m_TitleLabel = new Label(new GUIContent(""));
-			m_CollapseButton = new Button(() => {})
+			m_CollapseButton = new Button(ToggleCollapse)
 			{
 				content = new GUIContent("collapse")
 			};
 
 			elementTypeColor = new Color(0.9f, 0.9f, 0.9f, 0.5f);
 
-			AddChild(m_MainContainer);
-			m_MainContainer.AddChild(m_LeftContainer);
-			m_MainContainer.AddChild(m_RightContainer);
+			AddChild(mainContainer);
+			mainContainer.AddChild(leftContainer);
+			mainContainer.AddChild(rightContainer);
 
-			m_TitleContainer.AddChild(m_TitleLabel);
-			m_TitleContainer.AddChild(m_CollapseButton);
+			titleContainer.AddChild(m_TitleLabel);
+			titleContainer.AddChild(m_CollapseButton);
 
-			m_LeftContainer.AddChild(m_InputContainer);
-			m_RightContainer.AddChild(m_OutputContainer);
+			leftContainer.AddChild(inputContainer);
+			rightContainer.AddChild(outputContainer);
 
 			classList = new ClassList("node");
 		}

@@ -75,11 +75,12 @@ namespace UnityEditor.VFX.UI
 		VisualContainer m_NodeContainer;
 		NodeBlockContainer m_NodeBlockContainer;
 
-		protected GraphViewDataMapper dataMapper { get; set; }
+		protected GraphViewTypeMapper typeMapper { get; set; }
 
 		public VFXContextUI()
 		{
 			pickingMode = PickingMode.Ignore;
+            phaseInterest = EventPhase.BubbleUp;
 
 			m_FlowInputConnectorContainer = new VisualContainer()
 			{
@@ -139,8 +140,8 @@ namespace UnityEditor.VFX.UI
 				return EventPropagation.Continue;
 			}));
 
-			dataMapper = new GraphViewDataMapper();
-			dataMapper[typeof(VFXNodeBlockPresenter)] = typeof(VFXNodeBlockUI);
+			typeMapper = new GraphViewTypeMapper();
+            typeMapper[typeof(VFXNodeBlockPresenter)] = typeof(VFXNodeBlockUI);
 
 			classList = new ClassList("VFXContext");
 		}
@@ -155,6 +156,21 @@ namespace UnityEditor.VFX.UI
 			m_NodeBlockContainer.ClearSelection();
 			return EventPropagation.Stop;
 		}
+
+	    public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
+	    {
+	        var clearNodeBlockSelection = false;
+            var gView = this.GetFirstAncestorOfType<GraphView>();
+	        if (gView != null && !gView.selection.Contains(this))
+	            clearNodeBlockSelection = true;
+
+            var result = base.Select(selectionContainer, evt);
+
+            if (clearNodeBlockSelection)
+                m_NodeBlockContainer.ClearSelection();
+
+	        return result;
+	    }
 
 	    public EventPropagation DeleteSelection()
 	    {
@@ -194,7 +210,7 @@ namespace UnityEditor.VFX.UI
 		private void InstantiateNodeBlock(VFXNodeBlockPresenter nodeBlockPresenter)
 		{
 			// call factory
-			GraphElement newElem = dataMapper.Create(nodeBlockPresenter);
+            GraphElement newElem = typeMapper.Create(nodeBlockPresenter);
 
 			if (newElem == null)
 			{
@@ -246,6 +262,8 @@ namespace UnityEditor.VFX.UI
 			base.OnDataChanged();
 
 			VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
+		    if (presenter == null || presenter.Model == null)
+		        return;
 
 			// Recreate label with good name // Dirty
 			m_Title.content.text = presenter.Model.Desc.Name;
@@ -256,9 +274,9 @@ namespace UnityEditor.VFX.UI
 
 			switch (contextType)
 			{
-                case VFXContextDesc.Type.kTypeInit: AddToClassList("init"); break;
-                case VFXContextDesc.Type.kTypeUpdate: AddToClassList("update"); break;
-                case VFXContextDesc.Type.kTypeOutput: AddToClassList("output"); break;
+                case VFXContextType.kInit: AddToClassList("init"); break;
+                case VFXContextType.kUpdate: AddToClassList("update"); break;
+                case VFXContextType.kOutput: AddToClassList("output"); break;
 				default: throw new Exception();
 			}
 
@@ -275,14 +293,12 @@ namespace UnityEditor.VFX.UI
 			{
 				var edge = VFXFlowAnchor.Create<VFXFlowEdgePresenter>(inanchorpresenter);
 				m_FlowInputConnectorContainer.AddChild(edge);
-                presenter.m_view.RegisterFlowAnchorPresenter(inanchorpresenter);
 			}
 
 			foreach (var outanchorpresenter in presenter.outputAnchors)
 			{
 				var edge = VFXFlowAnchor.Create<VFXFlowEdgePresenter>(outanchorpresenter);
                 m_FlowOutputConnectorContainer.AddChild(edge);
-                presenter.m_view.RegisterFlowAnchorPresenter(outanchorpresenter);
 			}
 
 			RefreshContext();

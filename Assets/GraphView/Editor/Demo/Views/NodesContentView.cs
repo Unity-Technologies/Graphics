@@ -26,10 +26,10 @@ namespace RMGUI.GraphView.Demo
 				return EventPropagation.Continue;
 			}));
 
-			dataMapper[typeof(CustomEdgePresenter)] = typeof(CustomEdge);
-			dataMapper[typeof(NodeAnchorPresenter)] = typeof(NodeAnchor);
-			dataMapper[typeof(NodePresenter)] = typeof(Node);
-			dataMapper[typeof(VerticalNodePresenter)] = typeof(Node);
+			typeMapper[typeof(CustomEdgePresenter)] = typeof(CustomEdge);
+			typeMapper[typeof(NodeAnchorPresenter)] = typeof(NodeAnchor);
+			typeMapper[typeof(NodePresenter)] = typeof(Node);
+			typeMapper[typeof(VerticalNodePresenter)] = typeof(Node);
 		}
 
 		public void CreateOperator()

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.RMGUI;
-using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
@@ -44,10 +43,10 @@ namespace UnityEditor.VFX.UI
                 return EventPropagation.Continue;
             }));
 
-            dataMapper[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
-            dataMapper[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
-            dataMapper[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
-            dataMapper[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
+            typeMapper[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
+            typeMapper[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
+            typeMapper[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
+            typeMapper[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
         }
 
         void AddVFXContext(Vector2 pos,VFXContextDesc desc)

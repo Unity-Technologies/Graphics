@@ -60,11 +60,9 @@ namespace RMGUI.GraphView
 			}
 		}
 
-        // thomasi : need to override
 		[SerializeField]
 		protected List<EdgePresenter> m_Connections;
 
-        // thomasi : need to override
 		public virtual void Connect(EdgePresenter edgePresenter)
 		{
 			if (edgePresenter == null)
@@ -78,7 +76,6 @@ namespace RMGUI.GraphView
 			}
 		}
 
-        // thomasi : need to override
 		public virtual void Disconnect(EdgePresenter edgePresenter)
 		{
 			if (edgePresenter == null)
