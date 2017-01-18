@@ -56,7 +56,7 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
 float ADD_IDX(SampleHeightmap)(LayerTexCoord layerTexCoord)
 {
 #ifdef _HEIGHTMAP
-    return (SAMPLE_TEXTURE2D(ADD_IDX(_HeightMap), ADD_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base).uv).r - ADD_IDX(_HeightCenter)) * ADD_IDX(_HeightAmplitude);
+    return (SAMPLE_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base).uv).r - ADD_IDX(_HeightCenter)) * ADD_IDX(_HeightAmplitude);
 #else
     return 0.0;
 #endif
@@ -79,13 +79,13 @@ void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, i
     float2 uv = ADD_IDX(layerTexCoord.base).uv;
 
     // Compute lod as we will sample inside a lop (so can't use regular sampling)
-    float lod = CALCULATE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_IDX(sampler_HeightMap), uv);
+    float lod = CALCULATE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv);
 
     // Do a first step before the loop to init all value correctly
     float2 texOffsetCurrent = uv;
-    float prevHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base).uv + texOffsetCurrent, lod).r * ADD_IDX(_HeightAmplitude);
+    float prevHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
     texOffsetCurrent += texOffsetPerStep;
-    float currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base).uv + texOffsetCurrent, lod).r * ADD_IDX(_HeightAmplitude);
+    float currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
     float rayHeight = 1.0 - stepSize; // Start at top less one sample
 
     // Linear search
@@ -100,26 +100,36 @@ void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, i
         texOffsetCurrent += texOffsetPerStep;
 
         // Sample height map which in this case is stored in the alpha channel of the normal map:
-        currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base).uv + texOffsetCurrent, lod).r * ADD_IDX(_HeightAmplitude);
+        currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
     }
 
     // Found below and above points, now perform line interesection (ray) with piecewise linear heightfield approximation
-    float t0 = rayHeight + stepSize;
-    float t1 = rayHeight; 
-    float delta0 = t0 - prevHeight;
-    float delta1 = t1 - currHeight;
+
 
 #define POM_REFINE 0
 #if POM_REFINE
 
 #else
+    /*
+    float t0 = rayHeight + stepSize;
+    float t1 = rayHeight; 
+    float delta0 = t0 - prevHeight;
+    float delta1 = t1 - currHeight;
     float t = (t0 * delta1 - t1 * delta0) / (delta1 - delta0);
     float2 offset = uv + (1 - t) * texOffsetPerStep * numSteps;
+    */
+        
+    float delta0 = currHeight - rayHeight;
+    float delta1 = (rayHeight + stepSize) - prevHeight;
+    float ratio = delta0 / (delta0 + delta1);
+    float2 offset = (ratio) * (texOffsetCurrent - texOffsetPerStep) + (1.0 - ratio) * texOffsetCurrent; 
+
 #endif
 
-    // Apply offset
+    // Apply offset only on base. Details could use another mapping and will not be consistant...
+    // Don't know if this will still ok.
+    // TODO: check with artists
     ADD_IDX(layerTexCoord.base).uv += offset;
-    ADD_IDX(layerTexCoord.details).uv += offset;    
 }
 
 // Return opacity
