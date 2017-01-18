@@ -5,7 +5,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
         Pass
         {
             ZWrite Off
-            ZTest LEqual
+            ZTest Always
             Blend One OneMinusSrcAlpha, Zero One
 
             HLSLPROGRAM
