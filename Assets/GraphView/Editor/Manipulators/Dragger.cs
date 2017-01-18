@@ -11,7 +11,7 @@ namespace RMGUI.GraphView
 		public Vector2 panSpeed { get; set; }
 
  		// hold the presenter... maybe.
- 		public GraphElementPresenter m_presenter { get; set; }
+ 		public GraphElementPresenter presenter { get; set; }
 
 		public bool clampToParentEdges { get; set; }
 
@@ -68,7 +68,7 @@ namespace RMGUI.GraphView
 						var graphElement = target as GraphElement;
 						if (graphElement != null)
 						{
-							m_presenter = graphElement.presenter;
+							presenter = graphElement.presenter;
 						}
 
 						m_Start = evt.mousePosition;
@@ -78,15 +78,15 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseDrag:
-					if (this.HasCapture() && target.positionType == PositionType.Absolute)
+					if (this.HasCapture() && target.positionType == PositionType.Manual)
 					{
 						Vector2 diff = evt.mousePosition - m_Start;
 
-						if (m_presenter != null)
+						if (presenter != null)
 						{
-							m_presenter.position = CalculatePosition(m_presenter.position.x + diff.x,
-																	 m_presenter.position.y + diff.y,
-																	 m_presenter.position.width, target.position.height);
+							presenter.position = CalculatePosition(presenter.position.x + diff.x,
+																	 presenter.position.y + diff.y,
+																	 presenter.position.width, target.position.height);
 						}
 						else
 						{
@@ -102,7 +102,7 @@ namespace RMGUI.GraphView
 				case EventType.MouseUp:
 					if (CanStopManipulation(evt))
 					{
-						m_presenter = null;
+						presenter = null;
 						this.ReleaseCapture();
 						return EventPropagation.Stop;
 					}

@@ -22,10 +22,12 @@ namespace RMGUI.GraphView.Demo
 		{
 			base.OnEnable();
 			capabilities = Capabilities.Floating | Capabilities.Movable;
+		}
+
+		protected MiniMapPresenter()
+		{
 			maxWidth = 200;
 			maxHeight = 180;
 		}
-
-		protected MiniMapPresenter() {}
 	}
 }

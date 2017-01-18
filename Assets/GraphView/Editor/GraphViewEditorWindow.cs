@@ -7,17 +7,22 @@ namespace RMGUI.GraphView
 	public abstract class GraphViewEditorWindow : EditorWindow
 	{
 		public GraphView graphView { get; private set; }
-		GraphViewPresenter m_Presenter;
+		public GraphViewPresenter presenter { get; private set; }
+
+		public T GetPresenter<T>() where T : GraphViewPresenter
+		{
+			return presenter as T;
+		}
 
 		// we watch the data source for destruction and re-create it
 		IDataWatchHandle handle;
 
 		protected void OnEnable()
 		{
-			m_Presenter = BuildPresenters();
+			presenter = BuildPresenters();
 			graphView = BuildView();
 			graphView.name = "theView";
-			graphView.presenter = m_Presenter;
+			graphView.presenter = presenter;
 			graphView.StretchToParentSize();
 			graphView.onEnter += OnEnterPanel;
 			graphView.onLeave += OnLeavePanel;
@@ -35,12 +40,12 @@ namespace RMGUI.GraphView
 
 		void OnEnterPanel()
 		{
-			if (m_Presenter == null)
+			if (presenter == null)
 			{
-				m_Presenter = BuildPresenters();
-				graphView.presenter = m_Presenter;
+				presenter = BuildPresenters();
+				graphView.presenter = presenter;
 			}
-			handle = graphView.panel.dataWatch.AddWatch(graphView, m_Presenter, OnChanged);
+			handle = graphView.panel.dataWatch.AddWatch(graphView, presenter, OnChanged);
 		}
 
 		void OnLeavePanel()
@@ -59,16 +64,16 @@ namespace RMGUI.GraphView
 		void OnChanged()
 		{
 			// If data was destroyed, remove the watch and try to re-create it
-			if (m_Presenter == null && graphView.panel != null)
+			if (presenter == null && graphView.panel != null)
 			{
 				if (handle != null)
 				{
 					handle.Dispose();
 				}
 
-				m_Presenter = BuildPresenters();
-				graphView.presenter = m_Presenter;
-				handle = graphView.panel.dataWatch.AddWatch(graphView, m_Presenter, OnChanged);
+				presenter = BuildPresenters();
+				graphView.presenter = presenter;
+				handle = graphView.panel.dataWatch.AddWatch(graphView, presenter, OnChanged);
 			}
 		}
 	}
