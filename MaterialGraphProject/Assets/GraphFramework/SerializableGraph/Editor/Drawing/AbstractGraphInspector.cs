@@ -7,7 +7,7 @@ namespace UnityEditor.Graphing.Drawing
 {
     public abstract class AbstractGraphInspector : Editor
     {
-        protected TypeMapper dataMapper { get; set; }
+        protected GraphTypeMapper typeMapper { get; set; }
 
         protected List<INode> m_SelectedNodes = new List<INode>();
 
@@ -20,7 +20,7 @@ namespace UnityEditor.Graphing.Drawing
 
         protected AbstractGraphInspector()
         {
-            dataMapper = new TypeMapper(typeof(BasicNodeInspector));
+            typeMapper = new GraphTypeMapper(typeof(BasicNodeInspector));
         }
 
         public override void OnInspectorGUI()
@@ -53,7 +53,7 @@ namespace UnityEditor.Graphing.Drawing
             m_Inspectors.Clear();
             foreach (var node in m_SelectedNodes.OfType<SerializableNode>())
             {
-                var inspector = (AbstractNodeInspector)dataMapper.Create(node);
+                var inspector = (AbstractNodeInspector)typeMapper.Create(node);
                 inspector.Initialize(node);
                 m_Inspectors.Add(inspector);
             }
