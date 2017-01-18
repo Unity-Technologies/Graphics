@@ -231,7 +231,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
     // Change the number of samples per ray depending on the viewing angle for the surface. 
     // Oblique angles require  smaller step sizes to achieve more accurate precision for computing displacement.
     // int numSteps = (int)lerp(_PPPMaxSamples, _PPPMinSamples, viewDirTS.z);
-    int numSteps = (int)lerp(15, 15, viewDirTS.z);
+    int numSteps = (int)lerp(15, 15, viewDirTS.z); // TEMP
 
     ParallaxOcclusionMappingLayer(layerTexCoord, numSteps, viewDirTS);
 
@@ -439,10 +439,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
-    float height0 = SampleHeightmap0(LayerTexCoord layerTexCoord);
-    float height1 = SampleHeightmap1(LayerTexCoord layerTexCoord);
-    float height2 = SampleHeightmap2(LayerTexCoord layerTexCoord);
-    float height3 = SampleHeightmap3(LayerTexCoord layerTexCoord);
+    float height0 = SampleHeightmap0(layerTexCoord);
+    float height1 = SampleHeightmap1(layerTexCoord);
+    float height2 = SampleHeightmap2(layerTexCoord);
+    float height3 = SampleHeightmap3(layerTexCoord);
 
     float depthOffset = 0.0;
 #ifdef _DEPTHOFFSET_ON
