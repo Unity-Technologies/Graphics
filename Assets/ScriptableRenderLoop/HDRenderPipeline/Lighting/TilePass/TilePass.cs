@@ -1392,7 +1392,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_IESArray", IESArrayTexture ? IESArrayTexture : m_DefaultTexture2DArray);
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_SkyTexture", skyTexture ? skyTexture : m_DefaultTexture2DArray);
 
-                            cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "combinedLightingUAV", cameraColorBufferRTs[0]);
+                            cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "specularLightingUAV", cameraColorBufferRTs[0]);
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "diffuseLightingUAV",  cameraColorBufferRTs[1]);
                             cmd.DispatchCompute(shadeOpaqueShader, kernel, numTilesX, numTilesY, 1);
                         }

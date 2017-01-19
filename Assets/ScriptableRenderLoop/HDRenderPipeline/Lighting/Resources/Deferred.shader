@@ -66,7 +66,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             struct Outputs
             {
-            	float4 combinedLighting : SV_Target0;
+            	float4 specularLighting : SV_Target0;
             	float3 diffuseLighting  : SV_Target1;
             };
 
@@ -101,8 +101,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
                 Outputs outputs;
-                outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
-                outputs.diffuseLighting  = float3(diffuseLighting);
+                outputs.specularLighting = float4(specularLighting, 1.0);
+                outputs.diffuseLighting  = diffuseLighting;
                 return outputs;
             }
 
