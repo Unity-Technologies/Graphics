@@ -201,6 +201,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
+            private static AdditionalLightData DefaultAdditionalLightData
+            {
+                get
+                {
+                    if (s_DefaultAdditionalLightDataGameObject == null)
+                    {
+                        s_DefaultAdditionalLightDataGameObject = new GameObject("Default Light Data");
+                        s_DefaultAdditionalLightDataGameObject.hideFlags = HideFlags.HideAndDontSave;
+                        s_DefaultAdditionalLightData = s_DefaultAdditionalLightDataGameObject.AddComponent<AdditionalLightData>();
+                    }
+                    return s_DefaultAdditionalLightData;
+                }
+            }
+
             Material m_DeferredDirectMaterial = null;
             Material m_DeferredIndirectMaterial = null;
             Material m_DeferredAllMaterial = null;
@@ -311,10 +325,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
                 UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
 #endif
-
-                s_DefaultAdditionalLightDataGameObject = new GameObject("Default Light Data");
-                s_DefaultAdditionalLightDataGameObject.hideFlags = HideFlags.HideAndDontSave;
-                s_DefaultAdditionalLightData = s_DefaultAdditionalLightDataGameObject.AddComponent<AdditionalLightData>();
             }
 
             public override void Cleanup()
@@ -472,9 +482,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var directionalLightData = new DirectionalLightData();
 
-                if (additionalData == null)
-                    additionalData = s_DefaultAdditionalLightData;
-
                 // Light direction for directional is opposite to the forward direction
                 directionalLightData.forward = light.light.transform.forward;
                 directionalLightData.up = light.light.transform.up;
@@ -526,9 +533,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void GetLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int shadowCount)
             {
                 var lightData = new LightData();
-
-                if (additionalData == null)
-                    additionalData = s_DefaultAdditionalLightData;
 
                 lightData.lightType = gpuLightType;
 
@@ -887,7 +891,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (additionalData == null)
                     {
                         Debug.LogWarningFormat("Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
-                        additionalData = s_DefaultAdditionalLightData;
+                        additionalData = DefaultAdditionalLightData;
                     }
 
                     LightCategory lightCategory = LightCategory.Count;
@@ -989,10 +993,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int lightIndex = (int)(sortKey & 0xFFFF);
 
                     var light = cullResults.visibleLights[lightIndex];
-                    var additionalData = light.light.GetComponent<AdditionalLightData>();
-
-                    if (additionalData == null)
-                        additionalData = s_DefaultAdditionalLightData;
+                    var additionalData = light.light.GetComponent<AdditionalLightData>() ?? DefaultAdditionalLightData;
 
                     // Directional rendering side, it is separated as it is always visible so no volume to handle here
                     if (gpuLightType == GPULightType.Directional)
