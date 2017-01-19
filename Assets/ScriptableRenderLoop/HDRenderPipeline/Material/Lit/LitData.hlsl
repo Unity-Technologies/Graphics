@@ -230,8 +230,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
     float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
     // Change the number of samples per ray depending on the viewing angle for the surface. 
     // Oblique angles require  smaller step sizes to achieve more accurate precision for computing displacement.
-    // int numSteps = (int)lerp(_PPPMaxSamples, _PPPMinSamples, viewDirTS.z);
-    int numSteps = (int)lerp(15, 15, viewDirTS.z); // TEMP
+    int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
 
     ParallaxOcclusionMappingLayer(layerTexCoord, numSteps, viewDirTS);
 
@@ -422,7 +421,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 {
 #if defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT)
     float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
-    int numSteps = (int)lerp(15, 15, viewDirTS.z);
+    int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
 
     ParallaxOcclusionMappingLayer0(layerTexCoord, numSteps, viewDirTS);
     ParallaxOcclusionMappingLayer1(layerTexCoord, numSteps, viewDirTS);
