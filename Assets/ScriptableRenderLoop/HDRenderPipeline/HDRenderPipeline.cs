@@ -162,6 +162,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         ShadowRenderPass m_ShadowPass;
 
+        ComputeShader m_CombineSubsurfaceScatteringCS    = null;
+        int           m_FilterVerticalKernel             = -1;
+        int           m_FilterHorizontalAndCombineKernel = -1;
+
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
@@ -181,6 +185,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_VelocityBuffer;
         int m_DistortionBuffer;
 
+        // 'm_CameraColorBuffer' contains only the specular lighting until the SSS pass, and the combined lighting afterwards.
         RenderTargetIdentifier m_CameraColorBufferRT;
         RenderTargetIdentifier m_CameraDiffuseLightingBufferRT;
         RenderTargetIdentifier m_CameraDepthBufferRT;
@@ -249,6 +254,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
 
             m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
+
+            m_CombineSubsurfaceScatteringCS    = Resources.Load<ComputeShader>("CombineSubsurfaceScattering");
+            m_FilterVerticalKernel             = m_CombineSubsurfaceScatteringCS.FindKernel("FilterVertical");
+            m_FilterHorizontalAndCombineKernel = m_CombineSubsurfaceScatteringCS.FindKernel("FilterHorizontalAndCombine");
 
             // Init Gbuffer description
 
@@ -324,8 +333,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     renderContext.ExecuteCommandBuffer(cmd);
                     cmd.Dispose();
 
-                    RenderTargetIdentifier[] colorRTs = { m_CameraColorBuffer, m_CameraDiffuseLightingBufferRT };
-                    Utilities.SetRenderTarget(renderContext, colorRTs, m_CameraDepthBufferRT, ClearFlag.ClearDepth);
+                    Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT, ClearFlag.ClearDepth);
                 }
 
                 // TEMP: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
@@ -476,8 +484,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Bind material data
             m_LitRenderLoop.Bind();
-            RenderTargetIdentifier[] colorRTs = { m_CameraColorBuffer, m_CameraDiffuseLightingBufferRT };
+            RenderTargetIdentifier[] colorRTs = { m_CameraColorBufferRT, m_CameraDiffuseLightingBufferRT };
             m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs);
+        }
+
+        // Combines specular lighting and diffuse lighting with subsurface scattering.
+        void CombineSubsurfaceScattering(HDCamera hdCamera, ScriptableRenderContext context)
+        {
+            // Currently, forward-rendered objects do not output the split lighting information required for SSS.
+            if (debugParameters.ShouldUseForwardRenderingOnly()) return;
+
+            int screenWidth  = (int)hdCamera.screenSize.x;
+            int screenHeight = (int)hdCamera.screenSize.y;
+
+            const int groupSize = 256;
+
+            int groupSizeHorizontal = (screenWidth  + groupSize - 1) / groupSize;
+            int groupSizeVertical   = (screenHeight + groupSize - 1) / groupSize;
+
+            var cmdBuf = new CommandBuffer() { name = "Combine Subsurface Scattering" };
+
+            // Set the common data.
+            cmdBuf.SetComputeIntParam(m_CombineSubsurfaceScatteringCS, "screenWidth",  screenWidth);
+            cmdBuf.SetComputeIntParam(m_CombineSubsurfaceScatteringCS, "screenHeight", screenHeight);
+
+            // Perform the vertical SSS filtering pass.
+            // TODO.
+
+            // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
+            cmdBuf.SetComputeTextureParam(m_CombineSubsurfaceScatteringCS, m_FilterHorizontalAndCombineKernel,
+                                          "diffuseFilterSource", m_CameraDiffuseLightingBufferRT);
+            cmdBuf.SetComputeTextureParam(m_CombineSubsurfaceScatteringCS, m_FilterHorizontalAndCombineKernel,
+                                          "specularSourceAndColorTarget", m_CameraColorBufferRT);
+            cmdBuf.DispatchCompute(m_CombineSubsurfaceScatteringCS, m_FilterHorizontalAndCombineKernel, groupSizeHorizontal, screenHeight, 1);
+
+            context.ExecuteCommandBuffer(cmdBuf);
+            cmdBuf.Dispose();
         }
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext)
@@ -489,7 +531,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_SkyManager.RenderSky(hdCamera, m_lightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthBufferRT, renderContext);
         }
-        
+
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
         {
             // TODO: Currently we can't render opaque object forward when deferred is enabled
@@ -502,8 +544,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Bind material data
                 m_LitRenderLoop.Bind();
 
-                RenderTargetIdentifier[] colorRTs = { m_CameraColorBuffer, m_CameraDiffuseLightingBufferRT };
-                Utilities.SetRenderTarget(renderContext, colorRTs, m_CameraDepthBufferRT);
+                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
 
                 m_lightLoop.RenderForward(camera, renderContext, renderOpaque);
 
@@ -526,8 +567,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Bind material data
                 m_LitRenderLoop.Bind();
 
-                RenderTargetIdentifier[] colorRTs = { m_CameraColorBuffer, m_CameraDiffuseLightingBufferRT };
-                Utilities.SetRenderTarget(renderContext, colorRTs, m_CameraDepthBufferRT);
+                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
 
                 m_lightLoop.RenderForward(camera, renderContext, true);
                 RenderOpaqueRenderList(cullResults, camera, renderContext, "ForwardOnlyOpaque");
@@ -745,11 +785,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
-                    // must be call after BuildGPULightLists. 
+                    // must be call after BuildGPULightLists.
                     // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                    UpdateSkyEnvironment(hdCamera, renderContext); 
+                    UpdateSkyEnvironment(hdCamera, renderContext);
 
                     RenderDeferredLighting(hdCamera, renderContext);
+
+                    // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
+                    // Currently, there is no efficient way to switch between SRT and MRT for the forward pass;
+                    // therefore, forward-rendered objects do not output the split lighting information required for SSS.
+                    CombineSubsurfaceScattering(hdCamera, renderContext);
 
                     // For opaque forward we have split rendering in two categories
                     // Material that are always forward and material that can be deferred or forward depends on render pipeline options (like switch to rendering forward only mode)

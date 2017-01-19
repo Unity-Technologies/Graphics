@@ -24,13 +24,12 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-void Frag(  PackedVaryingsToPS packedInput,
-            out float4 outCombinedLighting : SV_Target0,
-            out float3 outDiffuseLighting  : SV_Target1
-            #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
-            #endif
-        )
+void Frag(PackedVaryingsToPS packedInput,
+          out float4 outColor : SV_Target0
+      #ifdef _DEPTHOFFSET_ON
+          , out float outputDepth : SV_Depth
+      #endif
+          )
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
@@ -52,8 +51,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
-    outCombinedLighting = float4(diffuseLighting + specularLighting, builtinData.opacity);
-    outDiffuseLighting  = float3(diffuseLighting);
+    outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
 
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.depthRaw;
