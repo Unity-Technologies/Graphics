@@ -713,12 +713,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
-    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
-    {
-        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-        float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
-        illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
-    }
+    //[branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
+    //{
+    //    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    //    float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
+    //    illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
+    //}
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
