@@ -1,7 +1,6 @@
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
-using Assets.ScriptableRenderLoop.HDRenderPipeline;
 using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -86,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         private HDRenderPipelineSetup m_setup;
 
-        public Assets.ScriptableRenderLoop.HDRenderPipeline.HDRenderPipelineSetup renderPipelineSetup
+        public HDRenderPipelineSetup renderPipelineSetup
         {
             get { return m_setup; }
         }
