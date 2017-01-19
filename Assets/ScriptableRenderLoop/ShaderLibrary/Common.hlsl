@@ -58,6 +58,8 @@
 #include "API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
 #include "API/D3D11_1.hlsl"
+#elif defined(SHADER_API_METAL)
+#include "API/Metal.hlsl"
 #else
 #error unsupported shader api
 #endif

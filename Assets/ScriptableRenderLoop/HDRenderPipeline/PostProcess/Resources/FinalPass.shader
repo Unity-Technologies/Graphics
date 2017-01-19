@@ -7,7 +7,7 @@ Shader "Hidden/HDRenderPipeline/FinalPass"
 
     HLSLINCLUDE
 
-        #pragma target 5.0
+        #pragma target 4.5
         #include "Common.hlsl"
         #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderVariables.hlsl"
         #include "ColorGrading.hlsl"
