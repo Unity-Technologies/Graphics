@@ -3,7 +3,6 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
-using Assets.ScriptableRenderLoop.HDRenderPipeline;
 using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline

@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Assets.ScriptableRenderLoop.HDRenderPipeline
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipelineSetup : ScriptableObject
     {
