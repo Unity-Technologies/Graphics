@@ -58,8 +58,8 @@ Shader "RenderLoop/LowEnd"
 		// They are not used by the scriptable render loop; only here so that
 		// if we turn off our example loop, then regular forward rendering kicks in
 		// and objects look just like with a Standard shader.
-		//UsePass "Standard (Specular setup)/FORWARD"
-		//UsePass "Standard (Specular setup)/FORWARD_DELTA"
+		UsePass "Standard (Specular setup)/FORWARD"
+		UsePass "Standard (Specular setup)/FORWARD_DELTA"
 
 		Pass
 		{
@@ -77,8 +77,8 @@ Shader "RenderLoop/LowEnd"
 			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature _NORMALMAP
 			#pragma shader_feature _EMISSION
-			#pragma shader_feature LIGHTMAP_ON 
-
+			
+			#pragma multi_compile _ LIGHTMAP_ON 
 			#pragma multi_compile_fog
 			#pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3
 			
@@ -95,7 +95,7 @@ Shader "RenderLoop/LowEnd"
 				light.pos = globalLightPos[lightIndex]; \
 				light.color = globalLightColor[lightIndex]; \
 				light.atten = globalLightAtten[lightIndex]; \
-				light.spotDir = globalLightSpotDir[lightIndex];
+				light.spotDir = globalLightSpotDir[lightIndex]
 
 			#define FRESNEL_TERM(normal, viewDir) Pow4(1.0 - saturate(dot(normal, viewDir)))
 
@@ -307,7 +307,7 @@ Shader "RenderLoop/LowEnd"
 				// Compute direct contribution from main directional light.
 				// Only a single directional shadow caster is supported.
 				LightInput mainLight;
-				INITIALIZE_LIGHT(mainLight, 0)
+				INITIALIZE_LIGHT(mainLight, 0);
 
 #if DEBUG_CASCADES
 				return half4(EvaluateMainLight(mainLight, diffuse, specular, normal, i.posWS, viewDir), 1.0);

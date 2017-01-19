@@ -179,8 +179,10 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             Mathf.Infinity);
 
         ShadowSliceData[] shadowSlices = shadowOutput.shadowSlices;
-        int shadowSliceCount = shadowSlices.Length;
+        if (shadowSlices == null)
+            return;
 
+        int shadowSliceCount = shadowSlices.Length;
         const int maxShadowCascades = 4;
         Matrix4x4[] shadowMatrices = new Matrix4x4[maxShadowCascades];
         for (int i = 0; i < shadowSliceCount; ++i)
