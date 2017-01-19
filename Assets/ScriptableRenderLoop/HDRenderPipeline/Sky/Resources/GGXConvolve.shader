@@ -9,8 +9,8 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             Blend One Zero
 
             HLSLPROGRAM
-            #pragma target 5.0
-            #pragma only_renderers d3d11 ps4 // TEMP: unitl we go futher in dev
+            #pragma target 4.5
+            #pragma only_renderers d3d11 ps4 metal  // TEMP: unitl we go futher in dev
 
             #pragma multi_compile _ USE_MIS
 
