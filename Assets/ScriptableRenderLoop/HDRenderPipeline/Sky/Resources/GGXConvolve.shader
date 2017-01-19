@@ -5,7 +5,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
         Pass
         {
             ZWrite Off
-            ZTest LEqual
+            ZTest Always
             Blend One Zero
 
             HLSLPROGRAM
@@ -63,7 +63,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
                 float3 V = N;
 
                 float perceptualRoughness = MipmapLevelToPerceptualRoughness(_Level);
-                float roughness   = PerceptualRoughnessToRoughness(perceptualRoughness);
+                float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
                 uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level);
 
             #ifdef USE_MIS

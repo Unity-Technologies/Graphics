@@ -16,29 +16,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class Utilities
     {
-        public const RendererConfiguration kRendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
+        public const RendererConfiguration kRendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
 
 
         // Render Target Management.
         public const ClearFlag kClearAll = ClearFlag.ClearDepth | ClearFlag.ClearColor;
 
-        public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.ClearNone, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var cmd = new CommandBuffer();
             cmd.name = "";
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace);
+            if (clearFlag != ClearFlag.ClearNone)
+                cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
+        public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.ClearNone, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        {
+            SetRenderTarget(renderContext, buffer, clearFlag, Color.black, miplevel, cubemapFace);
+        }
+
         public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            SetRenderTarget(renderContext, colorBuffer, depthBuffer, ClearFlag.ClearNone, new Color(0.0f, 0.0f, 0.0f, 0.0f), miplevel, cubemapFace);
+            SetRenderTarget(renderContext, colorBuffer, depthBuffer, ClearFlag.ClearNone, Color.black, miplevel, cubemapFace);
         }
 
         public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            SetRenderTarget(renderContext, colorBuffer, depthBuffer, clearFlag, new Color(0.0f, 0.0f, 0.0f, 0.0f), miplevel, cubemapFace);
+            SetRenderTarget(renderContext, colorBuffer, depthBuffer, clearFlag, Color.black, miplevel, cubemapFace);
         }
 
         public static void SetRenderTarget(ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)

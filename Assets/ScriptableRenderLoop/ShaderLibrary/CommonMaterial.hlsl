@@ -128,4 +128,8 @@ float3 LerpWhiteTo(float3 b, float t)
     return float3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
 
+// MACRO from Legacy Untiy
+// Transforms 2D UV by scale/bias property
+#define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
+
 #endif // UNITY_COMMON_MATERIAL_INCLUDED
