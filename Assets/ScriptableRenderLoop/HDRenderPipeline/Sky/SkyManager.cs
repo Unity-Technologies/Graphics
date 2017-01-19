@@ -32,7 +32,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class BuiltinSkyParameters
     {
-        public Matrix4x4                viewProjMatrix;
         public Matrix4x4                invViewProjMatrix;
         public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
@@ -42,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public RenderTargetIdentifier   colorBuffer;
         public RenderTargetIdentifier   depthBuffer;
 
-        public static RenderTargetIdentifier invalidRTI = -1;
+        public static RenderTargetIdentifier nullRT = -1;
     }
 
     public class SkyManager
@@ -221,28 +220,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
         }
 
-        void RebuildSkyMeshes()
+        void RebuildSkyMeshes(float nearPlane, float farPlane)
         {
             if(m_CubemapFaceMesh[0] == null)
             {
-                Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, 0.1f, 1.0f);
+                Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, nearPlane, farPlane);
 
                 Vector3[] lookAtList = {
                             new Vector3(1.0f, 0.0f, 0.0f),
                             new Vector3(-1.0f, 0.0f, 0.0f),
-                            new Vector3(0.0f, 1.0f, 0.0f),
                             new Vector3(0.0f, -1.0f, 0.0f),
+                            new Vector3(0.0f, 1.0f, 0.0f),
                             new Vector3(0.0f, 0.0f, 1.0f),
                             new Vector3(0.0f, 0.0f, -1.0f),
                         };
 
                 Vector3[] UpVectorList = {
-                            new Vector3(0.0f, 1.0f, 0.0f),
-                            new Vector3(0.0f, 1.0f, 0.0f),
+                            new Vector3(0.0f, -1.0f, 0.0f),
+                            new Vector3(0.0f, -1.0f, 0.0f),
                             new Vector3(0.0f, 0.0f, -1.0f),
                             new Vector3(0.0f, 0.0f, 1.0f),
-                            new Vector3(0.0f, 1.0f, 0.0f),
-                            new Vector3(0.0f, 1.0f, 0.0f),
+                            new Vector3(0.0f, -1.0f, 0.0f),
+                            new Vector3(0.0f, -1.0f, 0.0f),
                         };
 
                 for (int i = 0; i < 6; ++i)
@@ -251,8 +250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_faceCameraViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj);
                     m_faceCameraInvViewProjectionMatrix[i] = m_faceCameraViewProjectionMatrix[i].inverse;
 
-                    // When rendering into a texture the render will be flip (due to legacy unity openGL behavior), so we need to flip UV here...
-                    m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i], true);
+                    m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i], false);
                 }
             }
         }
@@ -264,11 +262,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalTexture("_SkyTexture", m_SkyboxGGXCubemapRT);
         }
 
-        public void Resize()
+        public void Resize(float nearPlane, float farPlane)
         {
             // When loading RenderDoc, RenderTextures will go null
             RebuildTextures(skyParameters);
-            RebuildSkyMeshes();
+            RebuildSkyMeshes(nearPlane, farPlane);
         }
 
         public void Build()
@@ -306,15 +304,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             for (int i = 0; i < 6; ++i)
             {
-                Utilities.SetRenderTarget(builtinParams.renderContext, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
-
                 builtinParams.invViewProjMatrix = m_faceCameraInvViewProjectionMatrix[i];
-                builtinParams.viewProjMatrix = m_faceCameraViewProjectionMatrix[i];
                 builtinParams.screenSize = m_CubemapScreenSize;
                 builtinParams.skyMesh = m_CubemapFaceMesh[i];
                 builtinParams.colorBuffer = target;
-                builtinParams.depthBuffer = BuiltinSkyParameters.invalidRTI;
-                m_Renderer.RenderSky(builtinParams, skyParameters);
+                builtinParams.depthBuffer = BuiltinSkyParameters.nullRT;
+
+                Utilities.SetRenderTarget(builtinParams.renderContext, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
+                m_Renderer.RenderSky(builtinParams, skyParameters, true);
             }
         }
 
@@ -460,15 +457,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.renderContext = renderContext;
                     m_BuiltinParameters.sunLight = sunLight;
                     m_BuiltinParameters.invViewProjMatrix = camera.invViewProjectionMatrix;
-                    m_BuiltinParameters.viewProjMatrix = camera.viewProjectionMatrix;
                     m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
                     m_BuiltinParameters.screenSize = camera.screenSize;
                     m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix, false);
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
 
-                    Utilities.SetRenderTarget(renderContext, colorBuffer, depthBuffer);
-                    m_Renderer.RenderSky(m_BuiltinParameters, skyParameters);
+                    m_Renderer.SetRenderTargets(m_BuiltinParameters);
+                    m_Renderer.RenderSky(m_BuiltinParameters, skyParameters, false);
                 }
             }
         }
