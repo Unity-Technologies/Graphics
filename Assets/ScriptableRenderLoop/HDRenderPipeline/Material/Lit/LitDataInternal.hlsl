@@ -78,7 +78,7 @@ void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, i
 
     float2 uv = ADD_IDX(layerTexCoord.base).uv;
 
-    // Compute lod as we will sample inside a lop (so can't use regular sampling)
+    // Compute lod as we will sample inside a loop (so can't use regular sampling)
     float lod = CALCULATE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv);
 
     // Do a first step before the loop to init all value correctly
