@@ -300,11 +300,11 @@ namespace UnityEngine.Experimental.Rendering
                 return 0;
             }
 
-            int currentTileCount = atlasWidth / resolution + atlasHeight / resolution;
+            int currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
             while (currentTileCount < tileCount)
             {
                 resolution = resolution >> 1;
-                currentTileCount = atlasWidth / resolution + atlasHeight / resolution;
+                currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
             }
             return resolution;
         }
@@ -426,14 +426,12 @@ namespace UnityEngine.Experimental.Rendering
             var matScaleBias = Matrix4x4.identity;
             matScaleBias.m00 = 0.5f;
             matScaleBias.m11 = 0.5f;
-            matScaleBias.m22 = 0.5f; 
+            matScaleBias.m22 = 0.5f;
             matScaleBias.m03 = 0.5f;
             matScaleBias.m23 = 0.5f;
             matScaleBias.m13 = 0.5f;
 
-            // TODO: Projection Matrix is changed after SetViewProjectoinMatrix depending on zbuffer params and api.
-            // TODO: Provide API to check zBuffer direction
-            if (m_Settings.shadowType == ShadowSettings.ShadowType.LIGHTSPACE)
+            if (m_Settings.shadowType == ShadowSettings.ShadowType.LIGHTSPACE && SystemInfo.usesReversedZBuffer)
                 matScaleBias.m22 = -0.5f;
 
             var matTile = Matrix4x4.identity;
