@@ -82,7 +82,7 @@ void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, i
     float lod = CALCULATE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv);
 
     // Do a first step before the loop to init all value correctly
-    float2 texOffsetCurrent = uv;
+    float2 texOffsetCurrent = 0;
     float prevHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
     texOffsetCurrent += texOffsetPerStep;
     float currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
@@ -105,24 +105,57 @@ void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, i
 
     // Found below and above points, now perform line interesection (ray) with piecewise linear heightfield approximation
 
-
-#define POM_REFINE 0
+    // Refine the search by adding few extra intersection
+#define POM_REFINE 1
 #if POM_REFINE
 
+    float pt0 = rayHeight + stepSize;
+    float pt1 = rayHeight;
+    float delta0 = pt0 - prevHeight;
+    float delta1 = pt1 - currHeight;
+
+    float2 offset = float2(0.0, 0.0);
+
+    float threshold = 1.0;
+
+    for (int i = 0; i < 5; ++i)
+    {
+        float t = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
+        offset = (1 - t) * texOffsetPerStep * numSteps;
+
+        currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + offset, lod).r;
+
+        threshold = t - currHeight;
+
+        if (abs(threshold) <= 0.01)
+            break;
+
+        if (threshold < 0.0)
+        {
+            delta1 = threshold;
+            pt1 = t;
+        }
+        else
+        {
+            delta0 = threshold;
+            pt0 = t;
+        }
+    }
+
 #else
-    /*
-    float t0 = rayHeight + stepSize;
-    float t1 = rayHeight; 
-    float delta0 = t0 - prevHeight;
-    float delta1 = t1 - currHeight;
-    float t = (t0 * delta1 - t1 * delta0) / (delta1 - delta0);
-    float2 offset = uv + (1 - t) * texOffsetPerStep * numSteps;
-    */
-        
+    
+    //float pt0 = rayHeight + stepSize;
+    //float pt1 = rayHeight; 
+    //float delta0 = pt0 - prevHeight;
+    //float delta1 = pt1 - currHeight;
+    //float t = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
+    //float2 offset = (1 - t) * texOffsetPerStep * numSteps;
+
+    // A bit more optimize
     float delta0 = currHeight - rayHeight;
     float delta1 = (rayHeight + stepSize) - prevHeight;
     float ratio = delta0 / (delta0 + delta1);
-    float2 offset = (ratio) * (texOffsetCurrent - texOffsetPerStep) + (1.0 - ratio) * texOffsetCurrent; 
+    float2 offset = texOffsetCurrent - ratio * texOffsetPerStep;
 
 #endif
 
