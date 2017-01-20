@@ -13,7 +13,7 @@
 
 // Tesselation require normal
 #if defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD
-// #define ATTRIBUTES_NEED_NORMAL
+// #define ATTRIBUTES_NEED_NORMAL - When reenable, think to also enable code in VertMesh.hlsl
 #endif
 #if REQUIRE_TANGENT_TO_WORLD
 #define ATTRIBUTES_NEED_TANGENT
