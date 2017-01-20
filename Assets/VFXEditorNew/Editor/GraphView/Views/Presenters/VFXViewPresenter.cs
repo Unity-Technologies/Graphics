@@ -91,23 +91,23 @@ namespace UnityEditor.VFX.UI
 			m_FlowAnchorPresenters.Remove(presenter);
 		}
 
-		public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
+		public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
 		{
 			var res = new List<NodeAnchorPresenter>();
 
-			if (!(startAnchor is VFXFlowAnchorPresenter))
+			if (!(startAnchorPresenter is VFXFlowAnchorPresenter))
 				return res;
 
-			var startFlowAnchor = (VFXFlowAnchorPresenter)startAnchor;
+			var startFlowAnchorPresenter = (VFXFlowAnchorPresenter)startAnchorPresenter;
 
-			foreach (var anchor in m_FlowAnchorPresenters)
+			foreach (var anchorPresenter in m_FlowAnchorPresenters)
 			{
-				VFXModel owner = anchor.Owner;
+				VFXModel owner = anchorPresenter.Owner;
 				if (owner == null ||
-					startAnchor == anchor ||
-					!anchor.IsConnectable() ||
-					startAnchor.direction == anchor.direction ||
-					owner == startFlowAnchor.Owner)
+					startAnchorPresenter == anchorPresenter ||
+					!anchorPresenter.IsConnectable() ||
+					startAnchorPresenter.direction == anchorPresenter.direction ||
+					owner == startFlowAnchorPresenter.Owner)
 					continue;
 
 				if (owner is VFXContext)
@@ -116,9 +116,9 @@ namespace UnityEditor.VFX.UI
 					if (system == null)
 						continue;
 
-					int indexOffset = startAnchor.direction == Direction.Output ? 0 : 1;
-					if (system.AcceptChild(startFlowAnchor.Owner, system.GetIndex(owner) + indexOffset))
-						res.Add(anchor);
+					int indexOffset = startAnchorPresenter.direction == Direction.Output ? 0 : 1;
+					if (system.AcceptChild(startFlowAnchorPresenter.Owner, system.GetIndex(owner) + indexOffset))
+						res.Add(anchorPresenter);
 				}
 			}
 

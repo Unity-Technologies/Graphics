@@ -7,6 +7,10 @@ namespace RMGUI.GraphView
 {
 	public class SelectionDragger : Dragger
 	{
+		// selectedElement is used to store a unique selection candidate for cases where user clicks on an item not to
+		// drag it but just to reset the selection -- we only know this after the manipulation has ended
+		GraphElement selectedElement { get; set; }
+
 		public SelectionDragger()
 		{
 			activators.Add(new ManipActivator {button = MouseButton.LeftMouse});
@@ -28,6 +32,8 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
+					selectedElement = null;
+
 					if (CanStartManipulation(evt))
 					{
 						// avoid starting a manipulation on a non movable object
@@ -38,6 +44,8 @@ namespace RMGUI.GraphView
 							if (ce == null)
 								return EventPropagation.Continue;
 						}
+
+						selectedElement = ce;
 
 						GraphElementPresenter presenter = ce.presenter;
 						if (presenter != null && ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable))
@@ -69,6 +77,8 @@ namespace RMGUI.GraphView
 																   presenter.position.width, presenter.position.height);
 						}
 
+						selectedElement = null;
+
 						return EventPropagation.Stop;
 					}
 					break;
@@ -82,6 +92,14 @@ namespace RMGUI.GraphView
 						{
 							presenter.CommitChanges();
 						}
+
+						if (selectedElement != null && !evt.control)
+						{
+							// Since we didn't drag after all, update selection with current element only
+							graphView.ClearSelection();
+							graphView.AddToSelection(selectedElement as GraphElement);
+						}
+
 						this.ReleaseCapture();
 						return EventPropagation.Stop;
 					}

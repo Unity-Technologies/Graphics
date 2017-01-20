@@ -159,10 +159,10 @@ namespace UnityEditor.VFX.UI
 
 	    public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
 	    {
-	        var clearNodeBlockSelection = false;
+ 	        var clearNodeBlockSelection = false;
             var gView = this.GetFirstAncestorOfType<GraphView>();
-	        if (gView != null && !gView.selection.Contains(this))
-	            clearNodeBlockSelection = true;
+ 	        if (gView != null && gView.selection.Contains(this) && !evt.control)
+                clearNodeBlockSelection = true;
 
             var result = base.Select(selectionContainer, evt);
 
@@ -172,7 +172,7 @@ namespace UnityEditor.VFX.UI
 	        return result;
 	    }
 
-	    public EventPropagation DeleteSelection()
+        public EventPropagation DeleteSelection()
 	    {
             foreach (var nodeBlock in m_NodeBlockContainer.selection.OfType<VFXNodeBlockUI>().ToList())
 	        {
@@ -222,8 +222,6 @@ namespace UnityEditor.VFX.UI
 			m_NodeBlockContainer.AddChild(newElem);
 
 			newElem.presenter.selected = nodeBlockPresenter.selected;
-
-            this.Touch(ChangeType.Layout);
 		}
 
 		public void RefreshContext()
@@ -242,7 +240,6 @@ namespace UnityEditor.VFX.UI
 				{
 					m_NodeBlockContainer.RemoveFromSelection(nb);
 					m_NodeBlockContainer.RemoveChild(nb);
-                    this.Touch(ChangeType.Layout);
 				}
 			}
 

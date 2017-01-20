@@ -1,8 +1,6 @@
-using System;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleEnums;
 using UnityEngine.RMGUI.StyleSheets;
 
 namespace UnityEditor.VFX.UI
@@ -24,6 +22,8 @@ namespace UnityEditor.VFX.UI
                 name = "SlotContainer"
             };
 
+		    s_Counter++;
+
 		    m_Title = new Label(new GUIContent("")) {name = "Title"};
 			AddChild(m_Title);
             AddChild(m_SlotContainer);
@@ -35,13 +35,17 @@ namespace UnityEditor.VFX.UI
 			if (nodeBlockContainer == null || nodeBlockContainer != parent || !IsSelectable())
 				return EventPropagation.Continue;
 
+            // TODO: Get rid of this hack (parent.parent) to reach contextUI
             // Make sure we select the container context node
             var contextUI = nodeBlockContainer.parent.parent as VFXContextUI;
             if (contextUI != null)
             {
-                var tmpEvt = new Event(evt);
-                tmpEvt.modifiers = EventModifiers.None;
-                contextUI.Select(this.GetFirstAncestorOfType<GraphView>(), tmpEvt);
+                var gView = this.GetFirstAncestorOfType<GraphView>();
+                if (gView != null && !gView.selection.Contains(contextUI))
+                {
+                    gView.ClearSelection();
+                    gView.AddToSelection(contextUI);
+                }
             }
 
             if (nodeBlockContainer.selection.Contains(this))
@@ -57,7 +61,8 @@ namespace UnityEditor.VFX.UI
 				nodeBlockContainer.ClearSelection();
 			nodeBlockContainer.AddToSelection(this);
 
-			return EventPropagation.Continue;
+            // TODO: Reset to EventPropagation.Continue when Drag&Drop is supported
+			return EventPropagation.Stop;
         }
 
         // On purpose -- until we support Drag&Drop I suppose
@@ -70,9 +75,7 @@ namespace UnityEditor.VFX.UI
 			var presenter = GetPresenter<VFXNodeBlockPresenter>();
 
 			if (presenter == null)
-			{
 				return;
-			}
 
 			if (presenter.selected)
 			{
@@ -83,7 +86,7 @@ namespace UnityEditor.VFX.UI
 				RemoveFromClassList("selected");
 			}
 
-			m_Title.content.text = presenter.Model.Desc.Name + " " + (s_Counter++);
+			m_Title.content.text = presenter.Model.Desc.Name + " " + s_Counter;
 
 			SetPosition(presenter.position);
 		}
