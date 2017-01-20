@@ -236,6 +236,7 @@ Shader "HDRenderPipeline/LitTessellation"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
 			// No tessellation for Meta pass
+            #undef TESSELLATION_ON
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"            
@@ -245,7 +246,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-
+        
         Pass
         {
             Name "ShadowCaster"
@@ -292,7 +293,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-
+        
         Pass
         {
             Name "Motion Vectors"
@@ -314,7 +315,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-
+   
         Pass
         {
             Name "Distortion" // Name is not used
@@ -366,6 +367,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
+
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"

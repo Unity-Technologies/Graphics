@@ -358,6 +358,9 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
+            // No tessellation for Meta pass
+            #undef TESSELLATION_ON
+
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitMetaPass.hlsl"

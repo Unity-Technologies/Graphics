@@ -185,9 +185,6 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 // We can deduce these defines from the other defines
 // We need to pass to DS any varying required by pixel shader
 // If we have required an attributes that is not present in varyings it mean we will be for DS
-#if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(ATTRIBUTES_NEED_NORMAL)
-#define VARYINGS_DS_NEED_NORMAL
-#endif
 #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(ATTRIBUTES_NEED_TANGENT)
 #define VARYINGS_DS_NEED_TANGENT
 #endif
@@ -212,9 +209,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 struct VaryingsMeshToDS
 {
     float3 positionWS;
-#ifdef VARYINGS_DS_NEED_NORMAL
     float3 normalWS;
-#endif
 #ifdef VARYINGS_DS_NEED_TANGENT
     float4 tangentWS;
 #endif
@@ -241,10 +236,8 @@ struct VaryingsMeshToDS
 struct PackedVaryingsMeshToDS
 {
     float3 interpolators0 : INTERNALTESSPOS; // positionWS
+    float3 interpolators1 : NORMAL; // NormalWS
 
-#ifdef VARYINGS_DS_NEED_NORMAL
-    float3 interpolators1 : NORMAL;
-#endif
 #ifdef VARYINGS_DS_NEED_TANGENT
     float4 interpolators2 : TANGENT;
 #endif
@@ -277,9 +270,7 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
     PackedVaryingsMeshToDS output;
 
     output.interpolators0 = input.positionWS;
-#ifdef VARYINGS_DS_NEED_NORMAL
     output.interpolators1 = input.normalWS;
-#endif
 #ifdef VARYINGS_DS_NEED_TANGENT
     output.interpolators2 = input.tangentWS;
 #endif
@@ -310,9 +301,7 @@ VaryingsMeshToDS UnpackVaryingsMeshToDS(PackedVaryingsMeshToDS input)
     VaryingsMeshToDS output;
 
     output.positionWS = input.interpolators0;
-#ifdef VARYINGS_DS_NEED_NORMAL
     output.normalWS = input.interpolators1;
-#endif
 #ifdef VARYINGS_DS_NEED_TANGENT
     output.tangentWS = input.interpolators2;
 #endif
@@ -342,9 +331,7 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
     VaryingsMeshToDS ouput;
 
     TESSELLATION_INTERPOLATE_BARY(positionWS, baryCoords);
-#ifdef VARYINGS_DS_NEED_NORMAL
     TESSELLATION_INTERPOLATE_BARY(normalWS, baryCoords);
-#endif
 #ifdef VARYINGS_DS_NEED_TANGENT
     // This will interpolate the sign but should be ok in practice as we may expect a triangle to have same sign (? TO CHECK)
     TESSELLATION_INTERPOLATE_BARY(tangentWS, baryCoords);
