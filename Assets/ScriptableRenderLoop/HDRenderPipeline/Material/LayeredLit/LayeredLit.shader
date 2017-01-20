@@ -111,9 +111,9 @@ Shader "HDRenderPipeline/LayeredLit"
         _HeightOffset2("_HeightOffset2", Range(-0.3, 0.3)) = 0.0
         _HeightOffset3("_HeightOffset3", Range(-0.3, 0.3)) = 0.0
 
-        _HeightFactor1("_HeightFactor1", Range(0, 5)) = 1
-        _HeightFactor2("_HeightFactor2", Range(0, 5)) = 1
-        _HeightFactor3("_HeightFactor3", Range(0, 5)) = 1
+        _HeightFactor1("_HeightFactor1", Float) = 1
+        _HeightFactor2("_HeightFactor2", Float) = 1
+        _HeightFactor3("_HeightFactor3", Float) = 1
 
         _BlendSize1("_BlendSize1", Range(0, 0.30)) = 0.0
         _BlendSize2("_BlendSize2", Range(0, 0.30)) = 0.0
@@ -124,6 +124,41 @@ Shader "HDRenderPipeline/LayeredLit"
         _InheritBaseLayer3("_InheritBaseLayer3", Range(0, 1.0)) = 0.0
 
         _VertexColorHeightFactor("_VertexColorHeightFactor", Float) = 0.3
+
+        // Layer blending options V2
+        [ToggleOff] _UseHeightBasedBlendV2("Use Height Blend V2", Float) = 0.0
+
+        _HeightCenterOffset1("_HeightCenterOffset1", Float) = 0.0
+        _HeightCenterOffset2("_HeightCenterOffset2", Float) = 0.0
+        _HeightCenterOffset3("_HeightCenterOffset3", Float) = 0.0
+
+        _BlendUsingHeight1("_BlendUsingHeight1", Float) = 0.0
+        _BlendUsingHeight2("_BlendUsingHeight2", Float) = 0.0
+        _BlendUsingHeight3("_BlendUsingHeight3", Float) = 0.0
+
+        _InheritBaseNormal1("_InheritBaseNormal1", Range(0, 1.0)) = 0.0
+        _InheritBaseNormal2("_InheritBaseNormal2", Range(0, 1.0)) = 0.0
+        _InheritBaseNormal3("_InheritBaseNormal3", Range(0, 1.0)) = 0.0
+
+        _InheritBaseHeight1("_InheritBaseHeight1", Range(0, 1.0)) = 0.0
+        _InheritBaseHeight2("_InheritBaseHeight2", Range(0, 1.0)) = 0.0
+        _InheritBaseHeight3("_InheritBaseHeight3", Range(0, 1.0)) = 0.0
+
+        _InheritBaseColor1("_InheritBaseColor1", Range(0, 1.0)) = 0.0
+        _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
+        _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
+
+        _InheritBaseColorThreshold1("_InheritBaseColorThreshold1", Range(0, 1.0)) = 1.0
+        _InheritBaseColorThreshold2("_InheritBaseColorThreshold2", Range(0, 1.0)) = 1.0
+        _InheritBaseColorThreshold3("_InheritBaseColorThreshold3", Range(0, 1.0)) = 1.0
+
+        _MinimumOpacity1("_MinimumOpacity1", Range(0, 1.0)) = 1.0
+        _MinimumOpacity2("_MinimumOpacity2", Range(0, 1.0)) = 1.0
+        _MinimumOpacity3("_MinimumOpacity3", Range(0, 1.0)) = 1.0
+
+        _OpacityAsDensity1("_OpacityAsDensity1", Range(0, 1.0)) = 0.0
+        _OpacityAsDensity2("_OpacityAsDensity2", Range(0, 1.0)) = 0.0
+        _OpacityAsDensity3("_OpacityAsDensity3", Range(0, 1.0)) = 0.0
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
@@ -225,6 +260,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _HEIGHT_BASED_BLEND
+    #pragma shader_feature _HEIGHT_BASED_BLEND_V2
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
