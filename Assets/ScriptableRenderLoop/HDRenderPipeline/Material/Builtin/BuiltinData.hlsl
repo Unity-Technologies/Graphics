@@ -8,7 +8,9 @@
 // Note: These parameters can be store in GBuffer if the writer wants
 //-----------------------------------------------------------------------------
 
-#include "BuiltinData.cs.hlsl"
+//TODO: return this original relative path include after fixing a bug in Unity side
+//#include "BuiltinData.cs.hlsl"
+#include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Builtin/BuiltinData.cs.hlsl"
 
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions
