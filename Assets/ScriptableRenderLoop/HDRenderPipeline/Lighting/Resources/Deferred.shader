@@ -5,6 +5,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
         // We need to be able to control the blend mode for deferred shader in case we do multiple pass
         _SrcBlend("", Float) = 1
         _DstBlend("", Float) = 1
+
+        _StencilRef("_StencilRef", Int) = 0
     }
 
     SubShader
@@ -12,9 +14,23 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
         Pass
         {
+
+            /* TODO-READ_DEPTH-TEST_STENCIL
+             * In Unity, it is currently not possible to perform the stencil test while at the same time
+             * reading from the depth texture in the shader. It is legal in Direct3D.
+             * Therefore, we are forced to split lighting using MRT for all materials.
+
+            Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Equal
+                Pass Keep
+            }
+            */
+
             ZWrite Off
-            Blend Off
-            Blend[_SrcBlend][_DstBlend]
+            ZTest  Always
+            Blend [_SrcBlend][_DstBlend]
 
             HLSLPROGRAM
             #pragma target 5.0
@@ -25,11 +41,14 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             // Chose supported lighting architecture in case of deferred rendering
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF 
+            //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
 
             // TODO: Workflow problem here, I would like to only generate variant for the LIGHTLOOP_TILE_PASS case, not the LIGHTLOOP_SINGLE_PASS case. This must be on lightloop side and include here.... (Can we codition
             #pragma multi_compile LIGHTLOOP_TILE_DIRECT LIGHTLOOP_TILE_INDIRECT LIGHTLOOP_TILE_ALL
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+
+            // Split lighting is utilized during the SSS pass.
+            #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -66,8 +85,12 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             struct Outputs
             {
+            #ifdef OUTPUT_SPLIT_LIGHTING
             	float4 specularLighting : SV_Target0;
             	float3 diffuseLighting  : SV_Target1;
+            #else
+                float4 combinedLighting : SV_Target0;
+            #endif
             };
 
             Varyings Vert(Attributes input)
@@ -101,8 +124,12 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
                 Outputs outputs;
+            #ifdef OUTPUT_SPLIT_LIGHTING
                 outputs.specularLighting = float4(specularLighting, 1.0);
                 outputs.diffuseLighting  = diffuseLighting;
+            #else
+                outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
+            #endif
                 return outputs;
             }
 

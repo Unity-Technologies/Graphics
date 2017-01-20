@@ -484,14 +484,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Bind material data
             m_LitRenderLoop.Bind();
+
             RenderTargetIdentifier[] colorRTs = { m_CameraColorBufferRT, m_CameraDiffuseLightingBufferRT };
-            m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs);
+
+            // Output split lighting for materials tagged with the SSS stencil bit.
+            m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs, m_CameraDepthBufferRT, true);
+
+            /* TODO-READ_DEPTH-TEST_STENCIL
+             * In Unity, it is currently not possible to perform the stencil test while at the same time
+             * reading from the depth texture in the shader. It is legal in Direct3D.
+             * Therefore, we are forced to split lighting using MRT for all materials.
+
+            // Output combined lighting for all the other materials.
+            m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs, m_CameraDepthBufferRT, false);
+            */
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
         void CombineSubsurfaceScattering(HDCamera hdCamera, ScriptableRenderContext context)
         {
-            // Currently, forward-rendered objects do not output the split lighting information required for SSS.
+            // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
             if (debugParameters.ShouldUseForwardRenderingOnly()) return;
 
             int screenWidth  = (int)hdCamera.screenSize.x;
@@ -793,7 +805,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
                     // Currently, there is no efficient way to switch between SRT and MRT for the forward pass;
-                    // therefore, forward-rendered objects do not output the split lighting information required for SSS.
+                    // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
                     CombineSubsurfaceScattering(hdCamera, renderContext);
 
                     // For opaque forward we have split rendering in two categories

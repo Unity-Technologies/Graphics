@@ -38,6 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
             public static GUIContent UVDetailMappingText = new GUIContent("UV set for Detail", "");
+            public static GUIContent subsurfaceScatteringText = new GUIContent("Subsurface Scattering", "Enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
 
             public static string InputsText = "Inputs";
