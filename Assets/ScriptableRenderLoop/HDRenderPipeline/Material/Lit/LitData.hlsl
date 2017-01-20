@@ -119,80 +119,25 @@ float4 SampleLayerLod(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, f
     }
 }
 
-// TODO: Handle BC5 format, currently this code is for DXT5nm
-// THis function below must call UnpackNormalmapRGorAG
-float3 SampleLayerNormal(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
-{
-    if (layerUV.isTriplanar)
-    {
-        float3 val = float3(0.0, 0.0, 0.0);
+#define ADD_FUNC_SUFFIX(Name) Name
+#define NORMAL_SAMPLE_FUNC(layerTex, layerSampler, layerUV, bias) SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV)
+#include "LayeredLitNormalSampling.hlsl"
+#undef ADD_FUNC_SUFFIX
+#undef NORMAL_SAMPLE_FUNC
 
-        if (weights.x > 0.0)
-            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ), scale);
-        if (weights.y > 0.0)
-            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX), scale);
-        if (weights.z > 0.0)
-            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY), scale);
-
-        return normalize(val);
-    }
-    else
-    {
-        return UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv), scale);
-    }
-}
-
-// This version is for normalmap with AG encoding only (use with details map)
-float3 SampleLayerNormalAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
-{
-    if (layerUV.isTriplanar)
-    {
-        float3 val = float3(0.0, 0.0, 0.0);
-
-        if (weights.x > 0.0)
-            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ), scale);
-        if (weights.y > 0.0)
-            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX), scale);
-        if (weights.z > 0.0)
-            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY), scale);
-
-        return normalize(val);
-    }
-    else
-    {
-        return UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv), scale);
-    }
-}
-
-// This version is for normalmap with RGB encoding only, i.e non encoding. It is necessary to use this abstraction to handle correctly triplanar
-// plus consistent with the normal scale parameter
-float3 SampleLayerNormalRGB(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights, float scale)
-{
-    if (layerUV.isTriplanar)
-    {
-        float3 val = float3(0.0, 0.0, 0.0);
-
-        if (weights.x > 0.0)
-            val += weights.x * UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ), scale);
-        if (weights.y > 0.0)
-            val += weights.y * UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX), scale);
-        if (weights.z > 0.0)
-            val += weights.z * UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY), scale);
-
-        return normalize(val);
-    }
-    else
-    {
-        return UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uv), scale);
-    }
-}
+#define ADD_FUNC_SUFFIX(Name) Name##_Bias
+#define NORMAL_SAMPLE_FUNC(layerTex, layerSampler, layerUV, bias) SAMPLE_TEXTURE2D_BIAS(layerTex, layerSampler, layerUV, bias)
+#include "LayeredLitNormalSampling.hlsl"
+#undef ADD_FUNC_SUFFIX
+#undef NORMAL_SAMPLE_FUNC
 
 // Macro to improve readibility of surface data
 #define SAMPLE_LAYER_TEXTURE2D(textureName, samplerName, coord) SampleLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
 #define SAMPLE_LAYER_TEXTURE2D_LOD(textureName, samplerName, coord, lod) SampleLayerLod(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, lod)
-#define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord, scale) SampleLayerNormal(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
-#define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord, scale) SampleLayerNormalAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
-#define SAMPLE_LAYER_NORMALMAP_RGB(textureName, samplerName, coord, scale) SampleLayerNormalRGB(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale)
+#define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord, scale, useBias, bias) useBias ? SampleLayerNormal_Bias(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale, bias) : SampleLayerNormal(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale, bias)
+#define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord, scale, useBias, bias) useBias ? SampleLayerNormalAG_Bias(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale, bias) : SampleLayerNormalAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale, bias)
+#define SAMPLE_LAYER_NORMALMAP_RGB(textureName, samplerName, coord, scale, useBias, bias) useBias ? SampleLayerNormalRGB_Bias(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale, bias) : SampleLayerNormalRGB(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights, scale, bias)
+
 
 #ifndef LAYERED_LIT_SHADER
 
@@ -373,6 +318,11 @@ float ApplyHeightBasedBlend(inout float inputFactor, float previousLayerHeight, 
     return max(finalLayerHeight, previousLayerHeight);
 }
 
+float3 ApplyHeightBasedBlendV2(float3 inputMask, float3 inputHeight, float3 blendUsingHeight)
+{
+    return saturate(lerp(inputMask * inputHeight * blendUsingHeight * 100, 1, inputMask * inputMask)); // 100 arbitrary scale to limit blendUsingHeight values.
+}
+
 
 #define SURFACEDATA_BLEND_COLOR(surfaceData, name, mask) BlendLayeredFloat3(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
@@ -430,6 +380,116 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 #endif
 }
 
+float3 ComputeInheritedNormalTS(float3 normalTS0, float3 normalTS1, float3 normalTS2, float3 normalTS3, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
+{
+    float3 normalTS;
+//#if !defined(_HEIGHT_BASED_BLEND_V2)
+//    float _InheritBaseLayer0 = 1.0f; // Default value for lerp when all weights but base layer are zero.
+//
+//    // Compute the combined inheritance factor of layers 1,2 and 3
+//    float inheritFactor = PROP_BLEND_SCALAR(_InheritBaseLayer, weights);
+//    float3 vertexNormalTS = float3(0.0, 0.0, 1.0);
+//    // The idea here is to lerp toward vertex normal. This way when we don't want to inherit, we will combine layer 1/2/3 normal with a vertex normal which is neutral.
+//    float3 baseLayerNormalTS = normalize(lerp(vertexNormalTS, normalTS0, inheritFactor));
+//    // Blend layer 1/2/3 normals before combining to the base layer. Again we need to have a neutral value for base layer (vertex normal) in case all weights are zero.
+//    float3 layersNormalTS = BlendLayeredFloat3(vertexNormalTS, normalTS1, normalTS2, normalTS3, weights);
+//    normalTS = BlendNormalRNM(baseLayerNormalTS, layersNormalTS);
+//#else
+
+    // Compute how much we want to inherit from base layer normal base on the mask. Base layer always fully inherit from "itself" if it's the visible layer.
+    float inheritBaseNormal = BlendLayeredScalar(1.0f, _InheritBaseNormal1, _InheritBaseNormal2, _InheritBaseNormal3, weights);
+    // Based on this inheritance parameters, fetch a lower level of the base layer normal map so that the less we inherit the more this tends to be "vertex normal"
+    float maxMipBias = 12.0f; // We arbitrarly choose the max bias for a 2048 texture. Smaller texture will bias toward vertex normal faster.
+    float3 inheritedBaseNormalTS = GetNormalTS0(layerTexCoord, float3(0.0, 0.0, 0.0), 0.0f, true, maxMipBias * (1.0 - inheritBaseNormal));
+
+    // Blend all layers but the base one. This will then be added to the "inherited" normal of base layer (that's why base layer here is tangent space vertex normal so that if it's the visible layer we add nothing in term of normal map).
+    float3 layersNormalTS = BlendLayeredFloat3(float3(0.0, 0.0, 1.0), normalTS1, normalTS2, normalTS3, weights);
+    // Add the inherited normal to the blended top layers.
+    normalTS = BlendNormalRNM(inheritedBaseNormalTS, layersNormalTS);
+//#endif
+
+    return normalTS;
+}
+
+float3 ComputeInheritedColor(float3 baseColor0, float3 baseColor1, float3 baseColor2, float3 baseColor3, float compoMask, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
+{
+    //return BlendLayeredFloat3(baseColor0, baseColor1, baseColor2, baseColor3, weights);
+
+    float inheritBaseColor = BlendLayeredScalar(1.0f, _InheritBaseColor1, _InheritBaseColor2, _InheritBaseColor3, weights);
+    float inheritBaseColorThreshold = BlendLayeredScalar(1.0f, _InheritBaseColorThreshold1, _InheritBaseColorThreshold2, _InheritBaseColorThreshold3, weights);
+
+    inheritBaseColor = inheritBaseColor * (1.0 - saturate(compoMask / inheritBaseColorThreshold));
+
+    float textureBias = 12.0f;
+    float3 baseMeanColor0 = SAMPLE_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0.uv, textureBias).rgb * _BaseColor0.rgb;
+    float3 baseMeanColor1 = SAMPLE_TEXTURE2D_BIAS(_BaseColorMap1, sampler_BaseColorMap0, layerTexCoord.base1.uv, textureBias).rgb * _BaseColor1.rgb;
+    float3 baseMeanColor2 = SAMPLE_TEXTURE2D_BIAS(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2.uv, textureBias).rgb * _BaseColor2.rgb;
+    float3 baseMeanColor3 = SAMPLE_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3.uv, textureBias).rgb * _BaseColor3.rgb;
+
+    //float3 toto1 = lerp(baseMeanColor1, baseMeanColor0, _InheritBaseColor1) + baseColor1 - baseMeanColor1;
+    //float3 toto2 = lerp(baseMeanColor2, baseMeanColor0, _InheritBaseColor2) + baseColor2 - baseMeanColor2;
+    //float3 toto3 = lerp(baseMeanColor3, baseMeanColor0, _InheritBaseColor3) + baseColor3 - baseMeanColor3;
+
+    //return BlendLayeredFloat3(baseColor0, toto1, toto3, toto3, weights);
+
+    float3 meanColor = BlendLayeredFloat3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
+    float3 baseColor = BlendLayeredFloat3(baseColor0, baseColor1, baseColor2, baseColor3, weights);
+
+    //return lerp(baseMeanColor1, baseColor0, _InheritBaseColor1) + (baseColor1 - baseMeanColor1);
+    return lerp(meanColor, baseColor0, inheritBaseColor) + (baseColor - meanColor);
+}
+
+void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 inputAlphaMask, out float outWeights[_MAX_LAYER])
+{
+    float height0 = SampleHeightmap0(layerTexCoord);
+    float height1 = SampleHeightmap1(layerTexCoord, _HeightCenterOffset1, _HeightFactor1);
+    float height2 = SampleHeightmap2(layerTexCoord, _HeightCenterOffset2, _HeightFactor2);
+    float height3 = SampleHeightmap3(layerTexCoord, _HeightCenterOffset3, _HeightFactor3);
+
+    float4 heights = float4(height0, height1, height2, height3);
+    // Mask Values : Layer 1, 2, 3 are r, g, b
+    float3 inputMaskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
+
+    // Mutually exclusive with _HEIGHT_BASED_BLEND
+#if defined(_LAYER_MASK_VERTEX_COLOR_MUL) // Used when no layer mask is set
+    inputMaskValues *= input.color.rgb;
+#elif defined(_LAYER_MASK_VERTEX_COLOR_ADD) || defined(_HEIGHT_BASED_BLEND_V2) // When layer mask is set, color is additive to enable user to override it.
+    inputMaskValues = saturate(inputMaskValues + input.color.rgb * 2.0 - 1.0);
+#endif
+
+#if defined(_HEIGHT_BASED_BLEND)
+    #if !defined(_HEIGHT_BASED_BLEND_V2)
+        float baseLayerHeight = heights.x;
+        baseLayerHeight = ApplyHeightBasedBlend(inputMaskValues.r, baseLayerHeight, heights.y, _HeightOffset1, _HeightFactor1, _BlendSize1, input.color.r);
+        baseLayerHeight = ApplyHeightBasedBlend(inputMaskValues.g, baseLayerHeight, heights.z, _HeightOffset2 + _HeightOffset1, _HeightFactor2, _BlendSize2, input.color.g);
+        ApplyHeightBasedBlend(inputMaskValues.b, baseLayerHeight, heights.w, _HeightOffset3 + _HeightOffset2 + _HeightOffset1, _HeightFactor3, _BlendSize3, input.color.b);
+    #else
+
+        float3 minOpaParam = float3(_MinimumOpacity1, _MinimumOpacity2, _MinimumOpacity3);
+        float3 remapedOpacity = (float3(1.0, 1.0, 1.0) - minOpaParam) * inputAlphaMask.yzw + minOpaParam; // Remap opacity mask from [0..1] to [minOpa..1]
+        float3 opacityAsDensity = saturate((inputAlphaMask.yzw - (float3(1.0, 1.0, 1.0) - inputMaskValues))*20.0);
+
+        float3 useOpacityAsDensityParam = float3(_OpacityAsDensity1, _OpacityAsDensity2, _OpacityAsDensity3);
+        inputMaskValues = lerp(inputMaskValues * remapedOpacity, opacityAsDensity, useOpacityAsDensityParam);
+
+        // HACK, use height0 to avoid compiler error for unused sampler
+        // To remove once we have POM
+        heights.y += (heights.x * 0.0001);
+
+        inputMaskValues = ApplyHeightBasedBlendV2(inputMaskValues, heights.yzw, float3(_BlendUsingHeight1, _BlendUsingHeight2, _BlendUsingHeight3));
+    #endif
+#endif
+
+    ComputeMaskWeights(inputMaskValues, outWeights);
+
+//#if defined(_HEIGHT_BASED_BLEND_V2)
+//    float inheritBaseHeight = BlendLayeredScalar(0.0f, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights);
+//    float blendedLayerHeight = BlendLayeredScalar(heights.x, heights.y, heights.z, heights.w, weights);
+//    float finalHeight = heights.x * inheritBaseHeight + blendedLayerHeight;
+//    // Use this for POM/Tesselation
+//#endif
+}
+
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     LayerTexCoord layerTexCoord;
@@ -438,50 +498,29 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
-    float height0 = SampleHeightmap0(layerTexCoord);
-    float height1 = SampleHeightmap1(layerTexCoord);
-    float height2 = SampleHeightmap2(layerTexCoord);
-    float height3 = SampleHeightmap3(layerTexCoord);
-
     float depthOffset = 0.0;
 #ifdef _DEPTHOFFSET_ON
     ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
 #endif
 
-    SurfaceData surfaceData0;
-    SurfaceData surfaceData1;
-    SurfaceData surfaceData2;
-    SurfaceData surfaceData3;
-    float3 normalTS0;
-    float3 normalTS1;
-    float3 normalTS2;
-    float3 normalTS3;
+    SurfaceData surfaceData0, surfaceData1, surfaceData2, surfaceData3;
+    float3 normalTS0, normalTS1, normalTS2, normalTS3;
     float alpha0 = GetSurfaceData0(input, layerTexCoord, surfaceData0, normalTS0);
     float alpha1 = GetSurfaceData1(input, layerTexCoord, surfaceData1, normalTS1);
     float alpha2 = GetSurfaceData2(input, layerTexCoord, surfaceData2, normalTS2);
     float alpha3 = GetSurfaceData3(input, layerTexCoord, surfaceData3, normalTS3);
 
-    // Mask Values : Layer 1, 2, 3 are r, g, b
-    float3 maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
+    float weights[_MAX_LAYER];
+    ComputeLayerWeights(input, layerTexCoord, float4(alpha0, alpha1, alpha2, alpha3), weights);
 
-    // Mutually exclusive with _HEIGHT_BASED_BLEND
-#if defined(_LAYER_MASK_VERTEX_COLOR_MUL) // Used when no layer mask is set
-    maskValues *= input.color.rgb;
-#elif defined(_LAYER_MASK_VERTEX_COLOR_ADD) // When layer mask is set, color is additive to enable user to override it.
-    maskValues = saturate(maskValues + input.color.rgb * 2.0 - 1.0);
-#endif
+    // For layered shader, alpha of base color is used as either an opacity mask, a composition mask for inheritance parameters or a density mask.
+    float alpha = PROP_BLEND_SCALAR(alpha, weights);
 
 #if defined(_HEIGHT_BASED_BLEND)
-    float baseLayerHeight = height0;
-    baseLayerHeight = ApplyHeightBasedBlend(maskValues.r, baseLayerHeight, height1, _HeightOffset1, _HeightFactor1, _BlendSize1, input.color.r);
-    baseLayerHeight = ApplyHeightBasedBlend(maskValues.g, baseLayerHeight, height2, _HeightOffset2 + _HeightOffset1, _HeightFactor2, _BlendSize2, input.color.g);
-    ApplyHeightBasedBlend(maskValues.b, baseLayerHeight, height3, _HeightOffset3 + _HeightOffset2 + _HeightOffset1, _HeightFactor3, _BlendSize3, input.color.b);
-#endif
-
-    float weights[_MAX_LAYER];
-    ComputeMaskWeights(maskValues, weights);
-
+    surfaceData.baseColor = ComputeInheritedColor(surfaceData0.baseColor, surfaceData1.baseColor, surfaceData2.baseColor, surfaceData3.baseColor, alpha, layerTexCoord, weights);
+#else
     surfaceData.baseColor = SURFACEDATA_BLEND_COLOR(surfaceData, baseColor, weights);
+#endif
     surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
     surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
@@ -489,19 +528,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float3 normalTS;
 #if defined(_HEIGHT_BASED_BLEND)
-    float _InheritBaseLayer0 = 1.0f; // Default value for lerp when all weights but base layer are zero.
-
-    // Compute the combined inheritance factor of layers 1,2 and 3
-    float inheritFactor = PROP_BLEND_SCALAR(_InheritBaseLayer, weights);
-    float3 vertexNormalTS = float3(0.0, 0.0, 1.0);
-    // The idea here is to lerp toward vertex normal. This way when we don't want to inherit, we will combine layer 1/2/3 normal with a vertex normal which is neutral.
-    float3 baseLayerNormalTS = normalize(lerp(vertexNormalTS, normalTS0, inheritFactor));
-    // Blend layer 1/2/3 normals before combining to the base layer. Again we need to have a neutral value for base layer (vertex normal) in case all weights are zero.
-    float3 layersNormalTS = BlendLayeredFloat3(vertexNormalTS, normalTS1, normalTS2, normalTS3, weights);
-    normalTS = BlendNormalRNM(baseLayerNormalTS, layersNormalTS);
+    normalTS = ComputeInheritedNormalTS(normalTS0, normalTS1, normalTS2, normalTS3, layerTexCoord, weights);
 #else
     normalTS = BlendLayeredFloat3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 #endif
+
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     surfaceData.tangentWS = input.tangentToWorld[0].xyz;
 
@@ -528,7 +559,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.coatPerceptualSmoothness = 1.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
-    float alpha = PROP_BLEND_SCALAR(alpha, weights);
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
 

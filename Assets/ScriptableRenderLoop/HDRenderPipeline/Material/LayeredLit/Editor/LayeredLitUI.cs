@@ -54,7 +54,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent heightFactorText = new GUIContent("Height Multiplier", "Scale applied to the height of the layer.");
             public readonly GUIContent blendSizeText = new GUIContent("Blend Size", "Thickness over which the layer will be blended with the previous one.");
 
-
+            public readonly GUIContent heightCenterOffsetText = new GUIContent("Height Center Offset", "Offset applied to the center of the height of the layer.");
+            public readonly GUIContent useHeightBasedBlendV2Text = new GUIContent("Use Height Based Blend V2", "Layer will be blended with the underlying layer based on the height.");
+            public readonly GUIContent blendUsingHeight = new GUIContent("Blend Using Height", "Blend Layers using height.");
+            public readonly GUIContent inheritBaseNormalText = new GUIContent("Inherit Base Layer Normal", "Inherit the normal from the base layer.");
+            public readonly GUIContent inheritBaseHeightText = new GUIContent("Inherit Base Layer Height", "Inherit the height from the base layer.");
+            public readonly GUIContent inheritBaseColorText = new GUIContent("Inherit Base Layer Color", "Inherit the base color from the base layer.");
+            public readonly GUIContent inheritBaseColorThresholdText = new GUIContent("Threshold", "Inherit the base color from the base layer.");
+            public readonly GUIContent minimumOpacityText = new GUIContent("Minimum Opacity", "Minimum Opacity.");
+            public readonly GUIContent opacityAsDensityText = new GUIContent("Use Opacity as Density", "Use Opacity as Density.");
             public StylesLayer()
             {
                 layerLabelColors[1].normal.textColor = Color.red;
@@ -94,16 +102,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
         MaterialProperty useHeightBasedBlend = null;
+        const string kUseHeightBasedBlendV2 = "_UseHeightBasedBlendV2";
+        MaterialProperty useHeightBasedBlendV2 = null;
+        const string kBlendUsingHeight = "_BlendUsingHeight";
+        MaterialProperty[] blendUsingHeight = new MaterialProperty[kMaxLayerCount - 1];
         const string kHeightOffset = "_HeightOffset";
         MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount-1];
         const string kInheritBaseLayer = "_InheritBaseLayer";
         MaterialProperty[] inheritBaseLayer = new MaterialProperty[kMaxLayerCount - 1];
         const string kHeightFactor = "_HeightFactor";
         MaterialProperty[] heightFactor = new MaterialProperty[kMaxLayerCount-1];
+        const string kHeightCenterOffset = "_HeightCenterOffset";
+        MaterialProperty[] heightCenterOffset = new MaterialProperty[kMaxLayerCount - 1];
         const string kBlendSize = "_BlendSize";
         MaterialProperty[] blendSize = new MaterialProperty[kMaxLayerCount-1];
         const string kVertexColorHeightFactor = "_VertexColorHeightFactor";
         MaterialProperty vertexColorHeightFactor = null;
+
+        // Height blend V2
+        const string kInheritBaseNormal = "_InheritBaseNormal";
+        MaterialProperty[] inheritBaseNormal = new MaterialProperty[kMaxLayerCount - 1];
+        const string kInheritBaseHeight = "_InheritBaseHeight";
+        MaterialProperty[] inheritBaseHeight = new MaterialProperty[kMaxLayerCount - 1];
+        const string kInheritBaseColor = "_InheritBaseColor";
+        MaterialProperty[] inheritBaseColor = new MaterialProperty[kMaxLayerCount - 1];
+        const string kInheritBaseColorThreshold = "_InheritBaseColorThreshold";
+        MaterialProperty[] inheritBaseColorThreshold = new MaterialProperty[kMaxLayerCount - 1];
+        const string kOpacityAsDensity = "_OpacityAsDensity";
+        MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount - 1];
+        const string kMinimumOpacity = "_MinimumOpacity";
+        MaterialProperty[] minimumOpacity = new MaterialProperty[kMaxLayerCount - 1];
 
         MaterialProperty layerEmissiveColor = null;
         MaterialProperty layerEmissiveColorMap = null;
@@ -118,6 +146,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             vertexColorHeightFactor = FindProperty(kVertexColorHeightFactor, props);
             layerCount = FindProperty(kLayerCount, props);
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
+            useHeightBasedBlendV2 = FindProperty(kUseHeightBasedBlendV2, props);
             
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
@@ -134,6 +163,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     heightOffset[i-1] = FindProperty(string.Format("{0}{1}", kHeightOffset, i), props);
                     heightFactor[i-1] = FindProperty(string.Format("{0}{1}", kHeightFactor, i), props);
                     blendSize[i-1] = FindProperty(string.Format("{0}{1}", kBlendSize, i), props);
+
+                    heightCenterOffset[i - 1] = FindProperty(string.Format("{0}{1}", kHeightCenterOffset, i), props);
+                    blendUsingHeight[i - 1] = FindProperty(string.Format("{0}{1}", kBlendUsingHeight, i), props);
+                    inheritBaseNormal[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseNormal, i), props);
+                    inheritBaseHeight[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseHeight, i), props);
+                    inheritBaseColor[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseColor, i), props);
+                    inheritBaseColorThreshold[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseColorThreshold, i), props);
+                    minimumOpacity[i - 1] = FindProperty(string.Format("{0}{1}", kMinimumOpacity, i), props);
+                    opacityAsDensity[i - 1] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
                 }
             }
 
@@ -492,10 +530,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     int heightParamIndex = layerIndex - 1;
 
-                    m_MaterialEditor.ShaderProperty(inheritBaseLayer[heightParamIndex], styles.inheritBaseLayerText);
-                    m_MaterialEditor.ShaderProperty(heightOffset[heightParamIndex], styles.heightOffsetText);
-                    m_MaterialEditor.ShaderProperty(heightFactor[heightParamIndex], styles.heightFactorText);
-                    m_MaterialEditor.ShaderProperty(blendSize[heightParamIndex], styles.blendSizeText);
+                    if(useHeightBasedBlendV2.floatValue != 1.0f)
+                    {
+                        //m_MaterialEditor.ShaderProperty(inheritBaseLayer[heightParamIndex], styles.inheritBaseLayerText);
+                        m_MaterialEditor.ShaderProperty(heightOffset[heightParamIndex], styles.heightOffsetText);
+                        m_MaterialEditor.ShaderProperty(heightFactor[heightParamIndex], styles.heightFactorText);
+                        m_MaterialEditor.ShaderProperty(blendSize[heightParamIndex], styles.blendSizeText);
+                        m_MaterialEditor.ShaderProperty(inheritBaseColor[heightParamIndex], styles.inheritBaseColorText);
+                        EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(inheritBaseColorThreshold[heightParamIndex], styles.inheritBaseColorThresholdText);
+                        EditorGUI.indentLevel--;
+                        m_MaterialEditor.ShaderProperty(inheritBaseNormal[heightParamIndex], styles.inheritBaseNormalText);
+                    }
+                    else
+                    {
+                        m_MaterialEditor.ShaderProperty(heightFactor[heightParamIndex], styles.heightFactorText);
+                        m_MaterialEditor.ShaderProperty(heightCenterOffset[heightParamIndex], styles.heightCenterOffsetText);
+                        m_MaterialEditor.ShaderProperty(blendUsingHeight[heightParamIndex], styles.blendUsingHeight);
+                        m_MaterialEditor.ShaderProperty(inheritBaseColor[heightParamIndex], styles.inheritBaseColorText);
+                        EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(inheritBaseColorThreshold[heightParamIndex], styles.inheritBaseColorThresholdText);
+                        EditorGUI.indentLevel--;
+                        m_MaterialEditor.ShaderProperty(inheritBaseNormal[heightParamIndex], styles.inheritBaseNormalText);
+                        m_MaterialEditor.ShaderProperty(inheritBaseHeight[heightParamIndex], styles.inheritBaseHeightText);
+                        m_MaterialEditor.ShaderProperty(opacityAsDensity[heightParamIndex], styles.opacityAsDensityText);
+                        m_MaterialEditor.ShaderProperty(minimumOpacity[heightParamIndex], styles.minimumOpacityText);
+                    }
                 }
             }
 
@@ -540,7 +600,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             if (enabled)
             {
-                m_MaterialEditor.ShaderProperty(vertexColorHeightFactor, styles.vertexColorHeightMultiplierText);
+                EditorGUI.BeginChangeCheck();
+                bool enabledV2 = EditorGUILayout.Toggle(styles.useHeightBasedBlendV2Text, useHeightBasedBlendV2.floatValue > 0.0f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    useHeightBasedBlendV2.floatValue = enabledV2 ? 1.0f : 0.0f;
+                }
+                if(!enabledV2)
+                    m_MaterialEditor.ShaderProperty(vertexColorHeightFactor, styles.vertexColorHeightMultiplierText);
             }
             else
             {
@@ -603,9 +670,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
             if(useHeightBasedBlend)
             {
+                bool useHeightBasedBlendV2 = material.GetFloat(kUseHeightBasedBlendV2) != 0.0f;
+
                 SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
                 SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
                 SetKeyword(material, "_HEIGHT_BASED_BLEND", true);
+                SetKeyword(material, "_HEIGHT_BASED_BLEND_V2", useHeightBasedBlendV2);
             }
             else
             {
