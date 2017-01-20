@@ -75,6 +75,9 @@ float _UVMappingPlanar;
 float4 _UVMappingMask;
 float4 _UVDetailsMappingMask;
 
+float _PPDMaxSamples;
+float _PPDMinSamples;
+
 #else // LAYERED_LIT_SHADER
 
 // Set of users variables
@@ -154,6 +157,9 @@ PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
 
 float _AlphaCutoff;
+
+float _PPDMaxSamples;
+float _PPDMinSamples;
 
 #endif // LAYERED_LIT_SHADER
 
