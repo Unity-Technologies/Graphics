@@ -101,9 +101,14 @@ float3 GetDisplacement(VaryingsMeshToDS input)
     float height = 0.0;
 #endif
 
+    float3 displ = float3(0.0, 0.0, 0.0);
 #ifdef VARYINGS_DS_NEED_NORMAL
-    return height * input.normalWS;
-#else
-    return float3(0.0, 0.0, 0.0);
+    displ = height * input.normalWS;
 #endif
+        // Applying scaling of the object if requested
+#ifdef _TESSELLATION_OBJECT_SCALE
+    displ *= input.objectScale;
+#endif
+
+    return displ;
 }
