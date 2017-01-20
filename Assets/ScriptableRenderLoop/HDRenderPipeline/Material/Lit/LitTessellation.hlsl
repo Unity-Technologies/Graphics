@@ -107,6 +107,7 @@ float3 GetDisplacement(VaryingsMeshToDS input)
 #endif
         // Applying scaling of the object if requested
 #ifdef _TESSELLATION_OBJECT_SCALE
+    displ *= input.objectScale;
 #endif
 
     return displ;
