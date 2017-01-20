@@ -1,13 +1,15 @@
 ﻿#pragma kernel ShadeOpaque_Fptl				SHADE_OPAQUE_ENTRY=ShadeOpaque_Fptl				USE_FPTL_LIGHTLIST=1
 #pragma kernel ShadeOpaque_Clustered		SHADE_OPAQUE_ENTRY=ShadeOpaque_Clustered		USE_CLUSTERED_LIGHTLIST=1
 
+// Split lighting is required for the SSS pass.
+// Not currently possible since we need to access the stencil buffer from the compute shader.
+// #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
 
 #define LIGHTLOOP_TILE_PASS 1
 #define LIGHTLOOP_TILE_DIRECT 1
 #define LIGHTLOOP_TILE_INDIRECT 1
 #define LIGHTLOOP_TILE_ALL 1
 #define USE_FPTL_LIGHTLIST 1
-
 
 //-------------------------------------------------------------------------------------
 // Include
@@ -32,8 +34,12 @@ DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 TEXTURE2D(_CameraDepthTexture);
 SAMPLER2D(sampler_CameraDepthTexture);
 
-RWTexture2D<float4> specularLightingUAV;
-RWTexture2D<float3> diffuseLightingUAV;
+#ifdef OUTPUT_SPLIT_LIGHTING
+    RWTexture2D<float4> specularLightingUAV;
+    RWTexture2D<float3> diffuseLightingUAV;
+#else
+    RWTexture2D<float4> combinedLightingUAV;
+#endif
 
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
@@ -56,7 +62,11 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float3 specularLighting;
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
-    specularLightingUAV[pixelCoord] = float4(diffuseLighting + specularLighting, 1.0);
+#ifdef OUTPUT_SPLIT_LIGHTING
+    specularLightingUAV[pixelCoord] = float4(specularLighting, 1.0);
     diffuseLightingUAV[pixelCoord]  = diffuseLighting;
+#else
+    combinedLightingUAV[pixelCoord] = float4(diffuseLighting + specularLighting, 1.0);
+#endif
 }
 

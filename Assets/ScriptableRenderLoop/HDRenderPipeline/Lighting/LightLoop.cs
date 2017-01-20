@@ -29,7 +29,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public virtual void PushGlobalParams(Camera camera, ScriptableRenderContext loop) {}
 
-        public virtual void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier[] cameraColorBufferRTs) {}
+        public virtual void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderContext,
+                                                   RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
+                                                   bool outputSplitLighting) {}
 
         public virtual void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque) {}
 
