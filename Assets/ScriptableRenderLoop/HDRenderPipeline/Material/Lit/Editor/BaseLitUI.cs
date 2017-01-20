@@ -91,7 +91,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle (in pixel). Smaller value mean smaller triangle.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor)");
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
-            //public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Scale displacement taking into account the object scale");
+            public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Tesselation displacement will take into account the object scale - Only work with uniform positive scale");
         }
 
         public enum SurfaceType
@@ -201,9 +201,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if ((DoubleSidedMode)doubleSidedMode.floatValue == DoubleSidedMode.None)
                 {
                     m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, Styles.tessellationBackFaceCullEpsilonText);
-                }  
-                // TODO: Implement
-                // m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
+                }
+                m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
                 EditorGUI.indentLevel--;
             }
         }
@@ -244,7 +243,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tessellationFactorTriangleSize = FindProperty(kTessellationFactorTriangleSize, props, false);
             tessellationShapeFactor = FindProperty(kTessellationShapeFactor, props, false);
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon, props, false);
-            //tessellationObjectScale = FindProperty(kTessellationObjectScale, props, false);
+            tessellationObjectScale = FindProperty(kTessellationObjectScale, props, false);
         }
 
         protected void SetupCommonOptionsKeywords(Material material)
@@ -403,6 +402,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     material.DisableKeyword("_TESSELLATION_DISPLACEMENT");
                     material.EnableKeyword("_TESSELLATION_DISPLACEMENT_PHONG");
                 }
+
+                bool tessellationObjectScaleEnable = material.GetFloat(kTessellationObjectScale) == 1.0;
+                SetKeyword(material, "_TESSELLATION_OBJECT_SCALE", tessellationObjectScaleEnable);
             }
         }
 
@@ -516,8 +518,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kTessellationShapeFactor = "_TessellationShapeFactor";
         MaterialProperty tessellationBackFaceCullEpsilon = null;
         const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
-        //MaterialProperty tessellationObjectScale = null;
-        //const string kTessellationObjectScale = "_TessellationObjectScale";
+        MaterialProperty tessellationObjectScale = null;
+        const string kTessellationObjectScale = "_TessellationObjectScale";
 
         protected static string[] reservedProperties = new string[] { kSurfaceType, kBlendMode, kAlphaCutoff, kAlphaCutoffEnabled, kDoubleSidedMode };
 
