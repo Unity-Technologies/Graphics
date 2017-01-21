@@ -23,3 +23,13 @@ MonoBehaviour:
     spotCookieSize: 128
     pointCookieSize: 512
     reflectionCubemapSize: 128
+  m_TileSettings:
+    enableDrawLightBoundsDebug: 0
+    disableTileAndCluster: 0
+    disableDeferredShadingInCompute: 0
+    enableSplitLightEvaluation: 0
+    enableComputeLightEvaluation: 0
+    debugViewTilesFlags: 0
+    enableClustered: 0
+    disableFptlWhenClustered: 1
+    enableBigTilePrepass: 0
