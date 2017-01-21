@@ -165,7 +165,7 @@ void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, i
     ADD_IDX(layerTexCoord.base).uv += offset;
 }
 
-float3 ADD_IDX(GetNormalTS)(LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask, bool useBias, float bias)
+float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask, bool useBias, float bias)
 {
     float3 normalTS;
 
@@ -251,7 +251,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this so that the compiler leaves us alone.
 
     // TODO: think about using BC5
-    normalTS = ADD_IDX(GetNormalTS)(layerTexCoord, detailNormalTS, detailMask, false, 0.0f);
+    normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailMask, false, 0.0f);
 
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     surfaceData.perceptualSmoothness = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).a;
