@@ -227,7 +227,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
 
             // TODO: we should call a virtual method or something similar to setup the UI, inspector should not know about it
-            TilePass.LightLoop tilePass = renderContext.lightLoop as TilePass.LightLoop;
+            var tilePass = renderContext.tileSettings;
             if (tilePass != null)
             {
                 EditorGUILayout.LabelField(styles.tileLightLoopSettings);

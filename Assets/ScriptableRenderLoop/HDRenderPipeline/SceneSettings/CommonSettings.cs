@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             List<SkyParameters> result = new List<SkyParameters>();
             gameObject.GetComponents<SkyParameters>(result);
 
-            Type skyParamType = renderPipeline.skyManager.GetSkyParameterType();
+            Type skyParamType = renderPipeline.GetSkyParameterType();
 
             // Disable all incompatible sky parameters and enable the compatible one
             bool found = false;

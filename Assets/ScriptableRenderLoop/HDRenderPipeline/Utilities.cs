@@ -174,9 +174,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return gpuVP;
         }
 
-        public static HDRenderPipeline.HDCamera GetHDCamera(Camera camera)
+        public static HDCamera GetHDCamera(Camera camera)
         {
-            HDRenderPipeline.HDCamera hdCamera = new HDRenderPipeline.HDCamera();
+            HDCamera hdCamera = new HDCamera();
             hdCamera.camera = camera;
             hdCamera.screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
@@ -191,7 +191,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return hdCamera;
         }
         
-        public static void SetupMaterialHDCamera(HDRenderPipeline.HDCamera hdCamera, Material material)
+        public static void SetupMaterialHDCamera(HDCamera hdCamera, Material material)
         {
             material.SetVector("_ScreenSize", hdCamera.screenSize);
             material.SetMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);
@@ -245,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static HDRenderPipeline GetHDRenderPipeline()
         {
-            HDRenderPipeline renderContext = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderPipeline;
+            HDRenderPipeline renderContext = GraphicsSettings.renderPipeline as HDRenderPipeline;
             if (renderContext == null)
             {
                 Debug.LogWarning("SkyParameters component can only be used with HDRenderPipeline custom RenderPipeline.");
