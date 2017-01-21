@@ -71,9 +71,12 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                     float linearDepth = frac(posInput.depthVS * 0.1);
                     result = linearDepth.xxx;
                 }
-                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING)
+                // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo
+                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
                 {
-                    result = bakeDiffuseLighting;
+                    // TODO: require a remap
+                    // TODO: we should not gamma correct, but easier to debug for now without correct high range value
+                    result = bakeDiffuseLighting; needLinearToSRGB = true;
                 }
 
                 GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);

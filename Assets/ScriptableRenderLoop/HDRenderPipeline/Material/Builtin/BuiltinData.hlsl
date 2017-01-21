@@ -71,7 +71,8 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING:
         // TODO: require a remap
-        result = builtinData.bakeDiffuseLighting;
+        // TODO: we should not gamma correct, but easier to debug for now without correct high range value
+        result = builtinData.bakeDiffuseLighting; needLinearToSRGB = true;
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR:
         // emissiveColor is premultiply by emissive intensity

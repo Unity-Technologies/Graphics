@@ -167,13 +167,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             const int k_LtcLUTMatrixDim  =  3; // size of the matrix (3x3)
             const int k_LtcLUTResolution = 64;
 
-            Material CreateEngineMaterial(string shaderPath)
-            {
-                Material mat = new Material(Shader.Find(shaderPath) as Shader);
-                mat.hideFlags = HideFlags.HideAndDontSave;
-                return mat;
-            }
-
             Texture2D CreateLUT(int width, int height, TextureFormat format, Color[] pixels)
             {
                 Texture2D tex = new Texture2D(width, height, format, false /*mipmap*/, true /*linear*/);
@@ -239,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void Build()
             {
-                m_InitPreFGD = CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
+                m_InitPreFGD = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
                 // TODO: switch to RGBA64 when it becomes available.
                 m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
