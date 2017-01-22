@@ -79,7 +79,9 @@ void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, i
     float2 uv = ADD_IDX(layerTexCoord.base).uv;
 
     // Compute lod as we will sample inside a loop (so can't use regular sampling)
-    float lod = CALCULATE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv);
+    // It appear that CALCULATE_TEXTURE2D_LOD only return interger lod. We want to use float lod to have smoother transition and fading
+    // float lod = CALCULATE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv);
+    float lod = ComputeTextureLOD(uv, GET_TEXELSIZE_NAME(ADD_IDX(_HeightMap))); 
 
     // Do a first step before the loop to init all value correctly
     float2 texOffsetCurrent = 0;
@@ -158,6 +160,10 @@ void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, i
     float2 offset = texOffsetCurrent - ratio * texOffsetPerStep;
 
 #endif
+
+    // TODO: expose LOD fading
+    //float lodThreshold = 0.0;
+    //offset *= (1.0 - saturate(lod - lodThreshold));
 
     // Apply offset only on base. Details could use another mapping and will not be consistant...
     // Don't know if this will still ok.

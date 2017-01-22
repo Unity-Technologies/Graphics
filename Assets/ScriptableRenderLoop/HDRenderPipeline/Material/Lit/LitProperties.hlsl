@@ -30,6 +30,7 @@ float _DetailAOScale;
 
 TEXTURE2D(_HeightMap);
 SAMPLER2D(sampler_HeightMap);
+float4 _HeightMap_TexelSize; // Unity facility. This will provide the size of the heightmap to the shader
 
 float _HeightAmplitude;
 float _HeightCenter;
@@ -106,6 +107,10 @@ PROP_DECL_TEX2D(_NormalMap);
 PROP_DECL(float, _NormalScale);
 
 PROP_DECL_TEX2D(_HeightMap);
+float4 _HeightMap0_TexelSize;
+float4 _HeightMap1_TexelSize;
+float4 _HeightMap2_TexelSize;
+float4 _HeightMap3_TexelSize;
 
 PROP_DECL_TEX2D(_DetailMask);
 PROP_DECL_TEX2D(_DetailMap);
