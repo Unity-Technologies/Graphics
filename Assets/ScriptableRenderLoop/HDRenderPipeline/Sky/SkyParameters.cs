@@ -23,8 +23,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Properties = GetType()
                             .GetFields(BindingFlags.Public | BindingFlags.Instance)
                             .ToArray();
+            SkyParametersSingleton.Refresh();
         }
-        
+
+        public void OnDisable()
+        {
+            SkyParametersSingleton.Refresh();
+        }
+
         public int GetHash()
         {
             unchecked

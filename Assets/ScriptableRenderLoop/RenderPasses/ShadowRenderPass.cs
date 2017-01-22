@@ -5,7 +5,7 @@ using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [System.Serializable]
+    [Serializable]
     public class ShadowSettings
     {
         public bool     enabled;

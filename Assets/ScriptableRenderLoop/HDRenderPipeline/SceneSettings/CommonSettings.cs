@@ -1,77 +1,83 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using System;
-using System.Linq;
-using System.Reflection;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    public class CommonSettings 
-        : MonoBehaviour
+    public class CommonSettings : MonoBehaviour
     {
-        [SerializeField] private string     m_SkyRendererTypeName = ""; // Serialize a string because serialize a Type.
-
-        [SerializeField] float              m_ShadowMaxDistance = ShadowSettings.Default.maxShadowDistance;
-        [SerializeField] int                m_ShadowCascadeCount = ShadowSettings.Default.directionalLightCascadeCount;
-        [SerializeField] float              m_ShadowCascadeSplit0 = ShadowSettings.Default.directionalLightCascades.x;
-        [SerializeField] float              m_ShadowCascadeSplit1 = ShadowSettings.Default.directionalLightCascades.y;
-        [SerializeField] float              m_ShadowCascadeSplit2 = ShadowSettings.Default.directionalLightCascades.z;
-
-        public Type skyRendererType
+        [Serializable]
+        public class Settings
         {
-            set { m_SkyRendererTypeName = value != null ? value.FullName : ""; OnSkyRendererChanged(); }
-            get { return m_SkyRendererTypeName == "" ? null : Assembly.GetAssembly(typeof(CommonSettings)).GetType(m_SkyRendererTypeName); }
+            [SerializeField]
+            string m_SkyRendererTypeName = ""; // Serialize a string because serialize a Type.
+
+            [SerializeField]
+            float m_ShadowMaxDistance = ShadowSettings.Default.maxShadowDistance;
+
+            [SerializeField]
+            int m_ShadowCascadeCount = ShadowSettings.Default.directionalLightCascadeCount;
+
+            [SerializeField]
+            float m_ShadowCascadeSplit0 = ShadowSettings.Default.directionalLightCascades.x;
+
+            [SerializeField]
+            float m_ShadowCascadeSplit1 = ShadowSettings.Default.directionalLightCascades.y;
+
+            [SerializeField]
+            float m_ShadowCascadeSplit2 = ShadowSettings.Default.directionalLightCascades.z;
+            
+            public float shadowMaxDistance { set { m_ShadowMaxDistance = value; OnValidate(); } get { return m_ShadowMaxDistance; } }
+            public int shadowCascadeCount { set { m_ShadowCascadeCount = value; OnValidate(); } get { return m_ShadowCascadeCount; } }
+            public float shadowCascadeSplit0 { set { m_ShadowCascadeSplit0 = value; OnValidate(); } get { return m_ShadowCascadeSplit0; } }
+            public float shadowCascadeSplit1 { set { m_ShadowCascadeSplit1 = value; OnValidate(); } get { return m_ShadowCascadeSplit1; } }
+            public float shadowCascadeSplit2 { set { m_ShadowCascadeSplit2 = value; OnValidate(); } get { return m_ShadowCascadeSplit2; } }
+
+            public void OnValidate()
+            {
+                m_ShadowMaxDistance = Mathf.Max(0.0f, m_ShadowMaxDistance);
+                m_ShadowCascadeCount = Math.Min(4, Math.Max(1, m_ShadowCascadeCount));
+                m_ShadowCascadeSplit0 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit0));
+                m_ShadowCascadeSplit1 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit1));
+                m_ShadowCascadeSplit2 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit2));
+            }
         }
 
-        public float shadowMaxDistance { set { m_ShadowMaxDistance = value; OnValidate(); } get { return m_ShadowMaxDistance; } }
-        public int shadowCascadeCount { set { m_ShadowCascadeCount = value; OnValidate(); } get { return m_ShadowCascadeCount; } }
-        public float shadowCascadeSplit0 { set { m_ShadowCascadeSplit0 = value; OnValidate(); } get { return m_ShadowCascadeSplit0; } }
-        public float shadowCascadeSplit1 { set { m_ShadowCascadeSplit1 = value; OnValidate(); } get { return m_ShadowCascadeSplit1; } }
-        public float shadowCascadeSplit2 { set { m_ShadowCascadeSplit2 = value; OnValidate(); } get { return m_ShadowCascadeSplit2; } }
+        [SerializeField]
+        private Settings m_Settings = new Settings();
 
-        void OnEnable()
+        public Settings settings
         {
-            HDRenderPipeline renderPipeline = Utilities.GetHDRenderPipeline();
-            if (renderPipeline == null)
-            {
-                return;
-            }
-
-            if (renderPipeline.commonSettings == null)
-                renderPipeline.commonSettings = this;
-            else if (renderPipeline.commonSettings != this)
-                Debug.LogWarning("Only one CommonSettings can be setup at a time.");
-
-            OnSkyRendererChanged();
+            get { return m_Settings; }
         }
 
-        void OnDisable()
+        public void OnEnable()
         {
-            HDRenderPipeline renderPipeline = Utilities.GetHDRenderPipeline();
-            if (renderPipeline == null)
-            {
-                return;
-            }
+            CommonSettingsSingleton.Refresh();
+        }
 
-            if (renderPipeline.commonSettings == this)
-                renderPipeline.commonSettings = null;
+        public void OnDisable()
+        {
+            CommonSettingsSingleton.Refresh();
         }
 
         void OnValidate()
         {
-            m_ShadowMaxDistance = Mathf.Max(0.0f, m_ShadowMaxDistance);
-            m_ShadowCascadeCount = Math.Min(4, Math.Max(1, m_ShadowCascadeCount));
-            m_ShadowCascadeSplit0 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit0));
-            m_ShadowCascadeSplit1 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit1));
-            m_ShadowCascadeSplit2 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit2));
-
-            OnSkyRendererChanged();
+            if (settings != null)
+                settings.OnValidate();
         }
 
-        void OnSkyRendererChanged()
+       /* public Type skyRendererType
+        {
+            set { settings.m_SkyRendererTypeName = value != null ? value.FullName : ""; OnSkyRendererChanged(); }
+            get { return settings.m_SkyRendererTypeName == "" ? null : Assembly.GetAssembly(typeof(CommonSettings)).GetType(settings.m_SkyRendererTypeName); }
+        }*/
+
+
+    }
+
+
+ /*       void OnSkyRendererChanged()
         {
             HDRenderPipeline renderPipeline = Utilities.GetHDRenderPipeline();
             if (renderPipeline == null)
@@ -112,5 +118,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 gameObject.AddComponent(skyParamType);
             }
         }
-    }
+    }*/
 }

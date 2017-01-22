@@ -98,15 +98,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_TileSettings; }
         }
 
-        CommonSettings m_CommonSettings;
-        public CommonSettings commonSettings
-        {
-            set { m_CommonSettings = value; }
-            get { return m_CommonSettings; }
-        }
-
         public void UpdateCommonSettings()
         {
+            var commonSettings = CommonSettingsSingleton.overrideSettings;
+
             if (commonSettings == null)
             {
                 m_ShadowSettings.maxShadowDistance = ShadowSettings.Default.maxShadowDistance;
@@ -261,7 +256,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // This must be allocate outside of Build() else the option in the class can't be set in the inspector (as it will in this case recreate the class with default value)
         //readonly BaseLightLoop m_lightLoop;
-
         SkyManager m_SkyManager;
         public SkyManager skyManager
         {
@@ -270,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_SkyManager == null)
                 {
                     m_SkyManager = new SkyManager();
-                    m_SkyManager.skyParameters = Object.FindObjectOfType<SkyParameters>();
+                    m_SkyManager.skyParameters = SkyParametersSingleton.overrideSettings;
                 }
                 return m_SkyManager;
             }
@@ -281,14 +275,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_Owner.debugParameters; }
         }
 
-        private CommonSettings commonSettings
-        {
-            get { return m_Owner.commonSettings; }
-        }
-
         public void InstantiateSkyRenderer(Type skyRendererType)
         {
-            m_SkyManager.InstantiateSkyRenderer(skyRendererType);
+            skyManager.InstantiateSkyRenderer(skyRendererType);
         }
 
         public HDRenderPipelineInstance(HDRenderPipeline owner)
@@ -343,7 +332,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LitRenderLoop.Cleanup();
 
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
-            m_SkyManager.Cleanup();
+            skyManager.Cleanup();
 
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = SupportedRenderingFeatures.Default;
@@ -366,7 +355,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: This is the wrong way to handle resize/allocation. We can have several different camera here, mean that the loop on camera will allocate and deallocate
             // the below buffer which is bad. Best is to have a set of buffer for each camera that is persistent and reallocate resource if need
             // For now consider we have only one camera that go to this code, the main one.
-            m_SkyManager.Resize(); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
+            skyManager.Resize(); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
 
             if (camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight || m_lightLoop.NeedResize())
             {
@@ -385,9 +374,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushGlobalParams(HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
-            if (m_SkyManager.IsSkyValid())
+            if (skyManager.IsSkyValid())
             {
-                m_SkyManager.SetGlobalSkyTexture();
+                skyManager.SetGlobalSkyTexture();
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 1);
             }
             else
@@ -758,14 +747,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // for artists to do lighting work until the fully-featured framework is ready
 
                 var localPostProcess = camera.GetComponent<PostProcessing>();
-                var globalPostProcess = commonSettings == null
+                /*var globalPostProcess = commonSettings == null
                     ? null
-                    : commonSettings.GetComponent<PostProcessing>();
+                    : commonSettings.GetComponent<PostProcessing>();*/
 
                 bool localActive = localPostProcess != null && localPostProcess.enabled;
-                bool globalActive = globalPostProcess != null && globalPostProcess.enabled;
+               // bool globalActive = globalPostProcess != null && globalPostProcess.enabled;
 
-                if (!localActive && !globalActive)
+             //   if (!localActive && !globalActive)
                 {
                     var cmd = new CommandBuffer { name = "" };
                     cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
@@ -774,8 +763,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 }
 
-                var target = localActive ? localPostProcess : globalPostProcess;
-                target.Render(camera, renderContext, m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
+                /*var target = localActive ? localPostProcess : globalPostProcess;
+                target.Render(camera, renderContext, m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);*/
             }
         }
 

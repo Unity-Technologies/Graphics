@@ -1,5 +1,4 @@
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -384,71 +383,69 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateEnvironment(HDCamera camera, Light sunLight, ScriptableRenderContext renderContext)
         {
+            using (new Utilities.ProfilingSample("Sky Environment Pass", renderContext))
             {
-                using (new Utilities.ProfilingSample("Sky Environment Pass", renderContext))
+                if (IsSkyValid())
                 {
-                    if (IsSkyValid())
+                    m_CurrentUpdateTime += Time.deltaTime;
+
+                    m_BuiltinParameters.renderContext = renderContext;
+                    m_BuiltinParameters.sunLight = sunLight;
+
+                    // We need one frame delay for this update to work since DynamicGI.UpdateEnvironment is executed direclty but the renderloop is not (so we need to wait for the sky texture to be rendered first)
+                    if (m_NeedLowLevelUpdateEnvironment)
                     {
-                        m_CurrentUpdateTime += Time.deltaTime;
+                        // TODO: Properly send the cubemap to Enlighten. Currently workaround is to set the cubemap in a Skybox/cubemap material
+                        m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
+                        RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+                        RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
+                        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
+                        RenderSettings.reflectionIntensity = 1.0f;
+                        RenderSettings.customReflection = null;
+                        DynamicGI.UpdateEnvironment();
 
-                        m_BuiltinParameters.renderContext = renderContext;
-                        m_BuiltinParameters.sunLight = sunLight;
-
-                        // We need one frame delay for this update to work since DynamicGI.UpdateEnvironment is executed direclty but the renderloop is not (so we need to wait for the sky texture to be rendered first)
-                        if (m_NeedLowLevelUpdateEnvironment)
-                        {
-                            // TODO: Properly send the cubemap to Enlighten. Currently workaround is to set the cubemap in a Skybox/cubemap material
-                            m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
-                            RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
-                            RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
-                            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
-                            RenderSettings.reflectionIntensity = 1.0f;
-                            RenderSettings.customReflection = null;
-                            DynamicGI.UpdateEnvironment();
-
-                            m_NeedLowLevelUpdateEnvironment = false;
-                        }
-
-                        if (
-                                (skyParameters.updateMode == EnvironementUpdateMode.OnDemand && m_UpdateRequired) ||
-                                (skyParameters.updateMode == EnvironementUpdateMode.OnChanged && skyParameters.GetHash() != m_SkyParametersHash) ||
-                                (skyParameters.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skyParameters.updatePeriod)
-                           )
-                        {
-                            // Render sky into a cubemap - doesn't happen every frame, can be controlled
-                            RenderSkyToCubemap(m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT);
-                            // Note that m_SkyboxCubemapRT is created with auto-generate mipmap, it mean that here we have also our mipmap correctly box filtered for importance sampling.
-
-                            // Convolve downsampled cubemap
-                            RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
-
-                            m_NeedLowLevelUpdateEnvironment = true;
-                            m_UpdateRequired = false;
-                            m_SkyParametersHash = skyParameters.GetHash();
-                            m_CurrentUpdateTime = 0.0f;
-                        }
+                        m_NeedLowLevelUpdateEnvironment = false;
                     }
-                    else
+
+                    if (
+                        (skyParameters.updateMode == EnvironementUpdateMode.OnDemand && m_UpdateRequired) ||
+                        (skyParameters.updateMode == EnvironementUpdateMode.OnChanged && skyParameters.GetHash() != m_SkyParametersHash) ||
+                        (skyParameters.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skyParameters.updatePeriod)
+                        )
                     {
-                        // Disabled for now.
-                        // We need to remove RenderSkyToCubemap from the RenderCubemapGGXConvolution first as it needs the skyparameter to be valid.
-                        //if(m_SkyParametersHash != 0)
-                        //{
-                        //    // Clear sky light probe
-                        //    RenderSettings.skybox = null;
-                        //    RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
-                        //    RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
-                        //    RenderSettings.reflectionIntensity = 1.0f;
-                        //    RenderSettings.customReflection = null;
-                        //    DynamicGI.UpdateEnvironment();
+                        // Render sky into a cubemap - doesn't happen every frame, can be controlled
+                        RenderSkyToCubemap(m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT);
+                        // Note that m_SkyboxCubemapRT is created with auto-generate mipmap, it mean that here we have also our mipmap correctly box filtered for importance sampling.
 
-                        //    // Clear temp cubemap and redo GGX from black
-                        //    Utilities.SetRenderTarget(renderContext, m_SkyboxCubemapRT, ClearFlag.ClearColor);
-                        //    RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+                        // Convolve downsampled cubemap
+                        RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
-                        //    m_SkyParametersHash = 0;
-                        //}
+                        m_NeedLowLevelUpdateEnvironment = true;
+                        m_UpdateRequired = false;
+                        m_SkyParametersHash = skyParameters.GetHash();
+                        m_CurrentUpdateTime = 0.0f;
                     }
+                }
+                else
+                {
+                    // Disabled for now.
+                    // We need to remove RenderSkyToCubemap from the RenderCubemapGGXConvolution first as it needs the skyparameter to be valid.
+                    //if(m_SkyParametersHash != 0)
+                    //{
+                    //    // Clear sky light probe
+                    //    RenderSettings.skybox = null;
+                    //    RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
+                    //    RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
+                    //    RenderSettings.reflectionIntensity = 1.0f;
+                    //    RenderSettings.customReflection = null;
+                    //    DynamicGI.UpdateEnvironment();
+
+                    //    // Clear temp cubemap and redo GGX from black
+                    //    Utilities.SetRenderTarget(renderContext, m_SkyboxCubemapRT, ClearFlag.ClearColor);
+                    //    RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+
+                    //    m_SkyParametersHash = 0;
+                    //}
                 }
             }
         }
