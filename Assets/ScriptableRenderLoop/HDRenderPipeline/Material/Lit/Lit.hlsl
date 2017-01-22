@@ -40,24 +40,16 @@
 // TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotropy and anisotropy case.
 // Maybe we should always calculate anisotropy in case of standard ? Don't think the compile can optimize correctly.
 
-// TODO: I haven't configure this sampler in the code, we should be able to do it (but Unity don't allow it for now...)
-// By default Unity provide MIG_MAG_LINEAR_POINT sampler, so it fit with our need.
-// TODO: to avoid the message Fragment program 'Frag' : sampler 'sampler_PreIntegratedFGD' has no matching texture and will be undefined.
-// We need to test this define LIGHTLOOP_TILE_DIRECT, this is a bad workaround but no alternative until we can setup sampler correctly...
-#if defined(LIT_DISPLAY_REFERENCE_IBL) || defined(LIGHTLOOP_TILE_DIRECT)
-// When reference mode is enabled, then we need to chose another sampler not related to cubemap code...
-SAMPLER2D(sampler_LtcGGXMatrix);
-#define SRL_BilinearSampler sampler_LtcGGXMatrix // Used for all textures
-#else
-SAMPLER2D(sampler_PreIntegratedFGD);
-#define SRL_BilinearSampler sampler_PreIntegratedFGD // Used for all textures
-#endif
-
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
+// TODO: we can share the sampler here and name it SRL_BilinearSampler. However Unity currently doesn't support to set sampler in C#
+// + to avoid the message Fragment program 'Frag' : sampler 'sampler_PreIntegratedFGD' has no matching texture and will be undefined.
 TEXTURE2D(_PreIntegratedFGD);
-TEXTURE2D(_LtcGGXMatrix);                    // RGBA
-TEXTURE2D(_LtcDisneyDiffuseMatrix);          // RGBA
-TEXTURE2D(_LtcMultiGGXFresnelDisneyDiffuse); // RGB, A unused
+SAMPLER2D(sampler_PreIntegratedFGD);
+TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
+SAMPLER2D(sampler_LtcData);
+#define LTC_GGX_MATRIX_INDEX 0 // RGBA
+#define LTC_DISNEY_DIFFUSE_MATRIX_INDEX 1 // RGBA
+#define LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX 2 // RGB, A unused
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -82,7 +74,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     //  _PreIntegratedFGD.y = Gv * Fc
     // Pre integrate DisneyDiffuse FGD:
     // _PreIntegratedFGD.z = DisneyDiffuse
-    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, SRL_BilinearSampler, float2(NdotV, perceptualRoughness), 0).xyz;
+    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, sampler_PreIntegratedFGD, float2(NdotV, perceptualRoughness), 0).xyz;
 
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
@@ -514,15 +506,15 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcXformGGX      = 0.0;
     preLightData.ltcXformGGX._m22 = 1.0;
-    preLightData.ltcXformGGX._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcGGXMatrix, SRL_BilinearSampler, uv, 0);
+    preLightData.ltcXformGGX._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, sampler_LtcData, uv, LTC_GGX_MATRIX_INDEX, 0);
 
     // Get the inverse LTC matrix for Disney Diffuse
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcXformDisneyDiffuse      = 0.0;
     preLightData.ltcXformDisneyDiffuse._m22 = 1.0;
-    preLightData.ltcXformDisneyDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcDisneyDiffuseMatrix, SRL_BilinearSampler, uv, 0);
+    preLightData.ltcXformDisneyDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, sampler_LtcData, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
 
-    float3 ltcMagnitude = SAMPLE_TEXTURE2D_LOD(_LtcMultiGGXFresnelDisneyDiffuse, SRL_BilinearSampler, uv, 0).r;
+    float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, sampler_LtcData, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
     preLightData.ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r;
     preLightData.ltcGGXFresnelMagnitude     = ltcMagnitude.g;
     preLightData.ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
