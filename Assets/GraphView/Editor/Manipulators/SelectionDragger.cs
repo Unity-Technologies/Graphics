@@ -86,20 +86,30 @@ namespace RMGUI.GraphView
 				case EventType.MouseUp:
 					if (CanStopManipulation(evt))
 					{
-						foreach (var presenter in graphView.selection.OfType<GraphElement>()
-																	 .Select(ge => ge.presenter)
-																	 .Where(pr => pr != null))
-						{
-							presenter.CommitChanges();
-						}
-
 						if (selectedElement != null && !evt.control)
 						{
 							// Since we didn't drag after all, update selection with current element only
 							graphView.ClearSelection();
-							graphView.AddToSelection(selectedElement as GraphElement);
-						}
+							graphView.AddToSelection(selectedElement);
 
+						}
+						else
+						{
+							foreach (ISelectable s in graphView.selection)
+							{
+								GraphElement ce = s as GraphElement;
+								if (ce == null || ce.presenter == null)
+									continue;
+
+								GraphElementPresenter elementPresenter = ce.presenter;
+								if ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable)
+									continue;
+
+								elementPresenter.position = ce.position;
+								elementPresenter.CommitChanges();
+
+							}
+						}
 						this.ReleaseCapture();
 						return EventPropagation.Stop;
 					}
