@@ -380,7 +380,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 #endif
 }
 
-float3 ComputeInheritedNormalTS(float3 normalTS0, float3 normalTS1, float3 normalTS2, float3 normalTS3, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
+float3 ComputeInheritedNormalTS(FragInputs input, float3 normalTS0, float3 normalTS1, float3 normalTS2, float3 normalTS3, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
 {
     float3 normalTS;
 //#if !defined(_HEIGHT_BASED_BLEND_V2)
@@ -400,7 +400,7 @@ float3 ComputeInheritedNormalTS(float3 normalTS0, float3 normalTS1, float3 norma
     float inheritBaseNormal = BlendLayeredScalar(1.0f, _InheritBaseNormal1, _InheritBaseNormal2, _InheritBaseNormal3, weights);
     // Based on this inheritance parameters, fetch a lower level of the base layer normal map so that the less we inherit the more this tends to be "vertex normal"
     float maxMipBias = 12.0f; // We arbitrarly choose the max bias for a 2048 texture. Smaller texture will bias toward vertex normal faster.
-    float3 inheritedBaseNormalTS = GetNormalTS0(layerTexCoord, float3(0.0, 0.0, 0.0), 0.0f, true, maxMipBias * (1.0 - inheritBaseNormal));
+    float3 inheritedBaseNormalTS = GetNormalTS0(input, layerTexCoord, float3(0.0, 0.0, 0.0), 0.0f, true, maxMipBias * (1.0 - inheritBaseNormal));
 
     // Blend all layers but the base one. This will then be added to the "inherited" normal of base layer (that's why base layer here is tangent space vertex normal so that if it's the visible layer we add nothing in term of normal map).
     float3 layersNormalTS = BlendLayeredFloat3(float3(0.0, 0.0, 1.0), normalTS1, normalTS2, normalTS3, weights);
@@ -528,7 +528,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float3 normalTS;
 #if defined(_HEIGHT_BASED_BLEND)
-    normalTS = ComputeInheritedNormalTS(normalTS0, normalTS1, normalTS2, normalTS3, layerTexCoord, weights);
+    normalTS = ComputeInheritedNormalTS(input, normalTS0, normalTS1, normalTS2, normalTS3, layerTexCoord, weights);
 #else
     normalTS = BlendLayeredFloat3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 #endif

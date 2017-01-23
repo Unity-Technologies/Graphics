@@ -246,7 +246,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-        
+
         Pass
         {
             Name "ShadowCaster"
@@ -293,7 +293,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-        
+
         Pass
         {
             Name "Motion Vectors"
@@ -315,7 +315,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-   
+
         Pass
         {
             Name "Distortion" // Name is not used
