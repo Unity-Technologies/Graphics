@@ -6,16 +6,17 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: GroundLeaf_Albedo
+  m_Name: GroundLeaf_DoubleSidedFlip
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DEPTHOFFSETENABLE_OFF _DETAIL_MAP_WITH_NORMAL
-    _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _DOUBLESIDED_LIGHTING_FLIP
-    _EMISSION _ENABLEPERPIXELDISPLACEMENT_OFF _HEIGHTMAP _MASKMAP _METALLICGLOSSMAP
-    _NORMALMAP _NORMALMAP_TANGENT_SPACE _TESSELLATIONOBJECTSCALE_OFF _TESSELLATION_DISPLACEMENT
+  m_ShaderKeywords: _ALPHATEST_ON _DEPTHOFFSETENABLE_OFF _DETAIL_MAP_WITH_NORMAL _DISTORTIONDEPTHTEST_OFF
+    _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _DOUBLESIDED_LIGHTING_FLIP _EMISSION
+    _ENABLEPERPIXELDISPLACEMENT_OFF _MASKMAP _METALLICGLOSSMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
+    _TESSELLATIONOBJECTSCALE_OFF _TESSELLATION_DISPLACEMENT
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
+  m_CustomRenderQueue: 2450
+  stringTagMap:
+    RenderType: TransparentCutout
   disabledShaderPasses:
   - DistortionVectors
   m_SavedProperties:
@@ -66,7 +67,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightMap:
-        m_Texture: {fileID: 2800000, guid: 0c3144d154991884c8aa53e7dc7893ff, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -107,7 +108,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _AlphaCutoff: 0.5
-    - _AlphaCutoffEnable: 0
+    - _AlphaCutoffEnable: 1
     - _Anisotropy: 0
     - _BlendMode: 0
     - _BumpScale: 1
@@ -145,6 +146,8 @@ Material:
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _OcclusionStrength: 1
+    - _PPDMaxSamples: 15
+    - _PPDMinSamples: 5
     - _Parallax: 0.02
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
