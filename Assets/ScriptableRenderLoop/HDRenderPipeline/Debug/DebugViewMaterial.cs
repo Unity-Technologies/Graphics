@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum DebugViewGbuffer
         {
             Depth = DebugViewVarying.VertexColorAlpha + 1,
-            BakeDiffuseLighting,
+            BakeDiffuseLightingWithAlbedoPlusEmissive,
         }
     }
 }

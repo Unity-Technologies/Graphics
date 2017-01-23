@@ -9,8 +9,8 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             Blend One OneMinusSrcAlpha, Zero One
 
             HLSLPROGRAM
-            #pragma target 5.0
-            #pragma only_renderers d3d11 ps4 // TEMP: unitl we go futher in dev
+            #pragma target 4.5
+            #pragma only_renderers d3d11 ps4 metal  // TEMP: unitl we go futher in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -34,7 +34,6 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             float4 _CameraPosWS;
 
             float4x4 _InvViewProjMatrix;
-            float4x4 _ViewProjMatrix;
 
             float _DisableSkyOcclusionTest;
 
@@ -75,11 +74,11 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 float3 rotDirY = float3(sinPhi, 0, cosPhi);
                 dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
 
-               // input.positionCS is SV_Position
+                // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
-                // If the sky box is too far away (depth set to 0), the resulting look is too foggy.
-                const float skyDepth = 0.002;
+                // An arbitrary value attempting to match the size of the sky mesh from the Blacksmith demo.
+                const float skyDepth = 0.00025;
 
                 #ifdef PERFORM_SKY_OCCLUSION_TEST
                     // Determine whether the sky is occluded by the scene geometry.
@@ -97,7 +96,8 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                     skyTexWeight = 1.0;
                 }
 
-                UpdatePositionInput(depthRaw, _InvViewProjMatrix, _ViewProjMatrix, posInput);
+                // Since we only need the world space position, so we don't pass the view-projection matrix.
+                UpdatePositionInput(depthRaw, _InvViewProjMatrix, k_identity4x4, posInput);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(posInput.positionWS, c1, c2, c3);
@@ -125,7 +125,9 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 #endif
 
                 float3 skyColor = float3(0.0, 0.0, 0.0);
-                float  opacity  = extinction;
+                // Opacity should be proportional to extinction, but this produces wrong results.
+                // It appears what the algorithm computes is not actually extinction.
+                float  opacity  = (1.0 - extinction);
 
                 if (skyTexWeight == 1.0)
                 {
