@@ -209,8 +209,11 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 	const int totNrEdgePairs = 12*nrFrustEdges;
 	for(int l=0; l<iNrCoarseLights; l++)
 	{
-		const int idxCoarse = lightsListLDS[l];
-		[branch]if(idxCoarse<(uint) g_iNrVisibLights && g_vLightData[idxCoarse].lightType!=SPHERE_LIGHT)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+		const uint idxCoarse = lightsListLDS[l];
+    
+		bool canEnter = idxCoarse<(uint) g_iNrVisibLights;
+		if(canEnter) canEnter = g_vLightData[idxCoarse].lightType!=SPHERE_LIGHT;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+		[branch]if(canEnter)
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
 	

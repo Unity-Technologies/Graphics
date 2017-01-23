@@ -209,8 +209,8 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
 
     HLSLINCLUDE
 
-    #pragma target 5.0
-    #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
+    #pragma target 4.5
+    #pragma only_renderers d3d11 ps4 metal // TEMP: unitl we go futher in dev
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
@@ -218,6 +218,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _ _DOUBLESIDED _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
+    #pragma shader_feature _TESSELLATION_OBJECT_SCALE
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
@@ -356,6 +357,9 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
+
+            // No tessellation for Meta pass
+            #undef TESSELLATION_ON
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"            

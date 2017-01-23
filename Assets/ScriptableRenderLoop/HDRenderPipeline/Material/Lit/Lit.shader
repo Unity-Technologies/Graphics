@@ -94,8 +94,8 @@ Shader "HDRenderPipeline/Lit"
 
     HLSLINCLUDE
 
-    #pragma target 5.0
-    #pragma only_renderers d3d11 ps4// TEMP: until we go futher in dev
+    #pragma target 4.5
+    #pragma only_renderers d3d11 ps4 metal // TEMP: until we go futher in dev
 
     //-------------------------------------------------------------------------------------
     // Variant

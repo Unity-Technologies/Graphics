@@ -1,13 +1,5 @@
-// This file assume SHADER_API_D3D11 is defined
-
-#define INTRINSIC_BITFIELD_EXTRACT
-#define INTRINSIC_MAD24
-#define Mad24 mad24
-#define INTRINSIC_MED3
-#define INTRINSIC_MINMAX3
-#define Min3 min3
-#define Max3 max3
-//#define INTRINSIC_CUBEMAP_FACE_ID // Must investigate why AMD reference implementation is different than ours
+// This file assumes SHADER_API_METAL is defined
+// TODO: This is a straight copy from D3D11.hlsl. Go through all this stuff and adjust where needed.
 
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1
@@ -27,7 +19,7 @@
 
 // Texture util abstraction
 
-#define CALCULATE_TEXTURE2D_LOD(textureName, samplerName, coord2) textureName.GetLOD(samplerName, coord2)
+#define CALCULATE_TEXTURE2D_LOD(textureName, samplerName, coord2) textureName.CalculateLevelOfDetail(samplerName, coord2)
 
 // Texture abstraction
 
