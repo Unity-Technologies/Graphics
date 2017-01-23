@@ -97,10 +97,20 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 {
     VaryingsMeshType output;
 
-#if defined(TESSELLATION_ON)
+#ifdef TESSELLATION_ON
     output.positionWS = TransformObjectToWorld(input.positionOS);
-    // TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)  
-    #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_NORMAL)
+    #ifdef _TESSELLATION_OBJECT_SCALE
+    // Extract scaling from world transform
+    float4x4 worldTransform = GetObjectToWorldMatrix();
+    output.objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+    output.objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+    output.objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
+    #endif
+    // TODO: deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)  
+    // TODO: TEMP: Velocity has a flow as it doens't have normal. This need to be fix. In the mean time, generate fix normal so compiler doesn't complain - When fix, think to also enable ATTRIBUTES_NEED_NORMAL in LitVelocityPass.hlsl
+    #if SHADERPASS == SHADERPASS_VELOCITY
+    output.normalWS = float3(0.0, 0.0, 1.0);
+    #else
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
     #endif
     #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
