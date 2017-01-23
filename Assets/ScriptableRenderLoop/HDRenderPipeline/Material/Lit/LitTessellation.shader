@@ -118,6 +118,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _ _DOUBLESIDED _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
+    #pragma shader_feature _TESSELLATION_OBJECT_SCALE
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _MAPPING_TRIPLANAR
@@ -235,6 +236,7 @@ Shader "HDRenderPipeline/LitTessellation"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
 			// No tessellation for Meta pass
+            #undef TESSELLATION_ON
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"            
@@ -244,7 +246,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-
+        
         Pass
         {
             Name "ShadowCaster"
@@ -291,7 +293,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-
+        
         Pass
         {
             Name "Motion Vectors"
@@ -313,7 +315,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-
+   
         Pass
         {
             Name "Distortion" // Name is not used
@@ -365,6 +367,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
+
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"

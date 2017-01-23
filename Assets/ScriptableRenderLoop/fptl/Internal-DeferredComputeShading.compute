@@ -25,7 +25,7 @@ float3 EvalIndirectSpecular(UnityLight light, UnityIndirect ind);
 #include "TiledLightingTemplate.hlsl"
 #include "TiledReflectionTemplate.hlsl"
 
-Texture2D _CameraDepthTexture;
+UNITY_DECLARE_TEX2D_FLOAT(_CameraDepthTexture);
 Texture2D _CameraGBufferTexture0;
 Texture2D _CameraGBufferTexture1;
 Texture2D _CameraGBufferTexture2;

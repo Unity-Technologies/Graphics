@@ -66,7 +66,7 @@ Shader "Experim/StdShader"
             ZWrite [_ZWrite]
 
             CGPROGRAM
-            #pragma target 5.0
+            #pragma target 4.5
 
             // -------------------------------------
 
@@ -107,7 +107,7 @@ Shader "Experim/StdShader"
 			ZWrite On ZTest LEqual
 
             CGPROGRAM
-            #pragma target 5.0
+            #pragma target 4.5
 
             // TODO: figure out what's needed here wrt. alpha test etc.
 
@@ -145,7 +145,7 @@ Shader "Experim/StdShader"
             ZWrite On ZTest LEqual
 
             CGPROGRAM
-            #pragma target 5.0
+            #pragma target 4.5
 
             // -------------------------------------
 
