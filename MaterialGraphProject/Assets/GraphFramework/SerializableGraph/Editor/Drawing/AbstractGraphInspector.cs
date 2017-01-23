@@ -7,20 +7,25 @@ namespace UnityEditor.Graphing.Drawing
 {
     public abstract class AbstractGraphInspector : Editor
     {
-        protected GraphTypeMapper typeMapper { get; set; }
+        private ScriptableObjectFactory<INode, AbstractNodeInspector, BasicNodeInspector> m_InspectorFactory;
 
-        protected List<INode> m_SelectedNodes = new List<INode>();
+        private List<INode> m_SelectedNodes = new List<INode>();
 
-        protected List<AbstractNodeInspector> m_Inspectors = new List<AbstractNodeInspector>();
+        protected IEnumerable<INode> selectedNodes
+        {
+            get { return m_SelectedNodes; }
+        }
+
+        private List<AbstractNodeInspector> m_Inspectors = new List<AbstractNodeInspector>();
 
         protected IGraphAsset graphAsset
         {
             get { return target as IGraphAsset; }
         }
 
-        protected AbstractGraphInspector()
+        protected AbstractGraphInspector(IEnumerable<TypeMapping> typeMappings)
         {
-            typeMapper = new GraphTypeMapper(typeof(BasicNodeInspector));
+            m_InspectorFactory = new ScriptableObjectFactory<INode, AbstractNodeInspector, BasicNodeInspector>(typeMappings);
         }
 
         public override void OnInspectorGUI()
@@ -38,11 +43,11 @@ namespace UnityEditor.Graphing.Drawing
             if (graphAsset == null)
                 return;
 
-            using (var selectedNodes = ListPool<INode>.GetDisposable())
+            using (var nodes = ListPool<INode>.GetDisposable())
             {
-                selectedNodes.value.AddRange(graphAsset.drawingData.selection.Select(graphAsset.graph.GetNodeFromGuid));
-                if (m_SelectedNodes == null || m_Inspectors.Any(i => i.node == null) || !selectedNodes.value.SequenceEqual(m_SelectedNodes))
-                    OnSelectionChanged(selectedNodes.value);
+                nodes.value.AddRange(graphAsset.drawingData.selection.Select(graphAsset.graph.GetNodeFromGuid));
+                if (m_SelectedNodes == null || m_Inspectors.Any(i => i.node == null) || !nodes.value.SequenceEqual(m_SelectedNodes))
+                    OnSelectionChanged(nodes.value);
             }
         }
 
@@ -53,7 +58,7 @@ namespace UnityEditor.Graphing.Drawing
             m_Inspectors.Clear();
             foreach (var node in m_SelectedNodes.OfType<SerializableNode>())
             {
-                var inspector = (AbstractNodeInspector)typeMapper.Create(node);
+                var inspector = m_InspectorFactory.Create(node);
                 inspector.Initialize(node);
                 m_Inspectors.Add(inspector);
             }

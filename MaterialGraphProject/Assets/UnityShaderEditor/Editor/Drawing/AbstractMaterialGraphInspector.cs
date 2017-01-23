@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing.Drawing;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
@@ -41,11 +43,18 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
         }
 
-        protected AbstractMaterialGraphInspector()
+        protected AbstractMaterialGraphInspector() : base(typeMappings)
         {
-            typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterNodeInspector);
-            typeMapper[typeof(SubGraphInputNode)] = typeof(SubgraphInputNodeInspector);
-            typeMapper[typeof(SubGraphOutputNode)] = typeof(SubgraphOutputNodeInspector);
+        }
+
+        private static IEnumerable<TypeMapping> typeMappings
+        {
+            get
+            {
+                yield return new TypeMapping(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector));
+                yield return new TypeMapping(typeof(SubGraphInputNode), typeof(SubgraphInputNodeInspector));
+                yield return new TypeMapping(typeof(SubGraphOutputNode), typeof(SubgraphOutputNodeInspector));
+            }
         }
 
         private void OnPreviewNodeModified(INode node, ModificationScope scope)
@@ -86,9 +95,9 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public override void OnPreviewSettings()
         {
-            GUI.enabled = m_SelectedNodes.Count <= 1 && m_SelectedNodes.FirstOrDefault() != previewNode;
+            GUI.enabled = selectedNodes.Count() <= 1 && selectedNodes.FirstOrDefault() != previewNode;
             if (GUILayout.Button("Pin selected", "preButton"))
-                previewNode = m_SelectedNodes.FirstOrDefault() as AbstractMaterialNode;
+                previewNode = selectedNodes.FirstOrDefault() as AbstractMaterialNode;
             GUI.enabled = true;
         }
 
