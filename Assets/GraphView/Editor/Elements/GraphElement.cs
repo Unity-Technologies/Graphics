@@ -96,16 +96,16 @@ namespace RMGUI.GraphView
 		}
 
 		public virtual EventPropagation Select(VisualContainer selectionContainer, Event evt)
-        {
-        	var selectable = this.GetFirstOfType<ISelectable>();
+		{
+			var selectable = this.GetFirstOfType<ISelectable>();
 			if (selectable == null || !selectable.IsSelectable())
 			{
 				return EventPropagation.Continue;
 			}
 
-            var graphView = selectionContainer as GraphView;
-            if (graphView != null && parent == graphView.contentViewContainer)
-            {
+			var graphView = selectionContainer as GraphView;
+			if (graphView != null && parent == graphView.contentViewContainer)
+			{
 				if (graphView.selection.Contains(selectable))
 				{
 					if (evt.control)
@@ -121,7 +121,7 @@ namespace RMGUI.GraphView
 				graphView.AddToSelection(selectable);
 			}
 
-            return EventPropagation.Continue;
-        }
-    }
+			return EventPropagation.Continue;
+		}
+	}
 }

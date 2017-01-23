@@ -47,8 +47,8 @@ namespace RMGUI.GraphView
 
 						selectedElement = ce;
 
-						GraphElementPresenter presenter = ce.presenter;
-						if (presenter != null && ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable))
+						GraphElementPresenter elementPresenter = ce.presenter;
+						if (elementPresenter != null && ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable))
 							return EventPropagation.Continue;
 
 						this.TakeCapture();
@@ -65,16 +65,15 @@ namespace RMGUI.GraphView
 							if (ce == null || ce.presenter == null)
 								continue;
 
-							GraphElementPresenter presenter = ce.presenter;
 							if ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable)
 								continue;
 
 							Matrix4x4 g = ce.globalTransform;
 							var scale = new Vector3(g.m00, g.m11, g.m22);
 
-							presenter.position = CalculatePosition(presenter.position.x + evt.delta.x * panSpeed.x / scale.x,
-																   presenter.position.y + evt.delta.y * panSpeed.y / scale.y,
-																   presenter.position.width, presenter.position.height);
+							ce.position = CalculatePosition(ce.position.x + evt.delta.x * panSpeed.x / scale.x,
+															ce.position.y + evt.delta.y * panSpeed.y / scale.y,
+															ce.position.width, ce.position.height);
 						}
 
 						selectedElement = null;

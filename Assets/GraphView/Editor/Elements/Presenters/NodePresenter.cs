@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace RMGUI.GraphView
@@ -48,5 +49,27 @@ namespace RMGUI.GraphView
 			m_expanded = true;
 			m_Orientation = Orientation.Horizontal;
 		}
+
+		public override IEnumerable<GraphElementPresenter> allChildren
+		{
+			get { return inputAnchors.Concat(outputAnchors).Cast<GraphElementPresenter>(); }
+		}
+
+		public override IEnumerable<GraphElementPresenter> allElements
+		{
+			get
+			{
+				yield return this;
+				foreach (var inpt in inputAnchors)
+				{
+					yield return inpt;
+				}
+				foreach (var outpt in outputAnchors)
+				{
+					yield return outpt;
+				}
+			}
+		}
+
 	}
 }

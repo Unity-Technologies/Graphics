@@ -15,6 +15,11 @@ namespace RMGUI.GraphView
 		[SerializeField]
 		private List<GraphElementPresenter> m_TempElements = new List<GraphElementPresenter>();
 
+		public IEnumerable<GraphElementPresenter> allChildren
+		{
+			get { return m_Elements.SelectMany(e => e.allElements); }
+		}
+
 		public virtual void AddElement(GraphElementPresenter element)
 		{
 			m_Elements.Add(element);
@@ -57,16 +62,14 @@ namespace RMGUI.GraphView
 			m_TempElements.Clear();
 		}
 
-        public virtual List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
-        {
-            return elements
-            .OfType<NodeAnchor>()
-            .Select(na => na.GetPresenter<NodeAnchorPresenter>())
-            .Where(nap => nap.IsConnectable() &&
-                            nap.orientation == startAnchor.orientation &&
-                            nap.direction != startAnchor.direction &&
-                            nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
-            .ToList();
-        }
+		public virtual List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
+		{
+			return allChildren.OfType<NodeAnchorPresenter>()
+							  .Where(nap => nap.IsConnectable() &&
+									 nap.orientation == startAnchor.orientation &&
+									 nap.direction != startAnchor.direction &&
+									 nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
+							  .ToList();
+		}
 	}
 }
