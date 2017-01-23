@@ -259,15 +259,17 @@ void ComputeMaskWeights(float3 inputMasks, out float outWeights[_MAX_LAYER])
     masks[3] = inputMasks.b;
 
     // calculate weight of each layers
-    float left = 1.0f;
+    // Algorithm is like this:
+    // Top layer have priority on others layers
+    // If a top layer doesn't use the full weight, the remaining can be use by the following layer.
+    float weightsSum = 0.0;
 
     [unroll]
-    for (int i = _LAYER_COUNT - 1; i > 0; --i)
+    for (int i = _LAYER_COUNT - 1; i >= 0; --i)
     {
-        outWeights[i] = masks[i] * left;
-        left -= outWeights[i];
+        outWeights[i] = min(masks[i], (1.0 - weightsSum));
+        weightsSum = saturate(weightsSum + masks[i]);
     }
-    outWeights[0] = left;
 }
 
 float3 BlendLayeredFloat3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
