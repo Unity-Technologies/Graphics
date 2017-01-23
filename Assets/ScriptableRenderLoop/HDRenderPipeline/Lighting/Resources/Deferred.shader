@@ -11,22 +11,14 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
     SubShader
     {
-
         Pass
         {
-
-            /* TODO-READ_DEPTH-TEST_STENCIL
-             * In Unity, it is currently not possible to perform the stencil test while at the same time
-             * reading from the depth texture in the shader. It is legal in Direct3D.
-             * Therefore, we are forced to split lighting using MRT for all materials.
-
             Stencil
             {
                 Ref  [_StencilRef]
                 Comp Equal
                 Pass Keep
             }
-            */
 
             ZWrite Off
             ZTest  Always
@@ -98,9 +90,10 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 Varyings output;
 
                 // Generate a triangle in homogeneous clip space, s.t.
-			    // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
-			    output.positionCS = float4(float(input.vertexId % 2) * 4.0 - 1.0,
-			    						   float(input.vertexId / 2) * 4.0 - 1.0, 1.0, 1.0);
+                // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
+                float2 uv = float2((input.vertexId << 1) & 2, input.vertexId & 2);
+			    output.positionCS = float4(uv * 2.0 - 1.0, 1.0, 1.0);
+
                 return output;
             }
 

@@ -251,6 +251,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m.DisableKeyword(keyword);
         }
 
+        public static void SelectKeyword(Material material, string keyword1, string keyword2, bool enableFirst)
+        {
+            material.EnableKeyword (enableFirst ? keyword1 : keyword2);
+            material.DisableKeyword(enableFirst ? keyword2 : keyword1);
+        }
+
+        public static void SelectKeyword(Material material, string[] keywords, int enabledKeywordIndex)
+        {
+            material.EnableKeyword(keywords[enabledKeywordIndex]);
+
+            for (int i = 0; i < keywords.Length; i++)
+            {
+                if (i != enabledKeywordIndex)
+                {
+                    material.DisableKeyword(keywords[i]);
+                }
+            }
+        }
+
         public static HDRenderPipeline GetHDRenderPipeline()
         {
             HDRenderPipeline renderContext = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderPipeline;
@@ -265,15 +284,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static Mesh m_ScreenSpaceTriangle = null;
 
-        public static Mesh GetScreenSpaceTriangle()
+        static Mesh GetScreenSpaceTriangle()
         {
             // If the assembly has been reloaded, the pointer will become NULL.
             if (!m_ScreenSpaceTriangle)
             {
                 m_ScreenSpaceTriangle = new Mesh
                 {
-                    // Note: the vertex data is not actually used if the vertex shader computes vertices using 'SV_VertexID'.
-                    // However, there is currently no way to bind a NULL vertex buffer.
+                    // Note: neither the vertex nor the index data is actually used if the vertex shader computes vertices
+                    // using 'SV_VertexID'. However, there is currently no way to bind NULL vertex or index buffers.
                     vertices  = new[] { new Vector3(-1, -1, 1), new Vector3(3, -1, 1), new Vector3(-1, 3, 1) },
                     triangles = new[] { 0, 1, 2 }
                 };
