@@ -84,6 +84,8 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _UVMappingPlanar("_UVMappingPlanar", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
+        _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
+        _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
@@ -116,6 +118,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _ _DOUBLESIDED _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
+    #pragma shader_feature _TESSELLATION_OBJECT_SCALE
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _MAPPING_TRIPLANAR
@@ -233,6 +236,7 @@ Shader "HDRenderPipeline/LitTessellation"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
 			// No tessellation for Meta pass
+            #undef TESSELLATION_ON
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"            
@@ -363,6 +367,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
+
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"

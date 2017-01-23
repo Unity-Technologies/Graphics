@@ -358,11 +358,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
                 // Clear GBuffers
-                using (new Utilities.ProfilingSample("Clear GBuffer", renderContext))
+                if (!debugParameters.ShouldUseForwardRenderingOnly())
                 {
-                    Utilities.SetRenderTarget(renderContext, m_gbufferManager.GetGBuffers(), m_CameraDepthBufferRT, ClearFlag.ClearColor, Color.black);
+                    using (new Utilities.ProfilingSample("Clear GBuffer", renderContext))
+                    {
+                        Utilities.SetRenderTarget(renderContext, m_gbufferManager.GetGBuffers(), m_CameraDepthBufferRT, ClearFlag.ClearColor, Color.black);
+                    }
                 }
-
                 // END TEMP
             }
         }
@@ -451,7 +453,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Shader.SetGlobalInt("_DebugViewMaterial", (int)debugParameters.debugViewMaterial);
 
-                RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, "DebugViewMaterial");
+                RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, "DebugViewMaterial", Utilities.kRendererConfigurationBakedLighting);
             }
 
             // Render GBuffer opaque
@@ -470,7 +472,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Render forward transparent
             {
-                RenderTransparentRenderList(cull, hdCamera.camera, renderContext, "DebugViewMaterial");
+                RenderTransparentRenderList(cull, hdCamera.camera, renderContext, "DebugViewMaterial", Utilities.kRendererConfigurationBakedLighting);
             }
 
             // Last blit
@@ -489,8 +491,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return ;
             }
 
-            // Bind material data
-            m_LitRenderLoop.Bind();
             m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, m_CameraColorBuffer);
         }
 
@@ -513,16 +513,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new Utilities.ProfilingSample("Forward Pass", renderContext))
             {
-                // Bind material data
-                m_LitRenderLoop.Bind();
-
                 Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
 
                 m_lightLoop.RenderForward(camera, renderContext, renderOpaque);
 
                 if (renderOpaque)
                 {
-                    RenderOpaqueRenderList(cullResults, camera, renderContext, "Forward");
+                    RenderOpaqueRenderList(cullResults, camera, renderContext, "Forward", Utilities.kRendererConfigurationBakedLighting);
                 }
                 else
                 {
@@ -536,13 +533,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new Utilities.ProfilingSample("Forward Only Pass", renderContext))
             {
-                // Bind material data
-                m_LitRenderLoop.Bind();
-
                 Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
 
                 m_lightLoop.RenderForward(camera, renderContext, true);
-                RenderOpaqueRenderList(cullResults, camera, renderContext, "ForwardOnlyOpaque");
+                RenderOpaqueRenderList(cullResults, camera, renderContext, "ForwardOnlyOpaque", Utilities.kRendererConfigurationBakedLighting);
             }
         }
 
@@ -633,7 +627,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: This is the wrong way to handle resize/allocation. We can have several different camera here, mean that the loop on camera will allocate and deallocate
             // the below buffer which is bad. Best is to have a set of buffer for each camera that is persistent and reallocate resource if need
             // For now consider we have only one camera that go to this code, the main one.
-            m_SkyManager.Resize(); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
+            m_SkyManager.Resize(camera.nearClipPlane, camera.farClipPlane); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
 
             if (camera.pixelWidth != m_currentWidth || camera.pixelHeight != m_currentHeight || m_lightLoop.NeedResize())
             {
@@ -726,6 +720,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 InitAndClearBuffer(camera, renderContext);
 
+                // TODO: Find a correct place to bind these material textures
+                // We have to bind the material specific global parameters in this mode
+                m_LitRenderLoop.Bind();
+
                 RenderDepthPrepass(cullResults, camera, renderContext);
 
                 // Forward opaque with deferred/cluster tile require that we fill the depth buffer
@@ -751,10 +749,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     using (new Utilities.ProfilingSample("Build Light list", renderContext))
                     {
                         m_lightLoop.PrepareLightsForGPU(m_ShadowSettings, cullResults, camera, ref shadows);
-                        m_lightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthBufferRT); // TODO: Use async compute here to run light culling during shadow
-
-                        PushGlobalParams(hdCamera, renderContext);
+                        m_lightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthBufferRT); // TODO: Use async compute here to run light culling during shadow                        
                     }
+
+                    PushGlobalParams(hdCamera, renderContext);
 
                     // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
                     // must be call after BuildGPULightLists. 
