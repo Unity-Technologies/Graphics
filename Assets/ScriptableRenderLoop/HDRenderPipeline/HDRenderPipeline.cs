@@ -180,15 +180,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Various buffer
         int m_CameraColorBuffer;
-        int m_CameraDiffuseLightingBuffer;
-        int m_CameraDepthBuffer;
+        int m_CameraSubsurfaceBuffer;
+        int m_CameraDepthStencilBuffer;
+        int m_CameraStencilBuffer;
         int m_VelocityBuffer;
         int m_DistortionBuffer;
 
-        // 'm_CameraColorBuffer' contains only the specular lighting until the SSS pass, and the combined lighting afterwards.
+        // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass.
+        // It is stored within 'm_CameraSubsurfaceBufferRT'.
         RenderTargetIdentifier m_CameraColorBufferRT;
-        RenderTargetIdentifier m_CameraDiffuseLightingBufferRT;
-        RenderTargetIdentifier m_CameraDepthBufferRT;
+        RenderTargetIdentifier m_CameraSubsurfaceBufferRT;
+        RenderTargetIdentifier m_CameraDepthStencilBufferRT;
+        // 'm_CameraStencilBufferRT' is a temporary copy of the stencil buffer and should be removed
+        // once we are able to read from the depth buffer and perform the stencil test simulatenously.
+        RenderTargetIdentifier m_CameraStencilBufferRT;
         RenderTargetIdentifier m_VelocityBufferRT;
         RenderTargetIdentifier m_DistortionBufferRT;
 
@@ -241,13 +246,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity = true;
             UnityEngine.Rendering.GraphicsSettings.lightsUseCCT = true;
 
-            m_CameraColorBuffer           = Shader.PropertyToID("_CameraColorTexture");
-            m_CameraDiffuseLightingBuffer = Shader.PropertyToID("_CameraDiffuseLightingBuffer");
-            m_CameraDepthBuffer           = Shader.PropertyToID("_CameraDepthTexture");
+            m_CameraColorBuffer          = Shader.PropertyToID("_CameraColorTexture");
+            m_CameraSubsurfaceBuffer     = Shader.PropertyToID("_CameraSubsurfaceTexture");
+            m_CameraDepthStencilBuffer   = Shader.PropertyToID("_CameraDepthTexture");
+            m_CameraStencilBuffer        = Shader.PropertyToID("_CameraStencilTexture");
 
-            m_CameraColorBufferRT           = new RenderTargetIdentifier(m_CameraColorBuffer);
-            m_CameraDiffuseLightingBufferRT = new RenderTargetIdentifier(m_CameraDiffuseLightingBuffer);
-            m_CameraDepthBufferRT           = new RenderTargetIdentifier(m_CameraDepthBuffer);
+            m_CameraColorBufferRT        = new RenderTargetIdentifier(m_CameraColorBuffer);
+            m_CameraSubsurfaceBufferRT   = new RenderTargetIdentifier(m_CameraSubsurfaceBuffer);
+            m_CameraDepthStencilBufferRT = new RenderTargetIdentifier(m_CameraDepthStencilBuffer);
+            m_CameraStencilBufferRT      = new RenderTargetIdentifier(m_CameraStencilBuffer);
 
             m_SkyManager.Build();
 
@@ -321,9 +328,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int w = camera.pixelWidth;
                     int h = camera.pixelHeight;
 
-                    cmd.GetTemporaryRT(m_CameraColorBuffer,           w, h,  0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-                    cmd.GetTemporaryRT(m_CameraDiffuseLightingBuffer, w, h,  0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
-                    cmd.GetTemporaryRT(m_CameraDepthBuffer,           w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                    cmd.GetTemporaryRT(m_CameraColorBuffer,        w, h,  0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    cmd.GetTemporaryRT(m_CameraSubsurfaceBuffer,   w, h,  0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    cmd.GetTemporaryRT(m_CameraDepthStencilBuffer, w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                    cmd.GetTemporaryRT(m_CameraStencilBuffer,      w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
 
                     if (!debugParameters.ShouldUseForwardRenderingOnly())
                     {
@@ -333,7 +341,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     renderContext.ExecuteCommandBuffer(cmd);
                     cmd.Dispose();
 
-                    Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT, ClearFlag.ClearDepth);
+                    Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.ClearDepth);
                 }
 
                 // TEMP: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
@@ -341,13 +349,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Clear the HDR target
                 using (new Utilities.ProfilingSample("Clear HDR target", renderContext))
                 {
-                    Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT, ClearFlag.ClearColor, Color.black);
+                    Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
                 }
 
-                // Clear the diffuse lighting target
-                using (new Utilities.ProfilingSample("Clear diffuse lighting target", renderContext))
+                // Clear the diffuse SSS lighting target
+                using (new Utilities.ProfilingSample("Clear diffuse SSS target", renderContext))
                 {
-                    Utilities.SetRenderTarget(renderContext, m_CameraDiffuseLightingBufferRT, m_CameraDepthBufferRT, ClearFlag.ClearColor, Color.black);
+                    Utilities.SetRenderTarget(renderContext, m_CameraSubsurfaceBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
                 }
 
                 // Clear GBuffers
@@ -355,7 +363,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new Utilities.ProfilingSample("Clear GBuffer", renderContext))
                     {
-                        Utilities.SetRenderTarget(renderContext, m_gbufferManager.GetGBuffers(), m_CameraDepthBufferRT, ClearFlag.ClearColor, Color.black);
+                        Utilities.SetRenderTarget(renderContext, m_gbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
                     }
                 }
                 // END TEMP
@@ -401,7 +409,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // TODO: Must do opaque then alpha masked for performance!
                 // TODO: front to back for opaque and by materal for opaque tested when we split in two
-                Utilities.SetRenderTarget(renderContext, m_CameraDepthBufferRT);
+                Utilities.SetRenderTarget(renderContext, m_CameraDepthStencilBufferRT);
                 RenderOpaqueRenderList(cull, camera, renderContext, "DepthOnly");
             }
         }
@@ -416,7 +424,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new Utilities.ProfilingSample("GBuffer Pass", renderContext))
             {
                 // setup GBuffer for rendering
-                Utilities.SetRenderTarget(renderContext, m_gbufferManager.GetGBuffers(), m_CameraDepthBufferRT);
+                Utilities.SetRenderTarget(renderContext, m_gbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
                 // render opaque objects into GBuffer
                 RenderOpaqueRenderList(cull, camera, renderContext, "GBuffer", Utilities.kRendererConfigurationBakedLighting);
             }
@@ -432,7 +440,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new Utilities.ProfilingSample("Forward opaque depth", renderContext))
             {
-                Utilities.SetRenderTarget(renderContext, m_CameraDepthBufferRT);
+                Utilities.SetRenderTarget(renderContext, m_CameraDepthStencilBufferRT);
                 RenderOpaqueRenderList(cull, camera, renderContext, "ForwardOnlyOpaqueDepthOnly");
             }
         }
@@ -442,7 +450,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new Utilities.ProfilingSample("DebugView Material Mode Pass", renderContext))
             // Render Opaque forward
             {
-                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT, Utilities.kClearAll, Color.black);
+                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, Utilities.kClearAll, Color.black);
 
                 Shader.SetGlobalInt("_DebugViewMaterial", (int)debugParameters.debugViewMaterial);
 
@@ -484,19 +492,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return ;
             }
 
-            RenderTargetIdentifier[] colorRTs = { m_CameraColorBufferRT, m_CameraDiffuseLightingBufferRT };
+            RenderTargetIdentifier[] colorRTs = { m_CameraColorBufferRT, m_CameraSubsurfaceBufferRT };
 
             // Output split lighting for materials tagged with the SSS stencil bit.
-            m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs, m_CameraDepthBufferRT, true);
-
-            /* TODO-READ_DEPTH-TEST_STENCIL
-             * In Unity, it is currently not possible to perform the stencil test while at the same time
-             * reading from the depth texture in the shader. It is legal in Direct3D.
-             * Therefore, we are forced to split lighting using MRT for all materials.
+            m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs, m_CameraStencilBufferRT, true);
 
             // Output combined lighting for all the other materials.
-            m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs, m_CameraDepthBufferRT, false);
-            */
+            m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs, m_CameraStencilBufferRT, false);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
@@ -524,7 +526,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
             cmdBuf.SetComputeTextureParam(m_CombineSubsurfaceScatteringCS, m_FilterHorizontalAndCombineKernel,
-                                          "diffuseFilterSource", m_CameraDiffuseLightingBufferRT);
+                                          "diffuseFilterSource", m_CameraSubsurfaceBufferRT);
             cmdBuf.SetComputeTextureParam(m_CombineSubsurfaceScatteringCS, m_FilterHorizontalAndCombineKernel,
                                           "specularSourceAndColorTarget", m_CameraColorBufferRT);
             cmdBuf.DispatchCompute(m_CombineSubsurfaceScatteringCS, m_FilterHorizontalAndCombineKernel, groupSizeHorizontal, screenHeight, 1);
@@ -540,7 +542,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderSky(HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
-            m_SkyManager.RenderSky(hdCamera, m_lightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthBufferRT, renderContext);
+            m_SkyManager.RenderSky(hdCamera, m_lightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, renderContext);
         }
 
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
@@ -552,7 +554,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new Utilities.ProfilingSample("Forward Pass", renderContext))
             {
-                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
+                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
                 m_lightLoop.RenderForward(camera, renderContext, renderOpaque);
 
@@ -572,7 +574,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new Utilities.ProfilingSample("Forward Only Pass", renderContext))
             {
-                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
+                Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
                 m_lightLoop.RenderForward(camera, renderContext, true);
                 RenderOpaqueRenderList(cullResults, camera, renderContext, "ForwardOnlyOpaque", Utilities.kRendererConfigurationBakedLighting);
@@ -592,7 +594,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 var cmd = new CommandBuffer { name = "" };
                 cmd.GetTemporaryRT(m_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.RenderLoop.GetVelocityBufferFormat(), Builtin.RenderLoop.GetVelocityBufferReadWrite());
-                cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthBufferRT);
+                cmd.SetRenderTarget(m_VelocityBufferRT, m_CameraDepthStencilBufferRT);
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
 
@@ -612,7 +614,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 var cmd = new CommandBuffer { name = "" };
                 cmd.GetTemporaryRT(m_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.RenderLoop.GetDistortionBufferFormat(), Builtin.RenderLoop.GetDistortionBufferReadWrite());
-                cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthBufferRT);
+                cmd.SetRenderTarget(m_DistortionBufferRT, m_CameraDepthStencilBufferRT);
                 cmd.ClearRenderTarget(false, true, Color.black); // TODO: can we avoid this clear for performance ?
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
@@ -771,6 +773,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForwardOnlyOpaqueDepthPrepass(cullResults, camera, renderContext);
                 RenderGBuffer(cullResults, camera, renderContext);
 
+                // 'm_CameraStencilBufferRT' is a temporary copy of the stencil buffer and should be removed
+                // once we are able to read from the depth buffer and perform the stencil test simulatenously.
+                using (new Utilities.ProfilingSample("Copy depth-stencil buffer", renderContext))
+                {
+                    var cmd = new CommandBuffer();
+                    cmd.CopyTexture(m_CameraDepthStencilBufferRT, m_CameraStencilBufferRT);
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    cmd.Dispose();
+                }
+
                 if (debugParameters.debugViewMaterial != 0)
                 {
                     RenderDebugViewMaterial(cullResults, hdCamera, renderContext);
@@ -788,7 +800,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     using (new Utilities.ProfilingSample("Build Light list", renderContext))
                     {
                         m_lightLoop.PrepareLightsForGPU(m_ShadowSettings, cullResults, camera, ref shadows);
-                        m_lightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthBufferRT); // TODO: Use async compute here to run light culling during shadow
+                        m_lightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT); // TODO: Use async compute here to run light culling during shadow
                     }
 
                     PushGlobalParams(hdCamera, renderContext);
@@ -831,7 +843,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (camera.cameraType == CameraType.SceneView)
                 {
                     var cmd = new CommandBuffer();
-                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, m_CameraDepthBufferRT);
+                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
                     renderContext.ExecuteCommandBuffer(cmd);
                     cmd.Dispose();
                 }

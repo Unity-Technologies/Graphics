@@ -280,61 +280,51 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 s_LightList = null;
 
+                string[] tileKeywords = {"LIGHTLOOP_TILE_DIRECT", "LIGHTLOOP_TILE_INDIRECT", "LIGHTLOOP_TILE_ALL"};
+
                 m_DeferredDirectMaterialSRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredDirectMaterialSRT, tileKeywords, 0);
                 m_DeferredDirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredDirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_DIRECT");
-                m_DeferredDirectMaterialSRT.DisableKeyword("LIGHTLOOP_TILE_INDIRECT");
-                m_DeferredDirectMaterialSRT.DisableKeyword("LIGHTLOOP_TILE_ALL");
                 m_DeferredDirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
                 m_DeferredDirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredDirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
                 m_DeferredDirectMaterialMRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredDirectMaterialMRT, tileKeywords, 0);
                 m_DeferredDirectMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredDirectMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_DIRECT");
-                m_DeferredDirectMaterialMRT.DisableKeyword("LIGHTLOOP_TILE_INDIRECT");
-                m_DeferredDirectMaterialMRT.DisableKeyword("LIGHTLOOP_TILE_ALL");
                 m_DeferredDirectMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredDirectMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
                 m_DeferredDirectMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredDirectMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
                 m_DeferredIndirectMaterialSRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredIndirectMaterialSRT, tileKeywords, 1);
                 m_DeferredIndirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredIndirectMaterialSRT.DisableKeyword("LIGHTLOOP_TILE_DIRECT");
-                m_DeferredIndirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_INDIRECT");
-                m_DeferredIndirectMaterialSRT.DisableKeyword("LIGHTLOOP_TILE_ALL");
                 m_DeferredIndirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
                 m_DeferredIndirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredIndirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.One); // Additive
 
                 m_DeferredIndirectMaterialMRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredIndirectMaterialMRT, tileKeywords, 1);
                 m_DeferredIndirectMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredIndirectMaterialMRT.DisableKeyword("LIGHTLOOP_TILE_DIRECT");
-                m_DeferredIndirectMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_INDIRECT");
-                m_DeferredIndirectMaterialMRT.DisableKeyword("LIGHTLOOP_TILE_ALL");
                 m_DeferredIndirectMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredIndirectMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
                 m_DeferredIndirectMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredIndirectMaterialMRT.SetInt("_DstBlend", (int)BlendMode.One); // Additive
 
                 m_DeferredAllMaterialSRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredAllMaterialSRT, tileKeywords, 2);
                 m_DeferredAllMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredAllMaterialSRT.DisableKeyword("LIGHTLOOP_TILE_DIRECT");
-                m_DeferredAllMaterialSRT.DisableKeyword("LIGHTLOOP_TILE_INDIRECT");
-                m_DeferredAllMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_ALL");
                 m_DeferredAllMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
                 m_DeferredAllMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredAllMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
                 m_DeferredAllMaterialMRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredAllMaterialMRT, tileKeywords, 2);
                 m_DeferredAllMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredAllMaterialMRT.DisableKeyword("LIGHTLOOP_TILE_DIRECT");
-                m_DeferredAllMaterialMRT.DisableKeyword("LIGHTLOOP_TILE_INDIRECT");
-                m_DeferredAllMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_ALL");
                 m_DeferredAllMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredAllMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
                 m_DeferredAllMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
@@ -1363,7 +1353,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
             public override void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderContext,
-                                                        RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
+                                                        RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier stencilBuffer,
                                                         bool outputSplitLighting)
             {
                 var bUseClusteredForDeferred = !usingFptl;
@@ -1399,17 +1389,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         if (outputSplitLighting)
                         {
-                            /* TODO-READ_DEPTH-TEST_STENCIL
-                             * In Unity, it is currently not possible to perform the stencil test while at the same time
-                             * reading from the depth texture in the shader. It is legal in Direct3D.
-                             * Therefore, we are forced to split lighting using MRT for all materials.
-                             */
-
-                            Utilities.DrawFullscreen(cmd, m_SingleDeferredMaterialMRT, hdCamera, colorBuffers/*, depthStencilBuffer*/);
+                            Utilities.DrawFullscreen(cmd, m_SingleDeferredMaterialMRT, hdCamera, colorBuffers, stencilBuffer);
                         }
                         else
                         {
-                            Utilities.DrawFullscreen(cmd, m_SingleDeferredMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
+                            Utilities.DrawFullscreen(cmd, m_SingleDeferredMaterialSRT, hdCamera, colorBuffers[0], stencilBuffer);
                         }
                     }
                     else
@@ -1475,66 +1459,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Pixel shader evaluation
                             if (enableSplitLightEvaluation)
                             {
-                                if (outputSplitLighting)
-                                {
-                                    m_DeferredDirectMaterialMRT.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                    m_DeferredDirectMaterialMRT.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                                Material deferredDirectMaterial   = outputSplitLighting ? m_DeferredDirectMaterialMRT   : m_DeferredDirectMaterialSRT;
+                                Material deferredIndirectMaterial = outputSplitLighting ? m_DeferredIndirectMaterialMRT : m_DeferredIndirectMaterialSRT;
 
-                                    /* TODO-READ_DEPTH-TEST_STENCIL
-                                     * In Unity, it is currently not possible to perform the stencil test while at the same time
-                                     * reading from the depth texture in the shader. It is legal in Direct3D.
-                                     * Therefore, we are forced to split lighting using MRT for all materials.
-                                     */
+                                Utilities.SelectKeyword(deferredDirectMaterial, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                Utilities.DrawFullscreen(cmd, deferredDirectMaterial, hdCamera, colorBuffers, stencilBuffer);
 
-                                    Utilities.DrawFullscreen(cmd, m_DeferredDirectMaterialMRT, hdCamera, colorBuffers/*, depthStencilBuffer*/);
-
-                                    /* TODO-READ_DEPTH-TEST_STENCIL
-                                     * In Unity, it is currently not possible to perform the stencil test while at the same time
-                                     * reading from the depth texture in the shader. It is legal in Direct3D.
-                                     * Therefore, we are forced to split lighting using MRT for all materials.
-                                     */
-
-                                    m_DeferredIndirectMaterialMRT.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                    m_DeferredIndirectMaterialMRT.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-
-                                    Utilities.DrawFullscreen(cmd, m_DeferredIndirectMaterialMRT, hdCamera, colorBuffers/*, depthStencilBuffer*/);
-                                }
-                                else
-                                {
-                                    m_DeferredDirectMaterialSRT.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                    m_DeferredDirectMaterialSRT.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-
-
-                                    Utilities.DrawFullscreen(cmd, m_DeferredDirectMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
-
-                                    m_DeferredIndirectMaterialSRT.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                    m_DeferredIndirectMaterialSRT.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-
-                                    Utilities.DrawFullscreen(cmd, m_DeferredIndirectMaterialSRT, hdCamera, colorBuffers, depthStencilBuffer);
-                                }
+                                Utilities.SelectKeyword(deferredIndirectMaterial, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                Utilities.DrawFullscreen(cmd, deferredIndirectMaterial, hdCamera, colorBuffers, stencilBuffer);
                             }
                             else
                             {
-                                if (outputSplitLighting)
-                                {
-                                    m_DeferredAllMaterialMRT.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                    m_DeferredAllMaterialMRT.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                                Material deferredAllMaterial = outputSplitLighting ? m_DeferredAllMaterialMRT : m_DeferredAllMaterialSRT;
 
-                                    /* TODO-READ_DEPTH-TEST_STENCIL
-                                     * In Unity, it is currently not possible to perform the stencil test while at the same time
-                                     * reading from the depth texture in the shader. It is legal in Direct3D.
-                                     * Therefore, we are forced to split lighting using MRT for all materials.
-                                     */
-
-                                    Utilities.DrawFullscreen(cmd, m_DeferredAllMaterialMRT, hdCamera, colorBuffers/*, depthStencilBuffer*/);
-                                }
-                                else
-                                {
-                                    m_DeferredAllMaterialSRT.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                    m_DeferredAllMaterialSRT.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-
-                                    Utilities.DrawFullscreen(cmd, m_DeferredAllMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
-                                }
+                                Utilities.SelectKeyword(deferredAllMaterial, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                Utilities.DrawFullscreen(cmd, deferredAllMaterial, hdCamera, colorBuffers[0], stencilBuffer);
                             }
                         }
 
