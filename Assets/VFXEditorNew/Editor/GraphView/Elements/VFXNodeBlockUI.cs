@@ -12,6 +12,8 @@ namespace UnityEditor.VFX.UI
 	    Label m_Title;
         VisualContainer m_SlotContainer;
 
+        private int m_Index; // tmp
+
 		public VFXNodeBlockUI()
         {
             pickingMode = PickingMode.Position;
@@ -22,7 +24,7 @@ namespace UnityEditor.VFX.UI
                 name = "SlotContainer"
             };
 
-		    s_Counter++;
+            m_Index = s_Counter++;
 
 		    m_Title = new Label(new GUIContent("")) {name = "Title"};
 			AddChild(m_Title);
@@ -86,7 +88,7 @@ namespace UnityEditor.VFX.UI
 				RemoveFromClassList("selected");
 			}
 
-			m_Title.content.text = presenter.Model.Desc.Name + " " + s_Counter;
+            m_Title.content.text = presenter.Model.Desc.Name + " " + m_Index;
 
 			SetPosition(presenter.position);
 		}
