@@ -6,14 +6,14 @@
 // conflict with the normal in the semantic. This need to be fix! Also no per pixel displacement is possible either.
 
 // Attributes
-#define REQUIRE_UV_FOR_TESSELATION (defined(TESSELLATION_ON) && (defined(_TESSELATION_DISPLACEMENT) || defined(_TESSELATION_DISPLACEMENT_PHONG)))
+#define REQUIRE_UV_FOR_TESSELATION (defined(TESSELLATION_ON) && (defined(_TESSELLATION_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT_PHONG)))
 #define REQUIRE_TANGENT_TO_WORLD 0 /* (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT)) */
 
 // This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
 
 // Tesselation require normal
 #if defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD
-// #define ATTRIBUTES_NEED_NORMAL
+// #define ATTRIBUTES_NEED_NORMAL - When reenable, think to also enable code in VertMesh.hlsl
 #endif
 #if REQUIRE_TANGENT_TO_WORLD
 #define ATTRIBUTES_NEED_TANGENT

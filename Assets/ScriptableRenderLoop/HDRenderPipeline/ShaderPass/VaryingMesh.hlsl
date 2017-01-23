@@ -185,9 +185,6 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 // We can deduce these defines from the other defines
 // We need to pass to DS any varying required by pixel shader
 // If we have required an attributes that is not present in varyings it mean we will be for DS
-#if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(ATTRIBUTES_NEED_NORMAL)
-#define VARYINGS_DS_NEED_NORMAL
-#endif
 #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(ATTRIBUTES_NEED_TANGENT)
 #define VARYINGS_DS_NEED_TANGENT
 #endif
@@ -212,9 +209,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 struct VaryingsMeshToDS
 {
     float3 positionWS;
-#ifdef VARYINGS_DS_NEED_NORMAL
     float3 normalWS;
-#endif
 #ifdef VARYINGS_DS_NEED_TANGENT
     float4 tangentWS;
 #endif
@@ -233,15 +228,16 @@ struct VaryingsMeshToDS
 #ifdef VARYINGS_DS_NEED_COLOR
     float4 color;
 #endif
+#ifdef _TESSELLATION_OBJECT_SCALE
+    float3 objectScale;
+#endif
 };
 
 struct PackedVaryingsMeshToDS
 {
     float3 interpolators0 : INTERNALTESSPOS; // positionWS
+    float3 interpolators1 : NORMAL; // NormalWS
 
-#ifdef VARYINGS_DS_NEED_NORMAL
-    float3 interpolators1 : NORMAL;
-#endif
 #ifdef VARYINGS_DS_NEED_TANGENT
     float4 interpolators2 : TANGENT;
 #endif
@@ -262,6 +258,10 @@ struct PackedVaryingsMeshToDS
 #ifdef VARYINGS_DS_NEED_COLOR
     float4 interpolators5 : TEXCOORD2;
 #endif
+
+#ifdef _TESSELLATION_OBJECT_SCALE
+    float3 interpolators6 : TEXCOORD3;
+#endif
 };
 
 // Functions to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
@@ -270,9 +270,7 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
     PackedVaryingsMeshToDS output;
 
     output.interpolators0 = input.positionWS;
-#ifdef VARYINGS_DS_NEED_NORMAL
     output.interpolators1 = input.normalWS;
-#endif
 #ifdef VARYINGS_DS_NEED_TANGENT
     output.interpolators2 = input.tangentWS;
 #endif
@@ -291,6 +289,9 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
 #ifdef VARYINGS_DS_NEED_COLOR
     output.interpolators5 = input.color;
 #endif
+#ifdef _TESSELLATION_OBJECT_SCALE
+    output.interpolators6 = input.objectScale;
+#endif
 
     return output;
 }
@@ -300,9 +301,7 @@ VaryingsMeshToDS UnpackVaryingsMeshToDS(PackedVaryingsMeshToDS input)
     VaryingsMeshToDS output;
 
     output.positionWS = input.interpolators0;
-#ifdef VARYINGS_DS_NEED_NORMAL
     output.normalWS = input.interpolators1;
-#endif
 #ifdef VARYINGS_DS_NEED_TANGENT
     output.tangentWS = input.interpolators2;
 #endif
@@ -321,7 +320,9 @@ VaryingsMeshToDS UnpackVaryingsMeshToDS(PackedVaryingsMeshToDS input)
 #ifdef VARYINGS_DS_NEED_COLOR
     output.color = input.interpolators5;
 #endif
-
+#ifdef _TESSELLATION_OBJECT_SCALE
+    output.objectScale = input.interpolators6;
+#endif
     return output;
 }
 
@@ -330,9 +331,7 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
     VaryingsMeshToDS ouput;
 
     TESSELLATION_INTERPOLATE_BARY(positionWS, baryCoords);
-#ifdef VARYINGS_DS_NEED_NORMAL
     TESSELLATION_INTERPOLATE_BARY(normalWS, baryCoords);
-#endif
 #ifdef VARYINGS_DS_NEED_TANGENT
     // This will interpolate the sign but should be ok in practice as we may expect a triangle to have same sign (? TO CHECK)
     TESSELLATION_INTERPOLATE_BARY(tangentWS, baryCoords);
@@ -351,6 +350,11 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
 #endif
 #ifdef VARYINGS_DS_NEED_COLOR 
     TESSELLATION_INTERPOLATE_BARY(color, baryCoords);
+#endif
+
+#ifdef _TESSELLATION_OBJECT_SCALE
+    // objectScale doesn't change for the whole object.
+    ouput.objectScale = input0.objectScale;
 #endif
 
     return ouput;

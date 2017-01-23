@@ -8,7 +8,9 @@
 // Note: These parameters can be store in GBuffer if the writer wants
 //-----------------------------------------------------------------------------
 
-#include "BuiltinData.cs.hlsl"
+//TODO: return this original relative path include after fixing a bug in Unity side
+//#include "BuiltinData.cs.hlsl"
+#include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Builtin/BuiltinData.cs.hlsl"
 
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions
@@ -69,7 +71,8 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING:
         // TODO: require a remap
-        result = builtinData.bakeDiffuseLighting;
+        // TODO: we should not gamma correct, but easier to debug for now without correct high range value
+        result = builtinData.bakeDiffuseLighting; needLinearToSRGB = true;
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR:
         // emissiveColor is premultiply by emissive intensity

@@ -58,6 +58,8 @@
 #include "API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
 #include "API/D3D11_1.hlsl"
+#elif defined(SHADER_API_METAL)
+#include "API/Metal.hlsl"
 #else
 #error unsupported shader api
 #endif
@@ -332,6 +334,23 @@ float3 PositivePow(float3 base, float3 power)
 float4 PositivePow(float4 base, float4 power)
 {
     return pow(max(abs(base), float4(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
+}
+
+// ----------------------------------------------------------------------------
+// Texture utilities
+// ----------------------------------------------------------------------------
+
+// texelSize is Unity XXX_TexelSize feature parameters
+// x contains 1.0/width, y contains 1.0 / height, z contains width, w contains height
+float ComputeTextureLOD(float2 uv, float4 texelSize)
+{
+    uv *= texelSize.zw;
+
+    float2 ddx_ = ddx(uv);
+    float2 ddy_ = ddy(uv);
+    float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
+
+    return  max(0.5 * log2(d), 0.0);
 }
 
 // ----------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-float4 TessellationEdge(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2)
+float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2)
 {
     float maxDisplacement = ADD_ZERO_IDX(_HeightAmplitude);
 #ifdef _LAYER_COUNT
@@ -79,11 +79,7 @@ float3 GetDisplacement(VaryingsMeshToDS input)
         float2(0.0, 0.0),
 #endif
         input.positionWS, 
-#ifdef VARYINGS_DS_NEED_NORMAL
         input.normalWS,
-#else
-        float3(0.0, 0.0, 1.0),
-#endif
         layerTexCoord);
 
     // TODO: For now just use Layer0, but we are suppose to apply the same heightmap blending than in the pixel shader
@@ -101,9 +97,12 @@ float3 GetDisplacement(VaryingsMeshToDS input)
     float height = 0.0;
 #endif
 
-#ifdef VARYINGS_DS_NEED_NORMAL
-    return height * input.normalWS;
-#else
-    return float3(0.0, 0.0, 0.0);
+    float3 displ = height * input.normalWS;
+
+        // Applying scaling of the object if requested
+#ifdef _TESSELLATION_OBJECT_SCALE
+    displ *= input.objectScale;
 #endif
+
+    return displ;
 }

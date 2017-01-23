@@ -14,17 +14,11 @@ TessellationFactors HullConstant(InputPatch<PackedVaryingsToDS, 3> input)
     float3 p1 = varying1.vmesh.positionWS;
     float3 p2 = varying2.vmesh.positionWS;
 
-#ifdef VARYINGS_DS_NEED_NORMAL
     float3 n0 = varying0.vmesh.normalWS;
     float3 n1 = varying1.vmesh.normalWS;
     float3 n2 = varying2.vmesh.normalWS;
-#else
-    float3 n0 = float3(0.0, 0.0, 0.0);
-    float3 n1 = float3(0.0, 0.0, 0.0);
-    float3 n2 = float3(0.0, 0.0, 0.0);
-#endif    
 
-    float4 tf = TessellationEdge(p0, p1, p2, n0, n1, n2);
+    float4 tf = GetTessellationFactors(p0, p1, p2, n0, n1, n2);
     TessellationFactors output;
     output.edge[0] = tf.x;
     output.edge[1] = tf.y;
@@ -62,15 +56,9 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
     float3 p1 = varying1.vmesh.positionWS;
     float3 p2 = varying2.vmesh.positionWS;
 
-#ifdef VARYINGS_DS_NEED_NORMAL
     float3 n0 = varying0.vmesh.normalWS;
     float3 n1 = varying1.vmesh.normalWS;
     float3 n2 = varying2.vmesh.normalWS;
-#else
-    float3 n0 = float3(0.0, 0.0, 0.0);
-    float3 n1 = float3(0.0, 0.0, 0.0);
-    float3 n2 = float3(0.0, 0.0, 0.0);
-#endif
 
     varying.vmesh.positionWS = PhongTessellation(   varying.vmesh.positionWS,
                                                     p0, p1, p2, n0, n1, n2,
