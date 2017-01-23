@@ -10,21 +10,6 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXSerializationTests
     {
-        private class VFXContextDescInit : VFXContextDesc
-        {
-            public VFXContextDescInit() : base(VFXContextType.kInit, "init") { }
-        }
-
-        private class VFXContextDescUpdate : VFXContextDesc
-        {
-            public VFXContextDescUpdate() : base(VFXContextType.kUpdate, "update") { }
-        }
-
-        private class VFXContextDescOutput : VFXContextDesc
-        {
-            public VFXContextDescOutput() : base(VFXContextType.kOutput, "output") { }
-        }
-
         private readonly static string kTestAssetDir = "Assets/VFXEditorNew/Editor/Tests";
         private readonly static string kTestAssetName = "TestAsset";
         private readonly static string kTestAssetPath = kTestAssetDir + "/" + kTestAssetName + ".asset";
@@ -69,13 +54,13 @@ namespace UnityEditor.VFX.Test
             asset.m_Roots.Clear();
 
             VFXSystem system0 = new VFXSystem();
-            system0.AddChild(new VFXContext(new VFXContextDescInit()));
-            system0.AddChild(new VFXContext(new VFXContextDescUpdate()));
-            system0.AddChild(new VFXContext(new VFXContextDescOutput()));
+            system0.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kInit)));
+            system0.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kUpdate)));
+            system0.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kOutput)));
 
             VFXSystem system1 = new VFXSystem();
-            system1.AddChild(new VFXContext(new VFXContextDescInit()));
-            system1.AddChild(new VFXContext(new VFXContextDescOutput()));
+            system1.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kInit)));
+            system1.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kOutput)));
 
             // Add some block
             var block0 = new VFXBlock(new VFXInitBlockTest());

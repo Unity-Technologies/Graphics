@@ -12,6 +12,8 @@ namespace UnityEditor.VFX
         }
 
         public VFXContextDesc Desc              { get { return m_Desc; } }
+        public VFXDataType InputType            { get { return Desc.InputType; } }
+        public VFXDataType OutputType           { get { return Desc.OutputType; } }
         public VFXContextType ContextType       { get { return Desc.ContextType; } }
 
         public Vector2 Position
