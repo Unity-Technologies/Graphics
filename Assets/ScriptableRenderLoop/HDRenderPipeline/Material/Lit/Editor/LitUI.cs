@@ -65,6 +65,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kNormalMapSpace = "_NormalMapSpace";
         protected MaterialProperty enablePerPixelDisplacement = null;
         protected const string kEnablePerPixelDisplacement = "_EnablePerPixelDisplacement";
+        protected MaterialProperty ppdMinSamples = null;
+        protected const string kPpdMinSamples = "_PPDMinSamples";
+        protected MaterialProperty ppdMaxSamples = null;
+        protected const string kPpdMaxSamples = "_PPDMaxSamples";
         protected MaterialProperty detailMapMode = null;
         protected const string kDetailMapMode = "_DetailMapMode";
         protected MaterialProperty UVDetail = null;
@@ -136,6 +140,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             smoothnessMapChannel = FindProperty(kSmoothnessTextureChannel, props);
             normalMapSpace = FindProperty(kNormalMapSpace, props);
             enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
+            ppdMinSamples = FindProperty(kPpdMinSamples, props);
+            ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
             detailMapMode = FindProperty(kDetailMapMode, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
@@ -214,6 +220,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);            
             m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText.text);
             m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText.text);
+            m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText.text);
+            m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText.text);
+            ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
             EditorGUI.indentLevel--;
         }
 

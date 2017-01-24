@@ -111,9 +111,9 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
         _HeightOffset2("_HeightOffset2", Range(-0.3, 0.3)) = 0.0
         _HeightOffset3("_HeightOffset3", Range(-0.3, 0.3)) = 0.0
 
-        _HeightFactor1("_HeightFactor1", Range(0, 5)) = 1
-        _HeightFactor2("_HeightFactor2", Range(0, 5)) = 1
-        _HeightFactor3("_HeightFactor3", Range(0, 5)) = 1
+        _HeightFactor1("_HeightFactor1", Float) = 1
+        _HeightFactor2("_HeightFactor2", Float) = 1
+        _HeightFactor3("_HeightFactor3", Float) = 1
 
         _BlendSize1("_BlendSize1", Range(0, 0.30)) = 0.0
         _BlendSize2("_BlendSize2", Range(0, 0.30)) = 0.0
@@ -124,6 +124,41 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
         _InheritBaseLayer3("_InheritBaseLayer3", Range(0, 1.0)) = 0.0
 
         _VertexColorHeightFactor("_VertexColorHeightFactor", Float) = 0.3
+
+        // Layer blending options V2
+        [ToggleOff] _UseHeightBasedBlendV2("Use Height Blend V2", Float) = 0.0
+
+        _HeightCenterOffset1("_HeightCenterOffset1", Float) = 0.0
+        _HeightCenterOffset2("_HeightCenterOffset2", Float) = 0.0
+        _HeightCenterOffset3("_HeightCenterOffset3", Float) = 0.0
+
+        _BlendUsingHeight1("_BlendUsingHeight1", Float) = 0.0
+        _BlendUsingHeight2("_BlendUsingHeight2", Float) = 0.0
+        _BlendUsingHeight3("_BlendUsingHeight3", Float) = 0.0
+
+        _InheritBaseNormal1("_InheritBaseNormal1", Range(0, 1.0)) = 0.0
+        _InheritBaseNormal2("_InheritBaseNormal2", Range(0, 1.0)) = 0.0
+        _InheritBaseNormal3("_InheritBaseNormal3", Range(0, 1.0)) = 0.0
+
+        _InheritBaseHeight1("_InheritBaseHeight1", Range(0, 1.0)) = 0.0
+        _InheritBaseHeight2("_InheritBaseHeight2", Range(0, 1.0)) = 0.0
+        _InheritBaseHeight3("_InheritBaseHeight3", Range(0, 1.0)) = 0.0
+
+        _InheritBaseColor1("_InheritBaseColor1", Range(0, 1.0)) = 0.0
+        _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
+        _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
+
+        _InheritBaseColorThreshold1("_InheritBaseColorThreshold1", Range(0, 1.0)) = 1.0
+        _InheritBaseColorThreshold2("_InheritBaseColorThreshold2", Range(0, 1.0)) = 1.0
+        _InheritBaseColorThreshold3("_InheritBaseColorThreshold3", Range(0, 1.0)) = 1.0
+
+        _MinimumOpacity1("_MinimumOpacity1", Range(0, 1.0)) = 1.0
+        _MinimumOpacity2("_MinimumOpacity2", Range(0, 1.0)) = 1.0
+        _MinimumOpacity3("_MinimumOpacity3", Range(0, 1.0)) = 1.0
+
+        _OpacityAsDensity1("_OpacityAsDensity1", Range(0, 1.0)) = 0.0
+        _OpacityAsDensity2("_OpacityAsDensity2", Range(0, 1.0)) = 0.0
+        _OpacityAsDensity3("_OpacityAsDensity3", Range(0, 1.0)) = 0.0
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
@@ -154,15 +189,17 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
         [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
+        _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
+        _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
 
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
-		// WARNING
-		// All the following properties that concern the UV mapping are the same as in the Lit shader.
-		// This means that they will get overridden when synchronizing the various layers.
-		// To avoid this, make sure that all properties here are in the exclusion list in LayeredLitUI.SynchronizeLayerProperties
+        // WARNING
+        // All the following properties that concern the UV mapping are the same as in the Lit shader.
+        // This means that they will get overridden when synchronizing the various layers.
+        // To avoid this, make sure that all properties here are in the exclusion list in LayeredLitUI.SynchronizeLayerProperties
         _TexWorldScale0("Tiling", Float) = 1.0
         _TexWorldScale1("Tiling", Float) = 1.0
         _TexWorldScale2("Tiling", Float) = 1.0
@@ -208,7 +245,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
+    #pragma only_renderers d3d11 ps4 // TEMP: unitl we go futher in dev
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
@@ -216,6 +253,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _ _DOUBLESIDED _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
+    #pragma shader_feature _TESSELLATION_OBJECT_SCALE
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
@@ -236,6 +274,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _HEIGHT_BASED_BLEND
+    #pragma shader_feature _HEIGHT_BASED_BLEND_V2
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
@@ -277,7 +316,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #endif
 
     // Explicitely said that we are a layered shader as we share code between lit and layered lit
-    #define LAYERED_LIT_SHADER    
+    #define LAYERED_LIT_SHADER
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -354,6 +393,9 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
+
+            // No tessellation for Meta pass
+            #undef TESSELLATION_ON
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"            
@@ -487,5 +529,5 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
         }
     }
 
-	CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }
