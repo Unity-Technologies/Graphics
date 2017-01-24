@@ -169,10 +169,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 cmd.SetGlobalTexture("_CameraDepthTexture", builtinParams.depthBuffer);
                 properties.SetFloat("_DisableSkyOcclusionTest", 0.0f);
+                properties.SetFloat("_FlipY", 0.0f);
             }
             else
             {
                 properties.SetFloat("_DisableSkyOcclusionTest", 1.0f);
+                properties.SetFloat("_FlipY", 1.0f);
             }
 
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial, 0, 0, properties);
