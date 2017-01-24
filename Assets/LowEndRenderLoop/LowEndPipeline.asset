@@ -13,5 +13,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_SupportsVertexLight: 0
   m_EnableLightmaps: 1
-  m_ShadowAtlasWidth: 2048
-  m_ShadowAtlasHeight: 2048
+  m_EnableAmbientProbe: 1
+  m_ShadowAtlasResolution: 2048

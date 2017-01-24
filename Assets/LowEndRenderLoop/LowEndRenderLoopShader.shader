@@ -76,11 +76,11 @@ Shader "RenderLoop/LowEnd"
 			#pragma fragment frag
 			#pragma shader_feature _SPECGLOSSMAP
 			#pragma shader_feature _NORMALMAP
-			#pragma shader_feature _EMISSION
 			
-			#pragma multi_compile _ LIGHTMAP_ON 
+			#pragma multi_compile _ LIGHTMAP_ON
 			#pragma multi_compile_fog
 			#pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3
+			//#pragma enable_d3d11_debug_symbols
 			
 			#include "UnityCG.cginc"
 			#include "UnityStandardBRDF.cginc"
@@ -109,11 +109,7 @@ Shader "RenderLoop/LowEnd"
 			float4 globalLightPos[MAX_LIGHTS];
 			half4 globalLightSpotDir[MAX_LIGHTS];
 			half4 globalLightAtten[MAX_LIGHTS];
-			
 			int4  globalLightCount; // x: pixelLightCount, y = totalLightCount (pixel + vert)
-
-			// Global ambient/SH probe, similar to unity_SH* built-in variables.
-			float4 globalSH[7];
 
 			sampler2D g_tShadowBuffer;
 
@@ -127,27 +123,6 @@ Shader "RenderLoop/LowEnd"
 				half4 atten;
 				half4 spotDir;
 			};
-
-			// Evaluate 2nd order spherical harmonics, given normalized world space direction.
-			// Similar to ShadeSH9 in UnityCG.cginc
-			half3 EvaluateSH(half3 n)
-			{
-				half3 res;
-				half4 normal = half4(n, 1);
-				// Linear (L1) + constant (L0) polynomial terms
-				res.r = dot(globalSH[0], normal);
-				res.g = dot(globalSH[1], normal);
-				res.b = dot(globalSH[2], normal);
-				// 4 of the quadratic (L2) polynomials
-				half4 vB = normal.xyzz * normal.yzzx;
-				res.r += dot(globalSH[3], vB);
-				res.g += dot(globalSH[4], vB);
-				res.b += dot(globalSH[5], vB);
-				// Final (5th) quadratic (L2) polynomial
-				half vC = normal.x*normal.x - normal.y*normal.y;
-				res += globalSH[6].rgb * vC;
-				return res;
-			}
 
 			inline int ComputeCascadeIndex(half eyeZ)
 			{
@@ -176,7 +151,7 @@ Shader "RenderLoop/LowEnd"
 				half3 halfVec = normalize(lightDir + viewDir);
 				half NdotH = saturate(dot(normal, halfVec));
 
-				half3 lightColor = lightInput.color.rgb * lightAtten; 
+				half3 lightColor = lightInput.color.rgb * lightAtten;
 				half3 diffuse = diffuseColor * lightColor * NdotL;
 				half3 specular = specularColor * lightColor * pow(NdotH, 128.0f) * _Glossiness;
 				return diffuse + specular;
@@ -188,15 +163,13 @@ Shader "RenderLoop/LowEnd"
 				float3 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
 				shadowCoord.z = saturate(shadowCoord.z);
 
-				// TODO: Apply proper bias considering NdotL
-				half bias = 0.0005;
 				half shadowDepth = tex2D(g_tShadowBuffer, shadowCoord.xy).r;
 				half shadowAttenuation = 1.0;
 				
 #if defined(UNITY_REVERSED_Z)
-				shadowAttenuation = step(shadowDepth - bias, shadowCoord.z);
+				shadowAttenuation = step(shadowDepth, shadowCoord.z);
 #else
-				shadowAttenuation = step(shadowCoord.z - bias, shadowDepth);
+				shadowAttenuation = step(shadowCoord.z, shadowDepth);
 #endif
 
 #if DEBUG_CASCADES
@@ -221,9 +194,11 @@ Shader "RenderLoop/LowEnd"
 			{
 				float4 uv01 : TEXCOORD0; // uv01.xy: uv0, uv01.zw: uv1
 				float4 posWS : TEXCOORD1; // xyz: posWorld, w: eyeZ
-				half4 normalWS : TEXCOORD2;// xyz: normal, w: fresnel term
-				half3 tangentWS : TEXCOORD3;
-				half3 binormalWS : TEXCOORD4;
+#if _NORMALMAP
+				half3 tangentToWorld[3] : TEXCOORD2; // tangentToWorld matrix
+#else
+				half3 normal : TEXCOORD2;
+#endif
 				half4 viewDir : TEXCOORD5; // xyz: viewDir, w: grazingTerm;
 				UNITY_FOG_COORDS_PACKED(6, half4) // x: fogCoord, yzw: vertexColor
 				float4 hpos : SV_POSITION;
@@ -245,13 +220,20 @@ Shader "RenderLoop/LowEnd"
 #if !GLOSSMAP
 				o.viewDir.w = GRAZING_TERM;
 #endif
-				o.normalWS.xyz = UnityObjectToWorldNormal(v.normal);
-				o.normalWS.w = FRESNEL_TERM(o.normalWS.xyz, o.viewDir.xyz);
+				half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
+				half fresnelTerm = FRESNEL_TERM(normal, o.viewDir.xyz);
 
 #if _NORMALMAP
 				half sign = v.tangent.w * unity_WorldTransformParams.w;
-				o.tangentWS = UnityObjectToWorldDir(v.tangent);
-				o.binormalWS = cross(o.normalWS.xyz, o.tangentWS) * v.tangent.w;
+				half3 tangent = normalize(UnityObjectToWorldDir(v.tangent));
+				half3 binormal = cross(normal, tangent) * v.tangent.w;
+
+				// Initialize tangetToWorld in column-major to benefit from better glsl matrix multiplication code
+				o.tangentToWorld[0] = half3(tangent.x, binormal.x, normal.x);
+				o.tangentToWorld[1] = half3(tangent.y, binormal.y, normal.y);
+				o.tangentToWorld[2] = half3(tangent.z, binormal.z, normal.z);
+#else
+				o.normal = normal;
 #endif
 
 				half3 diffuseAndSpecularColor = half3(1.0, 1.0, 1.0);
@@ -259,8 +241,12 @@ Shader "RenderLoop/LowEnd"
 				{
 					LightInput lightInput;
 					INITIALIZE_LIGHT(lightInput, lightIndex);
-					o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecularColor, diffuseAndSpecularColor, o.normalWS, o.posWS.xyz, o.viewDir.xyz);
+					o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecularColor, diffuseAndSpecularColor, normal, o.posWS.xyz, o.viewDir.xyz);
 				}
+
+#ifndef LIGHTMAP_ON
+				o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
+#endif
 
 				o.fogCoord.x = 1.0;
 				UNITY_TRANSFER_FOG(o, o.hpos);
@@ -271,18 +257,19 @@ Shader "RenderLoop/LowEnd"
 			{
 #if _NORMALMAP
 				half3 normalmap = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
-
-				// TODO: This will generate unoptimized code from the glsl compiler. Store the transpose matrix and compute dot manually
-				half3x3 tangentToWorld = half3x3(i.tangentWS, i.binormalWS, i.normalWS.xyx); 
-				half3 normal = mul(normalmap, tangentToWorld);
+				
+				// glsl compiler will generate underperforming code by using a row-major pre multiplication matrix: mul(normalmap, i.tangentToWorld)
+				// i.tangetToWorld was initialized as column-major in vs and here dot'ing individual for better performance. 
+				// The code below is similar to post multiply: mul(i.tangentToWorld, normalmap)
+				half3 normal = half3(dot(normalmap, i.tangentToWorld[0]), dot(normalmap, i.tangentToWorld[1]), dot(normalmap, i.tangentToWorld[2]));
 #else
-				half3 normal = normalize(i.normalWS.xyz);
+				half3 normal = normalize(i.normal);
 #endif
 				float3 posWorld = i.posWS.xyz;
 				half3 viewDir = i.viewDir.xyz;
 
 				half4 diffuseAlbedo = tex2D(_MainTex, i.uv01.xy);
-				half3 diffuse = diffuseAlbedo.rgb * _Color.rgb;
+				half3 diffuse = diffuseAlbedo.rgb *_Color.rgb;
 				half alpha = diffuseAlbedo.a * _Color.a;
 
 				half4 specGloss = SpecularGloss(i.uv01.xy);
@@ -290,20 +277,18 @@ Shader "RenderLoop/LowEnd"
 				half smoothness = specGloss.a;
 
 				half oneMinusReflectivity;
+				
+				// Note: UnityStandardCoreForwardSimple is not energy conserving. The lightmodel from LDPipeline will appear
+				// slither darker when comparing to Standard Simple due to this.
 				diffuse = EnergyConservationBetweenDiffuseAndSpecular(diffuse, specular, /*out*/ oneMinusReflectivity);
 				
 				// Indirect Light Contribution
-				UnityIndirect giIndirect;
+				half3 indirectDiffuse;
 #ifdef LIGHTMAP_ON
-				giIndirect.diffuse = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw));
+				indirectDiffuse = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
 #else
-				giIndirect.diffuse = half3(0, 0, 0);
+				indirectDiffuse = i.fogCoord.yzw * diffuse;
 #endif
-				giIndirect.specular = half3(0, 0, 0);
-				half3 indirectColor = BRDF3_Indirect(diffuse, specular, giIndirect, i.posWS.w, i.normalWS.w);
-
-				half3 directColor = i.fogCoord.yzw * diffuseAlbedo.rgb;
-
 				// Compute direct contribution from main directional light.
 				// Only a single directional shadow caster is supported.
 				LightInput mainLight;
@@ -312,7 +297,7 @@ Shader "RenderLoop/LowEnd"
 #if DEBUG_CASCADES
 				return half4(EvaluateMainLight(mainLight, diffuse, specular, normal, i.posWS, viewDir), 1.0);
 #endif
-				directColor += EvaluateMainLight(mainLight, diffuse, specular, normal, i.posWS, viewDir); 
+				half3 directColor = EvaluateMainLight(mainLight, diffuse, specular, normal, i.posWS, viewDir);
 
 				// Compute direct contribution from additional lights.
 				for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)
@@ -322,7 +307,7 @@ Shader "RenderLoop/LowEnd"
 					directColor += EvaluateOneLight(additionalLight, diffuse, specular, normal, posWorld, viewDir);
 				}
 
-				half3 color = directColor + indirectColor + _EmissionColor;
+				half3 color = directColor + indirectDiffuse + _EmissionColor;
 				UNITY_APPLY_FOG(i.fogCoord, color);
 				return half4(color, diffuseAlbedo.a);
 			};
@@ -344,7 +329,8 @@ Shader "RenderLoop/LowEnd"
 			#include "UnityCG.cginc"
 			float4 vert(float4 position : POSITION) : SV_POSITION
 			{
-				return UnityObjectToClipPos(position);
+				float4 clipPos = UnityObjectToClipPos(position);
+				return UnityApplyLinearShadowBias(clipPos);
 			}
 
 			half4 frag() : SV_TARGET
