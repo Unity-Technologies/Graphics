@@ -16,18 +16,6 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        protected virtual void OnEnable()
-        {
-            SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
-        }
-        
-        protected virtual void OnDisable()
-        {
-            SceneManager.activeSceneChanged -= SceneManagerOnActiveSceneChanged;
-        }
-
-        protected abstract void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1);
-
         static void LoadAsset()
         {
             if (!theInstance)

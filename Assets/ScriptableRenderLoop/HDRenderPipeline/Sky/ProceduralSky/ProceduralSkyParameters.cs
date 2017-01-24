@@ -109,5 +109,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             occlusionBiasSkyRayleigh     = Mathf.Clamp01(occlusionBiasSkyRayleigh);
             */
         }
+
+        public override SkyRenderer GetRenderer()
+        {
+            return new ProceduralSkyRenderer(this);
+        }
     }
 }
