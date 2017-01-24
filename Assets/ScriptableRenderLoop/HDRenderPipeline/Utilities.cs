@@ -303,41 +303,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
         public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDRenderPipeline.HDCamera camera,
-                                          RenderTargetIdentifier colorBuffer, int shaderPassID = 0)
+                                          RenderTargetIdentifier colorBuffer,
+                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer);
-            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID);
+            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
         public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDRenderPipeline.HDCamera camera,
-                                          RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer, int shaderPassID = 0)
+                                          RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
+                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
-            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID);
+            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
         public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDRenderPipeline.HDCamera camera,
-                                          RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, int shaderPassID = 0)
+                                          RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
+                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
-            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID);
+            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
         // Important: the first RenderTarget must be created with 0 depth bits!
         public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDRenderPipeline.HDCamera camera,
-                                          RenderTargetIdentifier[] colorBuffers, int shaderPassID = 0)
+                                          RenderTargetIdentifier[] colorBuffers,
+                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             // It is currently not possible to have MRT without also setting a depth target.
             // To work around this deficiency of the CommandBuffer.SetRenderTarget() API,
             // we pass the first color target as the depth target. If it has 0 depth bits,
             // no depth target ends up being bound.
-            DrawFullscreen(commandBuffer, material, camera, colorBuffers, colorBuffers[0], shaderPassID);
+            DrawFullscreen(commandBuffer, material, camera, colorBuffers, colorBuffers[0], properties, shaderPassID);
         }
     }
 }
