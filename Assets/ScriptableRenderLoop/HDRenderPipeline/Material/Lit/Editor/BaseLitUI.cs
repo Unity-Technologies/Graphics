@@ -33,6 +33,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent UVBaseDetailMappingText = new GUIContent("UV set for Base and Detail", "");
             public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
             public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "");
+            public static GUIContent ppdMinSamplesText = new GUIContent("Minimum samples", "Minimun samples to use with per pixel displacement mapping");
+            public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum samples", "Maximum samples to use with per pxiel displacement mapping");
+            
             public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
             public static GUIContent UVDetailMappingText = new GUIContent("UV set for Detail", "");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
@@ -88,7 +91,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle (in pixel). Smaller value mean smaller triangle.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor)");
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
-            public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Scale displacement taking into account the object scale");
+            public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Tesselation displacement will take into account the object scale - Only work with uniform positive scale");
         }
 
         public enum SurfaceType
@@ -198,9 +201,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if ((DoubleSidedMode)doubleSidedMode.floatValue == DoubleSidedMode.None)
                 {
                     m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, Styles.tessellationBackFaceCullEpsilonText);
-                }  
-                // TODO: Implement
-                // m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
+                }
+                m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
                 EditorGUI.indentLevel--;
             }
         }
@@ -400,6 +402,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     material.DisableKeyword("_TESSELLATION_DISPLACEMENT");
                     material.EnableKeyword("_TESSELLATION_DISPLACEMENT_PHONG");
                 }
+
+                bool tessellationObjectScaleEnable = material.GetFloat(kTessellationObjectScale) == 1.0;
+                SetKeyword(material, "_TESSELLATION_OBJECT_SCALE", tessellationObjectScaleEnable);
             }
         }
 

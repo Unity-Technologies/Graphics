@@ -1,1 +1,1 @@
-m_EditorVersion: 5.6.0b5
+m_EditorVersion: 5.6.0b6

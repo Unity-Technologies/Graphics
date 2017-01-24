@@ -159,34 +159,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private Material      m_InitPreFGD;
             private RenderTexture m_PreIntegratedFGD;
 
-            // For area lighting
-            private Texture2D m_LtcGGXMatrix;                    // RGBA
-            private Texture2D m_LtcDisneyDiffuseMatrix;          // RGBA
-            private Texture2D m_LtcMultiGGXFresnelDisneyDiffuse; // RGB, A unused
+            // For area lighting - We pack all texture inside a texture array to reduce the number of resource required
+            private Texture2DArray m_LtcData; // 0: m_LtcGGXMatrix - RGBA, 2: m_LtcDisneyDiffuseMatrix - RGBA, 3: m_LtcMultiGGXFresnelDisneyDiffuse - RGB, A unused
 
             const int k_LtcLUTMatrixDim  =  3; // size of the matrix (3x3)
             const int k_LtcLUTResolution = 64;
 
-            Material CreateEngineMaterial(string shaderPath)
-            {
-                Material mat = new Material(Shader.Find(shaderPath) as Shader);
-                mat.hideFlags = HideFlags.HideAndDontSave;
-                return mat;
-            }
-
-            Texture2D CreateLUT(int width, int height, TextureFormat format, Color[] pixels)
-            {
-                Texture2D tex = new Texture2D(width, height, format, false /*mipmap*/, true /*linear*/);
-                tex.hideFlags = HideFlags.HideAndDontSave;
-                tex.wrapMode = TextureWrapMode.Clamp;
-                tex.filterMode = FilterMode.Bilinear;
-                tex.SetPixels(pixels);
-                tex.Apply();
-                return tex;
-            }
 
             // Load LUT with one scalar in alpha of a tex2D
-            Texture2D LoadLUT(TextureFormat format, float[] LUTScalar)
+            void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format, float[] LUTScalar)
             {
                 const int count = k_LtcLUTResolution * k_LtcLUTResolution;
                 Color[] pixels = new Color[count];
@@ -196,11 +177,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     pixels[i] = new Color(0, 0, 0, LUTScalar[i]);
                 }
 
-                return CreateLUT(k_LtcLUTResolution, k_LtcLUTResolution, format, pixels);
+                tex.SetPixels(pixels, arrayElement);
             }
 
             // Load LUT with 3x3 matrix in RGBA of a tex2D (some part are zero)
-            Texture2D LoadLUT(TextureFormat format, double[,] LUTTransformInv)
+            void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format, double[,] LUTTransformInv)
             {
                 const int count = k_LtcLUTResolution * k_LtcLUTResolution;
                 Color[] pixels = new Color[count];
@@ -215,13 +196,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                           (float)LUTTransformInv[i, 6]);
                 }
 
-                return CreateLUT(k_LtcLUTResolution, k_LtcLUTResolution, format, pixels);
+                tex.SetPixels(pixels, arrayElement);
             }
 
             // Special-case function for 'm_LtcMultiGGXFresnelDisneyDiffuse'.
-            Texture2D LoadLUT(TextureFormat format, float[] LtcGGXMagnitudeData,
-                                                    float[] LtcGGXFresnelData,
-                                                    float[] LtcDisneyDiffuseMagnitudeData)
+            void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format,   float[] LtcGGXMagnitudeData,
+                                                                                        float[] LtcGGXFresnelData,
+                                                                                        float[] LtcDisneyDiffuseMagnitudeData)
             {
                 const int count = k_LtcLUTResolution * k_LtcLUTResolution;
                 Color[] pixels = new Color[count];
@@ -234,25 +215,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                           LtcGGXFresnelData[i], LtcDisneyDiffuseMagnitudeData[i], 1);
                 }
 
-                return CreateLUT(k_LtcLUTResolution, k_LtcLUTResolution, format, pixels);
+                tex.SetPixels(pixels, arrayElement);
             }
 
             public void Build()
             {
-                m_InitPreFGD = CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
+                m_InitPreFGD = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
                 // TODO: switch to RGBA64 when it becomes available.
-                m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
+                m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
                 m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
                 m_PreIntegratedFGD.Create();
 
-                m_LtcGGXMatrix                    = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
-                m_LtcDisneyDiffuseMatrix          = LoadLUT(TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
+                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
+                {
+                    hideFlags = HideFlags.HideAndDontSave,
+                    wrapMode = TextureWrapMode.Clamp,
+                    filterMode = FilterMode.Bilinear
+                };
+
+                LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf,   s_LtcGGXMatrixData);
+                LoadLUT(m_LtcData, 1, TextureFormat.RGBAHalf,   s_LtcDisneyDiffuseMatrixData);
                 // TODO: switch to RGBA64 when it becomes available.
-                m_LtcMultiGGXFresnelDisneyDiffuse = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMagnitudeData,
-                                                                                    s_LtcGGXFresnelData,
-                                                                                    s_LtcDisneyDiffuseMagnitudeData);
+                LoadLUT(m_LtcData, 2, TextureFormat.RGBAHalf,   s_LtcGGXMagnitudeData, s_LtcGGXFresnelData, s_LtcDisneyDiffuseMagnitudeData);
+
+                m_LtcData.Apply();
 
                 isInit = false;
             }
@@ -278,10 +266,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void Bind()
             {
-                Shader.SetGlobalTexture("_PreIntegratedFGD",                m_PreIntegratedFGD);
-                Shader.SetGlobalTexture("_LtcGGXMatrix",                    m_LtcGGXMatrix);
-                Shader.SetGlobalTexture("_LtcDisneyDiffuseMatrix",          m_LtcDisneyDiffuseMatrix);
-                Shader.SetGlobalTexture("_LtcMultiGGXFresnelDisneyDiffuse", m_LtcMultiGGXFresnelDisneyDiffuse);
+                Shader.SetGlobalTexture("_PreIntegratedFGD", m_PreIntegratedFGD);
+                Shader.SetGlobalTexture("_LtcData", m_LtcData);
             }
         }
     }

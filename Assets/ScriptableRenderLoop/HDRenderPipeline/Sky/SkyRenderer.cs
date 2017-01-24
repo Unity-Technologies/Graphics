@@ -7,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         abstract public void Build();
         abstract public void Cleanup();
+        abstract public void SetRenderTargets(BuiltinSkyParameters builtinParams);
         // renderForCubemap: When rendering into a cube map, no depth buffer is available so user has to make sure not to use depth testing or the depth texture.
         abstract public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, bool renderForCubemap);
         abstract public bool IsSkyValid(SkyParameters skyParameters);

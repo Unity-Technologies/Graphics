@@ -51,8 +51,8 @@ TEXTURE2D(g_tShadowBuffer); // TODO: No choice, the name is hardcoded in Shadowr
 SAMPLER2D_SHADOW(samplerg_tShadowBuffer);
 
 // Use texture array for IES
-TEXTURE2D_ARRAY(_IESArray);
-SAMPLER2D(sampler_IESArray);
+//TEXTURE2D_ARRAY(_IESArray);
+//SAMPLER2D(sampler_IESArray);
 
 // Used by directional and spot lights
 TEXTURE2D_ARRAY(_CookieTextures);
@@ -222,10 +222,10 @@ float4 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 // ----------------------------------------------------------------------------
 
 // sphericalTexCoord is theta and phi spherical coordinate
-float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalTexCoord, float lod)
-{
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(_IESArray, sampler_IESArray, sphericalTexCoord, index, 0);
-}
+//float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalTexCoord, float lod)
+//{
+//    return SAMPLE_TEXTURE2D_ARRAY_LOD(_IESArray, sampler_IESArray, sphericalTexCoord, index, 0);
+//}
 
 //-----------------------------------------------------------------------------
 // Reflection proble / Sky sampling function
