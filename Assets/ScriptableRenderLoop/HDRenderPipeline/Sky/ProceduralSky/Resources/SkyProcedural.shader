@@ -37,6 +37,8 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
             float _DisableSkyOcclusionTest;
 
+            float _FlipY;
+
             #define IS_RENDERING_SKY
             #include "AtmosphericScattering.hlsl"
 
@@ -97,7 +99,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 }
 
                 // Since we only need the world space position, so we don't pass the view-projection matrix.
-                UpdatePositionInput(depthRaw, _InvViewProjMatrix, k_identity4x4, posInput);
+                UpdatePositionInput(depthRaw, _InvViewProjMatrix, k_identity4x4, posInput, _FlipY != 0);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(posInput.positionWS, c1, c2, c3);
