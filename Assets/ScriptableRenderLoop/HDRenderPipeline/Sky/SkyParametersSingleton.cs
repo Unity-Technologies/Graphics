@@ -1,5 +1,6 @@
-using System.Linq;
-using UnityEngine.SceneManagement;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -10,21 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static SkyParameters overrideSettings
         {
             get { return instance.settings; }
-        }
-
-        protected override void SceneManagerOnActiveSceneChanged(Scene from, Scene to)
-        {
-            Refresh();
-        }
-
-        public static void Refresh()
-        {
-            instance.settings = null;
-
-            //TODO: Slow, and linq, make good and fast
-            var overrideSettings = FindObjectsOfType<SkyParameters>().Where(x => x.isActiveAndEnabled && x.gameObject.scene == SceneManager.GetActiveScene());
-            if (overrideSettings.Any())
-                instance.settings = overrideSettings.FirstOrDefault();
+            set { instance.settings = value; }
         }
     }
 }

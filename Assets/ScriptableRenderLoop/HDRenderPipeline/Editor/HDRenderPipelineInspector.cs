@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [CustomEditor(typeof(HDRenderPipeline))]
+    //[CustomEditor(typeof(HDRenderPipeline))]
     public class HDRenderPipelineInspector : Editor
     {
         private class Styles

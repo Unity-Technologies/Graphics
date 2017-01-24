@@ -4,7 +4,7 @@ using System.Linq;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
-    public class SkyParameters : MonoBehaviour
+    public abstract class SkyParameters : ScriptableObject
     {
         protected class Unhashed : System.Attribute {}
 
@@ -23,14 +23,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Properties = GetType()
                             .GetFields(BindingFlags.Public | BindingFlags.Instance)
                             .ToArray();
-            SkyParametersSingleton.Refresh();
         }
-
-        public void OnDisable()
-        {
-            SkyParametersSingleton.Refresh();
-        }
-
+        
         public int GetHash()
         {
             unchecked
@@ -46,5 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return hash;
             }
         }
+
+        public abstract SkyRenderer GetRenderer();
     }
 }

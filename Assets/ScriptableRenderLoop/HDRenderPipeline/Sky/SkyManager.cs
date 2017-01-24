@@ -68,40 +68,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool                    m_useMIS = false;
 
-        SkyParameters           m_SkyParameters = null;
 
+        private SkyParameters m_SkyParameters;
         public SkyParameters skyParameters
         {
             set
             {
-                if(m_Renderer != null)
+                if (m_SkyParameters == value)
+                    return;
+
+                if (m_Renderer != null)
                 {
-                    if (value == null || IsSkyParameterValid(value))
-                    {
-                        m_SkyParametersHash = 0;
-                        m_SkyParameters = value;
-                        m_UpdateRequired = true;
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Sky renderer needs an instance of " + GetSkyParameterType().ToString() + " to be able to render.");
-                    }
+                    m_Renderer.Cleanup();
+                    m_Renderer = null;
                 }
+
+                if (value == null)
+                    return;
+
+                m_Renderer = value.GetRenderer();
+                m_SkyParametersHash = 0;
+                m_SkyParameters = value;
+                m_UpdateRequired = true;
             }
             get { return m_SkyParameters; }
-        }
-
-        public void InstantiateSkyRenderer(Type skyRendererType)
-        {
-            if(skyRendererType == null)
-            {
-                m_Renderer = null;
-            }
-            else if (m_Renderer == null || m_Renderer.GetType() != skyRendererType)
-            {
-                m_Renderer = Activator.CreateInstance(skyRendererType) as SkyRenderer;
-                m_Renderer.Build();
-            }
         }
 
         protected Mesh BuildSkyMesh(Vector3 cameraPosition, Matrix4x4 cameraInvViewProjectionMatrix, bool forceUVBottom)
@@ -296,7 +286,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsSkyValid()
         {
-            return m_Renderer != null && m_Renderer.IsParameterValid(skyParameters) && m_Renderer.IsSkyValid(skyParameters);
+            return m_Renderer != null && m_Renderer.IsSkyValid();
         }
 
         private void RenderSkyToCubemap(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, RenderTexture target)
@@ -359,16 +349,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_iblFilterGgx.FilterCubemap(renderContext, input, target, mipCount, m_CubemapFaceMesh);
                 }
             }
-        }
-
-        public bool IsSkyParameterValid(SkyParameters parameters)
-        {
-            return m_Renderer != null && m_Renderer.IsParameterValid(parameters);
-        }
-
-        public Type GetSkyParameterType()
-        {
-            return (m_Renderer == null) ? null : m_Renderer.GetSkyParameterType();
         }
 
         public void RequestEnvironmentUpdate()
