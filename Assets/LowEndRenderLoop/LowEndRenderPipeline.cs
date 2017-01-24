@@ -51,6 +51,9 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             if (m_Asset.EnableLightmap)
                 settings.rendererConfiguration = settings.rendererConfiguration | RendererConfiguration.PerObjectLightmaps;
 
+            if (m_Asset.EnableAmbientProbe)
+                settings.rendererConfiguration = settings.rendererConfiguration | RendererConfiguration.PerObjectLightProbe;
+
             context.DrawRenderers(ref settings);
             context.DrawSkybox(camera);
 
@@ -66,8 +69,8 @@ public class LowEndRenderPipelineInstance : RenderPipeline
     {
         m_ShadowSettings = ShadowSettings.Default;
         m_ShadowSettings.directionalLightCascadeCount = QualitySettings.shadowCascades;
-        m_ShadowSettings.shadowAtlasWidth = m_Asset.ShadowAtlasWidth;
-        m_ShadowSettings.shadowAtlasHeight = m_Asset.ShadowAtlasHeight;
+        m_ShadowSettings.shadowAtlasWidth = m_Asset.ShadowAtlasResolution;
+        m_ShadowSettings.shadowAtlasHeight = m_Asset.ShadowAtlasResolution;
         m_ShadowSettings.maxShadowDistance = QualitySettings.shadowDistance;
         m_ShadowSettings.maxShadowLightsSupported = 1;
         m_ShadowSettings.shadowType = ShadowSettings.ShadowType.LIGHTSPACE;
@@ -148,19 +151,12 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             }
         }
 
-        // ambient lighting spherical harmonics values
-        const int kSHCoefficients = 7;
-        Vector4[] shConstants = new Vector4[kSHCoefficients];
-        SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe * RenderSettings.ambientIntensity;
-        GetShaderConstantsFromNormalizedSH(ref ambientSH, shConstants);
-
         CommandBuffer cmd = new CommandBuffer() { name = "SetupShadowShaderConstants" };
         cmd.SetGlobalVectorArray("globalLightPos", lightPositions);
         cmd.SetGlobalVectorArray("globalLightColor", lightColors);
         cmd.SetGlobalVectorArray("globalLightAtten", lightAttenuations);
         cmd.SetGlobalVectorArray("globalLightSpotDir", lightSpotDirections);
         cmd.SetGlobalVector("globalLightCount", new Vector4(pixelLightCount, totalLightCount, 0.0f, 0.0f));
-        cmd.SetGlobalVectorArray("globalSH", shConstants);
         context.ExecuteCommandBuffer(cmd);
         cmd.Dispose();
     }
@@ -194,30 +190,6 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         context.ExecuteCommandBuffer(setupShadow);
         setupShadow.Dispose();
     }
-
-    private void GetShaderConstantsFromNormalizedSH(ref SphericalHarmonicsL2 ambientProbe, Vector4[] outCoefficients)
-    {
-        for (int channelIdx = 0; channelIdx < 3; ++channelIdx)
-        {
-            // Constant + Linear
-            // In the shader we multiply the normal is not swizzled, so it's normal.xyz.
-            // Swizzle the coefficients to be in { x, y, z, DC } order.
-            outCoefficients[channelIdx].x = ambientProbe[channelIdx, 3];
-            outCoefficients[channelIdx].y = ambientProbe[channelIdx, 1];
-            outCoefficients[channelIdx].z = ambientProbe[channelIdx, 2];
-            outCoefficients[channelIdx].w = ambientProbe[channelIdx, 0] - ambientProbe[channelIdx, 6];
-            // Quadratic polynomials
-            outCoefficients[channelIdx + 3].x = ambientProbe[channelIdx, 4];
-            outCoefficients[channelIdx + 3].y = ambientProbe[channelIdx, 5];
-            outCoefficients[channelIdx + 3].z = ambientProbe[channelIdx, 6] * 3.0f;
-            outCoefficients[channelIdx + 3].w = ambientProbe[channelIdx, 7];
-        }
-        // Final quadratic polynomial
-        outCoefficients[6].x = ambientProbe[0, 8];
-        outCoefficients[6].y = ambientProbe[1, 8];
-        outCoefficients[6].z = ambientProbe[2, 8];
-        outCoefficients[6].w = 1.0f;
-    }
     #endregion
 }
 #endregion
@@ -243,14 +215,15 @@ public class LowEndRenderPipeline : RenderPipelineAsset
 #region PipelineAssetSettings
     public bool m_SupportsVertexLight = true;
     public bool m_EnableLightmaps = true;
-    public int m_ShadowAtlasWidth = 1024;
-    public int m_ShadowAtlasHeight = 1024;
+    public bool m_EnableAmbientProbe = true;
+    public int m_ShadowAtlasResolution = 1024;
 
     public bool SupportsVertexLight { get { return m_SupportsVertexLight;} private set { m_SupportsVertexLight = value; } }
 
     public bool EnableLightmap { get { return m_EnableLightmaps;} private set { m_EnableLightmaps = value; } }
 
-    public int ShadowAtlasWidth { get { return m_ShadowAtlasWidth; } private set { m_ShadowAtlasWidth = value; } }
-    public int ShadowAtlasHeight { get { return m_ShadowAtlasHeight; } private set { m_ShadowAtlasHeight = value; } }
+    public bool EnableAmbientProbe { get { return m_EnableAmbientProbe;} private set { m_EnableAmbientProbe = value; } }
+
+    public int ShadowAtlasResolution { get { return m_ShadowAtlasResolution; } private set { m_ShadowAtlasResolution = value; } }
 #endregion
 }
