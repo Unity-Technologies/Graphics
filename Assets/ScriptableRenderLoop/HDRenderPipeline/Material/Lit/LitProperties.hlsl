@@ -105,6 +105,7 @@ PROP_DECL_TEX2D(_SpecularOcclusionMap);
 
 PROP_DECL_TEX2D(_NormalMap);
 PROP_DECL(float, _NormalScale);
+float4 _NormalMap0_TexelSize; // Unity facility. This will provide the size of the base normal to the shader
 
 PROP_DECL_TEX2D(_HeightMap);
 float4 _HeightMap0_TexelSize;

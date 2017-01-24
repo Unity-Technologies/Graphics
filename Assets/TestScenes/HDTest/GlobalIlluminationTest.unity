@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.5456157, g: 0.39781958, b: 0.24038762, a: 1}
+  m_IndirectSpecularColor: {r: 0.3199737, g: 0.28755516, b: 0.26444194, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -512,6 +512,7 @@ Light:
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_CCT: 6570
+  m_UseCCT: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!114 &565152817
@@ -972,6 +973,7 @@ Light:
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_CCT: 6570
+  m_UseCCT: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!114 &1108908834
@@ -2052,7 +2054,7 @@ MonoBehaviour:
   resolution: 256
   updateMode: 1
   updatePeriod: 0
-  skyHDRI: {fileID: 8900000, guid: 9b513842339ef704ca63ef696691bc34, type: 3}
+  skyHDRI: {fileID: 8900000, guid: de78f930088fc194290da7400c89bfb5, type: 3}
 --- !u!114 &1944423447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2064,7 +2066,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc357c46587fc9d4cb8f311794d7d2f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SkyRendererTypeName: UnityEngine.Experimental.ScriptableRenderLoop.HDRISkyRenderer
+  m_SkyRendererTypeName: UnityEngine.Experimental.Rendering.HDPipeline.HDRISkyRenderer
+  m_ShadowMaxDistance: 1000
+  m_ShadowCascadeCount: 4
+  m_ShadowCascadeSplit0: 0.05
+  m_ShadowCascadeSplit1: 0.2
+  m_ShadowCascadeSplit2: 0.3
 --- !u!4 &1944423448
 Transform:
   m_ObjectHideFlags: 0
