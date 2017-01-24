@@ -51,9 +51,15 @@ namespace UnityEditor.VFX
             model.OnRemoved();
             m_Children.Remove(model);
             model.m_Parent = null;
-
+            
             if (notify)
-                Invalidate(InvalidationCause.kModelChanged);
+                Invalidate(InvalidationCause.kModelChanged);     
+        }
+
+        public void RemoveAllChildren(bool notify = true)
+        {
+            while (m_Children.Count > 0)
+                RemoveChild(m_Children[m_Children.Count - 1], notify);
         }
 
         public VFXModel GetParent()
