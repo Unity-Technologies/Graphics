@@ -7,10 +7,10 @@ namespace UnityEditor.VFX.UI
 {
     class VFXNodeBlockPresenter : GraphElementPresenter
     {
-        public VFXNodeBlockPresenter()
-        {
-            capabilities |= Capabilities.Selectable;
-        }
+		protected override void OnEnable()
+		{
+			capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Movable;
+		}
 
         public VFXBlock Model
         {

@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.RMGUI;
 
@@ -71,9 +70,10 @@ namespace RMGUI.GraphView
 							Matrix4x4 g = ce.globalTransform;
 							var scale = new Vector3(g.m00, g.m11, g.m22);
 
-							ce.position = CalculatePosition(ce.position.x + evt.delta.x * panSpeed.x / scale.x,
-															ce.position.y + evt.delta.y * panSpeed.y / scale.y,
-															ce.position.width, ce.position.height);
+							ce.SetPosition(CalculatePosition(ce.position.x + evt.delta.x * panSpeed.x / scale.x,
+															 ce.position.y + evt.delta.y*panSpeed.y/scale.y,
+															 ce.position.width, ce.position.height));
+							ce.Touch(ChangeType.Layout);
 						}
 
 						selectedElement = null;
@@ -90,7 +90,6 @@ namespace RMGUI.GraphView
 							// Since we didn't drag after all, update selection with current element only
 							graphView.ClearSelection();
 							graphView.AddToSelection(selectedElement);
-
 						}
 						else
 						{

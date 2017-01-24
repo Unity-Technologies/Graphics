@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.UI
     [StyleSheet("Assets/VFXEditorNew/Editor/GraphView/Views/VFXView.uss")]
     class VFXView : GraphView
     {
-        public VFXView()
+		public VFXView()
 		{
             AddManipulator(new ContentZoomer());
 			AddManipulator(new ContentDragger());

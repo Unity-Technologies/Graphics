@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.RMGUI;
@@ -29,7 +30,28 @@ namespace UnityEditor.VFX.UI
 		    m_Title = new Label(new GUIContent("")) {name = "Title"};
 			AddChild(m_Title);
             AddChild(m_SlotContainer);
+
+			AddManipulator(new SelectionDropper(HandleDropEvent));
         }
+
+		// This function is a placeholder for common stuff to do before we delegate the action to the drop target
+		private EventPropagation HandleDropEvent(Event evt, List<ISelectable> selection, IDropTarget dropTarget)
+		{
+			if (dropTarget == null)
+				return EventPropagation.Continue;
+
+			switch (evt.type)
+			{
+				case EventType.DragUpdated:
+					return dropTarget.DragUpdated(evt, selection, dropTarget);
+				case EventType.DragExited:
+					return dropTarget.DragExited();
+				case EventType.DragPerform:
+					return dropTarget.DragPerform(evt, selection, dropTarget);
+			}
+
+			return EventPropagation.Stop;
+		}
 
         public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
         {
@@ -64,7 +86,7 @@ namespace UnityEditor.VFX.UI
 			nodeBlockContainer.AddToSelection(this);
 
             // TODO: Reset to EventPropagation.Continue when Drag&Drop is supported
-			return EventPropagation.Stop;
+			return EventPropagation.Continue;
         }
 
         // On purpose -- until we support Drag&Drop I suppose

@@ -11,6 +11,7 @@ namespace RMGUI.GraphView
 		Floating = 1 << 3,
 		Resizable = 1 << 4,
 		Movable = 1 << 5,
-		Deletable = 1 << 6
+		Deletable = 1 << 6,
+		Droppable = 1 << 7
 	}
 }
