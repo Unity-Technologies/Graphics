@@ -162,10 +162,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         ShadowRenderPass m_ShadowPass;
 
-        ComputeShader m_CombineSubsurfaceScatteringCS    = null;
-        int           m_FilterVerticalKernel             = -1;
-        int           m_FilterHorizontalAndCombineKernel = -1;
-
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
@@ -177,10 +173,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Various set of material use in render loop
         Material m_DebugViewMaterialGBuffer;
+        Material m_CombineSubsurfaceScattering;
 
         // Various buffer
         int m_CameraColorBuffer;
         int m_CameraSubsurfaceBuffer;
+        int m_CameraFilteringBuffer;
         int m_CameraDepthStencilBuffer;
         int m_CameraStencilBuffer;
         int m_VelocityBuffer;
@@ -190,6 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // It is stored within 'm_CameraSubsurfaceBufferRT'.
         RenderTargetIdentifier m_CameraColorBufferRT;
         RenderTargetIdentifier m_CameraSubsurfaceBufferRT;
+        RenderTargetIdentifier m_CameraFilteringBufferRT;
         RenderTargetIdentifier m_CameraDepthStencilBufferRT;
         // 'm_CameraStencilBufferRT' is a temporary copy of the stencil buffer and should be removed
         // once we are able to read from the depth buffer and perform the stencil test simulatenously.
@@ -248,11 +247,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_CameraColorBuffer          = Shader.PropertyToID("_CameraColorTexture");
             m_CameraSubsurfaceBuffer     = Shader.PropertyToID("_CameraSubsurfaceTexture");
+            m_CameraFilteringBuffer      = Shader.PropertyToID("_CameraFilteringBuffer");
             m_CameraDepthStencilBuffer   = Shader.PropertyToID("_CameraDepthTexture");
             m_CameraStencilBuffer        = Shader.PropertyToID("_CameraStencilTexture");
 
             m_CameraColorBufferRT        = new RenderTargetIdentifier(m_CameraColorBuffer);
             m_CameraSubsurfaceBufferRT   = new RenderTargetIdentifier(m_CameraSubsurfaceBuffer);
+            m_CameraFilteringBufferRT    = new RenderTargetIdentifier(m_CameraFilteringBuffer);
             m_CameraDepthStencilBufferRT = new RenderTargetIdentifier(m_CameraDepthStencilBuffer);
             m_CameraStencilBufferRT      = new RenderTargetIdentifier(m_CameraStencilBuffer);
 
@@ -260,14 +261,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
 
+            m_CombineSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
+
             m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
 
-            m_CombineSubsurfaceScatteringCS    = Resources.Load<ComputeShader>("CombineSubsurfaceScattering");
-            // m_FilterVerticalKernel             = m_CombineSubsurfaceScatteringCS.FindKernel("FilterVertical");
-            m_FilterHorizontalAndCombineKernel = m_CombineSubsurfaceScatteringCS.FindKernel("FilterHorizontalAndCombine");
-
             // Init Gbuffer description
-
             m_gbufferManager.gbufferCount = m_LitRenderLoop.GetMaterialGBufferCount();
             RenderTextureFormat[] RTFormat; RenderTextureReadWrite[] RTReadWrite;
             m_LitRenderLoop.GetMaterialGBufferDescription(out RTFormat, out RTReadWrite);
@@ -330,6 +328,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     cmd.GetTemporaryRT(m_CameraColorBuffer,        w, h,  0, FilterMode.Point, RenderTextureFormat.ARGBHalf,       RenderTextureReadWrite.Linear, 1, true); // Enable UAV
                     cmd.GetTemporaryRT(m_CameraSubsurfaceBuffer,   w, h,  0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+                    cmd.GetTemporaryRT(m_CameraFilteringBuffer,    w, h,  0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
                     cmd.GetTemporaryRT(m_CameraDepthStencilBuffer, w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
                     cmd.GetTemporaryRT(m_CameraStencilBuffer,      w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
 
@@ -353,9 +352,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Clear the diffuse SSS lighting target
-                using (new Utilities.ProfilingSample("Clear diffuse SSS target", renderContext))
+                using (new Utilities.ProfilingSample("Clear SSS diffuse target", renderContext))
                 {
                     Utilities.SetRenderTarget(renderContext, m_CameraSubsurfaceBufferRT, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
+                }
+
+                // Clear the SSS filtering target
+                using (new Utilities.ProfilingSample("Clear SSS filtering target", renderContext))
+                {
+                    Utilities.SetRenderTarget(renderContext, m_CameraFilteringBuffer, m_CameraDepthStencilBufferRT, ClearFlag.ClearColor, Color.black);
                 }
 
                 // Clear GBuffers
@@ -507,32 +512,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
             if (debugParameters.ShouldUseForwardRenderingOnly()) return;
 
-            int screenWidth  = (int)hdCamera.screenSize.x;
-            int screenHeight = (int)hdCamera.screenSize.y;
+            // Assume that the height of the projection window is 2 meters.
+            float distanceToProjectionWindow = 1.0f / Mathf.Tan(0.5f * Mathf.Deg2Rad * hdCamera.camera.fieldOfView);
+            m_CombineSubsurfaceScattering.SetFloat("_DistToProjWindow", distanceToProjectionWindow);
+            m_CombineSubsurfaceScattering.SetFloat("_FilterWidth", 20.0f);
+            m_CombineSubsurfaceScattering.SetFloat("_BilateralScale", 0.1f);
 
-            const int groupSize = 256;
+            MaterialPropertyBlock properties = new MaterialPropertyBlock();
 
-            int groupSizeHorizontal = (screenWidth  + groupSize - 1) / groupSize;
-            int groupSizeVertical   = (screenHeight + groupSize - 1) / groupSize;
-
-            var cmdBuf = new CommandBuffer() { name = "Combine Subsurface Scattering" };
-
-            // Set the common data.
-            cmdBuf.SetComputeIntParam(m_CombineSubsurfaceScatteringCS, "screenWidth",  screenWidth);
-            cmdBuf.SetComputeIntParam(m_CombineSubsurfaceScatteringCS, "screenHeight", screenHeight);
+            var cmd = new CommandBuffer() { name = "Combine Subsurface Scattering" };
+            cmd.SetGlobalTexture("_CameraDepthTexture", m_CameraDepthStencilBufferRT);
 
             // Perform the vertical SSS filtering pass.
-            // TODO.
+            properties.SetFloat("_DstBlend", (float)BlendMode.Zero); // TODO: this doesn't work for some reason...
+            properties.SetFloat("_FilterHorizontal", 0);
+            cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
+            Utilities.DrawFullscreen(cmd, m_CombineSubsurfaceScattering, hdCamera,
+                                     m_CameraFilteringBufferRT, m_CameraStencilBufferRT, properties);
 
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
-            cmdBuf.SetComputeTextureParam(m_CombineSubsurfaceScatteringCS, m_FilterHorizontalAndCombineKernel,
-                                          "diffuseFilterSource", m_CameraSubsurfaceBufferRT);
-            cmdBuf.SetComputeTextureParam(m_CombineSubsurfaceScatteringCS, m_FilterHorizontalAndCombineKernel,
-                                          "specularSourceAndColorTarget", m_CameraColorBufferRT);
-            cmdBuf.DispatchCompute(m_CombineSubsurfaceScatteringCS, m_FilterHorizontalAndCombineKernel, groupSizeHorizontal, screenHeight, 1);
+            properties.SetFloat("_DstBlend", (float)BlendMode.One);  // TODO: this doesn't work for some reason...
+            properties.SetFloat("_FilterHorizontal", 1);
+            cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
+            Utilities.DrawFullscreen(cmd, m_CombineSubsurfaceScattering, hdCamera,
+                                     m_CameraColorBufferRT, m_CameraStencilBufferRT, properties);
 
-            context.ExecuteCommandBuffer(cmdBuf);
-            cmdBuf.Dispose();
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
         }
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext)
