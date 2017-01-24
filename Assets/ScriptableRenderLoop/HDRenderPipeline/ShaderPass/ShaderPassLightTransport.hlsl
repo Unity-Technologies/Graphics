@@ -31,14 +31,14 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
         inputMesh.positionOS.xy = inputMesh.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
         // OpenGL right now needs to actually use incoming vertex position,
         // so use it in a very dummy way
-        //v.positionOS.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
+        //v.positionOS.z = vertex.z > 0 ? 1.0e-4 : 0.0;
     }
     if (unity_MetaVertexControl.y)
     {
         inputMesh.positionOS.xy = inputMesh.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
         // OpenGL right now needs to actually use incoming vertex position,
         // so use it in a very dummy way
-        //v.positionOS.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
+        //v.positionOS.z = vertex.z > 0 ? 1.0e-4 : 0.0;
     }
 
     float3 positionWS = TransformObjectToWorld(inputMesh.positionOS);

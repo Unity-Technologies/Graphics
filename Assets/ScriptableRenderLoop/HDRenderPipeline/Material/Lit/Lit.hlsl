@@ -181,7 +181,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        outGBuffer2 = float4(surfaceData.subSurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subSurfaceProfile / 8.0f); // Number of profile not define yet
+        outGBuffer2 = float4(surfaceData.subSurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subSurfaceProfile / 8.0); // Number of profile not define yet
     }
     else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -290,7 +290,7 @@ void DecodeFromGBuffer(
         bsdfData.fresnel0 = 0.028; // TODO take from subSurfaceProfile
         bsdfData.subSurfaceRadius = inGBuffer2.r;
         bsdfData.thickness = inGBuffer2.g;
-        bsdfData.subSurfaceProfile = inGBuffer2.a * 8.0f;
+        bsdfData.subSurfaceProfile = inGBuffer2.a * 8.0;
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -638,7 +638,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     specularLighting   = float3(0.0, 0.0, 0.0);
     float3 cookieColor = float3(1.0, 1.0, 1.0);
 
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
+    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
         float shadowAttenuation = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 
@@ -669,7 +669,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         illuminance *= cookie.a;
     }
 
-    [branch] if (illuminance > 0.0f)
+    [branch] if (illuminance > 0.0)
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
         diffuseLighting  *= (cookieColor * lightData.color) * (illuminance * lightData.diffuseScale);
