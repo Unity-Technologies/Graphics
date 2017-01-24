@@ -461,7 +461,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             }
 
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
-            // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth);
+            // float omegaP = FOUR_PI / (6.0 * cubemapWidth * cubemapWidth);
             mipLevel        = 0.5 * log2(omegaS * invOmegaP);
         }
 
@@ -471,11 +471,6 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // This will blur the reflection.
             // TODO: find a more accurate MIP bias function.
             mipLevel = lerp(mipLevel, lastMipLevel, bias);
-
-            // TODO: There is a bug currently where autogenerate mipmap for the cubemap seems to
-            // clamp the mipLevel to 6. correct it! Then remove this clamp
-            // All MIP map levels beyond UNITY_SPECCUBE_LOD_STEPS contain invalid data.
-            mipLevel = min(mipLevel, UNITY_SPECCUBE_LOD_STEPS);
 
             // TODO: use a Gaussian-like filter to generate the MIP pyramid.
             float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;

@@ -211,7 +211,7 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
     float3 adir = abs(dir);
 
     // +Z -Z
-    faceIndex = dir.z > 0.0f ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
+    faceIndex = dir.z > 0.0 ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
 
     // +X -X
     if (adir.x > adir.y && adir.x > adir.z)
@@ -262,7 +262,7 @@ float FastACos(float inX)
 {
     float x = abs(inX);
     float res = (0.0468878 * x + -0.203471) * x + 1.570796; // p(x)
-    res *= sqrt(1.0f - x);
+    res *= sqrt(1.0 - x);
 
     return (inX >= 0) ? res : PI - res; // Undo range reduction
 }
