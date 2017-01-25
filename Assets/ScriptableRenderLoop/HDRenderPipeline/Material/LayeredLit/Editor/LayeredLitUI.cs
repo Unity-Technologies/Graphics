@@ -54,12 +54,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
             public readonly GUIContent UVDetailText = new GUIContent("Detail UV Mapping", "Detail UV Mapping mode of the layer.");
-            public readonly GUIContent BaseInfluenceText = new GUIContent("Base influence", "Base influence.");
+            public readonly GUIContent MainLayerInfluenceText = new GUIContent("Main layer influence", "Main layer influence.");
             public readonly GUIContent DensityOpacityInfluenceText = new GUIContent("Density / Opacity", "Density / Opacity");
             public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
-            public readonly GUIContent useBaseLayerModeText = new GUIContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");            
+            public readonly GUIContent useMainLayerInfluenceModeText = new GUIContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");            
             public readonly GUIContent heightOffsetText = new GUIContent("Height Offset", "Height offset from the previous layer.");
-            public readonly GUIContent inheritBaseLayerText = new GUIContent("Inherit Base Layer Normal", "Inherit the normal from the base layer.");
             public readonly GUIContent heightFactorText = new GUIContent("Height Multiplier", "Scale applied to the height of the layer.");
             public readonly GUIContent blendSizeText = new GUIContent("Blend Size", "Thickness over which the layer will be blended with the previous one.");
             public readonly GUIContent heightControlText = new GUIContent("Height control");
@@ -112,8 +111,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
 
 
-        const string kkUseBaseLayerMode = "_UseBaseLayerMode";
-        MaterialProperty useBaseLayerMode = null;
+        const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
+        MaterialProperty useMainLayerInfluence = null;
         const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
         MaterialProperty useHeightBasedBlend = null;
         const string kUseHeightBasedBlendV2 = "_UseHeightBasedBlendV2";
@@ -122,8 +121,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] blendUsingHeight = new MaterialProperty[kMaxLayerCount - 1];
         const string kHeightOffset = "_HeightOffset";
         MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount-1];
-        const string kInheritBaseLayer = "_InheritBaseLayer";
-        MaterialProperty[] inheritBaseLayer = new MaterialProperty[kMaxLayerCount - 1];
         const string kHeightFactor = "_HeightFactor";
         MaterialProperty[] heightFactor = new MaterialProperty[kMaxLayerCount-1];
         const string kHeightCenterOffset = "_HeightCenterOffset";
@@ -160,7 +157,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             layerCount = FindProperty(kLayerCount, props);
             vertexColorMode = FindProperty(kVertexColorMode, props);
 
-            useBaseLayerMode = FindProperty(kkUseBaseLayerMode, props);
+            useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence, props);
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
             useHeightBasedBlendV2 = FindProperty(kUseHeightBasedBlendV2, props);
             
@@ -175,7 +172,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if(i != 0)
                 {
-                    inheritBaseLayer[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseLayer, i), props);
                     heightOffset[i-1] = FindProperty(string.Format("{0}{1}", kHeightOffset, i), props);
                     heightFactor[i-1] = FindProperty(string.Format("{0}{1}", kHeightFactor, i), props);
                     blendSize[i-1] = FindProperty(string.Format("{0}{1}", kBlendSize, i), props);
@@ -502,7 +498,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Material material = m_MaterialEditor.target as Material;
 
-            bool baseLayerModeEnable = useBaseLayerMode.floatValue > 0.0f;
+            bool baseLayerModeEnable = useMainLayerInfluence.floatValue > 0.0f;
 
             EditorGUILayout.LabelField(styles.layerLabels[layerIndex], styles.layerLabelColors[layerIndex]);
 
@@ -549,7 +545,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
  
                 int paramIndex = layerIndex - 1;
 
-                EditorGUILayout.LabelField(styles.DensityOpacityInfluenceText, EditorStyles.label);
+                EditorGUILayout.LabelField(styles.DensityOpacityInfluenceText, EditorStyles.boldLabel);
 
                 EditorGUI.indentLevel++;
 
@@ -560,7 +556,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (baseLayerModeEnable)
                 {
-                    EditorGUILayout.LabelField(styles.BaseInfluenceText, EditorStyles.label);
+                    EditorGUILayout.LabelField(styles.MainLayerInfluenceText, EditorStyles.boldLabel);
 
                     EditorGUI.indentLevel++;
 
@@ -569,25 +565,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.ShaderProperty(inheritBaseColorThreshold[paramIndex], styles.inheritBaseColorThresholdText);
                     EditorGUI.indentLevel--;
                     m_MaterialEditor.ShaderProperty(inheritBaseNormal[paramIndex], styles.inheritBaseNormalText);
-
-                    if (heightBasedBlendEnable)
-                    {
-                        m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
-                    }
+                    // Main height influence is only available if the shader use the heightmap for displacement (per vertex or per level)
+                    // We always display it as it can be tricky to know when per pixel displacement is enabled or not
+                    m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
 
                     EditorGUI.indentLevel--;
                 }
 
                 if (!useHeightBasedBlend.hasMixedValue && heightBasedBlendEnable)
                 {
-                    EditorGUILayout.LabelField(styles.heightControlText, EditorStyles.label);
+                    EditorGUILayout.LabelField(styles.heightControlText, EditorStyles.boldLabel);
 
                     EditorGUI.indentLevel++;
                     m_MaterialEditor.ShaderProperty(heightFactor[paramIndex], styles.heightFactorText);
 
                     if (!heightBasedBlendV2Enable)
                     {
-                        //m_MaterialEditor.ShaderProperty(inheritBaseLayer[heightParamIndex], styles.inheritBaseLayerText);
                         m_MaterialEditor.ShaderProperty(heightOffset[paramIndex], styles.heightOffsetText);
                         m_MaterialEditor.ShaderProperty(blendSize[paramIndex], styles.blendSizeText);
                     }
@@ -633,11 +626,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
 
             EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = useBaseLayerMode.hasMixedValue;
-            bool enabledBaseMode = EditorGUILayout.Toggle(styles.useBaseLayerModeText, useBaseLayerMode.floatValue > 0.0f);
+            EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;
+            bool mainLayerModeInfluenceEnable = EditorGUILayout.Toggle(styles.useMainLayerInfluenceModeText, useMainLayerInfluence.floatValue > 0.0f);
             if (EditorGUI.EndChangeCheck())
             {
-                useBaseLayerMode.floatValue = enabledBaseMode ? 1.0f : 0.0f;
+                useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
             }
 
             m_MaterialEditor.ShaderProperty(vertexColorMode, styles.vertexColorModeText);
@@ -716,7 +709,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
 
-            SetKeyword(material, "_BASE_LAYER_MODE", material.GetFloat(kkUseBaseLayerMode) != 0.0f);
+            SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
             VertexColorMode VCMode = (VertexColorMode)vertexColorMode.floatValue;
             if (VCMode == VertexColorMode.Multiply)

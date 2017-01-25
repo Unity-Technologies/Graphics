@@ -107,31 +107,6 @@ Shader "HDRenderPipeline/Unlit"
 
             ENDHLSL
         }
-        
-        // ------------------------------------------------------------------
-        //  forward opaque pass
-        // Material opaque that are always forward (i.e can't render in deferred) need to implement ForwardOnlyOpaque pass
-        // (Code is exactly the same as "Forward", it simply allow our system to filter objects correctly
-        // TODO: can we do this another way ? Like relying on QueueIndex ? But it will be require anyway for material with two forward pass like hair
-        Pass
-        {
-            Name "ForwardUnlit"
-            Tags { "LightMode" = "ForwardOnlyOpaque" }
-
-            Blend [_SrcBlend] [_DstBlend]
-            ZWrite [_ZWrite]
-            Cull [_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
-            #include "../../Material/Material.hlsl"            
-            #include "ShaderPass/UnlitSharePass.hlsl"
-            #include "UnlitData.hlsl"
-            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
-
-            ENDHLSL
-        }
 
         // ------------------------------------------------------------------
         //  forward pass
