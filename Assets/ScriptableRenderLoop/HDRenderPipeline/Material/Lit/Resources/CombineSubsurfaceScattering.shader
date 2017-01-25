@@ -2,7 +2,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 {
     Properties
     {
-        _FilterWidth("", Float) = 20
+        _FilterRadius("", Float) = 20
         _BilateralScale("", Float) = 0.1
         [HideInInspector] _DstBlend("", Float) = 1 // Can be set to 1 for blending with specular
     }
@@ -40,9 +40,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float _FilterWidth;      // Uses world-space units
+            float _FilterRadius;     // Uses world-space units
             float _BilateralScale;   // Uses world-space units
-            float _FilterHorizontal;  // Vertical = 0, horizontal = 1
+            float _FilterHorizontal; // Vertical = 0, horizontal = 1
             float _DistToProjWindow; // The height of the projection window is 2 meters
 
             TEXTURE2D(_CameraDepthTexture);
@@ -103,13 +103,13 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             {
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
-                float rawDepth   = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
-                float cDepth     = LinearEyeDepth(rawDepth, _ZBufferParams);
-                float widthScale = _FilterWidth * _DistToProjWindow / cDepth;
+                float rawDepth    = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
+                float cDepth      = LinearEyeDepth(rawDepth, _ZBufferParams);
+                float radiusScale = _FilterRadius * _DistToProjWindow / cDepth;
 
                 // Compute the filtering direction.
                 float2 unitDirection   = _FilterHorizontal ? float2(1, 0) : float2(0, 1);
-                float2 scaledDirection = widthScale * unitDirection;
+                float2 scaledDirection = radiusScale * unitDirection;
 
                 // Premultiply with the inverse of the screen size.
                 scaledDirection *= _ScreenSize.zw;
@@ -136,7 +136,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     // Apply bilateral filtering.
                     float sDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                     float dDepth = abs(sDepth - cDepth);
-                    float dScale = _FilterWidth * _DistToProjWindow * _BilateralScale;
+                    float dScale = _FilterRadius * _DistToProjWindow * _BilateralScale;
                     float t      = saturate(dScale * dDepth);
 
                     filteredIrradiance += lerp(sIrradiance, cIrradiance, t) * sWeight;

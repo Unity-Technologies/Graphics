@@ -515,7 +515,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Assume that the height of the projection window is 2 meters.
             float distanceToProjectionWindow = 1.0f / Mathf.Tan(0.5f * Mathf.Deg2Rad * hdCamera.camera.fieldOfView);
             m_CombineSubsurfaceScattering.SetFloat("_DistToProjWindow", distanceToProjectionWindow);
-            m_CombineSubsurfaceScattering.SetFloat("_FilterWidth", 20.0f);
+            m_CombineSubsurfaceScattering.SetFloat("_FilterRadius", 20.0f);
             m_CombineSubsurfaceScattering.SetFloat("_BilateralScale", 0.1f);
 
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
