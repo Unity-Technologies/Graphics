@@ -24,7 +24,8 @@ uniform float4      _DepthTextureScaledTexelSize;
 
 uniform float       _WorldScaleExponent;
 uniform float       _WorldNormalDistanceRcp;
-uniform float       _WorldNearScatterPush;
+uniform float       _WorldRayleighNearScatterPush;
+uniform float       _WorldMieNearScatterPush;
 uniform float       _WorldRayleighDensity;
 uniform float       _WorldMieDensity;
 
@@ -41,7 +42,8 @@ uniform float3      _MieColorP20;
 uniform float3      _MieColorP45;
 
 uniform float       _HeightNormalDistanceRcp;
-uniform float       _HeightNearScatterPush;
+uniform float       _HeightMieNearScatterPush;
+uniform float       _HeightRayleighNearScatterPush;
 uniform float       _HeightRayleighDensity;
 uniform float       _HeightMieDensity;
 uniform float       _HeightSeaLevel;
@@ -122,34 +124,37 @@ void VolundTransferScatter(float3 worldPos, out float4 coords1, out float4 coord
     if(angleY >= 0.f) mieColor = lerp(_MieColorO00, _MieColorP20, saturate(angleY / angle20));
     else mieColor = lerp(_MieColorM20, _MieColorO00, saturate((angleY + angle20) / angle20));
 
-    const float pushedDistance = max(0.f, worldVecLen + _WorldNearScatterPush);
-    const float pushedDensity = /*HeightDensity **/ pushedDistance /** exp(-scaledWorldPos.y / 8000.f)*/;
-    const float rayleighScatter = (1.f - exp(_WorldRayleighDensity * pushedDensity)) * rayleighPh;
+    const float pushedMieDistance      = max(0.f, worldVecLen + _WorldMieNearScatterPush);
+    const float pushedRayleighDistance = max(0.f, worldVecLen + _WorldRayleighNearScatterPush);
+    const float pushedMieDensity       = /*HeightDensity **/ pushedMieDistance      /** exp(-scaledWorldPos.y / 8000.f)*/;
+    const float pushedRayleighDensity  = /*HeightDensity **/ pushedRayleighDistance /** exp(-scaledWorldPos.y / 8000.f)*/;
+    const float rayleighScatter = (1.f - exp(_WorldRayleighDensity * pushedRayleighDensity)) * rayleighPh;
 #ifdef IS_RENDERING_SKY
-    const float mieScatter = (1.f - exp(_WorldMieDensity * pushedDensity));
+    const float mieScatter = (1.f - exp(_WorldMieDensity * pushedMieDensity));
 #else
-    const float mieScatter = (1.f - exp(_WorldMieDensity * pushedDensity)) * miePh;
+    const float mieScatter = (1.f - exp(_WorldMieDensity * pushedMieDensity)) * miePh;
 #endif
 
     const float heightShift = dot(worldVec, _HeightPlaneShift);
     const float heightScaledOffset = (scaledWorldPos.y - heightShift - _HeightSeaLevel) * _HeightDistanceRcp;
     const float HeightDensity = exp(-heightScaledOffset);
-    const float pushedHeightDistance = max(0.f, worldVecLen + _HeightNearScatterPush);
-    const float heightScatter = (1.f - exp(_HeightRayleighDensity * pushedHeightDistance)) * HeightDensity;
+    const float pushedRayleighHeightDistance = max(0.f, worldVecLen + _HeightRayleighNearScatterPush);
+    const float pushedMieHeightDistance      = max(0.f, worldVecLen + _HeightMieNearScatterPush);
+    const float heightRayleighScatter = (1.f - exp(_HeightRayleighDensity * pushedRayleighHeightDistance)) * HeightDensity;
 #ifdef IS_RENDERING_SKY
-    const float heightMieScatter = (1.f - exp(_HeightMieDensity * pushedHeightDistance)) * HeightDensity;
+    const float heightMieScatter = (1.f - exp(_HeightMieDensity * pushedMieHeightDistance)) * HeightDensity;
 #else
-    const float heightMieScatter = (1.f - exp(_HeightMieDensity * pushedHeightDistance)) * HeightDensity * miePh;
+    const float heightMieScatter = (1.f - exp(_HeightMieDensity * pushedMieHeightDistance)) * HeightDensity * miePh;
 #endif
 
-    rayleighColor = lerp(Luminance(rayleighColor).rrr, rayleighColor, saturate(pushedDistance * _WorldNormalDistanceRcp));
-    float3 heightRayleighColor = lerp(Luminance(_HeightRayleighColor.xyz).rrr, _HeightRayleighColor.xyz, saturate(pushedHeightDistance * _HeightNormalDistanceRcp));
+    rayleighColor = lerp(Luminance(rayleighColor).rrr, rayleighColor, saturate(pushedRayleighDistance * _WorldNormalDistanceRcp));
+    float3 heightRayleighColor = lerp(Luminance(_HeightRayleighColor.xyz).rrr, _HeightRayleighColor.xyz, saturate(pushedRayleighHeightDistance * _HeightNormalDistanceRcp));
 
     coords1.rgb = rayleighScatter * rayleighColor;
     coords1.a = rayleighScatter;
 
-    coords3.rgb = saturate(heightScatter) * heightRayleighColor;
-    coords3.a = heightScatter;
+    coords3.rgb = saturate(heightRayleighScatter) * heightRayleighColor;
+    coords3.a = heightRayleighScatter;
 
     coords2.rgb = mieScatter * mieColor + saturate(heightMieScatter) * mieColor;
     coords2.a = mieScatter;
