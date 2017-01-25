@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string surfaceTypeText = "Surface Type";
             public static string blendModeText = "Blend Mode";
             public static string detailText = "Inputs Detail";
+            public static string textureControlText = "Input textures control";
             public static string lightingText = "Inputs Lighting";
 
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "Threshold for alpha cutoff");
