@@ -17,3 +17,4 @@
 
 // No USE_FPTL_LIGHTLIST as we are in forward and this use the cluster path (but cluster path can use the tile light list for opaque)
 #define USE_CLUSTERED_LIGHTLIST
+#define LIGHTLOOP_TILE_ALL
