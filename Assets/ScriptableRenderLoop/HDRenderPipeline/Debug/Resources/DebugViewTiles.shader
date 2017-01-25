@@ -15,8 +15,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #define LIGHTLOOP_TILE_PASS 1            
-            #define LIGHTLOOP_TILE_ALL	1
+            #define LIGHTLOOP_TILE_PASS           
+            #define LIGHTLOOP_TILE_ALL
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
