@@ -29,20 +29,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public readonly GUIContent[] layerLabels =
             {
-                new GUIContent("Layer 0"),
+                new GUIContent("Main layer"),
                 new GUIContent("Layer 1"),
                 new GUIContent("Layer 2"),
                 new GUIContent("Layer 3"),
             };
-
-            public readonly GUIContent[] baseLayerLabels =
-            {
-                new GUIContent("Base Layer"),
-                new GUIContent("Layer 1"),
-                new GUIContent("Layer 2"),
-                new GUIContent("Layer 3"),
-            };
-
 
             public readonly GUIStyle[] layerLabelColors = 
             {
@@ -66,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent BaseInfluenceText = new GUIContent("Base influence", "Base influence.");
             public readonly GUIContent DensityOpacityInfluenceText = new GUIContent("Density / Opacity", "Density / Opacity");
             public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
-            public readonly GUIContent useBaseLayerModeText = new GUIContent("Use Base Mode", "Switch between regular layers mode and base/layers mode");            
+            public readonly GUIContent useBaseLayerModeText = new GUIContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");            
             public readonly GUIContent heightOffsetText = new GUIContent("Height Offset", "Height offset from the previous layer.");
             public readonly GUIContent inheritBaseLayerText = new GUIContent("Inherit Base Layer Normal", "Inherit the normal from the base layer.");
             public readonly GUIContent heightFactorText = new GUIContent("Height Multiplier", "Scale applied to the height of the layer.");
@@ -513,7 +504,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool baseLayerModeEnable = useBaseLayerMode.floatValue > 0.0f;
 
-            EditorGUILayout.LabelField(baseLayerModeEnable ? styles.baseLayerLabels[layerIndex] : styles.layerLabels[layerIndex], styles.layerLabelColors[layerIndex]);
+            EditorGUILayout.LabelField(styles.layerLabels[layerIndex], styles.layerLabelColors[layerIndex]);
 
             EditorGUI.indentLevel++;
 
@@ -558,6 +549,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
  
                 int paramIndex = layerIndex - 1;
 
+                EditorGUILayout.LabelField(styles.DensityOpacityInfluenceText, EditorStyles.label);
+
+                EditorGUI.indentLevel++;
+
+                m_MaterialEditor.ShaderProperty(opacityAsDensity[paramIndex], styles.opacityAsDensityText);
+                m_MaterialEditor.ShaderProperty(minimumOpacity[paramIndex], styles.minimumOpacityText);
+
+                EditorGUI.indentLevel--;
+
                 if (baseLayerModeEnable)
                 {
                     EditorGUILayout.LabelField(styles.BaseInfluenceText, EditorStyles.label);
@@ -574,15 +574,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         m_MaterialEditor.ShaderProperty(inheritBaseHeight[paramIndex], styles.inheritBaseHeightText);
                     }
-
-                    EditorGUI.indentLevel--;
-
-                    EditorGUILayout.LabelField(styles.DensityOpacityInfluenceText, EditorStyles.label);
-
-                    EditorGUI.indentLevel++;
-
-                    m_MaterialEditor.ShaderProperty(opacityAsDensity[paramIndex], styles.opacityAsDensityText);
-                    m_MaterialEditor.ShaderProperty(minimumOpacity[paramIndex], styles.minimumOpacityText);
 
                     EditorGUI.indentLevel--;
                 }
