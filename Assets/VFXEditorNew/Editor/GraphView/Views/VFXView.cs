@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.UI
 
                 menu.ShowAsContext();
                 return EventPropagation.Continue;
-            }));
+            },null));
 
             typeMapper[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
             typeMapper[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);

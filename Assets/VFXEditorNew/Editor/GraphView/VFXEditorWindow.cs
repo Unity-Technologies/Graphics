@@ -29,6 +29,7 @@ namespace UnityEditor.VFX.UI
         protected new void OnEnable()
         {
             base.OnEnable();
+            m_ViewPresenter.SetModelContainer(null);
             OnSelectionChange(); // Call when enabled to retrieve the current selection
         }
 
@@ -40,14 +41,13 @@ namespace UnityEditor.VFX.UI
 
         void OnSelectionChange()
         {
-            var assets = Selection.assetGUIDs;
-            if (assets.Length == 1)
+            var objs = Selection.objects;
+            if (objs != null && objs.Length == 1 && objs[0] is VFXModelContainer)
             {
-                var selected = AssetDatabase.LoadAssetAtPath<VFXModelContainer>(AssetDatabase.GUIDToAssetPath(assets[0]));
-                if (selected != null)
-                    m_ViewPresenter.SetModelContainer(selected);
+                m_ViewPresenter.SetModelContainer(objs[0] as VFXModelContainer);
             }
         }
+
 
         [SerializeField]
         private VFXViewPresenter m_ViewPresenter;

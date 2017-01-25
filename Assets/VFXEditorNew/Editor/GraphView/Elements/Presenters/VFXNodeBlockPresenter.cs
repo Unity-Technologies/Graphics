@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeBlockPresenter : GraphElementPresenter
+    class VFXNodeBlockPresenter : IMGUIPresenter
     {
-		protected override void OnEnable()
+		protected new void OnEnable()
 		{
 			capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Movable;
 		}

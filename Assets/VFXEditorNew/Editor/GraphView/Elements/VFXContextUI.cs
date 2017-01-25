@@ -172,7 +172,7 @@ namespace UnityEditor.VFX.UI
 			m_NodeBlockContainer.AddManipulator(new ClickSelector());
 
 			m_NodeContainer.AddChild(m_NodeBlockContainer);
-
+            /*
 			m_NodeContainer.AddManipulator(new ContextualMenu((evt, customData) =>
 			{
 				var menu = new GenericMenu();
@@ -188,7 +188,7 @@ namespace UnityEditor.VFX.UI
 				menu.ShowAsContext();
 				return EventPropagation.Continue;
 			}));
-
+            */
 			typeMapper = new GraphViewTypeMapper();
 			typeMapper[typeof(VFXNodeBlockPresenter)] = typeof(VFXNodeBlockUI);
 
@@ -248,7 +248,7 @@ namespace UnityEditor.VFX.UI
 		public void AddNodeBlock(int index, VFXBlockDesc desc)
 		{
 			VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-			presenter.AddNodeBlock(index, desc);
+			presenter.AddNodeBlock(0, desc);
 		}
 
 		public void RemoveNodeBlock(VFXNodeBlockUI nodeBlock)
@@ -354,9 +354,20 @@ namespace UnityEditor.VFX.UI
 			}
 
 			RefreshContext();
-		}
 
-		public override void DoRepaint(IStylePainter painter)
+
+            if (m_PopupManipulator != null)
+            {
+                m_NodeContainer.RemoveManipulator(m_PopupManipulator);
+            }
+            m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, AddNodeBlock));
+            m_NodeContainer.AddManipulator(m_PopupManipulator);
+
+        }
+
+        FilterPopup m_PopupManipulator;
+
+        public override void DoRepaint(IStylePainter painter)
 		{
 			base.DoRepaint(painter);
 		}
