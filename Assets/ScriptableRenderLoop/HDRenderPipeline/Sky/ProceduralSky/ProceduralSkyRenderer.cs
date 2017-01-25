@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Utilities.SetRenderTarget(builtinParams.renderContext, builtinParams.colorBuffer);
         }
 
-        void SetKeywords(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param)
+        void SetKeywords(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param, bool renderForCubemap)
         {
             // Ensure that all preprocessor symbols are initially undefined.
             m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS");
@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             */
 
             // Expected to be valid for the sky pass, and invalid for the cube map generation pass.
-            if (builtinParams.depthBuffer != BuiltinSkyParameters.nullRT)
+            if (!renderForCubemap)
             {
                 m_ProceduralSkyMaterial.EnableKeyword("PERFORM_SKY_OCCLUSION_TEST");
             }
@@ -74,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void SetUniforms(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param, ref MaterialPropertyBlock properties)
+        void SetUniforms(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param, bool renderForCubemap, ref MaterialPropertyBlock properties)
         {
             properties.SetTexture("_Cubemap", param.skyHDRI);
             properties.SetVector("_SkyParam", new Vector4(param.exposure, param.multiplier, param.rotation, 0.0f));
@@ -133,8 +133,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ProceduralSkyMaterial.SetFloat("_HeightNormalDistanceRcp", 1f / param.heightNormalDistance);
             m_ProceduralSkyMaterial.SetFloat("_HeightNearScatterPush", -Mathf.Pow(Mathf.Abs(param.heightNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.heightNearScatterPush));
-            m_ProceduralSkyMaterial.SetFloat("_HeightRayleighDensity", -param.heightRayleighDensity / 100000f);
-            m_ProceduralSkyMaterial.SetFloat("_HeightMieDensity", -param.heightMieDensity / 100000f);
+            // m_ProceduralSkyMaterial.SetFloat("_HeightRayleighDensity", -param.heightRayleighDensity / 100000f);
+            // m_ProceduralSkyMaterial.SetFloat("_HeightMieDensity", -param.heightMieDensity / 100000f);
             m_ProceduralSkyMaterial.SetFloat("_HeightSeaLevel", param.heightSeaLevel);
             m_ProceduralSkyMaterial.SetVector("_HeightPlaneShift", param.heightPlaneShift);
             m_ProceduralSkyMaterial.SetFloat("_HeightDistanceRcp", 1f / param.heightDistance);
@@ -147,6 +147,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ProceduralSkyMaterial.SetFloat("_MiePhaseAnisotropy", param.worldMiePhaseAnisotropy);
             m_ProceduralSkyMaterial.SetFloat("_MieExtinctionFactor", param.worldMieExtinctionFactor);
 
+            // Since we use the material for rendering the sky both into the cubemap, and
+            // during the fullscreen pass, setting the 'PERFORM_SKY_OCCLUSION_TEST' keyword has no effect.
+            properties.SetFloat("_DisableSkyOcclusionTest", renderForCubemap ? 1.0f : 0.0f);
+            // We flip the screens-space Y axis in case we follow the D3D convention.
+            properties.SetFloat("_FlipY",                   renderForCubemap ? 1.0f : 0.0f);
+            // We do not render the height fog into the sky IBL cubemap.
+            properties.SetFloat("_HeightRayleighDensity",   renderForCubemap ? -0.0f : -param.heightRayleighDensity / 100000f);
+            properties.SetFloat("_HeightMieDensity",        renderForCubemap ? -0.0f : -param.heightMieDensity / 100000f);
         }
 
         override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, bool renderForCubemap)
@@ -156,25 +164,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
 
             // Define select preprocessor symbols.
-            SetKeywords(builtinParams, proceduralSkyParams);
+            SetKeywords(builtinParams, proceduralSkyParams, renderForCubemap);
 
             // Set shader constants.
-            SetUniforms(builtinParams, proceduralSkyParams, ref properties);
+            SetUniforms(builtinParams, proceduralSkyParams, renderForCubemap, ref properties);
 
             var cmd = new CommandBuffer { name = "" };
 
-            // Since we use the material for rendering the sky both into the cubemap, and
-            // during the fullscreen pass, setting the 'PERFORM_SKY_OCCLUSION_TEST' keyword has no effect.
-            if (builtinParams.depthBuffer != BuiltinSkyParameters.nullRT)
+            if (!renderForCubemap)
             {
                 cmd.SetGlobalTexture("_CameraDepthTexture", builtinParams.depthBuffer);
-                properties.SetFloat("_DisableSkyOcclusionTest", 0.0f);
-                properties.SetFloat("_FlipY", 0.0f);
-            }
-            else
-            {
-                properties.SetFloat("_DisableSkyOcclusionTest", 1.0f);
-                properties.SetFloat("_FlipY", 1.0f);
             }
 
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial, 0, 0, properties);
