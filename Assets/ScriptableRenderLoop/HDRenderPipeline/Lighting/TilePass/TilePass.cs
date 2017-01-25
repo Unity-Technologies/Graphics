@@ -164,15 +164,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static int s_GenListPerBigTileKernel;
 
             public bool enableDrawLightBoundsDebug = false;
-            public bool disableTileAndCluster = true; // For debug / test
+            public bool disableTileAndCluster = false; // For debug / test
             public bool disableDeferredShadingInCompute = true;
             public bool enableSplitLightEvaluation = true;
             public bool enableComputeLightEvaluation = false;
 
             // clustered light list specific buffers and data begin
             public int debugViewTilesFlags = 0;
-            public bool enableClustered = false;
-            public bool disableFptlWhenClustered = true;    // still useful on opaques. Should be false by default to force tile on opaque.
+            public bool enableClustered = true;
+            public bool disableFptlWhenClustered = false;    // still useful on opaques. Should be false by default to force tile on opaque.
             public bool enableBigTilePrepass = true;
             const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
             const bool k_UseAsyncCompute = true;        // should not use on mobile
@@ -1462,6 +1462,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     cmd.name = useFptl ? "Forward Tiled pass" : "Forward Clustered pass";
+                    // say that we want to use tile of single loop
                     cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
                     cmd.DisableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
                     cmd.SetGlobalFloat("_UseTileLightList", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
