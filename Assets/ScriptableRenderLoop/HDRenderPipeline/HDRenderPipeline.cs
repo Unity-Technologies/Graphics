@@ -517,7 +517,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new Utilities.ProfilingSample("Velocity Pass", renderContext))
             {
                 // If opaque velocity have been render during GBuffer no need to render it here
-                if ((ShaderConfig.s_VelocityInGbuffer == 0) || debugParameters.ShouldUseForwardRenderingOnly())
+                if ((ShaderConfig.s_VelocityInGbuffer == 1) || debugParameters.ShouldUseForwardRenderingOnly())
                     return ;
 
                 int w = camera.pixelWidth;
