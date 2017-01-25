@@ -387,7 +387,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 #endif
 
     float3 minOpaParam = float3(_MinimumOpacity1, _MinimumOpacity2, _MinimumOpacity3);
-    float3 remapedOpacity = (float3(1.0, 1.0, 1.0) - minOpaParam) * inputAlphaMask.yzw + minOpaParam; // Remap opacity mask from [0..1] to [minOpa..1]
+    float3 remapedOpacity = lerp(minOpaParam, float3(1.0, 1.0, 1.0), inputAlphaMask.yzw); // Remap opacity mask from [0..1] to [minOpa..1]
     float3 opacityAsDensity = saturate((inputAlphaMask.yzw - (float3(1.0, 1.0, 1.0) - inputMaskValues)) * 20.0);
 
     float3 useOpacityAsDensityParam = float3(_OpacityAsDensity1, _OpacityAsDensity2, _OpacityAsDensity3);
