@@ -27,13 +27,13 @@ namespace RMGUI.GraphView.Demo
 
 			InsertChild(0, new GridBackground());
 
-			typeMapper[typeof(CirclePresenter)] = typeof(Circle);
-			typeMapper[typeof(InvisibleBorderContainerPresenter)] = typeof(InvisibleBorderContainer);
-			typeMapper[typeof(MiniMapPresenter)] = typeof(MiniMap);
-			typeMapper[typeof(SimpleElementPresenter)] = typeof(SimpleElement);
-			typeMapper[typeof(WWWImagePresenter)] = typeof(WWWImage);
-			typeMapper[typeof(IMGUIPresenter)] = typeof(IMGUIElement);
-			typeMapper[typeof(CommentPresenter)] = typeof(Comment);
+			typeFactory[typeof(CirclePresenter)] = typeof(Circle);
+			typeFactory[typeof(InvisibleBorderContainerPresenter)] = typeof(InvisibleBorderContainer);
+			typeFactory[typeof(MiniMapPresenter)] = typeof(MiniMap);
+			typeFactory[typeof(SimpleElementPresenter)] = typeof(SimpleElement);
+			typeFactory[typeof(WWWImagePresenter)] = typeof(WWWImage);
+			typeFactory[typeof(IMGUIPresenter)] = typeof(IMGUIElement);
+			typeFactory[typeof(CommentPresenter)] = typeof(Comment);
 		}
 	}
 }

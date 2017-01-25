@@ -39,7 +39,7 @@ namespace RMGUI.GraphView
 			}
 		}
 
-		protected GraphViewTypeMapper typeMapper { get; set; }
+		protected GraphViewTypeFactory typeFactory { get; set; }
 
 		public VisualContainer contentViewContainer{ get; private set; }
 
@@ -71,8 +71,8 @@ namespace RMGUI.GraphView
 			// make it absolute and 0 sized so it acts as a transform to move children to and fro
 			AddChild(contentViewContainer);
 
-			typeMapper = new GraphViewTypeMapper();
-			typeMapper[typeof(EdgePresenter)] = typeof(Edge);
+			typeFactory = new GraphViewTypeFactory();
+			typeFactory[typeof(EdgePresenter)] = typeof(Edge);
 		}
 
 		public override void OnDataChanged()
@@ -157,7 +157,7 @@ namespace RMGUI.GraphView
 		private void InstantiateElement(GraphElementPresenter elementPresenter)
 		{
 			// call factory
-			GraphElement newElem = typeMapper.Create(elementPresenter);
+			GraphElement newElem = typeFactory.Create(elementPresenter);
 
 			if (newElem == null)
 			{

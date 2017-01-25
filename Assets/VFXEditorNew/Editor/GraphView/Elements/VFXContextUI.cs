@@ -124,7 +124,7 @@ namespace UnityEditor.VFX.UI
 		VisualContainer m_NodeContainer;
 		NodeBlockContainer m_NodeBlockContainer;
 
-		protected GraphViewTypeMapper typeMapper { get; set; }
+		protected GraphViewTypeFactory typeFactory { get; set; }
 
 		public VFXContextUI()
 		{
@@ -189,8 +189,8 @@ namespace UnityEditor.VFX.UI
 				return EventPropagation.Continue;
 			}));
             */
-			typeMapper = new GraphViewTypeMapper();
-			typeMapper[typeof(VFXNodeBlockPresenter)] = typeof(VFXNodeBlockUI);
+			typeFactory = new GraphViewTypeFactory();
+			typeFactory[typeof(VFXNodeBlockPresenter)] = typeof(VFXNodeBlockUI);
 
 			classList = new ClassList("VFXContext");
 		}
@@ -265,7 +265,7 @@ namespace UnityEditor.VFX.UI
 		private void InstantiateNodeBlock(VFXNodeBlockPresenter nodeBlockPresenter)
 		{
 			// call factory
-			GraphElement newElem = typeMapper.Create(nodeBlockPresenter);
+			GraphElement newElem = typeFactory.Create(nodeBlockPresenter);
 
 			if (newElem == null)
 			{
