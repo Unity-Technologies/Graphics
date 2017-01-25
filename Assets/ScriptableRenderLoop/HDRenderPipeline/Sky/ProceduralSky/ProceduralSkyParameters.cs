@@ -17,25 +17,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Gradient worldMieColorRamp             = null;
         public float    worldMieDensity               = 15f;
         public float    worldMieExtinctionFactor      = 0f;
+        public float    worldMieNearScatterPush       = 0f;
         public float    worldMiePhaseAnisotropy       = 0.9f;
-        public float    worldNearScatterPush          = 0f;
         public float    worldNormalDistance           = 1000f;
         public float    worldRayleighColorIntensity   = 1f;
         public Gradient worldRayleighColorRamp        = null;
         public float    worldRayleighDensity          = 10f;
         public float    worldRayleighExtinctionFactor = 1.1f;
         public float    worldRayleighIndirectScatter  = 0.33f;
+        public float    worldRayleighNearScatterPush  = 0f;
 
         [Header("Height Settings")]
         public float    heightDistance                = 50f;
         public float    heightExtinctionFactor        = 1.1f;
         public float    heightMieDensity              = 0f;
-        public float    heightNearScatterPush         = 0f;
+        public float    heightMieNearScatterPush      = 0f;
         public float    heightNormalDistance          = 1000f;
         public Vector3  heightPlaneShift              = Vector3.zero;
         public Color    heightRayleighColor           = Color.white;
         public float    heightRayleighDensity         = 10f;
         public float    heightRayleighIntensity       = 1f;
+        public float    heightRayleighNearScatterPush = 0f;
         public float    heightSeaLevel                = 0f;
 
         /*
@@ -91,19 +93,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnValidate()
         {
-            worldMieDensity              = Mathf.Clamp(worldMieDensity, 0f, 1000f);
-            worldMiePhaseAnisotropy      = Mathf.Clamp01(worldMiePhaseAnisotropy);
-            worldNearScatterPush         = Mathf.Clamp(worldNearScatterPush, -200f, 300f);
-            worldNormalDistance          = Mathf.Clamp(worldNormalDistance, 1f, 10000f);
-            worldRayleighDensity         = Mathf.Clamp(worldRayleighDensity, 0, 1000f);
-            worldRayleighIndirectScatter = Mathf.Clamp(worldRayleighIndirectScatter, 0f, 1f);
+            worldMieDensity               = Mathf.Clamp(worldMieDensity, 0f, 1000f);
+            worldMiePhaseAnisotropy       = Mathf.Clamp01(worldMiePhaseAnisotropy);
+            worldMieNearScatterPush       = Mathf.Clamp(worldMieNearScatterPush, -200f, 300f);
+            worldNormalDistance           = Mathf.Clamp(worldNormalDistance, 1f, 10000f);
+            worldRayleighDensity          = Mathf.Clamp(worldRayleighDensity, 0, 1000f);
+            worldRayleighIndirectScatter  = Mathf.Clamp(worldRayleighIndirectScatter, 0f, 1f);
+            worldRayleighNearScatterPush  = Mathf.Clamp(worldRayleighNearScatterPush, -200f, 300f);
 
-            heightMieDensity             = Mathf.Clamp(heightMieDensity, 0, 1000f);
-            heightNearScatterPush        = Mathf.Clamp(heightNearScatterPush, -200f, 300f);
-            heightNormalDistance         = Mathf.Clamp(heightNormalDistance, 1f, 10000f);
-            heightRayleighDensity        = Mathf.Clamp(heightRayleighDensity, 0, 1000f);
+            heightMieDensity              = Mathf.Clamp(heightMieDensity, 0, 1000f);
+            heightMieNearScatterPush      = Mathf.Clamp(heightMieNearScatterPush, -200f, 300f);
+            heightNormalDistance          = Mathf.Clamp(heightNormalDistance, 1f, 10000f);
+            heightRayleighDensity         = Mathf.Clamp(heightRayleighDensity, 0, 1000f);
+            heightRayleighNearScatterPush = Mathf.Clamp(heightRayleighNearScatterPush, -200f, 300f);
 
-            worldScaleExponent           = Mathf.Clamp(worldScaleExponent, 1f, 2f);
+            worldScaleExponent            = Mathf.Clamp(worldScaleExponent, 1f, 2f);
 
             /*
             occlusionBias                = Mathf.Clamp01(occlusionBias);
