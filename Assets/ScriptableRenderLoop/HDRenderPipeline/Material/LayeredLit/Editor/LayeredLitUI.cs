@@ -545,7 +545,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if(layerIndex > 0)
             {
                 bool heightBasedBlendEnable = useHeightBasedBlend.floatValue != 0.0f;
-                bool heightBasedBlendV2Enable = useHeightBasedBlendV2.floatValue != 1.0f;
+                bool heightBasedBlendV2Enable = useHeightBasedBlendV2.floatValue != 0.0f;
  
                 int paramIndex = layerIndex - 1;
 
