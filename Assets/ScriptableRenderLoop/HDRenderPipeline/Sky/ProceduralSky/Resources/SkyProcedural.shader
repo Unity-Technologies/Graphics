@@ -74,7 +74,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 sincos(phi, sinPhi, cosPhi);
                 float3 rotDirX = float3(cosPhi, 0, -sinPhi);
                 float3 rotDirY = float3(sinPhi, 0, cosPhi);
-                dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
+                float3 rotatedDir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
 
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
@@ -133,7 +133,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
                 if (skyTexWeight == 1.0)
                 {
-                    skyColor  = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+                    skyColor  = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, rotatedDir, 0).rgb;
                     skyColor *= exp2(_SkyParam.x) * _SkyParam.y;
                     opacity   = 1.0; // Fully overwrite unoccluded scene regions.
                 }
