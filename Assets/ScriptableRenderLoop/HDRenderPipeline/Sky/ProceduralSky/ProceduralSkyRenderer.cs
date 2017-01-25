@@ -107,7 +107,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ProceduralSkyMaterial.SetFloat("_WorldScaleExponent", param.worldScaleExponent);
             m_ProceduralSkyMaterial.SetFloat("_WorldNormalDistanceRcp", 1f / param.worldNormalDistance);
-            m_ProceduralSkyMaterial.SetFloat("_WorldNearScatterPush", -Mathf.Pow(Mathf.Abs(param.worldNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.worldNearScatterPush));
+            m_ProceduralSkyMaterial.SetFloat("_WorldMieNearScatterPush", -Mathf.Pow(Mathf.Abs(param.worldMieNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.worldMieNearScatterPush));
+            m_ProceduralSkyMaterial.SetFloat("_WorldRayleighNearScatterPush", -Mathf.Pow(Mathf.Abs(param.worldRayleighNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.worldRayleighNearScatterPush));
             m_ProceduralSkyMaterial.SetFloat("_WorldRayleighDensity", -param.worldRayleighDensity / 100000f);
             m_ProceduralSkyMaterial.SetFloat("_WorldMieDensity", -param.worldMieDensity / 100000f);
 
@@ -132,7 +133,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ProceduralSkyMaterial.SetVector("_MieColorP20", (Vector4)mieColorP20 * param.worldMieColorIntensity);
 
             m_ProceduralSkyMaterial.SetFloat("_HeightNormalDistanceRcp", 1f / param.heightNormalDistance);
-            m_ProceduralSkyMaterial.SetFloat("_HeightNearScatterPush", -Mathf.Pow(Mathf.Abs(param.heightNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.heightNearScatterPush));
+            m_ProceduralSkyMaterial.SetFloat("_HeightMieNearScatterPush", -Mathf.Pow(Mathf.Abs(param.heightMieNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.heightMieNearScatterPush));
+            m_ProceduralSkyMaterial.SetFloat("_HeightRayleighNearScatterPush", -Mathf.Pow(Mathf.Abs(param.heightRayleighNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.heightRayleighNearScatterPush));
             // m_ProceduralSkyMaterial.SetFloat("_HeightRayleighDensity", -param.heightRayleighDensity / 100000f);
             // m_ProceduralSkyMaterial.SetFloat("_HeightMieDensity", -param.heightMieDensity / 100000f);
             m_ProceduralSkyMaterial.SetFloat("_HeightSeaLevel", param.heightSeaLevel);
