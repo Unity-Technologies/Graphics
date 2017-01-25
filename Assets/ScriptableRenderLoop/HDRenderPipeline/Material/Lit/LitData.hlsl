@@ -363,7 +363,7 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     float height3 = SampleHeightmapLod3(layerTexCoord, lod, _HeightCenterOffset3, _HeightFactor3);
     float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
 
-#if defined(_BASE_LAYER_MODE)
+#if defined(_MAIN_LAYER_INFLUENCE_MODE)
     // Think that inheritbasedheight will be 0 if height0 is fully visible in weights. So there is no double contribution of height0
     float inheritBaseHeight = BlendLayeredScalar(0.0, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights);
     return heightResult + height0 * inheritBaseHeight;
@@ -445,7 +445,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // For layered shader, alpha of base color is used as either an opacity mask, a composition mask for inheritance parameters or a density mask.
     float alpha = PROP_BLEND_SCALAR(alpha, weights);
 
-#if defined(_BASE_LAYER_MODE)
+#if defined(_MAIN_LAYER_INFLUENCE_MODE)
     surfaceData.baseColor = ComputeInheritedColor(surfaceData0.baseColor, surfaceData1.baseColor, surfaceData2.baseColor, surfaceData3.baseColor, alpha, layerTexCoord, weights);
     float3 normalTS = ComputeInheritedNormalTS(input, normalTS0, normalTS1, normalTS2, normalTS3, layerTexCoord, weights);
 #else

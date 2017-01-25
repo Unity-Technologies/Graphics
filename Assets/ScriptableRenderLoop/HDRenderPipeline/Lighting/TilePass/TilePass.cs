@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static float VIEWPORT_SCALE_Z = 1.0f;
 
             // enable unity's original left-hand shader camera space (right-hand internally in unity).
-            public static int USE_LEFTHAND_CAMERASPACE = 0;
+            public static int USE_LEFTHAND_CAMERASPACE = 1;
 
             // flags
             public static int IS_CIRCULAR_SPOT_SHAPE = 1;
@@ -1321,8 +1321,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
                     SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlKernel : s_shadeOpaqueClusteredKernel, cmd);
-                    SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
-
 
                     // In case of bUseClusteredForDeferred disable toggle option since we're using m_perVoxelLightLists as opposed to lightList
                     if (bUseClusteredForDeferred)
@@ -1332,6 +1330,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (disableTileAndCluster)
                     {
+                        // This is a debug brute force renderer to debug tile/cluster which render all the lights
                         Utilities.SetupMaterialHDCamera(hdCamera, m_SingleDeferredMaterial);
                         m_SingleDeferredMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                         m_SingleDeferredMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
@@ -1449,7 +1448,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public override void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
             {
-                // Note: if we use render opaque with deferred tiling we need to render a opque depth pass for these opaque objects
+                // Note: if we use render opaque with deferred tiling we need to render a opaque depth pass for these opaque objects
                 bool useFptl = renderOpaque && usingFptl;
 
                 var cmd = new CommandBuffer();
@@ -1465,7 +1464,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.name = useFptl ? "Forward Tiled pass" : "Forward Clustered pass";
                     cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
                     cmd.DisableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
-                    cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
+                    cmd.SetGlobalFloat("_UseTileLightList", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
                     cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
                 }
 

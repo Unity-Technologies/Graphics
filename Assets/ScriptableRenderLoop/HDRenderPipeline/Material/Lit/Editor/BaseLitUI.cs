@@ -505,7 +505,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kDepthOffsetEnable = "_DepthOffsetEnable";
 
         // tessellation params
-        MaterialProperty tessellationMode = null;
+        protected MaterialProperty tessellationMode = null;
         const string kTessellationMode = "_TessellationMode";
         MaterialProperty tessellationFactor = null;
         const string kTessellationFactor = "_TessellationFactor";
