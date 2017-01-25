@@ -245,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static HDRenderPipeline GetHDRenderPipeline()
         {
-            HDRenderPipeline renderContext = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderPipeline;
+            HDRenderPipeline renderContext = GraphicsSettings.renderPipelineAsset as HDRenderPipeline;
             if (renderContext == null)
             {
                 Debug.LogWarning("SkyParameters component can only be used with HDRenderPipeline custom RenderPipeline.");
