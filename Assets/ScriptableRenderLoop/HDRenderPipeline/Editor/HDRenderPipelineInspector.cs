@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using UnityEditor;
 
 //using EditorGUIUtility=UnityEditor.EditorGUIUtility;
@@ -68,8 +69,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        const float k_MaxExposure = 32.0f;
-
         SerializedProperty m_ShowDebug = null;
         SerializedProperty m_ShowDebugShadow = null;
         SerializedProperty m_DebugOverlayRatio = null;
@@ -80,13 +79,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void InitializeProperties()
         {
-            m_DebugOverlayRatio = serializedObject.FindProperty("m_GlobalDebugParameters.debugOverlayRatio");
-            m_ShowDebugShadow = serializedObject.FindProperty("m_GlobalDebugParameters.displayShadowDebug");
-            m_ShowDebug = serializedObject.FindProperty("m_GlobalDebugParameters.displayDebug");
+            m_DebugOverlayRatio = FindProperty(x => x.globalDebugParameters.debugOverlayRatio);
+            m_ShowDebugShadow = FindProperty(x => x.globalDebugParameters.displayShadowDebug);
+            m_ShowDebug = FindProperty(x => x.globalDebugParameters.displayDebug);
 
-            m_DebugShadowEnabled = serializedObject.FindProperty("m_GlobalDebugParameters.shadowDebugParameters.enableShadows");
-            m_DebugShadowVisualizationMode = serializedObject.FindProperty("m_GlobalDebugParameters.shadowDebugParameters.visualizationMode");
-            m_DebugShadowVisualizeShadowIndex = serializedObject.FindProperty("m_GlobalDebugParameters.shadowDebugParameters.visualizeShadowMapIndex");
+            m_DebugShadowEnabled = FindProperty(x => x.globalDebugParameters.shadowDebugParameters.enableShadows);
+            m_DebugShadowVisualizationMode = FindProperty(x => x.globalDebugParameters.shadowDebugParameters.visualizationMode);
+            m_DebugShadowVisualizeShadowIndex = FindProperty(x => x.globalDebugParameters.shadowDebugParameters.visualizeShadowMapIndex);
+        }
+
+        SerializedProperty FindProperty<TValue>(Expression<Func<HDRenderPipeline, TValue>> expr)
+        {
+            var path = Utilities.GetFieldPath(expr);
+            return serializedObject.FindProperty(path);
         }
 
         string GetSubNameSpaceName(Type type)
