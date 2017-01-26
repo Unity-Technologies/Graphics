@@ -44,10 +44,10 @@ namespace UnityEditor.VFX.UI
                 return EventPropagation.Continue;
             },null));
 
-            typeMapper[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
-            typeMapper[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
-            typeMapper[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
-            typeMapper[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
+            typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
+			typeFactory[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
+			typeFactory[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
+			typeFactory[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
         }
 
         void AddVFXContext(Vector2 pos,VFXContextDesc desc)

@@ -38,6 +38,10 @@ namespace RMGUI.GraphView
 
 		public bool clampToParentEdges { get; set; }
 
+		// selectedElement is used to store a unique selection candidate for cases where user clicks on an item not to
+		// drag it but just to reset the selection -- we only know this after the manipulation has ended
+		GraphElement selectedElement { get; set; }
+
 		public SelectionDropper(DropEvent handler)
 		{
 			OnDrop += handler;
@@ -46,7 +50,6 @@ namespace RMGUI.GraphView
 
 			activateButton = MouseButton.LeftMouse;
 			panSpeed = new Vector2(1, 1);
-			clampToParentEdges = false;
 		}
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
@@ -64,6 +67,8 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
+					selectedElement = null;
+
 					if (evt.button == (int)activateButton)
 					{
 						// avoid starting a manipulation on a non movable object
@@ -83,6 +88,8 @@ namespace RMGUI.GraphView
 
 						// Reset drag and drop
 						m_DragAndDropDelay.Init(evt.mousePosition);
+
+						selectedElement = ce;
 
 						return EventPropagation.Stop;
 					}
@@ -133,6 +140,13 @@ namespace RMGUI.GraphView
 					{
 						if (this.HasCapture() && evt.button == (int)activateButton)
 						{
+							if (selectedElement != null && !evt.control)
+							{
+								// Since we didn't drag after all, update selection with current element only
+								selectionContainer.ClearSelection();
+								selectionContainer.AddToSelection(selectedElement);
+							}
+
 							this.ReleaseCapture();
 							return EventPropagation.Stop;
 						}
@@ -143,6 +157,8 @@ namespace RMGUI.GraphView
 					{
 						if (this.HasCapture() && evt.button == (int)activateButton && selection.Count > 0)
 						{
+							selectedElement = null;
+
 							// TODO: Replace with a temp drawing or something...maybe manipulator could fake position
 							// all this to let operation know which element sits under cursor...or is there another way to draw stuff that is being dragged?
 
