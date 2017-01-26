@@ -14,23 +14,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         [SerializeField] private string     m_SkyRendererTypeName = ""; // Serialize a string because serialize a Type.
 
-        [SerializeField] float              m_ShadowMaxDistance = ShadowSettings.Default.maxShadowDistance;
-        [SerializeField] int                m_ShadowCascadeCount = ShadowSettings.Default.directionalLightCascadeCount;
-        [SerializeField] float              m_ShadowCascadeSplit0 = ShadowSettings.Default.directionalLightCascades.x;
-        [SerializeField] float              m_ShadowCascadeSplit1 = ShadowSettings.Default.directionalLightCascades.y;
-        [SerializeField] float              m_ShadowCascadeSplit2 = ShadowSettings.Default.directionalLightCascades.z;
-
         public Type skyRendererType
         {
             set { m_SkyRendererTypeName = value != null ? value.FullName : ""; OnSkyRendererChanged(); }
             get { return m_SkyRendererTypeName == "" ? null : Assembly.GetAssembly(typeof(CommonSettings)).GetType(m_SkyRendererTypeName); }
         }
 
-        public float shadowMaxDistance { set { m_ShadowMaxDistance = value; OnValidate(); } get { return m_ShadowMaxDistance; } }
-        public int shadowCascadeCount { set { m_ShadowCascadeCount = value; OnValidate(); } get { return m_ShadowCascadeCount; } }
+        // Shadows
+        [SerializeField] float m_ShadowMaxDistance   = ShadowSettings.Default.maxShadowDistance;
+        [SerializeField] int   m_ShadowCascadeCount  = ShadowSettings.Default.directionalLightCascadeCount;
+        [SerializeField] float m_ShadowCascadeSplit0 = ShadowSettings.Default.directionalLightCascades.x;
+        [SerializeField] float m_ShadowCascadeSplit1 = ShadowSettings.Default.directionalLightCascades.y;
+        [SerializeField] float m_ShadowCascadeSplit2 = ShadowSettings.Default.directionalLightCascades.z;
+
+        public float shadowMaxDistance   { set { m_ShadowMaxDistance   = value; OnValidate(); } get { return m_ShadowMaxDistance; } }
+        public int   shadowCascadeCount  { set { m_ShadowCascadeCount  = value; OnValidate(); } get { return m_ShadowCascadeCount; } }
         public float shadowCascadeSplit0 { set { m_ShadowCascadeSplit0 = value; OnValidate(); } get { return m_ShadowCascadeSplit0; } }
         public float shadowCascadeSplit1 { set { m_ShadowCascadeSplit1 = value; OnValidate(); } get { return m_ShadowCascadeSplit1; } }
         public float shadowCascadeSplit2 { set { m_ShadowCascadeSplit2 = value; OnValidate(); } get { return m_ShadowCascadeSplit2; } }
+
+        // Subsurface scattering
+        [SerializeField] Color m_SssProfileFilter1Variance  = SubsurfaceScatteringProfile.Default.filter1Variance;
+        [SerializeField] Color m_SssProfileFilter2Variance  = SubsurfaceScatteringProfile.Default.filter2Variance;
+        [SerializeField] float m_SssProfileFilterLerpWeight = SubsurfaceScatteringProfile.Default.filterLerpWeight;
+        [SerializeField] float m_SssBilateralScale          = SubsurfaceScatteringParameters.Default.bilateralScale;
+        
+        public Color sssProfileFilter1Variance  { set { m_SssProfileFilter1Variance  = value; OnValidate(); } get { return m_SssProfileFilter1Variance; } }
+        public Color sssProfileFilter2Variance  { set { m_SssProfileFilter2Variance  = value; OnValidate(); } get { return m_SssProfileFilter2Variance; } }
+        public float sssProfileFilterLerpWeight { set { m_SssProfileFilterLerpWeight = value; OnValidate(); } get { return m_SssProfileFilterLerpWeight; } }
+        public float sssBilateralScale          { set { m_SssBilateralScale          = value; OnValidate(); } get { return m_SssBilateralScale; } }
 
         void OnEnable()
         {
@@ -62,11 +74,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnValidate()
         {
-            m_ShadowMaxDistance = Mathf.Max(0.0f, m_ShadowMaxDistance);
-            m_ShadowCascadeCount = Math.Min(4, Math.Max(1, m_ShadowCascadeCount));
-            m_ShadowCascadeSplit0 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit0));
-            m_ShadowCascadeSplit1 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit1));
-            m_ShadowCascadeSplit2 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit2));
+            m_ShadowMaxDistance   = Mathf.Max(0.0f, m_ShadowMaxDistance);
+            m_ShadowCascadeCount  = Math.Min(4, Math.Max(1, m_ShadowCascadeCount));
+            m_ShadowCascadeSplit0 = Mathf.Clamp01(m_ShadowCascadeSplit0);
+            m_ShadowCascadeSplit1 = Mathf.Clamp01(m_ShadowCascadeSplit1);
+            m_ShadowCascadeSplit2 = Mathf.Clamp01(m_ShadowCascadeSplit2);
+
+            m_SssProfileFilter1Variance.r = Mathf.Max(0.1f, m_SssProfileFilter1Variance.r);
+            m_SssProfileFilter1Variance.g = Mathf.Max(0.1f, m_SssProfileFilter1Variance.g);
+            m_SssProfileFilter1Variance.b = Mathf.Max(0.1f, m_SssProfileFilter1Variance.b);
+            m_SssProfileFilter1Variance.a = 0.0f;
+            m_SssProfileFilter2Variance.r = Mathf.Max(0.1f, m_SssProfileFilter2Variance.r);
+            m_SssProfileFilter2Variance.g = Mathf.Max(0.1f, m_SssProfileFilter2Variance.g);
+            m_SssProfileFilter2Variance.b = Mathf.Max(0.1f, m_SssProfileFilter2Variance.b);
+            m_SssProfileFilter2Variance.a = 0.0f;
+            m_SssProfileFilterLerpWeight  = Mathf.Clamp01(m_SssProfileFilterLerpWeight);
+            m_SssBilateralScale           = Mathf.Clamp01(m_SssBilateralScale);
 
             OnSkyRendererChanged();
         }

@@ -171,6 +171,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_TextureSettings = value; }
         }
 
+        [SerializeField]
+        SubsurfaceScatteringParameters m_SssParameters = SubsurfaceScatteringParameters.Default;
+
+        public SubsurfaceScatteringParameters sssParameters
+        {
+            get { return m_SssParameters; } 
+            set { m_SssParameters = value; }
+        }
+
         // Various set of material use in render loop
         Material m_DebugViewMaterialGBuffer;
         Material m_CombineSubsurfaceScattering;
@@ -515,8 +524,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Assume that the height of the projection window is 2 meters.
             float distanceToProjectionWindow = 1.0f / Mathf.Tan(0.5f * Mathf.Deg2Rad * hdCamera.camera.fieldOfView);
             m_CombineSubsurfaceScattering.SetFloat("_DistToProjWindow", distanceToProjectionWindow);
-            m_CombineSubsurfaceScattering.SetFloat("_FilterRadius", 20.0f);
-            m_CombineSubsurfaceScattering.SetFloat("_BilateralScale", 0.1f);
+            // Note: the user-provided bilateral scale is reversed (compared to the one in the shader).
+            m_CombineSubsurfaceScattering.SetFloat("_BilateralScale", (1.0f - sssParameters.bilateralScale));
+            // TODO: use user-defined values for '_ProfileID' and '_FilterRadius.'
+            m_CombineSubsurfaceScattering.SetVectorArray("_FilterKernel", sssParameters.profiles[0].filterKernel);
+            m_CombineSubsurfaceScattering.SetFloat("_FilterRadius", 5.0f);
 
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
 
@@ -722,12 +734,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowSettings.maxShadowDistance = ShadowSettings.Default.maxShadowDistance;
                 m_ShadowSettings.directionalLightCascadeCount = ShadowSettings.Default.directionalLightCascadeCount;
                 m_ShadowSettings.directionalLightCascades = ShadowSettings.Default.directionalLightCascades;
+
+                sssParameters = SubsurfaceScatteringParameters.Default;
             }
             else
             {
                 m_ShadowSettings.directionalLightCascadeCount = m_CommonSettings.shadowCascadeCount;
                 m_ShadowSettings.directionalLightCascades = new Vector3(m_CommonSettings.shadowCascadeSplit0, m_CommonSettings.shadowCascadeSplit1, m_CommonSettings.shadowCascadeSplit2);
                 m_ShadowSettings.maxShadowDistance = m_CommonSettings.shadowMaxDistance;
+
+                sssParameters.profiles[0].filter1Variance  = m_CommonSettings.sssProfileFilter1Variance;
+                sssParameters.profiles[0].filter2Variance  = m_CommonSettings.sssProfileFilter2Variance;
+                sssParameters.profiles[0].filterLerpWeight = m_CommonSettings.sssProfileFilterLerpWeight;
+                sssParameters.bilateralScale               = m_CommonSettings.sssBilateralScale;
             }
         }
 
