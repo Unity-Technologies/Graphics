@@ -47,10 +47,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent syncButtonText = new GUIContent("Re-Synchronize Layers", "Re-synchronize all layers's properties with the referenced Material");
             public readonly GUIContent layersText = new GUIContent("Layers");
             public readonly GUIContent emissiveText = new GUIContent("Emissive");
-            public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color if enabled)");
+            public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
             public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent vertexColorHeightMultiplierText = new GUIContent("Vertex Height Scale", "Scale applied to the vertex color height.");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
+            public readonly GUIContent layerTilingText = new GUIContent("Tiling", "Tiling factor applied to UVSet");
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
             public readonly GUIContent UVDetailText = new GUIContent("Detail UV Mapping", "Detail UV Mapping mode of the layer.");
@@ -110,7 +111,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] layerUVDetail = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
 
-
+        const string kLayerTiling = "_LayerTiling";
+        MaterialProperty[] layerTiling = new MaterialProperty[kMaxLayerCount];
         const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
         MaterialProperty useMainLayerInfluence = null;
         const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
@@ -169,6 +171,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 layerUVMappingPlanar[i] = FindProperty(string.Format("{0}{1}", kUVMappingPlanar, i), props);
                 layerUVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, i), props);
                 layerUVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, i), props);
+                layerTiling[i] = FindProperty(string.Format("{0}{1}", kLayerTiling, i), props);
 
                 if(i != 0)
                 {
@@ -520,6 +523,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SynchronizeLayerProperties(material, m_MaterialLayers, layerIndex);
                 result = true;
             }
+
             if (((LayerUVBaseMapping)layerUVBase[layerIndex].floatValue == LayerUVBaseMapping.Planar) ||
                 ((LayerUVBaseMapping)layerUVBase[layerIndex].floatValue == LayerUVBaseMapping.Triplanar))
             {
@@ -529,6 +533,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             else
             {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(layerTiling[layerIndex], styles.layerTilingText);
+                EditorGUI.indentLevel--;
+
                 EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.ShaderProperty(layerUVDetail[layerIndex], styles.UVDetailText);
                 if (EditorGUI.EndChangeCheck())

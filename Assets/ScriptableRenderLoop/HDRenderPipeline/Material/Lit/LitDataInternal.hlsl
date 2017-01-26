@@ -1,11 +1,13 @@
 void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
-                                    float3 positionWS, float3 normalWS, bool isTriplanar, inout LayerTexCoord layerTexCoord)
+                                    float3 positionWS, float3 normalWS, bool isTriplanar, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
     float2 uvBase = ADD_IDX(_UVMappingMask).x * texCoord0 +
                     ADD_IDX(_UVMappingMask).y * texCoord1 + 
                     ADD_IDX(_UVMappingMask).z * texCoord2 +
                     ADD_IDX(_UVMappingMask).w * texCoord3;
+
+    uvBase *= additionalTiling.xx;
                     
 
     float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * texCoord0 +
