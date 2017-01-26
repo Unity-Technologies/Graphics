@@ -138,26 +138,13 @@ SAMPLER2D(sampler_DistortionVectorMap);
 TEXTURE2D(_LayerMaskMap);
 SAMPLER2D(sampler_LayerMaskMap);
 
-float _HeightOffset1;
-float _HeightOffset2;
-float _HeightOffset3;
-float _HeightFactor1;
-float _HeightFactor2;
-float _HeightFactor3;
-float _BlendSize1;
-float _BlendSize2;
-float _BlendSize3;
-float _VertexColorHeightFactor;
-
-// Blend Properties V2
-float _UseHeightBasedBlendV2;
-
-float _HeightCenterOffset1;
-float _HeightCenterOffset2;
-float _HeightCenterOffset3;
 float _BlendUsingHeight1;
 float _BlendUsingHeight2;
 float _BlendUsingHeight3;
+PROP_DECL(float, _HeightFactor);
+PROP_DECL(float, _HeightCenterOffset);
+PROP_DECL(float, _MinimumOpacity);
+PROP_DECL(float, _OpacityAsDensity);
 float _InheritBaseNormal1;
 float _InheritBaseNormal2;
 float _InheritBaseNormal3;
@@ -170,12 +157,6 @@ float _InheritBaseColor3;
 float _InheritBaseColorThreshold1;
 float _InheritBaseColorThreshold2;
 float _InheritBaseColorThreshold3;
-float _MinimumOpacity1;
-float _MinimumOpacity2;
-float _MinimumOpacity3;
-float _OpacityAsDensity1;
-float _OpacityAsDensity2;
-float _OpacityAsDensity3;
 PROP_DECL(float, _LayerTiling);
 
 float3 _EmissiveColor;

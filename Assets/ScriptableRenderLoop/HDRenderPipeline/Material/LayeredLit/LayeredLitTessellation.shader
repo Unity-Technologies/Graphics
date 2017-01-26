@@ -103,20 +103,12 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
         [ToggleOff] _UseHeightBasedBlendV2("Use Height Blend V2", Float) = 0.0
         [ToggleOff] _UseMainLayerInfluence("UseMainLayerInfluence", Float) = 0.0
 
-        _HeightOffset1("_HeightOffset1", Range(-0.3, 0.3)) = 0.0
-        _HeightOffset2("_HeightOffset2", Range(-0.3, 0.3)) = 0.0
-        _HeightOffset3("_HeightOffset3", Range(-0.3, 0.3)) = 0.0
-
+        _HeightFactor0("_HeightFactor0", Float) = 1
         _HeightFactor1("_HeightFactor1", Float) = 1
         _HeightFactor2("_HeightFactor2", Float) = 1
         _HeightFactor3("_HeightFactor3", Float) = 1
 
-        _BlendSize1("_BlendSize1", Range(0, 0.30)) = 0.0
-        _BlendSize2("_BlendSize2", Range(0, 0.30)) = 0.0
-        _BlendSize3("_BlendSize3", Range(0, 0.30)) = 0.0
-
-        _VertexColorHeightFactor("_VertexColorHeightFactor", Float) = 0.3
-
+        _HeightCenterOffset0("_HeightCenterOffset0", Float) = 0.0
         _HeightCenterOffset1("_HeightCenterOffset1", Float) = 0.0
         _HeightCenterOffset2("_HeightCenterOffset2", Float) = 0.0
         _HeightCenterOffset3("_HeightCenterOffset3", Float) = 0.0
@@ -141,10 +133,12 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
         _InheritBaseColorThreshold2("_InheritBaseColorThreshold2", Range(0, 1.0)) = 1.0
         _InheritBaseColorThreshold3("_InheritBaseColorThreshold3", Range(0, 1.0)) = 1.0
 
+        _MinimumOpacity0("_MinimumOpacity0", Range(0, 1.0)) = 1.0
         _MinimumOpacity1("_MinimumOpacity1", Range(0, 1.0)) = 1.0
         _MinimumOpacity2("_MinimumOpacity2", Range(0, 1.0)) = 1.0
         _MinimumOpacity3("_MinimumOpacity3", Range(0, 1.0)) = 1.0
 
+        _OpacityAsDensity0("_OpacityAsDensity0", Range(0, 1.0)) = 0.0
         _OpacityAsDensity1("_OpacityAsDensity1", Range(0, 1.0)) = 0.0
         _OpacityAsDensity2("_OpacityAsDensity2", Range(0, 1.0)) = 0.0
         _OpacityAsDensity3("_OpacityAsDensity3", Range(0, 1.0)) = 0.0
@@ -271,7 +265,6 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
-    #pragma shader_feature _HEIGHT_BASED_BLEND_V2
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
