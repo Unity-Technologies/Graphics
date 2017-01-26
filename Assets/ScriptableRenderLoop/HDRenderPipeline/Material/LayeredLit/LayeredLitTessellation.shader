@@ -100,7 +100,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
         [ToggleOff] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
         // Layer blending options V2
-        [ToggleOff] _UseHeightBasedBlendV2("Use Height Blend V2", Float) = 0.0
+        [ToggleOff] _UseDensityMode("Use Density mode", Float) = 0.0
         [ToggleOff] _UseMainLayerInfluence("UseMainLayerInfluence", Float) = 0.0
 
         _HeightFactor0("_HeightFactor0", Float) = 1
@@ -264,6 +264,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
+    #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
