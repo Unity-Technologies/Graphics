@@ -730,14 +730,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // for artists to do lighting work until the fully-featured framework is ready
 
                 var localPostProcess = camera.GetComponent<PostProcessing>();
-                /*var globalPostProcess = commonSettings == null
-                    ? null
-                    : commonSettings.GetComponent<PostProcessing>();*/
 
                 bool localActive = localPostProcess != null && localPostProcess.enabled;
-               // bool globalActive = globalPostProcess != null && globalPostProcess.enabled;
 
-             //   if (!localActive && !globalActive)
+                if (!localActive)
                 {
                     var cmd = new CommandBuffer { name = "" };
                     cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
@@ -746,8 +742,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 }
 
-                /*var target = localActive ? localPostProcess : globalPostProcess;
-                target.Render(camera, renderContext, m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);*/
+                localPostProcess.Render(camera, renderContext, m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
             }
         }
 
