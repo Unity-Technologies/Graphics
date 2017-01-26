@@ -1,6 +1,7 @@
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -43,6 +44,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var instance = ScriptableObject.CreateInstance<HDRenderPipeline>();
             UnityEditor.AssetDatabase.CreateAsset(instance, k_HDRenderPipelinePath);
+
+            instance.m_setup = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineSetup>("Assets/HDRenderPipelineSetup.asset");
+        }
+
+        [UnityEditor.MenuItem("RenderPipeline/UpdateHDLoop")]
+        static void UpdateHDLoop()
+        {
+            var guids = AssetDatabase.FindAssets("t:HDRenderPipeline");
+            foreach (var guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var loop = AssetDatabase.LoadAssetAtPath<HDRenderPipeline>(path);
+                loop.m_setup = AssetDatabase.LoadAssetAtPath<HDRenderPipelineSetup>("Assets/HDRenderPipelineSetup.asset");
+                EditorUtility.SetDirty(loop);
+            }
         }
 
         [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Light Data\" (if not present)")]
@@ -61,6 +77,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 #endif
 
+        HDRenderPipeline()
+        {
+            m_lightLoop = new TilePass.LightLoop(this);
+        }
+
+        [SerializeField]
+        private HDRenderPipelineSetup m_setup;
+
+        public HDRenderPipelineSetup renderPipelineSetup
+        {
+            get { return m_setup; }
+        }
         protected override IRenderPipeline InternalCreatePipeline()
         {
             return new HDRenderPipelineInstance(this);
@@ -194,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool previousLightsUseCCT;
 
         // This must be allocate outside of Build() else the option in the class can't be set in the inspector (as it will in this case recreate the class with default value)
-        BaseLightLoop m_lightLoop = new TilePass.LightLoop();
+        BaseLightLoop m_lightLoop;
 
         public BaseLightLoop lightLoop
         {
