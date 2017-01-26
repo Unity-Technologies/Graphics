@@ -40,10 +40,13 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float _FilterRadius;     // Uses world-space units
-            float _BilateralScale;   // Uses world-space units
-            float _FilterHorizontal; // Vertical = 0, horizontal = 1
-            float _DistToProjWindow; // The height of the projection window is 2 meters
+            #define N_SAMPLES 7
+
+            float  _BilateralScale;   // Uses world-space units
+            float  _DistToProjWindow; // The height of the projection window is 2 meters
+            float  _FilterHorizontal; // Vertical = 0, horizontal = 1
+            float4 _FilterKernel[7];  // RGB = weights, A = radial distance
+            float  _FilterRadius;     // Uses world-space units
 
             TEXTURE2D(_CameraDepthTexture);
             TEXTURE2D(_IrradianceSource);
@@ -77,28 +80,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 return output;
             }
 
-            #define N_SAMPLES 17
-
-            static const float4 kernel[] = {
-                float4(0.536343, 0.624624, 0.748867, 0),
-                float4(0.00317394, 0.000134823, 3.77269e-005, -2),
-                float4(0.0100386, 0.000914679, 0.000275702, -1.53125),
-                float4(0.0144609, 0.00317269, 0.00106399, -1.125),
-                float4(0.0216301, 0.00794618, 0.00376991, -0.78125),
-                float4(0.0347317, 0.0151085, 0.00871983, -0.5),
-                float4(0.0571056, 0.0287432, 0.0172844, -0.28125),
-                float4(0.0582416, 0.0659959, 0.0411329, -0.125),
-                float4(0.0324462, 0.0656718, 0.0532821, -0.03125),
-                float4(0.0324462, 0.0656718, 0.0532821, 0.03125),
-                float4(0.0582416, 0.0659959, 0.0411329, 0.125),
-                float4(0.0571056, 0.0287432, 0.0172844, 0.28125),
-                float4(0.0347317, 0.0151085, 0.00871983, 0.5),
-                float4(0.0216301, 0.00794618, 0.00376991, 0.78125),
-                float4(0.0144609, 0.00317269, 0.00106399, 1.125),
-                float4(0.0100386, 0.000914679, 0.000275702, 1.53125),
-                float4(0.00317394, 0.000134823, 3.77269e-005, 2),
-            };
-
             float4 Frag(Varyings input) : SV_Target
             {
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
@@ -115,7 +96,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 scaledDirection *= _ScreenSize.zw;
 
                 // Take the first (central) sample.
-                float3 sWeight   = kernel[0].rgb;
+                float3 sWeight   = _FilterKernel[0].rgb;
                 float2 sPosition = posInput.unPositionSS;
 
                 float3 sIrradiance = LOAD_TEXTURE2D(_IrradianceSource, sPosition).rgb;
@@ -127,8 +108,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [unroll]
                 for (int i = 1; i < N_SAMPLES; i++)
                 {
-                    sWeight   = kernel[i].rgb;
-                    sPosition = posInput.positionSS + scaledDirection * kernel[i].a;
+                    sWeight   = _FilterKernel[i].rgb; // TODO: normalize weights
+                    sPosition = posInput.positionSS + scaledDirection * _FilterKernel[i].a;
 
                     sIrradiance = SAMPLE_TEXTURE2D_LOD(_IrradianceSource,   bilinearSampler, sPosition, 0).rgb;
                     rawDepth    = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, bilinearSampler, sPosition, 0).r;
@@ -139,6 +120,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     float dScale = _FilterRadius * _DistToProjWindow * _BilateralScale;
                     float t      = saturate(dScale * dDepth);
 
+                    // TODO: use real-world distances for weighting.
                     filteredIrradiance += lerp(sIrradiance, cIrradiance, t) * sWeight;
                 }
 
