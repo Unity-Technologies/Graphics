@@ -104,17 +104,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #else
                     UnityObject.Destroy(obj);
 #endif
-                obj = null;
             }
         }
 
         public static void SafeRelease(ComputeBuffer buffer)
         {
             if (buffer != null)
-            {
                 buffer.Release();
-                buffer = null;
-            }
         }
 
         public static string GetFieldPath<TType, TValue>(Expression<Func<TType, TValue>> expr)
