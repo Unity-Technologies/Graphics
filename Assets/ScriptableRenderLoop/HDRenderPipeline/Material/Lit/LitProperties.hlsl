@@ -176,6 +176,7 @@ float _MinimumOpacity3;
 float _OpacityAsDensity1;
 float _OpacityAsDensity2;
 float _OpacityAsDensity3;
+PROP_DECL(float, _LayerTiling);
 
 float3 _EmissiveColor;
 TEXTURE2D(_EmissiveColorMap);
