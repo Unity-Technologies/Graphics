@@ -66,6 +66,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         private CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
 
+        public CommonSettings.Settings commonSettings
+        {
+            get { return m_CommonSettings; }
+            set { m_CommonSettings = value; }
+        }
+
         public CommonSettings.Settings commonSettingsToUse
         {
             get
@@ -79,6 +85,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [SerializeField]
         private SkyParameters m_SkyParameters;
+
+        public SkyParameters skyParameters
+        {
+            get { return m_SkyParameters; }
+            set { m_SkyParameters = value; }
+        }
 
         public SkyParameters skyParametersToUse
         {
