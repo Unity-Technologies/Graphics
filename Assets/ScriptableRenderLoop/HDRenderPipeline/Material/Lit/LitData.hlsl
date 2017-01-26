@@ -175,7 +175,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
 {
     float masks[_MAX_LAYER];
-    masks[0] = inputMasks.a; // Should be 1.0 in most case except when alpha masked and desnity mode is used
+#if defined(_DENSITY_MODE)
+    masks[0] = inputMasks.a;
+#else
+    masks[0] = 1.0;
+#endif
     masks[1] = inputMasks.r;
     masks[2] = inputMasks.g;
     masks[3] = inputMasks.b;
@@ -328,13 +332,11 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
     float4 blendMasks = useLodSampling ? SAMPLE_LAYER_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.base0, lod) : SAMPLE_LAYER_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.base0);
 
-        /*
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
     blendMasks *= vertexColor;
 #elif defined(_LAYER_MASK_VERTEX_COLOR_ADD)
-        blendMasks = saturate(blendMasks + vertexColor * 2.0 - 1.0);
+    blendMasks = saturate(blendMasks + vertexColor * 2.0 - 1.0);
 #endif
-        */
 
     return blendMasks;
 }
@@ -374,6 +376,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 {
     float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
 
+#if defined(_DENSITY_MODE)
     // Note: blendMasks.argb because a is main layer
     float4 minOpaParam = float4(_MinimumOpacity0, _MinimumOpacity1, _MinimumOpacity2, _MinimumOpacity3);
     float4 remapedOpacity = lerp(minOpaParam, float4(1.0, 1.0, 1.0, 1.0), inputAlphaMask); // Remap opacity mask from [0..1] to [minOpa..1]
@@ -381,6 +384,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 
     float4 useOpacityAsDensityParam = float4(_OpacityAsDensity0, _OpacityAsDensity1, _OpacityAsDensity2, _OpacityAsDensity3);
     blendMasks.argb = lerp(blendMasks.argb * remapedOpacity, opacityAsDensity, useOpacityAsDensityParam);
+#endif
 
 #if defined(_HEIGHT_BASED_BLEND)
     float height0 = SampleHeightmap0(layerTexCoord, _HeightCenterOffset0, _HeightFactor0);

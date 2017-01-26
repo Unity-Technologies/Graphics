@@ -54,9 +54,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
             public readonly GUIContent UVDetailText = new GUIContent("Detail UV Mapping", "Detail UV Mapping mode of the layer.");
-            public readonly GUIContent MainLayerInfluenceText = new GUIContent("Main layer influence", "Main layer influence.");
-            public readonly GUIContent DensityOpacityInfluenceText = new GUIContent("Density / Opacity", "Density / Opacity");
+            public readonly GUIContent mainLayerInfluenceText = new GUIContent("Main layer influence", "Main layer influence.");
+            public readonly GUIContent densityOpacityInfluenceText = new GUIContent("Density / Opacity", "Density / Opacity");
             public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
+            public readonly GUIContent useDensityModeModeText = new GUIContent("Use Density Mode", "Enable density mode");
             public readonly GUIContent useMainLayerInfluenceModeText = new GUIContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");            
             public readonly GUIContent heightFactorText = new GUIContent("Height Multiplier", "Scale applied to the height of the layer.");
             public readonly GUIContent heightControlText = new GUIContent("Height control");
@@ -114,6 +115,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
         MaterialProperty useHeightBasedBlend = null;
 
+        const string kUseDensityMode = "_UseDensityMode";
+        MaterialProperty useDensityMode = null;
+
         const string kOpacityAsDensity = "_OpacityAsDensity";
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
         const string kMinimumOpacity = "_MinimumOpacity";
@@ -150,6 +154,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence, props);
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
+            useDensityMode = FindProperty(kUseDensityMode, props);            
            
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
@@ -532,17 +537,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            EditorGUILayout.LabelField(styles.DensityOpacityInfluenceText, EditorStyles.boldLabel);
+            bool useDensityModeEnable = useDensityMode.floatValue != 0.0f;
+            if (useDensityModeEnable)
+            {
+                EditorGUILayout.LabelField(styles.densityOpacityInfluenceText, EditorStyles.boldLabel);
 
-            EditorGUI.indentLevel++;
-
-            m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
-            m_MaterialEditor.ShaderProperty(minimumOpacity[layerIndex], styles.minimumOpacityText);
-
-            EditorGUI.indentLevel--;
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(opacityAsDensity[layerIndex], styles.opacityAsDensityText);
+                m_MaterialEditor.ShaderProperty(minimumOpacity[layerIndex], styles.minimumOpacityText);
+                EditorGUI.indentLevel--;
+            }
 
             bool heightBasedBlendEnable = useHeightBasedBlend.floatValue != 0.0f;            
-            if (!useHeightBasedBlend.hasMixedValue && heightBasedBlendEnable)
+            if (heightBasedBlendEnable)
             {
                 EditorGUILayout.LabelField(styles.heightControlText, EditorStyles.boldLabel);
 
@@ -557,7 +564,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 int paramIndex = layerIndex - 1;
 
-                if (!useHeightBasedBlend.hasMixedValue && heightBasedBlendEnable)
+                if (heightBasedBlendEnable)
                 {
                     EditorGUI.indentLevel++;
                     m_MaterialEditor.ShaderProperty(blendUsingHeight[layerIndex], styles.blendUsingHeight);
@@ -566,7 +573,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (mainLayerInfluenceEnable)
                 {
-                    EditorGUILayout.LabelField(styles.MainLayerInfluenceText, EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField(styles.mainLayerInfluenceText, EditorStyles.boldLabel);
 
                     EditorGUI.indentLevel++;
 
@@ -624,6 +631,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             m_MaterialEditor.ShaderProperty(vertexColorMode, styles.vertexColorModeText);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = useDensityMode.hasMixedValue;
+            bool useDensityModeEnable = EditorGUILayout.Toggle(styles.useDensityModeModeText, useDensityMode.floatValue > 0.0f);
+            if (EditorGUI.EndChangeCheck())
+            {
+                useDensityMode.floatValue = useDensityModeEnable ? 1.0f : 0.0f;
+            }
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
@@ -707,6 +722,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
             SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);
+
+            bool useDensityModeEnable = material.GetFloat(kUseDensityMode) != 0.0f;
+            SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
+            
 
             // We have to check for each layer if the UV2 or UV3 is needed.
             bool needUV3 = false;
