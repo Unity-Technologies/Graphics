@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
             internal VFXBlockElement(int level, VFXBlockDesc desc, AddNodeBlock spawncallback)
             {
                 this.level = level;
-                content = new GUIContent(desc.Category.Replace("/"," ")+" : " + desc.Name/*, VFXEditor.styles.GetIcon(desc.Icon)*/);
+                content = new GUIContent(VFXInfoAttribute.Get(desc).category.Replace("/"," ")+" : " + desc.Name/*, VFXEditor.styles.GetIcon(desc.Icon)*/);
                 m_Desc = desc;
                 m_SpawnCallback = spawncallback;
             }
@@ -49,7 +49,11 @@ namespace UnityEditor.VFX.UI
             var filteredBlocks = blocks.Where(b => m_ContextPresenter.Model.Accept(b)).ToList();
 
             filteredBlocks.Sort((blockA, blockB) => {
-                int res = blockA.Category.CompareTo(blockB.Category);
+
+                var infoA = VFXInfoAttribute.Get(blockA); ;
+                var infoB = VFXInfoAttribute.Get(blockB);
+
+                int res = infoA.category.CompareTo(infoB.category);
                 return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
             });
 
@@ -57,11 +61,13 @@ namespace UnityEditor.VFX.UI
 
             foreach(VFXBlockDesc desc in filteredBlocks)
             {
-                int i = 0; 
+                int i = 0;
 
-                if(!categories.Contains(desc.Category) && desc.Category != "")
+                var category = VFXInfoAttribute.Get(desc).category;
+
+                if (!categories.Contains(category) && category != "")
                 {
-                    string[] split = desc.Category.Split('/');
+                    string[] split = category.Split('/');
                     string current = "";
 
                     while(i < split.Length)
@@ -72,14 +78,14 @@ namespace UnityEditor.VFX.UI
                         i++;
                         current += "/";
                     }
-                    categories.Add(desc.Category);
+                    categories.Add(category);
                 }
                 else
                 {
-                    i = desc.Category.Split('/').Length;
+                    i = category.Split('/').Length;
                 }
 
-                if (desc.Category != "")
+                if (category != "")
                     i++;
 
                 tree.Add(new VFXBlockElement(i, desc, m_onAddNodeBlock));

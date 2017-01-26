@@ -23,12 +23,6 @@ namespace UnityEditor.VFX
         kParticle = 1 << 1,
     };
 
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public class VFXContextAttribute : Attribute
-    {
-        // TODO
-    }
-
     abstract class VFXContextDesc
     {
         public static VFXContextDesc CreateBasic(VFXContextType type)
@@ -76,19 +70,19 @@ namespace UnityEditor.VFX
         //private bool m_ShowBlock;
     }
 
-    [VFXContext]
+    [VFXInfo]
     class VFXBasicInitialize : VFXContextDesc
     {
         public VFXBasicInitialize() : base(VFXContextType.kInit, VFXDataType.kNone, VFXDataType.kParticle, "Initialize", false) { }
     }
 
-    [VFXContext]
+    [VFXInfo]
     class VFXBasicUpdate : VFXContextDesc
     {
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle, "Update", false) { }
     }
 
-    [VFXContext]
+    [VFXInfo]
     class VFXBasicOutput : VFXContextDesc
     {
         public VFXBasicOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone, "Output", false) { }
