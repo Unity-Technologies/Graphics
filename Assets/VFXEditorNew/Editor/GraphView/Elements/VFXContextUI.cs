@@ -224,12 +224,13 @@ namespace UnityEditor.VFX.UI
 
 		public EventPropagation DeleteSelection()
 		{
-			foreach (var nodeBlock in m_NodeBlockContainer.selection.OfType<VFXNodeBlockUI>().ToList())
+			var elementsToRemove = m_NodeBlockContainer.selection.OfType<VFXNodeBlockUI>().ToList();
+			foreach (var nodeBlock in elementsToRemove)
 			{
 				RemoveNodeBlock(nodeBlock as VFXNodeBlockUI);
 			}
 
-			return EventPropagation.Stop;
+			return (elementsToRemove.Count > 0) ? EventPropagation.Stop : EventPropagation.Continue;
 		}
 
 		public override void SetPosition(Rect newPos)
