@@ -219,7 +219,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Keep these settings safe to recover when leaving the render pipeline
         bool previousLightsUseLinearIntensity;
-        bool previousLightsUseCCT;
+        bool previousLightsUseColorTemperature;
 
         // This must be allocate outside of Build() else the option in the class can't be set in the inspector (as it will in this case recreate the class with default value)
         BaseLightLoop m_lightLoop;
@@ -258,7 +258,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
             previousLightsUseLinearIntensity = UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity;
-            previousLightsUseCCT = UnityEngine.Rendering.GraphicsSettings.lightsUseColorTemperature;
+            previousLightsUseColorTemperature = UnityEngine.Rendering.GraphicsSettings.lightsUseColorTemperature;
             UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity = true;
             UnityEngine.Rendering.GraphicsSettings.lightsUseColorTemperature = true;
 
@@ -314,7 +314,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UnityEditor.SupportedRenderingFeatures.active = UnityEditor.SupportedRenderingFeatures.Default;
 #endif
            UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity = previousLightsUseLinearIntensity;
-           UnityEngine.Rendering.GraphicsSettings.lightsUseColorTemperature = previousLightsUseCCT;
+           UnityEngine.Rendering.GraphicsSettings.lightsUseColorTemperature = previousLightsUseColorTemperature;
         }
 
         void InitAndClearBuffer(Camera camera, ScriptableRenderContext renderContext)
