@@ -16,9 +16,10 @@ namespace UnityEditor.VFX.UI
 		private int m_Index; // tmp
 
 		public VFXNodeBlockUI()
-		{
-			pickingMode = PickingMode.Position;
-			classList = ClassList.empty;
+        {
+            forceNotififcationOnAdd = true;
+            pickingMode = PickingMode.Position;
+            classList = ClassList.empty;
 
 			m_SlotContainer = new VisualContainer()
 			{

@@ -10,6 +10,7 @@ namespace UnityEditor.VFX.UI
     {
 		public VFXView()
 		{
+            forceNotififcationOnAdd = true;
             AddManipulator(new ContentZoomer());
 			AddManipulator(new ContentDragger());
 			AddManipulator(new RectangleSelector());

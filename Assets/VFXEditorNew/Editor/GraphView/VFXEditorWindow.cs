@@ -29,22 +29,32 @@ namespace UnityEditor.VFX.UI
         protected new void OnEnable()
         {
             base.OnEnable();
-            m_ViewPresenter.SetModelContainer(null);
-            OnSelectionChange(); // Call when enabled to retrieve the current selection
+            var objs = Selection.objects;
+            if (objs != null && objs.Length == 1 && objs[0] is VFXModelContainer)
+            {
+                m_ViewPresenter.SetModelContainer(objs[0] as VFXModelContainer, true);
+            }
+            else
+                m_ViewPresenter.SetModelContainer(m_ViewPresenter.GetModelContainer(), true);
         }
 
         protected new void OnDisable()
         {
-            m_ViewPresenter.SetModelContainer(null);
+            m_ViewPresenter.SetModelContainer(null,false);
             base.OnDisable();
         }
 
         void OnSelectionChange()
         {
+            OnSelectionChange(false);
+        }
+
+        void OnSelectionChange(bool force)
+        {
             var objs = Selection.objects;
             if (objs != null && objs.Length == 1 && objs[0] is VFXModelContainer)
             {
-                m_ViewPresenter.SetModelContainer(objs[0] as VFXModelContainer);
+                m_ViewPresenter.SetModelContainer(objs[0] as VFXModelContainer,force);
             }
         }
 

@@ -2,40 +2,44 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-	public abstract class DataWatchContainer : VisualContainer
-	{
-		IDataWatchHandle handle;
+    public abstract class DataWatchContainer : VisualContainer
+    {
+        IDataWatchHandle handle;
 
-		protected DataWatchContainer()
-		{
-			// trigger data source reset when entering leaving panel
-			onEnter += AddWatch;
-			onLeave += RemoveWatch;
-		}
+        public bool forceNotififcationOnAdd { get; set; }
 
-		// called when Serialized object has changed
-		// only works while widget is in a panel
-		public virtual void OnDataChanged()
-		{ }
+        protected DataWatchContainer()
+        {
+            // trigger data source reset when entering leaving panel
+            onEnter += AddWatch;
+            onLeave += RemoveWatch;
+        }
 
-		protected abstract object toWatch { get; }
+        // called when Serialized object has changed
+        // only works while widget is in a panel
+        public virtual void OnDataChanged()
+        { }
 
-		protected void AddWatch()
-		{
-			var watch = toWatch as UnityEngine.Object;
-			if (watch != null && panel != null)
-			{
-				handle = panel.dataWatch.AddWatch(this, watch, OnDataChanged);
-			}
-		}
+        protected abstract object toWatch { get; }
 
-		protected void RemoveWatch()
-		{
-			if (handle != null)
-			{
-				handle.Dispose();
-				handle = null;
-			}
-		}
-	}
+        protected void AddWatch()
+        {
+            var watch = toWatch as UnityEngine.Object;
+            if (watch != null && panel != null)
+            {
+                handle = panel.dataWatch.AddWatch(this, watch, OnDataChanged);
+                if (forceNotififcationOnAdd)
+                    OnDataChanged();
+            }
+        }
+
+        protected void RemoveWatch()
+        {
+            if (handle != null)
+            {
+                handle.Dispose();
+                handle = null;
+            }
+        }
+    }
 }

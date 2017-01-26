@@ -127,8 +127,9 @@ namespace UnityEditor.VFX.UI
 		protected GraphViewTypeFactory typeFactory { get; set; }
 
 		public VFXContextUI()
-		{
-			pickingMode = PickingMode.Ignore;
+        {
+            forceNotififcationOnAdd = true;
+            pickingMode = PickingMode.Ignore;
 			phaseInterest = EventPhase.BubbleUp;
 
 			m_FlowInputConnectorContainer = new VisualContainer()
