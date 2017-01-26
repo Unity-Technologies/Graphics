@@ -83,13 +83,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_Renderer = null;
                 }
 
-                if (value == null)
-                    return;
-
-                m_Renderer = value.GetRenderer();
                 m_SkyParametersHash = 0;
                 m_SkyParameters = value;
                 m_UpdateRequired = true;
+
+                if (value != null)
+                    m_Renderer = value.GetRenderer();
             }
             get { return m_SkyParameters; }
         }
