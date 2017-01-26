@@ -46,18 +46,12 @@ namespace UnityEditor.VFX.UI
 
         void OnSelectionChange()
         {
-            OnSelectionChange(false);
-        }
-
-        void OnSelectionChange(bool force)
-        {
             var objs = Selection.objects;
             if (objs != null && objs.Length == 1 && objs[0] is VFXModelContainer)
             {
-                m_ViewPresenter.SetModelContainer(objs[0] as VFXModelContainer,force);
+                m_ViewPresenter.SetModelContainer(objs[0] as VFXModelContainer, false);
             }
         }
-
 
         [SerializeField]
         private VFXViewPresenter m_ViewPresenter;

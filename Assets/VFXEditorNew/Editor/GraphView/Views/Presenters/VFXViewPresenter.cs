@@ -196,8 +196,9 @@ namespace UnityEditor.VFX.UI
 		{
 			if (m_ModelContainer != container || force)
 			{
-				if (m_ModelContainer != null && !EditorUtility.IsPersistent(m_ModelContainer))
-					DestroyImmediate(m_ModelContainer);
+                // Do we have a leak without this line ?
+				/*if (m_ModelContainer != null && !EditorUtility.IsPersistent(m_ModelContainer))
+					DestroyImmediate(m_ModelContainer);*/
 
 				m_Elements.Clear();
 				m_FlowAnchorPresenters.Clear();
@@ -212,22 +213,6 @@ namespace UnityEditor.VFX.UI
 			}
 		}
 
-// 		public void RegisterFlowAnchorPresenter(NodeAnchorPresenter presenter)
-// 		{
-// 			if (!m_FlowAnchorPresenters.Contains(presenter))
-// 			{
-// 				m_FlowAnchorPresenters.Add(presenter);
-// 			}
-// 		}
-
-// 		public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
-// 		{
-// 			return m_FlowAnchorPresenters
-// 			.Where(nap => nap.IsConnectable() &&
-// 							nap.direction != startAnchor.direction &&
-// 							nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
-// 			.ToList();
-// 		}
 		[SerializeField]
 		private VFXModelContainer m_ModelContainer;
 
