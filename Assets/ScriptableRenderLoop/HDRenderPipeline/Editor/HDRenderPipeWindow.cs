@@ -5,7 +5,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipeWindow : EditorWindow
     {
-
         [MenuItem("HDRenderPipeline/Configure Overrides")]
         static void ConfigureOverrides()
         {

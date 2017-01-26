@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering
     public abstract class Singleton<T> : ScriptableObject where T : ScriptableObject
     {
         private static T theInstance { get; set; }
-        
+
         protected static T instance
         {
             get
