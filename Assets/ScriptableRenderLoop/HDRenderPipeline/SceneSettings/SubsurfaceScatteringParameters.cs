@@ -139,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering
                     parameters.profiles[i] = SubsurfaceScatteringProfile.Default;
                 }
 
-                parameters.bilateralScale = 0.4f;
+                parameters.bilateralScale = 0.0f;
                 return parameters;
             }
         }
