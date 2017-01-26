@@ -3,6 +3,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -142,11 +143,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int m_areaLightCount = 0;
             int m_lightCount = 0;
 
-            static ComputeShader buildScreenAABBShader = null;
-            static ComputeShader buildPerTileLightListShader = null;     // FPTL
-            static ComputeShader buildPerBigTileLightListShader = null;
-            static ComputeShader buildPerVoxelLightListShader = null;    // clustered
-            static ComputeShader shadeOpaqueShader = null;
+            private ComputeShader buildScreenAABBShader { get { return m_Parent.renderPipelineSetup.buildScreenAABBShader; } }
+            private ComputeShader buildPerTileLightListShader { get { return m_Parent.renderPipelineSetup.buildPerTileLightListShader; } }
+            private ComputeShader buildPerBigTileLightListShader { get { return m_Parent.renderPipelineSetup.buildPerBigTileLightListShader; } }
+            private ComputeShader buildPerVoxelLightListShader { get { return m_Parent.renderPipelineSetup.buildPerVoxelLightListShader; } }
+            private ComputeShader shadeOpaqueShader { get { return m_Parent.renderPipelineSetup.shadeOpaqueShader; } }
 
             static int s_GenAABBKernel;
             static int s_GenListPerTileKernel;
@@ -186,6 +187,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static ComputeBuffer s_GlobalLightListAtomic = null;
             // clustered light list specific buffers and data end
 
+            private static GameObject s_DefaultAdditionalLightDataGameObject;
+            private static AdditionalLightData s_DefaultAdditionalLightData;
+
             bool usingFptl
             {
                 get
@@ -197,6 +201,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
+            private static AdditionalLightData DefaultAdditionalLightData
+            {
+                get
+                {
+                    if (s_DefaultAdditionalLightDataGameObject == null)
+                    {
+                        s_DefaultAdditionalLightDataGameObject = new GameObject("Default Light Data");
+                        s_DefaultAdditionalLightDataGameObject.hideFlags = HideFlags.HideAndDontSave;
+                        s_DefaultAdditionalLightData = s_DefaultAdditionalLightDataGameObject.AddComponent<AdditionalLightData>();
+                    }
+                    return s_DefaultAdditionalLightData;
+                }
+            }
+
             Material m_DeferredDirectMaterial = null;
             Material m_DeferredIndirectMaterial = null;
             Material m_DeferredAllMaterial = null;
@@ -205,6 +223,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Material m_SingleDeferredMaterial = null;
 
             const int k_TileSize = 16;
+            private readonly HDRenderPipeline m_Parent;
+
 
             int GetNumTileX(Camera camera)
             {
@@ -214,6 +234,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int GetNumTileY(Camera camera)
             {
                 return (camera.pixelHeight + (k_TileSize - 1)) / k_TileSize;
+            }
+
+            public LightLoop(HDRenderPipeline hdRenderPipeline)
+            {
+                m_Parent = hdRenderPipeline;
             }
 
             public override void Build(TextureSettings textureSettings)
@@ -232,12 +257,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CubeCookieTexArray.AllocTextureArray(4, textureSettings.pointCookieSize, TextureFormat.RGBA32, true);
                 m_CubeReflTexArray = new TextureCacheCubemap();
                 m_CubeReflTexArray.AllocTextureArray(32, textureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
-
-                buildScreenAABBShader = Resources.Load<ComputeShader>("scrbound");
-                buildPerTileLightListShader = Resources.Load<ComputeShader>("lightlistbuild");
-                buildPerBigTileLightListShader = Resources.Load<ComputeShader>("lightlistbuild-bigtile");
-                buildPerVoxelLightListShader = Resources.Load<ComputeShader>("lightlistbuild-clustered");
-                shadeOpaqueShader = Resources.Load<ComputeShader>("shadeopaque");
 
                 s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
                 s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
@@ -350,6 +369,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.Destroy(m_DebugViewTilesMaterial);
 
                 Utilities.Destroy(m_SingleDeferredMaterial);
+
+                GameObject.DestroyImmediate(s_DefaultAdditionalLightDataGameObject);
+                s_DefaultAdditionalLightDataGameObject = null;
+                s_DefaultAdditionalLightData = null;
             }
 
             public override void NewFrame()
@@ -867,8 +890,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (additionalData == null)
                     {
-                        Debug.LogWarning("Light entity detected without additional data, will not be taken into account " + light.light.name);
-                        continue;
+                        Debug.LogWarningFormat("Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
+                        additionalData = DefaultAdditionalLightData;
                     }
 
                     LightCategory lightCategory = LightCategory.Count;
@@ -970,7 +993,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int lightIndex = (int)(sortKey & 0xFFFF);
 
                     var light = cullResults.visibleLights[lightIndex];
-                    var additionalData = light.light.GetComponent<AdditionalLightData>();
+                    var additionalData = light.light.GetComponent<AdditionalLightData>() ?? DefaultAdditionalLightData;
 
                     // Directional rendering side, it is separated as it is always visible so no volume to handle here
                     if (gpuLightType == GPULightType.Directional)
@@ -1213,7 +1236,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     for (int n = 0; n < numVectors; n++)
                     {
                         for (int i = 0; i < 4; i++)
-            {
+                        {
                             data[4 * n + i] = values[n][i];
                         }
                     }
@@ -1293,6 +1316,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if UNITY_EDITOR
             private Vector2 m_mousePosition = Vector2.zero;
+
             private void OnSceneGUI(UnityEditor.SceneView sceneview)
             {
                 m_mousePosition = Event.current.mousePosition;
