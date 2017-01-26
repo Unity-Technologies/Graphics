@@ -218,19 +218,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Vector3[] lookAtList = {
                             new Vector3(1.0f, 0.0f, 0.0f),
                             new Vector3(-1.0f, 0.0f, 0.0f),
-                            new Vector3(0.0f, -1.0f, 0.0f),
                             new Vector3(0.0f, 1.0f, 0.0f),
+                            new Vector3(0.0f, -1.0f, 0.0f),
                             new Vector3(0.0f, 0.0f, 1.0f),
                             new Vector3(0.0f, 0.0f, -1.0f),
                         };
 
                 Vector3[] UpVectorList = {
-                            new Vector3(0.0f, -1.0f, 0.0f),
-                            new Vector3(0.0f, -1.0f, 0.0f),
+                            new Vector3(0.0f, 1.0f, 0.0f),
+                            new Vector3(0.0f, 1.0f, 0.0f),
                             new Vector3(0.0f, 0.0f, -1.0f),
                             new Vector3(0.0f, 0.0f, 1.0f),
-                            new Vector3(0.0f, -1.0f, 0.0f),
-                            new Vector3(0.0f, -1.0f, 0.0f),
+                            new Vector3(0.0f, 1.0f, 0.0f),
+                            new Vector3(0.0f, 1.0f, 0.0f),
                         };
 
                 for (int i = 0; i < 6; ++i)
@@ -239,7 +239,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_faceCameraViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj);
                     m_faceCameraInvViewProjectionMatrix[i] = m_faceCameraViewProjectionMatrix[i].inverse;
 
-                    m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i], false);
+                    m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i], true);
                 }
             }
         }
@@ -320,25 +320,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_iblFilterGgx.Initialize(renderContext);
                 }
 
-                // Copy the first mip.
-
-                // WARNING:
-                // Since we can't instanciate the parameters anymore (we don't know the final type here)
-                // we can't make sure that exposure/multiplier etc are at neutral values
-                // This will be solved with proper CopyTexture
-
-                // TEMP code until CopyTexture is implemented for command buffer
-                // All parameters are neutral because exposure/multiplier have already been applied in the first copy.
-                //SkyParameters skyParams = new SkyParameters();
-                //skyParams.exposure = 0.0f;
-                //skyParams.multiplier = 1.0f;
-                //skyParams.rotation = 0.0f;
-                //skyParams.skyHDRI = input;
-                RenderSkyToCubemap(builtinParams, skyParams, target);
-                // End temp
-
-                //for (int f = 0; f < 6; f++)
-                //    Graphics.CopyTexture(input, f, 0, target, f, 0);
+                // Copy the first mip
+                var cmd = new CommandBuffer { name = "" };
+                for (int f = 0; f < 6; f++)
+                {
+                    cmd.CopyTexture(input, f, 0, target, f, 0);
+                }
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
 
                 if (m_useMIS)
                 {

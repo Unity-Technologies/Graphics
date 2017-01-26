@@ -82,21 +82,13 @@ float3 GetDisplacement(VaryingsMeshToDS input)
         input.normalWS,
         layerTexCoord);
 
-    // TODO: For now just use Layer0, but we are suppose to apply the same heightmap blending than in the pixel shader
-#ifdef _HEIGHTMAP
-    // TODO test mip lod to reduce texture cache miss
     // TODO: Move to camera relative and change distance to length
-    //float dist = distance(input.positionWS, cameraPosWS);
-    // No ddx/ddy to calculate LOD, use camera distance instead
-    //float fadeDist = _TessellationFactorMaxDistance - _TessellationFactorMinDistance;
-    //float heightMapLod = saturate((dist - _TessellationFactorMinDistance) / min(fadeDist, 0.01)) * 6; // 6 is an arbitrary number here
-    float heightMapLod = 0.0;
-
-    float height = (SAMPLE_LAYER_TEXTURE2D_LOD(ADD_ZERO_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_ZERO_IDX(layerTexCoord.base), heightMapLod).r - ADD_ZERO_IDX(_HeightCenter)) * ADD_ZERO_IDX(_HeightAmplitude);
-#else
-    float height = 0.0;
+    float lod = 0.0;
+    float4 vertexColor = float4(0.0, 0.0, 0.0, 0.0);
+#ifdef VARYINGS_DS_NEED_COLOR
+    vertexColor = input.color;
 #endif
-
+    float height = ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod);
     float3 displ = height * input.normalWS;
 
         // Applying scaling of the object if requested
