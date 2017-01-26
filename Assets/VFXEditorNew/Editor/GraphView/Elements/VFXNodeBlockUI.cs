@@ -17,6 +17,7 @@ namespace UnityEditor.VFX.UI
 
 		public VFXNodeBlockUI()
         {
+            forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Position;
             classList = ClassList.empty;
 

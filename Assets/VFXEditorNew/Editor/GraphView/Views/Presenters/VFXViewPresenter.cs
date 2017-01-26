@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
 			if (m_FlowAnchorPresenters == null)
 				m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
 
-			SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>());
+			SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>(),false);
 		}
 
 		public VFXView View
@@ -188,10 +188,13 @@ namespace UnityEditor.VFX.UI
 				AddElement(presenter);
 			}
 		}
-
-		public void SetModelContainer(VFXModelContainer container)
+        public VFXModelContainer GetModelContainer()
+        {
+            return m_ModelContainer;
+        }
+		public void SetModelContainer(VFXModelContainer container,bool force)
 		{
-			if (m_ModelContainer != container)
+			if (m_ModelContainer != container || force)
 			{
 				if (m_ModelContainer != null && !EditorUtility.IsPersistent(m_ModelContainer))
 					DestroyImmediate(m_ModelContainer);
