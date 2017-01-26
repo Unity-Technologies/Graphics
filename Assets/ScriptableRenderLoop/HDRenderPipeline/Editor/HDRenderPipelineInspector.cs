@@ -10,6 +10,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         private class Styles
         {
+            // Global debug parameters
+            public readonly GUIContent debugging = new GUIContent("Debugging");
+            public readonly GUIContent debugOverlayRatio = new GUIContent("Overlay Ratio");
+
             public readonly GUIContent debugParameters = new GUIContent("Debug Parameters");
             public readonly GUIContent debugViewMaterial = new GUIContent("DebugView Material", "Display various properties of Materials.");
 
@@ -24,9 +28,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public GUIContent[] debugViewMaterialStrings = null;
             public int[] debugViewMaterialValues = null;
 
+            // Shadow Debug
+            public readonly GUIContent shadowDebugParameters = new GUIContent("Shadow Debug");
+            public readonly GUIContent shadowDebugEnable = new GUIContent("Enable Shadows");
+            public readonly GUIContent shadowDebugVisualizationMode = new GUIContent("Visualize");
+            public readonly GUIContent shadowDebugVisualizeShadowIndex = new GUIContent("Visualize Shadow Index");
+
             public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
 
-            public readonly GUIContent shadowsEnabled = new GUIContent("Enabled");
             public readonly GUIContent shadowsAtlasWidth = new GUIContent("Atlas width");
             public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas height");
 
@@ -60,6 +69,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         const float k_MaxExposure = 32.0f;
+
+        SerializedProperty m_ShowDebug = null;
+        SerializedProperty m_ShowDebugShadow = null;
+        SerializedProperty m_DebugOverlayRatio = null;
+
+        SerializedProperty m_DebugShadowEnabled = null;
+        SerializedProperty m_DebugShadowVisualizationMode = null;
+        SerializedProperty m_DebugShadowVisualizeShadowIndex = null;
+
+        private void InitializeProperties()
+        {
+            m_DebugOverlayRatio = serializedObject.FindProperty("m_GlobalDebugParameters.debugOverlayRatio");
+            m_ShowDebugShadow = serializedObject.FindProperty("m_GlobalDebugParameters.displayShadowDebug");
+            m_ShowDebug = serializedObject.FindProperty("m_GlobalDebugParameters.displayDebug");
+
+            m_DebugShadowEnabled = serializedObject.FindProperty("m_GlobalDebugParameters.shadowDebugParameters.enableShadows");
+            m_DebugShadowVisualizationMode = serializedObject.FindProperty("m_GlobalDebugParameters.shadowDebugParameters.visualizationMode");
+            m_DebugShadowVisualizeShadowIndex = serializedObject.FindProperty("m_GlobalDebugParameters.shadowDebugParameters.visualizeShadowMapIndex");
+        }
 
         string GetSubNameSpaceName(Type type)
         {
@@ -119,11 +147,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        private void DebuggingUI(HDRenderPipeline renderContext)
+        {
+            EditorGUILayout.LabelField(styles.debugging);
+
+            // Global debug parameters
+            EditorGUI.indentLevel++;
+            m_DebugOverlayRatio.floatValue = EditorGUILayout.Slider(styles.debugOverlayRatio, m_DebugOverlayRatio.floatValue, 0.1f, 1.0f);
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+
+            DebugParametersUI(renderContext);
+            ShadowDebugParametersUI(renderContext);
+        }
+
+
         private void DebugParametersUI(HDRenderPipeline renderContext)
         {
+            m_ShowDebug.boolValue = EditorGUILayout.Foldout(m_ShowDebug.boolValue, styles.debugParameters);
+            if (!m_ShowDebug.boolValue)
+                return;
+
             var debugParameters = renderContext.debugParameters;
 
-            EditorGUILayout.LabelField(styles.debugParameters);
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
 
@@ -181,6 +227,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
+        private void ShadowDebugParametersUI(HDRenderPipeline renderContext)
+        {
+            m_ShowDebugShadow.boolValue = EditorGUILayout.Foldout(m_ShowDebugShadow.boolValue, styles.shadowDebugParameters);
+            if (!m_ShowDebugShadow.boolValue)
+                return;
+
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_DebugShadowEnabled, styles.shadowDebugEnable);
+            EditorGUILayout.PropertyField(m_DebugShadowVisualizationMode, styles.shadowDebugVisualizationMode);
+            if (!m_DebugShadowVisualizationMode.hasMultipleDifferentValues)
+            {
+                if ((ShadowDebugMode)m_DebugShadowVisualizationMode.intValue == ShadowDebugMode.VisualizeShadowMap)
+                {
+                    EditorGUILayout.IntSlider(m_DebugShadowVisualizeShadowIndex, 0, renderContext.GetCurrentShadowCount() - 1, styles.shadowDebugVisualizeShadowIndex);
+                }
+            }
+            EditorGUI.indentLevel--;
+        }
+
         private void ShadowParametersUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
@@ -190,7 +255,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
 
-            shadowParameters.enabled = EditorGUILayout.Toggle(styles.shadowsEnabled, shadowParameters.enabled);
             shadowParameters.shadowAtlasWidth = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasWidth, shadowParameters.shadowAtlasWidth));
             shadowParameters.shadowAtlasHeight = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasHeight, shadowParameters.shadowAtlasHeight));
 
@@ -261,6 +325,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public void OnEnable()
+        {
+            InitializeProperties();
+        }
+
         public override void OnInspectorGUI()
         {
             var renderContext = target as HDRenderPipeline;
@@ -268,10 +337,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!renderContext)
                 return;
 
-            DebugParametersUI(renderContext);
+            serializedObject.Update();
+
+            DebuggingUI(renderContext);
             ShadowParametersUI(renderContext);
             TextureParametersUI(renderContext);
             TilePassUI(renderContext);
+
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }
