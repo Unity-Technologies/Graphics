@@ -18,8 +18,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var instance = CreateInstance<HDRenderPipeline>();
             AssetDatabase.CreateAsset(instance, k_HDRenderPipelinePath);
-
-            instance.m_Setup = AssetDatabase.LoadAssetAtPath<HDRenderPipelineSetup>("Assets/HDRenderPipelineSetup.asset");
         }
 
         [UnityEditor.MenuItem("RenderPipeline/UpdateHDLoop")]
@@ -30,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 var loop = AssetDatabase.LoadAssetAtPath<HDRenderPipeline>(path);
-                loop.m_Setup = AssetDatabase.LoadAssetAtPath<HDRenderPipelineSetup>("Assets/HDRenderPipelineSetup.asset");
+               // loop.m_Setup = AssetDatabase.LoadAssetAtPath<TilePassSetup>("Assets/HDRenderPipelineSetup.asset");
                 EditorUtility.SetDirty(loop);
             }
         }
@@ -55,22 +53,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private HDRenderPipeline()
         {}
 
-        [SerializeField]
-        private HDRenderPipelineSetup m_Setup;
-
-        public HDRenderPipelineSetup renderPipelineSetup
-        {
-            get { return m_Setup; }
-        }
 
         [SerializeField]
         private CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
-
-        public CommonSettings.Settings commonSettings
-        {
-            get { return m_CommonSettings; }
-            set { m_CommonSettings = value; }
-        }
 
         public CommonSettings.Settings commonSettingsToUse
         {
@@ -82,6 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_CommonSettings;
             }
         }
+        
 
         [SerializeField]
         private SkyParameters m_SkyParameters;
@@ -101,6 +87,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 return m_SkyParameters;
             }
+        }
+
+
+        [SerializeField]
+        private LightLoopProducer m_LightLoopProducer;
+        public LightLoopProducer lightLoopProducer
+        {
+            get { return m_LightLoopProducer; }
+            set { m_LightLoopProducer = value; }
         }
 
         protected override IRenderPipeline InternalCreatePipeline()
@@ -132,14 +127,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_TextureSettings = value; }
         }
 
-        [SerializeField]
-        TileSettings m_TileSettings = new TileSettings();
-
-        public TileSettings tileSettings
-        {
-            get { return m_TileSettings; }
-        }
-
         public void UpdateCommonSettings()
         {
             var commonSettings = commonSettingsToUse;
@@ -147,22 +134,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
             m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
         }
-    }
-
-    [Serializable]
-    public class TileSettings
-    {
-        public bool enableDrawLightBoundsDebug = false;
-        public bool disableTileAndCluster = false; // For debug / test
-        public bool disableDeferredShadingInCompute = true;
-        public bool enableSplitLightEvaluation = true;
-        public bool enableComputeLightEvaluation = false;
-
-        // clustered light list specific buffers and data begin
-        public int debugViewTilesFlags = 0;
-        public bool enableClustered = true;
-        public bool disableFptlWhenClustered = false; // still useful on opaques. Should be false by default to force tile on opaque.
-        public bool enableBigTilePrepass = true;
     }
 
     public struct HDCamera
@@ -272,8 +243,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_CurrentHeight;
 
         ShadowRenderPass m_ShadowPass;
-
+        
         readonly SkyManager m_SkyManager = new SkyManager();
+        private readonly BaseLightLoop m_LightLoop;
 
         private DebugParameters debugParameters
         {
@@ -320,8 +292,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_LitRenderLoop.Build();
 
-            m_lightLoop = new LightLoop(owner);
-            m_lightLoop.Build(owner.textureSettings);
+            if (owner.lightLoopProducer)
+                m_LightLoop = owner.lightLoopProducer.CreateLightLoop();
+
+            if(m_LightLoop != null)
+                m_LightLoop.Build(owner.textureSettings);
 
             m_SkyManager.skyParameters = owner.skyParametersToUse;
         }
@@ -330,7 +305,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             base.Dispose();
 
-            m_lightLoop.Cleanup();
+            if (m_LightLoop != null)
+                m_LightLoop.Cleanup();
+
             m_LitRenderLoop.Cleanup();
 
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
@@ -346,8 +323,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             reflectionProbe = SupportedRenderingFeatures.ReflectionProbe.Rotation
         };
-
-        private LightLoop m_lightLoop;
 #endif
 
         void Resize(Camera camera)
@@ -360,14 +335,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skyParameters = m_Owner.skyParametersToUse;
             m_SkyManager.Resize(camera.nearClipPlane, camera.farClipPlane); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
 
-            if (camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight || m_lightLoop.NeedResize())
+            if (m_LightLoop == null)
+                return;
+
+            if (camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight || m_LightLoop.NeedResize())
             {
                 if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
                 {
-                    m_lightLoop.ReleaseResolutionDependentBuffers();
+                    m_LightLoop.ReleaseResolutionDependentBuffers();
                 }
 
-                m_lightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
+                m_LightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
 
                 // update recorded window resolution
                 m_CurrentWidth = camera.pixelWidth;
@@ -396,7 +374,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-            m_lightLoop.PushGlobalParams(hdCamera.camera, renderContext);
+            if (m_LightLoop != null)
+                m_LightLoop.PushGlobalParams(hdCamera.camera, renderContext);
         }
 
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -416,7 +395,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LitRenderLoop.RenderInit(renderContext);
 
             // Do anything we need to do upon a new frame.
-            m_lightLoop.NewFrame();
+
+            if (m_LightLoop != null)
+                m_LightLoop.NewFrame();
 
             m_Owner.UpdateCommonSettings();
 
@@ -475,10 +456,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
 
-            using (new Utilities.ProfilingSample("Build Light list", renderContext))
+            if (m_LightLoop != null)
             {
-                m_lightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera, ref shadows);
-                m_lightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthBufferRT); // TODO: Use async compute here to run light culling during shadow
+                using (new Utilities.ProfilingSample("Build Light list", renderContext))
+                {
+                    m_LightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera, ref shadows);
+                    m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthBufferRT); // TODO: Use async compute here to run light culling during shadow
+                }
             }
 
             PushGlobalParams(hdCamera, renderContext);
@@ -645,18 +629,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return;
             }
-
-            m_lightLoop.RenderDeferredLighting(hdCamera, renderContext, m_CameraColorBuffer);
+            if (m_LightLoop != null)
+                m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, m_CameraColorBuffer);
         }
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
-            m_SkyManager.UpdateEnvironment(hdCamera, m_lightLoop.GetCurrentSunLight(), renderContext);
+            m_SkyManager.UpdateEnvironment(hdCamera, m_LightLoop == null ? null :  m_LightLoop.GetCurrentSunLight(), renderContext);
         }
 
         void RenderSky(HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
-            m_SkyManager.RenderSky(hdCamera, m_lightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthBufferRT, renderContext);
+            m_SkyManager.RenderSky(hdCamera, m_LightLoop == null ? null : m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthBufferRT, renderContext);
         }
 
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
@@ -670,7 +654,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
 
-                m_lightLoop.RenderForward(camera, renderContext, renderOpaque);
+                if (m_LightLoop != null)
+                    m_LightLoop.RenderForward(camera, renderContext, renderOpaque);
 
                 if (renderOpaque)
                 {
@@ -690,7 +675,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthBufferRT);
 
-                m_lightLoop.RenderForward(camera, renderContext, true);
+                if (m_LightLoop != null)
+                    m_LightLoop.RenderForward(camera, renderContext, true);
                 RenderOpaqueRenderList(cullResults, camera, renderContext, "ForwardOnlyOpaque", Utilities.kRendererConfigurationBakedLighting);
             }
         }
@@ -766,7 +752,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
         {
             // build per tile light lists
-            m_lightLoop.PrepareLightsForGPU(shadowSettings, cullResults, camera, ref shadowOutput);
+            if (m_LightLoop != null)
+                m_LightLoop.PrepareLightsForGPU(shadowSettings, cullResults, camera, ref shadowOutput);
         }
 
         void InitAndClearBuffer(Camera camera, ScriptableRenderContext renderContext)

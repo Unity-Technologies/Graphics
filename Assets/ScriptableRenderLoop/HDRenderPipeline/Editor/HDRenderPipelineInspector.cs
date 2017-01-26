@@ -23,13 +23,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
             public int[] debugViewMaterialValues = null;
-
-            public readonly GUIContent commonSettings = new GUIContent("Common Settings");
-            public readonly GUIContent maxShadowDistance = new GUIContent("Max Shadow Distance");
-            public readonly GUIContent shadowCascadeCount = new GUIContent("Shadow Cascade Count");
-            public readonly GUIContent shadowCascadeSplit0 = new GUIContent("Cascade Split 0");
-            public readonly GUIContent shadowCascadeSplit1 = new GUIContent("Cascade Split 1");
-            public readonly GUIContent shadowCascadeSplit2 = new GUIContent("Cascade Split 2");
             
             public readonly GUIContent skyParams = new GUIContent("Sky Settings");
 
@@ -189,32 +182,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void CommonSettingsUI(HDRenderPipeline pipe)
+        private void SkySettingsUI(HDRenderPipeline pipe)
         {
             EditorGUILayout.Space();
-            var commonSettings = pipe.commonSettings;
 
-            EditorGUILayout.LabelField(styles.commonSettings);
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
-
-            commonSettings.shadowMaxDistance = Mathf.Max(0, EditorGUILayout.FloatField(styles.maxShadowDistance, commonSettings.shadowMaxDistance));
-            commonSettings.shadowCascadeCount = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowCascadeCount, commonSettings.shadowCascadeCount));
-            commonSettings.shadowCascadeSplit0 = Mathf.Max(0, EditorGUILayout.FloatField(styles.shadowCascadeSplit0, commonSettings.shadowCascadeSplit0));
-            commonSettings.shadowCascadeSplit1 = Mathf.Max(0, EditorGUILayout.FloatField(styles.shadowCascadeSplit1, commonSettings.shadowCascadeSplit1));
-            commonSettings.shadowCascadeSplit2 = Mathf.Max(0, EditorGUILayout.FloatField(styles.shadowCascadeSplit2, commonSettings.shadowCascadeSplit2));
-
-            EditorGUI.indentLevel--;
-
-            EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.skyParams);
+            EditorGUI.BeginChangeCheck();
             EditorGUI.indentLevel++;
             pipe.skyParameters = (SkyParameters) EditorGUILayout.ObjectField(new GUIContent("Sky Settings"), pipe.skyParameters, typeof(SkyParameters), false);
+            pipe.lightLoopProducer = (LightLoopProducer) EditorGUILayout.ObjectField(new GUIContent("Light Loop"), pipe.lightLoopProducer, typeof(LightLoopProducer), false);
             EditorGUI.indentLevel--;
 
             if (EditorGUI.EndChangeCheck())
             {
-                pipe.commonSettings = commonSettings;
                 EditorUtility.SetDirty(pipe); // Repaint
             }
         }
@@ -260,7 +240,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void TilePassUI(HDRenderPipeline renderContext)
+      /*  private void TilePassUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
 
@@ -297,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 EditorGUI.indentLevel--;
             }
-        }
+        }*/
 
         public override void OnInspectorGUI()
         {
@@ -307,10 +287,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
 
             DebugParametersUI(renderContext);
-            CommonSettingsUI(renderContext);
+            SkySettingsUI(renderContext);
             ShadowParametersUI(renderContext);
             TextureParametersUI(renderContext);
-            TilePassUI(renderContext);
+            //TilePassUI(renderContext);
         }
     }
 }
