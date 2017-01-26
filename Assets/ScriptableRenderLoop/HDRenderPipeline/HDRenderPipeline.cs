@@ -380,7 +380,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 sorting = { flags = SortFlags.CommonOpaque }
             };
             settings.inputFilter.SetQueuesOpaque();
-            renderContext.DrawRenderers(ref settings);
+            renderContext.DrawRenderers(settings);
         }
 
         void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, string passName, RendererConfiguration rendererConfiguration = 0)
@@ -394,7 +394,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 sorting = { flags = SortFlags.CommonTransparent }
             };
             settings.inputFilter.SetQueuesTransparent();
-            renderContext.DrawRenderers(ref settings);
+            renderContext.DrawRenderers(settings);
         }
 
         void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext)
