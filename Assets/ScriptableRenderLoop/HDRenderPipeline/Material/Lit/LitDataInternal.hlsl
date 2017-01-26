@@ -246,7 +246,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
-#ifdef _ALPHATEST_ON
+#if defined(_ALPHATEST_ON) && !defined(LAYERED_LIT_SHADER)
     clip(alpha - _AlphaCutoff);
 #endif
 
