@@ -266,28 +266,28 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, isTriplanar, layerTexCoord);
+                            positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTiling0);
 
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_1
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, isTriplanar, layerTexCoord);
+                            positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTiling1);
 
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_2
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, isTriplanar, layerTexCoord);
+                            positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTiling2);
 
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_3
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, isTriplanar, layerTexCoord);
+                            positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTiling3);
 }
 
 void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
