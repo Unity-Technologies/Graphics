@@ -104,8 +104,10 @@ Shader "HDRenderPipeline/LayeredLit"
 
         // Layer blending options
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
-        [ToggleOff]  _LayerMaskVertexColor("Use Vertex Color Mask", Float) = 0.0
         [ToggleOff] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
+        // Layer blending options V2
+        [ToggleOff] _UseHeightBasedBlendV2("Use Height Blend V2", Float) = 0.0
+        [ToggleOff] _UseMainLayerInfluence("UseMainLayerInfluence", Float) = 0.0
 
         _HeightOffset1("_HeightOffset1", Range(-0.3, 0.3)) = 0.0
         _HeightOffset2("_HeightOffset2", Range(-0.3, 0.3)) = 0.0
@@ -119,14 +121,7 @@ Shader "HDRenderPipeline/LayeredLit"
         _BlendSize2("_BlendSize2", Range(0, 0.30)) = 0.0
         _BlendSize3("_BlendSize3", Range(0, 0.30)) = 0.0
 
-        _InheritBaseLayer1("_InheritBaseLayer1", Range(0, 1.0)) = 0.0
-        _InheritBaseLayer2("_InheritBaseLayer2", Range(0, 1.0)) = 0.0
-        _InheritBaseLayer3("_InheritBaseLayer3", Range(0, 1.0)) = 0.0
-
         _VertexColorHeightFactor("_VertexColorHeightFactor", Float) = 0.3
-
-        // Layer blending options V2
-        [ToggleOff] _UseHeightBasedBlendV2("Use Height Blend V2", Float) = 0.0
 
         _HeightCenterOffset1("_HeightCenterOffset1", Float) = 0.0
         _HeightCenterOffset2("_HeightCenterOffset2", Float) = 0.0
@@ -196,6 +191,8 @@ Shader "HDRenderPipeline/LayeredLit"
 
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
+        [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
+
         // WARNING
         // All the following properties that concern the UV mapping are the same as in the Lit shader.
         // This means that they will get overridden when synchronizing the various layers.
@@ -259,6 +256,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
+    #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _HEIGHT_BASED_BLEND_V2
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
@@ -475,10 +473,9 @@ Shader "HDRenderPipeline/LayeredLit"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../Lighting/Forward.hlsl"
             // TEMP until pragma work in include
-            // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
 
             #include "../../Lighting/Lighting.hlsl"            
             #include "../Lit/ShaderPass/LitSharePass.hlsl"

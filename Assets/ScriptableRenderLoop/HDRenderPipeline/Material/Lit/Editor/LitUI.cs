@@ -268,6 +268,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
 
+            EditorGUILayout.Space();
+            GUILayout.Label(Styles.textureControlText, EditorStyles.label);
             m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap);
 
             EditorGUILayout.Space();

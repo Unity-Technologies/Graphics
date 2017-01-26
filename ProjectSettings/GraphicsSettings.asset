@@ -104,4 +104,4 @@ GraphicsSettings:
   m_FogKeepExp2: 1
   m_AlbedoSwatchInfos: []
   m_LightsUseLinearIntensity: 1
-  m_LightsUseCCT: 1
+  m_LightsUseColorTemperature: 1
