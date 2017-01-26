@@ -9,7 +9,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d440c0deec24a2f478b3e9021cb66c29, type: 3}
-  m_Name: HDRenderPipeline
+  m_Name: 
   m_EditorClassIdentifier: 
   m_Setup: {fileID: 11400000, guid: c90ada6c2ed7b4e4b85a303678826111, type: 2}
   m_CommonSettings:
@@ -33,10 +33,10 @@ MonoBehaviour:
   m_TileSettings:
     enableDrawLightBoundsDebug: 0
     disableTileAndCluster: 0
-    disableDeferredShadingInCompute: 0
-    enableSplitLightEvaluation: 0
+    disableDeferredShadingInCompute: 1
+    enableSplitLightEvaluation: 1
     enableComputeLightEvaluation: 0
     debugViewTilesFlags: 0
-    enableClustered: 0
-    disableFptlWhenClustered: 1
-    enableBigTilePrepass: 0
+    enableClustered: 1
+    disableFptlWhenClustered: 0
+    enableBigTilePrepass: 1
