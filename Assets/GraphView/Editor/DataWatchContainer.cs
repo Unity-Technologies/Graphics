@@ -2,44 +2,44 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-    public abstract class DataWatchContainer : VisualContainer
-    {
-        IDataWatchHandle handle;
+	public abstract class DataWatchContainer : VisualContainer
+	{
+		IDataWatchHandle handle;
 
-        public bool forceNotififcationOnAdd { get; set; }
+		public bool forceNotififcationOnAdd { get; set; }
 
-        protected DataWatchContainer()
-        {
-            // trigger data source reset when entering leaving panel
-            onEnter += AddWatch;
-            onLeave += RemoveWatch;
-        }
+		protected DataWatchContainer()
+		{
+			// trigger data source reset when entering leaving panel
+			onEnter += AddWatch;
+			onLeave += RemoveWatch;
+		}
 
-        // called when Serialized object has changed
-        // only works while widget is in a panel
-        public virtual void OnDataChanged()
-        { }
+		// called when Serialized object has changed
+		// only works while widget is in a panel
+		public virtual void OnDataChanged()
+		{ }
 
-        protected abstract object toWatch { get; }
+		protected abstract object toWatch { get; }
 
-        protected void AddWatch()
-        {
-            var watch = toWatch as UnityEngine.Object;
-            if (watch != null && panel != null)
-            {
-                handle = panel.dataWatch.AddWatch(this, watch, OnDataChanged);
-                if (forceNotififcationOnAdd)
-                    OnDataChanged();
-            }
-        }
+		protected void AddWatch()
+		{
+			var watch = toWatch as UnityEngine.Object;
+			if (watch != null && panel != null)
+			{
+				handle = panel.dataWatch.AddWatch(this, watch, OnDataChanged);
+				if (forceNotififcationOnAdd)
+					OnDataChanged();
+			}
+		}
 
-        protected void RemoveWatch()
-        {
-            if (handle != null)
-            {
-                handle.Dispose();
-                handle = null;
-            }
-        }
-    }
+		protected void RemoveWatch()
+		{
+			if (handle != null)
+			{
+				handle.Dispose();
+				handle = null;
+			}
+		}
+	}
 }

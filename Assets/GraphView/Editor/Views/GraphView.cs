@@ -224,7 +224,7 @@ namespace RMGUI.GraphView
 			foreach (var b in elementsToRemove)
 				presenter.RemoveElement(b);
 
-			return EventPropagation.Stop;
+			return (elementsToRemove.Count > 0) ? EventPropagation.Stop : EventPropagation.Continue;
 		}
 
 		public EventPropagation FrameAll()
