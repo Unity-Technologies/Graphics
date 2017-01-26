@@ -81,18 +81,11 @@ namespace UnityEngine.Experimental.Rendering
 
             // For now, we use an ad-hoc approach.
             // We truncate the distribution at the radius of 3 standard deviations.
-            float averageRadius1 = Mathf.Sqrt(m_filter1Variance.r)
-                                 + Mathf.Sqrt(m_filter1Variance.g)
-                                 + Mathf.Sqrt(m_filter1Variance.b);
-            float averageRadius2 = Mathf.Sqrt(m_filter2Variance.r)
-                                 + Mathf.Sqrt(m_filter2Variance.g)
-                                 + Mathf.Sqrt(m_filter2Variance.b);
-            float radius = Mathf.Lerp(averageRadius1, averageRadius2, m_filterLerpWeight);
+            float maxRadius1 = 3 * Mathf.Sqrt(Mathf.Max(m_filter1Variance.r, m_filter1Variance.g, m_filter1Variance.b));
+            float maxRadius2 = 3 * Mathf.Sqrt(Mathf.Max(m_filter2Variance.r, m_filter2Variance.g, m_filter2Variance.b));
+            float radius     = Mathf.Lerp(maxRadius1, maxRadius2, m_filterLerpWeight);
 
             // We compute sample positions and weights using Gauss–Legendre quadrature.
-            // The formula for the interval [a, b] is given here:
-            // https://en.wikipedia.org/wiki/Gaussian_quadrature#Change_of_interval
-
             // Ref: http://keisan.casio.com/exec/system/1329114617
             float[] unitAbscissae = { 0.0f,        0.40584515f, -0.40584515f, 0.74153118f, -0.74153118f, 0.94910791f, -0.94910791f };
             float[] unitWeights   = { 0.41795918f, 0.38183005f,  0.38183005f, 0.27970539f,  0.27970539f, 0.12948496f,  0.12948496f };
@@ -105,6 +98,7 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = 0; i < numSamples; ++i)
             {
                 // Perform the change of interval: {a, b} = {-radius, radius}.
+                // Ref: https://en.wikipedia.org/wiki/Gaussian_quadrature#Change_of_interval
                 float weight   = radius * unitWeights[i];
                 float position = radius * unitAbscissae[i];
 
