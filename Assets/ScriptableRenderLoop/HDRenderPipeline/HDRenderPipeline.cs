@@ -525,7 +525,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float distanceToProjectionWindow = 1.0f / Mathf.Tan(0.5f * Mathf.Deg2Rad * hdCamera.camera.fieldOfView);
             m_CombineSubsurfaceScattering.SetFloat("_DistToProjWindow", distanceToProjectionWindow);
             // Note: the user-provided bilateral scale is reversed (compared to the one in the shader).
-            m_CombineSubsurfaceScattering.SetFloat("_BilateralScale", (1.0f - sssParameters.bilateralScale));
+            m_CombineSubsurfaceScattering.SetFloat("_BilateralScale", 4.0f * (1.0f - sssParameters.bilateralScale));
             // TODO: use user-defined values for '_ProfileID' and '_FilterRadius.'
             m_CombineSubsurfaceScattering.SetVectorArray("_FilterKernel", sssParameters.profiles[0].filterKernel);
             m_CombineSubsurfaceScattering.SetFloat("_FilterRadius", 5.0f);
