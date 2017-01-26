@@ -96,12 +96,6 @@ Shader "HDRenderPipeline/LayeredLit"
         _DetailAOScale2("_DetailAOScale2", Range(-2.0, 2.0)) = 1
         _DetailAOScale3("_DetailAOScale3", Range(-2.0, 2.0)) = 1
 
-        // Specific to planar mapping
-        _TexWorldScale0("TexWorldScale0", Float) = 1.0
-        _TexWorldScale1("TexWorldScale1", Float) = 1.0
-        _TexWorldScale2("TexWorldScale2", Float) = 1.0
-        _TexWorldScale3("TexWorldScale3", Float) = 1.0
-
         // Layer blending options
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
         [ToggleOff] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
@@ -154,6 +148,11 @@ Shader "HDRenderPipeline/LayeredLit"
         _OpacityAsDensity1("_OpacityAsDensity1", Range(0, 1.0)) = 0.0
         _OpacityAsDensity2("_OpacityAsDensity2", Range(0, 1.0)) = 0.0
         _OpacityAsDensity3("_OpacityAsDensity3", Range(0, 1.0)) = 0.0
+
+        _LayerTiling0("LayerTiling0", Float) = 1
+        _LayerTiling1("LayerTiling1", Float) = 1
+        _LayerTiling2("LayerTiling2", Float) = 1
+        _LayerTiling3("LayerTiling3", Float) = 1
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
