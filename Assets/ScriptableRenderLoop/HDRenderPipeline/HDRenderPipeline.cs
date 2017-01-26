@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
         private HDRenderPipeline()
-        { }
+        {}
 
         [SerializeField]
         private HDRenderPipelineSetup m_Setup;
@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SkyParameters skyParametersToUse
         {
             get
-        {
+            {
                 if (SkyParametersSingleton.overrideSettings)
                     return SkyParametersSingleton.overrideSettings;
 
@@ -96,6 +96,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         readonly DebugParameters m_DebugParameters = new DebugParameters();
+
         public DebugParameters debugParameters
         {
             get { return m_DebugParameters; }
@@ -133,22 +134,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
             m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
         }
-        }
+    }
 
     [Serializable]
     public class TileSettings
-        {
+    {
         public bool enableDrawLightBoundsDebug = false;
-        public bool disableTileAndCluster = true; // For debug / test
+        public bool disableTileAndCluster = false; // For debug / test
         public bool disableDeferredShadingInCompute = true;
         public bool enableSplitLightEvaluation = true;
         public bool enableComputeLightEvaluation = false;
 
         // clustered light list specific buffers and data begin
         public int debugViewTilesFlags = 0;
-        public bool enableClustered = false;
-        public bool disableFptlWhenClustered = true;    // still useful on opaques. Should be false by default to force tile on opaque.
-        public bool enableBigTilePrepass = false;
+        public bool enableClustered = true;
+        public bool disableFptlWhenClustered = false; // still useful on opaques. Should be false by default to force tile on opaque.
+        public bool enableBigTilePrepass = true;
     }
 
     public struct HDCamera
