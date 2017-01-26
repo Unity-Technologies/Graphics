@@ -1,7 +1,4 @@
-using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
