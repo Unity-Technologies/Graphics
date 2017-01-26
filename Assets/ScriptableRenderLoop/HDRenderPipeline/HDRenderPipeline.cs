@@ -1,7 +1,9 @@
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
