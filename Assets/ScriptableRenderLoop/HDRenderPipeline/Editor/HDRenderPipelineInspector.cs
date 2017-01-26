@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    //[CustomEditor(typeof(HDRenderPipeline))]
+    [CustomEditor(typeof(HDRenderPipeline))]
     public class HDRenderPipelineInspector : Editor
     {
         private class Styles
@@ -18,14 +18,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
             public readonly GUIContent useDepthPrepass = new GUIContent("Use Depth Prepass");
-            public readonly GUIContent useDistortion = new GUIContent("Use Distortion");        
+            public readonly GUIContent useDistortion = new GUIContent("Use Distortion");
 
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
             public int[] debugViewMaterialValues = null;
 
-            public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
+            public readonly GUIContent commonSettings = new GUIContent("Common Settings");
+            public readonly GUIContent maxShadowDistance = new GUIContent("Max Shadow Distance");
+            public readonly GUIContent shadowCascadeCount = new GUIContent("Shadow Cascade Count");
+            public readonly GUIContent shadowCascadeSplit0 = new GUIContent("Cascade Split 0");
+            public readonly GUIContent shadowCascadeSplit1 = new GUIContent("Cascade Split 1");
+            public readonly GUIContent shadowCascadeSplit2 = new GUIContent("Cascade Split 2");
+            
+            public readonly GUIContent skyParams = new GUIContent("Sky Settings");
 
+            public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
             public readonly GUIContent shadowsEnabled = new GUIContent("Enabled");
             public readonly GUIContent shadowsAtlasWidth = new GUIContent("Atlas width");
             public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas height");
@@ -181,6 +189,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
+        private void CommonSettingsUI(HDRenderPipeline pipe)
+        {
+            EditorGUILayout.Space();
+            var commonSettings = pipe.commonSettings;
+
+            EditorGUILayout.LabelField(styles.commonSettings);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+
+            commonSettings.shadowMaxDistance = Mathf.Max(0, EditorGUILayout.FloatField(styles.maxShadowDistance, commonSettings.shadowMaxDistance));
+            commonSettings.shadowCascadeCount = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowCascadeCount, commonSettings.shadowCascadeCount));
+            commonSettings.shadowCascadeSplit0 = Mathf.Max(0, EditorGUILayout.FloatField(styles.shadowCascadeSplit0, commonSettings.shadowCascadeSplit0));
+            commonSettings.shadowCascadeSplit1 = Mathf.Max(0, EditorGUILayout.FloatField(styles.shadowCascadeSplit1, commonSettings.shadowCascadeSplit1));
+            commonSettings.shadowCascadeSplit2 = Mathf.Max(0, EditorGUILayout.FloatField(styles.shadowCascadeSplit2, commonSettings.shadowCascadeSplit2));
+
+            EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(styles.skyParams);
+            EditorGUI.indentLevel++;
+            pipe.skyParameters = (SkyParameters) EditorGUILayout.ObjectField(new GUIContent("Sky Settings"), pipe.skyParameters, typeof(SkyParameters), false);
+            EditorGUI.indentLevel--;
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                pipe.commonSettings = commonSettings;
+                EditorUtility.SetDirty(pipe); // Repaint
+            }
+        }
+    
         private void ShadowParametersUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
@@ -269,6 +307,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
 
             DebugParametersUI(renderContext);
+            CommonSettingsUI(renderContext);
             ShadowParametersUI(renderContext);
             TextureParametersUI(renderContext);
             TilePassUI(renderContext);
