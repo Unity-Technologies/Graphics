@@ -78,9 +78,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Debugging
-        [SerializeField]
-        GlobalDebugParameters   m_GlobalDebugParameters = new GlobalDebugParameters();
-        DebugParameters         m_DebugParameters = new DebugParameters();
+        public GlobalDebugParameters   globalDebugParameters = new GlobalDebugParameters();
+        DebugParameters                m_DebugParameters = new DebugParameters();
 
         public DebugParameters debugParameters
         {
@@ -593,13 +592,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             debugCB.name = "Debug Overlay";
 
             float x = 0;
-            float overlayRatio = m_GlobalDebugParameters.debugOverlayRatio;
+            float overlayRatio = globalDebugParameters.debugOverlayRatio;
             float overlaySize = Math.Min(camera.pixelHeight, camera.pixelWidth) * overlayRatio;
             float y = camera.pixelHeight - overlaySize;
 
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
 
-            ShadowDebugParameters shadowDebug = m_GlobalDebugParameters.shadowDebugParameters;
+            ShadowDebugParameters shadowDebug = globalDebugParameters.shadowDebugParameters;
 
             if (shadowDebug.visualizationMode != ShadowDebugMode.None)
             {
@@ -694,7 +693,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void ApplyDebugParameters()
         {
-            m_ShadowSettings.enabled = m_GlobalDebugParameters.shadowDebugParameters.enableShadows;
+            m_ShadowSettings.enabled = globalDebugParameters.shadowDebugParameters.enableShadows;
         }
 
         void UpdateCommonSettings()
