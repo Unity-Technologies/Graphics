@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipelineSetup : ScriptableObject
     {
@@ -9,6 +9,7 @@
             var instance = ScriptableObject.CreateInstance<HDRenderPipelineSetup>();
             UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/HDRenderPipelineSetup.asset");
         }
+
 #endif
         public ComputeShader buildScreenAABBShader = null;
         public ComputeShader buildPerTileLightListShader = null;     // FPTL
@@ -21,6 +22,5 @@
 
         // For image based lighting
         public Shader m_InitPreFGD;
-
     }
 }
