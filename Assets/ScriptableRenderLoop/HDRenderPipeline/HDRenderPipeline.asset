@@ -18,7 +18,7 @@ MonoBehaviour:
     m_ShadowCascadeSplit0: 0.05
     m_ShadowCascadeSplit1: 0.2
     m_ShadowCascadeSplit2: 0.3
-  m_SkyParameters: {fileID: 0}
+  m_SkyParameters: {fileID: 11400000, guid: 8f69e950dd2c9dc40a8e9bcb0d4faedb, type: 2}
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096
