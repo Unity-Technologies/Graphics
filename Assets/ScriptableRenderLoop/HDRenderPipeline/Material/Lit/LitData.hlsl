@@ -286,41 +286,39 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 
 float3 ComputeInheritedNormalTS(FragInputs input, float3 normalTS0, float3 normalTS1, float3 normalTS2, float3 normalTS3, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
 {
-    float3 normalTS;
+    // Get our regular normal from regular layering
+    float3 normalTS = BlendLayeredVector3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 
-    // Compute how much we want to inherit from base layer normal base on the mask. Base layer always fully inherit from "itself" if it's the visible layer.
-    float inheritBaseNormal = BlendLayeredScalar(1.0, _InheritBaseNormal1, _InheritBaseNormal2, _InheritBaseNormal3, weights);
-    // Based on this inheritance parameters, fetch a lower level of the base layer normal map so that the less we inherit the more this tends to be "vertex normal"
-    float maxMipBias = log2(max(_NormalMap0_TexelSize.x, _NormalMap0_TexelSize.y)) + 1.0; // TODO: Use hardware instruction here (GetDimensions) that can retunr mipmaps num ? will this be faster
-    float3 inheritedBaseNormalTS = GetNormalTS0(input, layerTexCoord, float3(0.0, 0.0, 0.0), 0.0, true, maxMipBias * (1.0 - inheritBaseNormal));
+    // THen get Main Layer Normal influence factor. Main layer is 0 because it can't be influence. In this case the final lerp return normalTS.
+    float influenceFactor = BlendLayeredScalar(0.0, _InheritBaseNormal1, _InheritBaseNormal2, _InheritBaseNormal3, weights);
+    // We will add smoothly the contribution of the normal map by using lower mips with help of bias sampling. InfluenceFactor must be [0..numMips] // Caution it cause banding...
+    // Note: that we don't take details map into account here.
+    float3 mainNormalTS = GetNormalTS0(input, layerTexCoord, float3(0.0, 0.0, 1.0), 0.0, true, 2.0);
 
-    // Blend all layers but the base one. This will then be added to the "inherited" normal of base layer (that's why base layer here is tangent space vertex normal so that if it's the visible layer we add nothing in term of normal map).
-    float3 layersNormalTS = BlendLayeredVector3(float3(0.0, 0.0, 1.0), normalTS1, normalTS2, normalTS3, weights);
-    // Add the inherited normal to the blended top layers.
-    normalTS = BlendNormalRNM(inheritedBaseNormalTS, layersNormalTS);
-
-    return normalTS;
+    // Add on our regular normal a bit of Main Layer normal base on influence factor. Note that this affect only the "visible" normal.
+    return lerp(normalTS, BlendNormalRNM(normalTS, mainNormalTS), influenceFactor);
 }
 
 float3 ComputeInheritedColor(float3 baseColor0, float3 baseColor1, float3 baseColor2, float3 baseColor3, float compoMask, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
 {
-    float inheritBaseColor = BlendLayeredScalar(1.0, _InheritBaseColor1, _InheritBaseColor2, _InheritBaseColor3, weights);
-    float inheritBaseColorThreshold = BlendLayeredScalar(1.0, _InheritBaseColorThreshold1, _InheritBaseColorThreshold2, _InheritBaseColorThreshold3, weights);
-
-    inheritBaseColor = inheritBaseColor * (1.0 - saturate(compoMask / inheritBaseColorThreshold));
-
-    // We want to calculate the mean color of the texture. For this we will sample a low mipmap
-    float textureBias = 15.0; // Force a high number to be sure we get the lowest mip
-    float3 baseMeanColor0 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb * _BaseColor0.rgb;
-    float3 baseMeanColor1 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap1, sampler_BaseColorMap0, layerTexCoord.base1, textureBias).rgb * _BaseColor1.rgb;
-    float3 baseMeanColor2 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb * _BaseColor2.rgb;
-    float3 baseMeanColor3 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb * _BaseColor3.rgb;
-
-    float3 meanColor = BlendLayeredVector3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
     float3 baseColor = BlendLayeredVector3(baseColor0, baseColor1, baseColor2, baseColor3, weights);
 
+    float influenceFactor = BlendLayeredScalar(0.0, _InheritBaseColor1, _InheritBaseColor2, _InheritBaseColor3, weights);
+    float influenceThreshold = BlendLayeredScalar(1.0, _InheritBaseColorThreshold1, _InheritBaseColorThreshold2, _InheritBaseColorThreshold3, weights);
+
+    influenceFactor = influenceFactor * (1.0 - saturate(compoMask / influenceFactor));
+
+    // We want to calculate the mean color of the texture. For this we will sample a low mipmap
+    float textureBias = 15.0; // Use maximum bias
+    float3 baseMeanColor0 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb;
+    float3 baseMeanColor1 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap1, sampler_BaseColorMap0, layerTexCoord.base1, textureBias).rgb;
+    float3 baseMeanColor2 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb;
+    float3 baseMeanColor3 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb;
+
+    float3 meanColor = BlendLayeredVector3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
+
     // If we inherit from base layer, we will add a bit of it
-    return inheritBaseColor * (baseColor0 - meanColor) + baseColor;
+    return influenceFactor * (baseColor0 - meanColor) + baseColor;
 }
 
 // Caution: Blend mask are Layer 1 R - Layer 2 G - Layer 3 B - Main Layer A
