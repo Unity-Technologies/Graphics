@@ -892,7 +892,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (additionalData == null)
                     {
-                        Debug.LogWarningFormat("Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
+                        // PreRenderLight is used to display preview
+                        if (light.light.name != "PreRenderLight")
+                        {
+                            Debug.LogWarningFormat("Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
+                        }                        
                         additionalData = DefaultAdditionalLightData;
                     }
 
