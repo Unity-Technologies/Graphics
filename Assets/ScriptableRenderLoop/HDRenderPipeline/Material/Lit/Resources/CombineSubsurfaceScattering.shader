@@ -20,7 +20,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             ZTest  Always
             ZWrite Off
-            Blend  One [_DstBlend]
+            Blend  One [_DstBlend], Zero [_DstBlend]
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -117,8 +117,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     // Apply bilateral filtering.
                     float sDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                     float dDepth = abs(sDepth - cDepth);
-                    float dScale = _BilateralScale / (_FilterRadius * _DistToProjWindow);
-                    float t      = saturate(dScale * dDepth);
+                    float dScale = _BilateralScale * _FilterRadius * _DistToProjWindow;
+                    float t      = saturate(dDepth / dScale);
 
                     // TODO: use real-world distances for weighting.
                     filteredIrradiance += lerp(sIrradiance, cIrradiance, t) * sWeight;
