@@ -880,10 +880,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int punctualLightcount = 0;
                 int areaLightCount = 0;
 
-                var sortKeys = new uint[Math.Min(cullResults.visibleLights.Length, k_MaxLightsOnScreen)];
+                int lightCount = Math.Min(cullResults.visibleLights.Length, k_MaxLightsOnScreen);
+                var sortKeys = new uint[lightCount];
                 int sortCount = 0;
 
-                for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; lightIndex < numLights; ++lightIndex)
+                for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                 {
                     var light = cullResults.visibleLights[lightIndex];
 
@@ -1024,10 +1025,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Redo everything but this time with envLights
                 int envLightCount = 0;
 
-                sortKeys = new uint[Math.Min(cullResults.visibleReflectionProbes.Length, k_MaxEnvLightsOnScreen)];
+                int probeCount = Math.Min(cullResults.visibleReflectionProbes.Length, k_MaxEnvLightsOnScreen);
+                sortKeys = new uint[probeCount];
                 sortCount = 0;
 
-                for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Length; probeIndex < numProbes; probeIndex++)
+                for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Length; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                 {
                     var probe = cullResults.visibleReflectionProbes[probeIndex];
 
