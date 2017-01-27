@@ -1031,7 +1031,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     var probe = cullResults.visibleReflectionProbes[probeIndex];
 
-                    if (envLightCount >= k_MaxEnvLightsOnScreen)
+                    // probe.texture can be null when we are adding a reflection probe in the editor
+                    if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
                         continue;
 
                     // TODO: Support LightVolumeType.Sphere, currently in UI there is no way to specify a sphere influence volume                    
