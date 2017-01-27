@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEditor;
 
 //using EditorGUIUtility=UnityEditor.EditorGUIUtility;
@@ -23,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
             public int[] debugViewMaterialValues = null;
-            
+
             public readonly GUIContent skyParams = new GUIContent("Sky Settings");
 
             public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
@@ -32,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas height");
 
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
-            public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] { "Punctual Light", "Area Light", "Env Light"};
+            public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] {"Punctual Light", "Area Light", "Env Light"};
             public readonly GUIContent splitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
             public readonly GUIContent bigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
             public readonly GUIContent clustered = new GUIContent("Enable clustered", "Toggle");
@@ -45,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent spotCookieSize = new GUIContent("Spot cookie size");
             public readonly GUIContent pointCookieSize = new GUIContent("Point cookie size");
-            public readonly GUIContent reflectionCubemapSize = new GUIContent("Reflection cubemap size");              
+            public readonly GUIContent reflectionCubemapSize = new GUIContent("Reflection cubemap size");
         }
 
         private static Styles s_Styles = null;
@@ -75,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!attr.needParamDefines)
             {
-                return ;
+                return;
             }
 
             var fields = type.GetFields();
@@ -88,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Check if the display name have been override by the users
                 if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
                 {
-                    var propertyAttr = (SurfaceDataAttributes[])field.GetCustomAttributes(typeof(SurfaceDataAttributes), false);
+                    var propertyAttr = (SurfaceDataAttributes[]) field.GetCustomAttributes(typeof(SurfaceDataAttributes), false);
                     if (propertyAttr[0].displayName != "")
                     {
                         fieldName = propertyAttr[0].displayName;
@@ -98,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 fieldName = (isBSDFData ? "Engine/" : "") + strSubNameSpace + fieldName;
 
                 debugViewMaterialStrings[index] = new GUIContent(fieldName);
-                debugViewMaterialValues[index] = attr.paramDefinesStart + (int)localIndex;
+                debugViewMaterialValues[index] = attr.paramDefinesStart + (int) localIndex;
                 index++;
                 localIndex++;
             }
@@ -114,10 +115,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var valueName = (isBSDFData ? "Engine/" : "" + prefix) + names[localIndex];
 
                 debugViewMaterialStrings[index] = new GUIContent(valueName);
-                debugViewMaterialValues[index] = (int)value;
+                debugViewMaterialValues[index] = (int) value;
                 index++;
                 localIndex++;
             }
+        }
+
+        static void HackSetDirty(RenderPipelineAsset asset)
+        {
+            EditorUtility.SetDirty(asset);
+            var method = typeof(RenderPipelineAsset).GetMethod("OnValidate", BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (method != null)
+                method.Invoke(asset, new object[0]);
         }
 
         private void DebugParametersUI(HDRenderPipeline renderContext)
@@ -166,7 +175,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 styles.isDebugViewMaterialInit = true;
             }
 
-            debugParameters.debugViewMaterial = EditorGUILayout.IntPopup(styles.debugViewMaterial, (int)debugParameters.debugViewMaterial, styles.debugViewMaterialStrings, styles.debugViewMaterialValues);
+            debugParameters.debugViewMaterial = EditorGUILayout.IntPopup(styles.debugViewMaterial, (int) debugParameters.debugViewMaterial, styles.debugViewMaterialStrings, styles.debugViewMaterialValues);
 
             EditorGUILayout.Space();
             debugParameters.displayOpaqueObjects = EditorGUILayout.Toggle(styles.displayOpaqueObjects, debugParameters.displayOpaqueObjects);
@@ -177,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                EditorUtility.SetDirty(renderContext); // Repaint
+                HackSetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
         }
@@ -195,10 +204,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                EditorUtility.SetDirty(pipe); // Repaint
+                HackSetDirty(pipe); // Repaint
             }
         }
-    
+
         private void ShadowParametersUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
@@ -214,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                EditorUtility.SetDirty(renderContext); // Repaint
+                HackSetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
         }
@@ -235,12 +244,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 renderContext.textureSettings = textureParameters;
-                EditorUtility.SetDirty(renderContext); // Repaint
+                HackSetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
         }
 
-      /*  private void TilePassUI(HDRenderPipeline renderContext)
+        /*  private void TilePassUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
 
@@ -257,7 +266,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    EditorUtility.SetDirty(renderContext); // Repaint
+                   HackSetDirty(renderContext); // Repaint
 
                     // SetAssetDirty will tell renderloop to rebuild
                     renderContext.DestroyCreatedInstances();
@@ -272,7 +281,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    EditorUtility.SetDirty(renderContext); // Repaint
+                   HackSetDirty(renderContext); // Repaint
                     UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
                 }
                 EditorGUI.indentLevel--;
