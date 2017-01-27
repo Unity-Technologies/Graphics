@@ -28,8 +28,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent[] shadowSplits = new GUIContent[] { new GUIContent("Split 0"), new GUIContent("Split 1"), new GUIContent("Split 2") };
 
             public readonly GUIContent sssCategory                = new GUIContent("Subsurface scattering");
-            public readonly GUIContent sssProfileFilter1Variance  = new GUIContent("SSS profile filter #1 variance", "Determines the shape of the 1st Gaussian filter. Increases the strength of the blur of the corresponding color channel.");
-            public readonly GUIContent sssProfileFilter2Variance  = new GUIContent("SSS profile filter #2 variance", "Determines the shape of the 2nd Gaussian filter. Increases the strength of the blur of the corresponding color channel.");
+            public readonly GUIContent sssProfileFilterVariance1  = new GUIContent("SSS profile filter variance #1", "Determines the shape of the 1st Gaussian filter. Increases the strength of the blur of the corresponding color channel.");
+            public readonly GUIContent sssProfileFilterVariance2  = new GUIContent("SSS profile filter variance #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength of the blur of the corresponding color channel.");
             public readonly GUIContent sssProfileFilterLerpWeight = new GUIContent("SSS profile filter interpolation", "Controls linear interpolation between the two Gaussian filters.");
             public readonly GUIContent sssBilateralScale          = new GUIContent("SSS bilateral filtering scale", "Larger values make the filter more tolerant to depth differences.");
         }
@@ -60,8 +60,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private SerializedProperty[] m_ShadowCascadeSplits = new SerializedProperty[3];
 
         // Subsurface scattering
-        private SerializedProperty m_SssProfileFilter1Variance;
-        private SerializedProperty m_SssProfileFilter2Variance;
+        private SerializedProperty m_SssProfileFilterVariance1;
+        private SerializedProperty m_SssProfileFilterVariance2;
         private SerializedProperty m_SssProfileFilterLerpWeight;
         private SerializedProperty m_SssBilateralScale;
 
@@ -99,8 +99,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyRendererTypeValues.Add(m_SkyRendererTypeValues.Count);
             m_SkyRendererTypes.Add(null);
 
-            m_SssProfileFilter1Variance  = serializedObject.FindProperty("m_SssProfileFilter1Variance");
-            m_SssProfileFilter2Variance  = serializedObject.FindProperty("m_SssProfileFilter2Variance");
+            m_SssProfileFilterVariance1  = serializedObject.FindProperty("m_SssProfileFilterVariance1");
+            m_SssProfileFilterVariance2  = serializedObject.FindProperty("m_SssProfileFilterVariance2");
             m_SssProfileFilterLerpWeight = serializedObject.FindProperty("m_SssProfileFilterLerpWeight");
             m_SssBilateralScale          = serializedObject.FindProperty("m_SssBilateralScale");
         }
@@ -168,8 +168,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             EditorGUILayout.LabelField(styles.sssCategory);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_SssProfileFilter1Variance,  styles.sssProfileFilter1Variance);
-            EditorGUILayout.PropertyField(m_SssProfileFilter2Variance,  styles.sssProfileFilter2Variance);
+            EditorGUILayout.PropertyField(m_SssProfileFilterVariance1,  styles.sssProfileFilterVariance1);
+            EditorGUILayout.PropertyField(m_SssProfileFilterVariance2,  styles.sssProfileFilterVariance2);
             EditorGUILayout.PropertyField(m_SssProfileFilterLerpWeight, styles.sssProfileFilterLerpWeight);
             EditorGUILayout.PropertyField(m_SssBilateralScale,          styles.sssBilateralScale);
             EditorGUI.indentLevel--;

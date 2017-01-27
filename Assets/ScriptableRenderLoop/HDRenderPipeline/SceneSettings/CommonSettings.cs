@@ -34,13 +34,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float shadowCascadeSplit2 { set { m_ShadowCascadeSplit2 = value; OnValidate(); } get { return m_ShadowCascadeSplit2; } }
 
         // Subsurface scattering
-        [SerializeField] Color m_SssProfileFilter1Variance  = SubsurfaceScatteringProfile.Default.filter1Variance;
-        [SerializeField] Color m_SssProfileFilter2Variance  = SubsurfaceScatteringProfile.Default.filter2Variance;
+        [SerializeField] Color m_SssProfileFilterVariance1  = SubsurfaceScatteringProfile.Default.filterVariance1;
+        [SerializeField] Color m_SssProfileFilterVariance2  = SubsurfaceScatteringProfile.Default.filterVariance2;
         [SerializeField] float m_SssProfileFilterLerpWeight = SubsurfaceScatteringProfile.Default.filterLerpWeight;
         [SerializeField] float m_SssBilateralScale          = SubsurfaceScatteringParameters.Default.bilateralScale;
         
-        public Color sssProfileFilter1Variance  { set { m_SssProfileFilter1Variance  = value; OnValidate(); } get { return m_SssProfileFilter1Variance; } }
-        public Color sssProfileFilter2Variance  { set { m_SssProfileFilter2Variance  = value; OnValidate(); } get { return m_SssProfileFilter2Variance; } }
+        public Color sssProfileFilterVariance1  { set { m_SssProfileFilterVariance1  = value; OnValidate(); } get { return m_SssProfileFilterVariance1; } }
+        public Color sssProfileFilterVariance2  { set { m_SssProfileFilterVariance2  = value; OnValidate(); } get { return m_SssProfileFilterVariance2; } }
         public float sssProfileFilterLerpWeight { set { m_SssProfileFilterLerpWeight = value; OnValidate(); } get { return m_SssProfileFilterLerpWeight; } }
         public float sssBilateralScale          { set { m_SssBilateralScale          = value; OnValidate(); } get { return m_SssBilateralScale; } }
 
@@ -80,14 +80,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowCascadeSplit1 = Mathf.Clamp01(m_ShadowCascadeSplit1);
             m_ShadowCascadeSplit2 = Mathf.Clamp01(m_ShadowCascadeSplit2);
 
-            m_SssProfileFilter1Variance.r = Mathf.Max(0.05f, m_SssProfileFilter1Variance.r);
-            m_SssProfileFilter1Variance.g = Mathf.Max(0.05f, m_SssProfileFilter1Variance.g);
-            m_SssProfileFilter1Variance.b = Mathf.Max(0.05f, m_SssProfileFilter1Variance.b);
-            m_SssProfileFilter1Variance.a = 0.0f;
-            m_SssProfileFilter2Variance.r = Mathf.Max(0.05f, m_SssProfileFilter2Variance.r);
-            m_SssProfileFilter2Variance.g = Mathf.Max(0.05f, m_SssProfileFilter2Variance.g);
-            m_SssProfileFilter2Variance.b = Mathf.Max(0.05f, m_SssProfileFilter2Variance.b);
-            m_SssProfileFilter2Variance.a = 0.0f;
+            m_SssProfileFilterVariance1.r = Mathf.Max(0.05f, m_SssProfileFilterVariance1.r);
+            m_SssProfileFilterVariance1.g = Mathf.Max(0.05f, m_SssProfileFilterVariance1.g);
+            m_SssProfileFilterVariance1.b = Mathf.Max(0.05f, m_SssProfileFilterVariance1.b);
+            m_SssProfileFilterVariance1.a = 0.0f;
+            m_SssProfileFilterVariance2.r = Mathf.Max(0.05f, m_SssProfileFilterVariance2.r);
+            m_SssProfileFilterVariance2.g = Mathf.Max(0.05f, m_SssProfileFilterVariance2.g);
+            m_SssProfileFilterVariance2.b = Mathf.Max(0.05f, m_SssProfileFilterVariance2.b);
+            m_SssProfileFilterVariance2.a = 0.0f;
             m_SssProfileFilterLerpWeight  = Mathf.Clamp01(m_SssProfileFilterLerpWeight);
             m_SssBilateralScale           = Mathf.Clamp01(m_SssBilateralScale);
 

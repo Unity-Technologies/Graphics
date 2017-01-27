@@ -743,8 +743,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowSettings.directionalLightCascades = new Vector3(m_CommonSettings.shadowCascadeSplit0, m_CommonSettings.shadowCascadeSplit1, m_CommonSettings.shadowCascadeSplit2);
                 m_ShadowSettings.maxShadowDistance = m_CommonSettings.shadowMaxDistance;
 
-                sssParameters.profiles[0].filter1Variance  = m_CommonSettings.sssProfileFilter1Variance;
-                sssParameters.profiles[0].filter2Variance  = m_CommonSettings.sssProfileFilter2Variance;
+                sssParameters.profiles[0].filterVariance1  = m_CommonSettings.sssProfileFilterVariance1;
+                sssParameters.profiles[0].filterVariance2  = m_CommonSettings.sssProfileFilterVariance2;
                 sssParameters.profiles[0].filterLerpWeight = m_CommonSettings.sssProfileFilterLerpWeight;
                 sssParameters.bilateralScale               = m_CommonSettings.sssBilateralScale;
             }
