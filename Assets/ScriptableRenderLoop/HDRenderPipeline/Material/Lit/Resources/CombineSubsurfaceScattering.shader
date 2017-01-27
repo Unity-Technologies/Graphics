@@ -117,14 +117,14 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     // Apply bilateral filtering.
                     float sDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                     float dDepth = abs(sDepth - cDepth);
-                    float dScale = _FilterRadius * _DistToProjWindow * _BilateralScale;
+                    float dScale = _BilateralScale / (_FilterRadius * _DistToProjWindow);
                     float t      = saturate(dScale * dDepth);
 
                     // TODO: use real-world distances for weighting.
                     filteredIrradiance += lerp(sIrradiance, cIrradiance, t) * sWeight;
                 }
 
-                return float4(false ? cIrradiance : filteredIrradiance, 1.0);
+                return float4(filteredIrradiance, 1.0);
             }
             ENDHLSL
         }
