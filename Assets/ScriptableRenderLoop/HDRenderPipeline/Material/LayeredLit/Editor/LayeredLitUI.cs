@@ -567,7 +567,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (heightBasedBlendEnable)
                 {
                     EditorGUI.indentLevel++;
-                    m_MaterialEditor.ShaderProperty(blendUsingHeight[layerIndex], styles.blendUsingHeight);
+                    m_MaterialEditor.ShaderProperty(blendUsingHeight[paramIndex], styles.blendUsingHeight);
                     EditorGUI.indentLevel--;
                 }
 
