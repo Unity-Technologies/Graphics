@@ -548,22 +548,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            bool heightBasedBlendEnable = useHeightBasedBlend.floatValue != 0.0f;            
-            if (heightBasedBlendEnable)
-            {
-                EditorGUILayout.LabelField(styles.heightControlText, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(styles.heightControlText, EditorStyles.boldLabel);
 
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(heightFactor[layerIndex], styles.heightFactorText);
-                m_MaterialEditor.ShaderProperty(heightCenterOffset[layerIndex], styles.heightCenterOffsetText);
-                EditorGUI.indentLevel--;
-            }
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(heightFactor[layerIndex], styles.heightFactorText);
+            m_MaterialEditor.ShaderProperty(heightCenterOffset[layerIndex], styles.heightCenterOffsetText);
+            EditorGUI.indentLevel--;
 
             // influence
             if (layerIndex > 0)
             {
                 int paramIndex = layerIndex - 1;
 
+                bool heightBasedBlendEnable = useHeightBasedBlend.floatValue != 0.0f; 
                 if (heightBasedBlendEnable)
                 {
                     EditorGUI.indentLevel++;
