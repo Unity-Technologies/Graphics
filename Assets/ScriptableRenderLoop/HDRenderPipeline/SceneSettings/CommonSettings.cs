@@ -80,13 +80,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowCascadeSplit1 = Mathf.Clamp01(m_ShadowCascadeSplit1);
             m_ShadowCascadeSplit2 = Mathf.Clamp01(m_ShadowCascadeSplit2);
 
-            m_SssProfileFilter1Variance.r = Mathf.Max(0.1f, m_SssProfileFilter1Variance.r);
-            m_SssProfileFilter1Variance.g = Mathf.Max(0.1f, m_SssProfileFilter1Variance.g);
-            m_SssProfileFilter1Variance.b = Mathf.Max(0.1f, m_SssProfileFilter1Variance.b);
+            m_SssProfileFilter1Variance.r = Mathf.Max(0.05f, m_SssProfileFilter1Variance.r);
+            m_SssProfileFilter1Variance.g = Mathf.Max(0.05f, m_SssProfileFilter1Variance.g);
+            m_SssProfileFilter1Variance.b = Mathf.Max(0.05f, m_SssProfileFilter1Variance.b);
             m_SssProfileFilter1Variance.a = 0.0f;
-            m_SssProfileFilter2Variance.r = Mathf.Max(0.1f, m_SssProfileFilter2Variance.r);
-            m_SssProfileFilter2Variance.g = Mathf.Max(0.1f, m_SssProfileFilter2Variance.g);
-            m_SssProfileFilter2Variance.b = Mathf.Max(0.1f, m_SssProfileFilter2Variance.b);
+            m_SssProfileFilter2Variance.r = Mathf.Max(0.05f, m_SssProfileFilter2Variance.r);
+            m_SssProfileFilter2Variance.g = Mathf.Max(0.05f, m_SssProfileFilter2Variance.g);
+            m_SssProfileFilter2Variance.b = Mathf.Max(0.05f, m_SssProfileFilter2Variance.b);
             m_SssProfileFilter2Variance.a = 0.0f;
             m_SssProfileFilterLerpWeight  = Mathf.Clamp01(m_SssProfileFilterLerpWeight);
             m_SssBilateralScale           = Mathf.Clamp01(m_SssBilateralScale);
