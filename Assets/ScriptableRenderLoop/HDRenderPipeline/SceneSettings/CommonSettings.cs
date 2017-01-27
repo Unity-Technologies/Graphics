@@ -34,8 +34,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float shadowCascadeSplit2 { set { m_ShadowCascadeSplit2 = value; OnValidate(); } get { return m_ShadowCascadeSplit2; } }
 
         // Subsurface scattering
-        [SerializeField] Color m_SssProfileFilterVariance1  = SubsurfaceScatteringProfile.Default.filterVariance1;
-        [SerializeField] Color m_SssProfileFilterVariance2  = SubsurfaceScatteringProfile.Default.filterVariance2;
+        
+        [SerializeField] [ColorUsage(false, true, 0.05f, 4, 1.0f, 1.0f)]
+        Color m_SssProfileFilterVariance1 = SubsurfaceScatteringProfile.Default.filterVariance1;
+        [SerializeField] [ColorUsage(false, true, 0.05f, 4, 1.0f, 1.0f)]
+        Color m_SssProfileFilterVariance2 = SubsurfaceScatteringProfile.Default.filterVariance2;
         [SerializeField] float m_SssProfileFilterLerpWeight = SubsurfaceScatteringProfile.Default.filterLerpWeight;
         [SerializeField] float m_SssBilateralScale          = SubsurfaceScatteringParameters.Default.bilateralScale;
         
