@@ -5,12 +5,12 @@ using UnityEngine.RMGUI.StyleSheets;
 
 namespace RMGUI.GraphView
 {
-	internal class NodeAnchor : GraphElement
+	public class NodeAnchor : GraphElement
 	{
-		private EdgeConnector m_EdgeConnector;
+		protected EdgeConnector m_EdgeConnector;
 
-		VisualElement m_ConnectorBox;
-		VisualElement m_ConnectorText;
+		protected VisualElement m_ConnectorBox;
+		protected VisualElement m_ConnectorText;
 
 		// TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
 		public static NodeAnchor Create<TEdgePresenter>(NodeAnchorPresenter presenter) where TEdgePresenter : EdgePresenter
@@ -20,7 +20,7 @@ namespace RMGUI.GraphView
 			return anchor;
 		}
 
-		private NodeAnchor(NodeAnchorPresenter presenter)
+		protected NodeAnchor(NodeAnchorPresenter presenter)
 		{
 			// currently we don't want to be styled as .graphElement since we're contained in a Node
 			classList = ClassList.empty;

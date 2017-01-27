@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -58,12 +59,61 @@ namespace RMGUI.GraphView
 			AddToClassList(nodePresenter.orientation == Orientation.Vertical ? "vertical" : "horizontal");
 		}
 
+		private void ProcessRemovedAnchors(IList<NodeAnchor> currentAnchors, VisualContainer anchorContainer, IList<NodeAnchorPresenter> currentPresenters)
+		{
+			foreach (var anchor in currentAnchors)
+			{
+				bool contains = false;
+				var inputPres = anchor.GetPresenter<NodeAnchorPresenter>();
+				foreach (var newPres in currentPresenters)
+				{
+					if (newPres == inputPres)
+					{
+						contains = true;
+						break;
+					}
+				}
+				if (!contains)
+				{
+					anchorContainer.RemoveChild(anchor);
+				}
+			}
+		}
+
+		private void ProcessAddedAnchors(IList<NodeAnchor> currentAnchors, VisualContainer anchorContainer, IList<NodeAnchorPresenter> currentPresenters)
+		{
+			foreach (var newPres in currentPresenters)
+			{
+				bool contains = false;
+				foreach (var currAnchor in currentAnchors)
+				{
+					if (newPres == currAnchor.GetPresenter<NodeAnchorPresenter>())
+					{
+						contains = true;
+						break;
+					}
+				}
+				if (!contains)
+				{
+					anchorContainer.AddChild(NodeAnchor.Create<EdgePresenter>(newPres));
+				}
+			}
+		}
+
 		public void RefreshAnchors()
 		{
 			var nodePresenter = GetPresenter<NodePresenter>();
 
 			var currentInputs = inputContainer.allChildren.OfType<NodeAnchor>().ToList();
 			var currentOutputs = outputContainer.allChildren.OfType<NodeAnchor>().ToList();
+
+#if true
+			ProcessRemovedAnchors(currentInputs, inputContainer, nodePresenter.inputAnchors);
+			ProcessRemovedAnchors(currentOutputs, outputContainer, nodePresenter.outputAnchors);
+
+			ProcessAddedAnchors(currentInputs, inputContainer, nodePresenter.inputAnchors);
+			ProcessAddedAnchors(currentOutputs, outputContainer, nodePresenter.outputAnchors);
+#else
 
 			outputContainer.ClearChildren();
 			inputContainer.ClearChildren();
@@ -125,6 +175,7 @@ namespace RMGUI.GraphView
 					mainContainer.RemoveChild(rightContainer);
 				}
 			}
+#endif
 		}
 
 		public override void OnDataChanged()

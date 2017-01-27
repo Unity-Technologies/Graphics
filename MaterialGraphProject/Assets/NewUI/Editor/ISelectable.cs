@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
@@ -6,5 +7,7 @@ namespace RMGUI.GraphView
 	{
 		bool IsSelectable();
 		bool Overlaps(Rect rectangle);
+
+		EventPropagation Select(VisualContainer selectionContainer, Event evt);
 	}
 }

@@ -9,7 +9,6 @@ using System;
 namespace UnityEditor.Graphing.Drawing
 {
     // TODO JOCE: we should not need a title bar drawer. It should just be a visual element in the nodedrawer.
-    [StyleSheet("Assets/GraphFramework/SerializableGraph/Editor/Drawing/Styles/TitleBar.uss")]
     public class TitleBarDrawer : DataWatchContainer
     {
         TitleBarPresenter m_DataProvider;
@@ -54,6 +53,7 @@ namespace UnityEditor.Graphing.Drawing
                 m_RightContainer.AddChild(new TitleBarButtonDrawer(rightItemData));
 
             this.dataProvider = dataProvider;
+            AddStyleSheetPath("Styles/TitleBar");
         }
 
         public override void OnDataChanged()

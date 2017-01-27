@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace RMGUI.GraphView
@@ -40,7 +42,7 @@ namespace RMGUI.GraphView
 			}
 		}
 
-		protected void OnEnable()
+		protected virtual void OnEnable()
 		{
 			capabilities = Capabilities.Normal | Capabilities.Movable | Capabilities.Selectable;
 		}
@@ -51,6 +53,16 @@ namespace RMGUI.GraphView
 
 		public virtual void CommitChanges()
 		{
+		}
+
+		public virtual IEnumerable<GraphElementPresenter> allChildren
+		{
+			get { return Enumerable.Empty<GraphElementPresenter>(); }
+		}
+
+		public virtual IEnumerable<GraphElementPresenter> allElements
+		{
+			get { yield return this; }
 		}
 	}
 }

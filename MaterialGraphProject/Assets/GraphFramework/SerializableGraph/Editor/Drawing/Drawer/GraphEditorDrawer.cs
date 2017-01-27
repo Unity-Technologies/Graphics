@@ -4,8 +4,7 @@ using UnityEngine.RMGUI;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    // TODO JOCE: Maybe this needs to dereive from something we already have?
-    [StyleSheet("Assets/GraphFramework/SerializableGraph/Editor/Drawing/Styles/GraphEditor.uss")]
+    // TODO JOCE: Maybe this needs to derive from something we already have?
     public class GraphEditorDrawer : DataWatchContainer
     {
         private GraphView m_GraphView;
@@ -29,6 +28,8 @@ namespace UnityEditor.Graphing.Drawing
             AddChild(m_GraphView);
 
             this.presenter = presenter;
+
+            AddStyleSheetPath("Styles/GraphEditor");
         }
 
         public override void OnDataChanged()

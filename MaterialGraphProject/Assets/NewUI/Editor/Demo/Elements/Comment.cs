@@ -9,7 +9,6 @@ namespace RMGUI.GraphView.Demo
 	// TODO: Temporary class to use IMGUI's TextArea instead of RMGUI.TextField (unavailable for now)
 	public class Comment : IMGUIElement
 	{
-		int m_MaxTitleLength;
 		bool m_ShowBackgroundColor;
 
 		// TODO: Get style from USS when switching to RMGUI.TextField
@@ -40,8 +39,6 @@ namespace RMGUI.GraphView.Demo
 			clipChildren = true;
 			elementTypeColor = new Color(0.8f, 0.8f, 0.8f, 0.5f);
 			backgroundColor = elementTypeColor;
-
-			m_MaxTitleLength = 64;
 
 			m_Container.positionTop = 0;
 

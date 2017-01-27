@@ -12,6 +12,8 @@ namespace RMGUI.GraphView
 			phaseInterest = EventPhase.Capture;
 			activators.Add(new ManipActivator {button = MouseButton.LeftMouse});
 			activators.Add(new ManipActivator {button = MouseButton.RightMouse});
+			activators.Add(new ManipActivator {button = MouseButton.LeftMouse, modifiers = KeyModifiers.Ctrl});
+			activators.Add(new ManipActivator {button = MouseButton.LeftMouse, modifiers = KeyModifiers.Shift});
 		}
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
@@ -22,33 +24,15 @@ namespace RMGUI.GraphView
 				return EventPropagation.Continue;
 			}
 
-			var graphView = target as GraphView;
-			if (graphView == null)
-			{
-				throw new InvalidOperationException("Manipulator can only be added to a GraphView");
-			}
-
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
 					if (CanStartManipulation(evt))
 					{
-						if (graphView.selection.Contains(selectable))
+						var ve = selectable as GraphElement;
+						if (ve != null)
 						{
-							if (evt.control)
-							{
-								graphView.RemoveFromSelection(selectable);
-								return EventPropagation.Stop;
-							}
-							break;
-						}
-
-						var ve = selectable as VisualElement;
-						if (ve != null && ve.parent == graphView.contentViewContainer)
-						{
-							if (!evt.control)
-								graphView.ClearSelection();
-							graphView.AddToSelection(selectable);
+							 return ve.Select(target as VisualContainer, evt);
 						}
 					}
 					break;
