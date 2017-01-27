@@ -41,7 +41,7 @@ namespace UnityEditor.Graphing.Drawing
 
             InsertChild(0, new GridBackground());
 
-            typeMapper[typeof(GraphNodePresenter)] = typeof(NodeDrawer);
+            typeFactory[typeof(GraphNodePresenter)] = typeof(NodeDrawer);
         }
 
         // TODO JOCE Remove the "new" here. Use the base class' impl

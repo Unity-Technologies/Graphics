@@ -11,16 +11,17 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    [StyleSheet("Assets/UnityShaderEditor/Editor/Drawing/Styles/MaterialGraph.uss")]
     public class MaterialGraphView : SerializableGraphView
     {
         public MaterialGraphView()
         {
             AddManipulator(new ContextualMenu(DoContextMenu));
 
-            typeMapper[typeof(MaterialNodePresenter)] = typeof(MaterialNodeDrawer);
-            typeMapper[typeof(GraphAnchorPresenter)] = typeof(NodeAnchor);
-            typeMapper[typeof(EdgePresenter)] = typeof(Edge);
+            typeFactory[typeof(MaterialNodePresenter)] = typeof(MaterialNodeDrawer);
+            typeFactory[typeof(GraphAnchorPresenter)] = typeof(NodeAnchor);
+            typeFactory[typeof(EdgePresenter)] = typeof(Edge);
+
+            AddStyleSheetPath("Styles/MaterialGraph");
         }
 
         public virtual bool CanAddToNodeMenu(Type type)

@@ -5,10 +5,10 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-	internal abstract class EdgeConnector : MouseManipulator
+	public abstract class EdgeConnector : MouseManipulator
 	{ }
 
-	internal class EdgeConnector<TEdgePresenter> : EdgeConnector where TEdgePresenter : EdgePresenter
+	public class EdgeConnector<TEdgePresenter> : EdgeConnector where TEdgePresenter : EdgePresenter
 	{
 		private List<NodeAnchorPresenter> m_CompatibleAnchors;
 		private TEdgePresenter m_EdgePresenterCandidate;
@@ -55,15 +55,7 @@ namespace RMGUI.GraphView
 
 					this.TakeCapture();
 
-					// get all available connectors
-					m_CompatibleAnchors = m_GraphView.allChildren
-						.OfType<NodeAnchor>()
-						.Select(na => na.GetPresenter<NodeAnchorPresenter>())
-						.Where(nap => nap.IsConnectable() &&
-									  nap.orientation == startAnchor.orientation &&
-									  nap.direction != startAnchor.direction &&
-									  s_nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null)
-						.ToList();
+					m_CompatibleAnchors = m_GraphViewPresenter.GetCompatibleAnchors(startAnchor, s_nodeAdapter);
 
 					foreach (var compatibleAnchor in m_CompatibleAnchors)
 					{

@@ -61,9 +61,9 @@ namespace RMGUI.GraphView
 		}
 
 		[SerializeField]
-		private List<EdgePresenter> m_Connections;
+		protected List<EdgePresenter> m_Connections;
 
-		public void Connect(EdgePresenter edgePresenter)
+		public virtual void Connect(EdgePresenter edgePresenter)
 		{
 			if (edgePresenter == null)
 			{
@@ -76,7 +76,7 @@ namespace RMGUI.GraphView
 			}
 		}
 
-		public void Disconnect(EdgePresenter edgePresenter)
+		public virtual void Disconnect(EdgePresenter edgePresenter)
 		{
 			if (edgePresenter == null)
 			{

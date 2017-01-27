@@ -7,6 +7,10 @@ namespace RMGUI.GraphView
 {
 	public class SelectionDragger : Dragger
 	{
+		// selectedElement is used to store a unique selection candidate for cases where user clicks on an item not to
+		// drag it but just to reset the selection -- we only know this after the manipulation has ended
+		GraphElement selectedElement { get; set; }
+
 		public SelectionDragger()
 		{
 			activators.Add(new ManipActivator {button = MouseButton.LeftMouse});
@@ -28,6 +32,8 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
+					selectedElement = null;
+
 					if (CanStartManipulation(evt))
 					{
 						// avoid starting a manipulation on a non movable object
@@ -39,8 +45,10 @@ namespace RMGUI.GraphView
 								return EventPropagation.Continue;
 						}
 
-						GraphElementPresenter presenter = ce.presenter;
-						if (presenter != null && ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable))
+						selectedElement = ce;
+
+						GraphElementPresenter elementPresenter = ce.presenter;
+						if (elementPresenter != null && ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable))
 							return EventPropagation.Continue;
 
 						this.TakeCapture();
@@ -57,17 +65,18 @@ namespace RMGUI.GraphView
 							if (ce == null || ce.presenter == null)
 								continue;
 
-							GraphElementPresenter presenter = ce.presenter;
 							if ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable)
 								continue;
 
 							Matrix4x4 g = ce.globalTransform;
 							var scale = new Vector3(g.m00, g.m11, g.m22);
 
-							presenter.position = CalculatePosition(presenter.position.x + evt.delta.x * panSpeed.x / scale.x,
-																   presenter.position.y + evt.delta.y * panSpeed.y / scale.y,
-																   presenter.position.width, presenter.position.height);
+							ce.position = CalculatePosition(ce.position.x + evt.delta.x * panSpeed.x / scale.x,
+															ce.position.y + evt.delta.y * panSpeed.y / scale.y,
+															ce.position.width, ce.position.height);
 						}
+
+						selectedElement = null;
 
 						return EventPropagation.Stop;
 					}
@@ -76,11 +85,29 @@ namespace RMGUI.GraphView
 				case EventType.MouseUp:
 					if (CanStopManipulation(evt))
 					{
-						foreach (var presenter in graphView.selection.OfType<GraphElement>()
-																	 .Select(ge => ge.presenter)
-																	 .Where(pr => pr != null))
+						if (selectedElement != null && !evt.control)
 						{
-							presenter.CommitChanges();
+							// Since we didn't drag after all, update selection with current element only
+							graphView.ClearSelection();
+							graphView.AddToSelection(selectedElement);
+
+						}
+						else
+						{
+							foreach (ISelectable s in graphView.selection)
+							{
+								GraphElement ce = s as GraphElement;
+								if (ce == null || ce.presenter == null)
+									continue;
+
+								GraphElementPresenter elementPresenter = ce.presenter;
+								if ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable)
+									continue;
+
+								elementPresenter.position = ce.position;
+								elementPresenter.CommitChanges();
+
+							}
 						}
 						this.ReleaseCapture();
 						return EventPropagation.Stop;

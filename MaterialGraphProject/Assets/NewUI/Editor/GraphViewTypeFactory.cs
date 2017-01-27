@@ -1,8 +1,8 @@
 namespace RMGUI.GraphView
 {
-	public class GraphViewTypeMapper : BaseTypeMapper<GraphElementPresenter, GraphElement>
+	public class GraphViewTypeFactory : BaseTypeFactory<GraphElementPresenter, GraphElement>
 	{
-		public GraphViewTypeMapper() : base(typeof(FallbackGraphElement))
+		public GraphViewTypeFactory() : base(typeof(FallbackGraphElement))
 		{
 		}
 
