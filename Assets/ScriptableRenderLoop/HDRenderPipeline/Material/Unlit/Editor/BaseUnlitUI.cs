@@ -6,6 +6,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public abstract class BaseUnlitGUI : ShaderGUI
     {
+        protected static class Styles
+        {
+            public static string optionText = "Options";
+            public static string surfaceTypeText = "Surface Type";
+            public static string blendModeText = "Blend Mode";
+
+            public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "Threshold for alpha cutoff");
+            public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
+            public static GUIContent doubleSidedModeText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling)");
+            public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
+            public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
+            public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
+
+            public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
+            public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
+
+            public static string InputsOptionsText = "Inputs options";
+
+            public static string InputsText = "Inputs";
+
+            public static string InputsMapText = "";
+
+            public static GUIContent colorText = new GUIContent("Color + Opacity", "Albedo (RGB) and Opacity (A)");
+
+            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
+            public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
+
+            public static GUIContent emissiveWarning = new GUIContent("Emissive value is animated but the material has not been configured to support emissive. Please make sure the material itself has some amount of emissive.");
+            public static GUIContent emissiveColorWarning = new GUIContent("Ensure emissive color is non-black for emission to have effect.");
+
+        }
+
         public enum SurfaceType
         {
             Opaque,
@@ -26,120 +58,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             DoubleSided
         }
 
-        protected static class Styles
-        {
-            public static string OptionText = "Options";
-            public static string SurfaceTypeText = "Surface Type";
-            public static string BlendModeText = "Blend Mode";
-
-            public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "Threshold for alpha cutoff");
-            public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
-            public static GUIContent doubleSidedModeText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling)");
-
-            public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
-            public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
-
-            public static string InputsOptionsText = "Inputs options";
-
-            public static string InputsText = "Inputs";
-
-            public static string InputsMapText = "";
-
-            public static GUIContent colorText = new GUIContent("Color + Opacity", "Albedo (RGB) and Opacity (A)");
-
-            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
-            public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
-        }
-
-        MaterialProperty surfaceType = null;
-        MaterialProperty blendMode = null;
-        MaterialProperty alphaCutoff = null;
-        MaterialProperty alphaCutoffEnable = null;
-        MaterialProperty doubleSidedMode = null;
-
-        protected const string kSurfaceType = "_SurfaceType";
-        protected const string kBlendMode = "_BlendMode";
-        protected const string kAlphaCutoff = "_AlphaCutoff";
-        protected const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
-        protected const string kDoubleSidedMode = "_DoubleSidedMode";
-
-        protected MaterialEditor m_MaterialEditor;
-
-        public void FindCommonOptionProperties(MaterialProperty[] props)
-        {
-            surfaceType = FindProperty(kSurfaceType, props);
-            blendMode = FindProperty(kBlendMode, props);
-            alphaCutoff = FindProperty(kAlphaCutoff, props);
-            alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props);
-            doubleSidedMode = FindProperty(kDoubleSidedMode, props);
-        }
-
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
-        {
-            FindCommonOptionProperties(props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
-            FindMaterialProperties(props);
-
-            m_MaterialEditor = materialEditor;
-            Material material = materialEditor.target as Material;
-            ShaderPropertiesGUI(material);
-        }
-
-        protected void ShaderOptionsGUI()
-        {
-            EditorGUI.indentLevel++;
-            GUILayout.Label(Styles.OptionText, EditorStyles.boldLabel);
-            SurfaceTypePopup();
-            if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
-            {
-                BlendModePopup();
-            }
-            m_MaterialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText.text);
-            if (alphaCutoffEnable.floatValue == 1.0)
-            {
-                m_MaterialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText.text);
-            }
-            m_MaterialEditor.ShaderProperty(doubleSidedMode, Styles.doubleSidedModeText.text);
-
-            EditorGUI.indentLevel--;
-        }
-
-        public void ShaderPropertiesGUI(Material material)
-        {
-            // Use default labelWidth
-            EditorGUIUtility.labelWidth = 0f;
-
-            // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
-            {
-                ShaderOptionsGUI();
-                EditorGUILayout.Space();
-
-                ShaderInputOptionsGUI();
-
-                EditorGUILayout.Space();
-                ShaderInputGUI();
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in m_MaterialEditor.targets)
-                    SetupMaterialKeywords((Material)obj);
-            }
-        }
-
-        // TODO: try to setup minimun value to fall back to standard shaders and reverse
-        public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
-        {
-            base.AssignNewShaderToMaterial(material, oldShader, newShader);
-        }
-
-        void SurfaceTypePopup()
+       void SurfaceTypePopup()
         {
             EditorGUI.showMixedValue = surfaceType.hasMixedValue;
             var mode = (SurfaceType)surfaceType.floatValue;
 
             EditorGUI.BeginChangeCheck();
-            mode = (SurfaceType)EditorGUILayout.Popup(Styles.SurfaceTypeText, (int)mode, Styles.surfaceTypeNames);
+            mode = (SurfaceType)EditorGUILayout.Popup(Styles.surfaceTypeText, (int)mode, Styles.surfaceTypeNames);
             if (EditorGUI.EndChangeCheck())
             {
                 m_MaterialEditor.RegisterPropertyChangeUndo("Surface Type");
@@ -155,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var mode = (BlendMode)blendMode.floatValue;
 
             EditorGUI.BeginChangeCheck();
-            mode = (BlendMode)EditorGUILayout.Popup(Styles.BlendModeText, (int)mode, Styles.blendModeNames);
+            mode = (BlendMode)EditorGUILayout.Popup(Styles.blendModeText, (int)mode, Styles.blendModeNames);
             if (EditorGUI.EndChangeCheck())
             {
                 m_MaterialEditor.RegisterPropertyChangeUndo("Blend Mode");
@@ -163,6 +88,44 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUI.showMixedValue = false;
+        }
+
+        protected void ShaderOptionsGUI()
+        {
+            EditorGUI.indentLevel++;
+            GUILayout.Label(Styles.optionText, EditorStyles.boldLabel);
+            SurfaceTypePopup();
+            if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
+            {
+                BlendModePopup();
+                m_MaterialEditor.ShaderProperty(distortionEnable, Styles.distortionEnableText.text);
+
+                if (distortionEnable.floatValue == 1.0)
+                {
+                    m_MaterialEditor.ShaderProperty(distortionOnly, Styles.distortionOnlyText.text);
+                    m_MaterialEditor.ShaderProperty(distortionDepthTest, Styles.distortionDepthTestText.text);
+                }
+            }
+            m_MaterialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText.text);
+            if (alphaCutoffEnable.floatValue == 1.0)
+            {
+                m_MaterialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText.text);
+            }
+            m_MaterialEditor.ShaderProperty(doubleSidedMode, Styles.doubleSidedModeText.text);
+
+            EditorGUI.indentLevel--;
+        }
+
+        public void FindCommonOptionProperties(MaterialProperty[] props)
+        {
+            surfaceType = FindProperty(kSurfaceType, props);
+            blendMode = FindProperty(kBlendMode, props);
+            alphaCutoff = FindProperty(kAlphaCutoff, props);
+            alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props);
+            doubleSidedMode = FindProperty(kDoubleSidedMode, props);
+            distortionEnable = FindProperty(kDistortionEnable, props);
+            distortionOnly = FindProperty(kDistortionOnly, props);
+            distortionDepthTest = FindProperty(kDistortionDepthTest, props);
         }
 
 		protected void SetupCommonOptionsKeywords(Material material)
@@ -229,19 +192,92 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
-            // Setup lightmap emissive flags
-            MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
-            if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
-            {
-                if (ShouldEmissionBeEnabled(material))
-                    flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-                else
-                    flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            bool distortionEnable = material.GetFloat(kDistortionEnable) == 1.0;
+            bool distortionOnly = material.GetFloat(kDistortionOnly) == 1.0;
+            bool distortionDepthTest = material.GetFloat(kDistortionDepthTest) == 1.0;
 
-                material.globalIlluminationFlags = flags;
+            if (distortionEnable)
+            {
+                material.SetShaderPassEnabled("DistortionVectors", true);
             }
+            else
+            {
+                material.SetShaderPassEnabled("DistortionVectors", false);
+            }
+
+            if (distortionEnable && distortionOnly)
+            {
+                // Disable all passes except dbug material
+                material.SetShaderPassEnabled("DebugViewMaterial", true);
+                material.SetShaderPassEnabled("Meta", false);
+                material.SetShaderPassEnabled("Forward", false);
+                material.SetShaderPassEnabled("ForwardOnlyOpaque", false);
+            }
+            else
+            {
+                material.SetShaderPassEnabled("DebugViewMaterial", true);
+                material.SetShaderPassEnabled("Meta", true);
+                material.SetShaderPassEnabled("Forward", true);
+                material.SetShaderPassEnabled("ForwardOnlyOpaque", true);
+            }
+
+            if (distortionDepthTest)
+            {
+                material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+            }
+            else
+            {
+                material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+            }
+
+            SetKeyword(material, "_DISTORTION_ON", distortionEnable);
+
+            SetupEmissionGIFlags(material);
 		}
 
+        protected void SetKeyword(Material m, string keyword, bool state)
+        {
+            if (state)
+                m.EnableKeyword(keyword);
+            else
+                m.DisableKeyword(keyword);
+        }
+
+        public void ShaderPropertiesGUI(Material material)
+        {
+            // Use default labelWidth
+            EditorGUIUtility.labelWidth = 0f;
+
+            // Detect any changes to the material
+            EditorGUI.BeginChangeCheck();
+            {
+                ShaderOptionsGUI();
+                EditorGUILayout.Space();
+
+                ShaderInputOptionsGUI();
+
+                EditorGUILayout.Space();
+                ShaderInputGUI();
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                foreach (var obj in m_MaterialEditor.targets)
+                    SetupMaterialKeywords((Material)obj);
+            }
+        }
+
+        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        {
+            FindCommonOptionProperties(props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
+            FindMaterialProperties(props);
+
+            m_MaterialEditor = materialEditor;
+            Material material = materialEditor.target as Material;
+            ShaderPropertiesGUI(material);
+        }
+
+        // TODO: ? or remove
         bool HasValidEmissiveKeyword(Material material)
         {
             /*
@@ -258,13 +294,41 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        protected void SetKeyword(Material m, string keyword, bool state)
+        protected virtual void SetupEmissionGIFlags(Material material)
         {
-            if (state)
-                m.EnableKeyword(keyword);
-            else
-                m.DisableKeyword(keyword);
+            // Setup lightmap emissive flags
+            MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
+            if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
+            {
+                if (ShouldEmissionBeEnabled(material))
+                    flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                else
+                    flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+
+                material.globalIlluminationFlags = flags;
+            }
         }
+
+        protected MaterialEditor m_MaterialEditor;
+
+        MaterialProperty surfaceType = null;
+        protected const string kSurfaceType = "_SurfaceType";
+        MaterialProperty blendMode = null;
+        protected const string kBlendMode = "_BlendMode";
+        MaterialProperty alphaCutoff = null;
+        protected const string kAlphaCutoff = "_AlphaCutoff";
+        MaterialProperty alphaCutoffEnable = null;
+        protected const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
+        MaterialProperty doubleSidedMode = null;
+        protected const string kDoubleSidedMode = "_DoubleSidedMode";
+        MaterialProperty distortionEnable = null;
+        const string kDistortionEnable = "_DistortionEnable";
+        MaterialProperty distortionOnly = null;
+        const string kDistortionOnly = "_DistortionOnly";
+        MaterialProperty distortionDepthTest = null;
+        const string kDistortionDepthTest = "_DistortionDepthTest";
+
+        protected static string[] reservedProperties = new string[] { kSurfaceType, kBlendMode, kAlphaCutoff, kAlphaCutoffEnabled, kDoubleSidedMode };
 
         protected abstract void FindMaterialProperties(MaterialProperty[] props);
         protected abstract void ShaderInputGUI();

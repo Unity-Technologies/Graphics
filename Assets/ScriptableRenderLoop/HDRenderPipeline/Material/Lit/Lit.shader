@@ -10,7 +10,7 @@ Shader "HDRenderPipeline/Lit"
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
 
         _Metallic("_Metallic", Range(0.0, 1.0)) = 0
-        _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
+        _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
         _MaskMap("MaskMap", 2D) = "white" {}
 
         _SpecularOcclusionMap("SpecularOcclusion", 2D) = "white" {}
