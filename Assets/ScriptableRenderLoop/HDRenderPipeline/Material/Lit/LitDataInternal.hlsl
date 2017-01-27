@@ -192,23 +192,23 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         #ifdef _NORMALMAP_TANGENT_SPACE
             if (useBias)
             {
-                normalTS = SAMPLE_LAYER_NORMALMAP_BIAS(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_ZERO_IDX(_NormalScale), bias);
+                normalTS = SAMPLE_LAYER_NORMALMAP_BIAS(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale), bias);
             }
             else
             {
-                normalTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_ZERO_IDX(_NormalScale));
+                normalTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
             }            
         #else // Object space
             // to be able to combine object space normal with detail map we transform it to tangent space (object space normal composition is not simple).
             // then later we will re-transform it to world space.
             if (useBias)
             {
-                float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB_BIAS(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_ZERO_IDX(_NormalScale), bias).rgb;
+                float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB_BIAS(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale), bias).rgb;
                 normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
             }
             else
             {
-                float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_ZERO_IDX(_NormalScale)).rgb;
+                float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale)).rgb;
                 normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
             }
         #endif
