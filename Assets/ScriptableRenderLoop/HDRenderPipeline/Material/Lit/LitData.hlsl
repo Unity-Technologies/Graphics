@@ -307,7 +307,7 @@ float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float
     float influenceFactor = BlendLayeredScalar(0.0, _InheritBaseColor1, _InheritBaseColor2, _InheritBaseColor3, weights);
     float influenceThreshold = BlendLayeredScalar(1.0, _InheritBaseColorThreshold1, _InheritBaseColorThreshold2, _InheritBaseColorThreshold3, weights);
 
-    influenceFactor = influenceFactor * (1.0 - saturate(compoMask / influenceFactor));
+    influenceFactor = influenceFactor * (1.0 - saturate(compoMask / influenceThreshold));
 
     // We want to calculate the mean color of the texture. For this we will sample a low mipmap
     float textureBias = 15.0; // Use maximum bias
