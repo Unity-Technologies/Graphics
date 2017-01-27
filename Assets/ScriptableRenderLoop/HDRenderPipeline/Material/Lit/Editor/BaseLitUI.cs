@@ -141,6 +141,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.showMixedValue = false;
         }
 
+        private void BlendModePopup()
+        {
+            EditorGUI.showMixedValue = blendMode.hasMixedValue;
+            var mode = (BlendMode)blendMode.floatValue;
+
+            EditorGUI.BeginChangeCheck();
+            mode = (BlendMode)EditorGUILayout.Popup(Styles.blendModeText, (int)mode, Styles.blendModeNames);
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_MaterialEditor.RegisterPropertyChangeUndo("Blend Mode");
+                blendMode.floatValue = (float)mode;
+            }
+
+            EditorGUI.showMixedValue = false;
+        }
+
         void TessellationModePopup()
         {
             EditorGUI.showMixedValue = tessellationMode.hasMixedValue;
@@ -206,22 +222,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
                 EditorGUI.indentLevel--;
             }
-        }
-
-        private void BlendModePopup()
-        {
-            EditorGUI.showMixedValue = blendMode.hasMixedValue;
-            var mode = (BlendMode)blendMode.floatValue;
-
-            EditorGUI.BeginChangeCheck();
-            mode = (BlendMode)EditorGUILayout.Popup(Styles.blendModeText, (int)mode, Styles.blendModeNames);
-            if (EditorGUI.EndChangeCheck())
-            {
-                m_MaterialEditor.RegisterPropertyChangeUndo("Blend Mode");
-                blendMode.floatValue = (float)mode;
-            }
-
-            EditorGUI.showMixedValue = false;
         }
 
         protected void FindCommonOptionProperties(MaterialProperty[] props)
