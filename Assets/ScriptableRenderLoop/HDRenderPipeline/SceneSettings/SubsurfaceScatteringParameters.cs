@@ -7,24 +7,24 @@ namespace UnityEngine.Experimental.Rendering
     {
         public const int numSamples = 7;
 
-        Color     m_filter1Variance;
-        Color     m_filter2Variance;
+        Color     m_filterVariance1;
+        Color     m_filterVariance2;
         float     m_filterLerpWeight;
         Vector4[] m_filterKernel;
         bool      m_kernelNeedsUpdate;
 
         // --- Methods ---
 
-        public Color filter1Variance
+        public Color filterVariance1
         {
-            get { return m_filter1Variance; }
-            set { if (m_filter1Variance != value) { m_filter1Variance = value; m_kernelNeedsUpdate = true; } }
+            get { return m_filterVariance1; }
+            set { if (m_filterVariance1 != value) { m_filterVariance1 = value; m_kernelNeedsUpdate = true; } }
         }
 
-        public Color filter2Variance
+        public Color filterVariance2
         {
-            get { return m_filter2Variance; }
-            set { if (m_filter2Variance != value) { m_filter2Variance = value; m_kernelNeedsUpdate = true; } }
+            get { return m_filterVariance2; }
+            set { if (m_filterVariance2 != value) { m_filterVariance2 = value; m_kernelNeedsUpdate = true; } }
         }
 
         public float filterLerpWeight
@@ -43,62 +43,78 @@ namespace UnityEngine.Experimental.Rendering
             get
             {
                 SubsurfaceScatteringProfile profile = new SubsurfaceScatteringProfile();
-                profile.filter1Variance  = new Color(0.3f, 0.3f, 0.3f, 0.0f);
-                profile.filter2Variance  = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+                profile.filterVariance1  = new Color(0.3f, 0.3f, 0.3f, 0.0f);
+                profile.filterVariance2  = new Color(1.0f, 1.0f, 1.0f, 0.0f);
                 profile.filterLerpWeight = 0.5f;
                 profile.ComputeKernel();
                 return profile;
             }
         }
 
-        static float EvaluateZeroMeanGaussian(float x, float variance)
+        static float Gaussian(float x, float variance)
         {
             return Mathf.Exp(-x * x / (2 * variance)) / Mathf.Sqrt(2 * Mathf.PI * variance);
         }
 
-        static float EvaluateGaussianCombination(float x, float variance1, float variance2, float lerpWeight)
+        static float GaussianCombination(float x, float variance1, float variance2, float lerpWeight)
         {
-            return Mathf.Lerp(EvaluateZeroMeanGaussian(x, variance1),
-                              EvaluateZeroMeanGaussian(x, variance2), lerpWeight);
+            return Mathf.Lerp(Gaussian(x, variance1), Gaussian(x, variance2), lerpWeight);
         }
 
-        static double RationalApproximation(double t)
+        static float RationalApproximation(float t)
         {
             // Abramowitz and Stegun formula 26.2.23.
             // The absolute value of the error should be less than 4.5 e-4.
-            double[] c = {2.515517, 0.802853, 0.010328};
-            double[] d = {1.432788, 0.189269, 0.001308};
-            return t - ((c[2] * t + c[1]) * t + c[0]) / (((d[2] * t + d[1]) * t + d[0]) * t + 1.0);
+            float[] c = {2.515517f, 0.802853f, 0.010328f};
+            float[] d = {1.432788f, 0.189269f, 0.001308f};
+            return t - ((c[2] * t + c[1]) * t + c[0]) / (((d[2] * t + d[1]) * t + d[0]) * t + 1.0f);
         }
  
         // Ref: https://www.johndcook.com/blog/csharp_phi_inverse/
-        static double NormalCDFInverse(double p, double stdDeviation)
+        static float NormalCdfInverse(float p, float stdDev)
         {
-            double x;
+            float x;
 
             if (p < 0.5)
             {
                 // F^-1(p) = - G^-1(p)
-                x = -RationalApproximation(Math.Sqrt(-2.0 * Math.Log(p)));
+                x = -RationalApproximation(Mathf.Sqrt(-2.0f * Mathf.Log(p)));
             }
             else
             {
                 // F^-1(p) = G^-1(1-p)
-                x = RationalApproximation(Math.Sqrt(-2.0*Math.Log(1.0 - p)));
+                x = RationalApproximation(Mathf.Sqrt(-2.0f * Mathf.Log(1.0f - p)));
             }
 
-            return x * stdDeviation;
+            return x * stdDev;
+        }
+
+        // Ref: https://en.wikipedia.org/wiki/Halton_sequence
+        static float VanDerCorput(uint b, uint i)
+        {
+            float r = 0;
+            float f = 1;
+            
+            while (i > 0) 
+            {
+                f = f / b;
+                r = r + f * (i % b);
+                i = i / b;
+            }
+
+            return r;
         }
 
         // Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
-        double VanDerCorputBase2(uint bits)
+        static float VanDerCorputBase2(uint i)
         {
-            bits = (bits << 16) | (bits >> 16);
-            bits = ((bits & 0x00ff00ff) << 8) | ((bits & 0xff00ff00) >> 8);
-            bits = ((bits & 0x0f0f0f0f) << 4) | ((bits & 0xf0f0f0f0) >> 4);
-            bits = ((bits & 0x33333333) << 2) | ((bits & 0xcccccccc) >> 2);
-            bits = ((bits & 0x55555555) << 1) | ((bits & 0xaaaaaaaa) >> 1);
-            return bits * 2.3283064365386963e-10; // 0x100000000
+            i = (i << 16) | (i >> 16);
+            i = ((i & 0x00ff00ff) << 8) | ((i & 0xff00ff00) >> 8);
+            i = ((i & 0x0f0f0f0f) << 4) | ((i & 0xf0f0f0f0) >> 4);
+            i = ((i & 0x33333333) << 2) | ((i & 0xcccccccc) >> 2);
+            i = ((i & 0x55555555) << 1) | ((i & 0xaaaaaaaa) >> 1);
+
+            return i * (1.0f / 4294967296);
         }
 
         void ComputeKernel()
@@ -121,21 +137,41 @@ namespace UnityEngine.Experimental.Rendering
             // It is separable by design, but generally not radially symmmetric.
 
             // Find the widest Gaussian across 3 color channels.
-            float maxStdDev1 = Mathf.Sqrt(Mathf.Max(m_filter1Variance.r, m_filter1Variance.g, m_filter1Variance.b));
-            float maxStdDev2 = Mathf.Sqrt(Mathf.Max(m_filter2Variance.r, m_filter2Variance.g, m_filter2Variance.b));
+            float maxVariance1 = Mathf.Max(m_filterVariance1.r, m_filterVariance1.g, m_filterVariance1.b);
+            float maxVariance2 = Mathf.Max(m_filterVariance2.r, m_filterVariance2.g, m_filterVariance2.b);
 
             // Importance sample two Gaussians based on the interpolation weight.
-            for (uint i = 0; i < numSamples; ++i)
+            float sd = Mathf.Lerp(Mathf.Sqrt(maxVariance1), Mathf.Sqrt(maxVariance2), m_filterLerpWeight);
+
+            Vector3 weightSum = new Vector3(0, 0, 0); 
+
+            for (uint i = 0; i < numSamples; i++)
             {
-                double u1 = (i + 0.5) / numSamples;
-                double u2 = VanDerCorputBase2(i + 1);
-                double sd = u1 < m_filterLerpWeight ? maxStdDev1 : maxStdDev2;
-                float pos = (float)NormalCDFInverse(u2, sd);
-                // Since our filter is normalized, f(x) / p(x) = 1.
-                m_filterKernel[i].x = 1.0f / numSamples;
-                m_filterKernel[i].y = 1.0f / numSamples;
-                m_filterKernel[i].z = 1.0f / numSamples;
+                float u   = VanDerCorputBase2(i + 1);
+                float pos = NormalCdfInverse(u, sd);
+                float pdf = Gaussian(pos, sd * sd);
+
+                Vector3 val;
+                val.x = GaussianCombination(pos, m_filterVariance1.r, m_filterVariance2.r, m_filterLerpWeight);
+                val.y = GaussianCombination(pos, m_filterVariance1.g, m_filterVariance2.g, m_filterLerpWeight);
+                val.z = GaussianCombination(pos, m_filterVariance1.b, m_filterVariance2.b, m_filterLerpWeight);
+
+                m_filterKernel[i].x = val.x / (pdf * numSamples);
+                m_filterKernel[i].y = val.y / (pdf * numSamples);
+                m_filterKernel[i].z = val.z / (pdf * numSamples);
                 m_filterKernel[i].w = pos;
+
+                weightSum.x += m_filterKernel[i].x;
+                weightSum.y += m_filterKernel[i].y;
+                weightSum.z += m_filterKernel[i].z;
+            }
+
+            // Renormalize the weights to conserve energy.
+            for (uint i = 0; i < numSamples; i++)
+            {
+                m_filterKernel[i].x *= 1.0f / weightSum.x;
+                m_filterKernel[i].y *= 1.0f / weightSum.y;
+                m_filterKernel[i].z *= 1.0f / weightSum.z;
             }
 
             m_kernelNeedsUpdate = false;
