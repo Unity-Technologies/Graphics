@@ -293,7 +293,8 @@ float3 ComputeInheritedNormalTS(FragInputs input, float3 normalTS0, float3 norma
     float influenceFactor = BlendLayeredScalar(0.0, _InheritBaseNormal1, _InheritBaseNormal2, _InheritBaseNormal3, weights);
     // We will add smoothly the contribution of the normal map by using lower mips with help of bias sampling. InfluenceFactor must be [0..numMips] // Caution it cause banding...
     // Note: that we don't take details map into account here.
-    float3 mainNormalTS = GetNormalTS0(input, layerTexCoord, float3(0.0, 0.0, 1.0), 0.0, true, 2.0);
+    float maxMipBias = log2(max(_NormalMap0_TexelSize.z, _NormalMap0_TexelSize.w)); // don't do + 1 as it is for bias, not lod
+    float3 mainNormalTS = GetNormalTS0(input, layerTexCoord, float3(0.0, 0.0, 1.0), 0.0, true, maxMipBias * (1.0 - influenceFactor));
 
     // Add on our regular normal a bit of Main Layer normal base on influence factor. Note that this affect only the "visible" normal.
     return lerp(normalTS, BlendNormalRNM(normalTS, mainNormalTS), influenceFactor);
@@ -318,7 +319,9 @@ float3 ComputeInheritedColor(float3 baseColor0, float3 baseColor1, float3 baseCo
     float3 meanColor = BlendLayeredVector3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
 
     // If we inherit from base layer, we will add a bit of it
-    return influenceFactor * (baseColor0 - meanColor) + baseColor;
+    // We add variance of current visible level and the base color 0 or mean (to retrieve initial color) depends on influence
+    // (baseColor - meanColor) + lerp(meanColor, baseColor0, inheritBaseColor) simplify to
+    return saturate(influenceFactor * (baseColor0 - meanColor) + baseColor);
 }
 
 // Caution: Blend mask are Layer 1 R - Layer 2 G - Layer 3 B - Main Layer A
