@@ -43,9 +43,9 @@ namespace UnityEngine.Experimental.Rendering
             get
             {
                 SubsurfaceScatteringProfile profile = new SubsurfaceScatteringProfile();
-                profile.stdDev1    = new Color(0.3f, 0.3f, 0.3f, 0.0f);
-                profile.stdDev2    = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-                profile.lerpWeight = 0.5f;
+                profile.m_StdDev1    = new Color(0.3f, 0.3f, 0.3f, 0.0f);
+                profile.m_StdDev2    = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+                profile.m_LerpWeight = 0.5f;
                 profile.ComputeKernel();
                 return profile;
             }
@@ -93,22 +93,6 @@ namespace UnityEngine.Experimental.Rendering
         static float GaussianCombinationCdfInverse(float p, float stdDev1, float stdDev2, float lerpWeight)
         {
             return Mathf.Lerp(NormalCdfInverse(p, stdDev1), NormalCdfInverse(p, stdDev2), lerpWeight);
-        }
-
-        // Ref: https://en.wikipedia.org/wiki/Halton_sequence
-        static float VanDerCorput(uint b, uint i)
-        {
-            float r = 0;
-            float f = 1;
-            
-            while (i > 0) 
-            {
-                f = f / b;
-                r = r + f * (i % b);
-                i = i / b;
-            }
-
-            return r;
         }
 
         // Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
