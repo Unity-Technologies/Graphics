@@ -7,35 +7,35 @@ namespace UnityEngine.Experimental.Rendering
     {
         public const int numSamples = 7;
 
-        Color     m_filterVariance1;
-        Color     m_filterVariance2;
-        float     m_filterLerpWeight;
-        Vector4[] m_filterKernel;
-        bool      m_kernelNeedsUpdate;
+        Color     m_StdDev1;
+        Color     m_StdDev2;
+        float     m_LerpWeight;
+        Vector4[] m_FilterKernel;
+        bool      m_KernelNeedsUpdate;
 
         // --- Methods ---
 
-        public Color filterVariance1
+        public Color stdDev1
         {
-            get { return m_filterVariance1; }
-            set { if (m_filterVariance1 != value) { m_filterVariance1 = value; m_kernelNeedsUpdate = true; } }
+            get { return m_StdDev1; }
+            set { if (m_StdDev1 != value) { m_StdDev1 = value; m_KernelNeedsUpdate = true; } }
         }
 
-        public Color filterVariance2
+        public Color stdDev2
         {
-            get { return m_filterVariance2; }
-            set { if (m_filterVariance2 != value) { m_filterVariance2 = value; m_kernelNeedsUpdate = true; } }
+            get { return m_StdDev2; }
+            set { if (m_StdDev2 != value) { m_StdDev2 = value; m_KernelNeedsUpdate = true; } }
         }
 
-        public float filterLerpWeight
+        public float lerpWeight
         {
-            get { return m_filterLerpWeight; }
-            set { if (m_filterLerpWeight != value) { m_filterLerpWeight = value; m_kernelNeedsUpdate = true; } }
+            get { return m_LerpWeight; }
+            set { if (m_LerpWeight != value) { m_LerpWeight = value; m_KernelNeedsUpdate = true; } }
         }
 
         public Vector4[] filterKernel
         {
-            get { if (m_kernelNeedsUpdate) ComputeKernel(); return m_filterKernel; }
+            get { if (m_KernelNeedsUpdate) ComputeKernel(); return m_FilterKernel; }
         }
 
         public static SubsurfaceScatteringProfile Default
@@ -43,22 +43,23 @@ namespace UnityEngine.Experimental.Rendering
             get
             {
                 SubsurfaceScatteringProfile profile = new SubsurfaceScatteringProfile();
-                profile.filterVariance1  = new Color(0.3f, 0.3f, 0.3f, 0.0f);
-                profile.filterVariance2  = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-                profile.filterLerpWeight = 0.5f;
+                profile.stdDev1    = new Color(0.3f, 0.3f, 0.3f, 0.0f);
+                profile.stdDev2    = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+                profile.lerpWeight = 0.5f;
                 profile.ComputeKernel();
                 return profile;
             }
         }
 
-        static float Gaussian(float x, float variance)
+        static float Gaussian(float x, float stdDev)
         {
+            float variance = stdDev * stdDev;
             return Mathf.Exp(-x * x / (2 * variance)) / Mathf.Sqrt(2 * Mathf.PI * variance);
         }
 
-        static float GaussianCombination(float x, float variance1, float variance2, float lerpWeight)
+        static float GaussianCombination(float x, float stdDev1, float stdDev2, float lerpWeight)
         {
-            return Mathf.Lerp(Gaussian(x, variance1), Gaussian(x, variance2), lerpWeight);
+            return Mathf.Lerp(Gaussian(x, stdDev1), Gaussian(x, stdDev2), lerpWeight);
         }
 
         static float RationalApproximation(float t)
@@ -119,9 +120,9 @@ namespace UnityEngine.Experimental.Rendering
 
         void ComputeKernel()
         {
-            if (m_filterKernel == null)
+            if (m_FilterKernel == null)
             {
-                m_filterKernel = new Vector4[numSamples];
+                m_FilterKernel = new Vector4[numSamples];
             }
 
             // Our goal is to blur the image using a filter which is represented
@@ -137,11 +138,11 @@ namespace UnityEngine.Experimental.Rendering
             // It is separable by design, but generally not radially symmmetric.
 
             // Find the widest Gaussian across 3 color channels.
-            float maxVariance1 = Mathf.Max(m_filterVariance1.r, m_filterVariance1.g, m_filterVariance1.b);
-            float maxVariance2 = Mathf.Max(m_filterVariance2.r, m_filterVariance2.g, m_filterVariance2.b);
+            float maxStdDev1 = Mathf.Max(m_StdDev1.r, m_StdDev1.g, m_StdDev1.b);
+            float maxStdDev2 = Mathf.Max(m_StdDev2.r, m_StdDev2.g, m_StdDev2.b);
 
             // Importance sample two Gaussians based on the interpolation weight.
-            float sd = Mathf.Lerp(Mathf.Sqrt(maxVariance1), Mathf.Sqrt(maxVariance2), m_filterLerpWeight);
+            float sd = Mathf.Lerp(maxStdDev1, maxStdDev2, m_LerpWeight);
 
             Vector3 weightSum = new Vector3(0, 0, 0); 
 
@@ -149,32 +150,32 @@ namespace UnityEngine.Experimental.Rendering
             {
                 float u   = VanDerCorputBase2(i + 1);
                 float pos = NormalCdfInverse(u, sd);
-                float pdf = Gaussian(pos, sd * sd);
+                float pdf = Gaussian(pos, sd);
 
                 Vector3 val;
-                val.x = GaussianCombination(pos, m_filterVariance1.r, m_filterVariance2.r, m_filterLerpWeight);
-                val.y = GaussianCombination(pos, m_filterVariance1.g, m_filterVariance2.g, m_filterLerpWeight);
-                val.z = GaussianCombination(pos, m_filterVariance1.b, m_filterVariance2.b, m_filterLerpWeight);
+                val.x = GaussianCombination(pos, m_StdDev1.r, m_StdDev2.r, m_LerpWeight);
+                val.y = GaussianCombination(pos, m_StdDev1.g, m_StdDev2.g, m_LerpWeight);
+                val.z = GaussianCombination(pos, m_StdDev1.b, m_StdDev2.b, m_LerpWeight);
 
-                m_filterKernel[i].x = val.x / (pdf * numSamples);
-                m_filterKernel[i].y = val.y / (pdf * numSamples);
-                m_filterKernel[i].z = val.z / (pdf * numSamples);
-                m_filterKernel[i].w = pos;
+                m_FilterKernel[i].x = val.x / (pdf * numSamples);
+                m_FilterKernel[i].y = val.y / (pdf * numSamples);
+                m_FilterKernel[i].z = val.z / (pdf * numSamples);
+                m_FilterKernel[i].w = pos;
 
-                weightSum.x += m_filterKernel[i].x;
-                weightSum.y += m_filterKernel[i].y;
-                weightSum.z += m_filterKernel[i].z;
+                weightSum.x += m_FilterKernel[i].x;
+                weightSum.y += m_FilterKernel[i].y;
+                weightSum.z += m_FilterKernel[i].z;
             }
 
             // Renormalize the weights to conserve energy.
             for (uint i = 0; i < numSamples; i++)
             {
-                m_filterKernel[i].x *= 1.0f / weightSum.x;
-                m_filterKernel[i].y *= 1.0f / weightSum.y;
-                m_filterKernel[i].z *= 1.0f / weightSum.z;
+                m_FilterKernel[i].x *= 1.0f / weightSum.x;
+                m_FilterKernel[i].y *= 1.0f / weightSum.y;
+                m_FilterKernel[i].z *= 1.0f / weightSum.z;
             }
 
-            m_kernelNeedsUpdate = false;
+            m_KernelNeedsUpdate = false;
         }
     }
 
