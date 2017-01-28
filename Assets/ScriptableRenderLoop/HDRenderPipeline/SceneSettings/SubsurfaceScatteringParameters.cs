@@ -90,6 +90,11 @@ namespace UnityEngine.Experimental.Rendering
             return x * stdDev;
         }
 
+        static float GaussianCombinationCdfInverse(float p, float stdDev1, float stdDev2, float lerpWeight)
+        {
+            return Mathf.Lerp(NormalCdfInverse(p, stdDev1), NormalCdfInverse(p, stdDev2), lerpWeight);
+        }
+
         // Ref: https://en.wikipedia.org/wiki/Halton_sequence
         static float VanDerCorput(uint b, uint i)
         {
@@ -141,16 +146,14 @@ namespace UnityEngine.Experimental.Rendering
             float maxStdDev1 = Mathf.Max(m_StdDev1.r, m_StdDev1.g, m_StdDev1.b);
             float maxStdDev2 = Mathf.Max(m_StdDev2.r, m_StdDev2.g, m_StdDev2.b);
 
-            // Importance sample two Gaussians based on the interpolation weight.
-            float sd = Mathf.Lerp(maxStdDev1, maxStdDev2, m_LerpWeight);
-
             Vector3 weightSum = new Vector3(0, 0, 0); 
 
+            // Importance sample the linear combination of two Gaussians.
             for (uint i = 0; i < numSamples; i++)
             {
                 float u   = VanDerCorputBase2(i + 1);
-                float pos = NormalCdfInverse(u, sd);
-                float pdf = Gaussian(pos, sd);
+                float pos = GaussianCombinationCdfInverse(u, maxStdDev1, maxStdDev2, m_LerpWeight);
+                float pdf = GaussianCombination(pos, maxStdDev1, maxStdDev2, m_LerpWeight);
 
                 Vector3 val;
                 val.x = GaussianCombination(pos, m_StdDev1.r, m_StdDev2.r, m_LerpWeight);
