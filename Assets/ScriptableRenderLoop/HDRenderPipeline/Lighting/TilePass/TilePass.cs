@@ -360,7 +360,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Utilities.Destroy(m_SingleDeferredMaterial);
 
-                GameObject.Destroy(s_DefaultAdditionalLightDataGameObject);
+                Utilities.Destroy(s_DefaultAdditionalLightDataGameObject);
                 s_DefaultAdditionalLightDataGameObject = null;
                 s_DefaultAdditionalLightData = null;
             }
