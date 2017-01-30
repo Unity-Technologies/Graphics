@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                     UnityObject.DestroyImmediate(obj);
 #else
-                    UnityObject.Destroy(obj);
+                UnityObject.Destroy(obj);
 #endif
                 obj = null;
             }
@@ -114,7 +114,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 buffer = null;
             }
         }
-
 
         public class ProfilingSample
             : IDisposable
@@ -141,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             public void Dispose()
-            { 
+            {
                 Dispose(true);
             }
 
@@ -149,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             protected virtual void Dispose(bool disposing)
             {
                 if (disposed)
-                    return; 
+                    return;
 
                 if (disposing)
                 {
@@ -174,9 +173,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return gpuVP;
         }
 
-        public static HDRenderPipeline.HDCamera GetHDCamera(Camera camera)
+        public static HDCamera GetHDCamera(Camera camera)
         {
-            HDRenderPipeline.HDCamera hdCamera = new HDRenderPipeline.HDCamera();
+            HDCamera hdCamera = new HDCamera();
             hdCamera.camera = camera;
             hdCamera.screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
@@ -190,8 +189,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             return hdCamera;
         }
-        
-        public static void SetupMaterialHDCamera(HDRenderPipeline.HDCamera hdCamera, Material material)
+
+        public static void SetupMaterialHDCamera(HDCamera hdCamera, Material material)
         {
             material.SetVector("_ScreenSize", hdCamera.screenSize);
             material.SetMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);

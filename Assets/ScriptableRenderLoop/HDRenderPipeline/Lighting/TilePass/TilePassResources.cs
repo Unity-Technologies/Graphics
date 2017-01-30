@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public class HDRenderPipelineSetup : ScriptableObject
+    public class TilePassResources : ScriptableObject
     {
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("RenderPipeline/CreateHDPipelineSetup")]
-        static void CreateHDRenderPipelineSetup()
+        public const string tilePassResources = "Assets/ScriptableRenderLoop/HDRenderPipeline/Lighting/TilePass/TilePassResources.asset";
+
+        [UnityEditor.MenuItem("RenderPipeline/CreateTilePassResources")]
+        static void CreateTilePassSetup()
         {
-            var instance = ScriptableObject.CreateInstance<HDRenderPipelineSetup>();
-            UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/HDRenderPipelineSetup.asset");
+            var instance = CreateInstance<TilePassResources>();
+            UnityEditor.AssetDatabase.CreateAsset(instance, tilePassResources);
         }
+
 #endif
         public ComputeShader buildScreenAABBShader = null;
         public ComputeShader buildPerTileLightListShader = null;     // FPTL
@@ -29,6 +24,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // For image based lighting
         public Shader m_InitPreFGD;
-
     }
 }

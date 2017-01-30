@@ -1,33 +1,36 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public class ProceduralSkyRenderer
-        : SkyRenderer<ProceduralSkyParameters>
+    public class ProceduralSkyRenderer : SkyRenderer
     {
         Material m_ProceduralSkyMaterial = null; // Renders a cubemap into a render texture (can be cube or 2D)
+        private ProceduralSkyParameters m_ProceduralSkyParameters;
 
-        override public void Build()
+
+        public ProceduralSkyRenderer(ProceduralSkyParameters proceduralSkyParameters)
+        {
+            m_ProceduralSkyParameters = proceduralSkyParameters;
+        }
+
+        public override void Build()
         {
             m_ProceduralSkyMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Sky/SkyProcedural");
         }
 
-        override public void Cleanup()
+        public override void Cleanup()
         {
             Utilities.Destroy(m_ProceduralSkyMaterial);
         }
 
-        override public bool IsSkyValid(SkyParameters skyParameters)
+        public override bool IsSkyValid()
         {
-            ProceduralSkyParameters allParams = GetParameters(skyParameters);
+            if (m_ProceduralSkyMaterial == null || m_ProceduralSkyParameters == null)
+                return false;
 
-            return allParams.skyHDRI != null &&
-                   allParams.worldMieColorRamp != null &&
-                   allParams.worldRayleighColorRamp != null;
+            return m_ProceduralSkyParameters.skyHDRI != null &&
+                   m_ProceduralSkyParameters.worldMieColorRamp != null &&
+                   m_ProceduralSkyParameters.worldRayleighColorRamp != null;
         }
 
         public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
@@ -161,15 +164,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, bool renderForCubemap)
         {
-            ProceduralSkyParameters proceduralSkyParams = GetParameters(skyParameters);
 
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
 
             // Define select preprocessor symbols.
-            SetKeywords(builtinParams, proceduralSkyParams, renderForCubemap);
+            SetKeywords(builtinParams, m_ProceduralSkyParameters, renderForCubemap);
 
             // Set shader constants.
-            SetUniforms(builtinParams, proceduralSkyParams, renderForCubemap, ref properties);
+            SetUniforms(builtinParams, m_ProceduralSkyParameters, renderForCubemap, ref properties);
 
             var cmd = new CommandBuffer { name = "" };
 
@@ -182,5 +184,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
+
     }
 }

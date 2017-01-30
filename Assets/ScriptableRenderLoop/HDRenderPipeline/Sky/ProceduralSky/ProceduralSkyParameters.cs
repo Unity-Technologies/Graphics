@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
@@ -116,6 +112,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             occlusionBiasSkyMie          = Mathf.Clamp01(occlusionBiasSkyMie);
             occlusionBiasSkyRayleigh     = Mathf.Clamp01(occlusionBiasSkyRayleigh);
             */
+        }
+
+        public override SkyRenderer GetRenderer()
+        {
+            return new ProceduralSkyRenderer(this);
         }
     }
 }
