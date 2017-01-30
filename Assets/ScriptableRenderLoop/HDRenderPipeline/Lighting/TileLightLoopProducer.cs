@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
         public const string TilePassProducer = "Assets/ScriptableRenderLoop/HDRenderPipeline/Lighting/TilePass/TilePassProducer.asset";
 
-        [UnityEditor.MenuItem("RenderPipeline/Create TileLightLoopProducer")]
+        [UnityEditor.MenuItem("HDRenderPipeline/TilePass/Create TileLightLoopProducer")]
         static void CreateTileLightLoopProducer()
         {
             var instance = CreateInstance<TileLightLoopProducer>();

@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             AssetDatabase.CreateAsset(instance, k_HDRenderPipelinePath);
         }
 
-        [UnityEditor.MenuItem("RenderPipeline/UpdateHDLoop")]
+        [UnityEditor.MenuItem("HDRenderPipeline/UpdateHDLoop")]
         static void UpdateHDLoop()
         {
             var guids = AssetDatabase.FindAssets("t:HDRenderPipeline");
