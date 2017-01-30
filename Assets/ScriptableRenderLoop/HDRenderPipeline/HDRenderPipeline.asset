@@ -9,9 +9,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d440c0deec24a2f478b3e9021cb66c29, type: 3}
-  m_Name: HDRenderPipeline
+  m_Name: 
   m_EditorClassIdentifier: 
-  m_setup: {fileID: 11400000, guid: c90ada6c2ed7b4e4b85a303678826111, type: 2}
+  m_CommonSettings:
+    m_ShadowMaxDistance: 1000
+    m_ShadowCascadeCount: 4
+    m_ShadowCascadeSplit0: 0.05
+    m_ShadowCascadeSplit1: 0.2
+    m_ShadowCascadeSplit2: 0.3
+  m_SkyParameters: {fileID: 11400000, guid: 12b814c3b2e53c246a0c9f1594c01532, type: 2}
+  m_LightLoopProducer: {fileID: 11400000, guid: bf8cd9ae03ff7d54c89603e67be0bfc5,
+    type: 2}
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096

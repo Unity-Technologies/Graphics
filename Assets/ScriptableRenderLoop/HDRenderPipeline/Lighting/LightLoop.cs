@@ -1,7 +1,4 @@
-using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -29,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public virtual void PushGlobalParams(Camera camera, ScriptableRenderContext loop) {}
 
-        public virtual void RenderDeferredLighting(HDRenderPipeline.HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraColorBufferRT) {}
+        public virtual void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraColorBufferRT) {}
 
         public virtual void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque) {}
 

@@ -21,6 +21,7 @@ public class BasicRenderLoop : RenderPipelineAsset
         var instance = ScriptableObject.CreateInstance<BasicRenderLoop>();
         UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/BasicRenderLoopTutorial/BasicRenderLoop.asset");
     }
+
 #endif
 
     protected override IRenderPipeline InternalCreatePipeline()
@@ -31,7 +32,6 @@ public class BasicRenderLoop : RenderPipelineAsset
 
 public class BasicRenderLoopInstance : RenderPipeline
 {
-    
     public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
         base.Render(renderContext, cameras);
@@ -83,7 +83,6 @@ public static class BasicRendering
             context.Submit();
         }
     }
-
 
     // Setup lighting variables for shader to use
 
@@ -170,7 +169,6 @@ public static class BasicRendering
         context.ExecuteCommandBuffer(cmd);
         cmd.Dispose();
     }
-
 
     // Prepare L2 spherical harmonics values for efficient evaluation in a shader
 

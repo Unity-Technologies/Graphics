@@ -1,12 +1,11 @@
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using System.Collections.Generic;
 using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [System.Serializable]
+    [Serializable]
     public class ShadowSettings
     {
         public bool     enabled;
@@ -16,7 +15,6 @@ namespace UnityEngine.Experimental.Rendering
         public float    maxShadowDistance;
         public int      directionalLightCascadeCount;
         public Vector3  directionalLightCascades;
-
 
         public static ShadowSettings Default
         {
