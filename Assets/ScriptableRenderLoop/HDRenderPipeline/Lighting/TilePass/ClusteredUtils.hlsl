@@ -4,7 +4,7 @@
 float GetScaleFromBase(float base)
 {
     const float C = (float)(1 << g_iLog2NumClusters);
-    const float geomSeries = (1.0 - pow(abs(base), C)) / (1 - base);     // geometric series: sum_k=0^{C-1} base^k
+    const float geomSeries = (1.0 - PositivePow(base, C)) / (1 - base);     // geometric series: sum_k=0^{C-1} base^k
     return geomSeries / (g_fFarPlane - g_fNearPlane);
 }
 
@@ -44,7 +44,7 @@ float ClusterIdxToZFlex(int k, float suggestedBase, bool logBasePerTile)
     if (logBasePerTile)
         userscale = GetScaleFromBase(suggestedBase);
 
-    float dist = (pow(suggestedBase, (float)k) - 1.0) / (userscale * (suggestedBase - 1.0f));
+    float dist = (PositivePow(suggestedBase, (float)k) - 1.0) / (userscale * (suggestedBase - 1.0f));
     res = dist + g_fNearPlane;
 
 #if USE_LEFTHAND_CAMERASPACE

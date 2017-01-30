@@ -235,7 +235,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_lightList = new LightList();
                 m_lightList.Allocate();
-                
+
                 s_DirectionalLightDatas = new ComputeBuffer(k_MaxDirectionalLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
                 s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 s_EnvLightDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
@@ -406,7 +406,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1;        // room for 31 lights and a nrLights value.
 
                 s_LightList = new ComputeBuffer((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
-                
+
                 if (m_PassSettings.enableClustered)
                 {
                     s_PerVoxelOffset = new ComputeBuffer((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrTiles, sizeof(uint));
@@ -868,10 +868,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int punctualLightcount = 0;
                 int areaLightCount = 0;
 
-                var sortKeys = new uint[Math.Min(cullResults.visibleLights.Length, k_MaxLightsOnScreen)];
+                int lightCount = Math.Min(cullResults.visibleLights.Length, k_MaxLightsOnScreen);
+                var sortKeys = new uint[lightCount];
                 int sortCount = 0;
 
-                for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; lightIndex < numLights; ++lightIndex)
+                for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                 {
                     var light = cullResults.visibleLights[lightIndex];
 
@@ -880,7 +881,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (additionalData == null)
                     {
+                        // PreRenderLight is used to display preview
+                        if (light.light.name != "PreRenderLight")
+                        {
                         Debug.LogWarningFormat("Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
+                        }                        
                         additionalData = DefaultAdditionalLightData;
                     }
 
@@ -1008,14 +1013,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Redo everything but this time with envLights
                 int envLightCount = 0;
 
-                sortKeys = new uint[Math.Min(cullResults.visibleReflectionProbes.Length, k_MaxEnvLightsOnScreen)];
+                int probeCount = Math.Min(cullResults.visibleReflectionProbes.Length, k_MaxEnvLightsOnScreen);
+                sortKeys = new uint[probeCount];
                 sortCount = 0;
 
-                for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Length; probeIndex < numProbes; probeIndex++)
+                for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Length; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                 {
                     var probe = cullResults.visibleReflectionProbes[probeIndex];
 
-                    if (envLightCount >= k_MaxEnvLightsOnScreen)
+                    // probe.texture can be null when we are adding a reflection probe in the editor
+                    if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
                         continue;
 
                     // TODO: Support LightVolumeType.Sphere, currently in UI there is no way to specify a sphere influence volume                    
@@ -1133,7 +1140,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
                     cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (m_lightCount + 7) / 8, 1, 1);
                 }
-                
+
                 // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
                 if (m_PassSettings.enableBigTilePrepass)
                 {
@@ -1259,7 +1266,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 SetGlobalInt("_NumTileX", GetNumTileX(camera));
                 SetGlobalInt("_NumTileY", GetNumTileY(camera));
-                
+
                 if (m_PassSettings.enableBigTilePrepass)
                     SetGlobalBuffer("g_vBigTileLightList", s_BigTileLightList);
 
