@@ -71,6 +71,8 @@ float _EmissiveIntensity;
 
 float _AlphaCutoff;
 
+float _HorizonFade;
+
 float _TexWorldScale;
 float _UVMappingPlanar;
 float4 _UVMappingMask;
@@ -170,6 +172,8 @@ PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
 
 float _AlphaCutoff;
+
+float _HorizonFade;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;

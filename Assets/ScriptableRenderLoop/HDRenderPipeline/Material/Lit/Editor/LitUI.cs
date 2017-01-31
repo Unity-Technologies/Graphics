@@ -303,7 +303,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.LightmapEmissionProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
-
+            m_MaterialEditor.ShaderProperty(horizonFade, Styles.horizonFadeText);
             EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();
