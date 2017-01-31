@@ -78,9 +78,11 @@ Shader "RenderLoop/LowEnd"
 			#pragma shader_feature _NORMALMAP
 			
 			#pragma multi_compile _ LIGHTMAP_ON
+			#pragma multi_compile _ SHADOWS_DEPTH
+			#pragma multi_compile _ SHADOWS_FILTERING
 			#pragma multi_compile_fog
 			#pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3
-			//#pragma enable_d3d11_debug_symbols
+			#pragma enable_d3d11_debug_symbols
 			
 			#include "UnityCG.cginc"
 			#include "UnityStandardBRDF.cginc"
@@ -112,9 +114,10 @@ Shader "RenderLoop/LowEnd"
 			int4  globalLightCount; // x: pixelLightCount, y = totalLightCount (pixel + vert)
 
 			sampler2D g_tShadowBuffer;
+			float _PCFKernel[8];
 
 			half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
-			half4 _PSSMDistances;
+			half4 _PSSMDistancesAndShadowResolution; // xyz: PSSM Distance for 4 cascades, w: 1 / shadowmap resolution. Used for filtering
 
 			struct LightInput
 			{
@@ -123,12 +126,36 @@ Shader "RenderLoop/LowEnd"
 				half4 atten;
 				half4 spotDir;
 			};
-
-			inline int ComputeCascadeIndex(half eyeZ)
+			
+			inline half ComputeCascadeIndex(half eyeZ)
 			{
 				// PSSMDistance is set to infinity for non active cascades. This way the comparison for unavailable cascades will always be zero. 
-				half3 cascadeCompare = step(_PSSMDistances, half3(eyeZ, eyeZ, eyeZ));
+				half3 cascadeCompare = step(_PSSMDistancesAndShadowResolution.xyz, half3(eyeZ, eyeZ, eyeZ));
 				return dot(cascadeCompare, cascadeCompare);
+			}
+
+			inline half ShadowAttenuation(half2 shadowCoord, half shadowCoordDepth)
+			{
+				half depth = tex2D(g_tShadowBuffer, shadowCoord).r;
+#if defined(UNITY_REVERSED_Z)
+				return step(depth, shadowCoordDepth);
+#else
+				return step(shadowCoordDepth, depth);
+#endif
+			}
+
+			inline half ShadowFilteredAttenuation(half4 shadowCoord)
+			{
+				// GPU Gems 4x4 kernel with 4 taps.
+				half2 offset = (float)(frac(shadowCoord.xy * 0.5) > 0.25);  // mod
+				offset.y += offset.x;  // y ^= x in floating point
+				offset *= _PSSMDistancesAndShadowResolution.w;
+
+				half attenuation = ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[0], _PCFKernel[1]) + offset, shadowCoord.z) +
+					ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[2], _PCFKernel[3]) + offset, shadowCoord.z) +
+					ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[4], _PCFKernel[5]) + offset, shadowCoord.z) +
+					ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[6], _PCFKernel[7]) + offset, shadowCoord.z);
+				return attenuation * 0.25;
 			}
 
 			inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half3 specularColor, half3 normal, float3 posWorld, half3 viewDir)
@@ -160,16 +187,13 @@ Shader "RenderLoop/LowEnd"
 			inline half3 EvaluateMainLight(LightInput lightInput, half3 diffuseColor, half3 specularColor, half3 normal, float4 posWorld, half3 viewDir)
 			{
 				int cascadeIndex = ComputeCascadeIndex(posWorld.w);
-				float3 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
+				float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
 				shadowCoord.z = saturate(shadowCoord.z);
-
-				half shadowDepth = tex2D(g_tShadowBuffer, shadowCoord.xy).r;
-				half shadowAttenuation = 1.0;
 				
-#if defined(UNITY_REVERSED_Z)
-				shadowAttenuation = step(shadowDepth, shadowCoord.z);
+#ifdef SHADOWS_FILTERING
+					half shadowAttenuation = ShadowFilteredAttenuation(shadowCoord);
 #else
-				shadowAttenuation = step(shadowCoord.z, shadowDepth);
+					half shadowAttenuation = ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
 #endif
 
 #if DEBUG_CASCADES
@@ -178,7 +202,12 @@ Shader "RenderLoop/LowEnd"
 #endif
 
 				half3 color = EvaluateOneLight(lightInput, diffuseColor, specularColor, normal, posWorld, viewDir);
+				
+#ifdef SHADOWS_DEPTH
 				return color * shadowAttenuation;
+#else
+				return color;
+#endif
 			}
 
 			struct LowendVertexInput
