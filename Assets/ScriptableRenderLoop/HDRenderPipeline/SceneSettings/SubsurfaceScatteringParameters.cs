@@ -98,6 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
         static float VanDerCorputBase2(uint i)
         {
+            i = i + 1;
             i = (i << 16) | (i >> 16);
             i = ((i & 0x00ff00ff) << 8) | ((i & 0xff00ff00) >> 8);
             i = ((i & 0x0f0f0f0f) << 4) | ((i & 0xf0f0f0f0) >> 4);
@@ -135,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Importance sample the linear combination of two Gaussians.
             for (uint i = 0; i < numSamples; i++)
             {
-                float u   = VanDerCorputBase2(i + 1);
+                float u   = VanDerCorputBase2(i);
                 float pos = GaussianCombinationCdfInverse(u, maxStdDev1, maxStdDev2, m_LerpWeight);
                 float pdf = GaussianCombination(pos, maxStdDev1, maxStdDev2, m_LerpWeight);
 
