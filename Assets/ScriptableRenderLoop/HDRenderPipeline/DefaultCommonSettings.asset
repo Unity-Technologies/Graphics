@@ -17,3 +17,7 @@ MonoBehaviour:
     m_ShadowCascadeSplit0: 0.05
     m_ShadowCascadeSplit1: 0.2
     m_ShadowCascadeSplit2: 0.3
+    m_SssProfileStdDev1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    m_SssProfileStdDev2: {r: 1, g: 1, b: 1, a: 0}
+    m_SssProfileLerpWeight: 0.5
+    m_SssBilateralScale: 0.1

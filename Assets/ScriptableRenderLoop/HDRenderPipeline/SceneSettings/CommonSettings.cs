@@ -8,11 +8,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public struct Settings
         {
             // Shadows
-            [SerializeField] float m_ShadowMaxDistance;
-            [SerializeField] int   m_ShadowCascadeCount;
-            [SerializeField] float m_ShadowCascadeSplit0;
-            [SerializeField] float m_ShadowCascadeSplit1;
-            [SerializeField] float m_ShadowCascadeSplit2;
+            [SerializeField]
+            float m_ShadowMaxDistance;
+            [SerializeField]
+            int   m_ShadowCascadeCount;
+            [SerializeField]
+            float m_ShadowCascadeSplit0;
+            [SerializeField]
+            float m_ShadowCascadeSplit1;
+            [SerializeField]
+            float m_ShadowCascadeSplit2;
 
             public float shadowMaxDistance   { set { m_ShadowMaxDistance   = value; OnValidate(); } get { return m_ShadowMaxDistance; } }
             public int   shadowCascadeCount  { set { m_ShadowCascadeCount  = value; OnValidate(); } get { return m_ShadowCascadeCount; } }
@@ -21,12 +26,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float shadowCascadeSplit2 { set { m_ShadowCascadeSplit2 = value; OnValidate(); } get { return m_ShadowCascadeSplit2; } }
 
             // Subsurface scattering
-            [ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
-            [SerializeField] Color m_SssProfileStdDev1;
-            [ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
-            [SerializeField] Color m_SssProfileStdDev2;
-            [SerializeField] float m_SssProfileLerpWeight;
-            [SerializeField] float m_SssBilateralScale;
+            [SerializeField] [ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
+            Color m_SssProfileStdDev1;
+            [SerializeField] [ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
+            Color m_SssProfileStdDev2;
+            [SerializeField]
+            float m_SssProfileLerpWeight;
+            [SerializeField]
+            float m_SssBilateralScale;
 
             public Color sssProfileStdDev1    { set { m_SssProfileStdDev1    = value; OnValidate(); } get { return m_SssProfileStdDev1; } }
             public Color sssProfileStdDev2    { set { m_SssProfileStdDev2    = value; OnValidate(); } get { return m_SssProfileStdDev2; } }

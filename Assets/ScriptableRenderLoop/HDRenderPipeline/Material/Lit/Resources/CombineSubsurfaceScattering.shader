@@ -60,7 +60,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             struct Attributes
             {
-                uint vertexId : SV_VertexID;
+                uint vertexID : SV_VertexID;
             };
 
             struct Varyings
@@ -71,12 +71,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-
-                // Generate a triangle in homogeneous clip space, s.t.
-                // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
-                float2 uv = float2((input.vertexId << 1) & 2, input.vertexId & 2);
-                output.positionCS = float4(uv * 2 - 1, 1, 1);
-
+                output.positionCS = GetFullscreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
@@ -85,8 +80,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
                 float rawDepth    = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
-                float cDepth      = LinearEyeDepth(rawDepth, _ZBufferParams);
-                float radiusScale = _FilterRadius * _DistToProjWindow / cDepth;
+                float centerDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
+                float radiusScale = _FilterRadius * _DistToProjWindow / centerDepth;
 
                 // Compute the filtering direction.
                 float2 unitDirection   = _FilterHorizontal ? float2(1, 0) : float2(0, 1);
@@ -96,32 +91,32 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 scaledDirection *= _ScreenSize.zw;
 
                 // Take the first (central) sample.
-                float3 sWeight   = _FilterKernel[0].rgb;
-                float2 sPosition = posInput.unPositionSS;
+                float3 sampleWeight   = _FilterKernel[0].rgb;
+                float2 samplePosition = posInput.unPositionSS;
 
-                float3 sIrradiance = LOAD_TEXTURE2D(_IrradianceSource, sPosition).rgb;
-                float3 cIrradiance = sIrradiance;
+                float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
+                float3 centerIrradiance = sampleIrradiance;
 
                 // Accumulate filtered irradiance (already weighted by (albedo / Pi)).
-                float3 filteredIrradiance = sIrradiance * sWeight;
+                float3 filteredIrradiance = sampleIrradiance * sampleWeight;
 
                 [unroll]
                 for (int i = 1; i < N_SAMPLES; i++)
                 {
-                    sWeight   = _FilterKernel[i].rgb; // TODO: normalize weights
-                    sPosition = posInput.positionSS + scaledDirection * _FilterKernel[i].a;
+                    sampleWeight   = _FilterKernel[i].rgb;
+                    samplePosition = posInput.positionSS + scaledDirection * _FilterKernel[i].a;
 
-                    sIrradiance = SAMPLE_TEXTURE2D_LOD(_IrradianceSource,   bilinearSampler, sPosition, 0).rgb;
-                    rawDepth    = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, bilinearSampler, sPosition, 0).r;
+                    sampleIrradiance = SAMPLE_TEXTURE2D_LOD(_IrradianceSource,   bilinearSampler, samplePosition, 0).rgb;
+                    rawDepth         = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, bilinearSampler, samplePosition, 0).r;
 
                     // Apply bilateral filtering.
-                    float sDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
-                    float dDepth = abs(sDepth - cDepth);
-                    float dScale = _BilateralScale * _FilterRadius * _DistToProjWindow;
-                    float t      = saturate(dDepth / dScale);
+                    float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
+                    float depthDiff   = abs(sampleDepth - centerDepth);
+                    float scaleDiff   = _BilateralScale * _FilterRadius * _DistToProjWindow;
+                    float t           = saturate(depthDiff / scaleDiff);
 
                     // TODO: use real-world distances for weighting.
-                    filteredIrradiance += lerp(sIrradiance, cIrradiance, t) * sWeight;
+                    filteredIrradiance += lerp(sampleIrradiance, centerIrradiance, t) * sampleWeight;
                 }
 
                 return float4(filteredIrradiance, 1.0);

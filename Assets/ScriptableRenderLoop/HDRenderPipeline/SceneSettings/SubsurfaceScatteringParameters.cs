@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
     public class SubsurfaceScatteringProfile
@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering
             // A1(v1, v2, w, x)    = G1(x, v1) * (1 - w) + G1(r, v2) * w,
             // A2(v1, v2, w, x, y) = A1(v1, v2, w, x) * A1(v1, v2, w, y).
             // The resulting filter function is a non-Gaussian PDF.
-            // It is separable by design, but generally not radially symmmetric.
+            // It is separable by design, but generally not radially symmetric.
 
             // Find the widest Gaussian across 3 color channels.
             float maxStdDev1 = Mathf.Max(m_StdDev1.r, m_StdDev1.g, m_StdDev1.b);
