@@ -53,7 +53,7 @@ namespace UnityEditor.Graphing.Drawing
 
             m_label.content.text = m_dataProvider.text;
 
-            this.Touch(ChangeType.Repaint);
+            this.Dirty(ChangeType.Repaint);
         }
 
         void OnClick()
@@ -68,7 +68,7 @@ namespace UnityEditor.Graphing.Drawing
                 AddToClassList("active");
             else if (newState == ClickerState.Inactive)
                 RemoveFromClassList("active");
-            this.Touch(ChangeType.Repaint);
+            this.Dirty(ChangeType.Repaint);
         }
 
         protected override object toWatch
