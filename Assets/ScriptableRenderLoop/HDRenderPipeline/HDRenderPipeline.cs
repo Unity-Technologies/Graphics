@@ -708,7 +708,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
 
             var cmd = new CommandBuffer() { name = "Combine Subsurface Scattering" };
-            cmd.SetGlobalTexture("_CameraDepthTexture", m_CameraDepthStencilBufferRT);
 
             // Perform the vertical SSS filtering pass.
             properties.SetFloat("_DstBlend", (float)BlendMode.Zero); // TODO: this doesn't work for some reason...

@@ -66,7 +66,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             struct Attributes
             {
-                uint vertexId : SV_VertexID;
+                uint vertexID : SV_VertexID;
             };
 
             struct Varyings
@@ -87,12 +87,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-
-                // Generate a triangle in homogeneous clip space, s.t.
-                // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
-                float2 uv = float2((input.vertexId << 1) & 2, input.vertexId & 2);
-			    output.positionCS = float4(uv * 2.0 - 1.0, 1.0, 1.0);
-
+			    output.positionCS = GetFullscreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
