@@ -22,6 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
             public static GUIContent depthOffsetEnableText = new GUIContent("DepthOffset", "EnableDepthOffset on this shader (Use with heightmap)");
+            public static GUIContent horizonFadeText = new GUIContent("HorizonFade", "horizon fade is use to control specular occlusion");            
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
@@ -235,6 +236,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionOnly = FindProperty(kDistortionOnly, props);
             distortionDepthTest = FindProperty(kDistortionDepthTest, props);
             depthOffsetEnable = FindProperty(kDepthOffsetEnable, props);
+            horizonFade = FindProperty(kHorizonFade, props);
 
             // tessellation specific, silent if not found
             tessellationMode = FindProperty(kTessellationMode, props, false);
@@ -503,6 +505,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kDistortionDepthTest = "_DistortionDepthTest";
         MaterialProperty depthOffsetEnable = null;       
         const string kDepthOffsetEnable = "_DepthOffsetEnable";
+        protected MaterialProperty horizonFade = null;
+        const string kHorizonFade = "_HorizonFade";
 
         // tessellation params
         protected MaterialProperty tessellationMode = null;

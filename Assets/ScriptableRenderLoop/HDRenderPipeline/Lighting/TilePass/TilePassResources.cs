@@ -1,11 +1,11 @@
-﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class TilePassResources : ScriptableObject
     {
 #if UNITY_EDITOR
         public const string tilePassResources = "Assets/ScriptableRenderLoop/HDRenderPipeline/Lighting/TilePass/TilePassResources.asset";
 
-        [UnityEditor.MenuItem("RenderPipeline/CreateTilePassResources")]
+        [UnityEditor.MenuItem("HDRenderPipeline/TilePass/CreateTilePassResources")]
         static void CreateTilePassSetup()
         {
             var instance = CreateInstance<TilePassResources>();

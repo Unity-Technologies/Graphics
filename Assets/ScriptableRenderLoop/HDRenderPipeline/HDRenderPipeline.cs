@@ -23,16 +23,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             AssetDatabase.CreateAsset(instance, k_HDRenderPipelinePath);
         }
 
-        [UnityEditor.MenuItem("RenderPipeline/UpdateHDLoop")]
-        static void UpdateHDLoop()
+        [UnityEditor.MenuItem("HDRenderPipeline/UpdateHDRenderPipeline")]
+        static void UpdateHDRenderPipeline()
         {
             var guids = AssetDatabase.FindAssets("t:HDRenderPipeline");
             foreach (var guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
-                var loop = AssetDatabase.LoadAssetAtPath<HDRenderPipeline>(path);
-               // loop.m_Setup = AssetDatabase.LoadAssetAtPath<TilePassSetup>("Assets/HDRenderPipelineSetup.asset");
-                EditorUtility.SetDirty(loop);
+                var pipeline = AssetDatabase.LoadAssetAtPath<HDRenderPipeline>(path);
+                EditorUtility.SetDirty(pipeline);
             }
         }
 
