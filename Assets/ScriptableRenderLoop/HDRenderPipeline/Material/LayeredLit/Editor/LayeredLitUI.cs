@@ -839,11 +839,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool layerChanged = DoLayersGUI(materialImporter);
 
             EditorGUILayout.Space();
-            GUILayout.Label(Styles.emissiveText, EditorStyles.boldLabel);
+            GUILayout.Label(Styles.lightingText, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, layerEmissiveColorMap, layerEmissiveColor);
             m_MaterialEditor.ShaderProperty(layerEmissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.LightmapEmissionProperty(1);
+            m_MaterialEditor.ShaderProperty(horizonFade, Styles.horizonFadeText);
             EditorGUI.indentLevel--;
 
             CheckLayerConsistency();
