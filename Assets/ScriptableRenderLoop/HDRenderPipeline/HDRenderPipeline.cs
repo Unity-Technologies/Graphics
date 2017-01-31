@@ -447,56 +447,56 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (debugParameters.debugViewMaterial != 0)
             {
                 RenderDebugViewMaterial(cullResults, hdCamera, renderContext);
-                return;
             }
-
-            ShadowOutput shadows;
-            using (new Utilities.ProfilingSample("Shadow Pass", renderContext))
+            else
+            {
+                ShadowOutput shadows;
+                using (new Utilities.ProfilingSample("Shadow Pass", renderContext))
                 {
-                m_ShadowPass.Render(renderContext, cullResults, out shadows);
+                    m_ShadowPass.Render(renderContext, cullResults, out shadows);
                 }
 
-            renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
+                renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
 
-            if (m_LightLoop != null)
+                if (m_LightLoop != null)
                 {
-                using (new Utilities.ProfilingSample("Build Light list", renderContext))
+                    using (new Utilities.ProfilingSample("Build Light list", renderContext))
                     {
-                    m_LightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera, ref shadows);
-                    m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthBufferRT); // TODO: Use async compute here to run light culling during shadow
+                        m_LightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera, ref shadows);
+                        m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthBufferRT); // TODO: Use async compute here to run light culling during shadow
                     }
                 }
 
-            PushGlobalParams(hdCamera, renderContext);
+                PushGlobalParams(hdCamera, renderContext);
 
-            // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
-            // must be call after BuildGPULightLists.
-            // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-            UpdateSkyEnvironment(hdCamera, renderContext);
+                // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
+                // must be call after BuildGPULightLists.
+                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
+                UpdateSkyEnvironment(hdCamera, renderContext);
 
-            RenderDeferredLighting(hdCamera, renderContext);
+                RenderDeferredLighting(hdCamera, renderContext);
 
-            // For opaque forward we have split rendering in two categories
-            // Material that are always forward and material that can be deferred or forward depends on render pipeline options (like switch to rendering forward only mode)
-            // Material that are always forward are unlit and complex (Like Hair) and don't require sorting, so it is ok to split them.
-            RenderForward(cullResults, camera, renderContext, true); // Render deferred or forward opaque
-            RenderForwardOnlyOpaque(cullResults, camera, renderContext);
+                // For opaque forward we have split rendering in two categories
+                // Material that are always forward and material that can be deferred or forward depends on render pipeline options (like switch to rendering forward only mode)
+                // Material that are always forward are unlit and complex (Like Hair) and don't require sorting, so it is ok to split them.
+                RenderForward(cullResults, camera, renderContext, true); // Render deferred or forward opaque
+                RenderForwardOnlyOpaque(cullResults, camera, renderContext);
 
-            RenderSky(hdCamera, renderContext);
+                RenderSky(hdCamera, renderContext);
 
-            // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
-            RenderForward(cullResults, camera, renderContext, false);
+                // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
+                RenderForward(cullResults, camera, renderContext, false);
 
-            RenderVelocity(cullResults, camera, renderContext); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
+                RenderVelocity(cullResults, camera, renderContext); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
 
-            // TODO: Check with VFX team.
-            // Rendering distortion here have off course lot of artifact.
-            // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
-            // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
-            RenderDistortion(cullResults, camera, renderContext);
+                // TODO: Check with VFX team.
+                // Rendering distortion here have off course lot of artifact.
+                // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
+                // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
+                RenderDistortion(cullResults, camera, renderContext);
 
-            FinalPass(camera, renderContext);
-
+                FinalPass(camera, renderContext);
+            }
 
             // bind depth surface for editor grid/gizmo/selection rendering
             if (camera.cameraType == CameraType.SceneView)
