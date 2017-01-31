@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                     UnityObject.DestroyImmediate(obj);
 #else
-                    UnityObject.Destroy(obj);
+                UnityObject.Destroy(obj);
 #endif
                 obj = null;
             }
@@ -122,7 +122,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 buffer = null;
             }
         }
-
 
         public class ProfilingSample
             : IDisposable
@@ -149,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             public void Dispose()
-            { 
+            {
                 Dispose(true);
             }
 
@@ -157,7 +156,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             protected virtual void Dispose(bool disposing)
             {
                 if (disposed)
-                    return; 
+                    return;
 
                 if (disposing)
                 {
@@ -182,9 +181,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return gpuVP;
         }
 
-        public static HDRenderPipeline.HDCamera GetHDCamera(Camera camera)
+        public static HDCamera GetHDCamera(Camera camera)
         {
-            HDRenderPipeline.HDCamera hdCamera = new HDRenderPipeline.HDCamera();
+            HDCamera hdCamera = new HDCamera();
             hdCamera.camera = camera;
             hdCamera.screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
@@ -198,8 +197,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             return hdCamera;
         }
-        
-        public static void SetupMaterialHDCamera(HDRenderPipeline.HDCamera hdCamera, Material material)
+
+        public static void SetupMaterialHDCamera(HDCamera hdCamera, Material material)
         {
             material.SetVector("_ScreenSize", hdCamera.screenSize);
             material.SetMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);
@@ -272,7 +271,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static HDRenderPipeline GetHDRenderPipeline()
         {
-            HDRenderPipeline renderContext = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderPipeline;
+            HDRenderPipeline renderContext = GraphicsSettings.renderPipelineAsset as HDRenderPipeline;
             if (renderContext == null)
             {
                 Debug.LogWarning("SkyParameters component can only be used with HDRenderPipeline custom RenderPipeline.");
@@ -302,7 +301,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
-        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDRenderPipeline.HDCamera camera,
+        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
                                           RenderTargetIdentifier colorBuffer,
                                           MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
@@ -312,7 +311,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
-        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDRenderPipeline.HDCamera camera,
+        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
                                           RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
                                           MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
@@ -322,7 +321,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
-        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDRenderPipeline.HDCamera camera,
+        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
                                           RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
                                           MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
@@ -333,7 +332,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
         // Important: the first RenderTarget must be created with 0 depth bits!
-        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDRenderPipeline.HDCamera camera,
+        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
                                           RenderTargetIdentifier[] colorBuffers,
                                           MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {

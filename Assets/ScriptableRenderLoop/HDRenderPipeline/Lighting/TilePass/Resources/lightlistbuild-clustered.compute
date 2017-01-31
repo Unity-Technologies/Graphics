@@ -68,7 +68,7 @@ groupshared float4 lightPlanes[4*6];
 groupshared uint lightOffs;
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-groupshared int ldsZMax;
+groupshared uint ldsZMax;
 #endif
 
 #ifdef EXACT_EDGE_TESTS

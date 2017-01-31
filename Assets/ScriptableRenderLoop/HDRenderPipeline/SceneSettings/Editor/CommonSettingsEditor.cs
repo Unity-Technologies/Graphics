@@ -152,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             for (int i = 0; i < targets.Length; ++i)
             {
                 CommonSettings settings = targets[i] as CommonSettings;
-                maxCascadeCount = Math.Max(maxCascadeCount, settings.shadowCascadeCount);
+                maxCascadeCount = Math.Max(maxCascadeCount, settings.settings.shadowCascadeCount);
             }
 
             EditorGUI.indentLevel++;
@@ -175,6 +175,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
+        /*
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -185,5 +186,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             serializedObject.ApplyModifiedProperties();
         }
+        */
     }
 }

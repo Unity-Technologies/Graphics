@@ -5,11 +5,11 @@ Shader "HDRenderPipeline/Unlit"
         _Color("Color", Color) = (1,1,1,1)
         _ColorMap("ColorMap", 2D) = "white" {}
 
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
+
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
-
-        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
         [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
         [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
@@ -65,17 +65,7 @@ Shader "HDRenderPipeline/Unlit"
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    float4  _Color;
-	TEXTURE2D(_ColorMap);
-	SAMPLER2D(sampler_ColorMap);
-
-    float3 _EmissiveColor;
-	TEXTURE2D(_EmissiveColorMap);
-	SAMPLER2D(sampler_EmissiveColorMap);
-
-    float _EmissiveIntensity;
-
-    float _AlphaCutoff;
+    #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Unlit/UnlitProperties.hlsl"
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
@@ -88,8 +78,6 @@ Shader "HDRenderPipeline/Unlit"
         Tags { "RenderType"="Opaque" "PerformanceChecks"="False" }
         LOD 300
 
-        // ------------------------------------------------------------------
-        //  Debug pass
         Pass
         {
             Name "Debug"
@@ -107,58 +95,9 @@ Shader "HDRenderPipeline/Unlit"
 
             ENDHLSL
         }
-        
-        // ------------------------------------------------------------------
-        //  forward opaque pass
-        // Material opaque that are always forward (i.e can't render in deferred) need to implement ForwardOnlyOpaque pass
-        // (Code is exactly the same as "Forward", it simply allow our system to filter objects correctly
-        // TODO: can we do this another way ? Like relying on QueueIndex ? But it will be require anyway for material with two forward pass like hair
-        Pass
-        {
-            Name "ForwardUnlit"
-            Tags { "LightMode" = "ForwardOnlyOpaque" }
 
-            Blend [_SrcBlend] [_DstBlend]
-            ZWrite [_ZWrite]
-            Cull [_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
-            #include "../../Material/Material.hlsl"            
-            #include "ShaderPass/UnlitSharePass.hlsl"
-            #include "UnlitData.hlsl"
-            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
-
-            ENDHLSL
-        }
-
-        // ------------------------------------------------------------------
-        //  forward pass
-        Pass
-        {
-            Name "ForwardUnlit"
-            Tags { "LightMode" = "Forward" }
-
-            Blend [_SrcBlend] [_DstBlend]
-            ZWrite [_ZWrite]
-            Cull [_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/UnlitSharePass.hlsl"
-            #include "UnlitData.hlsl"
-            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
-
-            ENDHLSL
-        }
-
-        // ------------------------------------------------------------------
         // Extracts information for lightmapping, GI (emission, albedo, ...)
         // This pass it not used during regular rendering.
-        // ------------------------------------------------------------------
         Pass
         {
             Name "META"
@@ -195,9 +134,52 @@ Shader "HDRenderPipeline/Unlit"
 
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "../../Material/Material.hlsl"                     
-            #include "ShaderPass/UnlitSharePass.hlsl"
+            #include "ShaderPass/UnlitDistortionPass.hlsl"
             #include "UnlitData.hlsl"
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "ForwardUnlit"
+            Tags { "LightMode" = "Forward" }
+
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/UnlitSharePass.hlsl"
+            #include "UnlitData.hlsl"
+            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
+
+            ENDHLSL
+        }
+
+        // Unlit opaque material need to be render with ForwardOnlyOpaque. Unlike Lit that can be both deferred and forward, 
+        // unlit require to be forward only, that's why we need this pass. Unlit transparent will use regular Forward pass
+        // (Code is exactly the same as "Forward", it simply allow our system to filter objects correctly)
+        Pass
+        {
+            Name "ForwardUnlit"
+            Tags { "LightMode" = "ForwardOnlyOpaque" }
+
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+            #include "../../Material/Material.hlsl"            
+            #include "ShaderPass/UnlitSharePass.hlsl"
+            #include "UnlitData.hlsl"
+            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
 
             ENDHLSL
         }
