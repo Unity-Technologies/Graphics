@@ -277,7 +277,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 AdditionalLightData additionalLight = lights[i].light.GetComponent<AdditionalLightData>();
                 int shadowResolution;
-                if (additionalLight != null)
+
+                if (settings.shadowType != ShadowSettings.ShadowType.LIGHTSPACE)
                     shadowResolution = AdditionalLightData.GetShadowResolution(additionalLight);
                 else
                     shadowResolution = GetMaxTileResolutionInAtlas(settings.shadowAtlasWidth, settings.shadowAtlasHeight, settings.directionalLightCascadeCount);

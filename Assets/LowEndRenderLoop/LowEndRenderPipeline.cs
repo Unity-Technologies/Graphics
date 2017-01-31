@@ -167,16 +167,16 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         float shadowFrustumDepth = shadowFar - shadowNear;
         Vector3 shadowSplitRatio = m_ShadowSettings.directionalLightCascades;
 
+        ShadowSliceData[] shadowSlices = shadowOutput.shadowSlices;
+        if (shadowSlices == null)
+            return;
+
         // We set PSSMDistance to infinity for non active cascades so the comparison test always fails for unavailable cascades
         Vector4 PSSMDistances = new Vector4(
             shadowNear + shadowSplitRatio.x * shadowFrustumDepth,
             (shadowSplitRatio.y > 0.0f) ? shadowNear + shadowSplitRatio.y * shadowFrustumDepth : Mathf.Infinity,
             (shadowSplitRatio.z > 0.0f) ? shadowNear + shadowSplitRatio.z * shadowFrustumDepth : Mathf.Infinity,
-            Mathf.Infinity);
-
-        ShadowSliceData[] shadowSlices = shadowOutput.shadowSlices;
-        if (shadowSlices == null)
-            return;
+            1.0f / shadowSlices[0].shadowResolution);
 
         int shadowSliceCount = shadowSlices.Length;
         const int maxShadowCascades = 4;
@@ -184,11 +184,33 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         for (int i = 0; i < shadowSliceCount; ++i)
             shadowMatrices[i] = (shadowSliceCount >= i) ? shadowSlices[i].shadowTransform : Matrix4x4.identity;
 
+        // TODO: shadow resolution per cascade in case cascades endup being supported.
+        float invShadowResolution = 1.0f / shadowSlices[0].shadowResolution;
+        float[] pcfKernel = {-1.5f * invShadowResolution,  0.5f * invShadowResolution,
+                              0.5f * invShadowResolution,  0.5f * invShadowResolution,
+                             -1.5f * invShadowResolution, -0.5f * invShadowResolution,
+                              0.5f * invShadowResolution, -0.5f * invShadowResolution };
+
         var setupShadow = new CommandBuffer() { name = "SetupShadowShaderConstants" };
+        SetShadowKeywords(setupShadow);
         setupShadow.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
-        setupShadow.SetGlobalVector("_PSSMDistances", PSSMDistances);
+        setupShadow.SetGlobalVector("_PSSMDistancesAndShadowResolution", PSSMDistances);
+        setupShadow.SetGlobalFloatArray("_PCFKernel", pcfKernel);
         context.ExecuteCommandBuffer(setupShadow);
         setupShadow.Dispose();
+    }
+
+    void SetShadowKeywords(CommandBuffer cmd)
+    {
+        if (QualitySettings.shadows == ShadowQuality.Disable)
+            cmd.DisableShaderKeyword("SHADOWS_DEPTH");
+        else
+            cmd.EnableShaderKeyword("SHADOWS_DEPTH");
+
+        if (m_Asset.EnableShadowFiltering)
+            cmd.EnableShaderKeyword("SHADOWS_FILTERING");
+        else
+            cmd.DisableShaderKeyword("SHADOWS_FILTERING");
     }
     #endregion
 }
@@ -216,13 +238,16 @@ public class LowEndRenderPipeline : RenderPipelineAsset
     public bool m_SupportsVertexLight = true;
     public bool m_EnableLightmaps = true;
     public bool m_EnableAmbientProbe = true;
+    public bool m_EnableShadowFiltering = false;
     public int m_ShadowAtlasResolution = 1024;
 
     public bool SupportsVertexLight { get { return m_SupportsVertexLight;} private set { m_SupportsVertexLight = value; } }
 
     public bool EnableLightmap { get { return m_EnableLightmaps;} private set { m_EnableLightmaps = value; } }
 
-    public bool EnableAmbientProbe { get { return m_EnableAmbientProbe;} private set { m_EnableAmbientProbe = value; } }
+    public bool EnableAmbientProbe { get { return m_EnableAmbientProbe; } private set { m_EnableAmbientProbe = value; } }
+
+    public bool EnableShadowFiltering { get { return m_EnableShadowFiltering; } private set { m_EnableShadowFiltering = value; } }
 
     public int ShadowAtlasResolution { get { return m_ShadowAtlasResolution; } private set { m_ShadowAtlasResolution = value; } }
 #endregion
