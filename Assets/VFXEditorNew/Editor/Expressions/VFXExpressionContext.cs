@@ -5,6 +5,14 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionContext
     {
+        public enum ReductionOption
+        {
+            CPUEvaluation = 0,
+            ConstantFolding = 1,
+        }
+
+        public ReductionOption Option { get { return ReductionOption.ConstantFolding;  } }
+
         public void RegisterExpression(VFXExpression expression)
         {
             m_EndExpressions.Add(expression);
