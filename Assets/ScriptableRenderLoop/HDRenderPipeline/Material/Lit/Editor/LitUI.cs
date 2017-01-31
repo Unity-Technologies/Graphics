@@ -76,8 +76,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVDetail = "_UVDetail";
         protected MaterialProperty UVDetailsMappingMask = null;
         protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
-        protected MaterialProperty materialClass = null;
-        protected const string kMaterialClass = "_MaterialClass";
+        protected MaterialProperty materialID = null;
+        protected const string kMaterialID = "_MaterialID";
         protected MaterialProperty emissiveColorMode = null;
         protected const string kEmissiveColorMode = "_EmissiveColorMode";
 
@@ -139,14 +139,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // These are options that are shared with the LayeredLit shader. Don't put anything that can't be shared here:
         // For instance, properties like BaseColor and such don't exist in the LayeredLit so don't put them here.
         protected void FindMaterialOptionProperties(MaterialProperty[] props)
-        {   
+        {
             smoothnessMapChannel = FindProperty(kSmoothnessTextureChannel, props);
             normalMapSpace = FindProperty(kNormalMapSpace, props);
             enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
             ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
             detailMapMode = FindProperty(kDetailMapMode, props);
-            materialClass = FindProperty(kMaterialClass, props);
+            materialID = FindProperty(kMaterialID, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
 
@@ -227,14 +227,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
             m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
             ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-            m_MaterialEditor.ShaderProperty(materialClass, Styles.materialClassText);
+            m_MaterialEditor.ShaderProperty(materialID, Styles.materialIDText);
             EditorGUI.indentLevel--;
         }
 
         override protected void ShaderInputGUI()
         {
             EditorGUI.indentLevel++;
-            bool smoothnessInAlbedoAlpha = (SmoothnessMapChannel)smoothnessMapChannel.floatValue == SmoothnessMapChannel.AlbedoAlpha;            
+            bool smoothnessInAlbedoAlpha = (SmoothnessMapChannel)smoothnessMapChannel.floatValue == SmoothnessMapChannel.AlbedoAlpha;
             bool useDetailMapWithNormal = (DetailMapMode)detailMapMode.floatValue == DetailMapMode.DetailWithNormal;
             bool useEmissiveMask = (EmissiveColorMode)emissiveColorMode.floatValue == EmissiveColorMode.UseEmissiveMask;
 
@@ -368,7 +368,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.DisableKeyword("_REQUIRE_UV3");
             }
 
-            material.SetInt("_StencilRef", (int)material.GetFloat(kMaterialClass)); // See 'StencilBits'.
+            material.SetInt("_StencilRef", (int)material.GetFloat(kMaterialID)); // See 'StencilBits'.
          }
     }
 } // namespace UnityEditor

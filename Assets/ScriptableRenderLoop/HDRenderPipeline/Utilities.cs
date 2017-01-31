@@ -17,10 +17,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Flags]
     public enum StencilBits
     {
-        None = 0,  
-        SSS  = 1,  // BaseLitGUI.MaterialClass.SSS
-        Hair = 2,  // BaseLitGUI.MaterialClass.Hair
-        All  = 255 // 0xff
+        None      = Lit.MaterialId.LitStandard, 
+        SSS       = Lit.MaterialId.LitSSS,
+        ClearCoat = Lit.MaterialId.LitClearCoat,
+        All       = 255 // 0xff
     }
 
     public class Utilities
@@ -282,14 +282,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return renderContext;
         }
 
-        static Mesh m_FullscreenTriangle = null;
+        static Mesh m_ScreenSpaceTriangle = null;
 
-        static Mesh GetFullscreenTriangle()
+        static Mesh GetScreenSpaceTriangle()
         {
             // If the assembly has been reloaded, the pointer will become NULL.
-            if (!m_FullscreenTriangle)
+            if (!m_ScreenSpaceTriangle)
             {
-                m_FullscreenTriangle = new Mesh
+                m_ScreenSpaceTriangle = new Mesh
                 {
                     // Note: neither the vertex nor the index data is actually used if the vertex shader computes vertices
                     // using 'SV_VertexID'. However, there is currently no way to bind NULL vertex or index buffers.
@@ -298,7 +298,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 };
             }
 
-            return m_FullscreenTriangle;
+            return m_ScreenSpaceTriangle;
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
@@ -308,7 +308,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer);
-            commandBuffer.DrawMesh(GetFullscreenTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
+            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
@@ -318,7 +318,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
-            commandBuffer.DrawMesh(GetFullscreenTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
+            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
@@ -328,7 +328,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
-            commandBuffer.DrawMesh(GetFullscreenTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
+            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.

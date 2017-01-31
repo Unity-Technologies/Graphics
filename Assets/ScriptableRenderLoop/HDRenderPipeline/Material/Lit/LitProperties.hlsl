@@ -42,7 +42,7 @@ float _Anisotropy;
 TEXTURE2D(_AnisotropyMap);
 SAMPLER2D(sampler_AnisotropyMap);
 
-float _MaterialClass;
+float _MaterialID;
 
 //float _SubSurfaceRadius;
 //TEXTURE2D(_SubSurfaceRadiusMap);
