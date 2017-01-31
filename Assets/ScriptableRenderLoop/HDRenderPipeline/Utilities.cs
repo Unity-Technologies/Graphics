@@ -9,9 +9,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Flags]
     public enum ClearFlag
     {
-        ClearNone = 0,
+        ClearNone  = 0,
         ClearColor = 1,
         ClearDepth = 2
+    }
+
+    [Flags]
+    public enum StencilBits
+    {
+        None = 0,  
+        SSS  = 1,  // BaseLitGUI.MaterialClass.SSS
+        Hair = 2,  // BaseLitGUI.MaterialClass.Hair
+        All  = 255 // 0xff
     }
 
     public class Utilities
@@ -242,6 +251,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m.DisableKeyword(keyword);
         }
 
+        public static void SelectKeyword(Material material, string keyword1, string keyword2, bool enableFirst)
+        {
+            material.EnableKeyword (enableFirst ? keyword1 : keyword2);
+            material.DisableKeyword(enableFirst ? keyword2 : keyword1);
+        }
+
+        public static void SelectKeyword(Material material, string[] keywords, int enabledKeywordIndex)
+        {
+            material.EnableKeyword(keywords[enabledKeywordIndex]);
+
+            for (int i = 0; i < keywords.Length; i++)
+            {
+                if (i != enabledKeywordIndex)
+                {
+                    material.DisableKeyword(keywords[i]);
+                }
+            }
+        }
+
         public static HDRenderPipeline GetHDRenderPipeline()
         {
             HDRenderPipeline renderContext = GraphicsSettings.renderPipelineAsset as HDRenderPipeline;
@@ -252,6 +280,68 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             return renderContext;
+        }
+
+        static Mesh m_ScreenSpaceTriangle = null;
+
+        static Mesh GetScreenSpaceTriangle()
+        {
+            // If the assembly has been reloaded, the pointer will become NULL.
+            if (!m_ScreenSpaceTriangle)
+            {
+                m_ScreenSpaceTriangle = new Mesh
+                {
+                    // Note: neither the vertex nor the index data is actually used if the vertex shader computes vertices
+                    // using 'SV_VertexID'. However, there is currently no way to bind NULL vertex or index buffers.
+                    vertices  = new[] { new Vector3(-1, -1, 1), new Vector3(3, -1, 1), new Vector3(-1, 3, 1) },
+                    triangles = new[] { 0, 1, 2 }
+                };
+            }
+
+            return m_ScreenSpaceTriangle;
+        }
+
+        // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
+        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+                                          RenderTargetIdentifier colorBuffer,
+                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
+        {
+            SetupMaterialHDCamera(camera, material);
+            commandBuffer.SetRenderTarget(colorBuffer);
+            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
+        }
+
+        // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
+        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+                                          RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
+                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
+        {
+            SetupMaterialHDCamera(camera, material);
+            commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
+            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
+        }
+
+        // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
+        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+                                          RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
+                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
+        {
+            SetupMaterialHDCamera(camera, material);
+            commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
+            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
+        }
+
+        // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
+        // Important: the first RenderTarget must be created with 0 depth bits!
+        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+                                          RenderTargetIdentifier[] colorBuffers,
+                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
+        {
+            // It is currently not possible to have MRT without also setting a depth target.
+            // To work around this deficiency of the CommandBuffer.SetRenderTarget() API,
+            // we pass the first color target as the depth target. If it has 0 depth bits,
+            // no depth target ends up being bound.
+            DrawFullscreen(commandBuffer, material, camera, colorBuffers, colorBuffers[0], properties, shaderPassID);
         }
     }
 }

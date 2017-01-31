@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -75,6 +76,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVDetail = "_UVDetail";
         protected MaterialProperty UVDetailsMappingMask = null;
         protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
+        protected MaterialProperty materialClass = null;
+        protected const string kMaterialClass = "_MaterialClass";
         protected MaterialProperty emissiveColorMode = null;
         protected const string kEmissiveColorMode = "_EmissiveColorMode";
 
@@ -143,6 +146,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
             ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
             detailMapMode = FindProperty(kDetailMapMode, props);
+            materialClass = FindProperty(kMaterialClass, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
 
@@ -192,8 +196,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
             GUILayout.Label(Styles.InputsOptionsText, EditorStyles.boldLabel);
-            m_MaterialEditor.ShaderProperty(smoothnessMapChannel, Styles.smoothnessMapChannelText.text);
-            m_MaterialEditor.ShaderProperty(UVBase, enableUVDetail ? Styles.UVBaseDetailMappingText.text : Styles.UVBaseMappingText.text);
+            m_MaterialEditor.ShaderProperty(smoothnessMapChannel, Styles.smoothnessMapChannelText);
+            m_MaterialEditor.ShaderProperty(UVBase, enableUVDetail ? Styles.UVBaseDetailMappingText : Styles.UVBaseMappingText);
 
             float X, Y, Z, W;
             X = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.UV0) ? 1.0f : 0.0f;
@@ -202,12 +206,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
             {
                 EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(TexWorldScale, Styles.texWorldScaleText.text);
+                m_MaterialEditor.ShaderProperty(TexWorldScale, Styles.texWorldScaleText);
                 EditorGUI.indentLevel--;
             }
             if (enableUVDetail)
             {
-                m_MaterialEditor.ShaderProperty(UVDetail, Styles.UVDetailMappingText.text);
+                m_MaterialEditor.ShaderProperty(UVDetail, Styles.UVDetailMappingText);
             }
 
             X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
@@ -216,13 +220,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             W = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
             UVDetailsMappingMask.colorValue = new Color(X, Y, Z, W);
 
-            //m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText.text);
-            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);            
-            m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText.text);
-            m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText.text);
-            m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText.text);
-            m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText.text);
+            //m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText);
+            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
+            m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText);
+            m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText);
+            m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
+            m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
             ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+            m_MaterialEditor.ShaderProperty(materialClass, Styles.materialClassText);
             EditorGUI.indentLevel--;
         }
 
@@ -362,6 +367,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.DisableKeyword("_REQUIRE_UV2");
                 material.DisableKeyword("_REQUIRE_UV3");
             }
+
+            material.SetInt("_StencilRef", (int)material.GetFloat(kMaterialClass)); // See 'StencilBits'.
          }
     }
 } // namespace UnityEditor

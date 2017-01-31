@@ -17,6 +17,10 @@ MonoBehaviour:
     m_ShadowCascadeSplit0: 0.05
     m_ShadowCascadeSplit1: 0.2
     m_ShadowCascadeSplit2: 0.3
+    m_SssProfileStdDev1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    m_SssProfileStdDev2: {r: 1, g: 1, b: 1, a: 0}
+    m_SssProfileLerpWeight: 0.5
+    m_SssBilateralScale: 0.1
   m_SkyParameters: {fileID: 0}
   m_LightLoopProducer: {fileID: 11400000, guid: bf8cd9ae03ff7d54c89603e67be0bfc5,
     type: 2}
@@ -27,6 +31,9 @@ MonoBehaviour:
     maxShadowDistance: 1000
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
+  m_SssParameters:
+    profiles: []
+    bilateralScale: 0.1
   m_TextureSettings:
     spotCookieSize: 128
     pointCookieSize: 512
