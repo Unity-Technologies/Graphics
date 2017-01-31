@@ -167,6 +167,19 @@ float2 GetIESTextureCoordinate(float3x3 lightToWord, float3 L)
 }
 
 //-----------------------------------------------------------------------------
+// Lighting functions
+//-----------------------------------------------------------------------------
+
+// Ref: Horizon Occlusion for Normal Mapped Reflections: http://marmosetco.tumblr.com/post/81245981087
+float GetHorizonOcclusion(float3 V, float3 normalWS, float3 vertexNormal, float horizonFade)
+{
+    float3 R = reflect(-V, normalWS);
+    float specularOcclusion = saturate(1.0 + horizonFade * dot(R, vertexNormal));
+    // smooth it
+    return specularOcclusion * specularOcclusion;
+}
+
+//-----------------------------------------------------------------------------
 // Helper functions
 //-----------------------------------------------------------------------------
 

@@ -63,6 +63,8 @@ Shader "HDRenderPipeline/Lit"
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
+        _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
+
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
         [HideInInspector] _BlendMode("__blendmode", Float) = 0.0
@@ -89,7 +91,7 @@ Shader "HDRenderPipeline/Lit"
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
-        [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1                
+        [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1        
     }
 
     HLSLINCLUDE
