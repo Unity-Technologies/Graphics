@@ -4,6 +4,7 @@
 
 // Attributes
 #define REQUIRE_UV_FOR_TESSELATION (defined(TESSELLATION_ON) && (defined(_TESSELLATION_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT_PHONG)))
+#define REQUIRE_VERTEX_COLOR_FOR_TESSELATION REQUIRE_UV_FOR_TESSELATION
 #define REQUIRE_TANGENT_TO_WORLD (defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT))
 
 // This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
@@ -32,6 +33,10 @@
         #define ATTRIBUTES_NEED_TEXCOORD3
         #endif
     #endif
+#endif
+
+#if REQUIRE_VERTEX_COLOR_FOR_TESSELATION
+#define ATTRIBUTES_NEED_COLOR
 #endif
 
 // Varying - Use for pixel shader
