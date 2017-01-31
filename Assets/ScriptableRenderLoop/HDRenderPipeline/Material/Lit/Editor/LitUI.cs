@@ -52,12 +52,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseEmissiveMask,
         }
 
-        public enum SubsurfaceScattering
-        {
-            Disabled,
-            Enabled
-        }
-
         protected MaterialProperty smoothnessMapChannel = null;
         protected const string kSmoothnessTextureChannel = "_SmoothnessTextureChannel";
         protected MaterialProperty UVBase = null;
@@ -82,8 +76,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVDetail = "_UVDetail";
         protected MaterialProperty UVDetailsMappingMask = null;
         protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
-        protected MaterialProperty subsurfaceScattering = null;
-        protected const string kSubsurfaceScattering = "_SubsurfaceScattering";
+        protected MaterialProperty materialClass = null;
+        protected const string kMaterialClass = "_MaterialClass";
         protected MaterialProperty emissiveColorMode = null;
         protected const string kEmissiveColorMode = "_EmissiveColorMode";
 
@@ -152,7 +146,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
             ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
             detailMapMode = FindProperty(kDetailMapMode, props);
-            subsurfaceScattering = FindProperty(kSubsurfaceScattering, props);
+            materialClass = FindProperty(kMaterialClass, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
 
@@ -233,7 +227,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
             m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
             ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-            m_MaterialEditor.ShaderProperty(subsurfaceScattering, Styles.subsurfaceScatteringText);
+            m_MaterialEditor.ShaderProperty(materialClass, Styles.materialClassText);
             EditorGUI.indentLevel--;
         }
 
@@ -355,9 +349,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
 			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
 
-            bool enableSSS = material.GetFloat(kSubsurfaceScattering) != 0.0f;
-            material.SetInt("_StencilRef", (int)(enableSSS ? StencilBits.SSS : StencilBits.None));
-
             bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
             bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
 
@@ -376,6 +367,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.DisableKeyword("_REQUIRE_UV2");
                 material.DisableKeyword("_REQUIRE_UV3");
             }
+
+            material.SetInt("_StencilRef", (int)material.GetFloat(kMaterialClass)); // See 'StencilBits'.
          }
     }
 } // namespace UnityEditor
