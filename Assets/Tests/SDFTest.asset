@@ -1,0 +1,608 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!203 &20300000
+VFXAsset:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: SDFTest
+  m_XmlGraph: "<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<Graph Version=\"10\">\r\n
+    \   <System ModelId=\"0\" WorldSpace=\"True\" MaxNb=\"1000000\" SpawnRate=\"10\"
+    BlendingMode=\"kMasked\" SoftParticlesFadeDistance=\"0\" OrderPriority=\"0\" RenderQueueDelta=\"0\">\r\n
+    \       <Context DescId=\"Initialize\" Position=\"-590,-460\" Collapsed=\"False\">\r\n
+    \           <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetLifetimeRandom\"
+    Hash=\"680700548\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"0\">\r\n                    <Values>\r\n                        <kFloat>2</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \               <Slot SlotId=\"1\">\r\n                    <Values>\r\n                        <kFloat>4</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetPositionSphereVolume\"
+    Hash=\"574528677\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"2\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0.6</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0.05</kFloat>\r\n                    </Values>\r\n
+    \                   <Collapsed>false false true true true true</Collapsed>\r\n
+    \                   <WorldSpace>true true true true true true</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVelocityConstant\"
+    Hash=\"-754220764\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"8\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0.2</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>true true true true</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVelocityRandomVector\"
+    Hash=\"-754220764\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
+    SlotId=\"12\">\r\n                    <Values>\r\n                        <kFloat>0.1000001</kFloat>\r\n
+    \                       <kFloat>0.1</kFloat>\r\n                        <kFloat>0.09999999</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetColorRandomGradient\"
+    Hash=\"871710797\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"16\">\r\n                    <Values>\r\n                        <kColorGradient>\r\n
+    \                           <ColorKey t=\"0\" v=\"1,0.9609534,0.7426471,1\" />\r\n
+    \                           <ColorKey t=\"0.4797894\" v=\"0.6691177,0.6157548,0.4378785,1\"
+    />\r\n                            <ColorKey t=\"1\" v=\"0.8382353,0.706264,0.4684256,1\"
+    />\r\n                            <AlphaKey t=\"0\" v=\"1\" />\r\n                            <AlphaKey
+    t=\"1\" v=\"1\" />\r\n                        </kColorGradient>\r\n                    </Values>\r\n
+    \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetAlphaRandom\"
+    Hash=\"680700548\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"17\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \               <Slot SlotId=\"18\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSizeConstantSquare\"
+    Hash=\"-339160254\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"19\">\r\n                    <Values>\r\n                        <kFloat>0.001</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Particle
+    Update\" Position=\"-590,226\" Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetForceConstant\"
+    Hash=\"-754220764\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"20\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>-2</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>true true true true</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetForceLinearDrag\"
+    Hash=\"-339160254\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"24\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetColorGradientOverLifetime\"
+    Hash=\"871710797\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
+    SlotId=\"25\">\r\n                    <Values>\r\n                        <kColorGradient>\r\n
+    \                           <ColorKey t=\"0\" v=\"0.9191176,0.8729753,0.6149979,1\"
+    />\r\n                            <ColorKey t=\"1\" v=\"0.9191176,0.8729753,0.6149979,1\"
+    />\r\n                            <AlphaKey t=\"0\" v=\"0\" />\r\n                            <AlphaKey
+    t=\"0.2\" v=\"1\" />\r\n                            <AlphaKey t=\"1\" v=\"0\"
+    />\r\n                        </kColorGradient>\r\n                    </Values>\r\n
+    \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXSDFCollision\"
+    Hash=\"744917403\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"26\">\r\n                    <Values>\r\n                        <kTexture3D>d756511c3111d1142a85b90df97f2679</kTexture3D>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \               <Slot SlotId=\"27\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>1</kFloat>\r\n
+    \                       <kFloat>1</kFloat>\r\n                        <kFloat>1</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>false true true
+    true true false true true true true true true true</Collapsed>\r\n                    <WorldSpace>false
+    false false false false false false false false false false false false</WorldSpace>\r\n
+    \               </Slot>\r\n                <Slot SlotId=\"40\">\r\n                    <Values>\r\n
+    \                       <kFloat>0.05</kFloat>\r\n                    </Values>\r\n
+    \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
+    \               </Slot>\r\n                <Slot SlotId=\"41\">\r\n                    <Values>\r\n
+    \                       <kFloat>0.2</kFloat>\r\n                    </Values>\r\n
+    \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockCollideWithSphere\"
+    Hash=\"-1921841491\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
+    SlotId=\"42\">\r\n                    <Values>\r\n                        <kFloat>0.09245777</kFloat>\r\n
+    \                       <kFloat>-1.043271</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0.4879889</kFloat>\r\n                    </Values>\r\n
+    \                   <Collapsed>true true true true true true</Collapsed>\r\n                    <WorldSpace>false
+    false false false false false</WorldSpace>\r\n                </Slot>\r\n                <Slot
+    SlotId=\"48\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Point
+    Output\" Position=\"-590,896\" Collapsed=\"False\" />\r\n    </System>\r\n    <DataNode
+    ModelId=\"1\" Position=\"-1210,-520\" Exposed=\"True\">\r\n        <DataBlock
+    DescId=\"UnityEngine.Experimental.VFX.VFXFloatType\" Collapsed=\"False\" ExposedName=\"offsetSpawnX\">\r\n
+    \           <Slot SlotId=\"49\">\r\n                <Values>\r\n                    <kFloat>0</kFloat>\r\n
+    \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
+    \           </Slot>\r\n        </DataBlock>\r\n        <DataBlock DescId=\"UnityEngine.Experimental.VFX.VFXFloatType\"
+    Collapsed=\"False\" ExposedName=\"offsetSpawnZ\">\r\n            <Slot SlotId=\"50\">\r\n
+    \               <Values>\r\n                    <kFloat>0</kFloat>\r\n                </Values>\r\n
+    \               <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
+    \           </Slot>\r\n        </DataBlock>\r\n        <DataBlock DescId=\"UnityEngine.Experimental.VFX.VFXFloatType\"
+    Collapsed=\"False\" ExposedName=\"spawnRadius\">\r\n            <Slot SlotId=\"51\">\r\n
+    \               <Values>\r\n                    <kFloat>0.05</kFloat>\r\n                </Values>\r\n
+    \               <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
+    \           </Slot>\r\n        </DataBlock>\r\n    </DataNode>\r\n    <SpawnerNode
+    ModelId=\"2\" Position=\"-1090,-890\">\r\n        <SpawnerBlock Type=\"kVariableRate\"
+    Collapsed=\"False\">\r\n            <Slot SlotId=\"52\">\r\n                <Values>\r\n
+    \                   <kFloat>200000</kFloat>\r\n                    <kFloat>400000</kFloat>\r\n
+    \               </Values>\r\n                <Collapsed>true true true</Collapsed>\r\n
+    \               <WorldSpace>false false false</WorldSpace>\r\n            </Slot>\r\n
+    \           <Slot SlotId=\"55\">\r\n                <Values>\r\n                    <kFloat>0.1</kFloat>\r\n
+    \                   <kFloat>2</kFloat>\r\n                </Values>\r\n                <Collapsed>true
+    true true</Collapsed>\r\n                <WorldSpace>false false false</WorldSpace>\r\n
+    \           </Slot>\r\n        </SpawnerBlock>\r\n    </SpawnerNode>\r\n    <SpawnerNode
+    ModelId=\"3\" Position=\"-540,-850\">\r\n        <SpawnerBlock Type=\"kPeriodicBurst\"
+    Collapsed=\"False\">\r\n            <Slot SlotId=\"58\">\r\n                <Values>\r\n
+    \                   <kFloat>100000</kFloat>\r\n                    <kFloat>500000</kFloat>\r\n
+    \               </Values>\r\n                <Collapsed>true true true</Collapsed>\r\n
+    \               <WorldSpace>false false false</WorldSpace>\r\n            </Slot>\r\n
+    \           <Slot SlotId=\"61\">\r\n                <Values>\r\n                    <kFloat>0.1</kFloat>\r\n
+    \                   <kFloat>1</kFloat>\r\n                </Values>\r\n                <Collapsed>true
+    true true</Collapsed>\r\n                <WorldSpace>false false false</WorldSpace>\r\n
+    \           </Slot>\r\n        </SpawnerBlock>\r\n    </SpawnerNode>\r\n    <Connections>\r\n
+    \       <Connection Id=\"49\">4</Connection>\r\n        <Connection Id=\"50\">6</Connection>\r\n
+    \       <Connection Id=\"51\">7</Connection>\r\n    </Connections>\r\n    <SpawnerConnections
+    Id=\"2\">0</SpawnerConnections>\r\n</Graph>"
+  m_Systems:
+  - m_Id: 0
+    m_Capacity: 1000000
+    m_SimulationShader: {fileID: 7200000, guid: 53ccf6c88c9ac8d468009f3bd4a1f613,
+      type: 3}
+    m_OutputShader: {fileID: 4800000, guid: cfd8073d7c1e4c945aae702bd36b6abe, type: 3}
+    m_BufferDesc:
+    - m_InitName: <noninit>
+      m_UpdateName: outputBuffer
+      m_OutputName: outputBuffer
+      m_Flags: 514
+      m_Stride: 32
+      m_PerPoint: 1
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 12
+      m_PerPoint: 0
+    - m_InitName: flags
+      m_UpdateName: flags
+      m_OutputName: flags
+      m_Flags: 512
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: deadListIn
+      m_UpdateName: deadListOut
+      m_OutputName: <noninit>
+      m_Flags: 514
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: deadListCount
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
+      m_Flags: 768
+      m_Stride: 4
+      m_PerPoint: 0
+    - m_InitName: attribBuffer0
+      m_UpdateName: attribBuffer0_RO
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: attribBuffer1
+      m_UpdateName: attribBuffer1
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 16
+      m_PerPoint: 1
+    - m_InitName: attribBuffer2
+      m_UpdateName: attribBuffer2
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 16
+      m_PerPoint: 1
+    - m_InitName: attribBuffer3
+      m_UpdateName: attribBuffer3_RO
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 16
+      m_PerPoint: 1
+    m_OutputType: 0
+    m_SpawnRate: 10
+    m_OrderPriority: 0
+    m_HasKill: 1
+    m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
+    m_InitUniforms:
+      m_Uniforms:
+      - name: initUniform0_kVFXValueOp
+        index: 42
+      - name: initUniform1_kVFXValueOp
+        index: 41
+      - name: initUniform2_kVFXCombine3fOp
+        index: 43
+      - name: initUniform3_kVFXValueOp
+        index: 2
+      - name: initUniform4_kVFXCombine3fOp
+        index: 45
+      - name: initUniform5_kVFXValueOp
+        index: 44
+      - name: initUniform6_kVFXValueOp
+        index: 40
+      - name: initUniform7_kVFXValueOp
+        index: 36
+      - name: initUniform8_kVFXValueOp
+        index: 35
+      - name: initUniform9_kVFXSystemSeedOp
+        index: 33
+    m_UpdateUniforms:
+      m_Uniforms:
+      - name: updateUniform0_kVFXCombine3fOp
+        index: 37
+      - name: updateUniform1_kVFXValueOp
+        index: 38
+      - name: updateUniform2_kVFXTransformMatrixOp
+        index: 26
+      - name: updateUniform3_kVFXValueOp
+        index: 28
+      - name: updateUniform4_kVFXValueOp
+        index: 29
+      - name: updateUniform5_kVFXInverseTRSOp
+        index: 30
+      - name: updateUniform6_kVFXDeltaTimeOp
+        index: 34
+      - name: updateSampler0_kVFXValueOpTexture
+        index: 39
+    m_OutputUniforms:
+      m_Uniforms: []
+    m_SpawnerIndices: 00000000
+  m_Values:
+    m_Values: 0000000000000000cdcc4c3d00000000000000000000000000000000000000000000803f0000803f0000803f00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000005043480050c3489a99193f00000000cdcc4c3e000000c0000000000000004000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcdcccc3dcdcc4c3dcdcc4c3effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6f12833a0000803fffffffffffffffffffffffff0000803f0000803f0000804000000040ffffffffffffffffffffffff0000003fffffffffffffffffffffffff
+    m_Textures:
+    - {fileID: 11700000, guid: d756511c3111d1142a85b90df97f2679, type: 2}
+    m_Meshes: []
+  m_Expressions:
+    m_Expressions:
+    - op: 0
+      valueIndex: 0
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 1
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 2
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 3
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 4
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 5
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 6
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 7
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 8
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 9
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 10
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 11
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 12
+      data[0]: 3
+      data[1]: 5
+      data[2]: 6
+      data[3]: 0
+    - op: 2
+      valueIndex: 15
+      data[0]: 7
+      data[1]: 4
+      data[2]: 11
+      data[3]: 0
+    - op: 2
+      valueIndex: 18
+      data[0]: 8
+      data[1]: 9
+      data[2]: 10
+      data[3]: 0
+    - op: 4
+      valueIndex: 21
+      data[0]: 12
+      data[1]: 13
+      data[2]: 14
+      data[3]: 0
+    - op: 0
+      valueIndex: 37
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 38
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 39
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 40
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 41
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 42
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 43
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 44
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 45
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 46
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 6
+      valueIndex: 47
+      data[0]: 15
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 63
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 64
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 65
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 5
+      valueIndex: 66
+      data[0]: 26
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 1
+      valueIndex: 82
+      data[0]: 17
+      data[1]: 18
+      data[2]: 0
+      data[3]: 0
+    - op: 1
+      valueIndex: 84
+      data[0]: 27
+      data[1]: 24
+      data[2]: 0
+      data[3]: 0
+    - op: 12
+      valueIndex: 86
+      data[0]: 0
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 10
+      valueIndex: 87
+      data[0]: 0
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 88
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 89
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 90
+      data[0]: 25
+      data[1]: 22
+      data[2]: 23
+      data[3]: 0
+    - op: 0
+      valueIndex: 93
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 0
+      data[0]: 8
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 94
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 95
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 96
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 97
+      data[0]: 0
+      data[1]: 19
+      data[2]: 1
+      data[3]: 0
+    - op: 0
+      valueIndex: 100
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 101
+      data[0]: 20
+      data[1]: 21
+      data[2]: 16
+      data[3]: 0
+    m_NeedsLocalToWorld: 1
+    m_NeedsWorldToLocal: 0
+  m_Spawners:
+  - - m_Type: 3
+      m_ExpressionIndices: 1f00000020000000
+  m_SpawnerEvents:
+  - m_Name: OnStart
+    m_StartSpawners: 00000000
+    m_StopSpawners: 
+  - m_Name: OnStop
+    m_StartSpawners: 
+    m_StopSpawners: 00000000
+  m_ExposedExpressions:
+  - m_Name: offsetSpawnX
+    m_Type: 1
+    m_ValueIndex: 0
+  - m_Name: offsetSpawnZ
+    m_Type: 1
+    m_ValueIndex: 1
+  - m_Name: spawnRadius
+    m_Type: 1
+    m_ValueIndex: 2
+  m_ExposedEditorDescs:
+  - m_SemanticsTypeID: UnityEngine.Experimental.VFX.VFXFloatType
+    m_ExposedName: offsetSpawnX
+    m_WorldSpace: 0
+  - m_SemanticsTypeID: UnityEngine.Experimental.VFX.VFXFloatType
+    m_ExposedName: offsetSpawnZ
+    m_WorldSpace: 0
+  - m_SemanticsTypeID: UnityEngine.Experimental.VFX.VFXFloatType
+    m_ExposedName: spawnRadius
+    m_WorldSpace: 0
+  m_FloatTexture: {fileID: 28686696919604144}
+  m_Bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 10, y: 10, z: 10}
+--- !u!28 &28686696919604144
+Texture2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  serializedVersion: 2
+  m_Width: 128
+  m_Height: 1
+  m_CompleteImageSize: 1024
+  m_TextureFormat: 17
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapMode: 0
+  m_LightmapFormat: 0
+  m_ColorSpace: 0
+  image data: 1024
+  _typelessdata: 003c4e3b1238003ced3b3c3b0538003cc93b1a3bf337003cb73b093bdb37003c943be73aab37003c823bd73a9337003c703bb53a7c37003c4e3ba53a4d37003c3c3b843a3637003c2b3b743a1f37003c093b643a0837003cf83a443adb36003cd73a343ac536003cc63a153aaf36003cb53a063a9936003c953ae7396e36003c843ad7395936003c643ab9394336003c543aaa391936003c443a9b390536003c253a7e39f035003c153a6f39dc35003c063a5239b335003ce73944399f35003cd73927398c35003cb93919396535003caa39fd385135003c9b39f0383e35003c7e39e2382b35003c6f39c7380635003c5239b938f334003c44399e38e134003c36399138cf34003c19397738ab34003c0b396a389934003cfd3850388734003ce23844386534003cd43837385334003cb9381e384234003cac3812383234003c9e38f3371134003c8438db370034003c7738ab37e033003c5d389337c033003c503864378133003c44384d376233003c2a3836374333003c1e3808370633003c1238f236e832003cf337c536ca32003cdb37af36ad32003cab3784367332003c93376e365632003c7c3743363a32003c4d372e361e32003c36371936e731003c0837f035cc31003cf236dc35b131003cdb36b3357c31003caf369f356231003c993678354831003c843665352f31003c843665352f31003c993678352f31003caf3678352f31003caf3678352f31003cc5368c352f31003cdb368c352f31003cdb368c352f31003cf2369f354831003c08379f354831003c0837b3354831003c1f37b3354831003c3637b3354831003c3637c7354831003c4d37c7354831003c4d37c7354831003c6437dc356231003c7c37dc356231003c7c37dc356231003c9337f0356231003cab37f0356231003cab37f0356231003cc33705366231003cdb3705366231003cdb3705366231003cf33719367c31003c053819367c31003c053819367c31003c12382e367c31003c1e382e367c31003c1e3843367c31003c2a3843367c31003c373843367c31003c373859369631003c443859369631003c503859369631003c50386e369631003c5d386e369631003c5d386e369631003c6a3884369631003c773884369631003c77388436b131003c84389936b131003c91389936b131003c91389936b131003c9e38af36b131003cac38af36b131003cac38af36b131003cb938c536b131003cc738c536b131003cc738db36cc31003cd438db36cc31003ce238db36cc31003ce238f236cc31003cf038f236cc31003cfd38f236cc31003cfd380837cc31003c0b390837cc31003c19390837e731003c19391f37e731003c27391f37e731003c27391f37e731003c36393637e731003c44393637e731003c44393637e731003c52394d37e731003c61394d37e731003c
+  m_StreamData:
+    offset: 0
+    size: 0
+    path: 
