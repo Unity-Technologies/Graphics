@@ -31,15 +31,9 @@ VFXAsset:
     \                       <kFloat>0.2</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true true true
     true</Collapsed>\r\n                    <WorldSpace>true true true true</WorldSpace>\r\n
-    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVelocityRandomVector\"
-    Hash=\"-754220764\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
-    SlotId=\"12\">\r\n                    <Values>\r\n                        <kFloat>0.1000001</kFloat>\r\n
-    \                       <kFloat>0.1</kFloat>\r\n                        <kFloat>0.09999999</kFloat>\r\n
-    \                   </Values>\r\n                    <Collapsed>true true true
-    true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
     \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetColorRandomGradient\"
     Hash=\"871710797\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"16\">\r\n                    <Values>\r\n                        <kColorGradient>\r\n
+    SlotId=\"12\">\r\n                    <Values>\r\n                        <kColorGradient>\r\n
     \                           <ColorKey t=\"0\" v=\"1,0.9609534,0.7426471,1\" />\r\n
     \                           <ColorKey t=\"0.4797894\" v=\"0.6691177,0.6157548,0.4378785,1\"
     />\r\n                            <ColorKey t=\"1\" v=\"0.8382353,0.706264,0.4684256,1\"
@@ -48,44 +42,35 @@ VFXAsset:
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
     \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetAlphaRandom\"
     Hash=\"680700548\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"17\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
+    SlotId=\"13\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \               <Slot SlotId=\"18\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
+    \               <Slot SlotId=\"14\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
     \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSizeConstantSquare\"
     Hash=\"-339160254\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"19\">\r\n                    <Values>\r\n                        <kFloat>0.001</kFloat>\r\n
+    SlotId=\"15\">\r\n                    <Values>\r\n                        <kFloat>0.001</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
     \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Particle
-    Update\" Position=\"-590,226\" Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetForceConstant\"
+    Update\" Position=\"-590,170\" Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetForceConstant\"
     Hash=\"-754220764\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"20\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    SlotId=\"16\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
     \                       <kFloat>-2</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true true true
     true</Collapsed>\r\n                    <WorldSpace>true true true true</WorldSpace>\r\n
     \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetForceLinearDrag\"
     Hash=\"-339160254\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"24\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
+    SlotId=\"20\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetColorGradientOverLifetime\"
-    Hash=\"871710797\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
-    SlotId=\"25\">\r\n                    <Values>\r\n                        <kColorGradient>\r\n
-    \                           <ColorKey t=\"0\" v=\"0.9191176,0.8729753,0.6149979,1\"
-    />\r\n                            <ColorKey t=\"1\" v=\"0.9191176,0.8729753,0.6149979,1\"
-    />\r\n                            <AlphaKey t=\"0\" v=\"0\" />\r\n                            <AlphaKey
-    t=\"0.2\" v=\"1\" />\r\n                            <AlphaKey t=\"1\" v=\"0\"
-    />\r\n                        </kColorGradient>\r\n                    </Values>\r\n
-    \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
-    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXSDFCollision\"
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXSDFCollision\"
     Hash=\"744917403\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
-    SlotId=\"26\">\r\n                    <Values>\r\n                        <kTexture3D>d756511c3111d1142a85b90df97f2679</kTexture3D>\r\n
+    SlotId=\"21\">\r\n                    <Values>\r\n                        <kTexture3D>d756511c3111d1142a85b90df97f2679</kTexture3D>\r\n
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \               <Slot SlotId=\"27\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \               <Slot SlotId=\"22\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
     \                       <kFloat>0</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
     \                       <kFloat>0</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
     \                       <kFloat>0</kFloat>\r\n                        <kFloat>1</kFloat>\r\n
@@ -93,57 +78,55 @@ VFXAsset:
     \                   </Values>\r\n                    <Collapsed>false true true
     true true false true true true true true true true</Collapsed>\r\n                    <WorldSpace>false
     false false false false false false false false false false false false</WorldSpace>\r\n
-    \               </Slot>\r\n                <Slot SlotId=\"40\">\r\n                    <Values>\r\n
+    \               </Slot>\r\n                <Slot SlotId=\"35\">\r\n                    <Values>\r\n
     \                       <kFloat>0.05</kFloat>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
-    \               </Slot>\r\n                <Slot SlotId=\"41\">\r\n                    <Values>\r\n
+    \               </Slot>\r\n                <Slot SlotId=\"36\">\r\n                    <Values>\r\n
     \                       <kFloat>0.2</kFloat>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
-    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockCollideWithSphere\"
-    Hash=\"-1921841491\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
-    SlotId=\"42\">\r\n                    <Values>\r\n                        <kFloat>0.09245777</kFloat>\r\n
-    \                       <kFloat>-1.043271</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
-    \                       <kFloat>0.4879889</kFloat>\r\n                    </Values>\r\n
-    \                   <Collapsed>true true true true true true</Collapsed>\r\n                    <WorldSpace>false
-    false false false false false</WorldSpace>\r\n                </Slot>\r\n                <Slot
-    SlotId=\"48\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
-    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
-    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
-    \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Point
-    Output\" Position=\"-590,896\" Collapsed=\"False\" />\r\n    </System>\r\n    <DataNode
-    ModelId=\"1\" Position=\"-1210,-520\" Exposed=\"True\">\r\n        <DataBlock
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockKillingPlane\"
+    Hash=\"-923033853\" Collapsed=\"False\" Enabled=\"False\">\r\n                <Slot
+    SlotId=\"37\">\r\n                    <Values>\r\n                        <kFloat>0.7319211</kFloat>\r\n
+    \                       <kFloat>-1.367627</kFloat>\r\n                        <kFloat>-0.5140527</kFloat>\r\n
+    \                       <kFloat>0.5023252</kFloat>\r\n                        <kFloat>0.4152399</kFloat>\r\n
+    \                       <kFloat>0.7584493</kFloat>\r\n                    </Values>\r\n
+    \                   <Collapsed>true true true true true true true true true</Collapsed>\r\n
+    \                   <WorldSpace>true true true true true true true true true</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n        </Context>\r\n        <Context
+    DescId=\"Point Output\" Position=\"-590,764\" Collapsed=\"False\" />\r\n    </System>\r\n
+    \   <DataNode ModelId=\"1\" Position=\"-1210,-520\" Exposed=\"True\">\r\n        <DataBlock
     DescId=\"UnityEngine.Experimental.VFX.VFXFloatType\" Collapsed=\"False\" ExposedName=\"offsetSpawnX\">\r\n
-    \           <Slot SlotId=\"49\">\r\n                <Values>\r\n                    <kFloat>0</kFloat>\r\n
+    \           <Slot SlotId=\"46\">\r\n                <Values>\r\n                    <kFloat>0</kFloat>\r\n
     \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
     \           </Slot>\r\n        </DataBlock>\r\n        <DataBlock DescId=\"UnityEngine.Experimental.VFX.VFXFloatType\"
-    Collapsed=\"False\" ExposedName=\"offsetSpawnZ\">\r\n            <Slot SlotId=\"50\">\r\n
+    Collapsed=\"False\" ExposedName=\"offsetSpawnZ\">\r\n            <Slot SlotId=\"47\">\r\n
     \               <Values>\r\n                    <kFloat>0</kFloat>\r\n                </Values>\r\n
     \               <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
     \           </Slot>\r\n        </DataBlock>\r\n        <DataBlock DescId=\"UnityEngine.Experimental.VFX.VFXFloatType\"
-    Collapsed=\"False\" ExposedName=\"spawnRadius\">\r\n            <Slot SlotId=\"51\">\r\n
+    Collapsed=\"False\" ExposedName=\"spawnRadius\">\r\n            <Slot SlotId=\"48\">\r\n
     \               <Values>\r\n                    <kFloat>0.05</kFloat>\r\n                </Values>\r\n
     \               <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
     \           </Slot>\r\n        </DataBlock>\r\n    </DataNode>\r\n    <SpawnerNode
     ModelId=\"2\" Position=\"-1090,-890\">\r\n        <SpawnerBlock Type=\"kVariableRate\"
-    Collapsed=\"False\">\r\n            <Slot SlotId=\"52\">\r\n                <Values>\r\n
+    Collapsed=\"False\">\r\n            <Slot SlotId=\"49\">\r\n                <Values>\r\n
     \                   <kFloat>200000</kFloat>\r\n                    <kFloat>400000</kFloat>\r\n
     \               </Values>\r\n                <Collapsed>true true true</Collapsed>\r\n
     \               <WorldSpace>false false false</WorldSpace>\r\n            </Slot>\r\n
-    \           <Slot SlotId=\"55\">\r\n                <Values>\r\n                    <kFloat>0.1</kFloat>\r\n
+    \           <Slot SlotId=\"52\">\r\n                <Values>\r\n                    <kFloat>0.1</kFloat>\r\n
     \                   <kFloat>2</kFloat>\r\n                </Values>\r\n                <Collapsed>true
     true true</Collapsed>\r\n                <WorldSpace>false false false</WorldSpace>\r\n
     \           </Slot>\r\n        </SpawnerBlock>\r\n    </SpawnerNode>\r\n    <SpawnerNode
     ModelId=\"3\" Position=\"-540,-850\">\r\n        <SpawnerBlock Type=\"kPeriodicBurst\"
-    Collapsed=\"False\">\r\n            <Slot SlotId=\"58\">\r\n                <Values>\r\n
+    Collapsed=\"False\">\r\n            <Slot SlotId=\"55\">\r\n                <Values>\r\n
     \                   <kFloat>100000</kFloat>\r\n                    <kFloat>500000</kFloat>\r\n
     \               </Values>\r\n                <Collapsed>true true true</Collapsed>\r\n
     \               <WorldSpace>false false false</WorldSpace>\r\n            </Slot>\r\n
-    \           <Slot SlotId=\"61\">\r\n                <Values>\r\n                    <kFloat>0.1</kFloat>\r\n
+    \           <Slot SlotId=\"58\">\r\n                <Values>\r\n                    <kFloat>0.1</kFloat>\r\n
     \                   <kFloat>1</kFloat>\r\n                </Values>\r\n                <Collapsed>true
     true true</Collapsed>\r\n                <WorldSpace>false false false</WorldSpace>\r\n
     \           </Slot>\r\n        </SpawnerBlock>\r\n    </SpawnerNode>\r\n    <Connections>\r\n
-    \       <Connection Id=\"49\">4</Connection>\r\n        <Connection Id=\"50\">6</Connection>\r\n
-    \       <Connection Id=\"51\">7</Connection>\r\n    </Connections>\r\n    <SpawnerConnections
+    \       <Connection Id=\"46\">4</Connection>\r\n        <Connection Id=\"47\">6</Connection>\r\n
+    \       <Connection Id=\"48\">7</Connection>\r\n    </Connections>\r\n    <SpawnerConnections
     Id=\"2\">0</SpawnerConnections>\r\n</Graph>"
   m_Systems:
   - m_Id: 0

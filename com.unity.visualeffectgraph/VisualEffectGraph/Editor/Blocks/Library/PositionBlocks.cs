@@ -281,4 +281,24 @@ side = cross(front,up);
 velocity += tangent * RAND;";
         }
     }
+
+    class VFXBlockKillingPlane : VFXBlockType
+    {
+        public VFXBlockKillingPlane()
+        {
+            Name = "Killing Plane";
+            Icon = "Plane";
+            Category = "Kill";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
+
+            Add(VFXProperty.Create<VFXPlaneType>("Plane"));
+
+            Add(new VFXAttribute(CommonAttrib.Position, false));
+
+            Source = @"
+float3 dir = Plane_position - position;
+if (dot(dir,Plane_normal) > 0.0f)
+    KILL;";
+        }
+    }
 }
