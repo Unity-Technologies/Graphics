@@ -17,9 +17,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Flags]
     public enum StencilBits
     {
-        None = 0,
-        SSS  = 1,
-        All  = 255
+        None = 0,  
+        SSS  = 1,  // BaseLitGUI.MaterialClass.SSS
+        Hair = 2,  // BaseLitGUI.MaterialClass.Hair
+        All  = 255 // 0xff
     }
 
     public class Utilities

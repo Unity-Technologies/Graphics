@@ -34,6 +34,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _DetailHeightScale("_DetailHeightScale", Range(-2.0, 2.0)) = 1
         _DetailAOScale("_DetailAOScale", Range(-2.0, 2.0)) = 1        
 
+		[Enum(Standard, 0, Subsurface Scattering, 1, Hair, 2)] _MaterialClass("Material Class", Int) = 0
         _SubSurfaceRadius("SubSurfaceRadius", Range(0.0, 1.0)) = 0
         _SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
         //_Thickness("Thickness", Range(0.0, 1.0)) = 0
@@ -62,6 +63,9 @@ Shader "HDRenderPipeline/LitTessellation"
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+
+		// Stencil state
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 0
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -184,6 +188,13 @@ Shader "HDRenderPipeline/LitTessellation"
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
             Cull  [_CullMode]
+
+			Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             HLSLPROGRAM
 

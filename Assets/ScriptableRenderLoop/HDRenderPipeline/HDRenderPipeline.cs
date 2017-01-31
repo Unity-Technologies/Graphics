@@ -704,7 +704,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CombineSubsurfaceScattering.SetFloat("_BilateralScale", 0.05f * sssParameters.bilateralScale);
             // TODO: use user-defined values for '_ProfileID' and '_FilterRadius.'
             m_CombineSubsurfaceScattering.SetVectorArray("_FilterKernel", sssParameters.profiles[0].filterKernel);
-            m_CombineSubsurfaceScattering.SetFloat("_FilterRadius", 5.0f);
+            m_CombineSubsurfaceScattering.SetFloat("_FilterRadius", 3.0f);
 
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
 

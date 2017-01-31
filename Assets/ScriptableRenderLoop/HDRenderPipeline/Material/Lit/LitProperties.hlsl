@@ -42,6 +42,8 @@ float _Anisotropy;
 TEXTURE2D(_AnisotropyMap);
 SAMPLER2D(sampler_AnisotropyMap);
 
+float _MaterialClass;
+
 //float _SubSurfaceRadius;
 //TEXTURE2D(_SubSurfaceRadiusMap);
 //SAMPLER2D(sampler_SubSurfaceRadiusMap);
