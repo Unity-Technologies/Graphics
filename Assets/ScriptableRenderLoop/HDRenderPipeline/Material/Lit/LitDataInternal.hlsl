@@ -278,10 +278,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // TODO: Do something. For now just take alpha channel
     surfaceData.specularOcclusion = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_SpecularOcclusionMap), ADD_ZERO_IDX(sampler_SpecularOcclusionMap), ADD_IDX(layerTexCoord.base)).a;
 #else
-    // Horizon Occlusion for Normal Mapped Reflections: http://marmosetco.tumblr.com/post/81245981087
-    //surfaceData.specularOcclusion = saturate(1.0 + horizonFade * dot(r, input.tangentToWorld[2].xyz);
-    // smooth it
-    //surfaceData.specularOcclusion *= surfaceData.specularOcclusion;
+    // The specular occlusion will be perform outside the internal loop
     surfaceData.specularOcclusion = 1.0;
 #endif
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this so that the compiler leaves us alone.
