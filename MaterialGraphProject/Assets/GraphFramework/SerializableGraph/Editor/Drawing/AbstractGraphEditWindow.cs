@@ -78,7 +78,7 @@ namespace UnityEditor.Graphing.Drawing
             if (Selection.activeObject is ScriptableObject)
             {
                 var selection = Selection.activeObject as T;
-                if (selection != m_LastSelection)
+                if (selection!= null && selection != m_LastSelection)
                 {
                     var graph = selection.graph;
                     graph.OnEnable();
