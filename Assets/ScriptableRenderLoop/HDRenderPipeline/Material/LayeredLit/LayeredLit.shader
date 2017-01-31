@@ -224,7 +224,7 @@ Shader "HDRenderPipeline/LayeredLit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 metal // TEMP: unitl we go futher in dev
+    #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON

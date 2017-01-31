@@ -235,7 +235,7 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 ps4 // TEMP: unitl we go futher in dev
+    #pragma only_renderers d3d11 ps4 // TEMP: until we go further in dev
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
