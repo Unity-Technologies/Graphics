@@ -56,7 +56,7 @@ namespace UnityEditor.Experimental
             m_OrientMode = orientmode;
         }
 
-		public override OutputType GetOutputType()  { return OutputType.Billboard; }
+		public override OutputType GetOutputType()  { return OutputType.Quad; }
 
         private bool CanHaveMotionVectors()
         {
@@ -508,7 +508,7 @@ namespace UnityEditor.Experimental
             uniforms.Add(m_Values[SmoothnessSlot]);
         }
 
-		public override OutputType GetOutputType() { return OutputType.Billboard; }
+		public override OutputType GetOutputType() { return OutputType.Quad; }
 
         public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
         {

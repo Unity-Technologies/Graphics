@@ -39,8 +39,9 @@ namespace UnityEditor.Experimental
 		public enum OutputType
 		{
 			Point,
-			Billboard,
-			Mesh
+			Quad,
+			Mesh,
+            Hexahedron,
 		};
 
 		public virtual bool WriteVertexInputStructure(ShaderSourceBuilder builder, ShaderMetaData data) { return false; }

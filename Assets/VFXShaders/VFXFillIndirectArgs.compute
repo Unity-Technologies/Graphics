@@ -26,7 +26,7 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 {
 	if (id.x < maxNb) 
 	{
-		uint vertexCount = 0;
+		uint indexCount = 0;
 		uint instanceCount = 0;
 
 		uint elementCount = nbElements.Load(id.x << 2);
@@ -36,21 +36,21 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 		{
 			case 0: // point
 			{
-				vertexCount = elementCount;
+				indexCount = elementCount;
 				instanceCount = 1;
 				break;
 			}
 			
 			case 1: // quads
 			{
-				if (elementCount > 16384) // Due to 16bits indices
+				if (elementCount > 16384) // Due to 16bits indices (4 vertices per element)
 				{
-					vertexCount = NB_INDICES_PER_INSTANCE * 6;
+					indexCount = NB_INDICES_PER_INSTANCE * 6;
 					instanceCount = (elementCount + (NB_INDICES_PER_INSTANCE - 1)) / NB_INDICES_PER_INSTANCE;
 				}
 				else
 				{
-					vertexCount = elementCount * 6;
+					indexCount = elementCount * 6;
 					instanceCount = 1;
 				}
 				break;
@@ -58,14 +58,30 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 
 			case 2: // meshes
 			{
-				vertexCount = data.indexCount;
+				indexCount = data.indexCount;
 				instanceCount = elementCount;
+				break;
+			}
+
+			case 3: // hexahedron
+			{
+				// Version with hexahedron batched in index buffer
+				if (elementCount > 8192) // Due to 16bits indices (8 vertices per element)
+				{
+					indexCount = NB_INDICES_PER_INSTANCE * 36;
+					instanceCount = (elementCount + (NB_INDICES_PER_INSTANCE - 1)) / NB_INDICES_PER_INSTANCE;
+				}
+				else
+				{
+					indexCount = elementCount * 36;
+					instanceCount = 1;
+				}
 				break;
 			}
 		}
 		
 		uint index = id.x * 5;
-		output[index + 0] = vertexCount;
+		output[index + 0] = indexCount;
 		output[index + 1] = instanceCount;
 		// 3 next uint (startIndex, BaseVertex and StartInstance) set to 0 at initialization
 	}

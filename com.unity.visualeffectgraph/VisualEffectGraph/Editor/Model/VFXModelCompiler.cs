@@ -1335,9 +1335,11 @@ namespace UnityEditor.Experimental
 
             builder.WriteCBuffer("outputUniforms", data.outputUniforms, data, ShaderMetaData.Pass.kOutput);
 
-            bool quadPatches = outputGenerator.GetOutputType() == VFXOutputShaderGeneratorModule.OutputType.Billboard && system.MaxNb > 16384;
+            bool usePatches =
+                (outputGenerator.GetOutputType() == VFXOutputShaderGeneratorModule.OutputType.Quad && system.MaxNb > 16384) ||
+                (outputGenerator.GetOutputType() == VFXOutputShaderGeneratorModule.OutputType.Hexahedron && system.MaxNb > 8192);
             // Data used not to fetch out of bounds elements when using indirect draw with quad patches
-            if (quadPatches && data.UseOutputData())
+            if (usePatches && data.UseOutputData())
             {
                 builder.WriteLine("CBUFFER_START(Uniform)");
                 builder.WriteLine("\tfloat systemIndex;");
@@ -1438,13 +1440,13 @@ namespace UnityEditor.Experimental
             { 
                 if(!data.UseOutputData())
                 {
-                    //if (!quadPatches)
+                    //if (!usePatches)
                         builder.WriteLine("if (flags[index] == 1)");
                    // else
                    //     builder.WriteLine("if (index < nbMax && flags[index] == 1)");
                     skipElements = true;
                 }
-                else if (quadPatches)
+                else if (usePatches)
                 {
                     builder.WriteLine("if (index < nbElements.Load(asuint(systemIndex) << 2))");
                     skipElements = true;
