@@ -169,7 +169,7 @@ void VFXBlockSetForceLinearDrag( inout float3 velocity,float DragCoefficient,flo
 
 void VFXSDFCollision( inout float3 position,inout float3 velocity,VFXSampler3D DistanceField,float4x4 Box,float4x4 InvBox,float Elasticity,float Friction,float deltaTime)
 {
-	float3 nextPos = position /*+ velocity * deltaTime*/;
+	float3 nextPos = position + velocity * deltaTime;
 	float3 tPos = mul(INVERSE(Box), float4(nextPos,1.0f)).xyz;
 	float3 coord = tPos + 0.5f;
 	float dist = SampleTexture(DistanceField, coord).x;
@@ -196,6 +196,8 @@ void VFXSDFCollision( inout float3 position,inout float3 velocity,VFXSampler3D D
 	
 	        velocity -= (1 + saturate(Elasticity)) * nVelocity;
 	        velocity -= saturate(Friction) * tVelocity;
+	
+	        //position -= velocity * deltaTime;
 	    }
 	}
 }
