@@ -79,7 +79,7 @@ VFXAsset:
     \                       <kFloat>5</kFloat>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
     \               </Slot>\r\n                <Slot SlotId=\"42\">\r\n                    <Values>\r\n
-    \                       <kFloat>500</kFloat>\r\n                    </Values>\r\n
+    \                       <kFloat>1000</kFloat>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
     \               </Slot>\r\n                <Slot SlotId=\"43\">\r\n                    <Values>\r\n
     \                       <kFloat>0.01</kFloat>\r\n                    </Values>\r\n
@@ -97,36 +97,25 @@ VFXAsset:
     \                       <kFloat>0.4241379</kFloat>\r\n                        <kFloat>0.4241379</kFloat>\r\n
     \                   </Values>\r\n                    <Collapsed>true true true
     true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
-    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockOrientAlongVelocity\"
-    Hash=\"0\" Collapsed=\"False\" Enabled=\"True\" />\r\n        </Context>\r\n    </System>\r\n
-    \   <System ModelId=\"1\" WorldSpace=\"False\" MaxNb=\"10000\" SpawnRate=\"1000\"
-    BlendingMode=\"kAdditive\" SoftParticlesFadeDistance=\"0\" OrderPriority=\"0\"
-    RenderQueueDelta=\"0\">\r\n        <Context DescId=\"Quad Output\" Position=\"-840,1330\"
-    Collapsed=\"False\">\r\n            <Slot SlotId=\"50\">\r\n                <Values>\r\n
-    \                   <kTexture2D>d01d8874889eebc4ab0cde7f2b3309de</kTexture2D>\r\n
-    \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
-    \           </Slot>\r\n            <Slot SlotId=\"51\">\r\n                <Values>\r\n
-    \                   <kFloat>1</kFloat>\r\n                    <kFloat>1</kFloat>\r\n
-    \               </Values>\r\n                <Collapsed>true true true</Collapsed>\r\n
-    \               <WorldSpace>false false false</WorldSpace>\r\n            </Slot>\r\n
-    \       </Context>\r\n    </System>\r\n    <DataNode ModelId=\"2\" Position=\"-1478.361,-274.4003\"
-    Exposed=\"True\">\r\n        <DataBlock DescId=\"UnityEngine.Experimental.VFX.VFXPositionType\"
-    Collapsed=\"False\" ExposedName=\"SpawnPosition\">\r\n            <Slot SlotId=\"54\">\r\n
-    \               <Values>\r\n                    <kFloat>-1</kFloat>\r\n                    <kFloat>-0.000346899</kFloat>\r\n
+    \               </Slot>\r\n            </Block>\r\n        </Context>\r\n    </System>\r\n
+    \   <DataNode ModelId=\"1\" Position=\"-1478.361,-274.4003\" Exposed=\"True\">\r\n
+    \       <DataBlock DescId=\"UnityEngine.Experimental.VFX.VFXPositionType\" Collapsed=\"False\"
+    ExposedName=\"SpawnPosition\">\r\n            <Slot SlotId=\"50\">\r\n                <Values>\r\n
+    \                   <kFloat>-1</kFloat>\r\n                    <kFloat>-0.000346899</kFloat>\r\n
     \                   <kFloat>0.123423</kFloat>\r\n                </Values>\r\n
     \               <Collapsed>true true true true</Collapsed>\r\n                <WorldSpace>true
     true true true</WorldSpace>\r\n            </Slot>\r\n        </DataBlock>\r\n
     \       <DataBlock DescId=\"UnityEngine.Experimental.VFX.VFXFloatType\" Collapsed=\"False\"
-    ExposedName=\"NoiseRot\">\r\n            <Slot SlotId=\"58\">\r\n                <Values>\r\n
+    ExposedName=\"NoiseRot\">\r\n            <Slot SlotId=\"54\">\r\n                <Values>\r\n
     \                   <kFloat>0</kFloat>\r\n                </Values>\r\n                <Collapsed>true</Collapsed>\r\n
     \               <WorldSpace>false</WorldSpace>\r\n            </Slot>\r\n        </DataBlock>\r\n
-    \   </DataNode>\r\n    <SpawnerNode ModelId=\"3\" Position=\"-1030,-530\">\r\n
+    \   </DataNode>\r\n    <SpawnerNode ModelId=\"2\" Position=\"-1030,-530\">\r\n
     \       <SpawnerBlock Type=\"kConstantRate\" Collapsed=\"False\">\r\n            <Slot
-    SlotId=\"59\">\r\n                <Values>\r\n                    <kFloat>10000</kFloat>\r\n
+    SlotId=\"55\">\r\n                <Values>\r\n                    <kFloat>10000</kFloat>\r\n
     \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
     \           </Slot>\r\n        </SpawnerBlock>\r\n    </SpawnerNode>\r\n    <Connections>\r\n
-    \       <Connection Id=\"54\">1</Connection>\r\n        <Connection Id=\"58\">18</Connection>\r\n
-    \   </Connections>\r\n    <SpawnerConnections Id=\"3\">0</SpawnerConnections>\r\n</Graph>"
+    \       <Connection Id=\"50\">1</Connection>\r\n        <Connection Id=\"54\">18</Connection>\r\n
+    \   </Connections>\r\n    <SpawnerConnections Id=\"2\">0</SpawnerConnections>\r\n</Graph>"
   m_Systems:
   - m_Id: 0
     m_Capacity: 45000
@@ -138,7 +127,7 @@ VFXAsset:
       m_UpdateName: outputBuffer
       m_OutputName: outputBuffer
       m_Flags: 514
-      m_Stride: 48
+      m_Stride: 32
       m_PerPoint: 1
     - m_InitName: <noninit>
       m_UpdateName: bounds
@@ -174,22 +163,16 @@ VFXAsset:
       m_UpdateName: attribBuffer1
       m_OutputName: <noninit>
       m_Flags: 512
-      m_Stride: 16
+      m_Stride: 8
       m_PerPoint: 1
     - m_InitName: attribBuffer2
       m_UpdateName: attribBuffer2
       m_OutputName: <noninit>
       m_Flags: 512
-      m_Stride: 8
+      m_Stride: 16
       m_PerPoint: 1
     - m_InitName: attribBuffer3
       m_UpdateName: attribBuffer3_RO
-      m_OutputName: <noninit>
-      m_Flags: 512
-      m_Stride: 4
-      m_PerPoint: 1
-    - m_InitName: attribBuffer4
-      m_UpdateName: attribBuffer4
       m_OutputName: <noninit>
       m_Flags: 512
       m_Stride: 4
@@ -254,7 +237,7 @@ VFXAsset:
         index: 37
     m_SpawnerIndices: 00000000
   m_Values:
-    m_Values: ffdfb5b933c5fc3d00000000000080bf00000000000000000000000000000000000000000000803f0000803f000000000000803f00000000ffffffffffffffffffffffffcdcc4c3ecdcc4c3ecdcc4c3e00000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a28d93effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a28d93e9a28d93effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0ad7233ccdcc4c3fcdcccc3e00401c46ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000fa430000803f000000800000003f0c0000000000a0400000004000002041ffffffffffffffffffffffff0000803f0000a04000008040cdcc4c3dcdcc4c3d
+    m_Values: ffdfb5b933c5fc3d00000000000080bf00000000000000000000000000000000000000000000803f0000803f000000000000803f00000000ffffffffffffffffffffffffcdcc4c3ecdcc4c3ecdcc4c3e00000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a28d93effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a28d93e9a28d93effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0ad7233ccdcc4c3fcdcccc3e00401c46ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00007a440000803f000000800000003f0c0000000000a0400000004000002041ffffffffffffffffffffffff0000803f0000a04000008040cdcc4c3dcdcc4c3d
     m_Textures:
     - {fileID: 11700000, guid: 5796183d03aa8e147bec84edfb7cd610, type: 2}
     - {fileID: 11700000, guid: d756511c3111d1142a85b90df97f2679, type: 2}

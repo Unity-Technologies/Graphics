@@ -38,12 +38,10 @@ Shader "Hidden/VFX_0"
 			
 			struct OutputData
 			{
-				float3 velocity;
-				uint _PADDING_0;
 				float3 position;
-				uint _PADDING_1;
+				uint _PADDING_0;
 				float2 size;
-				uint2 _PADDING_2;
+				uint2 _PADDING_1;
 			};
 			
 			StructuredBuffer<OutputData> outputBuffer;
@@ -62,14 +60,6 @@ Shader "Hidden/VFX_0"
 				color = Color;
 			}
 			
-			void VFXBlockOrientAlongVelocity( inout float3 front,inout float3 side,inout float3 up,float3 velocity,float3 position)
-			{
-				up = normalize(velocity);
-	front = VFXCameraPos() - position;
-	side = normalize(cross(front,up));
-	front = cross(up,side);
-			}
-			
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
@@ -79,12 +69,8 @@ Shader "Hidden/VFX_0"
 					OutputData outputData = outputBuffer[index];
 					
 					float3 local_color = (float3)0;
-					float3 local_front = (float3)0;
-					float3 local_side = (float3)0;
-					float3 local_up = (float3)0;
 					
 					VFXBlockSetColorConstant( local_color,outputUniform0_kVFXCombine3fOp);
-					VFXBlockOrientAlongVelocity( local_front,local_side,local_up,outputData.velocity,outputData.position);
 					
 					float2 size = outputData.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
