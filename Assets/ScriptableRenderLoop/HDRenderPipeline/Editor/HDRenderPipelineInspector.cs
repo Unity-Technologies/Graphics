@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Linq.Expressions;
 using UnityEditor;
 
@@ -29,6 +30,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public GUIContent[] debugViewMaterialStrings = null;
             public int[] debugViewMaterialValues = null;
 
+            public readonly GUIContent skyParams = new GUIContent("Sky Settings");
+
             // Shadow Debug
             public readonly GUIContent shadowDebugParameters = new GUIContent("Shadow Debug");
             public readonly GUIContent shadowDebugEnable = new GUIContent("Enable Shadows");
@@ -36,7 +39,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowDebugVisualizeShadowIndex = new GUIContent("Visualize Shadow Index");
 
             public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
-
             public readonly GUIContent shadowsAtlasWidth = new GUIContent("Atlas width");
             public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas height");
 
@@ -152,6 +154,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        static void HackSetDirty(RenderPipelineAsset asset)
+        {
+            EditorUtility.SetDirty(asset);
+            var method = typeof(RenderPipelineAsset).GetMethod("OnValidate", BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (method != null)
+                method.Invoke(asset, new object[0]);
+        }
+
         private void DebuggingUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.LabelField(styles.debugging);
@@ -227,9 +237,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                EditorUtility.SetDirty(renderContext); // Repaint
+                HackSetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
+        }
+
+        private void SkySettingsUI(HDRenderPipeline pipe)
+        {
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField(styles.skyParams);
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.indentLevel++;
+            pipe.skyParameters = (SkyParameters) EditorGUILayout.ObjectField(new GUIContent("Sky Settings"), pipe.skyParameters, typeof(SkyParameters), false);
+            pipe.lightLoopProducer = (LightLoopProducer) EditorGUILayout.ObjectField(new GUIContent("Light Loop"), pipe.lightLoopProducer, typeof(LightLoopProducer), false);
+            EditorGUI.indentLevel--;
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(pipe); // Repaint
+            }
         }
 
         private void ShadowDebugParametersUI(HDRenderPipeline renderContext)
@@ -245,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if ((ShadowDebugMode)m_DebugShadowVisualizationMode.intValue == ShadowDebugMode.VisualizeShadowMap)
                 {
-                    EditorGUILayout.IntSlider(m_DebugShadowVisualizeShadowIndex, 0, renderContext.GetCurrentShadowCount() - 1, styles.shadowDebugVisualizeShadowIndex);
+                    EditorGUILayout.IntSlider(m_DebugShadowVisualizeShadowIndex, 0, 5/*renderContext.GetCurrentShadowCount() - 1*/, styles.shadowDebugVisualizeShadowIndex);
                 }
             }
             EditorGUI.indentLevel--;
@@ -265,7 +292,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                EditorUtility.SetDirty(renderContext); // Repaint
+                HackSetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
         }
@@ -286,17 +313,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 renderContext.textureSettings = textureParameters;
-                EditorUtility.SetDirty(renderContext); // Repaint
+                HackSetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
         }
 
-        private void TilePassUI(HDRenderPipeline renderContext)
+        /*  private void TilePassUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
 
             // TODO: we should call a virtual method or something similar to setup the UI, inspector should not know about it
-            TilePass.LightLoop tilePass = renderContext.lightLoop as TilePass.LightLoop;
+            var tilePass = renderContext.tileSettings;
             if (tilePass != null)
             {
                 EditorGUILayout.LabelField(styles.tileLightLoopSettings);
@@ -308,7 +335,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    EditorUtility.SetDirty(renderContext); // Repaint
+                   HackSetDirty(renderContext); // Repaint
 
                     // SetAssetDirty will tell renderloop to rebuild
                     renderContext.DestroyCreatedInstances();
@@ -323,12 +350,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    EditorUtility.SetDirty(renderContext); // Repaint
+                   HackSetDirty(renderContext); // Repaint
                     UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
                 }
                 EditorGUI.indentLevel--;
             }
-        }
+        }*/
 
         public void OnEnable()
         {
@@ -344,10 +371,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             serializedObject.Update();
 
+            SkySettingsUI(renderContext);
             DebuggingUI(renderContext);
             ShadowParametersUI(renderContext);
             TextureParametersUI(renderContext);
-            TilePassUI(renderContext);
+            //TilePassUI(renderContext);
 
             serializedObject.ApplyModifiedProperties();
         }

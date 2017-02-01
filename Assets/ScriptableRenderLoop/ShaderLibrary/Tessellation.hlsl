@@ -96,7 +96,7 @@ float4 CalcTriEdgeTessFactors(float3 triVertexFactors)
 // TODO: Move in geomtry.hlsl
 float DistanceFromPlane(float3 pos, float4 plane)
 {
-    float d = dot(float4(pos, 1.0f), plane);
+    float d = dot(float4(pos, 1.0), plane);
     return d;
 }
 
@@ -107,21 +107,21 @@ bool WorldViewFrustumCull(float3 p0, float3 p1, float3 p2, float cullEps, float4
     float4 planeTest;
 
     // left
-    planeTest.x =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f) +
-                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f) +
-                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f);
+    planeTest.x =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0 : 0.0);
     // right                                   
-    planeTest.y =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f) +
-                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f) +
-                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f);
+    planeTest.y =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0 : 0.0);
     // top                                     
-    planeTest.z =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f) +
-                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f) +
-                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f);
+    planeTest.z =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0 : 0.0);
     // bottom                                  
-    planeTest.w =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f) +
-                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f) +
-                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f);
+    planeTest.w =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0 : 0.0);
 
     // has to pass all 4 plane tests to be visible
     return !all(planeTest);

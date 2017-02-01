@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [DisallowMultipleComponent]
@@ -9,5 +5,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         : SkyParameters
     {
         public Cubemap skyHDRI;
+
+
+        public override SkyRenderer GetRenderer()
+        {
+            return new HDRISkyRenderer(this);
+        }
     }
 }

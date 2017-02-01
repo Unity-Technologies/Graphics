@@ -96,7 +96,7 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
     float lambdaV = NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
     float lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
-    // Simplify visibility term: (2.0f * NdotL * NdotV) /  ((4.0f * NdotL * NdotV) * (lambda_v + lambda_l));
+    // Simplify visibility term: (2.0 * NdotL * NdotV) /  ((4.0 * NdotL * NdotV) * (lambda_v + lambda_l));
     return 0.5 / (lambdaV + lambdaL);
 }
 
@@ -116,7 +116,7 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness, float lambdaV)
     lambdaV *= NdotL;
     float lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
-    // Simplify visibility term: (2.0f * NdotL * NdotV) /  ((4.0f * NdotL * NdotV) * (lambda_v + lambda_l));
+    // Simplify visibility term: (2.0 * NdotL * NdotV) /  ((4.0 * NdotL * NdotV) * (lambda_v + lambda_l));
     return 0.5 / (lambdaV + lambdaL);
 }
 
