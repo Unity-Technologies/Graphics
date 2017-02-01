@@ -75,6 +75,7 @@ Shader "RenderLoop/LowEnd"
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma shader_feature _SPECGLOSSMAP
+			#pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 			#pragma shader_feature _NORMALMAP
 			
 			#pragma multi_compile _ LIGHTMAP_ON
@@ -140,7 +141,7 @@ Shader "RenderLoop/LowEnd"
 #if defined(UNITY_REVERSED_Z)
 				return step(depth, shadowCoordDepth);
 #else
-				return step(shadowCoordDepth, depth);
+				return step(shadowCoordDepth, depth); 
 #endif
 			}
 
@@ -158,7 +159,7 @@ Shader "RenderLoop/LowEnd"
 				return attenuation * 0.25;
 			}
 
-			inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half3 specularColor, half3 normal, float3 posWorld, half3 viewDir)
+			inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float3 posWorld, half3 viewDir)
 			{
 				float3 posToLight = lightInput.pos.xyz;
 				posToLight -= posWorld * lightInput.pos.w;
@@ -180,11 +181,11 @@ Shader "RenderLoop/LowEnd"
 
 				half3 lightColor = lightInput.color.rgb * lightAtten;
 				half3 diffuse = diffuseColor * lightColor * NdotL;
-				half3 specular = specularColor * lightColor * pow(NdotH, 128.0f) * _Glossiness;
+				half3 specular = specularGloss.rgb * lightColor * pow(NdotH, 64.0f) * specularGloss.a;
 				return diffuse + specular;
 			}
 
-			inline half3 EvaluateMainLight(LightInput lightInput, half3 diffuseColor, half3 specularColor, half3 normal, float4 posWorld, half3 viewDir)
+			inline half3 EvaluateMainLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float4 posWorld, half3 viewDir)
 			{
 				int cascadeIndex = ComputeCascadeIndex(posWorld.w);
 				float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
@@ -201,7 +202,7 @@ Shader "RenderLoop/LowEnd"
 				return cascadeColors[cascadeIndex] * diffuseColor * max(shadowAttenuation, 0.5); 
 #endif
 
-				half3 color = EvaluateOneLight(lightInput, diffuseColor, specularColor, normal, posWorld, viewDir);
+				half3 color = EvaluateOneLight(lightInput, diffuseColor, specularGloss, normal, posWorld, viewDir);
 				
 #ifdef SHADOWS_DEPTH
 				return color * shadowAttenuation;
@@ -265,12 +266,12 @@ Shader "RenderLoop/LowEnd"
 				o.normal = normal;
 #endif
 
-				half3 diffuseAndSpecularColor = half3(1.0, 1.0, 1.0);
+				half4 diffuseAndSpecular = half4(1.0, 1.0, 1.0, 1.0);
 				for (int lightIndex = globalLightCount.x; lightIndex < globalLightCount.y; ++lightIndex)
 				{
 					LightInput lightInput;
 					INITIALIZE_LIGHT(lightInput, lightIndex);
-					o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecularColor, diffuseAndSpecularColor, normal, o.posWS.xyz, o.viewDir.xyz);
+					o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS.xyz, o.viewDir.xyz);
 				}
 
 #ifndef LIGHTMAP_ON
@@ -294,6 +295,7 @@ Shader "RenderLoop/LowEnd"
 #else
 				half3 normal = normalize(i.normal);
 #endif
+
 				float3 posWorld = i.posWS.xyz;
 				half3 viewDir = i.viewDir.xyz;
 
@@ -301,14 +303,10 @@ Shader "RenderLoop/LowEnd"
 				half3 diffuse = diffuseAlbedo.rgb *_Color.rgb;
 				half alpha = diffuseAlbedo.a * _Color.a;
 
-				half4 specGloss = SpecularGloss(i.uv01.xy);
-				half3 specular = specGloss.rgb;
-				half smoothness = specGloss.a;
-
-				half oneMinusReflectivity;
+				half4 specularGloss = SpecularGloss(i.uv01.xy);
+				half3 specular = specularGloss.rgb;
+				half oneMinusReflectivity; 
 				
-				// Note: UnityStandardCoreForwardSimple is not energy conserving. The lightmodel from LDPipeline will appear
-				// slither darker when comparing to Standard Simple due to this.
 				diffuse = EnergyConservationBetweenDiffuseAndSpecular(diffuse, specular, /*out*/ oneMinusReflectivity);
 				
 				// Indirect Light Contribution
@@ -326,14 +324,14 @@ Shader "RenderLoop/LowEnd"
 #if DEBUG_CASCADES
 				return half4(EvaluateMainLight(mainLight, diffuse, specular, normal, i.posWS, viewDir), 1.0);
 #endif
-				half3 directColor = EvaluateMainLight(mainLight, diffuse, specular, normal, i.posWS, viewDir);
+				half3 directColor = EvaluateMainLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir);
 
 				// Compute direct contribution from additional lights.
 				for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)
 				{
 					LightInput additionalLight;
 					INITIALIZE_LIGHT(additionalLight, lightIndex);
-					directColor += EvaluateOneLight(additionalLight, diffuse, specular, normal, posWorld, viewDir);
+					directColor += EvaluateOneLight(additionalLight, diffuse, specularGloss, normal, posWorld, viewDir);
 				}
 
 				half3 color = directColor + indirectDiffuse + _EmissionColor;
@@ -355,11 +353,19 @@ Shader "RenderLoop/LowEnd"
 			#pragma vertex vert
 			#pragma fragment frag
 
+			float4 _ShadowBias;
+
 			#include "UnityCG.cginc"
+
 			float4 vert(float4 position : POSITION) : SV_POSITION
 			{
 				float4 clipPos = UnityObjectToClipPos(position);
-				return UnityApplyLinearShadowBias(clipPos);
+#if defined(UNITY_REVERSED_Z)
+				clipPos.z -= _ShadowBias.x;
+#else
+				clipPos.z += _ShadowBias.x;
+#endif
+				return clipPos;
 			}
 
 			half4 frag() : SV_TARGET
@@ -369,6 +375,5 @@ Shader "RenderLoop/LowEnd"
 			ENDCG
 		}
 	}
-	Fallback "RenderLoop/Error"
 	CustomEditor "StandardShaderGUI"
 }

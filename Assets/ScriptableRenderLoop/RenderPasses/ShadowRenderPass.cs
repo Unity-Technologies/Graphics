@@ -259,9 +259,9 @@ namespace UnityEngine.Experimental.Rendering
             var shadowCasters = new List<InputShadowLightData>();
             var lights = cullResults.visibleLights;
             int directionalLightCount = 0;
+            int shadowLightsCount = 0;
 
-            int lightsCount = (settings.maxShadowLightsSupported > 0) ? Mathf.Min(lights.Length, settings.maxShadowLightsSupported) : lights.Length;
-            for (int i = 0; i < lightsCount; i++)
+            for (int i = 0; i < lights.Length && shadowLightsCount < settings.maxShadowLightsSupported; i++)
             {
                 //@TODO: ignore baked. move this logic to c++...
                 if (lights[i].light.shadows == LightShadows.None)
@@ -288,6 +288,7 @@ namespace UnityEngine.Experimental.Rendering
                 light.shadowResolution = shadowResolution;
 
                 shadowCasters.Add(light);
+                shadowLightsCount++;
             }
             return shadowCasters;
         }
@@ -374,6 +375,7 @@ namespace UnityEngine.Experimental.Rendering
                 var lightType = visibleLights[lightIndex].lightType;
                 var lightDirection = visibleLights[lightIndex].light.transform.forward;
                 var shadowNearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
+                var shadowBias = visibleLights[lightIndex].light.shadowBias;
 
                 int shadowSliceIndex = packedShadows.GetShadowSliceIndex(lightIndex, 0);
 
@@ -383,7 +385,7 @@ namespace UnityEngine.Experimental.Rendering
                     bool needRendering = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(lightIndex, out view, out proj, out settings.splitData);
                     SetupShadowSplitMatrices(ref packedShadows.shadowSlices[shadowSliceIndex], proj, view);
                     if (needRendering)
-                        RenderShadowSplit(ref shadowSlices[shadowSliceIndex], lightDirection, proj, view, ref loop, settings);
+                        RenderShadowSplit(ref shadowSlices[shadowSliceIndex], shadowBias, lightDirection, proj, view, ref loop, settings);
                 }
                 else if (lightType == LightType.Directional)
                 {
@@ -403,7 +405,7 @@ namespace UnityEngine.Experimental.Rendering
 
                         SetupShadowSplitMatrices(ref shadowSlices[shadowSliceIndex], proj, view);
                         if (needRendering)
-                            RenderShadowSplit(ref shadowSlices[shadowSliceIndex], lightDirection, proj, view, ref loop, settings);
+                            RenderShadowSplit(ref shadowSlices[shadowSliceIndex], shadowBias, lightDirection, proj, view, ref loop, settings);
                     }
                 }
                 else if (lightType == LightType.Point)
@@ -415,7 +417,7 @@ namespace UnityEngine.Experimental.Rendering
 
                         SetupShadowSplitMatrices(ref shadowSlices[shadowSliceIndex], proj, view);
                         if (needRendering)
-                            RenderShadowSplit(ref shadowSlices[shadowSliceIndex], lightDirection, proj, view, ref loop, settings);
+                            RenderShadowSplit(ref shadowSlices[shadowSliceIndex], shadowBias, lightDirection, proj, view, ref loop, settings);
                     }
                 }
                 Profiler.EndSample();
@@ -432,6 +434,8 @@ namespace UnityEngine.Experimental.Rendering
             matScaleBias.m23 = 0.5f;
             matScaleBias.m13 = 0.5f;
 
+            // Later down the pipeline the proj matrix will be scaled to reverse-z in case of DX. 
+            // We need account for that scale in the shadowTransform.
             if (m_Settings.shadowType == ShadowSettings.ShadowType.LIGHTSPACE && SystemInfo.usesReversedZBuffer)
                 matScaleBias.m22 = -0.5f;
 
@@ -445,15 +449,20 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         //---------------------------------------------------------------------------------------------------------------------------------------------------
-        private void RenderShadowSplit(ref ShadowSliceData slice, Vector3 lightDirection, Matrix4x4 proj, Matrix4x4 view, ref ScriptableRenderContext loop, DrawShadowsSettings settings)
+        private void RenderShadowSplit(ref ShadowSliceData slice, float shadowBias, Vector3 lightDirection, Matrix4x4 proj, Matrix4x4 view, ref ScriptableRenderContext loop, DrawShadowsSettings settings)
         {
             var commandBuffer = new CommandBuffer { name = "ShadowSetup" };
 
             // Set viewport / matrices etc
             commandBuffer.SetViewport(new Rect(slice.atlasX, slice.atlasY, slice.shadowResolution, slice.shadowResolution));
             //commandBuffer.ClearRenderTarget (true, true, Color.green);
-            commandBuffer.SetGlobalVector("g_vLightDirWs", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z));
             commandBuffer.SetViewProjectionMatrices(view, proj);
+
+            if (m_Settings.shadowType == ShadowSettings.ShadowType.LIGHTSPACE)
+                commandBuffer.SetGlobalVector("_ShadowBias", new Vector4(shadowBias, 0.0f, 0.0f, 0.0f));
+            else
+                commandBuffer.SetGlobalVector("g_vLightDirWs", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z));
+            
             //	commandBuffer.SetGlobalDepthBias (1.0F, 1.0F);
 
             loop.ExecuteCommandBuffer(commandBuffer);
