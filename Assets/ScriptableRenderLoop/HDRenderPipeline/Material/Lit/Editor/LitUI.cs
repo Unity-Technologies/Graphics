@@ -76,8 +76,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVDetail = "_UVDetail";
         protected MaterialProperty UVDetailsMappingMask = null;
         protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
-        protected MaterialProperty materialID = null;
-        protected const string kMaterialID = "_MaterialID";
         protected MaterialProperty emissiveColorMode = null;
         protected const string kEmissiveColorMode = "_EmissiveColorMode";
 
@@ -125,9 +123,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty detailAOScale = null;
         protected const string kDetailAOScale = "_DetailAOScale";
 
-        //	MaterialProperty subSurfaceRadius = null;
-        //	MaterialProperty subSurfaceRadiusMap = null;
-
         protected MaterialProperty emissiveColor = null;
         protected const string kEmissiveColor = "_EmissiveColor";
         protected MaterialProperty emissiveColorMap = null;
@@ -135,6 +130,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty emissiveIntensity = null;
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
 
+        protected MaterialProperty materialID           = null;
+        protected const string     kMaterialID          = "_MaterialID";
+        protected MaterialProperty subsurfaceProfile    = null;
+        protected const string     kSubsurfaceProfile   = "_SubsurfaceProfile";
+        protected MaterialProperty subsurfaceRadius     = null;
+        protected const string     kSubsurfaceRadius    = "_SubsurfaceRadius";
+        protected MaterialProperty subsurfaceRadiusMap  = null;
+        protected const string     kSubsurfaceRadiusMap = "_SubsurfaceRadiusMap";
+        protected MaterialProperty thickness            = null;
+        protected const string     kThickness           = "_Thickness";
+        protected MaterialProperty thicknessMap         = null;
+        protected const string     kThicknessMap        = "_ThicknessMap";
 
         // These are options that are shared with the LayeredLit shader. Don't put anything that can't be shared here:
         // For instance, properties like BaseColor and such don't exist in the LayeredLit so don't put them here.
@@ -146,7 +153,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
             ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
             detailMapMode = FindProperty(kDetailMapMode, props);
-            materialID = FindProperty(kMaterialID, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
 
@@ -187,6 +193,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColor = FindProperty(kEmissiveColor, props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
+
+            materialID          = FindProperty(kMaterialID,          props);
+            subsurfaceProfile   = FindProperty(kSubsurfaceProfile,   props);
+            subsurfaceRadius    = FindProperty(kSubsurfaceRadius,    props);
+            subsurfaceRadiusMap = FindProperty(kSubsurfaceRadiusMap, props);
+            thickness           = FindProperty(kThickness,           props);
+            thicknessMap        = FindProperty(kThicknessMap,        props);
         }
 
         override protected void ShaderInputOptionsGUI()
@@ -227,7 +240,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
             m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
             ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-            m_MaterialEditor.ShaderProperty(materialID, Styles.materialIDText);
+
+            m_MaterialEditor.ShaderProperty(materialID,          Styles.materialIDText);
+            m_MaterialEditor.ShaderProperty(subsurfaceProfile,   Styles.subsurfaceProfileText);
+            m_MaterialEditor.ShaderProperty(subsurfaceRadius,    Styles.subsurfaceRadiusText);
+            m_MaterialEditor.ShaderProperty(subsurfaceRadiusMap, Styles.subsurfaceRadiusMapText);
+            m_MaterialEditor.ShaderProperty(thickness,           Styles.thicknessText);
+            m_MaterialEditor.ShaderProperty(thicknessMap,        Styles.thicknessMapText);
+
             EditorGUI.indentLevel--;
         }
 
@@ -348,6 +368,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 			SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
 			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
 			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
+            SetKeyword(material, "_SUBSURFACE_RADIUS_MAP", material.GetTexture(kSubsurfaceRadiusMap));
+            SetKeyword(material, "_THICKNESS_MAP", material.GetTexture(kThicknessMap));
+
 
             bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
             bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
