@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string surfaceTypeText = "Surface Type";
             public static string blendModeText = "Blend Mode";
             public static string detailText = "Inputs Detail";
+            public static string textureControlText = "Input textures control";
             public static string lightingText = "Inputs Lighting";
 
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "Threshold for alpha cutoff");
@@ -21,6 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
             public static GUIContent depthOffsetEnableText = new GUIContent("DepthOffset", "EnableDepthOffset on this shader (Use with heightmap)");
+            public static GUIContent horizonFadeText = new GUIContent("HorizonFade", "horizon fade is use to control specular occlusion");            
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
@@ -38,6 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
             public static GUIContent UVDetailMappingText = new GUIContent("UV set for Detail", "");
+            public static GUIContent materialIDText = new GUIContent("Material Class", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
 
             public static string InputsText = "Inputs";
@@ -64,11 +67,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC5) - DXT5 for test");
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
-            public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (G)", "Anisotropy");
+            public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (B)", "Anisotropy");
 
             public static GUIContent detailMapNormalText = new GUIContent("Detail Map A(R) Ny(G) S(B) Nx(A)", "Detail Map");
             public static GUIContent detailMapAOHeightText = new GUIContent("Detail Map  A(R) AO(G) S(B) H(A)", "Detail Map");
-            public static GUIContent detailMaskText = new GUIContent("Detail Mask (B)", "Mask for detailMap");
+            public static GUIContent detailMaskText = new GUIContent("Detail Mask (G)", "Mask for detailMap");
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
             public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
@@ -135,6 +138,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 m_MaterialEditor.RegisterPropertyChangeUndo("Surface Type");
                 surfaceType.floatValue = (float)mode;
+            }
+
+            EditorGUI.showMixedValue = false;
+        }
+
+        private void BlendModePopup()
+        {
+            EditorGUI.showMixedValue = blendMode.hasMixedValue;
+            var mode = (BlendMode)blendMode.floatValue;
+
+            EditorGUI.BeginChangeCheck();
+            mode = (BlendMode)EditorGUILayout.Popup(Styles.blendModeText, (int)mode, Styles.blendModeNames);
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_MaterialEditor.RegisterPropertyChangeUndo("Blend Mode");
+                blendMode.floatValue = (float)mode;
             }
 
             EditorGUI.showMixedValue = false;
@@ -207,22 +226,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        private void BlendModePopup()
-        {
-            EditorGUI.showMixedValue = blendMode.hasMixedValue;
-            var mode = (BlendMode)blendMode.floatValue;
-
-            EditorGUI.BeginChangeCheck();
-            mode = (BlendMode)EditorGUILayout.Popup(Styles.blendModeText, (int)mode, Styles.blendModeNames);
-            if (EditorGUI.EndChangeCheck())
-            {
-                m_MaterialEditor.RegisterPropertyChangeUndo("Blend Mode");
-                blendMode.floatValue = (float)mode;
-            }
-
-            EditorGUI.showMixedValue = false;
-        }
-
         protected void FindCommonOptionProperties(MaterialProperty[] props)
         {
             surfaceType = FindProperty(kSurfaceType, props);
@@ -234,6 +237,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             distortionOnly = FindProperty(kDistortionOnly, props);
             distortionDepthTest = FindProperty(kDistortionDepthTest, props);
             depthOffsetEnable = FindProperty(kDepthOffsetEnable, props);
+            horizonFade = FindProperty(kHorizonFade, props);
 
             // tessellation specific, silent if not found
             tessellationMode = FindProperty(kTessellationMode, props, false);
@@ -502,9 +506,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kDistortionDepthTest = "_DistortionDepthTest";
         MaterialProperty depthOffsetEnable = null;       
         const string kDepthOffsetEnable = "_DepthOffsetEnable";
+        protected MaterialProperty horizonFade = null;
+        const string kHorizonFade = "_HorizonFade";
 
         // tessellation params
-        MaterialProperty tessellationMode = null;
+        protected MaterialProperty tessellationMode = null;
         const string kTessellationMode = "_TessellationMode";
         MaterialProperty tessellationFactor = null;
         const string kTessellationFactor = "_TessellationFactor";

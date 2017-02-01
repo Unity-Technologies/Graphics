@@ -72,7 +72,7 @@ float ComputeCubemapTexelSolidAngle(float3 L, float texelArea)
 float SmoothDistanceAttenuation(float squaredDistance, float invSqrAttenuationRadius)
 {
     float factor = squaredDistance * invSqrAttenuationRadius;
-    float smoothFactor = saturate(1.0f - factor * factor);
+    float smoothFactor = saturate(1.0 - factor * factor);
     return smoothFactor * smoothFactor;
 }
 
@@ -81,7 +81,7 @@ float SmoothDistanceAttenuation(float squaredDistance, float invSqrAttenuationRa
 float GetDistanceAttenuation(float3 unL, float invSqrAttenuationRadius)
 {
     float sqrDist = dot(unL, unL);
-    float attenuation = 1.0f / (max(PUNCTUAL_LIGHT_THRESHOLD * PUNCTUAL_LIGHT_THRESHOLD, sqrDist));
+    float attenuation = 1.0 / (max(PUNCTUAL_LIGHT_THRESHOLD * PUNCTUAL_LIGHT_THRESHOLD, sqrDist));
     // Non physically based hack to limit light influence to attenuationRadius.
     attenuation *= SmoothDistanceAttenuation(sqrDist, invSqrAttenuationRadius);
 
@@ -167,13 +167,26 @@ float2 GetIESTextureCoordinate(float3x3 lightToWord, float3 L)
 }
 
 //-----------------------------------------------------------------------------
+// Lighting functions
+//-----------------------------------------------------------------------------
+
+// Ref: Horizon Occlusion for Normal Mapped Reflections: http://marmosetco.tumblr.com/post/81245981087
+float GetHorizonOcclusion(float3 V, float3 normalWS, float3 vertexNormal, float horizonFade)
+{
+    float3 R = reflect(-V, normalWS);
+    float specularOcclusion = saturate(1.0 + horizonFade * dot(R, vertexNormal));
+    // smooth it
+    return specularOcclusion * specularOcclusion;
+}
+
+//-----------------------------------------------------------------------------
 // Helper functions
 //-----------------------------------------------------------------------------
 
 // NdotV should not be negative for visible pixels, but it can happen due to the
 // perspective projection and the normal mapping + decals. In that case, the normal
 // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
-// Note: certain applications (e.g. SpeedTree) make use of double-sided lighting.
+// Note: certain applications (e.g. SpeedTree) require to still have negative normal to perform their own two sided lighting
 // This will  potentially reduce the length of the normal at edges of geometry.
 float GetShiftedNdotV(inout float3 N, float3 V, bool twoSided)
 {
@@ -214,8 +227,8 @@ void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
 
     float a     = 1.0 / (1.0 + N.z);
     float b     = -N.x * N.y * a;
-    tangentX    = float3(1.0f - N.x * N.x * a , b, -N.x);
-    tangentY    = float3(b, 1.0f - N.y * N.y * a, -N.y);
+    tangentX    = float3(1.0 - N.x * N.x * a , b, -N.x);
+    tangentY    = float3(b, 1.0 - N.y * N.y * a, -N.y);
 }
 */
 

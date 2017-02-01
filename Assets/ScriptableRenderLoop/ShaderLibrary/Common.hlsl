@@ -211,7 +211,7 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
     float3 adir = abs(dir);
 
     // +Z -Z
-    faceIndex = dir.z > 0.0f ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
+    faceIndex = dir.z > 0.0 ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
 
     // +X -X
     if (adir.x > adir.y && adir.x > adir.z)
@@ -262,7 +262,7 @@ float FastACos(float inX)
 {
     float x = abs(inX);
     float res = (0.0468878 * x + -0.203471) * x + 1.570796; // p(x)
-    res *= sqrt(1.0f - x);
+    res *= sqrt(1.0 - x);
 
     return (inX >= 0) ? res : PI - res; // Undo range reduction
 }
@@ -435,13 +435,19 @@ void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4 ViewProjectionMatrix, inout PositionInputs posInput)
+// It may be necessary to flip the Y axis as the origin of the screen-space coordinate system
+// of Direct3D is at the top left corner of the screen, with the Y axis pointing downwards.
+void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4 ViewProjectionMatrix,
+                         inout PositionInputs posInput, bool flipY = false)
 {
     posInput.depthRaw = depth;
 
-    // TODO: Do we need to flip Y axis here on OGL ?
-    posInput.positionCS = float4(posInput.positionSS.xy * 2.0 - 1.0, depth, 1.0);
-    float4 hpositionWS = mul(invViewProjectionMatrix, posInput.positionCS);
+    float2 screenSpacePos;
+    screenSpacePos.x = posInput.positionSS.x;
+    screenSpacePos.y = flipY ? 1.0 - posInput.positionSS.y : posInput.positionSS.y;
+
+    posInput.positionCS = float4(screenSpacePos * 2.0 - 1.0, depth, 1.0);
+    float4 hpositionWS  = mul(invViewProjectionMatrix, posInput.positionCS);
     posInput.positionWS = hpositionWS.xyz / hpositionWS.w;
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
@@ -461,6 +467,15 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, inout Position
     posInput.positionCS = float4(posInput.positionSS.xy * 2.0 - 1.0, posInput.depthRaw, 1.0) * posInput.depthVS;
     // Just add the offset along the view vector is sufficiant for world position
     posInput.positionWS += V * depthOffsetVS;
+}
+
+
+// Generates a triangle in homogeneous clip space, s.t.
+// v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
+float4 GetFullscreenTriangleVertexPosition(uint vertexID)
+{
+    float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
+    return float4(uv * 2.0 - 1.0, 1.0, 1.0);
 }
 
 #endif // UNITY_COMMON_INCLUDED

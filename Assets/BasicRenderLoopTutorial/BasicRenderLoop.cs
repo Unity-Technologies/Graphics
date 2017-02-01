@@ -21,6 +21,7 @@ public class BasicRenderLoop : RenderPipelineAsset
         var instance = ScriptableObject.CreateInstance<BasicRenderLoop>();
         UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/BasicRenderLoopTutorial/BasicRenderLoop.asset");
     }
+
 #endif
 
     protected override IRenderPipeline InternalCreatePipeline()
@@ -31,7 +32,6 @@ public class BasicRenderLoop : RenderPipelineAsset
 
 public class BasicRenderLoopInstance : RenderPipeline
 {
-    
     public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
         base.Render(renderContext, cameras);
@@ -70,7 +70,7 @@ public static class BasicRendering
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("BasicPass"));
             settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque();
-            context.DrawRenderers(ref settings);
+            context.DrawRenderers(settings);
 
             // Draw skybox
             context.DrawSkybox(camera);
@@ -78,12 +78,11 @@ public static class BasicRendering
             // Draw transparent objects using BasicPass shader pass
             settings.sorting.flags = SortFlags.CommonTransparent;
             settings.inputFilter.SetQueuesTransparent();
-            context.DrawRenderers(ref settings);
+            context.DrawRenderers(settings);
 
             context.Submit();
         }
     }
-
 
     // Setup lighting variables for shader to use
 
@@ -170,7 +169,6 @@ public static class BasicRendering
         context.ExecuteCommandBuffer(cmd);
         cmd.Dispose();
     }
-
 
     // Prepare L2 spherical harmonics values for efficient evaluation in a shader
 

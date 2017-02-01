@@ -10,7 +10,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 metal  // TEMP: unitl we go futher in dev
+            #pragma only_renderers d3d11 ps4 metal  // TEMP: until we go further in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -36,6 +36,8 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             float4x4 _InvViewProjMatrix;
 
             float _DisableSkyOcclusionTest;
+
+            float _FlipY;
 
             #define IS_RENDERING_SKY
             #include "AtmosphericScattering.hlsl"
@@ -72,7 +74,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 sincos(phi, sinPhi, cosPhi);
                 float3 rotDirX = float3(cosPhi, 0, -sinPhi);
                 float3 rotDirY = float3(sinPhi, 0, cosPhi);
-                dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
+                float3 rotatedDir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
 
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
@@ -97,7 +99,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 }
 
                 // Since we only need the world space position, so we don't pass the view-projection matrix.
-                UpdatePositionInput(depthRaw, _InvViewProjMatrix, k_identity4x4, posInput);
+                UpdatePositionInput(depthRaw, _InvViewProjMatrix, k_identity4x4, posInput, _FlipY != 0);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(posInput.positionWS, c1, c2, c3);
@@ -131,7 +133,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
                 if (skyTexWeight == 1.0)
                 {
-                    skyColor  = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+                    skyColor  = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, rotatedDir, 0).rgb;
                     skyColor *= exp2(_SkyParam.x) * _SkyParam.y;
                     opacity   = 1.0; // Fully overwrite unoccluded scene regions.
                 }

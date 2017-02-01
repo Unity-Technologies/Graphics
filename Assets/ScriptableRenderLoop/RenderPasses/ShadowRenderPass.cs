@@ -1,12 +1,11 @@
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using System.Collections.Generic;
 using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [System.Serializable]
+    [Serializable]
     public class ShadowSettings
     {
         public bool     enabled;
@@ -428,7 +427,7 @@ namespace UnityEngine.Experimental.Rendering
             commandBuffer.Dispose();
 
             // Render
-            loop.DrawShadows(ref settings);
+            loop.DrawShadows(settings);
         }
     }
 }
