@@ -18,7 +18,7 @@ uint ReverseBits32(uint bits)
 
 float VanDerCorputBase2(uint i)
 {
-    return float(ReverseBits32(i + 1)) * 2.3283064365386963e-10; // 0x100000000
+    return ReverseBits32(i) * rcp(4294967296.0); // 0x100000000
 }
 
 float2 Hammersley2dSeq(uint i, uint sequenceLength)
