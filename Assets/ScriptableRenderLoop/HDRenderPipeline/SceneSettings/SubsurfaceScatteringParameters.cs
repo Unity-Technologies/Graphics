@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class SubsurfaceScatteringProfile
     {
-        public const int numSamples = 7;
+        public const int numSamples = 7; // Must be an odd number
 
         Color     m_StdDev1;
         Color     m_StdDev2;
@@ -95,19 +95,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return Mathf.Lerp(NormalCdfInverse(p, stdDev1), NormalCdfInverse(p, stdDev2), lerpWeight);
         }
 
-        // Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
-        static float VanDerCorputBase2(uint i)
-        {
-            i = i + 1;
-            i = (i << 16) | (i >> 16);
-            i = ((i & 0x00ff00ff) << 8) | ((i & 0xff00ff00) >> 8);
-            i = ((i & 0x0f0f0f0f) << 4) | ((i & 0xf0f0f0f0) >> 4);
-            i = ((i & 0x33333333) << 2) | ((i & 0xcccccccc) >> 2);
-            i = ((i & 0x55555555) << 1) | ((i & 0xaaaaaaaa) >> 1);
-
-            return i * (1.0f / 4294967296);
-        }
-
         void ComputeKernel()
         {
             if (m_FilterKernel == null)
@@ -136,7 +123,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Importance sample the linear combination of two Gaussians.
             for (uint i = 0; i < numSamples; i++)
             {
-                float u   = VanDerCorputBase2(i);
+                float u   = (i + 0.5f) / numSamples;
                 float pos = GaussianCombinationCdfInverse(u, maxStdDev1, maxStdDev2, m_LerpWeight);
                 float pdf = GaussianCombination(pos, maxStdDev1, maxStdDev2, m_LerpWeight);
 
