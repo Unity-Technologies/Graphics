@@ -70,7 +70,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-
         [SerializeField]
         private SkyParameters m_SkyParameters;
 
@@ -90,7 +89,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_SkyParameters;
             }
         }
+        
+        [SerializeField]
+        SubsurfaceScatteringParameters m_SssParameters;
 
+        public SubsurfaceScatteringParameters sssParameters
+        {
+            set { m_SssParameters = value; }
+            get { return m_SssParameters; } 
+        }
+
+        public SubsurfaceScatteringParameters sssParametersToUse
+        {
+            get
+            {
+                if (SubsurfaceScatteringSettings.overrideSettings != null)
+                {
+                    return SubsurfaceScatteringSettings.overrideSettings;
+                }
+                else if (m_SssParameters != null)
+                {
+                    return m_SssParameters;
+                }
+                else
+                {
+                    m_SssParameters = new SubsurfaceScatteringParameters();
+                    return m_SssParameters;
+                }
+            }
+        }
 
         [SerializeField]
         private LightLoopProducer m_LightLoopProducer;
@@ -121,14 +148,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        SubsurfaceScatteringParameters m_SssParameters = SubsurfaceScatteringParameters.Default;
-
-        public SubsurfaceScatteringParameters sssParameters
-        {
-            get { return m_SssParameters; } 
-        }
-
-        [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
         public TextureSettings textureSettings
@@ -144,15 +163,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowSettings.directionalLightCascadeCount = commonSettings.shadowCascadeCount;
             m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
             m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
-
-            // TODO: how can we avoid dynamic memory allocation each frame?
-            m_SssParameters.profiles    = new SubsurfaceScatteringProfile[SubsurfaceScatteringParameters.numProfiles];
-            m_SssParameters.profiles[0] = new SubsurfaceScatteringProfile();
-
-            m_SssParameters.profiles[0].stdDev1    = commonSettings.sssProfileStdDev1;
-            m_SssParameters.profiles[0].stdDev2    = commonSettings.sssProfileStdDev2;
-            m_SssParameters.profiles[0].lerpWeight = commonSettings.sssProfileLerpWeight;
-            m_SssParameters.bilateralScale         = commonSettings.sssBilateralScale;	
         }
     }
 
@@ -525,7 +535,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
             // Currently, there is no efficient way to switch between SRT and MRT for the forward pass;
             // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
-            CombineSubsurfaceScattering(hdCamera, renderContext, m_Owner.sssParameters);
+            CombineSubsurfaceScattering(hdCamera, renderContext, m_Owner.sssParametersToUse);
 
             // For opaque forward we have split rendering in two categories
             // Material that are always forward and material that can be deferred or forward depends on render pipeline options (like switch to rendering forward only mode)

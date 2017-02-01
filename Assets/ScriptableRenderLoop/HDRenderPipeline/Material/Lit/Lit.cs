@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // SSS
             public float subsurfaceRadius;
             public float thickness;
-            public int subsurfaceProfile;
+            public int   subsurfaceProfile;
 
             // Clearcoat
             public Vector3 coatNormalWS;
