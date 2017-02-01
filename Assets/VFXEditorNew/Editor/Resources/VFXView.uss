@@ -19,11 +19,11 @@
 }
 
 VFXFlowAnchor.InputEdgeConnector {
-	background-image:path("Assets/Editor Default Resources/LayoutFlow_In.psd");
+	background-image:resource("VFX/LayoutFlow_In");
 }
 
 VFXFlowAnchor.OutputEdgeConnector {
-	background-image:path("Assets/Editor Default Resources/LayoutFlow_Out.psd");
+	background-image:resource("VFX/LayoutFlow_Out");
 }
 
 VFXFlowAnchor #type{
@@ -40,7 +40,7 @@ VFXFlowAnchor #connector.anchorHighlight{
 }
 
 VFXContextUI {
-	font:path("Assets/GraphView/Resources/Roboto/Roboto-Regular.ttf");
+	font:resource("Roboto/Roboto-Regular");
 	font-size:12;
 	flex: 1;
 	flex-direction: column;
@@ -72,7 +72,7 @@ VFXContextUI #NodeContents {
 
 	text-color:#8FC1DF;
 
-	font:path("Assets/GraphView/Resources/Roboto/Roboto-Medium.ttf");
+	font:resource("Roboto/Roboto-Medium");
 	font-size:12;
 
 	/* currently border-XXX is only used for layout
@@ -89,7 +89,7 @@ VFXContextUI #NodeContents > Label{
 
 	text-color:#8FC1DF;
 
-	font:path("Assets/GraphView/Resources/Roboto/Roboto-Medium.ttf");
+	font:resource("Roboto/Roboto-Medium");
 	font-size:12;
 }
 

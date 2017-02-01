@@ -5,11 +5,11 @@ using UnityEngine.RMGUI;
 
 namespace UnityEditor.VFX.UI
 {
-    [StyleSheet("Assets/VFXEditorNew/Editor/GraphView/Views/VFXView.uss")]
+    //[StyleSheet("Assets/VFXEditorNew/Editor/GraphView/Views/")]
     class VFXView : GraphView
     {
 		public VFXView()
-		{
+        {
             forceNotififcationOnAdd = true;
             AddManipulator(new ContentZoomer());
 			AddManipulator(new ContentDragger());
@@ -48,6 +48,8 @@ namespace UnityEditor.VFX.UI
 			typeFactory[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
 			typeFactory[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
 			typeFactory[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
+
+            AddStyleSheetPath("VFXView");
         }
 
         void AddVFXContext(Vector2 pos,VFXContextDesc desc)
