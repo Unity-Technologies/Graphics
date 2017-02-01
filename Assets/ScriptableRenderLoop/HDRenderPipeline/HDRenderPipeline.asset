@@ -24,6 +24,14 @@ MonoBehaviour:
   m_SkyParameters: {fileID: 0}
   m_LightLoopProducer: {fileID: 11400000, guid: bf8cd9ae03ff7d54c89603e67be0bfc5,
     type: 2}
+  globalDebugParameters:
+    debugOverlayRatio: 0.33
+    displayDebug: 1
+    displayShadowDebug: 1
+    shadowDebugParameters:
+      enableShadows: 1
+      visualizationMode: 0
+      visualizeShadowMapIndex: 0
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096

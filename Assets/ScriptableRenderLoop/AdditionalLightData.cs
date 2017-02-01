@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         [Range(0.0F, 100.0F)]
-        private float m_innerSpotPercent = 0.0F;
+        public float m_innerSpotPercent = 0.0f; // To display this field in the UI this need to be public
 
         public float GetInnerSpotPercent01()
         {
