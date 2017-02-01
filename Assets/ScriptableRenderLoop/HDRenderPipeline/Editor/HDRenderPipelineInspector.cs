@@ -169,11 +169,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Global debug parameters
             EditorGUI.indentLevel++;
             m_DebugOverlayRatio.floatValue = EditorGUILayout.Slider(styles.debugOverlayRatio, m_DebugOverlayRatio.floatValue, 0.1f, 1.0f);
-            EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
             DebugParametersUI(renderContext);
+            EditorGUILayout.Space();
             ShadowDebugParametersUI(renderContext);
+
+            EditorGUI.indentLevel--;
         }
 
 
@@ -371,8 +373,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             serializedObject.Update();
 
-            SkySettingsUI(renderContext);
             DebuggingUI(renderContext);
+            SkySettingsUI(renderContext);
             ShadowParametersUI(renderContext);
             TextureParametersUI(renderContext);
             //TilePassUI(renderContext);
