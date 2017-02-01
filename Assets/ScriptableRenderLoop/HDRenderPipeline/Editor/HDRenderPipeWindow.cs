@@ -15,6 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             CommonSettingsSingleton.overrideSettings = (CommonSettings)EditorGUILayout.ObjectField(new GUIContent("Common Settings"), CommonSettingsSingleton.overrideSettings, typeof(CommonSettings), false);
             SkyParametersSingleton.overrideSettings = (SkyParameters)EditorGUILayout.ObjectField(new GUIContent("Sky Settings"), SkyParametersSingleton.overrideSettings, typeof(SkyParameters), false);
+            SubsurfaceScatteringSettings.overrideSettings = (SubsurfaceScatteringParameters)EditorGUILayout.ObjectField(new GUIContent("Subsurface Scattering Settings"), SubsurfaceScatteringSettings.overrideSettings, typeof(SubsurfaceScatteringParameters), false);
 
             if (GUILayout.Button("Create new common settings"))
             {
@@ -32,6 +33,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 var instance = CreateInstance<ProceduralSkyParameters>();
                 AssetDatabase.CreateAsset(instance, "Assets/NewProceduralSkyParameters.asset");
+            }
+
+            if (GUILayout.Button("Create new SSS params"))
+            {
+                var instance = CreateInstance<SubsurfaceScatteringParameters>();
+                AssetDatabase.CreateAsset(instance, "Assets/NewSssParameters.asset");
             }
         }
     }
