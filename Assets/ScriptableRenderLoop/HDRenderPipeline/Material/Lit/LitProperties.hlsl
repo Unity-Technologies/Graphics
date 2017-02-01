@@ -42,15 +42,14 @@ float _Anisotropy;
 TEXTURE2D(_AnisotropyMap);
 SAMPLER2D(sampler_AnisotropyMap);
 
-float _MaterialID;
-
-//float _SubSurfaceRadius;
-//TEXTURE2D(_SubSurfaceRadiusMap);
-//SAMPLER2D(sampler_SubSurfaceRadiusMap);
-
-// float _Thickness;
-//TEXTURE2D(_ThicknessMap);
-//SAMPLER2D(sampler_ThicknessMap);
+int   _MaterialID;
+int   _SubsurfaceProfile;
+float _SubsurfaceRadius;
+float _Thickness;
+TEXTURE2D(_SubsurfaceRadiusMap);
+SAMPLER2D(sampler_SubsurfaceRadiusMap);
+TEXTURE2D(_ThicknessMap);
+SAMPLER2D(sampler_ThicknessMap);
 
 // float _CoatCoverage;
 //TEXTURE2D(_CoatCoverageMap);

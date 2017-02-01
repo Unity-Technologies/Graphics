@@ -73,9 +73,9 @@ struct SurfaceData
 	float anisotropy;
 	float metallic;
 	float specular;
-	float subSurfaceRadius;
+	float subsurfaceRadius;
 	float thickness;
-	int subSurfaceProfile;
+	int subsurfaceProfile;
 	float3 coatNormalWS;
 	float coatPerceptualSmoothness;
 	float3 specularColor;
@@ -97,9 +97,9 @@ struct BSDFData
 	float roughnessT;
 	float roughnessB;
 	float anisotropy;
-	float subSurfaceRadius;
+	float subsurfaceRadius;
 	float thickness;
-	int subSurfaceProfile;
+	int subsurfaceProfile;
 	float3 coatNormalWS;
 	float coatRoughness;
 };
