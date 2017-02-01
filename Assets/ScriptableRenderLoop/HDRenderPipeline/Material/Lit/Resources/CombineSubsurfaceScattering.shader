@@ -46,9 +46,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             float  _DistToProjWindow; // The height of the projection window is 2 meters
             float  _FilterHorizontal; // Vertical = 0, horizontal = 1
             float4 _FilterKernel[7];  // RGB = weights, A = radial distance
-            float  _FilterRadius;     // Uses world-space units
 
             TEXTURE2D(_CameraDepthTexture);
+            TEXTURE2D(_GBufferTexture2);
             TEXTURE2D(_IrradianceSource);
             SAMPLER2D(sampler_IrradianceSource);
 
@@ -79,13 +79,16 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             {
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
-                float rawDepth    = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
-                float centerDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
-                float radiusScale = _FilterRadius * _DistToProjWindow / centerDepth;
+                float rawDepth     = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
+                float centerDepth  = LinearEyeDepth(rawDepth, _ZBufferParams);
+                float radiusScale  = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).r;
+                float filterRadius = radiusScale * _DistToProjWindow / centerDepth;
 
                 // Compute the filtering direction.
-                float2 unitDirection   = _FilterHorizontal ? float2(1, 0) : float2(0, 1);
-                float2 scaledDirection = radiusScale * unitDirection;
+                float x, y;
+                sincos(PI / 3, y, x);
+                float2 unitDirection   = _FilterHorizontal ? float2(x, y) : float2(-y, x);
+                float2 scaledDirection = filterRadius * unitDirection;
 
                 // Premultiply with the inverse of the screen size.
                 scaledDirection *= _ScreenSize.zw;
@@ -112,7 +115,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     // Apply bilateral filtering.
                     float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                     float depthDiff   = abs(sampleDepth - centerDepth);
-                    float scaleDiff   = _BilateralScale * _FilterRadius * _DistToProjWindow;
+                    float scaleDiff   = radiusScale * _DistToProjWindow * _BilateralScale;
                     float t           = saturate(depthDiff / scaleDiff);
 
                     // TODO: use real-world distances for weighting.
