@@ -116,7 +116,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 // Calculate displacement for per vertex displacement mapping
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
-    return SampleHeightmapLod(layerTexCoord, lod);
+    return SampleHeightmapLod(layerTexCoord, lod, _HeightCenter, _HeightAmplitude);
 }
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -279,10 +279,11 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
     float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
     int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
 
+    // To be correct, we need to perform PPP on each unique UVSet
+    // And if we are triplanar we are suppose to do it 3 time (one for each direction)
+    // It is catastrophic for performance so PPP is only allowed on the UVSet use for the Main layer.
+    // However it still take into account all heightmap to produce the height use for the displacement
     ParallaxOcclusionMappingLayer0(layerTexCoord, numSteps, viewDirTS);
-    ParallaxOcclusionMappingLayer1(layerTexCoord, numSteps, viewDirTS);
-    ParallaxOcclusionMappingLayer2(layerTexCoord, numSteps, viewDirTS);
-    ParallaxOcclusionMappingLayer3(layerTexCoord, numSteps, viewDirTS);
 #endif
 }
 
@@ -344,6 +345,24 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     return blendMasks;
 }
 
+/*
+// Calculate displacement for per vertex displacement mapping
+float ComputePerPixelHeightDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod, float4 weights)
+{
+    float height0 = SampleHeightmapLodOffset0(layerTexCoord, lod, _HeightCenter0, _HeightAmplitude0, _HeightCenterOffset0, _HeightFactor0);
+    float height1 = SampleHeightmapLodOffset1(layerTexCoord, lod, _HeightCenter1, _HeightAmplitude1, _HeightCenterOffset1, _HeightFactor1);
+    float height2 = SampleHeightmapLodOffset2(layerTexCoord, lod, _HeightCenter2, _HeightAmplitude2, _HeightCenterOffset2, _HeightFactor2);
+    float height3 = SampleHeightmapLodOffset3(layerTexCoord, lod, _HeightCenter3, _HeightAmplitude3, _HeightCenterOffset3, _HeightFactor3);
+    float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
+
+#if defined(_MAIN_LAYER_INFLUENCE_MODE)
+    // Think that inheritbasedheight will be 0 if height0 is fully visible in weights. So there is no double contribution of height0
+    float inheritBaseHeight = BlendLayeredScalar(0.0, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights);
+    return heightResult + height0 * inheritBaseHeight;
+#endif
+}
+*/
+
 // Calculate displacement for per vertex displacement mapping
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
@@ -352,10 +371,10 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     float weights[_MAX_LAYER];
     ComputeMaskWeights(blendMasks, weights);
 
-    float height0 = SampleHeightmapLod0(layerTexCoord, lod, _HeightCenterOffset0, _HeightFactor0);
-    float height1 = SampleHeightmapLod1(layerTexCoord, lod, _HeightCenterOffset1, _HeightFactor1);
-    float height2 = SampleHeightmapLod2(layerTexCoord, lod, _HeightCenterOffset2, _HeightFactor2);
-    float height3 = SampleHeightmapLod3(layerTexCoord, lod, _HeightCenterOffset3, _HeightFactor3);
+    float height0 = SampleHeightmapLod0(layerTexCoord, lod, _HeightCenter0, _HeightAmplitude0, _HeightCenterOffset0, _HeightFactor0);
+    float height1 = SampleHeightmapLod1(layerTexCoord, lod, _HeightCenter1, _HeightAmplitude1, _HeightCenterOffset1, _HeightFactor1);
+    float height2 = SampleHeightmapLod2(layerTexCoord, lod, _HeightCenter2, _HeightAmplitude2, _HeightCenterOffset2, _HeightFactor2);
+    float height3 = SampleHeightmapLod3(layerTexCoord, lod, _HeightCenter3, _HeightAmplitude3, _HeightCenterOffset3, _HeightFactor3);
     float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
 
 #if defined(_MAIN_LAYER_INFLUENCE_MODE)

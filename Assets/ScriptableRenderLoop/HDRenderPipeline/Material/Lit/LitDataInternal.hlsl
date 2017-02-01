@@ -55,19 +55,30 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_DetailMap));
 }
 
-float ADD_IDX(SampleHeightmap)(LayerTexCoord layerTexCoord, float centerOffset = 0.0, float multiplier = 1.0)
+// TODO: Ideally we should concat these value in the inspector - But still in development and use change frequently
+float ADD_IDX(SampleHeightmap)(LayerTexCoord layerTexCoord, float centerOffset, float heightMultiplier, float layerCenterOffset = 0.0, float layerHeightMultiplier = 1.0)
 {
 #ifdef _HEIGHTMAP
-    return (SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r - ADD_IDX(_HeightCenter) - centerOffset) * ADD_IDX(_HeightAmplitude) * multiplier;
+    return (SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r - centerOffset - layerCenterOffset) * heightMultiplier * layerHeightMultiplier;
 #else
     return 0.0;
 #endif
 }
 
-float ADD_IDX(SampleHeightmapLod)(LayerTexCoord layerTexCoord, float lod, float centerOffset = 0.0, float multiplier = 1.0)
+float ADD_IDX(SampleHeightmapLod)(LayerTexCoord layerTexCoord, float lod, float centerOffset, float heightMultiplier, float layerCenterOffset = 0.0, float layerHeightMultiplier = 1.0)
 {
 #ifdef _HEIGHTMAP
-    return (SAMPLE_LAYER_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base), lod).r - ADD_IDX(_HeightCenter) - centerOffset) * ADD_IDX(_HeightAmplitude) * multiplier;
+    return (SAMPLE_LAYER_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base), lod).r - centerOffset - layerCenterOffset) * heightMultiplier * layerHeightMultiplier;
+#else
+    return 0.0;
+#endif
+}
+
+// Use with Per pixel Displacement - No triplanar allowed here as this should be perform 3 times for each UVSet
+float ADD_IDX(SampleHeightmapLodOffset)(LayerTexCoord layerTexCoord, float lod, float2 texOffset, float centerOffset, float heightMultiplier, float layerCenterOffset = 0.0, float layerHeightMultiplier = 1.0)
+{
+#ifdef _HEIGHTMAP
+    return (SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base).uv + texOffset, lod).r - centerOffset - layerCenterOffset) * heightMultiplier * layerHeightMultiplier;
 #else
     return 0.0;
 #endif
