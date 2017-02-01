@@ -196,6 +196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         s_DefaultAdditionalLightDataGameObject = new GameObject("Default Light Data");
                         s_DefaultAdditionalLightDataGameObject.hideFlags = HideFlags.HideAndDontSave;
                         s_DefaultAdditionalLightData = s_DefaultAdditionalLightDataGameObject.AddComponent<AdditionalLightData>();
+                        s_DefaultAdditionalLightDataGameObject.SetActive(false);
                     }
                     return s_DefaultAdditionalLightData;
                 }

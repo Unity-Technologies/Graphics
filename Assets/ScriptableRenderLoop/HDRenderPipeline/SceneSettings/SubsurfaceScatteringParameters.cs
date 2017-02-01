@@ -179,6 +179,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_NumProfiles    = 1;
             m_Profiles       = new SubsurfaceScatteringProfile[m_NumProfiles];
             m_BilateralScale = 0.1f;
+
+            for (int i = 0; i < m_NumProfiles; i++)
+            {
+                m_Profiles[i] = new SubsurfaceScatteringProfile();
+            }
         }
 
         public SubsurfaceScatteringProfile[] profiles       { set { m_Profiles       = value; OnValidate(); } get { return m_Profiles; } }
