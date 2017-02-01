@@ -91,15 +91,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         
         [SerializeField]
-        SubsurfaceScatteringParameters m_SssParameters;
+        public SubsurfaceScatteringParameters localSssParameters;
 
         public SubsurfaceScatteringParameters sssParameters
-        {
-            set { m_SssParameters = value; }
-            get { return m_SssParameters; } 
-        }
-
-        public SubsurfaceScatteringParameters sssParametersToUse
         {
             get
             {
@@ -107,15 +101,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     return SubsurfaceScatteringSettings.overrideSettings;
                 }
-                else if (m_SssParameters != null)
+
+                if (localSssParameters == null)
                 {
-                    return m_SssParameters;
+                    localSssParameters = new SubsurfaceScatteringParameters();
                 }
-                else
-                {
-                    m_SssParameters = new SubsurfaceScatteringParameters();
-                    return m_SssParameters;
-                }
+
+                return localSssParameters;
             }
         }
 
@@ -532,7 +524,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
             // Currently, there is no efficient way to switch between SRT and MRT for the forward pass;
             // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
-            CombineSubsurfaceScattering(hdCamera, renderContext, m_Owner.sssParametersToUse);
+            CombineSubsurfaceScattering(hdCamera, renderContext, m_Owner.sssParameters);
 
             // For opaque forward we have split rendering in two categories
             // Material that are always forward and material that can be deferred or forward depends on render pipeline options (like switch to rendering forward only mode)

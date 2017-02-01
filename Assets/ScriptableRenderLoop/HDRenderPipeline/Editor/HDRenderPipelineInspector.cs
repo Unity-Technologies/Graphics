@@ -267,7 +267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(styles.sssSettings);
             EditorGUI.BeginChangeCheck();
             EditorGUI.indentLevel++;
-            pipe.sssParameters = (SubsurfaceScatteringParameters) EditorGUILayout.ObjectField(new GUIContent("Subsurface Scattering Parameters"), pipe.sssParameters, typeof(SubsurfaceScatteringParameters), false);
+            pipe.localSssParameters = (SubsurfaceScatteringParameters) EditorGUILayout.ObjectField(new GUIContent("Subsurface Scattering Parameters"), pipe.localSssParameters, typeof(SubsurfaceScatteringParameters), false);
             EditorGUI.indentLevel--;
 
             if (EditorGUI.EndChangeCheck())
