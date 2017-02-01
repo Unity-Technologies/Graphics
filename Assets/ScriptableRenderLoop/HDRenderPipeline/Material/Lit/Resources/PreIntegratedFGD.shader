@@ -8,7 +8,7 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD"
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 metal // TEMP: unitl we go futher in dev
+            #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
 
             #include "Common.hlsl"
             #include "ImageBasedLighting.hlsl"
