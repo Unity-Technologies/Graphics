@@ -30,7 +30,7 @@ MonoBehaviour:
     displayShadowDebug: 1
     shadowDebugParameters:
       enableShadows: 1
-      visualizationMode: 2
+      visualizationMode: 0
       visualizeShadowMapIndex: 0
   m_ShadowSettings:
     enabled: 1

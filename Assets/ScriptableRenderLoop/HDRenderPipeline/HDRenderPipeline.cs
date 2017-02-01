@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public CommonSettings.Settings commonSettingsToUse
         {
             get
-            {
+        {
                 if (CommonSettingsSingleton.overrideSettings)
                     return CommonSettingsSingleton.overrideSettings.settings;
 
@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Debugging
         public GlobalDebugParameters globalDebugParameters = new GlobalDebugParameters();
-        readonly DebugParameters       m_DebugParameters = new DebugParameters();
+        readonly DebugParameters m_DebugParameters = new DebugParameters();
 
         public DebugParameters debugParameters
         {
@@ -161,14 +161,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SssParameters.profiles[0].lerpWeight = commonSettings.sssProfileLerpWeight;
             m_SssParameters.bilateralScale         = commonSettings.sssBilateralScale;	
         }
-        }
+    }
 
-        public struct HDCamera
-        {
-            public Camera camera;
-            public Vector4 screenSize;
-            public Matrix4x4 viewProjectionMatrix;
-            public Matrix4x4 invViewProjectionMatrix;
+    public struct HDCamera
+    {
+        public Camera camera;
+        public Vector4 screenSize;
+        public Matrix4x4 viewProjectionMatrix;
+        public Matrix4x4 invViewProjectionMatrix;
         }
 
         public class GBufferManager
@@ -221,7 +221,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
     public class HDRenderPipelineInstance : RenderPipeline
-    {
+        {
         private readonly HDRenderPipeline m_Owner;
 
         // TODO: Find a way to automatically create/iterate through deferred material
@@ -281,13 +281,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_Owner = owner;
 
-            m_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
+            m_CameraColorBuffer          = Shader.PropertyToID("_CameraColorTexture");
             m_CameraSubsurfaceBuffer     = Shader.PropertyToID("_CameraSubsurfaceTexture");
             m_CameraFilteringBuffer      = Shader.PropertyToID("_CameraFilteringBuffer");
             m_CameraDepthStencilBuffer   = Shader.PropertyToID("_CameraDepthTexture");
             m_CameraStencilBuffer        = Shader.PropertyToID("_CameraStencilTexture");
 
-            m_CameraColorBufferRT = new RenderTargetIdentifier(m_CameraColorBuffer);
+            m_CameraColorBufferRT        = new RenderTargetIdentifier(m_CameraColorBuffer);
             m_CameraSubsurfaceBufferRT   = new RenderTargetIdentifier(m_CameraSubsurfaceBuffer);
             m_CameraFilteringBufferRT    = new RenderTargetIdentifier(m_CameraFilteringBuffer);
             m_CameraDepthStencilBufferRT = new RenderTargetIdentifier(m_CameraDepthStencilBuffer);
@@ -374,7 +374,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
 
             if (camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight || m_LightLoop.NeedResize())
-                {
+            {
                 if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
                 {
                     m_LightLoop.ReleaseResolutionDependentBuffers();
@@ -396,9 +396,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 1);
             }
             else
-            {
+                    {
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
-            }
+                    }
 
             var cmd = new CommandBuffer {name = "Push Global Parameters"};
 
@@ -406,12 +406,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);
             cmd.SetGlobalMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
 
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    cmd.Dispose();
 
             if (m_LightLoop != null)
                 m_LightLoop.PushGlobalParams(hdCamera.camera, renderContext);
-        }
+                }
 
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
@@ -481,19 +481,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // 'm_CameraStencilBufferRT' is a temporary copy of the stencil buffer and should be removed
             // once we are able to read from the depth buffer and perform the stencil test simultaneously.
             using (new Utilities.ProfilingSample("Copy depth-stencil buffer", renderContext))
-                {
+            {
                 var cmd = new CommandBuffer();
                 cmd.CopyTexture(m_CameraDepthStencilBufferRT, m_CameraStencilBufferRT);
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
-                }
+            }
 
             if (debugParameters.debugViewMaterial != 0)
             {
                 RenderDebugViewMaterial(cullResults, hdCamera, renderContext);
-                return;
             }
-
+            else
+            {
             using (new Utilities.ProfilingSample("Shadow Pass", renderContext))
             {
                 m_ShadowPass.Render(renderContext, cullResults, out m_ShadowsResult);
@@ -544,6 +544,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderDistortion(cullResults, camera, renderContext);
 
             FinalPass(camera, renderContext);
+            }
 
             RenderDebugOverlay(camera, renderContext);
 
@@ -735,7 +736,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_SkyManager.RenderSky(hdCamera, m_LightLoop == null ? null : m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, renderContext);
         }
-        
+
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
         {
             // TODO: Currently we can't render opaque object forward when deferred is enabled
