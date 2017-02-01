@@ -139,6 +139,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_TextureSettings = value; }
         }
 
+        public void ApplyDebugParameters()
+        {
+            m_ShadowSettings.enabled = globalDebugParameters.shadowDebugParameters.enableShadows;
+        }
+
         public void UpdateCommonSettings()
         {
             var commonSettings = commonSettingsToUse;
@@ -429,6 +434,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_LightLoop != null)
                 m_LightLoop.NewFrame();
 
+            m_Owner. ApplyDebugParameters();
             m_Owner.UpdateCommonSettings();
 
             // Set Frame constant buffer
