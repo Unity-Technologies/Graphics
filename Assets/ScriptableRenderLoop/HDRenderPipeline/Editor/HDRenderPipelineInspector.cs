@@ -162,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 method.Invoke(asset, new object[0]);
         }
 
-        private void DebuggingUI(HDRenderPipeline renderContext)
+        private void DebuggingUI(HDRenderPipeline renderContext, HDRenderPipelineInstance renderpipelineInstance)
         {
             EditorGUILayout.LabelField(styles.debugging);
 
@@ -173,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebugParametersUI(renderContext);
             EditorGUILayout.Space();
-            ShadowDebugParametersUI(renderContext);
+            ShadowDebugParametersUI(renderContext, renderpipelineInstance);
 
             EditorGUI.indentLevel--;
         }
@@ -261,7 +261,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        private void ShadowDebugParametersUI(HDRenderPipeline renderContext)
+        private void ShadowDebugParametersUI(HDRenderPipeline renderContext, HDRenderPipelineInstance renderpipelineInstance)
         {
             m_ShowDebugShadow.boolValue = EditorGUILayout.Foldout(m_ShowDebugShadow.boolValue, styles.shadowDebugParameters);
             if (!m_ShowDebugShadow.boolValue)
@@ -274,7 +274,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if ((ShadowDebugMode)m_DebugShadowVisualizationMode.intValue == ShadowDebugMode.VisualizeShadowMap)
                 {
-                    EditorGUILayout.IntSlider(m_DebugShadowVisualizeShadowIndex, 0, 5/*renderContext.GetCurrentShadowCount() - 1*/, styles.shadowDebugVisualizeShadowIndex);
+                    EditorGUILayout.IntSlider(m_DebugShadowVisualizeShadowIndex, 0, renderpipelineInstance.GetCurrentShadowCount() - 1, styles.shadowDebugVisualizeShadowIndex);
                 }
             }
             EditorGUI.indentLevel--;
@@ -367,13 +367,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void OnInspectorGUI()
         {
             var renderContext = target as HDRenderPipeline;
+            HDRenderPipelineInstance renderpipelineInstance = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
 
-            if (!renderContext)
+            if (!renderContext || renderpipelineInstance == null)
                 return;
 
             serializedObject.Update();
 
-            DebuggingUI(renderContext);
+            DebuggingUI(renderContext, renderpipelineInstance);
             SkySettingsUI(renderContext);
             ShadowParametersUI(renderContext);
             TextureParametersUI(renderContext);
