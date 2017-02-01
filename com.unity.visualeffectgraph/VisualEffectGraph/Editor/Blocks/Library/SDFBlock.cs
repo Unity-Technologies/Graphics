@@ -98,6 +98,8 @@ else
     dir.y = SampleTexture(DistanceField, coord + float3(0,0.01,0)).x;
     dir.z = SampleTexture(DistanceField, coord + float3(0,0,0.01)).x;
     dir = normalize((float3)dist - dir);
+    if (dist < 0)
+        dir = -dir;
     dir = normalize(mul(Box,float4(dir,0)));
 }
   

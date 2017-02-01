@@ -7,7 +7,7 @@ VFXAsset:
   m_PrefabInternal: {fileID: 0}
   m_Name: SDFTest2
   m_XmlGraph: "<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<Graph Version=\"10\">\r\n
-    \   <System ModelId=\"0\" WorldSpace=\"True\" MaxNb=\"45000\" SpawnRate=\"10\"
+    \   <System ModelId=\"0\" WorldSpace=\"True\" MaxNb=\"50000\" SpawnRate=\"10\"
     BlendingMode=\"kMasked\" SoftParticlesFadeDistance=\"0.1\" OrderPriority=\"0\"
     RenderQueueDelta=\"0\">\r\n        <Context DescId=\"Initialize\" Position=\"-740,-310\"
     Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetPositionSphereSurface\"
@@ -31,7 +31,7 @@ VFXAsset:
     \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
     \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
     \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Particle
-    Update\" Position=\"-740,72\" Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSizeOverLifeCurve\"
+    Update\" Position=\"-740,70\" Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSizeOverLifeCurve\"
     Hash=\"-2014196462\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
     SlotId=\"9\">\r\n                    <Values>\r\n                        <kCurve
     PreWrapMode=\"ClampForever\" PostWrapMode=\"ClampForever\">\r\n                            <KeyFrame
@@ -79,7 +79,7 @@ VFXAsset:
     \                       <kFloat>5</kFloat>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
     \               </Slot>\r\n                <Slot SlotId=\"42\">\r\n                    <Values>\r\n
-    \                       <kFloat>1000</kFloat>\r\n                    </Values>\r\n
+    \                       <kFloat>100</kFloat>\r\n                    </Values>\r\n
     \                   <Collapsed>true</Collapsed>\r\n                    <WorldSpace>false</WorldSpace>\r\n
     \               </Slot>\r\n                <Slot SlotId=\"43\">\r\n                    <Values>\r\n
     \                       <kFloat>0.01</kFloat>\r\n                    </Values>\r\n
@@ -111,14 +111,14 @@ VFXAsset:
     \               <WorldSpace>false</WorldSpace>\r\n            </Slot>\r\n        </DataBlock>\r\n
     \   </DataNode>\r\n    <SpawnerNode ModelId=\"2\" Position=\"-1030,-530\">\r\n
     \       <SpawnerBlock Type=\"kConstantRate\" Collapsed=\"False\">\r\n            <Slot
-    SlotId=\"55\">\r\n                <Values>\r\n                    <kFloat>10000</kFloat>\r\n
+    SlotId=\"55\">\r\n                <Values>\r\n                    <kFloat>12000</kFloat>\r\n
     \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
     \           </Slot>\r\n        </SpawnerBlock>\r\n    </SpawnerNode>\r\n    <Connections>\r\n
     \       <Connection Id=\"50\">1</Connection>\r\n        <Connection Id=\"54\">18</Connection>\r\n
     \   </Connections>\r\n    <SpawnerConnections Id=\"2\">0</SpawnerConnections>\r\n</Graph>"
   m_Systems:
   - m_Id: 0
-    m_Capacity: 45000
+    m_Capacity: 50000
     m_SimulationShader: {fileID: 7200000, guid: 0dde5c1b7dc2810498fdc6f5e6d92359,
       type: 3}
     m_OutputShader: {fileID: 4800000, guid: 51480672d711f5c4393e0a969b01fff3, type: 3}
@@ -237,7 +237,7 @@ VFXAsset:
         index: 37
     m_SpawnerIndices: 00000000
   m_Values:
-    m_Values: ffdfb5b933c5fc3d00000000000080bf00000000000000000000000000000000000000000000803f0000803f000000000000803f00000000ffffffffffffffffffffffffcdcc4c3ecdcc4c3ecdcc4c3e00000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a28d93effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a28d93e9a28d93effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0ad7233ccdcc4c3fcdcccc3e00401c46ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00007a440000803f000000800000003f0c0000000000a0400000004000002041ffffffffffffffffffffffff0000803f0000a04000008040cdcc4c3dcdcc4c3d
+    m_Values: ffdfb5b933c5fc3d00000000000080bf00000000000000000000000000000000000000000000803f0000803f000000000000803f00000000ffffffffffffffffffffffffcdcc4c3ecdcc4c3ecdcc4c3e00000000ffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a28d93effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff9a28d93e9a28d93effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0ad7233ccdcc4c3fcdcccc3e00803b46ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000c8420000803f000000800000003f0c0000000000a0400000004000002041ffffffffffffffffffffffff0000803f0000a04000008040cdcc4c3dcdcc4c3d
     m_Textures:
     - {fileID: 11700000, guid: 5796183d03aa8e147bec84edfb7cd610, type: 2}
     - {fileID: 11700000, guid: d756511c3111d1142a85b90df97f2679, type: 2}
