@@ -84,75 +84,9 @@ float AnisotropicStrechAtGrazingAngle(float roughness, float perceptualRoughness
     return roughness * lerp(saturate(NdotV * 2.0), 1.0, perceptualRoughness);
 }
 
-//-----------------------------------------------------------------------------
-// Coordinate system conversion
-//-----------------------------------------------------------------------------
-
-// Transforms the unit vector from the spherical to the Cartesian (right-handed, Z up) coordinate.
-float3 SphericalToCartesian(float phi, float cosTheta)
-{
-    float sinPhi, cosPhi;
-    sincos(phi, sinPhi, cosPhi);
-
-    float sinTheta = sqrt(saturate(1.0 - cosTheta * cosTheta));
-
-    return float3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
-}
-
-// Converts Cartesian coordinates given in the right-handed coordinate system
-// with Z pointing upwards (OpenGL style) to the coordinates in the left-handed
-// coordinate system with Y pointing up and Z facing forward (DirectX style).
-float3 TransformGLtoDX(float3 v)
-{
-    return v.xzy;
-}
-
-// Performs conversion from equiareal map coordinates to Cartesian (DirectX cubemap) ones.
-float3 ConvertEquiarealToCubemap(float u, float v)
-{
-    float phi      = TWO_PI - TWO_PI * u;
-    float cosTheta = 1.0 - 2.0 * v;
-
-    return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
-}
-
 // ----------------------------------------------------------------------------
 // Importance sampling BSDF functions
 // ----------------------------------------------------------------------------
-
-// Performs uniform sampling of the unit disk.
-// Ref: PBRT v3, p. 777.
-float2 SampleDiskUniform(float2 u)
-{
-    float r   = sqrt(u.x);
-    float phi = TWO_PI * u.y;
-
-    float sinPhi, cosPhi;
-    sincos(phi, sinPhi, cosPhi);
-
-    return r * float2(cosPhi, sinPhi);
-}
-
-// Performs cosine-weighted sampling of the hemisphere.
-// Ref: PBRT v3, p. 780.
-void SampleHemisphereCosine(float2   u,
-                            float3x3 localToWorld,
-                        out float3   L,
-                        out float    NdotL)
-{
-    float3 localL;
-
-    // Since we don't really care about the area distortion,
-    // we substitute uniform disk sampling for the concentric one.
-    localL.xy = SampleDiskUniform(u);
-
-    // Project the point from the disk onto the hemisphere.
-    localL.z = sqrt(1.0 - u.x);
-
-    NdotL = localL.z;
-
-    L = mul(localL, localToWorld);
-}
 
 void SampleGGXDir(float2   u,
                   float3   V,
@@ -220,7 +154,11 @@ void ImportanceSampleLambert(float2   u,
                          out float    NdotL,
                          out float    weightOverPdf)
 {
-    SampleHemisphereCosine(u, localToWorld, L, NdotL);
+    float3 localL = SampleHemisphereCosine(u.x, u.y);
+
+    NdotL = localL.z;
+
+    L = mul(localL, localToWorld);
 
     // Importance sampling weight for each sample
     // pdf = N.L / PI
