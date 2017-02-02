@@ -141,7 +141,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void ApplyDebugParameters()
         {
-            m_ShadowSettings.enabled = globalDebugParameters.shadowDebugParameters.enableShadows;
+            m_ShadowSettings.enabled = globalDebugParameters.lightingDebugParameters.enableShadows;
         }
 
         public void UpdateCommonSettings()
@@ -562,7 +562,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderOpaqueRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, string passName, RendererConfiguration rendererConfiguration = 0)
         {
-            if (!debugParameters.displayOpaqueObjects)
+            if (!globalDebugParameters.renderingDebugParametrs.displayOpaqueObjects)
                 return;
 
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName))
@@ -576,7 +576,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, string passName, RendererConfiguration rendererConfiguration = 0)
         {
-            if (!debugParameters.displayTransparentObjects)
+            if (!globalDebugParameters.renderingDebugParametrs.displayTransparentObjects)
                 return;
 
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName))
@@ -798,7 +798,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext)
         {
-            if (!debugParameters.useDistortion)
+            if (!globalDebugParameters.renderingDebugParametrs.enableDistortion)
                 return ;
 
             using (new Utilities.ProfilingSample("Distortion Pass", renderContext))
@@ -865,7 +865,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
 
-            ShadowDebugParameters shadowDebug = globalDebugParameters.shadowDebugParameters;
+            LightingDebugParameters shadowDebug = globalDebugParameters.lightingDebugParameters;
 
             if (shadowDebug.visualizationMode != ShadowDebugMode.None)
             {
