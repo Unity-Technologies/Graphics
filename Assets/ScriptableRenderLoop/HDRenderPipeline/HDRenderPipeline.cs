@@ -234,7 +234,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Various set of material use in render loop
         readonly Material m_DebugViewMaterialGBuffer;
-        readonly Material m_CombineSubsurfaceScattering;
+        readonly Material m_FilterSubsurfaceScattering;
+        readonly Material m_FilterAndCombineSubsurfaceScattering;
         readonly Material m_DebugDisplayShadowMap;
 
         // Various buffer
@@ -297,7 +298,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
 
-            m_CombineSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
+            m_FilterSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
+            m_FilterSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.Zero);
+            m_FilterSubsurfaceScattering.SetFloat("_FilterHorizontal", 0);
+
+            m_FilterAndCombineSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
+            m_FilterAndCombineSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.One);
+            m_FilterAndCombineSubsurfaceScattering.SetFloat("_FilterHorizontal", 1);
+
             m_DebugDisplayShadowMap = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayShadowMap");
 
             m_ShadowPass = new ShadowRenderPass(owner.shadowSettings);
@@ -701,8 +709,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Assume that the height of the projection window is 2 meters.
             float distanceToProjectionWindow = 1.0f / Mathf.Tan(0.5f * Mathf.Deg2Rad * hdCamera.camera.fieldOfView);
-            m_CombineSubsurfaceScattering.SetFloat("_DistToProjWindow", distanceToProjectionWindow);
-            m_CombineSubsurfaceScattering.SetFloat("_BilateralScale", 0.05f * sssParameters.bilateralScale);
 
             // Upload the kernel data.
             Vector4[] kernelData = new Vector4[SubsurfaceScatteringParameters.maxNumProfiles * SubsurfaceScatteringProfile.numSamples];
@@ -713,24 +719,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     kernelData[n * j + i] = sssParameters.profiles[j].filterKernel[i];
                 }
             }
-            m_CombineSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
 
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
 
             var cmd = new CommandBuffer() { name = "Combine Subsurface Scattering" };
 
             // Perform the vertical SSS filtering pass.
-            properties.SetFloat("_DstBlend", (float)BlendMode.Zero); // TODO: this doesn't work for some reason...
-            properties.SetFloat("_FilterHorizontal", 0);
+            m_FilterSubsurfaceScattering.SetFloat("_DistToProjWindow", distanceToProjectionWindow);
+            m_FilterSubsurfaceScattering.SetFloat("_BilateralScale", 0.05f * sssParameters.bilateralScale);
+            m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
-            Utilities.DrawFullscreen(cmd, m_CombineSubsurfaceScattering, hdCamera,
+            Utilities.DrawFullscreen(cmd, m_FilterSubsurfaceScattering, hdCamera,
                                      m_CameraFilteringBufferRT, m_CameraStencilBufferRT, properties);
 
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
-            properties.SetFloat("_DstBlend", (float)BlendMode.One);  // TODO: this doesn't work for some reason...
-            properties.SetFloat("_FilterHorizontal", 1);
+            m_FilterAndCombineSubsurfaceScattering.SetFloat("_DistToProjWindow", distanceToProjectionWindow);
+            m_FilterAndCombineSubsurfaceScattering.SetFloat("_BilateralScale", 0.05f * sssParameters.bilateralScale);
+            m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
-            Utilities.DrawFullscreen(cmd, m_CombineSubsurfaceScattering, hdCamera,
+            Utilities.DrawFullscreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera,
                                      m_CameraColorBufferRT, m_CameraStencilBufferRT, properties);
 
             context.ExecuteCommandBuffer(cmd);
