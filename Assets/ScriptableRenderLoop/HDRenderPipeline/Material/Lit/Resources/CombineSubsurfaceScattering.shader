@@ -77,7 +77,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 float2 gBufferData  = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
                 int    profileID    = int(gBufferData.y * N_PROFILES);
-                float  distScale    = gBufferData.x * 0.01;
+                float  distScale    = max(0.0001, gBufferData.x * 0.01);
                 float  invDistScale = rcp(distScale);
 
                 // Reconstruct the view-space position.
@@ -109,7 +109,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
 
                 // Accumulate filtered irradiance (already weighted by (albedo / Pi)).
-                float3 filteredIrradiance = sampleIrradiance * sampleWeight;
+                float3 totalIrradiance = sampleIrradiance * sampleWeight;
+
+                // Make sure bilateral filtering does not cause energy loss.
+                // TODO: ask Morten if there is a better way to do this.
+                float3 totalWeight = sampleWeight;
 
                 [unroll]
                 for (int i = 1; i < N_SAMPLES; i++)
@@ -127,10 +131,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     float zDistance   = invDistScale * sampleDepth - (invDistScale * centerPosVS.z);
                     sampleWeight     *= exp(-zDistance * zDistance * halfRcpVariance);
 
-                    filteredIrradiance += sampleIrradiance * sampleWeight;
+                    totalIrradiance += sampleIrradiance * sampleWeight;
+                    totalWeight     += sampleWeight;
                 }
 
-                return filteredIrradiance;
+                return totalIrradiance / totalWeight;
             }
             ENDHLSL
         }
