@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (localSssParameters == null)
                 {
-                    localSssParameters = new SubsurfaceScatteringParameters();
+                    localSssParameters = CreateInstance<SubsurfaceScatteringParameters>();
                 }
 
                 return localSssParameters;
