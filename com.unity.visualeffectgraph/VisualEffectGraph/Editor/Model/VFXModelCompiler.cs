@@ -788,7 +788,7 @@ namespace UnityEditor.Experimental
                         if (arg.m_Value.IsValue() && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
                         {
                             var inverseValue = new VFXExpressionInverseTRS(arg.m_Value);
-                            generated.Add(arg.m_Value,inverseValue);
+                            generated[arg.m_Value] = inverseValue;
                         }
                 }
 

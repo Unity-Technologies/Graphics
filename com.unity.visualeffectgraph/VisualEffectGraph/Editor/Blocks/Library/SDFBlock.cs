@@ -112,4 +112,55 @@ float deltaSpeed = tgtSpeed - spdNormal;
 velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir;";
         }
     }
+
+    class VFXSDFOrientation : VFXBlockType
+    {
+        public VFXSDFOrientation()
+        {
+            Name = "Distance Field Orientation";
+            //Icon = "Force";
+            Category = "Orient";
+            CompatibleContexts = VFXContextDesc.Type.kAll;
+
+            Add(VFXProperty.Create<VFXTexture3DType>("DistanceField"));
+            Add(new VFXProperty(new VFXOrientedBoxType(), "Box"));
+            Add(new VFXProperty(new VFXFloat3Type(new Vector3(0,1,0)), "Up"));
+
+            Add(new VFXAttribute(CommonAttrib.Side, true));
+            Add(new VFXAttribute(CommonAttrib.Up, true));
+            Add(new VFXAttribute(CommonAttrib.Front, true));
+            Add(new VFXAttribute(CommonAttrib.Position, false));
+
+
+            Source = @"
+float3 tPos = mul(INVERSE(Box), float4(position,1.0f)).xyz;
+float3 coord = saturate(tPos + 0.5f);
+float dist = SampleTexture(DistanceField, coord).x;
+
+float3 absPos = abs(tPos);
+float outsideDist = max(absPos.x,max(absPos.y,absPos.z));
+float3 dir;
+if (outsideDist > 0.5f) // Check wether point is outside the box
+{
+    // in that case just move towards center
+    dist += outsideDist - 0.5f;
+    dir = normalize(float3(Box[0][3],Box[1][3],Box[2][3]) - position);
+}
+else
+{
+    // compute normal
+    dir.x = SampleTexture(DistanceField, coord + float3(0.01,0,0)).x;
+    dir.y = SampleTexture(DistanceField, coord + float3(0,0.01,0)).x;
+    dir.z = SampleTexture(DistanceField, coord + float3(0,0,0.01)).x;
+    dir = normalize((float3)dist - dir);
+    dir = normalize(mul(Box,float4(dir,0)));
+}
+  
+front = dir;
+side = normalize(cross(dir,Up));
+up = cross(side,dir);
+
+float distToSurface = abs(dist);";
+        }
+    }
 }
