@@ -61,7 +61,7 @@ uniform float       _MieExtinctionFactor;
 SAMPLER2D(sampler_CameraDepthTexture);
 #define SRL_BilinearSampler sampler_CameraDepthTexture // Used for all textures
 
-TEXTURE2D(_CameraDepthTexture);
+TEXTURE2D_FLOAT(_CameraDepthTexture);
 TEXTURE2D(_OcclusionTexture);
 
 float HenyeyGreensteinPhase(float g, float cosTheta) {

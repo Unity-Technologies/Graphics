@@ -1,19 +1,33 @@
 using System;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
     public class SubsurfaceScatteringProfile
     {
-        public const int numSamples = 7;
+        public const int numSamples = 7; // Must be an odd number
+        
+        [SerializeField, ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
+        Color       m_StdDev1;
+        [SerializeField, ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
+        Color       m_StdDev2;
+        [SerializeField]
+        float       m_LerpWeight;
+        [SerializeField]
+        Vector4[]   m_FilterKernel;
+        [SerializeField]
+        public bool m_KernelNeedsUpdate;
 
-        Color     m_StdDev1;
-        Color     m_StdDev2;
-        float     m_LerpWeight;
-        Vector4[] m_FilterKernel;
-        bool      m_KernelNeedsUpdate;
+        // --- Public Methods ---
 
-        // --- Methods ---
+        public SubsurfaceScatteringProfile()
+        {
+            m_StdDev1    = new Color(0.3f, 0.3f, 0.3f, 0.0f);
+            m_StdDev2    = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+            m_LerpWeight = 0.5f;
+            ComputeKernel();
+        }
 
         public Color stdDev1
         {
@@ -38,18 +52,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { if (m_KernelNeedsUpdate) ComputeKernel(); return m_FilterKernel; }
         }
 
-        public static SubsurfaceScatteringProfile Default
+        public void SetDirtyFlag()
         {
-            get
-            {
-                SubsurfaceScatteringProfile profile = new SubsurfaceScatteringProfile();
-                profile.m_StdDev1    = new Color(0.3f, 0.3f, 0.3f, 0.0f);
-                profile.m_StdDev2    = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-                profile.m_LerpWeight = 0.5f;
-                profile.ComputeKernel();
-                return profile;
-            }
+            m_KernelNeedsUpdate = true;
         }
+
+        // --- Private Methods ---
 
         static float Gaussian(float x, float stdDev)
         {
@@ -95,22 +103,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return Mathf.Lerp(NormalCdfInverse(p, stdDev1), NormalCdfInverse(p, stdDev2), lerpWeight);
         }
 
-        // Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
-        static float VanDerCorputBase2(uint i)
-        {
-            i = i + 1;
-            i = (i << 16) | (i >> 16);
-            i = ((i & 0x00ff00ff) << 8) | ((i & 0xff00ff00) >> 8);
-            i = ((i & 0x0f0f0f0f) << 4) | ((i & 0xf0f0f0f0) >> 4);
-            i = ((i & 0x33333333) << 2) | ((i & 0xcccccccc) >> 2);
-            i = ((i & 0x55555555) << 1) | ((i & 0xaaaaaaaa) >> 1);
-
-            return i * (1.0f / 4294967296);
-        }
-
         void ComputeKernel()
         {
-            if (m_FilterKernel == null)
+            if (m_FilterKernel == null || m_FilterKernel.Length != numSamples)
             {
                 m_FilterKernel = new Vector4[numSamples];
             }
@@ -136,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Importance sample the linear combination of two Gaussians.
             for (uint i = 0; i < numSamples; i++)
             {
-                float u   = VanDerCorputBase2(i);
+                float u   = (i + 0.5f) / numSamples;
                 float pos = GaussianCombinationCdfInverse(u, maxStdDev1, maxStdDev2, m_LerpWeight);
                 float pdf = GaussianCombination(pos, maxStdDev1, maxStdDev2, m_LerpWeight);
 
@@ -167,30 +162,140 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
-    [System.Serializable]
-    public class SubsurfaceScatteringParameters
+    public class SubsurfaceScatteringParameters : ScriptableObject
     {
-        public const int                     numProfiles = 1;
-        public SubsurfaceScatteringProfile[] profiles;
-        public float                         bilateralScale;
+        const int m_maxNumProfiles = 8;
+        [SerializeField]
+        int m_NumProfiles;
+        [SerializeField]
+        SubsurfaceScatteringProfile[] m_Profiles;
+        [SerializeField]
+        float m_BilateralScale;
 
-        // --- Methods ---
+        // --- Public Methods ---
 
-        public static SubsurfaceScatteringParameters Default
+        public SubsurfaceScatteringParameters()
+        {
+            m_NumProfiles    = 1;
+            m_Profiles       = new SubsurfaceScatteringProfile[m_NumProfiles];
+            m_BilateralScale = 0.1f;
+
+            for (int i = 0; i < m_NumProfiles; i++)
+            {
+                m_Profiles[i] = new SubsurfaceScatteringProfile();
+            }
+        }
+
+        public SubsurfaceScatteringProfile[] profiles       { set { m_Profiles       = value; OnValidate(); } get { return m_Profiles; } }
+        public float                         bilateralScale { set { m_BilateralScale = value; OnValidate(); } get { return m_BilateralScale; } }
+
+        public void SetDirtyFlag()
+        {
+            for (int i = 0; i < m_Profiles.Length; i++)
+            {
+                m_Profiles[i].SetDirtyFlag();
+            }
+        }
+
+        // --- Private Methods ---
+
+        void OnValidate()
+        {
+            if (m_Profiles.Length > m_maxNumProfiles)
+            {
+                Array.Resize(ref m_Profiles, m_maxNumProfiles);
+            }
+
+            m_NumProfiles = m_Profiles.Length;
+
+            Color c = new Color();
+
+            for (int i = 0; i < m_NumProfiles; i++)
+            {
+                c.r = Mathf.Clamp(m_Profiles[i].stdDev1.r, 0.05f, 2.0f);
+                c.g = Mathf.Clamp(m_Profiles[i].stdDev1.g, 0.05f, 2.0f);
+                c.b = Mathf.Clamp(m_Profiles[i].stdDev1.b, 0.05f, 2.0f);
+                c.a = 0.0f;
+
+                m_Profiles[i].stdDev1 = c;
+
+                c.r = Mathf.Clamp(m_Profiles[i].stdDev2.r, 0.05f, 2.0f);
+                c.g = Mathf.Clamp(m_Profiles[i].stdDev2.g, 0.05f, 2.0f);
+                c.b = Mathf.Clamp(m_Profiles[i].stdDev2.b, 0.05f, 2.0f);
+                c.a = 0.0f;
+
+                m_Profiles[i].stdDev2 = c;
+
+                m_Profiles[i].lerpWeight = Mathf.Clamp01(m_Profiles[i].lerpWeight);
+            }
+
+            m_BilateralScale = Mathf.Clamp01(m_BilateralScale);
+        }
+    }
+
+    public class SubsurfaceScatteringSettings : Singleton<SubsurfaceScatteringSettings>
+    {
+        SubsurfaceScatteringParameters settings { get; set; }
+
+        public static SubsurfaceScatteringParameters overrideSettings
+        {
+            get { return instance.settings; }
+            set { instance.settings = value; }
+        }
+    }
+
+    [CustomEditor(typeof(SubsurfaceScatteringParameters))]
+    public class SubsurfaceScatteringParametersEditor : Editor
+    {
+        private class Styles
+        {
+            public readonly GUIContent sssCategory          = new GUIContent("Subsurface scattering");
+            public readonly GUIContent sssProfileStdDev1    = new GUIContent("SSS profile standard deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
+            public readonly GUIContent sssProfileStdDev2    = new GUIContent("SSS profile standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
+            public readonly GUIContent sssProfileLerpWeight = new GUIContent("SSS profile filter interpolation", "Controls linear interpolation between the two Gaussian filters.");
+            public readonly GUIContent sssBilateralScale    = new GUIContent("SSS bilateral filtering scale", "Larger values make the filter more tolerant to depth differences.");
+        }
+
+        private static Styles s_Styles;
+
+        private SerializedProperty m_Profiles;
+        private SerializedProperty m_BilateralScale;
+
+        // --- Public Methods ---
+
+        private static Styles styles
         {
             get
             {
-                SubsurfaceScatteringParameters parameters = new SubsurfaceScatteringParameters();
-                parameters.profiles = new SubsurfaceScatteringProfile[numProfiles];
-
-                for (int i = 0; i < numProfiles; i++)
+                if (s_Styles == null)
                 {
-                    parameters.profiles[i] = SubsurfaceScatteringProfile.Default;
+                    s_Styles = new Styles();
                 }
-
-                parameters.bilateralScale = 0.1f;
-                return parameters;
+                return s_Styles;
             }
+        }
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_Profiles, true);
+            EditorGUILayout.PropertyField(m_BilateralScale, styles.sssBilateralScale);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+                // Serialization ignores setters.
+                ((SubsurfaceScatteringParameters)target).SetDirtyFlag();
+            }
+        }
+
+        // --- Private Methods ---
+
+        void OnEnable()
+        {
+            m_Profiles       = serializedObject.FindProperty("m_Profiles");
+            m_BilateralScale = serializedObject.FindProperty("m_BilateralScale");
         }
     }
 }

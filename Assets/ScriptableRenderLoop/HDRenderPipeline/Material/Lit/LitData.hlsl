@@ -482,9 +482,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.materialId = 0;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
-    surfaceData.subSurfaceRadius = 1.0;
+    surfaceData.subsurfaceRadius = 1.0;
     surfaceData.thickness = 0.0;
-    surfaceData.subSurfaceProfile = 0;
+    surfaceData.subsurfaceProfile = 0;
     surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
     surfaceData.coatPerceptualSmoothness = 1.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
