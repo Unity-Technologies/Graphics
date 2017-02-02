@@ -703,8 +703,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float distanceToProjectionWindow = 1.0f / Mathf.Tan(0.5f * Mathf.Deg2Rad * hdCamera.camera.fieldOfView);
             m_CombineSubsurfaceScattering.SetFloat("_DistToProjWindow", distanceToProjectionWindow);
             m_CombineSubsurfaceScattering.SetFloat("_BilateralScale", 0.05f * sssParameters.bilateralScale);
-            // TODO: use user-defined values for '_ProfileID' and '_FilterRadius.'
-            m_CombineSubsurfaceScattering.SetVectorArray("_FilterKernel", sssParameters.profiles[0].filterKernel);
+
+            // Upload the kernel data.
+            Vector4[] kernelData = new Vector4[SubsurfaceScatteringParameters.maxNumProfiles * SubsurfaceScatteringProfile.numSamples];
+            for (int j = 0, m = sssParameters.profiles.Length; j < m; j++)
+            {
+                for (int i = 0, n = SubsurfaceScatteringProfile.numSamples; i < n; i++)
+                {
+                    kernelData[n * j + i] = sssParameters.profiles[j].filterKernel[i];
+                }
+            }
+            m_CombineSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
 
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
 

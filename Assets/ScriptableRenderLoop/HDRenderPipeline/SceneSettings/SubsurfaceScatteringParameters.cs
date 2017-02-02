@@ -164,7 +164,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class SubsurfaceScatteringParameters : ScriptableObject
     {
-        const int m_maxNumProfiles = 8;
+        public const int maxNumProfiles = 8;
         [SerializeField]
         int m_NumProfiles;
         [SerializeField]
@@ -201,9 +201,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnValidate()
         {
-            if (m_Profiles.Length > m_maxNumProfiles)
+            if (m_Profiles.Length > maxNumProfiles)
             {
-                Array.Resize(ref m_Profiles, m_maxNumProfiles);
+                Array.Resize(ref m_Profiles, maxNumProfiles);
             }
 
             m_NumProfiles = m_Profiles.Length;
