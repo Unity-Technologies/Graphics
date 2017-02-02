@@ -427,7 +427,7 @@ namespace UnityEngine.Experimental.Rendering
             commandBuffer.Dispose();
 
             // Render
-            loop.DrawShadows(settings);
+            loop.DrawShadows(ref settings);
         }
     }
 }
