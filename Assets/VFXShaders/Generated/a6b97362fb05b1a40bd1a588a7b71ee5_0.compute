@@ -1,0 +1,166 @@
+#pragma kernel CSVFXInit
+#pragma kernel CSVFXUpdate
+
+#include "HLSLSupport.cginc"
+#include "../VFXCommon.cginc"
+
+#define NB_THREADS_PER_GROUP 256
+
+CBUFFER_START(initUniforms)
+	float3 initUniform0_kVFXCombine3fOp;
+	float initUniform1_kVFXValueOp;
+	
+	float initUniform2_kVFXValueOp;
+	uint initUniform3_kVFXSystemSeedOp;
+	uint nbSpawned;
+	uint spawnIndex;
+	
+CBUFFER_END
+
+CBUFFER_START(updateUniforms)
+	float4x4 updateUniform0_kVFXTransformMatrixOp;
+	
+	float4x4 updateUniform9_kVFXInverseTRSOp;
+	
+	float3 updateUniform3_kVFXCombine3fOp;
+	float updateUniform1_kVFXValueOp;
+	
+	float updateUniform2_kVFXValueOp;
+	float updateUniform4_kVFXValueOp;
+	float updateUniform5_kVFXValueOp;
+	float updateUniform6_kVFXValueOp;
+	
+	float updateUniform7_kVFXValueOp;
+	float updateUniform8_kVFXValueOp;
+	float updateUniform10_kVFXDeltaTimeOp;
+	uint nbMax;
+	
+CBUFFER_END
+
+Texture3D updateSampler0_kVFXValueOpTexture;
+SamplerState samplerupdateSampler0_kVFXValueOpTexture;
+
+struct Attribute0
+{
+	float3 position;
+	float age;
+};
+
+struct Attribute1
+{
+	float lifetime;
+};
+
+struct Attribute2
+{
+	float3 velocity;
+	uint _PADDING_0;
+};
+
+RWStructuredBuffer<Attribute0> attribBuffer0;
+RWStructuredBuffer<Attribute1> attribBuffer1;
+StructuredBuffer<Attribute1> attribBuffer1_RO;
+RWStructuredBuffer<Attribute2> attribBuffer2;
+
+RWStructuredBuffer<int> flags;
+ConsumeStructuredBuffer<uint> deadListIn;
+AppendStructuredBuffer<uint> deadListOut;
+Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
+
+
+void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
+{
+	float u1 = 2.0 * RAND - 1.0;
+	float u2 = UNITY_TWO_PI * RAND;
+	position = VFXPositionOnSphereSurface(Sphere,u1,u2);
+}
+
+void VFXBlockSetLifetimeConstant( inout float lifetime,float Lifetime)
+{
+	lifetime = max(Lifetime,0.0f);
+}
+
+void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFXSampler3D VectorField,float4x4 Box,float4x4 InvBox,float Intensity,float DragCoefficient,float deltaTime)
+{
+	float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
+	float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz * 2.0f - 1.0f;
+	value = mul(Box,float4(value,0.0f)).xyz * Intensity;
+	float3 relativeForce = value - velocity;
+	velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));
+}
+
+void VFXBlockSetForceConformToSphere( inout float3 velocity,float3 position,float3 Sphere_center,float Sphere_radius,float attractionSpeed,float attractionForce,float stickForce,float stickDistance,float deltaTime)
+{
+	float3 dir = Sphere_center - position;
+	float distToCenter = length(dir);
+	float distToSurface = distToCenter - Sphere_radius;
+	dir /= distToCenter;
+	float spdNormal = dot(dir,velocity);
+	float ratio = smoothstep(0.0,stickDistance * 2.0,abs(distToSurface));
+	float tgtSpeed = sign(distToSurface) * attractionSpeed * ratio;
+	float deltaSpeed = tgtSpeed - spdNormal;
+	velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir;
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < min(nbSpawned,deadListCount[0]))
+	{
+		uint index = deadListIn.Consume();
+		
+		Attribute0 attrib0 = (Attribute0)0;
+		Attribute1 attrib1 = (Attribute1)0;
+		Attribute2 attrib2 = (Attribute2)0;
+		
+		uint local_seed = (uint)0;
+		
+		
+		local_seed = WangHash((id.x + spawnIndex) ^ initUniform3_kVFXSystemSeedOp);
+		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform2_kVFXValueOp);
+		
+		attribBuffer0[index] = attrib0;
+		attribBuffer1[index] = attrib1;
+		attribBuffer2[index] = attrib2;
+		
+		flags[index] = 1;
+	}
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < nbMax && flags[id.x] == 1)
+	{
+		uint index = id.x;
+		bool kill = false;
+		
+		Attribute0 attrib0 = attribBuffer0[index];
+		Attribute1 attrib1 = attribBuffer1_RO[index];
+		Attribute2 attrib2 = attribBuffer2[index];
+		
+		VFXSampler3D updateSampler0_kVFXValueOp = InitSampler(updateSampler0_kVFXValueOpTexture,samplerupdateSampler0_kVFXValueOpTexture);
+		
+		VFXBlockVectorFieldRelativeForce( attrib2.velocity,attrib0.position,updateSampler0_kVFXValueOp,updateUniform0_kVFXTransformMatrixOp,updateUniform9_kVFXInverseTRSOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXValueOp,updateUniform10_kVFXDeltaTimeOp);
+		VFXBlockSetForceConformToSphere( attrib2.velocity,attrib0.position,updateUniform3_kVFXCombine3fOp,updateUniform4_kVFXValueOp,updateUniform5_kVFXValueOp,updateUniform6_kVFXValueOp,updateUniform7_kVFXValueOp,updateUniform8_kVFXValueOp,updateUniform10_kVFXDeltaTimeOp);
+		
+		attrib0.position += attrib2.velocity * updateUniform10_kVFXDeltaTimeOp;
+		
+		attrib0.age += updateUniform10_kVFXDeltaTimeOp;
+		if (attrib0.age >= attrib1.lifetime)
+			kill = true;
+		
+		if (kill)
+		{
+			flags[index] = 0;
+			deadListOut.Append(index);
+		}
+		else
+		{
+			attribBuffer0[index] = attrib0;
+			attribBuffer2[index] = attrib2;
+		}
+	}
+}
+

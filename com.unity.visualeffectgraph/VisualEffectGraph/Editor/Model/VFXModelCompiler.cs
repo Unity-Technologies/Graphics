@@ -1354,7 +1354,7 @@ namespace UnityEditor.Experimental
             if ((data.floatTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
                 builder.WriteSampler(VFXValueType.kTexture2D, "floatTexture");
 
-            if (system.HasSoftParticles())
+            if (system.HasSoftParticles() || outputGenerator.NeedsDepthTexture())
             {
                 builder.WriteLine("sampler2D_float _CameraDepthTexture;");
                 builder.WriteLine();
@@ -1399,8 +1399,8 @@ namespace UnityEditor.Experimental
 
             outputGenerator.WriteAdditionalVertexOutput(builder, data);
 
-            if (system.HasSoftParticles())
-                builder.WriteLine("float4 projPos : TEXCOORD2;"); // TODO use a counter to set texcoord index
+            if (system.HasSoftParticles() || outputGenerator.NeedsDepthTexture())
+                builder.WriteLine("float4 projPos : TEXCOORD7;"); // TODO use a counter to set texcoord index
 
             builder.ExitScopeStruct();
             builder.WriteLine();
@@ -1491,7 +1491,7 @@ namespace UnityEditor.Experimental
             outputGenerator.WritePostBlock(builder, data);
 
             // Soft particles
-            if (system.HasSoftParticles())
+            if (system.HasSoftParticles() || outputGenerator.NeedsDepthTexture())
                 builder.WriteLine("o.projPos = ComputeScreenPos(o.pos); // For depth texture fetch");
 
             if (needsVertexColor)
