@@ -1178,6 +1178,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var cmd = new CommandBuffer() { name = "" };
 
                 // generate screen-space AABBs (used for both fptl and clustered).
+                if (m_lightCount != 0)
                 {
                     temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
                     temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
