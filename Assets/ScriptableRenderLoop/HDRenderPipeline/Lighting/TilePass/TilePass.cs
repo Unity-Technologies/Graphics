@@ -196,21 +196,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         s_DefaultAdditionalLightDataGameObject = new GameObject("Default Light Data");
                         s_DefaultAdditionalLightDataGameObject.hideFlags = HideFlags.HideAndDontSave;
                         s_DefaultAdditionalLightData = s_DefaultAdditionalLightDataGameObject.AddComponent<AdditionalLightData>();
+                        s_DefaultAdditionalLightDataGameObject.SetActive(false);
                     }
                     return s_DefaultAdditionalLightData;
                 }
             }
 
+            Material m_DeferredDirectMaterialSRT   = null;
+            Material m_DeferredDirectMaterialMRT   = null;
+            Material m_DeferredIndirectMaterialSRT = null;
+            Material m_DeferredIndirectMaterialMRT = null;
+            Material m_DeferredAllMaterialSRT      = null;
+            Material m_DeferredAllMaterialMRT      = null;
 
-            Material m_DeferredDirectMaterial = null;
-            Material m_DeferredIndirectMaterial = null;
-            Material m_DeferredAllMaterial = null;
-            Material m_DebugViewTilesMaterial = null;
+            Material m_DebugViewTilesMaterial      = null;
 
-            Material m_SingleDeferredMaterial = null;
+            Material m_SingleDeferredMaterialSRT   = null;
+            Material m_SingleDeferredMaterialMRT   = null;
 
             const int k_TileSize = 16;
-
 
             int GetNumTileX(Camera camera)
             {
@@ -284,28 +288,71 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 s_LightList = null;
 
-                m_DeferredDirectMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
-                m_DeferredDirectMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredDirectMaterial.EnableKeyword("LIGHTLOOP_TILE_DIRECT");
-                m_DeferredDirectMaterial.DisableKeyword("LIGHTLOOP_TILE_INDIRECT");
-                m_DeferredDirectMaterial.DisableKeyword("LIGHTLOOP_TILE_ALL");
+                string[] tileKeywords = {"LIGHTLOOP_TILE_DIRECT", "LIGHTLOOP_TILE_INDIRECT", "LIGHTLOOP_TILE_ALL"};
 
-                m_DeferredIndirectMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
-                m_DeferredIndirectMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredIndirectMaterial.DisableKeyword("LIGHTLOOP_TILE_DIRECT");
-                m_DeferredIndirectMaterial.EnableKeyword("LIGHTLOOP_TILE_INDIRECT");
-                m_DeferredIndirectMaterial.DisableKeyword("LIGHTLOOP_TILE_ALL");
+                m_DeferredDirectMaterialSRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredDirectMaterialSRT, tileKeywords, 0);
+                m_DeferredDirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredDirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
+                m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
+                m_DeferredDirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
+                m_DeferredDirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
-                m_DeferredAllMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
-                m_DeferredAllMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredAllMaterial.DisableKeyword("LIGHTLOOP_TILE_DIRECT");
-                m_DeferredAllMaterial.DisableKeyword("LIGHTLOOP_TILE_INDIRECT");
-                m_DeferredAllMaterial.EnableKeyword("LIGHTLOOP_TILE_ALL");
+                m_DeferredDirectMaterialMRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredDirectMaterialMRT, tileKeywords, 0);
+                m_DeferredDirectMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredDirectMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
+                m_DeferredDirectMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_DeferredDirectMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
+                m_DeferredDirectMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
+
+                m_DeferredIndirectMaterialSRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredIndirectMaterialSRT, tileKeywords, 1);
+                m_DeferredIndirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredIndirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
+                m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
+                m_DeferredIndirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
+                m_DeferredIndirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.One); // Additive
+
+                m_DeferredIndirectMaterialMRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredIndirectMaterialMRT, tileKeywords, 1);
+                m_DeferredIndirectMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredIndirectMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
+                m_DeferredIndirectMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_DeferredIndirectMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
+                m_DeferredIndirectMaterialMRT.SetInt("_DstBlend", (int)BlendMode.One); // Additive
+
+                m_DeferredAllMaterialSRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredAllMaterialSRT, tileKeywords, 2);
+                m_DeferredAllMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredAllMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
+                m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
+                m_DeferredAllMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
+                m_DeferredAllMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
+
+                m_DeferredAllMaterialMRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredAllMaterialMRT, tileKeywords, 2);
+                m_DeferredAllMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredAllMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
+                m_DeferredAllMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_DeferredAllMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
+                m_DeferredAllMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
                 m_DebugViewTilesMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewTiles");
 
-                m_SingleDeferredMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
-                m_SingleDeferredMaterial.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
+                m_SingleDeferredMaterialSRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                m_SingleDeferredMaterialSRT.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
+                m_SingleDeferredMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
+                m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
+                m_SingleDeferredMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
+                m_SingleDeferredMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
+
+                m_SingleDeferredMaterialMRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                m_SingleDeferredMaterialMRT.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
+                m_SingleDeferredMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
+                m_SingleDeferredMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_SingleDeferredMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
+                m_SingleDeferredMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
                 m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
                 m_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
@@ -353,12 +400,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // enableClustered
                 Utilities.SafeRelease(s_GlobalLightListAtomic);
 
-                Utilities.Destroy(m_DeferredDirectMaterial);
-                Utilities.Destroy(m_DeferredIndirectMaterial);
-                Utilities.Destroy(m_DeferredAllMaterial);
+                Utilities.Destroy(m_DeferredDirectMaterialSRT);
+                Utilities.Destroy(m_DeferredDirectMaterialMRT);
+                Utilities.Destroy(m_DeferredIndirectMaterialSRT);
+                Utilities.Destroy(m_DeferredIndirectMaterialMRT);
+                Utilities.Destroy(m_DeferredAllMaterialSRT);
+                Utilities.Destroy(m_DeferredAllMaterialMRT);
+
                 Utilities.Destroy(m_DebugViewTilesMaterial);
 
-                Utilities.Destroy(m_SingleDeferredMaterial);
+                Utilities.Destroy(m_SingleDeferredMaterialSRT);
+                Utilities.Destroy(m_SingleDeferredMaterialMRT);
 
                 Utilities.Destroy(s_DefaultAdditionalLightDataGameObject);
                 s_DefaultAdditionalLightDataGameObject = null;
@@ -1126,6 +1178,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var cmd = new CommandBuffer() { name = "" };
 
                 // generate screen-space AABBs (used for both fptl and clustered).
+                if (m_lightCount != 0)
                 {
                     temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
                     temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
@@ -1320,7 +1373,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
-            public override void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraColorBufferRT)
+            public override void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
+                                                        RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier stencilBuffer,
+                                                        bool outputSplitLighting)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
@@ -1351,11 +1406,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (m_PassSettings.disableTileAndCluster)
                     {
                         // This is a debug brute force renderer to debug tile/cluster which render all the lights
-                        Utilities.SetupMaterialHDCamera(hdCamera, m_SingleDeferredMaterial);
-                        m_SingleDeferredMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                        m_SingleDeferredMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-
-                        cmd.Blit(null, cameraColorBufferRT, m_SingleDeferredMaterial, 0);
+                        if (outputSplitLighting)
+                        {
+                            Utilities.DrawFullscreen(cmd, m_SingleDeferredMaterialMRT, hdCamera, colorBuffers, stencilBuffer);
+                        }
+                        else
+                        {
+                            Utilities.DrawFullscreen(cmd, m_SingleDeferredMaterialSRT, hdCamera, colorBuffers[0], stencilBuffer);
+                        }
                     }
                     else
                     {
@@ -1411,7 +1469,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_IESArray", IESArrayTexture ? IESArrayTexture : m_DefaultTexture2DArray);
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_SkyTexture", skyTexture ? skyTexture : m_DefaultTexture2DArray);
 
-                            cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "uavOutput", cameraColorBufferRT);
+                            // Since we need the stencil test, the compute path does not currently support SSS.
+                            cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "combinedLightingUAV", colorBuffers[0]);
                             cmd.DispatchCompute(shadeOpaqueShader, kernel, numTilesX, numTilesY, 1);
                         }
                         else
@@ -1419,30 +1478,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Pixel shader evaluation
                             if (m_PassSettings.enableSplitLightEvaluation)
                             {
-                                Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredDirectMaterial);
-                                m_DeferredDirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                                m_DeferredDirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                                m_DeferredDirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                m_DeferredDirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                                if (outputSplitLighting)
+                                {
+                                    Utilities.SelectKeyword(m_DeferredDirectMaterialMRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                    Utilities.DrawFullscreen(cmd, m_DeferredDirectMaterialMRT, hdCamera, colorBuffers, stencilBuffer);
 
-                                Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredIndirectMaterial);
-                                m_DeferredIndirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                                m_DeferredIndirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One); // Additive
-                                m_DeferredIndirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                m_DeferredIndirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                                    Utilities.SelectKeyword(m_DeferredIndirectMaterialMRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                    Utilities.DrawFullscreen(cmd, m_DeferredIndirectMaterialMRT, hdCamera, colorBuffers, stencilBuffer);
+                                }
+                                else
+                                {
+                                    Utilities.SelectKeyword(m_DeferredDirectMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                    Utilities.DrawFullscreen(cmd, m_DeferredDirectMaterialSRT, hdCamera, colorBuffers[0], stencilBuffer);
 
-                                cmd.Blit(null, cameraColorBufferRT, m_DeferredDirectMaterial, 0);
-                                cmd.Blit(null, cameraColorBufferRT, m_DeferredIndirectMaterial, 0);
+                                    Utilities.SelectKeyword(m_DeferredIndirectMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                    Utilities.DrawFullscreen(cmd, m_DeferredIndirectMaterialSRT, hdCamera, colorBuffers[0], stencilBuffer);
+                                }
                             }
                             else
                             {
-                                Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredAllMaterial);
-                                m_DeferredAllMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                                m_DeferredAllMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                                m_DeferredAllMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                m_DeferredAllMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-
-                                cmd.Blit(null, cameraColorBufferRT, m_DeferredAllMaterial, 0);
+                                if (outputSplitLighting)
+                                {
+                                    Utilities.SelectKeyword(m_DeferredAllMaterialMRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                    Utilities.DrawFullscreen(cmd, m_DeferredAllMaterialMRT, hdCamera, colorBuffers, stencilBuffer);
+                                }
+                                else
+                                {
+                                    Utilities.SelectKeyword(m_DeferredAllMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
+                                    Utilities.DrawFullscreen(cmd, m_DeferredAllMaterialSRT, hdCamera, colorBuffers[0], stencilBuffer);
+                                }
                             }
                         }
 
@@ -1455,7 +1519,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                             m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                            cmd.Blit(null, cameraColorBufferRT, m_DebugViewTilesMaterial, 0);
+                            cmd.Blit(null, colorBuffers[0], m_DebugViewTilesMaterial, 0);
                         }
                     }
 

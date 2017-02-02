@@ -10,7 +10,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 metal // TEMP: unitl we go futher in dev
+            #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -38,7 +38,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             // variable declaration
             //-------------------------------------------------------------------------------------
 
-            TEXTURE2D(_CameraDepthTexture);
+            TEXTURE2D_FLOAT(_CameraDepthTexture);
             SAMPLER2D(sampler_CameraDepthTexture);
 
             uint _ViewTilesFlags;

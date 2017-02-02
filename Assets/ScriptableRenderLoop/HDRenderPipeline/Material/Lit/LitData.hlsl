@@ -138,6 +138,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 normalTS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
+    // Done one time for all layered - cumulate with spec occ alpha for now
+    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.tangentToWorld[2].xyz, _HorizonFade);
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
@@ -452,7 +454,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 normalTS = BlendLayeredVector3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 #endif
 
-    surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
     surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
@@ -462,14 +463,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.materialId = 0;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
-    surfaceData.subSurfaceRadius = 1.0;
+    surfaceData.subsurfaceRadius = 1.0;
     surfaceData.thickness = 0.0;
-    surfaceData.subSurfaceProfile = 0;
+    surfaceData.subsurfaceProfile = 0;
     surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
     surfaceData.coatPerceptualSmoothness = 1.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
+    // Done one time for all layered - cumulate with spec occ alpha for now
+    surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
+    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.tangentToWorld[2].xyz, _HorizonFade);
 
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
