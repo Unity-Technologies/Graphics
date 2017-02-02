@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -100,7 +101,42 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ProcessExpressionGPUCodeGeneration() //Prototype
+        public void ProcessExpressionSampleCurve()
+        {
+            var a = 0.564f;
+            var curve = new AnimationCurve(new Keyframe(0, 0), new Keyframe(0.2f, 0.7f), new Keyframe(0.8f, 0.1f), new Keyframe(1, 1));
+            var resultRef = curve.Evaluate(a);
+
+            var sampleValue = new VFXValueFloat(a, true);
+            var curveValue = new VFXValueCurve(curve, true);
+            var sampleCurve = new VFXExpressionSampleCurve(curveValue, sampleValue);
+            var reduced = sampleCurve.Reduce(new VFXExpressionContext());
+
+            Assert.AreEqual(resultRef, (reduced as VFXValueFloat).Content);
+        }
+
+        [Test]
+        public void ProcessExpressionTestConcreteExpression()
+        {
+            var expressionTypes = typeof(VFXExpression)
+                                  .Assembly.GetTypes()
+                                  .Where(t => t.IsSubclassOf(typeof(VFXExpression)) && !t.IsAbstract);
+
+            var newInstanceHelper = typeof(VFXExpression).GetMethod("CreateNewInstance", BindingFlags.Static | BindingFlags.NonPublic, null, new Type[] { typeof(Type) }, null);
+            Assert.AreNotEqual(newInstanceHelper, null);
+
+            foreach (var expressionType in expressionTypes)
+            {
+                object newInstance = null;
+                Assert.DoesNotThrow(() => { newInstance = newInstanceHelper.Invoke(null, new Type[] { expressionType }); },
+                                            "ProcessExpressionTestConcreteExpression fails with : " + expressionType.FullName);
+                Assert.AreNotEqual(newInstance, null);
+                Assert.AreEqual(newInstance.GetType(), expressionType);
+            }
+        }
+
+        [Test]
+        public void ProcessExpressionGPUCodeGeneration() //Test Prototype
         {
             //Reference some float math operation
             var a = new Vector2(0.75f, 0.5f);
@@ -174,7 +210,6 @@ namespace UnityEditor.VFX.Test
                                             functionList.Aggregate((x, y) => x + y),
                                             callFunction.ToString());
             Assert.AreNotEqual(final, null);
-            Debug.Log(final);
         }
 
     }

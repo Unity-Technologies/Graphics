@@ -11,9 +11,9 @@ namespace UnityEditor.VFX
         {
             m_Flags |= Flags.Value | Flags.ValidOnGPU | Flags.ValidOnCPU;
         }
-        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXValueOp; } }
+        sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXValueOp; } }
 
-        public override VFXExpression Reduce(VFXExpressionContext context)
+        sealed public override VFXExpression Reduce(VFXExpressionContext context)
         {
             return this;
         }
@@ -32,31 +32,26 @@ namespace UnityEditor.VFX
             get { return m_Content; }
         }
 
-        //TODO : Hash & Equal behavior
-        //Hack (à changer)
-        private static VFXValueType GetValueType(Type type)
+        private static VFXValueType ToValueType()
         {
-            if (type == typeof(float))
-            {
-                return VFXValueType.kFloat;
-            }
-            else if(type == typeof(Vector2))
-            {
-                return VFXValueType.kFloat2;
-            }
-            else if (type == typeof(Vector3))
-            {
-                return VFXValueType.kFloat3;
-            }
-            else if (type == typeof(Vector4))
-            {
-                return VFXValueType.kFloat4;
-            }
-
-            return VFXValueType.kNone;
+            Type t = typeof(T);
+            if (t == typeof(float)) return VFXValueType.kFloat;
+            if (t == typeof(Vector2)) return VFXValueType.kFloat2;
+            if (t == typeof(Vector3)) return VFXValueType.kFloat3;
+            if (t == typeof(Vector4)) return VFXValueType.kFloat4;
+            if (t == typeof(int)) return VFXValueType.kInt;
+            if (t == typeof(uint)) return VFXValueType.kUint;
+            if (t == typeof(Texture2D)) return VFXValueType.kTexture2D;
+            if (t == typeof(Texture3D)) return VFXValueType.kTexture3D;
+            if (t == typeof(Matrix4x4)) return VFXValueType.kTransform;
+            if (t == typeof(AnimationCurve)) return VFXValueType.kCurve;
+            if (t == typeof(Gradient)) return VFXValueType.kColorGradient;
+            if (t == typeof(Mesh)) return VFXValueType.kMesh;
+            if (t == typeof(System.Collections.Generic.List<Vector3>)) return VFXValueType.kSpline;
+            throw new ArgumentException("Invalid type");
         }
 
-        static private readonly VFXValueType s_ValueType = GetValueType(typeof(T));
+        static private readonly VFXValueType s_ValueType = ToValueType();
         sealed public override VFXValueType ValueType
         {
             get
@@ -81,6 +76,8 @@ namespace UnityEditor.VFX
     class VFXValueFloat2 : VFXValueConstable<Vector2> { public VFXValueFloat2(Vector2 value, bool isConst) : base(value, isConst) { } }
     class VFXValueFloat3 : VFXValueConstable<Vector3> { public VFXValueFloat3(Vector3 value, bool isConst) : base(value, isConst) { } }
     class VFXValueFloat4 : VFXValueConstable<Vector4> { public VFXValueFloat4(Vector4 value, bool isConst) : base(value, isConst) { } }
+    class VFXValueTexture2D : VFXValueConstable<Texture2D> { public VFXValueTexture2D(Texture2D value, bool isConst) : base(value, isConst) { } }
+    class VFXValueCurve : VFXValueConstable<AnimationCurve> { public VFXValueCurve(AnimationCurve value, bool isConst) : base(value, isConst) { } }
 
     abstract class VFXExpressionFloatOperation : VFXExpression
     {
@@ -191,16 +188,25 @@ namespace UnityEditor.VFX
 
         sealed public override VFXExpression Reduce(VFXExpressionContext context)
         {
+            var newExpression = (VFXExpressionFloatOperation)CreateNewInstance();
+            newExpression.m_AdditionnalParameters = m_AdditionnalParameters.Select(o => o).ToArray();
+            newExpression.m_Operation = m_Operation;
+            newExpression.m_Flags = m_Flags;
+            newExpression.m_Parents = m_Parents.Select(o => 
+            {
+                var reduced = o.Reduce(context);
+                Debug.Assert(o.Is(Flags.Value) || !ReferenceEquals(o, reduced), "return this is only allowed with VFXValue");
+                return o.Reduce(context);
+            }).ToArray();
+
             if (context.Option == VFXExpressionContext.ReductionOption.ConstantFolding)
             {
-                var parentExpression = m_Parents.Select(o => o.Reduce(context));
-                if (parentExpression.All(o => o.Is(Flags.Value) && o.Is(Flags.Constant)))
+                if (newExpression.m_Parents.All(o => o.Is(Flags.Value) && o.Is(Flags.Constant)))
                 {
-                    return ExecuteConstantOperation(parentExpression.ToArray());
+                    return ExecuteConstantOperation(newExpression.m_Parents);
                 }
             }
-
-            return this;
+            return newExpression;
         }
 
         abstract protected VFXExpression ExecuteConstantOperation(VFXExpression[] reducedParents);
@@ -211,11 +217,15 @@ namespace UnityEditor.VFX
         protected VFXValueType m_ValueType;
     }
 
-
     class VFXExpressionCombine : VFXExpressionFloatOperation
     {
         public VFXExpressionCombine(VFXExpression[] parents)
         {
+            if (parents == null)
+            {
+                return; //Internal call
+            }
+
             if (parents.Length <= 1 || parents.Length > 4 || parents.Any(o => !IsFloatValueType(o.ValueType)))
             {
                 Debug.LogError("Incorrect VFXExpressionCombine");
@@ -268,6 +278,11 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionExtractComponent(VFXExpression parent, int iChannel)
         {
+            if (parent == null)
+            {
+                return;
+            }
+
             if (parent.ValueType == VFXValueType.kFloat || !IsFloatValueType(parent.ValueType))
             {
                 Debug.LogError("Incorrect VFXExpressionExtractComponent");
@@ -340,6 +355,11 @@ namespace UnityEditor.VFX
     {
         protected VFXExpressionUnaryFloatOperation(VFXExpression parent, VFXExpressionOp operation)
         {
+            if (parent == null)
+            {
+                return;
+            }
+
             if (!IsFloatValueType(parent.ValueType))
             {
                 Debug.LogError("Incorrect VFXExpressionUnaryFloatOperation");
@@ -377,6 +397,11 @@ namespace UnityEditor.VFX
     {
         protected VFXExpressionBinaryFloatOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation, float identityValue = 0.0f)
         {
+            if (parentLeft == null && parentRight == null)
+            {
+                return;
+            }
+
             if (!IsFloatValueType(parentLeft.ValueType) || !IsFloatValueType(parentRight.ValueType))
             {
                 Debug.LogError("Incorrect VFXExpressionBinaryFloatOperation");
@@ -430,6 +455,11 @@ namespace UnityEditor.VFX
     {
         protected VFXExpressionTernaryFloatOperation(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpressionOp operation, float identityValue = 0.0f)
         {
+            if (a == null && b == null && c == null)
+            {
+                return;
+            }
+
             if (    !IsFloatValueType(a.ValueType) 
                 ||  !IsFloatValueType(b.ValueType)
                 ||  !IsFloatValueType(c.ValueType))
@@ -579,5 +609,47 @@ namespace UnityEditor.VFX
         {
             return string.Format("return lerp({0}, {1}, {2});", x, y, s);
         }
+    }
+
+    class VFXExpressionSampleCurve : VFXExpression
+    {
+        public VFXExpressionSampleCurve(VFXExpression curve, VFXExpression time)
+        {
+            m_Curve = curve;
+            m_Time = time;
+        }
+
+        sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXSampleCurve;} }
+        sealed public override VFXValueType ValueType { get { return VFXValueType.kFloat; } }
+
+        sealed public override VFXExpression[] Parents
+        {
+            get
+            {
+                return new VFXExpression[] { m_Curve, m_Time };
+            }
+        }
+
+        sealed public override VFXExpression Reduce(VFXExpressionContext context)
+        {
+            var curveReduce = m_Curve.Reduce(context);
+            var timeReduce = m_Time.Reduce(context);
+
+            if (context.Option == VFXExpressionContext.ReductionOption.ConstantFolding)
+            {
+                if (curveReduce.Is(Flags.Constant | Flags.Value) && timeReduce.Is(Flags.Constant | Flags.Value))
+                {
+                    var curve = (curveReduce as VFXValueCurve).Content;
+                    var time = (timeReduce as VFXValueFloat).Content;
+                    return new VFXValueFloat(curve.Evaluate(time), true);
+                }
+            }
+            return new VFXExpressionSampleCurve(curveReduce, timeReduce);
+        }
+
+        private VFXExpression m_Curve;
+        private VFXExpression m_Time;
+
+
     }
 }

@@ -18,6 +18,7 @@ namespace UnityEditor.VFX
         kTransform,
         kCurve,
         kColorGradient,
+        kMesh,
         kSpline,
     }
 
@@ -65,19 +66,35 @@ namespace UnityEditor.VFX
             return "unknownType";
         }
 
-        public bool Is(Flags flag) { return (m_Flags & flag) == flag; }
 
-        public abstract VFXValueType ValueType { get; }
-        public abstract VFXExpressionOp Operation { get; }
+        //Helper using reflection to recreate a concrete type from an abstract class (usefull with reduce behavior)
+        static private VFXExpression CreateNewInstance(Type expressionType)
+        {
+            var constructor = expressionType.GetConstructors().FirstOrDefault();
+            var param = constructor.GetParameters().Select(o =>
+            {
+                var type = o.GetType();
+                return type.IsValueType ? Activator.CreateInstance(type) : null;
+            }).ToArray();
+            return (VFXExpression)constructor.Invoke(param);
+        }
+
+        protected VFXExpression CreateNewInstance()
+        {
+            return CreateNewInstance(GetType());
+        }
 
         // Reduce the expression within a given context
         public abstract VFXExpression Reduce(VFXExpressionContext context);
         // Returns dependencies
+        public bool Is(Flags flag) { return (m_Flags & flag) == flag; }
+        public abstract VFXValueType ValueType { get; }
+        public abstract VFXExpressionOp Operation { get; }
         public virtual VFXExpression[] Parents { get { return new VFXExpression[] { }; } }
 
         protected virtual string[] ParentsCodeName { get { return new string[] { "a", "b", "c", "d" }; } }
 
-        public string temp_GetUniqueName()
+        private string temp_GetUniqueName()
         {
             return "temp_" + GetHashCode().ToString("X");
         }
@@ -155,28 +172,19 @@ namespace UnityEditor.VFX
 
         public override int GetHashCode()
         {
-            if (!m_HasCachedHashCode)
-            {
-                int hash = GetType().GetHashCode();
+            int hash = GetType().GetHashCode();
 
-                var parents = Parents;
-                for (int i = 0; i < parents.Length; ++i)
-                    hash = (hash * 397) ^ parents[i].GetHashCode(); // 397 taken from resharper
+            var parents = Parents;
+            for (int i = 0; i < parents.Length; ++i)
+                hash = (hash * 397) ^ parents[i].GetHashCode(); // 397 taken from resharper
 
-                var addionnalParameters = AdditionnalParameters;
-                for (int i = 0; i < addionnalParameters.Length; ++i)
-                    hash = (hash * 397) ^ addionnalParameters[i].GetHashCode();
+            var addionnalParameters = AdditionnalParameters;
+            for (int i = 0; i < addionnalParameters.Length; ++i)
+                hash = (hash * 397) ^ addionnalParameters[i].GetHashCode();
 
-                m_CachedHashCode = hash;
-                m_HasCachedHashCode = true;
-            }
-
-            return m_CachedHashCode;
+            return hash;
         }
 
         protected Flags m_Flags = Flags.None;
-
-        protected int m_CachedHashCode;
-        protected bool m_HasCachedHashCode = false;
     }
 }
