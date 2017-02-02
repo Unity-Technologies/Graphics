@@ -36,9 +36,9 @@ Shader "HDRenderPipeline/Lit"
 
         [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2)] _MaterialID("Material Class", Int) = 0
         _SubsurfaceProfile("Subsurface Profile", Int) = 0
-        _SubsurfaceRadius("Subsurface Radius", Range(0.0, 1.0)) = 0.5
+        _SubsurfaceRadius("Subsurface Radius", Range(0.004, 1.0)) = 0.5
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
-        _Thickness("Thickness", Range(0.0, 1.0)) = 0.5
+        _Thickness("Thickness", Range(0.004, 1.0)) = 0.5
         _ThicknessMap("Thickness Map", 2D) = "white" {}
 
         //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0

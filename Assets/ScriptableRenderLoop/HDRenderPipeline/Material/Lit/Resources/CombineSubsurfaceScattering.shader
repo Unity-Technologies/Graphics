@@ -77,7 +77,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 float2 gBufferData  = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
                 int    profileID    = int(gBufferData.y * N_PROFILES);
-                float  distScale    = max(0.0001, gBufferData.x * 0.01);
+                float  distScale    = gBufferData.x * 0.01;
                 float  invDistScale = rcp(distScale);
 
                 // Reconstruct the view-space position.
