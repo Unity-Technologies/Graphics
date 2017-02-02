@@ -20,7 +20,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             ZTest  Always
             ZWrite Off
-            Blend  One [_DstBlend], Zero [_DstBlend]
+            Blend  One [_DstBlend]
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -76,7 +76,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 return output;
             }
 
-            float4 Frag(Varyings input) : SV_Target
+            float3 Frag(Varyings input) : SV_Target
             {
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
@@ -125,7 +125,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     filteredIrradiance += lerp(sampleIrradiance, centerIrradiance, t) * sampleWeight;
                 }
 
-                return float4(filteredIrradiance, 1.0);
+                return filteredIrradiance;
             }
             ENDHLSL
         }
