@@ -40,12 +40,13 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            #define N_SAMPLES 7
+            #define N_PROFILES 8
+            #define N_SAMPLES  7
 
-            float  _BilateralScale;   // Uses world-space units
-            float  _DistToProjWindow; // The height of the projection window is 2 meters
-            float  _FilterHorizontal; // Vertical = 0, horizontal = 1
-            float4 _FilterKernel[7];  // RGB = weights, A = radial distance
+            float  _BilateralScale;                       // Uses world-space units
+            float  _DistToProjWindow;                     // The height of the projection window is 2 meters
+            float  _FilterHorizontal;                     // Vertical = 0, horizontal = 1
+            float4 _FilterKernels[N_PROFILES][N_SAMPLES]; // RGB = weights, A = radial distance
 
             TEXTURE2D(_CameraDepthTexture);
             TEXTURE2D(_GBufferTexture2);
@@ -79,10 +80,12 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             {
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
-                float rawDepth     = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
-                float centerDepth  = LinearEyeDepth(rawDepth, _ZBufferParams);
-                float radiusScale  = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).r;
-                float filterRadius = radiusScale * _DistToProjWindow / centerDepth;
+                float  rawDepth     = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
+                float  centerDepth  = LinearEyeDepth(rawDepth, _ZBufferParams);
+                float2 gBufferValue = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
+                float  radiusScale  = gBufferValue.x;
+                float  profileID    = gBufferValue.y * N_PROFILES;
+                float  filterRadius = radiusScale * _DistToProjWindow / centerDepth;
 
                 // Compute the filtering direction.
                 float x, y;
@@ -94,7 +97,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 scaledDirection *= _ScreenSize.zw;
 
                 // Take the first (central) sample.
-                float3 sampleWeight   = _FilterKernel[0].rgb;
+                float3 sampleWeight   = _FilterKernels[profileID][0].rgb;
                 float2 samplePosition = posInput.unPositionSS;
 
                 float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
@@ -106,8 +109,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [unroll]
                 for (int i = 1; i < N_SAMPLES; i++)
                 {
-                    sampleWeight   = _FilterKernel[i].rgb;
-                    samplePosition = posInput.positionSS + scaledDirection * _FilterKernel[i].a;
+                    sampleWeight   = _FilterKernels[profileID][i].rgb;
+                    samplePosition = posInput.positionSS + scaledDirection * _FilterKernels[profileID][i].a;
 
                     sampleIrradiance = SAMPLE_TEXTURE2D_LOD(_IrradianceSource,   bilinearSampler, samplePosition, 0).rgb;
                     rawDepth         = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, bilinearSampler, samplePosition, 0).r;
