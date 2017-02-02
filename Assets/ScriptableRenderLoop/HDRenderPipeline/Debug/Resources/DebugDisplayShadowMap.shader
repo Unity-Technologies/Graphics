@@ -38,31 +38,9 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayShadowMap"
 
             Varyings Vert(Attributes input)
             {
-                float4 positions[] =
-                {
-                    float4(-1.0, -1.0, 0.0f, 1.0),
-                    float4( 1.0, -1.0, 0.0f, 1.0),
-                    float4( 1.0,  1.0, 0.0f, 1.0),
-
-                    float4( 1.0,  1.0, 0.0f, 1.0),
-                    float4(-1.0,  1.0, 0.0f, 1.0),
-                    float4(-1.0, -1.0, 0.0f, 1.0)
-                };
-
-                float2 texcoords[] =
-                {
-                    float2(0.0, 1.0),
-                    float2(1.0, 1.0),
-                    float2(1.0, 0.0),
-
-                    float2(1.0, 0.0),
-                    float2(0.0, 0.0),
-                    float2(0.0, 1.0),
-                };
-
                 Varyings output;
-                output.positionCS = positions[input.vertexID];
-                output.texcoord = texcoords[input.vertexID] * _TextureScaleBias.xy + _TextureScaleBias.zw;
+                output.positionCS = GetFullscreenTriangleVertexPosition(input.vertexID);
+                output.texcoord = GetFullscreenTriangleTexcoord(input.vertexID) * _TextureScaleBias.xy + _TextureScaleBias.zw;
 
                 return output;
             }
