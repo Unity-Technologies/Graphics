@@ -2,8 +2,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 {
     Properties
     {
-        _FilterRadius("", Float) = 20
-        _BilateralScale("", Float) = 0.1
         [HideInInspector] _DstBlend("", Float) = 1 // Can be set to 1 for blending with specular
     }
 
@@ -45,7 +43,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #define N_PROFILES 8
             #define N_SAMPLES  7
 
-            float4   _FilterKernels[N_PROFILES][N_SAMPLES]; // RGB = weights, A = radial distance
+            float4   _FilterKernels[N_PROFILES][N_SAMPLES + 1]; // RGB = weights, A = radial distance
             float4x4 _InvProjMatrix;
 
             TEXTURE2D(_CameraDepthTexture);
@@ -101,7 +99,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #endif
                 float2 scaledDirection = radiusScale * stepSize * unitDirection;
 
-                float  inv2MaxVariance = _FilterKernels[profileID][0].a;
+                // Load (1 / (2 * WeightedVariance)) for bilateral weighting.
+                float3 halfRcpVariance = _FilterKernels[profileID][N_SAMPLES].rgb;
 
                 // Take the first (central) sample.
                 float2 samplePosition   = posInput.unPositionSS;
@@ -125,7 +124,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     // Ref #2: Separable SSS, Supplementary Materials, Section E.
                     float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                     float zDistance   = radiusScale * sampleDepth - (radiusScale * centerPosVS.z);
-                    sampleWeight      *= exp(-zDistance * zDistance * inv2MaxVariance);
+                    sampleWeight     *= exp(-zDistance * zDistance * halfRcpVariance);
 
                     filteredIrradiance += sampleIrradiance * sampleWeight;
                 }

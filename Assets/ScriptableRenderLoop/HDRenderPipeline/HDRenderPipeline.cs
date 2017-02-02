@@ -709,16 +709,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (debugParameters.ShouldUseForwardRenderingOnly()) return;
 
             // Load the kernel data.
-            Vector4[] kernelData = new Vector4[SubsurfaceScatteringParameters.maxNumProfiles * SubsurfaceScatteringProfile.numSamples];
+            Vector4[] kernelData = new Vector4[SubsurfaceScatteringParameters.maxNumProfiles * SubsurfaceScatteringProfile.numVectors];
             for (int j = 0, m = sssParameters.profiles.Length; j < m; j++)
             {
-                for (int i = 0, n = SubsurfaceScatteringProfile.numSamples; i < n; i++)
+                for (int i = 0, n = SubsurfaceScatteringProfile.numVectors; i < n; i++)
                 {
                     kernelData[n * j + i] = sssParameters.profiles[j].filterKernel[i];
                 }
             }
 
-            var cmd = new CommandBuffer() { name = "Combine Subsurface Scattering" };
+            var cmd = new CommandBuffer() { name = "Subsurface Scattering Pass" };
 
             // Perform the vertical SSS filtering pass.
             m_FilterSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
