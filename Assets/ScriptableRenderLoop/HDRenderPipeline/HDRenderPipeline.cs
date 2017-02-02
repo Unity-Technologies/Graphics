@@ -171,6 +171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 screenSize;
         public Matrix4x4 viewProjectionMatrix;
         public Matrix4x4 invViewProjectionMatrix;
+        public Matrix4x4 invProjectionMatrix;
         }
 
         public class GBufferManager
@@ -299,12 +300,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
 
             m_FilterSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
+            m_FilterSubsurfaceScattering.DisableKeyword("FILTER_HORIZONTAL");
             m_FilterSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.Zero);
-            m_FilterSubsurfaceScattering.SetFloat("_FilterHorizontal", 0);
 
             m_FilterAndCombineSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
+            m_FilterSubsurfaceScattering.EnableKeyword("FILTER_HORIZONTAL");
             m_FilterAndCombineSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.One);
-            m_FilterAndCombineSubsurfaceScattering.SetFloat("_FilterHorizontal", 1);
 
             m_DebugDisplayShadowMap = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayShadowMap");
 
@@ -707,10 +708,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
             if (debugParameters.ShouldUseForwardRenderingOnly()) return;
 
-            // Assume that the height of the projection window is 2 meters.
-            float distanceToProjectionWindow = 1.0f / Mathf.Tan(0.5f * Mathf.Deg2Rad * hdCamera.camera.fieldOfView);
-
-            // Upload the kernel data.
+            // Load the kernel data.
             Vector4[] kernelData = new Vector4[SubsurfaceScatteringParameters.maxNumProfiles * SubsurfaceScatteringProfile.numSamples];
             for (int j = 0, m = sssParameters.profiles.Length; j < m; j++)
             {
@@ -720,25 +718,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            MaterialPropertyBlock properties = new MaterialPropertyBlock();
-
             var cmd = new CommandBuffer() { name = "Combine Subsurface Scattering" };
 
             // Perform the vertical SSS filtering pass.
-            m_FilterSubsurfaceScattering.SetFloat("_DistToProjWindow", distanceToProjectionWindow);
-            m_FilterSubsurfaceScattering.SetFloat("_BilateralScale", 0.05f * sssParameters.bilateralScale);
+            m_FilterSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
             m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
             Utilities.DrawFullscreen(cmd, m_FilterSubsurfaceScattering, hdCamera,
-                                     m_CameraFilteringBufferRT, m_CameraStencilBufferRT, properties);
+                                     m_CameraFilteringBufferRT, m_CameraStencilBufferRT);
 
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
-            m_FilterAndCombineSubsurfaceScattering.SetFloat("_DistToProjWindow", distanceToProjectionWindow);
-            m_FilterAndCombineSubsurfaceScattering.SetFloat("_BilateralScale", 0.05f * sssParameters.bilateralScale);
+            m_FilterAndCombineSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
             m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
             Utilities.DrawFullscreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera,
-                                     m_CameraColorBufferRT, m_CameraStencilBufferRT, properties);
+                                     m_CameraColorBufferRT, m_CameraStencilBufferRT);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();

@@ -29,6 +29,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #pragma vertex Vert
             #pragma fragment Frag
 
+            #pragma multi_compile _ FILTER_HORIZONTAL
+
             //-------------------------------------------------------------------------------------
             // Include
             //-------------------------------------------------------------------------------------
@@ -43,17 +45,12 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #define N_PROFILES 8
             #define N_SAMPLES  7
 
-            float  _BilateralScale;                       // Uses world-space units
-            float  _DistToProjWindow;                     // The height of the projection window is 2 meters
-            float  _FilterHorizontal;                     // Vertical = 0, horizontal = 1
-            float4 _FilterKernels[N_PROFILES][N_SAMPLES]; // RGB = weights, A = radial distance
+            float4   _FilterKernels[N_PROFILES][N_SAMPLES]; // RGB = weights, A = radial distance
+            float4x4 _InvProjMatrix;
 
             TEXTURE2D(_CameraDepthTexture);
             TEXTURE2D(_GBufferTexture2);
             TEXTURE2D(_IrradianceSource);
-            SAMPLER2D(sampler_IrradianceSource);
-
-            #define bilinearSampler sampler_IrradianceSource
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -80,28 +77,36 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             {
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
-                float  rawDepth     = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
-                float  centerDepth  = LinearEyeDepth(rawDepth, _ZBufferParams);
-                float2 gBufferValue = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
-                float  radiusScale  = gBufferValue.x;
-                float  profileID    = gBufferValue.y * N_PROFILES;
-                float  filterRadius = radiusScale * _DistToProjWindow / centerDepth;
+                float2 gBufferData = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
+                float  radiusScale = gBufferData.x * 0.01;
+                int    profileID   = int(gBufferData.y * N_PROFILES);
+
+                // Reconstruct the view-space position.
+                float  rawDepth    = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
+                float3 centerPosVS = ComputeViewSpacePosition(posInput.positionSS, rawDepth, _InvProjMatrix);
+
+                // Compute the dimensions of the surface fragment viewed as a quad facing the camera.
+                float fragWidth  = ddx(centerPosVS.x);
+                float fragheight = ddy(centerPosVS.y);
+                float stepSizeX  = rcp(fragWidth);
+                float stepSizeY  = rcp(fragheight);
 
                 // Compute the filtering direction.
-                float x, y;
-                sincos(PI / 3, y, x);
-                float2 unitDirection   = _FilterHorizontal ? float2(x, y) : float2(-y, x);
-                float2 scaledDirection = filterRadius * unitDirection;
+            #ifdef FILTER_HORIZONTAL
+                float  stepSize      = stepSizeX;
+                float2 unitDirection = float2(1, 0);
+            #else
+                float  stepSize      = stepSizeY;
+                float2 unitDirection = float2(0, 1);
+            #endif
+                float2 scaledDirection = radiusScale * stepSize * unitDirection;
 
-                // Premultiply with the inverse of the screen size.
-                scaledDirection *= _ScreenSize.zw;
+                float  inv2MaxVariance = _FilterKernels[profileID][0].a;
 
                 // Take the first (central) sample.
-                float3 sampleWeight   = _FilterKernels[profileID][0].rgb;
-                float2 samplePosition = posInput.unPositionSS;
-
+                float2 samplePosition   = posInput.unPositionSS;
+                float3 sampleWeight     = _FilterKernels[profileID][0].rgb;
                 float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
-                float3 centerIrradiance = sampleIrradiance;
 
                 // Accumulate filtered irradiance (already weighted by (albedo / Pi)).
                 float3 filteredIrradiance = sampleIrradiance * sampleWeight;
@@ -109,20 +114,20 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [unroll]
                 for (int i = 1; i < N_SAMPLES; i++)
                 {
-                    sampleWeight   = _FilterKernels[profileID][i].rgb;
-                    samplePosition = posInput.positionSS + scaledDirection * _FilterKernels[profileID][i].a;
+                    samplePosition    = posInput.unPositionSS + scaledDirection * _FilterKernels[profileID][i].a;
+                    sampleWeight      = _FilterKernels[profileID][i].rgb;
 
-                    sampleIrradiance = SAMPLE_TEXTURE2D_LOD(_IrradianceSource,   bilinearSampler, samplePosition, 0).rgb;
-                    rawDepth         = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, bilinearSampler, samplePosition, 0).r;
+                    sampleIrradiance  = LOAD_TEXTURE2D(_IrradianceSource,   samplePosition).rgb;
+                    rawDepth          = LOAD_TEXTURE2D(_CameraDepthTexture, samplePosition).r;
 
                     // Apply bilateral filtering.
+                    // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
+                    // Ref #2: Separable SSS, Supplementary Materials, Section E.
                     float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
-                    float depthDiff   = abs(sampleDepth - centerDepth);
-                    float scaleDiff   = radiusScale * _DistToProjWindow * _BilateralScale;
-                    float t           = saturate(depthDiff / scaleDiff);
+                    float zDistance   = radiusScale * sampleDepth - (radiusScale * centerPosVS.z);
+                    sampleWeight      *= exp(-zDistance * zDistance * inv2MaxVariance);
 
-                    // TODO: use real-world distances for weighting.
-                    filteredIrradiance += lerp(sampleIrradiance, centerIrradiance, t) * sampleWeight;
+                    filteredIrradiance += sampleIrradiance * sampleWeight;
                 }
 
                 return filteredIrradiance;
