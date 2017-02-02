@@ -322,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             //@TODO: need to get light probes + LPPV too?
             settings.inputFilter.SetQueuesOpaque();
             settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
-            loop.DrawRenderers(settings);
+            loop.DrawRenderers(ref settings);
         }
 
         void RenderForward(CullResults cull, Camera camera, ScriptableRenderContext loop, bool opaquesOnly)
@@ -348,7 +348,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             if (opaquesOnly) settings.inputFilter.SetQueuesOpaque();
             else settings.inputFilter.SetQueuesTransparent();
 
-            loop.DrawRenderers(settings);
+            loop.DrawRenderers(ref settings);
         }
 
         static void DepthOnlyForForwardOpaques(CullResults cull, Camera camera, ScriptableRenderContext loop)
@@ -364,7 +364,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 sorting = { flags = SortFlags.CommonOpaque }
             };
             settings.inputFilter.SetQueuesOpaque();
-            loop.DrawRenderers(settings);
+            loop.DrawRenderers(ref settings);
         }
 
         bool usingFptl
@@ -1263,6 +1263,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var cmd = new CommandBuffer() { name = "Build light list" };
 
             // generate screen-space AABBs (used for both fptl and clustered).
+            if (numLights != 0)
             {
                 var proj = CameraProjection(camera);
                 var temp = new Matrix4x4();

@@ -25,6 +25,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent pointCookieSize = new GUIContent("Point cookie size");
             public readonly GUIContent reflectionCubemapSize = new GUIContent("Reflection cubemap size");
 
+            public readonly GUIContent sssSettings = new GUIContent("Subsurface Scattering Settings");
+
             // Shadow Settings
             public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
             public readonly GUIContent shadowsAtlasWidth = new GUIContent("Atlas width");
@@ -32,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Tile pass Settings
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
-            public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] { "Punctual Light", "Area Light", "Env Light" };
+            public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] { "Punctual Light", "Area Light", "Env Light"};
             public readonly GUIContent splitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
             public readonly GUIContent bigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
             public readonly GUIContent clustered = new GUIContent("Enable clustered", "Toggle");
@@ -303,6 +305,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();
+            }
+
+        private void SssSettingsUI(HDRenderPipeline pipe)
+        {
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField(styles.sssSettings);
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.indentLevel++;
+            pipe.localSssParameters = (SubsurfaceScatteringParameters) EditorGUILayout.ObjectField(new GUIContent("Subsurface Scattering Parameters"), pipe.localSssParameters, typeof(SubsurfaceScatteringParameters), false);
+            EditorGUI.indentLevel--;
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(pipe); // Repaint
+            }
         }
 
         private void LightingDebugParametersUI(HDRenderPipeline renderContext, HDRenderPipelineInstance renderpipelineInstance)
@@ -325,12 +343,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_LightingDebugMode.hasMultipleDifferentValues)
             {
                 if ((LightingDebugMode)m_LightingDebugMode.intValue != LightingDebugMode.None)
-                {
+            {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(m_LightingDebugAlbedo, styles.lightingDebugAlbedo);
                     EditorGUILayout.PropertyField(m_LightingDebugOverrideSmoothness, styles.lightingDebugOverrideSmoothness);
                     if (!m_LightingDebugOverrideSmoothness.hasMultipleDifferentValues && m_LightingDebugOverrideSmoothness.boolValue == true)
-                    {
+                {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(m_LightingDebugOverrideSmoothnessValue, styles.lightingDebugOverrideSmoothnessValue);
                         EditorGUI.indentLevel--;
@@ -351,6 +369,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.lightLoopProducer = (LightLoopProducer)EditorGUILayout.ObjectField(new GUIContent("Light Loop"), renderContext.lightLoopProducer, typeof(LightLoopProducer), false);
 
             SkySettingsUI(renderContext);
+            SssSettingsUI(renderContext);
             ShadowParametersUI(renderContext);
             TextureParametersUI(renderContext);
             RendereringParametersUI(renderContext);

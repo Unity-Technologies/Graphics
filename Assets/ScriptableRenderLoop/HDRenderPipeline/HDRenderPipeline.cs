@@ -91,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public CommonSettings.Settings commonSettingsToUse
         {
             get
-            {
+        {
                 if (CommonSettingsSingleton.overrideSettings)
                     return CommonSettingsSingleton.overrideSettings.settings;
 
@@ -116,6 +116,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        [SerializeField]
+        public SubsurfaceScatteringParameters localSssParameters;
+
+        public SubsurfaceScatteringParameters sssParameters
+        {
+            get
+            {
+                if (SubsurfaceScatteringSettings.overrideSettings != null)
+                {
+                    return SubsurfaceScatteringSettings.overrideSettings;
+                }
+
+                if (localSssParameters == null)
+                {
+                    localSssParameters = new SubsurfaceScatteringParameters();
+                }
+
+                return localSssParameters;
+            }
+        }
         public void ApplyDebugParameters()
         {
             m_ShadowSettings.enabled = globalDebugParameters.lightingDebugParameters.enableShadows;
@@ -128,15 +148,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowSettings.directionalLightCascadeCount = commonSettings.shadowCascadeCount;
             m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
             m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
-
-            // TODO: how can we avoid dynamic memory allocation each frame?
-            m_SssParameters.profiles    = new SubsurfaceScatteringProfile[SubsurfaceScatteringParameters.numProfiles];
-            m_SssParameters.profiles[0] = new SubsurfaceScatteringProfile();
-
-            m_SssParameters.profiles[0].stdDev1    = commonSettings.sssProfileStdDev1;
-            m_SssParameters.profiles[0].stdDev2    = commonSettings.sssProfileStdDev2;
-            m_SssParameters.profiles[0].lerpWeight = commonSettings.sssProfileLerpWeight;
-            m_SssParameters.bilateralScale         = commonSettings.sssBilateralScale;	
         }
     }
 
@@ -160,59 +171,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 screenSize;
         public Matrix4x4 viewProjectionMatrix;
         public Matrix4x4 invViewProjectionMatrix;
-    }
-
-    public class GBufferManager
-    {
-        public const int MaxGbuffer = 8;
-
-        public void SetBufferDescription(int index, string stringId, RenderTextureFormat inFormat, RenderTextureReadWrite inSRGBWrite)
-        {
-            IDs[index] = Shader.PropertyToID(stringId);
-            RTIDs[index] = new RenderTargetIdentifier(IDs[index]);
-            formats[index] = inFormat;
-            sRGBWrites[index] = inSRGBWrite;
         }
 
-        public void InitGBuffers(int width, int height, CommandBuffer cmd)
+        public class GBufferManager
         {
-            for (int index = 0; index < gbufferCount; index++)
+            public const int MaxGbuffer = 8;
+
+            public void SetBufferDescription(int index, string stringId, RenderTextureFormat inFormat, RenderTextureReadWrite inSRGBWrite)
             {
+                IDs[index] = Shader.PropertyToID(stringId);
+                RTIDs[index] = new RenderTargetIdentifier(IDs[index]);
+                formats[index] = inFormat;
+                sRGBWrites[index] = inSRGBWrite;
+            }
+
+            public void InitGBuffers(int width, int height, CommandBuffer cmd)
+            {
+                for (int index = 0; index < gbufferCount; index++)
+                {
                 /* RTs[index] = */
                 cmd.GetTemporaryRT(IDs[index], width, height, 0, FilterMode.Point, formats[index], sRGBWrites[index]);
+                }
             }
-        }
 
-        public RenderTargetIdentifier[] GetGBuffers()
-        {
-            var colorMRTs = new RenderTargetIdentifier[gbufferCount];
-            for (int index = 0; index < gbufferCount; index++)
+            public RenderTargetIdentifier[] GetGBuffers()
             {
-                colorMRTs[index] = RTIDs[index];
+                var colorMRTs = new RenderTargetIdentifier[gbufferCount];
+                for (int index = 0; index < gbufferCount; index++)
+                {
+                    colorMRTs[index] = RTIDs[index];
+                }
+
+                return colorMRTs;
             }
 
-            return colorMRTs;
-        }
-
-        /*
-        public void BindBuffers(Material mat)
-        {
-            for (int index = 0; index < gbufferCount; index++)
+            /*
+            public void BindBuffers(Material mat)
             {
-                mat.SetTexture(IDs[index], RTs[index]);
+                for (int index = 0; index < gbufferCount; index++)
+                {
+                    mat.SetTexture(IDs[index], RTs[index]);
+                }
             }
-        }
-        */
+            */
 
-        public int gbufferCount { get; set; }
-        int[] IDs = new int[MaxGbuffer];
-        RenderTargetIdentifier[] RTIDs = new RenderTargetIdentifier[MaxGbuffer];
-        RenderTextureFormat[] formats = new RenderTextureFormat[MaxGbuffer];
-        RenderTextureReadWrite[] sRGBWrites = new RenderTextureReadWrite[MaxGbuffer];
-    }
+            public int gbufferCount { get; set; }
+            int[] IDs = new int[MaxGbuffer];
+            RenderTargetIdentifier[] RTIDs = new RenderTargetIdentifier[MaxGbuffer];
+            RenderTextureFormat[] formats = new RenderTextureFormat[MaxGbuffer];
+            RenderTextureReadWrite[] sRGBWrites = new RenderTextureReadWrite[MaxGbuffer];
+        }
 
     public class HDRenderPipelineInstance : RenderPipeline
-    {
+        {
         private readonly HDRenderPipeline m_Owner;
 
         // TODO: Find a way to automatically create/iterate through deferred material
@@ -558,7 +569,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 sorting = { flags = SortFlags.CommonOpaque }
             };
             settings.inputFilter.SetQueuesOpaque();
-            renderContext.DrawRenderers(settings);
+            renderContext.DrawRenderers(ref settings);
         }
 
         void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, string passName, RendererConfiguration rendererConfiguration = 0)
@@ -572,7 +583,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 sorting = { flags = SortFlags.CommonTransparent }
             };
             settings.inputFilter.SetQueuesTransparent();
-            renderContext.DrawRenderers(settings);
+            renderContext.DrawRenderers(ref settings);
         }
 
         void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext)

@@ -29,35 +29,86 @@ float2 InitRandom(float2 input)
 }
 
 //-----------------------------------------------------------------------------
+// Coordinate system conversion
+//-----------------------------------------------------------------------------
+
+// Transforms the unit vector from the spherical to the Cartesian (right-handed, Z up) coordinate.
+float3 SphericalToCartesian(float phi, float cosTheta)
+{
+    float sinPhi, cosPhi;
+    sincos(phi, sinPhi, cosPhi);
+
+    float sinTheta = sqrt(saturate(1.0 - cosTheta * cosTheta));
+
+    return float3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+}
+
+// Converts Cartesian coordinates given in the right-handed coordinate system
+// with Z pointing upwards (OpenGL style) to the coordinates in the left-handed
+// coordinate system with Y pointing up and Z facing forward (DirectX style).
+float3 TransformGLtoDX(float3 v)
+{
+    return v.xzy;
+}
+
+// Performs conversion from equiareal map coordinates to Cartesian (DirectX cubemap) ones.
+float3 ConvertEquiarealToCubemap(float u, float v)
+{
+    float phi      = TWO_PI - TWO_PI * u;
+    float cosTheta = 1.0 - 2.0 * v;
+
+    return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
+}
+
+//-----------------------------------------------------------------------------
 // Sampling function
 // Reference : http://www.cs.virginia.edu/~jdl/bib/globillum/mis/shirley96.pdf + PBRT
 // Caution: Our light point backward (-Z), these sampling function follow this convention
 //-----------------------------------------------------------------------------
 
-float3 UniformSampleSphere(float u1, float u2)
+// Performs uniform sampling of the unit disk.
+// Ref: PBRT v3, p. 777.
+float2 SampleDiskUniform(float u1, float u2)
 {
+    float r   = sqrt(u1);
     float phi = TWO_PI * u2;
+
+    float sinPhi, cosPhi;
+    sincos(phi, sinPhi, cosPhi);
+
+    return r * float2(cosPhi, sinPhi);
+}
+
+// Performs cosine-weighted sampling of the hemisphere.
+// Ref: PBRT v3, p. 780.
+float3 SampleHemisphereCosine(float u1, float u2)
+{
+    float3 localL;
+
+    // Since we don't really care about the area distortion,
+    // we substitute uniform disk sampling for the concentric one.
+    localL.xy = SampleDiskUniform(u1, u2);
+
+    // Project the point from the disk onto the hemisphere.
+    localL.z = sqrt(1.0 - u1);
+
+    return localL;
+}
+
+float3 SampleHemisphereUniform(float u1, float u2)
+{
+    float phi      = TWO_PI * u2;
+    float cosTheta = 1.0 - u1;
+
+    return SphericalToCartesian(phi, cosTheta);
+}
+
+float3 SampleSphereUniform(float u1, float u2)
+{
+    float phi      = TWO_PI * u2;
     float cosTheta = 1.0 - 2.0 * u1;
-    float sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
 
-    return float3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta); // Light point backward (-Z)
-}
-
-float3 UniformSampleHemisphere(float u1, float u2)
-{
-    float phi = TWO_PI * u2;
-    float cosTheta = u1;
-    float sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
-
-    return float3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta); // Light point backward (-Z)
-}
-
-float3 UniformSampleDisk(float u1, float u2)
-{
-    float r = sqrt(u1);
-    float phi = TWO_PI * u2;
-
-    return float3(r * cos(phi), r * sin(phi), 0); // Generate in XY plane as light point backward (-Z)
+    return SphericalToCartesian(phi, cosTheta);
 }
 
 void SampleSphere(  float2 u,
@@ -70,7 +121,7 @@ void SampleSphere(  float2 u,
     float u1 = u.x;
     float u2 = u.y;
 
-    Ns = UniformSampleSphere(u1, u2);
+    Ns = SampleSphereUniform(u1, u2);
 
     // Transform from unit sphere to world space
     P = radius * Ns + localToWorld[3].xyz;
@@ -90,7 +141,7 @@ void SampleHemisphere(  float2 u,
     float u2 = u.y;
 
     // Random point at hemisphere surface
-    Ns = -UniformSampleHemisphere(u1, u2); // We want the y down hemisphere
+    Ns = -SampleHemisphereUniform(u1, u2); // We want the y down hemisphere
     P = radius * Ns;
 
     // Transform to world space
@@ -159,7 +210,7 @@ void SampleDisk(float2 u,
                 out float3 Ns)
 {
     // Random point at disk surface
-    P = UniformSampleDisk(u.x, u.y) * radius;
+    P  = float3(radius * SampleDiskUniform(u.x, u.y), 0);
     Ns = float3(0.0, 0.0, -1.0); // Light point backward (-Z)
 
     // Transform to world space

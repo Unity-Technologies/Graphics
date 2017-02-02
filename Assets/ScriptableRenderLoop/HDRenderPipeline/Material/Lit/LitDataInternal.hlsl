@@ -336,9 +336,17 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.specular = 0.04;
 
-    surfaceData.subSurfaceRadius = 1.0;
-    surfaceData.thickness = 0.0;
-    surfaceData.subSurfaceProfile = 0;
+    surfaceData.subsurfaceProfile = _SubsurfaceProfile;
+#ifdef _Subsurface_RADIUS_MAP
+	surfaceData.subsurfaceProfile = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_SubsurfaceRadiusMap), ADD_ZERO_IDX(sampler_SubsurfaceRadiusMap), ADD_IDX(layerTexCoord.base)).r;
+#else
+    surfaceData.subsurfaceRadius = _SubsurfaceRadius;
+#endif
+#ifdef _THICKNESS_MAP
+	surfaceData.thickness = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_ThicknessMap), ADD_ZERO_IDX(sampler_ThicknessMap), ADD_IDX(layerTexCoord.base)).r;
+#else
+    surfaceData.thickness = _Thickness;
+#endif
 
     surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
     surfaceData.coatPerceptualSmoothness = 1.0;
@@ -355,9 +363,9 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
 
-    surfaceData.subSurfaceRadius = 1.0;
+    surfaceData.subsurfaceRadius = 1.0;
     surfaceData.thickness = 0.0;
-    surfaceData.subSurfaceProfile = 0;
+    surfaceData.subsurfaceProfile = 0;
 
     surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
     surfaceData.coatPerceptualSmoothness = 1.0;
