@@ -38,7 +38,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             // variable declaration
             //-------------------------------------------------------------------------------------
 
-            TEXTURE2D(_CameraDepthTexture);
+            TEXTURE2D_FLOAT(_CameraDepthTexture);
             SAMPLER2D(sampler_CameraDepthTexture);
 
             uint _ViewTilesFlags;
