@@ -35,11 +35,11 @@ Shader "HDRenderPipeline/LitTessellation"
         _DetailAOScale("_DetailAOScale", Range(-2.0, 2.0)) = 1
 
         [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2)] _MaterialID("Material Class", Int) = 0
-        _SubSurfaceRadius("SubSurfaceRadius", Range(0.0, 1.0)) = 0
-        _SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
-        //_Thickness("Thickness", Range(0.0, 1.0)) = 0
-        //_ThicknessMap("ThicknessMap", 2D) = "white" {}
-        //_SubSurfaceProfile("SubSurfaceProfile", Float) = 0
+        _SubsurfaceProfile("Subsurface Profile", Int) = 0
+        _SubsurfaceRadius("Subsurface Radius", Range(0.0, 1.0)) = 0
+        _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
+        _Thickness("Thickness", Range(0.0, 1.0)) = 0
+        _ThicknessMap("Thickness Map", 2D) = "white" {}
 
         //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
         //_CoatCoverageMap("CoatCoverageMapMap", 2D) = "white" {}
@@ -142,6 +142,8 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
     #pragma shader_feature _DETAIL_MAP
+    #pragma shader_feature _SUBSURFACE_RADIUS_MAP
+    #pragma shader_feature _THICKNESS_MAP
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
