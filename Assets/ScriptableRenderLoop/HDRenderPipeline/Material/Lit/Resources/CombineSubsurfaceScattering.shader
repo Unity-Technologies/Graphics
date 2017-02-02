@@ -75,9 +75,10 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             {
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
-                float2 gBufferData = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
-                float  radiusScale = gBufferData.x * 0.01;
-                int    profileID   = int(gBufferData.y * N_PROFILES);
+                float2 gBufferData  = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
+                int    profileID    = int(gBufferData.y * N_PROFILES);
+                float  distScale    = gBufferData.x * 0.01;
+                float  invDistScale = rcp(distScale);
 
                 // Reconstruct the view-space position.
                 float  rawDepth    = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
@@ -97,7 +98,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float  stepSize      = stepSizeY;
                 float2 unitDirection = float2(0, 1);
             #endif
-                float2 scaledDirection = radiusScale * stepSize * unitDirection;
+                float2 scaledDirection = distScale * stepSize * unitDirection;
 
                 // Load (1 / (2 * WeightedVariance)) for bilateral weighting.
                 float3 halfRcpVariance = _FilterKernels[profileID][N_SAMPLES].rgb;
@@ -113,17 +114,17 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [unroll]
                 for (int i = 1; i < N_SAMPLES; i++)
                 {
-                    samplePosition    = posInput.unPositionSS + scaledDirection * _FilterKernels[profileID][i].a;
-                    sampleWeight      = _FilterKernels[profileID][i].rgb;
+                    samplePosition = posInput.unPositionSS + scaledDirection * _FilterKernels[profileID][i].a;
+                    sampleWeight   = _FilterKernels[profileID][i].rgb;
 
-                    sampleIrradiance  = LOAD_TEXTURE2D(_IrradianceSource,   samplePosition).rgb;
-                    rawDepth          = LOAD_TEXTURE2D(_CameraDepthTexture, samplePosition).r;
+                    rawDepth         = LOAD_TEXTURE2D(_CameraDepthTexture, samplePosition).r;
+                    sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource,   samplePosition).rgb;
 
                     // Apply bilateral filtering.
                     // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
                     // Ref #2: Separable SSS, Supplementary Materials, Section E.
                     float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
-                    float zDistance   = radiusScale * sampleDepth - (radiusScale * centerPosVS.z);
+                    float zDistance   = invDistScale * sampleDepth - (invDistScale * centerPosVS.z);
                     sampleWeight     *= exp(-zDistance * zDistance * halfRcpVariance);
 
                     filteredIrradiance += sampleIrradiance * sampleWeight;
