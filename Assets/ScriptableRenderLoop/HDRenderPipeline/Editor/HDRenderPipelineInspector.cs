@@ -31,6 +31,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int[] debugViewMaterialValues = null;
 
             public readonly GUIContent skyParams = new GUIContent("Sky Settings");
+            public readonly GUIContent sssSettings = new GUIContent("Subsurface Scattering Settings");
 
             // Shadow Debug
             public readonly GUIContent shadowDebugParameters = new GUIContent("Shadow Debug");
@@ -49,8 +50,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent clustered = new GUIContent("Enable clustered", "Toggle");
             public readonly GUIContent disableTileAndCluster = new GUIContent("Disable Tile/clustered", "Toggle");
             public readonly GUIContent disableDeferredShadingInCompute = new GUIContent("Disable deferred shading in compute", "Toggle");
-
-
 
             public readonly GUIContent textureSettings = new GUIContent("Texture Settings");
 
@@ -261,6 +260,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        private void SssSettingsUI(HDRenderPipeline pipe)
+        {
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField(styles.sssSettings);
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.indentLevel++;
+            pipe.localSssParameters = (SubsurfaceScatteringParameters) EditorGUILayout.ObjectField(new GUIContent("Subsurface Scattering Parameters"), pipe.localSssParameters, typeof(SubsurfaceScatteringParameters), false);
+            EditorGUI.indentLevel--;
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(pipe); // Repaint
+            }
+        }
+
         private void ShadowDebugParametersUI(HDRenderPipeline renderContext)
         {
             m_ShowDebugShadow.boolValue = EditorGUILayout.Foldout(m_ShowDebugShadow.boolValue, styles.shadowDebugParameters);
@@ -375,6 +390,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebuggingUI(renderContext);
             SkySettingsUI(renderContext);
+            SssSettingsUI(renderContext);
             ShadowParametersUI(renderContext);
             TextureParametersUI(renderContext);
             //TilePassUI(renderContext);

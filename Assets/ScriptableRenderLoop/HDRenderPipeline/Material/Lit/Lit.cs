@@ -50,12 +50,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float specular; // 0.02, 0.04, 0.16, 0.2
 
             // SSS
-            [SurfaceDataAttributes("SubSurface Radius")]
-            public float subSurfaceRadius;
+            [SurfaceDataAttributes("Subsurface Radius")]
+            public float subsurfaceRadius;
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
-            [SurfaceDataAttributes("SubSurface Profile")]
-            public int subSurfaceProfile;
+            [SurfaceDataAttributes("Subsurface Profile")]
+            public int subsurfaceProfile;
 
             // Clearcoat
             [SurfaceDataAttributes("Coat Normal")]
@@ -98,9 +98,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // fold into fresnel0
 
             // SSS
-            public float subSurfaceRadius;
+            public float subsurfaceRadius;
             public float thickness;
-            public int subSurfaceProfile;
+            public int   subsurfaceProfile;
 
             // Clearcoat
             public Vector3 coatNormalWS;

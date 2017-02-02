@@ -1263,6 +1263,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var cmd = new CommandBuffer() { name = "Build light list" };
 
             // generate screen-space AABBs (used for both fptl and clustered).
+            if (numLights != 0)
             {
                 var proj = CameraProjection(camera);
                 var temp = new Matrix4x4();
