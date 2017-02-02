@@ -104,7 +104,7 @@ bool DoesSphereOverlapTile(float3 dir, float halfTileSizeAtZDistOne, float3 sphC
 #if 1
 	float3 maxZdir = float3(-sphCen.z*sphCen.x, -sphCen.z*sphCen.y, sphCen.x*sphCen.x + sphCen.y*sphCen.y);		// cross(sphCen,cross(Zaxis,sphCen))
 	float len = length(maxZdir);
-	float scalarProj = len>0.0001 ? (maxZdir.z/len) : len;	// since len>=(maxZdir.z/len) we can use len as an approximate value when len<=epsilon
+	float scalarProj = len>0.0001 ? (maxZdir.z/len) : len;	// if len<=0.0001 then either |sphCen|<sphRadius or sphCen is very closely aligned with Z axis in which case little to no additional offs needed.
 	float offs = scalarProj*sphRadiusIn;
 #else
 	float offs = sphRadiusIn;		// more false positives due to larger radius but works too

@@ -32,13 +32,14 @@ Shader "HDRenderPipeline/Lit"
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(-2.0, 2.0)) = 1
         _DetailHeightScale("_DetailHeightScale", Range(-2.0, 2.0)) = 1
-        _DetailAOScale("_DetailAOScale", Range(-2.0, 2.0)) = 1        
+        _DetailAOScale("_DetailAOScale", Range(-2.0, 2.0)) = 1
 
-        _SubSurfaceRadius("SubSurfaceRadius", Range(0.0, 1.0)) = 0
-        _SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
-        //_Thickness("Thickness", Range(0.0, 1.0)) = 0
-        //_ThicknessMap("ThicknessMap", 2D) = "white" {}
-        //_SubSurfaceProfile("SubSurfaceProfile", Float) = 0
+        [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2)] _MaterialID("Material Class", Int) = 0
+        _SubsurfaceProfile("Subsurface Profile", Int) = 0
+        _SubsurfaceRadius("Subsurface Radius", Range(0.0, 1.0)) = 0
+        _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
+        _Thickness("Thickness", Range(0.0, 1.0)) = 0
+        _ThicknessMap("Thickness Map", 2D) = "white" {}
 
         //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
         //_CoatCoverageMap("CoatCoverageMapMap", 2D) = "white" {}
@@ -62,6 +63,11 @@ Shader "HDRenderPipeline/Lit"
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+
+        _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
+
+        // Stencil state
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 0
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -89,7 +95,7 @@ Shader "HDRenderPipeline/Lit"
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
-        [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1                
+        [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1        
     }
 
     HLSLINCLUDE
@@ -121,7 +127,9 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
-    #pragma shader_feature _DETAIL_MAP  
+    #pragma shader_feature _DETAIL_MAP
+	#pragma shader_feature _SUBSURFACE_RADIUS_MAP
+    #pragma shader_feature _THICKNESS_MAP
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -168,6 +176,13 @@ Shader "HDRenderPipeline/Lit"
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
             Cull  [_CullMode]
+
+            Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             HLSLPROGRAM
 

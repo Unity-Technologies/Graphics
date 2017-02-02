@@ -278,10 +278,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // TODO: Do something. For now just take alpha channel
     surfaceData.specularOcclusion = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_SpecularOcclusionMap), ADD_ZERO_IDX(sampler_SpecularOcclusionMap), ADD_IDX(layerTexCoord.base)).a;
 #else
-    // Horizon Occlusion for Normal Mapped Reflections: http://marmosetco.tumblr.com/post/81245981087
-    //surfaceData.specularOcclusion = saturate(1.0 + horizonFade * dot(r, input.tangentToWorld[2].xyz);
-    // smooth it
-    //surfaceData.specularOcclusion *= surfaceData.specularOcclusion;
+    // The specular occlusion will be perform outside the internal loop
     surfaceData.specularOcclusion = 1.0;
 #endif
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this so that the compiler leaves us alone.
@@ -314,7 +311,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 
-    surfaceData.materialId = 0; // TODO
+    surfaceData.materialId = _MaterialID;
 
     // TODO: think about using BC5
 #ifdef _TANGENTMAP
@@ -339,9 +336,17 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.specular = 0.04;
 
-    surfaceData.subSurfaceRadius = 1.0;
-    surfaceData.thickness = 0.0;
-    surfaceData.subSurfaceProfile = 0;
+    surfaceData.subsurfaceProfile = _SubsurfaceProfile;
+#ifdef _Subsurface_RADIUS_MAP
+	surfaceData.subsurfaceProfile = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_SubsurfaceRadiusMap), ADD_ZERO_IDX(sampler_SubsurfaceRadiusMap), ADD_IDX(layerTexCoord.base)).r;
+#else
+    surfaceData.subsurfaceRadius = _SubsurfaceRadius;
+#endif
+#ifdef _THICKNESS_MAP
+	surfaceData.thickness = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_ThicknessMap), ADD_ZERO_IDX(sampler_ThicknessMap), ADD_IDX(layerTexCoord.base)).r;
+#else
+    surfaceData.thickness = _Thickness;
+#endif
 
     surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
     surfaceData.coatPerceptualSmoothness = 1.0;
@@ -358,9 +363,9 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
 
-    surfaceData.subSurfaceRadius = 1.0;
+    surfaceData.subsurfaceRadius = 1.0;
     surfaceData.thickness = 0.0;
-    surfaceData.subSurfaceProfile = 0;
+    surfaceData.subsurfaceProfile = 0;
 
     surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
     surfaceData.coatPerceptualSmoothness = 1.0;

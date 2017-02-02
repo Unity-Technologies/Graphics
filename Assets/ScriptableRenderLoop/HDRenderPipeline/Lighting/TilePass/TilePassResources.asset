@@ -23,5 +23,3 @@ MonoBehaviour:
   m_DebugViewMaterialGBuffer: {fileID: 4800000, guid: 439949ea1bfa91b4ba0d04269fcde33d,
     type: 3}
   m_InitPreFGD: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
-
-

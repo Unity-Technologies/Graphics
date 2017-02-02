@@ -16,18 +16,23 @@ namespace UnityEngine.Experimental.Rendering
         public int      directionalLightCascadeCount;
         public Vector3  directionalLightCascades;
 
+        static ShadowSettings defaultShadowSettings = null;
+
         public static ShadowSettings Default
         {
             get
             {
-                ShadowSettings settings = new ShadowSettings();
-                settings.enabled = true;
-                settings.shadowAtlasHeight = settings.shadowAtlasWidth = 4096;
-                settings.directionalLightCascadeCount = 1;
-                settings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
-                settings.directionalLightCascadeCount = 4;
-                settings.maxShadowDistance = 1000.0F;
-                return settings;
+                if (defaultShadowSettings == null)
+                {
+                    defaultShadowSettings = new ShadowSettings();
+                    defaultShadowSettings.enabled = true;
+                    defaultShadowSettings.shadowAtlasHeight = defaultShadowSettings.shadowAtlasWidth = 4096;
+                    defaultShadowSettings.directionalLightCascadeCount = 1;
+                    defaultShadowSettings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
+                    defaultShadowSettings.directionalLightCascadeCount = 4;
+                    defaultShadowSettings.maxShadowDistance = 1000.0F;
+                }
+                return defaultShadowSettings;
             }
         }
     }
@@ -81,6 +86,10 @@ namespace UnityEngine.Experimental.Rendering
         int                         m_ShadowTexName;
         const int                   k_DepthBuffer = 24;
 
+        public int shadowTexName
+        {
+            get { return m_ShadowTexName; }
+        }
 
         public ShadowRenderPass(ShadowSettings settings)
         {
@@ -282,6 +291,7 @@ namespace UnityEngine.Experimental.Rendering
             if (!m_Settings.enabled)
             {
                 ClearPackedShadows(cullResults.visibleLights, out packedShadows);
+                return;
             }
 
             // Pack all shadow quads into the texture
@@ -417,7 +427,7 @@ namespace UnityEngine.Experimental.Rendering
             commandBuffer.Dispose();
 
             // Render
-            loop.DrawShadows(settings);
+            loop.DrawShadows(ref settings);
         }
     }
 }

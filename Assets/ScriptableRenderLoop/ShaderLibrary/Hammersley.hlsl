@@ -16,14 +16,14 @@ uint ReverseBits32(uint bits)
 #endif
 }
 
-float RadicalInverse_VdC(uint bits)
+float VanDerCorputBase2(uint i)
 {
-    return float(ReverseBits32(bits)) * 2.3283064365386963e-10; // 0x100000000
+    return ReverseBits32(i) * rcp(4294967296.0); // 0x100000000
 }
 
 float2 Hammersley2dSeq(uint i, uint sequenceLength)
 {
-    return float2(float(i) / float(sequenceLength), RadicalInverse_VdC(i));
+    return float2(float(i) / float(sequenceLength), VanDerCorputBase2(i));
 }
 
 static const float2 k_Hammersley2dSeq16[] = {

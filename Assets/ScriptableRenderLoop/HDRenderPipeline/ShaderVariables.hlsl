@@ -182,7 +182,7 @@ float4 unity_DynamicLightmapST;
 CBUFFER_END
 
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
-TEXTURE3D(unity_ProbeVolumeSH);
+TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER3D(samplerunity_ProbeVolumeSH);
 
 CBUFFER_START(UnityProbeVolume)
