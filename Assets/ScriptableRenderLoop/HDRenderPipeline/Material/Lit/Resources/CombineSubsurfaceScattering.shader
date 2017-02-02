@@ -48,7 +48,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             float4 _FilterKernel[7];  // RGB = weights, A = radial distance
             float  _FilterRadius;     // Uses world-space units
 
-            TEXTURE2D(_CameraDepthTexture);
+            TEXTURE2D_FLOAT(_CameraDepthTexture);
             TEXTURE2D(_IrradianceSource);
             SAMPLER2D(sampler_IrradianceSource);
 

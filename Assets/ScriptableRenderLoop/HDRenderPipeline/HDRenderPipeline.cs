@@ -70,7 +70,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-
         [SerializeField]
         private SkyParameters m_SkyParameters;
 
@@ -90,7 +89,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_SkyParameters;
             }
         }
+        
+        [SerializeField]
+        public SubsurfaceScatteringParameters localSssParameters;
 
+        public SubsurfaceScatteringParameters sssParameters
+        {
+            get
+            {
+                if (SubsurfaceScatteringSettings.overrideSettings != null)
+                {
+                    return SubsurfaceScatteringSettings.overrideSettings;
+                }
+
+                if (localSssParameters == null)
+                {
+                    localSssParameters = new SubsurfaceScatteringParameters();
+                }
+
+                return localSssParameters;
+            }
+        }
 
         [SerializeField]
         private LightLoopProducer m_LightLoopProducer;
@@ -123,14 +142,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        SubsurfaceScatteringParameters m_SssParameters = SubsurfaceScatteringParameters.Default;
-
-        public SubsurfaceScatteringParameters sssParameters
-        {
-            get { return m_SssParameters; } 
-        }
-
-        [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
         public TextureSettings textureSettings
@@ -151,15 +162,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowSettings.directionalLightCascadeCount = commonSettings.shadowCascadeCount;
             m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
             m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
-
-            // TODO: how can we avoid dynamic memory allocation each frame?
-            m_SssParameters.profiles    = new SubsurfaceScatteringProfile[SubsurfaceScatteringParameters.numProfiles];
-            m_SssParameters.profiles[0] = new SubsurfaceScatteringProfile();
-
-            m_SssParameters.profiles[0].stdDev1    = commonSettings.sssProfileStdDev1;
-            m_SssParameters.profiles[0].stdDev2    = commonSettings.sssProfileStdDev2;
-            m_SssParameters.profiles[0].lerpWeight = commonSettings.sssProfileLerpWeight;
-            m_SssParameters.bilateralScale         = commonSettings.sssBilateralScale;	
         }
     }
 
