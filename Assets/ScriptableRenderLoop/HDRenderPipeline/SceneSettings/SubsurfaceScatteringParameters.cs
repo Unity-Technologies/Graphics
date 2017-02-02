@@ -158,6 +158,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FilterKernel[i].z *= 1.0f / weightSum.z;
             }
 
+            // Store (1 / (2 * variance)) instead of the distance to the 1st sample (which is implicitly 0).
+            float weightedStdDev = Mathf.Lerp(maxStdDev1, maxStdDev2, m_LerpWeight);
+            m_FilterKernel[0].w  = 1.0f / (2.0f * weightedStdDev * weightedStdDev);
+
             m_KernelNeedsUpdate = false;
         }
     }

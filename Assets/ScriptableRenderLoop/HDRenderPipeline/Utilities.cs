@@ -223,8 +223,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
             var gpuVP = gpuProj * camera.worldToCameraMatrix;
 
-            hdCamera.viewProjectionMatrix = gpuVP;
+            hdCamera.viewProjectionMatrix    = gpuVP;
             hdCamera.invViewProjectionMatrix = gpuVP.inverse;
+            hdCamera.invProjectionMatrix     = gpuProj.inverse;
 
             return hdCamera;
         }
