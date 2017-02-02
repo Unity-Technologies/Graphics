@@ -22,7 +22,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             ZWrite Off
             ZTest  Always
-            Blend [_SrcBlend][_DstBlend]
+            Blend [_SrcBlend] [_DstBlend], One Zero
 
             HLSLPROGRAM
             #pragma target 4.5
