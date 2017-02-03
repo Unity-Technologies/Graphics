@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -10,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CustomEditor(typeof(PostProcessing))]
     public class PostProcessingEditor : Editor
     {
+        #region Serialized settings
         public class ColorGradingSettings
         {
             public SerializedProperty type;
@@ -46,60 +49,141 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty logMax;
         }
 
+        public class ChromaticAberrationSettings
+        {
+            public SerializedProperty enabled;
+            public SerializedProperty spectralTexture;
+            public SerializedProperty intensity;
+        }
+
+        public class VignetteSettings
+        {
+            public SerializedProperty enabled;
+            public SerializedProperty color;
+            public SerializedProperty center;
+            public SerializedProperty intensity;
+            public SerializedProperty smoothness;
+        }
+
+        public class BloomSettings
+        {
+            public SerializedProperty enabled;
+            public SerializedProperty intensity;
+            public SerializedProperty threshold;
+            public SerializedProperty softKnee;
+            public SerializedProperty radius;
+            public SerializedProperty lensTexture;
+            public SerializedProperty lensIntensity;
+        }
+        #endregion
+
         public ColorGradingSettings colorGrading;
         public EyeAdaptationSettings eyeAdaptation;
+        public ChromaticAberrationSettings chromaSettings;
+        public VignetteSettings vignetteSettings;
+        public BloomSettings bloomSettings;
+        public SerializedProperty globalDithering;
+
+        SerializedProperty FindProperty<TValue>(Expression<Func<PostProcessing, TValue>> expr)
+        {
+            var path = Utilities.GetFieldPath(expr);
+            return serializedObject.FindProperty(path);
+        }
 
         void OnEnable()
         {
-            colorGrading = new ColorGradingSettings()
+            colorGrading = new ColorGradingSettings
             {
-                type = serializedObject.FindProperty("colorGrading.type"),
-                exposure = serializedObject.FindProperty("colorGrading.exposure"),
+                type = FindProperty(x => x.colorGrading.type),
+                exposure = FindProperty(x => x.colorGrading.exposure),
 
-                logLut = serializedObject.FindProperty("colorGrading.logLut"),
+                logLut = FindProperty(x => x.colorGrading.logLut),
 
-                neutralBlackIn = serializedObject.FindProperty("colorGrading.neutralBlackIn"),
-                neutralWhiteIn = serializedObject.FindProperty("colorGrading.neutralWhiteIn"),
-                neutralBlackOut = serializedObject.FindProperty("colorGrading.neutralBlackOut"),
-                neutralWhiteOut = serializedObject.FindProperty("colorGrading.neutralWhiteOut"),
-                neutralWhiteLevel = serializedObject.FindProperty("colorGrading.neutralWhiteLevel"),
-                neutralWhiteClip = serializedObject.FindProperty("colorGrading.neutralWhiteClip")
+                neutralBlackIn = FindProperty(x => x.colorGrading.neutralBlackIn),
+                neutralWhiteIn = FindProperty(x => x.colorGrading.neutralWhiteIn),
+                neutralBlackOut = FindProperty(x => x.colorGrading.neutralBlackOut),
+                neutralWhiteOut = FindProperty(x => x.colorGrading.neutralWhiteOut),
+                neutralWhiteLevel = FindProperty(x => x.colorGrading.neutralWhiteLevel),
+                neutralWhiteClip = FindProperty(x => x.colorGrading.neutralWhiteClip)
             };
 
-            eyeAdaptation = new EyeAdaptationSettings()
+            eyeAdaptation = new EyeAdaptationSettings
             {
-                enabled = serializedObject.FindProperty("eyeAdaptation.enabled"),
-                showDebugHistogramInGameView = serializedObject.FindProperty("eyeAdaptation.showDebugHistogramInGameView"),
+                enabled = FindProperty(x => x.eyeAdaptation.enabled),
+                showDebugHistogramInGameView = FindProperty(x => x.eyeAdaptation.showDebugHistogramInGameView),
 
-                lowPercent = serializedObject.FindProperty("eyeAdaptation.lowPercent"),
-                highPercent = serializedObject.FindProperty("eyeAdaptation.highPercent"),
+                lowPercent = FindProperty(x => x.eyeAdaptation.lowPercent),
+                highPercent = FindProperty(x => x.eyeAdaptation.highPercent),
 
-                minLuminance = serializedObject.FindProperty("eyeAdaptation.minLuminance"),
-                maxLuminance = serializedObject.FindProperty("eyeAdaptation.maxLuminance"),
-                exposureCompensation = serializedObject.FindProperty("eyeAdaptation.exposureCompensation"),
+                minLuminance = FindProperty(x => x.eyeAdaptation.minLuminance),
+                maxLuminance = FindProperty(x => x.eyeAdaptation.maxLuminance),
+                exposureCompensation = FindProperty(x => x.eyeAdaptation.exposureCompensation),
 
-                adaptationType = serializedObject.FindProperty("eyeAdaptation.adaptationType"),
+                adaptationType = FindProperty(x => x.eyeAdaptation.adaptationType),
 
-                speedUp = serializedObject.FindProperty("eyeAdaptation.speedUp"),
-                speedDown = serializedObject.FindProperty("eyeAdaptation.speedDown"),
+                speedUp = FindProperty(x => x.eyeAdaptation.speedUp),
+                speedDown = FindProperty(x => x.eyeAdaptation.speedDown),
 
-                logMin = serializedObject.FindProperty("eyeAdaptation.logMin"),
-                logMax = serializedObject.FindProperty("eyeAdaptation.logMax")
+                logMin = FindProperty(x => x.eyeAdaptation.logMin),
+                logMax = FindProperty(x => x.eyeAdaptation.logMax)
             };
+
+            chromaSettings = new ChromaticAberrationSettings
+            {
+                enabled = FindProperty(x => x.chromaSettings.enabled),
+                spectralTexture = FindProperty(x => x.chromaSettings.spectralTexture),
+                intensity = FindProperty(x => x.chromaSettings.intensity)
+            };
+
+            vignetteSettings = new VignetteSettings
+            {
+                enabled = FindProperty(x => x.vignetteSettings.enabled),
+                color = FindProperty(x => x.vignetteSettings.color),
+                center = FindProperty(x => x.vignetteSettings.center),
+                intensity = FindProperty(x => x.vignetteSettings.intensity),
+                smoothness = FindProperty(x => x.vignetteSettings.smoothness)
+            };
+
+            bloomSettings = new BloomSettings
+            {
+                enabled = FindProperty(x => x.bloomSettings.enabled),
+
+                intensity = FindProperty(x => x.bloomSettings.intensity),
+                threshold = FindProperty(x => x.bloomSettings.threshold),
+
+                softKnee = FindProperty(x => x.bloomSettings.softKnee),
+                radius = FindProperty(x => x.bloomSettings.radius),
+
+                lensTexture = FindProperty(x => x.bloomSettings.lensTexture),
+                lensIntensity = FindProperty(x => x.bloomSettings.lensIntensity)
+            };
+
+            globalDithering = FindProperty(x => x.globalDithering);
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            var camera = (target as PostProcessing).GetComponent<Camera>();
-            if (camera == null)
-                EditorGUILayout.HelpBox("Global post-processing settings will be overriden by local camera settings. Global settings are the only one visible in the scene view.", MessageType.Info);
+            DoColorGradingUI();
+            DoEyeAdaptationUI();
+            DoBloomUI();
+            DoChromaticAberrationUI();
+            DoVignetteUI();
 
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(globalDithering);
+
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        void DoColorGradingUI()
+        {
             EditorGUILayout.LabelField("Color Grading", EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
 
+            var camera = (target as PostProcessing).GetComponent<Camera>();
             if (camera != null)
             {
                 using (new EditorGUILayout.HorizontalScope())
@@ -156,7 +240,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel--;
             EditorGUI.indentLevel--;
+        }
 
+        void DoEyeAdaptationUI()
+        {
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Eye Adaptation", EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
@@ -195,10 +283,75 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUI.indentLevel--;
-
-            serializedObject.ApplyModifiedProperties();
         }
 
+        void DoBloomUI()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Bloom", EditorStyles.boldLabel);
+
+            EditorGUI.indentLevel++;
+
+            EditorGUILayout.PropertyField(bloomSettings.enabled);
+
+            if (bloomSettings.enabled.boolValue)
+            {
+                EditorGUILayout.PropertyField(bloomSettings.intensity);
+                EditorGUILayout.PropertyField(bloomSettings.threshold);
+
+                EditorGUILayout.PropertyField(bloomSettings.softKnee);
+                EditorGUILayout.PropertyField(bloomSettings.radius);
+
+                EditorGUILayout.PropertyField(bloomSettings.lensTexture);
+                EditorGUILayout.PropertyField(bloomSettings.lensIntensity);
+
+                bloomSettings.intensity.floatValue = Mathf.Max(0f, bloomSettings.intensity.floatValue);
+                bloomSettings.threshold.floatValue = Mathf.Max(0f, bloomSettings.threshold.floatValue);
+                bloomSettings.lensIntensity.floatValue = Mathf.Max(0f, bloomSettings.lensIntensity.floatValue);
+            }
+
+            EditorGUI.indentLevel--;
+        }
+
+        void DoChromaticAberrationUI()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Chromatic Aberration", EditorStyles.boldLabel);
+
+            EditorGUI.indentLevel++;
+
+            EditorGUILayout.PropertyField(chromaSettings.enabled);
+
+            if (chromaSettings.enabled.boolValue)
+            {
+                EditorGUILayout.PropertyField(chromaSettings.spectralTexture);
+                EditorGUILayout.PropertyField(chromaSettings.intensity);
+            }
+
+            EditorGUI.indentLevel--;
+        }
+
+        void DoVignetteUI()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Vignette", EditorStyles.boldLabel);
+
+            EditorGUI.indentLevel++;
+
+            EditorGUILayout.PropertyField(vignetteSettings.enabled);
+
+            if (vignetteSettings.enabled.boolValue)
+            {
+                EditorGUILayout.PropertyField(vignetteSettings.color);
+                EditorGUILayout.PropertyField(vignetteSettings.center);
+                EditorGUILayout.PropertyField(vignetteSettings.intensity);
+                EditorGUILayout.PropertyField(vignetteSettings.smoothness);
+            }
+
+            EditorGUI.indentLevel--;
+        }
+
+        #region Color grading stuff
         void SetLUTImportSettings()
         {
             var lut = (target as PostProcessing).colorGrading.logLut;
@@ -285,5 +438,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             File.WriteAllBytes(path, texture.EncodeToEXR(Texture2D.EXRFlags.CompressPIZ));
             AssetDatabase.Refresh();
         }
+        #endregion
     }
 }
