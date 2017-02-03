@@ -72,14 +72,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVMappingPlanar = "_UVMappingPlanar";      
         protected MaterialProperty normalMapSpace = null;
         protected const string kNormalMapSpace = "_NormalMapSpace";
-        protected MaterialProperty enablePerPixelDisplacement = null;
-        protected const string kEnablePerPixelDisplacement = "_EnablePerPixelDisplacement";
-        protected MaterialProperty ppdMinSamples = null;
-        protected const string kPpdMinSamples = "_PPDMinSamples";
-        protected MaterialProperty ppdMaxSamples = null;
-        protected const string kPpdMaxSamples = "_PPDMaxSamples";
-        protected MaterialProperty ppdLodThreshold = null;
-        protected const string kPpdLodThreshold = "_PPDLodThreshold";
         protected MaterialProperty detailMapMode = null;
         protected const string kDetailMapMode = "_DetailMapMode";
         protected MaterialProperty UVDetail = null;
@@ -158,11 +150,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected void FindMaterialOptionProperties(MaterialProperty[] props)
         {
             smoothnessMapChannel = FindProperty(kSmoothnessTextureChannel, props);
-            normalMapSpace = FindProperty(kNormalMapSpace, props);
-            enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
-            ppdMinSamples = FindProperty(kPpdMinSamples, props);
-            ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
-            ppdLodThreshold = FindProperty(kPpdLodThreshold, props);            
+            normalMapSpace = FindProperty(kNormalMapSpace, props);                      
             detailMapMode = FindProperty(kDetailMapMode, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
@@ -248,17 +236,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             //m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText);
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
-            m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText);
-            m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText);
-            if (enablePerPixelDisplacement.floatValue > 0.0)
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
-                m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
-                ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-                m_MaterialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
-                EditorGUI.indentLevel--;
-            }
+            m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText);            
 
             EditorGUI.indentLevel--;
         }

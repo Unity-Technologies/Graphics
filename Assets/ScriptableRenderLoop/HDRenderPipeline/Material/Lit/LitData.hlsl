@@ -181,14 +181,14 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = V;
+            float3 viewDirTS = float3(-V.xz, V.y);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
             // Apply offset to all UVSet0
             // _UVMappingPlanar0 will be 1.0 is UVSet0 is used;
-            layerTexCoord.base.uv += _UVMappingPlanar * offset;
-            layerTexCoord.details.uv += _UVMappingPlanar * offset;
+            layerTexCoord.base.uv += offset;
+            layerTexCoord.details.uv += offset;
         }
         else // UVSet0
         {
@@ -200,8 +200,8 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 
             // Apply offset to all UVSet0
             // _UVMappingMask0.x will be 1.0 is UVSet0 is used;
-            layerTexCoord.base.uv += _UVMappingMask.x * offset;
-            layerTexCoord.details.uv += _UVDetailsMappingMask.x * offset;
+            layerTexCoord.base.uv += offset;
+            layerTexCoord.details.uv += offset;
         }
     }
 }
@@ -345,13 +345,13 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 
 // Declare the sampler for the heigthmap - Take the sampler of the first valid Heightmap
 #if defined(_HEIGHTMAP0)
-#define sampler_HeightMap0 sampler_ShareHeightMap
+#define sampler_ShareHeightMap sampler_HeightMap0
 #elif defined(_HEIGHTMAP1)
-#define sampler_HeightMap1 sampler_ShareHeightMap
+#define sampler_ShareHeightMap sampler_HeightMap1
 #elif defined(_HEIGHTMAP2)
-#define sampler_HeightMap2 sampler_ShareHeightMap
+#define sampler_ShareHeightMap sampler_HeightMap2
 #elif defined(_HEIGHTMAP3)
-#define sampler_HeightMap3 sampler_ShareHeightMap
+#define sampler_ShareHeightMap sampler_HeightMap3
 #endif
 
 // This function is just syntaxic sugar to nullify height not used based on heightmap avaibility and layer
@@ -437,22 +437,22 @@ float GetMaxDisplacement()
     float maxDisplacement = 0.0;
 
 #if defined(_HEIGHTMAP0)
-    maxDisplacement = max(_HeightAmplitude0, maxDisplacement);
+    maxDisplacement = max(  _LayerHeightAmplitude0, maxDisplacement);
 #endif
 
 #if defined(_HEIGHTMAP1)
-    maxDisplacement = max(  _HeightAmplitude1 
+    maxDisplacement = max(  _LayerHeightAmplitude1
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            + _HeightAmplitude0 * _InheritBaseHeight1
+                            +_LayerHeightAmplitude0 * _InheritBaseHeight1
                             #endif
                             , maxDisplacement);
 #endif
 
 #if _LAYER_COUNT >= 3
 #if defined(_HEIGHTMAP2)
-    maxDisplacement = max(  _HeightAmplitude2 
+    maxDisplacement = max(  _LayerHeightAmplitude2
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            + _HeightAmplitude0 * _InheritBaseHeight2
+                            +_LayerHeightAmplitude0 * _InheritBaseHeight2
                             #endif
                             , maxDisplacement);
 #endif
@@ -460,9 +460,9 @@ float GetMaxDisplacement()
 
 #if _LAYER_COUNT >= 4
 #if defined(_HEIGHTMAP3)
-    maxDisplacement = max(  _HeightAmplitude3 
+    maxDisplacement = max(  _LayerHeightAmplitude3
                             #if defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            + _HeightAmplitude0 * _InheritBaseHeight3
+                            +_LayerHeightAmplitude0 * _InheritBaseHeight3
                             #endif
                             , maxDisplacement);
 #endif
@@ -549,10 +549,10 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
     // Note: No multiply by amplitude here, this is bake into the weights and apply in BlendLayeredScalar
     // The amplitude is normalize to be able to work with POM algorithm
     // Tiling is automatically handled correctly here as we use 4 differents uv even if they come from the same UVSet (they include the tiling)
-    float height0 = SAMPLE_TEXTURE2D_LOD(_HeightMap0, sampler_ShareHeightMap, param.uv[0] + texOffsetCurrent, lod).r);
-    float height1 = SAMPLE_TEXTURE2D_LOD(_HeightMap1, sampler_ShareHeightMap, param.uv[1] + texOffsetCurrent, lod).r);
-    float height2 = SAMPLE_TEXTURE2D_LOD(_HeightMap2, sampler_ShareHeightMap, param.uv[2] + texOffsetCurrent, lod).r);
-    float height3 = SAMPLE_TEXTURE2D_LOD(_HeightMap3, sampler_ShareHeightMap, param.uv[3] + texOffsetCurrent, lod).r);
+    float height0 = SAMPLE_TEXTURE2D_LOD(_HeightMap0, sampler_ShareHeightMap, param.uv[0] + texOffsetCurrent, lod).r;
+    float height1 = SAMPLE_TEXTURE2D_LOD(_HeightMap1, sampler_ShareHeightMap, param.uv[1] + texOffsetCurrent, lod).r;
+    float height2 = SAMPLE_TEXTURE2D_LOD(_HeightMap2, sampler_ShareHeightMap, param.uv[2] + texOffsetCurrent, lod).r;
+    float height3 = SAMPLE_TEXTURE2D_LOD(_HeightMap3, sampler_ShareHeightMap, param.uv[3] + texOffsetCurrent, lod).r;
     SetEnabledHeightByLayer(height0, height1, height2, height3);  // Not needed as already put in weights but paranoid mode
     return BlendLayeredScalar(height0, height1, height2, height3, param.weights) + height0 * param.mainHeightInfluence;
 #else
@@ -636,10 +636,10 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
         // For per pixel displacement we need to have normalized height scale to calculate the interesection (required by the algorithm we use)
         // mean that we will normalize by the highest amplitude.
         // We store this normalization factor with the weights as it will be multiply by the readed height.
-        ppdParam.weights[0] = weights[0] * (_HeightAmplitude0) / maxHeight;
-        ppdParam.weights[1] = weights[1] * (_HeightAmplitude1 + _HeightAmplitude0 * _InheritBaseHeight1) / maxHeight;
-        ppdParam.weights[2] = weights[2] * (_HeightAmplitude2 + _HeightAmplitude0 * _InheritBaseHeight2) / maxHeight;
-        ppdParam.weights[3] = weights[3] * (_HeightAmplitude3 + _HeightAmplitude0 * _InheritBaseHeight3) / maxHeight;
+        ppdParam.weights[0] = weights[0] * (_LayerHeightAmplitude0) / maxHeight;
+        ppdParam.weights[1] = weights[1] * (_LayerHeightAmplitude1 + _LayerHeightAmplitude0 * _InheritBaseHeight1) / maxHeight;
+        ppdParam.weights[2] = weights[2] * (_LayerHeightAmplitude2 + _LayerHeightAmplitude0 * _InheritBaseHeight2) / maxHeight;
+        ppdParam.weights[3] = weights[3] * (_LayerHeightAmplitude3 + _LayerHeightAmplitude0 * _InheritBaseHeight3) / maxHeight;
 
         // Think that inheritbasedheight will be 0 if height0 is fully visible in weights. So there is no double contribution of height0
         float mainHeightInfluence = BlendLayeredScalar(0.0, _InheritBaseHeight1, _InheritBaseHeight2, _InheritBaseHeight3, weights);
@@ -736,10 +736,10 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     ComputeMaskWeights(blendMasks, weights);
 
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
-    float height0 = SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap0, sampler_ShareHeightMap, layerTexCoord.base0, lod).r - _HeightCenter0) * _HeightAmplitude0;
-    float height1 = SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap1, sampler_ShareHeightMap, layerTexCoord.base1, lod).r - _HeightCenter1) * _HeightAmplitude1;
-    float height2 = SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap2, sampler_ShareHeightMap, layerTexCoord.base2, lod).r - _HeightCenter2) * _HeightAmplitude2;
-    float height3 = SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap3, sampler_ShareHeightMap, layerTexCoord.base3, lod).r - _HeightCenter3) * _HeightAmplitude3;
+    float height0 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap0, sampler_ShareHeightMap, layerTexCoord.base0, lod).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
+    float height1 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap1, sampler_ShareHeightMap, layerTexCoord.base1, lod).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
+    float height2 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap2, sampler_ShareHeightMap, layerTexCoord.base2, lod).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
+    float height3 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap3, sampler_ShareHeightMap, layerTexCoord.base3, lod).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
 
@@ -780,10 +780,10 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 #if defined(_HEIGHT_BASED_BLEND)
 
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
-    float height0 = SAMPLE_LAYER_TEXTURE2D(_HeightMap0, sampler_ShareHeightMap, layerTexCoord.base0).r - _HeightCenter0) * _HeightAmplitude0;
-    float height1 = SAMPLE_LAYER_TEXTURE2D(_HeightMap1, sampler_ShareHeightMap, layerTexCoord.base1).r - _HeightCenter1) * _HeightAmplitude1;
-    float height2 = SAMPLE_LAYER_TEXTURE2D(_HeightMap2, sampler_ShareHeightMap, layerTexCoord.base2).r - _HeightCenter2) * _HeightAmplitude2;
-    float height3 = SAMPLE_LAYER_TEXTURE2D(_HeightMap3, sampler_ShareHeightMap, layerTexCoord.base3).r - _HeightCenter3) * _HeightAmplitude3;
+    float height0 = SAMPLE_LAYER_TEXTURE2D(_HeightMap0, sampler_ShareHeightMap, layerTexCoord.base0).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
+    float height1 = SAMPLE_LAYER_TEXTURE2D(_HeightMap1, sampler_ShareHeightMap, layerTexCoord.base1).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
+    float height2 = SAMPLE_LAYER_TEXTURE2D(_HeightMap2, sampler_ShareHeightMap, layerTexCoord.base2).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
+    float height3 = SAMPLE_LAYER_TEXTURE2D(_HeightMap3, sampler_ShareHeightMap, layerTexCoord.base3).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float4 heights = float4(height0, height1, height2, height3);
 #else
