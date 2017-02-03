@@ -26,7 +26,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
-            TEXTURE2D(_CameraDepthTexture);
+            TEXTURE2D_FLOAT(_CameraDepthTexture);
             SAMPLER2D(sampler_CameraDepthTexture);
             int         _DebugViewMaterial;
 

@@ -407,9 +407,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 1);
             }
             else
-                    {
+            {
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
-                    }
+            }
 
             var cmd = new CommandBuffer {name = "Push Global Parameters"};
 
@@ -417,12 +417,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);
             cmd.SetGlobalMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
 
-                    renderContext.ExecuteCommandBuffer(cmd);
-                    cmd.Dispose();
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
 
             if (m_LightLoop != null)
                 m_LightLoop.PushGlobalParams(hdCamera.camera, renderContext);
-                }
+        }
 
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
@@ -582,7 +582,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 sorting = { flags = SortFlags.CommonOpaque }
             };
             settings.inputFilter.SetQueuesOpaque();
-            renderContext.DrawRenderers(settings);
+            renderContext.DrawRenderers(ref settings);
         }
 
         void RenderTransparentRenderList(CullResults cull, Camera camera, ScriptableRenderContext renderContext, string passName, RendererConfiguration rendererConfiguration = 0)
@@ -596,7 +596,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 sorting = { flags = SortFlags.CommonTransparent }
             };
             settings.inputFilter.SetQueuesTransparent();
-            renderContext.DrawRenderers(settings);
+            renderContext.DrawRenderers(ref settings);
         }
 
         void RenderDepthPrepass(CullResults cull, Camera camera, ScriptableRenderContext renderContext)
@@ -896,7 +896,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         propertyBlock.SetVector("_TextureScaleBias", texcoordScaleBias);
 
                         debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                        debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 6, 1, propertyBlock);
+                        debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
 
                         NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
                     }
@@ -906,7 +906,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     propertyBlock.SetVector("_TextureScaleBias", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
 
                     debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                    debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 6, 1, propertyBlock);
+                    debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
 
                     NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
                 }
