@@ -127,6 +127,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] heightFactor = new MaterialProperty[kMaxLayerCount];
         const string kHeightCenterOffset = "_HeightCenterOffset";
         MaterialProperty[] heightCenterOffset = new MaterialProperty[kMaxLayerCount];
+        const string kLayerHeightAmplitude = "_LayerHeightAmplitude";
+        MaterialProperty[] layerHeightAmplitude = new MaterialProperty[kMaxLayerCount];
+        const string kLayerCenterOffset = "_LayerCenterOffset";
+        MaterialProperty[] layerCenterOffset = new MaterialProperty[kMaxLayerCount];
         const string kBlendUsingHeight = "_BlendUsingHeight";
         MaterialProperty[] blendUsingHeight = new MaterialProperty[kMaxLayerCount - 1];
 
@@ -170,8 +174,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 opacityAsDensity[i] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
                 heightFactor[i] = FindProperty(string.Format("{0}{1}", kHeightFactor, i), props);
                 heightCenterOffset[i] = FindProperty(string.Format("{0}{1}", kHeightCenterOffset, i), props);
+                layerHeightAmplitude[i] = FindProperty(string.Format("{0}{1}", kLayerHeightAmplitude, i), props);
+                layerCenterOffset[i] = FindProperty(string.Format("{0}{1}", kLayerCenterOffset, i), props);
 
-                if(i != 0)
+                if (i != 0)
                 {
                     blendUsingHeight[i - 1] = FindProperty(string.Format("{0}{1}", kBlendUsingHeight, i), props);
                     inheritBaseNormal[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseNormal, i), props);
@@ -415,10 +421,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 warningInputOptions += "Normal Map Space:    " + optionValueNames + "\n";
             }
-            if (!CheckInputFloatOptionConsistency(kEnablePerPixelDisplacement, ref optionValueNames))
-            {
-                warningInputOptions += "Per pixel displacement:    " + optionValueNames + "\n";
-            }
             if (!CheckInputOptionConsistency(kDetailMapMode, detailModeShortNames, ref optionValueNames))
             {
                 warningInputOptions += "Detail Map Mode:    " + optionValueNames + "\n";
@@ -448,10 +450,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 warningInputMaps += "Specular Occlusion Map:    " + optionValueNames + "\n";
             }
-            if (!CheckInputMapConsistency(kHeightMap, ref optionValueNames))
-            {
-                warningInputMaps += "Height Map:    " + optionValueNames + "\n";
-            }
 
             if (warningInputMaps != string.Empty)
             {
@@ -480,7 +478,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 material.SetFloat(kSmoothnessTextureChannel, firstLayer.GetFloat(kSmoothnessTextureChannel));
                 material.SetFloat(kNormalMapSpace, firstLayer.GetFloat(kNormalMapSpace));
-                material.SetFloat(kEnablePerPixelDisplacement, firstLayer.GetFloat(kEnablePerPixelDisplacement));
                 // Force emissive to be emissive color
                 material.SetFloat(kEmissiveColorMode, (float)EmissiveColorMode.UseEmissiveColor);
             }
@@ -552,7 +549,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
             m_MaterialEditor.ShaderProperty(heightFactor[layerIndex], styles.heightFactorText);
+            layerHeightAmplitude[layerIndex].floatValue = material.GetFloat(kHeightAmplitude + layerIndex) * heightFactor[layerIndex].floatValue;
             m_MaterialEditor.ShaderProperty(heightCenterOffset[layerIndex], styles.heightCenterOffsetText);
+            layerCenterOffset[layerIndex].floatValue = material.GetFloat(kHeightCenter + layerIndex) + heightCenterOffset[layerIndex].floatValue;
+            
             EditorGUI.indentLevel--;
 
             // influence
@@ -686,15 +686,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap + i));
                 SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap + i));
                 SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap + i));
-                SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap + i));
                 SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap + i));
 
                 SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", ((DetailMapMode)material.GetFloat(kDetailMapMode)) == DetailMapMode.DetailWithNormal);
-                bool perPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) == 1.0;
-                SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", perPixelDisplacement);
                 SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
                 SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
             }
+
+            SetKeyword(material, "_HEIGHTMAP0", material.GetTexture(kHeightMap + 0));
+            SetKeyword(material, "_HEIGHTMAP1", material.GetTexture(kHeightMap + 1));
+            SetKeyword(material, "_HEIGHTMAP2", material.GetTexture(kHeightMap + 2));
+            SetKeyword(material, "_HEIGHTMAP3", material.GetTexture(kHeightMap + 3));
+
+            bool perPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) == 1.0;
+            SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", perPixelDisplacement);
 
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
 

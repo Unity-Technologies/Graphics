@@ -18,7 +18,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayShadowMap"
 
             #include "Common.hlsl"
 
-            TEXTURE2D(g_tShadowBuffer);
+            TEXTURE2D_FLOAT(g_tShadowBuffer);
 
             TEXTURE2D(_DummyTexture);
             SAMPLER2D(sampler_DummyTexture);

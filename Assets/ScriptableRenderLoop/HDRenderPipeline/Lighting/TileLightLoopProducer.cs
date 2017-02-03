@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #endif
         [Serializable]
-        public struct TileSettings
+        public class TileSettings
         {
             public bool enableDrawLightBoundsDebug;
             public bool disableTileAndCluster; // For debug / test

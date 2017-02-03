@@ -1,15 +1,6 @@
 float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2)
 {
-    float maxDisplacement = ADD_ZERO_IDX(_HeightAmplitude);
-#ifdef _LAYER_COUNT
-    maxDisplacement = max(maxDisplacement, _HeightAmplitude1);
-    #if _LAYER_COUNT >= 3
-    maxDisplacement = max(maxDisplacement, _HeightAmplitude2);
-    #endif
-    #if _LAYER_COUNT >= 4
-    maxDisplacement = max(maxDisplacement, _HeightAmplitude3);
-#endif
-#endif
+    float maxDisplacement = GetMaxDisplacement();
 
     bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])unity_CameraWorldClipPlanes);
 
@@ -53,7 +44,12 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     return CalcTriEdgeTessFactors(tessFactor);
 }
 
-float3 GetDisplacement(VaryingsMeshToDS input)
+// tessellationFactors
+// x - 1->2 edge
+// y - 2->0 edge
+// z - 0->1 edge
+// w - inside tessellation factor
+float3 GetTessellationDisplacement(VaryingsMeshToDS input)
 {
     // This call will work for both LayeredLit and Lit shader
     LayerTexCoord layerTexCoord;
@@ -82,7 +78,7 @@ float3 GetDisplacement(VaryingsMeshToDS input)
         input.normalWS,
         layerTexCoord);
 
-    // TODO: Move to camera relative and change distance to length
+    // http://www.sebastiansylvan.com/post/the-problem-with-tessellation-in-directx-11/
     float lod = 0.0;
     float4 vertexColor = float4(0.0, 0.0, 0.0, 0.0);
 #ifdef VARYINGS_DS_NEED_COLOR

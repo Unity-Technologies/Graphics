@@ -10,9 +10,10 @@ Material:
   m_Shader: {fileID: 4800000, guid: 81d02e8644315b742b154842a3a2f98c, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DEPTHOFFSETENABLE_OFF _DETAIL_MAP_WITH_NORMAL
     _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _HEIGHTMAP
-    _HEIGHT_BASED_BLEND _LAYEREDLIT_4_LAYERS _LAYERMASKVERTEXCOLOR_OFF _MASKMAP _NORMALMAP
-    _NORMALMAP_TANGENT_SPACE
+    _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _HEIGHT_BASED_BLEND _LAYEREDLIT_4_LAYERS
+    _LAYERMASKVERTEXCOLOR_OFF _LAYER_MASK_VERTEX_COLOR_ADD _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses:
@@ -187,6 +188,9 @@ Material:
     - _BlendSize1: 0.023
     - _BlendSize2: 0.011
     - _BlendSize3: 0.008
+    - _BlendUsingHeight1: 0
+    - _BlendUsingHeight2: 0
+    - _BlendUsingHeight3: 0
     - _BumpScale: 1
     - _CullMode: 2
     - _Cutoff: 0.5
@@ -220,6 +224,7 @@ Material:
     - _DstBlend: 0
     - _EmissiveColorMode: 0
     - _EmissiveIntensity: 0
+    - _EnablePerPixelDisplacement: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -235,6 +240,11 @@ Material:
     - _HeightCenter1: 0.5
     - _HeightCenter2: 0.5
     - _HeightCenter3: 0.5
+    - _HeightCenterOffset0: 0
+    - _HeightCenterOffset1: 0
+    - _HeightCenterOffset2: 0
+    - _HeightCenterOffset3: 0
+    - _HeightFactor0: 1
     - _HeightFactor1: 1
     - _HeightFactor2: 1
     - _HeightFactor3: 1
@@ -246,16 +256,45 @@ Material:
     - _HeightScale1: 0.1
     - _HeightScale2: 0.05
     - _HeightScale3: 0.06
+    - _HorizonFade: 1
+    - _InheritBaseColor1: 0
+    - _InheritBaseColor2: 0
+    - _InheritBaseColor3: 0
+    - _InheritBaseColorThreshold1: 1
+    - _InheritBaseColorThreshold2: 1
+    - _InheritBaseColorThreshold3: 1
+    - _InheritBaseHeight1: 0
+    - _InheritBaseHeight2: 0
+    - _InheritBaseHeight3: 0
     - _InheritBaseLayer1: 1
     - _InheritBaseLayer2: 1
     - _InheritBaseLayer3: 1
+    - _InheritBaseNormal1: 0
+    - _InheritBaseNormal2: 0
+    - _InheritBaseNormal3: 0
+    - _LayerCenterOffset0: 0.5
+    - _LayerCenterOffset1: 0.5
+    - _LayerCenterOffset2: 0.5
+    - _LayerCenterOffset3: 0.5
     - _LayerCount: 4
+    - _LayerHeightAmplitude0: 0.25
+    - _LayerHeightAmplitude1: 0.15
+    - _LayerHeightAmplitude2: 0.1
+    - _LayerHeightAmplitude3: 0.15
     - _LayerMaskVertexColor: 0
+    - _LayerTiling0: 1
+    - _LayerTiling1: 1
+    - _LayerTiling2: 1
+    - _LayerTiling3: 1
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
     - _Metallic2: 0
     - _Metallic3: 0
+    - _MinimumOpacity0: 1
+    - _MinimumOpacity1: 1
+    - _MinimumOpacity2: 1
+    - _MinimumOpacity3: 1
     - _Mode: 0
     - _NormalMapSpace: 0
     - _NormalScale0: 1
@@ -263,6 +302,13 @@ Material:
     - _NormalScale2: 1
     - _NormalScale3: 1
     - _OcclusionStrength: 1
+    - _OpacityAsDensity0: 0
+    - _OpacityAsDensity1: 0
+    - _OpacityAsDensity2: 0
+    - _OpacityAsDensity3: 0
+    - _PPDLodThreshold: 5
+    - _PPDMaxSamples: 15
+    - _PPDMinSamples: 5
     - _Parallax: 0.02
     - _Smoothness0: 0.5
     - _Smoothness1: 1
@@ -289,11 +335,14 @@ Material:
     - _UVMappingPlanar2: 1
     - _UVMappingPlanar3: 1
     - _UVSec: 0
+    - _UseDensityMode: 0
     - _UseHeightBasedBlend: 1
     - _UseHeightBasedBlend1: 1
     - _UseHeightBasedBlend2: 1
     - _UseHeightBasedBlend3: 1
+    - _UseMainLayerInfluence: 0
     - _VertexColorHeightFactor: 0.3
+    - _VertexColorMode: 2
     - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:
