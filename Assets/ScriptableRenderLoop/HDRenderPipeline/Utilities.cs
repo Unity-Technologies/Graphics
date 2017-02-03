@@ -320,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer);
-            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
@@ -330,7 +330,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
-            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
@@ -340,7 +340,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
-            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
