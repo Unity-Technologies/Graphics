@@ -485,7 +485,7 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, inout Position
 
 // Generates a triangle in homogeneous clip space, s.t.
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
-float2 GetFullscreenTriangleTexcoord(uint vertexID)
+float2 GetFullScreenTriangleTexcoord(uint vertexID)
 {
 #if UNITY_UV_STARTS_AT_TOP
     return float2((vertexID << 1) & 2, 1.0 - (vertexID & 2));
@@ -494,7 +494,7 @@ float2 GetFullscreenTriangleTexcoord(uint vertexID)
 #endif
 }
 
-float4 GetFullscreenTriangleVertexPosition(uint vertexID)
+float4 GetFullScreenTriangleVertexPosition(uint vertexID)
 {
     float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
     return float4(uv * 2.0 - 1.0, 1.0, 1.0);

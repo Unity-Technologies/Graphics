@@ -104,6 +104,7 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
     {
         bsdfData.diffuseColor = lightDebugAlbedo;
     }
+
 #endif
 }
 //-----------------------------------------------------------------------------

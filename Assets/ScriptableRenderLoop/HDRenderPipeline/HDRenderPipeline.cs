@@ -135,6 +135,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void ApplyDebugParameters()
         {
             m_ShadowSettings.enabled = globalDebugParameters.lightingDebugParameters.enableShadows;
+
+            LightingDebugParameters lightDebugParameters = globalDebugParameters.lightingDebugParameters;
+            Vector4 debugModeAndAlbedo = new Vector4((float)lightDebugParameters.lightingDebugMode, lightDebugParameters.debugLightingAlbedo.r, lightDebugParameters.debugLightingAlbedo.g, lightDebugParameters.debugLightingAlbedo.b);
+            Vector4 debugSmoothness = new Vector4(lightDebugParameters.overrideSmoothness ? 1.0f : 0.0f, lightDebugParameters.overrideSmoothnessValue, 0.0f, 0.0f);
+            Shader.SetGlobalVector("_DebugLightModeAndAlbedo", debugModeAndAlbedo);
+            Shader.SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
+
         }
 
         public void UpdateCommonSettings()
@@ -621,10 +628,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new Utilities.ProfilingSample("GBuffer Pass", renderContext))
             {
+                bool debugLighting = globalDebugParameters.lightingDebugParameters.lightingDebugMode != LightingDebugMode.None;
+
                 // setup GBuffer for rendering
                 Utilities.SetRenderTarget(renderContext, m_gbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
                 // render opaque objects into GBuffer
-                RenderOpaqueRenderList(cull, camera, renderContext, "GBuffer", Utilities.kRendererConfigurationBakedLighting);
+                RenderOpaqueRenderList(cull, camera, renderContext, debugLighting ? "GBufferDebugLighting" : "GBuffer", Utilities.kRendererConfigurationBakedLighting);
             }
         }
 
@@ -721,14 +730,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FilterSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
             m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
-            Utilities.DrawFullscreen(cmd, m_FilterSubsurfaceScattering, hdCamera,
+            Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera,
                                      m_CameraFilteringBufferRT, m_CameraStencilBufferRT);
 
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
             m_FilterAndCombineSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
             m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
-            Utilities.DrawFullscreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera,
+            Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera,
                                      m_CameraColorBufferRT, m_CameraStencilBufferRT);
 
             context.ExecuteCommandBuffer(cmd);
@@ -759,13 +768,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_LightLoop != null)
                     m_LightLoop.RenderForward(camera, renderContext, renderOpaque);
 
+                bool debugLighting = globalDebugParameters.lightingDebugParameters.lightingDebugMode != LightingDebugMode.None;
+
+                string forwardPassName = debugLighting ? "ForwardDebugLighting" : "Forward";
                 if (renderOpaque)
                 {
-                    RenderOpaqueRenderList(cullResults, camera, renderContext, "Forward", Utilities.kRendererConfigurationBakedLighting);
+                    RenderOpaqueRenderList(cullResults, camera, renderContext, forwardPassName, Utilities.kRendererConfigurationBakedLighting);
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, "Forward", Utilities.kRendererConfigurationBakedLighting);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, forwardPassName, Utilities.kRendererConfigurationBakedLighting);
                 }
             }
         }
@@ -779,7 +791,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (m_LightLoop != null)
                     m_LightLoop.RenderForward(camera, renderContext, true);
-                RenderOpaqueRenderList(cullResults, camera, renderContext, "ForwardOnlyOpaque", Utilities.kRendererConfigurationBakedLighting);
+
+                bool debugLighting = globalDebugParameters.lightingDebugParameters.lightingDebugMode != LightingDebugMode.None;
+                RenderOpaqueRenderList(cullResults, camera, renderContext, debugLighting ? "ForwardOnlyOpaqueDebugLighting" : "ForwardOnlyOpaque", Utilities.kRendererConfigurationBakedLighting);
             }
         }
 
