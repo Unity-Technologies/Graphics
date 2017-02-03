@@ -50,6 +50,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
             public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
+            public readonly GUIContent layerTilingBlendMaskText = new GUIContent("Tiling", "Tiling for the blend mask.");
+            
             public readonly GUIContent layerTilingText = new GUIContent("Tiling", "Tiling factor applied to UVSet");
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
@@ -108,6 +110,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] layerUVDetail = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
 
+
+        const string kLayerTilingBlendMask = "_LayerTilingBlendMask";
+        MaterialProperty layerTilingBlendMask = null;
         const string kLayerTiling = "_LayerTiling";
         MaterialProperty[] layerTiling = new MaterialProperty[kMaxLayerCount];
         const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
@@ -158,7 +163,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence, props);
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
-            useDensityMode = FindProperty(kUseDensityMode, props);            
+            useDensityMode = FindProperty(kUseDensityMode, props);
+
+            layerTilingBlendMask = FindProperty(kLayerTilingBlendMask, props);
            
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
@@ -617,7 +624,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 layerChanged = true;
             }
 
+
             m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
+
+            if (((LayerUVBaseMapping)layerUVBase[0].floatValue == LayerUVBaseMapping.Planar) ||
+                ((LayerUVBaseMapping)layerUVBase[0].floatValue == LayerUVBaseMapping.Triplanar))
+            {
+                // for now reuse settings from main layer
+            }
+            else
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(layerTilingBlendMask, styles.layerTilingBlendMaskText);
+                EditorGUI.indentLevel--;
+            }
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;

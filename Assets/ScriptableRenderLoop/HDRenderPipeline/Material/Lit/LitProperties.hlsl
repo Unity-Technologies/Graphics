@@ -161,6 +161,7 @@ float _InheritBaseColor3;
 float _InheritBaseColorThreshold1;
 float _InheritBaseColorThreshold2;
 float _InheritBaseColorThreshold3;
+float _LayerTilingBlendMask;
 PROP_DECL(float, _LayerTiling);
 
 float3 _EmissiveColor;
