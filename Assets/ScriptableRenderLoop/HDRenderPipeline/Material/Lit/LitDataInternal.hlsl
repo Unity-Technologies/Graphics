@@ -1,5 +1,5 @@
 void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
-                                    float3 positionWS, float3 normalWS, bool isTriplanar, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
+                                    float3 positionWS, float3 vertexNormalWS, bool isTriplanar, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
     float2 uvBase = ADD_IDX(_UVMappingMask).x * texCoord0 +
@@ -18,7 +18,7 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     // Note that if base is planar/triplanar, detail map is too
 
     // planar
-    // TODO: Do we want to manage local or world triplanar/planar
+    // TODO: Do we want to manage local or world triplanar/planar ? In this case update ApplyPerPixelDisplacement() too
     //float3 position = localTriplanar ? TransformWorldToObject(positionWS) : positionWS;
     float3 position = positionWS;
     position *= ADD_IDX(_TexWorldScale);
@@ -27,6 +27,13 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     {
         uvBase = -position.xz;
         uvDetails = -position.xz;
+        ADD_IDX(layerTexCoord.base).isPlanar = true;
+        ADD_IDX(layerTexCoord.details).isPlanar = true;
+    }
+    else
+    {
+        ADD_IDX(layerTexCoord.base).isPlanar = false;
+        ADD_IDX(layerTexCoord.details).isPlanar = false;
     }
 
     ADD_IDX(layerTexCoord.base).uv = TRANSFORM_TEX(uvBase, ADD_IDX(_BaseColorMap));
@@ -35,7 +42,7 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     // triplanar
     ADD_IDX(layerTexCoord.base).isTriplanar = isTriplanar;
 
-    float3 direction = sign(normalWS);
+    float3 direction = sign(vertexNormalWS);
 
     // In triplanar, if we are facing away from the world axis, a different axis will be flipped for each direction.
     // This is particularly problematic for tangent space normal maps which need to be in the right direction.
@@ -53,135 +60,6 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     ADD_IDX(layerTexCoord.details).uvYZ = TRANSFORM_TEX(uvYZ, ADD_IDX(_DetailMap));
     ADD_IDX(layerTexCoord.details).uvZX = TRANSFORM_TEX(uvZX, ADD_IDX(_DetailMap));
     ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_DetailMap));
-}
-
-float ADD_IDX(SampleHeightmap)(LayerTexCoord layerTexCoord, float centerOffset = 0.0, float multiplier = 1.0)
-{
-#ifdef _HEIGHTMAP
-    return (SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r - ADD_IDX(_HeightCenter) - centerOffset) * ADD_IDX(_HeightAmplitude) * multiplier;
-#else
-    return 0.0;
-#endif
-}
-
-float ADD_IDX(SampleHeightmapLod)(LayerTexCoord layerTexCoord, float lod, float centerOffset = 0.0, float multiplier = 1.0)
-{
-#ifdef _HEIGHTMAP
-    return (SAMPLE_LAYER_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base), lod).r - ADD_IDX(_HeightCenter) - centerOffset) * ADD_IDX(_HeightAmplitude) * multiplier;
-#else
-    return 0.0;
-#endif
-}
-
-// Note: The sampling of heightmap inside POM don't use sampling abstraction (with triplanar) as 
-// POM must be apply separately for each uv set (so 3 time for triplanar)
-void ADD_IDX(ParallaxOcclusionMappingLayer)(inout LayerTexCoord layerTexCoord, int numSteps, float3 viewDirTS)
-{
-    // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion
-    float stepSize = 1.0 / (float)numSteps;
-
-    // View vector is from the point to the camera, but we want to raymarch from camera to point, so reverse the sign
-    // The length of viewDirTS vector determines the furthest amount of displacement:
-    // float parallaxLimit = -length(viewDirTS.xy) / viewDirTS.z;
-    // float2 parallaxDir = normalize(Out.viewDirTS.xy);
-    // float2 parallaxMaxOffsetTS = parallaxDir * parallaxLimit;
-    // Above code simplify to
-    float2 parallaxMaxOffsetTS = (viewDirTS.xy / -viewDirTS.z) * ADD_IDX(_HeightAmplitude);
-    float2 texOffsetPerStep = stepSize * parallaxMaxOffsetTS;
-
-    float2 uv = ADD_IDX(layerTexCoord.base).uv;
-
-    // Compute lod as we will sample inside a loop (so can't use regular sampling)
-    // It appear that CALCULATE_TEXTURE2D_LOD only return interger lod. We want to use float lod to have smoother transition and fading
-    // float lod = CALCULATE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv);
-    float lod = ComputeTextureLOD(uv, GET_TEXELSIZE_NAME(ADD_IDX(_HeightMap))); 
-
-    // Do a first step before the loop to init all value correctly
-    float2 texOffsetCurrent = 0;
-    float prevHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
-    texOffsetCurrent += texOffsetPerStep;
-    float currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
-    float rayHeight = 1.0 - stepSize; // Start at top less one sample
-
-    // Linear search
-    for (int stepIndex = 0; stepIndex < numSteps; ++stepIndex)
-    {
-        // Have we found a height below our ray height ? then we have an intersection
-        if (currHeight > rayHeight)
-            break; // end the loop
-
-        prevHeight = currHeight;
-        rayHeight -= stepSize;
-        texOffsetCurrent += texOffsetPerStep;
-
-        // Sample height map which in this case is stored in the alpha channel of the normal map:
-        currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + texOffsetCurrent, lod).r;
-    }
-
-    // Found below and above points, now perform line interesection (ray) with piecewise linear heightfield approximation
-
-    // Refine the search by adding few extra intersection
-#define POM_REFINE 1
-#if POM_REFINE
-
-    float pt0 = rayHeight + stepSize;
-    float pt1 = rayHeight;
-    float delta0 = pt0 - prevHeight;
-    float delta1 = pt1 - currHeight;
-
-    float2 offset = float2(0.0, 0.0);
-
-    float threshold = 1.0;
-
-    for (int i = 0; i < 5; ++i)
-    {
-        float t = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
-        offset = (1 - t) * texOffsetPerStep * numSteps;
-
-        currHeight = SAMPLE_TEXTURE2D_LOD(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), uv + offset, lod).r;
-
-        threshold = t - currHeight;
-
-        if (abs(threshold) <= 0.01)
-            break;
-
-        if (threshold < 0.0)
-        {
-            delta1 = threshold;
-            pt1 = t;
-        }
-        else
-        {
-            delta0 = threshold;
-            pt0 = t;
-        }
-    }
-
-#else
-    
-    //float pt0 = rayHeight + stepSize;
-    //float pt1 = rayHeight; 
-    //float delta0 = pt0 - prevHeight;
-    //float delta1 = pt1 - currHeight;
-    //float t = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
-    //float2 offset = (1 - t) * texOffsetPerStep * numSteps;
-
-    // A bit more optimize
-    float delta0 = currHeight - rayHeight;
-    float delta1 = (rayHeight + stepSize) - prevHeight;
-    float ratio = delta0 / (delta0 + delta1);
-    float2 offset = texOffsetCurrent - ratio * texOffsetPerStep;
-
-#endif
-
-    // TODO: expose LOD fading
-    //float lodThreshold = 0.0;
-    //offset *= (1.0 - saturate(lod - lodThreshold));
-
-    // Apply offset only on base. Details could use another mapping and will not be consistant...
-    // Don't know if this will still ok.
-    // TODO: check with artists
-    ADD_IDX(layerTexCoord.base).uv += offset;
 }
 
 float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask, bool useBias, float bias)

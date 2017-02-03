@@ -223,8 +223,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
             var gpuVP = gpuProj * camera.worldToCameraMatrix;
 
-            hdCamera.viewProjectionMatrix = gpuVP;
+            hdCamera.viewProjectionMatrix    = gpuVP;
             hdCamera.invViewProjectionMatrix = gpuVP.inverse;
+            hdCamera.invProjectionMatrix     = gpuProj.inverse;
 
             return hdCamera;
         }
@@ -312,58 +313,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return renderContext;
         }
 
-        static Mesh m_ScreenSpaceTriangle = null;
-
-        static Mesh GetScreenSpaceTriangle()
-        {
-            // If the assembly has been reloaded, the pointer will become NULL.
-            if (!m_ScreenSpaceTriangle)
-            {
-                m_ScreenSpaceTriangle = new Mesh
-                {
-                    // Note: neither the vertex nor the index data is actually used if the vertex shader computes vertices
-                    // using 'SV_VertexID'. However, there is currently no way to bind NULL vertex or index buffers.
-                    vertices  = new[] { new Vector3(-1, -1, 1), new Vector3(3, -1, 1), new Vector3(-1, 3, 1) },
-                    triangles = new[] { 0, 1, 2 }
-                };
-            }
-
-            return m_ScreenSpaceTriangle;
-        }
-
-        // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
-        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
                                           RenderTargetIdentifier colorBuffer,
                                           MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer);
-            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
-        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
                                           RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
                                           MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
-            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
-        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
                                           RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
                                           MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
-            commandBuffer.DrawMesh(GetScreenSpaceTriangle(), Matrix4x4.identity, material, 0, shaderPassID, properties);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassID, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        // Draws a full screen triangle as a faster alternative to drawing a full-screen quad.
+        // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
         // Important: the first RenderTarget must be created with 0 depth bits!
-        public static void DrawFullscreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
                                           RenderTargetIdentifier[] colorBuffers,
                                           MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
@@ -371,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // To work around this deficiency of the CommandBuffer.SetRenderTarget() API,
             // we pass the first color target as the depth target. If it has 0 depth bits,
             // no depth target ends up being bound.
-            DrawFullscreen(commandBuffer, material, camera, colorBuffers, colorBuffers[0], properties, shaderPassID);
+            DrawFullScreen(commandBuffer, material, camera, colorBuffers, colorBuffers[0], properties, shaderPassID);
         }
     }
 }
