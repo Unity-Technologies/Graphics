@@ -179,6 +179,7 @@ float _HorizonFade;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;
+float _PPDLodThreshold;
 
 #endif // LAYERED_LIT_SHADER
 
