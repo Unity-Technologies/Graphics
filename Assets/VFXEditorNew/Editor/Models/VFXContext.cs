@@ -1,3 +1,4 @@
+using UnityEditor.Experimental;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -24,11 +25,16 @@ namespace UnityEditor.VFX
 
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
-            if (!base.AcceptChild(model,index))
+            if (!base.AcceptChild(model, index))
                 return false;
 
             var block = (VFXBlock)model;
-            return (block.Desc.CompatibleContexts & ContextType) != 0;
+            return Accept(block.Desc,index);
+        }
+
+        public bool Accept(VFXBlockDesc desc, int index = -1)
+        {
+            return (desc.CompatibleContexts & ContextType) != 0;
         }
 
         public override void OnBeforeSerialize()

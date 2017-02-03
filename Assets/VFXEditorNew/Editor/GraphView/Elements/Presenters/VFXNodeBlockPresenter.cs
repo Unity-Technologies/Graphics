@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeBlockPresenter : GraphElementPresenter
+    class VFXNodeBlockPresenter : IMGUIPresenter
     {
-        public VFXNodeBlockPresenter()
-        {
-            capabilities |= Capabilities.Selectable;
-        }
+		protected new void OnEnable()
+		{
+			capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Movable;
+		}
 
         public VFXBlock Model
         {

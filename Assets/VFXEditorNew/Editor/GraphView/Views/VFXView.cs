@@ -8,8 +8,9 @@ namespace UnityEditor.VFX.UI
     [StyleSheet("Assets/VFXEditorNew/Editor/GraphView/Views/VFXView.uss")]
     class VFXView : GraphView
     {
-        public VFXView()
+		public VFXView()
 		{
+            forceNotififcationOnAdd = true;
             AddManipulator(new ContentZoomer());
 			AddManipulator(new ContentDragger());
 			AddManipulator(new RectangleSelector());
@@ -41,12 +42,12 @@ namespace UnityEditor.VFX.UI
 
                 menu.ShowAsContext();
                 return EventPropagation.Continue;
-            }));
+            },null));
 
-            typeMapper[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
-            typeMapper[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
-            typeMapper[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
-            typeMapper[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
+            typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
+			typeFactory[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
+			typeFactory[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
+			typeFactory[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
         }
 
         void AddVFXContext(Vector2 pos,VFXContextDesc desc)

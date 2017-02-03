@@ -7,6 +7,30 @@ using Object = System.Object;
 
 namespace UnityEditor.VFX
 {
+    // Attribute used to register VFX type to library
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public class VFXInfoAttribute : Attribute
+    {
+        public VFXInfoAttribute(bool register = true)
+        {
+            this.register = register;
+        }
+
+        public bool register = true;
+        public string category = "";
+
+        public static VFXInfoAttribute Get(Object obj)
+        {
+            return Get(obj.GetType());
+        }
+
+        public static VFXInfoAttribute Get(Type type)
+        {
+            var attribs = type.GetCustomAttributes(typeof(VFXInfoAttribute), false);
+            return attribs.Length == 1 ? (VFXInfoAttribute)attribs[0] : null;
+        }
+    }
+
     static class VFXLibrary
     {
         public static VFXContextDesc GetContext(string id)      { LoadIfNeeded(); return m_ContextDescs[id]; }
@@ -39,8 +63,8 @@ namespace UnityEditor.VFX
 
         private static void LoadContextDescs()
         {
-            // Search for derived type of VFXBlockType in assemblies
-            var contextDescTypes = FindConcreteSubclasses<VFXContextDesc,VFXContextAttribute>();
+            // Search for derived type of VFXContextDesc in assemblies
+            var contextDescTypes = FindConcreteSubclasses<VFXContextDesc>();
             var contextDescs = new Dictionary<string, VFXContextDesc>();
             foreach (var contextDesc in contextDescTypes)
             {
@@ -61,7 +85,7 @@ namespace UnityEditor.VFX
         private static void LoadBlockDescs()
         {
             // Search for derived type of VFXBlockType in assemblies
-            var blockDescTypes = FindConcreteSubclasses<VFXBlockDesc,VFXBlockAttribute>();
+            var blockDescTypes = FindConcreteSubclasses<VFXBlockDesc>();
             var blockDescs = new Dictionary<string, VFXBlockDesc>();
             foreach (var blockDesc in blockDescTypes)
             {
@@ -79,7 +103,7 @@ namespace UnityEditor.VFX
             m_BlockDescs = blockDescs; // atomic set
         }
 
-        private static IEnumerable<Type> FindConcreteSubclasses<T,U>()
+        private static IEnumerable<Type> FindConcreteSubclasses<T>()
         {
             List<Type> types = new List<Type>();
             foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -99,7 +123,7 @@ namespace UnityEditor.VFX
                         if (assemblyType.IsSubclassOf(typeof(T)) && !assemblyType.IsAbstract)
                             types.Add(assemblyType);
             }
-            return types.Where(type => type.GetCustomAttributes(typeof(U), false).Length == 1);
+            return types.Where(type => type.GetCustomAttributes(typeof(VFXInfoAttribute), false).Length == 1);
         }
 
         private static volatile Dictionary<string, VFXContextDesc> m_ContextDescs;

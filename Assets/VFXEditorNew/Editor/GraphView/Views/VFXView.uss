@@ -83,7 +83,7 @@ VFXContextUI #NodeContents {
 	background-color: #2D2D2D;
 }
 
-VFXContextUI #NodeContents Label{
+VFXContextUI #NodeContents > Label{
 	height:20;
 	text-alignment:upper-center;
 

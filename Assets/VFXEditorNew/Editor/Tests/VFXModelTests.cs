@@ -120,6 +120,34 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void RemoveAllChildren()
+        {
+            VFXModel modelA = new VFXModelA();
+            VFXModel modelB0 = new VFXModelB();
+            VFXModel modelB1 = new VFXModelB();
+            VFXModel modelB2 = new VFXModelB();
+
+            modelA.AddChild(modelB0);
+            modelA.AddChild(modelB1);
+            modelA.AddChild(modelB2);
+
+            s_logs.Clear();
+            modelA.RemoveAllChildren();
+
+            Assert.AreEqual(0, modelA.GetNbChildren());
+            Assert.IsNull(modelB0.GetParent());
+            Assert.IsNull(modelB1.GetParent());
+            Assert.IsNull(modelB2.GetParent());
+
+            Assert.AreEqual(6, s_logs.Count);
+            for (int i = 0; i < 6; i += 2)
+            {
+                Assert.AreEqual("OnRemoved VFXModelB", s_logs[i]);
+                Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[i + 1]);
+            }
+        }
+
+        [Test]
         public void ChangeParent()
         {
             VFXModel modelA0 = new VFXModelA();
