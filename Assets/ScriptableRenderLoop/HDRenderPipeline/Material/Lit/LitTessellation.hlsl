@@ -49,7 +49,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 // y - 2->0 edge
 // z - 0->1 edge
 // w - inside tessellation factor
-float3 GetTessellationDisplacement(VaryingsMeshToDS input, float4 tessellationFactors, float3 baryCoords, VaryingsMeshToDS input0, VaryingsMeshToDS input1, VaryingsMeshToDS input2)
+float3 GetTessellationDisplacement(VaryingsMeshToDS input)
 {
     // This call will work for both LayeredLit and Lit shader
     LayerTexCoord layerTexCoord;

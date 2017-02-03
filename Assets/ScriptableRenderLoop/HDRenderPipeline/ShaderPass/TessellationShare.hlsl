@@ -1,5 +1,5 @@
 // AMD recommand this value for GCN http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2013/05/GCNPerformanceTweets.pdf
-#define MAX_TESSELLATION_FACTORS 15 
+#define MAX_TESSELLATION_FACTORS 15.0 
 
 struct TessellationFactors
 {
@@ -35,8 +35,6 @@ TessellationFactors HullConstant(InputPatch<PackedVaryingsToDS, 3> input)
 
     return output;
 }
-
-PackedVaryingsToDS
 
 [maxtessfactor(MAX_TESSELLATION_FACTORS)]
 [domain("tri")]
