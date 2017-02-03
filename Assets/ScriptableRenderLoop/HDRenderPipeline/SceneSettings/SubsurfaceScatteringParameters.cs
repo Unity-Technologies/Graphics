@@ -1,5 +1,7 @@
 using System;
-using UnityEditor;
+#if UNITY_EDITOR
+    using UnityEditor;
+#endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -7,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class SubsurfaceScatteringProfile
     {
         public const int numSamples = 7; // Must be an odd number
+        public const int numVectors = 8; // numSamples + 1 for (1 / (2 * WeightedVariance))
         
         [SerializeField, ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
         Color       m_StdDev1;
@@ -105,9 +108,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void ComputeKernel()
         {
-            if (m_FilterKernel == null || m_FilterKernel.Length != numSamples)
+            if (m_FilterKernel == null || m_FilterKernel.Length != numVectors)
             {
-                m_FilterKernel = new Vector4[numSamples];
+                m_FilterKernel = new Vector4[numVectors];
             }
 
             // Our goal is to blur the image using a filter which is represented
@@ -140,9 +143,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 val.y = GaussianCombination(pos, m_StdDev1.g, m_StdDev2.g, m_LerpWeight);
                 val.z = GaussianCombination(pos, m_StdDev1.b, m_StdDev2.b, m_LerpWeight);
 
-                m_FilterKernel[i].x = val.x / (pdf * numSamples);
-                m_FilterKernel[i].y = val.y / (pdf * numSamples);
-                m_FilterKernel[i].z = val.z / (pdf * numSamples);
+                // We do not divide by 'numSamples' since we will renormalize, anyway.
+                m_FilterKernel[i].x = val.x * (1 / pdf);
+                m_FilterKernel[i].y = val.y * (1 / pdf);
+                m_FilterKernel[i].z = val.z * (1 / pdf);
                 m_FilterKernel[i].w = pos;
 
                 weightSum.x += m_FilterKernel[i].x;
@@ -153,32 +157,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Renormalize the weights to conserve energy.
             for (uint i = 0; i < numSamples; i++)
             {
-                m_FilterKernel[i].x *= 1.0f / weightSum.x;
-                m_FilterKernel[i].y *= 1.0f / weightSum.y;
-                m_FilterKernel[i].z *= 1.0f / weightSum.z;
+                m_FilterKernel[i].x *= 1 / weightSum.x;
+                m_FilterKernel[i].y *= 1 / weightSum.y;
+                m_FilterKernel[i].z *= 1 / weightSum.z;
             }
 
-            m_KernelNeedsUpdate = false;
+            Vector4 weightedStdDev;
+            weightedStdDev.x = Mathf.Lerp(m_StdDev1.r, m_StdDev2.r, m_LerpWeight);
+            weightedStdDev.y = Mathf.Lerp(m_StdDev1.g, m_StdDev2.g, m_LerpWeight);
+            weightedStdDev.z = Mathf.Lerp(m_StdDev1.b, m_StdDev2.b, m_LerpWeight);
+            weightedStdDev.w = Mathf.Lerp(maxStdDev1,  maxStdDev2,  m_LerpWeight);
+
+            // Store (1 / (2 * Variance)) per color channel.
+            m_FilterKernel[numSamples].x = 0.5f / (weightedStdDev.x * weightedStdDev.x);
+            m_FilterKernel[numSamples].y = 0.5f / (weightedStdDev.y * weightedStdDev.y);
+            m_FilterKernel[numSamples].z = 0.5f / (weightedStdDev.z * weightedStdDev.z);
+            m_FilterKernel[numSamples].w = 0.5f / (weightedStdDev.w * weightedStdDev.w);
         }
     }
 
     public class SubsurfaceScatteringParameters : ScriptableObject
     {
-        const int m_maxNumProfiles = 8;
+        public const int maxNumProfiles = 8;
         [SerializeField]
         int m_NumProfiles;
         [SerializeField]
         SubsurfaceScatteringProfile[] m_Profiles;
-        [SerializeField]
-        float m_BilateralScale;
 
         // --- Public Methods ---
 
         public SubsurfaceScatteringParameters()
         {
-            m_NumProfiles    = 1;
-            m_Profiles       = new SubsurfaceScatteringProfile[m_NumProfiles];
-            m_BilateralScale = 0.1f;
+            m_NumProfiles = 1;
+            m_Profiles    = new SubsurfaceScatteringProfile[m_NumProfiles];
 
             for (int i = 0; i < m_NumProfiles; i++)
             {
@@ -186,8 +197,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public SubsurfaceScatteringProfile[] profiles       { set { m_Profiles       = value; OnValidate(); } get { return m_Profiles; } }
-        public float                         bilateralScale { set { m_BilateralScale = value; OnValidate(); } get { return m_BilateralScale; } }
+        public SubsurfaceScatteringProfile[] profiles { set { m_Profiles = value; OnValidate(); } get { return m_Profiles; } }
 
         public void SetDirtyFlag()
         {
@@ -201,9 +211,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnValidate()
         {
-            if (m_Profiles.Length > m_maxNumProfiles)
+            if (m_Profiles.Length > maxNumProfiles)
             {
-                Array.Resize(ref m_Profiles, m_maxNumProfiles);
+                Array.Resize(ref m_Profiles, maxNumProfiles);
             }
 
             m_NumProfiles = m_Profiles.Length;
@@ -228,8 +238,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_Profiles[i].lerpWeight = Mathf.Clamp01(m_Profiles[i].lerpWeight);
             }
-
-            m_BilateralScale = Mathf.Clamp01(m_BilateralScale);
         }
     }
 
@@ -244,6 +252,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
+#if UNITY_EDITOR
     [CustomEditor(typeof(SubsurfaceScatteringParameters))]
     public class SubsurfaceScatteringParametersEditor : Editor
     {
@@ -253,13 +262,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent sssProfileStdDev1    = new GUIContent("SSS profile standard deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
             public readonly GUIContent sssProfileStdDev2    = new GUIContent("SSS profile standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
             public readonly GUIContent sssProfileLerpWeight = new GUIContent("SSS profile filter interpolation", "Controls linear interpolation between the two Gaussian filters.");
-            public readonly GUIContent sssBilateralScale    = new GUIContent("SSS bilateral filtering scale", "Larger values make the filter more tolerant to depth differences.");
         }
 
         private static Styles s_Styles;
 
         private SerializedProperty m_Profiles;
-        private SerializedProperty m_BilateralScale;
 
         // --- Public Methods ---
 
@@ -281,7 +288,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_Profiles, true);
-            EditorGUILayout.PropertyField(m_BilateralScale, styles.sssBilateralScale);
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
@@ -294,8 +300,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnEnable()
         {
-            m_Profiles       = serializedObject.FindProperty("m_Profiles");
-            m_BilateralScale = serializedObject.FindProperty("m_BilateralScale");
+            m_Profiles = serializedObject.FindProperty("m_Profiles");
         }
     }
+#endif
 }

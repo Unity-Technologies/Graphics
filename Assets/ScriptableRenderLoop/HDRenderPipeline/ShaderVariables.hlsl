@@ -8,7 +8,6 @@
 // As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
 // This need to be fixed.
 
-float4x4 glstate_matrix_inv_projection;
 #define UNITY_MATRIX_M unity_ObjectToWorld
 
 // These are updated per eye in VR
@@ -231,12 +230,6 @@ float4x4 GetWorldToObjectMatrix()
 float4x4 GetWorldToHClipMatrix()
 {
     return UNITY_MATRIX_VP;
-}
-
-// Transform from clip space to homogenous world space
-float4x4 GetClipToHWorldMatrix()
-{
-    return glstate_matrix_inv_projection;
 }
 
 float GetOddNegativeScale()

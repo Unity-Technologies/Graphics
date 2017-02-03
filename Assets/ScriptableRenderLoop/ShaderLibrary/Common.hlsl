@@ -340,17 +340,22 @@ float4 PositivePow(float4 base, float4 power)
 // Texture utilities
 // ----------------------------------------------------------------------------
 
+float ComputeTextureLOD(float2 uv)
+{
+    float2 ddx_ = ddx(uv);
+    float2 ddy_ = ddy(uv);
+    float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
+
+    return max(0.5 * log2(d), 0.0);
+}
+
 // texelSize is Unity XXX_TexelSize feature parameters
 // x contains 1.0/width, y contains 1.0 / height, z contains width, w contains height
 float ComputeTextureLOD(float2 uv, float4 texelSize)
 {
     uv *= texelSize.zw;
 
-    float2 ddx_ = ddx(uv);
-    float2 ddy_ = ddy(uv);
-    float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
-
-    return  max(0.5 * log2(d), 0.0);
+    return ComputeTextureLOD(uv);
 }
 
 // ----------------------------------------------------------------------------
@@ -456,6 +461,15 @@ void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4
     posInput.positionCS *= posInput.depthVS;
 }
 
+float3 ComputeViewSpacePosition(float2 positionSS, float rawDepth, float4x4 invProjMatrix)
+{
+    float4 positionCS = float4(positionSS * 2.0 - 1.0, rawDepth, 1.0);
+    float4 positionVS = mul(invProjMatrix, positionCS);
+    // The view space uses a right-handed coordinate system.
+    positionVS.z = -positionVS.z;
+    return positionVS.xyz / positionVS.w;
+}
+
 // depthOffsetVS is always in the direction of the view vector (V)
 void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, inout PositionInputs posInput)
 {
@@ -469,10 +483,9 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, inout Position
     posInput.positionWS += V * depthOffsetVS;
 }
 
-
 // Generates a triangle in homogeneous clip space, s.t.
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
-float2 GetFullscreenTriangleTexcoord(uint vertexID)
+float2 GetFullScreenTriangleTexcoord(uint vertexID)
 {
 #if UNITY_UV_STARTS_AT_TOP
     return float2((vertexID << 1) & 2, 1.0 - (vertexID & 2));
@@ -481,7 +494,7 @@ float2 GetFullscreenTriangleTexcoord(uint vertexID)
 #endif
 }
 
-float4 GetFullscreenTriangleVertexPosition(uint vertexID)
+float4 GetFullScreenTriangleVertexPosition(uint vertexID)
 {
     float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
     return float4(uv * 2.0 - 1.0, 1.0, 1.0);

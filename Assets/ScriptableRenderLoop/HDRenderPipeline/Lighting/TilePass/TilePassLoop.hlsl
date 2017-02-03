@@ -2,6 +2,22 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
+void ApplyDebug(inout float3 diffuseLighting, inout float3 specularLighting)
+{
+#ifdef LIGHTING_DEBUG
+    int lightDebugMode = (int)_DebugLightModeAndAlbedo.x;
+
+    if (lightDebugMode == LIGHTINGDEBUGMODE_DIFFUSE_LIGHTING)
+    {
+        specularLighting = float3(0.0, 0.0, 0.0);
+    }
+    else if (lightDebugMode == LIGHTINGDEBUGMODE_SPECULAR_LIGHTING)
+    {
+        diffuseLighting = float3(0.0, 0.0, 0.0);
+    }
+#endif
+}
+
 #ifdef LIGHTLOOP_TILE_PASS
 
 // Calculate the offset in global light index light for current light category
@@ -198,6 +214,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     // Add indirect diffuse + emissive (if any)
     diffuseLighting += bakeDiffuseLighting;
 #endif
+
+    ApplyDebug(diffuseLighting, specularLighting);
 }
 
 #else // LIGHTLOOP_SINGLE_PASS
@@ -290,6 +308,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 
     // Add indirect diffuse + emissive (if any)
     diffuseLighting += bakeDiffuseLighting;
+
+    ApplyDebug(diffuseLighting, specularLighting);
 }
 
 #endif

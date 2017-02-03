@@ -22,7 +22,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             ZWrite Off
             ZTest  Always
-            Blend [_SrcBlend][_DstBlend]
+            Blend [_SrcBlend] [_DstBlend], One Zero
             Cull Off
 
             HLSLPROGRAM
@@ -42,11 +42,15 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
 
+            #pragma multi_compile _ LIGHTING_DEBUG
+
             //-------------------------------------------------------------------------------------
             // Include
             //-------------------------------------------------------------------------------------
 
             #include "Common.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/DebugLighting.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
@@ -62,8 +66,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
-			TEXTURE2D_FLOAT(_CameraDepthTexture);
-			SAMPLER2D(sampler_CameraDepthTexture);
+            TEXTURE2D_FLOAT(_CameraDepthTexture);
+            SAMPLER2D(sampler_CameraDepthTexture);
 
             struct Attributes
             {
@@ -88,7 +92,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-			    output.positionCS = GetFullscreenTriangleVertexPosition(input.vertexID);
+			    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
@@ -107,9 +111,20 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-                float3 diffuseLighting;
-                float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+                float3 diffuseLighting  = float3(0, 0, 0);
+                float3 specularLighting = float3(0, 0, 0);
+
+            #if UNITY_REVERSED_Z
+                float clearDepth = 0;
+            #else
+                float clearDepth = 1;
+            #endif
+
+                // Do not shade the far plane - wastes cycles and produces wrong results.
+                if (depth != clearDepth)
+                {
+                    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+                }
 
                 Outputs outputs;
             #ifdef OUTPUT_SPLIT_LIGHTING
