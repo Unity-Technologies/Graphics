@@ -31,11 +31,12 @@ namespace UnityEditor.VFX
             m_Content = content;
         }
 
-        protected T m_Content;
-        public T Content
+        public T GetContent()
         {
-            get { return m_Content; }
+            return m_Content;
         }
+
+        protected T m_Content;
 
         private static VFXValueType ToValueType()
         {
@@ -119,10 +120,10 @@ namespace UnityEditor.VFX
         {
             switch(input.ValueType)
             {
-                case VFXValueType.kFloat: return ToFloatArray((input as VFXValueFloat).Content);
-                case VFXValueType.kFloat2: return ToFloatArray((input as VFXValueFloat2).Content);
-                case VFXValueType.kFloat3: return ToFloatArray((input as VFXValueFloat3).Content);
-                case VFXValueType.kFloat4: return ToFloatArray((input as VFXValueFloat4).Content);
+                case VFXValueType.kFloat: return ToFloatArray(input.GetContent<float>());
+                case VFXValueType.kFloat2: return ToFloatArray(input.GetContent<Vector2>());
+                case VFXValueType.kFloat3: return ToFloatArray(input.GetContent<Vector3>());
+                case VFXValueType.kFloat4: return ToFloatArray(input.GetContent<Vector4>());
             }
             return null;
         }
@@ -202,7 +203,7 @@ namespace UnityEditor.VFX
 
         sealed protected override VFXExpression ExecuteConstantOperation(VFXExpression[] reducedParents)
         {
-            var constParentFloat = reducedParents.Cast<VFXValueFloat>().Select(o => o.Content).ToArray();
+            var constParentFloat = reducedParents.Cast<VFXValueFloat>().Select(o => o.GetContent()).ToArray();
             if (constParentFloat.Length != m_Parents.Length)
             {
                 throw new ArgumentException("Incorrect VFXExpressionCombine.ExecuteConstantOperation");
@@ -283,10 +284,10 @@ namespace UnityEditor.VFX
             var parent = reducedParents[0];
             switch(reducedParents[0].ValueType)
             {
-                case VFXValueType.kFloat : readValue = (parent as VFXValueFloat).Content; break;
-                case VFXValueType.kFloat2: readValue = GetChannel((parent as VFXValueFloat2).Content, iChannel); break;
-                case VFXValueType.kFloat3: readValue = GetChannel((parent as VFXValueFloat3).Content, iChannel); break;
-                case VFXValueType.kFloat4: readValue = GetChannel((parent as VFXValueFloat4).Content, iChannel); break;
+                case VFXValueType.kFloat : readValue = parent.GetContent<float>(); break;
+                case VFXValueType.kFloat2: readValue = GetChannel(parent.GetContent<Vector2>(), iChannel); break;
+                case VFXValueType.kFloat3: readValue = GetChannel(parent.GetContent<Vector3>(), iChannel); break;
+                case VFXValueType.kFloat4: readValue = GetChannel(parent.GetContent<Vector4>(), iChannel); break;
             }
             return new VFXValueFloat(readValue, true);
         }
@@ -559,8 +560,8 @@ namespace UnityEditor.VFX
             {
                 if (curveReduce.Is(Flags.Constant | Flags.Value) && timeReduce.Is(Flags.Constant | Flags.Value))
                 {
-                    var curve = (curveReduce as VFXValueCurve).Content;
-                    var time = (timeReduce as VFXValueFloat).Content;
+                    var curve = curveReduce.GetContent<AnimationCurve>();
+                    var time = timeReduce.GetContent<float>();
                     return new VFXValueFloat(curve.Evaluate(time), true);
                 }
             }

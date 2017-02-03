@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
                 {
                     var parents = expression.Parents.Select(e => GetReduced(e)).ToArray();
                     reduced = expression.Reduce(parents, Option);
-                    //m_ReducedCache[expression] = reduced; //issue with hashcode ?
+                    m_ReducedCache[expression] = reduced;
                 }
                 return reduced;
             }

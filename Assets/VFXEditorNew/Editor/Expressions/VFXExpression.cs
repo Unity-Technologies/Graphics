@@ -129,8 +129,6 @@ namespace UnityEditor.VFX
             throw new ArgumentException(string.Format("Unexpected GetOperationCodeContent call with {0}", GetType().FullName));
         }
 
-        public virtual int[] AdditionnalParameters { get { return new int[] { }; } }
-
         public override int GetHashCode()
         {
             int hash = GetType().GetHashCode();
@@ -150,6 +148,19 @@ namespace UnityEditor.VFX
             return hash;
         }
 
+        public virtual int[] AdditionnalParameters { get { return new int[] { }; } }
+        public virtual T GetContent<T>()
+        {
+            var value = (this as VFXValue<T>);
+            if (value == null)
+            {
+                throw new ArgumentException(string.Format("GetContent isn't available for {0} with {1}", typeof(T).FullName, GetType().FullName));
+            }
+            return value.GetContent();
+        }
+
         protected Flags m_Flags = Flags.None;
+
     }
+
 }
