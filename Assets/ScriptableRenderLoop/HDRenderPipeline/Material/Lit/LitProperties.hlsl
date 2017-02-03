@@ -81,6 +81,7 @@ float4 _UVDetailsMappingMask;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;
+float _PPDLodThreshold;
 
 #else // LAYERED_LIT_SHADER
 

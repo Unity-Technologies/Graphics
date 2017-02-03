@@ -5,6 +5,7 @@
 // This function is compatible with tiled uv.
 // it return the offset to apply to the UVSet provide in PerPixelHeightDisplacementParam
 // viewDirTS is view vector in texture space matching the UVSet
+// ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
 float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float3 viewDirTS, float maxHeight, PerPixelHeightDisplacementParam ppdParam)
 {
     // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion

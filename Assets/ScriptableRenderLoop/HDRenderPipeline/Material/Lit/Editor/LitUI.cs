@@ -70,6 +70,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kPpdMinSamples = "_PPDMinSamples";
         protected MaterialProperty ppdMaxSamples = null;
         protected const string kPpdMaxSamples = "_PPDMaxSamples";
+        protected MaterialProperty ppdLodThreshold = null;
+        protected const string kPpdLodThreshold = "_PPDLodThreshold";
         protected MaterialProperty detailMapMode = null;
         protected const string kDetailMapMode = "_DetailMapMode";
         protected MaterialProperty UVDetail = null;
@@ -152,6 +154,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
             ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
+            ppdLodThreshold = FindProperty(kPpdLodThreshold, props);            
             detailMapMode = FindProperty(kDetailMapMode, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
@@ -240,6 +243,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
             m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
             ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+            m_MaterialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
 
             m_MaterialEditor.ShaderProperty(materialID,          Styles.materialIDText);
             m_MaterialEditor.ShaderProperty(subsurfaceProfile,   Styles.subsurfaceProfileText);
