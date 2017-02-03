@@ -1395,11 +1395,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetKeyword(m_DeferredAllMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
                 Utilities.SetKeyword(m_SingleDeferredMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
                 Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-
-                Vector4 debugModeAndAlbedo = new Vector4((float)lightDebugParameters.lightingDebugMode, lightDebugParameters.debugLightingAlbedo.r, lightDebugParameters.debugLightingAlbedo.g, lightDebugParameters.debugLightingAlbedo.b);
-                Vector4 debugSmoothness = new Vector4(lightDebugParameters.overrideSmoothness ? 1.0f : 0.0f, lightDebugParameters.overrideSmoothnessValue, 0.0f, 0.0f);
-                SetGlobalVector("_DebugLightModeAndAlbedo", debugModeAndAlbedo);
-                SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
             }
 
             public override void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
@@ -1426,15 +1421,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
-                    bool useCompute = !m_PassSettings.disableTileAndCluster && !m_PassSettings.disableDeferredShadingInCompute;
-                    // We don't want to setup the compute if it's not needed. Otherwwise, the SetGlobalXXX method will not set the parameters properly for regular shaders.
-                    if (useCompute)
-                    {
-                        if (lightDebugParameters.lightingDebugMode == LightingDebugMode.None)
-                            SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlKernel : s_shadeOpaqueClusteredKernel, cmd);
-                        else
-                            SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlDebugLightingKernel : s_shadeOpaqueClusteredDebugLightingKernel, cmd);
-                    }
+                    if (lightDebugParameters.lightingDebugMode == LightingDebugMode.None)
+                        SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlKernel : s_shadeOpaqueClusteredKernel, cmd);
+                    else
+                        SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlDebugLightingKernel : s_shadeOpaqueClusteredDebugLightingKernel, cmd);
 
                     // In case of bUseClusteredForDeferred disable toggle option since we're using m_perVoxelLightLists as opposed to lightList
                     if (bUseClusteredForDeferred)
