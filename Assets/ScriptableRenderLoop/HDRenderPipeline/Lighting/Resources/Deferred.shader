@@ -107,9 +107,20 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-                float3 diffuseLighting;
-                float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+                float3 diffuseLighting  = float3(0, 0, 0);
+                float3 specularLighting = float3(0, 0, 0);
+
+            #if UNITY_REVERSED_Z
+                float clearDepth = 0;
+            #else
+                float clearDepth = 1;
+            #endif
+
+                // Do not shade the far plane - wastes cycles and produces wrong results.
+                if (depth != clearDepth)
+                {
+                    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+                }
 
                 Outputs outputs;
             #ifdef OUTPUT_SPLIT_LIGHTING
