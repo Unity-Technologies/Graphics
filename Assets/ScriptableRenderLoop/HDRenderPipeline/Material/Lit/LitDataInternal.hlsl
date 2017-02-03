@@ -18,7 +18,7 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     // Note that if base is planar/triplanar, detail map is too
 
     // planar
-    // TODO: Do we want to manage local or world triplanar/planar
+    // TODO: Do we want to manage local or world triplanar/planar ? In this case update ApplyPerPixelDisplacement() too
     //float3 position = localTriplanar ? TransformWorldToObject(positionWS) : positionWS;
     float3 position = positionWS;
     position *= ADD_IDX(_TexWorldScale);
