@@ -61,13 +61,13 @@ SamplerState samplerfloatTexture;
 struct Attribute0
 {
 	float3 front;
-	float lifetime;
+	float alpha;
 };
 
 struct Attribute1
 {
 	float3 up;
-	uint _PADDING_0;
+	float lifetime;
 };
 
 struct Attribute2
@@ -85,10 +85,10 @@ struct Attribute3
 struct Attribute4
 {
 	float3 color;
-	float alpha;
+	uint _PADDING_0;
 };
 
-struct Attribute6
+struct Attribute7
 {
 	float3 velocity;
 	float age;
@@ -99,7 +99,7 @@ RWStructuredBuffer<Attribute1> attribBuffer1;
 RWStructuredBuffer<Attribute2> attribBuffer2;
 RWStructuredBuffer<Attribute3> attribBuffer3;
 RWStructuredBuffer<Attribute4> attribBuffer4;
-RWStructuredBuffer<Attribute6> attribBuffer6;
+RWStructuredBuffer<Attribute7> attribBuffer7;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -249,23 +249,23 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		Attribute2 attrib2 = (Attribute2)0;
 		Attribute3 attrib3 = (Attribute3)0;
 		Attribute4 attrib4 = (Attribute4)0;
-		Attribute6 attrib6 = (Attribute6)0;
+		Attribute7 attrib7 = (Attribute7)0;
 		
 		uint local_seed = (uint)0;
 		
 		
 		local_seed = WangHash((id.x + spawnIndex) ^ initUniform5_kVFXSystemSeedOp);
 		VFXBlockSetPositionSphereVolume( attrib3.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXValueOp,local_seed);
-		VFXBlockSetColorRandomGradient( attrib4.color,attrib4.alpha,initUniform2_kVFXValueOp,local_seed);
-		VFXBlockSetLifetimeConstant( attrib0.lifetime,initUniform3_kVFXValueOp);
-		VFXBlockVelocityRandomUniform( attrib6.velocity,initUniform4_kVFXValueOp,local_seed);
+		VFXBlockSetColorRandomGradient( attrib4.color,attrib0.alpha,initUniform2_kVFXValueOp,local_seed);
+		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform3_kVFXValueOp);
+		VFXBlockVelocityRandomUniform( attrib7.velocity,initUniform4_kVFXValueOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
 		attribBuffer2[index] = attrib2;
 		attribBuffer3[index] = attrib3;
 		attribBuffer4[index] = attrib4;
-		attribBuffer6[index] = attrib6;
+		attribBuffer7[index] = attrib7;
 		
 		flags[index] = 1;
 	}
@@ -283,20 +283,20 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute1 attrib1 = attribBuffer1[index];
 		Attribute2 attrib2 = attribBuffer2[index];
 		Attribute3 attrib3 = attribBuffer3[index];
-		Attribute6 attrib6 = attribBuffer6[index];
+		Attribute7 attrib7 = attribBuffer7[index];
 		
 		VFXSampler3D updateSampler0_kVFXValueOp = InitSampler(updateSampler0_kVFXValueOpTexture,samplerupdateSampler0_kVFXValueOpTexture);
 		VFXSampler3D updateSampler1_kVFXValueOp = InitSampler(updateSampler1_kVFXValueOpTexture,samplerupdateSampler1_kVFXValueOpTexture);
 		
-		VFXSDFConformance( attrib6.velocity,attrib3.position,updateSampler0_kVFXValueOp,updateUniform0_kVFXTransformMatrixOp,updateUniform11_kVFXInverseTRSOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXValueOp,updateUniform3_kVFXValueOp,updateUniform4_kVFXValueOp,updateUniform14_kVFXDeltaTimeOp);
-		VFXSDFOrientation( attrib2.side,attrib1.up,attrib0.front,attrib3.position,attrib6.velocity,updateSampler0_kVFXValueOp,updateUniform5_kVFXTransformMatrixOp,updateUniform12_kVFXInverseTRSOp,updateUniform6_kVFXCombine3fOp);
-		VFXBlockVectorFieldRelativeForce( attrib6.velocity,attrib3.position,updateSampler1_kVFXValueOp,updateUniform7_kVFXTransformMatrixOp,updateUniform13_kVFXInverseTRSOp,updateUniform8_kVFXValueOp,updateUniform9_kVFXValueOp,updateUniform14_kVFXDeltaTimeOp);
-		VFXBlockSetForceLinearDrag( attrib6.velocity,updateUniform10_kVFXValueOp,updateUniform14_kVFXDeltaTimeOp);
+		VFXSDFConformance( attrib7.velocity,attrib3.position,updateSampler0_kVFXValueOp,updateUniform0_kVFXTransformMatrixOp,updateUniform11_kVFXInverseTRSOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXValueOp,updateUniform3_kVFXValueOp,updateUniform4_kVFXValueOp,updateUniform14_kVFXDeltaTimeOp);
+		VFXSDFOrientation( attrib2.side,attrib1.up,attrib0.front,attrib3.position,attrib7.velocity,updateSampler0_kVFXValueOp,updateUniform5_kVFXTransformMatrixOp,updateUniform12_kVFXInverseTRSOp,updateUniform6_kVFXCombine3fOp);
+		VFXBlockVectorFieldRelativeForce( attrib7.velocity,attrib3.position,updateSampler1_kVFXValueOp,updateUniform7_kVFXTransformMatrixOp,updateUniform13_kVFXInverseTRSOp,updateUniform8_kVFXValueOp,updateUniform9_kVFXValueOp,updateUniform14_kVFXDeltaTimeOp);
+		VFXBlockSetForceLinearDrag( attrib7.velocity,updateUniform10_kVFXValueOp,updateUniform14_kVFXDeltaTimeOp);
 		
-		attrib3.position += attrib6.velocity * updateUniform14_kVFXDeltaTimeOp;
+		attrib3.position += attrib7.velocity * updateUniform14_kVFXDeltaTimeOp;
 		
-		attrib6.age += updateUniform14_kVFXDeltaTimeOp;
-		if (attrib6.age >= attrib0.lifetime)
+		attrib7.age += updateUniform14_kVFXDeltaTimeOp;
+		if (attrib7.age >= attrib1.lifetime)
 			kill = true;
 		
 		if (kill)
@@ -310,7 +310,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			attribBuffer1[index] = attrib1;
 			attribBuffer2[index] = attrib2;
 			attribBuffer3[index] = attrib3;
-			attribBuffer6[index] = attrib6;
+			attribBuffer7[index] = attrib7;
 		}
 	}
 }

@@ -693,6 +693,7 @@ namespace UnityEditor.Experimental
 
         public override OutputType GetOutputType() { return OutputType.Hexahedron; }
         public override bool NeedsDepthTexture() { return true; }
+        public override bool NeedsBackFaceCulling() { return true; }
 
         public override bool UpdateAttributes(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, ref VFXBlockDesc.Flag flags)
         {

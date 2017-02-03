@@ -8,7 +8,7 @@ Shader "Hidden/VFX_0"
 			Blend SrcAlpha OneMinusSrcAlpha
 			ZTest LEqual
 			ZWrite Off
-			Cull Off
+			Cull Back
 			
 			CGPROGRAM
 			#pragma target 4.5
@@ -24,26 +24,33 @@ Shader "Hidden/VFX_0"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float outputUniform0_kVFXValueOp;
+				float4x4 outputUniform0_kVFXTransformMatrixOp;
+				
+				float4x4 outputUniform2_kVFXInverseTRSOp;
+				
+				float outputUniform1_kVFXValueOp;
 				uint3 outputUniforms_PADDING_0;
 			
 			CBUFFER_END
 			
-			Texture2D outputSampler0_kVFXValueOpTexture;
+			Texture3D outputSampler0_kVFXValueOpTexture;
 			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
+			
+			Texture2D outputSampler1_kVFXValueOpTexture;
+			SamplerState sampleroutputSampler1_kVFXValueOpTexture;
 			
 			sampler2D_float _CameraDepthTexture;
 			
 			struct Attribute0
 			{
 				float3 front;
-				float lifetime;
+				float alpha;
 			};
 			
 			struct Attribute1
 			{
 				float3 up;
-				uint _PADDING_0;
+				float lifetime;
 			};
 			
 			struct Attribute2
@@ -61,7 +68,7 @@ Shader "Hidden/VFX_0"
 			struct Attribute4
 			{
 				float3 color;
-				float alpha;
+				uint _PADDING_0;
 			};
 			
 			StructuredBuffer<Attribute0> attribBuffer0;
@@ -82,18 +89,32 @@ Shader "Hidden/VFX_0"
 				float4 projPos : TEXCOORD7;
 			};
 			
+			void VFXSDFReveal( inout float alpha,float3 position,VFXSampler3D DistanceField,float4x4 Box,float4x4 InvBox,float Threshold,inout bool kill)
+			{
+				float3 tPos = mul(INVERSE(Box), float4(position,1.0f)).xyz;
+	float3 coord = saturate(tPos + 0.5f);
+	float dist = SampleTexture(DistanceField, coord).x;
+	if (abs(dist) > Threshold)
+	    KILL;
+			}
+			
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
 				uint index = (id >> 3) + instanceID * 2018;
 				if (flags[index] == 1)
 				{
+					bool kill = false;
+					
 					Attribute0 attrib0 = attribBuffer0[index];
 					Attribute1 attrib1 = attribBuffer1[index];
 					Attribute2 attrib2 = attribBuffer2[index];
 					Attribute3 attrib3 = attribBuffer3[index];
 					Attribute4 attrib4 = attribBuffer4[index];
 					
+					VFXSampler3D outputSampler0_kVFXValueOp = InitSampler(outputSampler0_kVFXValueOpTexture,sampleroutputSampler0_kVFXValueOpTexture);
+					VFXSampler2D outputSampler1_kVFXValueOp = InitSampler(outputSampler1_kVFXValueOpTexture,sampleroutputSampler1_kVFXValueOpTexture);
+					VFXSDFReveal( attrib0.alpha,attrib3.position,outputSampler0_kVFXValueOp,outputUniform0_kVFXTransformMatrixOp,outputUniform2_kVFXInverseTRSOp,outputUniform1_kVFXValueOp,kill);
 					
 					float3 offsets;
 					offsets.x = 2.0 * float(id & 1) - 1.0;
@@ -101,7 +122,7 @@ Shader "Hidden/VFX_0"
 					offsets.z = 2.0 * float((id & 7) >> 2) - 1.0;
 					
 					const float size = 0.01f;
-					float maxProjDist = outputUniform0_kVFXValueOp;
+					float maxProjDist = outputUniform1_kVFXValueOp;
 					offsets.xy *= size;
 					offsets.z *= maxProjDist;
 					
@@ -134,7 +155,12 @@ Shader "Hidden/VFX_0"
 					o.pos = mul(UNITY_MATRIX_VP, float4(position,1.0f));
 					o.color = float4(offsets * 0.5f + 0.5f,0.5f);
 					o.projPos = ComputeScreenPos(o.pos); // For depth texture fetch
-					o.col = float4(attrib4.color.xyz,attrib4.alpha);
+					o.col = float4(attrib4.color.xyz,attrib0.alpha);
+					if (kill)
+					{
+						o.pos = -1.0;
+						o.col = 0;
+					}
 				}
 				else
 				{
@@ -177,7 +203,7 @@ Shader "Hidden/VFX_0"
 				screenPos = mul(screenToDecal, screenPos) * 0.25f + 0.75f;
 				clip(0.5f - abs(screenPos - 0.5f));
 				
-				color *= outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,screenPos);
+				color *= outputSampler1_kVFXValueOpTexture.Sample(sampleroutputSampler1_kVFXValueOpTexture,screenPos);
 				
 				o.col = color;
 				return o;

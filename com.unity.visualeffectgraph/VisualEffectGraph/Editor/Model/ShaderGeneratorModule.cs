@@ -53,6 +53,7 @@ namespace UnityEditor.Experimental
         public virtual VFXExpression GetMesh() { return null; }
         public virtual bool CanUseDeferred() { return false; }
         public virtual bool NeedsDepthTexture() { return false; }
+        public virtual bool NeedsBackFaceCulling() { return false; }
 
         // Helper function
         protected static void WriteTex2DFetch(ShaderSourceBuilder builder, ShaderMetaData data, VFXValue texture, string uv, bool endLine)

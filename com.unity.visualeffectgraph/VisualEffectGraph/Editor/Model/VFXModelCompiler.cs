@@ -1312,7 +1312,7 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("ZWrite On");
             else
                 builder.WriteLine("ZWrite Off");
-            builder.WriteLine("Cull Off");
+            builder.WriteLineFormat("Cull {0}",outputGenerator.NeedsBackFaceCulling() ? "Back" : "Off");
             builder.WriteLine();
             builder.WriteLine("CGPROGRAM");
             builder.WriteLine("#pragma target 4.5");
@@ -1479,6 +1479,9 @@ namespace UnityEditor.Experimental
                     }
             }
             builder.WriteLine();
+
+            foreach (var sampler in data.outputSamplers)
+                builder.WriteInitVFXSampler(sampler.ValueType, data.paramToName[(int)ShaderMetaData.Pass.kOutput][sampler]);
 
             builder.WriteLocalAttribDeclaration(data, VFXContextDesc.Type.kTypeOutput);
 

@@ -169,7 +169,7 @@ float distToSurface = abs(dist);";
     {
         public VFXSDFReveal()
         {
-            Name = "Distance Field Reveal";
+            Name = "Distance Field Kill";
             //Icon = "Force";
             Category = "Test";
             CompatibleContexts = VFXContextDesc.Type.kAll;
@@ -185,7 +185,8 @@ float distToSurface = abs(dist);";
 float3 tPos = mul(INVERSE(Box), float4(position,1.0f)).xyz;
 float3 coord = saturate(tPos + 0.5f);
 float dist = SampleTexture(DistanceField, coord).x;
-alpha = abs(dist) <= Threshold ? 1.0f : 0.0f;";
+if (abs(dist) > Threshold)
+    KILL;";
         }
     }
 }
