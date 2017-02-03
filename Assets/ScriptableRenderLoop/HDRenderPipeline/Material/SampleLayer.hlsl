@@ -1,7 +1,7 @@
 // Gather all kind of mapping in one struct, allow to improve code readability
 struct LayerUV
 {
-    float2 uv;    
+    float2 uv;
     bool isPlanar; // mutually exclusive with isTriplanar
     // triplanar
     bool isTriplanar;

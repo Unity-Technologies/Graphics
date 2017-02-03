@@ -80,42 +80,136 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 {
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
 
+    bool isTriplanar = false;
 #ifdef _MAPPING_TRIPLANAR
     // one weight for each direction XYZ - Use vertex normal for triplanar
     layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalWS);
-#endif
-
-    bool isTriplanar = false;
-#ifdef _MAPPING_TRIPLANAR
     isTriplanar = true;
 #endif
+
     // Be sure that the compiler is aware that we don't touch UV1 to UV3 for main layer so it can optimize code
     _UVMappingMask.yzw = float3(0.0, 0.0, 0.0);
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, 
                             positionWS, normalWS, isTriplanar, layerTexCoord);
 }
 
+float GetMaxDisplacement()
+{
+    float maxDisplacement = 0.0;
+#if defined(_HEIGHTMAP)
+    maxDisplacement = _HeightAmplitude0;
+#endif
+    return maxDisplacement
+}
+
+// Return the minimun uv size for all layers including triplanar
+float2 GetMinUvSize(LayerTexCoord layerTexCoord)
+{
+    float2 minUvSize = float2(FLT_MAX, FLT_MAX);
+
+#if defined(_HEIGHTMAP)
+    if (layerTexCoord.base0.isTriplanar)
+    {
+        minUvSize = min(layerTexCoord.base.uvYZ * _HeightMap_TexelSize.zw);
+        minUvSize = min(layerTexCoord.base.uvZX * _HeightMap_TexelSize.zw);
+        minUvSize = min(layerTexCoord.base.uvXY * _HeightMap_TexelSize.zw);
+    }
+    else
+    {
+        minUvSize = min(layerTexCoord.base.uv * _HeightMap_TexelSize.zw);
+    }
+#endif
+
+    return minUvSize;
+}
+
+struct PerPixelHeightDisplacementParam
+{
+    float2 uv;
+};
+
+// Calculate displacement for per vertex displacement mapping
+float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerPixelHeightDisplacementParam param)
+{
+    // Note: No multiply by amplitude here. This is include in the maxHeight provide to POM
+    // Tiling is automatically handled correctly here.
+    return SAMPLE_TEXTURE2D_LOD(_HeightMap0, sampler_ShareHeightMap, param.uv + texOffsetCurrent, lod).r;
+}
+
+#include "PerPixelDisplacement.hlsl"
+
 void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
-#if defined(_HEIGHTMAP) && defined(_PER_PIXEL_DISPLACEMENT)
+    bool ppdEnable = false;
+    bool isPlanar = false;
+    bool isTriplanar = false;
 
-    // ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
-    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
-    // Change the number of samples per ray depending on the viewing angle for the surface. 
-    // Oblique angles require  smaller step sizes to achieve more accurate precision for computing displacement.
-    int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-
-    ParallaxOcclusionMappingLayer(layerTexCoord, numSteps, viewDirTS);
-
-    // TODO: We are supposed to modify lightmaps coordinate (fetch in GetBuiltin), but this isn't the same uv mapping, so can't apply the offset here...
-    // Let's assume it will be "fine" as indirect diffuse is often low frequency
+#if defined(_PER_PIXEL_DISPLACEMENT) &&  defined(_HEIGHTMAP)
+    ppdEnable = true;
+    isPlanar = layerTexCoord.base0.isPlanar;
+    isTriplanar = layerTexCoord.base0.isTriplanar;
 #endif
+
+    if (ppdEnable)
+    {
+        // See comment in layered version for details
+        float maxHeight = GetMaxDisplacement();
+        float2 minUvSize = GetMinUvSize(layerTexCoord);
+        float lod = ComputeTextureLOD(minUvSize);
+
+        PerPixelHeightDisplacementParam ppdParam;
+
+        // We need to calculate the texture space direction. It depends on the mapping.
+        if (isTriplanar)
+        {
+            // TODO: implement. Require 3 call to POM + dedicated viewDirTS based on triplanar convention
+            // apply the 3 offset on all layers
+            /*
+
+            ppdParam.uv = layerTexCoord.base0.uvYZ;
+
+            float3 viewDirTS = ;
+            int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, abs(viewDirTS.z));
+            ParallaxOcclusionMapping(float2 uv, lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+
+            (...)
+            */
+        }
+        else if (isPlanar) // Caution: this if is dynamic as planar is not a variant, should we do one ?
+        {
+            ppdParam.uv = layerTexCoord.base.uv;
+
+            // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
+            // TODO: do we support object triplanar ? See ComputeLayerTexCoord
+            float3 viewDirTS = V;
+            int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
+            float2 offset = ParallaxOcclusionMapping(float2 uv, lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+
+            // Apply offset to all UVSet0
+            // _UVMappingPlanar0 will be 1.0 is UVSet0 is used;
+            layerTexCoord.base.uv += _UVMappingPlanar * offset;
+            layerTexCoord.details.uv += _UVMappingPlanar * offset;
+        }
+        else // UVSet0
+        {
+            ppdParam.uv = layerTexCoord.base.uv;
+
+            float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
+            int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
+            float2 offset = ParallaxOcclusionMapping(float2 uv, lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+
+            // Apply offset to all UVSet0
+            // _UVMappingMask0.x will be 1.0 is UVSet0 is used;
+            layerTexCoord.base.uv += _UVMappingMask.x * offset;
+            layerTexCoord.details.uv += _UVDetailsMappingMask.x * offset;
+        }
+    }
 }
 
 // Calculate displacement for per vertex displacement mapping
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
-    return SampleHeightmapLod(layerTexCoord, lod, _HeightCenter, _HeightAmplitude);
+    return SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
 }
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -452,7 +546,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
     // Note: No multiply by amplitude here, this is bake into the weights and apply in BlendLayeredScalar
     // The amplitude is normalize to be able to work with POM algorithm
     // Tiling is automatically handled correctly here as we use 4 differents uv even if they come from the same UVSet (they include the tiling)
-    float height0 = SAMPLE_TEXTURE2D_LOD(_HeightMap0, sampler_ShareHeightMap, param.uv[0] + texOffsetCurrent, lod).r)
+    float height0 = SAMPLE_TEXTURE2D_LOD(_HeightMap0, sampler_ShareHeightMap, param.uv[0] + texOffsetCurrent, lod).r);
     float height1 = SAMPLE_TEXTURE2D_LOD(_HeightMap1, sampler_ShareHeightMap, param.uv[1] + texOffsetCurrent, lod).r);
     float height2 = SAMPLE_TEXTURE2D_LOD(_HeightMap2, sampler_ShareHeightMap, param.uv[2] + texOffsetCurrent, lod).r);
     float height3 = SAMPLE_TEXTURE2D_LOD(_HeightMap3, sampler_ShareHeightMap, param.uv[3] + texOffsetCurrent, lod).r);
@@ -475,12 +569,41 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
     bool ppdEnable = false;
+    bool isPlanar = false;
+    bool isTriplanar = false;
 
-#if defined(_PER_PIXEL_DISPLACEMENT)
-#if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || (_LAYER_COUNT >= 3 && defined(_HEIGHTMAP2)) || (_LAYER_COUNT >= 4 && defined(_HEIGHTMAP3))
+#ifdef _PER_PIXEL_DISPLACEMENT
+
+    // To know if we are planar or triplanar just need to check if any of the active heightmap layer is true as they are enforce to be the same mapping
+#if defined(_HEIGHTMAP0)
     ppdEnable = true;
+    isPlanar = layerTexCoord.base0.isPlanar;
+    isTriplanar = layerTexCoord.base0.isTriplanar;
+#endif
+
+#if defined(_HEIGHTMAP1)
+    ppdEnable = true;
+    isPlanar = layerTexCoord.base1.isPlanar;
+    isTriplanar = layerTexCoord.base1.isTriplanar;
+#endif
+
+#if _LAYER_COUNT >= 3
+#if defined(_HEIGHTMAP2)
+    ppdEnable = true;
+    isPlanar = layerTexCoord.base2.isPlanar;
+    isTriplanar = layerTexCoord.base2.isTriplanar;
 #endif
 #endif
+
+#if _LAYER_COUNT >= 4
+#if defined(_HEIGHTMAP3)
+    ppdEnable = true;
+    isPlanar = layerTexCoord.base3.isPlanar;
+    isTriplanar = layerTexCoord.base3.isTriplanar;
+#endif
+#endif
+
+#endif // _PER_PIXEL_DISPLACEMENT
 
     if (ppdEnable)
     {
@@ -523,11 +646,9 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
         }
         ppdParam.mainHeightInfluence = 0.0;
 #endif
-        
-        layerTexCoord.base3
 
         // We need to calculate the texture space direction. It depends on the mapping.
-        if (ppdlayerUV.triplanar)
+        if (isTriplanar)
         {
             // TODO: implement. Require 3 call to POM + dedicated viewDirTS based on triplanar convention
             // apply the 3 offset on all layers
@@ -551,7 +672,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             // Apply to all layer that used triplanar
             */
         }
-        else if (ppdlayerUV.planar) // Caution: this if is dynamic as planar is not a variant, should we do one ?
+        else if (isPlanar) // Caution: this if is dynamic as planar is not a variant, should we do one ?
         {
             ppdParam.uv[0] = layerTexCoord.base0.uv;
             ppdParam.uv[1] = layerTexCoord.base1.uv;
@@ -734,6 +855,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 #endif
 
+    // Note: If per pixel displacement is enabled it mean we will fetch again the various heightmaps at the intersection location. Not sure the compiler can optimize.
     float weights[_MAX_LAYER];
     ComputeLayerWeights(input, layerTexCoord, float4(alpha0, alpha1, alpha2, alpha3), weights);
 
