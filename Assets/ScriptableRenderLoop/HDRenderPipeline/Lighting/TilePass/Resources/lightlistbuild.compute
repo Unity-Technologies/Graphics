@@ -29,13 +29,13 @@ StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
 #ifdef USE_TWO_PASS_TILED_LIGHTING
-Buffer<uint> g_vBigTileLightList : register( t4 );
+StructuredBuffer<uint> g_vBigTileLightList : register( t4 );		// don't support Buffer yet in unity
 #endif
 
 #define NR_THREADS			64
 
 // output buffer
-RWBuffer<uint> g_vLightList : register( u0 );
+RWStructuredBuffer<uint> g_vLightList : register( u0 );				// don't support RWBuffer yet in unity
 
 
 #define MAX_NR_COARSE_ENTRIES		64

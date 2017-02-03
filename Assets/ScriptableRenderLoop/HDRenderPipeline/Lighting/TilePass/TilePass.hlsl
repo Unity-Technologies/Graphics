@@ -13,7 +13,7 @@
 uint _NumTileX;
 uint _NumTileY;
 
-Buffer<uint> g_vLightListGlobal;
+StructuredBuffer<uint> g_vLightListGlobal;		// don't support Buffer yet in unity
 
 #define TILE_SIZE 16 // This is fixed
 #define DWORD_PER_TILE 16 // See dwordsPerTile in TilePass.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
@@ -34,8 +34,8 @@ uint _UseTileLightList;
 //#endif
 
 //#ifdef USE_CLUSTERED_LIGHTLIST
-Buffer<uint> g_vLayeredOffsetsBuffer;
-Buffer<float> g_logBaseBuffer;
+StructuredBuffer<uint> g_vLayeredOffsetsBuffer;		// don't support Buffer yet in unity
+StructuredBuffer<float> g_logBaseBuffer;			// don't support Buffer yet in unity
 //#endif
 
 StructuredBuffer<DirectionalLightData>  _DirectionalLightDatas;

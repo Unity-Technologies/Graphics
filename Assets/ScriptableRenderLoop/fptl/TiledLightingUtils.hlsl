@@ -19,7 +19,7 @@ uniform uint g_isOpaquesOnlyEnabled;
 
 
 StructuredBuffer<SFiniteLightData> g_vLightData;
-Buffer<uint> g_vLightListGlobal;
+StructuredBuffer<uint> g_vLightListGlobal;		// don't support Buffer yet in unity
 
 
 void GetCountAndStartOpaque(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth, uint model)
@@ -52,8 +52,8 @@ uint FetchIndex(const uint tileOffs, const uint l)
 
 #include "ClusteredUtils.h"
 
-Buffer<uint> g_vLayeredOffsetsBuffer;
-Buffer<float> g_logBaseBuffer;
+StructuredBuffer<uint> g_vLayeredOffsetsBuffer;			// don't support Buffer yet in unity
+StructuredBuffer<float> g_logBaseBuffer;				// don't support Buffer yet in unity
 
 
 void GetCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth, uint model)
