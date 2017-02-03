@@ -721,14 +721,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FilterSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
             m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
-            Utilities.DrawFullscreen(cmd, m_FilterSubsurfaceScattering, hdCamera,
+            Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera,
                                      m_CameraFilteringBufferRT, m_CameraStencilBufferRT);
 
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
             m_FilterAndCombineSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
             m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
-            Utilities.DrawFullscreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera,
+            Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera,
                                      m_CameraColorBufferRT, m_CameraStencilBufferRT);
 
             context.ExecuteCommandBuffer(cmd);
