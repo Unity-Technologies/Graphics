@@ -21,7 +21,7 @@ float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, flo
     float2 texOffsetPerStep = stepSize * parallaxMaxOffsetTS;
 
     // Do a first step before the loop to init all value correctly
-    float2 texOffsetCurrent = 0;
+    float2 texOffsetCurrent = float2(0.0, 0.0);
     float prevHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
     texOffsetCurrent += texOffsetPerStep;
     float currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
@@ -62,7 +62,7 @@ float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, flo
         float t = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
         offset = (1 - t) * texOffsetPerStep * numSteps;
 
-        currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
+        currHeight = ComputePerPixelHeightDisplacement(offset, lod, ppdParam);
 
         threshold = t - currHeight;
 
