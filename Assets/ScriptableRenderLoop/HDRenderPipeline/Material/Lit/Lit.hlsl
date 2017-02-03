@@ -640,7 +640,11 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
+#ifdef SHADOWS_USE_SHADOWCTXT
+		float shadowAttenuation = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#else
         float shadowAttenuation = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#endif
 
         illuminance *= shadowAttenuation;
     }
@@ -717,7 +721,11 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+#ifdef SHADOWS_USE_SHADOWCTXT
+		float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+#else
+		float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+#endif
         shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
 
         illuminance *= shadowAttenuation;

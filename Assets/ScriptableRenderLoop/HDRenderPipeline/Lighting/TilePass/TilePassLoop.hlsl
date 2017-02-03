@@ -92,7 +92,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
+#ifndef SHADOWS_USE_SHADOWCTXT
     ZERO_INITIALIZE(LightLoopContext, context);
+#else
+	context.sampleShadow = 0;
+	context.sampleReflection = 0;
+	context.shadowContext = InitShadowContext();
+#endif
 
     diffuseLighting = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -117,7 +123,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     uint punctualLightStart;
     uint punctualLightCount;
     GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, punctualLightStart, punctualLightCount);
-    for (i = 0; i < punctualLightCount; ++i)
+
+	for (i = 0; i < punctualLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
@@ -208,7 +215,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
-    ZERO_INITIALIZE(LightLoopContext, context);
+#ifndef SHADOWS_USE_SHADOWCTXT
+	ZERO_INITIALIZE(LightLoopContext, context);
+#else
+	context.sampleShadow = 0;
+	context.sampleReflection = 0;
+	context.shadowContext = InitShadowContext();
+#endif
 
     diffuseLighting = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);

@@ -88,7 +88,12 @@ struct LightLoopContext
 {
     int sampleShadow;
     int sampleReflection;
+#ifdef SHADOWS_USE_SHADOWCTXT
+	ShadowContext shadowContext;
+#endif
 };
+
+#ifndef SHADOWS_USE_SHADOWCTXT
 
 //-----------------------------------------------------------------------------
 // Shadow sampling function
@@ -141,6 +146,7 @@ uint GetSplitSphereIndexForDirshadows(float3 positionWS, float4 dirShadowSplitSp
 
     return uint(4.0 - dot(weights, float4(4.0, 3.0, 2.0, 1.0)));
 }
+
 
 float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS)
 {
@@ -198,6 +204,7 @@ float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 
     return flSum;
 
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // Cookie sampling functions
