@@ -61,6 +61,9 @@ struct LayerTexCoord
     LayerUV details1;
     LayerUV details2;
     LayerUV details3;
+
+    // Dedicated for blend mask
+    LayerUV blendMask;
 #endif
 
     // triplanar weight
@@ -304,7 +307,15 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 
     // Be sure that the compiler is aware that we don't touch UV1 to UV3 for main layer so it can optimize code
     _UVMappingMask0.yzw = float3(0.0, 0.0, 0.0);
-    ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, 
+    // Note: Our BlendMask use the same uv mapping than the base layer but with its own tiling.
+    // Here we get a first time the base0 but with _LayerTilingBlendMask. Save the result and recall the function regularly for the main layer.
+    // It is just to share code.
+    ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
+                            positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTilingBlendMask);
+
+    layerTexCoord.blendMask = layerTexCoord.base0;
+
+    ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
                             positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTiling0);
 
     isTriplanar = false;
@@ -404,7 +415,7 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // Blend mask are Main Layer A - Layer 1 R - Layer 2 G - Layer 3 B
     // Value for main layer is not use for blending itself but for alternate weighting like density.
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
-    float4 blendMasks = useLodSampling ? SAMPLE_LAYER_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.base0, lod) : SAMPLE_LAYER_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.base0);
+    float4 blendMasks = useLodSampling ? SAMPLE_LAYER_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_LAYER_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
 
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
     blendMasks *= vertexColor;

@@ -153,10 +153,11 @@ Shader "HDRenderPipeline/LayeredLit"
         _OpacityAsDensity2("_OpacityAsDensity2", Range(0, 1.0)) = 0.0
         _OpacityAsDensity3("_OpacityAsDensity3", Range(0, 1.0)) = 0.0
 
-        _LayerTiling0("LayerTiling0", Float) = 1
-        _LayerTiling1("LayerTiling1", Float) = 1
-        _LayerTiling2("LayerTiling2", Float) = 1
-        _LayerTiling3("LayerTiling3", Float) = 1
+        _LayerTilingBlendMask("_LayerTilingBlendMask", Float) = 1
+        _LayerTiling0("_LayerTiling0", Float) = 1
+        _LayerTiling1("_LayerTiling1", Float) = 1
+        _LayerTiling2("_LayerTiling2", Float) = 1
+        _LayerTiling3("_LayerTiling3", Float) = 1
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
