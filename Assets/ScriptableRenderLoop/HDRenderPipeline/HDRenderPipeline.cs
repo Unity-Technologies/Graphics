@@ -77,11 +77,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Renderer Settings (per project)
         public RenderingParameters                      renderingParameters = new RenderingParameters();
         [SerializeField] ShadowSettings                 m_ShadowSettings = ShadowSettings.Default;
-        [SerializeField] SubsurfaceScatteringParameters m_SssParameters = SubsurfaceScatteringParameters.Default;
+        public SubsurfaceScatteringParameters           localSssParameters;
         [SerializeField] TextureSettings                m_TextureSettings = TextureSettings.Default;
 
         public ShadowSettings shadowSettings                { get { return m_ShadowSettings; } }
-        public SubsurfaceScatteringParameters sssParameters { get { return m_SssParameters; } }
         public TextureSettings textureSettings              { get { return m_TextureSettings; } set { m_TextureSettings = value; } }
 
         // Renderer Settings (per "scene")
@@ -115,10 +114,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_SkyParameters;
             }
         }
-
-        [SerializeField]
-        public SubsurfaceScatteringParameters localSssParameters;
-
+        
         public SubsurfaceScatteringParameters sssParameters
         {
             get
@@ -148,6 +144,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowSettings.directionalLightCascadeCount = commonSettings.shadowCascadeCount;
             m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
             m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
+        }
+
+        public void OnValidate()
+        {
+            globalDebugParameters.OnValidate();
         }
     }
 
@@ -432,7 +433,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_LightLoop != null)
                 m_LightLoop.NewFrame();
 
-            m_Owner. ApplyDebugParameters();
+            m_Owner.ApplyDebugParameters();
             m_Owner.UpdateCommonSettings();
 
             // Set Frame constant buffer
@@ -683,10 +684,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderTargetIdentifier[] colorRTs = { m_CameraColorBufferRT, m_CameraSubsurfaceBufferRT };
 
             // Output split lighting for materials tagged with the SSS stencil bit.
-            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs, m_CameraStencilBufferRT, true);
+            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, globalDebugParameters.lightingDebugParameters, colorRTs, m_CameraStencilBufferRT, true);
 
             // Output combined lighting for all the other materials.
-            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, colorRTs, m_CameraStencilBufferRT, false);
+            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, globalDebugParameters.lightingDebugParameters, colorRTs, m_CameraStencilBufferRT, false);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.

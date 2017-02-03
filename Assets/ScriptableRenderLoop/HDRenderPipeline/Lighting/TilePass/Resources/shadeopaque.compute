@@ -1,5 +1,7 @@
-﻿#pragma kernel ShadeOpaque_Fptl				SHADE_OPAQUE_ENTRY=ShadeOpaque_Fptl				USE_FPTL_LIGHTLIST=1
-#pragma kernel ShadeOpaque_Clustered		SHADE_OPAQUE_ENTRY=ShadeOpaque_Clustered		USE_CLUSTERED_LIGHTLIST=1
+#pragma kernel ShadeOpaque_Fptl				            SHADE_OPAQUE_ENTRY=ShadeOpaque_Fptl				        USE_FPTL_LIGHTLIST
+#pragma kernel ShadeOpaque_Fptl_DebugLighting			SHADE_OPAQUE_ENTRY=ShadeOpaque_Fptl_DebugLighting		USE_FPTL_LIGHTLIST        LIGHTING_DEBUG
+#pragma kernel ShadeOpaque_Clustered		            SHADE_OPAQUE_ENTRY=ShadeOpaque_Clustered		        USE_CLUSTERED_LIGHTLIST
+#pragma kernel ShadeOpaque_Clustered_DebugLighting		SHADE_OPAQUE_ENTRY=ShadeOpaque_Clustered_DebugLighting	USE_CLUSTERED_LIGHTLIST   LIGHTING_DEBUG
 
 // Split lighting is required for the SSS pass.
 // Not currently possible since we need to access the stencil buffer from the compute shader.
@@ -16,6 +18,8 @@
 //-------------------------------------------------------------------------------------
 
 #include "Common.hlsl"
+#include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
+#include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/DebugLighting.hlsl"
 
 // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
 // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem), 
