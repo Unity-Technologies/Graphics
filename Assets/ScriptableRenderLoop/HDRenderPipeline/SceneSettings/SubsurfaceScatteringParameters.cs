@@ -160,15 +160,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FilterKernel[i].z *= 1 / weightSum.z;
             }
 
-            Vector3 weightedStdDev;
+            Vector4 weightedStdDev;
             weightedStdDev.x = Mathf.Lerp(m_StdDev1.r, m_StdDev2.r, m_LerpWeight);
             weightedStdDev.y = Mathf.Lerp(m_StdDev1.g, m_StdDev2.g, m_LerpWeight);
             weightedStdDev.z = Mathf.Lerp(m_StdDev1.b, m_StdDev2.b, m_LerpWeight);
+            weightedStdDev.w = Mathf.Lerp(maxStdDev1,  maxStdDev2,  m_LerpWeight);
 
-            // Store (1 / (2 * WeightedVariance)) per color channel.
+            // Store (1 / (2 * Variance)) per color channel.
             m_FilterKernel[numSamples].x = 0.5f / (weightedStdDev.x * weightedStdDev.x);
             m_FilterKernel[numSamples].y = 0.5f / (weightedStdDev.y * weightedStdDev.y);
             m_FilterKernel[numSamples].z = 0.5f / (weightedStdDev.z * weightedStdDev.z);
+            m_FilterKernel[numSamples].w = 0.5f / (weightedStdDev.w * weightedStdDev.w);
         }
     }
 
