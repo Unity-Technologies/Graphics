@@ -175,31 +175,17 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             (...)
             */
         }
-        else if (isPlanar) // Caution: this if is dynamic as planar is not a variant, should we do one ?
+        else
         {
             ppdParam.uv = layerTexCoord.base.uv;
 
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = float3(-V.xz, V.y);
+            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, input.tangentToWorld);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
-            // Apply offset to all UVSet0
-            // _UVMappingPlanar0 will be 1.0 is UVSet0 is used;
-            layerTexCoord.base.uv += offset;
-            layerTexCoord.details.uv += offset;
-        }
-        else // UVSet0
-        {
-            ppdParam.uv = layerTexCoord.base.uv;
-
-            float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
-            int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
-
-            // Apply offset to all UVSet0
-            // _UVMappingMask0.x will be 1.0 is UVSet0 is used;
+            // Apply offset to all UVSet
             layerTexCoord.base.uv += offset;
             layerTexCoord.details.uv += offset;
         }
@@ -678,7 +664,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             // Apply to all layer that used triplanar
             */
         }
-        else if (isPlanar) // Caution: this if is dynamic as planar is not a variant, should we do one ?
+        else
         {
             ppdParam.uv[0] = layerTexCoord.base0.uv;
             ppdParam.uv[1] = layerTexCoord.base1.uv;
@@ -687,42 +673,25 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = V;
+            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, input.tangentToWorld);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
-            // Apply offset to all UVSet0
-            // _UVMappingPlanar0 will be 1.0 is UVSet0 is used;
-            layerTexCoord.base0.uv += _UVMappingPlanar0 * offset;
-            layerTexCoord.details0.uv += _UVMappingPlanar0 * offset;
-            layerTexCoord.base1.uv += _UVMappingPlanar1 * offset;
-            layerTexCoord.details1.uv += _UVMappingPlanar1 * offset;
-            layerTexCoord.base2.uv += _UVMappingPlanar2 * offset;
-            layerTexCoord.details2.uv += _UVMappingPlanar2 * offset;
-            layerTexCoord.base3.uv += _UVMappingPlanar3 * offset;
-            layerTexCoord.details3.uv += _UVMappingPlanar3 * offset;
-        }
-        else // UVSet0
-        {
-            ppdParam.uv[0] = layerTexCoord.base0.uv;
-            ppdParam.uv[1] = layerTexCoord.base1.uv;
-            ppdParam.uv[2] = layerTexCoord.base2.uv;
-            ppdParam.uv[3] = layerTexCoord.base3.uv;
+            // Apply offset to all planar uvset
+            // _UVMappingPlanar0 will be 1.0 is planar is used - _UVMappingMask0.x will be 1.0 is UVSet0 is used;
+            float4 offsetWeights = isPlanar ? float4(_UVMappingPlanar0, _UVMappingPlanar1, _UVMappingPlanar2, _UVMappingPlanar3) : float4(_UVMappingMask0.x, _UVMappingMask1.x, _UVMappingMask2.x, _UVMappingMask3.x);
+            
+            layerTexCoord.base0.uv += offsetWeights.x * offset;
+            layerTexCoord.base1.uv += offsetWeights.y * offset;
+            layerTexCoord.base2.uv += offsetWeights.z * offset;
+            layerTexCoord.base3.uv += offsetWeights.w * offset;
 
-            float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
-            int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+            offsetWeights = isPlanar ? float4(_UVMappingPlanar0, _UVMappingPlanar1, _UVMappingPlanar2, _UVMappingPlanar3) : float4(_UVDetailsMappingMask0.x, _UVDetailsMappingMask1.x, _UVDetailsMappingMask2.x, _UVDetailsMappingMask3.x);
 
-            // Apply offset to all UVSet0
-            // _UVMappingMask0.x will be 1.0 is UVSet0 is used;
-            layerTexCoord.base0.uv += _UVMappingMask0.x * offset;
-            layerTexCoord.details0.uv += _UVDetailsMappingMask0.x * offset;
-            layerTexCoord.base1.uv += _UVMappingMask1.x * offset;
-            layerTexCoord.details1.uv += _UVDetailsMappingMask1.x * offset;
-            layerTexCoord.base2.uv += _UVMappingMask2.x * offset;
-            layerTexCoord.details2.uv += _UVDetailsMappingMask2.x * offset;
-            layerTexCoord.base3.uv += _UVMappingMask3.x * offset;
-            layerTexCoord.details3.uv += _UVDetailsMappingMask3.x * offset;
+            layerTexCoord.details0.uv += offsetWeights.x * offset;
+            layerTexCoord.details1.uv += offsetWeights.y * offset;
+            layerTexCoord.details2.uv += offsetWeights.z * offset;
+            layerTexCoord.details3.uv += offsetWeights.w * offset;
         }
     }
 }
