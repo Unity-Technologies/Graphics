@@ -52,6 +52,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseEmissiveMask,
         }
 
+        public enum MaterialIDType
+        {
+            Standard = 0,
+            SubsurfaceScattering = 1,
+            ClearCoat = 2,
+            SpecularColor = 3
+        }
+
         protected MaterialProperty smoothnessMapChannel = null;
         protected const string kSmoothnessTextureChannel = "_SmoothnessTextureChannel";
         protected MaterialProperty UVBase = null;
@@ -64,12 +72,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVMappingPlanar = "_UVMappingPlanar";      
         protected MaterialProperty normalMapSpace = null;
         protected const string kNormalMapSpace = "_NormalMapSpace";
-        protected MaterialProperty enablePerPixelDisplacement = null;
-        protected const string kEnablePerPixelDisplacement = "_EnablePerPixelDisplacement";
-        protected MaterialProperty ppdMinSamples = null;
-        protected const string kPpdMinSamples = "_PPDMinSamples";
-        protected MaterialProperty ppdMaxSamples = null;
-        protected const string kPpdMaxSamples = "_PPDMaxSamples";
         protected MaterialProperty detailMapMode = null;
         protected const string kDetailMapMode = "_DetailMapMode";
         protected MaterialProperty UVDetail = null;
@@ -148,10 +150,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected void FindMaterialOptionProperties(MaterialProperty[] props)
         {
             smoothnessMapChannel = FindProperty(kSmoothnessTextureChannel, props);
-            normalMapSpace = FindProperty(kNormalMapSpace, props);
-            enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
-            ppdMinSamples = FindProperty(kPpdMinSamples, props);
-            ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
+            normalMapSpace = FindProperty(kNormalMapSpace, props);                      
             detailMapMode = FindProperty(kDetailMapMode, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
@@ -209,6 +208,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
             GUILayout.Label(Styles.InputsOptionsText, EditorStyles.boldLabel);
+            m_MaterialEditor.ShaderProperty(materialID, Styles.materialIDText);
+
             m_MaterialEditor.ShaderProperty(smoothnessMapChannel, Styles.smoothnessMapChannelText);
             m_MaterialEditor.ShaderProperty(UVBase, enableUVDetail ? Styles.UVBaseDetailMappingText : Styles.UVBaseMappingText);
 
@@ -235,20 +236,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             //m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText);
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
-            m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText);
-            m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText);
-            m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
-            m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
-            ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-
-            m_MaterialEditor.ShaderProperty(materialID,          Styles.materialIDText);
-            m_MaterialEditor.ShaderProperty(subsurfaceProfile,   Styles.subsurfaceProfileText);
-            m_MaterialEditor.ShaderProperty(subsurfaceRadius,    Styles.subsurfaceRadiusText);
-            m_MaterialEditor.ShaderProperty(subsurfaceRadiusMap, Styles.subsurfaceRadiusMapText);
-            m_MaterialEditor.ShaderProperty(thickness,           Styles.thicknessText);
-            m_MaterialEditor.ShaderProperty(thicknessMap,        Styles.thicknessMapText);
+            m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText);            
 
             EditorGUI.indentLevel--;
+        }
+
+        protected void ShaderSSSInputGUI()
+        {
+            m_MaterialEditor.ShaderProperty(subsurfaceProfile, Styles.subsurfaceProfileText);
+            m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceRadiusMapText, subsurfaceRadiusMap);
+            m_MaterialEditor.ShaderProperty(thickness, Styles.thicknessText);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap);
+        }
+
+        protected void ShaderStandardInputGUI()
+        {
+            m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
+            m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
         }
 
         override protected void ShaderInputGUI()
@@ -287,11 +293,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
-
-            m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
-            
-            m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
+            if ((MaterialIDType)materialID.floatValue == MaterialIDType.Standard)
+            {
+                ShaderStandardInputGUI();
+            }
+            else if ((MaterialIDType)materialID.floatValue == MaterialIDType.SubsurfaceScattering)
+            {
+                ShaderSSSInputGUI();
+            }
 
             EditorGUILayout.Space();
             GUILayout.Label(Styles.textureControlText, EditorStyles.label);
