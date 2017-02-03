@@ -124,12 +124,13 @@ velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,a
 
             Add(VFXProperty.Create<VFXTexture3DType>("DistanceField"));
             Add(new VFXProperty(new VFXOrientedBoxType(), "Box"));
-            Add(new VFXProperty(new VFXFloat3Type(new Vector3(0,1,0)), "Up"));
+            Add(new VFXProperty(new VFXFloat3Type(new Vector3(0, 1, 0)), "Up"));
 
             Add(new VFXAttribute(CommonAttrib.Side, true));
             Add(new VFXAttribute(CommonAttrib.Up, true));
             Add(new VFXAttribute(CommonAttrib.Front, true));
             Add(new VFXAttribute(CommonAttrib.Position, false));
+            Add(new VFXAttribute(CommonAttrib.Velocity, false));
 
 
             Source = @"
@@ -157,10 +158,34 @@ else
 }
   
 front = dir;
-side = normalize(cross(dir,Up));
-up = cross(side,dir);
+side = normalize(cross(velocity,dir));
+up = cross(dir,side);
 
 float distToSurface = abs(dist);";
+        }
+    }
+
+    class VFXSDFReveal : VFXBlockType
+    {
+        public VFXSDFReveal()
+        {
+            Name = "Distance Field Reveal";
+            //Icon = "Force";
+            Category = "Test";
+            CompatibleContexts = VFXContextDesc.Type.kAll;
+
+            Add(VFXProperty.Create<VFXTexture3DType>("DistanceField"));
+            Add(new VFXProperty(new VFXOrientedBoxType(), "Box"));
+            Add(new VFXProperty(new VFXFloatType(), "Threshold"));
+
+            Add(new VFXAttribute(CommonAttrib.Alpha, true));
+            Add(new VFXAttribute(CommonAttrib.Position, false));
+
+            Source = @"
+float3 tPos = mul(INVERSE(Box), float4(position,1.0f)).xyz;
+float3 coord = saturate(tPos + 0.5f);
+float dist = SampleTexture(DistanceField, coord).x;
+alpha = abs(dist) <= Threshold ? 1.0f : 0.0f;";
         }
     }
 }

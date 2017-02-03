@@ -739,7 +739,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine("offsets.z = 2.0 * float((id & 7) >> 2) - 1.0;");
             builder.WriteLine();
 
-            builder.WriteLine("const float size = 0.2f;");
+            builder.WriteLine("const float size = 0.01f;");
             builder.WriteLineFormat("float maxProjDist = {0};", data.paramToName[(int)ShaderMetaData.Pass.kOutput][m_Values[1]]);
             builder.WriteLine("offsets.xy *= size;");
             builder.WriteLine("offsets.z *= maxProjDist;");

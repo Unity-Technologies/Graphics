@@ -5,6 +5,7 @@ using UnityEngine;
 public class SDFUpdate : MonoBehaviour {
 
     public VFXComponent vfx;
+    public float RotationSpeed = 1.0f;
 
     private float m_AngleY = 0.0f;
 
@@ -16,7 +17,7 @@ public class SDFUpdate : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         //m_AngleY += Time.deltaTime * 0.1f;
-        transform.Rotate(new Vector3(0.0f, 25.0f * Time.deltaTime, 0.0f));
+        transform.Rotate(new Vector3(0.0f, 25.0f * Time.deltaTime * RotationSpeed, 0.0f));
 
         if (vfx != null)
         {
