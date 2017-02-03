@@ -88,7 +88,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-			    output.positionCS = GetFullscreenTriangleVertexPosition(input.vertexID);
+			    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
