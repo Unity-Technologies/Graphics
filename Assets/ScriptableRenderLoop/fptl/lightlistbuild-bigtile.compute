@@ -27,7 +27,7 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 #define NR_THREADS			64
 
 // output buffer
-RWBuffer<uint> g_vLightList : register( u0 );
+RWStructuredBuffer<uint> g_vLightList : register( u0 );		// don't support RWBuffer yet in unity
 
 
 // 2kB (room for roughly 30 wavefronts)

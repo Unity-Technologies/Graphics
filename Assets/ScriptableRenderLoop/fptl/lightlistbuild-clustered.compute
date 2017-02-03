@@ -43,19 +43,19 @@ StructuredBuffer<SFiniteLightData> g_vLightData : register( t2 );
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
 #ifdef USE_TWO_PASS_TILED_LIGHTING
-Buffer<uint> g_vBigTileLightList : register( t4 );
+StructuredBuffer<uint> g_vBigTileLightList : register( t4 );		// don't support Buffer yet in unity
 #endif
 
 
 #define NR_THREADS			64
 
 // output buffer
-RWBuffer<uint> g_vLayeredLightList : register( u0 );
-RWBuffer<uint> g_LayeredOffset : register( u1 );
-RWBuffer<uint> g_LayeredSingleIdxBuffer : register( u2 );
+RWStructuredBuffer<uint> g_vLayeredLightList : register( u0 );			// don't support RWBuffer yet in unity
+RWStructuredBuffer<uint> g_LayeredOffset : register( u1 );				// don't support RWBuffer yet in unity
+RWStructuredBuffer<uint> g_LayeredSingleIdxBuffer : register( u2 );		// don't support RWBuffer yet in unity
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-RWBuffer<float> g_logBaseBuffer : register( u3 );
+RWStructuredBuffer<float> g_logBaseBuffer : register( u3 );				// don't support RWBuffer yet in unity
 #endif
 
 
