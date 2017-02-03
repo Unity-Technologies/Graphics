@@ -16,15 +16,17 @@
 
 #define HAS_LIGHTLOOP // Allow to not define LightLoop related function in Material.hlsl
 
+
 #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Lighting/LightDefinition.cs.hlsl"
 #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Lighting/LightUtilities.hlsl"
+
+#include "Assets/ScriptableRenderLoop/HDRenderPipeline/Shadow/Shadow.hlsl"
 
 #if defined(LIGHTLOOP_SINGLE_PASS) || defined(LIGHTLOOP_TILE_PASS)
 #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Lighting/TilePass/TilePass.hlsl"
 #endif
 
 // Shadow use samling function define in header above and must be include before Material.hlsl
-#include "Assets/ScriptableRenderLoop/HDRenderPipeline/Shadow/Shadow.hlsl"
 #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Material.hlsl"
 
 // LightLoop use evaluation BSDF function for light type define in Material.hlsl

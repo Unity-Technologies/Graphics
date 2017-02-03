@@ -23,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public virtual void NewFrame() {}
 
         public virtual void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput) { }
+        public virtual void RenderShadows( ScriptableRenderContext renderContext, CullResults cullResults ) { }
         
         // TODO: this should not be part of the interface but for now make something working
         public virtual void BuildGPULightLists(Camera camera, ScriptableRenderContext loop, RenderTargetIdentifier cameraDepthBufferRT) { }
