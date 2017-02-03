@@ -467,6 +467,8 @@ float GetMaxDisplacement()
                             , maxDisplacement);
 #endif
 #endif
+
+    return maxDisplacement;
 }
 
 // Return the minimun uv size for all layers including triplanar

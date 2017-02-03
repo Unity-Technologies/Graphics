@@ -52,6 +52,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseEmissiveMask,
         }
 
+        public enum MaterialIDType
+        {
+            Standard = 0,
+            SubsurfaceScattering = 1,
+            ClearCoat = 2,
+            SpecularColor = 3
+        }
+
         protected MaterialProperty smoothnessMapChannel = null;
         protected const string kSmoothnessTextureChannel = "_SmoothnessTextureChannel";
         protected MaterialProperty UVBase = null;
@@ -212,6 +220,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
             GUILayout.Label(Styles.InputsOptionsText, EditorStyles.boldLabel);
+            m_MaterialEditor.ShaderProperty(materialID, Styles.materialIDText);
+
             m_MaterialEditor.ShaderProperty(smoothnessMapChannel, Styles.smoothnessMapChannelText);
             m_MaterialEditor.ShaderProperty(UVBase, enableUVDetail ? Styles.UVBaseDetailMappingText : Styles.UVBaseMappingText);
 
@@ -240,19 +250,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
             m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText);
             m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText);
-            m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
-            m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
-            ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-            m_MaterialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
-
-            m_MaterialEditor.ShaderProperty(materialID,          Styles.materialIDText);
-            m_MaterialEditor.ShaderProperty(subsurfaceProfile,   Styles.subsurfaceProfileText);
-            m_MaterialEditor.ShaderProperty(subsurfaceRadius,    Styles.subsurfaceRadiusText);
-            m_MaterialEditor.ShaderProperty(subsurfaceRadiusMap, Styles.subsurfaceRadiusMapText);
-            m_MaterialEditor.ShaderProperty(thickness,           Styles.thicknessText);
-            m_MaterialEditor.ShaderProperty(thicknessMap,        Styles.thicknessMapText);
+            if (enablePerPixelDisplacement.floatValue > 0.0)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
+                m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
+                ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+                m_MaterialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
+                EditorGUI.indentLevel--;
+            }
 
             EditorGUI.indentLevel--;
+        }
+
+        protected void ShaderSSSInputGUI()
+        {
+            m_MaterialEditor.ShaderProperty(subsurfaceProfile, Styles.subsurfaceProfileText);
+            m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceRadiusMapText, subsurfaceRadiusMap);
+            m_MaterialEditor.ShaderProperty(thickness, Styles.thicknessText);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap);
+        }
+
+        protected void ShaderStandardInputGUI()
+        {
+            m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
+            m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
         }
 
         override protected void ShaderInputGUI()
@@ -291,11 +315,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
-
-            m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
-            
-            m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
+            if ((MaterialIDType)materialID.floatValue == MaterialIDType.Standard)
+            {
+                ShaderStandardInputGUI();
+            }
+            else if ((MaterialIDType)materialID.floatValue == MaterialIDType.SubsurfaceScattering)
+            {
+                ShaderSSSInputGUI();
+            }
 
             EditorGUILayout.Space();
             GUILayout.Label(Styles.textureControlText, EditorStyles.label);

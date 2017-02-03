@@ -96,12 +96,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
             public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Tesselation displacement will take into account the object scale - Only work with uniform positive scale");
 
-            public static GUIContent materialIDText          = new GUIContent("Material Class", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
-            public static GUIContent subsurfaceProfileText   = new GUIContent("Subsurface scattering profile", "A profile determines the shape of the blur filter.");
-            public static GUIContent subsurfaceRadiusText    = new GUIContent("Subsurface scattering radius", "Determines the range of the blur.");
-            public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface scattering radius map", "Determines the range of the blur.");
-            public static GUIContent thicknessText           = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
-            public static GUIContent thicknessMapText        = new GUIContent("Thickness map", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
+            public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
+            public static GUIContent subsurfaceProfileText = new GUIContent("Subsurface profile", "A profile determines the shape of the blur filter.");
+            public static GUIContent subsurfaceRadiusText = new GUIContent("Subsurface radius", "Determines the range of the blur.");
+            public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface radius map", "Determines the range of the blur.");
+            public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
+            public static GUIContent thicknessMapText = new GUIContent("Thickness map", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
         }
 
         public enum SurfaceType

@@ -34,7 +34,7 @@ Shader "HDRenderPipeline/Lit"
         _DetailHeightScale("_DetailHeightScale", Range(-2.0, 2.0)) = 1
         _DetailAOScale("_DetailAOScale", Range(-2.0, 2.0)) = 1
 
-        [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2)] _MaterialID("Material Class", Int) = 0
+        [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2, Specular Color, 3)] _MaterialID("MaterialId", Int) = 0
         _SubsurfaceProfile("Subsurface Profile", Int) = 0
         _SubsurfaceRadius("Subsurface Radius", Range(0.0, 1.0)) = 0
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
