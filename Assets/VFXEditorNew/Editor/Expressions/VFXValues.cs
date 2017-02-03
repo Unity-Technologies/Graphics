@@ -13,9 +13,14 @@ namespace UnityEditor.VFX
         }
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXValueOp; } }
 
-        sealed public override VFXExpression Reduce(VFXExpressionContext context)
+        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents, Context.ReductionOption option)
         {
             return this;
+        }
+
+        sealed public override int GetHashCode()
+        {
+            return RuntimeHelpers.GetHashCode(this);
         }
     }
 
@@ -139,24 +144,18 @@ namespace UnityEditor.VFX
         sealed public override VFXExpression[] Parents { get { return m_Parents; } }
         sealed public override int[] AdditionnalParameters { get { return m_AdditionnalParameters; } }
 
-        sealed public override VFXExpression Reduce(VFXExpressionContext context)
+        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents, Context.ReductionOption option)
         {
             var newExpression = (VFXExpressionFloatOperation)CreateNewInstance();
             newExpression.m_AdditionnalParameters = m_AdditionnalParameters.Select(o => o).ToArray();
             newExpression.m_Operation = m_Operation;
             newExpression.m_Flags = m_Flags;
-            newExpression.m_Parents = m_Parents.Select(o => 
+            newExpression.m_Parents = reducedParents;
+            if (option == Context.ReductionOption.ConstantFolding)
             {
-                var reduced = o.Reduce(context);
-                Debug.Assert(o.Is(Flags.Value) || !ReferenceEquals(o, reduced), "return this is only allowed with VFXValue");
-                return o.Reduce(context);
-            }).ToArray();
-
-            if (context.Option == VFXExpressionContext.ReductionOption.ConstantFolding)
-            {
-                if (newExpression.m_Parents.All(o => o.Is(Flags.Value) && o.Is(Flags.Constant)))
+                if (reducedParents.All(o => o.Is(Flags.Value) && o.Is(Flags.Constant)))
                 {
-                    return ExecuteConstantOperation(newExpression.m_Parents);
+                    return ExecuteConstantOperation(reducedParents);
                 }
             }
             return newExpression;
@@ -552,12 +551,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        sealed public override VFXExpression Reduce(VFXExpressionContext context)
+        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents, Context.ReductionOption option)
         {
-            var curveReduce = m_Curve.Reduce(context);
-            var timeReduce = m_Time.Reduce(context);
-
-            if (context.Option == VFXExpressionContext.ReductionOption.ConstantFolding)
+            var curveReduce = reducedParents[0];
+            var timeReduce = reducedParents[1];
+            if (option == Context.ReductionOption.ConstantFolding)
             {
                 if (curveReduce.Is(Flags.Constant | Flags.Value) && timeReduce.Is(Flags.Constant | Flags.Value))
                 {

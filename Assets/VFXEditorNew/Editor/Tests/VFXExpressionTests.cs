@@ -94,16 +94,16 @@ namespace UnityEditor.VFX.Test
             var mulExpression = new VFXExpressionMul(sinExpression, CastFloat(value_c, sinExpression.ValueType));
             var substractExpression = new VFXExpressionSubtract(CastFloat(value_d, mulExpression.ValueType), mulExpression);
 
-            var context = new VFXExpressionContext();
-            var resultA = addExpression.Reduce(context);
-            var resultB = sinExpression.Reduce(context);
-            var resultC = mulExpression.Reduce(context);
-            var resultD = substractExpression.Reduce(context);
+            var context = new VFXExpression.Context();
+            var resultA = context.GetReduced(addExpression);
+            var resultB = context.GetReduced(sinExpression);
+            var resultC = context.GetReduced(mulExpression);
+            var resultD = context.GetReduced(substractExpression);
 
-            Assert.AreEqual((resultA as VFXValueFloat3).Content, refResultA);
-            Assert.AreEqual((resultB as VFXValueFloat3).Content, refResultB);
-            Assert.AreEqual((resultC as VFXValueFloat3).Content, refResultC);
-            Assert.AreEqual((resultD as VFXValueFloat3).Content, refResultD);
+            Assert.AreEqual(refResultA, (resultA as VFXValueFloat3).Content);
+            Assert.AreEqual(refResultB, (resultB as VFXValueFloat3).Content);
+            Assert.AreEqual(refResultC, (resultC as VFXValueFloat3).Content);
+            Assert.AreEqual(refResultD, (resultD as VFXValueFloat3).Content);
 
             //Build Graph Proto :
             var addedExpression = new HashSet<VFXExpression>();
@@ -168,7 +168,9 @@ namespace UnityEditor.VFX.Test
             var sampleValue = new VFXValueFloat(a, true);
             var curveValue = new VFXValueCurve(curve, true);
             var sampleCurve = new VFXExpressionSampleCurve(curveValue, sampleValue);
-            var reduced = sampleCurve.Reduce(new VFXExpressionContext());
+
+            var context = new VFXExpression.Context();
+            var reduced = context.GetReduced(sampleCurve);
 
             Assert.AreEqual(resultRef, (reduced as VFXValueFloat).Content);
         }

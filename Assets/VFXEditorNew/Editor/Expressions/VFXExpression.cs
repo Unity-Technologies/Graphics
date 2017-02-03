@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
         kSpline,
     }
 
-    public abstract class VFXExpression
+    public abstract partial class VFXExpression
     {
         [Flags]
         public enum Flags
@@ -79,7 +79,7 @@ namespace UnityEditor.VFX
         }
 
         // Reduce the expression within a given context
-        public abstract VFXExpression Reduce(VFXExpressionContext context);
+        protected abstract VFXExpression Reduce(VFXExpression[] reducedParents, Context.ReductionOption option);
         // Returns dependencies
         public bool Is(Flags flag) { return (m_Flags & flag) == flag; }
         public abstract VFXValueType ValueType { get; }
@@ -131,40 +131,6 @@ namespace UnityEditor.VFX
 
         public virtual int[] AdditionnalParameters { get { return new int[] { }; } }
 
-        public override bool Equals(object obj)
-        {
-            var other = obj as VFXExpression;
-            if (other == null)
-                return false;
-
-            if (Operation != other.Operation)
-                return false;
-
-            if (GetHashCode() != obj.GetHashCode())
-                return false;
-
-            // TODO Not really optimized for an equal function!
-            var thisParents = Parents;
-            var otherParents = other.Parents;
-
-            if (thisParents.Length != otherParents.Length)
-                return false;
-
-            for (int i = 0; i < thisParents.Length; ++i)
-                if (!thisParents[i].Equals(otherParents[i]))
-                    return false;
-
-            var thisAdditionnalParameters = AdditionnalParameters;
-            var otherAdditionnalParamaters = other.AdditionnalParameters;
-            for (int i=0; i < thisAdditionnalParameters.Length; ++i)
-            {
-                if (thisAdditionnalParameters[i] != otherAdditionnalParamaters[i])
-                    return false;
-            }
-
-            return true;
-        }
-
         public override int GetHashCode()
         {
             int hash = GetType().GetHashCode();
@@ -176,6 +142,10 @@ namespace UnityEditor.VFX
             var addionnalParameters = AdditionnalParameters;
             for (int i = 0; i < addionnalParameters.Length; ++i)
                 hash = (hash * 397) ^ addionnalParameters[i].GetHashCode();
+
+            hash = (hash * 397) ^ m_Flags.GetHashCode();
+            hash = (hash * 397) ^ ValueType.GetHashCode();
+            hash = (hash * 397) ^ Operation.GetHashCode();
 
             return hash;
         }
