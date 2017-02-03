@@ -100,9 +100,12 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #endif
                 float2 scaledDirection = distScale * stepSize * unitDirection;
 
-                // Load (1 / (2 * WeightedVariance)) for bilateral weighting.
+                // Load (1 / (2 * Variance)) for bilateral weighting.
+            #ifdef RBG_BILATERAL_WEIGHTS
                 float3 halfRcpVariance = _FilterKernels[profileID][N_SAMPLES].rgb;
-
+            #else
+                float  halfRcpVariance = _FilterKernels[profileID][N_SAMPLES].a;
+            #endif
                 // Take the first (central) sample.
                 float2 samplePosition   = posInput.unPositionSS;
                 float3 sampleWeight     = _FilterKernels[profileID][0].rgb;
@@ -124,7 +127,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     rawDepth         = LOAD_TEXTURE2D(_CameraDepthTexture, samplePosition).r;
                     sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource,   samplePosition).rgb;
 
-                    // Apply bilateral filtering.
+                    // Apply bilateral weighting.
                     // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
                     // Ref #2: Separable SSS, Supplementary Materials, Section E.
                     float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
