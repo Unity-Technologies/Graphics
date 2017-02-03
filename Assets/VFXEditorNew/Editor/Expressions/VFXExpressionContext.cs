@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX
 {
-    class VFXExpressionContext
+    public class VFXExpressionContext
     {
         public enum ReductionOption
         {

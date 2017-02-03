@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXValue<T> : VFXValue
     {
-        public VFXValue(T content = default(T))
+        protected VFXValue(T content = default(T))
         {
             m_Content = content;
         }
@@ -70,6 +70,18 @@ namespace UnityEditor.VFX
                 m_Flags |= Flags.Constant;
             }
         }
+
+        private static VFXExpression FindAndCreateFirstConcreteType()
+        {
+            var firstConcreteType = typeof(VFXValueConstable<T>)
+                                    .Assembly
+                                    .GetTypes()
+                                    .Where(t => t.IsSubclassOf(typeof(VFXValueConstable<T>)) && !t.IsAbstract)
+                                    .First();
+            return CreateNewInstance(firstConcreteType);
+        }
+        private static readonly VFXExpression s_Default = FindAndCreateFirstConcreteType();
+        public static VFXExpression Default { get { return s_Default; } }
     }
 
     class VFXValueFloat : VFXValueConstable<float> { public VFXValueFloat(float value, bool isConst) : base(value, isConst) { } }
@@ -87,7 +99,7 @@ namespace UnityEditor.VFX
             m_Parents = new VFXExpression[] { };
             m_AdditionnalParameters = new int[] { };
         }
-        protected static bool IsFloatValueType(VFXValueType valueType)
+        public static bool IsFloatValueType(VFXValueType valueType)
         {
             return      valueType == VFXValueType.kFloat
                     ||  valueType == VFXValueType.kFloat2
@@ -108,65 +120,6 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat4: return ToFloatArray((input as VFXValueFloat4).Content);
             }
             return null;
-        }
-
-        static protected VFXExpression CastFloat(VFXExpression from, VFXValueType toValueType, float defautValue = 0.0f)
-        {
-            if (!IsFloatValueType(from.ValueType) || !IsFloatValueType(toValueType))
-            {
-                Debug.Log("Invalid CastFloat");
-                return null;
-            }
-
-            if (from.ValueType == toValueType)
-            {
-                Debug.Log("Incoherent CastFloat");
-                return null;
-            }
-
-            var fromValueType = from.ValueType;
-            var fromValueTypeSize = TypeToSize(fromValueType);
-            var toValueTypeSize = TypeToSize(toValueType);
-
-            var inputComponent = new VFXExpression[fromValueTypeSize];
-            var outputComponent = new VFXExpression[toValueTypeSize];
-
-            if (inputComponent.Length == 1)
-            {
-                inputComponent[0] = from;
-            }
-            else
-            {
-                for (int iChannel = 0; iChannel < fromValueTypeSize; ++iChannel)
-                {
-                    inputComponent[iChannel] = new VFXExpressionExtractComponent(from, iChannel);
-                }
-            }
-
-            for (int iChannel = 0; iChannel < toValueTypeSize; ++iChannel)
-            {
-                if (iChannel < fromValueTypeSize)
-                {
-                    outputComponent[iChannel] = inputComponent[iChannel];
-                }
-                else if (fromValueTypeSize == 1)
-                {
-                    //Manage same logic behavior for float => floatN in HLSL
-                    outputComponent[iChannel] = inputComponent[0];
-                }
-                else
-                {
-                    outputComponent[iChannel] = new VFXValueFloat(defautValue, true);
-                }
-            }
-
-            if (toValueTypeSize == 1)
-            {
-                return outputComponent[0];
-            }
-
-            var combine = new VFXExpressionCombine(outputComponent);
-            return combine;
         }
 
         protected VFXExpression ToFloatN(float[] input)
@@ -219,17 +172,15 @@ namespace UnityEditor.VFX
 
     class VFXExpressionCombine : VFXExpressionFloatOperation
     {
+        public VFXExpressionCombine() : this(new VFXExpression[] { VFXValueFloat.Default, VFXValueFloat.Default })
+        {
+        }
+
         public VFXExpressionCombine(VFXExpression[] parents)
         {
-            if (parents == null)
-            {
-                return; //Internal call
-            }
-
             if (parents.Length <= 1 || parents.Length > 4 || parents.Any(o => !IsFloatValueType(o.ValueType)))
             {
-                Debug.LogError("Incorrect VFXExpressionCombine");
-                return;
+                throw new ArgumentException("Incorrect VFXExpressionCombine");
             }
 
             m_Parents = parents;
@@ -255,8 +206,7 @@ namespace UnityEditor.VFX
             var constParentFloat = reducedParents.Cast<VFXValueFloat>().Select(o => o.Content).ToArray();
             if (constParentFloat.Length != m_Parents.Length)
             {
-                Debug.LogError("Incorrect VFXExpressionCombine.ExecuteConstantOperation");
-                return null;
+                throw new ArgumentException("Incorrect VFXExpressionCombine.ExecuteConstantOperation");
             }
 
             switch (m_Parents.Length)
@@ -276,16 +226,13 @@ namespace UnityEditor.VFX
 
     class VFXExpressionExtractComponent : VFXExpressionFloatOperation
     {
+        public VFXExpressionExtractComponent() : this(VFXValueFloat4.Default, 0) { }
+
         public VFXExpressionExtractComponent(VFXExpression parent, int iChannel)
         {
-            if (parent == null)
-            {
-                return;
-            }
-
             if (parent.ValueType == VFXValueType.kFloat || !IsFloatValueType(parent.ValueType))
             {
-                Debug.LogError("Incorrect VFXExpressionExtractComponent");
+                throw new ArgumentException("Incorrect VFXExpressionExtractComponent");
             }
 
             m_Parents = new VFXExpression[] { parent };
@@ -355,15 +302,9 @@ namespace UnityEditor.VFX
     {
         protected VFXExpressionUnaryFloatOperation(VFXExpression parent, VFXExpressionOp operation)
         {
-            if (parent == null)
-            {
-                return;
-            }
-
             if (!IsFloatValueType(parent.ValueType))
             {
-                Debug.LogError("Incorrect VFXExpressionUnaryFloatOperation");
-                return;
+                throw new ArgumentException("Incorrect VFXExpressionUnaryFloatOperation");
             }
 
             m_ValueType = parent.ValueType;
@@ -397,28 +338,16 @@ namespace UnityEditor.VFX
     {
         protected VFXExpressionBinaryFloatOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation, float identityValue = 0.0f)
         {
-            if (parentLeft == null && parentRight == null)
-            {
-                return;
-            }
-
             if (!IsFloatValueType(parentLeft.ValueType) || !IsFloatValueType(parentRight.ValueType))
             {
-                Debug.LogError("Incorrect VFXExpressionBinaryFloatOperation");
-                return;
+                throw new ArgumentException("Incorrect VFXExpressionBinaryFloatOperation (not float type)");
             }
 
             if (parentRight.ValueType != parentLeft.ValueType)
             {
-                if (TypeToSize(parentRight.ValueType) > TypeToSize(parentLeft.ValueType))
-                {
-                    parentLeft = CastFloat(parentLeft, parentRight.ValueType, identityValue);
-                }
-                else
-                {
-                    parentRight = CastFloat(parentRight, parentLeft.ValueType, identityValue);
-                }
+                throw new ArgumentException("Incorrect VFXExpressionBinaryFloatOperation (incompatible float type)");
             }
+
             m_ValueType = parentLeft.ValueType;
             m_AdditionnalParameters = new int[] { TypeToSize(m_ValueType) };
             m_Parents = new VFXExpression[] { parentLeft, parentRight };
@@ -455,45 +384,16 @@ namespace UnityEditor.VFX
     {
         protected VFXExpressionTernaryFloatOperation(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpressionOp operation, float identityValue = 0.0f)
         {
-            if (a == null && b == null && c == null)
-            {
-                return;
-            }
-
             if (    !IsFloatValueType(a.ValueType) 
                 ||  !IsFloatValueType(b.ValueType)
                 ||  !IsFloatValueType(c.ValueType))
             {
-                Debug.LogError("Incorrect VFXExpressionTernaryFloatOperation");
-                return;
+                throw new ArgumentException("Incorrect VFXExpressionTernaryFloatOperation (not float type)");
             }
 
             if (a.ValueType != b.ValueType || b.ValueType != c.ValueType)
             {
-                var maxValueType = a.ValueType;
-                if (TypeToSize(maxValueType) < TypeToSize(b.ValueType))
-                {
-                    maxValueType = b.ValueType;
-                }
-                if (TypeToSize(maxValueType) < TypeToSize(c.ValueType))
-                {
-                    maxValueType = c.ValueType;
-                }
-
-                if (a.ValueType != maxValueType)
-                {
-                    a = CastFloat(a, maxValueType, identityValue);
-                }
-
-                if (b.ValueType != maxValueType)
-                {
-                    b = CastFloat(b, maxValueType, identityValue);
-                }
-
-                if (c.ValueType != maxValueType)
-                {
-                    c = CastFloat(c, maxValueType, identityValue);
-                }
+                throw new ArgumentException("Incorrect VFXExpressionTernaryFloatOperation (incompatible float type)");
             }
 
             m_ValueType = a.ValueType;
@@ -531,6 +431,8 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSin : VFXExpressionUnaryFloatOperation
     {
+        public VFXExpressionSin() : this(VFXValueFloat.Default) { }
+
         public VFXExpressionSin(VFXExpression parent) : base (parent, VFXExpressionOp.kVFXSinOp)
         {
         }
@@ -548,6 +450,10 @@ namespace UnityEditor.VFX
 
     class VFXExpressionAdd : VFXExpressionBinaryFloatOperation
     {
+        public VFXExpressionAdd() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        {
+        }
+
         public VFXExpressionAdd(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXAddOp, 0.0f)
         {
         }
@@ -565,6 +471,10 @@ namespace UnityEditor.VFX
 
     class VFXExpressionMul : VFXExpressionBinaryFloatOperation
     {
+        public VFXExpressionMul() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        {
+        }
+
         public VFXExpressionMul(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMulOp, 1.0f)
         {
         }
@@ -581,6 +491,10 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSubtract : VFXExpressionBinaryFloatOperation
     {
+        public VFXExpressionSubtract() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        {
+        }
+
         public VFXExpressionSubtract(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXSubtractOp, 0.0f)
         {
         }
@@ -596,6 +510,10 @@ namespace UnityEditor.VFX
 
     class VFXExpressionLerp : VFXExpressionTernaryFloatOperation
     {
+        public VFXExpressionLerp() : this(VFXValueFloat.Default, VFXValueFloat.Default, VFXValueFloat.Default)
+        {
+        }
+
         public VFXExpressionLerp(VFXExpression x, VFXExpression y, VFXExpression s) : base(x, y, s, VFXExpressionOp.kVFXLerpOp)
         {
         }
@@ -613,6 +531,10 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSampleCurve : VFXExpression
     {
+        public VFXExpressionSampleCurve() : this(VFXValueCurve.Default, VFXValueFloat.Default)
+        {
+        }
+
         public VFXExpressionSampleCurve(VFXExpression curve, VFXExpression time)
         {
             m_Curve = curve;
@@ -649,7 +571,5 @@ namespace UnityEditor.VFX
 
         private VFXExpression m_Curve;
         private VFXExpression m_Time;
-
-
     }
 }

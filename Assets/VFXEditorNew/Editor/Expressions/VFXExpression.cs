@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
         kSpline,
     }
 
-    abstract class VFXExpression
+    public abstract class VFXExpression
     {
         [Flags]
         public enum Flags
@@ -42,16 +42,8 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat2: return 2;
                 case VFXValueType.kFloat3: return 3;
                 case VFXValueType.kFloat4: return 4;
-                case VFXValueType.kInt: return 1;
-                case VFXValueType.kUint: return 1;
-                case VFXValueType.kTransform: return 16;
-
-                case VFXValueType.kCurve: return 4; // float4
-                case VFXValueType.kColorGradient: return 1; // float 
-                case VFXValueType.kSpline: return 2; // float2
-                default:
-                    return 0;
             }
+            throw new ArgumentException(string.Format("TypeToSize failed with {0}", type));
         }
 
         public static string TypeToCode(VFXValueType type)
@@ -63,14 +55,16 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat3: return "float3";
                 case VFXValueType.kFloat4: return "float4";
             }
-            return "unknownType";
+            throw new ArgumentException(string.Format("TypeToCode failed with {0}", type));
         }
 
 
         //Helper using reflection to recreate a concrete type from an abstract class (usefull with reduce behavior)
-        static private VFXExpression CreateNewInstance(Type expressionType)
+        static protected VFXExpression CreateNewInstance(Type expressionType)
         {
-            var constructor = expressionType.GetConstructors().FirstOrDefault();
+            var constructor = expressionType.GetConstructors()
+                                .OrderBy(o => o.GetParameters().Count()) //promote simplest (or default) constructors
+                                .First();
             var param = constructor.GetParameters().Select(o =>
             {
                 var type = o.GetType();
@@ -109,14 +103,12 @@ namespace UnityEditor.VFX
             function = call = null;
             if (!Is(Flags.ValidOnGPU))
             {
-                Debug.LogError("Trying to call GetExpressionCode on invalid expression");
-                return;
+                throw new ArgumentException(string.Format("GetExpressionCode failed (not valid on GPU) with {0}", GetType().FullName));
             }
 
             if (Parents.Length == 0)
             {
-                Debug.LogError("Trying to call GetExpressionCode on incoherent expression");
-                return;
+                throw new ArgumentException(string.Format("GetExpressionCode failed (Parents empty) with {0}", GetType().FullName));
             }
 
             var fnName = GetType().Name;
@@ -132,7 +124,10 @@ namespace UnityEditor.VFX
             call = string.Format("{0} {1} = {2}({3});", TypeToCode(ValueType), temp_GetUniqueName(), fnName, temp_AggregateWithComa(Parents.Select(o => o.temp_GetUniqueName())));
         }
 
-        protected virtual string GetOperationCodeContent() { return "Unexpected GetOperationCodeContent call"; }
+        protected virtual string GetOperationCodeContent()
+        {
+            throw new ArgumentException(string.Format("Unexpected GetOperationCodeContent call with {0}", GetType().FullName));
+        }
 
         public virtual int[] AdditionnalParameters { get { return new int[] { }; } }
 
