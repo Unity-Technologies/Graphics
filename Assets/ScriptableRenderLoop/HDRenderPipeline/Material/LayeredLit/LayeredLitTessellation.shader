@@ -108,10 +108,20 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
         _HeightFactor2("_HeightFactor2", Float) = 1
         _HeightFactor3("_HeightFactor3", Float) = 1
 
+        _LayerHeightAmplitude0("_LayerHeightAmplitude0", Float) = 1
+        _LayerHeightAmplitude1("_LayerHeightAmplitude1", Float) = 1
+        _LayerHeightAmplitude2("_LayerHeightAmplitude2", Float) = 1
+        _LayerHeightAmplitude3("_LayerHeightAmplitude3", Float) = 1
+
         _HeightCenterOffset0("_HeightCenterOffset0", Float) = 0.0
         _HeightCenterOffset1("_HeightCenterOffset1", Float) = 0.0
         _HeightCenterOffset2("_HeightCenterOffset2", Float) = 0.0
         _HeightCenterOffset3("_HeightCenterOffset3", Float) = 0.0
+
+        _LayerCenterOffset0("_LayerCenterOffset0", Float) = 0.0
+        _LayerCenterOffset1("_LayerCenterOffset1", Float) = 0.0
+        _LayerCenterOffset2("_LayerCenterOffset2", Float) = 0.0
+        _LayerCenterOffset3("_LayerCenterOffset3", Float) = 0.0
 
         _BlendUsingHeight1("_BlendUsingHeight1", Float) = 0.0
         _BlendUsingHeight2("_BlendUsingHeight2", Float) = 0.0
