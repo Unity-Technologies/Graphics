@@ -456,6 +456,15 @@ void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4
     posInput.positionCS *= posInput.depthVS;
 }
 
+float3 ComputeViewSpacePosition(float2 positionSS, float rawDepth, float4x4 invProjMatrix)
+{
+    float4 positionCS = float4(positionSS * 2.0 - 1.0, rawDepth, 1.0);
+    float4 positionVS = mul(invProjMatrix, positionCS);
+    // The view space uses a right-handed coordinate system.
+    positionVS.z = -positionVS.z;
+    return positionVS.xyz / positionVS.w;
+}
+
 // depthOffsetVS is always in the direction of the view vector (V)
 void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, inout PositionInputs posInput)
 {
@@ -468,7 +477,6 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, inout Position
     // Just add the offset along the view vector is sufficiant for world position
     posInput.positionWS += V * depthOffsetVS;
 }
-
 
 // Generates a triangle in homogeneous clip space, s.t.
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
