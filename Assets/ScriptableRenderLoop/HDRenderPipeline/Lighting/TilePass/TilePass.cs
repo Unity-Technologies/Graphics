@@ -937,10 +937,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (additionalData == null)
                     {
-                        // PreRenderLight is used to display preview
-                        if (light.light.name != "PreRenderLight")
+                        // Don't display warning for the preview windows
+                        if (camera.cameraType != CameraType.Preview)
                         {
-                        Debug.LogWarningFormat("Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
+                            Debug.LogWarningFormat("Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
                         }                        
                         additionalData = DefaultAdditionalLightData;
                     }
