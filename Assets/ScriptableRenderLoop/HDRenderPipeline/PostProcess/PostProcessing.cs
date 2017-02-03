@@ -10,98 +10,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     [ExecuteInEditMode, ImageEffectAllowedInSceneView]
     [RequireComponent(typeof(Camera))]
-    public sealed class PostProcessing : MonoBehaviour
+    public sealed partial class PostProcessing : MonoBehaviour
     {
-        #region Settings classes
-        [Serializable]
-        public sealed class ColorGradingSettings
-        {
-            public enum GradingType
-            {
-                None,
-                Neutral,
-                Custom
-            }
-
-            public GradingType type = GradingType.None;
-            public float exposure = 0f;
-
-            public Texture logLut = null;
-
-            [Range(-0.10f,  0.1f)] public float neutralBlackIn    = 0.02f;
-            [Range( 1.00f, 20.0f)] public float neutralWhiteIn    = 10f;
-            [Range(-0.09f,  0.1f)] public float neutralBlackOut   = 0f;
-            [Range( 1.00f, 19.0f)] public float neutralWhiteOut   = 10f;
-            [Range( 0.10f, 20.0f)] public float neutralWhiteLevel = 5.3f;
-            [Range( 1.00f, 10.0f)] public float neutralWhiteClip  = 10f;
-        }
-
-        [Serializable]
-        public sealed class EyeAdaptationSettings
-        {
-            public enum EyeAdaptationType
-            {
-                Progressive,
-                Fixed
-            }
-
-            public bool enabled = false;
-            public bool showDebugHistogramInGameView = true;
-
-            [Range(1f, 99f)] public float lowPercent = 65f;
-            [Range(1f, 99f)] public float highPercent = 95f;
-
-            public float minLuminance = 0.03f;
-            public float maxLuminance = 2f;
-            public float exposureCompensation = 0.5f;
-
-            public EyeAdaptationType adaptationType = EyeAdaptationType.Progressive;
-
-            public float speedUp = 2f;
-            public float speedDown = 1f;
-
-            [Range(-16, -1)] public int logMin = -8;
-            [Range(  1, 16)] public int logMax = 4;
-        }
-
-        [Serializable]
-        public sealed class ChromaticAberrationSettings
-        {
-            public bool enabled = false;
-            public Texture spectralTexture;
-            [Range(0f, 1f)] public float intensity = 0.1f;
-        }
-
-        [Serializable]
-        public sealed class VignetteSettings
-        {
-            public bool enabled = false;
-
-            [ColorUsage(false, true, 0f, 10f, 0f, 10f)]
-            public Color color = new Color(0f, 0f, 0f, 1f);
-
-            public Vector2 center = new Vector2(0.5f, 0.5f);
-
-            [Range(0f, 1f)] public float intensity = 0.3f;
-            [Range(0f, 1f)] public float smoothness = 0.3f;
-        }
-
-        [Serializable]
-        public sealed class BloomSettings
-        {
-            public bool enabled = false;
-
-            public float intensity = 0.5f;
-            public float threshold = 1.1f;
-
-            [Range(0f, 1f)] public float softKnee = 0.5f;
-            [Range(1f, 7f)] public float radius = 5f;
-
-            public Texture lensTexture;
-            public float lensIntensity = 3f;
-        }
-        #endregion
-
         // Quick & very dirty temporary wrapper used for bloom (easy porting from old school render
         // texture blitting to command buffers)
         struct RenderTextureWrapper
@@ -147,7 +57,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ChromaticAberrationSettings chromaSettings = new ChromaticAberrationSettings();
         public VignetteSettings vignetteSettings = new VignetteSettings();
         public BloomSettings bloomSettings = new BloomSettings();
-
         public bool globalDithering = false;
 
         Material m_EyeAdaptationMaterial;
@@ -181,9 +90,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         const int k_HistogramThreadY = 16;
 
         // Holds 64 64x64 Alpha8 textures (256kb total)
-        Texture2D[] blueNoiseTextures;
-        int ditheringTexIndex = 0;
         const int k_BlueNoiseTextureCount = 64;
+        Texture2D[] m_BlueNoiseTextures;
+        int m_DitheringTexIndex = 0;
 
         void OnEnable()
         {
@@ -197,9 +106,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_AutoExposurePool[0] = new RenderTexture(1, 1, 0, RenderTextureFormat.RFloat);
             m_AutoExposurePool[1] = new RenderTexture(1, 1, 0, RenderTextureFormat.RFloat);
 
-            blueNoiseTextures = new Texture2D[k_BlueNoiseTextureCount];
+            m_BlueNoiseTextures = new Texture2D[k_BlueNoiseTextureCount];
             for (int i = 0; i < k_BlueNoiseTextureCount; i++)
-                blueNoiseTextures[i] = Resources.Load<Texture2D>("Textures/LDR_LLL1_" + i);
+                m_BlueNoiseTextures[i] = Resources.Load<Texture2D>("Textures/LDR_LLL1_" + i);
 
             m_TempRt = Shader.PropertyToID("_Source");
 
@@ -450,10 +359,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_FinalPassMaterial.EnableKeyword("DITHERING");
 
-            if (++ditheringTexIndex >= k_BlueNoiseTextureCount)
-                ditheringTexIndex = 0;
+            if (++m_DitheringTexIndex >= k_BlueNoiseTextureCount)
+                m_DitheringTexIndex = 0;
 
-            var noiseTex = blueNoiseTextures[ditheringTexIndex];
+            var noiseTex = m_BlueNoiseTextures[m_DitheringTexIndex];
             m_FinalPassMaterial.SetTexture(Uniforms._DitheringTex, noiseTex);
             m_FinalPassMaterial.SetVector(Uniforms._DitheringCoords, new Vector4(
                 (float)camera.pixelWidth / (float)noiseTex.width,

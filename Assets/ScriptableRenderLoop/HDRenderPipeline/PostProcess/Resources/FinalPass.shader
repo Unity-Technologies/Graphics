@@ -61,7 +61,6 @@ Shader "Hidden/HDRenderPipeline/FinalPass"
         {
             float4 vertex : SV_POSITION;
             float2 texcoord : TEXCOORD0;
-            float2 texcoordFlipped : TEXCOORD0;
         };
 
         Varyings Vert(Attributes input)

@@ -165,11 +165,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             serializedObject.Update();
 
-            DoColorGradingUI();
-            DoEyeAdaptationUI();
-            DoBloomUI();
-            DoChromaticAberrationUI();
-            DoVignetteUI();
+            Do("Color Grading", ColorGradingUI);
+            Do("Eye Adaptation", EyeAdaptationUI);
+            Do("Bloom", BloomUI);
+            Do("Chromatic Aberration", ChromaticAberrationUI);
+            Do("Vignette", VignetteUI);
 
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(globalDithering);
@@ -177,12 +177,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             serializedObject.ApplyModifiedProperties();
         }
 
-        void DoColorGradingUI()
+        void Do(string header, Action func)
         {
-            EditorGUILayout.LabelField("Color Grading", EditorStyles.boldLabel);
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(header, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
 
+            if (func != null)
+                func();
+
+            EditorGUI.indentLevel--;
+        }
+
+        void ColorGradingUI()
+        {
             var camera = (target as PostProcessing).GetComponent<Camera>();
             if (camera != null)
             {
@@ -239,16 +248,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUI.indentLevel--;
-            EditorGUI.indentLevel--;
         }
 
-        void DoEyeAdaptationUI()
+        void EyeAdaptationUI()
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Eye Adaptation", EditorStyles.boldLabel);
-
-            EditorGUI.indentLevel++;
-
             EditorGUILayout.PropertyField(eyeAdaptation.enabled);
 
             if (eyeAdaptation.enabled.boolValue)
@@ -281,17 +284,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUI.indentLevel--;
                 }
             }
-
-            EditorGUI.indentLevel--;
         }
 
-        void DoBloomUI()
+        void BloomUI()
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Bloom", EditorStyles.boldLabel);
-
-            EditorGUI.indentLevel++;
-
             EditorGUILayout.PropertyField(bloomSettings.enabled);
 
             if (bloomSettings.enabled.boolValue)
@@ -309,17 +305,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bloomSettings.threshold.floatValue = Mathf.Max(0f, bloomSettings.threshold.floatValue);
                 bloomSettings.lensIntensity.floatValue = Mathf.Max(0f, bloomSettings.lensIntensity.floatValue);
             }
-
-            EditorGUI.indentLevel--;
         }
 
-        void DoChromaticAberrationUI()
+        void ChromaticAberrationUI()
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Chromatic Aberration", EditorStyles.boldLabel);
-
-            EditorGUI.indentLevel++;
-
             EditorGUILayout.PropertyField(chromaSettings.enabled);
 
             if (chromaSettings.enabled.boolValue)
@@ -327,17 +316,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(chromaSettings.spectralTexture);
                 EditorGUILayout.PropertyField(chromaSettings.intensity);
             }
-
-            EditorGUI.indentLevel--;
         }
 
-        void DoVignetteUI()
+        void VignetteUI()
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Vignette", EditorStyles.boldLabel);
-
-            EditorGUI.indentLevel++;
-
             EditorGUILayout.PropertyField(vignetteSettings.enabled);
 
             if (vignetteSettings.enabled.boolValue)
@@ -347,8 +329,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(vignetteSettings.intensity);
                 EditorGUILayout.PropertyField(vignetteSettings.smoothness);
             }
-
-            EditorGUI.indentLevel--;
         }
 
         #region Color grading stuff
