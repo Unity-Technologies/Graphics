@@ -152,6 +152,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static int s_ClearVoxelAtomicKernel;
             static int s_shadeOpaqueClusteredKernel;
             static int s_shadeOpaqueFptlKernel;
+            static int s_shadeOpaqueClusteredDebugLightingKernel;
+            static int s_shadeOpaqueFptlDebugLightingKernel;
 
             static ComputeBuffer s_LightVolumeDataBuffer = null;
             static ComputeBuffer s_ConvexBoundsBuffer = null;
@@ -285,6 +287,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 s_shadeOpaqueClusteredKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Clustered");
                 s_shadeOpaqueFptlKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Fptl");
+                s_shadeOpaqueClusteredDebugLightingKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Clustered_DebugLighting");
+                s_shadeOpaqueFptlDebugLightingKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Fptl_DebugLighting");
 
                 s_LightList = null;
 
@@ -1276,6 +1280,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Shader.SetGlobalFloat(name, value);
             }
 
+            private void SetGlobalVector(string name, Vector4 value)
+            {
+                if (activeComputeShader)
+                    activeCommandBuffer.SetComputeVectorParam(activeComputeShader, name, value);
+                else
+                    Shader.SetGlobalVector(name, value);
+            }
+
             private void SetGlobalVectorArray(string name, Vector4[] values)
             {
                 if (activeComputeShader)
@@ -1373,7 +1385,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
+            private void SetupRenderingForDebug(LightingDebugParameters lightDebugParameters)
+            {
+                Utilities.SetKeyword(m_DeferredDirectMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredDirectMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredIndirectMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredIndirectMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredAllMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredAllMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_SingleDeferredMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
+
+                Vector4 debugModeAndAlbedo = new Vector4((float)lightDebugParameters.lightingDebugMode, lightDebugParameters.debugLightingAlbedo.r, lightDebugParameters.debugLightingAlbedo.g, lightDebugParameters.debugLightingAlbedo.b);
+                Vector4 debugSmoothness = new Vector4(lightDebugParameters.overrideSmoothness ? 1.0f : 0.0f, lightDebugParameters.overrideSmoothnessValue, 0.0f, 0.0f);
+                SetGlobalVector("_DebugLightModeAndAlbedo", debugModeAndAlbedo);
+                SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
+            }
+
             public override void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
+                                                        LightingDebugParameters lightDebugParameters,
                                                         RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier stencilBuffer,
                                                         bool outputSplitLighting)
             {
@@ -1387,21 +1417,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
                 }
 #endif
+
                 using (new Utilities.ProfilingSample(m_PassSettings.disableTileAndCluster ? "SinglePass - Deferred Lighting Pass" : "TilePass - Deferred Lighting Pass", renderContext))
                 {
                     var cmd = new CommandBuffer();
 
                     cmd.name = bUseClusteredForDeferred ? "Clustered pass" : "Tiled pass";
 
-
                     SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
-                    SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlKernel : s_shadeOpaqueClusteredKernel, cmd);
+
+                    bool useCompute = !m_PassSettings.disableTileAndCluster && !m_PassSettings.disableDeferredShadingInCompute;
+                    // We don't want to setup the compute if it's not needed. Otherwwise, the SetGlobalXXX method will not set the parameters properly for regular shaders.
+                    if (useCompute)
+                    {
+                        if (lightDebugParameters.lightingDebugMode == LightingDebugMode.None)
+                            SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlKernel : s_shadeOpaqueClusteredKernel, cmd);
+                        else
+                            SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlDebugLightingKernel : s_shadeOpaqueClusteredDebugLightingKernel, cmd);
+                    }
 
                     // In case of bUseClusteredForDeferred disable toggle option since we're using m_perVoxelLightLists as opposed to lightList
                     if (bUseClusteredForDeferred)
                     {
                         SetGlobalFloat("_UseTileLightList", 0);
                     }
+
+                    // Must be done after setting up the compute shader above.
+                    SetupRenderingForDebug(lightDebugParameters);
 
                     if (m_PassSettings.disableTileAndCluster)
                     {
