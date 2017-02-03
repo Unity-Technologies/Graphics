@@ -27,13 +27,21 @@ namespace UnityEditor.VFX
                 m_EndExpressions.Remove(expression);
             }
 
-            public VFXExpression GetReduced(VFXExpression expression)
+            public VFXExpression Compile(VFXExpression expression)
             {
                 VFXExpression reduced;
                 if (!m_ReducedCache.TryGetValue(expression, out reduced))
                 {
-                    var parents = expression.Parents.Select(e => GetReduced(e)).ToArray();
-                    reduced = expression.Reduce(parents, Option);
+                    var parents = expression.Parents.Select(e => Compile(e)).ToArray();
+                    if (Option == ReductionOption.ConstantFolding && parents.All(e => e.Is(Flags.Constant | Flags.ValidOnCPU)))
+                    {
+                        reduced = expression.Evaluate(parents);
+                    }
+                    else
+                    {
+                        reduced = expression.Reduce(parents);
+                    }
+
                     m_ReducedCache[expression] = reduced;
                 }
                 return reduced;

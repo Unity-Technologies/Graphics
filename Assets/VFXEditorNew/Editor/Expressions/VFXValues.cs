@@ -13,7 +13,12 @@ namespace UnityEditor.VFX
         }
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXValueOp; } }
 
-        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents, Context.ReductionOption option)
+        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            return this;
+        }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             return this;
         }
@@ -145,24 +150,13 @@ namespace UnityEditor.VFX
         sealed public override VFXExpression[] Parents { get { return m_Parents; } }
         sealed public override int[] AdditionnalParameters { get { return m_AdditionnalParameters; } }
 
-        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents, Context.ReductionOption option)
+        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
             var newExpression = (VFXExpressionFloatOperation)CreateNewInstance();
             newExpression.m_AdditionnalParameters = m_AdditionnalParameters.Select(o => o).ToArray();
-            newExpression.m_Operation = m_Operation;
-            newExpression.m_Flags = m_Flags;
             newExpression.m_Parents = reducedParents;
-            if (option == Context.ReductionOption.ConstantFolding)
-            {
-                if (reducedParents.All(o => o.Is(Flags.Value) && o.Is(Flags.Constant)))
-                {
-                    return ExecuteConstantOperation(reducedParents);
-                }
-            }
             return newExpression;
         }
-
-        abstract protected VFXExpression ExecuteConstantOperation(VFXExpression[] reducedParents);
 
         protected VFXExpression[] m_Parents;
         protected int[] m_AdditionnalParameters;
@@ -201,7 +195,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        sealed protected override VFXExpression ExecuteConstantOperation(VFXExpression[] reducedParents)
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             var constParentFloat = reducedParents.Cast<VFXValueFloat>().Select(o => o.GetContent()).ToArray();
             if (constParentFloat.Length != m_Parents.Length)
@@ -277,7 +271,7 @@ namespace UnityEditor.VFX
             return 0.0f;
         }
 
-        sealed protected override VFXExpression ExecuteConstantOperation(VFXExpression[] reducedParents)
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             float readValue = 0.0f;
             var iChannel = m_AdditionnalParameters[1];
@@ -313,7 +307,7 @@ namespace UnityEditor.VFX
             m_Operation = operation;
         }
 
-        sealed protected override VFXExpression ExecuteConstantOperation(VFXExpression[] reducedParents)
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             var source = ToFloatArray(reducedParents[0]);
             var result = new float[source.Length];
@@ -336,7 +330,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXExpressionBinaryFloatOperation : VFXExpressionFloatOperation
     {
-        protected VFXExpressionBinaryFloatOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation, float identityValue = 0.0f)
+        protected VFXExpressionBinaryFloatOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation)
         {
             if (!IsFloatValueType(parentLeft.ValueType) || !IsFloatValueType(parentRight.ValueType))
             {
@@ -354,7 +348,7 @@ namespace UnityEditor.VFX
             m_Operation = operation;
         }
 
-        sealed protected override VFXExpression ExecuteConstantOperation(VFXExpression[] reducedParents)
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             var parentLeft = reducedParents[0];
             var parentRight = reducedParents[1];
@@ -382,7 +376,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXExpressionTernaryFloatOperation : VFXExpressionFloatOperation
     {
-        protected VFXExpressionTernaryFloatOperation(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpressionOp operation, float identityValue = 0.0f)
+        protected VFXExpressionTernaryFloatOperation(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpressionOp operation)
         {
             if (    !IsFloatValueType(a.ValueType) 
                 ||  !IsFloatValueType(b.ValueType)
@@ -401,7 +395,7 @@ namespace UnityEditor.VFX
             m_Parents = new VFXExpression[] { a, b, c };
             m_Operation = operation;
         }
-        sealed protected override VFXExpression ExecuteConstantOperation(VFXExpression[] reducedParents)
+        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             var a = reducedParents[0];
             var b = reducedParents[1];
@@ -454,7 +448,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionAdd(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXAddOp, 0.0f)
+        public VFXExpressionAdd(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXAddOp)
         {
         }
 
@@ -475,7 +469,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionMul(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMulOp, 1.0f)
+        public VFXExpressionMul(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMulOp)
         {
         }
 
@@ -495,7 +489,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSubtract(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXSubtractOp, 0.0f)
+        public VFXExpressionSubtract(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXSubtractOp)
         {
         }
         sealed protected override float ProcessBinaryOperation(float left, float right)
@@ -552,20 +546,20 @@ namespace UnityEditor.VFX
             }
         }
 
-        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents, Context.ReductionOption option)
+        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            var curveReduce = reducedParents[0];
-            var timeReduce = reducedParents[1];
-            if (option == Context.ReductionOption.ConstantFolding)
-            {
-                if (curveReduce.Is(Flags.Constant | Flags.Value) && timeReduce.Is(Flags.Constant | Flags.Value))
-                {
-                    var curve = curveReduce.GetContent<AnimationCurve>();
-                    var time = timeReduce.GetContent<float>();
-                    return new VFXValueFloat(curve.Evaluate(time), true);
-                }
-            }
-            return new VFXExpressionSampleCurve(curveReduce, timeReduce);
+            return new VFXExpressionSampleCurve(reducedParents[0], reducedParents[1]);
+        }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var curveReduce = constParents[0];
+            var timeReduce = constParents[1];
+
+            var curve = curveReduce.GetContent<AnimationCurve>();
+            var time = timeReduce.GetContent<float>();
+            return new VFXValueFloat(curve.Evaluate(time), true);
+
         }
 
         private VFXExpression m_Curve;

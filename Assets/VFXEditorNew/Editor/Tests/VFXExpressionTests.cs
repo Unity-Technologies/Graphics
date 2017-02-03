@@ -95,10 +95,10 @@ namespace UnityEditor.VFX.Test
             var substractExpression = new VFXExpressionSubtract(CastFloat(value_d, mulExpression.ValueType), mulExpression);
 
             var context = new VFXExpression.Context();
-            var resultA = context.GetReduced(addExpression);
-            var resultB = context.GetReduced(sinExpression);
-            var resultC = context.GetReduced(mulExpression);
-            var resultD = context.GetReduced(substractExpression);
+            var resultA = context.Compile(addExpression);
+            var resultB = context.Compile(sinExpression);
+            var resultC = context.Compile(mulExpression);
+            var resultD = context.Compile(substractExpression);
 
             Assert.AreEqual(refResultA, resultA.GetContent<Vector3>());
             Assert.AreEqual(refResultB, resultB.GetContent<Vector3>());
@@ -170,7 +170,7 @@ namespace UnityEditor.VFX.Test
             var sampleCurve = new VFXExpressionSampleCurve(curveValue, sampleValue);
 
             var context = new VFXExpression.Context();
-            var reduced = context.GetReduced(sampleCurve);
+            var reduced = context.Compile(sampleCurve);
 
             Assert.AreEqual(resultRef, reduced.GetContent<float>());
         }

@@ -79,7 +79,9 @@ namespace UnityEditor.VFX
         }
 
         // Reduce the expression within a given context
-        protected abstract VFXExpression Reduce(VFXExpression[] reducedParents, Context.ReductionOption option);
+        protected abstract VFXExpression Reduce(VFXExpression[] reducedParents);
+        protected abstract VFXExpression Evaluate(VFXExpression[] constParents);
+
         // Returns dependencies
         public bool Is(Flags flag) { return (m_Flags & flag) == flag; }
         public abstract VFXValueType ValueType { get; }
