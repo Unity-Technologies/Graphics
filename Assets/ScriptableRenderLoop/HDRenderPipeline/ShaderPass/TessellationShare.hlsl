@@ -1,3 +1,6 @@
+// AMD recommand this value for GCN http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2013/05/GCNPerformanceTweets.pdf
+#define MAX_TESSELLATION_FACTORS 15.0 
+
 struct TessellationFactors
 {
     float edge[3] : SV_TessFactor;
@@ -18,17 +21,22 @@ TessellationFactors HullConstant(InputPatch<PackedVaryingsToDS, 3> input)
     float3 n1 = varying1.vmesh.normalWS;
     float3 n2 = varying2.vmesh.normalWS;
 
+    // ref: http://reedbeta.com/blog/tess-quick-ref/
+    // x - 1->2 edge
+    // y - 2->0 edge
+    // z - 0->1 edge
+    // w - inside tessellation factor
     float4 tf = GetTessellationFactors(p0, p1, p2, n0, n1, n2);
     TessellationFactors output;
-    output.edge[0] = tf.x;
-    output.edge[1] = tf.y;
-    output.edge[2] = tf.z;
-    output.inside = tf.w;
+    output.edge[0] = min(tf.x, MAX_TESSELLATION_FACTORS);
+    output.edge[1] = min(tf.y, MAX_TESSELLATION_FACTORS);
+    output.edge[2] = min(tf.z, MAX_TESSELLATION_FACTORS);
+    output.inside = min(tf.w, MAX_TESSELLATION_FACTORS);
 
     return output;
 }
 
-[maxtessfactor(15.0)] // AMD recommand this value for GCN http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2013/05/GCNPerformanceTweets.pdf
+[maxtessfactor(MAX_TESSELLATION_FACTORS)]
 [domain("tri")]
 [partitioning("fractional_odd")]
 [outputtopology("triangle_cw")]
@@ -66,7 +74,7 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
 #endif
 
 #if defined(_TESSELLATION_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT_PHONG)
-    varying.vmesh.positionWS += GetDisplacement(varying.vmesh);
+    varying.vmesh.positionWS += GetTessellationDisplacement(varying.vmesh);
 #endif
 
     return VertTesselation(varying);
