@@ -72,7 +72,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 return output;
             }
 
-            float3 Frag(Varyings input) : SV_Target
+            float4 Frag(Varyings input) : SV_Target
             {
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
@@ -139,7 +139,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     totalWeight     += sampleWeight;
                 }
 
-                return totalIrradiance / totalWeight;
+                return float4(totalIrradiance / totalWeight, 1.0);
             }
             ENDHLSL
         }
