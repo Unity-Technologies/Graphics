@@ -108,10 +108,20 @@ Shader "HDRenderPipeline/LayeredLit"
         _HeightFactor2("_HeightFactor2", Float) = 1
         _HeightFactor3("_HeightFactor3", Float) = 1
 
+        _LayerHeightAmplitude0("_LayerHeightAmplitude0", Float) = 1
+        _LayerHeightAmplitude1("_LayerHeightAmplitude1", Float) = 1
+        _LayerHeightAmplitude2("_LayerHeightAmplitude2", Float) = 1
+        _LayerHeightAmplitude3("_LayerHeightAmplitude3", Float) = 1
+
         _HeightCenterOffset0("_HeightCenterOffset0", Float) = 0.0
         _HeightCenterOffset1("_HeightCenterOffset1", Float) = 0.0
         _HeightCenterOffset2("_HeightCenterOffset2", Float) = 0.0
         _HeightCenterOffset3("_HeightCenterOffset3", Float) = 0.0
+
+        _LayerCenterOffset0("_LayerCenterOffset0", Float) = 0.0
+        _LayerCenterOffset1("_LayerCenterOffset1", Float) = 0.0
+        _LayerCenterOffset2("_LayerCenterOffset2", Float) = 0.0
+        _LayerCenterOffset3("_LayerCenterOffset3", Float) = 0.0
 
         _BlendUsingHeight1("_BlendUsingHeight1", Float) = 0.0
         _BlendUsingHeight2("_BlendUsingHeight2", Float) = 0.0
@@ -181,6 +191,7 @@ Shader "HDRenderPipeline/LayeredLit"
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
+        _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
 
@@ -197,7 +208,7 @@ Shader "HDRenderPipeline/LayeredLit"
         _TexWorldScale2("Tiling", Float) = 1.0
         _TexWorldScale3("Tiling", Float) = 1.0
 
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0
+        [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0 // no UV1/2/3 for main layer (matching Lit.shader and for PPDisplacement restriction)
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase1("UV Set for base1", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase2("UV Set for base2", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase3("UV Set for base3", Float) = 0
@@ -248,7 +259,10 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _MASKMAP
     #pragma shader_feature _SPECULAROCCLUSIONMAP
     #pragma shader_feature _EMISSIVE_COLOR_MAP
-    #pragma shader_feature _HEIGHTMAP
+    #pragma shader_feature _HEIGHTMAP0
+    #pragma shader_feature _HEIGHTMAP1
+    #pragma shader_feature _HEIGHTMAP2
+    #pragma shader_feature _HEIGHTMAP3
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
@@ -323,6 +337,27 @@ Shader "HDRenderPipeline/LayeredLit"
 
             #define SHADERPASS SHADERPASS_GBUFFER
 
+            #include "../../Material/Material.hlsl"            
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"    
+            #include "../Lit/LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "GBufferDebugLighting"  // Name is not used
+            Tags{ "LightMode" = "GBufferDebugLighting" } // This will be only for opaque object based on the RenderQueue index
+
+            Cull[_CullMode]
+
+            HLSLPROGRAM
+
+            #define LIGHTING_DEBUG
+            #define SHADERPASS SHADERPASS_GBUFFER
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/DebugLighting.hlsl"
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitSharePass.hlsl"    
             #include "../Lit/LitData.hlsl"
@@ -469,6 +504,33 @@ Shader "HDRenderPipeline/LayeredLit"
 
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../Lighting/Forward.hlsl"
+            // TEMP until pragma work in include
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
+
+            #include "../../Lighting/Lighting.hlsl"            
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassForward.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "ForwardDebugLighting" // Name is not used
+            Tags{ "LightMode" = "ForwardDebugLighting" } // This will be only for transparent object based on the RenderQueue index
+
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_CullMode]
+
+            HLSLPROGRAM
+
+            #define LIGHTING_DEBUG
+            #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../Lighting/Forward.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/DebugLighting.hlsl"
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
 

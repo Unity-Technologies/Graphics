@@ -81,6 +81,7 @@ float4 _UVDetailsMappingMask;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;
+float _PPDLodThreshold;
 
 #else // LAYERED_LIT_SHADER
 
@@ -144,8 +145,8 @@ SAMPLER2D(sampler_LayerMaskMap);
 float _BlendUsingHeight1;
 float _BlendUsingHeight2;
 float _BlendUsingHeight3;
-PROP_DECL(float, _HeightFactor);
-PROP_DECL(float, _HeightCenterOffset);
+PROP_DECL(float, _LayerHeightAmplitude);
+PROP_DECL(float, _LayerCenterOffset);
 PROP_DECL(float, _MinimumOpacity);
 PROP_DECL(float, _OpacityAsDensity);
 float _InheritBaseNormal1;
@@ -178,6 +179,7 @@ float _HorizonFade;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;
+float _PPDLodThreshold;
 
 #endif // LAYERED_LIT_SHADER
 

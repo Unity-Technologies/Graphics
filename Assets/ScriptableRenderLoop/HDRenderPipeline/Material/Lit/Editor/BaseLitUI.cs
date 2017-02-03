@@ -37,7 +37,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "");
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum samples", "Minimun samples to use with per pixel displacement mapping");
             public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum samples", "Maximum samples to use with per pxiel displacement mapping");
-            
+            public static GUIContent ppdLodThresholdText = new GUIContent("Fading LOD start", "Starting Lod where the parallax occlusion mapping effect start to disappear");
+
             public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
             public static GUIContent UVDetailMappingText = new GUIContent("UV set for Detail", "");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
@@ -95,12 +96,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
             public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Tesselation displacement will take into account the object scale - Only work with uniform positive scale");
 
-            public static GUIContent materialIDText          = new GUIContent("Material Class", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
-            public static GUIContent subsurfaceProfileText   = new GUIContent("Subsurface scattering profile", "A profile determines the shape of the blur filter.");
-            public static GUIContent subsurfaceRadiusText    = new GUIContent("Subsurface scattering radius", "Determines the range of the blur.");
-            public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface scattering radius map", "Determines the range of the blur.");
-            public static GUIContent thicknessText           = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
-            public static GUIContent thicknessMapText        = new GUIContent("Thickness map", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
+            public static GUIContent perPixelDisplacementText = new GUIContent("Per pixel displacement", "Per pixel displacement options");
+            
+
+            public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
+            public static GUIContent subsurfaceProfileText = new GUIContent("Subsurface profile", "A profile determines the shape of the blur filter.");
+            public static GUIContent subsurfaceRadiusText = new GUIContent("Subsurface radius", "Determines the range of the blur.");
+            public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface radius map", "Determines the range of the blur.");
+            public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
+            public static GUIContent thicknessMapText = new GUIContent("Thickness map", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
         }
 
         public enum SurfaceType
@@ -230,6 +234,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
                 EditorGUI.indentLevel--;
             }
+
+            GUILayout.Label(Styles.perPixelDisplacementText, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText);
+            if (enablePerPixelDisplacement.floatValue > 0.0)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
+                m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
+                ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+                m_MaterialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
+                EditorGUI.indentLevel--;
+            }
+            EditorGUI.indentLevel--;
         }
 
         protected void FindCommonOptionProperties(MaterialProperty[] props)
@@ -254,6 +272,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tessellationShapeFactor = FindProperty(kTessellationShapeFactor, props, false);
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon, props, false);
             tessellationObjectScale = FindProperty(kTessellationObjectScale, props, false);
+
+            // Per pixel displacement
+            enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
+            ppdMinSamples = FindProperty(kPpdMinSamples, props);
+            ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
+            ppdLodThreshold = FindProperty(kPpdLodThreshold, props);
         }
 
         protected void SetupCommonOptionsKeywords(Material material)
@@ -532,6 +556,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
         MaterialProperty tessellationObjectScale = null;
         const string kTessellationObjectScale = "_TessellationObjectScale";
+
+        // Per pixel displacement params
+        protected MaterialProperty enablePerPixelDisplacement = null;
+        protected const string kEnablePerPixelDisplacement = "_EnablePerPixelDisplacement";
+        protected MaterialProperty ppdMinSamples = null;
+        protected const string kPpdMinSamples = "_PPDMinSamples";
+        protected MaterialProperty ppdMaxSamples = null;
+        protected const string kPpdMaxSamples = "_PPDMaxSamples";
+        protected MaterialProperty ppdLodThreshold = null;
+        protected const string kPpdLodThreshold = "_PPDLodThreshold";
 
         protected static string[] reservedProperties = new string[] { kSurfaceType, kBlendMode, kAlphaCutoff, kAlphaCutoffEnabled, kDoubleSidedMode };
 

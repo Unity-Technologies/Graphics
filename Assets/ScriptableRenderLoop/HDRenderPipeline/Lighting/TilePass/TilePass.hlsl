@@ -122,7 +122,7 @@ float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, uint light
 
 // Gets the cascade weights based on the world position of the fragment and the positions of the split spheres for each cascade.
 // Returns an invalid split index if past shadowDistance (ie 4 is invalid for cascade)
-uint GetSplitSphereIndexForDirshadows(float3 positionWS, float4 dirShadowSplitSpheres[4])
+int GetSplitSphereIndexForDirshadows(float3 positionWS, float4 dirShadowSplitSpheres[4])
 {
     float3 fromCenter0 = positionWS.xyz - dirShadowSplitSpheres[0].xyz;
     float3 fromCenter1 = positionWS.xyz - dirShadowSplitSpheres[1].xyz;
@@ -136,16 +136,21 @@ uint GetSplitSphereIndexForDirshadows(float3 positionWS, float4 dirShadowSplitSp
     dirShadowSplitSphereSqRadii.z = dirShadowSplitSpheres[2].w;
     dirShadowSplitSphereSqRadii.w = dirShadowSplitSpheres[3].w;
 
+    if (distances2.w > dirShadowSplitSphereSqRadii.w)
+        return -1;
+
     float4 weights = float4(distances2 < dirShadowSplitSphereSqRadii);
     weights.yzw = saturate(weights.yzw - weights.xyz);
 
-    return uint(4.0 - dot(weights, float4(4.0, 3.0, 2.0, 1.0)));
+    return int(4.0 - dot(weights, float4(4.0, 3.0, 2.0, 1.0)));
 }
 
 float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS)
 {
     // Note Index is 0 for now, but else we need to provide the correct index in _DirShadowSplitSpheres and _ShadowDatas
-    uint shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _DirShadowSplitSpheres);
+    int shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _DirShadowSplitSpheres);
+    if (shadowSplitIndex == -1)
+        return 1.0;
 
     ShadowData shadowData = _ShadowDatas[shadowSplitIndex];
 
