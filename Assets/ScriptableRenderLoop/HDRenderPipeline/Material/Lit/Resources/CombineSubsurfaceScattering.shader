@@ -16,6 +16,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 Pass Keep
             }
 
+            Cull   Off
             ZTest  Always
             ZWrite Off
             Blend  One [_DstBlend]
@@ -46,7 +47,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             float4   _FilterKernels[N_PROFILES][N_SAMPLES + 1]; // RGB = weights, A = radial distance
             float4x4 _InvProjMatrix;
 
-            TEXTURE2D(_CameraDepthTexture);
+            TEXTURE2D_FLOAT(_CameraDepthTexture);
             TEXTURE2D(_GBufferTexture2);
             TEXTURE2D(_IrradianceSource);
 

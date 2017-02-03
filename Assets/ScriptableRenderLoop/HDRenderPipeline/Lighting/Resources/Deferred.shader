@@ -23,6 +23,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             ZWrite Off
             ZTest  Always
             Blend [_SrcBlend] [_DstBlend], One Zero
+            Cull Off
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -61,7 +62,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
- 			TEXTURE2D(_CameraDepthTexture);
+			TEXTURE2D_FLOAT(_CameraDepthTexture);
 			SAMPLER2D(sampler_CameraDepthTexture);
 
             struct Attributes
