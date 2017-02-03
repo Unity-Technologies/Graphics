@@ -143,7 +143,7 @@ namespace UnityEditor.VFX.Test
                     else
                     {
                         string function, call;
-                        operation.GetExpressionCode(out function, out call);
+                        operation.temp_GetExpressionCode(out function, out call);
                         functionList.Add(function);
                         callFunction.Append(call);
                         callFunction.AppendLine();
@@ -257,7 +257,7 @@ namespace UnityEditor.VFX.Test
                     else
                     {
                         string function, call;
-                        operation.GetExpressionCode(out function, out call);
+                        operation.temp_GetExpressionCode(out function, out call);
                         functionList.Add(function);
                         callFunction.Append(call);
                         callFunction.AppendLine();

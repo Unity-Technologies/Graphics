@@ -100,7 +100,7 @@ namespace UnityEditor.VFX
             return input.Aggregate((a, b) => a + ", " + b);
         }
 
-        public void GetExpressionCode(out string function, out string call)
+        public void temp_GetExpressionCode(out string function, out string call)
         {
             function = call = null;
             if (!Is(Flags.ValidOnGPU))
@@ -121,7 +121,7 @@ namespace UnityEditor.VFX
 
             var param = Parents.Select((o, i) => string.Format("{0} {1}", TypeToCode(o.ValueType), ParentsCodeName[i]));
             var fnHeader = string.Format("{0} {1}({2})", TypeToCode(ValueType), fnName, temp_AggregateWithComa(param));
-            var fnContent = GetOperationCodeContent();
+            var fnContent = string.Format("return {0};", GetOperationCodeContent());
             function = string.Format("{0}\n{{\n{1}\n}}\n", fnHeader, fnContent);
             call = string.Format("{0} {1} = {2}({3});", TypeToCode(ValueType), temp_GetUniqueName(), fnName, temp_AggregateWithComa(Parents.Select(o => o.temp_GetUniqueName())));
         }

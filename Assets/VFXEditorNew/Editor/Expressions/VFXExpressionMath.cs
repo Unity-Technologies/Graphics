@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
 
         sealed protected override string GetUnaryOperationCode(string x)
         {
-            return string.Format("return sin({0});", x);
+            return string.Format("sin({0})", x);
         }
 
         sealed protected override float ProcessUnaryOperation(float input)
@@ -36,7 +36,7 @@ namespace UnityEditor.VFX
 
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
-            return string.Format("return {0} + {1};", left, right);
+            return string.Format("{0} + {1}", left, right);
         }
 
         sealed protected override float ProcessBinaryOperation(float left, float right)
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
         }
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
-            return string.Format("return {0} * {1};", left, right);
+            return string.Format("{0} * {1}", left, right);
         }
     }
 
@@ -80,7 +80,7 @@ namespace UnityEditor.VFX
         }
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
-            return string.Format("return {0} - {1};", left, right);
+            return string.Format("{0} - {1}", left, right);
         }
     }
 
@@ -101,7 +101,7 @@ namespace UnityEditor.VFX
 
         sealed protected override string GetTernaryOperationCode(string x, string y, string s)
         {
-            return string.Format("return lerp({0}, {1}, {2});", x, y, s);
+            return string.Format("lerp({0}, {1}, {2})", x, y, s);
         }
     }
 }
