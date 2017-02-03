@@ -46,6 +46,10 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     output.vmesh.texCoord0 = inputMesh.uv0;
     output.vmesh.texCoord1 = inputMesh.uv1;
 
+#if defined(VARYINGS_NEED_COLOR)
+    output.vmesh.color = inputMesh.color;
+#endif
+
     return PackVaryingsToPS(output);
 }
 
