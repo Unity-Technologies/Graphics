@@ -1,8 +1,11 @@
 // This is implementation of parallax occlusion mapping (POM)
-// This function require that the caller define a callback for the height sampling. "ppdParam" are transfer to the callback function (can be use to normalize coordinate, apply blend weights of layering...)
-// it return the offset to apply to the uvset provide in input
-// viewDirTS is view vector in texture space define by the uv
-float2 ParallaxOcclusionMappingLayer(float2 uv, float lod, int numSteps, float3 viewDirTS, float maximunHeight, PerPixelHeightDisplacementParam ppdParam)
+// This function require that the caller define a callback for the height sampling name ComputePerPixelHeightDisplacement
+// A PerPixelHeightDisplacementParam is used to provide all data necessary to calculate the heights to ComputePerPixelHeightDisplacement it doesn't need to be
+// visible by the POM algorithm.
+// This function is compatible with tiled uv.
+// it return the offset to apply to the UVSet provide in PerPixelHeightDisplacementParam
+// viewDirTS is view vector in texture space matching the UVSet
+float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float3 viewDirTS, float maxHeight, PerPixelHeightDisplacementParam ppdParam)
 {
     // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion
     float stepSize = 1.0 / (float)numSteps;
@@ -13,14 +16,14 @@ float2 ParallaxOcclusionMappingLayer(float2 uv, float lod, int numSteps, float3 
     // float2 parallaxDir = normalize(Out.viewDirTS.xy);
     // float2 parallaxMaxOffsetTS = parallaxDir * parallaxLimit;
     // Above code simplify to
-    float2 parallaxMaxOffsetTS = (viewDirTS.xy / -viewDirTS.z) * maximunHeight;
+    float2 parallaxMaxOffsetTS = (viewDirTS.xy / -viewDirTS.z) * maxHeight;
     float2 texOffsetPerStep = stepSize * parallaxMaxOffsetTS;
 
     // Do a first step before the loop to init all value correctly
     float2 texOffsetCurrent = 0;
-    float prevHeight = ComputePerPixelHeightDisplacement(uv + texOffsetCurrent, lod, ppdParam);
+    float prevHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
     texOffsetCurrent += texOffsetPerStep;
-    float currHeight = ComputePerPixelHeightDisplacement(uv + texOffsetCurrent, lod, ppdParam);
+    float currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
     float rayHeight = 1.0 - stepSize; // Start at top less one sample
 
     // Linear search
@@ -35,7 +38,7 @@ float2 ParallaxOcclusionMappingLayer(float2 uv, float lod, int numSteps, float3 
         texOffsetCurrent += texOffsetPerStep;
 
         // Sample height map which in this case is stored in the alpha channel of the normal map:
-        currHeight = ComputePerPixelHeightDisplacement(uv + texOffsetCurrent, lod, ppdParam);
+        currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
     }
 
     // Found below and above points, now perform line interesection (ray) with piecewise linear heightfield approximation
@@ -58,7 +61,7 @@ float2 ParallaxOcclusionMappingLayer(float2 uv, float lod, int numSteps, float3 
         float t = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
         offset = (1 - t) * texOffsetPerStep * numSteps;
 
-        currHeight = ComputePerPixelHeightDisplacement(uv + texOffsetCurrent, lod, ppdParam);
+        currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
 
         threshold = t - currHeight;
 
@@ -94,9 +97,8 @@ float2 ParallaxOcclusionMappingLayer(float2 uv, float lod, int numSteps, float3 
 
 #endif
 
-    // TODO: expose LOD fading
-    //float lodThreshold = 0.0;
-    //offset *= (1.0 - saturate(lod - lodThreshold));
+    // Fade the effect with lod (allow to avoid pop when switching to a discrete LOD mesh)
+    offset *= (1.0 - saturate(lod - lodThreshold));
 
     return offset;
 }
