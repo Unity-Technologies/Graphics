@@ -1,5 +1,7 @@
 using System;
-using UnityEditor;
+#if UNITY_EDITOR
+    using UnityEditor;
+#endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -250,6 +252,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
+#if UNITY_EDITOR
     [CustomEditor(typeof(SubsurfaceScatteringParameters))]
     public class SubsurfaceScatteringParametersEditor : Editor
     {
@@ -300,4 +303,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Profiles = serializedObject.FindProperty("m_Profiles");
         }
     }
+#endif
 }
