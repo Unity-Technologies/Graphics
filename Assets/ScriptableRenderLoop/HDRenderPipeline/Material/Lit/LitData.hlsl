@@ -329,7 +329,6 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                             positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTiling3);
 }
 
-// Declare the sampler for the heigthmap - Take the sampler of the first valid Heightmap
 #if defined(_HEIGHTMAP0)
 #define sampler_ShareHeightMap sampler_HeightMap0
 #elif defined(_HEIGHTMAP1)
@@ -749,12 +748,18 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 #if defined(_HEIGHT_BASED_BLEND)
 
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
-    float height0 = SAMPLE_LAYER_TEXTURE2D(_HeightMap0, sampler_ShareHeightMap, layerTexCoord.base0).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
-    float height1 = SAMPLE_LAYER_TEXTURE2D(_HeightMap1, sampler_ShareHeightMap, layerTexCoord.base1).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
-    float height2 = SAMPLE_LAYER_TEXTURE2D(_HeightMap2, sampler_ShareHeightMap, layerTexCoord.base2).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
-    float height3 = SAMPLE_LAYER_TEXTURE2D(_HeightMap3, sampler_ShareHeightMap, layerTexCoord.base3).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
+    float height0 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap0, sampler_ShareHeightMap, layerTexCoord.base0).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
+    float height1 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap1, sampler_ShareHeightMap, layerTexCoord.base1).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
+    float height2 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap2, sampler_ShareHeightMap, layerTexCoord.base2).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
+    float height3 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap3, sampler_ShareHeightMap, layerTexCoord.base3).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float4 heights = float4(height0, height1, height2, height3);
+
+    // HACK: use height0 to avoid compiler error for unused sampler - To remove when we can have a sampler without a textures
+    #if !defined(_PER_PIXEL_DISPLACEMENT)
+    // We don't use height 0 for the height blend based mode
+    heights.y += (heights.x * 0.0001);
+    #endif
 #else
     float4 heights = float4(0.0, 0.0, 0.0, 0.0);
 #endif
