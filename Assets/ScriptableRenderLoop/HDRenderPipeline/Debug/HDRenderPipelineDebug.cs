@@ -16,6 +16,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public MaterialDebugParameters materialDebugParameters = new MaterialDebugParameters();
         public LightingDebugParameters lightingDebugParameters = new LightingDebugParameters();
         public RenderingDebugParameters renderingDebugParametrs = new RenderingDebugParameters();
+
+        public void OnValidate()
+        {
+            lightingDebugParameters.OnValidate();
+        }
     }
 
 
@@ -40,6 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VisualizeShadowMap
     }
 
+    [GenerateHLSL]
     public enum LightingDebugMode
     {
         None,
@@ -56,7 +62,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public LightingDebugMode    lightingDebugMode = LightingDebugMode.None;
         public bool                 overrideSmoothness = false;
-        public float                overrideSmoothnessValue = 1.0f;
+        public float                overrideSmoothnessValue = 0.5f;
         public Color                debugLightingAlbedo = new Color(0.5f, 0.5f, 0.5f);
+
+        public void OnValidate()
+        {
+            overrideSmoothnessValue = Mathf.Clamp(overrideSmoothnessValue, 0.0f, 1.0f);
+        }
     }
 }

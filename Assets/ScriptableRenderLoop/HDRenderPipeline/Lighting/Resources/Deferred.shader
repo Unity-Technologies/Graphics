@@ -48,6 +48,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             //-------------------------------------------------------------------------------------
 
             #include "Common.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/DebugLighting.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
@@ -63,8 +65,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
-			TEXTURE2D_FLOAT(_CameraDepthTexture);
-			SAMPLER2D(sampler_CameraDepthTexture);
+            TEXTURE2D_FLOAT(_CameraDepthTexture);
+            SAMPLER2D(sampler_CameraDepthTexture);
 
             struct Attributes
             {

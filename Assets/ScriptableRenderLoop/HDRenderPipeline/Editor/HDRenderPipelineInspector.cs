@@ -47,9 +47,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Global debug parameters
             public readonly GUIContent debugging = new GUIContent("Debugging");
             public readonly GUIContent debugOverlayRatio = new GUIContent("Overlay Ratio");
-            public readonly GUIContent debugParameters = new GUIContent("Debug Parameters");
 
             // Material debug
+            public readonly GUIContent materialDebugLabel = new GUIContent("Material Debug");
             public readonly GUIContent debugViewMaterial = new GUIContent("DebugView Material", "Display various properties of Materials.");
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
@@ -227,13 +227,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderingDebugParametersUI(renderContext);
             LightingDebugParametersUI(renderContext, renderpipelineInstance);
 
+            EditorGUILayout.Space();
+
             EditorGUI.indentLevel--;
         }
 
 
         private void MaterialDebugParametersUI(HDRenderPipeline renderContext)
         {
-            m_ShowMaterialDebug.boolValue = EditorGUILayout.Foldout(m_ShowMaterialDebug.boolValue, styles.debugParameters);
+            m_ShowMaterialDebug.boolValue = EditorGUILayout.Foldout(m_ShowMaterialDebug.boolValue, styles.materialDebugLabel);
             if (!m_ShowMaterialDebug.boolValue)
                 return;
 
@@ -287,9 +289,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HackSetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
-
-            EditorGUILayout.Space();
-
         }
 
         private void RenderingDebugParametersUI(HDRenderPipeline renderContext)
@@ -303,9 +302,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_DisplayTransparentObjects, styles.displayTransparentObjects);
             EditorGUILayout.PropertyField(m_EnableDistortion, styles.enableDistortion);
             EditorGUI.indentLevel--;
-
-            EditorGUILayout.Space();
-            }
+        }
 
         private void SssSettingsUI(HDRenderPipeline pipe)
         {
@@ -328,6 +325,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShowLightingDebug.boolValue = EditorGUILayout.Foldout(m_ShowLightingDebug.boolValue, styles.lightingDebugParameters);
             if (!m_ShowLightingDebug.boolValue)
                 return;
+
+            EditorGUI.BeginChangeCheck();
 
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_DebugShadowEnabled, styles.shadowDebugEnable);
@@ -358,7 +357,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             EditorGUI.indentLevel--;
 
-            EditorGUILayout.Space();
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(renderContext);
+            }
         }
 
         private void SettingsUI(HDRenderPipeline renderContext)
@@ -366,7 +368,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(styles.settingsLabel);
             EditorGUI.indentLevel++;
 
+            EditorGUI.BeginChangeCheck();
+
             renderContext.lightLoopProducer = (LightLoopProducer)EditorGUILayout.ObjectField(new GUIContent("Light Loop"), renderContext.lightLoopProducer, typeof(LightLoopProducer), false);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(renderContext); // Repaint
+            }
+
 
             SkySettingsUI(renderContext);
             SssSettingsUI(renderContext);
