@@ -217,6 +217,37 @@ Shader "HDRenderPipeline/LitTessellation"
 
         Pass
         {
+            Name "GBufferDebugLighting"  // Name is not used
+            Tags{ "LightMode" = "GBufferDebugLighting" } // This will be only for opaque object based on the RenderQueue index
+
+            Cull[_CullMode]
+
+                Stencil
+            {
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
+            HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
+
+            #define LIGHTING_DEBUG
+            #define SHADERPASS SHADERPASS_GBUFFER
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/LitSharePass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "Debug"
             Tags { "LightMode" = "DebugViewMaterial" }
 
@@ -383,6 +414,35 @@ Shader "HDRenderPipeline/LitTessellation"
             ENDHLSL
         }
 
+        Pass
+        {
+            Name "ForwardDebugLighting" // Name is not used
+            Tags{ "LightMode" = "ForwardDebugLighting" } // This will be only for transparent object based on the RenderQueue index
+
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_CullMode]
+
+            HLSLPROGRAM
+
+            #pragma hull Hull
+            #pragma domain Domain
+
+            #define LIGHTING_DEBUG
+            #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../Lighting/Forward.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Debug/DebugLighting.hlsl"
+            // TEMP until pragma work in include
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
+
+            #include "../../Lighting/Lighting.hlsl"
+            #include "ShaderPass/LitSharePass.hlsl"
+            #include "LitData.hlsl"
+            #include "../../ShaderPass/ShaderPassForward.hlsl"
+
+                ENDHLSL
+        }
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"
