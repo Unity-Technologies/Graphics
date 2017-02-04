@@ -78,9 +78,6 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
-        // Material Id
-        [HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
-
         [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
 
         [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
