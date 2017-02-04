@@ -400,7 +400,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.DisableKeyword("_REQUIRE_UV3");
             }
 
-            material.SetInt("_StencilRef", (int)material.GetFloat(kMaterialID)); // See 'StencilBits'.
+            material.SetInt("_StencilRef", 1 + (int)material.GetFloat(kMaterialID)); // See 'StencilBits'.
          }
     }
 } // namespace UnityEditor
