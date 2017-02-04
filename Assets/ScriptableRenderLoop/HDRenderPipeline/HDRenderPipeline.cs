@@ -728,14 +728,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
             if (m_Owner.renderingParameters.ShouldUseForwardRenderingOnly()) return;
 
-            // Load the kernel data.
-            Vector4[] kernelData = new Vector4[SubsurfaceScatteringParameters.maxNumProfiles * SubsurfaceScatteringProfile.numVectors];
+            // Load the kernel and variance data.
+            Vector4[] kernelData   = new Vector4[SubsurfaceScatteringParameters.maxNumProfiles * SubsurfaceScatteringProfile.numSamples];
+            Vector4[] varianceData = new Vector4[SubsurfaceScatteringParameters.maxNumProfiles];
             for (int j = 0, m = sssParameters.profiles.Length; j < m; j++)
             {
-                for (int i = 0, n = SubsurfaceScatteringProfile.numVectors; i < n; i++)
+                for (int i = 0, n = SubsurfaceScatteringProfile.numSamples; i < n; i++)
                 {
                     kernelData[n * j + i] = sssParameters.profiles[j].filterKernel[i];
                 }
+                varianceData[j] = sssParameters.profiles[j].halfRcpVariance;
             }
 
             var cmd = new CommandBuffer() { name = "Subsurface Scattering Pass" };
@@ -743,6 +745,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Perform the vertical SSS filtering pass.
             m_FilterSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
             m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
+            m_FilterSubsurfaceScattering.SetVectorArray("_HalfRcpVariances", varianceData);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
             Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera,
                                      m_CameraFilteringBufferRT, m_CameraStencilBufferRT);
@@ -750,6 +753,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
             m_FilterAndCombineSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
             m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
+            m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_HalfRcpVariances", varianceData);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
             Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera,
                                      m_CameraColorBufferRT, m_CameraStencilBufferRT);

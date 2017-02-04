@@ -9,17 +9,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class SubsurfaceScatteringProfile
     {
         public const int numSamples = 7; // Must be an odd number
-        public const int numVectors = 8; // numSamples + 1 for (1 / (2 * WeightedVariance))
-        
+
         [SerializeField, ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
         Color       m_StdDev1;
         [SerializeField, ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
         Color       m_StdDev2;
         [SerializeField]
         float       m_LerpWeight;
-        [SerializeField]
+        [SerializeField] [HideInInspector]
         Vector4[]   m_FilterKernel;
-        [SerializeField]
+        [SerializeField] [HideInInspector]
+        Vector4     m_HalfRcpVariance;
+        [SerializeField] [HideInInspector]
         public bool m_KernelNeedsUpdate;
 
         // --- Public Methods ---
@@ -53,6 +54,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4[] filterKernel
         {
             get { if (m_KernelNeedsUpdate) ComputeKernel(); return m_FilterKernel; }
+        }
+
+        public Vector4 halfRcpVariance
+        {
+            get { if (m_KernelNeedsUpdate) ComputeKernel(); return m_HalfRcpVariance; }
         }
 
         public void SetDirtyFlag()
@@ -108,9 +114,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void ComputeKernel()
         {
-            if (m_FilterKernel == null || m_FilterKernel.Length != numVectors)
+            if (m_FilterKernel == null || m_FilterKernel.Length != numSamples)
             {
-                m_FilterKernel = new Vector4[numVectors];
+                m_FilterKernel = new Vector4[numSamples];
             }
 
             // Our goal is to blur the image using a filter which is represented
@@ -169,10 +175,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             weightedStdDev.w = Mathf.Lerp(maxStdDev1,  maxStdDev2,  m_LerpWeight);
 
             // Store (1 / (2 * Variance)) per color channel.
-            m_FilterKernel[numSamples].x = 0.5f / (weightedStdDev.x * weightedStdDev.x);
-            m_FilterKernel[numSamples].y = 0.5f / (weightedStdDev.y * weightedStdDev.y);
-            m_FilterKernel[numSamples].z = 0.5f / (weightedStdDev.z * weightedStdDev.z);
-            m_FilterKernel[numSamples].w = 0.5f / (weightedStdDev.w * weightedStdDev.w);
+            m_HalfRcpVariance.x = 0.5f / (weightedStdDev.x * weightedStdDev.x);
+            m_HalfRcpVariance.y = 0.5f / (weightedStdDev.y * weightedStdDev.y);
+            m_HalfRcpVariance.z = 0.5f / (weightedStdDev.z * weightedStdDev.z);
+            m_HalfRcpVariance.w = 0.5f / (weightedStdDev.w * weightedStdDev.w);
         }
     }
 
