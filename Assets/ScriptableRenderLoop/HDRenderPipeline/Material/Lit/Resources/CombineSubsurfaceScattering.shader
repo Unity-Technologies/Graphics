@@ -44,7 +44,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #define N_PROFILES 8
             #define N_SAMPLES  7
 
-            float4   _FilterKernels[N_PROFILES][N_SAMPLES + 1]; // RGB = weights, A = radial distance
+            float4   _FilterKernels[N_PROFILES][N_SAMPLES]; // RGB = weights, A = radial distance
+            float4   _HalfRcpVariances[N_PROFILES];         // RGB for chromatic, A for achromatic
             float4x4 _InvProjMatrix;
 
             TEXTURE2D_FLOAT(_CameraDepthTexture);
@@ -103,9 +104,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 // Load (1 / (2 * Variance)) for bilateral weighting.
             #ifdef RBG_BILATERAL_WEIGHTS
-                float3 halfRcpVariance = _FilterKernels[profileID][N_SAMPLES].rgb;
+                float3 halfRcpVariance = _HalfRcpVariances[profileID].rgb;
             #else
-                float  halfRcpVariance = _FilterKernels[profileID][N_SAMPLES].a;
+                float  halfRcpVariance = _HalfRcpVariances[profileID].a;
             #endif
                 // Take the first (central) sample.
                 float2 samplePosition   = posInput.unPositionSS;
