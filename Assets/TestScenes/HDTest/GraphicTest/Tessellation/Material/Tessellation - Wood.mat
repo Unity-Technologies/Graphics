@@ -129,7 +129,8 @@ Material:
     - _GlossyReflections: 1
     - _HeightAmplitude: 1.27
     - _HeightCenter: 0.5
-    - _MaterialId: 0
+    - _MaterialID: 0
+    - _StencilRef: 1
     - _Metallic: 0
     - _Mode: 0
     - _NormalMapSpace: 0

@@ -136,7 +136,8 @@ Material:
     - _HeightCenter: 0.5
     - _HeightMapMode: 0
     - _HeightScale: 1
-    - _MaterialId: 0
+    - _MaterialID: 0
+    - _StencilRef: 1
     - _Metalic: 0
     - _Metallic: 0
     - _Mettalic: 0
