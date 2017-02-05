@@ -127,7 +127,8 @@ Material:
     - _HeightBias: 0
     - _HeightMapMode: 0
     - _HeightScale: 1
-    - _MaterialId: 0
+    - _MaterialID: 0
+    - _StencilRef: 1
     - _Metallic: 0
     - _Mode: 0
     - _NormalMapSpace: 0

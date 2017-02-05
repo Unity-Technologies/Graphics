@@ -177,8 +177,8 @@ Material:
         name: _HeightScale
       second: 1
     - first:
-        name: _MaterialId
-      second: 0
+        name: _StencilRef
+      second: 1
     - first:
         name: _Metalic
       second: 0

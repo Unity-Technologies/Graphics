@@ -285,7 +285,8 @@ Material:
     - _HeightScale3: 1
     - _LayerCount: 2
     - _LayerMaskVertexColor: 0
-    - _MaterialId: 0
+    - _MaterialID: 0
+    - _StencilRef: 1
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0

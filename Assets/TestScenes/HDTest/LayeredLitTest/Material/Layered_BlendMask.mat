@@ -350,7 +350,8 @@ Material:
     - _LayerTiling1: 10
     - _LayerTiling2: 1
     - _LayerTiling3: 1
-    - _MaterialId: 0
+    - _MaterialID: 0
+    - _StencilRef: 1
     - _Metalic: 0
     - _Metalic0: 0
     - _Metalic1: 0
