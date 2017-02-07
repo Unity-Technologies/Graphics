@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -18,6 +19,11 @@ namespace UnityEditor.VFX
         {
         }*/
 
+        public System.Type GetPropertiesType()
+        {
+            return GetType().GetNestedType("Properties");
+        }
+
         private string m_Name;
         //private string m_Category;
         private VFXContextType m_CompatibleContexts;
@@ -30,6 +36,20 @@ namespace UnityEditor.VFX
     class VFXInitBlockTest : VFXBlockDesc
     {
         public VFXInitBlockTest() : base("Init Block", VFXContextType.kInit) { }
+
+    }
+
+    [VFXInfo]
+    class VFXRotate : VFXBlockDesc
+    {
+        public VFXRotate() : base("Rotate Block", VFXContextType.kInit | VFXContextType.kUpdate) { }
+
+
+        public class Properties
+        {
+            public float angle = 30;
+            public Vector3 axis = Vector3.forward;
+        }
     }
 
     [VFXInfo]

@@ -94,8 +94,8 @@ VFXContextUI #NodeContents > Label{
 }
 
 NodeBlockContainer {
-	flex:1;
 	flex-direction: column;
+	align-items: stretch;
 	background-color: #444;
 	min-height: 64;
 }
@@ -107,18 +107,20 @@ VFXNodeBlockUI.selected {
 }
 
 VFXNodeBlockUI {
-	flex:1;
 	flex-direction: column;
 	background-color: #333;
+	align-items: stretch;
 	margin-bottom: 2;
 	min-height: 64;
+	padding-bottom:6;
+	padding-left:4;
+	padding-right:4
+}
+VFXNodeBlockUI > IMGUIContainer {
+
 }
 
-VFXNodeBlockUI #SlotContainer {
-	background-color: #F0F;
-}
-
-VFXNodeBlockUI #Title {
+VFXNodeBlockUI > Label {
 	min-height: 20;
 	text-color:#8FA1DF;
 	background-color: #555;

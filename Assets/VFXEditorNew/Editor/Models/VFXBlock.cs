@@ -11,12 +11,24 @@ namespace UnityEditor.VFX
         public VFXBlock(VFXBlockDesc desc)
         {
             m_Desc = desc;
+
+
+            System.Type propertyType = Desc.GetPropertiesType();
+            if (propertyType != null)
+                m_PropertyBuffer = System.Activator.CreateInstance(propertyType);
         }
 
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
             m_SerializableDesc = m_Desc.GetType().FullName;
+            
+
+        }
+
+        public object GetCurrentProperties()
+        {
+            return m_PropertyBuffer;
         }
 
         public override void OnAfterDeserialize()
@@ -24,11 +36,16 @@ namespace UnityEditor.VFX
             base.OnAfterDeserialize();
             m_Desc = VFXLibrary.GetBlock(m_SerializableDesc);
             m_SerializableDesc = null;
+            System.Type propertyType = Desc.GetPropertiesType();
+            if (propertyType != null)
+                m_PropertyBuffer = System.Activator.CreateInstance(propertyType);
         }
 
         private VFXBlockDesc m_Desc;
 
         [SerializeField]
         private string m_SerializableDesc;
+
+        public object m_PropertyBuffer;
     }
 }

@@ -3,6 +3,8 @@ using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.RMGUI;
 using UnityEngine.RMGUI.StyleSheets;
+using System.Reflection;
+using UnityEngine.RMGUI.StyleEnums;
 
 namespace UnityEditor.VFX.UI
 {
@@ -11,7 +13,7 @@ namespace UnityEditor.VFX.UI
 		static int s_Counter = 0;
 
 		Label m_Title;
-		VisualContainer m_SlotContainer;
+        IMGUIContainer m_Container;
 
 		private int m_Index; // tmp
 
@@ -20,19 +22,26 @@ namespace UnityEditor.VFX.UI
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Position;
             classList = ClassList.empty;
-
+            /*
 			m_SlotContainer = new VisualContainer()
 			{
 				name = "SlotContainer"
-			};
+			};*/
 
 			m_Index = s_Counter++;
 
 			m_Title = new Label(new GUIContent("")) {name = "Title"};
-			AddChild(m_Title);
-			AddChild(m_SlotContainer);
+			InsertChild(0,m_Title);
+			//AddChild(m_SlotContainer);
 
 			AddManipulator(new SelectionDropper(HandleDropEvent));
+
+
+            m_Container = new IMGUIContainer()
+            {
+                OnGUIHandler = OnGUIHandler
+            };
+            AddChild(m_Container);
 		}
 
 		// This function is a placeholder for common stuff to do before we delegate the action to the drop target
@@ -96,7 +105,39 @@ namespace UnityEditor.VFX.UI
 		{
 		}
 
-		public override void OnDataChanged()
+        public void OnGUIHandler()
+        {
+            if (m_Elements == null) return;
+            var presenter = GetPresenter<VFXNodeBlockPresenter>();
+
+            int cpt = 0;
+            foreach (VFXPropertyElement elem in m_Elements)
+            {
+                elem.OnGUI(presenter, cpt++);
+            }
+
+            if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
+            {
+                if (m_Elements.Length > 0)
+                {
+                    Rect r = GUILayoutUtility.GetLastRect();
+                    m_Container.height = r.yMax;
+
+                    //Rect pos = position;
+
+                    //pos.height = minHeight;
+
+                   // position = pos;
+                }
+                else
+                {
+                    height = 0;
+                }
+            }
+        }
+
+
+        public override void OnDataChanged()
 		{
 			var presenter = GetPresenter<VFXNodeBlockPresenter>();
 
@@ -115,9 +156,34 @@ namespace UnityEditor.VFX.UI
 			m_Title.content.text = presenter.Model.Desc.Name + " " + m_Index;
 
 			SetPosition(presenter.position);
-		}
 
-		public override void DoRepaint(IStylePainter painter)
+
+            System.Type propertyType = presenter.GetPropertiesType();
+
+            if( propertyType != null)
+            {
+                FieldInfo[] fields = propertyType.GetFields();
+
+                m_Elements = new VFXPropertyElement[fields.Length];
+
+                for(int i = 0; i < fields.Length; ++i)
+                {
+                    m_Elements[i] = VFXPropertyElement.Create(presenter, i);
+                }
+            }
+            else
+            {
+                m_Elements = null;
+            }
+
+            
+
+        }
+
+        VFXPropertyElement[] m_Elements;
+
+
+        public override void DoRepaint(IStylePainter painter)
 		{
 			base.DoRepaint(painter);
 		}
