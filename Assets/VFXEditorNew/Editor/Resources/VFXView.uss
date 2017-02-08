@@ -50,7 +50,7 @@ VFXContextUI {
 }
 
 VFXContextUI #Title {
-	min-height: 20;
+	min-height: 24;
 	background-color: #FFF;
 	padding-top: 2;
 	padding-left: 2;
@@ -59,16 +59,16 @@ VFXContextUI #Title {
 }
 
 VFXContextUI.selected > #NodeContents  {
-	border-color: #FFAA22;
-	border-width: 5;
+	border-color: #555;
+	border-width: 2;
 }
 
-VFXContextUI #NodeContents {
+VFXContextUI > #NodeContents {
 	text-alignment:upper-center;
 	padding-top: 8;
-	padding-left: 8;
-	padding-bottom: 8;
-	padding-right: 8;
+	padding-left: 16;
+	padding-bottom: 16;
+	padding-right: 16;
 
 	text-color:#8FC1DF;
 
@@ -80,49 +80,48 @@ VFXContextUI #NodeContents {
 	   They must keep in sync until we support variable border
 	   thickness per edge */
 	border-radius: 10;
-	background-color: #2D2D2D;
+	background-color: #2B2B2B;
 }
 
 VFXContextUI #NodeContents > Label{
-	height:20;
 	text-alignment:upper-center;
 
 	text-color:#8FC1DF;
 
 	font:resource("Roboto/Roboto-Medium");
-	font-size:12;
+	font-size:16;
 }
-
-NodeBlockContainer {
-	flex-direction: column;
-	align-items: stretch;
-	background-color: #444;
-	min-height: 64;
-}
-
-VFXNodeBlockUI.selected {
-	border-color: #FFAA22;
-	border-width: 1;
-	background-color: #555;
-}
-
 VFXNodeBlockUI {
 	flex-direction: column;
-	background-color: #333;
+	background-color: #2B2B2B;
 	align-items: stretch;
-	margin-bottom: 2;
+	margin-bottom: 1;
 	min-height: 64;
 	padding-bottom:6;
 	padding-left:4;
-	padding-right:4
+	padding-right:4;
+	border-color: #555;
+	border-width: 2;
+	border-radius:4;
+	margin-left:3;
 }
+
+
+VFXNodeBlockUI.selected {
+	border-color: #606060;
+	border-width: 2;
+	background-color: #454545;
+}
+
+
 VFXNodeBlockUI > IMGUIContainer {
 
 }
 
 VFXNodeBlockUI > Label {
-	min-height: 20;
+	-min-height: 20;
 	text-color:#8FA1DF;
+	font:resource("Roboto/Roboto-Medium");
 	background-color: #555;
 	padding-top: 2;
 	padding-left: 2;
@@ -131,9 +130,46 @@ VFXNodeBlockUI > Label {
 }
 
 VFXView #VFXBackgroundGrid {
-	grid-background-color:#303030;
-	line-color:#404040;
-	thick-line-color:#555;
+	grid-background-color:#171717;
+	line-color:#202020;
+	thick-line-color:#333;
 	spacing:75.0;
 	thick-lines:5;
+}
+
+VFXPropertyUI
+{
+	flex-direction: row;
+	align-items: stretch;
+	font:resource("Roboto/Roboto-Medium");
+	text-color: #0EE;
+	min-height:25;
+}
+
+VFXPropertyUI .slot
+{
+	width:10;
+	-background-color:#F00;
+}
+
+VFXPropertyUI .slot *
+{
+	margin-top:4;
+	background-color: #2B2B2B;
+	width:8;
+	height:8;
+	margin-left:-7;
+	border-color: #555;
+	border-width: 2;
+	border-radius: 4;
+}
+
+VFXNodeBlockUI.selected VFXPropertyUI .slot *
+{
+	border-color: #606060;
+	background-color: #454545;
+}
+VFXPropertyUI IMGUIContainer
+{
+	flex:1;
 }

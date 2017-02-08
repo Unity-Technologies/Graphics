@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.RMGUI;
 
 using Object = UnityEngine.Object;
 
@@ -9,7 +10,7 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXPropertyIM
     {
-        public abstract void OnGUI(VFXNodeBlockPresenter block, int index);
+        public abstract void OnGUI(VFXNodeBlockPresenter block, int index, VisualElement styledElement);
 
 
 
@@ -55,26 +56,26 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXPropertyIM<T> : VFXPropertyIM
     {
-        public override void OnGUI(VFXNodeBlockPresenter block, int index)
+        public override void OnGUI(VFXNodeBlockPresenter block, int index,VisualElement styledElement)
         {
             FieldInfo field = block.GetPropertiesType().GetFields()[index];
             T obj = (T)field.GetValue(block.GetCurrentProperties());
 
-            obj = OnParameterGUI(field.Name,obj);
+            obj = OnParameterGUI(field.Name,obj, styledElement);
 
             field.SetValue(block.GetCurrentProperties(), obj);
         }
 
 
 
-        public abstract T OnParameterGUI(string name, T value);
+        public abstract T OnParameterGUI(string name, T value, VisualElement styledElement);
     }
 
 
 
     class VFXDefaultPropertyIM : VFXPropertyIM
     {
-        public override void OnGUI(VFXNodeBlockPresenter block, int index)
+        public override void OnGUI(VFXNodeBlockPresenter block, int index, VisualElement styledElement)
         {
             FieldInfo field = block.GetPropertiesType().GetFields()[index];
 
@@ -86,42 +87,50 @@ namespace UnityEditor.VFX.UI
 
     class VFXFloatPropertyIM : VFXPropertyIM<float>
     {
-        public override float OnParameterGUI(string name,float value)
+        public override float OnParameterGUI(string name,float value, VisualElement styledElement)
         {
-            return EditorGUILayout.FloatField(name, value);
+
+            GUIStyle style = new GUIStyle();
+
+            style.font = styledElement.font;
+            style.fontSize = styledElement.fontSize;
+
+            GUI.color = styledElement.textColor;
+
+            return EditorGUILayout.FloatField(name, value,style);
         }
     }
     class VFXVector3PropertyIM : VFXPropertyIM<Vector3>
     {
-        public override Vector3 OnParameterGUI(string name, Vector3 value)
+        public override Vector3 OnParameterGUI(string name, Vector3 value, VisualElement styledElement)
         {
             return EditorGUILayout.Vector3Field(name, value);
         }
     }
     class VFXVector2PropertyIM : VFXPropertyIM<Vector2>
     {
-        public override Vector2 OnParameterGUI(string name, Vector2 value)
+        public override Vector2 OnParameterGUI(string name, Vector2 value, VisualElement styledElement)
         {
             return EditorGUILayout.Vector2Field(name, value);
         }
     }
     class VFXVector4PropertyIM : VFXPropertyIM<Vector4>
     {
-        public override Vector4 OnParameterGUI(string name, Vector4 value)
+        public override Vector4 OnParameterGUI(string name, Vector4 value, VisualElement styledElement)
         {
             return EditorGUILayout.Vector4Field(name, value);
         }
     }
     class VFXColorPropertyIM : VFXPropertyIM<Color>
     {
-        public override Color OnParameterGUI(string name, Color value)
+        public override Color OnParameterGUI(string name, Color value, VisualElement styledElement)
         {
             return EditorGUILayout.ColorField(name, value);
         }
     }
     class VFXObjectPropertyIM<T> : VFXPropertyIM<T> where T : Object
     {
-        public override T OnParameterGUI(string name, T value)
+        public override T OnParameterGUI(string name, T value, VisualElement styledElement)
         {
             return (T)EditorGUILayout.ObjectField(name, value,typeof(T),false);
         }

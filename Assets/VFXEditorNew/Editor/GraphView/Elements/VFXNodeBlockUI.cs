@@ -13,36 +13,25 @@ namespace UnityEditor.VFX.UI
 		static int s_Counter = 0;
 
 		Label m_Title;
-        IMGUIContainer m_Container;
 
 		private int m_Index; // tmp
+
+        VFXPropertyUI[] m_PropertiesUI;
 
 		public VFXNodeBlockUI()
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Position;
             classList = ClassList.empty;
-            /*
-			m_SlotContainer = new VisualContainer()
-			{
-				name = "SlotContainer"
-			};*/
 
 			m_Index = s_Counter++;
 
 			m_Title = new Label(new GUIContent("")) {name = "Title"};
 			InsertChild(0,m_Title);
-			//AddChild(m_SlotContainer);
 
 			AddManipulator(new SelectionDropper(HandleDropEvent));
-
-
-            m_Container = new IMGUIContainer()
-            {
-                OnGUIHandler = OnGUIHandler
-            };
-            AddChild(m_Container);
-		}
+            clipChildren = false;
+        }
 
 		// This function is a placeholder for common stuff to do before we delegate the action to the drop target
 		private EventPropagation HandleDropEvent(Event evt, List<ISelectable> selection, IDropTarget dropTarget)
@@ -103,37 +92,6 @@ namespace UnityEditor.VFX.UI
 		// On purpose -- until we support Drag&Drop I suppose
 		public override void SetPosition(Rect newPos)
 		{
-		}
-
-        public void OnGUIHandler()
-        {
-            if (m_Elements == null) return;
-            var presenter = GetPresenter<VFXNodeBlockPresenter>();
-
-            int cpt = 0;
-            foreach (VFXPropertyIM elem in m_Elements)
-            {
-                elem.OnGUI(presenter, cpt++);
-            }
-
-            if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
-            {
-                if (m_Elements.Length > 0)
-                {
-                    Rect r = GUILayoutUtility.GetLastRect();
-                    m_Container.height = r.yMax;
-
-                    //Rect pos = position;
-
-                    //pos.height = minHeight;
-
-                   // position = pos;
-                }
-                else
-                {
-                    height = 0;
-                }
-            }
         }
 
 
@@ -164,23 +122,45 @@ namespace UnityEditor.VFX.UI
             {
                 FieldInfo[] fields = propertyType.GetFields();
 
-                m_Elements = new VFXPropertyIM[fields.Length];
+                if(m_PropertiesUI == null )
+                {
+                    m_PropertiesUI = new VFXPropertyUI[fields.Length];
+                }
+                if(m_PropertiesUI.Length != fields.Length)
+                {
+                    VFXPropertyUI[] newPropertiesUI = new VFXPropertyUI[fields.Length];
+                    System.Array.Copy(m_PropertiesUI, newPropertiesUI, newPropertiesUI.Length < m_PropertiesUI.Length ? newPropertiesUI.Length : m_PropertiesUI.Length);
+                    for(int i = newPropertiesUI.Length; i < m_PropertiesUI.Length; ++i)
+                    {
+                        RemoveChild(m_PropertiesUI[i]);
+                    }
+                    m_PropertiesUI = newPropertiesUI;
+                }
 
                 for(int i = 0; i < fields.Length; ++i)
                 {
-                    m_Elements[i] = VFXPropertyIM.Create(presenter, i);
+                    if (m_PropertiesUI[i] == null )
+                    {
+                        m_PropertiesUI[i] = new VFXPropertyUI();
+                        AddChild(m_PropertiesUI[i]);
+                    }
+                    m_PropertiesUI[i].DataChanged(presenter, i);
                 }
             }
-            else
+
+            else if( m_PropertiesUI != null)
             {
-                m_Elements = null;
+                foreach(var ui in m_PropertiesUI)
+                {
+                    RemoveChild(ui);
+                }
+
+                m_PropertiesUI = null;
             }
 
             
 
         }
-
-        VFXPropertyIM[] m_Elements;
 
 
         public override void DoRepaint(IStylePainter painter)
