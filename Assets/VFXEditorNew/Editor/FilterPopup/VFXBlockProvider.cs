@@ -9,7 +9,6 @@ namespace UnityEditor.VFX.UI
 {
     public class VFXBlockProvider : VFXFilterWindow.IProvider
     {
-        Vector2 m_mousePosition;
         VFXContextPresenter m_ContextPresenter;
         AddNodeBlock m_onAddNodeBlock;
         //VFXBlock m_blockModel;

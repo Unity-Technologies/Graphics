@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.UI
             var presenter = GetPresenter<VFXNodeBlockPresenter>();
 
             int cpt = 0;
-            foreach (VFXPropertyElement elem in m_Elements)
+            foreach (VFXPropertyIM elem in m_Elements)
             {
                 elem.OnGUI(presenter, cpt++);
             }
@@ -164,11 +164,11 @@ namespace UnityEditor.VFX.UI
             {
                 FieldInfo[] fields = propertyType.GetFields();
 
-                m_Elements = new VFXPropertyElement[fields.Length];
+                m_Elements = new VFXPropertyIM[fields.Length];
 
                 for(int i = 0; i < fields.Length; ++i)
                 {
-                    m_Elements[i] = VFXPropertyElement.Create(presenter, i);
+                    m_Elements[i] = VFXPropertyIM.Create(presenter, i);
                 }
             }
             else
@@ -180,7 +180,7 @@ namespace UnityEditor.VFX.UI
 
         }
 
-        VFXPropertyElement[] m_Elements;
+        VFXPropertyIM[] m_Elements;
 
 
         public override void DoRepaint(IStylePainter painter)

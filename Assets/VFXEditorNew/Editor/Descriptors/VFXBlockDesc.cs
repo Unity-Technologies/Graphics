@@ -53,6 +53,24 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
+    class VFXAllType : VFXBlockDesc
+    {
+        public VFXAllType() : base("Test Block", VFXContextType.kAll) { }
+
+
+        public class Properties
+        {
+            public float aFloat = 123.456f;
+            public Vector2 aVector2 = Vector2.left;
+            public Vector3 aVector3 = Vector3.forward;
+            public Vector4 aVector4 = Vector4.one;
+            public Color aColor = Color.gray;
+            public Texture2D aTexture2D = null;
+            public Texture3D aTexture3D = null;
+        }
+    }
+
+    [VFXInfo]
     class VFXUpdateBlockTest : VFXBlockDesc
     {
         public VFXUpdateBlockTest() : base("Update Block", VFXContextType.kUpdate) { }
