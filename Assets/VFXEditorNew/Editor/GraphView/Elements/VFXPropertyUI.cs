@@ -9,17 +9,19 @@ namespace UnityEditor.VFX.UI
 {
     class VFXPropertyUI : VisualContainer
     {
-        int                     m_PropertyIndex;
-        VFXNodeBlockPresenter   m_Presenter;
-        VFXPropertyIM           m_Property;
+        VFXNodeBlockPresenter.PropertyInfo m_PropertyInfo;
+        VFXNodeBlockPresenter              m_Presenter;
 
+        VFXPropertyIM                      m_Property;
 
         IMGUIContainer          m_Container;
-        VisualContainer m_Slot;
+        VisualContainer         m_Slot;
         VisualElement           m_SlotIcon;
 
         static int s_ContextCount = 1;
 
+
+        GUIStyles m_GUIStyles = new GUIStyles();
 
         public VFXPropertyUI()
         {
@@ -36,24 +38,79 @@ namespace UnityEditor.VFX.UI
             m_Container.executionContext = s_ContextCount++;
             AddChild(m_Container);
 
-            m_Style = new GUIStyle();
-            m_Style.active.background = Resources.Load<Texture2D>("VFX/SelectedField");
-            m_Style.focused.background = m_Style.active.background;
+            m_GUIStyles.baseStyle = new GUIStyle();
+            m_GUIStyles.baseStyle.active.background = Resources.Load<Texture2D>("VFX/SelectedField");
+            m_GUIStyles.baseStyle.focused.background = m_GUIStyles.baseStyle.active.background;
+            m_GUIStyles.baseStyle.border.top = m_GUIStyles.baseStyle.border.left = m_GUIStyles.baseStyle.border.right = m_GUIStyles.baseStyle.border.bottom = 4;
+            m_GUIStyles.baseStyle.padding = new RectOffset(2, 2, 2, 2);
         }
 
-        public GUIStyle m_Style;
+
+        public class GUIStyles
+        {
+            public GUIStyle baseStyle;
+
+            public GUIStyle GetGUIStyleForType(Type type)
+            {
+                GUIStyle style = null;
+
+                if( typeStyles.TryGetValue(type,out style))
+                {
+                    return style;
+                }
+
+                GUIStyle typeStyle = new GUIStyle(baseStyle);
+                typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_plus");
+                typeStyle.active.background = typeStyle.focused.background = null;
+                typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_minus");
+                typeStyle.border.top = 0;
+                typeStyle.border.left = 0;
+                typeStyle.border.bottom = typeStyle.border.right = 0;
+
+                typeStyles.Add(type, typeStyle);
+                
+
+                return typeStyle;
+            }
+
+            Dictionary<Type, GUIStyle> typeStyles = new Dictionary<Type, GUIStyle>();
+
+            public void Reset()
+            {
+                typeStyles.Clear();
+            }
+
+            public float lineHeight
+            { get { return baseStyle.fontSize * 1.25f; } }
+        }
+
 
 
         void OnGUI()
         {
             // update the GUISTyle from the element style defined in USS
-            m_Style.font = font;
-            m_Style.fontSize = fontSize;
-            m_Style.focused.textColor = m_Style.active.textColor = m_Style.normal.textColor = textColor;
-            m_Style.border.top = m_Style.border.left = m_Style.border.right = m_Style.border.bottom = 4;
-            m_Style.padding = new RectOffset(2,2,2,2);
+            bool different = false;
 
-            m_Property.OnGUI(m_Presenter, m_PropertyIndex, m_Style);
+            if( m_GUIStyles.baseStyle.font != font )
+            {
+                m_GUIStyles.baseStyle.font = font;
+                different = true;
+            }
+            if (m_GUIStyles.baseStyle.fontSize != fontSize)
+            {
+                m_GUIStyles.baseStyle.fontSize = fontSize;
+                different = true;
+            }
+            if (m_GUIStyles.baseStyle.focused.textColor != textColor)
+            {
+                m_GUIStyles.baseStyle.focused.textColor = m_GUIStyles.baseStyle.active.textColor = m_GUIStyles.baseStyle.normal.textColor = textColor;
+                different = true;
+            }
+
+            if (different)
+                m_GUIStyles.Reset();
+
+            m_Property.OnGUI(m_Presenter, ref m_PropertyInfo, m_GUIStyles);
 
             if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
             {
@@ -62,11 +119,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void DataChanged(VFXNodeBlockPresenter presenter, int propertyIndex)
+        public void DataChanged(VFXNodeBlockPresenter presenter,VFXNodeBlockPresenter.PropertyInfo info)
         {
-            m_PropertyIndex = propertyIndex;
             m_Presenter = presenter;
-            m_Property = VFXPropertyIM.Create(presenter, propertyIndex);
+            if( m_PropertyInfo.type != info.type)
+            {
+                m_Property = VFXPropertyIM.Create(info.type);
+            }
+            m_PropertyInfo = info;
         }
         
     }

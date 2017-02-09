@@ -10,40 +10,37 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXPropertyIM
     {
-        public abstract void OnGUI(VFXNodeBlockPresenter block, int index, GUIStyle style);
+        public abstract void OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles);
 
 
         public const float kLabelWidth = 70;
-        public static VFXPropertyIM Create(VFXNodeBlockPresenter block, int index)
+        public static VFXPropertyIM Create(Type type)
         {
-            FieldInfo field = block.GetPropertiesType().GetFields()[index];
-
-
-            if( field.FieldType == typeof(float))
+            if(type == typeof(float))
             {
                 return new VFXFloatPropertyIM();
             }
-            else if (field.FieldType == typeof(Vector2))
+            else if (type == typeof(Vector2))
             {
                 return new VFXVector2PropertyIM();
             }
-            else if (field.FieldType == typeof(Vector3))
+            else if (type == typeof(Vector3))
             {
                 return new VFXVector3PropertyIM();
             }
-            else if (field.FieldType == typeof(Vector4))
+            else if (type == typeof(Vector4))
             {
                 return new VFXVector4PropertyIM();
             }
-            else if (field.FieldType == typeof(Color))
+            else if (type == typeof(Color))
             {
                 return new VFXColorPropertyIM();
             }
-            else if (field.FieldType == typeof(Texture2D))
+            else if (type == typeof(Texture2D))
             {
                 return new VFXObjectPropertyIM<Texture2D>();
             }
-            else if (field.FieldType == typeof(Texture3D))
+            else if (type == typeof(Texture3D))
             {
                 return new VFXObjectPropertyIM<Texture3D>();
             }
@@ -52,34 +49,61 @@ namespace UnityEditor.VFX.UI
                 return new VFXDefaultPropertyIM();
             }
         }
+
+
+        public void Label(ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        {
+            if (infos.depth > 0)
+                GUILayout.Space(infos.depth * depthOffset);
+            if (infos.expandable)
+                infos.expanded = GUILayout.Toggle(infos.expanded, "", styles.GetGUIStyleForType(infos.type),GUILayout.Width(14),GUILayout.Height(14));
+            GUILayout.Label(infos.name, styles.baseStyle, GUILayout.Width(kLabelWidth), GUILayout.Height(styles.lineHeight));
+        }
+
+        public const float depthOffset = 20;
     }
 
     abstract class VFXPropertyIM<T> : VFXPropertyIM
     {
-        public override void OnGUI(VFXNodeBlockPresenter block, int index,GUIStyle style)
+        public override void OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
         {
-            FieldInfo field = block.GetPropertiesType().GetFields()[index];
-            T obj = (T)field.GetValue(block.GetCurrentProperties());
 
-            obj = OnParameterGUI(field.Name,obj, style);
+            EditorGUI.BeginChangeCheck();
 
-            field.SetValue(block.GetCurrentProperties(), obj);
+            bool savedExpanded = infos.expanded;
+            infos.value = OnParameterGUI(ref infos, (T)infos.value, styles);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (savedExpanded != infos.expanded)
+                    if (infos.expanded)
+                    {
+                        presenter.ExpandPath(infos.path);
+                    }
+                    else
+                    {
+                        presenter.RetractPath(infos.path);
+                    }
+                else
+                {
+                    presenter.PropertyValueChanged(ref infos);
+                }
+            }
+
         }
 
 
 
-        public abstract T OnParameterGUI(string name, T value, GUIStyle style);
+        public abstract T OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, T value, VFXPropertyUI.GUIStyles styles);
     }
 
 
 
     class VFXDefaultPropertyIM : VFXPropertyIM
     {
-        public override void OnGUI(VFXNodeBlockPresenter block, int index, GUIStyle style)
+        public override void OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
         {
-            FieldInfo field = block.GetPropertiesType().GetFields()[index];
-
-            EditorGUILayout.LabelField(field.Name, "");
+            Label(ref infos,styles);
         }
 
     }
@@ -87,29 +111,29 @@ namespace UnityEditor.VFX.UI
 
     class VFXFloatPropertyIM : VFXPropertyIM<float>
     {
-        public override float OnParameterGUI(string name,float value, GUIStyle style)
+        public override float OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, float value, VFXPropertyUI.GUIStyles styles)
         {
-
-
             GUILayout.BeginHorizontal();
-            GUILayout.Label(name, style,GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
-            return EditorGUILayout.FloatField(value,style, GUILayout.Height(style.fontSize * 1.25f));
+            Label(ref infos,styles);
+            value = EditorGUILayout.FloatField(value, styles.baseStyle, GUILayout.Height(styles.lineHeight));
             GUILayout.EndHorizontal();
+
+            return value;
         }
     }
     class VFXVector3PropertyIM : VFXPropertyIM<Vector3>
     {
-        public override Vector3 OnParameterGUI(string name, Vector3 value, GUIStyle style)
+        public override Vector3 OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, Vector3 value, VFXPropertyUI.GUIStyles styles)
         {
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(name, style, GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("x", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.x = EditorGUILayout.FloatField(value.x, style, GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("y", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.y = EditorGUILayout.FloatField(value.y, style, GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("z", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.z = EditorGUILayout.FloatField(value.z, style, GUILayout.Height(style.fontSize * 1.25f));
+            Label(ref infos,styles);
+            GUILayout.Label("x", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.x = EditorGUILayout.FloatField(value.x, styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            GUILayout.Label("y", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.y = EditorGUILayout.FloatField(value.y, styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            GUILayout.Label("z", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.z = EditorGUILayout.FloatField(value.z, styles.baseStyle, GUILayout.Height(styles.lineHeight));
             GUILayout.EndHorizontal();
 
             return value;
@@ -117,14 +141,14 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector2PropertyIM : VFXPropertyIM<Vector2>
     {
-        public override Vector2 OnParameterGUI(string name, Vector2 value, GUIStyle style)
+        public override Vector2 OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, Vector2 value, VFXPropertyUI.GUIStyles styles)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(name, style, GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("x", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.x = EditorGUILayout.FloatField(value.x, style, GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("y", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.y = EditorGUILayout.FloatField(value.y, style, GUILayout.Height(style.fontSize * 1.25f));
+            Label(ref infos,styles);
+            GUILayout.Label("x", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.x = EditorGUILayout.FloatField(value.x, styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            GUILayout.Label("y", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.y = EditorGUILayout.FloatField(value.y, styles.baseStyle, GUILayout.Height(styles.lineHeight));
             GUILayout.EndHorizontal();
 
             return value;
@@ -132,19 +156,21 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector4PropertyIM : VFXPropertyIM<Vector4>
     {
-        public override Vector4 OnParameterGUI(string name, Vector4 value, GUIStyle style)
+        public override Vector4 OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, Vector4 value, VFXPropertyUI.GUIStyles styles)
         {
-            GUILayout.Label(name, style, GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
             GUILayout.BeginHorizontal();
-            GUILayout.Space(20);
-            GUILayout.Label("x", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.x = EditorGUILayout.FloatField(value.x, style, GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("y", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.y = EditorGUILayout.FloatField(value.y, style, GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("z", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.z = EditorGUILayout.FloatField(value.z, style, GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("w", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.w = EditorGUILayout.FloatField(value.w, style, GUILayout.Height(style.fontSize * 1.25f));
+            Label(ref infos,styles);
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Space((infos.depth+1) * depthOffset);
+            GUILayout.Label("x", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.x = EditorGUILayout.FloatField(value.x, styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            GUILayout.Label("y", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.y = EditorGUILayout.FloatField(value.y, styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            GUILayout.Label("z", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.z = EditorGUILayout.FloatField(value.z, styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            GUILayout.Label("w", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.w = EditorGUILayout.FloatField(value.w, styles.baseStyle, GUILayout.Height(styles.lineHeight));
             GUILayout.EndHorizontal();
 
             return value;
@@ -152,22 +178,22 @@ namespace UnityEditor.VFX.UI
     }
     class VFXColorPropertyIM : VFXPropertyIM<Color>
     {
-        public override Color OnParameterGUI(string name, Color value, GUIStyle style)
+        public override Color OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, Color value, VFXPropertyUI.GUIStyles styles)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(name, style, GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
+            Label(ref infos,styles);
             EditorGUILayout.ColorField(value);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Space(20);
-            GUILayout.Label("r", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.r = EditorGUILayout.FloatField(value.r, style, GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("g", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.g = EditorGUILayout.FloatField(value.g, style, GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("b", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.b = EditorGUILayout.FloatField(value.b, style, GUILayout.Height(style.fontSize * 1.25f));
-            GUILayout.Label("a", style, GUILayout.Height(style.fontSize * 1.25f));
-            value.a = EditorGUILayout.FloatField(value.a, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Space((infos.depth + 1) * depthOffset);
+            GUILayout.Label("r", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.r = EditorGUILayout.FloatField(value.r, styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            GUILayout.Label("g", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.g = EditorGUILayout.FloatField(value.g, styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            GUILayout.Label("b", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.b = EditorGUILayout.FloatField(value.b, styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            GUILayout.Label("a", styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            value.a = EditorGUILayout.FloatField(value.a, styles.baseStyle, GUILayout.Height(styles.lineHeight));
             GUILayout.EndHorizontal();
 
             return value;
@@ -175,12 +201,13 @@ namespace UnityEditor.VFX.UI
     }
     class VFXObjectPropertyIM<T> : VFXPropertyIM<T> where T : Object
     {
-        public override T OnParameterGUI(string name, T value, GUIStyle style)
+        public override T OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, T value, VFXPropertyUI.GUIStyles styles)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(name, style, GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
-            return (T)EditorGUILayout.ObjectField(value,typeof(T),false);
+            Label(ref infos, styles);
+            value = (T)EditorGUILayout.ObjectField(value,typeof(T),false);
             GUILayout.EndHorizontal();
+            return value;
         }
     }
 

@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
 
 		private int m_Index; // tmp
 
-        VFXPropertyUI[] m_PropertiesUI;
+        List<VFXPropertyUI> m_PropertiesUI = new List<VFXPropertyUI>();
 
 		public VFXNodeBlockUI()
         {
@@ -115,50 +115,23 @@ namespace UnityEditor.VFX.UI
 
 			SetPosition(presenter.position);
 
-
-            System.Type propertyType = presenter.GetPropertiesType();
-
-            if( propertyType != null)
+            int cpt = 0;
+            foreach (VFXNodeBlockPresenter.PropertyInfo propertyInfo in presenter.GetProperties())
             {
-                FieldInfo[] fields = propertyType.GetFields();
-
-                if(m_PropertiesUI == null )
+                if( m_PropertiesUI.Count <= cpt)
                 {
-                    m_PropertiesUI = new VFXPropertyUI[fields.Length];
+                    VFXPropertyUI propertyUI = new VFXPropertyUI();
+                    m_PropertiesUI.Add(propertyUI);
+                    AddChild(propertyUI);
                 }
-                if(m_PropertiesUI.Length != fields.Length)
-                {
-                    VFXPropertyUI[] newPropertiesUI = new VFXPropertyUI[fields.Length];
-                    System.Array.Copy(m_PropertiesUI, newPropertiesUI, newPropertiesUI.Length < m_PropertiesUI.Length ? newPropertiesUI.Length : m_PropertiesUI.Length);
-                    for(int i = newPropertiesUI.Length; i < m_PropertiesUI.Length; ++i)
-                    {
-                        RemoveChild(m_PropertiesUI[i]);
-                    }
-                    m_PropertiesUI = newPropertiesUI;
-                }
-
-                for(int i = 0; i < fields.Length; ++i)
-                {
-                    if (m_PropertiesUI[i] == null )
-                    {
-                        m_PropertiesUI[i] = new VFXPropertyUI();
-                        AddChild(m_PropertiesUI[i]);
-                    }
-                    m_PropertiesUI[i].DataChanged(presenter, i);
-                }
+                m_PropertiesUI[cpt++].DataChanged(presenter,propertyInfo);
             }
 
-            else if( m_PropertiesUI != null)
+            while( cpt < m_PropertiesUI.Count)
             {
-                foreach(var ui in m_PropertiesUI)
-                {
-                    RemoveChild(ui);
-                }
-
-                m_PropertiesUI = null;
+                RemoveChild(m_PropertiesUI[m_PropertiesUI.Count - 1]);
+                m_PropertiesUI.RemoveAt(m_PropertiesUI.Count-1);
             }
-
-            
 
         }
 
