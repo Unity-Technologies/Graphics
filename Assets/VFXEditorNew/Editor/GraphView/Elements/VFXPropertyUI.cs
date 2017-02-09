@@ -35,22 +35,31 @@ namespace UnityEditor.VFX.UI
             m_Container.OnGUIHandler = OnGUI;
             m_Container.executionContext = s_ContextCount++;
             AddChild(m_Container);
+
+            m_Style = new GUIStyle();
+            m_Style.active.background = Resources.Load<Texture2D>("VFX/SelectedField");
+            m_Style.focused.background = m_Style.active.background;
         }
+
+        public GUIStyle m_Style;
 
 
         void OnGUI()
         {
-            Font savedFont = GUI.skin.font;
+            // update the GUISTyle from the element style defined in USS
+            m_Style.font = font;
+            m_Style.fontSize = fontSize;
+            m_Style.focused.textColor = m_Style.active.textColor = m_Style.normal.textColor = textColor;
+            m_Style.border.top = m_Style.border.left = m_Style.border.right = m_Style.border.bottom = 4;
+            m_Style.padding = new RectOffset(2,2,2,2);
 
-            m_Property.OnGUI(m_Presenter, m_PropertyIndex,this);
+            m_Property.OnGUI(m_Presenter, m_PropertyIndex, m_Style);
 
             if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
             {
                 Rect r = GUILayoutUtility.GetLastRect();
                 m_Container.height = r.yMax;
             }
-
-            GUI.skin.font = savedFont;
         }
 
         public void DataChanged(VFXNodeBlockPresenter presenter, int propertyIndex)

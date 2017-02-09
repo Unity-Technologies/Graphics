@@ -142,8 +142,10 @@ VFXPropertyUI
 	flex-direction: row;
 	align-items: stretch;
 	font:resource("Roboto/Roboto-Medium");
-	text-color: #0EE;
+	text-color: #BBB;
+	font-size:12;
 	min-height:25;
+	padding-bottom:6;
 }
 
 VFXPropertyUI .slot

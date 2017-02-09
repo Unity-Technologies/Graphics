@@ -10,10 +10,10 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXPropertyIM
     {
-        public abstract void OnGUI(VFXNodeBlockPresenter block, int index, VisualElement styledElement);
+        public abstract void OnGUI(VFXNodeBlockPresenter block, int index, GUIStyle style);
 
 
-
+        public const float kLabelWidth = 70;
         public static VFXPropertyIM Create(VFXNodeBlockPresenter block, int index)
         {
             FieldInfo field = block.GetPropertiesType().GetFields()[index];
@@ -56,26 +56,26 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXPropertyIM<T> : VFXPropertyIM
     {
-        public override void OnGUI(VFXNodeBlockPresenter block, int index,VisualElement styledElement)
+        public override void OnGUI(VFXNodeBlockPresenter block, int index,GUIStyle style)
         {
             FieldInfo field = block.GetPropertiesType().GetFields()[index];
             T obj = (T)field.GetValue(block.GetCurrentProperties());
 
-            obj = OnParameterGUI(field.Name,obj, styledElement);
+            obj = OnParameterGUI(field.Name,obj, style);
 
             field.SetValue(block.GetCurrentProperties(), obj);
         }
 
 
 
-        public abstract T OnParameterGUI(string name, T value, VisualElement styledElement);
+        public abstract T OnParameterGUI(string name, T value, GUIStyle style);
     }
 
 
 
     class VFXDefaultPropertyIM : VFXPropertyIM
     {
-        public override void OnGUI(VFXNodeBlockPresenter block, int index, VisualElement styledElement)
+        public override void OnGUI(VFXNodeBlockPresenter block, int index, GUIStyle style)
         {
             FieldInfo field = block.GetPropertiesType().GetFields()[index];
 
@@ -87,52 +87,100 @@ namespace UnityEditor.VFX.UI
 
     class VFXFloatPropertyIM : VFXPropertyIM<float>
     {
-        public override float OnParameterGUI(string name,float value, VisualElement styledElement)
+        public override float OnParameterGUI(string name,float value, GUIStyle style)
         {
 
-            GUIStyle style = new GUIStyle();
 
-            style.font = styledElement.font;
-            style.fontSize = styledElement.fontSize;
-
-            GUI.color = styledElement.textColor;
-
-            return EditorGUILayout.FloatField(name, value,style);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name, style,GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
+            return EditorGUILayout.FloatField(value,style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.EndHorizontal();
         }
     }
     class VFXVector3PropertyIM : VFXPropertyIM<Vector3>
     {
-        public override Vector3 OnParameterGUI(string name, Vector3 value, VisualElement styledElement)
+        public override Vector3 OnParameterGUI(string name, Vector3 value, GUIStyle style)
         {
-            return EditorGUILayout.Vector3Field(name, value);
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name, style, GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("x", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.x = EditorGUILayout.FloatField(value.x, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("y", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.y = EditorGUILayout.FloatField(value.y, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("z", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.z = EditorGUILayout.FloatField(value.z, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.EndHorizontal();
+
+            return value;
         }
     }
     class VFXVector2PropertyIM : VFXPropertyIM<Vector2>
     {
-        public override Vector2 OnParameterGUI(string name, Vector2 value, VisualElement styledElement)
+        public override Vector2 OnParameterGUI(string name, Vector2 value, GUIStyle style)
         {
-            return EditorGUILayout.Vector2Field(name, value);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name, style, GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("x", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.x = EditorGUILayout.FloatField(value.x, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("y", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.y = EditorGUILayout.FloatField(value.y, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.EndHorizontal();
+
+            return value;
         }
     }
     class VFXVector4PropertyIM : VFXPropertyIM<Vector4>
     {
-        public override Vector4 OnParameterGUI(string name, Vector4 value, VisualElement styledElement)
+        public override Vector4 OnParameterGUI(string name, Vector4 value, GUIStyle style)
         {
-            return EditorGUILayout.Vector4Field(name, value);
+            GUILayout.Label(name, style, GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(20);
+            GUILayout.Label("x", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.x = EditorGUILayout.FloatField(value.x, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("y", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.y = EditorGUILayout.FloatField(value.y, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("z", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.z = EditorGUILayout.FloatField(value.z, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("w", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.w = EditorGUILayout.FloatField(value.w, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.EndHorizontal();
+
+            return value;
         }
     }
     class VFXColorPropertyIM : VFXPropertyIM<Color>
     {
-        public override Color OnParameterGUI(string name, Color value, VisualElement styledElement)
+        public override Color OnParameterGUI(string name, Color value, GUIStyle style)
         {
-            return EditorGUILayout.ColorField(name, value);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name, style, GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
+            EditorGUILayout.ColorField(value);
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(20);
+            GUILayout.Label("r", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.r = EditorGUILayout.FloatField(value.r, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("g", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.g = EditorGUILayout.FloatField(value.g, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("b", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.b = EditorGUILayout.FloatField(value.b, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.Label("a", style, GUILayout.Height(style.fontSize * 1.25f));
+            value.a = EditorGUILayout.FloatField(value.a, style, GUILayout.Height(style.fontSize * 1.25f));
+            GUILayout.EndHorizontal();
+
+            return value;
         }
     }
     class VFXObjectPropertyIM<T> : VFXPropertyIM<T> where T : Object
     {
-        public override T OnParameterGUI(string name, T value, VisualElement styledElement)
+        public override T OnParameterGUI(string name, T value, GUIStyle style)
         {
-            return (T)EditorGUILayout.ObjectField(name, value,typeof(T),false);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name, style, GUILayout.Width(kLabelWidth), GUILayout.Height(style.fontSize * 1.25f));
+            return (T)EditorGUILayout.ObjectField(value,typeof(T),false);
+            GUILayout.EndHorizontal();
         }
     }
 
