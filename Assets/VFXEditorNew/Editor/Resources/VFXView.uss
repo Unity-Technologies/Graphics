@@ -139,6 +139,9 @@ VFXView #VFXBackgroundGrid {
 
 VFXPropertyUI
 {
+	im-border : 4;
+	im-padding : 2;
+	selected-field-background :resource("VFX/SelectedField");
 	flex-direction: row;
 	align-items: stretch;
 	font:resource("Roboto/Roboto-Medium");

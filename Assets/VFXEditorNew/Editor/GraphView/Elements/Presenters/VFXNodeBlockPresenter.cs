@@ -3,6 +3,7 @@ using RMGUI.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 
 using Object = UnityEngine.Object;
 
@@ -128,6 +129,14 @@ namespace UnityEditor.VFX.UI
         {
             //TODO undo/redo
             m_Model.RetractPath(fieldPath);
+
+
+            var toRemove = m_Anchors.Keys.Where(t => t.StartsWith(fieldPath)).ToArray();
+
+            foreach(var remove in toRemove)
+            {
+                m_Anchors.Remove(remove);
+            }
         }
 
         public IEnumerable<PropertyInfo> GetProperties()
