@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering
         public float    maxShadowDistance;
         public int      directionalLightCascadeCount;
         public Vector3  directionalLightCascades;
+        public float    directionalLightNearPlaneOffset;
 
         static ShadowSettings defaultShadowSettings = null;
 
@@ -30,6 +31,7 @@ namespace UnityEngine.Experimental.Rendering
                     defaultShadowSettings.directionalLightCascadeCount = 1;
                     defaultShadowSettings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
                     defaultShadowSettings.directionalLightCascadeCount = 4;
+                    defaultShadowSettings.directionalLightNearPlaneOffset = 5;
                     defaultShadowSettings.maxShadowDistance = 1000.0F;
                 }
                 return defaultShadowSettings;
@@ -345,7 +347,6 @@ namespace UnityEngine.Experimental.Rendering
 
                 var lightType = visibleLights[lightIndex].lightType;
                 var lightDirection = visibleLights[lightIndex].light.transform.forward;
-                var shadowNearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
 
                 int shadowSliceIndex = packedShadows.GetShadowSliceIndex(lightIndex, 0);
 
@@ -368,7 +369,8 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var settings = new DrawShadowsSettings(cullResults, lightIndex);
                         var shadowResolution = shadowSlices[shadowSliceIndex].shadowResolution;
-                        bool needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, s, shadowSliceCount, splitRatio, shadowResolution, shadowNearPlaneOffset, out view, out proj, out settings.splitData);
+                        bool needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, s, shadowSliceCount, splitRatio,
+                            shadowResolution, m_Settings.directionalLightNearPlaneOffset, out view, out proj, out settings.splitData);
 
                         packedShadows.directionalShadowSplitSphereSqr[s] = settings.splitData.cullingSphere;
                         packedShadows.directionalShadowSplitSphereSqr[s].w *= packedShadows.directionalShadowSplitSphereSqr[s].w;

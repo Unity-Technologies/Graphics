@@ -151,6 +151,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowSettings.directionalLightCascadeCount = commonSettings.shadowCascadeCount;
             m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
             m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
+            m_ShadowSettings.directionalLightNearPlaneOffset = commonSettings.shadowNearPlaneOffset;
         }
 
         public void OnValidate()
