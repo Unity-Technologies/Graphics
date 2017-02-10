@@ -200,6 +200,11 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
 
         [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
 
+        [ToggleOff]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
+        [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
+        [HideInInspector] _UVMappingPlanarBlendMask("_UVMappingPlanarBlendMask", Float) = 0.0
+        _TexWorldScaleBlendMask("Tiling", Float) = 1.0
+
         // WARNING
         // All the following properties that concern the UV mapping are the same as in the Lit shader.
         // This means that they will get overridden when synchronizing the various layers.
@@ -260,6 +265,8 @@ Shader "HDRenderPipeline/LayeredLitTesselation"
     #pragma shader_feature _TESSELLATION_OBJECT_SCALE
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+    #pragma shader_feature _LAYER_TILING_UNIFORM_SCALE
+    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_BLENDMASK
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_1
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_2

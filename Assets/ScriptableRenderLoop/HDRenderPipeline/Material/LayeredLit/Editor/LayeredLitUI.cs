@@ -51,10 +51,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
             public readonly GUIContent layerTilingBlendMaskText = new GUIContent("Tiling", "Tiling for the blend mask.");
-            
+            public readonly GUIContent objectScaleAffectTileText = new GUIContent("Object Scale affect tiling", "Tiling will be affected by the object scale.");
+                        
             public readonly GUIContent layerTilingText = new GUIContent("Tiling", "Tiling factor applied to UVSet");
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
+            public readonly GUIContent UVBlendMaskText = new GUIContent("BlendMask UV Mapping", "Base UV Mapping mode of the layer.");
             public readonly GUIContent UVDetailText = new GUIContent("Detail UV Mapping", "Detail UV Mapping mode of the layer.");
             public readonly GUIContent mainLayerInfluenceText = new GUIContent("Main layer influence", "Main layer influence.");
             public readonly GUIContent densityOpacityInfluenceText = new GUIContent("Density / Opacity", "Density / Opacity");
@@ -111,8 +113,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
 
 
+        const string kObjectScaleAffectTile = "_ObjectScaleAffectTile";
+        MaterialProperty objectScaleAffectTile = null;
+        const string kUVBlendMask = "_UVBlendMask";
+        MaterialProperty UVBlendMask = null;
+        const string kUVMappingPlanarBlendMask = "_UVMappingPlanarBlendMask";
+        MaterialProperty UVMappingPlanarBlendMask = null;
         const string kLayerTilingBlendMask = "_LayerTilingBlendMask";
         MaterialProperty layerTilingBlendMask = null;
+        const string kTexWorldScaleBlendMask = "_TexWorldScaleBlendMask";
+        MaterialProperty texWorldScaleBlendMask = null;
         const string kLayerTiling = "_LayerTiling";
         MaterialProperty[] layerTiling = new MaterialProperty[kMaxLayerCount];
         const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
@@ -165,8 +175,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
             useDensityMode = FindProperty(kUseDensityMode, props);
 
+            objectScaleAffectTile = FindProperty(kObjectScaleAffectTile, props);
+            UVBlendMask = FindProperty(kUVBlendMask, props);
+            UVMappingPlanarBlendMask = FindProperty(kUVMappingPlanarBlendMask, props);
             layerTilingBlendMask = FindProperty(kLayerTilingBlendMask, props);
-           
+            texWorldScaleBlendMask = FindProperty(kTexWorldScaleBlendMask, props);
+                       
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
                 layerTexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, i), props);
@@ -624,13 +638,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 layerChanged = true;
             }
 
-
             m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
+            m_MaterialEditor.ShaderProperty(UVBlendMask, styles.UVBlendMaskText);
 
-            if (((LayerUVBaseMapping)layerUVBase[0].floatValue == LayerUVBaseMapping.Planar) ||
-                ((LayerUVBaseMapping)layerUVBase[0].floatValue == LayerUVBaseMapping.Triplanar))
+            if (((LayerUVBaseMapping)UVBlendMask.floatValue == LayerUVBaseMapping.Planar) ||
+                ((LayerUVBaseMapping)UVBlendMask.floatValue == LayerUVBaseMapping.Triplanar))
             {
-                // for now reuse settings from main layer
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(texWorldScaleBlendMask, styles.layerTexWorldScaleText);
+                EditorGUI.indentLevel--;
             }
             else
             {
@@ -664,6 +680,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 useHeightBasedBlend.floatValue = enabled ? 1.0f : 0.0f;
             }
+
+            m_MaterialEditor.ShaderProperty(objectScaleAffectTile, styles.objectScaleAffectTileText);            
 
             EditorGUILayout.Space();
 
@@ -790,6 +808,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void SetupLayersKeywords(Material material)
         {
+            // object scale affect tile
+            SetKeyword(material, "_LAYER_TILING_UNIFORM_SCALE", material.GetFloat(kObjectScaleAffectTile) > 0.0f);
+
+            // Blend mask
+            LayerUVBaseMapping UVBlendMaskMapping = (LayerUVBaseMapping)material.GetFloat(kUVBlendMask);
+            UVMappingPlanarBlendMask.floatValue = (UVBlendMaskMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
+            SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == LayerUVBaseMapping.Triplanar);
+
+            // Layer
             if (numLayer == 4)
             {
                 SetKeyword(material, "_LAYEREDLIT_4_LAYERS", true);
@@ -823,8 +850,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Y = (layerUVBaseMapping == LayerUVBaseMapping.UV1) ? 1.0f : 0.0f;
                 Z = (layerUVBaseMapping == LayerUVBaseMapping.UV2) ? 1.0f : 0.0f;
                 W = (layerUVBaseMapping == LayerUVBaseMapping.UV3) ? 1.0f : 0.0f;
-                layerUVMappingMask[i].colorValue = new Color(X, Y, Z, W);
-                layerUVMappingPlanar[i].floatValue = (layerUVBaseMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
+                layerUVMappingMask[i].colorValue = (i == 0) ? new Color(1.0f, 0.0f, 0.0f, 0.0f) : new Color(X, Y, Z, W); // Special case for Main Layer and Blend Mask, only UV0. As Layer0 is share by both here, need to force X to 1.0 in all case
+                layerUVMappingPlanar[i].floatValue = (layerUVBaseMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f; // Planar have priority on UV0
 
                 SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == LayerUVBaseMapping.Triplanar);
 
