@@ -44,51 +44,55 @@ float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, flo
 
     // Found below and above points, now perform line interesection (ray) with piecewise linear heightfield approximation
 
-    // Refine the search by adding few extra intersection
-#define POM_REFINE 1
-#if POM_REFINE
+    // Refine the search with secant method
+#define POM_SECANT_METHOD 1
+#if POM_SECANT_METHOD
 
     float pt0 = rayHeight + stepSize;
     float pt1 = rayHeight;
     float delta0 = pt0 - prevHeight;
     float delta1 = pt1 - currHeight;
-
-    float2 offset = float2(0.0, 0.0);
-
-    float threshold = 1.0;
-
+    
+    float delta;
+    float2 offset;
+ 
+    // Secant method to affine the search
+    // Ref: Faster Relief Mapping Using the Secant Method - Eric Risser
     for (int i = 0; i < 5; ++i)
     {
-        float t = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
-        offset = (1 - t) * texOffsetPerStep * numSteps;
+        // intersectionHeight is the height [0..1] for the intersection between view ray and heightfield line
+        float intersectionHeight = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
+        // Retrieve offset require to find this intersectionHeight
+        offset = (1 - intersectionHeight) * texOffsetPerStep * numSteps;
 
         currHeight = ComputePerPixelHeightDisplacement(offset, lod, ppdParam);
 
-        threshold = t - currHeight;
+        delta = intersectionHeight - currHeight;
 
-        if (abs(threshold) <= 0.01)
+        if (abs(delta) <= 0.01)
             break;
 
-        if (threshold < 0.0)
+        // intersectionHeight < currHeight => new lower bounds
+        if (delta < 0.0)
         {
-            delta1 = threshold;
-            pt1 = t;
+            delta1 = delta;
+            pt1 = intersectionHeight;
         }
         else
         {
-            delta0 = threshold;
-            pt0 = t;
+            delta0 = delta;
+            pt0 = intersectionHeight;
         }
     }
 
-#else
+#else // regular POM intersection
     
     //float pt0 = rayHeight + stepSize;
     //float pt1 = rayHeight; 
     //float delta0 = pt0 - prevHeight;
     //float delta1 = pt1 - currHeight;
-    //float t = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
-    //float2 offset = (1 - t) * texOffsetPerStep * numSteps;
+    //float intersectionHeight = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
+    //float2 offset = (1 - intersectionHeight) * texOffsetPerStep * numSteps;
 
     // A bit more optimize
     float delta0 = currHeight - rayHeight;
