@@ -51,7 +51,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
             public readonly GUIContent layerTilingBlendMaskText = new GUIContent("Tiling", "Tiling for the blend mask.");
-            
+            public readonly GUIContent objectScaleAffectTileText = new GUIContent("Object Scale affect tiling", "Tiling will be affected by the object scale.");
+                        
             public readonly GUIContent layerTilingText = new GUIContent("Tiling", "Tiling factor applied to UVSet");
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
@@ -112,6 +113,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
 
 
+        const string kObjectScaleAffectTile = "_ObjectScaleAffectTile";
+        MaterialProperty objectScaleAffectTile = null;
         const string kUVBlendMask = "_UVBlendMask";
         MaterialProperty UVBlendMask = null;
         const string kUVMappingPlanarBlendMask = "_UVMappingPlanarBlendMask";
@@ -172,6 +175,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
             useDensityMode = FindProperty(kUseDensityMode, props);
 
+            objectScaleAffectTile = FindProperty(kObjectScaleAffectTile, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
             UVMappingPlanarBlendMask = FindProperty(kUVMappingPlanarBlendMask, props);
             layerTilingBlendMask = FindProperty(kLayerTilingBlendMask, props);
@@ -677,6 +681,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 useHeightBasedBlend.floatValue = enabled ? 1.0f : 0.0f;
             }
 
+            m_MaterialEditor.ShaderProperty(objectScaleAffectTile, styles.objectScaleAffectTileText);            
+
             EditorGUILayout.Space();
 
             for (int i = 0; i < numLayer; i++)
@@ -802,6 +808,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void SetupLayersKeywords(Material material)
         {
+            // object scale affect tile
+            SetKeyword(material, "_LAYER_TILING_UNIFORM_SCALE", material.GetFloat(kObjectScaleAffectTile) > 0.0f);
+
             // Blend mask
             LayerUVBaseMapping UVBlendMaskMapping = (LayerUVBaseMapping)material.GetFloat(kUVBlendMask);
             UVMappingPlanarBlendMask.floatValue = (UVBlendMaskMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
