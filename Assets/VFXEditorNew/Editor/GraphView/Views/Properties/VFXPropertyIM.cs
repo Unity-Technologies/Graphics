@@ -51,15 +51,22 @@ namespace UnityEditor.VFX.UI
         }
 
 
+
         public void Label(ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
         {
             if (infos.depth > 0)
                 GUILayout.Space(infos.depth * depthOffset);
+            GUILayout.BeginVertical();
+            GUILayout.Space(3);
             if (infos.expandable)
-                infos.expanded = GUILayout.Toggle(infos.expanded, "", styles.GetGUIStyleForType(infos.type),GUILayout.Width(14),GUILayout.Height(14));
+                infos.expanded = GUILayout.Toggle(infos.expanded, "", styles.GetGUIStyleForExpandableType(infos.type), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
+            else
+                GUILayout.Label("", styles.GetGUIStyleForType(infos.type), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
+            GUILayout.EndVertical();
             GUILayout.Label(infos.name, styles.baseStyle, GUILayout.Width(kLabelWidth), GUILayout.Height(styles.lineHeight));
         }
 
+        public const int iconSize = 14;
         public const float depthOffset = 20;
     }
 
@@ -160,6 +167,7 @@ namespace UnityEditor.VFX.UI
         {
             GUILayout.BeginHorizontal();
             Label(ref infos,styles);
+            GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Space((infos.depth+1) * depthOffset);

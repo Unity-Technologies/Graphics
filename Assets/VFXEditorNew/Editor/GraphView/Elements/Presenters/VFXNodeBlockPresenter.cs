@@ -89,6 +89,7 @@ namespace UnityEditor.VFX.UI
         public void ExpandPath(string fieldPath)
         {
             m_Model.ExpandPath(fieldPath);
+            
         }
 
         public void RetractPath(string fieldPath)

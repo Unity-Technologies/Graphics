@@ -50,11 +50,11 @@ namespace UnityEditor.VFX.UI
         {
             public GUIStyle baseStyle;
 
-            public GUIStyle GetGUIStyleForType(Type type)
+            public GUIStyle GetGUIStyleForExpandableType(Type type)
             {
                 GUIStyle style = null;
 
-                if( typeStyles.TryGetValue(type,out style))
+                if (typeStyles.TryGetValue(type, out style))
                 {
                     return style;
                 }
@@ -66,9 +66,32 @@ namespace UnityEditor.VFX.UI
                 typeStyle.border.top = 0;
                 typeStyle.border.left = 0;
                 typeStyle.border.bottom = typeStyle.border.right = 0;
+                typeStyle.padding.top = 3;
 
                 typeStyles.Add(type, typeStyle);
-                
+
+
+                return typeStyle;
+            }
+
+            public GUIStyle GetGUIStyleForType(Type type)
+            {
+                GUIStyle style = null;
+
+                if (typeStyles.TryGetValue(type, out style))
+                {
+                    return style;
+                }
+
+                GUIStyle typeStyle = new GUIStyle(baseStyle);
+                typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name);
+                typeStyle.active.background = typeStyle.focused.background = null;
+                typeStyle.border.top = 0;
+                typeStyle.border.left = 0;
+                typeStyle.border.bottom = typeStyle.border.right = 0;
+
+                typeStyles.Add(type, typeStyle);
+
 
                 return typeStyle;
             }
