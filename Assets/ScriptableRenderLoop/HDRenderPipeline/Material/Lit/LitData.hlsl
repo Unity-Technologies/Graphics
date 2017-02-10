@@ -93,7 +93,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // Be sure that the compiler is aware that we don't touch UV1 to UV3 for main layer so it can optimize code
     _UVMappingMask.yzw = float3(0.0, 0.0, 0.0);
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, isTriplanar, layerTexCoord);
+                            positionWS, normalWS,  _UVMappingPlanar > 0.0, isTriplanar, _TexWorldScale, layerTexCoord);
 }
 
 float GetMaxDisplacement()
@@ -295,49 +295,53 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 {
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
 
-#if defined(_LAYER_MAPPING_TRIPLANAR_0) || defined(_LAYER_MAPPING_TRIPLANAR_1) || defined(_LAYER_MAPPING_TRIPLANAR_2) || defined(_LAYER_MAPPING_TRIPLANAR_3)
+#if defined(_LAYER_MAPPING_TRIPLANAR_BLENDMASK) || defined(_LAYER_MAPPING_TRIPLANAR_0) || defined(_LAYER_MAPPING_TRIPLANAR_1) || defined(_LAYER_MAPPING_TRIPLANAR_2) || defined(_LAYER_MAPPING_TRIPLANAR_3)
     // one weight for each direction XYZ - Use vertex normal for triplanar
     layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalWS);
 #endif
 
     bool isTriplanar = false;
-#ifdef _LAYER_MAPPING_TRIPLANAR_0
+#ifdef _LAYER_MAPPING_TRIPLANAR_BLENDMASK
     isTriplanar = true;
 #endif
 
     // Be sure that the compiler is aware that we don't touch UV1 to UV3 for main layer so it can optimize code
     _UVMappingMask0.yzw = float3(0.0, 0.0, 0.0);
-    // Note: Our BlendMask use the same uv mapping than the base layer but with its own tiling.
-    // Here we get a first time the base0 but with _LayerTilingBlendMask. Save the result and recall the function regularly for the main layer.
-    // It is just to share code.
+    // Note: Blend mask have its dedicated mapping adn tiling. And as Main layer it only use UV0
+    // To share code, we simply call the regular code from the main layer for it save the result, then do regular call for all layers.
     ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
-                            positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTilingBlendMask);
+                            positionWS, normalWS, _UVMappingPlanarBlendMask > 0.0,  isTriplanar, _TexWorldScaleBlendMask, layerTexCoord, _LayerTilingBlendMask);
 
     layerTexCoord.blendMask = layerTexCoord.base0;
 
+    isTriplanar = false;
+#ifdef _LAYER_MAPPING_TRIPLANAR_0
+    isTriplanar = true;
+#endif
+
     ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
-                            positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTiling0);
+                            positionWS, normalWS, _UVMappingPlanar0 > 0.0, isTriplanar, _TexWorldScale0, layerTexCoord, _LayerTiling0);
 
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_1
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTiling1);
+                            positionWS, normalWS, _UVMappingPlanar1 > 0.0, isTriplanar, _TexWorldScale1, layerTexCoord, _LayerTiling1);
 
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_2
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTiling2);
+                            positionWS, normalWS, _UVMappingPlanar2 > 0.0, isTriplanar, _TexWorldScale2, layerTexCoord, _LayerTiling2);
 
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_3
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, isTriplanar, layerTexCoord, _LayerTiling3);
+                            positionWS, normalWS, _UVMappingPlanar3 > 0.0, isTriplanar, _TexWorldScale3, layerTexCoord, _LayerTiling3);
 }
 
 #if defined(_HEIGHTMAP0)
