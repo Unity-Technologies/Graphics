@@ -204,11 +204,13 @@ Shader "HDRenderPipeline/LayeredLit"
         // All the following properties that concern the UV mapping are the same as in the Lit shader.
         // This means that they will get overridden when synchronizing the various layers.
         // To avoid this, make sure that all properties here are in the exclusion list in LayeredLitUI.SynchronizeLayerProperties
+        _TexWorldScaleBlendMask("Tiling", Float) = 1.0
         _TexWorldScale0("Tiling", Float) = 1.0
         _TexWorldScale1("Tiling", Float) = 1.0
         _TexWorldScale2("Tiling", Float) = 1.0
         _TexWorldScale3("Tiling", Float) = 1.0
 
+        [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
         [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0 // no UV1/2/3 for main layer (matching Lit.shader and for PPDisplacement restriction)
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase1("UV Set for base1", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase2("UV Set for base2", Float) = 0
@@ -219,6 +221,7 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _UVMappingMask2("_UVMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)
 
+        [HideInInspector] _UVMappingPlanarBlendMask("_UVMappingPlanarBlendMask", Float) = 0.0
         [HideInInspector] _UVMappingPlanar0("_UVMappingPlanar0", Float) = 0.0
         [HideInInspector] _UVMappingPlanar1("_UVMappingPlanar1", Float) = 0.0
         [HideInInspector] _UVMappingPlanar2("_UVMappingPlanar2", Float) = 0.0
@@ -246,6 +249,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _ _DOUBLESIDED _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_BLENDMASK
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_1
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_2

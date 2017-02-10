@@ -1,5 +1,5 @@
 void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
-                                    float3 positionWS, float3 vertexNormalWS, bool isTriplanar, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
+                                    float3 positionWS, float3 vertexNormalWS, bool isPlanar, bool isTriplanar, float worldScale, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
     float2 uvBase = ADD_IDX(_UVMappingMask).x * texCoord0 +
@@ -21,9 +21,9 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     // TODO: Do we want to manage local or world triplanar/planar ? In this case update ApplyPerPixelDisplacement() too
     //float3 position = localTriplanar ? TransformWorldToObject(positionWS) : positionWS;
     float3 position = positionWS;
-    position *= ADD_IDX(_TexWorldScale);
+    position *= worldScale;
 
-    if (ADD_IDX(_UVMappingPlanar) > 0.0)
+    if (isPlanar)
     {
         uvBase = -position.xz;
         uvDetails = -position.xz;

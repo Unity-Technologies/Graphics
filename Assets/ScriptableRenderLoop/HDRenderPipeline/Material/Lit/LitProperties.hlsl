@@ -169,7 +169,9 @@ TEXTURE2D(_EmissiveColorMap);
 SAMPLER2D(sampler_EmissiveColorMap);
 float _EmissiveIntensity;
 
+float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
+float _UVMappingPlanarBlendMask;
 PROP_DECL(float, _UVMappingPlanar);  
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
