@@ -330,7 +330,11 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif
 
     ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
-                            positionWS, normalWS, _UVMappingPlanar0 > 0.0, isTriplanar, _TexWorldScale0, layerTexCoord, _LayerTiling0 * tileObjectScale);
+                            positionWS, normalWS, _UVMappingPlanar0 > 0.0, isTriplanar, _TexWorldScale0, layerTexCoord, _LayerTiling0
+                            #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
+                            * tileObjectScale  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
+                            #endif
+                            );
 
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_1
