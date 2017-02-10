@@ -154,7 +154,7 @@ VFXPropertyUI .slot
 	-background-color:#F00;
 }
 
-VFXPropertyUI .slot *
+VFXPropertyUI .slot > VFXDataAnchor
 {
 	margin-top:4;
 	background-color: #2B2B2B;
@@ -162,16 +162,21 @@ VFXPropertyUI .slot *
 	height:8;
 	margin-left:-7;
 	border-color: #555;
-	border-width: 2;
+	border-width: 1;
 	border-radius: 4;
 }
+VFXPropertyUI .slot > VFXDataAnchor *
+{
+	width:8;
+	height:8;
+}
 
-VFXNodeBlockUI.selected VFXPropertyUI .slot *
+VFXNodeBlockUI.selected VFXPropertyUI .slot > *
 {
 	border-color: #606060;
 	background-color: #454545;
 }
-VFXPropertyUI IMGUIContainer
+VFXPropertyUI > IMGUIContainer
 {
 	flex:1;
 }

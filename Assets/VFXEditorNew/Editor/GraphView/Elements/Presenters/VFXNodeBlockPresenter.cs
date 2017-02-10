@@ -14,19 +14,36 @@ namespace UnityEditor.VFX.UI
 		{
 			capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Movable;
 
-
+            // Most initialization will be done in Init
 		}
+
+        void AddDataAnchor(PropertyInfo prop)
+        {
+            VFXDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXDataInputAnchorPresenter>();
+            anchorPresenter.Init(Model, prop.type);
+            m_Anchors.Add(prop.path, anchorPresenter);
+            ContextPresenter.ViewPresenter.RegisterDataAnchorPresenter(anchorPresenter);
+        }
+
+        public void Init(VFXBlock model,VFXContextPresenter contextPresenter)
+        {
+            m_Model = model;
+            m_ContextPresenter = contextPresenter;
+
+            foreach (var prop in GetProperties())
+            {
+                AddDataAnchor(prop);
+            }
+        }
 
         public VFXBlock Model
         {
             get { return m_Model; }
-            set {
+        }
 
-                if (m_Model != value)
-                {
-                    m_Model = value;
-                }
-            }
+        public VFXContextPresenter ContextPresenter
+        {
+            get { return m_ContextPresenter; }
         }
 
         public Type GetPropertiesType()
@@ -37,6 +54,16 @@ namespace UnityEditor.VFX.UI
         public object GetCurrentPropertiesValues()
         {
             return m_Model.GetCurrentPropertiesValue();
+        }
+
+
+        public VFXDataInputAnchorPresenter GetPropertyPresenter(ref PropertyInfo info)
+        {
+            VFXDataInputAnchorPresenter result = null;
+
+            m_Anchors.TryGetValue(info.path, out result);
+
+            return result;
         }
 
 
@@ -55,7 +82,7 @@ namespace UnityEditor.VFX.UI
 
         public void PropertyValueChanged(ref PropertyInfo info)
         {
-            //TODO apply change
+            //TODO undo/redo
 
             string[] fields = info.parentPath.Split(new char[] { '.' },StringSplitOptions.RemoveEmptyEntries);
 
@@ -88,21 +115,43 @@ namespace UnityEditor.VFX.UI
         }
         public void ExpandPath(string fieldPath)
         {
+            //TODO undo/redo
             m_Model.ExpandPath(fieldPath);
-            
+
+            foreach( var prop in GetProperties(fieldPath))
+            {
+                AddDataAnchor(prop);
+            }
         }
 
         public void RetractPath(string fieldPath)
         {
+            //TODO undo/redo
             m_Model.RetractPath(fieldPath);
         }
 
         public IEnumerable<PropertyInfo> GetProperties()
         {
-            foreach (var prop in GetProperties(m_Model.Desc.GetPropertiesType(), GetCurrentPropertiesValues(), "", 0))
+            return GetProperties(m_Model.Desc.GetPropertiesType(), GetCurrentPropertiesValues(), "", 0);
+        }
+
+        public IEnumerable<PropertyInfo> GetProperties(string fieldPath)
+        {
+            string[] fields = fieldPath.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+
+            object buffer = GetCurrentPropertiesValues();
+            Type type = GetPropertiesType();
+
+            Type current = type;
+            for (int i = 0; i < fields.Length; ++i)
             {
-                yield return prop;
+                FieldInfo fi = current.GetField(fields[i]);
+
+                current = fi.FieldType;
+                buffer = fi.GetValue(buffer);
             }
+
+            return GetProperties(current, buffer, fieldPath, fields.Length);
         }
 
         private IEnumerable<PropertyInfo> GetProperties(Type type, object value, string prefix, int depth)
@@ -137,7 +186,24 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+
+        public override IEnumerable<GraphElementPresenter> allChildren
+        {
+            get {
+                foreach (var kv in m_Anchors)
+                {
+                    yield return kv.Value;
+                }
+            }
+        }
+
+        private Dictionary<string, VFXDataInputAnchorPresenter> m_Anchors = new Dictionary<string, VFXDataInputAnchorPresenter>();
+
         [SerializeField]
         private VFXBlock m_Model;
+
+
+        VFXContextPresenter m_ContextPresenter;
     }
 }

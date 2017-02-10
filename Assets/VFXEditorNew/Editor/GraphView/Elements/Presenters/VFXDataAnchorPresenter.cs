@@ -5,15 +5,16 @@ using RMGUI.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXFlowAnchorPresenter : NodeAnchorPresenter
+    abstract class VFXDataAnchorPresenter : NodeAnchorPresenter
     {
         [SerializeField]
         private VFXModel m_Owner;
         public VFXModel Owner { get { return m_Owner; } }
 
-        public void Init(VFXModel owner)
+        public void Init(VFXModel owner,Type type)
         {
             m_Owner = owner;
+            anchorType = type;
             anchorType = typeof(int); // We dont care about that atm!
         }
 
@@ -21,7 +22,7 @@ namespace UnityEditor.VFX.UI
 		{
 			if (edgePresenter == null)
 			{
-				throw new ArgumentException("The value passed to VFXFlowAnchorPresenter.Connect is null");
+				throw new ArgumentException("The value passed to VFXDataAnchorPresenter.Connect is null");
 			}
 
 			if (!m_Connections.Contains(edgePresenter))
@@ -34,14 +35,14 @@ namespace UnityEditor.VFX.UI
 		{
 			if (edgePresenter == null)
 			{
-				throw new ArgumentException("The value passed to VFXFlowAnchorPresenter.Disconnect is null");
+				throw new ArgumentException("The value passed to VFXDataAnchorPresenter.Disconnect is null");
 			}
 
 			m_Connections.Remove(edgePresenter);
 		}
     }
 
-    class VFXFlowInputAnchorPresenter : VFXFlowAnchorPresenter
+    class VFXDataInputAnchorPresenter : VFXDataAnchorPresenter
     {
         public override Direction direction
         {
@@ -52,7 +53,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXFlowOutputAnchorPresenter : VFXFlowAnchorPresenter
+    class VFXDataOutputAnchorPresenter : VFXDataAnchorPresenter
     {
         public override Direction direction
         {
@@ -62,4 +63,5 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
+
 }

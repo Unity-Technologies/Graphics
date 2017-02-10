@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
 
         IMGUIContainer          m_Container;
         VisualContainer         m_Slot;
-        VisualElement           m_SlotIcon;
+        VFXDataAnchor           m_SlotIcon;
 
         static int s_ContextCount = 1;
 
@@ -28,8 +28,6 @@ namespace UnityEditor.VFX.UI
             m_Slot = new VisualContainer();
             m_Slot.AddToClassList("slot");
             AddChild(m_Slot);
-            m_SlotIcon = new VisualElement();
-            m_Slot.AddChild(m_SlotIcon);
             m_Slot.clipChildren = false;
             clipChildren = false;
 
@@ -142,14 +140,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void DataChanged(VFXNodeBlockPresenter presenter,VFXNodeBlockPresenter.PropertyInfo info)
+        public void DataChanged(VFXNodeBlockUI nodeBlock,VFXNodeBlockPresenter.PropertyInfo info)
         {
-            m_Presenter = presenter;
+            m_Presenter = nodeBlock.GetPresenter<VFXNodeBlockPresenter>();
             if( m_PropertyInfo.type != info.type)
             {
                 m_Property = VFXPropertyIM.Create(info.type);
             }
             m_PropertyInfo = info;
+
+            if( m_SlotIcon == null)
+            {
+                m_SlotIcon = VFXDataAnchor.Create<VFXDataEdgePresenter>(m_Presenter.GetPropertyPresenter(ref info));
+                m_Slot.AddChild(m_SlotIcon);
+            }
         }
         
     }

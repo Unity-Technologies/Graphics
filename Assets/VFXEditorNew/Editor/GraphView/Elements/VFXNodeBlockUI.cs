@@ -18,7 +18,9 @@ namespace UnityEditor.VFX.UI
 
         List<VFXPropertyUI> m_PropertiesUI = new List<VFXPropertyUI>();
 
-		public VFXNodeBlockUI()
+        public GraphViewTypeFactory typeFactory { get; set; }
+
+        public VFXNodeBlockUI()
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Position;
@@ -31,6 +33,11 @@ namespace UnityEditor.VFX.UI
 
 			AddManipulator(new SelectionDropper(HandleDropEvent));
             clipChildren = false;
+
+            typeFactory = new GraphViewTypeFactory();
+
+            typeFactory[typeof(VFXDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(VFXDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
         }
 
 		// This function is a placeholder for common stuff to do before we delegate the action to the drop target
@@ -124,7 +131,7 @@ namespace UnityEditor.VFX.UI
                     m_PropertiesUI.Add(propertyUI);
                     AddChild(propertyUI);
                 }
-                m_PropertiesUI[cpt++].DataChanged(presenter,propertyInfo);
+                m_PropertiesUI[cpt++].DataChanged(this,propertyInfo);
             }
 
             while( cpt < m_PropertiesUI.Count)
