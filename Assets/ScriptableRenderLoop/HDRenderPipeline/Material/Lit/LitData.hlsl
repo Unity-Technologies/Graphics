@@ -314,34 +314,44 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 
     layerTexCoord.blendMask = layerTexCoord.base0;
 
+    // On all layers (but not on blend mask) we can scale the tiling with object scale (only uniform supported)
+    // Note: the object scale doesn't affect planar/triplanar mapping as they already handle the object scale.
+    float tileObjectScale = 1.0;
+#ifdef _LAYER_TILING_UNIFORM_SCALE
+    // Extract scaling from world transform
+    float4x4 worldTransform = GetObjectToWorldMatrix();
+    // assuming uniform scaling, take only the first column
+    tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+#endif  
+
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_0
     isTriplanar = true;
 #endif
 
     ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
-                            positionWS, normalWS, _UVMappingPlanar0 > 0.0, isTriplanar, _TexWorldScale0, layerTexCoord, _LayerTiling0);
+                            positionWS, normalWS, _UVMappingPlanar0 > 0.0, isTriplanar, _TexWorldScale0, layerTexCoord, _LayerTiling0 * tileObjectScale);
 
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_1
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, _UVMappingPlanar1 > 0.0, isTriplanar, _TexWorldScale1, layerTexCoord, _LayerTiling1);
+                            positionWS, normalWS, _UVMappingPlanar1 > 0.0, isTriplanar, _TexWorldScale1, layerTexCoord, _LayerTiling1 * tileObjectScale);
 
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_2
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, _UVMappingPlanar2 > 0.0, isTriplanar, _TexWorldScale2, layerTexCoord, _LayerTiling2);
+                            positionWS, normalWS, _UVMappingPlanar2 > 0.0, isTriplanar, _TexWorldScale2, layerTexCoord, _LayerTiling2 * tileObjectScale);
 
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_3
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, _UVMappingPlanar3 > 0.0, isTriplanar, _TexWorldScale3, layerTexCoord, _LayerTiling3);
+                            positionWS, normalWS, _UVMappingPlanar3 > 0.0, isTriplanar, _TexWorldScale3, layerTexCoord, _LayerTiling3 * tileObjectScale);
 }
 
 #if defined(_HEIGHTMAP0)
