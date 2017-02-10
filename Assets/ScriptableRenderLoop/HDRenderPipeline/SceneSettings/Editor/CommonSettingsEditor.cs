@@ -26,6 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly int[] shadowsCascadeCountValues = new int[] { 1, 2, 3, 4 };
             public readonly GUIContent shadowsCascades = new GUIContent("Cascade values");
             public readonly GUIContent[] shadowSplits = new GUIContent[] { new GUIContent("Split 0"), new GUIContent("Split 1"), new GUIContent("Split 2") };
+            public readonly GUIContent nearPlaneOffset = new GUIContent("Near plane offset");
         }
 
         private static Styles s_Styles = null;
@@ -52,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private SerializedProperty m_ShadowMaxDistance;
         private SerializedProperty m_ShadowCascadeCount;
         private SerializedProperty[] m_ShadowCascadeSplits = new SerializedProperty[3];
+        private SerializedProperty m_ShadowNearPlaneOffset;
 
         void OnEnable()
         {
@@ -61,6 +63,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowCascadeCount = serializedObject.FindProperty("m_ShadowCascadeCount");
             for (int i = 0; i < 3; ++i)
                 m_ShadowCascadeSplits[i] = serializedObject.FindProperty(string.Format("m_ShadowCascadeSplit{0}", i));
+            m_ShadowNearPlaneOffset = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
 
             m_SkyRendererTypes = Assembly.GetAssembly(typeof(SkyRenderer))
                                             .GetTypes()
@@ -144,6 +147,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(m_ShadowCascadeSplits[i], styles.shadowSplits[i]);
             }
             EditorGUI.indentLevel--;
+
+            EditorGUILayout.PropertyField(m_ShadowNearPlaneOffset, styles.nearPlaneOffset);            
+
             EditorGUI.indentLevel--;
         }
 
