@@ -11,4 +11,4 @@ EditorSettings:
   m_SpritePackerPaddingPower: 1
   m_ProjectGenerationIncludedExtensions: txt;xml;fnt;cd
   m_ProjectGenerationRootNamespace: 
-  m_UserGeneratedProjectSuffix: 
+  m_UserGeneratedProjectSuffix: -testable

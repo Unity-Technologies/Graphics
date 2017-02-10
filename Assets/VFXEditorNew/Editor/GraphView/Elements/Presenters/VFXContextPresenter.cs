@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.UI
         private void AddPresentersFromModel(VFXBlock block)
         {
             var presenter = CreateInstance<VFXNodeBlockPresenter>();
-            presenter.Model = block;
+            presenter.Init(block, this);
             m_NodeBlockPresenters.Add(presenter);
         }
     }

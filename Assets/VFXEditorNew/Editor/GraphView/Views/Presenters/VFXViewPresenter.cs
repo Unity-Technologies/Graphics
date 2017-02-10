@@ -13,14 +13,26 @@ namespace UnityEditor.VFX.UI
 		[SerializeField]
 		public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;
 
-		protected new void OnEnable()
+        [SerializeField]
+        public Dictionary<Type,List<NodeAnchorPresenter>> m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+
+        [SerializeField]
+        public Dictionary<Type, List<NodeAnchorPresenter>> m_DataOutputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+
+        protected new void OnEnable()
 		{
 			base.OnEnable();
 
-			if (m_FlowAnchorPresenters == null)
-				m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
+            if (m_FlowAnchorPresenters == null)
+                m_FlowAnchorPresenters = new List<VFXFlowAnchorPresenter>();
 
-			SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>(),false);
+            if (m_DataOutputAnchorPresenters == null)
+                m_DataOutputAnchorPresenters = new Dictionary<Type,List<NodeAnchorPresenter>>();
+
+            if (m_DataInputAnchorPresenters == null)
+                m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
+
+            SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>(),false);
 		}
 
 		public VFXView View
@@ -78,24 +90,80 @@ namespace UnityEditor.VFX.UI
 			}
 
 			EditorUtility.SetDirty(m_ModelContainer);
-		}
+        }
 
-		public void RegisterFlowAnchorPresenter(VFXFlowAnchorPresenter presenter)
+        public void RegisterFlowAnchorPresenter(VFXFlowAnchorPresenter presenter)
+        {
+            if (!m_FlowAnchorPresenters.Contains(presenter))
+                m_FlowAnchorPresenters.Add(presenter);
+        }
+
+        public void UnregisterFlowAnchorPresenter(VFXFlowAnchorPresenter presenter)
+        {
+            m_FlowAnchorPresenters.Remove(presenter);
+        }
+
+        public void RegisterDataAnchorPresenter(VFXDataInputAnchorPresenter presenter)
+        {
+            List<NodeAnchorPresenter> list;
+            if (!m_DataInputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
+            {
+                list = new List<NodeAnchorPresenter>();
+                m_DataInputAnchorPresenters[presenter.anchorType] = list;
+            }
+            if (!list.Contains(presenter))
+                list.Add(presenter);
+        }
+
+        public void UnregisterDataAnchorPresenter(VFXDataInputAnchorPresenter presenter)
+        {
+            List<NodeAnchorPresenter> list;
+            if (m_DataInputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
+            {
+                list.Remove(presenter);
+            }
+        }
+
+        public void RegisterDataAnchorPresenter(VFXDataOutputAnchorPresenter presenter)
+        {
+            List<NodeAnchorPresenter> list;
+            if (!m_DataOutputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
+            {
+                list = new List<NodeAnchorPresenter>();
+                m_DataOutputAnchorPresenters[presenter.anchorType] = list;
+            }
+            if (!list.Contains(presenter))
+                list.Add(presenter);
+        }
+
+        public void UnregisterDataAnchorPresenter(VFXDataOutputAnchorPresenter presenter)
+        {
+            List<NodeAnchorPresenter> list;
+            if (m_DataOutputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
+            {
+                list.Remove(presenter);
+            }
+        }
+
+        public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
 		{
-			if (!m_FlowAnchorPresenters.Contains(presenter))
-				m_FlowAnchorPresenters.Add(presenter);
-		}
+            if( startAnchorPresenter is VFXDataAnchorPresenter )
+            {
+                var dictionary = startAnchorPresenter is VFXDataInputAnchorPresenter ? m_DataOutputAnchorPresenters : m_DataInputAnchorPresenters;
 
-		public void UnregisterFlowAnchorPresenter(VFXFlowAnchorPresenter presenter)
-		{
-			m_FlowAnchorPresenters.Remove(presenter);
-		}
+                List<NodeAnchorPresenter> presenters;
+                if( !dictionary.TryGetValue(startAnchorPresenter.anchorType,out presenters) )
+                {
+                    presenters = new List<NodeAnchorPresenter>();
+                    dictionary[startAnchorPresenter.anchorType] = presenters;
+                }
 
-		public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
-		{
-			var res = new List<NodeAnchorPresenter>();
+                return presenters;
+            }
 
-			if (!(startAnchorPresenter is VFXFlowAnchorPresenter))
+            var res = new List<NodeAnchorPresenter>();
+
+            if (!(startAnchorPresenter is VFXFlowAnchorPresenter))
 				return res;
 
 			var startFlowAnchorPresenter = (VFXFlowAnchorPresenter)startAnchorPresenter;
