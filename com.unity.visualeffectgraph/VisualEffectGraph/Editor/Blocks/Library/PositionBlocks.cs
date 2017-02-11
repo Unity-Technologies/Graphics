@@ -296,8 +296,7 @@ velocity += tangent * RAND;";
             Add(new VFXAttribute(CommonAttrib.Position, false));
 
             Source = @"
-float3 dir = Plane_position - position;
-if (dot(dir,Plane_normal) > 0.0f)
+if (dot(position,Plane.xyz) + Plane.w < 0)
     KILL;";
         }
     }
