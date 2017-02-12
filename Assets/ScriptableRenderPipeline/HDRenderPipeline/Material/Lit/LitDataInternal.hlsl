@@ -175,7 +175,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = TransformObjectToWorldDir(tangentOS);
 #endif
 #else
-    surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz);
+    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
 #endif
     // TODO: Is there anything todo regarding flip normal but for the tangent ?
 

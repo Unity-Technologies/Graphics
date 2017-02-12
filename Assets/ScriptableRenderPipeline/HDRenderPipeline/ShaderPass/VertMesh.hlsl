@@ -124,13 +124,8 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     #endif
     output.positionCS = TransformWorldToHClip(positionWS);
     #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
-    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
-
-    float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
-    output.tangentToWorld[0] = tangentToWorld[0];
-    output.tangentToWorld[1] = tangentToWorld[1];
-    output.tangentToWorld[2] = tangentToWorld[2];
+    output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+    output.tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
     #endif
 #endif
 
@@ -159,15 +154,15 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 {
     VaryingsMeshToPS output;
 
+    output.positionCS = TransformWorldToHClip(input.positionWS);
+
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionWS = input.positionWS;
 #endif
-    output.positionCS = TransformWorldToHClip(input.positionWS);
+
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    float3x3 tangentToWorld = CreateTangentToWorld(input.normalWS, input.tangentWS.xyz, input.tangentWS.w);
-    output.tangentToWorld[0] = tangentToWorld[0];
-    output.tangentToWorld[1] = tangentToWorld[1];
-    output.tangentToWorld[2] = tangentToWorld[2];
+    output.normalWS = input.normalWS;
+    output.tangentWS = input.tangentWS;
 #endif
 
 #ifdef VARYINGS_NEED_TEXCOORD0
