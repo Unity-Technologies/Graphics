@@ -22,7 +22,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseColorMap0:
-        m_Texture: {fileID: 2800000, guid: 866df234625deb44a8db971e2f2dca7c, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap1:
@@ -286,6 +286,7 @@ Material:
     - _LayerTiling1: 1
     - _LayerTiling2: 1
     - _LayerTiling3: 1
+    - _LayerTilingBlendMask: 1
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
@@ -301,6 +302,7 @@ Material:
     - _NormalScale1: 1
     - _NormalScale2: 1
     - _NormalScale3: 1
+    - _ObjectScaleAffectTile: 0
     - _OcclusionStrength: 1
     - _OpacityAsDensity0: 0
     - _OpacityAsDensity1: 0
@@ -322,10 +324,12 @@ Material:
     - _TexWorldScale1: 0.1
     - _TexWorldScale2: 0.1
     - _TexWorldScale3: 0.1
+    - _TexWorldScaleBlendMask: 1
     - _UVBase0: 4
     - _UVBase1: 4
     - _UVBase2: 4
     - _UVBase3: 4
+    - _UVBlendMask: 0
     - _UVDetail0: 0
     - _UVDetail1: 0
     - _UVDetail2: 0
@@ -334,6 +338,7 @@ Material:
     - _UVMappingPlanar1: 1
     - _UVMappingPlanar2: 1
     - _UVMappingPlanar3: 1
+    - _UVMappingPlanarBlendMask: 0
     - _UVSec: 0
     - _UseDensityMode: 0
     - _UseHeightBasedBlend: 1
@@ -357,7 +362,7 @@ Material:
     - _UVDetailsMappingMask1: {r: 1, g: 0, b: 0, a: 0}
     - _UVDetailsMappingMask2: {r: 1, g: 0, b: 0, a: 0}
     - _UVDetailsMappingMask3: {r: 1, g: 0, b: 0, a: 0}
-    - _UVMappingMask0: {r: 0, g: 0, b: 0, a: 0}
+    - _UVMappingMask0: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask1: {r: 0, g: 0, b: 0, a: 0}
     - _UVMappingMask2: {r: 0, g: 0, b: 0, a: 0}
     - _UVMappingMask3: {r: 0, g: 0, b: 0, a: 0}
