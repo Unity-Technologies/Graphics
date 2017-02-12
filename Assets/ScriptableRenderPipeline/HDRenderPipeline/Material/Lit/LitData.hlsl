@@ -979,7 +979,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
 
     // Init other unused parameter
-    surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz);
+    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
     surfaceData.materialId = 0;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
