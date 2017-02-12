@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         protected static class Styles
         {
-            public static string optionText = "Options";
+            public static string optionText = "Surface options";
             public static string surfaceTypeText = "Surface Type";
             public static string blendModeText = "Blend Mode";
             public static string detailText = "Inputs Detail";
@@ -21,18 +21,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
-            public static GUIContent depthOffsetEnableText = new GUIContent("DepthOffset", "EnableDepthOffset on this shader (Use with heightmap)");
-            public static GUIContent horizonFadeText = new GUIContent("HorizonFade", "horizon fade is use to control specular occlusion");            
+            public static GUIContent depthOffsetEnableText = new GUIContent("Enable Depth Offset", "EnableDepthOffset on this shader (Use with heightmap)");
+            public static GUIContent horizonFadeText = new GUIContent("Horizon Fade (Spec occlusion)", "horizon fade is use to control specular occlusion");            
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
 
-            public static string InputsOptionsText = "Inputs options";
-
             public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
-            public static GUIContent UVBaseMappingText = new GUIContent("UV set for Base", "");
-            public static GUIContent texWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
-            public static GUIContent UVBaseDetailMappingText = new GUIContent("UV set for Base and Detail", "");
+            public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
+            public static GUIContent texWorldScaleText = new GUIContent("World scale", "Tiling factor applied to Planar/Trilinear mapping");
             public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
             public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "");
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum samples", "Minimun samples to use with per pixel displacement mapping");
@@ -40,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent ppdLodThresholdText = new GUIContent("Fading LOD start", "Starting Lod where the parallax occlusion mapping effect start to disappear");
 
             public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
-            public static GUIContent UVDetailMappingText = new GUIContent("UV set for Detail", "");
+            public static GUIContent UVDetailMappingText = new GUIContent("Detail UV mapping", "");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
 
             public static string InputsText = "Inputs";
@@ -204,7 +201,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText.text);
             }
             m_MaterialEditor.ShaderProperty(doubleSidedMode, Styles.doubleSidedModeText.text);
-            m_MaterialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText.text);
+
+            m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText);
+            if (enablePerPixelDisplacement.floatValue > 0.0)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
+                m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
+                ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+                m_MaterialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
+                m_MaterialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText.text);
+                EditorGUI.indentLevel--;
+            }
+
+            m_MaterialEditor.ShaderProperty(horizonFade, Styles.horizonFadeText);
 
             EditorGUI.indentLevel--;
 
@@ -231,20 +241,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
                 EditorGUI.indentLevel--;
             }
-
-            GUILayout.Label(Styles.perPixelDisplacementText, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText);
-            if (enablePerPixelDisplacement.floatValue > 0.0)
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
-                m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
-                ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-                m_MaterialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
-                EditorGUI.indentLevel--;
-            }
-            EditorGUI.indentLevel--;
         }
 
         protected void FindCommonOptionProperties(MaterialProperty[] props)
@@ -458,8 +454,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ShaderOptionsGUI();
                 EditorGUILayout.Space();
 
-                ShaderInputOptionsGUI();
-
                 EditorGUILayout.Space();
                 ShaderInputGUI();
             }
@@ -568,7 +562,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected abstract void FindMaterialProperties(MaterialProperty[] props);
 		protected abstract void ShaderInputGUI();
-        protected abstract void ShaderInputOptionsGUI();
         protected abstract void SetupMaterialKeywords(Material material);
         protected abstract bool ShouldEmissionBeEnabled(Material material);
     }

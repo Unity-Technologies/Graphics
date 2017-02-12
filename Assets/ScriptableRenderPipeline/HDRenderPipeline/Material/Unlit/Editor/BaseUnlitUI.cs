@@ -22,8 +22,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
 
-            public static string InputsOptionsText = "Inputs options";
-
             public static string InputsText = "Inputs";
 
             public static string InputsMapText = "";
@@ -254,8 +252,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ShaderOptionsGUI();
                 EditorGUILayout.Space();
 
-                ShaderInputOptionsGUI();
-
                 EditorGUILayout.Space();
                 ShaderInputGUI();
             }
@@ -332,7 +328,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected abstract void FindMaterialProperties(MaterialProperty[] props);
         protected abstract void ShaderInputGUI();
-        protected abstract void ShaderInputOptionsGUI();
 		protected abstract void SetupMaterialKeywords(Material material);
         protected abstract bool ShouldEmissionBeEnabled(Material material);
     }

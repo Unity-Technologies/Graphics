@@ -45,16 +45,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent materialLayerText = new GUIContent("Material");
             public readonly GUIContent syncButtonText = new GUIContent("Re-Synchronize Layers", "Re-synchronize all layers's properties with the referenced Material");
-            public readonly GUIContent layersText = new GUIContent("Layers");
+            public readonly GUIContent layersText = new GUIContent("Inputs");
             public readonly GUIContent emissiveText = new GUIContent("Emissive");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
             public readonly GUIContent vertexColorModeText = new GUIContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
             public readonly GUIContent layerTilingBlendMaskText = new GUIContent("Tiling", "Tiling for the blend mask.");
-            public readonly GUIContent objectScaleAffectTileText = new GUIContent("Object Scale affect tiling", "Tiling will be affected by the object scale.");
-                        
+            public readonly GUIContent objectScaleAffectTileText = new GUIContent("Tiling 0123 follow object Scale", "Tiling will be affected by the object scale.");
+            public readonly GUIContent objectScaleAffectTileText2 = new GUIContent("Tiling 123 follow object Scale", "Tiling will be affected by the object scale.");
+
             public readonly GUIContent layerTilingText = new GUIContent("Tiling", "Tiling factor applied to UVSet");
-            public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
+            public readonly GUIContent layerTexWorldScaleText = new GUIContent("World Scale", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
             public readonly GUIContent UVBlendMaskText = new GUIContent("BlendMask UV Mapping", "Base UV Mapping mode of the layer.");
             public readonly GUIContent UVDetailText = new GUIContent("Detail UV Mapping", "Detail UV Mapping mode of the layer.");
@@ -359,6 +360,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(layerTexWorldScale[layerIndex], styles.layerTexWorldScaleText);
                 EditorGUI.indentLevel--;
+
+                if (((LayerUVBaseMapping)layerUVBase[layerIndex].floatValue == LayerUVBaseMapping.Planar))
+                    GUILayout.Label("       " + styles.UVDetailText.text + ": Planar");
+                else
+                    GUILayout.Label("       " + styles.UVDetailText.text + ": Triplanar");
             }
             else
             {
@@ -386,22 +392,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            EditorGUILayout.LabelField(styles.heightControlText, EditorStyles.boldLabel);
+            // Display height control if they have a meaning
+            if ( (tessellationMode != null && ((TessellationMode)tessellationMode.floatValue == TessellationMode.Displacement || (TessellationMode)tessellationMode.floatValue == TessellationMode.DisplacementPhong))
+                || (enablePerPixelDisplacement.floatValue > 0.0f)
+                || (useHeightBasedBlend.floatValue > 0.0f)
+                )
+            {
+                EditorGUILayout.LabelField(styles.heightControlText, EditorStyles.boldLabel);
 
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(heightFactor[layerIndex], styles.heightFactorText);
-            layerHeightAmplitude[layerIndex].floatValue = material.GetFloat(kHeightAmplitude + layerIndex) * heightFactor[layerIndex].floatValue;
-            m_MaterialEditor.ShaderProperty(heightCenterOffset[layerIndex], styles.heightCenterOffsetText);
-            layerCenterOffset[layerIndex].floatValue = material.GetFloat(kHeightCenter + layerIndex) + heightCenterOffset[layerIndex].floatValue;
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(heightFactor[layerIndex], styles.heightFactorText);
+                layerHeightAmplitude[layerIndex].floatValue = material.GetFloat(kHeightAmplitude + layerIndex) * heightFactor[layerIndex].floatValue;
+                m_MaterialEditor.ShaderProperty(heightCenterOffset[layerIndex], styles.heightCenterOffsetText);
+                layerCenterOffset[layerIndex].floatValue = material.GetFloat(kHeightCenter + layerIndex) + heightCenterOffset[layerIndex].floatValue;
+                EditorGUI.indentLevel--;
+            }            
             
-            EditorGUI.indentLevel--;
 
             // influence
             if (layerIndex > 0)
             {
                 int paramIndex = layerIndex - 1;
 
-                bool heightBasedBlendEnable = useHeightBasedBlend.floatValue != 0.0f; 
+                bool heightBasedBlendEnable = useHeightBasedBlend.floatValue > 0.0f; 
                 if (heightBasedBlendEnable)
                 {
                     EditorGUI.indentLevel++;
@@ -459,21 +472,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
+
+            EditorGUI.indentLevel++;
             m_MaterialEditor.ShaderProperty(UVBlendMask, styles.UVBlendMaskText);
 
             if (((LayerUVBaseMapping)UVBlendMask.floatValue == LayerUVBaseMapping.Planar) ||
                 ((LayerUVBaseMapping)UVBlendMask.floatValue == LayerUVBaseMapping.Triplanar))
             {
-                EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(texWorldScaleBlendMask, styles.layerTexWorldScaleText);
-                EditorGUI.indentLevel--;
             }
             else
             {
-                EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(layerTilingBlendMask, styles.layerTilingBlendMaskText);
-                EditorGUI.indentLevel--;
             }
+            EditorGUI.indentLevel--;
+
+            m_MaterialEditor.ShaderProperty(vertexColorMode, styles.vertexColorModeText);
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;
@@ -481,9 +495,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
-            }
-
-            m_MaterialEditor.ShaderProperty(vertexColorMode, styles.vertexColorModeText);
+            }            
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = useDensityMode.hasMixedValue;
@@ -501,7 +513,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 useHeightBasedBlend.floatValue = enabled ? 1.0f : 0.0f;
             }
 
-            m_MaterialEditor.ShaderProperty(objectScaleAffectTile, styles.objectScaleAffectTileText);            
+            m_MaterialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? styles.objectScaleAffectTileText2 : styles.objectScaleAffectTileText);            
 
             EditorGUILayout.Space();
 
@@ -707,7 +719,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, layerEmissiveColorMap, layerEmissiveColor);
             m_MaterialEditor.ShaderProperty(layerEmissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.LightmapEmissionProperty(1);
-            m_MaterialEditor.ShaderProperty(horizonFade, Styles.horizonFadeText);
             EditorGUI.indentLevel--;
 
             if (layerChanged || optionsChanged)
