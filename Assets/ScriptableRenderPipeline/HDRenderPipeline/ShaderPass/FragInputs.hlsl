@@ -16,7 +16,7 @@ struct FragInputs
     float2 texCoord1;
     float2 texCoord2;
     float2 texCoord3;
-    float3 tangentToWorld[3];
+    float3 tangentToWorld[3]; // These 3 vectors are normalized (no need for the material to normalize) and these are only for UVSet 0
     float4 color; // vertex color
 
     // For two sided lighting

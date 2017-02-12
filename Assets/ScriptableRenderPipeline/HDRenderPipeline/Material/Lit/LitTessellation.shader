@@ -22,21 +22,19 @@ Shader "HDRenderPipeline/LitTessellation"
         _HeightAmplitude("Height Amplitude", Float) = 0.01 // In world units
         _HeightCenter("Height Center", Float) = 0.5 // In texture space
 
-        _TangentMap("TangentMap", 2D) = "bump" {}
-        _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
-        _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
-
         _DetailMap("DetailMap", 2D) = "black" {}
         _DetailMask("DetailMask", 2D) = "white" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(-2.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(-2.0, 2.0)) = 1
-        _DetailHeightScale("_DetailHeightScale", Range(-2.0, 2.0)) = 1
-        _DetailAOScale("_DetailAOScale", Range(-2.0, 2.0)) = 1
+
+        _TangentMap("TangentMap", 2D) = "bump" {}
+        _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
+        _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
         [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2, Specular Color, 3)] _MaterialID("MaterialId", Int) = 0
         _SubsurfaceProfile("Subsurface Profile", Int) = 0
-        _SubsurfaceRadius("Subsurface Radius", Range(0.004, 1.0)) = 0.5
+        _SubsurfaceRadius("Subsurface Radius", Range(0.004, 1.0)) = 1.0
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
         _Thickness("Thickness", Range(0.004, 1.0)) = 0.5
         _ThicknessMap("Thickness Map", 2D) = "white" {}
@@ -83,7 +81,6 @@ Shader "HDRenderPipeline/LitTessellation"
 
         [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
 
-        [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
         [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
@@ -93,7 +90,6 @@ Shader "HDRenderPipeline/LitTessellation"
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
-        [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
@@ -127,15 +123,13 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
     #pragma shader_feature _TESSELLATION_OBJECT_SCALE
 
-    #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _MAPPING_TRIPLANAR
-    #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
-    #pragma shader_feature _NORMALMAP
+    #pragma shader_feature _NORMALMAP  
     #pragma shader_feature _MASKMAP
     #pragma shader_feature _SPECULAROCCLUSIONMAP
     #pragma shader_feature _EMISSIVE_COLOR_MAP
@@ -279,7 +273,7 @@ Shader "HDRenderPipeline/LitTessellation"
             HLSLPROGRAM
 
             // Lightmap memo
-            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
+            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             // No tessellation for Meta pass
@@ -433,6 +427,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "../../Lighting/Forward.hlsl"
             #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
             #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
 
@@ -441,8 +436,9 @@ Shader "HDRenderPipeline/LitTessellation"
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
-                ENDHLSL
+            ENDHLSL
         }
+
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"
