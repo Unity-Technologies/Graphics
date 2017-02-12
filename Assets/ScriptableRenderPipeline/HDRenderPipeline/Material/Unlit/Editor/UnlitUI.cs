@@ -39,10 +39,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        override protected void ShaderInputOptionsGUI()
-        {
-        }
-
         protected override void SetupMaterialKeywords(Material material)
         {
 			SetupCommonOptionsKeywords(material);

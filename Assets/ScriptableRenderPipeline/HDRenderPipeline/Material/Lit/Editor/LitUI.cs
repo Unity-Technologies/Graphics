@@ -170,43 +170,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             thicknessMap        = FindProperty(kThicknessMap,        props);
         }
 
-        override protected void ShaderInputOptionsGUI()
-        {
-            // When Planar or Triplanar is enable the UVDetail use the same mode, so we disable the choice on UVDetail
-            bool enableUVDetail = (UVBaseMapping)UVBase.floatValue == UVBaseMapping.UV0;
-
-            EditorGUI.indentLevel++;
-            GUILayout.Label(Styles.InputsOptionsText, EditorStyles.boldLabel);
-            m_MaterialEditor.ShaderProperty(materialID, Styles.materialIDText);
-            m_MaterialEditor.ShaderProperty(UVBase, enableUVDetail ? Styles.UVBaseDetailMappingText : Styles.UVBaseMappingText);
-
-            float X, Y, Z, W;
-            X = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-            UVMappingMask.colorValue = new Color(X, 0.0f, 0.0f, 0.0f);
-            UVMappingPlanar.floatValue = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) ? 1.0f : 0.0f;
-            if (((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(TexWorldScale, Styles.texWorldScaleText);
-                EditorGUI.indentLevel--;
-            }
-            if (enableUVDetail)
-            {
-                m_MaterialEditor.ShaderProperty(UVDetail, Styles.UVDetailMappingText);
-            }
-
-            X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
-            Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
-            Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
-            W = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
-            UVDetailsMappingMask.colorValue = new Color(X, Y, Z, W);
-
-            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
-            m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText);            
-
-            EditorGUI.indentLevel--;
-        }
-
         protected void ShaderSSSInputGUI()
         {
             m_MaterialEditor.ShaderProperty(subsurfaceProfile, Styles.subsurfaceProfileText);
@@ -224,11 +187,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         override protected void ShaderInputGUI()
-        {
-            EditorGUI.indentLevel++;
+        {            
             bool useEmissiveMask = (EmissiveColorMode)emissiveColorMode.floatValue == EmissiveColorMode.UseEmissiveMask;
 
             GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
+
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(materialID, Styles.materialIDText);
+
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
             m_MaterialEditor.ShaderProperty(metallic, Styles.metallicText);
             m_MaterialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
@@ -240,6 +206,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap);
 
+            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap);
@@ -263,17 +230,47 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.Space();
-            GUILayout.Label(Styles.textureControlText, EditorStyles.label);
+            GUILayout.Label("    " + Styles.textureControlText, EditorStyles.label);
+            m_MaterialEditor.ShaderProperty(UVBase, Styles.UVBaseMappingText);
+            // UVSet0 is always set, planar and triplanar will override it.
+            UVMappingMask.colorValue = new Color(1.0f, 0.0f, 0.0f, 0.0f); // This is override in the shader anyway but just in case.
+            UVMappingPlanar.floatValue = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) ? 1.0f : 0.0f;
+            if (((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
+            {
+                m_MaterialEditor.ShaderProperty(TexWorldScale, Styles.texWorldScaleText);
+            }
             m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap);
 
             EditorGUILayout.Space();
             GUILayout.Label(Styles.detailText, EditorStyles.boldLabel);
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.detailMaskText, detailMask);               
-
+            m_MaterialEditor.TexturePropertySingleLine(Styles.detailMaskText, detailMask);
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap);
+            
+            EditorGUI.indentLevel++;            
+            // When Planar or Triplanar is enable the UVDetail use the same mode, so we disable the choice on UVDetail
+            if ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.UV0)
+            {
+                m_MaterialEditor.ShaderProperty(UVDetail, Styles.UVDetailMappingText);
+            }
+            else if ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar)
+            {
+                GUILayout.Label("       " + Styles.UVDetailMappingText.text + ": Planar");
+            }
+            else if ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar)
+            {
+                GUILayout.Label("       " + Styles.UVDetailMappingText.text + ": Triplanar");
+            }
+
+            // IF planar/triplanar is not chose, setup the UVSet chosen
+            float X, Y, Z, W;
+            X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
+            Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
+            Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
+            W = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
+            UVDetailsMappingMask.colorValue = new Color(X, Y, Z, W);
+
             m_MaterialEditor.TextureScaleOffsetProperty(detailMap);
-            EditorGUI.indentLevel++;
             m_MaterialEditor.ShaderProperty(detailAlbedoScale, Styles.detailAlbedoScaleText);
             m_MaterialEditor.ShaderProperty(detailNormalScale, Styles.detailNormalScaleText);
             m_MaterialEditor.ShaderProperty(detailSmoothnessScale, Styles.detailSmoothnessScaleText);
@@ -281,14 +278,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.Space();
             GUILayout.Label(Styles.lightingText, EditorStyles.boldLabel);
+            m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText);
 
             if (!useEmissiveMask)
             {
                 m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             }
+
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-            m_MaterialEditor.LightmapEmissionProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
-            m_MaterialEditor.ShaderProperty(horizonFade, Styles.horizonFadeText);
+            m_MaterialEditor.LightmapEmissionProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);            
             EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();

@@ -106,7 +106,8 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif
 
     // Be sure that the compiler is aware that we don't touch UV1 to UV3 for main layer so it can optimize code
-    _UVMappingMask.yzw = float3(0.0, 0.0, 0.0);
+    // Also we have always UVset to 1, if planar/triplanar is enable, it will override it.
+    _UVMappingMask = float4(1.0, 0.0, 0.0, 0.0);
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, 
                             positionWS, normalWS,  _UVMappingPlanar > 0.0, isTriplanar, _TexWorldScale, layerTexCoord);
 }
