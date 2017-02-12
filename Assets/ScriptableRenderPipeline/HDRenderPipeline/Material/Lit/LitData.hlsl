@@ -76,6 +76,21 @@ struct LayerTexCoord
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name
 #define ADD_ZERO_IDX(Name) Name
+#ifdef _NORMALMAP
+#define _NORMALMAP_IDX
+#endif
+#ifdef _NORMALMAP_TANGENT_SPACE
+#define _NORMALMAP_TANGENT_SPACE_IDX
+#endif
+#ifdef _DETAIL_MAP
+#define _DETAIL_MAP_IDX
+#endif
+#ifdef _MASKMAP
+#define _MASKMAP_IDX
+#endif
+#ifdef _SPECULAROCCLUSIONMAP
+#define _SPECULAROCCLUSIONMAP_IDX
+#endif
 #include "LitDataInternal.hlsl"
 
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
@@ -91,7 +106,8 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif
 
     // Be sure that the compiler is aware that we don't touch UV1 to UV3 for main layer so it can optimize code
-    _UVMappingMask.yzw = float3(0.0, 0.0, 0.0);
+    // Also we have always UVset to 1, if planar/triplanar is enable, it will override it.
+    _UVMappingMask = float4(1.0, 0.0, 0.0, 0.0);
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, 
                             positionWS, normalWS,  _UVMappingPlanar > 0.0, isTriplanar, _TexWorldScale, layerTexCoord);
 }
@@ -113,8 +129,8 @@ float2 GetMinUvSize(LayerTexCoord layerTexCoord)
 #if defined(_HEIGHTMAP)
     if (layerTexCoord.base.isTriplanar)
     {
-        minUvSize = min(layerTexCoord.base.uvYZ * _HeightMap_TexelSize.zw, minUvSize);
-        minUvSize = min(layerTexCoord.base.uvZX * _HeightMap_TexelSize.zw, minUvSize);
+        minUvSize = min(layerTexCoord.base.uvZY * _HeightMap_TexelSize.zw, minUvSize);
+        minUvSize = min(layerTexCoord.base.uvXZ * _HeightMap_TexelSize.zw, minUvSize);
         minUvSize = min(layerTexCoord.base.uvXY * _HeightMap_TexelSize.zw, minUvSize);
     }
     else
@@ -169,7 +185,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             // apply the 3 offset on all layers
             /*
 
-            ppdParam.uv = layerTexCoord.base0.uvYZ;
+            ppdParam.uv = layerTexCoord.base0.uvZY;
 
             float3 viewDirTS = ;
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, abs(viewDirTS.z));
@@ -234,27 +250,107 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 // include LitDataInternal multiple time to define the variation of GetSurfaceData for each layer
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name##0
+#ifdef _NORMALMAP0
+#define _NORMALMAP_IDX
+#endif
+#ifdef _NORMALMAP_TANGENT_SPACE0
+#define _NORMALMAP_TANGENT_SPACE_IDX
+#endif
+#ifdef _DETAIL_MAP0
+#define _DETAIL_MAP_IDX
+#endif
+#ifdef _MASKMAP0
+#define _MASKMAP_IDX
+#endif
+#ifdef _SPECULAROCCLUSIONMAP0
+#define _SPECULAROCCLUSIONMAP_IDX
+#endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
+#undef _NORMALMAP_IDX 
+#undef _NORMALMAP_TANGENT_SPACE_IDX 
+#undef _DETAIL_MAP_IDX 
+#undef _MASKMAP_IDX 
+#undef _SPECULAROCCLUSIONMAP_IDX 
 
 #define LAYER_INDEX 1
 #define ADD_IDX(Name) Name##1
+#ifdef _NORMALMAP1
+#define _NORMALMAP_IDX
+#endif
+#ifdef _NORMALMAP_TANGENT_SPACE1
+#define _NORMALMAP_TANGENT_SPACE_IDX
+#endif
+#ifdef _DETAIL_MAP1
+#define _DETAIL_MAP_IDX
+#endif
+#ifdef _MASKMAP1
+#define _MASKMAP_IDX
+#endif
+#ifdef _SPECULAROCCLUSIONMAP1
+#define _SPECULAROCCLUSIONMAP_IDX
+#endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
+#undef _NORMALMAP_IDX 
+#undef _NORMALMAP_TANGENT_SPACE_IDX 
+#undef _DETAIL_MAP_IDX 
+#undef _MASKMAP_IDX 
+#undef _SPECULAROCCLUSIONMAP_IDX 
 
 #define LAYER_INDEX 2
 #define ADD_IDX(Name) Name##2
+#ifdef _NORMALMAP2
+#define _NORMALMAP_IDX
+#endif
+#ifdef _NORMALMAP_TANGENT_SPACE2
+#define _NORMALMAP_TANGENT_SPACE_IDX
+#endif
+#ifdef _DETAIL_MAP2
+#define _DETAIL_MAP_IDX
+#endif
+#ifdef _MASKMAP2
+#define _MASKMAP_IDX
+#endif
+#ifdef _SPECULAROCCLUSIONMAP2
+#define _SPECULAROCCLUSIONMAP_IDX
+#endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
+#undef _NORMALMAP_IDX 
+#undef _NORMALMAP_TANGENT_SPACE_IDX 
+#undef _DETAIL_MAP_IDX 
+#undef _MASKMAP_IDX 
+#undef _SPECULAROCCLUSIONMAP_IDX 
 
 #define LAYER_INDEX 3
 #define ADD_IDX(Name) Name##3
+#ifdef _NORMALMAP3
+#define _NORMALMAP_IDX
+#endif
+#ifdef _NORMALMAP_TANGENT_SPACE3
+#define _NORMALMAP_TANGENT_SPACE_IDX
+#endif
+#ifdef _DETAIL_MAP3
+#define _DETAIL_MAP_IDX
+#endif
+#ifdef _MASKMAP3
+#define _MASKMAP_IDX
+#endif
+#ifdef _SPECULAROCCLUSIONMAP3
+#define _SPECULAROCCLUSIONMAP_IDX
+#endif
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
+#undef _NORMALMAP_IDX 
+#undef _NORMALMAP_TANGENT_SPACE_IDX 
+#undef _DETAIL_MAP_IDX 
+#undef _MASKMAP_IDX 
+#undef _SPECULAROCCLUSIONMAP_IDX 
 
 float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
 {
@@ -295,7 +391,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 {
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
 
-#if defined(_LAYER_MAPPING_TRIPLANAR_BLENDMASK) || defined(_LAYER_MAPPING_TRIPLANAR_0) || defined(_LAYER_MAPPING_TRIPLANAR_1) || defined(_LAYER_MAPPING_TRIPLANAR_2) || defined(_LAYER_MAPPING_TRIPLANAR_3)
+#if defined(_LAYER_MAPPING_TRIPLANAR_BLENDMASK) || defined(_LAYER_MAPPING_TRIPLANAR0) || defined(_LAYER_MAPPING_TRIPLANAR1) || defined(_LAYER_MAPPING_TRIPLANAR2) || defined(_LAYER_MAPPING_TRIPLANAR3)
     // one weight for each direction XYZ - Use vertex normal for triplanar
     layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalWS);
 #endif
@@ -325,7 +421,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif  
 
     isTriplanar = false;
-#ifdef _LAYER_MAPPING_TRIPLANAR_0
+#ifdef _LAYER_MAPPING_TRIPLANAR0
     isTriplanar = true;
 #endif
 
@@ -337,21 +433,21 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                             );
 
     isTriplanar = false;
-#ifdef _LAYER_MAPPING_TRIPLANAR_1
+#ifdef _LAYER_MAPPING_TRIPLANAR1
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, 
                             positionWS, normalWS, _UVMappingPlanar1 > 0.0, isTriplanar, _TexWorldScale1, layerTexCoord, _LayerTiling1 * tileObjectScale);
 
     isTriplanar = false;
-#ifdef _LAYER_MAPPING_TRIPLANAR_2
+#ifdef _LAYER_MAPPING_TRIPLANAR2
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, 
                             positionWS, normalWS, _UVMappingPlanar2 > 0.0, isTriplanar, _TexWorldScale2, layerTexCoord, _LayerTiling2 * tileObjectScale);
 
     isTriplanar = false;
-#ifdef _LAYER_MAPPING_TRIPLANAR_3
+#ifdef _LAYER_MAPPING_TRIPLANAR3
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, 
@@ -493,8 +589,8 @@ float2 GetMinUvSize(LayerTexCoord layerTexCoord)
 #if defined(_HEIGHTMAP0)
     if (layerTexCoord.base0.isTriplanar)
     {
-        minUvSize = min(layerTexCoord.base0.uvYZ * _HeightMap0_TexelSize.zw, minUvSize);
-        minUvSize = min(layerTexCoord.base0.uvZX * _HeightMap0_TexelSize.zw, minUvSize);
+        minUvSize = min(layerTexCoord.base0.uvZY * _HeightMap0_TexelSize.zw, minUvSize);
+        minUvSize = min(layerTexCoord.base0.uvXZ * _HeightMap0_TexelSize.zw, minUvSize);
         minUvSize = min(layerTexCoord.base0.uvXY * _HeightMap0_TexelSize.zw, minUvSize);
     }
     else
@@ -506,8 +602,8 @@ float2 GetMinUvSize(LayerTexCoord layerTexCoord)
 #if defined(_HEIGHTMAP1)
     if (layerTexCoord.base1.isTriplanar)
     {
-        minUvSize = min(layerTexCoord.base1.uvYZ * _HeightMap1_TexelSize.zw, minUvSize);
-        minUvSize = min(layerTexCoord.base1.uvZX * _HeightMap1_TexelSize.zw, minUvSize);
+        minUvSize = min(layerTexCoord.base1.uvZY * _HeightMap1_TexelSize.zw, minUvSize);
+        minUvSize = min(layerTexCoord.base1.uvXZ * _HeightMap1_TexelSize.zw, minUvSize);
         minUvSize = min(layerTexCoord.base1.uvXY * _HeightMap1_TexelSize.zw, minUvSize);
     }
     else
@@ -520,8 +616,8 @@ float2 GetMinUvSize(LayerTexCoord layerTexCoord)
 #if defined(_HEIGHTMAP2)
     if (layerTexCoord.base2.isTriplanar)
     {
-        minUvSize = min(layerTexCoord.base2.uvYZ * _HeightMap2_TexelSize.zw, minUvSize);
-        minUvSize = min(layerTexCoord.base2.uvZX * _HeightMap2_TexelSize.zw, minUvSize);
+        minUvSize = min(layerTexCoord.base2.uvZY * _HeightMap2_TexelSize.zw, minUvSize);
+        minUvSize = min(layerTexCoord.base2.uvXZ * _HeightMap2_TexelSize.zw, minUvSize);
         minUvSize = min(layerTexCoord.base2.uvXY * _HeightMap2_TexelSize.zw, minUvSize);
     }
     else
@@ -535,8 +631,8 @@ float2 GetMinUvSize(LayerTexCoord layerTexCoord)
 #if defined(_HEIGHTMAP3)
     if (layerTexCoord.base3.isTriplanar)
     {
-        minUvSize = min(layerTexCoord.base3.uvYZ * _HeightMap3_TexelSize.zw, minUvSize);
-        minUvSize = min(layerTexCoord.base3.uvZX * _HeightMap3_TexelSize.zw, minUvSize);
+        minUvSize = min(layerTexCoord.base3.uvZY * _HeightMap3_TexelSize.zw, minUvSize);
+        minUvSize = min(layerTexCoord.base3.uvXZ * _HeightMap3_TexelSize.zw, minUvSize);
         minUvSize = min(layerTexCoord.base3.uvXY * _HeightMap3_TexelSize.zw, minUvSize);
     }
     else
@@ -674,7 +770,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             // apply the 3 offset on all layers
             /*
 
-            ppdParam.uv[0] = layerTexCoord.base0.uvYZ;
+            ppdParam.uv[0] = layerTexCoord.base0.uvZY;
             ppdParam.uv[1] = layerTexCoord.base1.uvYZ;
             ppdParam.uv[2] = layerTexCoord.base2.uvYZ;
             ppdParam.uv[3] = layerTexCoord.base3.uvYZ;
@@ -683,9 +779,9 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, abs(viewDirTS.z));
             ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
-            // Apply to all uvYZ
+            // Apply to all uvZY
 
-            // Repeat for uvZX
+            // Repeat for uvXZ
 
             // Repeat for uvXY
 
@@ -884,7 +980,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
 
     // Init other unused parameter
-    surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz);
+    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
     surfaceData.materialId = 0;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;

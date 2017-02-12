@@ -25,8 +25,6 @@ float4 _DetailMap_ST;
 float _DetailAlbedoScale;
 float _DetailNormalScale;
 float _DetailSmoothnessScale;
-float _DetailHeightScale;
-float _DetailAOScale;
 
 TEXTURE2D(_HeightMap);
 SAMPLER2D(sampler_HeightMap);
@@ -127,8 +125,6 @@ PROP_DECL(float, _UVDetail);
 PROP_DECL(float, _DetailAlbedoScale);
 PROP_DECL(float, _DetailNormalScale);
 PROP_DECL(float, _DetailSmoothnessScale);
-PROP_DECL(float, _DetailHeightScale);
-PROP_DECL(float, _DetailAOScale);
 
 PROP_DECL(float, _HeightAmplitude);
 PROP_DECL(float, _HeightCenter);

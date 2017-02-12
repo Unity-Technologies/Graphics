@@ -33,7 +33,8 @@ struct VaryingsMeshToPS
     float3 positionWS;
 #endif
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    float3 tangentToWorld[3];
+    float3 normalWS;
+    float4 tangentWS;  // w contain mirror sign
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD0
     float2 texCoord0;
@@ -56,38 +57,30 @@ struct PackedVaryingsMeshToPS
 {
     float4 positionCS : SV_Position;
 
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    #ifdef VARYINGS_NEED_POSITION_WS
-    // if present, pack positionWS
-    float4 interpolators1 : TEXCOORD1;
-    float4 interpolators2 : TEXCOORD2;
-    float4 interpolators3 : TEXCOORD3;
-    #else
-    float3 interpolators1 : TEXCOORD1;
-    float3 interpolators2 : TEXCOORD2;
-    float3 interpolators3 : TEXCOORD3;
-    #endif
-#else
-    #ifdef VARYINGS_NEED_POSITION_WS
+#ifdef VARYINGS_NEED_POSITION_WS
     float3 interpolators0 : TEXCOORD0;
-    #endif
+#endif
+
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    float3 interpolators1 : TEXCOORD1;
+    float4 interpolators2 : TEXCOORD2;
 #endif
 
     // Allocate only necessary space if shader compiler in the future are able to automatically pack
 #ifdef VARYINGS_NEED_TEXCOORD1
-    float4 interpolators4 : TEXCOORD4;
+    float4 interpolators3 : TEXCOORD3;
 #elif defined(VARYINGS_NEED_TEXCOORD0)
-    float2 interpolators4 : TEXCOORD4;
+    float2 interpolators3 : TEXCOORD3;
 #endif
 
 #ifdef VARYINGS_NEED_TEXCOORD3
-    float4 interpolators5 : TEXCOORD5;
+    float4 interpolators4 : TEXCOORD4;
 #elif defined(VARYINGS_NEED_TEXCOORD2)
-    float2 interpolators5 : TEXCOORD5;
+    float2 interpolators4 : TEXCOORD4;
 #endif
 
 #ifdef VARYINGS_NEED_COLOR
-    float4 interpolators6 : TEXCOORD6;
+    float4 interpolators5 : TEXCOORD5;
 #endif
 
 #if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT
@@ -102,36 +95,30 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
 
     output.positionCS = input.positionCS;
 
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    output.interpolators1.xyz = input.tangentToWorld[0];
-    output.interpolators2.xyz = input.tangentToWorld[1];
-    output.interpolators3.xyz = input.tangentToWorld[2];
-    #ifdef VARYINGS_NEED_POSITION_WS
-    output.interpolators1.w = input.positionWS.x;
-    output.interpolators2.w = input.positionWS.y;
-    output.interpolators3.w = input.positionWS.z;
-    #endif
-#else
-    #ifdef VARYINGS_NEED_POSITION_WS
+#ifdef VARYINGS_NEED_POSITION_WS
     output.interpolators0 = input.positionWS;
-    #endif
+#endif
+
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    output.interpolators1 = input.normalWS;
+    output.interpolators2 = input.tangentWS;
 #endif
 
 #ifdef VARYINGS_NEED_TEXCOORD0 
-    output.interpolators4.xy = input.texCoord0;
+    output.interpolators3.xy = input.texCoord0;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD1
-    output.interpolators4.zw = input.texCoord1;
+    output.interpolators3.zw = input.texCoord1;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD2
-    output.interpolators5.xy = input.texCoord2;
+    output.interpolators4.xy = input.texCoord2;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD3
-    output.interpolators5.zw = input.texCoord3;
+    output.interpolators4.zw = input.texCoord3;
 #endif
 
 #ifdef VARYINGS_NEED_COLOR
-    output.interpolators6 = input.color;
+    output.interpolators5 = input.color;
 #endif
 
     return output;
@@ -143,33 +130,34 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
     output.unPositionSS = input.positionCS; // input.positionCS is SV_Position
 
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    output.tangentToWorld[0] = input.interpolators1.xyz;
-    output.tangentToWorld[1] = input.interpolators2.xyz;
-    output.tangentToWorld[2] = input.interpolators3.xyz;
-    #ifdef VARYINGS_NEED_POSITION_WS
-    output.positionWS.xyz = float3(input.interpolators1.w, input.interpolators2.w, input.interpolators3.w);
-    #endif
-#else
-    #ifdef VARYINGS_NEED_POSITION_WS
+#ifdef VARYINGS_NEED_POSITION_WS
     output.positionWS.xyz = input.interpolators0.xyz;
-    #endif
+#endif
+
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    // Normalize the normal/tangent after interpolation
+    float3 normalWS = normalize(input.interpolators1);
+    float4 tangentWS = float4(normalize(input.interpolators2.xyz), input.interpolators2.w);
+    float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
+    output.tangentToWorld[0] = tangentToWorld[0];
+    output.tangentToWorld[1] = tangentToWorld[1];
+    output.tangentToWorld[2] = tangentToWorld[2];
 #endif
 
 #ifdef VARYINGS_NEED_TEXCOORD0 
-    output.texCoord0 = input.interpolators4.xy;
+    output.texCoord0 = input.interpolators3.xy;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD1
-    output.texCoord1 = input.interpolators4.zw;
+    output.texCoord1 = input.interpolators3.zw;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD2
-    output.texCoord2 = input.interpolators5.xy;
+    output.texCoord2 = input.interpolators4.xy;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD3
-    output.texCoord3 = input.interpolators5.zw;
+    output.texCoord3 = input.interpolators4.zw;
 #endif
 #ifdef VARYINGS_NEED_COLOR
-    output.color = input.interpolators6;
+    output.color = input.interpolators5;
 #endif
 
 #if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT

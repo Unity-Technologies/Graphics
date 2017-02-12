@@ -8,9 +8,10 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Layered_Layer0_Planar
   m_Shader: {fileID: 4800000, guid: 81d02e8644315b742b154842a3a2f98c, type: 3}
-  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DETAIL_MAP _DETAIL_MAP_WITH_NORMAL _DISTORTIONDEPTHTEST_OFF
-    _DISTORTIONONLY_OFF _EMISSION _EMISSIVE_COLOR _LAYER_MASK_VERTEX_COLOR _LAYER_MASK_VERTEX_COLOR_MUL
-    _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DETAIL_MAP _DETAIL_MAP0 _DETAIL_MAP1 _DETAIL_MAP_WITH_NORMAL
+    _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF _EMISSION _EMISSIVE_COLOR _LAYER_MASK_VERTEX_COLOR
+    _LAYER_MASK_VERTEX_COLOR_MUL _NORMALMAP_TANGENT_SPACE _NORMALMAP_TANGENT_SPACE0
+    _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
@@ -25,7 +26,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap1:
-        m_Texture: {fileID: 2800000, guid: 866df234625deb44a8db971e2f2dca7c, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap2:
@@ -285,6 +286,7 @@ Material:
     - _LayerTiling1: 1
     - _LayerTiling2: 1
     - _LayerTiling3: 1
+    - _LayerTilingBlendMask: 1
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
@@ -296,10 +298,15 @@ Material:
     - _MinimumOpacity3: 1
     - _Mode: 0
     - _NormalMapSpace: 0
+    - _NormalMapSpace0: 0
+    - _NormalMapSpace1: 0
+    - _NormalMapSpace2: 0
+    - _NormalMapSpace3: 0
     - _NormalScale0: 1
     - _NormalScale1: 1
     - _NormalScale2: 1
     - _NormalScale3: 1
+    - _ObjectScaleAffectTile: 0
     - _OcclusionStrength: 1
     - _OpacityAsDensity0: 0
     - _OpacityAsDensity1: 0
@@ -322,11 +329,13 @@ Material:
     - _TexWorldScale1: 1
     - _TexWorldScale2: 1
     - _TexWorldScale3: 1
+    - _TexWorldScaleBlendMask: 1
     - _UVBase: 0
     - _UVBase0: 4
     - _UVBase1: 0
     - _UVBase2: 0
     - _UVBase3: 0
+    - _UVBlendMask: 0
     - _UVDetail: 0
     - _UVDetail0: 0
     - _UVDetail1: 0
@@ -340,6 +349,7 @@ Material:
     - _UVMappingPlanar1: 0
     - _UVMappingPlanar2: 0
     - _UVMappingPlanar3: 0
+    - _UVMappingPlanarBlendMask: 0
     - _UVSec: 0
     - _UseDensityMode: 0
     - _UseHeightBasedBlend: 0
@@ -365,7 +375,7 @@ Material:
     - _UVDetailsMappingMask2: {r: 1, g: 0, b: 0, a: 0}
     - _UVDetailsMappingMask3: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
-    - _UVMappingMask0: {r: 0, g: 0, b: 0, a: 0}
+    - _UVMappingMask0: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask1: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask2: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask3: {r: 1, g: 0, b: 0, a: 0}

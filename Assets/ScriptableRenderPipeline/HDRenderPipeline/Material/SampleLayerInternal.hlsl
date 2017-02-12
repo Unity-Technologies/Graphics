@@ -11,9 +11,9 @@ float4 ADD_FUNC_SUFFIX(SampleLayer)(TEXTURE2D_ARGS(layerTex, layerSampler), Laye
         float4 val = float4(0.0, 0.0, 0.0, 0.0);
 
         if (triplanarWeights.x > 0.0)
-            val += triplanarWeights.x * SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvYZ, param);
+            val += triplanarWeights.x * SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZY, param);
         if (triplanarWeights.y > 0.0)
-            val += triplanarWeights.y * SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZX, param);
+            val += triplanarWeights.y * SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXZ, param);
         if (triplanarWeights.z > 0.0)
             val += triplanarWeights.z * SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXY, param);
 
@@ -34,9 +34,9 @@ float3 ADD_FUNC_SUFFIX(SampleLayerNormal)(TEXTURE2D_ARGS(layerTex, layerSampler)
         float3 val = float3(0.0, 0.0, 0.0);
 
         if (triplanarWeights.x > 0.0)
-            val += triplanarWeights.x * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvYZ, param), scale);
+            val += triplanarWeights.x * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZY, param), scale);
         if (triplanarWeights.y > 0.0)
-            val += triplanarWeights.y * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZX, param), scale);
+            val += triplanarWeights.y * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXZ, param), scale);
         if (triplanarWeights.z > 0.0)
             val += triplanarWeights.z * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXY, param), scale);
 
@@ -56,9 +56,9 @@ float3 ADD_FUNC_SUFFIX(SampleLayerNormalAG)(TEXTURE2D_ARGS(layerTex, layerSample
         float3 val = float3(0.0, 0.0, 0.0);
 
         if (triplanarWeights.x > 0.0)
-            val += triplanarWeights.x * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvYZ, param), scale);
+            val += triplanarWeights.x * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZY, param), scale);
         if (triplanarWeights.y > 0.0)
-            val += triplanarWeights.y * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZX, param), scale);
+            val += triplanarWeights.y * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXZ, param), scale);
         if (triplanarWeights.z > 0.0)
             val += triplanarWeights.z * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXY, param), scale);
 
@@ -78,9 +78,9 @@ float3 ADD_FUNC_SUFFIX(SampleLayerNormalRGB)(TEXTURE2D_ARGS(layerTex, layerSampl
         float3 val = float3(0.0, 0.0, 0.0);
 
         if (triplanarWeights.x > 0.0)
-            val += triplanarWeights.x * UnpackNormalRGB(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvYZ, param), scale);
+            val += triplanarWeights.x * UnpackNormalRGB(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZY, param), scale);
         if (triplanarWeights.y > 0.0)
-            val += triplanarWeights.y * UnpackNormalRGB(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZX, param), scale);
+            val += triplanarWeights.y * UnpackNormalRGB(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXZ, param), scale);
         if (triplanarWeights.z > 0.0)
             val += triplanarWeights.z * UnpackNormalRGB(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXY, param), scale);
 

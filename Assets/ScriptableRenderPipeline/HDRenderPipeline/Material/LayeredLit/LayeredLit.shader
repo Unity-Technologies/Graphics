@@ -5,6 +5,8 @@ Shader "HDRenderPipeline/LayeredLit"
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
+        // All the following properties are filled by the referenced lit shader.
+
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
         _BaseColor0("BaseColor0", Color) = (1, 1, 1, 1)
         _BaseColor1("BaseColor1", Color) = (1, 1, 1, 1)
@@ -86,15 +88,12 @@ Shader "HDRenderPipeline/LayeredLit"
         _DetailSmoothnessScale2("_DetailSmoothnessScale2", Range(-2.0, 2.0)) = 1
         _DetailSmoothnessScale3("_DetailSmoothnessScale3", Range(-2.0, 2.0)) = 1
 
-        _DetailHeightScale0("_DetailHeightScale0", Range(-2.0, 2.0)) = 1
-        _DetailHeightScale1("_DetailHeightScale1", Range(-2.0, 2.0)) = 1
-        _DetailHeightScale2("_DetailHeightScale2", Range(-2.0, 2.0)) = 1
-        _DetailHeightScale3("_DetailHeightScale3", Range(-2.0, 2.0)) = 1
+        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace0("NormalMap space", Float) = 0
+        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace1("NormalMap space", Float) = 0
+        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace2("NormalMap space", Float) = 0
+        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace3("NormalMap space", Float) = 0
 
-        _DetailAOScale0("_DetailAOScale0", Range(-2.0, 2.0)) = 1
-        _DetailAOScale1("_DetailAOScale1", Range(-2.0, 2.0)) = 1
-        _DetailAOScale2("_DetailAOScale2", Range(-2.0, 2.0)) = 1
-        _DetailAOScale3("_DetailAOScale3", Range(-2.0, 2.0)) = 1
+        // All the following properties exist only in layered lit material
 
         // Layer blending options
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
@@ -108,20 +107,22 @@ Shader "HDRenderPipeline/LayeredLit"
         _HeightFactor2("_HeightFactor2", Float) = 1
         _HeightFactor3("_HeightFactor3", Float) = 1
 
-        _LayerHeightAmplitude0("_LayerHeightAmplitude0", Float) = 1
-        _LayerHeightAmplitude1("_LayerHeightAmplitude1", Float) = 1
-        _LayerHeightAmplitude2("_LayerHeightAmplitude2", Float) = 1
-        _LayerHeightAmplitude3("_LayerHeightAmplitude3", Float) = 1
+        // Store result of combination of _HeightFactor and _HeightAmplitude0
+        [HideInInspector] _LayerHeightAmplitude0("_LayerHeightAmplitude0", Float) = 1
+        [HideInInspector] _LayerHeightAmplitude1("_LayerHeightAmplitude1", Float) = 1
+        [HideInInspector] _LayerHeightAmplitude2("_LayerHeightAmplitude2", Float) = 1
+        [HideInInspector] _LayerHeightAmplitude3("_LayerHeightAmplitude3", Float) = 1
 
         _HeightCenterOffset0("_HeightCenterOffset0", Float) = 0.0
         _HeightCenterOffset1("_HeightCenterOffset1", Float) = 0.0
         _HeightCenterOffset2("_HeightCenterOffset2", Float) = 0.0
         _HeightCenterOffset3("_HeightCenterOffset3", Float) = 0.0
 
-        _LayerCenterOffset0("_LayerCenterOffset0", Float) = 0.0
-        _LayerCenterOffset1("_LayerCenterOffset1", Float) = 0.0
-        _LayerCenterOffset2("_LayerCenterOffset2", Float) = 0.0
-        _LayerCenterOffset3("_LayerCenterOffset3", Float) = 0.0
+        // Store result of combination of _HeightCenterOffset0 and _HeightCenter0
+        [HideInInspector] _LayerCenterOffset0("_LayerCenterOffset0", Float) = 0.0
+        [HideInInspector] _LayerCenterOffset1("_LayerCenterOffset1", Float) = 0.0
+        [HideInInspector] _LayerCenterOffset2("_LayerCenterOffset2", Float) = 0.0
+        [HideInInspector] _LayerCenterOffset3("_LayerCenterOffset3", Float) = 0.0
 
         _BlendUsingHeight1("_BlendUsingHeight1", Float) = 0.0
         _BlendUsingHeight2("_BlendUsingHeight2", Float) = 0.0
@@ -159,6 +160,17 @@ Shader "HDRenderPipeline/LayeredLit"
         _LayerTiling2("_LayerTiling2", Float) = 1
         _LayerTiling3("_LayerTiling3", Float) = 1
 
+        [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
+
+        [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
+        
+        [ToggleOff]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
+        [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
+        [HideInInspector] _UVMappingPlanarBlendMask("_UVMappingPlanarBlendMask", Float) = 0.0
+        _TexWorldScaleBlendMask("Tiling", Float) = 1.0
+
+        // Following are builtin properties
+
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
@@ -187,23 +199,11 @@ Shader "HDRenderPipeline/LayeredLit"
 
         [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
 
-        [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
-        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
-        [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
-
-        [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
-
-        [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
-        
-        [ToggleOff]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
-        [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
-        [HideInInspector] _UVMappingPlanarBlendMask("_UVMappingPlanarBlendMask", Float) = 0.0
-        _TexWorldScaleBlendMask("Tiling", Float) = 1.0
 
         // WARNING
         // All the following properties that concern the UV mapping are the same as in the Lit shader.
@@ -250,28 +250,41 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _ _DOUBLESIDED _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 
-    #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _LAYER_TILING_UNIFORM_SCALE
     #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_BLENDMASK
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_1
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_2
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_3
-    #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
+    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR0
+    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR1
+    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR2
+    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR3
+    #pragma shader_feature _NORMALMAP_TANGENT_SPACE0
+    #pragma shader_feature _NORMALMAP_TANGENT_SPACE1
+    #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
+    #pragma shader_feature _NORMALMAP_TANGENT_SPACE3
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
-    #pragma shader_feature _NORMALMAP
-    #pragma shader_feature _MASKMAP
-    #pragma shader_feature _SPECULAROCCLUSIONMAP
+    #pragma shader_feature _NORMALMAP0
+    #pragma shader_feature _NORMALMAP1
+    #pragma shader_feature _NORMALMAP2
+    #pragma shader_feature _NORMALMAP3
+    #pragma shader_feature _MASKMAP0
+    #pragma shader_feature _MASKMAP1
+    #pragma shader_feature _MASKMAP2
+    #pragma shader_feature _MASKMAP3
+    #pragma shader_feature _SPECULAROCCLUSIONMAP0
+    #pragma shader_feature _SPECULAROCCLUSIONMAP1
+    #pragma shader_feature _SPECULAROCCLUSIONMAP2
+    #pragma shader_feature _SPECULAROCCLUSIONMAP3
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP0
     #pragma shader_feature _HEIGHTMAP1
     #pragma shader_feature _HEIGHTMAP2
     #pragma shader_feature _HEIGHTMAP3
-    #pragma shader_feature _DETAIL_MAP
+    #pragma shader_feature _DETAIL_MAP0
+    #pragma shader_feature _DETAIL_MAP1
+    #pragma shader_feature _DETAIL_MAP2
+    #pragma shader_feature _DETAIL_MAP3
     #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
     #pragma shader_feature _DENSITY_MODE
@@ -551,5 +564,5 @@ Shader "HDRenderPipeline/LayeredLit"
         }
     }
 
-	CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
+    CustomEditor "Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }
