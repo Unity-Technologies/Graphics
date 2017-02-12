@@ -4,7 +4,7 @@
 //
 // The parameters and inspector of the shader are the same as Standard shader,
 // for easier experimentation.
-Shader "RenderLoop/Basic/Standard"
+Shader "BasicRenderPipeline/Standard"
 {
     // Properties is just a copy of Standard.shader. Our example shader does not use all of them,
     // but the inspector UI expects all these to exist.
