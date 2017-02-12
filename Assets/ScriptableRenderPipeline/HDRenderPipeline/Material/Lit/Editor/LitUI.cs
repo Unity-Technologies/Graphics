@@ -7,12 +7,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class LitGUI : BaseLitGUI
     {
-        public enum SmoothnessMapChannel
-        {
-            MaskAlpha,
-            AlbedoAlpha,
-        }
-
         public enum UVBaseMapping
         {
             UV0,
@@ -30,12 +24,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             Parallax,
             Displacement,
-        }
-
-        public enum DetailMapMode
-        {
-            DetailWithNormal,
-            DetailWithAOHeight,
         }
 
         public enum UVDetailMapping
@@ -60,8 +48,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SpecularColor = 3
         }
 
-        protected MaterialProperty smoothnessMapChannel = null;
-        protected const string kSmoothnessTextureChannel = "_SmoothnessTextureChannel";
         protected MaterialProperty UVBase = null;
         protected const string kUVBase = "_UVBase";
         protected MaterialProperty TexWorldScale = null;
@@ -72,8 +58,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVMappingPlanar = "_UVMappingPlanar";      
         protected MaterialProperty normalMapSpace = null;
         protected const string kNormalMapSpace = "_NormalMapSpace";
-        protected MaterialProperty detailMapMode = null;
-        protected const string kDetailMapMode = "_DetailMapMode";
         protected MaterialProperty UVDetail = null;
         protected const string kUVDetail = "_UVDetail";
         protected MaterialProperty UVDetailsMappingMask = null;
@@ -120,10 +104,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kDetailNormalScale = "_DetailNormalScale";
         protected MaterialProperty detailSmoothnessScale = null;
         protected const string kDetailSmoothnessScale = "_DetailSmoothnessScale";
-        protected MaterialProperty detailHeightScale = null;
-        protected const string kDetailHeightScale = "_DetailHeightScale";
-        protected MaterialProperty detailAOScale = null;
-        protected const string kDetailAOScale = "_DetailAOScale";
 
         protected MaterialProperty emissiveColor = null;
         protected const string kEmissiveColor = "_EmissiveColor";
@@ -145,19 +125,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty thicknessMap         = null;
         protected const string     kThicknessMap        = "_ThicknessMap";
 
-        // These are options that are shared with the LayeredLit shader. Don't put anything that can't be shared here:
-        // For instance, properties like BaseColor and such don't exist in the LayeredLit so don't put them here.
-        protected void FindMaterialOptionProperties(MaterialProperty[] props)
-        {
-            smoothnessMapChannel = FindProperty(kSmoothnessTextureChannel, props);
-            normalMapSpace = FindProperty(kNormalMapSpace, props);                      
-            detailMapMode = FindProperty(kDetailMapMode, props);
-            emissiveColorMode = FindProperty(kEmissiveColorMode, props);
-        }
-
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
-            FindMaterialOptionProperties(props);
+            normalMapSpace = FindProperty(kNormalMapSpace, props);
+            emissiveColorMode = FindProperty(kEmissiveColorMode, props);
 
             baseColor = FindProperty(kBaseColor, props);
             baseColorMap = FindProperty(kBaseColorMap, props);
@@ -186,8 +157,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             detailAlbedoScale = FindProperty(kDetailAlbedoScale, props);
             detailNormalScale = FindProperty(kDetailNormalScale, props);
             detailSmoothnessScale = FindProperty(kDetailSmoothnessScale, props);
-            detailHeightScale = FindProperty(kDetailHeightScale, props);
-            detailAOScale = FindProperty(kDetailAOScale, props);
 
             emissiveColor = FindProperty(kEmissiveColor, props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
@@ -209,8 +178,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
             GUILayout.Label(Styles.InputsOptionsText, EditorStyles.boldLabel);
             m_MaterialEditor.ShaderProperty(materialID, Styles.materialIDText);
-
-            m_MaterialEditor.ShaderProperty(smoothnessMapChannel, Styles.smoothnessMapChannelText);
             m_MaterialEditor.ShaderProperty(UVBase, enableUVDetail ? Styles.UVBaseDetailMappingText : Styles.UVBaseMappingText);
 
             float X, Y, Z, W;
@@ -234,7 +201,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             W = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
             UVDetailsMappingMask.colorValue = new Color(X, Y, Z, W);
 
-            //m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText);
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
             m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText);            
 
@@ -260,22 +226,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         override protected void ShaderInputGUI()
         {
             EditorGUI.indentLevel++;
-            bool smoothnessInAlbedoAlpha = (SmoothnessMapChannel)smoothnessMapChannel.floatValue == SmoothnessMapChannel.AlbedoAlpha;
-            bool useDetailMapWithNormal = (DetailMapMode)detailMapMode.floatValue == DetailMapMode.DetailWithNormal;
             bool useEmissiveMask = (EmissiveColorMode)emissiveColorMode.floatValue == EmissiveColorMode.UseEmissiveMask;
 
             GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
-            m_MaterialEditor.TexturePropertySingleLine(smoothnessInAlbedoAlpha ? Styles.baseColorSmoothnessText : Styles.baseColorText, baseColorMap, baseColor);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
             m_MaterialEditor.ShaderProperty(metallic, Styles.metallicText);
             m_MaterialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
 
-            if (smoothnessInAlbedoAlpha && useEmissiveMask)
-                m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapEText, maskMap);
-            else if (smoothnessInAlbedoAlpha && !useEmissiveMask)
-                m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
-            else if (!smoothnessInAlbedoAlpha && useEmissiveMask)
+            if (useEmissiveMask)
                 m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapESText, maskMap);
-            else if (!smoothnessInAlbedoAlpha && !useEmissiveMask)
+            else
                 m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap);
@@ -311,21 +271,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMaskText, detailMask);               
 
-            if (useDetailMapWithNormal)
-            {
-                m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap);
-            }
-            else
-            {
-                m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapAOHeightText, detailMap);
-            }
+            m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap);
             m_MaterialEditor.TextureScaleOffsetProperty(detailMap);
             EditorGUI.indentLevel++;
             m_MaterialEditor.ShaderProperty(detailAlbedoScale, Styles.detailAlbedoScaleText);
             m_MaterialEditor.ShaderProperty(detailNormalScale, Styles.detailNormalScaleText);
             m_MaterialEditor.ShaderProperty(detailSmoothnessScale, Styles.detailSmoothnessScaleText);
-            //m_MaterialEditor.ShaderProperty(detailHeightScale, Styles.detailHeightScaleText);
-            //m_MaterialEditor.ShaderProperty(detailAOScale, Styles.detailAOScaleText);
             EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();
@@ -361,12 +312,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
-            SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
             bool perPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) == 1.0;
             SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", perPixelDisplacement);
-            SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", ((DetailMapMode)material.GetFloat(kDetailMapMode)) == DetailMapMode.DetailWithNormal);
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
 
 			SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
