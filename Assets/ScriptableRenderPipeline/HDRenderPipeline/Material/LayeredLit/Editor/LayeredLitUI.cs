@@ -165,8 +165,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
-            FindMaterialOptionProperties(props);
-
             layerMaskMap = FindProperty(kLayerMaskMap, props);
             layerCount = FindProperty(kLayerCount, props);
             vertexColorMode = FindProperty(kVertexColorMode, props);
@@ -240,9 +238,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // This function will look for all referenced lit material, and assign value from Lit to layered lit layers.
+        // This is based on the naming of the variables, i.E BaseColor will match BaseColor0, if a properties shouldn't be override
+        // put the name in the exclusionList below
         static void SynchronizeLayerProperties(Material material, Material[] layers, int layerIndex)
         {
-            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVMappingPlanar, kUVDetailsMappingMask };
+            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVMappingPlanar, kUVDetail, kUVDetailsMappingMask };
 
             Material layerMaterial = layers[layerIndex];
 
@@ -292,6 +293,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // We use the user data to save a string that represent the referenced lit material
+        // so we can keep reference during serialization
         static void InitializeMaterialLayers(AssetImporter materialImporter, ref Material[] layers)
         {
             if (materialImporter.userData != string.Empty)
@@ -319,189 +322,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             materialImporter.userData = JsonUtility.ToJson(layersGUID);
-        }
-
-        bool CheckInputOptionConsistency(string optionName, string[] shortNames, ref string outValueNames)
-        {
-            bool result = true;
-            outValueNames = "";
-            for (int i = 0; i < numLayer; ++i)
-            {
-                Material layer = m_MaterialLayers[i];
-                if (layer != null)
-                {
-                    int currentValue = (int)layer.GetFloat(optionName); // All options are in fact enums
-                    Debug.Assert(currentValue < shortNames.Length);
-                    outValueNames += shortNames[currentValue] + "    ";
-
-                    for (int j = i + 1; j < numLayer; ++j)
-                    {
-                        Material otherLayer = m_MaterialLayers[j];
-                        if (otherLayer != null)
-                        {
-                            if (currentValue != (int)otherLayer.GetFloat(optionName))
-                            {
-                                result = false;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    outValueNames += "X    ";
-                }
-            }
-
-            return result;
-        }
-
-        bool CheckInputFloatOptionConsistency(string optionName, ref string outValueNames)
-        {
-            bool result = true;
-            outValueNames = "";
-            for (int i = 0; i < numLayer; ++i)
-            {
-                Material layer = m_MaterialLayers[i];
-                if (layer != null)
-                {
-                    float currentValue = layer.GetFloat(optionName);
-
-                    for (int j = i + 1; j < numLayer; ++j)
-                    {
-                        Material otherLayer = m_MaterialLayers[j];
-                        if (otherLayer != null)
-                        {
-                            if (currentValue != otherLayer.GetFloat(optionName))
-                            {
-                                result = false;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    outValueNames += "X    ";
-                }
-            }
-
-            return result;
-        }
-
-        bool CheckInputMapConsistency(string mapName, ref string outValueNames)
-        {
-            bool result = true;
-            outValueNames = "";
-            for (int i = 0; i < numLayer; ++i)
-            {
-                Material layer = m_MaterialLayers[i];
-                if (layer != null)
-                {
-                    bool currentValue = layer.GetTexture(mapName) != null;
-                    outValueNames += (currentValue ? "Y" : "N") + "    ";
-
-                    for (int j = i + 1; j < numLayer; ++j)
-                    {
-                        Material otherLayer = m_MaterialLayers[j];
-                        if (otherLayer != null)
-                        {
-                            bool otherValue = otherLayer.GetTexture(mapName) != null;
-                            if (currentValue != otherValue)
-                            {
-                                result = false;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    outValueNames += "N    ";
-                }
-            }
-
-            return result;
-        }
-
-        void CheckLayerConsistency()
-        {
-            string optionValueNames = "";
-            // We need to check consistency between all layers.
-            // Each input options and each input maps can result in different #defines in the shader so all of them need to be consistent
-            // otherwise the result will be undetermined
-
-            // Input options consistency
-            string[] smoothnessSourceShortNames = { "Mask", "Albedo" };
-            string[] normalMapShortNames = { "Tan", "Obj" };
-            string[] detailModeShortNames = { "DNormal", "DAOHeight" };
-
-            string warningInputOptions = "";
-            if (!CheckInputOptionConsistency(kSmoothnessTextureChannel, smoothnessSourceShortNames, ref optionValueNames))
-            {
-                warningInputOptions += "Smoothness Source:    " + optionValueNames + "\n";
-            }
-            if (!CheckInputOptionConsistency(kNormalMapSpace, normalMapShortNames, ref optionValueNames))
-            {
-                warningInputOptions += "Normal Map Space:    " + optionValueNames + "\n";
-            }
-            if (!CheckInputOptionConsistency(kDetailMapMode, detailModeShortNames, ref optionValueNames))
-            {
-                warningInputOptions += "Detail Map Mode:    " + optionValueNames + "\n";
-            }
-
-            if (warningInputOptions != string.Empty)
-            {
-                warningInputOptions = "Input Option Consistency Error:\n" + warningInputOptions;
-            }
-
-            // Check input maps consistency
-            string warningInputMaps = "";
-
-            if (!CheckInputMapConsistency(kNormalMap, ref optionValueNames))
-            {
-                warningInputMaps += "Normal Map:    " + optionValueNames + "\n";
-            }
-            if (!CheckInputMapConsistency(kDetailMap, ref optionValueNames))
-            {
-                warningInputMaps += "Detail Map:    " + optionValueNames + "\n";
-            }
-            if (!CheckInputMapConsistency(kMaskMap, ref optionValueNames))
-            {
-                warningInputMaps += "Mask Map:    " + optionValueNames + "\n";
-            }
-            if (!CheckInputMapConsistency(kSpecularOcclusionMap, ref optionValueNames))
-            {
-                warningInputMaps += "Specular Occlusion Map:    " + optionValueNames + "\n";
-            }
-
-            if (warningInputMaps != string.Empty)
-            {
-                warningInputMaps = "Input Maps Consistency Error:\n" + warningInputMaps;
-                if (warningInputOptions != string.Empty)
-                    warningInputMaps = "\n" + warningInputMaps;
-            }
-
-            string warning = warningInputOptions + warningInputMaps;
-            if (warning != string.Empty)
-            {
-                EditorGUILayout.HelpBox(warning, MessageType.Error);
-            }
-        }
-
-        void SynchronizeInputOptions()
-        {
-            Material material = m_MaterialEditor.target as Material;
-
-            // We synchronize input options with the firsts non null Layer (all layers should have consistent options)
-            Material firstLayer = null;
-            int i = 0;
-            while (i < numLayer && !(firstLayer = m_MaterialLayers[i])) ++i;
-
-            if (firstLayer != null)
-            {
-                material.SetFloat(kSmoothnessTextureChannel, firstLayer.GetFloat(kSmoothnessTextureChannel));
-                material.SetFloat(kNormalMapSpace, firstLayer.GetFloat(kNormalMapSpace));
-                // Force emissive to be emissive color
-                material.SetFloat(kEmissiveColorMode, (float)EmissiveColorMode.UseEmissiveColor);
-            }
         }
 
         bool DoLayerGUI(AssetImporter materialImporter, int layerIndex)
@@ -713,28 +533,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected override void SetupMaterialKeywords(Material material)
         {
             SetupCommonOptionsKeywords(material);
-            SetupLayersKeywords(material);
+            SetupLayersMappingKeywords(material);
 
-            // Find first non null layer
-            int i = 0;
-            while (i < numLayer && (m_MaterialLayers[i] == null)) ++i;
-
-            if (i < numLayer)
+            for (int i = 0; i < kMaxLayerCount; ++i)
             {
-                SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap + i));
-                SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap + i));
-                SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap + i));
-                SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap + i));
+                SetKeyword(material, "_NORMALMAP_TANGENT_SPACE" + i, ((NormalMapSpace)material.GetFloat(kNormalMapSpace + i)) == NormalMapSpace.TangentSpace);
 
-                SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", ((DetailMapMode)material.GetFloat(kDetailMapMode)) == DetailMapMode.DetailWithNormal);
-                SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
-                SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
+                SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMap + i));
+
+                SetKeyword(material, "_MASKMAP" + i, material.GetTexture(kMaskMap + i));
+
+                SetKeyword(material, "_SPECULAROCCLUSIONMAP" + i, material.GetTexture(kSpecularOcclusionMap + i));
+
+                SetKeyword(material, "_DETAIL_MAP" + i, material.GetTexture(kDetailMap + i));
+
+                SetKeyword(material, "_HEIGHTMAP0" + i, material.GetTexture(kHeightMap + i));
             }
-
-            SetKeyword(material, "_HEIGHTMAP0", material.GetTexture(kHeightMap + 0));
-            SetKeyword(material, "_HEIGHTMAP1", material.GetTexture(kHeightMap + 1));
-            SetKeyword(material, "_HEIGHTMAP2", material.GetTexture(kHeightMap + 2));
-            SetKeyword(material, "_HEIGHTMAP3", material.GetTexture(kHeightMap + 3));
 
             bool perPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) == 1.0;
             SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", perPixelDisplacement);
@@ -765,48 +579,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool useDensityModeEnable = material.GetFloat(kUseDensityMode) != 0.0f;
             SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
-            
-
-            // We have to check for each layer if the UV2 or UV3 is needed.
-            bool needUV3 = false;
-            bool needUV2 = false;
-            for (int layer = 0; layer < numLayer; ++layer)
-            {
-                string uvBase = string.Format("{0}{1}", kUVBase, layer);
-                string uvDetail = string.Format("{0}{1}", kUVDetail, layer);
-
-                if (    ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) ||
-                        ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV2) )
-                {
-                    needUV2 = true;
-                }
-
-                if (    ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
-                        ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV3) )
-                {
-                    needUV3 = true;
-                    break; // If we find it UV3 let's early out
-                }
-            }
-
-            if (needUV3)
-            {
-                material.DisableKeyword("_REQUIRE_UV2");
-                material.EnableKeyword("_REQUIRE_UV3");
-            }
-            else if (needUV2)
-            {
-                material.EnableKeyword("_REQUIRE_UV2");
-                material.DisableKeyword("_REQUIRE_UV3");
-            }
-            else
-            {
-                material.DisableKeyword("_REQUIRE_UV2");
-                material.DisableKeyword("_REQUIRE_UV3");
-            }
         }
 
-        void SetupLayersKeywords(Material material)
+        void SetupLayersMappingKeywords(Material material)
         {
             // object scale affect tile
             SetKeyword(material, "_LAYER_TILING_UNIFORM_SCALE", material.GetFloat(kObjectScaleAffectTile) > 0.0f);
@@ -833,7 +608,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
             }
 
-            const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR_";
+            const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR";
+
+            // We have to check for each layer if the UV2 or UV3 is needed.
+            bool needUV3 = false;
+            bool needUV2 = false;
 
             for (int i = 0 ; i < numLayer; ++i)
             {
@@ -860,6 +639,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Z = (layerUVDetailMapping == UVDetailMapping.UV2) ? 1.0f : 0.0f;
                 W = (layerUVDetailMapping == UVDetailMapping.UV3) ? 1.0f : 0.0f;
                 layerUVDetailsMappingMask[i].colorValue = new Color(X, Y, Z, W);
+
+                string uvBase = string.Format("{0}{1}", kUVBase, i);
+                string uvDetail = string.Format("{0}{1}", kUVDetail, i);
+
+                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) ||
+                    ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV2))
+                {
+                    needUV2 = true;
+                }
+
+                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
+                    ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV3))
+                {
+                    needUV3 = true;
+                    break; // If we find it UV3 let's early out
+                }
+            }
+
+            if (needUV3)
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.EnableKeyword("_REQUIRE_UV3");
+            }
+            else if (needUV2)
+            {
+                material.EnableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
+            }
+            else
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
             }
         }
 
@@ -899,12 +710,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(horizonFade, Styles.horizonFadeText);
             EditorGUI.indentLevel--;
 
-            CheckLayerConsistency();
-
             if (layerChanged || optionsChanged)
             {
-                SynchronizeInputOptions();
-
                 foreach (var obj in m_MaterialEditor.targets)
                 {
                     SetupMaterialKeywords((Material)obj);

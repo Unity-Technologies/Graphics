@@ -53,8 +53,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness scale factor");
             public static GUIContent maskMapESText = new GUIContent("Mask Map - M(R), AO(G), E(B), S(A)", "Mask map");
-            public static GUIContent maskMapEText = new GUIContent("Mask Map - M(R), AO(G), E(B)", "Mask map");
-            public static GUIContent maskMapText = new GUIContent("Mask Map - M(R), AO(G)", "Mask map");
             public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), S(A)", "Mask map");
 
             public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
@@ -70,7 +68,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (B)", "Anisotropy");
 
             public static GUIContent detailMapNormalText = new GUIContent("Detail Map A(R) Ny(G) S(B) Nx(A)", "Detail Map");
-            public static GUIContent detailMapAOHeightText = new GUIContent("Detail Map  A(R) AO(G) S(B) H(A)", "Detail Map");
             public static GUIContent detailMaskText = new GUIContent("Detail Mask (G)", "Mask for detailMap");
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");

@@ -5,8 +5,8 @@ struct LayerUV
     bool isPlanar; // mutually exclusive with isTriplanar
     // triplanar
     bool isTriplanar;
-    float2 uvYZ;
-    float2 uvZX;
+    float2 uvZY;
+    float2 uvXZ;
     float2 uvXY;
 };
 
