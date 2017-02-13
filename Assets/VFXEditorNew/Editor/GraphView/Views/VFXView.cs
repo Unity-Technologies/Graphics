@@ -52,6 +52,8 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(VFXDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
 
             AddStyleSheetPath("VFXView");
+
+            Dirty(ChangeType.Transform);
         }
 
         void AddVFXContext(Vector2 pos,VFXContextDesc desc)

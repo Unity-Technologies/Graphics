@@ -175,7 +175,12 @@ namespace UnityEditor.VFX.UI
             if (different)
                 m_GUIStyles.Reset();
 
-            m_Property.OnGUI(m_Presenter, ref m_PropertyInfo, m_GUIStyles);
+            bool changed = m_Property.OnGUI(m_Presenter, ref m_PropertyInfo, m_GUIStyles);
+
+            if( changed )
+            {
+                Dirty(ChangeType.Transform|ChangeType.Repaint);
+            }
 
             if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
             {

@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXPropertyIM
     {
-        public abstract void OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles);
+        public abstract bool OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles);
 
 
         public const float kLabelWidth = 70;
@@ -72,7 +72,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXPropertyIM<T> : VFXPropertyIM
     {
-        public override void OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        public override bool OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
         {
 
             EditorGUI.BeginChangeCheck();
@@ -95,8 +95,12 @@ namespace UnityEditor.VFX.UI
                 {
                     presenter.PropertyValueChanged(ref infos);
                 }
+                return true;
             }
-
+            else
+            {
+                return false;
+            }
         }
 
 
@@ -108,9 +112,11 @@ namespace UnityEditor.VFX.UI
 
     class VFXDefaultPropertyIM : VFXPropertyIM
     {
-        public override void OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        public override bool OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
         {
             Label(ref infos,styles);
+
+            return false;
         }
 
     }

@@ -123,6 +123,7 @@ namespace UnityEditor.VFX.UI
             {
                 AddDataAnchor(prop);
             }
+            m_DirtyHack = !m_DirtyHack;
         }
 
         public void RetractPath(string fieldPath)
@@ -137,6 +138,8 @@ namespace UnityEditor.VFX.UI
             {
                 m_Anchors.Remove(remove);
             }
+
+            m_DirtyHack = !m_DirtyHack;
         }
 
         public IEnumerable<PropertyInfo> GetProperties()
@@ -206,7 +209,10 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+        [SerializeField]
+        bool m_DirtyHack;//because serialization doesn't work with the below dictionary
 
+        [SerializeField]
         private Dictionary<string, VFXDataInputAnchorPresenter> m_Anchors = new Dictionary<string, VFXDataInputAnchorPresenter>();
 
         [SerializeField]
