@@ -57,23 +57,23 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX
     if (useBias)
     {
-        normalTS = SAMPLE_LAYER_NORMALMAP_BIAS(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale), bias);
+        normalTS = SAMPLE_LAYER_NORMALMAP_BIAS(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale), bias);
     }
     else
     {
-        normalTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
+        normalTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
     }            
     #else // Object space
     // to be able to combine object space normal with detail map we transform it to tangent space (object space normal composition is complex operation).
     // then later we will re-transform it to world space.
     if (useBias)
     {
-        float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB_BIAS(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale), bias).rgb;
+        float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB_BIAS(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale), bias).rgb;
         normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
     }
     else
     {
-        float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB(ADD_IDX(_NormalMap), ADD_ZERO_IDX(sampler_NormalMap), ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale)).rgb;
+        float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale)).rgb;
         normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
     }
     #endif
@@ -114,13 +114,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
     float detailMask = 0.0;
 #ifdef _DETAIL_MAP_IDX
-    detailMask = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_DetailMask), ADD_ZERO_IDX(sampler_DetailMask), ADD_IDX(layerTexCoord.base)).g;
-    float2 detailAlbedoAndSmoothness = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_DetailMap), ADD_ZERO_IDX(sampler_DetailMap), ADD_IDX(layerTexCoord.details)).rb;
+    detailMask = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_DetailMask), SAMPLER_DETAILMASK_IDX, ADD_IDX(layerTexCoord.base)).g;
+    float2 detailAlbedoAndSmoothness = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details)).rb;
     float detailAlbedo = detailAlbedoAndSmoothness.r;
     float detailSmoothness = detailAlbedoAndSmoothness.g;
     // Resample the detail map but this time for the normal map. This call should be optimize by the compiler
     // We split both call due to trilinear mapping
-    detailNormalTS = SAMPLE_LAYER_NORMALMAP_AG(ADD_IDX(_DetailMap), ADD_ZERO_IDX(sampler_DetailMap), ADD_IDX(layerTexCoord.details), ADD_ZERO_IDX(_DetailNormalScale));
+    detailNormalTS = SAMPLE_LAYER_NORMALMAP_AG(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details), ADD_ZERO_IDX(_DetailNormalScale));
 #endif
 
     surfaceData.baseColor = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgb * ADD_IDX(_BaseColor).rgb;
@@ -130,7 +130,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
 #ifdef _SPECULAROCCLUSIONMAP_IDX
     // TODO: Do something. For now just take alpha channel
-    surfaceData.specularOcclusion = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_SpecularOcclusionMap), ADD_ZERO_IDX(sampler_SpecularOcclusionMap), ADD_IDX(layerTexCoord.base)).a;
+    surfaceData.specularOcclusion = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_SpecularOcclusionMap), SAMPLER_SPECULAROCCLUSIONMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
 #else
     // The specular occlusion will be perform outside the internal loop
     surfaceData.specularOcclusion = 1.0;
@@ -141,7 +141,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailMask, false, 0.0);
 
 #if defined(_MASKMAP_IDX)
-    surfaceData.perceptualSmoothness = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_MaskMap), ADD_ZERO_IDX(sampler_MaskMap), ADD_IDX(layerTexCoord.base)).a;
+    surfaceData.perceptualSmoothness = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
 #else
     surfaceData.perceptualSmoothness = 1.0;
 #endif
@@ -152,8 +152,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     // MaskMap is RGBA: Metallic, Ambient Occlusion (Optional), emissive Mask (Optional), Smoothness
 #ifdef _MASKMAP_IDX
-    surfaceData.metallic = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_MaskMap), ADD_ZERO_IDX(sampler_MaskMap), ADD_IDX(layerTexCoord.base)).r;
-    surfaceData.ambientOcclusion = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_MaskMap), ADD_ZERO_IDX(sampler_MaskMap), ADD_IDX(layerTexCoord.base)).g;
+    surfaceData.metallic = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+    surfaceData.ambientOcclusion = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).g;
 #else
     surfaceData.metallic = 1.0;
     surfaceData.ambientOcclusion = 1.0;
