@@ -23,7 +23,6 @@
 // TODO: Remove this once we've moved over to the new system. Also delete the undef at the bottom again.
 #define ShadowData ShadowDataExp
 
-//#include "Assets/ScriptableRenderLoop/HDRenderPipeline/Lighting/LightDefinition.cs.hlsl" // <- needed for GPULIGHTTYPE defines
 #include "ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
 #include "ShadowTexFetch.hlsl"	// Resource sampling definitions (don't modify)
 

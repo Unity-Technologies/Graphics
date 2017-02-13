@@ -1551,7 +1551,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
             public override void RenderShadows( ScriptableRenderContext renderContext, CullResults cullResults )
-			{
+            {
 #if (SHADOWS_ENABLED)
                 // kick off the shadow jobs here
                 m_ShadowMgr.RenderShadows( m_frameId, renderContext, cullResults, cullResults.visibleLights );
@@ -1568,7 +1568,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetKeyword(m_DeferredAllMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
                 Utilities.SetKeyword(m_SingleDeferredMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
                 Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-			}
+            }
 
             public override void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
                                                         LightingDebugParameters lightDebugParameters,
