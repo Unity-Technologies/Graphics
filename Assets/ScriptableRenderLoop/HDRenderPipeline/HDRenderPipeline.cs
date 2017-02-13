@@ -408,7 +408,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void PushGlobalParams(HDCamera hdCamera, ScriptableRenderContext renderContext)
+        public void PushGlobalParams(HDCamera hdCamera, ScriptableRenderContext renderContext, SubsurfaceScatteringParameters sssParameters)
         {
             if (m_SkyManager.IsSkyValid())
             {
@@ -419,6 +419,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
             }
+
+            // Broadcast SSS parameters to all shaders.
+            Shader.SetGlobalInt("_TransmittanceFlags", sssParameters.transmittanceFlags);
+            Shader.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
 
             var cmd = new CommandBuffer {name = "Push Global Parameters"};
 
@@ -530,7 +534,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            PushGlobalParams(hdCamera, renderContext);
+            PushGlobalParams(hdCamera, renderContext, m_Owner.sssParameters);
 
             // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
             // must be call after BuildGPULightLists.

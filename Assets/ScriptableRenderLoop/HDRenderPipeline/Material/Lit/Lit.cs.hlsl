@@ -51,8 +51,10 @@
 #define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_RADIUS (1042)
 #define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1043)
 #define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE (1044)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1045)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1046)
+#define DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMITTANCE (1045)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1046)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1047)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1048)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit.GBufferMaterial:  static fields
@@ -100,6 +102,8 @@ struct BSDFData
 	float subsurfaceRadius;
 	float thickness;
 	int subsurfaceProfile;
+	bool enableTransmittance;
+	float3 transmittance;
 	float3 coatNormalWS;
 	float coatRoughness;
 };
