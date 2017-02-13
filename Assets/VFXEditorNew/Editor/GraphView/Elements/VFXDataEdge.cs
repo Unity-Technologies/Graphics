@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.UI
                 edgeColor.b += 0.3f;
             }
 
-            Orientation orientation = Orientation.Vertical;
+            Orientation orientation = Orientation.Horizontal;
 			Vector3[] points, tangents;
 			GetTangents(orientation, from, to, out points, out tangents);
 			Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 2f);
