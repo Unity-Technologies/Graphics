@@ -198,11 +198,17 @@ namespace UnityEditor.VFX.UI
             }
             m_PropertyInfo = info;
 
-            if( m_SlotIcon == null)
+
+            VFXDataAnchorPresenter presenter = m_Presenter.GetPropertyPresenter(ref info);
+            if ( m_SlotIcon == null)
             {
-                m_SlotIcon = VFXDataAnchor.Create<VFXDataEdgePresenter>(m_Presenter.GetPropertyPresenter(ref info));
+                m_SlotIcon = VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter);
                 m_Slot.AddChild(m_SlotIcon);
             }
+
+            m_SlotIcon.presenter = presenter;
+
+            Dirty(ChangeType.Transform|ChangeType.Repaint);
         }
         
     }

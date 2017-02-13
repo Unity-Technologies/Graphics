@@ -33,6 +33,9 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
             m_ConnectorText.content.text = "";
+
+            // reverse because we want the flex to choose the position of the connector
+            presenter.position = position;
         }
 
     }

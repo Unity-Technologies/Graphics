@@ -113,6 +113,8 @@ namespace UnityEditor.VFX.UI
                 fi.SetValue(prev, current);
             }
 
+            m_DirtyHack = !m_DirtyHack;
+
         }
         public void ExpandPath(string fieldPath)
         {
