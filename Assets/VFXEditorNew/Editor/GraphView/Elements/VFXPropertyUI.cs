@@ -200,15 +200,16 @@ namespace UnityEditor.VFX.UI
 
 
             VFXDataAnchorPresenter presenter = m_Presenter.GetPropertyPresenter(ref info);
-            if ( m_SlotIcon == null)
+            if (m_SlotIcon == null)
             {
                 m_SlotIcon = VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter);
                 m_Slot.AddChild(m_SlotIcon);
             }
-
-            m_SlotIcon.presenter = presenter;
-
-            Dirty(ChangeType.Transform|ChangeType.Repaint);
+            else
+            {
+                m_SlotIcon.presenter = presenter;
+                Dirty(ChangeType.Repaint|ChangeType.Transform);
+            }
         }
         
     }

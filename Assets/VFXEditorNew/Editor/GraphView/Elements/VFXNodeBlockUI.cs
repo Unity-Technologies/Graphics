@@ -125,7 +125,6 @@ namespace UnityEditor.VFX.UI
 
 
             int cpt = 0;
-
             foreach (VFXNodeBlockPresenter.PropertyInfo propertyInfo in presenter.GetProperties())
             {
                 if( m_PropertiesUI.Count <= cpt)
@@ -137,6 +136,7 @@ namespace UnityEditor.VFX.UI
                 m_PropertiesUI[cpt++].DataChanged(this,propertyInfo);
 
             }
+
             while (cpt < m_PropertiesUI.Count)
             {
                 RemoveChild(m_PropertiesUI[m_PropertiesUI.Count - 1]);

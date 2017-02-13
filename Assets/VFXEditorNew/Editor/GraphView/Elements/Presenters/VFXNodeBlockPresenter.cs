@@ -134,7 +134,7 @@ namespace UnityEditor.VFX.UI
             m_Model.RetractPath(fieldPath);
 
 
-            var toRemove = m_Anchors.Keys.Where(t => t.StartsWith(fieldPath)).ToArray();
+            var toRemove = m_Anchors.Keys.Where(t => t != fieldPath && t.StartsWith(fieldPath)).ToArray();
 
             foreach(var remove in toRemove)
             {
