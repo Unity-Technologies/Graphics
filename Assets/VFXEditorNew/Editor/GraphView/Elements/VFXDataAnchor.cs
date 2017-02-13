@@ -21,21 +21,38 @@ namespace UnityEditor.VFX.UI
             switch(presenter.direction)
             {
                 case Direction.Input:
-                    classList = new ClassList("InputEdgeConnector");
+                    AddToClassList("InputEdgeConnector");
                     break;
                 case Direction.Output:
-                    classList = new ClassList("OutputEdgeConnector");
+                    AddToClassList("OutputEdgeConnector");
                     break;
             }
         }
+
+
+
 
         public override void OnDataChanged()
         {
             base.OnDataChanged();
             m_ConnectorText.content.text = "";
 
+            NodeAnchorPresenter presenter = GetPresenter<NodeAnchorPresenter>();
+
             // reverse because we want the flex to choose the position of the connector
             presenter.position = position;
+
+
+            if (presenter.connected)
+                AddToClassList("connected");
+            else
+                RemoveFromClassList("connected");
+
+            // update the css type of the class
+            RemoveFromClassList(VFXTypeDefinition.GetTypeCSSClasses());
+            AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
+
+
         }
 
     }

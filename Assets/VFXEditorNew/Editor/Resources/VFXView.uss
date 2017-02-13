@@ -164,7 +164,7 @@ VFXPropertyUI .slot > VFXDataAnchor
 	width:8;
 	height:8;
 	margin-left:-7;
-	border-color: #555;
+	-border-color: #555;
 	border-width: 1;
 	border-radius: 4;
 }
@@ -176,7 +176,6 @@ VFXPropertyUI .slot > VFXDataAnchor *
 
 VFXNodeBlockUI.selected VFXPropertyUI .slot > *
 {
-	border-color: #606060;
 	background-color: #454545;
 }
 VFXPropertyUI > IMGUIContainer
@@ -186,10 +185,55 @@ VFXPropertyUI > IMGUIContainer
 
 VFXDataEdge
 {
-	float-color : #9f80e6;
-	vector2-color : #8fc1df;
-	vector3-color : #e7ab21;
-	vector4-color : #42ca48;
-	color-color : #d1d1d1;
-	object-color : #787878;
+	border-color : #FFF;
+}
+
+.typesingle
+{
+	border-color : #9f80e6;
+}
+.typevector2
+{
+	border-color : #8fc1df;
+}
+.typevector3
+{
+	border-color : #e7ab21;
+}
+.typevector4
+{
+	border-color : #42ca48;
+}
+.typecolor
+{
+	border-color : #d1d1d1;
+}
+.typeobject
+{
+	border-color : #787878;
+}
+
+VFXDataAnchor.typesingle.connected
+{
+	background-color : #9f80e6;
+}
+VFXDataAnchor.typevector2.connected
+{
+	background-color : #8fc1df;
+}
+VFXDataAnchor.typevector3.connected
+{
+	background-color : #e7ab21;
+}
+VFXDataAnchor.typevector4.connected
+{
+	background-color : #42ca48;
+}
+VFXDataAnchor.typecolor.connected
+{
+	background-color : #d1d1d1;
+}
+VFXDataAnchor.typeobject.connected
+{
+	background-color : #787878;
 }
