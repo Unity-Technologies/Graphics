@@ -16,11 +16,13 @@ namespace UnityEditor.VFX.UI
 
         static VFXTypeDefinition()
         {
-            cssClasses = new string[potentialTypes.Length];
+            cssClasses = new string[potentialTypes.Length+1];
             for(int i = 0; i < potentialTypes.Length; ++i)
             {
                 cssClasses[i] = "type" + potentialTypes[i].Name.ToLower();
             }
+
+            cssClasses[potentialTypes.Length] = "typeStruct";
         }
         public static string GetTypeCSSClass(Type type )
         {
@@ -43,6 +45,10 @@ namespace UnityEditor.VFX.UI
             {
                 if (potentialTypes[i].IsAssignableFrom(type))
                     return i;
+            }
+            if( type.IsValueType && ! type.IsPrimitive && ! type.IsEnum)
+            {
+                return potentialTypes.Length - 1;
             }
             return -1;
         }

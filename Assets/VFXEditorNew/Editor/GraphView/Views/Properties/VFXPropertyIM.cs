@@ -10,7 +10,37 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXPropertyIM
     {
-        public abstract bool OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles);
+        public bool OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            bool savedExpanded = infos.expanded;
+
+            DoOnGUI(presenter, ref infos,styles);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (savedExpanded != infos.expanded)
+                    if (infos.expanded)
+                    {
+                        presenter.ExpandPath(infos.path);
+                    }
+                    else
+                    {
+                        presenter.RetractPath(infos.path);
+                    }
+                else
+                {
+                    presenter.PropertyValueChanged(ref infos);
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        protected abstract void DoOnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles);
 
 
         public const float kLabelWidth = 70;
@@ -72,35 +102,11 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXPropertyIM<T> : VFXPropertyIM
     {
-        public override bool OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        protected override void DoOnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
         {
 
-            EditorGUI.BeginChangeCheck();
-
-            bool savedExpanded = infos.expanded;
             infos.value = OnParameterGUI(ref infos, (T)infos.value, styles);
 
-            if (EditorGUI.EndChangeCheck())
-            {
-                if (savedExpanded != infos.expanded)
-                    if (infos.expanded)
-                    {
-                        presenter.ExpandPath(infos.path);
-                    }
-                    else
-                    {
-                        presenter.RetractPath(infos.path);
-                    }
-                else
-                {
-                    presenter.PropertyValueChanged(ref infos);
-                }
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
 
 
@@ -112,11 +118,13 @@ namespace UnityEditor.VFX.UI
 
     class VFXDefaultPropertyIM : VFXPropertyIM
     {
-        public override bool OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        protected override void DoOnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
         {
-            Label(ref infos,styles);
 
-            return false;
+            GUILayout.BeginHorizontal();
+            Label(ref infos,styles);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
         }
 
     }

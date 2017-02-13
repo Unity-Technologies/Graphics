@@ -174,10 +174,6 @@ VFXPropertyUI .slot > VFXDataAnchor *
 	height:8;
 }
 
-VFXNodeBlockUI.selected VFXPropertyUI .slot > *
-{
-	background-color: #454545;
-}
 VFXPropertyUI > IMGUIContainer
 {
 	flex:1;

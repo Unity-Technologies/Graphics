@@ -103,8 +103,12 @@ namespace UnityEditor.VFX.UI
 
                 GUIStyle typeStyle = new GUIStyle(baseStyle);
                 typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_plus");
+                if(typeStyle.normal.background == null)
+                    typeStyle.normal.background = Resources.Load<Texture2D>("VFX/Default_plus");
                 typeStyle.active.background = typeStyle.focused.background = null;
                 typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_minus");
+                if (typeStyle.onNormal.background == null)
+                    typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/Default_minus");
                 typeStyle.border.top = 0;
                 typeStyle.border.left = 0;
                 typeStyle.border.bottom = typeStyle.border.right = 0;
@@ -127,6 +131,8 @@ namespace UnityEditor.VFX.UI
 
                 GUIStyle typeStyle = new GUIStyle(baseStyle);
                 typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name);
+                if (typeStyle.normal.background == null)
+                    typeStyle.normal.background = Resources.Load<Texture2D>("VFX/Default");
                 typeStyle.active.background = typeStyle.focused.background = null;
                 typeStyle.border.top = 0;
                 typeStyle.border.left = 0;
