@@ -216,7 +216,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.subsurfaceProfile = _SubsurfaceProfile;
 #ifdef _Subsurface_RADIUS_MAP
-	surfaceData.subsurfaceProfile = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_SubsurfaceRadiusMap), ADD_ZERO_IDX(sampler_SubsurfaceRadiusMap), ADD_IDX(layerTexCoord.base)).r;
+	surfaceData.subsurfaceRadius = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_SubsurfaceRadiusMap), ADD_ZERO_IDX(sampler_SubsurfaceRadiusMap), ADD_IDX(layerTexCoord.base)).r;
 #else
     surfaceData.subsurfaceRadius = _SubsurfaceRadius;
 #endif
