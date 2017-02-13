@@ -3,7 +3,7 @@
 --- !u!30 &1
 GraphicsSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 11
+  serializedVersion: 12
   m_Deferred:
     m_Mode: 0
     m_Shader: {fileID: 0}
@@ -38,6 +38,7 @@ GraphicsSettings:
   - {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
   - {fileID: 16000, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 16001, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
   m_PreloadedShaders: []
   m_SpritesDefaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000,
     type: 0}
@@ -48,13 +49,14 @@ GraphicsSettings:
   m_DefaultRenderingPath: 1
   m_DefaultMobileRenderingPath: 1
   m_TierSettings:
-  - serializedVersion: 3
+  - serializedVersion: 4
     m_BuildTarget: 1
     m_Tier: 0
     m_Settings:
       standardShaderQuality: 2
       renderingPath: 1
       hdrMode: 1
+      realtimeGICPUUsage: 25
       useReflectionProbeBoxProjection: 1
       useReflectionProbeBlending: 1
       useHDR: 1
@@ -62,13 +64,14 @@ GraphicsSettings:
       useCascadedShadowMaps: 1
       useDitherMaskForAlphaBlendedShadows: 1
     m_Automatic: 0
-  - serializedVersion: 3
+  - serializedVersion: 4
     m_BuildTarget: 1
     m_Tier: 1
     m_Settings:
       standardShaderQuality: 2
       renderingPath: 1
       hdrMode: 1
+      realtimeGICPUUsage: 25
       useReflectionProbeBoxProjection: 1
       useReflectionProbeBlending: 1
       useHDR: 1
@@ -76,13 +79,14 @@ GraphicsSettings:
       useCascadedShadowMaps: 1
       useDitherMaskForAlphaBlendedShadows: 1
     m_Automatic: 0
-  - serializedVersion: 3
+  - serializedVersion: 4
     m_BuildTarget: 1
     m_Tier: 2
     m_Settings:
       standardShaderQuality: 2
       renderingPath: 1
       hdrMode: 1
+      realtimeGICPUUsage: 50
       useReflectionProbeBoxProjection: 1
       useReflectionProbeBlending: 1
       useHDR: 1
