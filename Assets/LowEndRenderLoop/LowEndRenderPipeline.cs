@@ -85,7 +85,6 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         m_ShadowSettings.shadowAtlasWidth = m_Asset.ShadowAtlasResolution;
         m_ShadowSettings.shadowAtlasHeight = m_Asset.ShadowAtlasResolution;
         m_ShadowSettings.maxShadowDistance = QualitySettings.shadowDistance;
-        m_ShadowSettings.maxShadowLightsSupported = 1;
 
         switch (m_ShadowSettings.directionalLightCascadeCount)
         {
