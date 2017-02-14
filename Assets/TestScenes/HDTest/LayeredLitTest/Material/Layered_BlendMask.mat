@@ -12,6 +12,8 @@ Material:
     _DISTORTIONONLY_OFF _EMISSION _EMISSIVE_COLOR _LAYEREDLIT_4_LAYER _LAYEREDLIT_4_LAYERS
     _LAYERMASKMAP _LAYERMASKVERTEXCOLOR_OFF _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_PLANAR_0
     _LAYER_MAPPING_PLANAR_1 _LAYER_MAPPING_PLANAR_2 _LAYER_MAPPING_PLANAR_3 _NORMALMAP_TANGENT_SPACE
+    _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2
+    _NORMALMAP_TANGENT_SPACE3
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
@@ -285,19 +287,19 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightAmplitude0: 1
-    - _HeightAmplitude1: 1
-    - _HeightAmplitude2: 1
-    - _HeightAmplitude3: 1
+    - _HeightAmplitude0: 0.01
+    - _HeightAmplitude1: 0.01
+    - _HeightAmplitude2: 0.01
+    - _HeightAmplitude3: 0.01
     - _HeightBias: 0
     - _HeightBias0: 0
     - _HeightBias1: 0
     - _HeightBias2: 0
     - _HeightBias3: 0
-    - _HeightCenter0: 0
-    - _HeightCenter1: 0
-    - _HeightCenter2: 0
-    - _HeightCenter3: 0
+    - _HeightCenter0: 0.5
+    - _HeightCenter1: 0.5
+    - _HeightCenter2: 0.5
+    - _HeightCenter3: 0.5
     - _HeightCenterOffset0: 0
     - _HeightCenterOffset1: 0
     - _HeightCenterOffset2: 0
@@ -328,15 +330,15 @@ Material:
     - _InheritBaseNormal1: 0
     - _InheritBaseNormal2: 0
     - _InheritBaseNormal3: 0
-    - _LayerCenterOffset0: 0
-    - _LayerCenterOffset1: 0
-    - _LayerCenterOffset2: 0
-    - _LayerCenterOffset3: 0
+    - _LayerCenterOffset0: 0.5
+    - _LayerCenterOffset1: 0.5
+    - _LayerCenterOffset2: 0.5
+    - _LayerCenterOffset3: 0.5
     - _LayerCount: 4
-    - _LayerHeightAmplitude0: 1
-    - _LayerHeightAmplitude1: 1
-    - _LayerHeightAmplitude2: 1
-    - _LayerHeightAmplitude3: 1
+    - _LayerHeightAmplitude0: 0.01
+    - _LayerHeightAmplitude1: 0.01
+    - _LayerHeightAmplitude2: 0.01
+    - _LayerHeightAmplitude3: 0.01
     - _LayerMapping0: 2
     - _LayerMapping1: 2
     - _LayerMapping2: 2
@@ -350,6 +352,7 @@ Material:
     - _LayerTiling1: 10
     - _LayerTiling2: 1
     - _LayerTiling3: 1
+    - _LayerTilingBlendMask: 1
     - _MaterialID: 0
     - _StencilRef: 1
     - _Metalic: 0
@@ -368,10 +371,15 @@ Material:
     - _MinimumOpacity3: 1
     - _Mode: 0
     - _NormalMapSpace: 0
+    - _NormalMapSpace0: 0
+    - _NormalMapSpace1: 0
+    - _NormalMapSpace2: 0
+    - _NormalMapSpace3: 0
     - _NormalScale0: 1
     - _NormalScale1: 1
     - _NormalScale2: 1
     - _NormalScale3: 1
+    - _ObjectScaleAffectTile: 0
     - _OcclusionStrength: 1
     - _OpacityAsDensity0: 0
     - _OpacityAsDensity1: 0
@@ -389,18 +397,19 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _SubSurfaceRadius: 0
     - _SurfaceType: 0
     - _TexWorldScale: 1
     - _TexWorldScale0: 1
     - _TexWorldScale1: 1
     - _TexWorldScale2: 1
     - _TexWorldScale3: 1
+    - _TexWorldScaleBlendMask: 1
     - _UVBase: 0
     - _UVBase0: 0
     - _UVBase1: 0
     - _UVBase2: 0
     - _UVBase3: 0
+    - _UVBlendMask: 0
     - _UVDetail: 0
     - _UVDetail0: 0
     - _UVDetail1: 0
@@ -414,6 +423,7 @@ Material:
     - _UVMappingPlanar1: 0
     - _UVMappingPlanar2: 0
     - _UVMappingPlanar3: 0
+    - _UVMappingPlanarBlendMask: 0
     - _UVSec: 0
     - _UseDensityMode: 0
     - _UseHeightBasedBlend: 0
