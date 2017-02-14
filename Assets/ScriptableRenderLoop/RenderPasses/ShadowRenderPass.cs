@@ -9,13 +9,6 @@ namespace UnityEngine.Experimental.Rendering
     [System.Serializable]
     public class ShadowSettings
     {
-        public enum ShadowType : int
-        {
-            SCREENSPACE = 0,
-            LIGHTSPACE,
-            SHADOWTYPE_COUNT
-        }
-
         public bool     enabled;
         public int      shadowAtlasWidth;
         public int      shadowAtlasHeight;
@@ -25,7 +18,6 @@ namespace UnityEngine.Experimental.Rendering
         public Vector3  directionalLightCascades;
         public int maxShadowLightsSupported;
         public RenderTextureFormat renderTextureFormat;
-        public ShadowType shadowType;
 
         public static ShadowSettings Default
         {
@@ -37,9 +29,6 @@ namespace UnityEngine.Experimental.Rendering
                 settings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
                 settings.directionalLightCascadeCount = 4;
                 settings.maxShadowDistance = 1000.0F;
-                settings.maxShadowLightsSupported = -1;
-                settings.renderTextureFormat = RenderTextureFormat.Shadowmap;
-                settings.shadowType = ShadowType.SCREENSPACE;
                 return settings;
             }
         }
@@ -278,10 +267,7 @@ namespace UnityEngine.Experimental.Rendering
                 AdditionalLightData additionalLight = lights[i].light.GetComponent<AdditionalLightData>();
                 int shadowResolution;
 
-                if (settings.shadowType != ShadowSettings.ShadowType.LIGHTSPACE)
-                    shadowResolution = AdditionalLightData.GetShadowResolution(additionalLight);
-                else
-                    shadowResolution = GetMaxTileResolutionInAtlas(settings.shadowAtlasWidth, settings.shadowAtlasHeight, settings.directionalLightCascadeCount);
+                shadowResolution = AdditionalLightData.GetShadowResolution(additionalLight);
 
                 InputShadowLightData light;
                 light.lightIndex = i;
@@ -341,7 +327,7 @@ namespace UnityEngine.Experimental.Rendering
             var setRenderTargetCommandBuffer = new CommandBuffer();
 
             setRenderTargetCommandBuffer.name = "Render packed shadows";
-            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowTexName, m_Settings.shadowAtlasWidth, m_Settings.shadowAtlasHeight, k_DepthBuffer, FilterMode.Bilinear, m_Settings.renderTextureFormat, RenderTextureReadWrite.Linear);
+            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowTexName, m_Settings.shadowAtlasWidth, m_Settings.shadowAtlasHeight, k_DepthBuffer, FilterMode.Bilinear, RenderTextureFormat.Shadowmap, RenderTextureReadWrite.Linear);
             setRenderTargetCommandBuffer.SetRenderTarget(new RenderTargetIdentifier(m_ShadowTexName));
 
             setRenderTargetCommandBuffer.ClearRenderTarget(true, true, Color.green);
@@ -434,11 +420,6 @@ namespace UnityEngine.Experimental.Rendering
             matScaleBias.m23 = 0.5f;
             matScaleBias.m13 = 0.5f;
 
-            // Later down the pipeline the proj matrix will be scaled to reverse-z in case of DX. 
-            // We need account for that scale in the shadowTransform.
-            if (m_Settings.shadowType == ShadowSettings.ShadowType.LIGHTSPACE && SystemInfo.usesReversedZBuffer)
-                matScaleBias.m22 = -0.5f;
-
             var matTile = Matrix4x4.identity;
             matTile.m00 = (float)lightData.shadowResolution / (float)m_Settings.shadowAtlasWidth;
             matTile.m11 = (float)lightData.shadowResolution / (float)m_Settings.shadowAtlasHeight;
@@ -458,10 +439,7 @@ namespace UnityEngine.Experimental.Rendering
             //commandBuffer.ClearRenderTarget (true, true, Color.green);
             commandBuffer.SetViewProjectionMatrices(view, proj);
 
-            if (m_Settings.shadowType == ShadowSettings.ShadowType.LIGHTSPACE)
-                commandBuffer.SetGlobalVector("_ShadowBias", new Vector4(shadowBias, 0.0f, 0.0f, 0.0f));
-            else
-                commandBuffer.SetGlobalVector("g_vLightDirWs", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z));
+            commandBuffer.SetGlobalVector("g_vLightDirWs", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z));
             
             //	commandBuffer.SetGlobalDepthBias (1.0F, 1.0F);
 

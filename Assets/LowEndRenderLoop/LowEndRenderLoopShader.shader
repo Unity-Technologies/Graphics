@@ -80,7 +80,7 @@ Shader "RenderLoop/LowEnd"
 			
 			#pragma multi_compile _ LIGHTMAP_ON
 			#pragma multi_compile _ SHADOWS_DEPTH
-			#pragma multi_compile _ SHADOWS_FILTERING
+			#pragma multi_compile _ SHADOWS_FILTERING_PCF
 			#pragma multi_compile_fog
 			#pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3
 			#pragma enable_d3d11_debug_symbols
@@ -114,7 +114,7 @@ Shader "RenderLoop/LowEnd"
 			half4 globalLightAtten[MAX_LIGHTS];
 			int4  globalLightCount; // x: pixelLightCount, y = totalLightCount (pixel + vert)
 
-			sampler2D g_tShadowBuffer;
+			sampler2D _ShadowMap;
 			float _PCFKernel[8];
 
 			half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
@@ -137,7 +137,7 @@ Shader "RenderLoop/LowEnd"
 
 			inline half ShadowAttenuation(half2 shadowCoord, half shadowCoordDepth)
 			{
-				half depth = tex2D(g_tShadowBuffer, shadowCoord).r;
+				half depth = tex2D(_ShadowMap, shadowCoord).r;
 #if defined(UNITY_REVERSED_Z)
 				return step(depth, shadowCoordDepth);
 #else
@@ -145,7 +145,7 @@ Shader "RenderLoop/LowEnd"
 #endif
 			}
 
-			inline half ShadowFilteredAttenuation(half4 shadowCoord)
+			inline half ShadowPCF(half4 shadowCoord)
 			{
 				// GPU Gems 4x4 kernel with 4 taps.
 				half2 offset = (float)(frac(shadowCoord.xy * 0.5) > 0.25);  // mod
@@ -191,8 +191,10 @@ Shader "RenderLoop/LowEnd"
 				float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
 				shadowCoord.z = saturate(shadowCoord.z);
 				
-#ifdef SHADOWS_FILTERING
-					half shadowAttenuation = ShadowFilteredAttenuation(shadowCoord);
+#ifdef SHADOWS_FILTERING_VSM
+					half shadowAttenuation = ShadowVSM(shadowCoord);
+#elif defined(SHADOWS_FILTERING_PCF)
+					half shadowAttenuation = ShadowPCF(shadowCoord);
 #else
 					half shadowAttenuation = ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
 #endif
@@ -322,9 +324,9 @@ Shader "RenderLoop/LowEnd"
 				INITIALIZE_LIGHT(mainLight, 0);
 
 #if DEBUG_CASCADES
-				return half4(EvaluateMainLight(mainLight, diffuse, specular, normal, i.posWS, viewDir), 1.0);
+				return half4(EvaluateMainLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir), 1.0);
 #endif
-				half3 directColor = EvaluateMainLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir);
+				half3 directColor = EvaluateMainLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir); 
 
 				// Compute direct contribution from additional lights.
 				for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)
@@ -353,21 +355,27 @@ Shader "RenderLoop/LowEnd"
 			#pragma vertex vert
 			#pragma fragment frag
 
+			#pragma multi_compile _ SHADOWS_FILTERING_VSM
 			float4 _ShadowBias;
 
 			#include "UnityCG.cginc"
-
-			float4 vert(float4 position : POSITION) : SV_POSITION
+			
+			inline void ApplyLinearBias(half4 clipPos)
 			{
-				float4 clipPos = UnityObjectToClipPos(position);
 #if defined(UNITY_REVERSED_Z)
 				clipPos.z -= _ShadowBias.x;
 #else
 				clipPos.z += _ShadowBias.x;
 #endif
-				return clipPos;
 			}
 
+			float4 vert(float4 position : POSITION) : SV_POSITION
+			{
+				float4 clipPos = UnityObjectToClipPos(position);
+				ApplyLinearBias(clipPos);
+				return clipPos;
+			}
+				
 			half4 frag() : SV_TARGET
 			{
 				return 0;

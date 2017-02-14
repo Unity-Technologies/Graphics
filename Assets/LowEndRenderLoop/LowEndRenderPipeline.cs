@@ -7,15 +7,19 @@ public class LowEndRenderPipelineInstance : RenderPipeline
 {
     private readonly LowEndRenderPipeline m_Asset;
 
-    ShadowRenderPass m_ShadowPass;
+    private const int MAX_CASCADES = 4;
+    private int m_ShadowMapProperty;
+    private int m_DepthBufferBits = 24;
+
     ShadowSettings m_ShadowSettings = ShadowSettings.Default;
+    ShadowSliceData[] m_ShadowSlices = new ShadowSliceData[MAX_CASCADES];
 
     public LowEndRenderPipelineInstance(LowEndRenderPipeline asset)
     {
         m_Asset = asset;
 
         BuildShadowSettings();
-        m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
+        m_ShadowMapProperty = Shader.PropertyToID("_ShadowMap");
     }
 
     public override void Render(ScriptableRenderContext context, Camera[] cameras)
@@ -37,13 +41,19 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-            ShadowOutput shadowOutput;
-            m_ShadowPass.Render(context, cull, out shadowOutput);
-            SetupShadowShaderVariables(shadowOutput, context, camera.nearClipPlane, cullingParameters.shadowDistance);
+            // Render Shadow Map
+            bool shadowsRendered = RenderShadows(cull, context);
 
+            // Draw Opaques with support to one directional shadow cascade
+            // Setup camera matrices
             context.SetupCameraProperties(camera);
 
+            // Setup light and shadow shader constants
             SetupLightShaderVariables(cull.visibleLights, context);
+            if (shadowsRendered)
+                SetupShadowShaderVariables(context, camera.nearClipPlane, cullingParameters.shadowDistance, m_ShadowSettings.directionalLightCascadeCount);
+
+            // Rende Opaques
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("LowEndForwardBase"));
             settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque();
@@ -55,8 +65,11 @@ public class LowEndRenderPipelineInstance : RenderPipeline
                 settings.rendererConfiguration = settings.rendererConfiguration | RendererConfiguration.PerObjectLightProbe;
 
             context.DrawRenderers(ref settings);
+
+            // TODO: Check skybox shader
             context.DrawSkybox(camera);
 
+            // Rende Alpha blended
             settings.sorting.flags = SortFlags.CommonTransparent;
             settings.inputFilter.SetQueuesTransparent();
             context.DrawRenderers(ref settings);
@@ -73,8 +86,6 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         m_ShadowSettings.shadowAtlasHeight = m_Asset.ShadowAtlasResolution;
         m_ShadowSettings.maxShadowDistance = QualitySettings.shadowDistance;
         m_ShadowSettings.maxShadowLightsSupported = 1;
-        m_ShadowSettings.shadowType = ShadowSettings.ShadowType.LIGHTSPACE;
-        m_ShadowSettings.renderTextureFormat = RenderTextureFormat.Depth;
 
         switch (m_ShadowSettings.directionalLightCascadeCount)
         {
@@ -157,35 +168,148 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         cmd.SetGlobalVectorArray("globalLightAtten", lightAttenuations);
         cmd.SetGlobalVectorArray("globalLightSpotDir", lightSpotDirections);
         cmd.SetGlobalVector("globalLightCount", new Vector4(pixelLightCount, totalLightCount, 0.0f, 0.0f));
+        SetShadowKeywords(cmd);
         context.ExecuteCommandBuffer(cmd);
         cmd.Dispose();
     }
 
-    void SetupShadowShaderVariables(ShadowOutput shadowOutput, ScriptableRenderContext context, float shadowNear, float shadowFar)
+    private bool RenderShadows(CullResults cullResults, ScriptableRenderContext context)
     {
+        int cascadeCount = m_ShadowSettings.directionalLightCascadeCount;
+
+        VisibleLight[] lights = cullResults.visibleLights;
+        int lightCount = lights.Length;
+
+        int shadowResolution = 0;
+        int lightIndex = -1;
+        float shadowBias = 0.0f;
+        for (int i = 0; i < lightCount; ++i)
+        {
+            if (lights[i].light.shadows != LightShadows.None && lights[i].lightType == LightType.Directional)
+            {
+                lightIndex = i;
+                shadowResolution = GetMaxTileResolutionInAtlas(m_ShadowSettings.shadowAtlasWidth,
+                    m_ShadowSettings.shadowAtlasHeight, cascadeCount);
+                shadowBias = lights[i].light.shadowBias;
+                break;
+            }
+        }
+
+        if (lightIndex < 0)
+            return false;
+
+        Bounds bounds;
+        if (!cullResults.GetShadowCasterBounds(lightIndex, out bounds))
+            return false;
+
+        var setRenderTargetCommandBuffer = new CommandBuffer();
+        setRenderTargetCommandBuffer.name = "Render packed shadows";
+        setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowMapProperty, m_ShadowSettings.shadowAtlasWidth, m_ShadowSettings.shadowAtlasHeight, m_DepthBufferBits, FilterMode.Bilinear, RenderTextureFormat.Depth, RenderTextureReadWrite.Linear);
+        setRenderTargetCommandBuffer.SetRenderTarget(new RenderTargetIdentifier(m_ShadowMapProperty));
+        setRenderTargetCommandBuffer.ClearRenderTarget(true, true, Color.green);
+        context.ExecuteCommandBuffer(setRenderTargetCommandBuffer);
+        setRenderTargetCommandBuffer.Dispose();
+
+        float shadowNearPlane = QualitySettings.shadowNearPlaneOffset;
+        Vector3 splitRatio = m_ShadowSettings.directionalLightCascades;
+        for (int cascadeIdx = 0; cascadeIdx < cascadeCount; ++cascadeIdx)
+        {
+            Matrix4x4 view, proj;
+            var settings = new DrawShadowsSettings(cullResults, lightIndex);
+            bool needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, cascadeIdx, cascadeCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj, out settings.splitData);
+
+            if (needRendering)
+            {
+                SetupShadowSliceTransform(cascadeIdx, shadowResolution, proj, view);
+                RenderShadowSlice(ref context, cascadeIdx, proj, view, settings, shadowBias);
+            }
+        }
+
+        return true;
+    }
+
+    private void SetupShadowSliceTransform(int cascadeIndex, int shadowResolution, Matrix4x4 proj, Matrix4x4 view)
+    {
+        // Assumes MAX_CASCADES = 4
+        m_ShadowSlices[cascadeIndex].atlasX = (cascadeIndex % 2) * shadowResolution;
+        m_ShadowSlices[cascadeIndex].atlasY = (cascadeIndex / 2) * shadowResolution;
+        m_ShadowSlices[cascadeIndex].shadowResolution = shadowResolution;
+        m_ShadowSlices[cascadeIndex].shadowTransform = Matrix4x4.identity;
+
+        var matScaleBias = Matrix4x4.identity;
+        matScaleBias.m00 = 0.5f;
+        matScaleBias.m11 = 0.5f;
+        matScaleBias.m22 = 0.5f;
+        matScaleBias.m03 = 0.5f;
+        matScaleBias.m23 = 0.5f;
+        matScaleBias.m13 = 0.5f;
+
+        // Later down the pipeline the proj matrix will be scaled to reverse-z in case of DX. 
+        // We need account for that scale in the shadowTransform.
+        if (SystemInfo.usesReversedZBuffer)
+            matScaleBias.m22 = -0.5f;
+
+        var matTile = Matrix4x4.identity;
+        matTile.m00 = (float)m_ShadowSlices[cascadeIndex].shadowResolution / (float)m_ShadowSettings.shadowAtlasWidth;
+        matTile.m11 = (float)m_ShadowSlices[cascadeIndex].shadowResolution / (float)m_ShadowSettings.shadowAtlasHeight;
+        matTile.m03 = (float)m_ShadowSlices[cascadeIndex].atlasX / (float)m_ShadowSettings.shadowAtlasWidth;
+        matTile.m13 = (float)m_ShadowSlices[cascadeIndex].atlasY / (float)m_ShadowSettings.shadowAtlasHeight;
+
+        m_ShadowSlices[cascadeIndex].shadowTransform = matTile * matScaleBias * proj * view;
+    }
+
+    private void RenderShadowSlice(ref ScriptableRenderContext context, int cascadeIndex, Matrix4x4 proj, Matrix4x4 view, DrawShadowsSettings settings, float shadowBias)
+    { 
+        var buffer = new CommandBuffer() { name = "RenderShadowMap" };
+        buffer.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY, m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
+        buffer.SetViewProjectionMatrices(view, proj);
+        buffer.SetGlobalVector("_ShadowBias", new Vector4(shadowBias, 0.0f, 0.0f, 0.0f));
+        context.ExecuteCommandBuffer(buffer);
+        buffer.Dispose();
+
+        context.DrawShadows(ref settings);
+    }
+
+    private int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
+    {
+        int resolution = Mathf.Min(atlasWidth, atlasHeight);
+        if (tileCount > Mathf.Log(resolution))
+        {
+            //Debug.LogError(String.Format("Cannot fit {0} tiles into current shadowmap atlas of size ({1}, {2}). ShadowMap Resolution set to zero.", tileCount, atlasWidth, atlasHeight));
+            return 0;
+        }
+
+        int currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
+        while (currentTileCount < tileCount)
+        {
+            resolution = resolution >> 1;
+            currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
+        }
+        return resolution;
+    }
+
+    void SetupShadowShaderVariables(ScriptableRenderContext context, float shadowNear, float shadowFar, int cascadeCount)
+    {
+        float shadowResolution = m_ShadowSlices[0].shadowResolution;
+
         // PSSM distance settings
         float shadowFrustumDepth = shadowFar - shadowNear;
         Vector3 shadowSplitRatio = m_ShadowSettings.directionalLightCascades;
-
-        ShadowSliceData[] shadowSlices = shadowOutput.shadowSlices;
-        if (shadowSlices == null)
-            return;
 
         // We set PSSMDistance to infinity for non active cascades so the comparison test always fails for unavailable cascades
         Vector4 PSSMDistances = new Vector4(
             shadowNear + shadowSplitRatio.x * shadowFrustumDepth,
             (shadowSplitRatio.y > 0.0f) ? shadowNear + shadowSplitRatio.y * shadowFrustumDepth : Mathf.Infinity,
             (shadowSplitRatio.z > 0.0f) ? shadowNear + shadowSplitRatio.z * shadowFrustumDepth : Mathf.Infinity,
-            1.0f / shadowSlices[0].shadowResolution);
+            1.0f / shadowResolution);
 
-        int shadowSliceCount = shadowSlices.Length;
         const int maxShadowCascades = 4;
         Matrix4x4[] shadowMatrices = new Matrix4x4[maxShadowCascades];
-        for (int i = 0; i < shadowSliceCount; ++i)
-            shadowMatrices[i] = (shadowSliceCount >= i) ? shadowSlices[i].shadowTransform : Matrix4x4.identity;
+        for (int i = 0; i < cascadeCount; ++i)
+            shadowMatrices[i] = (cascadeCount >= i) ? m_ShadowSlices[i].shadowTransform : Matrix4x4.identity;
 
         // TODO: shadow resolution per cascade in case cascades endup being supported.
-        float invShadowResolution = 1.0f / shadowSlices[0].shadowResolution;
+        float invShadowResolution = 1.0f / shadowResolution;
         float[] pcfKernel = {-1.5f * invShadowResolution,  0.5f * invShadowResolution,
                               0.5f * invShadowResolution,  0.5f * invShadowResolution,
                              -1.5f * invShadowResolution, -0.5f * invShadowResolution,
@@ -196,6 +320,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         setupShadow.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
         setupShadow.SetGlobalVector("_PSSMDistancesAndShadowResolution", PSSMDistances);
         setupShadow.SetGlobalFloatArray("_PCFKernel", pcfKernel);
+        SetShadowKeywords(setupShadow);
         context.ExecuteCommandBuffer(setupShadow);
         setupShadow.Dispose();
     }
@@ -207,10 +332,15 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         else
             cmd.EnableShaderKeyword("SHADOWS_DEPTH");
 
-        if (m_Asset.EnableShadowFiltering)
-            cmd.EnableShaderKeyword("SHADOWS_FILTERING");
-        else
-            cmd.DisableShaderKeyword("SHADOWS_FILTERING");
+        switch (m_Asset.CurrShadowFiltering)
+        {
+            case LowEndRenderPipeline.ShadowFiltering.PCF:
+                cmd.EnableShaderKeyword("SHADOWS_FILTERING_PCF");
+                break;
+            default:
+                cmd.DisableShaderKeyword("SHADOWS_FILTERING_PCF");
+                break;
+        }
     }
     #endregion
 }
@@ -232,14 +362,20 @@ public class LowEndRenderPipeline : RenderPipelineAsset
     {
         return new LowEndRenderPipelineInstance(this);
     }
-#endregion
+    #endregion
 
 #region PipelineAssetSettings
+    public enum ShadowFiltering
+    {
+        PCF = 0,
+        NONE
+    }
     public bool m_SupportsVertexLight = true;
     public bool m_EnableLightmaps = true;
     public bool m_EnableAmbientProbe = true;
-    public bool m_EnableShadowFiltering = false;
     public int m_ShadowAtlasResolution = 1024;
+    public ShadowFiltering m_ShadowFiltering = ShadowFiltering.NONE;
+    
 
     public bool SupportsVertexLight { get { return m_SupportsVertexLight;} private set { m_SupportsVertexLight = value; } }
 
@@ -247,7 +383,7 @@ public class LowEndRenderPipeline : RenderPipelineAsset
 
     public bool EnableAmbientProbe { get { return m_EnableAmbientProbe; } private set { m_EnableAmbientProbe = value; } }
 
-    public bool EnableShadowFiltering { get { return m_EnableShadowFiltering; } private set { m_EnableShadowFiltering = value; } }
+    public ShadowFiltering CurrShadowFiltering { get { return m_ShadowFiltering; } private set { m_ShadowFiltering = value; } }
 
     public int ShadowAtlasResolution { get { return m_ShadowAtlasResolution; } private set { m_ShadowAtlasResolution = value; } }
 #endregion
