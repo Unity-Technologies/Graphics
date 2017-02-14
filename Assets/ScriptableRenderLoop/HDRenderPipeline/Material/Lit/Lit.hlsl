@@ -120,8 +120,11 @@ float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
                             float3 halfRcpVariance2, float lerpWeight2,
                             float thickness, float radiusScale)
 {
-    // To be consistent with SSS, we modify the thickness instead of scaling the radius of the profile.
-    thickness /= radiusScale;
+
+    // Thickness and SSS radius are decoupled for artists.
+    // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
+    // thickness /= radiusScale;
+    thickness *= 100;
 
     float t2 = thickness * thickness;
 
@@ -162,7 +165,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
         bsdfData.subsurfaceRadius  = surfaceData.subsurfaceRadius * 0.01;
-        bsdfData.thickness         = surfaceData.thickness * 0.01;
+        bsdfData.thickness         = surfaceData.thickness * (0.01 * 3);
         bsdfData.subsurfaceProfile = surfaceData.subsurfaceProfile;
         bsdfData.enableTransmittance = (1 << bsdfData.subsurfaceProfile) & _TransmittanceFlags;
         if (bsdfData.enableTransmittance)
@@ -344,7 +347,7 @@ void DecodeFromGBuffer(
         bsdfData.diffuseColor = baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
         bsdfData.subsurfaceRadius  = inGBuffer2.r * 0.01;
-        bsdfData.thickness         = inGBuffer2.g * 0.01;
+        bsdfData.thickness         = inGBuffer2.g * (0.01 * 3);
         bsdfData.subsurfaceProfile = inGBuffer2.a * 8.0;
         bsdfData.enableTransmittance = (1 << bsdfData.subsurfaceProfile) & _TransmittanceFlags;
         if (bsdfData.enableTransmittance)
@@ -737,6 +740,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     [branch] if (illuminance > 0.0)
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
+
         diffuseLighting  *= (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
         specularLighting *= (cookie.rgb * lightData.color) * (illuminance * lightData.specularScale);
     }
