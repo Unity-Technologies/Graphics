@@ -54,6 +54,7 @@ SAMPLER2D(sampler_LtcData);
 // SSS parameters
 #define N_PROFILES 8
 uint   _TransmittanceFlags;                            // One bit per profile; 1 = enabled
+float  _ThicknessScales[N_PROFILES];
 float4 _HalfRcpVariancesAndLerpWeights[N_PROFILES][2]; // 2x Gaussians per color channel, A is the the associated interpolation weight
 
 //-----------------------------------------------------------------------------
@@ -165,7 +166,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
         bsdfData.subsurfaceRadius  = surfaceData.subsurfaceRadius * 0.01;
-        bsdfData.thickness         = surfaceData.thickness * (0.01 * 3);
+        bsdfData.thickness         = surfaceData.thickness * 0.01 * _ThicknessScales[bsdfData.subsurfaceProfile];
         bsdfData.subsurfaceProfile = surfaceData.subsurfaceProfile;
         bsdfData.enableTransmittance = (1 << bsdfData.subsurfaceProfile) & _TransmittanceFlags;
         if (bsdfData.enableTransmittance)
@@ -347,7 +348,7 @@ void DecodeFromGBuffer(
         bsdfData.diffuseColor = baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
         bsdfData.subsurfaceRadius  = inGBuffer2.r * 0.01;
-        bsdfData.thickness         = inGBuffer2.g * (0.01 * 3);
+        bsdfData.thickness         = inGBuffer2.g * 0.01 * _ThicknessScales[bsdfData.subsurfaceProfile];
         bsdfData.subsurfaceProfile = inGBuffer2.a * 8.0;
         bsdfData.enableTransmittance = (1 << bsdfData.subsurfaceProfile) & _TransmittanceFlags;
         if (bsdfData.enableTransmittance)
