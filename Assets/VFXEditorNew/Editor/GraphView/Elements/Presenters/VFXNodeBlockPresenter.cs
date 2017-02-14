@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeBlockPresenter : GraphElementPresenter
+    class VFXBlockPresenter : GraphElementPresenter
     {
 		protected new void OnEnable()
 		{

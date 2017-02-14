@@ -10,15 +10,15 @@ namespace UnityEditor.VFX.UI
     public class VFXBlockProvider : VFXFilterWindow.IProvider
     {
         VFXContextPresenter m_ContextPresenter;
-        AddNodeBlock m_onAddNodeBlock;
+        AddBlock m_onAddBlock;
         //VFXBlock m_blockModel;
 
         public class VFXBlockElement : VFXFilterWindow.Element
         {
             public VFXBlockDesc m_Desc;
-            public AddNodeBlock m_SpawnCallback;
+            public AddBlock m_SpawnCallback;
 
-            internal VFXBlockElement(int level, VFXBlockDesc desc, AddNodeBlock spawncallback)
+            internal VFXBlockElement(int level, VFXBlockDesc desc, AddBlock spawncallback)
             {
                 this.level = level;
                 content = new GUIContent(VFXInfoAttribute.Get(desc).category.Replace("/"," ")+" : " + desc.Name/*, VFXEditor.styles.GetIcon(desc.Icon)*/);
@@ -27,16 +27,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public delegate void AddNodeBlock(int index, VFXBlockDesc desc);
+        public delegate void AddBlock(int index, VFXBlockDesc desc);
 
-
-
-        internal VFXBlockProvider(/*Vector2 mousePosition, */VFXContextPresenter contextModel, AddNodeBlock onAddNodeBlock)
+        internal VFXBlockProvider(/*Vector2 mousePosition, */VFXContextPresenter contextModel, AddBlock onAddBlock)
         {
             //m_mousePosition = mousePosition;
             m_ContextPresenter = contextModel;
             //m_blockModel = null;
-            m_onAddNodeBlock = onAddNodeBlock;
+            m_onAddBlock = onAddBlock;
         }
 
         public void CreateComponentTree(List<VFXFilterWindow.Element> tree)
@@ -87,27 +85,11 @@ namespace UnityEditor.VFX.UI
                 if (category != "")
                     i++;
 
-                tree.Add(new VFXBlockElement(i, desc, m_onAddNodeBlock));
+                tree.Add(new VFXBlockElement(i, desc, m_onAddBlock));
 
             }
         }
-        /*
-        public void SpawnBlock(VFXBlockElement block)
-        {
-            int index;
-            if(m_blockModel != null)
-            {
-                index = m_blockModel.GetOwner().GetIndex(m_blockModel);
-                m_dataSource.Remove(m_blockModel);
-            }
-            else
-            {
-                index = m_dataSource.GetUI<VFXEdContextNode>(m_contextModel).NodeBlockContainer.GetDropIndex(m_mousePosition);
-            }
-
-            m_dataSource.Create(new VFXBlockModel(block.m_Desc), m_contextModel, index);
-        }
-        */
+        
         public bool GoToChild(VFXFilterWindow.Element element, bool addIfComponent)
         {
             if (element is VFXBlockElement)
