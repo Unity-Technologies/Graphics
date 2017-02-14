@@ -20,5 +20,8 @@ public class StandardSpecularToLDMaterialUpgrader : MaterialUpgrader
     StandardSpecularToLDMaterialUpgrader(string oldShaderName)
     {
         RenameShader(oldShaderName, "RenderLoop/LowEnd");
+        RemoveTexture("_OcclusionMap");
+        RemoveTexture("_DetailAlbedoMap");
+        RemoveTexture("_DetailNormalMap");
     }
 }
