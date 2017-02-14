@@ -18,6 +18,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float lerpWeight;
         [SerializeField]
         public bool  enableTransmittance;
+        [SerializeField]
+        public float thicknessScale;
         [SerializeField] [HideInInspector]
         Vector4[]    m_FilterKernel;
         [SerializeField] [HideInInspector]
@@ -33,8 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             stdDev2             = new Color(1.0f, 1.0f, 1.0f, 0.0f);
             lerpWeight          = 0.5f;
             enableTransmittance = false;
-            m_FilterKernel      = null;
-            m_HalfRcpVariances  = null;
+            thicknessScale      = 3.0f;
 
             UpdateKernelAndVarianceData();
         }
@@ -46,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public Vector3[] halfRcpVariances
-        {   
+        {
             // Set via UpdateKernelAndVarianceData().
             get { return m_HalfRcpVariances; }
         }
@@ -85,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float maxStdDev1 = Mathf.Max(stdDev1.r, stdDev1.g, stdDev1.b);
             float maxStdDev2 = Mathf.Max(stdDev2.r, stdDev2.g, stdDev2.b);
 
-            Vector3 weightSum = new Vector3(0, 0, 0); 
+            Vector3 weightSum = new Vector3(0, 0, 0);
 
             // Importance sample the linear combination of two Gaussians.
             for (uint i = 0; i < numSamples; i++)
@@ -138,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_HalfRcpWeightedVariances.z = 0.5f / (weightedStdDev.z * weightedStdDev.z);
             m_HalfRcpWeightedVariances.w = 0.5f / (weightedStdDev.w * weightedStdDev.w);
         }
-    
+
         // --- Private Methods ---
 
         static float Gaussian(float x, float stdDev)
@@ -160,7 +161,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float[] d = {1.432788f, 0.189269f, 0.001308f};
             return t - ((c[2] * t + c[1]) * t + c[0]) / (((d[2] * t + d[1]) * t + d[0]) * t + 1.0f);
         }
- 
+
         // Ref: https://www.johndcook.com/blog/csharp_phi_inverse/
         static float NormalCdfInverse(float p, float stdDev)
         {
@@ -197,6 +198,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         SubsurfaceScatteringProfile[] m_Profiles;
         [SerializeField]
+        float[]                       m_ThicknessScales;
+        [SerializeField]
         Vector4[]                     m_HalfRcpVariancesAndLerpWeights;
         [SerializeField]
         Vector4[]                     m_HalfRcpWeightedVariances;
@@ -230,23 +233,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_TransmittanceFlags; }
         }
 
+        // Supplies '_ThicknessScales' to Lit.hlsl.
+        public float[] thicknessScales
+        {
+            // Set during OnValidate().
+            get { return m_ThicknessScales; }
+        }
+
         // Supplies '_HalfRcpVariancesAndLerpWeights' to Lit.hlsl.
         public Vector4[] halfRcpVariancesAndLerpWeights {
             // Set during OnValidate().
             get { return m_HalfRcpVariancesAndLerpWeights; }
-        } 
+        }
 
         // Supplies '_HalfRcpWeightedVariances' to CombineSubsurfaceScattering.shader.
         public Vector4[] halfRcpWeightedVariances {
             // Set during OnValidate().
             get { return m_HalfRcpWeightedVariances; }
-        } 
+        }
 
         // Supplies '_FilterKernels' to CombineSubsurfaceScattering.shader.
         public Vector4[] filterKernels
         {
             // Set during OnValidate().
-            get { return m_FilterKernels; } 
+            get { return m_FilterKernels; }
         }
 
         // --- Private Methods ---
@@ -260,6 +270,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_NumProfiles        = m_Profiles.Length;
             m_TransmittanceFlags = 0;
+
+            if (m_ThicknessScales == null)
+            {
+                m_ThicknessScales = new float[maxNumProfiles];
+            }
 
             if (m_HalfRcpVariancesAndLerpWeights == null)
             {
@@ -298,12 +313,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_Profiles[i].lerpWeight = Mathf.Clamp01(m_Profiles[i].lerpWeight);
 
+                m_Profiles[i].thicknessScale = Mathf.Max(0.0f, m_Profiles[i].thicknessScale);
+
                 m_Profiles[i].UpdateKernelAndVarianceData();
             }
 
             // Use the updated data to fill the cache.
             for (int i = 0; i < m_NumProfiles; i++)
             {
+                m_ThicknessScales[i]                          = m_Profiles[i].thicknessScale;
                 m_HalfRcpVariancesAndLerpWeights[2 * i]       = m_Profiles[i].halfRcpVariances[0];
                 m_HalfRcpVariancesAndLerpWeights[2 * i].w     = 1.0f - m_Profiles[i].lerpWeight;
                 m_HalfRcpVariancesAndLerpWeights[2 * i + 1]   = m_Profiles[i].halfRcpVariances[1];
@@ -335,11 +353,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         private class Styles
         {
-            public readonly GUIContent sssCategory             = new GUIContent("Subsurface scattering");
-            public readonly GUIContent sssProfileStdDev1       = new GUIContent("Standard deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
-            public readonly GUIContent sssProfileStdDev2       = new GUIContent("Standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
-            public readonly GUIContent sssProfileLerpWeight    = new GUIContent("Filter interpolation", "Controls linear interpolation between the two Gaussian filters.");
-            public readonly GUIContent sssProfileTransmittance = new GUIContent("Enable transmittance", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
+            public readonly GUIContent sssCategory              = new GUIContent("Subsurface scattering");
+            public readonly GUIContent sssProfileStdDev1        = new GUIContent("Standard deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
+            public readonly GUIContent sssProfileStdDev2        = new GUIContent("Standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
+            public readonly GUIContent sssProfileLerpWeight     = new GUIContent("Filter interpolation", "Controls linear interpolation between the two Gaussian filters.");
+            public readonly GUIContent sssProfileTransmittance  = new GUIContent("Enable transmittance", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
+            public readonly GUIContent sssProfileThicknessScale = new GUIContent("Thickness scale", "Linearly scales the thickness of the object which affects the amount of transmitted lighting.");
         }
 
         private static Styles s_Styles;
