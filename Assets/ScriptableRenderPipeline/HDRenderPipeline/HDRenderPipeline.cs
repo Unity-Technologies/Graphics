@@ -351,6 +351,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if(m_LightLoop != null)
                 m_LightLoop.Build(owner.textureSettings);
 
+            m_SkyManager.Build();
             m_SkyManager.skyParameters = owner.skyParametersToUse;
         }
 
@@ -443,8 +444,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             GraphicsSettings.lightsUseLinearIntensity = true;
             GraphicsSettings.lightsUseColorTemperature = true;
-
-            m_SkyManager.Build();
 
             if (!m_LitRenderLoop.isInit)
                 m_LitRenderLoop.RenderInit(renderContext);
