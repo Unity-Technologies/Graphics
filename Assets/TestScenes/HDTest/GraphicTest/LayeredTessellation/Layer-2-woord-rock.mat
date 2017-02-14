@@ -10,8 +10,9 @@ Material:
   m_Shader: {fileID: 4800000, guid: eab0538d9d5746246806a9611c04ac4d, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DEPTHOFFSETENABLE_OFF _DETAIL_MAP_WITH_NORMAL
     _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _ENABLEPERPIXELDISPLACEMENT_OFF
-    _HEIGHTMAP _LAYERMASKVERTEXCOLOR_OFF _NORMALMAP _NORMALMAP_TANGENT_SPACE _TESSELLATIONOBJECTSCALE_OFF
-    _TESSELLATION_DISPLACEMENT _USEHEIGHTBASEDBLENDV2_OFF _USEHEIGHTBASEDBLEND_OFF
+    _HEIGHTMAP _HEIGHTMAP0 _HEIGHTMAP1 _LAYERMASKVERTEXCOLOR_OFF _NORMALMAP _NORMALMAP_TANGENT_SPACE
+    _OBJECTSCALEAFFECTTILE_OFF _TESSELLATIONOBJECTSCALE_OFF _TESSELLATION_DISPLACEMENT
+    _USEDENSITYMODE_OFF _USEHEIGHTBASEDBLENDV2_OFF _USEHEIGHTBASEDBLEND_OFF _USEMAINLAYERINFLUENCE_OFF
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
@@ -236,15 +237,18 @@ Material:
     - _HeightCenter1: 0.5
     - _HeightCenter2: 0
     - _HeightCenter3: 0
+    - _HeightCenterOffset0: 0
     - _HeightCenterOffset1: 0
     - _HeightCenterOffset2: 0
     - _HeightCenterOffset3: 0
+    - _HeightFactor0: 1
     - _HeightFactor1: 1
     - _HeightFactor2: 1
     - _HeightFactor3: 1
     - _HeightOffset1: 0
     - _HeightOffset2: 0
     - _HeightOffset3: 0
+    - _HorizonFade: 1
     - _InheritBaseColor1: 0
     - _InheritBaseColor2: 0
     - _InheritBaseColor3: 0
@@ -260,13 +264,27 @@ Material:
     - _InheritBaseNormal1: 0
     - _InheritBaseNormal2: 0
     - _InheritBaseNormal3: 0
+    - _LayerCenterOffset0: 0.5
+    - _LayerCenterOffset1: 0.5
+    - _LayerCenterOffset2: 0
+    - _LayerCenterOffset3: 0
     - _LayerCount: 2
+    - _LayerHeightAmplitude0: 0.8
+    - _LayerHeightAmplitude1: 1.27
+    - _LayerHeightAmplitude2: 1
+    - _LayerHeightAmplitude3: 1
     - _LayerMaskVertexColor: 0
+    - _LayerTiling0: 1
+    - _LayerTiling1: 1
+    - _LayerTiling2: 1
+    - _LayerTiling3: 1
+    - _LayerTilingBlendMask: 1
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
     - _Metallic2: 0
     - _Metallic3: 0
+    - _MinimumOpacity0: 1
     - _MinimumOpacity1: 1
     - _MinimumOpacity2: 1
     - _MinimumOpacity3: 1
@@ -276,10 +294,13 @@ Material:
     - _NormalScale1: 1
     - _NormalScale2: 1
     - _NormalScale3: 1
+    - _ObjectScaleAffectTile: 0
     - _OcclusionStrength: 1
+    - _OpacityAsDensity0: 0
     - _OpacityAsDensity1: 0
     - _OpacityAsDensity2: 0
     - _OpacityAsDensity3: 0
+    - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
     - _Parallax: 0.02
@@ -303,10 +324,12 @@ Material:
     - _TexWorldScale1: 1
     - _TexWorldScale2: 1
     - _TexWorldScale3: 1
+    - _TexWorldScaleBlendMask: 1
     - _UVBase0: 0
     - _UVBase1: 0
     - _UVBase2: 0
     - _UVBase3: 0
+    - _UVBlendMask: 0
     - _UVDetail0: 0
     - _UVDetail1: 0
     - _UVDetail2: 0
@@ -315,10 +338,14 @@ Material:
     - _UVMappingPlanar1: 0
     - _UVMappingPlanar2: 0
     - _UVMappingPlanar3: 0
+    - _UVMappingPlanarBlendMask: 0
     - _UVSec: 0
+    - _UseDensityMode: 0
     - _UseHeightBasedBlend: 0
     - _UseHeightBasedBlendV2: 0
+    - _UseMainLayerInfluence: 0
     - _VertexColorHeightFactor: 0.3
+    - _VertexColorMode: 0
     - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:
