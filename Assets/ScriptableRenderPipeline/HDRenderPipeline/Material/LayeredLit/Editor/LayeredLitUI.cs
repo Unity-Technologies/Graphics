@@ -100,86 +100,86 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Material[] m_MaterialLayers = new Material[kMaxLayerCount];
 
+        // Layer options
+        MaterialProperty layerCount = null;
+        const string kLayerCount = "_LayerCount";
         MaterialProperty layerMaskMap = null;
         const string kLayerMaskMap = "_LayerMaskMap";
         MaterialProperty vertexColorMode = null;
         const string kVertexColorMode = "_VertexColorMode";
-        MaterialProperty layerCount = null;
-        const string kLayerCount = "_LayerCount";
+        MaterialProperty objectScaleAffectTile = null;
+        const string kObjectScaleAffectTile = "_ObjectScaleAffectTile";
+        MaterialProperty UVBlendMask = null;
+        const string kUVBlendMask = "_UVBlendMask";
+        MaterialProperty UVMappingPlanarBlendMask = null;
+        const string kUVMappingPlanarBlendMask = "_UVMappingPlanarBlendMask";
+        MaterialProperty layerTilingBlendMask = null;
+        const string kLayerTilingBlendMask = "_LayerTilingBlendMask";
+        MaterialProperty texWorldScaleBlendMask = null;
+        const string kTexWorldScaleBlendMask = "_TexWorldScaleBlendMask";
+        MaterialProperty useMainLayerInfluence = null;
+        const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
+        MaterialProperty useHeightBasedBlend = null;
+        const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
+       
+
+        // Properties for multiple layers inherit from referenced lit materials
         MaterialProperty[] layerTexWorldScale = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVBase = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVMappingMask = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVMappingPlanar = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVDetail = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
-
-
-        const string kObjectScaleAffectTile = "_ObjectScaleAffectTile";
-        MaterialProperty objectScaleAffectTile = null;
-        const string kUVBlendMask = "_UVBlendMask";
-        MaterialProperty UVBlendMask = null;
-        const string kUVMappingPlanarBlendMask = "_UVMappingPlanarBlendMask";
-        MaterialProperty UVMappingPlanarBlendMask = null;
-        const string kLayerTilingBlendMask = "_LayerTilingBlendMask";
-        MaterialProperty layerTilingBlendMask = null;
-        const string kTexWorldScaleBlendMask = "_TexWorldScaleBlendMask";
-        MaterialProperty texWorldScaleBlendMask = null;
-        const string kLayerTiling = "_LayerTiling";
+        // This one is specific to layer lit
         MaterialProperty[] layerTiling = new MaterialProperty[kMaxLayerCount];
-        const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
-        MaterialProperty useMainLayerInfluence = null;
-        const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
-        MaterialProperty useHeightBasedBlend = null;
+        const string kLayerTiling = "_LayerTiling";
 
-        const string kUseDensityMode = "_UseDensityMode";
+        // Density/opacity mode
         MaterialProperty useDensityMode = null;
-
-        const string kOpacityAsDensity = "_OpacityAsDensity";
+        const string kUseDensityMode = "_UseDensityMode";
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
-        const string kMinimumOpacity = "_MinimumOpacity";
+        const string kOpacityAsDensity = "_OpacityAsDensity";
         MaterialProperty[] minimumOpacity = new MaterialProperty[kMaxLayerCount];
+        const string kMinimumOpacity = "_MinimumOpacity";
 
-        const string kHeightFactor = "_HeightFactor";
+        // HeightmapMode control
         MaterialProperty[] heightFactor = new MaterialProperty[kMaxLayerCount];
-        const string kHeightCenterOffset = "_HeightCenterOffset";
+        const string kHeightFactor = "_HeightFactor";
         MaterialProperty[] heightCenterOffset = new MaterialProperty[kMaxLayerCount];
-        const string kLayerHeightAmplitude = "_LayerHeightAmplitude";
+        const string kHeightCenterOffset = "_HeightCenterOffset";
         MaterialProperty[] layerHeightAmplitude = new MaterialProperty[kMaxLayerCount];
-        const string kLayerCenterOffset = "_LayerCenterOffset";
+        const string kLayerHeightAmplitude = "_LayerHeightAmplitude";
         MaterialProperty[] layerCenterOffset = new MaterialProperty[kMaxLayerCount];
+        const string kLayerCenterOffset = "_LayerCenterOffset";
+        MaterialProperty[] blendUsingHeight = new MaterialProperty[kMaxLayerCount - 1]; // Only in case of influence mode
         const string kBlendUsingHeight = "_BlendUsingHeight";
-        MaterialProperty[] blendUsingHeight = new MaterialProperty[kMaxLayerCount - 1];
 
-        // influence
-        const string kInheritBaseNormal = "_InheritBaseNormal";
+        // Influence
         MaterialProperty[] inheritBaseNormal = new MaterialProperty[kMaxLayerCount - 1];
-        const string kInheritBaseHeight = "_InheritBaseHeight";
+        const string kInheritBaseNormal = "_InheritBaseNormal";
         MaterialProperty[] inheritBaseHeight = new MaterialProperty[kMaxLayerCount - 1];
-        const string kInheritBaseColor = "_InheritBaseColor";
+        const string kInheritBaseHeight = "_InheritBaseHeight";
         MaterialProperty[] inheritBaseColor = new MaterialProperty[kMaxLayerCount - 1];
-        const string kInheritBaseColorThreshold = "_InheritBaseColorThreshold";
+        const string kInheritBaseColor = "_InheritBaseColor";
         MaterialProperty[] inheritBaseColorThreshold = new MaterialProperty[kMaxLayerCount - 1];
+        const string kInheritBaseColorThreshold = "_InheritBaseColorThreshold";        
 
-        MaterialProperty layerEmissiveColor = null;
-        MaterialProperty layerEmissiveColorMap = null;
-        MaterialProperty layerEmissiveIntensity = null;
-
-        override protected void FindMaterialProperties(MaterialProperty[] props)
+        protected override void FindMaterialProperties(MaterialProperty[] props)
         {
-            layerMaskMap = FindProperty(kLayerMaskMap, props);
             layerCount = FindProperty(kLayerCount, props);
+            layerMaskMap = FindProperty(kLayerMaskMap, props);
             vertexColorMode = FindProperty(kVertexColorMode, props);
-
-            useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence, props);
-            useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
-            useDensityMode = FindProperty(kUseDensityMode, props);
-
             objectScaleAffectTile = FindProperty(kObjectScaleAffectTile, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
             UVMappingPlanarBlendMask = FindProperty(kUVMappingPlanarBlendMask, props);
             layerTilingBlendMask = FindProperty(kLayerTilingBlendMask, props);
             texWorldScaleBlendMask = FindProperty(kTexWorldScaleBlendMask, props);
-                       
+
+            useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence, props);
+            useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
+
+            useDensityMode = FindProperty(kUseDensityMode, props);
+       
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
                 layerTexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, i), props);
@@ -190,8 +190,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 layerUVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, i), props);
                 layerTiling[i] = FindProperty(string.Format("{0}{1}", kLayerTiling, i), props);
 
-                minimumOpacity[i] = FindProperty(string.Format("{0}{1}", kMinimumOpacity, i), props);
+                // Density/opacity mode
                 opacityAsDensity[i] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
+                minimumOpacity[i] = FindProperty(string.Format("{0}{1}", kMinimumOpacity, i), props);
+           
+                // HeightmapMode control
                 heightFactor[i] = FindProperty(string.Format("{0}{1}", kHeightFactor, i), props);
                 heightCenterOffset[i] = FindProperty(string.Format("{0}{1}", kHeightCenterOffset, i), props);
                 layerHeightAmplitude[i] = FindProperty(string.Format("{0}{1}", kLayerHeightAmplitude, i), props);
@@ -200,6 +203,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (i != 0)
                 {
                     blendUsingHeight[i - 1] = FindProperty(string.Format("{0}{1}", kBlendUsingHeight, i), props);
+                    // Influence
                     inheritBaseNormal[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseNormal, i), props);
                     inheritBaseHeight[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseHeight, i), props);
                     inheritBaseColor[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseColor, i), props);
@@ -207,9 +211,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            layerEmissiveColor = FindProperty(kEmissiveColor, props);
-            layerEmissiveColorMap = FindProperty(kEmissiveColorMap, props);
-            layerEmissiveIntensity = FindProperty(kEmissiveIntensity, props);
+            // Reuse property from LitUI.cs
+            emissiveColor = FindProperty(kEmissiveColor, props);
+            emissiveColorMap = FindProperty(kEmissiveColorMap, props);
+            emissiveIntensity = FindProperty(kEmissiveIntensity, props);
         }
 
         int numLayer
@@ -218,9 +223,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             get { return (int)layerCount.floatValue; }
         }
 
+        // This function is call by a script to help artists to ahve up to date material
+        // that why it is static
         public static void SynchronizeAllLayers(Material material)
         {
-            int layerCount = (int)material.GetFloat("_LayerCount");
+            int layerCount = (int)material.GetFloat(kLayerCount);
             AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
 
             Material[] layers = null;
@@ -380,6 +387,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     result = true;
                 }
             }
+
+            UVMappingPlanarBlendMask.floatValue = ((LayerUVBaseMapping)UVBlendMask.floatValue == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
+
+            // We setup the masking map based on the enum for each layer.
+            // using mapping mask allow to reduce the number of generated combination for a very small increase in ALU
+            LayerUVBaseMapping layerUVBaseMapping = (LayerUVBaseMapping)layerUVBase[layerIndex].floatValue;
+
+            float X, Y, Z, W;
+            X = (layerUVBaseMapping == LayerUVBaseMapping.UV0) ? 1.0f : 0.0f;
+            Y = (layerUVBaseMapping == LayerUVBaseMapping.UV1) ? 1.0f : 0.0f;
+            Z = (layerUVBaseMapping == LayerUVBaseMapping.UV2) ? 1.0f : 0.0f;
+            W = (layerUVBaseMapping == LayerUVBaseMapping.UV3) ? 1.0f : 0.0f;
+            layerUVMappingMask[layerIndex].colorValue = (layerIndex == 0) ? new Color(1.0f, 0.0f, 0.0f, 0.0f) : new Color(X, Y, Z, W); // Special case for Main Layer and Blend Mask, only UV0. As Layer0 is share by both here, need to force X to 1.0 in all case
+            layerUVMappingPlanar[layerIndex].floatValue = (layerUVBaseMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f; // Planar have priority on UV0
+
+            UVDetailMapping layerUVDetailMapping = (UVDetailMapping)layerUVDetail[layerIndex].floatValue;
+            X = (layerUVDetailMapping == UVDetailMapping.UV0) ? 1.0f : 0.0f;
+            Y = (layerUVDetailMapping == UVDetailMapping.UV1) ? 1.0f : 0.0f;
+            Z = (layerUVDetailMapping == UVDetailMapping.UV2) ? 1.0f : 0.0f;
+            W = (layerUVDetailMapping == UVDetailMapping.UV3) ? 1.0f : 0.0f;
+            layerUVDetailsMappingMask[layerIndex].colorValue = new Color(X, Y, Z, W);
 
             bool useDensityModeEnable = useDensityMode.floatValue != 0.0f;
             if (useDensityModeEnable)
@@ -541,67 +569,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             return layerChanged;
         }
-
-        protected override void SetupMaterialKeywords(Material material)
+        protected override bool ShouldEmissionBeEnabled(Material mat)
         {
-            SetupCommonOptionsKeywords(material);
-            SetupLayersMappingKeywords(material);
-
-            for (int i = 0; i < kMaxLayerCount; ++i)
-            {
-                SetKeyword(material, "_NORMALMAP_TANGENT_SPACE" + i, ((NormalMapSpace)material.GetFloat(kNormalMapSpace + i)) == NormalMapSpace.TangentSpace);
-
-                SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMap + i));
-
-                SetKeyword(material, "_MASKMAP" + i, material.GetTexture(kMaskMap + i));
-
-                SetKeyword(material, "_SPECULAROCCLUSIONMAP" + i, material.GetTexture(kSpecularOcclusionMap + i));
-
-                SetKeyword(material, "_DETAIL_MAP" + i, material.GetTexture(kDetailMap + i));
-
-                SetKeyword(material, "_HEIGHTMAP0" + i, material.GetTexture(kHeightMap + i));
-            }
-
-            bool perPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) == 1.0;
-            SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", perPixelDisplacement);
-
-            SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-
-            SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
-
-            VertexColorMode VCMode = (VertexColorMode)vertexColorMode.floatValue;
-            if (VCMode == VertexColorMode.Multiply)
-            {
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", true);
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
-            }
-            else if (VCMode == VertexColorMode.Add)
-            {
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", true);
-            }
-            else
-            {
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
-                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
-            }
-
-            bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
-            SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);
-
-            bool useDensityModeEnable = material.GetFloat(kUseDensityMode) != 0.0f;
-            SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
+            return mat.GetFloat(kEmissiveIntensity) > 0.0f;
         }
 
-        void SetupLayersMappingKeywords(Material material)
+        protected override void SetupMaterialKeywordsInternal(Material material)
+        {
+            SetupMaterialKeywords(material);
+        }
+
+        static public void SetupLayersMappingKeywords(Material material)
         {
             // object scale affect tile
             SetKeyword(material, "_LAYER_TILING_UNIFORM_SCALE", material.GetFloat(kObjectScaleAffectTile) > 0.0f);
 
             // Blend mask
-            LayerUVBaseMapping UVBlendMaskMapping = (LayerUVBaseMapping)material.GetFloat(kUVBlendMask);
-            UVMappingPlanarBlendMask.floatValue = (UVBlendMaskMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
+            LayerUVBaseMapping UVBlendMaskMapping = (LayerUVBaseMapping)material.GetFloat(kUVBlendMask);            
             SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == LayerUVBaseMapping.Triplanar);
+
+            int numLayer = (int)material.GetFloat(kLayerCount);
 
             // Layer
             if (numLayer == 4)
@@ -628,29 +615,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             for (int i = 0 ; i < numLayer; ++i)
             {
-                // We setup the masking map based on the enum for each layer.
-                // using mapping mask allow to reduce the number of generated combination for a very small increase in ALU
                 string layerUVBaseParam = string.Format("{0}{1}", kUVBase, i);
                 LayerUVBaseMapping layerUVBaseMapping = (LayerUVBaseMapping)material.GetFloat(layerUVBaseParam);
-                string layerUVDetailParam = string.Format("{0}{1}", kUVDetail, i);
-                UVDetailMapping layerUVDetailMapping = (UVDetailMapping)material.GetFloat(layerUVDetailParam);
                 string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
-
-                float X, Y, Z, W;
-                X = (layerUVBaseMapping == LayerUVBaseMapping.UV0) ? 1.0f : 0.0f;
-                Y = (layerUVBaseMapping == LayerUVBaseMapping.UV1) ? 1.0f : 0.0f;
-                Z = (layerUVBaseMapping == LayerUVBaseMapping.UV2) ? 1.0f : 0.0f;
-                W = (layerUVBaseMapping == LayerUVBaseMapping.UV3) ? 1.0f : 0.0f;
-                layerUVMappingMask[i].colorValue = (i == 0) ? new Color(1.0f, 0.0f, 0.0f, 0.0f) : new Color(X, Y, Z, W); // Special case for Main Layer and Blend Mask, only UV0. As Layer0 is share by both here, need to force X to 1.0 in all case
-                layerUVMappingPlanar[i].floatValue = (layerUVBaseMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f; // Planar have priority on UV0
-
                 SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == LayerUVBaseMapping.Triplanar);
-
-                X = (layerUVDetailMapping == UVDetailMapping.UV0) ? 1.0f : 0.0f;
-                Y = (layerUVDetailMapping == UVDetailMapping.UV1) ? 1.0f : 0.0f;
-                Z = (layerUVDetailMapping == UVDetailMapping.UV2) ? 1.0f : 0.0f;
-                W = (layerUVDetailMapping == UVDetailMapping.UV3) ? 1.0f : 0.0f;
-                layerUVDetailsMappingMask[i].colorValue = new Color(X, Y, Z, W);
 
                 string uvBase = string.Format("{0}{1}", kUVBase, i);
                 string uvDetail = string.Format("{0}{1}", kUVDetail, i);
@@ -686,13 +654,63 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
+        static new void SetupMaterialKeywords(Material material)
+        {
+            SetupBaseKeywords(material);
+            SetupLayersMappingKeywords(material);
+
+            for (int i = 0; i < kMaxLayerCount; ++i)
+            {
+                SetKeyword(material, "_NORMALMAP_TANGENT_SPACE" + i, ((NormalMapSpace)material.GetFloat(kNormalMapSpace + i)) == NormalMapSpace.TangentSpace);
+
+                SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMap + i));
+
+                SetKeyword(material, "_MASKMAP" + i, material.GetTexture(kMaskMap + i));
+
+                SetKeyword(material, "_SPECULAROCCLUSIONMAP" + i, material.GetTexture(kSpecularOcclusionMap + i));
+
+                SetKeyword(material, "_DETAIL_MAP" + i, material.GetTexture(kDetailMap + i));
+
+                SetKeyword(material, "_HEIGHTMAP0" + i, material.GetTexture(kHeightMap + i));
+            }
+
+            SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+
+            SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
+
+            VertexColorMode VCMode = (VertexColorMode)material.GetFloat(kVertexColorMode);
+            if (VCMode == VertexColorMode.Multiply)
+            {
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", true);
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
+            }
+            else if (VCMode == VertexColorMode.Add)
+            {
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", true);
+            }
+            else
+            {
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
+                SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
+            }
+
+            bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
+            SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);
+
+            bool useDensityModeEnable = material.GetFloat(kUseDensityMode) != 0.0f;
+            SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
+        }
+
+
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            FindCommonOptionProperties(props);
+            FindBaseMaterialProperties(props);
             FindMaterialProperties(props);
 
             m_MaterialEditor = materialEditor;
-
+            // We should always do this call at the beginning
             m_MaterialEditor.serializedObject.Update();
 
             Material material = m_MaterialEditor.target as Material;
@@ -703,7 +721,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool optionsChanged = false;
             EditorGUI.BeginChangeCheck();
             {
-                ShaderOptionsGUI();
+                BaseMaterialPropertiesGUI();
                 EditorGUILayout.Space();
             }
             if (EditorGUI.EndChangeCheck())
@@ -716,21 +734,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
             GUILayout.Label(Styles.lightingText, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, layerEmissiveColorMap, layerEmissiveColor);
-            m_MaterialEditor.ShaderProperty(layerEmissiveIntensity, Styles.emissiveIntensityText);
-            m_MaterialEditor.LightmapEmissionProperty(1);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);            
+            DoEmissionArea(material);
             EditorGUI.indentLevel--;
+            m_MaterialEditor.EnableInstancingField();
 
             if (layerChanged || optionsChanged)
             {
                 foreach (var obj in m_MaterialEditor.targets)
                 {
-                    SetupMaterialKeywords((Material)obj);
+                    SetupMaterialKeywordsInternal((Material)obj);
                 }
 
+                // SaveAssetsProcessor the referenced material in the users data
                 SaveMaterialLayers(materialImporter);
             }
 
+            // We should always do this call at the end
             m_MaterialEditor.serializedObject.ApplyModifiedProperties();
         }
     }
