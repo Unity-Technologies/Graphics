@@ -180,7 +180,6 @@ Material:
     - _SmoothnessVar: 0.097
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _SubSurfaceRadius: 0
     - _SurfaceType: 0
     - _Tess: 64
     - _TessFar: 2
