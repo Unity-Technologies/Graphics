@@ -26,7 +26,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return GetParameters(skyParameters).skyHDRI != null;
         }
 
-        override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters)
+        public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
+        {
+            if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
+            {
+                Utilities.SetRenderTarget(builtinParams.renderContext, builtinParams.colorBuffer);
+            }
+            else
+            {
+                Utilities.SetRenderTarget(builtinParams.renderContext, builtinParams.colorBuffer, builtinParams.depthBuffer);
+            }
+        }
+
+        override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, bool renderForCubemap)
         {
             HDRISkyParameters hdriSkyParams = GetParameters(skyParameters);
 
@@ -34,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(hdriSkyParams.exposure, hdriSkyParams.multiplier, hdriSkyParams.rotation, 0.0f));
 
             var cmd = new CommandBuffer { name = "" };
-            cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial);
+            cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, renderForCubemap ? 0 : 1);
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }

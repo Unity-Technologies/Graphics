@@ -32,7 +32,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class BuiltinSkyParameters
     {
-        public Matrix4x4                viewProjMatrix;
         public Matrix4x4                invViewProjMatrix;
         public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
@@ -42,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public RenderTargetIdentifier   colorBuffer;
         public RenderTargetIdentifier   depthBuffer;
 
-        public static RenderTargetIdentifier invalidRTI = -1;
+        public static RenderTargetIdentifier nullRT = -1;
     }
 
     public class SkyManager
@@ -53,11 +52,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTexture           m_SkyboxConditionalCdfRT = null;
 
         Material                m_StandardSkyboxMaterial = null; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
-        Material                m_GGXConvolveMaterial = null; // Apply GGX convolution to cubemap
 
-        ComputeShader           m_BuildProbabilityTablesCS = null;
-        int                     m_ConditionalDensitiesKernel = -1;
-        int                     m_MarginalRowDensitiesKernel = -1;
+        IBLFilterGGX            m_iblFilterGgx = null;
 
         Vector4                 m_CubemapScreenSize;
         Matrix4x4[]             m_faceCameraViewProjectionMatrix = new Matrix4x4[6];
@@ -184,14 +180,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_SkyboxCubemapRT == null)
             {
-                m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.ARGBHalf);
+                m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 m_SkyboxCubemapRT.dimension = TextureDimension.Cube;
                 m_SkyboxCubemapRT.useMipMap = true;
                 m_SkyboxCubemapRT.autoGenerateMips = true; // Generate regular mipmap for filtered importance sampling
                 m_SkyboxCubemapRT.filterMode = FilterMode.Trilinear;
                 m_SkyboxCubemapRT.Create();
 
-                m_SkyboxGGXCubemapRT = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.ARGBHalf);
+                m_SkyboxGGXCubemapRT = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 m_SkyboxGGXCubemapRT.dimension = TextureDimension.Cube;
                 m_SkyboxGGXCubemapRT.useMipMap = true;
                 m_SkyboxGGXCubemapRT.autoGenerateMips = false;
@@ -204,8 +200,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int height = (int)LightSamplingParameters.TextureHeight;
 
                     // + 1 because we store the value of the integral of the cubemap at the end of the texture.
-                    m_SkyboxMarginalRowCdfRT = new RenderTexture(height + 1, 1, 1, RenderTextureFormat.RFloat);
-                    m_SkyboxMarginalRowCdfRT.dimension = TextureDimension.Tex2D;
+                    m_SkyboxMarginalRowCdfRT = new RenderTexture(height + 1, 1, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
                     m_SkyboxMarginalRowCdfRT.useMipMap = false;
                     m_SkyboxMarginalRowCdfRT.autoGenerateMips = false;
                     m_SkyboxMarginalRowCdfRT.enableRandomWrite = true;
@@ -213,8 +208,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_SkyboxMarginalRowCdfRT.Create();
 
                     // TODO: switch the format to R16 (once it's available) to save some bandwidth.
-                    m_SkyboxConditionalCdfRT = new RenderTexture(width, height, 1, RenderTextureFormat.RFloat);
-                    m_SkyboxConditionalCdfRT.dimension = TextureDimension.Tex2D;
+                    m_SkyboxConditionalCdfRT = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
                     m_SkyboxConditionalCdfRT.useMipMap = false;
                     m_SkyboxConditionalCdfRT.autoGenerateMips = false;
                     m_SkyboxConditionalCdfRT.enableRandomWrite = true;
@@ -226,11 +220,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
         }
 
-        void RebuildSkyMeshes()
+        void RebuildSkyMeshes(float nearPlane, float farPlane)
         {
             if(m_CubemapFaceMesh[0] == null)
             {
-                Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, 0.1f, 1.0f);
+                Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, nearPlane, farPlane);
 
                 Vector3[] lookAtList = {
                             new Vector3(1.0f, 0.0f, 0.0f),
@@ -256,7 +250,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_faceCameraViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj);
                     m_faceCameraInvViewProjectionMatrix[i] = m_faceCameraViewProjectionMatrix[i].inverse;
 
-                    // When rendering into a texture the render will be flip (due to legacy unity openGL behavior), so we need to flip UV here...
                     m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i], true);
                 }
             }
@@ -269,11 +262,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalTexture("_SkyTexture", m_SkyboxGGXCubemapRT);
         }
 
-        public void Resize()
+        public void Resize(float nearPlane, float farPlane)
         {
             // When loading RenderDoc, RenderTextures will go null
             RebuildTextures(skyParameters);
-            RebuildSkyMeshes();
+            RebuildSkyMeshes(nearPlane, farPlane);
         }
 
         public void Build()
@@ -281,13 +274,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Renderer != null)
                 m_Renderer.Build();
 
+            // Create unititialized. Lazy initialization is performed later.
+            m_iblFilterGgx = new IBLFilterGGX();
+
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_StandardSkyboxMaterial   = Utilities.CreateEngineMaterial("Skybox/Cubemap");
-            m_GGXConvolveMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/GGXConvolve");
-            m_BuildProbabilityTablesCS = Resources.Load<ComputeShader>("BuildProbabilityTables");
-
-            m_ConditionalDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeConditionalDensities");
-            m_MarginalRowDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeMarginalRowDensities");
 
             m_CurrentUpdateTime = 0.0f;
         }
@@ -295,7 +286,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Cleanup()
         {
             Utilities.Destroy(m_StandardSkyboxMaterial);
-            Utilities.Destroy(m_GGXConvolveMaterial);
             Utilities.Destroy(m_SkyboxCubemapRT);
             Utilities.Destroy(m_SkyboxGGXCubemapRT);
             Utilities.Destroy(m_SkyboxMarginalRowCdfRT);
@@ -314,33 +304,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             for (int i = 0; i < 6; ++i)
             {
-                Utilities.SetRenderTarget(builtinParams.renderContext, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
-
                 builtinParams.invViewProjMatrix = m_faceCameraInvViewProjectionMatrix[i];
-                builtinParams.viewProjMatrix = m_faceCameraViewProjectionMatrix[i];
                 builtinParams.screenSize = m_CubemapScreenSize;
                 builtinParams.skyMesh = m_CubemapFaceMesh[i];
                 builtinParams.colorBuffer = target;
-                builtinParams.depthBuffer = BuiltinSkyParameters.invalidRTI;
-                m_Renderer.RenderSky(builtinParams, skyParameters);
+                builtinParams.depthBuffer = BuiltinSkyParameters.nullRT;
+
+                Utilities.SetRenderTarget(builtinParams.renderContext, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
+                m_Renderer.RenderSky(builtinParams, skyParameters, true);
             }
-        }
-
-        private void BuildProbabilityTables(ScriptableRenderContext renderContext)
-        {
-            // Bind the input cubemap.
-            m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "envMap", m_SkyboxCubemapRT);
-
-            // Bind the outputs.
-            m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "marginalRowDensities", m_SkyboxMarginalRowCdfRT);
-            m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "conditionalDensities", m_SkyboxConditionalCdfRT);
-            m_BuildProbabilityTablesCS.SetTexture(m_MarginalRowDensitiesKernel, "marginalRowDensities", m_SkyboxMarginalRowCdfRT);
-
-            var cmd = new CommandBuffer() { name = "" };
-            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, (int)LightSamplingParameters.TextureHeight, 1, 1);
-            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
         }
 
         private void RenderCubemapGGXConvolution(ScriptableRenderContext renderContext, BuiltinSkyParameters builtinParams, SkyParameters skyParams, Texture input, RenderTexture target)
@@ -354,65 +326,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 }
 
-                if (m_useMIS)
+                if (!m_iblFilterGgx.IsInitialized())
                 {
-                    BuildProbabilityTables(renderContext);
+                    m_iblFilterGgx.Initialize(renderContext);
                 }
 
-                // Copy the first mip.
-
-                // WARNING:
-                // Since we can't instanciate the parameters anymore (we don't know the final type here)
-                // we can't make sure that exposure/multiplier etc are at neutral values
-                // This will be solved with proper CopyTexture
-
-                // TEMP code until CopyTexture is implemented for command buffer
-                // All parameters are neutral because exposure/multiplier have already been applied in the first copy.
-                //SkyParameters skyParams = new SkyParameters();
-                //skyParams.exposure = 0.0f;
-                //skyParams.multiplier = 1.0f;
-                //skyParams.rotation = 0.0f;
-                //skyParams.skyHDRI = input;
-                RenderSkyToCubemap(builtinParams, skyParams, target);
-                // End temp
-
-                //for (int f = 0; f < 6; f++)
-                //    Graphics.CopyTexture(input, f, 0, target, f, 0);
+                // Copy the first mip
+                var cmd = new CommandBuffer { name = "" };
+                for (int f = 0; f < 6; f++)
+                {
+                    cmd.CopyTexture(input, f, 0, target, f, 0);
+                }
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
 
                 if (m_useMIS)
                 {
-                    m_GGXConvolveMaterial.EnableKeyword("USE_MIS");
-                    m_GGXConvolveMaterial.SetTexture("_MarginalRowDensities", m_SkyboxMarginalRowCdfRT);
-                    m_GGXConvolveMaterial.SetTexture("_ConditionalDensities", m_SkyboxConditionalCdfRT);
+                    m_iblFilterGgx.FilterCubemapMIS(renderContext, input, target, mipCount, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT, m_CubemapFaceMesh);
                 }
                 else
                 {
-                    m_GGXConvolveMaterial.DisableKeyword("USE_MIS");
+                    m_iblFilterGgx.FilterCubemap(renderContext, input, target, mipCount, m_CubemapFaceMesh);
                 }
-
-                // Do the convolution on remaining mipmaps
-                float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
-
-                m_GGXConvolveMaterial.SetTexture("_MainTex", input);
-                m_GGXConvolveMaterial.SetFloat("_MaxLevel", mipCount - 1);
-                m_GGXConvolveMaterial.SetFloat("_InvOmegaP", invOmegaP);
-
-                for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
-                {
-                    MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
-                    propertyBlock.SetFloat("_Level", mip);
-
-                    for (int face = 0; face < 6; ++face)
-                    {
-                        Utilities.SetRenderTarget(renderContext, target, ClearFlag.ClearNone, mip, (CubemapFace)face);
-
-                        var cmd = new CommandBuffer { name = "" };
-                        cmd.DrawMesh(m_CubemapFaceMesh[face], Matrix4x4.identity, m_GGXConvolveMaterial, 0, 0, propertyBlock);
-                        renderContext.ExecuteCommandBuffer(cmd);
-                        cmd.Dispose();
-                    }
-                }
-
             }
         }
 
@@ -511,15 +446,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.renderContext = renderContext;
                     m_BuiltinParameters.sunLight = sunLight;
                     m_BuiltinParameters.invViewProjMatrix = camera.invViewProjectionMatrix;
-                    m_BuiltinParameters.viewProjMatrix = camera.viewProjectionMatrix;
                     m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
                     m_BuiltinParameters.screenSize = camera.screenSize;
                     m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix, false);
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
 
-                    Utilities.SetRenderTarget(renderContext, colorBuffer, depthBuffer);
-                    m_Renderer.RenderSky(m_BuiltinParameters, skyParameters);
+                    m_Renderer.SetRenderTargets(m_BuiltinParameters);
+                    m_Renderer.RenderSky(m_BuiltinParameters, skyParameters, false);
                 }
             }
         }

@@ -97,7 +97,7 @@ float4 PackLogLuv(float3 vRGB)
     vResult.xy = Xp_Y_XYZp.xy / Xp_Y_XYZp.z;
     float Le = 2.0 * log2(Xp_Y_XYZp.y) + 127.0;
     vResult.w = frac(Le);
-    vResult.z = (Le - (floor(vResult.w*255.0f)) / 255.0f) / 255.0f;
+    vResult.z = (Le - (floor(vResult.w * 255.0)) / 255.0) / 255.0;
     return vResult;
 }
 

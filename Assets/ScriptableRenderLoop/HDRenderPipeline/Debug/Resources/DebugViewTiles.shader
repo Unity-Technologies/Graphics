@@ -9,14 +9,14 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
-            #pragma target 5.0
-            #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
+            #pragma target 4.5
+            #pragma only_renderers d3d11 ps4 metal // TEMP: unitl we go futher in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #define LIGHTLOOP_TILE_PASS 1            
-            #define LIGHTLOOP_TILE_ALL	1
+            #define LIGHTLOOP_TILE_PASS           
+            #define LIGHTLOOP_TILE_ALL
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
@@ -153,9 +153,9 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                     int n = -1;
                     if(tileCoord.x == 0)
                     {
-                        n = count;
+                        n = (int)count;
                     }
-                    else if(lightListIndex >= 0 && lightListIndex < count)
+                    else if(lightListIndex >= 0 && lightListIndex < (int)count)
                     {
                         n = FetchIndex(start, lightListIndex);
                     }

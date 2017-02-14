@@ -17,15 +17,14 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             Blend[_SrcBlend][_DstBlend]
 
             HLSLPROGRAM
-            #pragma target 5.0
-            #pragma only_renderers d3d11 ps4// TEMP: unitl we go futher in dev
+            #pragma target 4.5
+            #pragma only_renderers d3d11 ps4 metal // TEMP: unitl we go futher in dev
 
             #pragma vertex Vert
             #pragma fragment Frag
 
             // Chose supported lighting architecture in case of deferred rendering
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF 
 
             // TODO: Workflow problem here, I would like to only generate variant for the LIGHTLOOP_TILE_PASS case, not the LIGHTLOOP_SINGLE_PASS case. This must be on lightloop side and include here.... (Can we codition
             #pragma multi_compile LIGHTLOOP_TILE_DIRECT LIGHTLOOP_TILE_INDIRECT LIGHTLOOP_TILE_ALL

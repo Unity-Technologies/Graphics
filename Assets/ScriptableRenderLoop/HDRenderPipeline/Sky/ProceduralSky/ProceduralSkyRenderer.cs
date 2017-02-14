@@ -30,7 +30,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                    allParams.worldRayleighColorRamp != null;
         }
 
-        void SetKeywords(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param)
+        public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
+        {
+            // We do not bind the depth buffer as a depth-stencil target since it is
+            // bound as a color texture which is then sampled from within the shader.
+            Utilities.SetRenderTarget(builtinParams.renderContext, builtinParams.colorBuffer);
+        }
+
+        void SetKeywords(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param, bool renderForCubemap)
         {
             // Ensure that all preprocessor symbols are initially undefined.
             m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS");
@@ -56,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             */
 
             // Expected to be valid for the sky pass, and invalid for the cube map generation pass.
-            if (builtinParams.depthBuffer != BuiltinSkyParameters.invalidRTI)
+            if (!renderForCubemap)
             {
                 m_ProceduralSkyMaterial.EnableKeyword("PERFORM_SKY_OCCLUSION_TEST");
             }
@@ -67,19 +74,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void SetUniforms(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param)
+        void SetUniforms(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param, bool renderForCubemap, ref MaterialPropertyBlock properties)
         {
-            m_ProceduralSkyMaterial.SetTexture("_Cubemap", param.skyHDRI);
-            m_ProceduralSkyMaterial.SetVector("_SkyParam", new Vector4(param.exposure, param.multiplier, param.rotation, 0.0f));
-            m_ProceduralSkyMaterial.SetMatrix("_ViewProjMatrix", builtinParams.viewProjMatrix);
-            m_ProceduralSkyMaterial.SetMatrix("_InvViewProjMatrix", builtinParams.invViewProjMatrix);
-            m_ProceduralSkyMaterial.SetVector("_CameraPosWS", builtinParams.cameraPosWS);
-            m_ProceduralSkyMaterial.SetVector("_ScreenSize", builtinParams.screenSize);
+            properties.SetTexture("_Cubemap", param.skyHDRI);
+            properties.SetVector("_SkyParam", new Vector4(param.exposure, param.multiplier, param.rotation, 0.0f));
+
+            properties.SetMatrix("_InvViewProjMatrix", builtinParams.invViewProjMatrix);
+            properties.SetVector("_CameraPosWS", builtinParams.cameraPosWS);
+            properties.SetVector("_ScreenSize", builtinParams.screenSize);
 
             m_ProceduralSkyMaterial.SetInt("_AtmosphericsDebugMode", (int)param.debugMode);
 
             Vector3 sunDirection = (builtinParams.sunLight != null) ? -builtinParams.sunLight.transform.forward : Vector3.zero;
             m_ProceduralSkyMaterial.SetVector("_SunDirection", sunDirection);
+
+            var pixelRect = new Rect(0f, 0f, builtinParams.screenSize.x, builtinParams.screenSize.y);
+            var scale = 1.0f; //(float)(int)occlusionDownscale;
+            var depthTextureScaledTexelSize = new Vector4(scale / pixelRect.width,
+                                                          scale / pixelRect.height,
+                                                         -scale / pixelRect.width,
+                                                         -scale / pixelRect.height);
+            properties.SetVector("_DepthTextureScaledTexelSize", depthTextureScaledTexelSize);
 
             /*
             m_ProceduralSkyMaterial.SetFloat("_ShadowBias", useOcclusion ? occlusionBias : 1f);
@@ -90,17 +105,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ProceduralSkyMaterial.SetVector("_OcclusionTexture_TexelSize", ???);
             */
 
-            var pixelRect = new Rect(0f, 0f, builtinParams.screenSize.x, builtinParams.screenSize.y);
-            var scale = 1.0f; //(float)(int)occlusionDownscale;
-            var depthTextureScaledTexelSize = new Vector4(scale / pixelRect.width,
-                                                          scale / pixelRect.height,
-                                                         -scale / pixelRect.width,
-                                                         -scale / pixelRect.height);
-            m_ProceduralSkyMaterial.SetVector("_DepthTextureScaledTexelSize", depthTextureScaledTexelSize);
-
             m_ProceduralSkyMaterial.SetFloat("_WorldScaleExponent", param.worldScaleExponent);
             m_ProceduralSkyMaterial.SetFloat("_WorldNormalDistanceRcp", 1f / param.worldNormalDistance);
-            m_ProceduralSkyMaterial.SetFloat("_WorldNearScatterPush", -Mathf.Pow(Mathf.Abs(param.worldNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.worldNearScatterPush));
+            m_ProceduralSkyMaterial.SetFloat("_WorldMieNearScatterPush", -Mathf.Pow(Mathf.Abs(param.worldMieNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.worldMieNearScatterPush));
+            m_ProceduralSkyMaterial.SetFloat("_WorldRayleighNearScatterPush", -Mathf.Pow(Mathf.Abs(param.worldRayleighNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.worldRayleighNearScatterPush));
             m_ProceduralSkyMaterial.SetFloat("_WorldRayleighDensity", -param.worldRayleighDensity / 100000f);
             m_ProceduralSkyMaterial.SetFloat("_WorldMieDensity", -param.worldMieDensity / 100000f);
 
@@ -125,9 +133,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ProceduralSkyMaterial.SetVector("_MieColorP20", (Vector4)mieColorP20 * param.worldMieColorIntensity);
 
             m_ProceduralSkyMaterial.SetFloat("_HeightNormalDistanceRcp", 1f / param.heightNormalDistance);
-            m_ProceduralSkyMaterial.SetFloat("_HeightNearScatterPush", -Mathf.Pow(Mathf.Abs(param.heightNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.heightNearScatterPush));
-            m_ProceduralSkyMaterial.SetFloat("_HeightRayleighDensity", -param.heightRayleighDensity / 100000f);
-            m_ProceduralSkyMaterial.SetFloat("_HeightMieDensity", -param.heightMieDensity / 100000f);
+            m_ProceduralSkyMaterial.SetFloat("_HeightMieNearScatterPush", -Mathf.Pow(Mathf.Abs(param.heightMieNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.heightMieNearScatterPush));
+            m_ProceduralSkyMaterial.SetFloat("_HeightRayleighNearScatterPush", -Mathf.Pow(Mathf.Abs(param.heightRayleighNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.heightRayleighNearScatterPush));
+            // m_ProceduralSkyMaterial.SetFloat("_HeightRayleighDensity", -param.heightRayleighDensity / 100000f);
+            // m_ProceduralSkyMaterial.SetFloat("_HeightMieDensity", -param.heightMieDensity / 100000f);
             m_ProceduralSkyMaterial.SetFloat("_HeightSeaLevel", param.heightSeaLevel);
             m_ProceduralSkyMaterial.SetVector("_HeightPlaneShift", param.heightPlaneShift);
             m_ProceduralSkyMaterial.SetFloat("_HeightDistanceRcp", 1f / param.heightDistance);
@@ -140,24 +149,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ProceduralSkyMaterial.SetFloat("_MiePhaseAnisotropy", param.worldMiePhaseAnisotropy);
             m_ProceduralSkyMaterial.SetFloat("_MieExtinctionFactor", param.worldMieExtinctionFactor);
 
+            // Since we use the material for rendering the sky both into the cubemap, and
+            // during the fullscreen pass, setting the 'PERFORM_SKY_OCCLUSION_TEST' keyword has no effect.
+            properties.SetFloat("_DisableSkyOcclusionTest", renderForCubemap ? 1.0f : 0.0f);
+            // We flip the screens-space Y axis in case we follow the D3D convention.
+            properties.SetFloat("_FlipY",                   renderForCubemap ? 1.0f : 0.0f);
+            // We do not render the height fog into the sky IBL cubemap.
+            properties.SetFloat("_HeightRayleighDensity",   renderForCubemap ? -0.0f : -param.heightRayleighDensity / 100000f);
+            properties.SetFloat("_HeightMieDensity",        renderForCubemap ? -0.0f : -param.heightMieDensity / 100000f);
         }
 
-        override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters)
+        override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, bool renderForCubemap)
         {
             ProceduralSkyParameters proceduralSkyParams = GetParameters(skyParameters);
 
+            MaterialPropertyBlock properties = new MaterialPropertyBlock();
+
             // Define select preprocessor symbols.
-            SetKeywords(builtinParams, proceduralSkyParams);
+            SetKeywords(builtinParams, proceduralSkyParams, renderForCubemap);
 
             // Set shader constants.
-            SetUniforms(builtinParams, proceduralSkyParams);
+            SetUniforms(builtinParams, proceduralSkyParams, renderForCubemap, ref properties);
 
             var cmd = new CommandBuffer { name = "" };
-            if (builtinParams.depthBuffer != BuiltinSkyParameters.invalidRTI)
+
+            if (!renderForCubemap)
             {
                 cmd.SetGlobalTexture("_CameraDepthTexture", builtinParams.depthBuffer);
             }
-            cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial);
+
+            cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial, 0, 0, properties);
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }

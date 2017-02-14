@@ -65,6 +65,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kNormalMapSpace = "_NormalMapSpace";
         protected MaterialProperty enablePerPixelDisplacement = null;
         protected const string kEnablePerPixelDisplacement = "_EnablePerPixelDisplacement";
+        protected MaterialProperty ppdMinSamples = null;
+        protected const string kPpdMinSamples = "_PPDMinSamples";
+        protected MaterialProperty ppdMaxSamples = null;
+        protected const string kPpdMaxSamples = "_PPDMaxSamples";
         protected MaterialProperty detailMapMode = null;
         protected const string kDetailMapMode = "_DetailMapMode";
         protected MaterialProperty UVDetail = null;
@@ -136,6 +140,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             smoothnessMapChannel = FindProperty(kSmoothnessTextureChannel, props);
             normalMapSpace = FindProperty(kNormalMapSpace, props);
             enablePerPixelDisplacement = FindProperty(kEnablePerPixelDisplacement, props);
+            ppdMinSamples = FindProperty(kPpdMinSamples, props);
+            ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
             detailMapMode = FindProperty(kDetailMapMode, props);
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
@@ -214,6 +220,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);            
             m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText.text);
             m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText.text);
+            m_MaterialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText.text);
+            m_MaterialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText.text);
+            ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
             EditorGUI.indentLevel--;
         }
 
@@ -247,6 +256,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(heightAmplitude, Styles.heightMapAmplitudeText);
+                heightAmplitude.floatValue = Math.Max(0.0f, heightAmplitude.floatValue); // Must be positive
                 m_MaterialEditor.ShaderProperty(heightCenter, Styles.heightMapCenterText);
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
@@ -258,6 +268,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
 
+            EditorGUILayout.Space();
+            GUILayout.Label(Styles.textureControlText, EditorStyles.label);
             m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap);
 
             EditorGUILayout.Space();
@@ -332,10 +344,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
 			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
 
-            SetKeyword(material, "_REQUIRE_UV2_OR_UV3", (
-                                                            ((UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3)
-                                                            && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0)
-                                                            );
-        }
+            bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
+            bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
+
+            if (needUV3)
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.EnableKeyword("_REQUIRE_UV3");
+            }
+            else if (needUV2)
+            {
+                material.EnableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
+            }
+            else
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
+            }
+         }
     }
 } // namespace UnityEditor

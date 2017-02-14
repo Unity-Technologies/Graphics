@@ -3,7 +3,9 @@
 //-----------------------------------------------------------------------------
 
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
-#include "Lit.cs.hlsl"
+//TODO: return this original relative path include after fixing a bug in Unity side
+//#include "Lit.cs.hlsl"
+#include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Lit/Lit.cs.hlsl"
 
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
@@ -38,24 +40,16 @@
 // TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotropy and anisotropy case.
 // Maybe we should always calculate anisotropy in case of standard ? Don't think the compile can optimize correctly.
 
-// TODO: I haven't configure this sampler in the code, we should be able to do it (but Unity don't allow it for now...)
-// By default Unity provide MIG_MAG_LINEAR_POINT sampler, so it fit with our need.
-// TODO: to avoid the message Fragment program 'Frag' : sampler 'sampler_PreIntegratedFGD' has no matching texture and will be undefined.
-// We need to test this define LIGHTLOOP_TILE_DIRECT, this is a bad workaround but no alternative until we can setup sampler correctly...
-#if defined(LIT_DISPLAY_REFERENCE_IBL) || defined(LIGHTLOOP_TILE_DIRECT)
-// When reference mode is enabled, then we need to chose another sampler not related to cubemap code...
-SAMPLER2D(sampler_LtcGGXMatrix);
-#define SRL_BilinearSampler sampler_LtcGGXMatrix // Used for all textures
-#else
-SAMPLER2D(sampler_PreIntegratedFGD);
-#define SRL_BilinearSampler sampler_PreIntegratedFGD // Used for all textures
-#endif
-
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
+// TODO: we can share the sampler here and name it SRL_BilinearSampler. However Unity currently doesn't support to set sampler in C#
+// + to avoid the message Fragment program 'Frag' : sampler 'sampler_PreIntegratedFGD' has no matching texture and will be undefined.
 TEXTURE2D(_PreIntegratedFGD);
-TEXTURE2D(_LtcGGXMatrix);                    // RGBA
-TEXTURE2D(_LtcDisneyDiffuseMatrix);          // RGBA
-TEXTURE2D(_LtcMultiGGXFresnelDisneyDiffuse); // RGB, A unused
+SAMPLER2D(sampler_PreIntegratedFGD);
+TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
+SAMPLER2D(sampler_LtcData);
+#define LTC_GGX_MATRIX_INDEX 0 // RGBA
+#define LTC_DISNEY_DIFFUSE_MATRIX_INDEX 1 // RGBA
+#define LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX 2 // RGB, A unused
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -80,7 +74,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     //  _PreIntegratedFGD.y = Gv * Fc
     // Pre integrate DisneyDiffuse FGD:
     // _PreIntegratedFGD.z = DisneyDiffuse
-    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, SRL_BilinearSampler, float2(NdotV, perceptualRoughness), 0).xyz;
+    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, sampler_PreIntegratedFGD, float2(NdotV, perceptualRoughness), 0).xyz;
 
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
@@ -187,7 +181,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        outGBuffer2 = float4(surfaceData.subSurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subSurfaceProfile / 8.0f); // Number of profile not define yet
+        outGBuffer2 = float4(surfaceData.subSurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subSurfaceProfile / 8.0); // Number of profile not define yet
     }
     else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -296,7 +290,7 @@ void DecodeFromGBuffer(
         bsdfData.fresnel0 = 0.028; // TODO take from subSurfaceProfile
         bsdfData.subSurfaceRadius = inGBuffer2.r;
         bsdfData.thickness = inGBuffer2.g;
-        bsdfData.subSurfaceProfile = inGBuffer2.a * 8.0f;
+        bsdfData.subSurfaceProfile = inGBuffer2.a * 8.0;
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -500,7 +494,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     float3 iblR = reflect(-V, iblNormalWS);
     preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness, preLightData.NdotV);
 
-    preLightData.iblMipLevel = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
+    preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
 
     // Area light specific
     // UVs for sampling the LUTs
@@ -512,15 +506,15 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcXformGGX      = 0.0;
     preLightData.ltcXformGGX._m22 = 1.0;
-    preLightData.ltcXformGGX._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcGGXMatrix, SRL_BilinearSampler, uv, 0);
+    preLightData.ltcXformGGX._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, sampler_LtcData, uv, LTC_GGX_MATRIX_INDEX, 0);
 
     // Get the inverse LTC matrix for Disney Diffuse
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcXformDisneyDiffuse      = 0.0;
     preLightData.ltcXformDisneyDiffuse._m22 = 1.0;
-    preLightData.ltcXformDisneyDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcDisneyDiffuseMatrix, SRL_BilinearSampler, uv, 0);
+    preLightData.ltcXformDisneyDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, sampler_LtcData, uv, LTC_DISNEY_DIFFUSE_MATRIX_INDEX, 0);
 
-    float3 ltcMagnitude = SAMPLE_TEXTURE2D_LOD(_LtcMultiGGXFresnelDisneyDiffuse, SRL_BilinearSampler, uv, 0).r;
+    float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, sampler_LtcData, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
     preLightData.ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r;
     preLightData.ltcGGXFresnelMagnitude     = ltcMagnitude.g;
     preLightData.ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
@@ -644,7 +638,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     specularLighting   = float3(0.0, 0.0, 0.0);
     float3 cookieColor = float3(1.0, 1.0, 1.0);
 
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
+    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
         float shadowAttenuation = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 
@@ -675,7 +669,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         illuminance *= cookie.a;
     }
 
-    [branch] if (illuminance > 0.0f)
+    [branch] if (illuminance > 0.0)
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
         diffuseLighting  *= (cookieColor * lightData.color) * (illuminance * lightData.diffuseScale);
@@ -713,12 +707,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
-    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
-    {
-        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-        float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
-        illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
-    }
+    //[branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
+    //{
+    //    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    //    float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
+    //    illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
+    //}
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {

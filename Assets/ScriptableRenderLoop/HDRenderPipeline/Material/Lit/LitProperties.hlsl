@@ -30,6 +30,7 @@ float _DetailAOScale;
 
 TEXTURE2D(_HeightMap);
 SAMPLER2D(sampler_HeightMap);
+float4 _HeightMap_TexelSize; // Unity facility. This will provide the size of the heightmap to the shader
 
 float _HeightAmplitude;
 float _HeightCenter;
@@ -75,6 +76,9 @@ float _UVMappingPlanar;
 float4 _UVMappingMask;
 float4 _UVDetailsMappingMask;
 
+float _PPDMaxSamples;
+float _PPDMinSamples;
+
 #else // LAYERED_LIT_SHADER
 
 // Set of users variables
@@ -101,8 +105,13 @@ PROP_DECL_TEX2D(_SpecularOcclusionMap);
 
 PROP_DECL_TEX2D(_NormalMap);
 PROP_DECL(float, _NormalScale);
+float4 _NormalMap0_TexelSize; // Unity facility. This will provide the size of the base normal to the shader
 
 PROP_DECL_TEX2D(_HeightMap);
+float4 _HeightMap0_TexelSize;
+float4 _HeightMap1_TexelSize;
+float4 _HeightMap2_TexelSize;
+float4 _HeightMap3_TexelSize;
 
 PROP_DECL_TEX2D(_DetailMask);
 PROP_DECL_TEX2D(_DetailMap);
@@ -129,19 +138,26 @@ SAMPLER2D(sampler_DistortionVectorMap);
 TEXTURE2D(_LayerMaskMap);
 SAMPLER2D(sampler_LayerMaskMap);
 
-float _HeightOffset1;
-float _HeightOffset2;
-float _HeightOffset3;
-float _HeightFactor1;
-float _HeightFactor2;
-float _HeightFactor3;
-float _BlendSize1;
-float _BlendSize2;
-float _BlendSize3;
-float _VertexColorHeightFactor;
-float _InheritBaseLayer1;
-float _InheritBaseLayer2;
-float _InheritBaseLayer3;
+float _BlendUsingHeight1;
+float _BlendUsingHeight2;
+float _BlendUsingHeight3;
+PROP_DECL(float, _HeightFactor);
+PROP_DECL(float, _HeightCenterOffset);
+PROP_DECL(float, _MinimumOpacity);
+PROP_DECL(float, _OpacityAsDensity);
+float _InheritBaseNormal1;
+float _InheritBaseNormal2;
+float _InheritBaseNormal3;
+float _InheritBaseHeight1;
+float _InheritBaseHeight2;
+float _InheritBaseHeight3;
+float _InheritBaseColor1;
+float _InheritBaseColor2;
+float _InheritBaseColor3;
+float _InheritBaseColorThreshold1;
+float _InheritBaseColorThreshold2;
+float _InheritBaseColorThreshold3;
+PROP_DECL(float, _LayerTiling);
 
 float3 _EmissiveColor;
 TEXTURE2D(_EmissiveColorMap);
@@ -155,12 +171,16 @@ PROP_DECL(float4, _UVDetailsMappingMask);
 
 float _AlphaCutoff;
 
+float _PPDMaxSamples;
+float _PPDMinSamples;
+
 #endif // LAYERED_LIT_SHADER
 
 // Tessellation specific
 
 #ifdef TESSELLATION_ON
-float _TessellationFactorFixed;
+float _TessellationFactor;
+float _TessellationFactorMinDistance;
 float _TessellationFactorMaxDistance;
 float _TessellationFactorTriangleSize;
 float _TessellationShapeFactor;

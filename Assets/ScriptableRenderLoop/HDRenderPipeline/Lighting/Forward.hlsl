@@ -14,4 +14,7 @@
 
 // Must match name in GetKeyword() method of forward lighting architecture .cs file
 // #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS -> can't use a pragma from include... (for now)
-// #pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF  -> can't use a pragma from include... (for now)
+
+// No USE_FPTL_LIGHTLIST as we are in forward and this use the cluster path (but cluster path can use the tile light list for opaque)
+#define USE_CLUSTERED_LIGHTLIST
+#define LIGHTLOOP_TILE_ALL
