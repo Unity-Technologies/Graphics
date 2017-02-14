@@ -88,7 +88,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_UpdateRequired = true;
 
                 if (value != null)
+                {
                     m_Renderer = value.GetRenderer();
+                    m_Renderer.Build();
+                }
             }
             get { return m_SkyParameters; }
         }
@@ -259,9 +262,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Build()
         {
-            if (m_Renderer != null)
-                m_Renderer.Build();
-
             // Create unititialized. Lazy initialization is performed later.
             m_iblFilterGgx = new IBLFilterGGX();
 
