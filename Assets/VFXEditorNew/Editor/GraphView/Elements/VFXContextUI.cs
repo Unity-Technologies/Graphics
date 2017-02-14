@@ -19,6 +19,7 @@ namespace UnityEditor.VFX.UI
 		public NodeBlockContainer()
 		{
 			selection = new List<ISelectable>();
+            clipChildren = false;
 		}
 
 		public EventPropagation SelectAll()
@@ -150,8 +151,9 @@ namespace UnityEditor.VFX.UI
 			{
 				name = "NodeContents"
 			};
+            m_NodeContainer.clipChildren = false;
 
-			AddManipulator(new ShortcutHandler(
+            AddManipulator(new ShortcutHandler(
 				new Dictionary<Event, ShortcutDelegate>
 				{
 					{Event.KeyboardEvent("#a"), SelectAll},

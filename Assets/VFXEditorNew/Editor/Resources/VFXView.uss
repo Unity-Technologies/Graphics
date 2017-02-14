@@ -147,8 +147,7 @@ VFXPropertyUI
 	font:resource("Roboto/Roboto-Medium");
 	text-color: #BBB;
 	font-size:12;
-	min-height:25;
-	padding-bottom:6;
+	padding-bottom:0;
 }
 
 VFXPropertyUI .slot
@@ -157,32 +156,12 @@ VFXPropertyUI .slot
 	-background-color:#F00;
 }
 
-VFXPropertyUI .slot > VFXDataAnchor
-{
-	margin-top:4;
-	background-color: #2B2B2B;
-	width:8;
-	height:8;
-	margin-left:-7;
-	-border-color: #555;
-	border-width: 1;
-	border-radius: 4;
-}
-VFXPropertyUI .slot > VFXDataAnchor *
-{
-	width:8;
-	height:8;
-}
-
 VFXPropertyUI > IMGUIContainer
 {
 	flex:1;
 }
 
-VFXDataEdge
-{
-	border-color : #FFF;
-}
+/* used for data edges and data connectors*/
 
 .typesingle
 {
@@ -209,27 +188,47 @@ VFXDataEdge
 	border-color : #787878;
 }
 
-VFXDataAnchor.typesingle.connected
+
+VFXDataAnchor
+{
+	width:24;
+	height:24;
+	padding-top:4;
+	padding-left:8;
+	margin-left:-15;
+	-background-color: #555;
+}
+
+VFXDataAnchor .connector
+{
+	background-color: #2B2B2B;
+	border-width: 1;
+	-border-radius: 4;
+	width:9;
+	height:9;
+}
+
+VFXDataAnchor.connected > .typesingle
 {
 	background-color : #9f80e6;
 }
-VFXDataAnchor.typevector2.connected
+VFXDataAnchor.connected > .typevector2
 {
 	background-color : #8fc1df;
 }
-VFXDataAnchor.typevector3.connected
+VFXDataAnchor.connected > .typevector3
 {
 	background-color : #e7ab21;
 }
-VFXDataAnchor.typevector4.connected
+VFXDataAnchor.connected > .typevector4
 {
 	background-color : #42ca48;
 }
-VFXDataAnchor.typecolor.connected
+VFXDataAnchor.connected >.typecolor
 {
 	background-color : #d1d1d1;
 }
-VFXDataAnchor.typeobject.connected
+VFXDataAnchor.connected > .typeobject
 {
 	background-color : #787878;
 }

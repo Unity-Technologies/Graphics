@@ -1,5 +1,6 @@
 using RMGUI.GraphView;
 using UnityEngine.RMGUI.StyleSheets;
+using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
@@ -27,6 +28,7 @@ namespace UnityEditor.VFX.UI
                     AddToClassList("OutputEdgeConnector");
                     break;
             }
+            clipChildren = false;
         }
 
 
@@ -49,10 +51,17 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("connected");
 
             // update the css type of the class
-            RemoveFromClassList(VFXTypeDefinition.GetTypeCSSClasses());
-            AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
+            m_ConnectorBox.RemoveFromClassList(VFXTypeDefinition.GetTypeCSSClasses());
+            m_ConnectorBox.AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
+        }
 
-
+        public override bool ContainsPoint(Vector2 localPoint)
+        {
+            return position.Contains(localPoint);
+            //return GraphElement.ContainsPoint(localPoint);
+            // Here local point comes without position offset...
+            //localPoint -= position.position;
+            //return m_ConnectorBox.ContainsPoint(m_ConnectorBox.transform.MultiplyPoint3x4(localPoint));
         }
 
     }
