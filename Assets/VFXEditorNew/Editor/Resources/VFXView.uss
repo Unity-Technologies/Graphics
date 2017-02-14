@@ -50,8 +50,11 @@ VFXContextUI {
 }
 
 VFXContextUI #Title {
+	font:resource("Roboto/Roboto-Regular");
+	text-color: #BBB;
+	font-size:12;
 	min-height: 24;
-	background-color: #FFF;
+	-background-color: #FFF;
 	padding-top: 2;
 	padding-left: 2;
 	padding-bottom: 2;
@@ -69,6 +72,7 @@ VFXContextUI > #NodeContents {
 	padding-left: 16;
 	padding-bottom: 16;
 	padding-right: 16;
+	
 
 	text-color:#8FC1DF;
 
@@ -158,22 +162,33 @@ VFXPropertyUI .slot
 
 VFXPropertyUI > IMGUIContainer
 {
-	flex:1;
+	flex:2;
 	align-items: stretch;
 }
 
-VFXPropertyUI Button
+VFXPropertyUI .space
 {
 	flex:1;
 	border-radius:4;
 	border-width:2;
-	text-color: rgba(10,10,10,1);
+	-text-color: #BBB;
+	text-color: #000;
+	margin-top:2;
+	margin-bottom:2;
 	font:resource("Roboto/Roboto-Medium");
-	background-color:#FFF;
-	min-height:30;
-	font-size:16;
 	text-alignment: middle-center;
-	
+}
+VFXPropertyUI .space.local
+{
+	background-color:#F00;
+}
+VFXPropertyUI .space.global
+{
+	background-color:#0F0;
+}
+VFXPropertyUI .space.camera
+{
+	background-color:#00F;
 }
 
 /* used for data edges and data connectors*/

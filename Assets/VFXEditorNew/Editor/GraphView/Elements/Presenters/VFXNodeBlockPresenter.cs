@@ -174,7 +174,11 @@ namespace UnityEditor.VFX.UI
 
             foreach (var field in infos)
             {
-                if (type is Spaceable && field.Name == "space") continue;
+                if (typeof(Spaceable).IsAssignableFrom(type))
+                {
+                    if( field.Name == "space")
+                        continue;
+                }
 
                 object fieldValue = field.GetValue(value);
 

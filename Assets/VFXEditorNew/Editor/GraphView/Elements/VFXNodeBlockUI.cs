@@ -103,8 +103,8 @@ namespace UnityEditor.VFX.UI
 
 
         public override void OnDataChanged()
-		{
-			var presenter = GetPresenter<VFXNodeBlockPresenter>();
+        {
+            var presenter = GetPresenter<VFXNodeBlockPresenter>();
 
 			if (presenter == null)
 				return;

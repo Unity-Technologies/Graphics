@@ -119,7 +119,7 @@ namespace UnityEditor.VFX.UI
 		// TODO: Unused except for debugging
 		const string RectColorProperty = "rect-color";
 
-		Label m_Title;
+		VisualElement m_Title;
 		VisualContainer m_FlowInputConnectorContainer;
 		VisualContainer m_FlowOutputConnectorContainer;
 		VisualContainer m_NodeContainer;
@@ -164,7 +164,7 @@ namespace UnityEditor.VFX.UI
 			AddChild(m_FlowInputConnectorContainer);
 			AddChild(m_NodeContainer);
 			AddChild(m_FlowOutputConnectorContainer);
-			m_Title = new Label(new GUIContent("Title")) { name = "Title" };
+			m_Title = new VisualElement() { name = "Title" ,content = new GUIContent("Title") };
 			m_NodeContainer.AddChild(m_Title);
 
 			m_NodeBlockContainer = new NodeBlockContainer()

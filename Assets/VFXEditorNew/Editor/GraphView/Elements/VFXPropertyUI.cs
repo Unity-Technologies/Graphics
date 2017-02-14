@@ -72,7 +72,7 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        Button m_SpaceButton;
+        VisualElement m_SpaceButton;
 
         public VFXPropertyUI()
         {
@@ -87,7 +87,10 @@ namespace UnityEditor.VFX.UI
             m_Container.executionContext = s_ContextCount++;
             AddChild(m_Container);
 
-            m_SpaceButton = new Button(SwitchSpace);
+            m_SpaceButton = new VisualElement();
+            m_SpaceButton.AddManipulator(new Clickable(SwitchSpace));
+            m_SpaceButton.AddToClassList("space");
+
             m_SpaceButton.content = new GUIContent();
 
             m_GUIStyles.baseStyle = new GUIStyle();
