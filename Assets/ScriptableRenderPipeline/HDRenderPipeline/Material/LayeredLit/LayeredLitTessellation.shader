@@ -197,7 +197,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
-        [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
+        [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
@@ -259,7 +259,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
-    #pragma shader_feature _ _DOUBLESIDED _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+    #pragma shader_feature _DOUBLESIDED_ON
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
     #pragma shader_feature _TESSELLATION_OBJECT_SCALE
