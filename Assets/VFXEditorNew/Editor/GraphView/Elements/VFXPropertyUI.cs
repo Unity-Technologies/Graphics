@@ -71,6 +71,9 @@ namespace UnityEditor.VFX.UI
             m_GUIStyles.baseStyle.padding = new RectOffset(IMPadding, IMPadding, IMPadding, IMPadding);
         }
 
+
+        Button m_SpaceButton;
+
         public VFXPropertyUI()
         {
             m_Slot = new VisualContainer();
@@ -84,9 +87,17 @@ namespace UnityEditor.VFX.UI
             m_Container.executionContext = s_ContextCount++;
             AddChild(m_Container);
 
+            m_SpaceButton = new Button(SwitchSpace);
+            m_SpaceButton.content = new GUIContent();
+
             m_GUIStyles.baseStyle = new GUIStyle();
         }
 
+        void SwitchSpace()
+        {
+            ((Spaceable)m_PropertyInfo.value).space = (CoordinateSpace) ((int)(((Spaceable)m_PropertyInfo.value).space + 1) % (int)CoordinateSpace.SpaceCount);
+            m_Presenter.PropertyValueChanged(ref m_PropertyInfo);
+        }
 
         public class GUIStyles
         {
@@ -215,6 +226,33 @@ namespace UnityEditor.VFX.UI
             {
                 m_SlotIcon.presenter = presenter;
                 Dirty(ChangeType.Repaint|ChangeType.Transform);
+            }
+
+            if (typeof(Spaceable).IsAssignableFrom(info.type))
+            {
+                if (m_SpaceButton.parent == null)
+                {
+                    AddChild(m_SpaceButton);
+                }
+
+                CoordinateSpace space = ((Spaceable)info.value).space;
+                m_SpaceButton.content.text = space.ToString();
+                m_SpaceButton.name = space.ToString();
+
+                foreach (string spaceName in Enum.GetNames(typeof(CoordinateSpace)))
+                {
+                    m_SpaceButton.RemoveFromClassList(spaceName.ToLower());
+                }
+
+                m_SpaceButton.AddToClassList(space.ToString().ToLower());
+                m_SpaceButton.Dirty(ChangeType.Styles);
+            }
+            else
+            {
+                if (m_SpaceButton.parent != null)
+                {
+                    RemoveChild(m_SpaceButton);
+                }
             }
         }
         

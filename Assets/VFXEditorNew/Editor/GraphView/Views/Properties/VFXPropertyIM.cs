@@ -115,6 +115,37 @@ namespace UnityEditor.VFX.UI
     }
 
 
+    /*
+    abstract class VFXSpacedPropertyIM : VFXPropertyIM
+    {
+        protected override void DoOnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        {
+            GUILayout.BeginHorizontal();
+            Label(ref infos, styles);
+
+            GUILayout.EndHorizontal();
+        }
+
+        protected void SpaceControl(ref VFXNodeBlockPresenter.PropertyInfo infos)
+        {
+
+        }
+    }
+    abstract class VFXSpacedPropertyIM<T> : VFXSpacedPropertyIM
+    {
+        protected override void DoOnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        {
+            GUILayout.BeginHorizontal();
+            Label(ref infos, styles);
+            infos.value = OnParameterGUI(ref infos, (T)infos.value, styles);
+            GUILayout.EndHorizontal();
+        }
+
+
+
+        public abstract T OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, T value, VFXPropertyUI.GUIStyles styles);
+    }
+    */
 
     class VFXDefaultPropertyIM : VFXPropertyIM
     {

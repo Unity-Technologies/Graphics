@@ -159,6 +159,21 @@ VFXPropertyUI .slot
 VFXPropertyUI > IMGUIContainer
 {
 	flex:1;
+	align-items: stretch;
+}
+
+VFXPropertyUI Button
+{
+	flex:1;
+	border-radius:4;
+	border-width:2;
+	text-color: rgba(10,10,10,1);
+	font:resource("Roboto/Roboto-Medium");
+	background-color:#FFF;
+	min-height:30;
+	font-size:16;
+	text-alignment: middle-center;
+	
 }
 
 /* used for data edges and data connectors*/
