@@ -630,7 +630,7 @@ LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bui
 #ifdef HAS_LIGHTLOOP
 
 //-----------------------------------------------------------------------------
-// BSDF share between directional light, punctual light and area light (reference) 
+// BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
 void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
@@ -709,7 +709,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
-        float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS, 0);
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 
         illuminance *= shadow;
     }
@@ -752,7 +752,9 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
         [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
         {
-            float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS, bsdfData.thickness);
+            // TODO: factor out the biased position?
+            float3 biasedPositionWS = positionWS + bsdfData.normalWS * bsdfData.thickness;
+            float shadow = GetDirectionalShadowAttenuation(lightLoopContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
             illuminance *= shadow;
         }
 
@@ -808,7 +810,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float  shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS, 0);
+        float  shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 
         illuminance *= shadow;
@@ -859,8 +861,10 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
         [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
         {
+            // TODO: factor out the common biased position?
+            float3 biasedPositionWS = positionWS + bsdfData.normalWS * bsdfData.thickness;
             float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-            float  shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS, bsdfData.thickness);
+            float  shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, biasedPositionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
             shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 
             illuminance *= shadow;
