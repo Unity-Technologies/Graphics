@@ -85,17 +85,11 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
     normalTS = float3(0.0, 0.0, 1.0);
 #endif
 
-#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
-    #ifdef _DOUBLESIDED_LIGHTING_FLIP
-    float3 oppositeNormalTS = -normalTS;
-    #else
+#ifdef _DOUBLESIDED_ON
     // Mirror the normal with the plane define by vertex normal
-    float3 oppositeNormalTS = reflect(normalTS, float3(0.0, 0.0, 1.0)); // Reflect around vertex normal (in tangent space this is z)
-    #endif
+    float3 oppositeNormalTS = float3(normalTS.xy, -normalTS.z);
     // TODO : Test if GetOddNegativeScale() is necessary here in case of normal map, as GetOddNegativeScale is take into account in CreateTangentToWorld();
-    normalTS = input.isFrontFace ?
-                    (GetOddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS) :
-                    (-GetOddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS);
+    normalTS = input.isFrontFace ? (GetOddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS) : (-GetOddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS);
 #endif
 
     return normalTS;
