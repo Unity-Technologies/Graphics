@@ -106,7 +106,6 @@ float3 BlendNormal(float3 n1, float3 n2)
 float3 ComputeTriplanarWeights(float3 normal)
 { 
     // Determine the blend weights for the 3 planar projections.  
-    // N_orig is the vertex-interpolated normal vector.  
     float3 blendWeights = abs(normal);
     // Tighten up the blending zone
     blendWeights = (blendWeights - 0.2) * 7.0;
@@ -128,5 +127,11 @@ float3 LerpWhiteTo(float3 b, float t)
     float oneMinusT = 1.0 - t;
     return float3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
+
+// MACRO from Legacy Untiy
+// Transforms 2D UV by scale/bias property
+#define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
+
+#define GET_TEXELSIZE_NAME(name) (name##_TexelSize)
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

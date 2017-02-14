@@ -21,7 +21,7 @@
 // UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewGbuffer:  static fields
 //
 #define DEBUGVIEWGBUFFER_DEPTH (10)
-#define DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING (11)
+#define DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE (11)
 
 
 #endif

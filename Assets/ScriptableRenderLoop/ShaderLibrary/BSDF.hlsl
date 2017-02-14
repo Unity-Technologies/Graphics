@@ -59,15 +59,6 @@ float D_GGX(float NdotH, float roughness)
     return INV_PI * D_GGXNoPI(NdotH, roughness);
 }
 
-float D_GGX_Inverse(float NdotH, float roughness)
-{
-    float a2 = roughness * roughness;
-    float f  = (NdotH * a2 - NdotH) * NdotH + 1.0;
-    float g  = (f * f) / a2;
-
-    return PI * g;
-}
-
 // Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, p. 19, 29.
 float G_MaskingSmithGGX(float NdotV, float VdotH, float roughness)
 {
@@ -105,7 +96,7 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
     float lambdaV = NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
     float lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
-    // Simplify visibility term: (2.0f * NdotL * NdotV) /  ((4.0f * NdotL * NdotV) * (lambda_v + lambda_l));
+    // Simplify visibility term: (2.0 * NdotL * NdotV) /  ((4.0 * NdotL * NdotV) * (lambda_v + lambda_l));
     return 0.5 / (lambdaV + lambdaL);
 }
 
@@ -125,7 +116,7 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness, float lambdaV)
     lambdaV *= NdotL;
     float lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
-    // Simplify visibility term: (2.0f * NdotL * NdotV) /  ((4.0f * NdotL * NdotV) * (lambda_v + lambda_l));
+    // Simplify visibility term: (2.0 * NdotL * NdotV) /  ((4.0 * NdotL * NdotV) * (lambda_v + lambda_l));
     return 0.5 / (lambdaV + lambdaL);
 }
 

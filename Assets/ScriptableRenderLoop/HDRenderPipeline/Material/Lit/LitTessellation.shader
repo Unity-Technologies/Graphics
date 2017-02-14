@@ -84,6 +84,8 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _UVMappingPlanar("_UVMappingPlanar", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
+        _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
+        _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
@@ -91,11 +93,12 @@ Shader "HDRenderPipeline/LitTessellation"
 
         // Tessellation specific
         [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 0
-        _TessellationFactorFixed("Tessellation Factor", Float) = 4.0 // if != -1.0 force fixed factor
-        _TessellationFactorMaxDistance("Tessellation max distance factor", Float) = 12.0
-        _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 20.0        
+        _TessellationFactor("Tessellation Factor", Range(0.0, 15.0)) = 4.0
+        _TessellationFactorMinDistance("Tessellation start fading distance", Float) = 20.0
+        _TessellationFactorMaxDistance("Tessellation end fading distance", Float) = 50.0
+        _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 100.0      
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
-        _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 1.0)) = 0.25
+        _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
         [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
          // TODO: Handle culling mode for backface culling
     }
@@ -112,16 +115,17 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
-    #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+    #pragma shader_feature _ _DOUBLESIDED _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
+    #pragma shader_feature _TESSELLATION_OBJECT_SCALE
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     #pragma shader_feature _MAPPING_TRIPLANAR
     #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
-    #pragma shader_feature _REQUIRE_UV2_OR_UV3
+    #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
     #pragma shader_feature _NORMALMAP  
@@ -131,7 +135,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
-    #pragma shader_feature _DETAIL_MAP      
+    #pragma shader_feature _DETAIL_MAP  
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -154,7 +158,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #include "tessellation.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderConfig.cs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderVariables.hlsl"
-    #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Attributes.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
     //-------------------------------------------------------------------------------------
@@ -164,6 +168,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #include "Assets/ScriptableRenderLoop/HDRenderPipeline/Material/Lit/LitProperties.hlsl"
 
     // All our shaders use same name for entry point
+    #pragma vertex Vert
     #pragma fragment Frag
 
     ENDHLSL
@@ -182,16 +187,13 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma vertex VertTessellation
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
-            #include "LitData.hlsl"            
-            #include "../Tessellation/TessellationShare.hlsl"
-
+            #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -206,16 +208,13 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma vertex VertTessellation
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
-            #include "LitData.hlsl"            
-            #include "../Tessellation/TessellationShare.hlsl"
-            
+            #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
             ENDHLSL
@@ -237,13 +236,12 @@ Shader "HDRenderPipeline/LitTessellation"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
 			// No tessellation for Meta pass
-            #pragma vertex Vert
+            #undef TESSELLATION_ON
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"            
             #include "ShaderPass/LitMetaPass.hlsl"
             #include "LitData.hlsl"
-
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -261,16 +259,13 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma vertex VertTessellation
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"            
             #include "ShaderPass/LitDepthPass.hlsl"
-            #include "LitData.hlsl"            
-            #include "../Tessellation/TessellationShare.hlsl"
-
+            #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -287,16 +282,13 @@ Shader "HDRenderPipeline/LitTessellation"
  
             HLSLPROGRAM
 
-            #pragma vertex VertTessellation
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"            
             #include "ShaderPass/LitDepthPass.hlsl"
-            #include "LitData.hlsl"            
-            #include "../Tessellation/TessellationShare.hlsl"
-
+            #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -313,16 +305,12 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma vertex VertTessellation
-			#pragma hull Hull
-			#pragma domain Domain
+			// TODO: Tesselation can't work with velocity for now...
 
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../Material/Material.hlsl"         
             #include "ShaderPass/LitVelocityPass.hlsl"
-            #include "LitData.hlsl"            
-            #include "../Tessellation/TessellationShare.hlsl"
-
+            #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
@@ -340,16 +328,13 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma vertex VertTessellation
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_DISTORTION
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitDistortionPass.hlsl"
             #include "LitData.hlsl"
-            #include "../Tessellation/TessellationShare.hlsl"
-
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
@@ -366,25 +351,22 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma vertex VertTessellation
-			#pragma hull Hull
-			#pragma domain Domain
+            #pragma hull Hull
+            #pragma domain Domain
 
-            #define SHADERPASS SHADERPASS_FORWARD
+            #define SHADERPASS SHADERPASS_FORWARD            
+            #include "../../Lighting/Forward.hlsl"
             // TEMP until pragma work in include
-            // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
 
             #include "../../Lighting/Lighting.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
-            #include "../Tessellation/TessellationShare.hlsl"
-
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
         }
+
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"

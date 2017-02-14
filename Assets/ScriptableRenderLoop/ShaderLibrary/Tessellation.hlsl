@@ -1,5 +1,6 @@
 #define TESSELLATION_INTERPOLATE_BARY(name, bary) ouput.name = input0.name * bary.x +  input1.name * bary.y +  input2.name * bary.z
 
+// TODO: Move in geomtry.hlsl
 float3 ProjectPointOnPlane(float3 position, float3 planePosition, float3 planeNormal)
 {
     return position - (dot(position - planePosition, planeNormal) * planeNormal);
@@ -18,119 +19,110 @@ float3 PhongTessellation(float3 positionWS, float3 p0, float3 p1, float3 p2, flo
     return lerp(positionWS, phongPositionWS, shape);
 }
 
-// ---- utility functions
-float CalcDistanceTessFactor(float3 positionWS, float minDist, float maxDist, float4x4 objectToWorld, float3 cameraPosWS)
+// Reference: http://twvideo01.ubm-us.net/o1/vault/gdc10/slides/Bilodeau_Bill_Direct3D11TutorialTessellation.pdf
+
+// Return true if the triangle must be culled
+// backFaceCullEpsilon is the threshold of the dot product between view and normal ( < 0 mean we cull)
+bool BackFaceCullTriangle(float3 p0, float3 p1, float3 p2, float backFaceCullEpsilon, float3 cameraPosWS)
 {
-    float dist = distance(positionWS, cameraPosWS);
-    float f = clamp(1.0 - (dist - minDist) / (maxDist - minDist), 0.01, 1.0);
-    return f;
+    float3 edge0 = p1 - p0;
+    float3 edge2 = p2 - p0;
+
+    float3 N = normalize(cross(edge0, edge2));
+    float3 midpoint = (p0 + p1 + p2) / 3.0;
+    float3 V = normalize(cameraPosWS - midpoint);
+
+    return (dot(V, N) < backFaceCullEpsilon) ? true : false;
 }
 
-float4 UnityCalcTriEdgeTessFactors(float3 triVertexFactors)
+float2 GetScreenSpacePosition(float3 positionWS, float4x4 viewProjectionMatrix, float4 screenParams)
+{
+    float4 positionCS = mul(viewProjectionMatrix, float4(positionWS, 1.0));
+    float2 positionSS = positionCS.xy / positionCS.w;
+
+    // TODO: Check if we need to invert y
+    return (positionSS * 0.5 + 0.5) * float2(screenParams.x, -screenParams.y);
+}
+
+// Compute both screen and distance based adaptation - return factor between 0 and 1
+float3 GetScreenSpaceTessFactor(float3 p0, float3 p1, float3 p2, float4x4 viewProjectionMatrix, float4 screenParams, float triangleSize)
+{    
+    // Get screen space adaptive scale factor
+    float2 edgeScreenPosition0 = GetScreenSpacePosition(p0, viewProjectionMatrix, screenParams);
+    float2 edgeScreenPosition1 = GetScreenSpacePosition(p1, viewProjectionMatrix, screenParams);
+    float2 edgeScreenPosition2 = GetScreenSpacePosition(p2, viewProjectionMatrix, screenParams);
+
+    float EdgeScale = 1.0 / triangleSize; // Edge size in reality, but name is simpler
+    float3 tessFactor;
+    tessFactor.x = saturate(distance(edgeScreenPosition1, edgeScreenPosition2) * EdgeScale);
+    tessFactor.y = saturate(distance(edgeScreenPosition0, edgeScreenPosition2) * EdgeScale);
+    tessFactor.z = saturate(distance(edgeScreenPosition0, edgeScreenPosition1) * EdgeScale);
+
+    return tessFactor;
+}
+
+float3 GetDistanceBasedTessFactor(float3 p0, float3 p1, float3 p2, float3 cameraPosWS, float tessMinDist, float tessMaxDist)
+{
+    float3 edgePosition0 = 0.5 * (p1 + p2);
+    float3 edgePosition1 = 0.5 * (p0 + p2);
+    float3 edgePosition2 = 0.5 * (p0 + p1);
+
+    // TODO: Move to camera relative and change distance to length
+    float dist0 = distance(edgePosition0, cameraPosWS);
+    float dist1 = distance(edgePosition1, cameraPosWS);
+    float dist2 = distance(edgePosition2, cameraPosWS);
+
+    // The saturate will handle the produced NaN in case min == max
+    float fadeDist = tessMaxDist - tessMinDist;
+    float3 tessFactor;
+    tessFactor.x = saturate(1.0 - (dist0 - tessMinDist) / fadeDist);
+    tessFactor.y = saturate(1.0 - (dist1 - tessMinDist) / fadeDist);
+    tessFactor.z = saturate(1.0 - (dist2 - tessMinDist) / fadeDist);
+
+    return tessFactor;
+}
+
+float4 CalcTriEdgeTessFactors(float3 triVertexFactors)
 {
     float4 tess;
-    tess.x = 0.5 * (triVertexFactors.y + triVertexFactors.z);
-    tess.y = 0.5 * (triVertexFactors.x + triVertexFactors.z);
-    tess.z = 0.5 * (triVertexFactors.x + triVertexFactors.y);
-    tess.w = (triVertexFactors.x + triVertexFactors.y + triVertexFactors.z) / 3.0f;
+    tess.x = triVertexFactors.x;
+    tess.y = triVertexFactors.y;
+    tess.z = triVertexFactors.z;
+    tess.w = (triVertexFactors.x + triVertexFactors.y + triVertexFactors.z) / 3.0;
+
     return tess;
 }
 
-/*
-float UnityCalcEdgeTessFactor(float3 wpos0, float3 wpos1, float edgeLen)
+// TODO: Move in geomtry.hlsl
+float DistanceFromPlane(float3 pos, float4 plane)
 {
-    // distance to edge center
-    float dist = distance(0.5 * (wpos0 + wpos1), _WorldSpaceCameraPos);
-    // length of the edge
-    float len = distance(wpos0, wpos1);
-    // edgeLen is approximate desired size in pixels
-    float f = max(len * _ScreenParams.y / (edgeLen * dist), 1.0);
-    return f;
-}
-
-float UnityDistanceFromPlane(float3 pos, float4 plane)
-{
-    float d = dot(float4(pos, 1.0f), plane);
+    float d = dot(float4(pos, 1.0), plane);
     return d;
 }
 
 // Returns true if triangle with given 3 world positions is outside of camera's view frustum.
 // cullEps is distance outside of frustum that is still considered to be inside (i.e. max displacement)
-bool UnityWorldViewFrustumCull(float3 wpos0, float3 wpos1, float3 wpos2, float cullEps)
+bool WorldViewFrustumCull(float3 p0, float3 p1, float3 p2, float cullEps, float4 cameraWorldClipPlanes[4])
 {
     float4 planeTest;
 
     // left
-    planeTest.x = ((UnityDistanceFromPlane(wpos0, unity_CameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos1, unity_CameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos2, unity_CameraWorldClipPlanes[0]) > -cullEps) ? 1.0f : 0.0f);
-    // right
-    planeTest.y = ((UnityDistanceFromPlane(wpos0, unity_CameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos1, unity_CameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos2, unity_CameraWorldClipPlanes[1]) > -cullEps) ? 1.0f : 0.0f);
-    // top
-    planeTest.z = ((UnityDistanceFromPlane(wpos0, unity_CameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos1, unity_CameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos2, unity_CameraWorldClipPlanes[2]) > -cullEps) ? 1.0f : 0.0f);
-    // bottom
-    planeTest.w = ((UnityDistanceFromPlane(wpos0, unity_CameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos1, unity_CameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f) +
-        ((UnityDistanceFromPlane(wpos2, unity_CameraWorldClipPlanes[3]) > -cullEps) ? 1.0f : 0.0f);
+    planeTest.x =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0 : 0.0);
+    // right                                   
+    planeTest.y =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0 : 0.0);
+    // top                                     
+    planeTest.z =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0 : 0.0);
+    // bottom                                  
+    planeTest.w =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p1, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0 : 0.0) +
+                    ((DistanceFromPlane(p2, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0 : 0.0);
 
     // has to pass all 4 plane tests to be visible
     return !all(planeTest);
 }
-*/
-
-// ---- functions that compute tessellation factors
-// Distance based tessellation:
-// Tessellation level is "tess" before "minDist" from camera, and linearly decreases to 1
-// up to "maxDist" from camera.
-float4 DistanceBasedTess(float3 p0, float3 p1, float3 p2, float minDist, float maxDist, float4x4 objectToWorld, float3 cameraPosWS)
-{
-    float3 f;
-    f.x = CalcDistanceTessFactor(p0, minDist, maxDist, objectToWorld, cameraPosWS);
-    f.y = CalcDistanceTessFactor(p1, minDist, maxDist, objectToWorld, cameraPosWS);
-    f.z = CalcDistanceTessFactor(p2, minDist, maxDist, objectToWorld, cameraPosWS);
-    return UnityCalcTriEdgeTessFactors(f);
-}
-
-/*
-// Desired edge length based tessellation:
-// Approximate resulting edge length in pixels is "edgeLength".
-// Does not take viewing FOV into account, just flat out divides factor by distance.
-float4 UnityEdgeLengthBasedTess(float4 v0, float4 v1, float4 v2, float edgeLength)
-{
-    float3 pos0 = mul(unity_ObjectToWorld, v0).xyz;
-        float3 pos1 = mul(unity_ObjectToWorld, v1).xyz;
-        float3 pos2 = mul(unity_ObjectToWorld, v2).xyz;
-        float4 tess;
-    tess.x = UnityCalcEdgeTessFactor(pos1, pos2, edgeLength);
-    tess.y = UnityCalcEdgeTessFactor(pos2, pos0, edgeLength);
-    tess.z = UnityCalcEdgeTessFactor(pos0, pos1, edgeLength);
-    tess.w = (tess.x + tess.y + tess.z) / 3.0f;
-    return tess;
-}
-
-// Same as UnityEdgeLengthBasedTess, but also does patch frustum culling:
-// patches outside of camera's view are culled before GPU tessellation. Saves some wasted work.
-float4 UnityEdgeLengthBasedTessCull(float4 v0, float4 v1, float4 v2, float edgeLength, float maxDisplacement)
-{
-    float3 pos0 = mul(unity_ObjectToWorld, v0).xyz;
-        float3 pos1 = mul(unity_ObjectToWorld, v1).xyz;
-        float3 pos2 = mul(unity_ObjectToWorld, v2).xyz;
-        float4 tess;
-    if (UnityWorldViewFrustumCull(pos0, pos1, pos2, maxDisplacement))
-    {
-        tess = 0.0f;
-    }
-    else
-    {
-        tess.x = UnityCalcEdgeTessFactor(pos1, pos2, edgeLength);
-        tess.y = UnityCalcEdgeTessFactor(pos2, pos0, edgeLength);
-        tess.z = UnityCalcEdgeTessFactor(pos0, pos1, edgeLength);
-        tess.w = (tess.x + tess.y + tess.z) / 3.0f;
-    }
-    return tess;
-}
-*/

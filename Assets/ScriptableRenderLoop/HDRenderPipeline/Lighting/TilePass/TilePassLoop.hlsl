@@ -40,7 +40,7 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
     return FetchIndexTile(tileOffset, lightIndex);
 }
 
-#else
+#elif defined(USE_CLUSTERED_LIGHTLIST)
 
 #include "ClusteredUtils.hlsl"
 

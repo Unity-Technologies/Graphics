@@ -58,6 +58,8 @@
 #include "API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
 #include "API/D3D11_1.hlsl"
+#elif defined(SHADER_API_METAL)
+#include "API/Metal.hlsl"
 #else
 #error unsupported shader api
 #endif
@@ -209,7 +211,7 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
     float3 adir = abs(dir);
 
     // +Z -Z
-    faceIndex = dir.z > 0.0f ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
+    faceIndex = dir.z > 0.0 ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
 
     // +X -X
     if (adir.x > adir.y && adir.x > adir.z)
@@ -260,7 +262,7 @@ float FastACos(float inX)
 {
     float x = abs(inX);
     float res = (0.0468878 * x + -0.203471) * x + 1.570796; // p(x)
-    res *= sqrt(1.0f - x);
+    res *= sqrt(1.0 - x);
 
     return (inX >= 0) ? res : PI - res; // Undo range reduction
 }
@@ -302,14 +304,14 @@ float smoothstep01(float x)
     return x * x * (3.0 - (2.0 * x));
 }
 
-const float3x3 k_identity3x3 = {1.0, 0.0, 0.0,
-                                0.0, 1.0, 0.0,
-                                0.0, 0.0, 1.0};
+static const float3x3 k_identity3x3 = {1.0, 0.0, 0.0,
+                                       0.0, 1.0, 0.0,
+                                       0.0, 0.0, 1.0};
 
-const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
-                                0.0, 1.0, 0.0, 0.0,
-                                0.0, 0.0, 1.0, 0.0,
-                                0.0, 0.0, 0.0, 1.0 };
+static const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
+                                       0.0, 1.0, 0.0, 0.0,
+                                       0.0, 0.0, 1.0, 0.0,
+                                       0.0, 0.0, 0.0, 1.0};
 
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
@@ -332,6 +334,23 @@ float3 PositivePow(float3 base, float3 power)
 float4 PositivePow(float4 base, float4 power)
 {
     return pow(max(abs(base), float4(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
+}
+
+// ----------------------------------------------------------------------------
+// Texture utilities
+// ----------------------------------------------------------------------------
+
+// texelSize is Unity XXX_TexelSize feature parameters
+// x contains 1.0/width, y contains 1.0 / height, z contains width, w contains height
+float ComputeTextureLOD(float2 uv, float4 texelSize)
+{
+    uv *= texelSize.zw;
+
+    float2 ddx_ = ddx(uv);
+    float2 ddy_ = ddy(uv);
+    float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
+
+    return  max(0.5 * log2(d), 0.0);
 }
 
 // ----------------------------------------------------------------------------
@@ -416,13 +435,19 @@ void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4 ViewProjectionMatrix, inout PositionInputs posInput)
+// It may be necessary to flip the Y axis as the origin of the screen-space coordinate system
+// of Direct3D is at the top left corner of the screen, with the Y axis pointing downwards.
+void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4 ViewProjectionMatrix,
+                         inout PositionInputs posInput, bool flipY = false)
 {
     posInput.depthRaw = depth;
 
-    // TODO: Do we need to flip Y axis here on OGL ?
-    posInput.positionCS = float4(posInput.positionSS.xy * 2.0 - 1.0, depth, 1.0);
-    float4 hpositionWS = mul(invViewProjectionMatrix, posInput.positionCS);
+    float2 screenSpacePos;
+    screenSpacePos.x = posInput.positionSS.x;
+    screenSpacePos.y = flipY ? 1.0 - posInput.positionSS.y : posInput.positionSS.y;
+
+    posInput.positionCS = float4(screenSpacePos * 2.0 - 1.0, depth, 1.0);
+    float4 hpositionWS  = mul(invViewProjectionMatrix, posInput.positionCS);
     posInput.positionWS = hpositionWS.xyz / hpositionWS.w;
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)

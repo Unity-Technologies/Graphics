@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string surfaceTypeText = "Surface Type";
             public static string blendModeText = "Blend Mode";
             public static string detailText = "Inputs Detail";
+            public static string textureControlText = "Input textures control";
             public static string lightingText = "Inputs Lighting";
 
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "Threshold for alpha cutoff");
@@ -33,6 +34,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent UVBaseDetailMappingText = new GUIContent("UV set for Base and Detail", "");
             public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
             public static GUIContent enablePerPixelDisplacementText = new GUIContent("Enable Per Pixel Displacement", "");
+            public static GUIContent ppdMinSamplesText = new GUIContent("Minimum samples", "Minimun samples to use with per pixel displacement mapping");
+            public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum samples", "Maximum samples to use with per pxiel displacement mapping");
+            
             public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
             public static GUIContent UVDetailMappingText = new GUIContent("UV set for Detail", "");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
@@ -61,11 +65,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC5) - DXT5 for test");
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
-            public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (G)", "Anisotropy");
+            public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (B)", "Anisotropy");
 
             public static GUIContent detailMapNormalText = new GUIContent("Detail Map A(R) Ny(G) S(B) Nx(A)", "Detail Map");
             public static GUIContent detailMapAOHeightText = new GUIContent("Detail Map  A(R) AO(G) S(B) H(A)", "Detail Map");
-            public static GUIContent detailMaskText = new GUIContent("Detail Mask (B)", "Mask for detailMap");
+            public static GUIContent detailMaskText = new GUIContent("Detail Mask (G)", "Mask for detailMap");
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
             public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
@@ -82,12 +86,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
 
             public static GUIContent tessellationText = new GUIContent("Tessellation options", "Tessellation options");
-            public static GUIContent tessellationFactorFixedText = new GUIContent("Fixed tessellation factor", "If non negative, this value is a fixed tessellation factor use for tessellation");
-            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("Max Distance", "Maximun distance to the camera where triangle are tesselated");
-            public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle. Smaller value mean smaller triangle.");
+            public static GUIContent tessellationFactorText = new GUIContent("Tessellation factor", "This value is the tessellation factor use for tessellation, higher mean more tessellated");
+            public static GUIContent tessellationFactorMinDistanceText = new GUIContent("Start fade distance", "Distance (in unity unit) at which the tessellation start to fade out. Must be inferior at Max distance");
+            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End fade distance", "Maximum distance (in unity unit) to the camera where triangle are tessellated");
+            public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Desired screen space sized of triangle (in pixel). Smaller value mean smaller triangle.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor)");
-            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If non zero, backface culling is enabled for tessellation, smaller number mean more aggressive culling and better performance");
-            public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Scale displacement taking into account the object scale");
+            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
+            public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Tesselation displacement will take into account the object scale - Only work with uniform positive scale");
         }
 
         public enum SurfaceType
@@ -183,15 +188,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GUILayout.Label(Styles.tessellationText, EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
                 TessellationModePopup();
-                m_MaterialEditor.ShaderProperty(tessellationFactorFixed, Styles.tessellationFactorFixedText);
+                m_MaterialEditor.ShaderProperty(tessellationFactor, Styles.tessellationFactorText);
+                m_MaterialEditor.ShaderProperty(tessellationFactorMinDistance, Styles.tessellationFactorMinDistanceText);
                 m_MaterialEditor.ShaderProperty(tessellationFactorMaxDistance, Styles.tessellationFactorMaxDistanceText);
+                // clamp min distance to be below max distance
+                tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
                 m_MaterialEditor.ShaderProperty(tessellationFactorTriangleSize, Styles.tessellationFactorTriangleSizeText);
                 if ((TessellationMode)tessellationMode.floatValue == TessellationMode.Phong ||
                     (TessellationMode)tessellationMode.floatValue == TessellationMode.DisplacementPhong)
                 {
                     m_MaterialEditor.ShaderProperty(tessellationShapeFactor, Styles.tessellationShapeFactorText);
                 }
-                m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, Styles.tessellationBackFaceCullEpsilonText);
+                if ((DoubleSidedMode)doubleSidedMode.floatValue == DoubleSidedMode.None)
+                {
+                    m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, Styles.tessellationBackFaceCullEpsilonText);
+                }
                 m_MaterialEditor.ShaderProperty(tessellationObjectScale, Styles.tessellationObjectScaleText);
                 EditorGUI.indentLevel--;
             }
@@ -227,7 +238,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // tessellation specific, silent if not found
             tessellationMode = FindProperty(kTessellationMode, props, false);
-            tessellationFactorFixed = FindProperty(kTessellationFactorFixed, props, false);
+            tessellationFactor = FindProperty(kTessellationFactor, props, false);
+            tessellationFactorMinDistance = FindProperty(kTessellationFactorMinDistance, props, false);
             tessellationFactorMaxDistance = FindProperty(kTessellationFactorMaxDistance, props, false);
             tessellationFactorTriangleSize = FindProperty(kTessellationFactorTriangleSize, props, false);
             tessellationShapeFactor = FindProperty(kTessellationShapeFactor, props, false);
@@ -296,16 +308,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (doubleSidedMode == DoubleSidedMode.DoubleSidedLightingFlip)
             {
+
+                material.DisableKeyword("_DOUBLESIDED");
                 material.EnableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
                 material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
             }
             else if (doubleSidedMode == DoubleSidedMode.DoubleSidedLightingMirror)
             {
+                material.DisableKeyword("_DOUBLESIDED");
                 material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
                 material.EnableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
             }
+            else if (doubleSidedMode == DoubleSidedMode.DoubleSided)
+            {
+                material.EnableKeyword("_DOUBLESIDED");
+                material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
+                material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
+            }
             else
             {
+                material.DisableKeyword("_DOUBLESIDED");
                 material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
                 material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
             }
@@ -381,6 +403,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     material.DisableKeyword("_TESSELLATION_DISPLACEMENT");
                     material.EnableKeyword("_TESSELLATION_DISPLACEMENT_PHONG");
                 }
+
+                bool tessellationObjectScaleEnable = material.GetFloat(kTessellationObjectScale) == 1.0;
+                SetKeyword(material, "_TESSELLATION_OBJECT_SCALE", tessellationObjectScaleEnable);
             }
         }
 
@@ -480,10 +505,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kDepthOffsetEnable = "_DepthOffsetEnable";
 
         // tessellation params
-        MaterialProperty tessellationMode = null;
+        protected MaterialProperty tessellationMode = null;
         const string kTessellationMode = "_TessellationMode";
-        MaterialProperty tessellationFactorFixed = null;
-        const string kTessellationFactorFixed = "_TessellationFactorFixed";
+        MaterialProperty tessellationFactor = null;
+        const string kTessellationFactor = "_TessellationFactor";
+        MaterialProperty tessellationFactorMinDistance = null;
+        const string kTessellationFactorMinDistance = "_TessellationFactorMinDistance";
         MaterialProperty tessellationFactorMaxDistance = null;
         const string kTessellationFactorMaxDistance = "_TessellationFactorMaxDistance";
         MaterialProperty tessellationFactorTriangleSize = null;
