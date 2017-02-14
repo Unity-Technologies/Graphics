@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
         Dictionary<string, string> m_FloatRename = new Dictionary<string, string>();
         Dictionary<string, string> m_ColorRename = new Dictionary<string, string>();
+        List<string> m_TexturesToRemove = new List<string>();
 
         [Flags]
         public enum UpgradeFlags
@@ -56,6 +57,9 @@ namespace UnityEditor.Experimental.Rendering
 
             foreach (var t in m_ColorRename)
                 dstMaterial.SetColor(t.Value, srcMaterial.GetColor(t.Key));
+
+            foreach (var prop in m_TexturesToRemove)
+                dstMaterial.SetTexture(prop, null);
         }
 
         public void RenameShader(string oldName, string newName)
@@ -77,6 +81,11 @@ namespace UnityEditor.Experimental.Rendering
         public void RenameColor(string oldName, string newName)
         {
             m_ColorRename[oldName] = newName;
+        }
+
+        public void RemoveTexture(string name)
+        {
+            m_TexturesToRemove.Add(name);
         }
 
         static bool IsMaterialPath(string path)
