@@ -14,7 +14,8 @@ namespace UnityEditor.Experimental.VFX
             CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXPlaneType>("Plane"));
-            Add(new VFXProperty(new VFXFloatType(0.66666f), "Elasticity"));
+            Add(new VFXProperty(new VFXFloatType(0.0f), "Elasticity"));
+            Add(new VFXProperty(new VFXFloatType(0.5f), "Friction"));
 
             Add(new VFXAttribute(CommonAttrib.Position, true));
             Add(new VFXAttribute(CommonAttrib.Velocity, true));
@@ -22,15 +23,18 @@ namespace UnityEditor.Experimental.VFX
 
             Source = @"
 float3 nextPos = position + velocity * deltaTime;
-float3 dir = Plane_position - nextPos;
-float distToPlane = dot(dir,Plane_normal);
-if (distToPlane >= 0)
+float distToPlane = dot(nextPos,Plane.xyz) + Plane.w;
+if (distToPlane < 0)
 {
-	float projVelocity = dot(Plane_normal,velocity);
+	float projVelocity = dot(Plane.xyz,velocity);
 	if (projVelocity < 0)
-		velocity -= ((1 + Elasticity) * projVelocity) * Plane_normal;
+    {
+        float3 nVelocity = projVelocity * Plane.xyz;
+		velocity -= (1 + saturate(Elasticity)) * nVelocity;
+        velocity -= saturate(Friction) * (velocity - nVelocity);
+    }
 
-	position += Plane_normal * distToPlane;
+	position -= Plane.xyz * distToPlane;
 }";
         }
     }

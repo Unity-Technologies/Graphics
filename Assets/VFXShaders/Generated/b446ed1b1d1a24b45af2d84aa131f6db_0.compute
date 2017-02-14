@@ -1,0 +1,274 @@
+#pragma kernel CSVFXInit
+#pragma kernel CSVFXUpdate
+
+#include "HLSLSupport.cginc"
+#include "../VFXCommon.cginc"
+
+#define NB_THREADS_PER_GROUP 256
+
+CBUFFER_START(initUniforms)
+	float3 initUniform2_kVFXCombine3fOp;
+	float initUniform0_kVFXValueOp;
+	
+	float3 initUniform4_kVFXCombine3fOp;
+	float initUniform1_kVFXValueOp;
+	
+	float initUniform3_kVFXValueOp;
+	float initUniform5_kVFXValueOp;
+	float initUniform6_kVFXValueOp;
+	float initUniform7_kVFXValueOp;
+	
+	float initUniform8_kVFXValueOp;
+	uint initUniform9_kVFXSystemSeedOp;
+	uint nbSpawned;
+	uint spawnIndex;
+	
+CBUFFER_END
+
+CBUFFER_START(updateUniforms)
+	float4x4 updateUniform2_kVFXTransformMatrixOp;
+	
+	float4x4 updateUniform5_kVFXInverseTRSOp;
+	
+	float3 updateUniform0_kVFXCombine3fOp;
+	float updateUniform1_kVFXValueOp;
+	
+	float updateUniform3_kVFXValueOp;
+	float updateUniform4_kVFXValueOp;
+	float updateUniform6_kVFXDeltaTimeOp;
+	uint nbMax;
+	
+CBUFFER_END
+
+Texture3D updateSampler0_kVFXValueOpTexture;
+SamplerState samplerupdateSampler0_kVFXValueOpTexture;
+
+Texture2D floatTexture;
+SamplerState samplerfloatTexture;
+
+struct Attribute0
+{
+	float lifetime;
+};
+
+struct Attribute1
+{
+	float3 position;
+	uint _PADDING_0;
+};
+
+struct Attribute2
+{
+	float3 velocity;
+	float age;
+};
+
+struct Attribute3
+{
+	float3 color;
+	float alpha;
+};
+
+RWStructuredBuffer<Attribute0> attribBuffer0;
+StructuredBuffer<Attribute0> attribBuffer0_RO;
+RWStructuredBuffer<Attribute1> attribBuffer1;
+RWStructuredBuffer<Attribute2> attribBuffer2;
+RWStructuredBuffer<Attribute3> attribBuffer3;
+StructuredBuffer<Attribute3> attribBuffer3_RO;
+
+struct OutputData
+{
+	float3 position;
+	float alpha;
+	float3 color;
+	uint _PADDING_0;
+};
+
+AppendStructuredBuffer<OutputData> outputBuffer;
+
+RWStructuredBuffer<int> flags;
+ConsumeStructuredBuffer<uint> deadListIn;
+AppendStructuredBuffer<uint> deadListOut;
+Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
+
+
+float4 sampleSignal(float v,float u) // sample gradient
+{
+	return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+}
+
+// Non optimized generic function to allow curve edition without recompiling
+float sampleSignal(float4 curveData,float u) // sample curve
+{
+	float uNorm = (u * curveData.x) + curveData.y;
+	switch(asuint(curveData.w) >> 2)
+	{
+		case 1: uNorm = ((0.9921875 * frac(min(1.0f - 1e-5f,uNorm))) + 0.00390625); break; // clamp end
+		case 2: uNorm = ((0.9921875 * frac(max(0.0f,uNorm))) + 0.00390625); break; // clamp start
+		case 3: uNorm = ((0.9921875 * saturate(uNorm)) + 0.00390625); break; // clamp both
+	}
+	return floatTexture.SampleLevel(samplerfloatTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
+}
+
+float3 sampleSpline(float v,float u)
+{
+	return floatTexture.SampleLevel(samplerfloatTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+}
+
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
+{
+	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
+}
+
+void VFXBlockSetPositionSphereVolume( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
+{
+	float u1 = 2.0 * RAND - 1.0;
+	float u2 = UNITY_TWO_PI * RAND;
+	float u3 = pow(RAND,1.0/3.0);
+	position = VFXPositionOnSphere(Sphere,u1,u2,u3);
+}
+
+void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
+{
+	velocity += Velocity;
+}
+
+void VFXBlockSetColorRandomGradient( inout float3 color,inout float alpha,float Gradient,inout uint seed)
+{
+	float4 rgba = SAMPLE(Gradient,RAND);
+	color = rgba.rgb;
+	alpha = rgba.a;
+}
+
+void VFXBlockSetAlphaRandom( inout float alpha,float MinAlpha,float MaxAlpha,inout uint seed)
+{
+	alpha = lerp(MinAlpha,MaxAlpha,RAND);
+}
+
+void VFXBlockSizeConstantSquare( inout float2 size,float Size)
+{
+	size = float2(Size,Size);
+}
+
+void VFXBlockSetForceConstant( inout float3 velocity,float3 Force,float deltaTime)
+{
+	velocity += Force * deltaTime;
+}
+
+void VFXBlockSetForceLinearDrag( inout float3 velocity,float DragCoefficient,float deltaTime)
+{
+	velocity *= max(0.0,(1.0 - DragCoefficient * deltaTime));
+}
+
+void VFXSDFCollision( inout float3 position,inout float3 velocity,VFXSampler3D DistanceField,float4x4 Box,float4x4 InvBox,float Elasticity,float Friction,float deltaTime)
+{
+	float3 nextPos = position + velocity * deltaTime;
+	float3 tPos = mul(INVERSE(Box), float4(nextPos,1.0f)).xyz;
+	float3 coord = tPos + 0.5f;
+	float dist = SampleTexture(DistanceField, coord).x;
+	
+	if (dist <= 0.0f) // collision
+	{
+	    float3 n;
+	    n.x = SampleTexture(DistanceField, coord + float3(0.01,0,0)).x;
+	    n.y = SampleTexture(DistanceField, coord + float3(0,0.01,0)).x;
+	    n.z = SampleTexture(DistanceField, coord + float3(0,0,0.01)).x;
+	    n = normalize((float3)dist - n);
+	
+	    tPos += n * dist; // push on boundaries
+	    
+	    // back in system space
+	    position = mul(Box,float4(tPos,1.0f)).xyz;
+	    n = normalize(mul(Box,float4(n,0)));    
+	
+	    float projVelocity = dot(n,velocity);
+		if (projVelocity > 0)
+	    {
+	        float3 nVelocity = projVelocity * n; // normal component
+	        float3 tVelocity = velocity - nVelocity; // tangential component
+	
+	        velocity -= (1 + saturate(Elasticity)) * nVelocity;
+	        velocity -= saturate(Friction) * tVelocity;
+	
+	        //position -= velocity * deltaTime;
+	    }
+	}
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < min(nbSpawned,deadListCount[0]))
+	{
+		uint index = deadListIn.Consume();
+		
+		Attribute0 attrib0 = (Attribute0)0;
+		Attribute1 attrib1 = (Attribute1)0;
+		Attribute2 attrib2 = (Attribute2)0;
+		Attribute3 attrib3 = (Attribute3)0;
+		
+		float2 local_size = (float2)0;
+		uint local_seed = (uint)0;
+		
+		
+		local_seed = WangHash((id.x + spawnIndex) ^ initUniform9_kVFXSystemSeedOp);
+		VFXBlockSetLifetimeRandom( attrib0.lifetime,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,local_seed);
+		VFXBlockSetPositionSphereVolume( attrib1.position,initUniform2_kVFXCombine3fOp,initUniform3_kVFXValueOp,local_seed);
+		VFXBlockVelocityConstant( attrib2.velocity,initUniform4_kVFXCombine3fOp);
+		VFXBlockSetColorRandomGradient( attrib3.color,attrib3.alpha,initUniform5_kVFXValueOp,local_seed);
+		VFXBlockSetAlphaRandom( attrib3.alpha,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,local_seed);
+		VFXBlockSizeConstantSquare( local_size,initUniform8_kVFXValueOp);
+		
+		attribBuffer0[index] = attrib0;
+		attribBuffer1[index] = attrib1;
+		attribBuffer2[index] = attrib2;
+		attribBuffer3[index] = attrib3;
+		
+		flags[index] = 1;
+	}
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < nbMax && flags[id.x] == 1)
+	{
+		uint index = id.x;
+		bool kill = false;
+		
+		Attribute0 attrib0 = attribBuffer0_RO[index];
+		Attribute1 attrib1 = attribBuffer1[index];
+		Attribute2 attrib2 = attribBuffer2[index];
+		Attribute3 attrib3 = attribBuffer3_RO[index];
+		
+		VFXSampler3D updateSampler0_kVFXValueOp = InitSampler(updateSampler0_kVFXValueOpTexture,samplerupdateSampler0_kVFXValueOpTexture);
+		
+		VFXBlockSetForceConstant( attrib2.velocity,updateUniform0_kVFXCombine3fOp,updateUniform6_kVFXDeltaTimeOp);
+		VFXBlockSetForceLinearDrag( attrib2.velocity,updateUniform1_kVFXValueOp,updateUniform6_kVFXDeltaTimeOp);
+		VFXSDFCollision( attrib1.position,attrib2.velocity,updateSampler0_kVFXValueOp,updateUniform2_kVFXTransformMatrixOp,updateUniform5_kVFXInverseTRSOp,updateUniform3_kVFXValueOp,updateUniform4_kVFXValueOp,updateUniform6_kVFXDeltaTimeOp);
+		
+		attrib1.position += attrib2.velocity * updateUniform6_kVFXDeltaTimeOp;
+		
+		attrib2.age += updateUniform6_kVFXDeltaTimeOp;
+		if (attrib2.age >= attrib0.lifetime)
+			kill = true;
+		
+		if (kill)
+		{
+			flags[index] = 0;
+			deadListOut.Append(index);
+		}
+		else
+		{
+			attribBuffer1[index] = attrib1;
+			attribBuffer2[index] = attrib2;
+			
+			OutputData outputData = (OutputData)0;
+			outputData.position = attrib1.position;
+			outputData.alpha = attrib3.alpha;
+			outputData.color = attrib3.color;
+			outputBuffer.Append(outputData);
+		}
+	}
+}
+

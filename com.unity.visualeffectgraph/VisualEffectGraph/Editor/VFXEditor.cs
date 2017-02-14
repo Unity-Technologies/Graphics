@@ -666,6 +666,7 @@ namespace UnityEditor.Experimental
             m_Contexts.Add(new VFXMorphSubUVBillboardOutputDesc());
 			m_Contexts.Add(new VFXSphereOutputDesc());
 			m_Contexts.Add(new VFXMeshOutputDesc());
+            m_Contexts.Add(new VFXDecalOutputDesc());
             //m_Contexts.Add(new VFXQuadAlongVelocityOutputDesc());
             //m_Contexts.Add(new VFXQuadRotateAxisOutputDesc());
             //m_Contexts.Add(new VFXQuadFixedOrientationOutputDesc());
