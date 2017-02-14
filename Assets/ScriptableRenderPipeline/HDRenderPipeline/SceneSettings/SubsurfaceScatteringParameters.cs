@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             stdDev1             = new Color(0.3f, 0.3f, 0.3f, 0.0f);
             stdDev2             = new Color(1.0f, 1.0f, 1.0f, 0.0f);
             lerpWeight          = 0.5f;
-            enableTransmittance = true;
+            enableTransmittance = false;
             m_FilterKernel      = null;
             m_HalfRcpVariances  = null;
 
