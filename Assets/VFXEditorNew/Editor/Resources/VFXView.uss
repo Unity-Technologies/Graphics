@@ -203,9 +203,9 @@ VFXDataAnchor .connector
 {
 	background-color: #2B2B2B;
 	border-width: 1;
-	-border-radius: 4;
-	width:9;
-	height:9;
+	border-radius: 4;
+	width:8;
+	height:8;
 }
 
 VFXDataAnchor.connected > .typesingle

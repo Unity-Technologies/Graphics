@@ -23,7 +23,7 @@ TrueTypeFontImporter:
   - {fileID: 12800000, guid: 7883813c780c24c59a55338639e64cfb, type: 3}
   - {fileID: 12800000, guid: 3a34f4cc7703e472682e02c4d1886fa0, type: 3}
   customCharacters: 
-  fontRenderingMode: 0
+  fontRenderingMode: 1
   ascentCalculationMode: 1
   userData: 
   assetBundleName: 
