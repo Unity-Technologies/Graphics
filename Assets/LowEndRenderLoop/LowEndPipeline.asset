@@ -14,5 +14,5 @@ MonoBehaviour:
   m_SupportsVertexLight: 0
   m_EnableLightmaps: 1
   m_EnableAmbientProbe: 1
-  m_ShadowAtlasResolution: 2048
-  m_ShadowFiltering: 0
+  m_ShadowAtlasResolution: 1024
+  m_ShadowFiltering: 1
