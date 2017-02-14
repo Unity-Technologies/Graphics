@@ -27,7 +27,7 @@ Shader "HDRenderPipeline/Unlit"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
-        [Enum(None, 0, DoubleSided, 1)] _DoubleSidedMode("Double sided mode", Float) = 0
+        [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
     }
 
     HLSLINCLUDE
@@ -41,7 +41,7 @@ Shader "HDRenderPipeline/Unlit"
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
-    #pragma shader_feature _ _DOUBLESIDED
+    // #pragma shader_feature _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
 
     #pragma shader_feature _EMISSIVE_COLOR_MAP
 

@@ -5,7 +5,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])unity_CameraWorldClipPlanes);
 
     bool faceCull = false;
-#if !(defined(_DOUBLESIDED) || defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR))
+#ifndef _DOUBLESIDED_ON
     // TODO: Handle inverse culling (for mirror)!
     if (_TessellationBackFaceCullEpsilon > -0.99) // Is backface culling enabled ?
     {
