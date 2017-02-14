@@ -425,7 +425,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_DISTORTION_ON", distortionEnable);
             SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
-            material.SetInt("_StencilRef", (int)material.GetFloat(kMaterialID)); // See 'StencilBits'.
+            if (material.HasProperty(kMaterialID))
+                material.SetInt("_StencilRef", (int)material.GetFloat(kMaterialID)); // See 'StencilBits'.
 
             bool enablePerPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) > 0.0f;
             SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", enablePerPixelDisplacement);
