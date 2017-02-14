@@ -94,7 +94,7 @@ struct LightLoopContext
 // Shadow sampling function
 // ----------------------------------------------------------------------------
 
-float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, uint lightType, float3 positionWS, int index, float3 L, float2 unPositionSS, float bias)
+float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, uint lightType, float3 positionWS, int index, float3 L, float2 unPositionSS)
 {
     int faceIndex = 0;
     if (lightType == GPULIGHTTYPE_POINT)
@@ -108,7 +108,7 @@ float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, uint light
     float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
     positionTXS.xyz /= positionTXS.w;
     // positionTXS.z -=  shadowData.bias;
-    positionTXS.z -= (bias + 0.001); // Apply a linear bias
+    positionTXS.z -= 0.001; // Apply a linear bias
 
 #if UNITY_REVERSED_Z
     positionTXS.z = 1.0 - positionTXS.z;
@@ -145,7 +145,7 @@ int GetSplitSphereIndexForDirshadows(float3 positionWS, float4 dirShadowSplitSph
     return int(4.0 - dot(weights, float4(4.0, 3.0, 2.0, 1.0)));
 }
 
-float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS, float bias)
+float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS)
 {
     // Note Index is 0 for now, but else we need to provide the correct index in _DirShadowSplitSpheres and _ShadowDatas
     int shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _DirShadowSplitSpheres);
@@ -158,7 +158,7 @@ float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 
     float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
     positionTXS.xyz /= positionTXS.w;
     // positionTXS.z -=  shadowData.bias;
-    positionTXS.z -= (bias + 0.003); // Apply a linear bias
+    positionTXS.z -= 0.003; // Apply a linear bias
 
 #if UNITY_REVERSED_Z
     positionTXS.z = 1.0 - positionTXS.z;
