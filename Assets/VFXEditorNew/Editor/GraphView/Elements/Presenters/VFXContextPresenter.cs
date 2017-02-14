@@ -15,10 +15,10 @@ namespace UnityEditor.VFX.UI
         public VFXContext Model { get { return m_Model; } }
 
 		[SerializeField]
-        private List<VFXNodeBlockPresenter> m_NodeBlockPresenters;
-		public List<VFXNodeBlockPresenter> nodeBlockPresenters
+        private List<VFXBlockPresenter> m_BlockPresenters;
+		public List<VFXBlockPresenter> blockPresenters
  		{
- 			get { return m_NodeBlockPresenters ?? (m_NodeBlockPresenters = new List<VFXNodeBlockPresenter>()); }
+ 			get { return m_BlockPresenters ?? (m_BlockPresenters = new List<VFXBlockPresenter>()); }
  		}
 
 		[SerializeField]
@@ -83,12 +83,12 @@ namespace UnityEditor.VFX.UI
             }
 
             // Recreate presenters from model
-            nodeBlockPresenters.Clear();
+            blockPresenters.Clear();
             foreach (var block in Model.GetChildren())
                 AddPresentersFromModel((VFXBlock)block);
         }
 
-        public void AddNodeBlock(int index,VFXBlockDesc desc)
+        public void AddBlock(int index,VFXBlockDesc desc)
         {
             var block = new VFXBlock(desc);
             Model.AddChild(block, index);
@@ -97,9 +97,9 @@ namespace UnityEditor.VFX.UI
 
         private void AddPresentersFromModel(VFXBlock block)
         {
-            var presenter = CreateInstance<VFXNodeBlockPresenter>();
+            var presenter = CreateInstance<VFXBlockPresenter>();
             presenter.Init(block, this);
-            m_NodeBlockPresenters.Add(presenter);
+            m_BlockPresenters.Add(presenter);
         }
     }
 }

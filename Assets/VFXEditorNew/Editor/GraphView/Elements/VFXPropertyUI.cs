@@ -10,8 +10,8 @@ namespace UnityEditor.VFX.UI
 {
     class VFXPropertyUI : VisualContainer
     {
-        VFXNodeBlockPresenter.PropertyInfo m_PropertyInfo;
-        VFXNodeBlockPresenter              m_Presenter;
+        VFXBlockPresenter.PropertyInfo m_PropertyInfo;
+        VFXBlockPresenter              m_Presenter;
 
         VFXPropertyIM                      m_Property;
 
@@ -209,9 +209,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void DataChanged(VFXNodeBlockUI nodeBlock,VFXNodeBlockPresenter.PropertyInfo info)
+        public void DataChanged(VFXBlockUI block,VFXBlockPresenter.PropertyInfo info)
         {
-            m_Presenter = nodeBlock.GetPresenter<VFXNodeBlockPresenter>();
+            m_Presenter = block.GetPresenter<VFXBlockPresenter>();
             if( m_PropertyInfo.type != info.type)
             {
                 m_Property = VFXPropertyIM.Create(info.type);

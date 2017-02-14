@@ -8,7 +8,7 @@ using UnityEngine.RMGUI.StyleEnums;
 
 namespace UnityEditor.VFX.UI
 {
-	class VFXNodeBlockUI : GraphElement
+	class VFXBlockUI : GraphElement
 	{
 		static int s_Counter = 0;
 
@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
 
         public GraphViewTypeFactory typeFactory { get; set; }
 
-        public VFXNodeBlockUI()
+        public VFXBlockUI()
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Position;
@@ -61,13 +61,13 @@ namespace UnityEditor.VFX.UI
 
 		public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
 		{
-			NodeBlockContainer nodeBlockContainer = selectionContainer as NodeBlockContainer;
-			if (nodeBlockContainer == null || nodeBlockContainer != parent || !IsSelectable())
+			BlockContainer blockContainer = selectionContainer as BlockContainer;
+			if (blockContainer == null || blockContainer != parent || !IsSelectable())
 				return EventPropagation.Continue;
 
 			// TODO: Get rid of this hack (parent.parent) to reach contextUI
 			// Make sure we select the container context node
-			var contextUI = nodeBlockContainer.parent.parent as VFXContextUI;
+			var contextUI = blockContainer.parent.parent as VFXContextUI;
 			if (contextUI != null)
 			{
 				var gView = this.GetFirstAncestorOfType<GraphView>();
@@ -78,19 +78,19 @@ namespace UnityEditor.VFX.UI
 				}
 			}
 
-			if (nodeBlockContainer.selection.Contains(this))
+			if (blockContainer.selection.Contains(this))
 			{
 				if (evt.control)
 				{
-					nodeBlockContainer.RemoveFromSelection(this);
+					blockContainer.RemoveFromSelection(this);
 					return EventPropagation.Stop;
 				}
 				return EventPropagation.Continue;
 			}
 
 			if (!evt.control)
-				nodeBlockContainer.ClearSelection();
-			nodeBlockContainer.AddToSelection(this);
+				blockContainer.ClearSelection();
+			blockContainer.AddToSelection(this);
 
 			// TODO: Reset to EventPropagation.Continue when Drag&Drop is supported
 			return EventPropagation.Continue;
@@ -103,8 +103,8 @@ namespace UnityEditor.VFX.UI
 
 
         public override void OnDataChanged()
-        {
-            var presenter = GetPresenter<VFXNodeBlockPresenter>();
+		{
+			var presenter = GetPresenter<VFXBlockPresenter>();
 
 			if (presenter == null)
 				return;
@@ -125,7 +125,7 @@ namespace UnityEditor.VFX.UI
 
 
             int cpt = 0;
-            foreach (VFXNodeBlockPresenter.PropertyInfo propertyInfo in presenter.GetProperties())
+            foreach (VFXBlockPresenter.PropertyInfo propertyInfo in presenter.GetProperties())
             {
                 if( m_PropertiesUI.Count <= cpt)
                 {

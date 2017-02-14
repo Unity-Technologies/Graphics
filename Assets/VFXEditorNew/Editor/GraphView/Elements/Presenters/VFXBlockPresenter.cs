@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeBlockPresenter : GraphElementPresenter
+    class VFXBlockPresenter : GraphElementPresenter
     {
 		protected new void OnEnable()
 		{
@@ -170,6 +170,9 @@ namespace UnityEditor.VFX.UI
 
         private IEnumerable<PropertyInfo> GetProperties(Type type, object value, string prefix, int depth)
         {
+            if (type == null)
+                yield break;
+
             FieldInfo[] infos = type.GetFields(BindingFlags.Public|BindingFlags.Instance);
 
             foreach (var field in infos)

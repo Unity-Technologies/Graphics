@@ -95,7 +95,7 @@ VFXContextUI #NodeContents > Label{
 	font:resource("Roboto/Roboto-Medium");
 	font-size:16;
 }
-VFXNodeBlockUI {
+VFXBlockUI {
 	flex-direction: column;
 	background-color: #2B2B2B;
 	align-items: stretch;
@@ -111,18 +111,18 @@ VFXNodeBlockUI {
 }
 
 
-VFXNodeBlockUI.selected {
+VFXBlockUI.selected {
 	border-color: #606060;
 	border-width: 2;
 	background-color: #454545;
 }
 
 
-VFXNodeBlockUI > IMGUIContainer {
+VFXBlockUI > IMGUIContainer {
 
 }
 
-VFXNodeBlockUI > Label {
+VFXBlockUI > Label {
 	-min-height: 20;
 	text-color:#8FA1DF;
 	font:resource("Roboto/Roboto-Medium");

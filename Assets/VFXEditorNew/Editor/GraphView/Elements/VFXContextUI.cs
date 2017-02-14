@@ -9,14 +9,14 @@ using UnityEngine.RMGUI.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-	class NodeBlockContainer : VisualContainer, ISelection, IDropTarget
+	class BlockContainer : VisualContainer, ISelection, IDropTarget
 	{
 		// ISelection implementation
 		public List<ISelectable> selection { get; private set; }
 
 		bool m_DragStarted;
 
-		public NodeBlockContainer()
+		public BlockContainer()
 		{
 			selection = new List<ISelectable>();
             clipChildren = false;
@@ -26,8 +26,8 @@ namespace UnityEditor.VFX.UI
 		{
 			ClearSelection();
 
-			var nodeBlocks = children.OfType<VFXNodeBlockUI>().ToList();
-			foreach (var c in nodeBlocks)
+			var blocks = children.OfType<VFXBlockUI>().ToList();
+			foreach (var c in blocks)
 			{
 				AddToSelection(c);
 			}
@@ -38,26 +38,26 @@ namespace UnityEditor.VFX.UI
 		// functions to ISelection extensions
 		public virtual void AddToSelection(ISelectable selectable)
 		{
-			var nodeBlock = selectable as VFXNodeBlockUI;
-			if (nodeBlock != null && nodeBlock.presenter != null)
-				nodeBlock.presenter.selected = true;
+			var block = selectable as VFXBlockUI;
+			if (block != null && block.presenter != null)
+				block.presenter.selected = true;
 			selection.Add(selectable);
 		}
 
 		public virtual void RemoveFromSelection(ISelectable selectable)
 		{
-			var nodeBlock = selectable as VFXNodeBlockUI;
-			if (nodeBlock != null && nodeBlock.presenter != null)
-				nodeBlock.presenter.selected = false;
+			var block = selectable as VFXBlockUI;
+			if (block != null && block.presenter != null)
+				block.presenter.selected = false;
 			selection.Remove(selectable);
 		}
 
 		public virtual void ClearSelection()
 		{
-			foreach (var nodeBlock in selection.OfType<VFXNodeBlockUI>())
+			foreach (var block in selection.OfType<VFXBlockUI>())
 			{
-				if (nodeBlock.presenter != null)
-					nodeBlock.presenter.selected = false;
+				if (block.presenter != null)
+					block.presenter.selected = false;
 			}
 
 			selection.Clear();
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.UI
 		{
 			foreach (var item in selection)
 			{
-				if ((item as VFXNodeBlockUI) == null)
+				if ((item as VFXBlockUI) == null)
 				{
 					return false;
 				}
@@ -123,7 +123,7 @@ namespace UnityEditor.VFX.UI
 		VisualContainer m_FlowInputConnectorContainer;
 		VisualContainer m_FlowOutputConnectorContainer;
 		VisualContainer m_NodeContainer;
-		NodeBlockContainer m_NodeBlockContainer;
+		BlockContainer m_BlockContainer;
 
 		protected GraphViewTypeFactory typeFactory { get; set; }
 
@@ -167,14 +167,14 @@ namespace UnityEditor.VFX.UI
 			m_Title = new VisualElement() { name = "Title" ,content = new GUIContent("Title") };
 			m_NodeContainer.AddChild(m_Title);
 
-			m_NodeBlockContainer = new NodeBlockContainer()
+			m_BlockContainer = new BlockContainer()
 			{
 				pickingMode = PickingMode.Ignore
 			};
 
-			m_NodeBlockContainer.AddManipulator(new ClickSelector());
+			m_BlockContainer.AddManipulator(new ClickSelector());
 
-			m_NodeContainer.AddChild(m_NodeBlockContainer);
+			m_NodeContainer.AddChild(m_BlockContainer);
             /*
 			m_NodeContainer.AddManipulator(new ContextualMenu((evt, customData) =>
 			{
@@ -185,7 +185,7 @@ namespace UnityEditor.VFX.UI
 				foreach (var desc in VFXLibrary.GetBlocks())
 					if ((desc.CompatibleContexts & contextType) != 0)
 						menu.AddItem(new GUIContent(desc.Name), false,
-									 contentView => AddNodeBlock(-1, desc),
+									 contentView => AddBlock(-1, desc),
 									 this);
 
 				menu.ShowAsContext();
@@ -193,43 +193,43 @@ namespace UnityEditor.VFX.UI
 			}));
             */
 			typeFactory = new GraphViewTypeFactory();
-			typeFactory[typeof(VFXNodeBlockPresenter)] = typeof(VFXNodeBlockUI);
+			typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
 
 			classList = new ClassList("VFXContext");
 		}
 
 		public EventPropagation SelectAll()
 		{
-			return m_NodeBlockContainer.SelectAll();
+			return m_BlockContainer.SelectAll();
 		}
 
 		public EventPropagation ClearSelection()
 		{
-			m_NodeBlockContainer.ClearSelection();
+			m_BlockContainer.ClearSelection();
 			return EventPropagation.Stop;
 		}
 
 		public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
 		{
-			var clearNodeBlockSelection = false;
+			var clearBlockSelection = false;
 			var gView = this.GetFirstAncestorOfType<GraphView>();
 			if (gView != null && gView.selection.Contains(this) && !evt.control)
-				clearNodeBlockSelection = true;
+				clearBlockSelection = true;
 
 			var result = base.Select(selectionContainer, evt);
 
-			if (clearNodeBlockSelection)
-				m_NodeBlockContainer.ClearSelection();
+			if (clearBlockSelection)
+				m_BlockContainer.ClearSelection();
 
 			return result;
 		}
 
 		public EventPropagation DeleteSelection()
 		{
-			var elementsToRemove = m_NodeBlockContainer.selection.OfType<VFXNodeBlockUI>().ToList();
-			foreach (var nodeBlock in elementsToRemove)
+			var elementsToRemove = m_BlockContainer.selection.OfType<VFXBlockUI>().ToList();
+			foreach (var block in elementsToRemove)
 			{
-				RemoveNodeBlock(nodeBlock as VFXNodeBlockUI);
+				RemoveBlock(block as VFXBlockUI);
 			}
 
 			return (elementsToRemove.Count > 0) ? EventPropagation.Stop : EventPropagation.Continue;
@@ -249,66 +249,66 @@ namespace UnityEditor.VFX.UI
 			}
 		}
 
-		public void AddNodeBlock(int index, VFXBlockDesc desc)
+		public void AddBlock(int index, VFXBlockDesc desc)
 		{
 			VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-			presenter.AddNodeBlock(0, desc);
+			presenter.AddBlock(0, desc);
 		}
 
-		public void RemoveNodeBlock(VFXNodeBlockUI nodeBlock)
+		public void RemoveBlock(VFXBlockUI block)
 		{
-			if (nodeBlock == null)
+			if (block == null)
 				return;
 
-			m_NodeBlockContainer.RemoveFromSelection(nodeBlock);
-			m_NodeBlockContainer.RemoveChild(nodeBlock);
+			m_BlockContainer.RemoveFromSelection(block);
+			m_BlockContainer.RemoveChild(block);
 			VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
-			contextPresenter.nodeBlockPresenters.Remove(nodeBlock.GetPresenter<VFXNodeBlockPresenter>());
+			contextPresenter.blockPresenters.Remove(block.GetPresenter<VFXBlockPresenter>());
 		}
 
-		private void InstantiateNodeBlock(VFXNodeBlockPresenter nodeBlockPresenter)
+		private void InstantiateBlock(VFXBlockPresenter blockPresenter)
 		{
 			// call factory
-			GraphElement newElem = typeFactory.Create(nodeBlockPresenter);
+			GraphElement newElem = typeFactory.Create(blockPresenter);
 
 			if (newElem == null)
 			{
 				return;
 			}
 
-			newElem.SetPosition(nodeBlockPresenter.position);
-			newElem.presenter = nodeBlockPresenter;
-			m_NodeBlockContainer.AddChild(newElem);
+			newElem.SetPosition(blockPresenter.position);
+			newElem.presenter = blockPresenter;
+			m_BlockContainer.AddChild(newElem);
 
-			newElem.presenter.selected = nodeBlockPresenter.selected;
+			newElem.presenter.selected = blockPresenter.selected;
 		}
 
 		public void RefreshContext()
 		{
 			VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
 
-			var nodeBlocks = m_NodeBlockContainer.children.OfType<VFXNodeBlockUI>().ToList();
+			var blocks = m_BlockContainer.children.OfType<VFXBlockUI>().ToList();
 
 			// Process removals
-			foreach (var c in nodeBlocks)
+			foreach (var c in blocks)
 			{
 				// been removed?
-				var nb = c as VFXNodeBlockUI;
-				var nodeBlock = contextPresenter.nodeBlockPresenters.OfType<VFXNodeBlockPresenter>().FirstOrDefault(a => a == nb.GetPresenter<VFXNodeBlockPresenter>());
-				if (nodeBlock == null)
+				var nb = c as VFXBlockUI;
+				var block = contextPresenter.blockPresenters.OfType<VFXBlockPresenter>().FirstOrDefault(a => a == nb.GetPresenter<VFXBlockPresenter>());
+				if (block == null)
 				{
-					m_NodeBlockContainer.RemoveFromSelection(nb);
-					m_NodeBlockContainer.RemoveChild(nb);
+					m_BlockContainer.RemoveFromSelection(nb);
+					m_BlockContainer.RemoveChild(nb);
 				}
 			}
 
 			// Process additions
-			foreach (var nodeblockPresenter in contextPresenter.nodeBlockPresenters)
+			foreach (var blockPresenter in contextPresenter.blockPresenters)
 			{
-				var nodeBlock = nodeBlocks.OfType<VFXNodeBlockUI>().FirstOrDefault(a => a.GetPresenter<VFXNodeBlockPresenter>() == nodeblockPresenter);
-				if (nodeBlock == null)
+                var block = blocks.OfType<VFXBlockUI>().FirstOrDefault(a => a.GetPresenter<VFXBlockPresenter>() == blockPresenter);
+				if (block == null)
 				{
-					InstantiateNodeBlock(nodeblockPresenter);
+                    InstantiateBlock(blockPresenter);
 				}
 			}
 		}
@@ -364,7 +364,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_NodeContainer.RemoveManipulator(m_PopupManipulator);
             }
-            m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, AddNodeBlock));
+            m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, AddBlock));
             m_NodeContainer.AddManipulator(m_PopupManipulator);
 
         }
