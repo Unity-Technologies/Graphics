@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "Threshold for alpha cutoff");
             public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
-            public static GUIContent doubleSidedModeText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling)");
+            public static GUIContent doubleSidedEnableText = new GUIContent("Double Sided", "This will render the two face of the objects (disable backface culling) and mirror normal");
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
@@ -116,14 +116,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Premultiply
         }
 
-        public enum DoubleSidedMode
-        {
-            None,
-            DoubleSided,
-            DoubleSidedLightingFlip,
-            DoubleSidedLightingMirror,
-        }
-
         public enum TessellationMode
         {
             Phong,
@@ -200,7 +192,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 m_MaterialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText.text);
             }
-            m_MaterialEditor.ShaderProperty(doubleSidedMode, Styles.doubleSidedModeText.text);
+            m_MaterialEditor.ShaderProperty(doubleSidedEnable, Styles.doubleSidedEnableText.text);
 
             m_MaterialEditor.ShaderProperty(enablePerPixelDisplacement, Styles.enablePerPixelDisplacementText);
             if (enablePerPixelDisplacement.floatValue > 0.0)
@@ -234,7 +226,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     m_MaterialEditor.ShaderProperty(tessellationShapeFactor, Styles.tessellationShapeFactorText);
                 }
-                if ((DoubleSidedMode)doubleSidedMode.floatValue == DoubleSidedMode.None)
+                if (doubleSidedEnable.floatValue == 0.0)
                 {
                     m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, Styles.tessellationBackFaceCullEpsilonText);
                 }
@@ -249,7 +241,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             blendMode = FindProperty(kBlendMode, props);
             alphaCutoff = FindProperty(kAlphaCutoff, props);
             alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props);
-            doubleSidedMode = FindProperty(kDoubleSidedMode, props);
+            doubleSidedEnable = FindProperty(kDoubleSidedEnable, props);
             distortionEnable = FindProperty(kDistortionEnable, props);
             distortionOnly = FindProperty(kDistortionOnly, props);
             distortionDepthTest = FindProperty(kDistortionDepthTest, props);
@@ -275,10 +267,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void SetupCommonOptionsKeywords(Material material)
         {
-            bool alphaTestEnable = material.GetFloat(kAlphaCutoffEnabled) == 1.0;
+            bool alphaTestEnable = material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
             SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
             BlendMode blendMode = (BlendMode)material.GetFloat(kBlendMode);
-            DoubleSidedMode doubleSidedMode = (DoubleSidedMode)material.GetFloat(kDoubleSidedMode);
+            bool doubleSidedEnable = material.GetFloat(kDoubleSidedEnable) > 0.0f;
 
             if (surfaceType == SurfaceType.Opaque)
             {
@@ -323,41 +315,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (doubleSidedMode == DoubleSidedMode.None)
+            if (doubleSidedEnable)
+            {
+                material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off); 
+            }
+            else
             {
                 material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Back);
             }
-            else
-            {
-                material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
-            }
 
-            if (doubleSidedMode == DoubleSidedMode.DoubleSidedLightingFlip)
-            {
-
-                material.DisableKeyword("_DOUBLESIDED");
-                material.EnableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
-                material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
-            }
-            else if (doubleSidedMode == DoubleSidedMode.DoubleSidedLightingMirror)
-            {
-                material.DisableKeyword("_DOUBLESIDED");
-                material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
-                material.EnableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
-            }
-            else if (doubleSidedMode == DoubleSidedMode.DoubleSided)
-            {
-                material.EnableKeyword("_DOUBLESIDED");
-                material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
-                material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
-            }
-            else
-            {
-                material.DisableKeyword("_DOUBLESIDED");
-                material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
-                material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
-            }
-
+            SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
             SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
             bool distortionEnable = material.GetFloat(kDistortionEnable) == 1.0;
@@ -517,8 +484,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kBlendMode = "_BlendMode";
         MaterialProperty alphaCutoff = null;
         const string kAlphaCutoff = "_AlphaCutoff";
-        MaterialProperty doubleSidedMode = null;
-        const string kDoubleSidedMode = "_DoubleSidedMode";
+        MaterialProperty doubleSidedEnable = null;
+        const string kDoubleSidedEnable = "_DoubleSidedEnable";
         MaterialProperty distortionEnable = null;
         const string kDistortionEnable = "_DistortionEnable";
         MaterialProperty distortionOnly = null;
@@ -558,7 +525,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty ppdLodThreshold = null;
         protected const string kPpdLodThreshold = "_PPDLodThreshold";
 
-        protected static string[] reservedProperties = new string[] { kSurfaceType, kBlendMode, kAlphaCutoff, kAlphaCutoffEnabled, kDoubleSidedMode };
+        protected static string[] reservedProperties = new string[] { kSurfaceType, kBlendMode, kAlphaCutoff, kAlphaCutoffEnabled, kDoubleSidedEnable };
 
         protected abstract void FindMaterialProperties(MaterialProperty[] props);
 		protected abstract void ShaderInputGUI();
