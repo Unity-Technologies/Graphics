@@ -8,6 +8,7 @@ namespace UnityEditor.VFX.UI
 {
     public class VFXDataEdgePresenter: EdgePresenter
     {
-
+        public VFXDataEdgePresenter()
+        { }
     }
 }

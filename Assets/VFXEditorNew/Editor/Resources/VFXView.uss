@@ -139,6 +139,9 @@ VFXView #VFXBackgroundGrid {
 
 VFXPropertyUI
 {
+	im-border : 4;
+	im-padding : 2;
+	selected-field-background :resource("VFX/SelectedField");
 	flex-direction: row;
 	align-items: stretch;
 	font:resource("Roboto/Roboto-Medium");
@@ -179,4 +182,14 @@ VFXNodeBlockUI.selected VFXPropertyUI .slot > *
 VFXPropertyUI > IMGUIContainer
 {
 	flex:1;
+}
+
+VFXDataEdge
+{
+	float-color : #9f80e6;
+	vector2-color : #8fc1df;
+	vector3-color : #e7ab21;
+	vector4-color : #42ca48;
+	color-color : #d1d1d1;
+	object-color : #787878;
 }

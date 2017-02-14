@@ -3,6 +3,7 @@ using RMGUI.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 
 using Object = UnityEngine.Object;
 
@@ -112,6 +113,8 @@ namespace UnityEditor.VFX.UI
                 fi.SetValue(prev, current);
             }
 
+            m_DirtyHack = !m_DirtyHack;
+
         }
         public void ExpandPath(string fieldPath)
         {
@@ -122,12 +125,23 @@ namespace UnityEditor.VFX.UI
             {
                 AddDataAnchor(prop);
             }
+            m_DirtyHack = !m_DirtyHack;
         }
 
         public void RetractPath(string fieldPath)
         {
             //TODO undo/redo
             m_Model.RetractPath(fieldPath);
+
+
+            var toRemove = m_Anchors.Keys.Where(t => t.StartsWith(fieldPath)).ToArray();
+
+            foreach(var remove in toRemove)
+            {
+                m_Anchors.Remove(remove);
+            }
+
+            m_DirtyHack = !m_DirtyHack;
         }
 
         public IEnumerable<PropertyInfo> GetProperties()
@@ -197,7 +211,10 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+        [SerializeField]
+        bool m_DirtyHack;//because serialization doesn't work with the below dictionary
 
+        [SerializeField]
         private Dictionary<string, VFXDataInputAnchorPresenter> m_Anchors = new Dictionary<string, VFXDataInputAnchorPresenter>();
 
         [SerializeField]

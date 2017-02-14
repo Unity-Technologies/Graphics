@@ -45,13 +45,16 @@ namespace UnityEditor.VFX.UI
             },null));
 
             typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
-			typeFactory[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
+            typeFactory[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
+            typeFactory[typeof(VFXDataEdgePresenter)] = typeof(VFXDataEdge);
             typeFactory[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
             typeFactory[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
             typeFactory[typeof(VFXDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
 
             AddStyleSheetPath("VFXView");
+
+            Dirty(ChangeType.Transform);
         }
 
         void AddVFXContext(Vector2 pos,VFXContextDesc desc)

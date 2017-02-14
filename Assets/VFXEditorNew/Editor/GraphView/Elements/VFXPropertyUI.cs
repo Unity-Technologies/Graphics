@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.RMGUI;
+using UnityEngine.RMGUI.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
@@ -23,6 +24,53 @@ namespace UnityEditor.VFX.UI
 
         GUIStyles m_GUIStyles = new GUIStyles();
 
+
+        const string SelectedFieldBackgroundProperty = "selected-field-background";
+        const string IMBorderProperty = "im-border";
+        const string IMPaddingProperty = "im-padding";
+
+
+        StyleProperty<Texture2D> m_SelectedFieldBackground;
+        public Texture2D selectedFieldBackground
+        {
+            get
+            {
+                return m_SelectedFieldBackground.GetOrDefault(null);
+            }
+        }
+
+        StyleProperty<int> m_IMBorder;
+        public int IMBorder
+        {
+            get
+            {
+                return m_IMBorder.GetOrDefault(0);
+            }
+        }
+
+        StyleProperty<int> m_IMPadding;
+        public int IMPadding
+        {
+            get
+            {
+                return m_IMPadding.GetOrDefault(0);
+            }
+        }
+
+        public override void OnStylesResolved(VisualElementStyles elementStyles)
+        {
+            base.OnStylesResolved(elementStyles);
+            elementStyles.ApplyCustomProperty(SelectedFieldBackgroundProperty, ref m_SelectedFieldBackground);
+            elementStyles.ApplyCustomProperty(IMBorderProperty, ref m_IMBorder);
+            elementStyles.ApplyCustomProperty(IMPaddingProperty, ref m_IMPadding);
+
+            m_GUIStyles.baseStyle.active.background = selectedFieldBackground;
+            m_GUIStyles.baseStyle.focused.background = m_GUIStyles.baseStyle.active.background;
+
+            m_GUIStyles.baseStyle.border.top = m_GUIStyles.baseStyle.border.left = m_GUIStyles.baseStyle.border.right = m_GUIStyles.baseStyle.border.bottom = IMBorder;
+            m_GUIStyles.baseStyle.padding = new RectOffset(IMPadding, IMPadding, IMPadding, IMPadding);
+        }
+
         public VFXPropertyUI()
         {
             m_Slot = new VisualContainer();
@@ -37,10 +85,6 @@ namespace UnityEditor.VFX.UI
             AddChild(m_Container);
 
             m_GUIStyles.baseStyle = new GUIStyle();
-            m_GUIStyles.baseStyle.active.background = Resources.Load<Texture2D>("VFX/SelectedField");
-            m_GUIStyles.baseStyle.focused.background = m_GUIStyles.baseStyle.active.background;
-            m_GUIStyles.baseStyle.border.top = m_GUIStyles.baseStyle.border.left = m_GUIStyles.baseStyle.border.right = m_GUIStyles.baseStyle.border.bottom = 4;
-            m_GUIStyles.baseStyle.padding = new RectOffset(2, 2, 2, 2);
         }
 
 
@@ -131,7 +175,12 @@ namespace UnityEditor.VFX.UI
             if (different)
                 m_GUIStyles.Reset();
 
-            m_Property.OnGUI(m_Presenter, ref m_PropertyInfo, m_GUIStyles);
+            bool changed = m_Property.OnGUI(m_Presenter, ref m_PropertyInfo, m_GUIStyles);
+
+            if( changed )
+            {
+                Dirty(ChangeType.Transform|ChangeType.Repaint);
+            }
 
             if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
             {
@@ -149,11 +198,17 @@ namespace UnityEditor.VFX.UI
             }
             m_PropertyInfo = info;
 
-            if( m_SlotIcon == null)
+
+            VFXDataAnchorPresenter presenter = m_Presenter.GetPropertyPresenter(ref info);
+            if ( m_SlotIcon == null)
             {
-                m_SlotIcon = VFXDataAnchor.Create<VFXDataEdgePresenter>(m_Presenter.GetPropertyPresenter(ref info));
+                m_SlotIcon = VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter);
                 m_Slot.AddChild(m_SlotIcon);
             }
+
+            m_SlotIcon.presenter = presenter;
+
+            Dirty(ChangeType.Transform|ChangeType.Repaint);
         }
         
     }

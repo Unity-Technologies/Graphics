@@ -15,7 +15,6 @@ namespace UnityEditor.VFX.UI
         {
             m_Owner = owner;
             anchorType = type;
-            anchorType = typeof(int); // We dont care about that atm!
         }
 
 		public override void Connect(EdgePresenter edgePresenter)
