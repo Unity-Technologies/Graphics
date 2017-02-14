@@ -655,7 +655,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static new void SetupMaterialKeywords(Material material)
+        static new public void SetupMaterialKeywords(Material material)
         {
             SetupBaseKeywords(material);
             SetupLayersMappingKeywords(material);
