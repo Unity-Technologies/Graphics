@@ -39,8 +39,9 @@ namespace UnityEditor.Experimental
 		public enum OutputType
 		{
 			Point,
-			Billboard,
-			Mesh
+			Quad,
+			Mesh,
+            Hexahedron,
 		};
 
 		public virtual bool WriteVertexInputStructure(ShaderSourceBuilder builder, ShaderMetaData data) { return false; }
@@ -51,5 +52,15 @@ namespace UnityEditor.Experimental
         public virtual OutputType GetOutputType() { return OutputType.Point; }
         public virtual VFXExpression GetMesh() { return null; }
         public virtual bool CanUseDeferred() { return false; }
+        public virtual bool NeedsDepthTexture() { return false; }
+        public virtual bool NeedsBackFaceCulling() { return false; }
+
+        // Helper function
+        protected static void WriteTex2DFetch(ShaderSourceBuilder builder, ShaderMetaData data, VFXValue texture, string uv, bool endLine)
+        {
+            builder.WriteFormat("{0}Texture.Sample(sampler{0}Texture,{1})", data.paramToName[(int)ShaderMetaData.Pass.kOutput][texture], uv);
+            if (endLine)
+                builder.WriteLine(";");
+        }
     }
 }

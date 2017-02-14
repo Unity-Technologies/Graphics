@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Linq;
 
 namespace UnityEditor.Experimental
 {
@@ -6,16 +7,18 @@ namespace UnityEditor.Experimental
     {
         static MethodInfo s_ApplyWireMaterialMi;
 
-        public static void ApplyWireMaterial()
+    public static void ApplyWireMaterial()
         {
             if (s_ApplyWireMaterialMi == null)
             {
-                //s_ApplyWireMaterialMi = typeof(HandleUtility).GetMethod("ApplyWireMaterial", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+                s_ApplyWireMaterialMi = typeof(HandleUtility)
+                    .GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                    .First(m => m.Name == "ApplyWireMaterial" && m.GetParameters().Length == 0);
             }
 
             if (s_ApplyWireMaterialMi != null)
             {
-               // s_ApplyWireMaterialMi.Invoke(null, null);
+                s_ApplyWireMaterialMi.Invoke(null, null);
             }
         }
     }

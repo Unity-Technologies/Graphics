@@ -215,7 +215,7 @@ namespace UnityEditor.Experimental
 
     public static class VFXModelCompiler
     {
-        const bool USE_DYNAMIC_AABB = true;
+        const bool USE_DYNAMIC_AABB = false;
 
         public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
@@ -788,7 +788,7 @@ namespace UnityEditor.Experimental
                         if (arg.m_Value.IsValue() && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
                         {
                             var inverseValue = new VFXExpressionInverseTRS(arg.m_Value);
-                            generated.Add(arg.m_Value,inverseValue);
+                            generated[arg.m_Value] = inverseValue;
                         }
                 }
 
@@ -1312,7 +1312,7 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("ZWrite On");
             else
                 builder.WriteLine("ZWrite Off");
-            builder.WriteLine("Cull Off");
+            builder.WriteLineFormat("Cull {0}",outputGenerator.NeedsBackFaceCulling() ? "Back" : "Off");
             builder.WriteLine();
             builder.WriteLine("CGPROGRAM");
             builder.WriteLine("#pragma target 4.5");
@@ -1335,9 +1335,11 @@ namespace UnityEditor.Experimental
 
             builder.WriteCBuffer("outputUniforms", data.outputUniforms, data, ShaderMetaData.Pass.kOutput);
 
-            bool quadPatches = outputGenerator.GetOutputType() == VFXOutputShaderGeneratorModule.OutputType.Billboard && system.MaxNb > 16384;
+            bool usePatches =
+                (outputGenerator.GetOutputType() == VFXOutputShaderGeneratorModule.OutputType.Quad && system.MaxNb > 16384) ||
+                (outputGenerator.GetOutputType() == VFXOutputShaderGeneratorModule.OutputType.Hexahedron && system.MaxNb > 8192);
             // Data used not to fetch out of bounds elements when using indirect draw with quad patches
-            if (quadPatches && data.UseOutputData())
+            if (usePatches && data.UseOutputData())
             {
                 builder.WriteLine("CBUFFER_START(Uniform)");
                 builder.WriteLine("\tfloat systemIndex;");
@@ -1352,7 +1354,7 @@ namespace UnityEditor.Experimental
             if ((data.floatTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
                 builder.WriteSampler(VFXValueType.kTexture2D, "floatTexture");
 
-            if (system.HasSoftParticles())
+            if (system.HasSoftParticles() || outputGenerator.NeedsDepthTexture())
             {
                 builder.WriteLine("sampler2D_float _CameraDepthTexture;");
                 builder.WriteLine();
@@ -1397,8 +1399,8 @@ namespace UnityEditor.Experimental
 
             outputGenerator.WriteAdditionalVertexOutput(builder, data);
 
-            if (system.HasSoftParticles())
-                builder.WriteLine("float4 projPos : TEXCOORD2;"); // TODO use a counter to set texcoord index
+            if (system.HasSoftParticles() || outputGenerator.NeedsDepthTexture())
+                builder.WriteLine("float4 projPos : TEXCOORD7;"); // TODO use a counter to set texcoord index
 
             builder.ExitScopeStruct();
             builder.WriteLine();
@@ -1438,13 +1440,13 @@ namespace UnityEditor.Experimental
             { 
                 if(!data.UseOutputData())
                 {
-                    //if (!quadPatches)
+                    //if (!usePatches)
                         builder.WriteLine("if (flags[index] == 1)");
                    // else
                    //     builder.WriteLine("if (index < nbMax && flags[index] == 1)");
                     skipElements = true;
                 }
-                else if (quadPatches)
+                else if (usePatches)
                 {
                     builder.WriteLine("if (index < nbElements.Load(asuint(systemIndex) << 2))");
                     skipElements = true;
@@ -1478,6 +1480,9 @@ namespace UnityEditor.Experimental
             }
             builder.WriteLine();
 
+            foreach (var sampler in data.outputSamplers)
+                builder.WriteInitVFXSampler(sampler.ValueType, data.paramToName[(int)ShaderMetaData.Pass.kOutput][sampler]);
+
             builder.WriteLocalAttribDeclaration(data, VFXContextDesc.Type.kTypeOutput);
 
             outputGenerator.WritePreBlock(builder, data);
@@ -1489,7 +1494,7 @@ namespace UnityEditor.Experimental
             outputGenerator.WritePostBlock(builder, data);
 
             // Soft particles
-            if (system.HasSoftParticles())
+            if (system.HasSoftParticles() || outputGenerator.NeedsDepthTexture())
                 builder.WriteLine("o.projPos = ComputeScreenPos(o.pos); // For depth texture fetch");
 
             if (needsVertexColor)

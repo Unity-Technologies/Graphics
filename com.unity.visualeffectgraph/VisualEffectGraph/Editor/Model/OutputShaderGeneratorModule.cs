@@ -56,7 +56,7 @@ namespace UnityEditor.Experimental
             m_OrientMode = orientmode;
         }
 
-		public override OutputType GetOutputType()  { return OutputType.Billboard; }
+	    public override OutputType GetOutputType()  { return OutputType.Quad; }
 
         private bool CanHaveMotionVectors()
         {
@@ -160,8 +160,6 @@ namespace UnityEditor.Experimental
 
         public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
-            const bool CLAMP_SIZE = false; // false atm
-
             if (m_HasSize)
             {
                 builder.Write("float2 size = ");
@@ -179,25 +177,6 @@ namespace UnityEditor.Experimental
             builder.WriteAttrib(CommonAttrib.Position, data, ShaderMetaData.Pass.kOutput);
             builder.WriteLine(";");
             builder.WriteLine();
-
-            if (CLAMP_SIZE)
-            {
-                builder.WriteLine("// Clamp size so that billboards are never less than one pixel size"); 
-                //builder.WriteLine("const float PIXEL_SIZE = (max(_ScreenParams.z,_ScreenParams.w) - 1.0f); // This should be a uniform depending on fov and viewport dimension");
-                builder.WriteLine("float4 clipPos = mul(UNITY_MATRIX_MVP,float4(position,1.0f));");
-                builder.WriteLine("float currentSize = (min(size.x,size.y) * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)) / clipPos.w;");
-                builder.WriteLine("size /= saturate(currentSize);");
-/*
-                builder.WriteLine("float2 screenPos = min(size.x,size.y) * _ScreenParams.xy * clipPos.xy / clipPos.w");
-                builder.WriteLine("minSize = 0.5 * min(screenPos.x,screenPos.y);");
-                builder.WriteLine("if (minSize < 1.0f) size /= minSize;");*/
-               // if (data.system.WorldSpace)
-               //     builder.WriteLine("float minSize = 2.0f * mul(float4(position,1.0f),UNITY_MATRIX_VP).w / (max(_ScreenParams.z,_ScreenParams.w) - 1.0f); // w * pixel size");
-               // else
-               //     builder.WriteLine("float minSize = 2.0f * mul(float4(position,1.0f),UNITY_MATRIX_MVP).w / (max(_ScreenParams.z,_ScreenParams.w) - 1.0f); // w * pixel size");
-               // builder.WriteLine("size = max(size,float2(minSize,minSize));");
-                builder.WriteLine();
-            }
 
             if (m_HasPivot)
             {
@@ -337,9 +316,6 @@ namespace UnityEditor.Experimental
                 }
             }
 
-            if (CLAMP_SIZE)
-                builder.WriteLine("local_alpha *= smoothstep(0.5,1,currentSize);");
-
             builder.WriteLine();
             builder.WriteLineFormat("o.pos = mul ({0}, float4(position,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
         }
@@ -355,13 +331,6 @@ namespace UnityEditor.Experimental
                 builder.ExitScope();
                 builder.WriteLine();
             }
-        }
-
-        private static void WriteTex2DFetch(ShaderSourceBuilder builder, ShaderMetaData data, VFXValue texture, string uv, bool endLine)
-        {
-            builder.WriteFormat("{0}Texture.Sample(sampler{0}Texture,{1})",data.paramToName[(int)ShaderMetaData.Pass.kOutput][texture],uv);
-            if (endLine)
-                builder.WriteLine(";");
         }
 
         public override void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data)
@@ -508,7 +477,7 @@ namespace UnityEditor.Experimental
             uniforms.Add(m_Values[SmoothnessSlot]);
         }
 
-		public override OutputType GetOutputType() { return OutputType.Billboard; }
+	public override OutputType GetOutputType() { return OutputType.Quad; }
 
         public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
         {
@@ -657,6 +626,12 @@ namespace UnityEditor.Experimental
 			builder.WriteLine("uint index = instanceID;");
 		}
 
+        // tmp
+        public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            builder.WriteLine("float4 color : TEXCOORD0;");
+        }
+
 		public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
 		{
 			if (m_HasSize)
@@ -686,7 +661,20 @@ namespace UnityEditor.Experimental
 			builder.WriteAttrib(CommonAttrib.Position, data, ShaderMetaData.Pass.kOutput);
 			builder.WriteLine(" + ((input.position + pivot) * size);");
 			builder.WriteLineFormat("o.pos = mul({0}, float4(worldPos,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
+
+            // tmp
+            builder.WriteLine("float3 offsets;");
+            builder.WriteLine("offsets.x = 2.0 * float(id & 1) - 1.0;");
+            builder.WriteLine("offsets.y = 2.0 * float((id & 3) >> 1) - 1.0;");
+            builder.WriteLine("offsets.z = 2.0 * float((id & 7) >> 2) - 1.0;");
+            builder.WriteLine();
+            builder.WriteLine("o.color = float4(offsets * 0.5f + 0.5f,0.5f);");
 		}
+
+        public override void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            builder.WriteLine("color = i.color;");
+        }
 
 		public const int MeshSlot = 0;
         private VFXExpression m_MeshExpression = null;
@@ -694,5 +682,174 @@ namespace UnityEditor.Experimental
 		private bool m_HasSize;
 		private bool m_HasPivot;
 	}
+
+    public class VFXDecalOutputShaderGeneratorModule : VFXOutputShaderGeneratorModule
+    {
+        public VFXDecalOutputShaderGeneratorModule(VFXPropertySlot[] slots)
+        {
+            m_Values[0] = slots[0].ValueRef.Reduce() as VFXValue;
+            m_Values[1] = slots[1].ValueRef.Reduce() as VFXValue;
+        }
+
+        public override OutputType GetOutputType() { return OutputType.Hexahedron; }
+        public override bool NeedsDepthTexture() { return true; }
+        public override bool NeedsBackFaceCulling() { return true; }
+
+        public override bool UpdateAttributes(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, ref VFXBlockDesc.Flag flags)
+        {
+            if (!UpdateFlag(attribs, CommonAttrib.Position, VFXContextDesc.Type.kTypeOutput))
+            {
+                Debug.LogError("Position attribute is needed for decal output context");
+                return false;
+            }
+
+            UpdateFlag(attribs, CommonAttrib.Color, VFXContextDesc.Type.kTypeOutput);
+            UpdateFlag(attribs, CommonAttrib.Alpha, VFXContextDesc.Type.kTypeOutput);
+
+            m_HasFront = UpdateFlag(attribs, CommonAttrib.Front, VFXContextDesc.Type.kTypeOutput);
+            m_HasSide = UpdateFlag(attribs, CommonAttrib.Side, VFXContextDesc.Type.kTypeOutput);
+            m_HasUp = UpdateFlag(attribs, CommonAttrib.Up, VFXContextDesc.Type.kTypeOutput);
+
+            return true;
+        }
+
+        public override void UpdateUniforms(HashSet<VFXExpression> uniforms, ref VFXBlockDesc.Flag flags)
+        {
+            uniforms.Add(m_Values[0]);
+            uniforms.Add(m_Values[1]);
+        }
+
+        public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            builder.WriteLine("uint index = (id >> 3) + instanceID * 2018;");
+        }
+
+        public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            builder.WriteLine("float4 color : TEXCOORD0;");
+            builder.WriteLine("nointerpolation float4 screenToDecal0 : TEXCOORD1;");
+            builder.WriteLine("nointerpolation float4 screenToDecal1 : TEXCOORD2;");
+            builder.WriteLine("nointerpolation float4 screenToDecal2 : TEXCOORD3;");
+        }
+
+        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            builder.WriteLine("float3 offsets;");
+            builder.WriteLine("offsets.x = 2.0 * float(id & 1) - 1.0;");
+            builder.WriteLine("offsets.y = 2.0 * float((id & 3) >> 1) - 1.0;");
+            builder.WriteLine("offsets.z = 2.0 * float((id & 7) >> 2) - 1.0;");
+            builder.WriteLine();
+
+            builder.WriteLine("const float size = 0.01f;");
+            builder.WriteLineFormat("float maxProjDist = {0};", data.paramToName[(int)ShaderMetaData.Pass.kOutput][m_Values[1]]);
+            builder.WriteLine("offsets.xy *= size;");
+            builder.WriteLine("offsets.z *= maxProjDist;");
+
+            builder.WriteLine();
+            builder.Write("float3 side = ");
+            if (m_HasSide)
+                builder.WriteAttrib(CommonAttrib.Side, data, ShaderMetaData.Pass.kOutput);
+            else
+                builder.Write("float3(1.0f,0.0f,0.0f)");
+            builder.WriteLine(";");
+
+            builder.Write("float3 up = ");
+            if (m_HasUp)
+                builder.WriteAttrib(CommonAttrib.Up, data, ShaderMetaData.Pass.kOutput);
+            else
+                builder.Write("float3(0.0f,1.0f,0.0f)");
+            builder.WriteLine(";");
+
+            builder.Write("float3 front = ");
+            if (m_HasFront)
+                builder.WriteAttrib(CommonAttrib.Front, data, ShaderMetaData.Pass.kOutput);
+            else
+                builder.Write("float3(0.0f,0.0f,1.0f)");
+            builder.WriteLine(";");
+
+            builder.Write("float3 position = ");
+            builder.WriteAttrib(CommonAttrib.Position, data, ShaderMetaData.Pass.kOutput);
+            builder.WriteLine(";");
+
+            // This is not optimized !!!
+            
+            // Get the transposed of the orthogonal decal space
+            builder.WriteLine();
+            builder.WriteLine("float3x3 decalRot;");
+            builder.WriteLine("decalRot[0] = float3(side) * 2.0f / size;");
+            builder.WriteLine("decalRot[1] = float3(up) * 2.0f / size;");
+            builder.WriteLine("decalRot[2] = float3(front) * 2.0f / maxProjDist;");
+            
+            // Transform the position
+            builder.WriteLine("float3 tPos = mul(decalRot, position) + 1.0f;");
+            
+            // View to decal transformation
+            builder.WriteLine();
+            builder.WriteLine("float4x4 screenToDecal;");
+            builder.WriteLine("screenToDecal[0] = float4(decalRot[0],-tPos.x);");
+            builder.WriteLine("screenToDecal[1] = float4(decalRot[1],-tPos.y);");
+            builder.WriteLine("screenToDecal[2] = float4(decalRot[2],-tPos.z);");
+            builder.WriteLine("screenToDecal[3] = float4(0,0,0,1);");
+           
+            builder.WriteLine();
+            builder.WriteLine("screenToDecal = mul(screenToDecal, UNITY_MATRIX_I_V);");
+      
+            // Pass the matrix in the interpolator (with nointerpolation)
+            builder.WriteLine();
+            builder.WriteLine("o.screenToDecal0 = screenToDecal[0];");
+            builder.WriteLine("o.screenToDecal1 = screenToDecal[1];");
+            builder.WriteLine("o.screenToDecal2 = screenToDecal[2];");
+
+            builder.WriteLine();
+            builder.WriteLine("position += side * offsets.x;");
+            builder.WriteLine("position += up * offsets.y;");
+            builder.WriteLine("position += front * offsets.z;");
+
+            builder.WriteLineFormat("o.pos = mul({0}, float4(position,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
+            builder.WriteLine("o.color = float4(offsets * 0.5f + 0.5f,0.5f);");
+        }
+
+        public override void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            builder.WriteLine();
+            builder.WriteLine("float4x4 screenToDecal;");
+            builder.WriteLine("screenToDecal[0] = i.screenToDecal0;");
+            builder.WriteLine("screenToDecal[1] = i.screenToDecal1;");
+            builder.WriteLine("screenToDecal[2] = i.screenToDecal2;");
+            builder.WriteLine("screenToDecal[3] = float4(0,0,0,1);");
+
+            // screen to clip
+            builder.WriteLine();
+            builder.WriteLine("float4 screenPos = i.pos;");
+            builder.WriteLine("screenPos.xy = screenPos.xy / _ScreenParams.xy * 2.0f - 1.0f;");
+            builder.WriteLine("screenPos.z = SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos));");
+            builder.WriteLine("screenPos.w = LinearEyeDepth(screenPos.z);");
+            //builder.WriteLine("")
+            builder.WriteLine("screenPos.xyz *= screenPos.w;");
+
+            // clip to view
+            builder.WriteLine();
+            builder.WriteLine("// Needs inverse P. This works only for standard projections");
+            builder.WriteLine("screenPos.x /= UNITY_MATRIX_P[0][0];");
+            builder.WriteLine("screenPos.y /= -UNITY_MATRIX_P[1][1];");
+            builder.WriteLine("screenPos.z = (screenPos.z - UNITY_MATRIX_P[2][3]) / UNITY_MATRIX_P[2][2];");
+            builder.WriteLine("screenPos.w = 1.0f;");
+
+            // view to decal and scale/bias
+            builder.WriteLine();
+            builder.WriteLine("screenPos = mul(screenToDecal, screenPos) * 0.25f + 0.75f;");
+            builder.WriteLine("clip(0.5f - abs(screenPos - 0.5f));");
+
+            builder.WriteLine();
+            builder.Write("color *= ");
+            WriteTex2DFetch(builder, data, m_Values[0], "screenPos", true);
+        }
+
+        private VFXValue[] m_Values = new VFXValue[2];
+
+        private bool m_HasSide;
+        private bool m_HasUp;
+        private bool m_HasFront;
+    }
 }
 

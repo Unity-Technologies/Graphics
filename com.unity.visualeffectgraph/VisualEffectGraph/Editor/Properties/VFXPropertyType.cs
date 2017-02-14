@@ -528,6 +528,32 @@ namespace UnityEngine.Experimental.VFX
             m_Children[1] = new VFXProperty(new VFXDirectionType(), "normal");
         }
 
+        public override VFXValueType ValueType { get { return VFXValueType.kFloat4; } }
+
+        public override void CreateValue(VFXPropertySlot slot)
+        {
+            UpdateProxy(slot);
+        }
+
+        public override bool UpdateProxy(VFXPropertySlot slot)
+        {
+            slot.Value = new VFXExpressionOptPlane(
+                slot.GetChild(0).ValueRef,
+                slot.GetChild(1).ValueRef);
+
+            return true;
+        }
+
+        protected override object InnerGet(VFXPropertySlot slot, bool linked)
+        {
+            return Slot(slot, linked).GetInnerValue<Vector4>();
+        }
+
+        protected override void InnerSet(VFXPropertySlot slot, object value, bool linked)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool CanTransform() { return true; }
     }
 
