@@ -229,14 +229,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             const int k_MaxShadowDataSlots              = 64;
             const int k_MaxPayloadSlotsPerShadowData    = 16;
             FrameId                 m_frameId;
-            ShadowmapBase           m_Shadowmap;
+            ShadowmapBase[]         m_Shadowmaps;
             IShadowManager          m_ShadowMgr;
             static ComputeBuffer    s_ShadowDataBuffer;
             static ComputeBuffer    s_ShadowPayloadBuffer;
-            uint                    m_ShadowDatasCount;
-            ShadowExp.ShadowData[]  m_ShadowDatas;
-            uint                    m_ShadowPayloadsCount;
-            int[]                   m_ShadowPayloads;
             List<int>               m_ShadowRequests = new List<int>();
             Dictionary<int, int>    m_ShadowIndices = new Dictionary<int,int>();
 
@@ -252,11 +248,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 atlasInit.baseInit.shadowmapFormat = RenderTextureFormat.Shadowmap;
                 atlasInit.baseInit.clearColor      = new Vector4( 0.0f, 0.0f, 0.0f, 0.0f );
                 atlasInit.baseInit.maxPayloadCount = 0;
+                atlasInit.baseInit.shadowSupport   = ShadowmapBase.ShadowSupport.Directional;
                 atlasInit.shaderKeyword            = null;
                 atlasInit.cascadeCount             = shadowSettings.directionalLightCascadeCount;
                 atlasInit.cascadeRatios            = shadowSettings.directionalLightCascades;
-
-                m_Shadowmap = new ShadowExp.ShadowAtlas( ref atlasInit );
+                
+                var atlasInit2 = atlasInit;
+                atlasInit2.baseInit.shadowSupport  = ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
+                m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowAtlas( ref atlasInit ), new ShadowExp.ShadowAtlas( ref atlasInit2 ) };
 
                 ShadowContext.SyncDel syncer = (ShadowContext sc) =>
                     {
@@ -280,7 +279,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         uint offset, count;
                         RenderTargetIdentifier[] tex;
                         sc.GetTex2DArrays( out tex, out offset, out count );
-                        cb.SetGlobalTexture( "_ShadowmapExp", tex[0] );
+                        cb.SetGlobalTexture( "_ShadowmapExp_Dir", tex[0] );
+                        cb.SetGlobalTexture( "_ShadowmapExp_PointSpot", tex[1] );
                         //cb.SetGlobalTexture( "_ShadowmapMomentum", tex[1] );
                         // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
                     };
@@ -295,14 +295,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 scInit.dataSyncer                        = syncer;
                 scInit.resourceBinder                    = binder;
 
-                m_ShadowMgr = new ShadowExp.ShadowManager(shadowSettings, ref scInit, m_Shadowmap);
+                m_ShadowMgr = new ShadowExp.ShadowManager( shadowSettings, ref scInit, m_Shadowmaps );
             }
             void DeinitShadowSystem()
             {
-                if( m_Shadowmap != null )
+                if( m_Shadowmaps != null )
                 {
-                    (m_Shadowmap as ShadowAtlas).Dispose();
-                    m_Shadowmap = null;
+
+                    (m_Shadowmaps[0] as ShadowAtlas).Dispose();
+                    m_Shadowmaps = null;
                 }
                 m_ShadowMgr = null;
 
@@ -1190,7 +1191,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref directionalShadowcount);
 
 #if (SHADOWS_ENABLED && SHADOWS_FIXSHADOWIDX)
-                        // fix up shadow information (TODO: Directional bails early, need to fix up that one as well)
+                        // fix up shadow information
                         int shadowIdxDir;
                         if( m_ShadowIndices.TryGetValue( lightIndex, out shadowIdxDir ) )
                         {
@@ -1208,7 +1209,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], worldToView);
 
 #if (SHADOWS_ENABLED && SHADOWS_FIXSHADOWIDX)
-                    // fix up shadow information (TODO: Directional bails early, need to fix up that one as well)
+                    // fix up shadow information
                     int shadowIdx;
                     if( m_ShadowIndices.TryGetValue( lightIndex, out shadowIdx ) )
                     {

@@ -18,7 +18,7 @@
 #define SHADOWS_USE_SHADOWCTXT
 
 #ifdef  SHADOWS_USE_SHADOWCTXT
-#define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0
+#define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0 // only on >= sm 5.1
 
 // TODO: Remove this once we've moved over to the new system. Also delete the undef at the bottom again.
 #define ShadowData ShadowDataExp

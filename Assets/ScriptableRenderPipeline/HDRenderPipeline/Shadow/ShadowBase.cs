@@ -9,7 +9,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Point,
         Spot,
         Directional,
-        MAX
+        MAX,
+        Unknown = MAX,
+        All = Point | Spot | Directional
     };
     namespace ShadowExp // temporary namespace until everything can be merged into the HDPipeline
     {
@@ -161,6 +163,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // Specific implementations managing atlases and the likes should inherit from this
     abstract public class ShadowmapBase
     {
+        [Flags]
+        public enum ShadowSupport
+        {
+            Point       = 1 << GPUShadowType.Point,
+            Spot        = 1 << GPUShadowType.Spot,
+            Directional = 1 << GPUShadowType.Directional
+        }
         public struct ShadowRequest
         {
             private const byte k_IndexBits    = 24;
@@ -218,6 +227,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         protected readonly float                    m_WidthRcp;
         protected readonly float                    m_HeightRcp;
         protected readonly uint                     m_MaxPayloadCount;
+        protected readonly ShadowSupport            m_ShadowSupport;
         protected          uint                     m_ShadowId;
         protected          CullResults              m_CullResults; // TODO: Temporary, due to CullResults dependency in ShadowUtils' matrix extraction code. Remove this member once that dependency is gone.
 
@@ -232,6 +242,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComparisonSamplerState   comparisonSamplerState;     // the desired sampler state for native shadowmaps doing depth comparisons as well
             public Vector4                  clearColor;                 // the clear color used for non-native shadowmaps
             public uint                     maxPayloadCount;            // how many ints will be pushed into the payload buffer for each invocation of Reserve
+            public ShadowSupport            shadowSupport;              // bitmask of all shadow types that this shadowmap supports
         };
 
         protected ShadowmapBase( ref BaseInit initializer )
@@ -247,6 +258,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_WidthRcp          = 1.0f / initializer.width;
             m_HeightRcp         = 1.0f / initializer.height;
             m_MaxPayloadCount   = initializer.maxPayloadCount;
+            m_ShadowSupport     = initializer.shadowSupport;
             m_ShadowId          = 0;
 
             if( IsNativeDepth() && m_Slices > 1 )
@@ -265,6 +277,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 
+                 public ShadowSupport QueryShadowSupport() { return m_ShadowSupport; }
                  public uint GetMaxPayload() { return m_MaxPayloadCount; }
                  public void AssignId( uint shadowId ) { m_ShadowId = shadowId; }
                  public void Assign( CullResults cullResults ) { m_CullResults = cullResults; } // TODO: Remove when m_CullResults is removed again
