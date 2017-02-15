@@ -199,6 +199,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [ToggleOff] _DoubleSidedMirrorEnable("Double sided mirror enable", Float) = 1.0
+        [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
