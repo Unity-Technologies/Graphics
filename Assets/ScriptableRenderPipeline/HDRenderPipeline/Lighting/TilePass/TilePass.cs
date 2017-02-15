@@ -8,6 +8,93 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
 #if SHADOWS_ENABLED
     using ShadowExp;
+
+    class ShadowSetup : IDisposable
+    {
+        // shadow related stuff
+        const int k_MaxShadowDataSlots              = 64;
+        const int k_MaxPayloadSlotsPerShadowData    = 16;
+        ShadowmapBase[]         m_Shadowmaps;
+        ShadowManager           m_ShadowMgr;
+        static ComputeBuffer    s_ShadowDataBuffer;
+        static ComputeBuffer    s_ShadowPayloadBuffer;
+
+        public ShadowSetup( ShadowSettings shadowSettings, out IShadowManager shadowManager )
+        {
+            s_ShadowDataBuffer      = new ComputeBuffer( k_MaxShadowDataSlots, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowExp.ShadowData ) ) );
+            s_ShadowPayloadBuffer   = new ComputeBuffer( k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf( typeof( int ) ) );
+            ShadowAtlas.AtlasInit atlasInit;
+            atlasInit.baseInit.width           = (uint) shadowSettings.shadowAtlasWidth;
+            atlasInit.baseInit.height          = (uint) shadowSettings.shadowAtlasHeight;
+            atlasInit.baseInit.slices          = 1;
+            atlasInit.baseInit.shadowmapBits   = 32;
+            atlasInit.baseInit.shadowmapFormat = RenderTextureFormat.Shadowmap;
+            atlasInit.baseInit.clearColor      = new Vector4( 0.0f, 0.0f, 0.0f, 0.0f );
+            atlasInit.baseInit.maxPayloadCount = 0;
+            atlasInit.baseInit.shadowSupport   = ShadowmapBase.ShadowSupport.Directional;
+            atlasInit.shaderKeyword            = null;
+            atlasInit.cascadeCount             = shadowSettings.directionalLightCascadeCount;
+            atlasInit.cascadeRatios            = shadowSettings.directionalLightCascades;
+                
+            var atlasInit2 = atlasInit;
+            atlasInit2.baseInit.shadowSupport  = ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
+            m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowAtlas( ref atlasInit ), new ShadowExp.ShadowAtlas( ref atlasInit2 ) };
+
+            ShadowContext.SyncDel syncer = (ShadowContext sc) =>
+                {
+                    // update buffers
+                    uint offset, count;
+                    ShadowExp.ShadowData[] sds;
+                    sc.GetShadowDatas( out sds, out offset, out count );
+                    s_ShadowDataBuffer.SetData( sds ); // unfortunately we can't pass an offset or count to this function
+                    int[] payloads;
+                    sc.GetPayloads( out payloads, out offset, out count );
+                    s_ShadowPayloadBuffer.SetData( payloads );
+                };
+            
+            // binding code. This needs to be in sync with ShadowContext.hlsl
+            ShadowContext.BindDel binder = (ShadowContext sc, CommandBuffer cb ) =>
+                {
+                    // bind buffers
+                    cb.SetGlobalBuffer( "_ShadowDatasExp", s_ShadowDataBuffer );
+                    cb.SetGlobalBuffer( "_ShadowPayloads", s_ShadowPayloadBuffer );
+                    // bind textures
+                    uint offset, count;
+                    RenderTargetIdentifier[] tex;
+                    sc.GetTex2DArrays( out tex, out offset, out count );
+                    cb.SetGlobalTexture( "_ShadowmapExp_Dir", tex[0] );
+                    cb.SetGlobalTexture( "_ShadowmapExp_PointSpot", tex[1] );
+                    // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
+                };
+
+            ShadowContext.CtxtInit scInit;
+            scInit.storage.maxShadowDataSlots        = k_MaxShadowDataSlots;
+            scInit.storage.maxPayloadSlots           = k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData;
+            scInit.storage.maxTex2DArraySlots        = 4;
+            scInit.storage.maxTexCubeArraySlots      = 1;
+            scInit.storage.maxComparisonSamplerSlots = 1;
+            scInit.storage.maxSamplerSlots           = 1;
+            scInit.dataSyncer                        = syncer;
+            scInit.resourceBinder                    = binder;
+
+            m_ShadowMgr = new ShadowExp.ShadowManager( shadowSettings, ref scInit, m_Shadowmaps );
+            shadowManager = m_ShadowMgr;
+        }
+        public void Dispose()
+        {
+            if( m_Shadowmaps != null )
+            {
+
+                (m_Shadowmaps[0] as ShadowAtlas).Dispose();
+                (m_Shadowmaps[1] as ShadowAtlas).Dispose();
+                m_Shadowmaps = null;
+            }
+            m_ShadowMgr = null;
+
+            Utilities.SafeRelease( s_ShadowDataBuffer );
+            Utilities.SafeRelease( s_ShadowPayloadBuffer );
+        }
+    }
 #endif
 
     namespace TilePass
@@ -226,89 +313,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if (SHADOWS_ENABLED)
             // shadow related stuff
-            const int k_MaxShadowDataSlots              = 64;
-            const int k_MaxPayloadSlotsPerShadowData    = 16;
-            FrameId                 m_frameId;
-            ShadowmapBase[]         m_Shadowmaps;
+            FrameId                 m_FrameId;
+            ShadowSetup             m_ShadowSetup; // doesn't actually have to reside here, it would be enough to pass the IShadowManager in from the outside
             IShadowManager          m_ShadowMgr;
-            static ComputeBuffer    s_ShadowDataBuffer;
-            static ComputeBuffer    s_ShadowPayloadBuffer;
             List<int>               m_ShadowRequests = new List<int>();
             Dictionary<int, int>    m_ShadowIndices = new Dictionary<int,int>();
 
             void InitShadowSystem( ShadowSettings shadowSettings )
             {
-                s_ShadowDataBuffer      = new ComputeBuffer( k_MaxShadowDataSlots, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowExp.ShadowData ) ) );
-                s_ShadowPayloadBuffer   = new ComputeBuffer( k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf( typeof( int ) ) );
-                ShadowAtlas.AtlasInit atlasInit;
-                atlasInit.baseInit.width           = (uint) shadowSettings.shadowAtlasWidth;
-                atlasInit.baseInit.height          = (uint) shadowSettings.shadowAtlasHeight;
-                atlasInit.baseInit.slices          = 1;
-                atlasInit.baseInit.shadowmapBits   = 32;
-                atlasInit.baseInit.shadowmapFormat = RenderTextureFormat.Shadowmap;
-                atlasInit.baseInit.clearColor      = new Vector4( 0.0f, 0.0f, 0.0f, 0.0f );
-                atlasInit.baseInit.maxPayloadCount = 0;
-                atlasInit.baseInit.shadowSupport   = ShadowmapBase.ShadowSupport.Directional;
-                atlasInit.shaderKeyword            = null;
-                atlasInit.cascadeCount             = shadowSettings.directionalLightCascadeCount;
-                atlasInit.cascadeRatios            = shadowSettings.directionalLightCascades;
-                
-                var atlasInit2 = atlasInit;
-                atlasInit2.baseInit.shadowSupport  = ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
-                m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowAtlas( ref atlasInit ), new ShadowExp.ShadowAtlas( ref atlasInit2 ) };
-
-                ShadowContext.SyncDel syncer = (ShadowContext sc) =>
-                    {
-                        // update buffers
-                        uint offset, count;
-                        ShadowExp.ShadowData[] sds;
-                        sc.GetShadowDatas( out sds, out offset, out count );
-                        s_ShadowDataBuffer.SetData( sds ); // unfortunately we can't pass an offset or count to this function
-                        int[] payloads;
-                        sc.GetPayloads( out payloads, out offset, out count );
-                        payloads[0] = 5;
-                        s_ShadowPayloadBuffer.SetData(payloads);
-                    };
-
-                ShadowContext.BindDel binder = (ShadowContext sc, CommandBuffer cb ) =>
-                    {
-                        // bind buffers
-                        cb.SetGlobalBuffer( "_ShadowDatasExp", s_ShadowDataBuffer );
-                        cb.SetGlobalBuffer( "_ShadowPayloads", s_ShadowPayloadBuffer );
-                        // bind textures
-                        uint offset, count;
-                        RenderTargetIdentifier[] tex;
-                        sc.GetTex2DArrays( out tex, out offset, out count );
-                        cb.SetGlobalTexture( "_ShadowmapExp_Dir", tex[0] );
-                        cb.SetGlobalTexture( "_ShadowmapExp_PointSpot", tex[1] );
-                        //cb.SetGlobalTexture( "_ShadowmapMomentum", tex[1] );
-                        // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
-                    };
-
-                ShadowContext.CtxtInit scInit;
-                scInit.storage.maxShadowDataSlots        = k_MaxShadowDataSlots;
-                scInit.storage.maxPayloadSlots           = k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData;
-                scInit.storage.maxTex2DArraySlots        = 4;
-                scInit.storage.maxTexCubeArraySlots      = 1;
-                scInit.storage.maxComparisonSamplerSlots = 1;
-                scInit.storage.maxSamplerSlots           = 1;
-                scInit.dataSyncer                        = syncer;
-                scInit.resourceBinder                    = binder;
-
-                m_ShadowMgr = new ShadowExp.ShadowManager( shadowSettings, ref scInit, m_Shadowmaps );
+                m_ShadowSetup = new ShadowSetup( shadowSettings, out m_ShadowMgr );
             }
+
             void DeinitShadowSystem()
             {
-                if( m_Shadowmaps != null )
+                if( m_ShadowSetup != null )
                 {
-
-                    (m_Shadowmaps[0] as ShadowAtlas).Dispose();
-                    m_Shadowmaps = null;
+                    m_ShadowSetup.Dispose();
+                    m_ShadowSetup = null;
+                    m_ShadowMgr = null;
                 }
-                m_ShadowMgr = null;
-
-                Utilities.SafeRelease( s_ShadowDataBuffer );
-                Utilities.SafeRelease( s_ShadowPayloadBuffer );
             }
 #endif
 
@@ -1021,7 +1044,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if (SHADOWS_ENABLED)
                 // 0. deal with shadows
                 {
-                    m_frameId.frameCount++;
+                    m_FrameId.frameCount++;
                     // get the indices for all lights that want to have shadows
                     m_ShadowRequests.Clear();
                     m_ShadowRequests.Capacity = cullResults.visibleLights.Length;
@@ -1036,7 +1059,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int[]   shadowRequests = m_ShadowRequests.ToArray();
                     int[]   shadowDataIndices;
                     uint    originalRequestCount = shadowRequestCount;
-                    m_ShadowMgr.ProcessShadowRequests( m_frameId, cullResults, camera, cullResults.visibleLights, 
+                    m_ShadowMgr.ProcessShadowRequests( m_FrameId, cullResults, camera, cullResults.visibleLights, 
                         ref shadowRequestCount, shadowRequests, out shadowDataIndices );
 
                     // update the visibleLights with the shadow information
@@ -1555,7 +1578,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
 #if (SHADOWS_ENABLED)
                 // kick off the shadow jobs here
-                m_ShadowMgr.RenderShadows( m_frameId, renderContext, cullResults, cullResults.visibleLights );
+                m_ShadowMgr.RenderShadows( m_FrameId, renderContext, cullResults, cullResults.visibleLights );
 #endif
             }
 
