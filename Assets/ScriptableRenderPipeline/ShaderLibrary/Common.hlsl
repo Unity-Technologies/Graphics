@@ -65,6 +65,10 @@
 #endif
 #include "API/Validate.hlsl"
 
+// Some shader compiler don't support to do multiple ## for concatenation inside the same macro, it require an indirection.
+// This is the purpose of this macro
+#define MERGE_NAME(X, Y) X##Y
+
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
