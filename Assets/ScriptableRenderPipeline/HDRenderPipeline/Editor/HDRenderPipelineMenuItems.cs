@@ -27,11 +27,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Material mat = obj as Material;
                 if (mat.shader.name == "HDRenderPipeline/LayeredLit" || mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                 {
-                    LayeredLitGUI.SetupMaterialKeywords(mat);
+                    LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
                 }
                 else if (mat.shader.name == "HDRenderPipeline/Lit" || mat.shader.name == "HDRenderPipeline/LitTessellation")
                 {
-                    LitGUI.SetupMaterialKeywords(mat);
+                    LitGUI.SetupMaterialKeywordsAndPass(mat);
+                }
+                else if (mat.shader.name == "HDRenderPipeline/Unlit")
+                {
+                    UnlitGUI.SetupMaterialKeywordsAndPass(mat);
                 }
             }
         }
