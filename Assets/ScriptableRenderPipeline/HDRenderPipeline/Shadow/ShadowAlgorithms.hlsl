@@ -31,7 +31,7 @@ float EvalShadow_PointDepth( ShadowContext shadowContext, float3 positionWS, int
 	uint texIdx, sampIdx;
 	float slice;
 	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
-	return SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], posTC, slice ).x;
+	return SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, posTC, slice ).x;
 }
 
 float EvalShadow_PointDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
@@ -59,7 +59,7 @@ float EvalShadow_SpotDepth( ShadowContext shadowContext, float3 positionWS, int 
 	uint texIdx, sampIdx;
 	float slice;
 	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
-	return SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], posTC, slice ).x;
+	return SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, posTC, slice ).x;
 }
 
 float EvalShadow_SpotDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
@@ -90,7 +90,7 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, 
 	uint texIdx, sampIdx;
 	float slice;
 	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
-	return SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], posTC, slice ).x;
+	return SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, posTC, slice ).x;
 }
 
 float EvalShadow_PunctualDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
@@ -183,23 +183,23 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, 
 	vShadow3x3PCFTerms3 = float4(-sd.texelSizeRcp.x, -sd.texelSizeRcp.y, 0.0f, 0.0f );
 
 	float4 v20Taps;
-	v20Taps.x = SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], float3( posTC.xy + vShadow3x3PCFTerms1.xy, posTC.z ), slice ).x; //  1  1
-	v20Taps.y = SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], float3( posTC.xy + vShadow3x3PCFTerms1.zy, posTC.z ), slice ).x; // -1  1
-	v20Taps.z = SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], float3( posTC.xy + vShadow3x3PCFTerms1.xw, posTC.z ), slice ).x; //  1 -1
-	v20Taps.w = SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], float3( posTC.xy + vShadow3x3PCFTerms1.zw, posTC.z ), slice ).x; // -1 -1
+	v20Taps.x = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms1.xy, posTC.z ), slice ).x; //  1  1
+	v20Taps.y = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms1.zy, posTC.z ), slice ).x; // -1  1
+	v20Taps.z = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms1.xw, posTC.z ), slice ).x; //  1 -1
+	v20Taps.w = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms1.zw, posTC.z ), slice ).x; // -1 -1
 	float flSum = dot( v20Taps.xyzw, float4( 0.25, 0.25, 0.25, 0.25 ) );
 	if( ( flSum == 0.0 ) || ( flSum == 1.0 ) )
 		return flSum;
 	flSum *= vShadow3x3PCFTerms0.x * 4.0;
 
 	float4 v33Taps;
-	v33Taps.x = SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], float3( posTC.xy + vShadow3x3PCFTerms2.xz, posTC.z ), slice ).x; //  1  0
-	v33Taps.y = SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], float3( posTC.xy + vShadow3x3PCFTerms3.xz, posTC.z ), slice ).x; // -1  0
-	v33Taps.z = SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], float3( posTC.xy + vShadow3x3PCFTerms3.zy, posTC.z ), slice ).x; //  0 -1
-	v33Taps.w = SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], float3( posTC.xy + vShadow3x3PCFTerms2.zy, posTC.z ), slice ).x; //  0  1
+	v33Taps.x = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms2.xz, posTC.z ), slice ).x; //  1  0
+	v33Taps.y = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms3.xz, posTC.z ), slice ).x; // -1  0
+	v33Taps.z = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms3.zy, posTC.z ), slice ).x; //  0 -1
+	v33Taps.w = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms2.zy, posTC.z ), slice ).x; //  0  1
 	flSum += dot(v33Taps.xyzw, vShadow3x3PCFTerms0.yyyy);
 
-	flSum += SampleShadow_T2DA( shadowContext, texIdx, shadowContext.compSamplers[sampIdx], posTC, slice ).x * vShadow3x3PCFTerms0.z;
+	flSum += SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, posTC, slice ).x * vShadow3x3PCFTerms0.z;
 
 	return flSum;
 }

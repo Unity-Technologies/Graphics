@@ -1,6 +1,4 @@
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Profiling;
 using System;
 
 
@@ -112,7 +110,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SampSlot = IsNativeDepth() ? sc.RequestSamplerSlot( m_CompSamplerState ) : sc.RequestSamplerSlot( m_SamplerState );
         }
 
-        public override void Fill( ShadowContextStorage cs )
+        override public void Fill( ShadowContextStorage cs )
         {
             cs.SetTex2DArraySlot( m_TexSlot, m_ShadowmapId );
         }
@@ -444,8 +442,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public VectorArray<int>        payloads     { get { return m_Payloads;    } set { m_Payloads = value;    } }
         }
 
+        private const int           k_MaxShadowmapPerType = 4;
         private ShadowSettings      m_ShadowSettings;
-        private ShadowmapBase       m_Shadowmap;
+        private ShadowmapBase[]     m_Shadowmaps;
+        private ShadowmapBase[,]    m_ShadowmapsPerType = new ShadowmapBase[(int)GPUShadowType.MAX, k_MaxShadowmapPerType];
         private ShadowContextAccess m_ShadowCtxt;
         private int[,]              m_MaxShadows    = new int[(int)GPUShadowType.MAX,2];
         // The following vectors are just temporary helpers to avoid reallocation each frame. Contents are not stable.
@@ -454,12 +454,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // The following vector holds data that are returned to the caller so it can be sent to GPU memory in some form. Contents are stable in between calls to ProcessShadowRequests.
         private ShadowIndicesVector m_ShadowIndices = new ShadowIndicesVector( 0, false );
 
-        public ShadowManager( ShadowSettings shadowSettings, ref ShadowContext.CtxtInit ctxtInitializer, ShadowmapBase shadowmap )
+        public ShadowManager( ShadowSettings shadowSettings, ref ShadowContext.CtxtInit ctxtInitializer, ShadowmapBase[] shadowmaps )
         {
             m_ShadowSettings = shadowSettings;
             m_ShadowCtxt = new ShadowContextAccess( ref ctxtInitializer );
-            m_Shadowmap = shadowmap;
-            m_Shadowmap.ReserveSlots( m_ShadowCtxt );
+
+            Debug.Assert( shadowmaps != null && shadowmaps.Length > 0 );
+            m_Shadowmaps = shadowmaps;
+            foreach( var sm in shadowmaps )
+            {
+                sm.ReserveSlots( m_ShadowCtxt );
+                ShadowmapBase.ShadowSupport smsupport = sm.QueryShadowSupport();
+                for( int i = 0, bit = 1; i < (int) GPUShadowType.MAX; ++i, bit <<= 1 )
+                {
+                    if( ((int)smsupport & bit) == 0 )
+                        continue;
+
+                    for( int idx = 0; i < k_MaxShadowmapPerType; ++idx )
+                    {
+                        if( m_ShadowmapsPerType[i,idx] == null )
+                        {
+                            m_ShadowmapsPerType[i,idx] = sm;
+                            break;
+                        }
+                    }
+                    Debug.Assert( m_ShadowmapsPerType[i,k_MaxShadowmapPerType-1] == null || m_ShadowmapsPerType[i,k_MaxShadowmapPerType-1] == sm,
+                        "Only up to " + k_MaxShadowmapPerType + " are allowed per light type. If more are needed then increase ShadowManager.k_MaxShadowmapPerType" );
+                }
+            }
 
             m_MaxShadows[(int)GPUShadowType.Point      ,0] = m_MaxShadows[(int)GPUShadowType.Point        ,1] = 4;
             m_MaxShadows[(int)GPUShadowType.Spot       ,0] = m_MaxShadows[(int)GPUShadowType.Spot         ,1] = 8;
@@ -472,9 +494,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // TODO:
             // Cached the cullResults here so we don't need to pass them around.
-            // Allocate needs to pass them to the shadowmap, as the ShadowUtil functions calculating view/proj matrices need them to call into C++ land.
+            // Allocate needs to pass them to the shadowmaps, as the ShadowUtil functions calculating view/proj matrices need them to call into C++ land.
             // Ideally we can get rid of that at some point, then we wouldn't need to cache them here, anymore.
-            m_Shadowmap.Assign( cullResults );
+            foreach( var sm in m_Shadowmaps )
+            {
+                sm.Assign( cullResults );
+            }
 
             if( shadowRequestsCount == 0 || lights == null || shadowRequests == null )
             {
@@ -597,25 +622,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 AdditionalLightData ald = l.GetComponent<AdditionalLightData>();
                 
                 // set light specific values that are not related to the shadowmap
-                ShadowUtils.MapLightType( ald.archetype, vl.lightType, out sd.lightType );
+                GPUShadowType shadowtype;
+                ShadowUtils.MapLightType( ald.archetype, vl.lightType, out sd.lightType, out shadowtype );
                 sd.bias = l.shadowBias;
                 sd.quality = 0;
                 
                 shadowIndices.AddUnchecked( (int) shadowDatas.Count() );
-                if( !m_Shadowmap.Reserve( frameId, ref sd, grantedRequests[i], (uint) ald.shadowResolution, (uint) ald.shadowResolution, ref shadowDatas, ref shadowmapPayload, lights ) )
-                    throw new ArgumentException("The requested shadows do not fit into the shadowmap.");
+
+                int smidx = 0;
+                while( smidx < k_MaxShadowmapPerType )
+                {
+                    if( m_ShadowmapsPerType[(int)shadowtype,smidx].Reserve( frameId, ref sd, grantedRequests[i], (uint) ald.shadowResolution, (uint) ald.shadowResolution, ref shadowDatas, ref shadowmapPayload, lights ) )
+                        break;
+                    smidx++;
+                }
+                if( smidx == k_MaxShadowmapPerType )
+                    throw new ArgumentException("The requested shadows do not fit into any shadowmap.");
             }
 
             // final step for shadowmaps that only gather data during the previous loop and do the actual allocation once they have all the data.
-            if( !m_Shadowmap.ReserveFinalize( frameId, ref shadowDatas, ref shadowmapPayload ) )
-                throw new ArgumentException( "Shadow allocation failed in the ReserveFinalize step." );
+            foreach( var sm in m_Shadowmaps )
+            {
+                if( !sm.ReserveFinalize( frameId, ref shadowDatas, ref shadowmapPayload ) )
+                    throw new ArgumentException( "Shadow allocation failed in the ReserveFinalize step." );
+            }
         }
 
         public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights )
         {
             using (new Utilities.ProfilingSample("Render Shadows Exp", renderContext))
             {
-                m_Shadowmap.Update( frameId, renderContext, cullResults, lights );
+                foreach( var sm in m_Shadowmaps )
+                {
+                    sm.Update( frameId, renderContext, cullResults, lights );
+                }
             }
         }
 
@@ -626,7 +666,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void BindResources( ScriptableRenderContext renderContext )
         {
-            m_Shadowmap.Fill( m_ShadowCtxt );
+            foreach( var sm in m_Shadowmaps )
+            {
+                sm.Fill( m_ShadowCtxt );
+            }
             CommandBuffer cb = new CommandBuffer(); // <- can we just keep this around or does this have to be newed every frame?
             cb.name = "Bind resources to GPU";
             m_ShadowCtxt.BindResources( cb );

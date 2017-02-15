@@ -4,16 +4,16 @@
 #define SHADOWCONTEXT_MAX_TEX2DARRAY   2
 #define SHADOWCONTEXT_MAX_TEXCUBEARRAY 2
 #define SHADOWCONTEXT_MAX_SAMPLER	   2
-#define SHADOWCONTEXT_MAX_COMPSAMPLER  1
+#define SHADOWCONTEXT_MAX_COMPSAMPLER  2
 
 SHADOWCONTEXT_DECLARE( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TEXCUBEARRAY, SHADOWCONTEXT_MAX_COMPSAMPLER, SHADOWCONTEXT_MAX_SAMPLER );
 
 StructuredBuffer<ShadowData>	_ShadowDatasExp;
 StructuredBuffer<int>			_ShadowPayloads;
-TEXTURE2D_ARRAY(_ShadowmapExp);
-SAMPLER2D_SHADOW(sampler_ShadowmapExp);
-TEXTURE2D_ARRAY(_ShadowmapMomentum);
-SAMPLER2D(sampler_ShadowmapMomentum);
+TEXTURE2D_ARRAY(_ShadowmapExp_Dir);
+SAMPLER2D_SHADOW(sampler_ShadowmapExp_Dir);
+TEXTURE2D_ARRAY(_ShadowmapExp_PointSpot);
+SAMPLER2D_SHADOW(sampler_ShadowmapExp_PointSpot);
 
 
 ShadowContext InitShadowContext()
@@ -21,9 +21,10 @@ ShadowContext InitShadowContext()
 	ShadowContext sc;
 	sc.shadowDatas     = _ShadowDatasExp;
 	sc.payloads        = _ShadowPayloads;
-	sc.tex2DArray[0]   = _ShadowmapExp;
-	sc.tex2DArray[1]   = _ShadowmapMomentum;
-	sc.compSamplers[0] = sampler_ShadowmapExp;
-	sc.samplers[0]     = sampler_ShadowmapMomentum;
+	sc.tex2DArray[0]   = _ShadowmapExp_Dir;
+	sc.tex2DArray[1]   = _ShadowmapExp_PointSpot;
+	sc.compSamplers[0] = sampler_ShadowmapExp_Dir;
+	sc.compSamplers[1] = sampler_ShadowmapExp_PointSpot;
 	return sc;
 }
+
