@@ -77,6 +77,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [ToggleOff] _DoubleSidedMirrorEnable("Double sided mirror enable", Float) = 1.0
+        [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
