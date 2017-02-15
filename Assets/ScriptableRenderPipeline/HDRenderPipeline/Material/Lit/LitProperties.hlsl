@@ -1,6 +1,6 @@
 // shared constant between lit and layered lit
 float _AlphaCutoff;
-float3 _DoubleSidedConstants;
+float4 _DoubleSidedConstants;
 
 float _HorizonFade;
 

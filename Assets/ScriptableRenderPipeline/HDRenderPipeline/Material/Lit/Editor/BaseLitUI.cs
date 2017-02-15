@@ -193,13 +193,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (doubleSidedMirrorEnable)
                 {
-                    // Flip mode (in tangent space)
-                    material.SetVector("_DoubleSidedConstants", new Vector3(-1.0f, -1.0f, -1.0f));
+                    // Mirror mode (in tangent space)
+                    material.SetVector("_DoubleSidedConstants", new Vector4(1.0f, 1.0f, -1.0f, 0.0f));
                 }
                 else
                 {
-                    // Mirror mode (in tangent space)
-                    material.SetVector("_DoubleSidedConstants", new Vector3(1.0f, 1.0f, -1.0f));
+                    // Flip mode (in tangent space)
+                    material.SetVector("_DoubleSidedConstants", new Vector4(-1.0f, -1.0f, -1.0f, 0.0f));
                 }
             }
 

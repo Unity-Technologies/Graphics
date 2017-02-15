@@ -87,7 +87,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
 
 #ifdef _DOUBLESIDED_ON
     // _DoubleSidedMode is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode (Mirror the normal with the plane define by vertex normal)
-    float3 oppositeNormalTS = normalTS * _DoubleSidedConstants;
+    float3 oppositeNormalTS = normalTS * _DoubleSidedConstants.xyz;
     // TODO : Test if GetOddNegativeScale() is necessary here in case of normal map, as GetOddNegativeScale is take into account in CreateTangentToWorld();
     normalTS = input.isFrontFace ? (GetOddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS) : (-GetOddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS);
 #endif
