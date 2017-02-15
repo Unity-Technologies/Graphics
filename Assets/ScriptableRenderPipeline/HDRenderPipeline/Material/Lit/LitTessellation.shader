@@ -32,7 +32,6 @@ Shader "HDRenderPipeline/LitTessellation"
         _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
-        [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2, Specular Color, 3)] _MaterialID("MaterialId", Int) = 0
         _SubsurfaceProfile("Subsurface Profile", Int) = 0
         _SubsurfaceRadius("Subsurface Radius", Range(0.004, 1.0)) = 1.0
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
@@ -77,12 +76,17 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
+        [ToggleOff] _DoubleSidedMirrorEnable("Double sided mirror enable", Float) = 1.0
+        [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingPlanar("_UVMappingPlanar", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
+
+        [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2, Specular Color, 3)] _MaterialID("MaterialId", Int) = 0
+
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
@@ -90,6 +94,12 @@ Shader "HDRenderPipeline/LitTessellation"
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
+
+        // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
+        // value that exist to identify if the GI emission need to be enabled.
+        // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
+        // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
+        _EmissionColor("Color", Color) = (1, 1, 1)
 
         // Tessellation specific
         [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 0
@@ -116,13 +126,13 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
+    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
     #pragma shader_feature _TESSELLATION_OBJECT_SCALE
 
     #pragma shader_feature _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 

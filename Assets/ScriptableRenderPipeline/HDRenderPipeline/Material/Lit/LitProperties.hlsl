@@ -1,3 +1,30 @@
+// shared constant between lit and layered lit
+float _AlphaCutoff;
+float4 _DoubleSidedConstants;
+
+float _HorizonFade;
+
+float _PPDMaxSamples;
+float _PPDMinSamples;
+float _PPDLodThreshold;
+
+TEXTURE2D(_DiffuseLightingMap);
+SAMPLER2D(sampler_DiffuseLightingMap);
+
+TEXTURE2D(_DistortionVectorMap);
+SAMPLER2D(sampler_DistortionVectorMap);
+
+float3 _EmissiveColor;
+TEXTURE2D(_EmissiveColorMap);
+SAMPLER2D(sampler_EmissiveColorMap);
+float _EmissiveIntensity;
+
+// Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
+// value that exist to identify if the GI emission need to be enabled.
+// In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
+// TODO: Fix the code in legacy unity so we can customize the beahvior for GI
+float3 _EmissionColor;
+
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables
@@ -57,29 +84,10 @@ SAMPLER2D(sampler_ThicknessMap);
 //TEXTURE2D(_CoatRoughnessMap);
 //SAMPLER2D(sampler_CoatRoughnessMap);
 
-TEXTURE2D(_DiffuseLightingMap);
-SAMPLER2D(sampler_DiffuseLightingMap);
-
-TEXTURE2D(_DistortionVectorMap);
-SAMPLER2D(sampler_DistortionVectorMap);
-
-float3 _EmissiveColor;
-TEXTURE2D(_EmissiveColorMap);
-SAMPLER2D(sampler_EmissiveColorMap);
-float _EmissiveIntensity;
-
-float _AlphaCutoff;
-
-float _HorizonFade;
-
 float _TexWorldScale;
 float _UVMappingPlanar;
 float4 _UVMappingMask;
 float4 _UVDetailsMappingMask;
-
-float _PPDMaxSamples;
-float _PPDMinSamples;
-float _PPDLodThreshold;
 
 #else // LAYERED_LIT_SHADER
 
@@ -134,12 +142,6 @@ PROP_DECL(float, _DetailSmoothnessScale);
 PROP_DECL(float, _HeightAmplitude);
 PROP_DECL(float, _HeightCenter);
 
-TEXTURE2D(_DiffuseLightingMap);
-SAMPLER2D(sampler_DiffuseLightingMap);
-
-TEXTURE2D(_DistortionVectorMap);
-SAMPLER2D(sampler_DistortionVectorMap);
-
 TEXTURE2D(_LayerMaskMap);
 SAMPLER2D(sampler_LayerMaskMap);
 
@@ -165,25 +167,12 @@ float _InheritBaseColorThreshold3;
 float _LayerTilingBlendMask;
 PROP_DECL(float, _LayerTiling);
 
-float3 _EmissiveColor;
-TEXTURE2D(_EmissiveColorMap);
-SAMPLER2D(sampler_EmissiveColorMap);
-float _EmissiveIntensity;
-
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
 float _UVMappingPlanarBlendMask;
 PROP_DECL(float, _UVMappingPlanar);  
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
-
-float _AlphaCutoff;
-
-float _HorizonFade;
-
-float _PPDMaxSamples;
-float _PPDMinSamples;
-float _PPDLodThreshold;
 
 #endif // LAYERED_LIT_SHADER
 

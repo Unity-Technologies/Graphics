@@ -28,6 +28,12 @@ Shader "HDRenderPipeline/Unlit"
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
+
+        // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
+        // value that exist to identify if the GI emission need to be enabled.
+        // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
+        // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
+        _EmissionColor("Color", Color) = (1, 1, 1)
     }
 
     HLSLINCLUDE
