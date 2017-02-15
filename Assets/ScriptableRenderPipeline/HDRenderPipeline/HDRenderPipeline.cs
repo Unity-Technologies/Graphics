@@ -409,7 +409,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void PushGlobalParams(HDCamera hdCamera, ScriptableRenderContext renderContext)
+        public void PushGlobalParams(HDCamera hdCamera, ScriptableRenderContext renderContext, SubsurfaceScatteringParameters sssParameters)
         {
             if (m_SkyManager.IsSkyValid())
             {
@@ -420,6 +420,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
             }
+
+            // Broadcast SSS parameters to all shaders.
+            Shader.SetGlobalInt("_TransmittanceFlags", sssParameters.transmittanceFlags);
+            Shader.SetGlobalFloatArray("_ThicknessScales", sssParameters.thicknessScales);
+            Shader.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
 
             var cmd = new CommandBuffer {name = "Push Global Parameters"};
 
@@ -529,7 +534,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            PushGlobalParams(hdCamera, renderContext);
+            PushGlobalParams(hdCamera, renderContext, m_Owner.sssParameters);
 
             // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
             // must be call after BuildGPULightLists.
@@ -728,28 +733,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
             if (m_Owner.renderingParameters.ShouldUseForwardRenderingOnly()) return;
 
-            // Load the kernel data.
-            Vector4[] kernelData = new Vector4[SubsurfaceScatteringParameters.maxNumProfiles * SubsurfaceScatteringProfile.numVectors];
-            for (int j = 0, m = sssParameters.profiles.Length; j < m; j++)
-            {
-                for (int i = 0, n = SubsurfaceScatteringProfile.numVectors; i < n; i++)
-                {
-                    kernelData[n * j + i] = sssParameters.profiles[j].filterKernel[i];
-                }
-            }
-
             var cmd = new CommandBuffer() { name = "Subsurface Scattering Pass" };
 
             // Perform the vertical SSS filtering pass.
             m_FilterSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
-            m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
+            m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
+            m_FilterSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
             Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera,
                                      m_CameraFilteringBufferRT, m_CameraStencilBufferRT);
 
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
             m_FilterAndCombineSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
-            m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", kernelData);
+            m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
+            m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
             Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera,
                                      m_CameraColorBufferRT, m_CameraStencilBufferRT);
