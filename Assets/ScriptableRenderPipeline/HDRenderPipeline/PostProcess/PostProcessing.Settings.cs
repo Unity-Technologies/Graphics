@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -75,21 +75,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             [Range(0f, 1f)] public float intensity = 0.3f;
             [Range(0f, 1f)] public float smoothness = 0.3f;
-        }
-
-        [Serializable]
-        public sealed class BloomSettings
-        {
-            public bool enabled = false;
-
-            public float intensity = 0.5f;
-            public float threshold = 1.1f;
-
-            [Range(0f, 1f)] public float softKnee = 0.5f;
-            [Range(1f, 7f)] public float radius = 5f;
-
-            public Texture lensTexture;
-            public float lensIntensity = 3f;
         }
     }
 }
