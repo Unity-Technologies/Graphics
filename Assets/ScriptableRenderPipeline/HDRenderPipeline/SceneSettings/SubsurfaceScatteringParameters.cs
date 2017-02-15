@@ -353,15 +353,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         private class Styles
         {
-            public readonly GUIContent sssCategory              = new GUIContent("Subsurface scattering");
-            public readonly GUIContent sssProfileStdDev1        = new GUIContent("Standard deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
-            public readonly GUIContent sssProfileStdDev2        = new GUIContent("Standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
-            public readonly GUIContent sssProfileLerpWeight     = new GUIContent("Filter interpolation", "Controls linear interpolation between the two Gaussian filters.");
-            public readonly GUIContent sssProfileTransmittance  = new GUIContent("Enable transmittance", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
-            public readonly GUIContent sssProfileThicknessScale = new GUIContent("Thickness scale", "Linearly scales the thickness of the object which affects the amount of transmitted lighting.");
+            public readonly GUIContent category              = new GUIContent("Subsurface scattering parameters");
+            public readonly GUIContent[] profiles            = new GUIContent[SubsurfaceScatteringParameters.maxNumProfiles] { new GUIContent("Profile #0"), new GUIContent("Profile #1"), new GUIContent("Profile #2"), new GUIContent("Profile #3"), new GUIContent("Profile #4"), new GUIContent("Profile #5"), new GUIContent("Profile #6"), new GUIContent("Profile #7") };
+            public readonly GUIContent numProfiles           = new GUIContent("Number of profiles");
+            public readonly GUIContent profileStdDev1        = new GUIContent("Standard deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
+            public readonly GUIContent profileStdDev2        = new GUIContent("Standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
+            public readonly GUIContent profileLerpWeight     = new GUIContent("Filter interpolation",  "Controls linear interpolation between the two Gaussian filters.");
+            public readonly GUIContent profileTransmittance  = new GUIContent("Enable transmittance",  "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
+            public readonly GUIContent profileThicknessScale = new GUIContent("Thickness scale",       "Linearly scales the object thickness which affects the amount of transmitted lighting.");
         }
 
         private static Styles s_Styles;
+        private SerializedProperty m_Profiles, m_NumProfiles;
 
         // --- Public Methods ---
 
@@ -377,14 +380,54 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        void OnEnable()
+        {
+            m_Profiles    = serializedObject.FindProperty("m_Profiles");
+            m_NumProfiles = m_Profiles.FindPropertyRelative("Array.size");
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            SerializedProperty profiles = serializedObject.FindProperty("m_Profiles");
-
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(profiles, true);
+
+            EditorGUILayout.LabelField(styles.category);
+            EditorGUILayout.PropertyField(m_NumProfiles, styles.numProfiles);
+            EditorGUILayout.PropertyField(m_Profiles);
+
+            if (m_Profiles.isExpanded)
+            {
+                EditorGUI.indentLevel++;
+
+                for (int i = 0, n = Math.Min(m_Profiles.arraySize, SubsurfaceScatteringParameters.maxNumProfiles); i < n; i++)
+                {
+                    SerializedProperty profile = m_Profiles.GetArrayElementAtIndex(i);
+			        EditorGUILayout.PropertyField(profile, styles.profiles[i]);
+
+                    if (profile.isExpanded)
+                    {
+                        EditorGUI.indentLevel++;
+
+                        SerializedProperty profileStdDev1        = profile.FindPropertyRelative("stdDev1");
+                        SerializedProperty profileStdDev2        = profile.FindPropertyRelative("stdDev2");
+                        SerializedProperty profileLerpWeight     = profile.FindPropertyRelative("lerpWeight");
+                        SerializedProperty profileTransmittance  = profile.FindPropertyRelative("enableTransmittance");
+                        SerializedProperty profileThicknessScale = profile.FindPropertyRelative("thicknessScale");
+
+                        EditorGUILayout.PropertyField(profileStdDev1,        styles.profileStdDev1);
+                        EditorGUILayout.PropertyField(profileStdDev2,        styles.profileStdDev2);
+                        EditorGUILayout.PropertyField(profileLerpWeight,     styles.profileLerpWeight);
+                        EditorGUILayout.PropertyField(profileTransmittance,  styles.profileTransmittance);
+                        EditorGUILayout.PropertyField(profileThicknessScale, styles.profileThicknessScale);
+
+                        EditorGUI.indentLevel--;
+                    }
+		        }
+
+                EditorGUI.indentLevel--;
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 // Serialization does not invoke setters, but does call OnValidate().
