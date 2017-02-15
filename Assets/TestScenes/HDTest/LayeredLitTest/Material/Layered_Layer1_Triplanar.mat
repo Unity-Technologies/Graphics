@@ -193,7 +193,7 @@ Material:
     - _BlendUsingHeight2: 0
     - _BlendUsingHeight3: 0
     - _BumpScale: 1
-    - _CullMode: 0
+    - _CullMode: 2
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _DetailAOScale0: 1
@@ -221,6 +221,8 @@ Material:
     - _DistortionDepthTest: 0
     - _DistortionEnable: 0
     - _DistortionOnly: 0
+    - _DoubleSidedEnable: 0
+    - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedMode: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 0
@@ -364,6 +366,7 @@ Material:
     - _BaseColor2: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColor3: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
