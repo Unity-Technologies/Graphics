@@ -574,9 +574,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return mat.GetFloat(kEmissiveIntensity) > 0.0f;
         }
 
-        protected override void SetupMaterialKeywordsInternal(Material material)
+        protected override void SetupMaterialKeywordsAndPassInternal(Material material)
         {
-            SetupMaterialKeywords(material);
+            SetupMaterialKeywordsAndPass(material);
         }
 
         static public void SetupLayersMappingKeywords(Material material)
@@ -655,9 +655,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static new public void SetupMaterialKeywords(Material material)
+        static new public void SetupMaterialKeywordsAndPass(Material material)
         {
-            SetupBaseKeywords(material);
+            SetupBaseLitKeywords(material);
+            SetupBaseLitMaterialPass(material);
             SetupLayersMappingKeywords(material);
 
             for (int i = 0; i < kMaxLayerCount; ++i)
@@ -744,7 +745,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 foreach (var obj in m_MaterialEditor.targets)
                 {
-                    SetupMaterialKeywordsInternal((Material)obj);
+                    SetupMaterialKeywordsAndPassInternal((Material)obj);
                 }
 
                 // SaveAssetsProcessor the referenced material in the users data

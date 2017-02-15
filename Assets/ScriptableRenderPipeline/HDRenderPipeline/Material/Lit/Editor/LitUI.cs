@@ -351,15 +351,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return mat.GetFloat(kEmissiveIntensity) > 0.0f;
         }
 
-        protected override void SetupMaterialKeywordsInternal(Material material)
+        protected override void SetupMaterialKeywordsAndPassInternal(Material material)
         {
-            SetupMaterialKeywords(material);
+            SetupMaterialKeywordsAndPass(material);
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywords(Material material)
+        static public void SetupMaterialKeywordsAndPass(Material material)
         {
-            SetupBaseKeywords(material);
+            SetupBaseLitKeywords(material);
+            SetupBaseLitMaterialPass(material);
 
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
