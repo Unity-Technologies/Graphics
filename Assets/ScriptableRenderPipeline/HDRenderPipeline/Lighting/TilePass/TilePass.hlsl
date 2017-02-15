@@ -107,8 +107,8 @@ float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, uint light
     // Note: scale and bias of shadow atlas are included in ShadowTransform but could be apply here.
     float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
     positionTXS.xyz /= positionTXS.w;
-    //	positionTXS.z -=  shadowData.bias; // Apply a linear bias
-    positionTXS.z -= 0.001;
+    // positionTXS.z -=  shadowData.bias;
+    positionTXS.z -= 0.001; // Apply a linear bias
 
 #if UNITY_REVERSED_Z
     positionTXS.z = 1.0 - positionTXS.z;
@@ -157,8 +157,8 @@ float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 
     // Note: scale and bias of shadow atlas are included in ShadowTransform but could be apply here.
     float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
     positionTXS.xyz /= positionTXS.w;
-    //	positionTXS.z -=  shadowData.bias; // Apply a linear bias
-    positionTXS.z -= 0.003;
+    // positionTXS.z -=  shadowData.bias;
+    positionTXS.z -= 0.003; // Apply a linear bias
 
 #if UNITY_REVERSED_Z
     positionTXS.z = 1.0 - positionTXS.z;

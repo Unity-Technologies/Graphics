@@ -188,6 +188,9 @@ Shader "HDRenderPipeline/LayeredLit"
 
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
+        // Stencil state
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 1
+
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
         [HideInInspector] _BlendMode ("__blendmode", Float) = 0.0
@@ -360,14 +363,21 @@ Shader "HDRenderPipeline/LayeredLit"
             Name "GBuffer"  // Name is not used
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
-            Cull  [_CullMode]
+            Cull [_CullMode]
+
+            Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_GBUFFER
 
-            #include "../../Material/Material.hlsl"            
-            #include "../Lit/ShaderPass/LitSharePass.hlsl"    
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -379,7 +389,14 @@ Shader "HDRenderPipeline/LayeredLit"
             Name "GBufferDebugLighting"  // Name is not used
             Tags{ "LightMode" = "GBufferDebugLighting" } // This will be only for opaque object based on the RenderQueue index
 
-            Cull[_CullMode]
+            Cull [_CullMode]
+
+            Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             HLSLPROGRAM
 

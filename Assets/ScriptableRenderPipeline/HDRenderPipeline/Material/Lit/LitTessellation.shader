@@ -64,7 +64,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 0
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 1
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -193,7 +193,7 @@ Shader "HDRenderPipeline/LitTessellation"
             Name "GBuffer"  // Name is not used
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
-            Cull  [_CullMode]
+            Cull [_CullMode]
 
             Stencil
             {
@@ -221,11 +221,11 @@ Shader "HDRenderPipeline/LitTessellation"
             Name "GBufferDebugLighting"  // Name is not used
             Tags{ "LightMode" = "GBufferDebugLighting" } // This will be only for opaque object based on the RenderQueue index
 
-            Cull[_CullMode]
+            Cull [_CullMode]
 
-                Stencil
+            Stencil
             {
-                Ref[_StencilRef]
+                Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
             }
@@ -445,7 +445,6 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"

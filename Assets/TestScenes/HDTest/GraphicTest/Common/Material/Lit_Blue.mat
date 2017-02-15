@@ -143,7 +143,6 @@ Material:
     - _HeightScale: 1
     - _HorizonFade: 1
     - _MaterialID: 0
-    - _MaterialId: 0
     - _Metallic: 0
     - _Mode: 0
     - _NormalMapSpace: 0
@@ -157,7 +156,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _StencilRef: 0
+    - _StencilRef: 1
     - _SubSurfaceRadius: 0
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
