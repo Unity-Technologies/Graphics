@@ -426,6 +426,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalFloatArray("_ThicknessScales", sssParameters.thicknessScales);
             Shader.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
 
+            if (sssParameters.enableSSS)
+            {
+                Shader.EnableKeyword("_SUBSURFACE_SCATTERING");
+            }
+            else
+            {
+                Shader.DisableKeyword("_SUBSURFACE_SCATTERING");
+            }
+
             var cmd = new CommandBuffer {name = "Push Global Parameters"};
 
             cmd.SetGlobalVector("_ScreenSize", hdCamera.screenSize);
@@ -541,7 +550,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
             UpdateSkyEnvironment(hdCamera, renderContext);
 
-            RenderDeferredLighting(hdCamera, renderContext);
+            RenderDeferredLighting(hdCamera, renderContext, m_Owner.sssParameters.enableSSS);
 
             // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
             // Currently, there is no efficient way to switch between SRT and MRT for the forward pass;
@@ -711,7 +720,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext)
+        void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext, bool enableSSS)
         {
             if (m_Owner.renderingParameters.ShouldUseForwardRenderingOnly() || m_LightLoop == null)
             {
@@ -720,11 +729,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderTargetIdentifier[] colorRTs = { m_CameraColorBufferRT, m_CameraSubsurfaceBufferRT };
 
-            // Output split lighting for materials tagged with the SSS stencil bit.
-            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, globalDebugParameters.lightingDebugParameters, colorRTs, m_CameraStencilBufferRT, true);
+            if (enableSSS)
+            {
+                // Output split lighting for materials tagged with the SSS stencil bit.
+                m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, globalDebugParameters.lightingDebugParameters, colorRTs, m_CameraStencilBufferRT, true, enableSSS);
+            }
 
             // Output combined lighting for all the other materials.
-            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, globalDebugParameters.lightingDebugParameters, colorRTs, m_CameraStencilBufferRT, false);
+            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, globalDebugParameters.lightingDebugParameters, colorRTs, m_CameraStencilBufferRT, false, enableSSS);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
@@ -732,6 +744,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
             if (m_Owner.renderingParameters.ShouldUseForwardRenderingOnly()) return;
+
+            if (!sssParameters.enableSSS) return;
 
             var cmd = new CommandBuffer() { name = "Subsurface Scattering Pass" };
 

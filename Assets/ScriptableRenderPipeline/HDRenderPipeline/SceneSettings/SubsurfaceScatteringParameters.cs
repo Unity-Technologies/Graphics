@@ -193,6 +193,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int maxNumProfiles = 8;
 
         [SerializeField]
+        bool                          m_EnableSSS;
+        [SerializeField]
         int                           m_NumProfiles;
         [SerializeField]
         int                           m_TransmittanceFlags;
@@ -211,6 +213,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public SubsurfaceScatteringParameters()
         {
+            m_EnableSSS   = true;
             m_NumProfiles = 1;
             m_Profiles    = new SubsurfaceScatteringProfile[m_NumProfiles];
 
@@ -220,6 +223,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             OnValidate();
+        }
+
+        public bool enableSSS {
+            // Set via serialization.
+            get { return m_EnableSSS; }
         }
 
         public SubsurfaceScatteringProfile[] profiles {
@@ -354,6 +362,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public readonly GUIContent category              = new GUIContent("Subsurface scattering parameters");
             public readonly GUIContent[] profiles            = new GUIContent[SubsurfaceScatteringParameters.maxNumProfiles] { new GUIContent("Profile #0"), new GUIContent("Profile #1"), new GUIContent("Profile #2"), new GUIContent("Profile #3"), new GUIContent("Profile #4"), new GUIContent("Profile #5"), new GUIContent("Profile #6"), new GUIContent("Profile #7") };
+            public readonly GUIContent profilePreview        = new GUIContent("Profile preview. Note that the intensity of the region in the center may be clamped.");
             public readonly GUIContent numProfiles           = new GUIContent("Number of profiles");
             public readonly GUIContent profileStdDev1        = new GUIContent("Standard deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
             public readonly GUIContent profileStdDev2        = new GUIContent("Standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
@@ -363,7 +372,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         private static Styles      s_Styles;
-        private SerializedProperty m_Profiles, m_NumProfiles;
+        private SerializedProperty m_EnableSSS, m_Profiles, m_NumProfiles;
         private Material           m_ProfileMaterial;
         private RenderTexture[]    m_ProfileImages;
 
@@ -383,6 +392,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnEnable()
         {
+            m_EnableSSS       = serializedObject.FindProperty("m_EnableSSS");
             m_Profiles        = serializedObject.FindProperty("m_Profiles");
             m_NumProfiles     = m_Profiles.FindPropertyRelative("Array.size");
             m_ProfileMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawGaussianProfile");
@@ -403,7 +413,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Validate the data before displaying it.
             ((SubsurfaceScatteringParameters)serializedObject.targetObject).OnValidate();
 
-            EditorGUILayout.LabelField(styles.category);
+            EditorGUILayout.LabelField(styles.category, EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(m_EnableSSS);
             EditorGUILayout.PropertyField(m_NumProfiles, styles.numProfiles);
             EditorGUILayout.PropertyField(m_Profiles);
 
@@ -440,6 +452,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_ProfileMaterial.SetFloat("_LerpWeight", profileLerpWeight.floatValue);
                         EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImages[i], m_ProfileMaterial, ScaleMode.ScaleToFit);
 
+                        EditorGUILayout.Space();
+                        EditorGUILayout.LabelField(styles.profilePreview, EditorStyles.centeredGreyMiniLabel);
                         EditorGUILayout.Space();
 
                         EditorGUI.indentLevel--;
