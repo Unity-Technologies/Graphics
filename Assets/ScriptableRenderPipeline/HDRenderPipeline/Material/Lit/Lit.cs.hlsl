@@ -102,7 +102,7 @@ struct BSDFData
 	float subsurfaceRadius;
 	float thickness;
 	int subsurfaceProfile;
-	bool enableTransmittance;
+	bool enableTransmission;
 	float3 transmittance;
 	float3 coatNormalWS;
 	float coatRoughness;
