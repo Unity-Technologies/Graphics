@@ -71,9 +71,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             scInit.storage.maxShadowDataSlots        = k_MaxShadowDataSlots;
             scInit.storage.maxPayloadSlots           = k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData;
             scInit.storage.maxTex2DArraySlots        = 4;
-            scInit.storage.maxTexCubeArraySlots      = 1;
-            scInit.storage.maxComparisonSamplerSlots = 1;
-            scInit.storage.maxSamplerSlots           = 1;
+            scInit.storage.maxTexCubeArraySlots      = 2;
+            scInit.storage.maxComparisonSamplerSlots = 2;
+            scInit.storage.maxSamplerSlots           = 2;
             scInit.dataSyncer                        = syncer;
             scInit.resourceBinder                    = binder;
 
