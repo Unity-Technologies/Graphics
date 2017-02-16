@@ -356,7 +356,8 @@ Material:
     - _LayerTiling2: 1
     - _LayerTiling3: 1
     - _LayerTilingBlendMask: 1
-    - _MaterialId: 0
+    - _MaterialID: 0
+    - _StencilRef: 1
     - _Metalic: 0
     - _Metalic0: 0
     - _Metalic1: 0
@@ -399,7 +400,6 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _SubSurfaceRadius: 0
     - _SurfaceType: 0
     - _TexWorldScale: 1
     - _TexWorldScale0: 1

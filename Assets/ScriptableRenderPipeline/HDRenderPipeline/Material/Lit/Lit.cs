@@ -98,9 +98,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // fold into fresnel0
 
             // SSS
-            public float subsurfaceRadius;
-            public float thickness;
-            public int   subsurfaceProfile;
+            public float   subsurfaceRadius;
+            public float   thickness;
+            public int     subsurfaceProfile;
+            public bool    enableTransmittance;
+            public Vector3 transmittance;
 
             // Clearcoat
             public Vector3 coatNormalWS;
