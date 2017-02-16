@@ -1,4 +1,3 @@
-
 // Various shadow algorithms
 // There are two variants provided, one takes the texture and sampler explicitly so they can be statically passed in.
 // The variant without resource parameters dynamically accesses the texture when sampling.
@@ -19,6 +18,9 @@ float3 EvalShadow_GetTexcoords( ShadowData sd, float3 positionWS )
 	return posTC;
 }
 
+//
+//	Point shadows
+//
 float EvalShadow_PointDepth( ShadowContext shadowContext, float3 positionWS, int index, float3 L )
 {
 	// load the right shadow data for the current face
@@ -31,7 +33,7 @@ float EvalShadow_PointDepth( ShadowContext shadowContext, float3 positionWS, int
 	uint texIdx, sampIdx;
 	float slice;
 	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
-	return SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, posTC, slice ).x;
+	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, texIdx, sampIdx );
 }
 
 float EvalShadow_PointDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
@@ -45,10 +47,13 @@ float EvalShadow_PointDepth( ShadowContext shadowContext, Texture2DArray tex, Sa
 	// sample the texture
 	float slice;
 	unpackShadowmapId( sd.id, slice );
-	return SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, posTC, slice );
+	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, tex, compSamp );
 }
 
 
+//
+//	Spot shadows
+//
 float EvalShadow_SpotDepth( ShadowContext shadowContext, float3 positionWS, int index, float3 L )
 {
 	// load the right shadow data for the current face
@@ -59,7 +64,7 @@ float EvalShadow_SpotDepth( ShadowContext shadowContext, float3 positionWS, int 
 	uint texIdx, sampIdx;
 	float slice;
 	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
-	return SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, posTC, slice ).x;
+	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, texIdx, sampIdx );
 }
 
 float EvalShadow_SpotDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
@@ -71,9 +76,12 @@ float EvalShadow_SpotDepth( ShadowContext shadowContext, Texture2DArray tex, Sam
 	// sample the texture
 	float slice;
 	unpackShadowmapId( sd.id, slice );
-	return SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, posTC, slice );
+	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, tex, compSamp );
 }
 
+//
+//	Punctual shadows for Point and Spot
+//
 float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, int index, float3 L )
 {
 	// load the right shadow data for the current face
@@ -90,7 +98,7 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, 
 	uint texIdx, sampIdx;
 	float slice;
 	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
-	return SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, posTC, slice ).x;
+	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, texIdx, sampIdx );
 }
 
 float EvalShadow_PunctualDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
@@ -108,10 +116,12 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, Texture2DArray tex,
 	// sample the texture
 	float slice;
 	unpackShadowmapId( sd.id, slice );
-	return SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, posTC, slice );
+	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, tex, compSamp );
 }
 
-
+//
+//	Directional shadows (cascaded shadow map)
+//
 uint EvalShadow_GetSplitSphereIndexForDirshadows( float3 positionWS, float4 dirShadowSplitSpheres[4] )
 {
 	float3 fromCenter0 = positionWS.xyz - dirShadowSplitSpheres[0].xyz;
@@ -172,36 +182,7 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, 
 	float slice;
 	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
 
-	float4 vShadow3x3PCFTerms0;
-	float4 vShadow3x3PCFTerms1;
-	float4 vShadow3x3PCFTerms2;
-	float4 vShadow3x3PCFTerms3;
-
-	vShadow3x3PCFTerms0 = float4( 20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f );
-	vShadow3x3PCFTerms1 = float4( sd.texelSizeRcp.x,  sd.texelSizeRcp.y, -sd.texelSizeRcp.x, -sd.texelSizeRcp.y );
-	vShadow3x3PCFTerms2 = float4( sd.texelSizeRcp.x,  sd.texelSizeRcp.y, 0.0f, 0.0f );
-	vShadow3x3PCFTerms3 = float4(-sd.texelSizeRcp.x, -sd.texelSizeRcp.y, 0.0f, 0.0f );
-
-	float4 v20Taps;
-	v20Taps.x = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms1.xy, posTC.z ), slice ).x; //  1  1
-	v20Taps.y = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms1.zy, posTC.z ), slice ).x; // -1  1
-	v20Taps.z = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms1.xw, posTC.z ), slice ).x; //  1 -1
-	v20Taps.w = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms1.zw, posTC.z ), slice ).x; // -1 -1
-	float flSum = dot( v20Taps.xyzw, float4( 0.25, 0.25, 0.25, 0.25 ) );
-	if( ( flSum == 0.0 ) || ( flSum == 1.0 ) )
-		return flSum;
-	flSum *= vShadow3x3PCFTerms0.x * 4.0;
-
-	float4 v33Taps;
-	v33Taps.x = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms2.xz, posTC.z ), slice ).x; //  1  0
-	v33Taps.y = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms3.xz, posTC.z ), slice ).x; // -1  0
-	v33Taps.z = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms3.zy, posTC.z ), slice ).x; //  0 -1
-	v33Taps.w = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( posTC.xy + vShadow3x3PCFTerms2.zy, posTC.z ), slice ).x; //  0  1
-	flSum += dot(v33Taps.xyzw, vShadow3x3PCFTerms0.yyyy);
-
-	flSum += SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, posTC, slice ).x * vShadow3x3PCFTerms0.z;
-
-	return flSum;
+	return SampleShadow_PCF_9tap_Adaptive( shadowContext, sd.texelSizeRcp, posTC, slice, texIdx, sampIdx );
 }
 
 float EvalShadow_CascadedDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
@@ -217,35 +198,6 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, Texture2DArray tex,
 	float slice;
 	unpackShadowmapId(sd.id, slice);
 
-	float4 vShadow3x3PCFTerms0;
-	float4 vShadow3x3PCFTerms1;
-	float4 vShadow3x3PCFTerms2;
-	float4 vShadow3x3PCFTerms3;
-
-	vShadow3x3PCFTerms0 = float4( 20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f );
-	vShadow3x3PCFTerms1 = float4( sd.texelSizeRcp.x,  sd.texelSizeRcp.y, -sd.texelSizeRcp.x, -sd.texelSizeRcp.y );
-	vShadow3x3PCFTerms2 = float4( sd.texelSizeRcp.x,  sd.texelSizeRcp.y, 0.0f, 0.0f );
-	vShadow3x3PCFTerms3 = float4(-sd.texelSizeRcp.x, -sd.texelSizeRcp.y, 0.0f, 0.0f );
-
-	float4 v20Taps;
-	v20Taps.x = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( posTC.xy + vShadow3x3PCFTerms1.xy, posTC.z ), slice ).x; //  1  1
-	v20Taps.y = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( posTC.xy + vShadow3x3PCFTerms1.zy, posTC.z ), slice ).x; // -1  1
-	v20Taps.z = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( posTC.xy + vShadow3x3PCFTerms1.xw, posTC.z ), slice ).x; //  1 -1
-	v20Taps.w = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( posTC.xy + vShadow3x3PCFTerms1.zw, posTC.z ), slice ).x; // -1 -1
-	float flSum = dot( v20Taps.xyzw, float4( 0.25, 0.25, 0.25, 0.25 ) );
-	if( ( flSum == 0.0 ) || ( flSum == 1.0 ) )
-		return flSum;
-	flSum *= vShadow3x3PCFTerms0.x * 4.0;
-
-	float4 v33Taps;
-	v33Taps.x = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( posTC.xy + vShadow3x3PCFTerms2.xz, posTC.z ), slice ).x; //  1  0
-	v33Taps.y = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( posTC.xy + vShadow3x3PCFTerms3.xz, posTC.z ), slice ).x; // -1  0
-	v33Taps.z = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( posTC.xy + vShadow3x3PCFTerms3.zy, posTC.z ), slice ).x; //  0 -1
-	v33Taps.w = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( posTC.xy + vShadow3x3PCFTerms2.zy, posTC.z ), slice ).x; //  0  1
-	flSum += dot(v33Taps.xyzw, vShadow3x3PCFTerms0.yyyy);
-
-	flSum += SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, posTC, slice ).x * vShadow3x3PCFTerms0.z;
-
-	return flSum;
+	return SampleShadow_PCF_9tap_Adaptive( shadowContext, sd.texelSizeRcp, posTC, slice, tex, compSamp );
 }
 

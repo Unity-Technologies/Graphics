@@ -71,6 +71,7 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 
 
 // wedge in the actual shadow sampling algorithms
+#include "ShadowSampling.hlsl"			// sampling patterns
 #include "ShadowAlgorithms.hlsl"		// engine default algorithms (don't modify)
 #include "ShadowAlgorithmsCustom.hlsl"	// project specific custom algorithms (project can modify this)
 

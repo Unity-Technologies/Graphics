@@ -13,6 +13,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Unknown = MAX,
         All = Point | Spot | Directional
     };
+
+    public enum GPUShadowSampling
+    {
+        PCF_1tap,
+        PCF_9Taps_Adaptive,
+    };
+
     namespace ShadowExp // temporary namespace until everything can be merged into the HDPipeline
     {
 
@@ -25,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4     worldToShadow;  // to light space matrix
         public Vector4       scaleOffset;    // scale and offset of shadowmap in atlas
         public Vector2       texelSizeRcp;   // reciprocal of the shadowmap's texel size in x and y
-        public uint          id;             // texture array slice idx (may be removed again if we decide that all shadows must fit into one texture atlas slice)
+        public uint          id;             // packed texture id, sampler id and slice idx
         public GPUShadowType shadowType;     // determines the shadow algorithm, i.e. which map to sample and how to interpret the data
         public uint          payloadOffset;  // if this shadow type requires additional data it can be fetched from a global Buffer<uint> at payloadOffset.
 
@@ -36,9 +43,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PackShadowmapId( uint texIdx, uint sampIdx, uint slice )
         {
-            Debug.Assert( texIdx  < 0xff   );
-            Debug.Assert( sampIdx < 0xff   );
-            Debug.Assert( slice   < 0xffff );
+            Debug.Assert( texIdx  <= 0xff   );
+            Debug.Assert( sampIdx <= 0xff   );
+            Debug.Assert( slice   <= 0xffff );
             id = texIdx << 24 | sampIdx << 16 | slice;
         }
     };
