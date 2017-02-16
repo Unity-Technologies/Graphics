@@ -7,7 +7,6 @@ namespace UnityEditor.VFX
 {
     abstract class VFXBlock : VFXModel<VFXContext, VFXModel>
     {
-        public abstract string name { get; }
         public abstract VFXContextType compatibleContexts { get; }
 
         public VFXBlock()

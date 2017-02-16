@@ -15,14 +15,14 @@ namespace UnityEditor.VFX.UI
 
         public class VFXBlockElement : VFXFilterWindow.Element
         {
-            public Type m_BlockType;
+            public VFXModelDescriptor<VFXBlock> m_BlockDesc;
             public AddBlock m_SpawnCallback;
 
-            internal VFXBlockElement(int level, VFXBlock block, AddBlock spawncallback)
+            internal VFXBlockElement(int level, VFXModelDescriptor<VFXBlock> desc, AddBlock spawncallback)
             {
                 this.level = level;
-                content = new GUIContent(VFXInfoAttribute.Get(block).category.Replace("/", " ") + " : " + block.name/*, VFXEditor.styles.GetIcon(desc.Icon)*/);
-                m_BlockType = block.GetType();
+                content = new GUIContent(desc.info.category.Replace("/", " ") + " : " + desc.name/*, VFXEditor.styles.GetIcon(desc.Icon)*/);
+                m_BlockDesc = desc;
                 m_SpawnCallback = spawncallback;
             }
         }
@@ -41,14 +41,14 @@ namespace UnityEditor.VFX.UI
         {
             tree.Add(new VFXFilterWindow.GroupElement(0, "NodeBlocks"));
 
-            var blocks = new List<VFXBlock>(VFXLibrary.GetBlocks());
+            var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
 
-            var filteredBlocks = blocks.Where(b => m_ContextPresenter.Model.Accept(b)).ToList();
+            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.Model)).ToList();
 
             filteredBlocks.Sort((blockA, blockB) => {
 
-                var infoA = VFXInfoAttribute.Get(blockA); ;
-                var infoB = VFXInfoAttribute.Get(blockB);
+                var infoA = blockA.info;
+                var infoB = blockB.info;
 
                 int res = infoA.category.CompareTo(infoB.category);
                 return res != 0 ? res : blockA.name.CompareTo(blockB.name);
@@ -56,11 +56,11 @@ namespace UnityEditor.VFX.UI
 
             HashSet<string> categories = new HashSet<string>();
 
-            foreach(VFXBlock block in filteredBlocks)
+            foreach(var block in filteredBlocks)
             {
                 int i = 0;
 
-                var category = VFXInfoAttribute.Get(block).category;
+                var category = block.info.category;
 
                 if (!categories.Contains(category) && category != "")
                 {
@@ -96,7 +96,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXBlockElement blockElem = element as VFXBlockElement;
                 
-                blockElem.m_SpawnCallback(-1,(VFXBlock)System.Activator.CreateInstance(blockElem.m_BlockType));
+                blockElem.m_SpawnCallback(-1,blockElem.m_BlockDesc.CreateInstance());
                 return true;
             }
 
