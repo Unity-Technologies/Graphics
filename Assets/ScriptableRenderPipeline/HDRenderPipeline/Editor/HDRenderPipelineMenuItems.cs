@@ -1,4 +1,7 @@
 using UnityEngine;
+using UnityEditor;
+using UnityEngine.SceneManagement;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -17,8 +20,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     LayeredLitGUI.SynchronizeAllLayers(mat);
                     EditorUtility.SetDirty(mat);
                 }
+                }
             }
-        }
 
         static void RemoveMaterialKeywords(Material material)
         {
@@ -27,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 material.DisableKeyword(keyword);
             }
-        }                 
+        }
 
         // The goal of this script is to help maintenance of data that have already been produced but need to update to the latest shader code change.
         // In case the shader code have change and the inspector have been update with new kind of keywords we need to regenerate the set of keywords use by the material.

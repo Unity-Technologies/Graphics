@@ -7,41 +7,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [ExecuteInEditMode]
     public class SceneSettings : MonoBehaviour
     {
-        public CommonSettings SceneCommonSettings
+        public CommonSettings commonSettings
         {
             get { return m_CommonSettings; }
-            set { m_CommonSettings = value; ApplySettings(); }
         }
 
-        public SkyParameters SceneSkyParameters
+        public SkySettings skySettings
         {
-            get { return m_SkyParameters; }
-            set { m_SkyParameters = value; ApplySettings(); }
+            get { return m_SkySettings; }
         }
 
-        [SerializeField]
-        private CommonSettings m_CommonSettings;
-        [SerializeField]
-        private SkyParameters m_SkyParameters;
+        [SerializeField] private CommonSettings m_CommonSettings;
+        [SerializeField] private SkySettings    m_SkySettings;
 
         // Use this for initialization
         void OnEnable()
         {
-            ApplySettings();
+            SceneSettingsManager.instance.AddSceneSettings(this);
+        }
+
+        void OnDisable()
+        {
+            SceneSettingsManager.instance.RemoveSceneSettings(this);
         }
 
         void OnValidate()
         {
-            ApplySettings();
+            // If the setting is already the one currently used we need to tell the manager to reapply it.
+            if(SceneSettingsManager.instance.GetCurrentSceneSetting())
+            {
+                SceneSettingsManager.instance.UpdateCurrentSceneSetting();
+            }
         }
 
-        private void ApplySettings()
-        {
-            if (m_CommonSettings != null)
-                CommonSettingsSingleton.overrideSettings = m_CommonSettings;
-
-            if (m_SkyParameters != null)
-                SkyParametersSingleton.overrideSettings = m_SkyParameters;
-        }
     }
 }
