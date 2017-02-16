@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty specularOcclusionMap = null;
         protected const string kSpecularOcclusionMap = "_SpecularOcclusionMap";
         protected MaterialProperty horizonFade = null;
-        const string kHorizonFade = "_HorizonFade";
+        protected const string kHorizonFade = "_HorizonFade";
         protected MaterialProperty normalMap = null;
         protected const string kNormalMap = "_NormalMap";
         protected MaterialProperty normalScale = null;

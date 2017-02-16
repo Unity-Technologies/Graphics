@@ -166,6 +166,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
+            // Inherit from LitUI
+            horizonFade = FindProperty(kHorizonFade, props);
+
             layerCount = FindProperty(kLayerCount, props);
             layerMaskMap = FindProperty(kLayerMaskMap, props);
             vertexColorMode = FindProperty(kVertexColorMode, props);
@@ -232,9 +235,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Material[] layers = null;
             InitializeMaterialLayers(materialImporter, ref layers);
-            for (int i = 0 ; i < layerCount ; ++i)
+
+            // We could have no userData in the assets, so test if we have load something
+            if (layers != null)
             {
-                SynchronizeLayerProperties(material, layers, i);
+                for (int i = 0; i < layerCount; ++i)
+                {
+                    SynchronizeLayerProperties(material, layers, i);
+                }
             }
         }
 
@@ -541,7 +549,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 useHeightBasedBlend.floatValue = enabled ? 1.0f : 0.0f;
             }
 
-            m_MaterialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? styles.objectScaleAffectTileText2 : styles.objectScaleAffectTileText);            
+            m_MaterialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? styles.objectScaleAffectTileText2 : styles.objectScaleAffectTileText);
+
+            m_MaterialEditor.ShaderProperty(horizonFade, Styles.horizonFadeText);
 
             EditorGUILayout.Space();
 
