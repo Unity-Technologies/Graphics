@@ -299,7 +299,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DeferredDirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredDirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
-                m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", 7 /* GEqual */);
+                m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
                 m_DeferredDirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredDirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -317,7 +317,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DeferredIndirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredIndirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
-                m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", 7 /* GEqual */);
+                m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
                 m_DeferredIndirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredIndirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.One); // Additive color & alpha source
 
@@ -335,7 +335,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DeferredAllMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredAllMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
-                m_DeferredAllMaterialSRT.SetInt("_StencilCmp", 7 /* GEqual */);
+                m_DeferredAllMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
                 m_DeferredAllMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredAllMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -354,7 +354,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SingleDeferredMaterialSRT.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
                 m_SingleDeferredMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
-                m_SingleDeferredMaterialSRT.SetInt("_StencilCmp", 7 /* GEqual */);
+                m_SingleDeferredMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
                 m_SingleDeferredMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_SingleDeferredMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
