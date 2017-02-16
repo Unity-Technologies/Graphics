@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
             lock(m_Lock)
             {
                 LoadContextDescs();
-                LoadBlocks();
+                m_BlockDescs = LoadModels<VFXBlock>();
                 m_Loaded = true;
             }
         }
@@ -104,25 +104,24 @@ namespace UnityEditor.VFX
             m_ContextDescs = contextDescs; // atomic set
         }
 
-        private static void LoadBlocks()
+        private static List<VFXModelDescriptor<T>> LoadModels<T>() where T : VFXModel
         {
-            // Search for derived type of VFXBlockType in assemblies
-            var blockTypes = FindConcreteSubclasses<VFXBlock>();
-            var blockDescs = new List<VFXModelDescriptor<VFXBlock>>();
-            foreach (var blockType in blockTypes)
+            var modelTypes = FindConcreteSubclasses<T>();
+            var modelDescs = new List<VFXModelDescriptor<T>>();
+            foreach (var modelType in modelTypes)
             {
                 try
                 {
-                    VFXBlock instance = (VFXBlock)System.Activator.CreateInstance(blockType);
-                    blockDescs.Add(new VFXModelDescriptor<VFXBlock>(instance));
+                    T instance = (T)System.Activator.CreateInstance(modelType);
+                    modelDescs.Add(new VFXModelDescriptor<T>(instance));
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("Error while loading context desc from type " + blockType + ": " + e.Message);
+                    Debug.LogError("Error while loading model from type " + modelType + ": " + e.Message);
                 }
             }
 
-            m_BlockDescs = blockDescs; // atomic set
+            return modelDescs;
         }
 
         private static IEnumerable<Type> FindConcreteSubclasses<T>()
