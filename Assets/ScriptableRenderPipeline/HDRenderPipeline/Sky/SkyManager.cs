@@ -69,12 +69,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool                    m_useMIS = false;
 
 
-        private SkyParameters m_SkyParameters;
-        public SkyParameters skyParameters
+        private SkySettings m_SkySettings;
+        public SkySettings skySettings
         {
             set
             {
-                if (m_SkyParameters == value)
+                if (m_SkySettings == value)
                     return;
 
                 if (m_Renderer != null)
@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 m_SkyParametersHash = 0;
-                m_SkyParameters = value;
+                m_SkySettings = value;
                 m_UpdateRequired = true;
 
                 if (value != null)
@@ -93,7 +93,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_Renderer.Build();
                 }
             }
-            get { return m_SkyParameters; }
+            get { return m_SkySettings; }
         }
 
         protected Mesh BuildSkyMesh(Vector3 cameraPosition, Matrix4x4 cameraInvViewProjectionMatrix, bool forceUVBottom)
@@ -152,12 +152,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             };
         }
 
-        void RebuildTextures(SkyParameters skyParameters)
+        void RebuildTextures(SkySettings skySettings)
         {
             int resolution = 256;
             // Parameters not set yet. We need them for the resolution.
-            if (skyParameters != null)
-                resolution = (int)skyParameters.resolution;
+            if (skySettings != null)
+                resolution = (int)skySettings.resolution;
 
             if ((m_SkyboxCubemapRT != null) && (m_SkyboxCubemapRT.width != resolution))
             {
@@ -256,7 +256,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Resize(float nearPlane, float farPlane)
         {
             // When loading RenderDoc, RenderTextures will go null
-            RebuildTextures(skyParameters);
+            RebuildTextures(skySettings);
             RebuildSkyMeshes(nearPlane, farPlane);
         }
 
@@ -288,7 +288,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_Renderer != null && m_Renderer.IsSkyValid();
         }
 
-        private void RenderSkyToCubemap(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, RenderTexture target)
+        private void RenderSkyToCubemap(BuiltinSkyParameters builtinParams, SkySettings skySettings, RenderTexture target)
         {
             for (int i = 0; i < 6; ++i)
             {
@@ -299,11 +299,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 builtinParams.depthBuffer = BuiltinSkyParameters.nullRT;
 
                 Utilities.SetRenderTarget(builtinParams.renderContext, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
-                m_Renderer.RenderSky(builtinParams, skyParameters, true);
+                m_Renderer.RenderSky(builtinParams, skySettings, true);
             }
         }
 
-        private void RenderCubemapGGXConvolution(ScriptableRenderContext renderContext, BuiltinSkyParameters builtinParams, SkyParameters skyParams, Texture input, RenderTexture target)
+        private void RenderCubemapGGXConvolution(ScriptableRenderContext renderContext, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
         {
             using (new Utilities.ProfilingSample("Sky Pass: GGX Convolution", renderContext))
             {
@@ -371,21 +371,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     if (
-                        (skyParameters.updateMode == EnvironementUpdateMode.OnDemand && m_UpdateRequired) ||
-                        (skyParameters.updateMode == EnvironementUpdateMode.OnChanged && skyParameters.GetHash() != m_SkyParametersHash) ||
-                        (skyParameters.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skyParameters.updatePeriod)
+                        (skySettings.updateMode == EnvironementUpdateMode.OnDemand && m_UpdateRequired) ||
+                        (skySettings.updateMode == EnvironementUpdateMode.OnChanged && skySettings.GetHash() != m_SkyParametersHash) ||
+                        (skySettings.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skySettings.updatePeriod)
                         )
                     {
                         // Render sky into a cubemap - doesn't happen every frame, can be controlled
-                        RenderSkyToCubemap(m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT);
+                        RenderSkyToCubemap(m_BuiltinParameters, skySettings, m_SkyboxCubemapRT);
                         // Note that m_SkyboxCubemapRT is created with auto-generate mipmap, it mean that here we have also our mipmap correctly box filtered for importance sampling.
 
                         // Convolve downsampled cubemap
-                        RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+                        RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skySettings, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
                         m_NeedLowLevelUpdateEnvironment = true;
                         m_UpdateRequired = false;
-                        m_SkyParametersHash = skyParameters.GetHash();
+                        m_SkyParametersHash = skySettings.GetHash();
                         m_CurrentUpdateTime = 0.0f;
                     }
                 }
@@ -429,7 +429,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.depthBuffer = depthBuffer;
 
                     m_Renderer.SetRenderTargets(m_BuiltinParameters);
-                    m_Renderer.RenderSky(m_BuiltinParameters, skyParameters, false);
+                    m_Renderer.RenderSky(m_BuiltinParameters, skySettings, false);
                 }
             }
         }

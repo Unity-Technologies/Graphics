@@ -4,7 +4,7 @@ using System.Linq;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
-    public abstract class SkyParameters : ScriptableObject
+    public abstract class SkySettings : ScriptableObject
     {
         protected class Unhashed : System.Attribute {}
 
