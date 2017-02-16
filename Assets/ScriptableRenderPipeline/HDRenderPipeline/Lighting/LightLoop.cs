@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public virtual void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
                                                    LightingDebugParameters lightDebugParameters,
                                                    RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier stencilBuffer,
-                                                   bool outputSplitLighting) {}
+                                                   bool outputSplitLightingForSSS, bool enableSSS) {}
 
         public virtual void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque) {}
 
