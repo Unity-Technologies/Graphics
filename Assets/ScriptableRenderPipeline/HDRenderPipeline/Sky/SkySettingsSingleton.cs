@@ -4,11 +4,11 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public class SkyParametersSingleton : Singleton<SkyParametersSingleton>
+    public class SkySettingsSingleton : Singleton<SkySettingsSingleton>
     {
-        private SkyParameters settings { get; set; }
+        private SkySettings settings { get; set; }
 
-        public static SkyParameters overrideSettings
+        public static SkySettings overrideSettings
         {
             get { return instance.settings; }
             set { instance.settings = value; }

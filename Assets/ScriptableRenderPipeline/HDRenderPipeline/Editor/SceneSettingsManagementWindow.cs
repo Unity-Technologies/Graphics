@@ -38,12 +38,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (GUILayout.Button("Create new HDRI sky params"))
             {
-                CreateAsset<HDRISkyParameters>("NewHDRISkyParameters");
+                CreateAsset<HDRISkySettings>("NewHDRISkySettings");
             }
 
             if (GUILayout.Button("Create new Procedural sky params"))
             {
-                CreateAsset<ProceduralSkyParameters>("NewProceduralSkyParameters");
+                CreateAsset<ProceduralSkySettings>("NewProceduralSkyParameters");
             }
 
             if (GUILayout.Button("Create new SSS params"))

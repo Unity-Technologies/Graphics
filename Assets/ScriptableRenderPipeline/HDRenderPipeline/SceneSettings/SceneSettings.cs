@@ -12,13 +12,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_CommonSettings; }
         }
 
-        public SkyParameters skyParameters
+        public SkySettings skySettings
         {
-            get { return m_SkyParameters; }
+            get { return m_SkySettings; }
         }
 
         [SerializeField] private CommonSettings m_CommonSettings;
-        [SerializeField] private SkyParameters  m_SkyParameters;
+        [SerializeField] private SkySettings    m_SkySettings;
 
         // Use this for initialization
         void OnEnable()
