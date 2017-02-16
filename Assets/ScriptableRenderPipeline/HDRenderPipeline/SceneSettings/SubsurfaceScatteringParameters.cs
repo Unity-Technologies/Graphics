@@ -433,24 +433,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         EditorGUILayout.PropertyField(profileThicknessScale, styles.profileThicknessScale);
 
                         EditorGUILayout.Space();
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            // Draw the profile.
-                            m_ProfileMaterial.SetColor("_StdDev1",    profileStdDev1.colorValue);
-                            m_ProfileMaterial.SetColor("_StdDev2",    profileStdDev2.colorValue);
-                            m_ProfileMaterial.SetFloat("_LerpWeight", profileLerpWeight.floatValue);
-                            Graphics.Blit(null, m_ProfileImages[i], m_ProfileMaterial);
-                            
-                            // Reset the active RT.
-                            RenderTexture.active = null;
 
-                            GUILayout.FlexibleSpace();
-                            Rect r = GUILayoutUtility.GetRect(256, 256);
-                            GUILayout.FlexibleSpace();
-                            EditorGUI.DrawPreviewTexture(r, m_ProfileImages[i]);
-                        }
+                        // Draw the profile.
+                        m_ProfileMaterial.SetColor("_StdDev1",    profileStdDev1.colorValue);
+                        m_ProfileMaterial.SetColor("_StdDev2",    profileStdDev2.colorValue);
+                        m_ProfileMaterial.SetFloat("_LerpWeight", profileLerpWeight.floatValue);
+                        EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImages[i], m_ProfileMaterial, ScaleMode.ScaleToFit);
+
                         EditorGUILayout.Space();
-
 
                         EditorGUI.indentLevel--;
                     }
