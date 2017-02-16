@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
     using UnityEditor;
 #endif
@@ -32,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SubsurfaceScatteringProfile()
         {
             stdDev1             = new Color(0.3f, 0.3f, 0.3f, 0.0f);
-            stdDev2             = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+            stdDev2             = new Color(0.6f, 0.6f, 0.6f, 0.0f);
             lerpWeight          = 0.5f;
             enableTransmittance = false;
             thicknessScale      = 3.0f;
@@ -259,9 +260,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_FilterKernels; }
         }
 
-        // --- Private Methods ---
-
-        void OnValidate()
+        public void OnValidate()
         {
             if (m_Profiles.Length > maxNumProfiles)
             {
@@ -363,8 +362,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent profileThicknessScale = new GUIContent("Thickness scale",       "Linearly scales the object thickness which affects the amount of transmitted lighting.");
         }
 
-        private static Styles s_Styles;
+        private static Styles      s_Styles;
         private SerializedProperty m_Profiles, m_NumProfiles;
+        private Material           m_ProfileMaterial;
+        private RenderTexture[]    m_ProfileImages;
 
         // --- Public Methods ---
 
@@ -382,8 +383,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnEnable()
         {
-            m_Profiles    = serializedObject.FindProperty("m_Profiles");
-            m_NumProfiles = m_Profiles.FindPropertyRelative("Array.size");
+            m_Profiles        = serializedObject.FindProperty("m_Profiles");
+            m_NumProfiles     = m_Profiles.FindPropertyRelative("Array.size");
+            m_ProfileMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawGaussianProfile");
+            m_ProfileImages   = new RenderTexture[SubsurfaceScatteringParameters.maxNumProfiles];
+
+            for (int i = 0; i < SubsurfaceScatteringParameters.maxNumProfiles; i++)
+            {
+                m_ProfileImages[i] = new RenderTexture(256, 256, 0, RenderTextureFormat.DefaultHDR);
+            }
         }
 
         public override void OnInspectorGUI()
@@ -391,6 +399,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             serializedObject.Update();
 
             EditorGUI.BeginChangeCheck();
+
+            // Validate the data before displaying it.
+            ((SubsurfaceScatteringParameters)serializedObject.targetObject).OnValidate();
 
             EditorGUILayout.LabelField(styles.category);
             EditorGUILayout.PropertyField(m_NumProfiles, styles.numProfiles);
@@ -420,6 +431,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         EditorGUILayout.PropertyField(profileLerpWeight,     styles.profileLerpWeight);
                         EditorGUILayout.PropertyField(profileTransmittance,  styles.profileTransmittance);
                         EditorGUILayout.PropertyField(profileThicknessScale, styles.profileThicknessScale);
+
+                        EditorGUILayout.Space();
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            // Draw the profile.
+                            m_ProfileMaterial.SetColor("_StdDev1",    profileStdDev1.colorValue);
+                            m_ProfileMaterial.SetColor("_StdDev2",    profileStdDev2.colorValue);
+                            m_ProfileMaterial.SetFloat("_LerpWeight", profileLerpWeight.floatValue);
+                            Graphics.Blit(null, m_ProfileImages[i], m_ProfileMaterial);
+                            
+                            // Reset the active RT.
+                            RenderTexture.active = null;
+
+                            GUILayout.FlexibleSpace();
+                            Rect r = GUILayoutUtility.GetRect(256, 256);
+                            GUILayout.FlexibleSpace();
+                            EditorGUI.DrawPreviewTexture(r, m_ProfileImages[i]);
+                        }
+                        EditorGUILayout.Space();
+
 
                         EditorGUI.indentLevel--;
                     }
