@@ -31,7 +31,7 @@
 	struct ShadowContext																				\
 	{																									\
 		StructuredBuffer<ShadowData>	shadowDatas;													\
-		StructuredBuffer<int>			payloads;														\
+		StructuredBuffer<int4>			payloads;														\
 		Texture2DArray					tex2DArray[_Tex2DArraySlots];									\
 		TextureCubeArray				texCubeArray[_TexCubeArraySlots];								\
 		SamplerComparisonState			compSamplers[_SamplerCompSlots];								\

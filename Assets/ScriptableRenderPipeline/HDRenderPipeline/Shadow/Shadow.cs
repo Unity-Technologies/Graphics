@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     using ShadowRequestVector = VectorArray<ShadowmapBase.ShadowRequest>;
     using ShadowDataVector    = VectorArray<ShadowData>;
-    using ShadowPayloadVector = VectorArray<int>;
+    using ShadowPayloadVector = VectorArray<ShadowPayload>;
     using ShadowIndicesVector = VectorArray<int>;
 
     // Standard shadow map atlas implementation using one large shadow map
@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: clean up resources if necessary
         }
 
-        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<int> payload, VisibleLight[] lights )
+        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, VisibleLight[] lights )
         {
             for( uint i = 0, cnt = sr.facecount; i < cnt; ++i )
             {
@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return Reserve( frameId, ref shadowData, sr, m_TmpWidths, m_TmpHeights, ref entries, ref payload, lights );
         }
 
-        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<int> payload, VisibleLight[] lights )
+        override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, VisibleLight[] lights )
         {
             ShadowData  sd    = shadowData;
             ShadowData  dummy = new ShadowData();
@@ -224,21 +224,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (sr.shadowType == GPUShadowType.Directional)
             {
-                uint payloadSize = 4 * k_MaxCascadesInShader;
-                payload.Reserve( payloadSize );
+                ShadowPayload sp = new ShadowPayload();
+                payload.Reserve( k_MaxCascadesInShader );
                 for( uint i = 0; i < k_MaxCascadesInShader; i++ )
                 {
-                    payload.AddUnchecked( ShadowUtils.Asint( m_TmpSplits[i].x ) );
-                    payload.AddUnchecked( ShadowUtils.Asint( m_TmpSplits[i].y ) );
-                    payload.AddUnchecked( ShadowUtils.Asint( m_TmpSplits[i].z ) );
-                    payload.AddUnchecked( ShadowUtils.Asint( m_TmpSplits[i].w ) );
+                    sp.Set( m_TmpSplits[i] );
+                    payload.AddUnchecked( sp );
                 }
             }
 
             return true;
         }
 
-        override public bool ReserveFinalize( FrameId frameId, ref VectorArray<ShadowData> entries, ref VectorArray<int> payload )
+        override public bool ReserveFinalize( FrameId frameId, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload )
         {
             if( Layout() )
             {
@@ -343,7 +341,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cb.ReleaseTemporaryRT( m_TempDepthId );
         }
 
-        protected bool Alloc( FrameId frameId, Key key, uint width, uint height, out uint cachedEntryIdx, VectorArray<int> payload )
+        protected bool Alloc( FrameId frameId, Key key, uint width, uint height, out uint cachedEntryIdx, VectorArray<ShadowPayload> payload )
         {
             CachedEntry ce = new CachedEntry();
             ce.key                 = key;
@@ -438,8 +436,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public ShadowContextAccess( ref ShadowContext.CtxtInit initializer ) : base( ref initializer ) { }
             // unfortunately ref returns are only a C# 7.0 feature
-            public VectorArray<ShadowData> shadowDatas  { get { return m_ShadowDatas; } set { m_ShadowDatas = value; } }
-            public VectorArray<int>        payloads     { get { return m_Payloads;    } set { m_Payloads = value;    } }
+            public VectorArray<ShadowData>      shadowDatas  { get { return m_ShadowDatas; } set { m_ShadowDatas = value; } }
+            public VectorArray<ShadowPayload>   payloads     { get { return m_Payloads;    } set { m_Payloads = value;    } }
         }
 
         private const int           k_MaxShadowmapPerType = 4;
@@ -532,7 +530,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ShadowPayloadVector payloadVector = m_ShadowCtxt.payloads;
             m_ShadowIndices.Reset( m_TmpRequests.Count() );
             AllocateShadows( frameId, lights, totalGranted, ref m_TmpRequests, ref m_ShadowIndices, ref shadowVector, ref payloadVector );
-            Debug.Assert( m_TmpRequests.Count() == m_ShadowIndices.Count() && shadowRequestsCount == m_ShadowIndices.Count() );
+            Debug.Assert( m_TmpRequests.Count() == m_ShadowIndices.Count() );
             m_ShadowCtxt.shadowDatas = shadowVector;
             m_ShadowCtxt.payloads = payloadVector;
 

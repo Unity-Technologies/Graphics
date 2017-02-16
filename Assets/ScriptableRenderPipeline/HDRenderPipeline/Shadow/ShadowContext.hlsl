@@ -9,7 +9,7 @@
 SHADOWCONTEXT_DECLARE( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TEXCUBEARRAY, SHADOWCONTEXT_MAX_COMPSAMPLER, SHADOWCONTEXT_MAX_SAMPLER );
 
 StructuredBuffer<ShadowData>	_ShadowDatasExp;
-StructuredBuffer<int>			_ShadowPayloads;
+StructuredBuffer<int4>			_ShadowPayloads;
 TEXTURE2D_ARRAY(_ShadowmapExp_Dir);
 SAMPLER2D_SHADOW(sampler_ShadowmapExp_Dir);
 TEXTURE2D_ARRAY(_ShadowmapExp_PointSpot);
