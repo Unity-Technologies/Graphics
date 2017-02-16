@@ -33,17 +33,38 @@ namespace UnityEditor.VFX
     // TODO Remove that!
 
     [VFXInfo]
-    class VFXInitBlockTest : VFXBlockDesc
+    class VFXInitBlockTest : VFXBlock
     {
-        public VFXInitBlockTest() : base("Init Block", VFXContextType.kInit) { }
-
+        public override string name                         { get { return "Init Block"; }}
+        public override VFXContextType compatibleContexts   { get { return VFXContextType.kInit; } }
     }
 
     [VFXInfo]
-    class VFXRotate : VFXBlockDesc
+    class VFXUpdateBlockTest : VFXBlock
     {
-        public VFXRotate() : base("Rotate Block", VFXContextType.kInit | VFXContextType.kUpdate) { }
+        public override string name                         { get { return "Update Block"; } }
+        public override VFXContextType compatibleContexts   { get { return VFXContextType.kUpdate; } }
+    }
 
+    [VFXInfo]
+    class VFXOutputBlockTest : VFXBlock
+    {
+        public override string name                         { get { return "Output Block"; } }
+        public override VFXContextType compatibleContexts   { get { return VFXContextType.kOutput; } }
+    }
+
+    [VFXInfo(category = "test")]
+    class VFXInitAndUpdateTest : VFXBlock
+    {
+        public override string name                         { get { return "Init And Update Block"; } }
+        public override VFXContextType compatibleContexts   { get { return VFXContextType.kInitAndUpdate; } }
+    }
+
+    [VFXInfo]
+    class VFXRotate : VFXBlock
+    {
+        public override string name                         { get { return "Rotate"; } }
+        public override VFXContextType compatibleContexts   { get { return VFXContextType.kInitAndUpdate; } }
 
         public class Properties
         {
@@ -53,10 +74,10 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
-    class VFXAllType : VFXBlockDesc
+    class VFXAllType : VFXBlock
     {
-        public VFXAllType() : base("Test Block", VFXContextType.kAll) { }
-
+        public override string name                         { get { return "Test"; } }
+        public override VFXContextType compatibleContexts   { get { return VFXContextType.kAll; } }
 
         public class Properties
         {
@@ -69,23 +90,5 @@ namespace UnityEditor.VFX
             public Texture3D aTexture3D = null;
             public Sphere aSphere;
         }
-    }
-
-    [VFXInfo]
-    class VFXUpdateBlockTest : VFXBlockDesc
-    {
-        public VFXUpdateBlockTest() : base("Update Block", VFXContextType.kUpdate) { }
-    }
-
-    [VFXInfo]
-    class VFXOutputBlockTest : VFXBlockDesc
-    {
-        public VFXOutputBlockTest() : base("Output Block",/*"Other",*/ VFXContextType.kOutput) { }
-    }
-
-    [VFXInfo(category = "test")]
-    class VFXInitAndUpdateTest : VFXBlockDesc
-    {
-        public VFXInitAndUpdateTest() : base("Init And Update Block", VFXContextType.kInitAndUpdate) { }
     }
 }

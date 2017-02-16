@@ -5,33 +5,22 @@ using System.Reflection;
 
 namespace UnityEditor.VFX
 {
-    class VFXBlock : VFXModel<VFXContext, VFXModel>
+    abstract class VFXBlock : VFXModel<VFXContext, VFXModel>
     {
-        private VFXBlock() {} // Used by serialization
+        public abstract string name { get; }
+        public abstract VFXContextType compatibleContexts { get; }
 
-        public VFXBlockDesc Desc { get { return m_Desc; } }
-
-        public VFXBlock(VFXBlockDesc desc)
+        public VFXBlock()
         {
-            m_Desc = desc;
-
-
-            System.Type propertyType = Desc.GetPropertiesType();
+            var propertyType = GetPropertiesType();
             if (propertyType != null)
                 m_PropertyBuffer = System.Activator.CreateInstance(propertyType);
         }
 
-        public override void OnBeforeSerialize()
+        public System.Type GetPropertiesType()
         {
-            base.OnBeforeSerialize();
-            m_SerializableDesc = m_Desc.GetType().FullName;
-            
-
+            return GetType().GetNestedType("Properties");
         }
-
-
-
-
 
         public void ExpandPath(string fieldPath)
         {
@@ -53,21 +42,6 @@ namespace UnityEditor.VFX
         {
             return m_PropertyBuffer;
         }
-
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-            m_Desc = VFXLibrary.GetBlock(m_SerializableDesc);
-            m_SerializableDesc = null;
-            System.Type propertyType = Desc.GetPropertiesType();
-            if (propertyType != null)
-                m_PropertyBuffer = System.Activator.CreateInstance(propertyType);
-        }
-
-        private VFXBlockDesc m_Desc;
-
-        [SerializeField]
-        private string m_SerializableDesc;
 
         [SerializeField]
         HashSet<string> m_expandedPaths = new HashSet<string>();
