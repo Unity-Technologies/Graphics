@@ -10,8 +10,8 @@ namespace UnityEditor.VFX.UI
 {
     class VFXPropertyUI : VisualContainer
     {
-        VFXNodeBlockPresenter.PropertyInfo m_PropertyInfo;
-        VFXNodeBlockPresenter              m_Presenter;
+        VFXBlockPresenter.PropertyInfo m_PropertyInfo;
+        VFXBlockPresenter              m_Presenter;
 
         VFXPropertyIM                      m_Property;
 
@@ -71,6 +71,9 @@ namespace UnityEditor.VFX.UI
             m_GUIStyles.baseStyle.padding = new RectOffset(IMPadding, IMPadding, IMPadding, IMPadding);
         }
 
+
+        VisualElement m_SpaceButton;
+
         public VFXPropertyUI()
         {
             m_Slot = new VisualContainer();
@@ -84,9 +87,20 @@ namespace UnityEditor.VFX.UI
             m_Container.executionContext = s_ContextCount++;
             AddChild(m_Container);
 
+            m_SpaceButton = new VisualElement();
+            m_SpaceButton.AddManipulator(new Clickable(SwitchSpace));
+            m_SpaceButton.AddToClassList("space");
+
+            m_SpaceButton.content = new GUIContent();
+
             m_GUIStyles.baseStyle = new GUIStyle();
         }
 
+        void SwitchSpace()
+        {
+            ((Spaceable)m_PropertyInfo.value).space = (CoordinateSpace) ((int)(((Spaceable)m_PropertyInfo.value).space + 1) % (int)CoordinateSpace.SpaceCount);
+            m_Presenter.PropertyValueChanged(ref m_PropertyInfo);
+        }
 
         public class GUIStyles
         {
@@ -103,8 +117,12 @@ namespace UnityEditor.VFX.UI
 
                 GUIStyle typeStyle = new GUIStyle(baseStyle);
                 typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_plus");
+                if(typeStyle.normal.background == null)
+                    typeStyle.normal.background = Resources.Load<Texture2D>("VFX/Default_plus");
                 typeStyle.active.background = typeStyle.focused.background = null;
                 typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_minus");
+                if (typeStyle.onNormal.background == null)
+                    typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/Default_minus");
                 typeStyle.border.top = 0;
                 typeStyle.border.left = 0;
                 typeStyle.border.bottom = typeStyle.border.right = 0;
@@ -127,6 +145,8 @@ namespace UnityEditor.VFX.UI
 
                 GUIStyle typeStyle = new GUIStyle(baseStyle);
                 typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name);
+                if (typeStyle.normal.background == null)
+                    typeStyle.normal.background = Resources.Load<Texture2D>("VFX/Default");
                 typeStyle.active.background = typeStyle.focused.background = null;
                 typeStyle.border.top = 0;
                 typeStyle.border.left = 0;
@@ -189,9 +209,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void DataChanged(VFXNodeBlockUI nodeBlock,VFXNodeBlockPresenter.PropertyInfo info)
+        public void DataChanged(VFXBlockUI block,VFXBlockPresenter.PropertyInfo info)
         {
-            m_Presenter = nodeBlock.GetPresenter<VFXNodeBlockPresenter>();
+            m_Presenter = block.GetPresenter<VFXBlockPresenter>();
             if( m_PropertyInfo.type != info.type)
             {
                 m_Property = VFXPropertyIM.Create(info.type);
@@ -200,15 +220,43 @@ namespace UnityEditor.VFX.UI
 
 
             VFXDataAnchorPresenter presenter = m_Presenter.GetPropertyPresenter(ref info);
-            if ( m_SlotIcon == null)
+            if (m_SlotIcon == null)
             {
                 m_SlotIcon = VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter);
                 m_Slot.AddChild(m_SlotIcon);
             }
+            else
+            {
+                m_SlotIcon.presenter = presenter;
+                Dirty(ChangeType.Repaint|ChangeType.Transform);
+            }
 
-            m_SlotIcon.presenter = presenter;
+            if (typeof(Spaceable).IsAssignableFrom(info.type))
+            {
+                if (m_SpaceButton.parent == null)
+                {
+                    AddChild(m_SpaceButton);
+                }
 
-            Dirty(ChangeType.Transform|ChangeType.Repaint);
+                CoordinateSpace space = ((Spaceable)info.value).space;
+                m_SpaceButton.content.text = space.ToString();
+                m_SpaceButton.name = space.ToString();
+
+                foreach (string spaceName in Enum.GetNames(typeof(CoordinateSpace)))
+                {
+                    m_SpaceButton.RemoveFromClassList(spaceName.ToLower());
+                }
+
+                m_SpaceButton.AddToClassList(space.ToString().ToLower());
+                m_SpaceButton.Dirty(ChangeType.Styles);
+            }
+            else
+            {
+                if (m_SpaceButton.parent != null)
+                {
+                    RemoveChild(m_SpaceButton);
+                }
+            }
         }
         
     }

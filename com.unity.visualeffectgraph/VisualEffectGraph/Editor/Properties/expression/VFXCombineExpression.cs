@@ -146,6 +146,55 @@ namespace UnityEngine.Experimental.VFX
         private bool m_CacheValid;
     }
 
+    class VFXExpressionOptPlane : VFXExpression
+    {
+        public VFXExpressionOptPlane(VFXExpression p, VFXExpression n)
+        {
+            m_Position = p;
+            m_Normal = n;
+            m_Cached = new VFXValueFloat4();
+        }
+
+        public override VFXValueType ValueType { get { return VFXValueType.kFloat4; } }
+        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXOptPlaneOp; } }
+
+        // Reduce the expression and potentially cache the result before returning it
+        public override VFXExpression Reduce()
+        {
+            if (m_CacheValid)
+                return m_Cached;
+
+            if (m_Normal.IsValue() && m_Position.IsValue())
+            {
+                Vector3 p = m_Position.Get<Vector3>();
+                Vector3 n = m_Normal.Get<Vector3>();
+                float w = -Vector3.Dot(n, p);
+                m_Cached.Set(new Vector4(n.x, n.y, n.z, w));
+                m_CacheValid = true;
+                return m_Cached;
+            }
+
+            return this;
+        }
+
+        // Invalidate the reduction to impose a recomputation
+        public override void Invalidate()
+        {
+            m_CacheValid = false;
+        }
+
+        public override VFXExpression[] GetParents()
+        {
+            return new VFXExpression[] { m_Position, m_Normal };
+        }
+
+        private VFXExpression m_Position;
+        private VFXExpression m_Normal;
+
+        private VFXValueFloat4 m_Cached;
+        private bool m_CacheValid;
+    }
+
     // TODO Move that in another file
     class VFXExpressionTRSToMatrix : VFXExpression
     {

@@ -50,8 +50,11 @@ VFXContextUI {
 }
 
 VFXContextUI #Title {
+	font:resource("Roboto/Roboto-Regular");
+	text-color: #BBB;
+	font-size:12;
 	min-height: 24;
-	background-color: #FFF;
+	-background-color: #FFF;
 	padding-top: 2;
 	padding-left: 2;
 	padding-bottom: 2;
@@ -69,6 +72,7 @@ VFXContextUI > #NodeContents {
 	padding-left: 16;
 	padding-bottom: 16;
 	padding-right: 16;
+	
 
 	text-color:#8FC1DF;
 
@@ -91,7 +95,7 @@ VFXContextUI #NodeContents > Label{
 	font:resource("Roboto/Roboto-Medium");
 	font-size:16;
 }
-VFXNodeBlockUI {
+VFXBlockUI {
 	flex-direction: column;
 	background-color: #2B2B2B;
 	align-items: stretch;
@@ -107,18 +111,18 @@ VFXNodeBlockUI {
 }
 
 
-VFXNodeBlockUI.selected {
+VFXBlockUI.selected {
 	border-color: #606060;
 	border-width: 2;
 	background-color: #454545;
 }
 
 
-VFXNodeBlockUI > IMGUIContainer {
+VFXBlockUI > IMGUIContainer {
 
 }
 
-VFXNodeBlockUI > Label {
+VFXBlockUI > Label {
 	-min-height: 20;
 	text-color:#8FA1DF;
 	font:resource("Roboto/Roboto-Medium");
@@ -147,8 +151,7 @@ VFXPropertyUI
 	font:resource("Roboto/Roboto-Medium");
 	text-color: #BBB;
 	font-size:12;
-	min-height:25;
-	padding-bottom:6;
+	padding-bottom:0;
 }
 
 VFXPropertyUI .slot
@@ -157,39 +160,105 @@ VFXPropertyUI .slot
 	-background-color:#F00;
 }
 
-VFXPropertyUI .slot > VFXDataAnchor
-{
-	margin-top:4;
-	background-color: #2B2B2B;
-	width:8;
-	height:8;
-	margin-left:-7;
-	border-color: #555;
-	border-width: 1;
-	border-radius: 4;
-}
-VFXPropertyUI .slot > VFXDataAnchor *
-{
-	width:8;
-	height:8;
-}
-
-VFXNodeBlockUI.selected VFXPropertyUI .slot > *
-{
-	border-color: #606060;
-	background-color: #454545;
-}
 VFXPropertyUI > IMGUIContainer
 {
-	flex:1;
+	flex:2;
+	align-items: stretch;
 }
 
-VFXDataEdge
+VFXPropertyUI .space
 {
-	float-color : #9f80e6;
-	vector2-color : #8fc1df;
-	vector3-color : #e7ab21;
-	vector4-color : #42ca48;
-	color-color : #d1d1d1;
-	object-color : #787878;
+	flex:1;
+	border-radius:4;
+	border-width:2;
+	-text-color: #BBB;
+	text-color: #000;
+	margin-top:2;
+	margin-bottom:2;
+	font:resource("Roboto/Roboto-Medium");
+	text-alignment: middle-center;
+}
+VFXPropertyUI .space.local
+{
+	background-color:#F00;
+}
+VFXPropertyUI .space.global
+{
+	background-color:#0F0;
+}
+VFXPropertyUI .space.camera
+{
+	background-color:#00F;
+}
+
+/* used for data edges and data connectors*/
+
+.typesingle
+{
+	border-color : #9f80e6;
+}
+.typevector2
+{
+	border-color : #8fc1df;
+}
+.typevector3
+{
+	border-color : #e7ab21;
+}
+.typevector4
+{
+	border-color : #42ca48;
+}
+.typecolor
+{
+	border-color : #d1d1d1;
+}
+.typeobject
+{
+	border-color : #787878;
+}
+
+
+VFXDataAnchor
+{
+	width:24;
+	height:24;
+	padding-top:4;
+	padding-left:8;
+	margin-left:-15;
+	-background-color: #555;
+}
+
+VFXDataAnchor .connector
+{
+	background-color: #2B2B2B;
+	border-width: 1;
+	border-radius: 4;
+	width:8;
+	height:8;
+}
+
+VFXDataAnchor.connected > .typesingle
+{
+	background-color : #9f80e6;
+}
+VFXDataAnchor.connected > .typevector2
+{
+	background-color : #8fc1df;
+}
+VFXDataAnchor.connected > .typevector3
+{
+	background-color : #e7ab21;
+}
+VFXDataAnchor.connected > .typevector4
+{
+	background-color : #42ca48;
+}
+VFXDataAnchor.connected >.typecolor
+{
+	background-color : #d1d1d1;
+}
+VFXDataAnchor.connected > .typeobject
+{
+	background-color : #787878;
 }

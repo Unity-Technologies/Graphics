@@ -10,7 +10,37 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXPropertyIM
     {
-        public abstract bool OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles);
+        public bool OnGUI(VFXBlockPresenter presenter, ref VFXBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            bool savedExpanded = infos.expanded;
+
+            DoOnGUI(presenter, ref infos,styles);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (savedExpanded != infos.expanded)
+                    if (infos.expanded)
+                    {
+                        presenter.ExpandPath(infos.path);
+                    }
+                    else
+                    {
+                        presenter.RetractPath(infos.path);
+                    }
+                else
+                {
+                    presenter.PropertyValueChanged(ref infos);
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        protected abstract void DoOnGUI(VFXBlockPresenter presenter, ref VFXBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles);
 
 
         public const float kLabelWidth = 70;
@@ -52,7 +82,7 @@ namespace UnityEditor.VFX.UI
 
 
 
-        public void Label(ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        public void Label(ref VFXBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
         {
             if (infos.depth > 0)
                 GUILayout.Space(infos.depth * depthOffset);
@@ -72,51 +102,60 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXPropertyIM<T> : VFXPropertyIM
     {
-        public override bool OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        protected override void DoOnGUI(VFXBlockPresenter presenter, ref VFXBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
         {
 
-            EditorGUI.BeginChangeCheck();
-
-            bool savedExpanded = infos.expanded;
             infos.value = OnParameterGUI(ref infos, (T)infos.value, styles);
 
-            if (EditorGUI.EndChangeCheck())
-            {
-                if (savedExpanded != infos.expanded)
-                    if (infos.expanded)
-                    {
-                        presenter.ExpandPath(infos.path);
-                    }
-                    else
-                    {
-                        presenter.RetractPath(infos.path);
-                    }
-                else
-                {
-                    presenter.PropertyValueChanged(ref infos);
-                }
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+        }
+
+
+
+        public abstract T OnParameterGUI(ref VFXBlockPresenter.PropertyInfo infos, T value, VFXPropertyUI.GUIStyles styles);
+    }
+
+
+    /*
+    abstract class VFXSpacedPropertyIM : VFXPropertyIM
+    {
+        protected override void DoOnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        {
+            GUILayout.BeginHorizontal();
+            Label(ref infos, styles);
+
+            GUILayout.EndHorizontal();
+        }
+
+        protected void SpaceControl(ref VFXNodeBlockPresenter.PropertyInfo infos)
+        {
+
+        }
+    }
+    abstract class VFXSpacedPropertyIM<T> : VFXSpacedPropertyIM
+    {
+        protected override void DoOnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        {
+            GUILayout.BeginHorizontal();
+            Label(ref infos, styles);
+            infos.value = OnParameterGUI(ref infos, (T)infos.value, styles);
+            GUILayout.EndHorizontal();
         }
 
 
 
         public abstract T OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, T value, VFXPropertyUI.GUIStyles styles);
     }
-
-
+    */
 
     class VFXDefaultPropertyIM : VFXPropertyIM
     {
-        public override bool OnGUI(VFXNodeBlockPresenter presenter, ref VFXNodeBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
+        protected override void DoOnGUI(VFXBlockPresenter presenter, ref VFXBlockPresenter.PropertyInfo infos, VFXPropertyUI.GUIStyles styles)
         {
-            Label(ref infos,styles);
 
-            return false;
+            GUILayout.BeginHorizontal();
+            Label(ref infos,styles);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
         }
 
     }
@@ -124,7 +163,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXFloatPropertyIM : VFXPropertyIM<float>
     {
-        public override float OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, float value, VFXPropertyUI.GUIStyles styles)
+        public override float OnParameterGUI(ref VFXBlockPresenter.PropertyInfo infos, float value, VFXPropertyUI.GUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(ref infos,styles);
@@ -136,7 +175,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector3PropertyIM : VFXPropertyIM<Vector3>
     {
-        public override Vector3 OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, Vector3 value, VFXPropertyUI.GUIStyles styles)
+        public override Vector3 OnParameterGUI(ref VFXBlockPresenter.PropertyInfo infos, Vector3 value, VFXPropertyUI.GUIStyles styles)
         {
 
             GUILayout.BeginHorizontal();
@@ -154,7 +193,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector2PropertyIM : VFXPropertyIM<Vector2>
     {
-        public override Vector2 OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, Vector2 value, VFXPropertyUI.GUIStyles styles)
+        public override Vector2 OnParameterGUI(ref VFXBlockPresenter.PropertyInfo infos, Vector2 value, VFXPropertyUI.GUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(ref infos,styles);
@@ -169,7 +208,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector4PropertyIM : VFXPropertyIM<Vector4>
     {
-        public override Vector4 OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, Vector4 value, VFXPropertyUI.GUIStyles styles)
+        public override Vector4 OnParameterGUI(ref VFXBlockPresenter.PropertyInfo infos, Vector4 value, VFXPropertyUI.GUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(ref infos,styles);
@@ -192,7 +231,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXColorPropertyIM : VFXPropertyIM<Color>
     {
-        public override Color OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, Color value, VFXPropertyUI.GUIStyles styles)
+        public override Color OnParameterGUI(ref VFXBlockPresenter.PropertyInfo infos, Color value, VFXPropertyUI.GUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(ref infos,styles);
@@ -215,7 +254,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXObjectPropertyIM<T> : VFXPropertyIM<T> where T : Object
     {
-        public override T OnParameterGUI(ref VFXNodeBlockPresenter.PropertyInfo infos, T value, VFXPropertyUI.GUIStyles styles)
+        public override T OnParameterGUI(ref VFXBlockPresenter.PropertyInfo infos, T value, VFXPropertyUI.GUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(ref infos, styles);

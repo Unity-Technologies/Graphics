@@ -67,6 +67,7 @@ namespace UnityEditor.VFX
             public Color aColor = Color.gray;
             public Texture2D aTexture2D = null;
             public Texture3D aTexture3D = null;
+            public Sphere aSphere;
         }
     }
 

@@ -14,7 +14,7 @@ TrueTypeFontImporter:
   - Roboto Condensed
   fallbackFontReferences: []
   customCharacters: 
-  fontRenderingMode: 0
+  fontRenderingMode: 1
   ascentCalculationMode: 1
   userData: 
   assetBundleName: 

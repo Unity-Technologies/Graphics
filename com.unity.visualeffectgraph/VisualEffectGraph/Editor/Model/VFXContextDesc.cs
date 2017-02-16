@@ -279,6 +279,25 @@ namespace UnityEditor.Experimental
 		}
 	}
 
+    public class VFXDecalOutputDesc : VFXContextDesc
+    {
+        public VFXDecalOutputDesc()
+            : base(Type.kTypeOutput, "Decal Output", true)
+        {
+            m_Properties = new VFXProperty[2];
+            m_Properties[0] = VFXProperty.Create<VFXTexture2DType>("texture");
+            m_Properties[1] = new VFXProperty(new VFXFloatType(1.0f),"maxProjDist");
+        }
+
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model)
+        {
+            VFXPropertySlot[] values = new VFXPropertySlot[2];
+            values[0] = model.GetSlot(0);
+            values[1] = model.GetSlot(1);
+            return new VFXDecalOutputShaderGeneratorModule(values);
+        }
+    }
+
     public class VFXParticleUpdate : VFXContextDesc
     {
         public VFXParticleUpdate()

@@ -1,5 +1,6 @@
 using RMGUI.GraphView;
 using UnityEngine.RMGUI.StyleSheets;
+using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
@@ -21,21 +22,46 @@ namespace UnityEditor.VFX.UI
             switch(presenter.direction)
             {
                 case Direction.Input:
-                    classList = new ClassList("InputEdgeConnector");
+                    AddToClassList("InputEdgeConnector");
                     break;
                 case Direction.Output:
-                    classList = new ClassList("OutputEdgeConnector");
+                    AddToClassList("OutputEdgeConnector");
                     break;
             }
+            clipChildren = false;
         }
+
+
+
 
         public override void OnDataChanged()
         {
             base.OnDataChanged();
             m_ConnectorText.content.text = "";
 
+            NodeAnchorPresenter presenter = GetPresenter<NodeAnchorPresenter>();
+
             // reverse because we want the flex to choose the position of the connector
             presenter.position = position;
+
+
+            if (presenter.connected)
+                AddToClassList("connected");
+            else
+                RemoveFromClassList("connected");
+
+            // update the css type of the class
+            m_ConnectorBox.RemoveFromClassList(VFXTypeDefinition.GetTypeCSSClasses());
+            m_ConnectorBox.AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
+        }
+
+        public override bool ContainsPoint(Vector2 localPoint)
+        {
+            return position.Contains(localPoint);
+            //return GraphElement.ContainsPoint(localPoint);
+            // Here local point comes without position offset...
+            //localPoint -= position.position;
+            //return m_ConnectorBox.ContainsPoint(m_ConnectorBox.transform.MultiplyPoint3x4(localPoint));
         }
 
     }
