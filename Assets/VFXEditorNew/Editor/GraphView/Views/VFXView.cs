@@ -39,10 +39,16 @@ namespace UnityEditor.VFX.UI
                     menu.AddItem(new GUIContent(desc.Name), false,
                                  contentView => AddVFXContext(tPos, desc),
                                  this);
+                foreach (var desc in VFXLibrary.GetOperators())
+                    menu.AddItem(new GUIContent(desc.name), false,
+                                 contentView => AddVFXOperator(tPos, desc),
+                                 this);
 
                 menu.ShowAsContext();
                 return EventPropagation.Continue;
             },null));
+
+            typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
 
             typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
             typeFactory[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
@@ -60,6 +66,11 @@ namespace UnityEditor.VFX.UI
         void AddVFXContext(Vector2 pos,VFXContextDesc desc)
         {
             GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc);
+        }
+
+        void AddVFXOperator(Vector2 pos, VFXOperatorDesc desc)
+        {
+            GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
         }
     }
 }

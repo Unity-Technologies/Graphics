@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat3: return 3;
                 case VFXValueType.kFloat4: return 4;
             }
-            throw new ArgumentException(string.Format("TypeToSize failed with {0}", type));
+            throw new NotImplementedException();
         }
 
         public static string TypeToCode(VFXValueType type)
@@ -55,7 +55,19 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat3: return "float3";
                 case VFXValueType.kFloat4: return "float4";
             }
-            throw new ArgumentException(string.Format("TypeToCode failed with {0}", type));
+            throw new NotImplementedException();
+        }
+
+        public static Type TypeToType(VFXValueType type)
+        {
+            switch (type)
+            {
+                case VFXValueType.kFloat: return typeof(float);
+                case VFXValueType.kFloat2: return typeof(Vector2);
+                case VFXValueType.kFloat3: return typeof(Vector3);
+                case VFXValueType.kFloat4: return typeof(Vector4);
+            }
+            throw new NotImplementedException();
         }
 
 

@@ -5,6 +5,25 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    class VFXExpressionCos : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionCos() : this(VFXValueFloat.Default) { }
+
+        public VFXExpressionCos(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXCosOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("cos({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Cos(input);
+        }
+    }
+
     class VFXExpressionSin : VFXExpressionUnaryFloatOperation
     {
         public VFXExpressionSin() : this(VFXValueFloat.Default) { }

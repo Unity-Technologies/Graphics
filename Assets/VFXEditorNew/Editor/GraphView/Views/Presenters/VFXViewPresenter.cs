@@ -46,6 +46,35 @@ namespace UnityEditor.VFX.UI
 			}
 		}
 
+        private void RecreateOperatorEdges()
+        {
+            m_Elements.RemoveAll(e => e is VFXOperatorEdgePresenter);
+            var operatorPresenters = m_Elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>().ToArray();
+            foreach (var operatorPresenter in operatorPresenters)
+            {
+                var operatorDesc = operatorPresenter.Operator;
+                for (int inputIndex = 0; inputIndex < operatorDesc.InputSlots.Length; ++inputIndex)
+                {
+                    var input = operatorDesc.InputSlots[inputIndex];
+                    if (input.parent != null)
+                    {
+                        var edgePresenter = CreateInstance<VFXOperatorEdgePresenter>();
+
+                        var operatorPresenterFrom = operatorPresenters.First(e => e.Operator == input.parent);
+                        var operatorPresenterTo = operatorPresenters.First(e => e.Operator == operatorDesc);
+
+                        var from = operatorPresenterFrom.outputAnchors.First(o => (o as VFXOperatorAnchorPresenter).slotID == input.parentSlotID);
+                        var to = operatorPresenterTo.inputAnchors.First(o => (o as VFXOperatorAnchorPresenter).slotID == input.slotID);
+
+                        edgePresenter.output = from;
+                        edgePresenter.input = to;
+
+                        base.AddElement(edgePresenter);
+                    }
+                }
+            }
+        }
+
 		public override void AddElement(EdgePresenter edge)
 		{
 			if (edge is VFXFlowEdgePresenter)
@@ -58,6 +87,27 @@ namespace UnityEditor.VFX.UI
 				VFXSystem.ConnectContexts(context0, context1, m_ModelContainer);
 				RecreateFlowEdges();
 			}
+            else if (edge is EdgePresenter)
+            {
+                var flowEdge = edge as EdgePresenter;
+                var fromAnchor = flowEdge.output as VFXOperatorAnchorPresenter;
+                var toAnchor = flowEdge.input as VFXOperatorAnchorPresenter;
+
+                //Update connection (*wip* : will be a function of VFXOperator)
+                var inputSlots = toAnchor.sourceOperator.Operator.InputSlots;
+                var sourceIndex = Array.FindIndex(inputSlots, s => s.slotID == toAnchor.slotID);
+
+                inputSlots[sourceIndex].parent = fromAnchor.sourceOperator.Operator;
+                inputSlots[sourceIndex].parentSlotID = fromAnchor.slotID;
+                toAnchor.sourceOperator.Operator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
+
+                toAnchor.sourceOperator.Init(toAnchor.sourceOperator.Operator);
+                RecreateOperatorEdges();
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
 		}
 
 		public override void RemoveElement(GraphElementPresenter element)
@@ -88,6 +138,25 @@ namespace UnityEditor.VFX.UI
 				if (context != null)
 					VFXSystem.DisconnectContext(context, m_ModelContainer);
 			}
+            else if (element is VFXOperatorEdgePresenter)
+            {
+                var edge = element as VFXOperatorEdgePresenter;
+                var to = edge.input as VFXOperatorAnchorPresenter;
+
+                //Update connection (*wip* : will be a function of VFXOperator)
+                var toOperator = to.sourceOperator.Operator;
+                var toSlot = toOperator.InputSlots.First(o => o.slotID == to.slotID);
+                toSlot.parentSlotID = new Guid();
+                toSlot.parent = null;
+                toOperator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
+
+                to.sourceOperator.Init(toOperator);
+                RecreateOperatorEdges();
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
 
 			EditorUtility.SetDirty(m_ModelContainer);
         }
@@ -147,6 +216,13 @@ namespace UnityEditor.VFX.UI
 
         public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
 		{
+            if (startAnchorPresenter is VFXOperatorAnchorPresenter)
+            {
+                var allAnchors = elements.OfType<VFXOperatorPresenter>().SelectMany(o => o.inputAnchors);
+                allAnchors = allAnchors.Where(o => o.direction == Direction.Input);
+                return allAnchors.Cast<NodeAnchorPresenter>().ToList();
+            }
+
             if( startAnchorPresenter is VFXDataAnchorPresenter )
             {
                 var dictionary = startAnchorPresenter is VFXDataInputAnchorPresenter ? m_DataOutputAnchorPresenters : m_DataInputAnchorPresenters;
@@ -207,6 +283,16 @@ namespace UnityEditor.VFX.UI
 			EditorUtility.SetDirty(m_ModelContainer);
 		}
 
+        public void AddVFXOperator(Vector2 pos, VFXOperatorDesc desc)
+        {
+            var model = new VFXOperator(desc);
+            model.Position = pos;
+            m_ModelContainer.m_Roots.Add(model);
+            AddPresentersFromModel(model);
+            EditorUtility.SetDirty(m_ModelContainer);
+        }
+
+
 		private void RecreateFlowEdges()
 		{
 			m_Elements.RemoveAll(element => element is VFXFlowEdgePresenter);
@@ -255,6 +341,18 @@ namespace UnityEditor.VFX.UI
 				presenter.position = new Rect(context.Position.x, context.Position.y, 100, 100);
 				AddElement(presenter);
 			}
+            else if (model is VFXOperator)
+            {
+                VFXOperator context = (VFXOperator)model;
+                var presenter = CreateInstance<VFXOperatorPresenter>();
+                presenter.Init(context);
+                presenter.position = new Rect(context.Position.x, context.Position.y, 100, 100);
+                AddElement(presenter);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
 		}
         public VFXModelContainer GetModelContainer()
         {
