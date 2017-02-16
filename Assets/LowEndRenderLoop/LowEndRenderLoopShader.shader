@@ -51,15 +51,8 @@ Shader "RenderLoop/LowEnd"
 
 	SubShader
 	{
-		Tags { "RenderType" = "Opaque" "PerformanceChecks" = "False" }
+		Tags { "RenderType" = "Opaque" "PerformanceChecks" = "False" "RenderPipeline" = "LDRenderPipeline"}
 		LOD 300
-
-		// Include forward (base + additive) pass from regular Standard shader.
-		// They are not used by the scriptable render loop; only here so that
-		// if we turn off our example loop, then regular forward rendering kicks in
-		// and objects look just like with a Standard shader.
-		UsePass "Standard (Specular setup)/FORWARD"
-		UsePass "Standard (Specular setup)/FORWARD_DELTA"
 
 		Pass
 		{
@@ -383,5 +376,6 @@ Shader "RenderLoop/LowEnd"
 			ENDCG
 		}
 	}
+	Fallback "Standard (Specular setup)"
 	CustomEditor "StandardShaderGUI"
 }

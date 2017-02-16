@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
@@ -24,6 +25,8 @@ public class LowEndRenderPipelineInstance : RenderPipeline
 
     public override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
+        var prevPipe = Shader.globalRenderPipeline;
+        Shader.globalRenderPipeline = "LDRenderPipeline";
         base.Render(context, cameras);
 
         foreach (Camera camera in cameras)
@@ -33,7 +36,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             if (!CullResults.GetCullingParameters(camera, out cullingParameters))
                 continue;
 
-            cullingParameters.shadowDistance = QualitySettings.shadowDistance;
+            cullingParameters.shadowDistance = m_ShadowSettings.maxShadowDistance;
             CullResults cull = CullResults.Cull(ref cullingParameters, context);
 
             var cmd = new CommandBuffer() { name = "Clear" };
@@ -53,7 +56,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             if (shadowsRendered)
                 SetupShadowShaderVariables(context, camera.nearClipPlane, cullingParameters.shadowDistance, m_ShadowSettings.directionalLightCascadeCount);
 
-            // Rende Opaques
+            // Render Opaques
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("LowEndForwardBase"));
             settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque();
@@ -69,22 +72,24 @@ public class LowEndRenderPipelineInstance : RenderPipeline
             // TODO: Check skybox shader
             context.DrawSkybox(camera);
 
-            // Rende Alpha blended
+            // Render Alpha blended
             settings.sorting.flags = SortFlags.CommonTransparent;
             settings.inputFilter.SetQueuesTransparent();
             context.DrawRenderers(ref settings);
         }
 
         context.Submit();
+        Shader.globalRenderPipeline = prevPipe;
     }
 
     private void BuildShadowSettings()
     {
         m_ShadowSettings = ShadowSettings.Default;
-        m_ShadowSettings.directionalLightCascadeCount = QualitySettings.shadowCascades;
+        m_ShadowSettings.directionalLightCascadeCount = m_Asset.CascadeCount;
+        
         m_ShadowSettings.shadowAtlasWidth = m_Asset.ShadowAtlasResolution;
         m_ShadowSettings.shadowAtlasHeight = m_Asset.ShadowAtlasResolution;
-        m_ShadowSettings.maxShadowDistance = QualitySettings.shadowDistance;
+        m_ShadowSettings.maxShadowDistance = m_Asset.ShadowDistance;
 
         switch (m_ShadowSettings.directionalLightCascadeCount)
         {
@@ -93,16 +98,11 @@ public class LowEndRenderPipelineInstance : RenderPipeline
                 break;
 
             case 2:
-                m_ShadowSettings.directionalLightCascades = new Vector3(QualitySettings.shadowCascade2Split, 1.0f, 0.0f);
-                break;
-
-            case 4:
-                m_ShadowSettings.directionalLightCascades = QualitySettings.shadowCascade4Split;
+                m_ShadowSettings.directionalLightCascades = new Vector3(m_Asset.CascadeSplit.x, 1.0f, 0.0f);
                 break;
 
             default:
-                Debug.LogError("Invalid Shadow Cascade Settings");
-                m_ShadowSettings = ShadowSettings.Default;
+                m_ShadowSettings.directionalLightCascades = m_Asset.CascadeSplit;
                 break;
         }
     }
@@ -209,7 +209,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         context.ExecuteCommandBuffer(setRenderTargetCommandBuffer);
         setRenderTargetCommandBuffer.Dispose();
 
-        float shadowNearPlane = QualitySettings.shadowNearPlaneOffset;
+        float shadowNearPlane = m_Asset.ShadowNearOffset;
         Vector3 splitRatio = m_ShadowSettings.directionalLightCascades;
         for (int cascadeIdx = 0; cascadeIdx < cascadeCount; ++cascadeIdx)
         {
@@ -259,7 +259,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
 
     private void RenderShadowSlice(ref ScriptableRenderContext context, int cascadeIndex, Matrix4x4 proj, Matrix4x4 view, DrawShadowsSettings settings, float shadowBias)
     { 
-        var buffer = new CommandBuffer() { name = "RenderShadowMap" };
+        var buffer = new CommandBuffer() { name = "Prepare Shadowmap Slice" };
         buffer.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY, m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
         buffer.SetViewProjectionMatrices(view, proj);
         buffer.SetGlobalVector("_ShadowBias", new Vector4(shadowBias, 0.0f, 0.0f, 0.0f));
@@ -274,7 +274,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
         int resolution = Mathf.Min(atlasWidth, atlasHeight);
         if (tileCount > Mathf.Log(resolution))
         {
-            //Debug.LogError(String.Format("Cannot fit {0} tiles into current shadowmap atlas of size ({1}, {2}). ShadowMap Resolution set to zero.", tileCount, atlasWidth, atlasHeight));
+            Debug.LogError(String.Format("Cannot fit {0} tiles into current shadowmap atlas of size ({1}, {2}). ShadowMap Resolution set to zero.", tileCount, atlasWidth, atlasHeight));
             return 0;
         }
 
@@ -326,7 +326,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
 
     void SetShadowKeywords(CommandBuffer cmd)
     {
-        if (QualitySettings.shadows == ShadowQuality.Disable)
+        if (m_Asset.CurrShadowType == LowEndRenderPipeline.ShadowType.NO_SHADOW)
             cmd.DisableShaderKeyword("SHADOWS_DEPTH");
         else
             cmd.EnableShaderKeyword("SHADOWS_DEPTH");
@@ -369,18 +369,65 @@ public class LowEndRenderPipeline : RenderPipelineAsset
         PCF = 0,
         NONE
     }
-    public bool m_SupportsVertexLight = true;
-    public bool m_EnableLightmaps = true;
-    public bool m_EnableAmbientProbe = true;
-    public int m_ShadowAtlasResolution = 1024;
-    public ShadowFiltering m_ShadowFiltering = ShadowFiltering.NONE;
-    
+
+    public enum ShadowCascades
+    {
+        NO_CASCADES = 1,
+        TWO_CASCADES = 2,
+        FOUR_CASCADES = 4,
+    }
+
+    public enum ShadowType
+    {
+        NO_SHADOW = 0,
+        HARD_SHADOWS,
+    }
+
+    [SerializeField]
+    private bool m_SupportsVertexLight = true;
+
+    [SerializeField]
+    private bool m_EnableLightmaps = true;
+
+    [SerializeField]
+    private bool m_EnableAmbientProbe = true;
+
+    [SerializeField]
+    private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
+
+    [SerializeField]
+    private float m_ShadowNearPlaneOffset = 2.0f;
+
+    [SerializeField]
+    private float m_ShadowDistance = 50.0f;
+
+    [SerializeField]
+    private int m_ShadowAtlasResolution = 1024;
+
+    [SerializeField]
+    private ShadowCascades m_ShadowCascades = ShadowCascades.NO_CASCADES;
+
+    [SerializeField]
+    private Vector3 m_CascadeSplit = new Vector3(0.067f, 0.2f, 0.467f);
+
+    [SerializeField]
+    private ShadowFiltering m_ShadowFiltering = ShadowFiltering.NONE;
 
     public bool SupportsVertexLight { get { return m_SupportsVertexLight;} private set { m_SupportsVertexLight = value; } }
 
     public bool EnableLightmap { get { return m_EnableLightmaps;} private set { m_EnableLightmaps = value; } }
 
     public bool EnableAmbientProbe { get { return m_EnableAmbientProbe; } private set { m_EnableAmbientProbe = value; } }
+
+    public ShadowType CurrShadowType { get { return m_ShadowType;} private set { m_ShadowType = value; } }
+
+    public float ShadowNearOffset { get { return m_ShadowNearPlaneOffset; } private set { m_ShadowNearPlaneOffset = value; } }
+
+    public float ShadowDistance { get { return m_ShadowDistance; } private set { m_ShadowDistance = value; } }
+
+    public int CascadeCount { get { return (int)m_ShadowCascades; } private set { m_ShadowCascades = (ShadowCascades)value; } }
+
+    public Vector3 CascadeSplit { get { return m_CascadeSplit; } private set { m_CascadeSplit = value; } }
 
     public ShadowFiltering CurrShadowFiltering { get { return m_ShadowFiltering; } private set { m_ShadowFiltering = value; } }
 
