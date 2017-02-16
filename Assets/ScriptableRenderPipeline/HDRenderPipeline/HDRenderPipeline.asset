@@ -15,9 +15,9 @@ MonoBehaviour:
     type: 2}
   globalDebugParameters:
     debugOverlayRatio: 0.33
-    displayMaterialDebug: 0
-    displayRenderingDebug: 0
-    displayLightingDebug: 0
+    displayMaterialDebug: 1
+    displayRenderingDebug: 1
+    displayLightingDebug: 1
     materialDebugParameters:
       debugViewMaterial: 0
     lightingDebugParameters:
@@ -39,7 +39,7 @@ MonoBehaviour:
     enabled: 1
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
-    maxShadowDistance: 1000
+    maxShadowDistance: 400
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
     directionalLightNearPlaneOffset: 5
