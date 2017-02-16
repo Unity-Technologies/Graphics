@@ -44,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Sky Settings
             public readonly GUIContent skyParams = new GUIContent("Sky Settings");
 
-            // Global debug parameters
+            // Global debug Settings
             public readonly GUIContent debugging = new GUIContent("Debugging");
             public readonly GUIContent debugOverlayRatio = new GUIContent("Overlay Ratio");
 
@@ -56,13 +56,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int[] debugViewMaterialValues = null;
 
             // Rendering Debug
-            public readonly GUIContent renderingDebugParameters = new GUIContent("Rendering Debug");
+            public readonly GUIContent renderingDebugSettings = new GUIContent("Rendering Debug");
             public readonly GUIContent displayOpaqueObjects = new GUIContent("Display Opaque Objects", "Toggle opaque objects rendering on and off.");
             public readonly GUIContent displayTransparentObjects = new GUIContent("Display Transparent Objects", "Toggle transparent objects rendering on and off.");
             public readonly GUIContent enableDistortion = new GUIContent("Enable Distortion");
 
             // Lighting Debug
-            public readonly GUIContent lightingDebugParameters = new GUIContent("Lighting Debug");
+            public readonly GUIContent lightingDebugSettings = new GUIContent("Lighting Debug");
             public readonly GUIContent shadowDebugEnable = new GUIContent("Enable Shadows");
             public readonly GUIContent shadowDebugVisualizationMode = new GUIContent("Shadow Debug Mode");
             public readonly GUIContent shadowDebugVisualizeShadowIndex = new GUIContent("Visualize Shadow Index");
@@ -107,38 +107,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_LightingDebugOverrideSmoothnessValue = null;
         SerializedProperty m_LightingDebugAlbedo = null;
 
-        // Rendering Parameters
+        // Rendering Settings
         SerializedProperty m_RenderingUseForwardOnly = null;
         SerializedProperty m_RenderingUseDepthPrepass = null;
 
         private void InitializeProperties()
         {
             // Global debug
-            m_DebugOverlayRatio = FindProperty(x => x.globalDebugParameters.debugOverlayRatio);
-            m_ShowLightingDebug = FindProperty(x => x.globalDebugParameters.displayLightingDebug);
-            m_ShowRenderingDebug = FindProperty(x => x.globalDebugParameters.displayRenderingDebug);
-            m_ShowMaterialDebug = FindProperty(x => x.globalDebugParameters.displayMaterialDebug);
+            m_DebugOverlayRatio = FindProperty(x => x.globalDebugSettings.debugOverlayRatio);
+            m_ShowLightingDebug = FindProperty(x => x.globalDebugSettings.displayLightingDebug);
+            m_ShowRenderingDebug = FindProperty(x => x.globalDebugSettings.displayRenderingDebug);
+            m_ShowMaterialDebug = FindProperty(x => x.globalDebugSettings.displayMaterialDebug);
 
             // Material debug
-            m_MaterialDebugMode = FindProperty(x => x.globalDebugParameters.materialDebugParameters.debugViewMaterial);
+            m_MaterialDebugMode = FindProperty(x => x.globalDebugSettings.materialDebugSettings.debugViewMaterial);
 
             // Rendering debug
-            m_DisplayOpaqueObjects = FindProperty(x => x.globalDebugParameters.renderingDebugParametrs.displayOpaqueObjects);
-            m_DisplayTransparentObjects = FindProperty(x => x.globalDebugParameters.renderingDebugParametrs.displayTransparentObjects);
-            m_EnableDistortion = FindProperty(x => x.globalDebugParameters.renderingDebugParametrs.enableDistortion);
+            m_DisplayOpaqueObjects = FindProperty(x => x.globalDebugSettings.renderingDebugSettings.displayOpaqueObjects);
+            m_DisplayTransparentObjects = FindProperty(x => x.globalDebugSettings.renderingDebugSettings.displayTransparentObjects);
+            m_EnableDistortion = FindProperty(x => x.globalDebugSettings.renderingDebugSettings.enableDistortion);
 
             // Lighting debug
-            m_DebugShadowEnabled = FindProperty(x => x.globalDebugParameters.lightingDebugParameters.enableShadows);
-            m_ShadowDebugMode = FindProperty(x => x.globalDebugParameters.lightingDebugParameters.shadowDebugMode);
-            m_ShadowDebugShadowMapIndex = FindProperty(x => x.globalDebugParameters.lightingDebugParameters.shadowMapIndex);
-            m_LightingDebugMode = FindProperty(x => x.globalDebugParameters.lightingDebugParameters.lightingDebugMode);
-            m_LightingDebugOverrideSmoothness = FindProperty(x => x.globalDebugParameters.lightingDebugParameters.overrideSmoothness);
-            m_LightingDebugOverrideSmoothnessValue = FindProperty(x => x.globalDebugParameters.lightingDebugParameters.overrideSmoothnessValue);
-            m_LightingDebugAlbedo = FindProperty(x => x.globalDebugParameters.lightingDebugParameters.debugLightingAlbedo);
+            m_DebugShadowEnabled = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.enableShadows);
+            m_ShadowDebugMode = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.shadowDebugMode);
+            m_ShadowDebugShadowMapIndex = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.shadowMapIndex);
+            m_LightingDebugMode = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.lightingDebugMode);
+            m_LightingDebugOverrideSmoothness = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.overrideSmoothness);
+            m_LightingDebugOverrideSmoothnessValue = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.overrideSmoothnessValue);
+            m_LightingDebugAlbedo = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.debugLightingAlbedo);
 
             // Rendering settings
-            m_RenderingUseForwardOnly = FindProperty(x => x.renderingParameters.useForwardRenderingOnly);
-            m_RenderingUseDepthPrepass = FindProperty(x => x.renderingParameters.useDepthPrepass);
+            m_RenderingUseForwardOnly = FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
+            m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepass);
 
         }
 
@@ -218,14 +218,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             EditorGUILayout.LabelField(styles.debugging);
 
-            // Global debug parameters
+            // Global debug settings
             EditorGUI.indentLevel++;
             m_DebugOverlayRatio.floatValue = EditorGUILayout.Slider(styles.debugOverlayRatio, m_DebugOverlayRatio.floatValue, 0.1f, 1.0f);
             EditorGUILayout.Space();
 
-            MaterialDebugParametersUI(renderContext);
-            RenderingDebugParametersUI(renderContext);
-            LightingDebugParametersUI(renderContext, renderpipelineInstance);
+            MaterialDebugSettingsUI(renderContext);
+            RenderingDebugSettingsUI(renderContext);
+            LightingDebugSettingsUI(renderContext, renderpipelineInstance);
 
             EditorGUILayout.Space();
 
@@ -233,7 +233,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 
-        private void MaterialDebugParametersUI(HDRenderPipeline renderContext)
+        private void MaterialDebugSettingsUI(HDRenderPipeline renderContext)
         {
             m_ShowMaterialDebug.boolValue = EditorGUILayout.Foldout(m_ShowMaterialDebug.boolValue, styles.materialDebugLabel);
             if (!m_ShowMaterialDebug.boolValue)
@@ -291,9 +291,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void RenderingDebugParametersUI(HDRenderPipeline renderContext)
+        private void RenderingDebugSettingsUI(HDRenderPipeline renderContext)
         {
-            m_ShowRenderingDebug.boolValue = EditorGUILayout.Foldout(m_ShowRenderingDebug.boolValue, styles.renderingDebugParameters);
+            m_ShowRenderingDebug.boolValue = EditorGUILayout.Foldout(m_ShowRenderingDebug.boolValue, styles.renderingDebugSettings);
             if (!m_ShowRenderingDebug.boolValue)
                 return;
 
@@ -320,9 +320,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        private void LightingDebugParametersUI(HDRenderPipeline renderContext, HDRenderPipelineInstance renderpipelineInstance)
+        private void LightingDebugSettingsUI(HDRenderPipeline renderContext, HDRenderPipelineInstance renderpipelineInstance)
         {
-            m_ShowLightingDebug.boolValue = EditorGUILayout.Foldout(m_ShowLightingDebug.boolValue, styles.lightingDebugParameters);
+            m_ShowLightingDebug.boolValue = EditorGUILayout.Foldout(m_ShowLightingDebug.boolValue, styles.lightingDebugSettings);
             if (!m_ShowLightingDebug.boolValue)
                 return;
 
@@ -377,44 +377,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HackSetDirty(renderContext); // Repaint
             }
 
-
-            SkySettingsUI(renderContext);
             SssSettingsUI(renderContext);
-            ShadowParametersUI(renderContext);
-            TextureParametersUI(renderContext);
-            RendereringParametersUI(renderContext);
+            ShadowSettingsUI(renderContext);
+            TextureSettingsUI(renderContext);
+            RendereringSettingsUI(renderContext);
             //TilePassUI(renderContext);
 
             EditorGUI.indentLevel--;
         }
 
-        private void SkySettingsUI(HDRenderPipeline pipe)
+        private void ShadowSettingsUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField(styles.skyParams);
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.indentLevel++;
-            pipe.skyParameters = (SkyParameters)EditorGUILayout.ObjectField(new GUIContent("Sky Settings"), pipe.skyParameters, typeof(SkyParameters), false);
-            EditorGUI.indentLevel--;
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(pipe); // Repaint
-            }
-        }
-
-        private void ShadowParametersUI(HDRenderPipeline renderContext)
-        {
-            EditorGUILayout.Space();
-            var shadowParameters = renderContext.shadowSettings;
+            var shadowSettings = renderContext.shadowSettings;
 
             EditorGUILayout.LabelField(styles.shadowSettings);
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
 
-            shadowParameters.shadowAtlasWidth = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasWidth, shadowParameters.shadowAtlasWidth));
-            shadowParameters.shadowAtlasHeight = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasHeight, shadowParameters.shadowAtlasHeight));
+            shadowSettings.shadowAtlasWidth = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasWidth, shadowSettings.shadowAtlasWidth));
+            shadowSettings.shadowAtlasHeight = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasHeight, shadowSettings.shadowAtlasHeight));
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -423,7 +405,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void RendereringParametersUI(HDRenderPipeline renderContext)
+        private void RendereringSettingsUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.renderingSettingsLabel);
@@ -433,22 +415,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void TextureParametersUI(HDRenderPipeline renderContext)
+        private void TextureSettingsUI(HDRenderPipeline renderContext)
         {
             EditorGUILayout.Space();
-            var textureParameters = renderContext.textureSettings;
+            var textureSettings = renderContext.textureSettings;
 
             EditorGUILayout.LabelField(styles.textureSettings);
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
 
-            textureParameters.spotCookieSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.spotCookieSize, textureParameters.spotCookieSize), 16, 1024));
-            textureParameters.pointCookieSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.pointCookieSize, textureParameters.pointCookieSize), 16, 1024));
-            textureParameters.reflectionCubemapSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.reflectionCubemapSize, textureParameters.reflectionCubemapSize), 64, 1024));
+            textureSettings.spotCookieSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.spotCookieSize, textureSettings.spotCookieSize), 16, 1024));
+            textureSettings.pointCookieSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.pointCookieSize, textureSettings.pointCookieSize), 16, 1024));
+            textureSettings.reflectionCubemapSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.reflectionCubemapSize, textureSettings.reflectionCubemapSize), 64, 1024));
 
             if (EditorGUI.EndChangeCheck())
             {
-                renderContext.textureSettings = textureParameters;
+                renderContext.textureSettings = textureSettings;
                 HackSetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;
