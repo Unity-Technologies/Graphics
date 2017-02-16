@@ -1385,20 +1385,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
-            private void SetupRenderingForDebug(LightingDebugParameters lightDebugParameters)
+            private void SetupRenderingForDebug(LightingDebugSettings lightDebugSettings)
             {
-                Utilities.SetKeyword(m_DeferredDirectMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredDirectMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredIndirectMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredIndirectMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredAllMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredAllMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_SingleDeferredMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredDirectMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredDirectMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredIndirectMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredIndirectMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredAllMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredAllMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_SingleDeferredMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
             }
 
             public override void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
-                                                        LightingDebugParameters lightDebugParameters,
+                                                        LightingDebugSettings lightDebugSettings,
                                                         RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier stencilBuffer,
                                                         bool outputSplitLighting)
             {
@@ -1421,7 +1421,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
-                    if (lightDebugParameters.lightingDebugMode == LightingDebugMode.None)
+                    if (lightDebugSettings.lightingDebugMode == LightingDebugMode.None)
                         SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlKernel : s_shadeOpaqueClusteredKernel, cmd);
                     else
                         SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlDebugLightingKernel : s_shadeOpaqueClusteredDebugLightingKernel, cmd);
@@ -1433,7 +1433,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Must be done after setting up the compute shader above.
-                    SetupRenderingForDebug(lightDebugParameters);
+                    SetupRenderingForDebug(lightDebugSettings);
 
                     if (m_PassSettings.disableTileAndCluster)
                     {

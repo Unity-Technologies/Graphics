@@ -6,32 +6,32 @@ using System;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public class GlobalDebugParameters
+    public class GlobalDebugSettings
     {
         public float debugOverlayRatio = 0.33f;
         public bool displayMaterialDebug = false;
         public bool displayRenderingDebug = false;
         public bool displayLightingDebug = false;
 
-        public MaterialDebugParameters materialDebugParameters = new MaterialDebugParameters();
-        public LightingDebugParameters lightingDebugParameters = new LightingDebugParameters();
-        public RenderingDebugParameters renderingDebugParametrs = new RenderingDebugParameters();
+        public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
+        public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
+        public RenderingDebugSettings renderingDebugSettings = new RenderingDebugSettings();
 
         public void OnValidate()
         {
-            lightingDebugParameters.OnValidate();
+            lightingDebugSettings.OnValidate();
         }
     }
 
 
     [Serializable]
-    public class MaterialDebugParameters
+    public class MaterialDebugSettings
     {
         public int debugViewMaterial = 0;
     }
 
     [Serializable]
-    public class RenderingDebugParameters
+    public class RenderingDebugSettings
     {
         public bool displayOpaqueObjects = true;
         public bool displayTransparentObjects = true;
@@ -54,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public class LightingDebugParameters
+    public class LightingDebugSettings
     {
         public bool                 enableShadows = true;
         public ShadowDebugMode      shadowDebugMode = ShadowDebugMode.None;
