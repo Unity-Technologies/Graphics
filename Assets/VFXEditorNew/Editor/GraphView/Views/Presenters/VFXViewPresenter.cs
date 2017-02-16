@@ -49,25 +49,25 @@ namespace UnityEditor.VFX.UI
         private void RecreateOperatorEdges()
         {
             m_Elements.RemoveAll(e => e is VFXOperatorEdgePresenter);
+
             var operatorPresenters = m_Elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>().ToArray();
             foreach (var operatorPresenter in operatorPresenters)
             {
-                var operatorDesc = operatorPresenter.Operator;
-                for (int inputIndex = 0; inputIndex < operatorDesc.InputSlots.Length; ++inputIndex)
+                var modelOperator = operatorPresenter.Operator;
+                foreach (var input in modelOperator.InputSlots)
                 {
-                    var input = operatorDesc.InputSlots[inputIndex];
                     if (input.parent != null)
                     {
                         var edgePresenter = CreateInstance<VFXOperatorEdgePresenter>();
 
                         var operatorPresenterFrom = operatorPresenters.First(e => e.Operator == input.parent);
-                        var operatorPresenterTo = operatorPresenters.First(e => e.Operator == operatorDesc);
+                        var operatorPresenterTo = operatorPresenters.First(e => e.Operator == modelOperator);
 
-                        var from = operatorPresenterFrom.outputAnchors.First(o => (o as VFXOperatorAnchorPresenter).slotID == input.parentSlotID);
-                        var to = operatorPresenterTo.inputAnchors.First(o => (o as VFXOperatorAnchorPresenter).slotID == input.slotID);
+                        var anchorFrom = operatorPresenterFrom.outputAnchors.First(o => (o as VFXOperatorAnchorPresenter).slotID == input.parentSlotID);
+                        var anchorTo = operatorPresenterTo.inputAnchors.First(o => (o as VFXOperatorAnchorPresenter).slotID == input.slotID);
 
-                        edgePresenter.output = from;
-                        edgePresenter.input = to;
+                        edgePresenter.output = anchorFrom;
+                        edgePresenter.input = anchorTo;
 
                         base.AddElement(edgePresenter);
                     }
