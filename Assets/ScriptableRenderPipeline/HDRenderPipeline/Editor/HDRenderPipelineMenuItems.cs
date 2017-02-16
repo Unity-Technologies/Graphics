@@ -15,6 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (mat.shader.name == "HDRenderPipeline/LayeredLit" || mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                 {
                     LayeredLitGUI.SynchronizeAllLayers(mat);
+                    EditorUtility.SetDirty(mat);
                 }
             }
         }
@@ -52,21 +53,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         // We remove all keyword already present
                         RemoveMaterialKeywords(mat);
                         LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
+                        EditorUtility.SetDirty(mat);
                     }
                     else if (mat.shader.name == "HDRenderPipeline/Lit" || mat.shader.name == "HDRenderPipeline/LitTessellation")
                     {
                         // We remove all keyword already present
                         RemoveMaterialKeywords(mat);
                         LitGUI.SetupMaterialKeywordsAndPass(mat);
+                        EditorUtility.SetDirty(mat);
                     }
                     else if (mat.shader.name == "HDRenderPipeline/Unlit")
                     {
                         // We remove all keyword already present
                         RemoveMaterialKeywords(mat);
                         UnlitGUI.SetupMaterialKeywordsAndPass(mat);
-                    }
-
-                    EditorUtility.SetDirty(mat);
+                        EditorUtility.SetDirty(mat);
+                    }                    
                 }
             }
             finally
