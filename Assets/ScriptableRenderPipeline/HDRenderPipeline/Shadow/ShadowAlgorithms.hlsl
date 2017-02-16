@@ -146,25 +146,10 @@ void EvalShadow_LoadSplitSpheres( ShadowContext shadowContext, int index, out fl
 {
 	uint offset = GetPayloadOffset( shadowContext.shadowDatas[index] );
 
-	splitSpheres[0].x = asfloat( shadowContext.payloads[offset + 0] );
-	splitSpheres[0].y = asfloat( shadowContext.payloads[offset + 1] );
-	splitSpheres[0].z = asfloat( shadowContext.payloads[offset + 2] );
-	splitSpheres[0].w = asfloat( shadowContext.payloads[offset + 3] );
-
-	splitSpheres[1].x = asfloat( shadowContext.payloads[offset + 4] );
-	splitSpheres[1].y = asfloat( shadowContext.payloads[offset + 5] );
-	splitSpheres[1].z = asfloat( shadowContext.payloads[offset + 6] );
-	splitSpheres[1].w = asfloat( shadowContext.payloads[offset + 7] );
-								 								    
-	splitSpheres[2].x = asfloat( shadowContext.payloads[offset + 8] );
-	splitSpheres[2].y = asfloat( shadowContext.payloads[offset + 9] );
-	splitSpheres[2].z = asfloat( shadowContext.payloads[offset +10] );
-	splitSpheres[2].w = asfloat( shadowContext.payloads[offset +11] );
-								 								    
-	splitSpheres[3].x = asfloat( shadowContext.payloads[offset +12] );
-	splitSpheres[3].y = asfloat( shadowContext.payloads[offset +13] );
-	splitSpheres[3].z = asfloat( shadowContext.payloads[offset +14] );
-	splitSpheres[3].w = asfloat( shadowContext.payloads[offset +15] );
+	splitSpheres[0] = asfloat( shadowContext.payloads[offset + 0] );
+	splitSpheres[1] = asfloat( shadowContext.payloads[offset + 1] );
+	splitSpheres[2] = asfloat( shadowContext.payloads[offset + 2] );
+	splitSpheres[3] = asfloat( shadowContext.payloads[offset + 3] );
 }
 
 float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, int index, float3 L )

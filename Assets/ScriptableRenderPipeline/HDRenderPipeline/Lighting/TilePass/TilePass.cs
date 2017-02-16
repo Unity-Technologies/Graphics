@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // shadow related stuff
         const int k_MaxShadowDataSlots              = 64;
-        const int k_MaxPayloadSlotsPerShadowData    = 16;
+        const int k_MaxPayloadSlotsPerShadowData    =  4;
         ShadowmapBase[]         m_Shadowmaps;
         ShadowManager           m_ShadowMgr;
         static ComputeBuffer    s_ShadowDataBuffer;
@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ShadowSetup( ShadowSettings shadowSettings, out IShadowManager shadowManager )
         {
             s_ShadowDataBuffer      = new ComputeBuffer( k_MaxShadowDataSlots, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowExp.ShadowData ) ) );
-            s_ShadowPayloadBuffer   = new ComputeBuffer( k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf( typeof( int ) ) );
+            s_ShadowPayloadBuffer   = new ComputeBuffer( k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowExp.ShadowData ) ) );
             ShadowAtlas.AtlasInit atlasInit;
             atlasInit.baseInit.width           = (uint) shadowSettings.shadowAtlasWidth;
             atlasInit.baseInit.height          = (uint) shadowSettings.shadowAtlasHeight;
@@ -46,9 +46,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     uint offset, count;
                     ShadowExp.ShadowData[] sds;
                     sc.GetShadowDatas( out sds, out offset, out count );
+                    Debug.Assert( offset == 0 );
                     s_ShadowDataBuffer.SetData( sds ); // unfortunately we can't pass an offset or count to this function
-                    int[] payloads;
+                    ShadowPayload[] payloads;
                     sc.GetPayloads( out payloads, out offset, out count );
+                    Debug.Assert( offset == 0 );
                     s_ShadowPayloadBuffer.SetData( payloads );
                 };
             

@@ -76,6 +76,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
     // -------------- End temporary structs that need to be replaced at some point ---------------
 
+    public struct ShadowPayload
+    {
+        public int p0;
+        public int p1;
+        public int p2;
+        public int p3;
+
+        public void Set( float v0, float v1, float v2, float v3 )
+        {
+            p0 = ShadowUtils.Asint( v0 );
+            p1 = ShadowUtils.Asint( v1 );
+            p2 = ShadowUtils.Asint( v2 );
+            p3 = ShadowUtils.Asint( v3 );
+        }
+        public void Set( Vector4 v ) { Set( v.x, v.y, v.z, v.w ); }
+    }
 
     // Class holding resource information that needs to be synchronized with shaders.
     public class ShadowContextStorage
@@ -124,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void SetTexCubeArraySlot( uint slot, RenderTargetIdentifier val )  { m_TexCubeArray[slot] = val; }
 
         protected VectorArray<ShadowData>             m_ShadowDatas   = new VectorArray<ShadowData>( 0, false );
-        protected VectorArray<int>                    m_Payloads      = new VectorArray<int>( 0, false );
+        protected VectorArray<ShadowPayload>          m_Payloads      = new VectorArray<ShadowPayload>( 0, false );
         protected VectorArray<RenderTargetIdentifier> m_Tex2DArray    = new VectorArray<RenderTargetIdentifier>( 0, true );
         protected VectorArray<RenderTargetIdentifier> m_TexCubeArray  = new VectorArray<RenderTargetIdentifier>( 0, true );
         protected VectorArray<ComparisonSamplerState> m_CompSamplers  = new VectorArray<ComparisonSamplerState>( 0, true );
@@ -155,12 +171,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void BindResources( CommandBuffer cb ) { m_ResourceBinderDel( this, cb ); }
 
         // the following functions are to be used by the bind and sync delegates
-        public void GetShadowDatas(out ShadowData[] shadowDatas, out uint offset, out uint count)                           { shadowDatas   = m_ShadowDatas.AsArray(out offset, out count); }
-        public void GetPayloads(out int[] payloads, out uint offset, out uint count)                                        { payloads      = m_Payloads.AsArray(out offset, out count); }
-        public void GetTex2DArrays(out RenderTargetIdentifier[] tex2DArrays, out uint offset, out uint count)               { tex2DArrays   = m_Tex2DArray.AsArray(out offset, out count); }
-        public void GetTexCubeArrays(out RenderTargetIdentifier[] texCubeArrays, out uint offset, out uint count)           { texCubeArrays = m_TexCubeArray.AsArray(out offset, out count); }
-        public void GetComparisonSamplerArrays(out ComparisonSamplerState[] compSamplers, out uint offset, out uint count)  { compSamplers  = m_CompSamplers.AsArray(out offset, out count); }
-        public void GetSamplerArrays(out SamplerState[] samplerArrays, out uint offset, out uint count)                     { samplerArrays = m_Samplers.AsArray(out offset, out count); }
+        public void GetShadowDatas( out ShadowData[] shadowDatas, out uint offset, out uint count )                           { shadowDatas   = m_ShadowDatas.AsArray( out offset, out count ); }
+        public void GetPayloads( out ShadowPayload[] payloads, out uint offset, out uint count )                              { payloads      = m_Payloads.AsArray( out offset, out count ); }
+        public void GetTex2DArrays( out RenderTargetIdentifier[] tex2DArrays, out uint offset, out uint count )               { tex2DArrays   = m_Tex2DArray.AsArray( out offset, out count ); }
+        public void GetTexCubeArrays( out RenderTargetIdentifier[] texCubeArrays, out uint offset, out uint count )           { texCubeArrays = m_TexCubeArray.AsArray( out offset, out count ); }
+        public void GetComparisonSamplerArrays( out ComparisonSamplerState[] compSamplers, out uint offset, out uint count )  { compSamplers  = m_CompSamplers.AsArray( out offset, out count ); }
+        public void GetSamplerArrays( out SamplerState[] samplerArrays, out uint offset, out uint count )                     { samplerArrays = m_Samplers.AsArray( out offset, out count ); }
 
         private SyncDel m_DataSyncerDel;
         private BindDel m_ResourceBinderDel;
@@ -288,9 +304,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                  public uint GetMaxPayload() { return m_MaxPayloadCount; }
                  public void AssignId( uint shadowId ) { m_ShadowId = shadowId; }
                  public void Assign( CullResults cullResults ) { m_CullResults = cullResults; } // TODO: Remove when m_CullResults is removed again
-        abstract public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<int> payloads, VisibleLight[] lights );
-        abstract public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<int> payloads, VisibleLight[] lights );
-        abstract public bool ReserveFinalize( FrameId frameId, ref VectorArray<ShadowData> entries, ref VectorArray<int> payloads );
+        abstract public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payloads, VisibleLight[] lights );
+        abstract public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payloads, VisibleLight[] lights );
+        abstract public bool ReserveFinalize( FrameId frameId, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payloads );
         abstract public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
         abstract public void ReserveSlots( ShadowContextStorage sc );
         abstract public void Fill( ShadowContextStorage cs );
@@ -302,7 +318,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //          When called the array contains the indices of lights requesting shadows,
         //          upon returning the array contains up to shadowRequestsCount valid shadow caster indices,
         //          whereas [shadowRequestsCount;originalRequestsCount) will hold all indices for lights that wanted to cast a shadow but got rejected.
-        //          shadowDataIndices contains the offset into the shadowDatas array for each shadow casting light, e.g. lights[shadowRequests[i]].shadowDataOffset = shadowDataIndices[i];
+        //          shadowDataIndices contains the offset into the shadowDatas array only for each shadow casting light, e.g. lights[shadowRequests[i]].shadowDataOffset = shadowDataIndices[i];
         //          shadowDatas contains shadowmap related basic parameters that can be passed to the shader.
         //          shadowPayloads contains implementation specific data that is accessed from the shader by indexing into an Buffer<int> using ShadowData.ShadowmapData.payloadOffset.
         //          This is the equivalent of a void pointer in the shader and there needs to be loader code that knows how to interpret the data.
@@ -327,7 +343,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // prune the shadow requests - may modify shadowRequests and shadowsCountshadowRequestsCount
         protected abstract void PruneShadowCasters( Camera camera, VisibleLight[] lights, ref VectorArray<int> shadowRequests, ref VectorArray<ShadowmapBase.ShadowRequest> requestsGranted, out uint totalRequestCount );
         // allocate the shadow requests in the shadow map, only is called if shadowsCount > 0 - may modify shadowRequests and shadowsCount
-        protected abstract void AllocateShadows( FrameId frameId, VisibleLight[] lights, uint totalGranted, ref VectorArray<ShadowmapBase.ShadowRequest> grantedRequests, ref VectorArray<int> shadowIndices, ref VectorArray<ShadowData> shadowmapDatas, ref VectorArray<int> shadowmapPayload );
+        protected abstract void AllocateShadows( FrameId frameId, VisibleLight[] lights, uint totalGranted, ref VectorArray<ShadowmapBase.ShadowRequest> grantedRequests, ref VectorArray<int> shadowIndices, ref VectorArray<ShadowData> shadowmapDatas, ref VectorArray<ShadowPayload> shadowmapPayload );
     }
 
     } // end of namespace ShadowExp
