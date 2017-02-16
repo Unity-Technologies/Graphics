@@ -673,7 +673,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 SetKeyword(material, "_DETAIL_MAP" + i, material.GetTexture(kDetailMap + i));
 
-                SetKeyword(material, "_HEIGHTMAP0" + i, material.GetTexture(kHeightMap + i));
+                SetKeyword(material, "_HEIGHTMAP" + i, material.GetTexture(kHeightMap + i));
             }
 
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
