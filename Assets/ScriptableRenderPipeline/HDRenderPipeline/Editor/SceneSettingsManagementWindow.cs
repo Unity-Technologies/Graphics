@@ -50,6 +50,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 CreateAsset<SubsurfaceScatteringParameters>("NewSssParameters");
             }
+
+            EditorGUILayout.Space();
+
+            if (GUILayout.Button("Create Scene Settings"))
+            {
+                var manager = new GameObject();
+                manager.name = "Scene Settings";
+                manager.AddComponent<SceneSettings>();
+            }
         }
     }
 }
