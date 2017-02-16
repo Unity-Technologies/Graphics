@@ -164,11 +164,13 @@ namespace UnityEditor.VFX
                 resExpression = m_Desc.BuildExpression(expressions.ToArray());
             }
 
-            m_OutputSlots = resExpression.Select(o => new VFXMitoSlotOutput()
+            var outpoutSlots = resExpression.Select((o, i) => new VFXMitoSlotOutput()
             {
+                slotID = i < m_OutputSlots.Length ? m_OutputSlots[i].slotID : Guid.NewGuid(),
                 expression = o,
                 type = VFXExpression.TypeToType(o.ValueType),
-            }).ToArray();
+            });
+            m_OutputSlots = outpoutSlots.ToArray();
         }
 
         public Vector2 Position
