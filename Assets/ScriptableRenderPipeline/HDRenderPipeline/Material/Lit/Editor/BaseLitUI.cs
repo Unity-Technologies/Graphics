@@ -206,10 +206,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool depthOffsetEnable = material.GetFloat(kDepthOffsetEnable) > 0.0f;
             SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
+            int stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.Standard; // See 'StencilBits'.
             if (material.HasProperty(kMaterialID))
             {
                 int materialID = (int)material.GetFloat(kMaterialID);
-                int stencilRef; // See 'StencilBits'.
 
                 switch (materialID)
                 {
@@ -223,9 +223,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         stencilRef = 1 + materialID;
                         break;
                 }
-
-                material.SetInt("_StencilRef", stencilRef);
             }
+            material.SetInt("_StencilRef", stencilRef);
 
             bool enablePerPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) > 0.0f;
             SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", enablePerPixelDisplacement);
