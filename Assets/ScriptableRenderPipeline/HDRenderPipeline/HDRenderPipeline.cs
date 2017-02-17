@@ -540,6 +540,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     using (new Utilities.ProfilingSample("Build Light list", renderContext))
                     {
                         m_LightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera, ref m_ShadowsResult);
+                        m_LightLoop.RenderShadows(renderContext, cullResults);
+                        renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
                         m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT); // TODO: Use async compute here to run light culling during shadow
                     }
                 }
