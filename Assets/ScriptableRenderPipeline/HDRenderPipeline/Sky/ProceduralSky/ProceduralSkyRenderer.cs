@@ -5,12 +5,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class ProceduralSkyRenderer : SkyRenderer
     {
         Material m_ProceduralSkyMaterial = null; // Renders a cubemap into a render texture (can be cube or 2D)
-        private ProceduralSkyParameters m_ProceduralSkyParameters;
+        private ProceduralSkySettings m_ProceduralSkySettings;
 
 
-        public ProceduralSkyRenderer(ProceduralSkyParameters proceduralSkyParameters)
+        public ProceduralSkyRenderer(ProceduralSkySettings proceduralSkySettings)
         {
-            m_ProceduralSkyParameters = proceduralSkyParameters;
+            m_ProceduralSkySettings = proceduralSkySettings;
         }
 
         public override void Build()
@@ -25,12 +25,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override bool IsSkyValid()
         {
-            if (m_ProceduralSkyMaterial == null || m_ProceduralSkyParameters == null)
+            if (m_ProceduralSkyMaterial == null || m_ProceduralSkySettings == null)
                 return false;
 
-            return m_ProceduralSkyParameters.skyHDRI != null &&
-                   m_ProceduralSkyParameters.worldMieColorRamp != null &&
-                   m_ProceduralSkyParameters.worldRayleighColorRamp != null;
+            return m_ProceduralSkySettings.skyHDRI != null &&
+                   m_ProceduralSkySettings.worldMieColorRamp != null &&
+                   m_ProceduralSkySettings.worldRayleighColorRamp != null;
         }
 
         public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Utilities.SetRenderTarget(builtinParams.renderContext, builtinParams.colorBuffer);
         }
 
-        void SetKeywords(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param, bool renderForCubemap)
+        void SetKeywords(BuiltinSkyParameters builtinParams, ProceduralSkySettings param, bool renderForCubemap)
         {
             // Ensure that all preprocessor symbols are initially undefined.
             m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS");
@@ -71,13 +71,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ProceduralSkyMaterial.EnableKeyword("PERFORM_SKY_OCCLUSION_TEST");
             }
 
-            if (param.debugMode != ProceduralSkyParameters.ScatterDebugMode.None)
+            if (param.debugMode != ProceduralSkySettings.ScatterDebugMode.None)
             {
                 m_ProceduralSkyMaterial.EnableKeyword("ATMOSPHERICS_DEBUG");
             }
         }
 
-        void SetUniforms(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param, bool renderForCubemap, ref MaterialPropertyBlock properties)
+        void SetUniforms(BuiltinSkyParameters builtinParams, ProceduralSkySettings param, bool renderForCubemap, ref MaterialPropertyBlock properties)
         {
             properties.SetTexture("_Cubemap", param.skyHDRI);
             properties.SetVector("_SkyParam", new Vector4(param.exposure, param.multiplier, param.rotation, 0.0f));
@@ -162,16 +162,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             properties.SetFloat("_HeightMieDensity",        renderForCubemap ? -0.0f : -param.heightMieDensity / 100000f);
         }
 
-        override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, bool renderForCubemap)
+        override public void RenderSky(BuiltinSkyParameters builtinParams, SkySettings skyParameters, bool renderForCubemap)
         {
 
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
 
             // Define select preprocessor symbols.
-            SetKeywords(builtinParams, m_ProceduralSkyParameters, renderForCubemap);
+            SetKeywords(builtinParams, m_ProceduralSkySettings, renderForCubemap);
 
             // Set shader constants.
-            SetUniforms(builtinParams, m_ProceduralSkyParameters, renderForCubemap, ref properties);
+            SetUniforms(builtinParams, m_ProceduralSkySettings, renderForCubemap, ref properties);
 
             var cmd = new CommandBuffer { name = "" };
 

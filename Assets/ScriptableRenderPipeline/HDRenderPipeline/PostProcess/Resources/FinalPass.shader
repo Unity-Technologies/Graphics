@@ -12,7 +12,6 @@ Shader "Hidden/HDRenderPipeline/FinalPass"
         #include "ShaderLibrary/Common.hlsl"
         #include "HDRenderPipeline/ShaderVariables.hlsl"
         #include "ColorGrading.hlsl"
-        #include "Bloom.hlsl"
 
         TEXTURE2D(_MainTex);
         SAMPLER2D(sampler_MainTex);
@@ -27,15 +26,6 @@ Shader "Hidden/HDRenderPipeline/FinalPass"
         float4 _LogLut_Params;
 
         float _Exposure;
-
-        TEXTURE2D(_BloomTex);
-        SAMPLER2D(sampler_BloomTex);
-        float4 _BloomTex_TexelSize;
-        float2 _Bloom_Settings; // x: sampleScale, y: bloom.intensity
-
-        TEXTURE2D(_Bloom_DirtTex);
-        SAMPLER2D(sampler_Bloom_DirtTex);
-        float _Bloom_DirtIntensity;
 
         float4 _NeutralTonemapperParams1;
         float4 _NeutralTonemapperParams2;
@@ -149,20 +139,6 @@ Shader "Hidden/HDRenderPipeline/FinalPass"
             }
             #endif
 
-            #if BLOOM
-            {
-                float3 bloom = UpsampleFilter(TEXTURE2D_PARAM(_BloomTex, sampler_BloomTex), uv, _BloomTex_TexelSize.xy, _Bloom_Settings.x) * _Bloom_Settings.y; // Flipped
-                color += bloom;
-
-                #if BLOOM_LENS_DIRT
-                {
-                    float3 dirt = SAMPLE_TEXTURE2D(_Bloom_DirtTex, sampler_Bloom_DirtTex, uv).rgb * _Bloom_DirtIntensity; // Flipped
-                    color += bloom * dirt;
-                }
-                #endif
-            }
-            #endif
-
             #if VIGNETTE
             {
                 float2 d = abs(uv - _Vignette_Settings.zw) * _Vignette_Settings.x;
@@ -227,8 +203,6 @@ Shader "Hidden/HDRenderPipeline/FinalPass"
                 #pragma fragment Frag
                 #pragma multi_compile __ NEUTRAL_GRADING CUSTOM_GRADING
                 #pragma multi_compile __ EYE_ADAPTATION
-                #pragma multi_compile __ BLOOM
-                #pragma multi_compile __ BLOOM_LENS_DIRT
                 #pragma multi_compile __ CHROMATIC_ABERRATION
                 #pragma multi_compile __ VIGNETTE
                 #pragma multi_compile __ DITHERING
