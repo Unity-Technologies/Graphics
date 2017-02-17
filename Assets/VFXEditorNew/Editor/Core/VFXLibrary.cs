@@ -80,8 +80,8 @@ namespace UnityEditor.VFX
         {
             lock(m_Lock)
             {
+                m_BlockDescs = LoadModels<VFXBlock>();
                 m_ContextDescs = LoadDescs<VFXContextDesc>();
-                m_BlockDescs = LoadDescs<VFXBlockDesc>();
                 m_OperatorDescs = LoadDescs<VFXOperatorDesc>();
                 m_Loaded = true;
             }
@@ -112,9 +112,18 @@ namespace UnityEditor.VFX
             var modelTypes = FindConcreteSubclasses<T>();
             var modelDescs = new List<VFXModelDescriptor<T>>();
             foreach (var modelType in modelTypes)
+            {
+                try
+                {
                     T instance = (T)System.Activator.CreateInstance(modelType);
                     modelDescs.Add(new VFXModelDescriptor<T>(instance));
+                }
+                catch (Exception e)
+                {
                     Debug.LogError("Error while loading model from type " + modelType + ": " + e.Message);
+                }
+            }
+
             return modelDescs;
         }
 
