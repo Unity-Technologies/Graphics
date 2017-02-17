@@ -43,22 +43,7 @@ namespace UnityEditor.VFX
             public VFXExpression expression;
         }
 
-        protected abstract ModeFlags Flags { get; }
         protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
-
-        private bool cascadable { get { return (Flags & ModeFlags.kCascadable) != 0; } }
-
-        [Flags]
-        protected enum ModeFlags
-        {
-            None = 0,
-            kBasicFloatOperation = 1 << 0,  //Automatically cast to biggest floatN format (sin(float3) => return float3)
-            kCascadable = 1 << 1,           //allow implicit stacking (add, mul, substract, ...)
-
-            kUnaryFloatOperator = kBasicFloatOperation,
-            kBinaryFloatOperator = kBasicFloatOperation | kCascadable,
-            kTernaryFloatOperator = kBasicFloatOperation,
-        }
 
         public VFXOperator()
         {
@@ -92,6 +77,11 @@ namespace UnityEditor.VFX
             {
                 return m_InputSlots;
             }
+
+            protected set
+            {
+                m_InputSlots = value;
+            }
         }
 
         public VFXMitoSlotOutput[] OutputSlots
@@ -100,6 +90,12 @@ namespace UnityEditor.VFX
             {
                 return m_OutputSlots;
             }
+
+            protected set
+            {
+                m_OutputSlots = value;
+            }
+
         }
 
         public override bool AcceptChild(VFXModel model, int index = -1)
@@ -133,45 +129,9 @@ namespace UnityEditor.VFX
             };
         }
 
-        protected override void OnInvalidate(InvalidationCause cause)
+        protected IEnumerable<VFXExpression> GetInputExpressions()
         {
-            base.OnInvalidate(cause);
-
-            VFXExpression[] resExpression = null;
-            if (cascadable)
-            {
-                var inputSlots = m_InputSlots.ToList();
-
-                //Remove useless unplugged slot (ensuring there is at least 2 slots)
-                var slotIndex = 0;
-                while (inputSlots.Count > 2 && slotIndex < inputSlots.Count)
-                {
-                    var currentSlot = inputSlots[slotIndex];
-                    if (currentSlot.parent == null)
-                    {
-                        inputSlots.RemoveAt(slotIndex);
-                    }
-                    else
-                    {
-                        ++slotIndex;
-                    }
-                }
-
-                var lastElement = inputSlots.Last();
-                if (lastElement.parent != null)
-                {
-                    //Add new available slot element
-                    inputSlots.Add(new VFXMitoSlotInput()
-                    {
-                        name = m_PropertyBuffer.GetType().GetFields().First().Name,
-                        type = lastElement.type
-                    });
-                }
-
-                m_InputSlots = inputSlots.ToArray();
-            }
-
-            IEnumerable<VFXExpression> expressions = m_InputSlots.Select(o =>
+            return m_InputSlots.Select(o =>
             {
                 VFXExpression expression = new VFXValueFloat(0, true);
                 if (o.parent != null)
@@ -184,31 +144,25 @@ namespace UnityEditor.VFX
                 }
                 return expression;
             });
-
-            if (cascadable)
-            {
-                var stackInputExpression = new Stack<VFXExpression>(expressions.Reverse());
-                while (stackInputExpression.Count > 1)
-                {
-                    var a = stackInputExpression.Pop();
-                    var b = stackInputExpression.Pop();
-                    var compose = BuildExpression(new[] { a, b })[0];
-                    stackInputExpression.Push(compose);
-                }
-                resExpression = stackInputExpression.ToArray();
-            }
-            else
-            {
-                resExpression = BuildExpression(expressions.ToArray());
-            }
-
-            var outpoutSlots = resExpression.Select((o, i) => new VFXMitoSlotOutput()
+        }
+    
+        protected IEnumerable<VFXMitoSlotOutput> BuildOuputSlot(IEnumerable<VFXExpression> inputExpression)
+        {
+            return inputExpression.Select((o, i) => new VFXMitoSlotOutput()
             {
                 slotID = i < m_OutputSlots.Length ? m_OutputSlots[i].slotID : Guid.NewGuid(),
                 expression = o,
                 type = VFXExpression.TypeToType(o.ValueType),
             });
-            m_OutputSlots = outpoutSlots.ToArray();
+        }
+
+        protected override void OnInvalidate(InvalidationCause cause)
+        {
+            base.OnInvalidate(cause);
+
+            IEnumerable<VFXExpression> inputExpressions = GetInputExpressions();
+            var ouputExpressions = BuildExpression(inputExpressions.ToArray());
+            OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
         }
 
         public Vector2 Position

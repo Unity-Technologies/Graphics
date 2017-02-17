@@ -11,8 +11,6 @@ namespace UnityEditor.VFX
     {
         override public string name { get { return "SampleCurve"; } }
 
-        protected override ModeFlags Flags { get { return ModeFlags.None; } }
-
         public class Properties
         {
             public float time = 0.0f;
