@@ -131,6 +131,21 @@ namespace UnityEditor.VFX.UI
 
 				RecreateFlowEdges();
 			}
+            else if (element is VFXOperatorPresenter)
+            {
+                var operatorPresenter = element as VFXOperatorPresenter;
+                var allOperator = m_Elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>();
+                foreach (var currentOperator in allOperator)
+                {
+                    foreach (var inputSlot in currentOperator.Operator.InputSlots.Where(s => s.parent == operatorPresenter.Operator))
+                    {
+                        //Update connection (*wip* : will be a function of VFXOperator)
+                        inputSlot.parent = null;
+                        inputSlot.parentSlotID = Guid.Empty;
+                    }
+                }
+                RecreateOperatorEdges();
+            }
 			else if (element is VFXFlowEdgePresenter)
 			{
 				var anchorPresenter = ((VFXFlowEdgePresenter)element).input;
@@ -146,7 +161,7 @@ namespace UnityEditor.VFX.UI
                 //Update connection (*wip* : will be a function of VFXOperator)
                 var toOperator = to.sourceOperator.Operator;
                 var toSlot = toOperator.InputSlots.First(o => o.slotID == to.slotID);
-                toSlot.parentSlotID = new Guid();
+                toSlot.parentSlotID = Guid.Empty;
                 toSlot.parent = null;
                 toOperator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
 

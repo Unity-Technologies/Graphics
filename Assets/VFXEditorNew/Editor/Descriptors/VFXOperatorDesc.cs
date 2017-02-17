@@ -93,7 +93,7 @@ namespace UnityEditor.VFX
         public class Properties
         {
             public float time = 0.0f;
-            public AnimationCurve curve = null;
+            public AnimationCurve curve = new AnimationCurve();
         }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

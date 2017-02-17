@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
         {
             var inAnchor = CreateInstance<VFXOperatorAnchorPresenter>();
             inAnchor.anchorType = slot.type;
-            inAnchor.name = "";
+            inAnchor.name = slot.name;
             inAnchor.Init(this, slot.slotID, direction);
             return inAnchor;
         }

@@ -16,14 +16,14 @@ namespace UnityEditor.VFX
         {
             public Type type;
             public Guid slotID = Guid.NewGuid();
+
+            public string name = "";
         }
 
         public class VFXMitoSlotInput : VFXMitoSlot
         {
-            public string name = null;
-
-            public VFXOperator parent = null;
-            public Guid parentSlotID = new Guid();
+            public VFXOperator parent;
+            public Guid parentSlotID;
         }
 
         public class VFXMitoSlotOutput : VFXMitoSlot
@@ -99,15 +99,26 @@ namespace UnityEditor.VFX
         {
             var fieldInfo = defaultProperties.GetType().GetField(name);
             var value = fieldInfo.GetValue(defaultProperties);
+
+            VFXExpression expression = null;
             if (value is float)
             {
-                return new VFXMitoSlotOutput()
-                {
-                    expression = new VFXValueFloat((float)value, true),
-                    type = value.GetType()
-                };
+                expression = new VFXValueFloat((float)value, true);
+
             }
-            throw new NotImplementedException();
+            else if(value is AnimationCurve)
+            {
+                expression = new VFXValueCurve(value as AnimationCurve, true);
+            }
+
+            if (expression == null)
+                throw new NotImplementedException();
+
+            return new VFXMitoSlotOutput()
+            {
+                expression = expression,
+                type = value.GetType()
+            };
         }
 
         protected override void OnInvalidate(InvalidationCause cause)
