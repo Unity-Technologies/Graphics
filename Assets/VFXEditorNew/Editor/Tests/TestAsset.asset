@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2666b914d007585499b757ff7d45538c, type: 3}
+  m_Name: TestAsset
+  m_EditorClassIdentifier: 
+  m_SerializedRoots:
+  - typeInfo:
+      fullName: UnityEditor.VFX.VFXSystem
+      assemblyName: Assembly-CSharp-Editor-testable
+    JSONnodeData: "{\n    \"m_SerializableChildren\": [\n        {\n            \"typeInfo\":
+      {\n                \"fullName\": \"UnityEditor.VFX.VFXContext\",\n                \"assemblyName\":
+      \"Assembly-CSharp-Editor-testable\"\n            },\n            \"JSONnodeData\":
+      \"{\\n    \\\"m_SerializableChildren\\\": [\\n        {\\n            \\\"typeInfo\\\":
+      {\\n                \\\"fullName\\\": \\\"UnityEditor.VFX.VFXInitBlockTest\\\",\\n
+      \               \\\"assemblyName\\\": \\\"Assembly-CSharp-Editor-testable\\\"\\n
+      \           },\\n            \\\"JSONnodeData\\\": \\\"{\\\\n    \\\\\\\"m_SerializableChildren\\\\\\\":
+      []\\\\n}\\\"\\n        }\\n    ],\\n    \\\"m_SerializableDesc\\\": \\\"UnityEditor.VFX.VFXBasicInitialize\\\",\\n
+      \   \\\"m_UIPosition\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0\\n
+      \   }\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
+      \"UnityEditor.VFX.VFXContext\",\n                \"assemblyName\": \"Assembly-CSharp-Editor-testable\"\n
+      \           },\n            \"JSONnodeData\": \"{\\n    \\\"m_SerializableChildren\\\":
+      [\\n        {\\n            \\\"typeInfo\\\": {\\n                \\\"fullName\\\":
+      \\\"UnityEditor.VFX.VFXUpdateBlockTest\\\",\\n                \\\"assemblyName\\\":
+      \\\"Assembly-CSharp-Editor-testable\\\"\\n            },\\n            \\\"JSONnodeData\\\":
+      \\\"{\\\\n    \\\\\\\"m_SerializableChildren\\\\\\\": []\\\\n}\\\"\\n        }\\n
+      \   ],\\n    \\\"m_SerializableDesc\\\": \\\"UnityEditor.VFX.VFXBasicUpdate\\\",\\n
+      \   \\\"m_UIPosition\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0\\n
+      \   }\\n}\"\n        },\n        {\n            \"typeInfo\": {\n                \"fullName\":
+      \"UnityEditor.VFX.VFXContext\",\n                \"assemblyName\": \"Assembly-CSharp-Editor-testable\"\n
+      \           },\n            \"JSONnodeData\": \"{\\n    \\\"m_SerializableChildren\\\":
+      [\\n        {\\n            \\\"typeInfo\\\": {\\n                \\\"fullName\\\":
+      \\\"UnityEditor.VFX.VFXOutputBlockTest\\\",\\n                \\\"assemblyName\\\":
+      \\\"Assembly-CSharp-Editor-testable\\\"\\n            },\\n            \\\"JSONnodeData\\\":
+      \\\"{\\\\n    \\\\\\\"m_SerializableChildren\\\\\\\": []\\\\n}\\\"\\n        }\\n
+      \   ],\\n    \\\"m_SerializableDesc\\\": \\\"UnityEditor.VFX.VFXBasicOutput\\\",\\n
+      \   \\\"m_UIPosition\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0\\n
+      \   }\\n}\"\n        }\n    ]\n}"
+  - typeInfo:
+      fullName: UnityEditor.VFX.VFXSystem
+      assemblyName: Assembly-CSharp-Editor-testable
+    JSONnodeData: "{\n    \"m_SerializableChildren\": [\n        {\n            \"typeInfo\":
+      {\n                \"fullName\": \"UnityEditor.VFX.VFXContext\",\n                \"assemblyName\":
+      \"Assembly-CSharp-Editor-testable\"\n            },\n            \"JSONnodeData\":
+      \"{\\n    \\\"m_SerializableChildren\\\": [],\\n    \\\"m_SerializableDesc\\\":
+      \\\"UnityEditor.VFX.VFXBasicInitialize\\\",\\n    \\\"m_UIPosition\\\": {\\n
+      \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0\\n    }\\n}\"\n        },\n
+      \       {\n            \"typeInfo\": {\n                \"fullName\": \"UnityEditor.VFX.VFXContext\",\n
+      \               \"assemblyName\": \"Assembly-CSharp-Editor-testable\"\n            },\n
+      \           \"JSONnodeData\": \"{\\n    \\\"m_SerializableChildren\\\": [],\\n
+      \   \\\"m_SerializableDesc\\\": \\\"UnityEditor.VFX.VFXBasicOutput\\\",\\n    \\\"m_UIPosition\\\":
+      {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0\\n    }\\n}\"\n        }\n
+      \   ]\n}"

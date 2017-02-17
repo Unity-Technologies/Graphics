@@ -118,7 +118,7 @@ namespace UnityEditor.VFX.UI
 				RemoveFromClassList("selected");
 			}
 
-			m_Title.content.text = presenter.Model.Desc.Name + " " + m_Index;
+			m_Title.content.text = presenter.Model.name + " " + m_Index;
 
 			SetPosition(presenter.position);
 

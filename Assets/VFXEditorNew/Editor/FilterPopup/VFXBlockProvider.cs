@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXBlockProvider : VFXFilterWindow.IProvider
+    class VFXBlockProvider : VFXFilterWindow.IProvider
     {
         VFXContextPresenter m_ContextPresenter;
         AddBlock m_onAddBlock;
@@ -15,19 +15,19 @@ namespace UnityEditor.VFX.UI
 
         public class VFXBlockElement : VFXFilterWindow.Element
         {
-            public VFXBlockDesc m_Desc;
+            public VFXModelDescriptor<VFXBlock> m_BlockDesc;
             public AddBlock m_SpawnCallback;
 
-            internal VFXBlockElement(int level, VFXBlockDesc desc, AddBlock spawncallback)
+            internal VFXBlockElement(int level, VFXModelDescriptor<VFXBlock> desc, AddBlock spawncallback)
             {
                 this.level = level;
-                content = new GUIContent(VFXInfoAttribute.Get(desc).category.Replace("/"," ")+" : " + desc.Name/*, VFXEditor.styles.GetIcon(desc.Icon)*/);
-                m_Desc = desc;
+                content = new GUIContent(desc.info.category.Replace("/", " ") + " : " + desc.name/*, VFXEditor.styles.GetIcon(desc.Icon)*/);
+                m_BlockDesc = desc;
                 m_SpawnCallback = spawncallback;
             }
         }
 
-        public delegate void AddBlock(int index, VFXBlockDesc desc);
+        public delegate void AddBlock(int index, VFXBlock block);
 
         internal VFXBlockProvider(/*Vector2 mousePosition, */VFXContextPresenter contextModel, AddBlock onAddBlock)
         {
@@ -41,26 +41,26 @@ namespace UnityEditor.VFX.UI
         {
             tree.Add(new VFXFilterWindow.GroupElement(0, "NodeBlocks"));
 
-            var blocks = new List<VFXBlockDesc>(VFXLibrary.GetBlocks());
+            var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
 
-            var filteredBlocks = blocks.Where(b => m_ContextPresenter.Model.Accept(b)).ToList();
+            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.Model)).ToList();
 
             filteredBlocks.Sort((blockA, blockB) => {
 
-                var infoA = VFXInfoAttribute.Get(blockA); ;
-                var infoB = VFXInfoAttribute.Get(blockB);
+                var infoA = blockA.info;
+                var infoB = blockB.info;
 
                 int res = infoA.category.CompareTo(infoB.category);
-                return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
+                return res != 0 ? res : blockA.name.CompareTo(blockB.name);
             });
 
             HashSet<string> categories = new HashSet<string>();
 
-            foreach(VFXBlockDesc desc in filteredBlocks)
+            foreach(var block in filteredBlocks)
             {
                 int i = 0;
 
-                var category = VFXInfoAttribute.Get(desc).category;
+                var category = block.info.category;
 
                 if (!categories.Contains(category) && category != "")
                 {
@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.UI
                 if (category != "")
                     i++;
 
-                tree.Add(new VFXBlockElement(i, desc, m_onAddBlock));
+                tree.Add(new VFXBlockElement(i, block, m_onAddBlock));
 
             }
         }
@@ -96,7 +96,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXBlockElement blockElem = element as VFXBlockElement;
                 
-                blockElem.m_SpawnCallback(-1,blockElem.m_Desc);
+                blockElem.m_SpawnCallback(-1,blockElem.m_BlockDesc.CreateInstance());
                 return true;
             }
 
