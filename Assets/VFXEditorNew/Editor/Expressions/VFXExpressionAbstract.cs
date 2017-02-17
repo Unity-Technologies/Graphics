@@ -99,46 +99,9 @@ namespace UnityEditor.VFX
         public abstract VFXValueType ValueType { get; }
         public abstract VFXExpressionOp Operation { get; }
         public virtual VFXExpression[] Parents { get { return new VFXExpression[] { }; } }
+        public virtual string[] ParentsCodeName { get { return new string[] { "a", "b", "c", "d" }; } }
 
-        protected virtual string[] ParentsCodeName { get { return new string[] { "a", "b", "c", "d" }; } }
-
-        private string temp_GetUniqueName()
-        {
-            return "temp_" + GetHashCode().ToString("X");
-        }
-
-        private string temp_AggregateWithComa(System.Collections.Generic.IEnumerable<string> input)
-        {
-            return input.Aggregate((a, b) => a + ", " + b);
-        }
-
-        public void temp_GetExpressionCode(out string function, out string call)
-        {
-            function = call = null;
-            if (!Is(Flags.ValidOnGPU))
-            {
-                throw new ArgumentException(string.Format("GetExpressionCode failed (not valid on GPU) with {0}", GetType().FullName));
-            }
-
-            if (Parents.Length == 0)
-            {
-                throw new ArgumentException(string.Format("GetExpressionCode failed (Parents empty) with {0}", GetType().FullName));
-            }
-
-            var fnName = GetType().Name;
-            foreach (var additionnalParam in AdditionnalParameters)
-            {
-                fnName += additionnalParam.ToString();
-            }
-
-            var param = Parents.Select((o, i) => string.Format("{0} {1}", TypeToCode(o.ValueType), ParentsCodeName[i]));
-            var fnHeader = string.Format("{0} {1}({2})", TypeToCode(ValueType), fnName, temp_AggregateWithComa(param));
-            var fnContent = string.Format("return {0};", GetOperationCodeContent());
-            function = string.Format("{0}\n{{\n{1}\n}}\n", fnHeader, fnContent);
-            call = string.Format("{0} {1} = {2}({3});", TypeToCode(ValueType), temp_GetUniqueName(), fnName, temp_AggregateWithComa(Parents.Select(o => o.temp_GetUniqueName())));
-        }
-
-        protected virtual string GetOperationCodeContent()
+        public virtual string GetOperationCodeContent()
         {
             throw new ArgumentException(string.Format("Unexpected GetOperationCodeContent call with {0}", GetType().FullName));
         }

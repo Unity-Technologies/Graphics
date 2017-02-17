@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        sealed protected override string GetOperationCodeContent()
+        sealed public override string GetOperationCodeContent()
         {
             return string.Format("return {0}({1});", TypeToCode(ValueType), Parents.Select((o, i) => ParentsCodeName[i]).Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
         }

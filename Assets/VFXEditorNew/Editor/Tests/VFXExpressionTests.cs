@@ -11,8 +11,45 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXExpressionTests
     {
+        //Will be function of Context Code builder
+        static private string temp_GetUniqueName(object expression)
+        {
+            return "temp_" + expression.GetHashCode().ToString("X");
+        }
+
+        static private string temp_AggregateWithComa(System.Collections.Generic.IEnumerable<string> input)
+        {
+            return input.Aggregate((a, b) => a + ", " + b);
+        }
+
+        static public void temp_GetExpressionCode(VFXExpression expression, out string function, out string call)
+        {
+            function = call = null;
+            if (!expression.Is(VFXExpression.Flags.ValidOnGPU))
+            {
+                throw new ArgumentException(string.Format("GetExpressionCode failed (not valid on GPU) with {0}", expression.GetType().FullName));
+            }
+
+            if (expression.Parents.Length == 0)
+            {
+                throw new ArgumentException(string.Format("GetExpressionCode failed (Parents empty) with {0}", expression.GetType().FullName));
+            }
+
+            var fnName = expression.GetType().Name;
+            foreach (var additionnalParam in expression.AdditionnalParameters)
+            {
+                fnName += additionnalParam.ToString();
+            }
+
+            var param = expression.Parents.Select((o, i) => string.Format("{0} {1}", VFXExpression.TypeToCode(o.ValueType), expression.ParentsCodeName[i]));
+            var fnHeader = string.Format("{0} {1}({2})", VFXExpression.TypeToCode(expression.ValueType), fnName, temp_AggregateWithComa(param));
+            var fnContent = string.Format("return {0};", expression.GetOperationCodeContent());
+            function = string.Format("{0}\n{{\n{1}\n}}\n", fnHeader, fnContent);
+            call = string.Format("{0} {1} = {2}({3});", VFXExpression.TypeToCode(expression.ValueType), temp_GetUniqueName(expression), fnName, temp_AggregateWithComa(expression.Parents.Select(o => temp_GetUniqueName(o))));
+        }
+
         //Will be an helper in Node System
-        static public VFXExpression CastFloat(VFXExpression from, VFXValueType toValueType, float defautValue = 0.0f)
+        static public VFXExpression temp_CastFloat(VFXExpression from, VFXValueType toValueType, float defautValue = 0.0f)
         {
             if (!VFXExpressionFloatOperation.IsFloatValueType(from.ValueType) || !VFXExpressionFloatOperation.IsFloatValueType(toValueType))
             {
@@ -89,10 +126,10 @@ namespace UnityEditor.VFX.Test
             var value_c = new VFXValueFloat(c, true);
             var value_d = new VFXValueFloat(d, true);
 
-            var addExpression = new VFXExpressionAdd(CastFloat(value_a, value_b.ValueType), value_b);
+            var addExpression = new VFXExpressionAdd(temp_CastFloat(value_a, value_b.ValueType), value_b);
             var sinExpression = new VFXExpressionSin(addExpression);
-            var mulExpression = new VFXExpressionMul(sinExpression, CastFloat(value_c, sinExpression.ValueType));
-            var substractExpression = new VFXExpressionSubtract(CastFloat(value_d, mulExpression.ValueType), mulExpression);
+            var mulExpression = new VFXExpressionMul(sinExpression, temp_CastFloat(value_c, sinExpression.ValueType));
+            var substractExpression = new VFXExpressionSubtract(temp_CastFloat(value_d, mulExpression.ValueType), mulExpression);
 
             var context = new VFXExpression.Context();
             var resultA = context.Compile(addExpression);
@@ -143,7 +180,7 @@ namespace UnityEditor.VFX.Test
                     else
                     {
                         string function, call;
-                        operation.temp_GetExpressionCode(out function, out call);
+                        temp_GetExpressionCode(operation, out function, out call);
                         functionList.Add(function);
                         callFunction.Append(call);
                         callFunction.AppendLine();
@@ -215,10 +252,10 @@ namespace UnityEditor.VFX.Test
             var value_c = new VFXValueFloat(c, true);
             var value_d = new VFXValueFloat(d, true);
 
-            var addExpression = new VFXExpressionAdd(CastFloat(value_a, value_b.ValueType), value_b);
+            var addExpression = new VFXExpressionAdd(temp_CastFloat(value_a, value_b.ValueType), value_b);
             var sinExpression = new VFXExpressionSin(addExpression);
-            var mulExpression = new VFXExpressionMul(sinExpression, CastFloat(value_c, sinExpression.ValueType));
-            var substractExpression = new VFXExpressionSubtract(CastFloat(value_d, mulExpression.ValueType), mulExpression);
+            var mulExpression = new VFXExpressionMul(sinExpression, temp_CastFloat(value_c, sinExpression.ValueType));
+            var substractExpression = new VFXExpressionSubtract(temp_CastFloat(value_d, mulExpression.ValueType), mulExpression);
 
             var addedExpression = new HashSet<VFXExpression>();
             var graphLevel = new Stack<VFXExpression[]>();
@@ -257,7 +294,7 @@ namespace UnityEditor.VFX.Test
                     else
                     {
                         string function, call;
-                        operation.temp_GetExpressionCode(out function, out call);
+                        temp_GetExpressionCode(operation, out function, out call);
                         functionList.Add(function);
                         callFunction.Append(call);
                         callFunction.AppendLine();

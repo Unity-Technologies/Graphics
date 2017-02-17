@@ -93,7 +93,7 @@ namespace UnityEditor.VFX
             return ToFloatN(result);
         }
 
-        sealed protected override string GetOperationCodeContent()
+        sealed public override string GetOperationCodeContent()
         {
             return GetUnaryOperationCode(ParentsCodeName[0]);
         }
@@ -140,7 +140,7 @@ namespace UnityEditor.VFX
             return ToFloatN(result);
         }
 
-        sealed protected override string GetOperationCodeContent()
+        sealed public override string GetOperationCodeContent()
         {
             return GetBinaryOperationCode(ParentsCodeName[0], ParentsCodeName[1]);
         }
@@ -189,7 +189,7 @@ namespace UnityEditor.VFX
             return ToFloatN(result);
         }
 
-        sealed protected override string GetOperationCodeContent()
+        sealed public override string GetOperationCodeContent()
         {
             return GetTernaryOperationCode(ParentsCodeName[0], ParentsCodeName[1], ParentsCodeName[2]);
         }

@@ -70,7 +70,7 @@ namespace UnityEditor.VFX
             return new VFXValueFloat(readValue, true);
         }
 
-        sealed protected override string GetOperationCodeContent()
+        sealed public override string GetOperationCodeContent()
         {
             return string.Format("return {0}[{1}];", ParentsCodeName[0], AdditionnalParameters[1]);
         }
