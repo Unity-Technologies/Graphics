@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
     using UnityEditor;
 #endif
@@ -17,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         public float lerpWeight;
         [SerializeField]
-        public bool  enableTransmittance;
+        public bool  enableTransmission;
         [SerializeField]
         public float thicknessScale;
         [SerializeField] [HideInInspector]
@@ -31,11 +32,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public SubsurfaceScatteringProfile()
         {
-            stdDev1             = new Color(0.3f, 0.3f, 0.3f, 0.0f);
-            stdDev2             = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-            lerpWeight          = 0.5f;
-            enableTransmittance = false;
-            thicknessScale      = 3.0f;
+            stdDev1            = new Color(0.3f, 0.3f, 0.3f, 0.0f);
+            stdDev2            = new Color(0.6f, 0.6f, 0.6f, 0.0f);
+            lerpWeight         = 0.5f;
+            enableTransmission = false;
+            thicknessScale     = 3.0f;
 
             UpdateKernelAndVarianceData();
         }
@@ -192,9 +193,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int maxNumProfiles = 8;
 
         [SerializeField]
+        bool                          m_EnableSSS;
+        [SerializeField]
         int                           m_NumProfiles;
         [SerializeField]
-        int                           m_TransmittanceFlags;
+        int                           m_TransmissionFlags;
         [SerializeField]
         SubsurfaceScatteringProfile[] m_Profiles;
         [SerializeField]
@@ -210,6 +213,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public SubsurfaceScatteringParameters()
         {
+            m_EnableSSS   = true;
             m_NumProfiles = 1;
             m_Profiles    = new SubsurfaceScatteringProfile[m_NumProfiles];
 
@@ -221,16 +225,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             OnValidate();
         }
 
+        public bool enableSSS {
+            // Set via serialization.
+            get { return m_EnableSSS; }
+        }
+
         public SubsurfaceScatteringProfile[] profiles {
             // Set via serialization.
             get { return m_Profiles; }
         }
 
         // Returns a bit mask s.t. the i-th bit indicates whether the i-th profile requires transmittance evaluation.
-        // Supplies '_TransmittanceFlags' to Lit.hlsl.
-        public int transmittanceFlags {
+        // Supplies '_TransmissionFlags' to Lit.hlsl.
+        public int transmissionFlags {
             // Set during OnValidate().
-            get { return m_TransmittanceFlags; }
+            get { return m_TransmissionFlags; }
         }
 
         // Supplies '_ThicknessScales' to Lit.hlsl.
@@ -259,9 +268,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_FilterKernels; }
         }
 
-        // --- Private Methods ---
-
-        void OnValidate()
+        public void OnValidate()
         {
             if (m_Profiles.Length > maxNumProfiles)
             {
@@ -269,7 +276,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             m_NumProfiles        = m_Profiles.Length;
-            m_TransmittanceFlags = 0;
+            m_TransmissionFlags = 0;
 
             if (m_ThicknessScales == null)
             {
@@ -295,7 +302,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < m_NumProfiles; i++)
             {
-                m_TransmittanceFlags |= (m_Profiles[i].enableTransmittance ? 1 : 0) << i;
+                m_TransmissionFlags |= (m_Profiles[i].enableTransmission ? 1 : 0) << i;
 
                 c.r = Mathf.Clamp(m_Profiles[i].stdDev1.r, 0.05f, 2.0f);
                 c.g = Mathf.Clamp(m_Profiles[i].stdDev1.g, 0.05f, 2.0f);
@@ -353,15 +360,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         private class Styles
         {
-            public readonly GUIContent sssCategory              = new GUIContent("Subsurface scattering");
-            public readonly GUIContent sssProfileStdDev1        = new GUIContent("Standard deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
-            public readonly GUIContent sssProfileStdDev2        = new GUIContent("Standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
-            public readonly GUIContent sssProfileLerpWeight     = new GUIContent("Filter interpolation", "Controls linear interpolation between the two Gaussian filters.");
-            public readonly GUIContent sssProfileTransmittance  = new GUIContent("Enable transmittance", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
-            public readonly GUIContent sssProfileThicknessScale = new GUIContent("Thickness scale", "Linearly scales the thickness of the object which affects the amount of transmitted lighting.");
+            public readonly GUIContent category              = new GUIContent("Subsurface scattering parameters");
+            public readonly GUIContent[] profiles            = new GUIContent[SubsurfaceScatteringParameters.maxNumProfiles] { new GUIContent("Profile #0"), new GUIContent("Profile #1"), new GUIContent("Profile #2"), new GUIContent("Profile #3"), new GUIContent("Profile #4"), new GUIContent("Profile #5"), new GUIContent("Profile #6"), new GUIContent("Profile #7") };
+            public readonly GUIContent profilePreview        = new GUIContent("Profile preview. Note that the intensity of the region in the center may be clamped.");
+            public readonly GUIContent numProfiles           = new GUIContent("Number of profiles");
+            public readonly GUIContent profileStdDev1        = new GUIContent("Standard deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
+            public readonly GUIContent profileStdDev2        = new GUIContent("Standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
+            public readonly GUIContent profileLerpWeight     = new GUIContent("Filter interpolation",  "Controls linear interpolation between the two Gaussian filters.");
+            public readonly GUIContent profileTransmission   = new GUIContent("Enable transmission",   "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
+            public readonly GUIContent profileThicknessScale = new GUIContent("Thickness scale",       "Linearly scales the object thickness which affects the amount of transmitted lighting.");
         }
 
-        private static Styles s_Styles;
+        private static Styles      s_Styles;
+        private SerializedProperty m_EnableSSS, m_Profiles, m_NumProfiles;
+        private Material           m_ProfileMaterial;
+        private RenderTexture[]    m_ProfileImages;
 
         // --- Public Methods ---
 
@@ -377,14 +390,79 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        void OnEnable()
+        {
+            m_EnableSSS       = serializedObject.FindProperty("m_EnableSSS");
+            m_Profiles        = serializedObject.FindProperty("m_Profiles");
+            m_NumProfiles     = m_Profiles.FindPropertyRelative("Array.size");
+            m_ProfileMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawGaussianProfile");
+            m_ProfileImages   = new RenderTexture[SubsurfaceScatteringParameters.maxNumProfiles];
+
+            for (int i = 0; i < SubsurfaceScatteringParameters.maxNumProfiles; i++)
+            {
+                m_ProfileImages[i] = new RenderTexture(256, 256, 0, RenderTextureFormat.DefaultHDR);
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            SerializedProperty profiles = serializedObject.FindProperty("m_Profiles");
-
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(profiles, true);
+
+            // Validate the data before displaying it.
+            ((SubsurfaceScatteringParameters)serializedObject.targetObject).OnValidate();
+
+            EditorGUILayout.LabelField(styles.category, EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(m_EnableSSS);
+            EditorGUILayout.PropertyField(m_NumProfiles, styles.numProfiles);
+            EditorGUILayout.PropertyField(m_Profiles);
+
+            if (m_Profiles.isExpanded)
+            {
+                EditorGUI.indentLevel++;
+
+                for (int i = 0, n = Math.Min(m_Profiles.arraySize, SubsurfaceScatteringParameters.maxNumProfiles); i < n; i++)
+                {
+                    SerializedProperty profile = m_Profiles.GetArrayElementAtIndex(i);
+			        EditorGUILayout.PropertyField(profile, styles.profiles[i]);
+
+                    if (profile.isExpanded)
+                    {
+                        EditorGUI.indentLevel++;
+
+                        SerializedProperty profileStdDev1        = profile.FindPropertyRelative("stdDev1");
+                        SerializedProperty profileStdDev2        = profile.FindPropertyRelative("stdDev2");
+                        SerializedProperty profileLerpWeight     = profile.FindPropertyRelative("lerpWeight");
+                        SerializedProperty profileTransmission   = profile.FindPropertyRelative("enableTransmission");
+                        SerializedProperty profileThicknessScale = profile.FindPropertyRelative("thicknessScale");
+
+                        EditorGUILayout.PropertyField(profileStdDev1,        styles.profileStdDev1);
+                        EditorGUILayout.PropertyField(profileStdDev2,        styles.profileStdDev2);
+                        EditorGUILayout.PropertyField(profileLerpWeight,     styles.profileLerpWeight);
+                        EditorGUILayout.PropertyField(profileTransmission,   styles.profileTransmission);
+                        EditorGUILayout.PropertyField(profileThicknessScale, styles.profileThicknessScale);
+
+                        EditorGUILayout.Space();
+
+                        // Draw the profile.
+                        m_ProfileMaterial.SetColor("_StdDev1",    profileStdDev1.colorValue);
+                        m_ProfileMaterial.SetColor("_StdDev2",    profileStdDev2.colorValue);
+                        m_ProfileMaterial.SetFloat("_LerpWeight", profileLerpWeight.floatValue);
+                        EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImages[i], m_ProfileMaterial, ScaleMode.ScaleToFit);
+
+                        EditorGUILayout.Space();
+                        EditorGUILayout.LabelField(styles.profilePreview, EditorStyles.centeredGreyMiniLabel);
+                        EditorGUILayout.Space();
+
+                        EditorGUI.indentLevel--;
+                    }
+		        }
+
+                EditorGUI.indentLevel--;
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 // Serialization does not invoke setters, but does call OnValidate().

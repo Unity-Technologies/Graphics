@@ -6,7 +6,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
         _SrcBlend("", Float) = 1
         _DstBlend("", Float) = 1
 
-        _StencilRef("_StencilRef", Int) = 0
+        _StencilRef("", Int) = 0
+        _StencilCmp("", Int) = 3
     }
 
     SubShader
@@ -16,7 +17,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             Stencil
             {
                 Ref  [_StencilRef]
-                Comp Equal
+                Comp [_StencilCmp]
                 Pass Keep
             }
 

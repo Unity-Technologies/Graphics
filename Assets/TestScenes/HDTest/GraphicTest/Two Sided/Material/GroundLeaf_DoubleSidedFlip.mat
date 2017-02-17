@@ -8,10 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: GroundLeaf_DoubleSidedFlip
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALPHATEST_ON _DEPTHOFFSETENABLE_OFF _DETAIL_MAP_WITH_NORMAL _DISTORTIONDEPTHTEST_OFF
-    _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_ON
-    _EMISSION _ENABLEPERPIXELDISPLACEMENT_OFF _MASKMAP _METALLICGLOSSMAP _NORMALMAP
-    _NORMALMAP_TANGENT_SPACE _TESSELLATIONOBJECTSCALE_OFF _TESSELLATION_DISPLACEMENT
+  m_ShaderKeywords: _ALPHATEST_ON _DOUBLESIDED_ON _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: 2450
@@ -164,7 +161,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _StencilRef: 1
+    - _StencilRef: 2
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0

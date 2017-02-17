@@ -20,9 +20,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum StencilBits
     {
         None      = 0,
-        Standard  = 1 + Lit.MaterialId.LitStandard,
-        SSS       = 1 + Lit.MaterialId.LitSSS,
-        ClearCoat = 1 + Lit.MaterialId.LitClearCoat,
+        SSS       = 0 + Lit.MaterialId.LitSSS,       // 1
+        Standard  = 2 + Lit.MaterialId.LitStandard,  // 2
+        ClearCoat = 1 + Lit.MaterialId.LitClearCoat, // 3
         All       = 255 // 0xff
     }
 

@@ -35,7 +35,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _SubsurfaceProfile("Subsurface Profile", Int) = 0
         _SubsurfaceRadius("Subsurface Radius", Range(0.004, 1.0)) = 1.0
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
-        _Thickness("Thickness", Range(0.004, 1.0)) = 0.5
+        _Thickness("Thickness", Range(0.004, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
 
         //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
@@ -146,6 +146,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
     #pragma shader_feature _THICKNESS_MAP
+    #pragma shader_feature _SUBSURFACE_SCATTERING
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
