@@ -144,6 +144,7 @@ namespace UnityEditor.VFX.UI
                         inputSlot.parentSlotID = Guid.Empty;
                     }
                 }
+                m_ModelContainer.m_Roots.Remove(operatorPresenter.Operator);
                 RecreateOperatorEdges();
             }
 			else if (element is VFXFlowEdgePresenter)
@@ -170,7 +171,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                throw new NotImplementedException();
+                throw new NotImplementedException(string.Format("Unexpected type   : {0}", element.GetType().FullName));
             }
 
 			EditorUtility.SetDirty(m_ModelContainer);
