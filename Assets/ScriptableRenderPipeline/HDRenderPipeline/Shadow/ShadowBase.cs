@@ -14,10 +14,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         All = Point | Spot | Directional
     };
 
+
+    [GenerateHLSL]
     public enum GPUShadowSampling
     {
         PCF_1tap,
         PCF_9Taps_Adaptive,
+        VSM_1tap,
+        MSM_1tap
     };
 
     namespace ShadowExp // temporary namespace until everything can be merged into the HDPipeline
