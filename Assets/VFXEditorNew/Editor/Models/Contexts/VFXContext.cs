@@ -38,4 +38,4 @@ using System;using UnityEngine;using Type = System.Type;namespace UnityEdit
         [SerializeField]
         private VFXContextType m_ContextType;        [SerializeField]        private VFXDataType m_InputType;
 
-        [SerializeField]        private VFXDataType m_OutputType;             [SerializeField]        private string m_SerializableDesc;        [SerializeField]        private Vector2 m_UIPosition;    }    // TODO Do that later!   /* class VFXSubContext : VFXModel<VFXContext, VFXModel>    {        // In and out sub context, if null directly connected to the context input/output        private VFXSubContext m_In;        private VFXSubContext m_Out;    }*/}
+        [SerializeField]        private VFXDataType m_OutputType;         [SerializeField]        private Vector2 m_UIPosition;    }    // TODO Do that later!   /* class VFXSubContext : VFXModel<VFXContext, VFXModel>    {        // In and out sub context, if null directly connected to the context input/output        private VFXSubContext m_In;        private VFXSubContext m_Out;    }*/}
