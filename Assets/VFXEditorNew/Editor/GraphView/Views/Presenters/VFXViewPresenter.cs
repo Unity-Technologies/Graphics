@@ -231,9 +231,10 @@ namespace UnityEditor.VFX.UI
 		{
             if (startAnchorPresenter is VFXOperatorAnchorPresenter)
             {
-                var allAnchors = elements.OfType<VFXOperatorPresenter>().SelectMany(o => o.inputAnchors);
-                allAnchors = allAnchors.Where(o => o.direction == Direction.Input);
-                return allAnchors.Cast<NodeAnchorPresenter>().ToList();
+                var allOperatorPresenter = elements.OfType<VFXOperatorPresenter>();
+                if (startAnchorPresenter.direction == Direction.Input)
+                    return allOperatorPresenter.SelectMany(o => o.outputAnchors).ToList();
+                return allOperatorPresenter.SelectMany(o => o.inputAnchors).ToList();
             }
 
             if( startAnchorPresenter is VFXDataAnchorPresenter )
