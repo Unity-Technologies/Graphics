@@ -6,55 +6,19 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXOperatorDesc
-    {
-        [Flags]
-        public enum Flags
-        {
-            None = 0,
-            kBasicFloatOperation = 1 << 0,  //Automatically cast to biggest floatN format (sin(float3) => return float3)
-            kCascadable = 1 << 1,           //allow implicit stacking (add, mul, substract, ...)
-
-            kUnaryFloatOperator = kBasicFloatOperation,
-            kBinaryFloatOperator = kBasicFloatOperation | kCascadable,
-            kTernaryFloatOperator = kBasicFloatOperation,
-        }
-
-        public string name { get; private set; }
-
-        public Flags m_Flags;
-        public bool cascadable { get { return (m_Flags & Flags.kCascadable) != 0; } }
-
-        protected VFXOperatorDesc(string _name, Flags flags)
-        {
-            name = _name;
-            m_Flags = flags;
-        }
-
-        abstract public VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
-        public System.Type GetPropertiesType()
-        {
-            return GetType().GetNestedType("Properties");
-        }
-    }
-
-    abstract class VFXOperatorUnaryloatOperation : VFXOperatorDesc
+    abstract class VFXOperatorUnaryFloatOperation : VFXOperator
     {
         public class Properties
         {
             public float input = 0.0f;
         }
 
-        protected VFXOperatorUnaryloatOperation(string name) : base(name, Flags.kUnaryFloatOperator)
-        {
-        }
+        protected override ModeFlags Flags { get { return ModeFlags.kUnaryFloatOperator; } }
     }
 
-    abstract class VFXOperatorBinaryFloatOperation : VFXOperatorDesc
+    abstract class VFXOperatorBinaryFloatOperation : VFXOperator
     {
-        protected VFXOperatorBinaryFloatOperation(string name) : base(name, Flags.kBinaryFloatOperator)
-        {
-        }
+        protected override ModeFlags Flags { get { return ModeFlags.kBinaryFloatOperator; } }
     }
 
     abstract class VFXOperatorBinaryFloatOperationOne : VFXOperatorBinaryFloatOperation
@@ -64,8 +28,6 @@ namespace UnityEditor.VFX
             public float right = 1.0f;
             public float left = 1.0f;
         }
-        protected VFXOperatorBinaryFloatOperationOne(string name) : base(name)
-        { }
     }
 
     abstract class VFXOperatorBinaryFloatOperationZero : VFXOperatorBinaryFloatOperation
@@ -75,45 +37,36 @@ namespace UnityEditor.VFX
             public float right = 0.0f;
             public float left = 0.0f;
         }
-        protected VFXOperatorBinaryFloatOperationZero(string name) : base(name)
-        { }
     }
 
     [VFXInfo]
-    class VFXOperatorSin : VFXOperatorUnaryloatOperation
+    class VFXOperatorSin : VFXOperatorUnaryFloatOperation
     {
-        public VFXOperatorSin() : base("Sin")
-        {
-        }
+        override public string name { get { return "Sin"; }}
 
-        public override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionSin(inputExpression[0]) };
         }
     }
 
-
     [VFXInfo]
     class VFXOperatorAdd : VFXOperatorBinaryFloatOperationZero
     {
-        public VFXOperatorAdd() : base("Add")
-        {
-        }
+        override public string name { get { return "Add"; } }
 
-        public override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new [] { new VFXExpressionAdd(inputExpression[0], inputExpression[1]) };
+            return new[] { new VFXExpressionAdd(inputExpression[0], inputExpression[1]) };
         }
     }
 
     [VFXInfo]
-    class VFXOperatorSubstract : VFXOperatorBinaryFloatOperationZero
+    class VFXOperatorSubtract : VFXOperatorBinaryFloatOperationZero
     {
-        public VFXOperatorSubstract() : base("Substract")
-        {
-        }
+        override public string name { get { return "Subtract"; } }
 
-        public override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionSubtract(inputExpression[0], inputExpression[1]) };
         }
@@ -122,32 +75,30 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorMul : VFXOperatorBinaryFloatOperationOne
     {
-        public VFXOperatorMul() : base("Mul")
-        {
-        }
+        override public string name { get { return "Mul"; } }
 
-        public override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionMul(inputExpression[0], inputExpression[1]) };
         }
     }
 
     [VFXInfo]
-    class VFXOperatorSampleCurve : VFXOperatorDesc
+    class VFXOperatorSampleCurve : VFXOperator
     {
+        override public string name { get { return "SampleCurve"; } }
+
+        protected override ModeFlags Flags { get { return ModeFlags.None; } }
+
         public class Properties
         {
             public float time = 0.0f;
             public AnimationCurve curve = null;
         }
 
-        public override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionSampleCurve(inputExpression[0], inputExpression[1]) };
-        }
-
-        public VFXOperatorSampleCurve() : base("SampleCurve", Flags.None)
-        {
         }
     }
 }

@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.UI
                                  this);
                 foreach (var desc in VFXLibrary.GetOperators())
                     menu.AddItem(new GUIContent(desc.name), false,
-                                 contentView => AddVFXOperator(tPos, desc),
+                                 contentView => AddVFXOperator(tPos, desc.CreateInstance()),
                                  this);
 
                 menu.ShowAsContext();
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
             GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc);
         }
 
-        void AddVFXOperator(Vector2 pos, VFXOperatorDesc desc)
+        void AddVFXOperator(Vector2 pos, VFXOperator desc)
         {
             GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
         }

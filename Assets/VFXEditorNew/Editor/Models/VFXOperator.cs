@@ -9,7 +9,7 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX
 {
-    class VFXOperator : VFXModel
+    abstract class VFXOperator : VFXModel
     {
         /*draft slot class waiting for real slot implementation*/
         public abstract class VFXMitoSlot
@@ -31,16 +31,29 @@ namespace UnityEditor.VFX
             public VFXExpression expression;
         }
 
-        private VFXOperator() {}
+        protected abstract ModeFlags Flags { get; }
+        protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
-        public VFXOperator(VFXOperatorDesc desc)
+        private bool cascadable { get { return (Flags & ModeFlags.kCascadable) != 0; } }
+
+        [Flags]
+        protected enum ModeFlags
         {
-            m_Desc = desc;
-            System.Type propertyType = m_Desc.GetPropertiesType();
-            m_descDefaultProperties = System.Activator.CreateInstance(propertyType);
+            None = 0,
+            kBasicFloatOperation = 1 << 0,  //Automatically cast to biggest floatN format (sin(float3) => return float3)
+            kCascadable = 1 << 1,           //allow implicit stacking (add, mul, substract, ...)
 
+            kUnaryFloatOperator = kBasicFloatOperation,
+            kBinaryFloatOperator = kBasicFloatOperation | kCascadable,
+            kTernaryFloatOperator = kBasicFloatOperation,
+        }
+
+        public VFXOperator()
+        {
+            System.Type propertyType = GetPropertiesType();
             if (propertyType != null)
             {
+                m_PropertyBuffer = System.Activator.CreateInstance(propertyType);
                 m_InputSlots = propertyType.GetFields().Select(o =>
                 {
                     return new VFXMitoSlotInput()
@@ -52,10 +65,14 @@ namespace UnityEditor.VFX
             }            
             OnInvalidate(InvalidationCause.kParamChanged);
         }
+        private System.Type GetPropertiesType()
+        {
+            return GetType().GetNestedType("Properties");
+        }
 
         private VFXMitoSlotInput[] m_InputSlots = new VFXMitoSlotInput[] { };
         private VFXMitoSlotOutput[] m_OutputSlots = new VFXMitoSlotOutput[] { };
-        private object m_descDefaultProperties;
+        private object m_PropertyBuffer;
 
         public VFXMitoSlotInput[] InputSlots
         {
@@ -72,8 +89,6 @@ namespace UnityEditor.VFX
                 return m_OutputSlots;
             }
         }
-
-        public string name { get { return m_Desc.name; } }
 
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
@@ -100,7 +115,7 @@ namespace UnityEditor.VFX
             base.OnInvalidate(cause);
 
             VFXExpression[] resExpression = null;
-            if (m_Desc.cascadable)
+            if (cascadable)
             {
                 var inputSlots = m_InputSlots.ToList();
 
@@ -125,7 +140,7 @@ namespace UnityEditor.VFX
                     //Add new available slot element
                     inputSlots.Add(new VFXMitoSlotInput()
                     {
-                        name = m_descDefaultProperties.GetType().GetFields().First().Name,
+                        name = m_PropertyBuffer.GetType().GetFields().First().Name,
                         type = lastElement.type
                     });
                 }
@@ -142,26 +157,26 @@ namespace UnityEditor.VFX
                 }
                 else if (o.name != null)
                 {
-                    expression = GetExpression(m_descDefaultProperties, o.name).expression;
+                    expression = GetExpression(m_PropertyBuffer, o.name).expression;
                 }
                 return expression;
             });
 
-            if (m_Desc.cascadable)
+            if (cascadable)
             {
                 var stackInputExpression = new Stack<VFXExpression>(expressions.Reverse());
                 while (stackInputExpression.Count > 1)
                 {
                     var a = stackInputExpression.Pop();
                     var b = stackInputExpression.Pop();
-                    var compose = m_Desc.BuildExpression(new[] { a, b })[0];
+                    var compose = BuildExpression(new[] { a, b })[0];
                     stackInputExpression.Push(compose);
                 }
                 resExpression = stackInputExpression.ToArray();
             }
             else
             {
-                resExpression = m_Desc.BuildExpression(expressions.ToArray());
+                resExpression = BuildExpression(expressions.ToArray());
             }
 
             var outpoutSlots = resExpression.Select((o, i) => new VFXMitoSlotOutput()
@@ -178,9 +193,6 @@ namespace UnityEditor.VFX
             get { return m_UIPosition; }
             set { m_UIPosition = value; }
         }
-
-        [SerializeField]
-        private VFXOperatorDesc m_Desc;
 
         [SerializeField]
         private Vector2 m_UIPosition;

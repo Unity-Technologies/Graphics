@@ -283,9 +283,9 @@ namespace UnityEditor.VFX.UI
 			EditorUtility.SetDirty(m_ModelContainer);
 		}
 
-        public void AddVFXOperator(Vector2 pos, VFXOperatorDesc desc)
+        public void AddVFXOperator(Vector2 pos, VFXOperator desc)
         {
-            var model = new VFXOperator(desc);
+            var model = desc;
             model.Position = pos;
             m_ModelContainer.m_Roots.Add(model);
             AddPresentersFromModel(model);

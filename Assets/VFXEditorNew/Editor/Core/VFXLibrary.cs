@@ -60,9 +60,7 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXContextDesc> GetContexts() { LoadIfNeeded(); return m_ContextDescs.Values; }
 
         public static IEnumerable<VFXModelDescriptor<VFXBlock>> GetBlocks() { LoadIfNeeded(); return m_BlockDescs; }
-
-        public static VFXOperatorDesc GetOperator(string id) { LoadIfNeeded(); return m_OperatorDescs[id]; }
-        public static IEnumerable<VFXOperatorDesc> GetOperators() { LoadIfNeeded(); return m_OperatorDescs.Values; }
+        public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators() { LoadIfNeeded(); return m_OperatorDescs; }
 
         public static void LoadIfNeeded()
         {
@@ -81,8 +79,8 @@ namespace UnityEditor.VFX
             lock(m_Lock)
             {
                 m_BlockDescs = LoadModels<VFXBlock>();
+                m_OperatorDescs = LoadModels<VFXOperator>();
                 m_ContextDescs = LoadDescs<VFXContextDesc>();
-                m_OperatorDescs = LoadDescs<VFXOperatorDesc>();
                 m_Loaded = true;
             }
         }
@@ -150,8 +148,8 @@ namespace UnityEditor.VFX
             return types.Where(type => type.GetCustomAttributes(typeof(VFXInfoAttribute), false).Length == 1);
         }
 
-        private static volatile Dictionary<string, VFXOperatorDesc> m_OperatorDescs;
         private static volatile Dictionary<string, VFXContextDesc> m_ContextDescs;
+        private static volatile List<VFXModelDescriptor<VFXOperator>> m_OperatorDescs;
         private static volatile List<VFXModelDescriptor<VFXBlock>> m_BlockDescs;
 
         private static Object m_Lock = new Object();
