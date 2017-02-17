@@ -21,4 +21,4 @@ MonoBehaviour:
     enableClustered: 1
     disableFptlWhenClustered: 0
     enableBigTilePrepass: 1
-  m_PassResources: {fileID: 0}
+  m_PassResources: {fileID: 11400000, guid: 7f2998544b2ac3848822b80ec3e6c446, type: 2}
