@@ -1,5 +1,5 @@
-#define SHADOWS_ENABLED
-#define SHADOWS_FIXSHADOWIDX
+//#define SHADOWS_ENABLED
+//#define SHADOWS_FIXSHADOWIDX
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
