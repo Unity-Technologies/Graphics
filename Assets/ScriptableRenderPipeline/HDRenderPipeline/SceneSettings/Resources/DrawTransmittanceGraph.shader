@@ -1,10 +1,11 @@
-Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
+Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 {
     Properties
     {
         [HideInInspector] _StdDev1("", Color) = (0, 0, 0)
         [HideInInspector] _StdDev2("", Color) = (0, 0, 0)
         [HideInInspector] _LerpWeight("", Float) = 0
+        [HideInInspector] _ThicknessScale("", Float) = 0
     }
 
     SubShader
@@ -35,7 +36,8 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _StdDev1, _StdDev2; float _LerpWeight; // See 'SubsurfaceScatteringParameters'
+            float4 _StdDev1, _StdDev2;
+            float _LerpWeight, _ThicknessScale; // See 'SubsurfaceScatteringParameters'
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -63,19 +65,17 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float  dist = length(2 * input.texcoord - 1);
+                float thickness = input.texcoord.x * _ThicknessScale;
+                float t2        = thickness * thickness;
 
                 float3 var1 = _StdDev1.rgb * _StdDev1.rgb;
                 float3 var2 = _StdDev2.rgb * _StdDev2.rgb;
 
-                // Evaluate the linear combination of two 2D Gaussians instead of
-                // product of a linear combination of two normalized 1D Gaussians
-                // since we do not want to bother artists with the lack of radial symmetry.
+                // See ComputeTransmittance() in Lit.hlsl for more details.
+                float3 transmittance = lerp(exp(-t2 * 0.5 * rcp(var1)),
+                                            exp(-t2 * 0.5 * rcp(var2)), _LerpWeight);
 
-                float3 magnitude = lerp(exp(-dist * dist / (2 * var1)) / (TWO_PI * var1),
-                                        exp(-dist * dist / (2 * var2)) / (TWO_PI * var2), _LerpWeight);
-
-                return float4(magnitude, 1);
+                return float4(transmittance, 1);
             }
             ENDHLSL
         }
