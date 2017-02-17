@@ -182,59 +182,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 viewProjectionMatrix;
         public Matrix4x4 invViewProjectionMatrix;
         public Matrix4x4 invProjectionMatrix;
-        }
+    }
 
-        public class GBufferManager
+    public class GBufferManager
+    {
+        public const int MaxGbuffer = 8;
+
+        public void SetBufferDescription(int index, string stringId, RenderTextureFormat inFormat, RenderTextureReadWrite inSRGBWrite)
         {
-            public const int MaxGbuffer = 8;
-
-            public void SetBufferDescription(int index, string stringId, RenderTextureFormat inFormat, RenderTextureReadWrite inSRGBWrite)
-            {
-                IDs[index] = Shader.PropertyToID(stringId);
-                RTIDs[index] = new RenderTargetIdentifier(IDs[index]);
-                formats[index] = inFormat;
-                sRGBWrites[index] = inSRGBWrite;
-            }
-
-            public void InitGBuffers(int width, int height, CommandBuffer cmd)
-            {
-                for (int index = 0; index < gbufferCount; index++)
-                {
-                /* RTs[index] = */
-                cmd.GetTemporaryRT(IDs[index], width, height, 0, FilterMode.Point, formats[index], sRGBWrites[index]);
-                }
-            }
-
-            public RenderTargetIdentifier[] GetGBuffers()
-            {
-                var colorMRTs = new RenderTargetIdentifier[gbufferCount];
-                for (int index = 0; index < gbufferCount; index++)
-                {
-                    colorMRTs[index] = RTIDs[index];
-                }
-
-                return colorMRTs;
-            }
-
-            /*
-            public void BindBuffers(Material mat)
-            {
-                for (int index = 0; index < gbufferCount; index++)
-                {
-                    mat.SetTexture(IDs[index], RTs[index]);
-                }
-            }
-            */
-
-            public int gbufferCount { get; set; }
-            int[] IDs = new int[MaxGbuffer];
-            RenderTargetIdentifier[] RTIDs = new RenderTargetIdentifier[MaxGbuffer];
-            RenderTextureFormat[] formats = new RenderTextureFormat[MaxGbuffer];
-            RenderTextureReadWrite[] sRGBWrites = new RenderTextureReadWrite[MaxGbuffer];
+            IDs[index] = Shader.PropertyToID(stringId);
+            RTIDs[index] = new RenderTargetIdentifier(IDs[index]);
+            formats[index] = inFormat;
+            sRGBWrites[index] = inSRGBWrite;
         }
+
+        public void InitGBuffers(int width, int height, CommandBuffer cmd)
+        {
+            for (int index = 0; index < gbufferCount; index++)
+            {
+            /* RTs[index] = */
+            cmd.GetTemporaryRT(IDs[index], width, height, 0, FilterMode.Point, formats[index], sRGBWrites[index]);
+            }
+        }
+
+        public RenderTargetIdentifier[] GetGBuffers()
+        {
+            var colorMRTs = new RenderTargetIdentifier[gbufferCount];
+            for (int index = 0; index < gbufferCount; index++)
+            {
+                colorMRTs[index] = RTIDs[index];
+            }
+
+            return colorMRTs;
+        }
+
+        /*
+        public void BindBuffers(Material mat)
+        {
+            for (int index = 0; index < gbufferCount; index++)
+            {
+                mat.SetTexture(IDs[index], RTs[index]);
+            }
+        }
+        */
+
+        public int gbufferCount { get; set; }
+        int[] IDs = new int[MaxGbuffer];
+        RenderTargetIdentifier[] RTIDs = new RenderTargetIdentifier[MaxGbuffer];
+        RenderTextureFormat[] formats = new RenderTextureFormat[MaxGbuffer];
+        RenderTextureReadWrite[] sRGBWrites = new RenderTextureReadWrite[MaxGbuffer];
+    }
 
     public class HDRenderPipelineInstance : RenderPipeline
-        {
+    {
         private readonly HDRenderPipeline m_Owner;
 
         // TODO: Find a way to automatically create/iterate through deferred material
@@ -579,15 +579,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(cullResults, camera, renderContext, false);
 
-                RenderVelocity(cullResults, camera, renderContext); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
+                // Planar and real time cubemap doesn't need post process and render in FP16
+                if (camera.cameraType == CameraType.Reflection)
+                {
+                    // Simple blit
+                    var cmd = new CommandBuffer { name = "Blit to final RT" };
+                    cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    cmd.Dispose();
+                }
+                else
+                {
+                    RenderVelocity(cullResults, camera, renderContext); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
 
-                // TODO: Check with VFX team.
-                // Rendering distortion here have off course lot of artifact.
-                // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
-                // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
-                RenderDistortion(cullResults, camera, renderContext);
+                    // TODO: Check with VFX team.
+                    // Rendering distortion here have off course lot of artifact.
+                    // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
+                    // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
+                    RenderDistortion(cullResults, camera, renderContext);
 
-                FinalPass(camera, renderContext);
+                    FinalPass(camera, renderContext);
+                }
             }
 
             RenderDebugOverlay(camera, renderContext);
