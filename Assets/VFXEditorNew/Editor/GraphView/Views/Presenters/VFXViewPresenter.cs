@@ -137,9 +137,15 @@ namespace UnityEditor.VFX.UI
                 var allOperator = m_Elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>();
                 foreach (var currentOperator in allOperator)
                 {
-                    foreach (var inputSlot in currentOperator.Operator.InputSlots.Where(s => s.parent == operatorPresenter.Operator))
+                    var slotToDelete = currentOperator.Operator.InputSlots.Where(s => s.parent == operatorPresenter.Operator).ToArray();
+                    if (slotToDelete.Length > 0)
                     {
-                        inputSlot.Disconnect();
+                        foreach (var inputSlot in slotToDelete)
+                        {
+                            inputSlot.Disconnect();
+                        }
+                        currentOperator.Operator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
+                        currentOperator.Init(currentOperator.Operator);
                     }
                 }
                 m_ModelContainer.m_Roots.Remove(operatorPresenter.Operator);

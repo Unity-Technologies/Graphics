@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
             var newInputSlots = InputSlots.ToList();
 
             //Remove useless unplugged slot (ensuring there is at least 2 slots)
-            for (int slotIndex = newInputSlots.Count - 1; slotIndex >= 2; --slotIndex)
+            for (int slotIndex = newInputSlots.Count - 1; slotIndex >= 0 && newInputSlots.Count > 2; --slotIndex)
             {
                 var currentSlot = newInputSlots[slotIndex];
                 if (currentSlot.parent == null)
