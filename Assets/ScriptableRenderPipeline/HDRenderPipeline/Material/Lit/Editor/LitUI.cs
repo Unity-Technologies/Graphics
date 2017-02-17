@@ -7,6 +7,60 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class LitGUI : BaseLitGUI
     {
+        protected static class Styles
+        {
+            public static string InputsText = "Inputs";
+
+            public static GUIContent baseColorText = new GUIContent("Base Color + Opacity", "Albedo (RGB) and Opacity (A)");
+            public static GUIContent baseColorSmoothnessText = new GUIContent("Base Color + Smoothness", "Albedo (RGB) and Smoothness (A)");
+
+            public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
+            public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
+            public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness scale factor");
+            public static GUIContent maskMapESText = new GUIContent("Mask Map - M(R), AO(G), E(B), S(A)", "Mask map");
+            public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), S(A)", "Mask map");
+
+            public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
+            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (DXT5) - Need to implement BC5");
+            public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
+            public static GUIContent horizonFadeText = new GUIContent("Horizon Fade (Spec occlusion)", "horizon fade is use to control specular occlusion");
+
+            public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map");
+            public static GUIContent heightMapAmplitudeText = new GUIContent("Height Map Amplitude", "Height Map amplitude in world units.");
+            public static GUIContent heightMapCenterText = new GUIContent("Height Map Center", "Center of the heightmap in the texture (between 0 and 1)");
+
+            public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC5) - DXT5 for test");
+            public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
+            public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (B)", "Anisotropy");
+
+            public static string textureControlText = "Input textures control";
+            public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
+            public static GUIContent texWorldScaleText = new GUIContent("World scale", "Tiling factor applied to Planar/Trilinear mapping");
+
+            // Details
+            public static string detailText = "Inputs Detail";
+            public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
+            public static GUIContent UVDetailMappingText = new GUIContent("Detail UV mapping", "");
+            public static GUIContent detailMapNormalText = new GUIContent("Detail Map A(R) Ny(G) S(B) Nx(A)", "Detail Map");
+            public static GUIContent detailMaskText = new GUIContent("Detail Mask (G)", "Mask for detailMap");
+            public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
+            public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
+            public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
+
+            // Subsurface
+            public static GUIContent subsurfaceProfileText = new GUIContent("Subsurface profile", "A profile determines the shape of the blur filter.");
+            public static GUIContent subsurfaceRadiusText = new GUIContent("Subsurface radius", "Determines the range of the blur.");
+            public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface radius map", "Determines the range of the blur.");
+            public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
+            public static GUIContent thicknessMapText = new GUIContent("Thickness map", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
+
+            // Emissive
+            public static string lightingText = "Inputs Lighting";
+            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
+            public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
+            public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
+        }
+
         public enum UVBaseMapping
         {
             UV0,
@@ -55,15 +109,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty UVMappingMask = null;
         protected const string kUVMappingMask = "_UVMappingMask";
         protected MaterialProperty UVMappingPlanar = null;
-        protected const string kUVMappingPlanar = "_UVMappingPlanar";      
-        protected MaterialProperty normalMapSpace = null;
-        protected const string kNormalMapSpace = "_NormalMapSpace";
-        protected MaterialProperty UVDetail = null;
-        protected const string kUVDetail = "_UVDetail";
-        protected MaterialProperty UVDetailsMappingMask = null;
-        protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
-        protected MaterialProperty emissiveColorMode = null;
-        protected const string kEmissiveColorMode = "_EmissiveColorMode";
+        protected const string kUVMappingPlanar = "_UVMappingPlanar";
 
         protected MaterialProperty baseColor = null;
         protected const string kBaseColor = "_BaseColor";
@@ -77,10 +123,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kMaskMap = "_MaskMap";
         protected MaterialProperty specularOcclusionMap = null;
         protected const string kSpecularOcclusionMap = "_SpecularOcclusionMap";
+        protected MaterialProperty horizonFade = null;
+        protected const string kHorizonFade = "_HorizonFade";
         protected MaterialProperty normalMap = null;
         protected const string kNormalMap = "_NormalMap";
         protected MaterialProperty normalScale = null;
         protected const string kNormalScale = "_NormalScale";
+        protected MaterialProperty normalMapSpace = null;
+        protected const string kNormalMapSpace = "_NormalMapSpace";
         protected MaterialProperty heightMap = null;
         protected const string kHeightMap = "_HeightMap";
         protected MaterialProperty heightAmplitude = null;
@@ -94,6 +144,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty anisotropyMap = null;
         protected const string kAnisotropyMap = "_AnisotropyMap";
 
+        protected MaterialProperty UVDetail = null;
+        protected const string kUVDetail = "_UVDetail";
+        protected MaterialProperty UVDetailsMappingMask = null;
+        protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         protected MaterialProperty detailMap = null;
         protected const string kDetailMap = "_DetailMap";
         protected MaterialProperty detailMask = null;
@@ -105,15 +159,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty detailSmoothnessScale = null;
         protected const string kDetailSmoothnessScale = "_DetailSmoothnessScale";
 
-        protected MaterialProperty emissiveColor = null;
-        protected const string kEmissiveColor = "_EmissiveColor";
-        protected MaterialProperty emissiveColorMap = null;
-        protected const string kEmissiveColorMap = "_EmissiveColorMap";
-        protected MaterialProperty emissiveIntensity = null;
-        protected const string kEmissiveIntensity = "_EmissiveIntensity";
-
-        protected MaterialProperty materialID           = null;
-        protected const string     kMaterialID          = "_MaterialID";
         protected MaterialProperty subsurfaceProfile    = null;
         protected const string     kSubsurfaceProfile   = "_SubsurfaceProfile";
         protected MaterialProperty subsurfaceRadius     = null;
@@ -125,10 +170,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty thicknessMap         = null;
         protected const string     kThicknessMap        = "_ThicknessMap";
 
-        override protected void FindMaterialProperties(MaterialProperty[] props)
+        protected MaterialProperty emissiveColorMode = null;
+        protected const string kEmissiveColorMode = "_EmissiveColorMode";
+        protected MaterialProperty emissiveColor = null;
+        protected const string kEmissiveColor = "_EmissiveColor";
+        protected MaterialProperty emissiveColorMap = null;
+        protected const string kEmissiveColorMap = "_EmissiveColorMap";
+        protected MaterialProperty emissiveIntensity = null;
+        protected const string kEmissiveIntensity = "_EmissiveIntensity";
+
+        protected override void FindMaterialProperties(MaterialProperty[] props)
         {
-            normalMapSpace = FindProperty(kNormalMapSpace, props);
-            emissiveColorMode = FindProperty(kEmissiveColorMode, props);
+            UVBase = FindProperty(kUVBase, props);
+            TexWorldScale = FindProperty(kTexWorldScale, props);
+            UVMappingMask = FindProperty(kUVMappingMask, props);
+            UVMappingPlanar = FindProperty(kUVMappingPlanar, props);  
 
             baseColor = FindProperty(kBaseColor, props);
             baseColorMap = FindProperty(kBaseColorMap, props);
@@ -136,8 +192,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             smoothness = FindProperty(kSmoothness, props);
             maskMap = FindProperty(kMaskMap, props);
             specularOcclusionMap = FindProperty(kSpecularOcclusionMap, props);
+            horizonFade = FindProperty(kHorizonFade, props);
             normalMap = FindProperty(kNormalMap, props);
-            normalScale = FindProperty(kNormalScale, props);           
+            normalScale = FindProperty(kNormalScale, props);
+            normalMapSpace = FindProperty(kNormalMapSpace, props);
             heightMap = FindProperty(kHeightMap, props);
             heightAmplitude = FindProperty(kHeightAmplitude, props);
             heightCenter = FindProperty(kHeightCenter, props);
@@ -145,29 +203,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
 
-            UVBase = FindProperty(kUVBase, props);
+            // Details
             UVDetail = FindProperty(kUVDetail, props);
-            TexWorldScale = FindProperty(kTexWorldScale, props);
-            UVMappingMask = FindProperty(kUVMappingMask, props);
-            UVMappingPlanar = FindProperty(kUVMappingPlanar, props);
             UVDetailsMappingMask = FindProperty(kUVDetailsMappingMask, props);    
-            
             detailMap = FindProperty(kDetailMap, props);
             detailMask = FindProperty(kDetailMask, props);
             detailAlbedoScale = FindProperty(kDetailAlbedoScale, props);
             detailNormalScale = FindProperty(kDetailNormalScale, props);
             detailSmoothnessScale = FindProperty(kDetailSmoothnessScale, props);
 
+            // Sub surface
+            subsurfaceProfile = FindProperty(kSubsurfaceProfile, props);
+            subsurfaceRadius = FindProperty(kSubsurfaceRadius, props);
+            subsurfaceRadiusMap = FindProperty(kSubsurfaceRadiusMap, props);
+            thickness = FindProperty(kThickness, props);
+            thicknessMap = FindProperty(kThicknessMap, props);
+
+            // Emissive
+            emissiveColorMode = FindProperty(kEmissiveColorMode, props);
             emissiveColor = FindProperty(kEmissiveColor, props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
-
-            materialID          = FindProperty(kMaterialID,          props);
-            subsurfaceProfile   = FindProperty(kSubsurfaceProfile,   props);
-            subsurfaceRadius    = FindProperty(kSubsurfaceRadius,    props);
-            subsurfaceRadiusMap = FindProperty(kSubsurfaceRadiusMap, props);
-            thickness           = FindProperty(kThickness,           props);
-            thicknessMap        = FindProperty(kThicknessMap,        props);
         }
 
         protected void ShaderSSSInputGUI()
@@ -186,14 +242,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
         }
 
-        override protected void ShaderInputGUI()
-        {            
+        protected override void MaterialPropertiesGUI()
+        {
             bool useEmissiveMask = (EmissiveColorMode)emissiveColorMode.floatValue == EmissiveColorMode.UseEmissiveMask;
 
             GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(materialID, Styles.materialIDText);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
             m_MaterialEditor.ShaderProperty(metallic, Styles.metallicText);
@@ -205,6 +260,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap);
+            m_MaterialEditor.ShaderProperty(horizonFade, Styles.horizonFadeText);
 
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
@@ -285,38 +341,34 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             }
 
-            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-            m_MaterialEditor.LightmapEmissionProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);            
-            EditorGUI.indentLevel--;
+            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);             
 
-            EditorGUILayout.Space();
-        }
-
-        public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
-        {
-            base.AssignNewShaderToMaterial(material, oldShader, newShader);
+            // The parent Base.ShaderPropertiesGUI will call DoEmissionArea
         }
 
         protected override bool ShouldEmissionBeEnabled(Material mat)
         {
-            float emissiveIntensity = mat.GetFloat(kEmissiveIntensity);
-            var realtimeEmission = (mat.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
-            return emissiveIntensity > 0.0f || realtimeEmission;
+            return mat.GetFloat(kEmissiveIntensity) > 0.0f;
         }
 
-        override protected void SetupMaterialKeywords(Material material)
+        protected override void SetupMaterialKeywordsAndPassInternal(Material material)
         {
-			SetupCommonOptionsKeywords(material);
+            SetupMaterialKeywordsAndPass(material);
+        }
+
+        // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
+        static public void SetupMaterialKeywordsAndPass(Material material)
+        {
+            SetupBaseLitKeywords(material);
+            SetupBaseLitMaterialPass(material);
 
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
-            bool perPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) == 1.0;
-            SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", perPixelDisplacement);
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
-
-			SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
+			
+            SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
 			SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
 			SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap));
 			SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
@@ -326,7 +378,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
             SetKeyword(material, "_SUBSURFACE_RADIUS_MAP", material.GetTexture(kSubsurfaceRadiusMap));
             SetKeyword(material, "_THICKNESS_MAP", material.GetTexture(kThicknessMap));
-
 
             bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
             bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
@@ -346,8 +397,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.DisableKeyword("_REQUIRE_UV2");
                 material.DisableKeyword("_REQUIRE_UV3");
             }
-
-            material.SetInt("_StencilRef", (int)material.GetFloat(kMaterialID)); // See 'StencilBits'.
          }
     }
 } // namespace UnityEditor

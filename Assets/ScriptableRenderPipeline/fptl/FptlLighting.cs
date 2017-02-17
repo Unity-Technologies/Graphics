@@ -1073,7 +1073,11 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             // render shadow maps (for mobile shadow map rendering should happen before we render g-buffer).
             // on GCN it needs to be after to leverage async compute since we need the depth-buffer for optimal light list building.
-            if(k_UseAsyncCompute) RenderShadowMaps(cullResults, loop);
+            if(k_UseAsyncCompute) 
+            {
+                RenderShadowMaps(cullResults, loop);
+                loop.SetupCameraProperties(camera);
+            }
 
             // Push all global params
             var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);

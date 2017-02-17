@@ -12,55 +12,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(Camera))]
     public sealed partial class PostProcessing : MonoBehaviour
     {
-        // Quick & very dirty temporary wrapper used for bloom (easy porting from old school render
-        // texture blitting to command buffers)
-        struct RenderTextureWrapper
-        {
-            static int s_Counter = 0;
-
-            public int id;
-            public RenderTargetIdentifier identifier;
-            public int width;
-            public int height;
-            public int depth;
-            public FilterMode filter;
-            public RenderTextureFormat format;
-
-            internal void Release(CommandBuffer cmd)
-            {
-                cmd.ReleaseTemporaryRT(id);
-                id = 0;
-            }
-
-            internal static RenderTextureWrapper Create(CommandBuffer cmd, int width, int height, int depth = 0, FilterMode filter = FilterMode.Bilinear, RenderTextureFormat format = RenderTextureFormat.DefaultHDR)
-            {
-                s_Counter++;
-
-                int id = Shader.PropertyToID("_TempRenderTexture_" + s_Counter);
-                cmd.GetTemporaryRT(id, width, height, depth, filter, format);
-
-                return new RenderTextureWrapper
-                {
-                    id = id,
-                    identifier = new RenderTargetIdentifier(id),
-                    width = width,
-                    height = height,
-                    depth = depth,
-                    filter = filter,
-                    format = format
-                };
-            }
-        }
-
         public EyeAdaptationSettings eyeAdaptation = new EyeAdaptationSettings();
         public ColorGradingSettings colorGrading = new ColorGradingSettings();
         public ChromaticAberrationSettings chromaSettings = new ChromaticAberrationSettings();
         public VignetteSettings vignetteSettings = new VignetteSettings();
-        public BloomSettings bloomSettings = new BloomSettings();
         public bool globalDithering = false;
 
         Material m_EyeAdaptationMaterial;
-        Material m_BloomMaterial;
         Material m_FinalPassMaterial;
 
         ComputeShader m_EyeCompute;
@@ -77,11 +35,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static uint[] s_EmptyHistogramBuffer = new uint[k_HistogramBins];
 
-        const int k_MaxPyramidBlurLevel = 16;
-        readonly RenderTextureWrapper[] m_BlurBuffer1 = new RenderTextureWrapper[k_MaxPyramidBlurLevel];
-        readonly RenderTextureWrapper[] m_BlurBuffer2 = new RenderTextureWrapper[k_MaxPyramidBlurLevel];
-        RenderTextureWrapper m_BloomTex;
-
         bool m_FirstFrame = true;
 
         // Don't forget to update 'EyeAdaptation.cginc' if you change these values !
@@ -97,7 +50,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnEnable()
         {
             m_EyeAdaptationMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/EyeAdaptation");
-            m_BloomMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Bloom");
             m_FinalPassMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/FinalPass");
 
             m_EyeCompute = Resources.Load<ComputeShader>("EyeHistogram");
@@ -120,7 +72,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnDisable()
         {
             Utilities.Destroy(m_EyeAdaptationMaterial);
-            Utilities.Destroy(m_BloomMaterial);
             Utilities.Destroy(m_FinalPassMaterial);
 
             foreach (var rt in m_AutoExposurePool)
@@ -130,7 +81,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Utilities.SafeRelease(m_HistogramBuffer);
 
             m_EyeAdaptationMaterial = null;
-            m_BloomMaterial = null;
             m_FinalPassMaterial = null;
         }
 
@@ -142,9 +92,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (eyeAdaptation.enabled)
                 DoEyeAdaptation(camera, cmd, source);
-
-            if (bloomSettings.enabled)
-                DoBloom(camera, cmd, source);
 
             if (chromaSettings.enabled)
                 DoChromaticAberration();
@@ -158,9 +105,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DoColorGrading();
 
             cmd.Blit(source, destination, m_FinalPassMaterial, 0);
-
-            if (bloomSettings.enabled)
-                m_BloomTex.Release(cmd);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -249,92 +193,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             m_FirstFrame = false;
-        }
-
-        void DoBloom(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source)
-        {
-            m_BloomMaterial.shaderKeywords = null;
-
-            // Apply auto exposure before the prefiltering pass if needed
-            if (eyeAdaptation.enabled)
-            {
-                m_BloomMaterial.EnableKeyword("EYE_ADAPTATION");
-                m_BloomMaterial.SetTexture(Uniforms._AutoExposure, m_CurrentAutoExposure);
-            }
-
-            // Do bloom on a half-res buffer, full-res doesn't bring much and kills performances on
-            // fillrate limited platforms
-            int tw = camera.pixelWidth / 2;
-            int th = camera.pixelHeight / 2;
-
-            // Determine the iteration count
-            float logh = Mathf.Log(th, 2f) + bloomSettings.radius - 8f;
-            int logh_i = (int)logh;
-            int iterations = Mathf.Clamp(logh_i, 1, k_MaxPyramidBlurLevel);
-
-            // Uupdate the shader properties
-            float lthresh = Mathf.GammaToLinearSpace(bloomSettings.threshold);;
-            m_BloomMaterial.SetFloat(Uniforms._Threshold, lthresh);
-
-            float knee = lthresh * bloomSettings.softKnee + 1e-5f;
-            var curve = new Vector3(lthresh - knee, knee * 2f, 0.25f / knee);
-            m_BloomMaterial.SetVector(Uniforms._Curve, curve);
-
-            float sampleScale = 0.5f + logh - logh_i;
-            m_BloomMaterial.SetFloat(Uniforms._SampleScale, sampleScale);
-
-            // Prefilter pass
-            var prefiltered = RenderTextureWrapper.Create(cmd, tw, th, 0, FilterMode.Point);
-            cmd.Blit(source, prefiltered.identifier, m_BloomMaterial, 0);
-
-            var last = prefiltered;
-
-            // Construct a mip pyramid
-            for (int level = 0; level < iterations; level++)
-            {
-                m_BlurBuffer1[level] = RenderTextureWrapper.Create(cmd, last.width / 2, last.height / 2);
-                cmd.Blit(last.identifier, m_BlurBuffer1[level].identifier, m_BloomMaterial, level == 0 ? 1 : 2);
-                last = m_BlurBuffer1[level];
-            }
-
-            // Upsample and combine loop
-            for (int level = iterations - 2; level >= 0; level--)
-            {
-                var baseTex = m_BlurBuffer1[level];
-                cmd.SetGlobalTexture(Uniforms._BaseTex, baseTex.identifier); // Boooo
-
-                m_BlurBuffer2[level] = RenderTextureWrapper.Create(cmd, baseTex.width, baseTex.height);
-
-                cmd.Blit(last.identifier, m_BlurBuffer2[level].identifier, m_BloomMaterial, 3);
-                last = m_BlurBuffer2[level];
-            }
-
-            m_BloomTex = last;
-
-            // Release the temporary buffers
-            for (int i = 0; i < k_MaxPyramidBlurLevel; i++)
-            {
-                if (m_BlurBuffer1[i].id != 0)
-                    m_BlurBuffer1[i].Release(cmd);
-
-                if (m_BlurBuffer2[i].id != 0 && m_BlurBuffer2[i].id != m_BloomTex.id)
-                    m_BlurBuffer2[i].Release(cmd);
-            }
-
-            prefiltered.Release(cmd);
-
-            // Push everything to the uber material
-            m_FinalPassMaterial.EnableKeyword("BLOOM");
-
-            cmd.SetGlobalTexture(Uniforms._BloomTex, m_BloomTex.identifier);
-            cmd.SetGlobalVector(Uniforms._Bloom_Settings, new Vector2(sampleScale, bloomSettings.intensity));
-
-            if (bloomSettings.lensIntensity > 0f && bloomSettings.lensTexture != null)
-            {
-                m_FinalPassMaterial.EnableKeyword("BLOOM_LENS_DIRT");
-                cmd.SetGlobalTexture(Uniforms._Bloom_DirtTex, bloomSettings.lensTexture);
-                cmd.SetGlobalFloat(Uniforms._Bloom_DirtIntensity, bloomSettings.lensIntensity);
-            }
         }
 
         void DoChromaticAberration()
@@ -432,15 +290,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             internal static readonly int _AutoExposure               = Shader.PropertyToID("_AutoExposure");
 
             internal static readonly int _DebugWidth                 = Shader.PropertyToID("_DebugWidth");
-
-            internal static readonly int _Threshold                  = Shader.PropertyToID("_Threshold");
-            internal static readonly int _Curve                      = Shader.PropertyToID("_Curve");
-            internal static readonly int _SampleScale                = Shader.PropertyToID("_SampleScale");
-            internal static readonly int _BaseTex                    = Shader.PropertyToID("_BaseTex");
-            internal static readonly int _BloomTex                   = Shader.PropertyToID("_BloomTex");
-            internal static readonly int _Bloom_Settings             = Shader.PropertyToID("_Bloom_Settings");
-            internal static readonly int _Bloom_DirtTex              = Shader.PropertyToID("_Bloom_DirtTex");
-            internal static readonly int _Bloom_DirtIntensity        = Shader.PropertyToID("_Bloom_DirtIntensity");
 
             internal static readonly int _ChromaticAberration_Amount = Shader.PropertyToID("_ChromaticAberration_Amount");
             internal static readonly int _ChromaticAberration_Lut    = Shader.PropertyToID("_ChromaticAberration_Lut");

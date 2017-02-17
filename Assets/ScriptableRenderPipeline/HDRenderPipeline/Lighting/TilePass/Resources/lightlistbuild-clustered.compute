@@ -376,7 +376,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	}
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-	g_logBaseBuffer[tileIDX.y*nrTilesX + tileIDX.x] = suggestedBase;
+	if(threadID==0) g_logBaseBuffer[tileIDX.y*nrTilesX + tileIDX.x] = suggestedBase;
 #endif
 }
 

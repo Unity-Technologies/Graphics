@@ -72,6 +72,13 @@ struct LayerTexCoord
 
 #ifndef LAYERED_LIT_SHADER
 
+#define SAMPLER_NORMALMAP_IDX sampler_NormalMap
+#define SAMPLER_DETAILMASK_IDX sampler_DetailMask
+#define SAMPLER_DETAILMAP_IDX sampler_DetailMap
+#define SAMPLER_MASKMAP_IDX sampler_MaskMap
+#define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap
+#define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap
+
 // include LitDataInternal to define GetSurfaceData
 #define LAYER_INDEX 0
 #define ADD_IDX(Name) Name
@@ -245,6 +252,66 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 #else
 
+// Number of sampler are limited, we need to share sampler as much as possible with lit material
+// for this we put the constraint that the sampler are the same in a layered material for all textures of the same type
+// then we take the sampler matching the first textures use of this type
+#if defined(_NORMALMAP0)
+#define SAMPLER_NORMALMAP_IDX sampler_NormalMap0
+#elif defined(_NORMALMAP1)
+#define SAMPLER_NORMALMAP_IDX sampler_NormalMap1
+#elif defined(_NORMALMAP2)
+#define SAMPLER_NORMALMAP_IDX sampler_NormalMap2
+#else
+#define SAMPLER_NORMALMAP_IDX sampler_NormalMap3
+#endif
+
+#if defined(_DETAIL_MAP0)
+#define SAMPLER_DETAILMASK_IDX sampler_DetailMask0
+#define SAMPLER_DETAILMAP_IDX sampler_DetailMap0
+#elif defined(_DETAIL_MAP1)
+#define SAMPLER_DETAILMASK_IDX sampler_DetailMask1
+#define SAMPLER_DETAILMAP_IDX sampler_DetailMap1
+#elif defined(_DETAIL_MAP2)
+#define SAMPLER_DETAILMASK_IDX sampler_DetailMask2
+#define SAMPLER_DETAILMAP_IDX sampler_DetailMap2
+#else
+#define SAMPLER_DETAILMASK_IDX sampler_DetailMask3
+#define SAMPLER_DETAILMAP_IDX sampler_DetailMap3
+#endif
+
+#if defined(_MASKMAP0)
+#define SAMPLER_MASKMAP_IDX sampler_MaskMap0
+#elif defined(_MASKMAP1)
+#define SAMPLER_MASKMAP_IDX sampler_MaskMap1
+#elif defined(_MASKMAP2)
+#define SAMPLER_MASKMAP_IDX sampler_MaskMap2
+#else
+#define SAMPLER_MASKMAP_IDX sampler_MaskMap3
+#endif
+
+#if defined(_SPECULAROCCLUSIONMAP0)
+#define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap0
+#elif defined(_SPECULAROCCLUSIONMAP1)
+#define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap1
+#elif defined(_SPECULAROCCLUSIONMAP2)
+#define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap2
+#else
+#define SAMPLER_SPECULAROCCLUSIONMAP_IDX sampler_SpecularOcclusionMap3
+#endif
+
+#if defined(_HEIGHTMAP0)
+#define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap0
+#elif defined(_HEIGHTMAP1)
+#define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap1
+#elif defined(_HEIGHTMAP2)
+#define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap2
+#elif defined(_HEIGHTMAP3)
+#define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap3
+#endif
+
+// Define a helper macro
+
+
 #define ADD_ZERO_IDX(Name) Name##0
 
 // include LitDataInternal multiple time to define the variation of GetSurfaceData for each layer
@@ -382,8 +449,8 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
     return result;
 }
 
-#define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
-#define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
+#define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
+#define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
@@ -453,16 +520,6 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, 
                             positionWS, normalWS, _UVMappingPlanar3 > 0.0, isTriplanar, _TexWorldScale3, layerTexCoord, _LayerTiling3 * tileObjectScale);
 }
-
-#if defined(_HEIGHTMAP0)
-#define sampler_ShareHeightMap sampler_HeightMap0
-#elif defined(_HEIGHTMAP1)
-#define sampler_ShareHeightMap sampler_HeightMap1
-#elif defined(_HEIGHTMAP2)
-#define sampler_ShareHeightMap sampler_HeightMap2
-#elif defined(_HEIGHTMAP3)
-#define sampler_ShareHeightMap sampler_HeightMap3
-#endif
 
 // This function is just syntaxic sugar to nullify height not used based on heightmap avaibility and layer
 void SetEnabledHeightByLayer(inout float height0, inout float height1, inout float height2, inout float height3)
@@ -659,10 +716,10 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
     // Note: No multiply by amplitude here, this is bake into the weights and apply in BlendLayeredScalar
     // The amplitude is normalize to be able to work with POM algorithm
     // Tiling is automatically handled correctly here as we use 4 differents uv even if they come from the same UVSet (they include the tiling)
-    float height0 = SAMPLE_TEXTURE2D_LOD(_HeightMap0, sampler_ShareHeightMap, param.uv[0] + texOffsetCurrent, lod).r;
-    float height1 = SAMPLE_TEXTURE2D_LOD(_HeightMap1, sampler_ShareHeightMap, param.uv[1] + texOffsetCurrent, lod).r;
-    float height2 = SAMPLE_TEXTURE2D_LOD(_HeightMap2, sampler_ShareHeightMap, param.uv[2] + texOffsetCurrent, lod).r;
-    float height3 = SAMPLE_TEXTURE2D_LOD(_HeightMap3, sampler_ShareHeightMap, param.uv[3] + texOffsetCurrent, lod).r;
+    float height0 = SAMPLE_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, param.uv[0] + texOffsetCurrent, lod).r;
+    float height1 = SAMPLE_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, param.uv[1] + texOffsetCurrent, lod).r;
+    float height2 = SAMPLE_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, param.uv[2] + texOffsetCurrent, lod).r;
+    float height3 = SAMPLE_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, param.uv[3] + texOffsetCurrent, lod).r;
     SetEnabledHeightByLayer(height0, height1, height2, height3);  // Not needed as already put in weights but paranoid mode
     return BlendLayeredScalar(height0, height1, height2, height3, param.weights) + height0 * param.mainHeightInfluence;
 #else
@@ -829,10 +886,10 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     ComputeMaskWeights(blendMasks, weights);
 
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
-    float height0 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap0, sampler_ShareHeightMap, layerTexCoord.base0, lod).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
-    float height1 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap1, sampler_ShareHeightMap, layerTexCoord.base1, lod).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
-    float height2 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap2, sampler_ShareHeightMap, layerTexCoord.base2, lod).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
-    float height3 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap3, sampler_ShareHeightMap, layerTexCoord.base3, lod).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
+    float height0 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0, lod).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
+    float height1 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
+    float height2 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
+    float height3 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
 
@@ -873,10 +930,10 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 #if defined(_HEIGHT_BASED_BLEND)
 
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
-    float height0 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap0, sampler_ShareHeightMap, layerTexCoord.base0).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
-    float height1 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap1, sampler_ShareHeightMap, layerTexCoord.base1).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
-    float height2 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap2, sampler_ShareHeightMap, layerTexCoord.base2).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
-    float height3 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap3, sampler_ShareHeightMap, layerTexCoord.base3).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
+    float height0 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
+    float height1 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
+    float height2 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
+    float height3 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float4 heights = float4(height0, height1, height2, height3);
 

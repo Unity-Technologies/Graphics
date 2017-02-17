@@ -2,7 +2,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    public class ProceduralSkyParameters : SkyParameters
+    public class ProceduralSkySettings : SkySettings
     {
         public enum OcclusionDownscale { x1 = 1, x2 = 2, x4 = 4 }
         public enum OcclusionSamples   { x64 = 0, x164 = 1, x244 = 2 }

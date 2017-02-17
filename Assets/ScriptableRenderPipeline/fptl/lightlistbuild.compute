@@ -273,7 +273,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
 {
-	lightOffsSph = 0;
+	if(threadID==0) lightOffsSph = 0;
 
 	// make a copy of coarseList in prunedList.
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)

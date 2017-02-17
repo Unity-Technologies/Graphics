@@ -136,7 +136,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	// sort lights
 	SORTLIST(lightsListLDS, iNrCoarseLights, MAX_NR_BIGTILE_LIGHTS_PLUSONE, t, NR_THREADS);
 
-	lightOffs = 0;
+	if(t==0) lightOffs = 0;
 	GroupMemoryBarrierWithGroupSync();
     int i;
 	for(i=t; i<iNrCoarseLights; i+=NR_THREADS) if((int)lightsListLDS[i]<g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
