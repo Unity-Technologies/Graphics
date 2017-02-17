@@ -93,12 +93,12 @@ namespace UnityEditor.VFX.UI
                 var fromAnchor = flowEdge.output as VFXOperatorAnchorPresenter;
                 var toAnchor = flowEdge.input as VFXOperatorAnchorPresenter;
 
-                //Update connection (*wip* : will be a function of VFXOperator)
+                //Update connection
                 var inputSlots = toAnchor.sourceOperator.Operator.InputSlots;
                 var sourceIndex = Array.FindIndex(inputSlots, s => s.slotID == toAnchor.slotID);
 
-                inputSlots[sourceIndex].parent = fromAnchor.sourceOperator.Operator;
-                inputSlots[sourceIndex].parentSlotID = fromAnchor.slotID;
+
+                inputSlots[sourceIndex].Connect(fromAnchor.sourceOperator.Operator, fromAnchor.slotID);
                 toAnchor.sourceOperator.Operator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
 
                 toAnchor.sourceOperator.Init(toAnchor.sourceOperator.Operator);
@@ -139,9 +139,7 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var inputSlot in currentOperator.Operator.InputSlots.Where(s => s.parent == operatorPresenter.Operator))
                     {
-                        //Update connection (*wip* : will be a function of VFXOperator)
-                        inputSlot.parent = null;
-                        inputSlot.parentSlotID = Guid.Empty;
+                        inputSlot.Disconnect();
                     }
                 }
                 m_ModelContainer.m_Roots.Remove(operatorPresenter.Operator);
@@ -162,8 +160,7 @@ namespace UnityEditor.VFX.UI
                 //Update connection (*wip* : will be a function of VFXOperator)
                 var toOperator = to.sourceOperator.Operator;
                 var toSlot = toOperator.InputSlots.First(o => o.slotID == to.slotID);
-                toSlot.parentSlotID = Guid.Empty;
-                toSlot.parent = null;
+                toSlot.Disconnect();
                 toOperator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
 
                 to.sourceOperator.Init(toOperator);

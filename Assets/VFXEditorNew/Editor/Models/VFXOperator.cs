@@ -22,8 +22,20 @@ namespace UnityEditor.VFX
 
         public class VFXMitoSlotInput : VFXMitoSlot
         {
-            public VFXOperator parent;
-            public Guid parentSlotID;
+            public VFXOperator parent { get; private set; }
+            public Guid parentSlotID { get; private set; }
+
+            public void Disconnect()
+            {
+                parent = null;
+                parentSlotID = Guid.Empty;
+            }
+
+            public void Connect(VFXOperator _parent, Guid _slotID)
+            {
+                parent = _parent;
+                parentSlotID = _slotID;
+            }
         }
 
         public class VFXMitoSlotOutput : VFXMitoSlot
