@@ -12,21 +12,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int numSamples = 7; // Must be an odd number
 
         [SerializeField, ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
-        public Color stdDev1;
+        public Color   stdDev1;
         [SerializeField, ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
-        public Color stdDev2;
+        public Color   stdDev2;
         [SerializeField]
-        public float lerpWeight;
+        public float   lerpWeight;
         [SerializeField]
-        public bool  enableTransmission;
+        public bool    enableTransmission;
         [SerializeField]
-        public float thicknessScale;
+        public Vector2 thicknessMap;
         [SerializeField] [HideInInspector]
-        Vector4[]    m_FilterKernel;
+        Vector4[]      m_FilterKernel;
         [SerializeField] [HideInInspector]
-        Vector3[]    m_HalfRcpVariances;
+        Vector3[]      m_HalfRcpVariances;
         [SerializeField] [HideInInspector]
-        Vector4      m_HalfRcpWeightedVariances;
+        Vector4        m_HalfRcpWeightedVariances;
 
         // --- Public Methods ---
 
@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             stdDev2            = new Color(0.6f, 0.6f, 0.6f, 0.0f);
             lerpWeight         = 0.5f;
             enableTransmission = false;
-            thicknessScale     = 3.0f;
+            thicknessMap       = new Vector2(0, 3);
 
             UpdateKernelAndVarianceData();
         }
@@ -201,7 +201,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         SubsurfaceScatteringProfile[] m_Profiles;
         [SerializeField]
-        float[]                       m_ThicknessScales;
+        float[]                       m_ThicknessMaps;
         [SerializeField]
         Vector4[]                     m_HalfRcpVariancesAndLerpWeights;
         [SerializeField]
@@ -242,11 +242,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_TransmissionFlags; }
         }
 
-        // Supplies '_ThicknessScales' to Lit.hlsl.
-        public float[] thicknessScales
+        // Supplies '_ThicknessMaps' to Lit.hlsl.
+        public float[] thicknessMaps
         {
             // Set during OnValidate().
-            get { return m_ThicknessScales; }
+            get { return m_ThicknessMaps; }
         }
 
         // Supplies '_HalfRcpVariancesAndLerpWeights' to Lit.hlsl.
@@ -275,12 +275,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Array.Resize(ref m_Profiles, maxNumProfiles);
             }
 
-            m_NumProfiles        = m_Profiles.Length;
+            m_NumProfiles       = m_Profiles.Length;
             m_TransmissionFlags = 0;
 
-            if (m_ThicknessScales == null)
+            if (m_ThicknessMaps == null)
             {
-                m_ThicknessScales = new float[maxNumProfiles];
+                m_ThicknessMaps = new float[maxNumProfiles * 2];
             }
 
             if (m_HalfRcpVariancesAndLerpWeights == null)
@@ -320,7 +320,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_Profiles[i].lerpWeight = Mathf.Clamp01(m_Profiles[i].lerpWeight);
 
-                m_Profiles[i].thicknessScale = Mathf.Max(0.0f, m_Profiles[i].thicknessScale);
+                m_Profiles[i].thicknessMap.x = Mathf.Clamp(m_Profiles[i].thicknessMap.x, 0, m_Profiles[i].thicknessMap.y);
+                m_Profiles[i].thicknessMap.y = Mathf.Max(m_Profiles[i].thicknessMap.x, m_Profiles[i].thicknessMap.y);
 
                 m_Profiles[i].UpdateKernelAndVarianceData();
             }
@@ -328,7 +329,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Use the updated data to fill the cache.
             for (int i = 0; i < m_NumProfiles; i++)
             {
-                m_ThicknessScales[i]                          = m_Profiles[i].thicknessScale;
+                m_ThicknessMaps[2 * i]                        = m_Profiles[i].thicknessMap.x;
+                m_ThicknessMaps[2 * i + 1]                    = m_Profiles[i].thicknessMap.y - m_Profiles[i].thicknessMap.x;
                 m_HalfRcpVariancesAndLerpWeights[2 * i]       = m_Profiles[i].halfRcpVariances[0];
                 m_HalfRcpVariancesAndLerpWeights[2 * i].w     = 1.0f - m_Profiles[i].lerpWeight;
                 m_HalfRcpVariancesAndLerpWeights[2 * i + 1]   = m_Profiles[i].halfRcpVariances[1];
@@ -372,7 +374,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent profileStdDev2        = new GUIContent("Standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
             public readonly GUIContent profileLerpWeight     = new GUIContent("Filter interpolation",  "Controls linear interpolation between the two Gaussian filters.");
             public readonly GUIContent profileTransmission   = new GUIContent("Enable transmission",   "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
-            public readonly GUIContent profileThicknessScale = new GUIContent("Thickness scale",       "Linearly scales the object thickness which affects the amount of transmitted lighting.");
+            public readonly GUIContent profileThicknessScale = new GUIContent("Thickness map",         "Remaps the thickness parameter from [0, 1] to the desired range.");
 
             public readonly GUIStyle   centeredMiniBoldLabel = new GUIStyle (GUI.skin.label);
         }
@@ -391,11 +393,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (s_Styles == null)
                 {
                     s_Styles = new Styles();
-                }
 
-                s_Styles.centeredMiniBoldLabel.alignment = TextAnchor.MiddleCenter;
-                s_Styles.centeredMiniBoldLabel.fontSize  = 10;
-                s_Styles.centeredMiniBoldLabel.fontStyle = FontStyle.Bold;
+                    s_Styles.centeredMiniBoldLabel.alignment = TextAnchor.MiddleCenter;
+                    s_Styles.centeredMiniBoldLabel.fontSize  = 10;
+                    s_Styles.centeredMiniBoldLabel.fontStyle = FontStyle.Bold;
+                }
 
                 return s_Styles;
             }
@@ -446,17 +448,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         EditorGUI.indentLevel++;
 
-                        SerializedProperty profileStdDev1        = profile.FindPropertyRelative("stdDev1");
-                        SerializedProperty profileStdDev2        = profile.FindPropertyRelative("stdDev2");
-                        SerializedProperty profileLerpWeight     = profile.FindPropertyRelative("lerpWeight");
-                        SerializedProperty profileTransmission   = profile.FindPropertyRelative("enableTransmission");
-                        SerializedProperty profileThicknessScale = profile.FindPropertyRelative("thicknessScale");
+                        SerializedProperty profileStdDev1      = profile.FindPropertyRelative("stdDev1");
+                        SerializedProperty profileStdDev2      = profile.FindPropertyRelative("stdDev2");
+                        SerializedProperty profileLerpWeight   = profile.FindPropertyRelative("lerpWeight");
+                        SerializedProperty profileTransmission = profile.FindPropertyRelative("enableTransmission");
+                        SerializedProperty profileThicknessMap = profile.FindPropertyRelative("thicknessMap");
 
-                        EditorGUILayout.PropertyField(profileStdDev1,        styles.profileStdDev1);
-                        EditorGUILayout.PropertyField(profileStdDev2,        styles.profileStdDev2);
-                        EditorGUILayout.PropertyField(profileLerpWeight,     styles.profileLerpWeight);
-                        EditorGUILayout.PropertyField(profileTransmission,   styles.profileTransmission);
-                        EditorGUILayout.PropertyField(profileThicknessScale, styles.profileThicknessScale);
+                        EditorGUILayout.PropertyField(profileStdDev1,      styles.profileStdDev1);
+                        EditorGUILayout.PropertyField(profileStdDev2,      styles.profileStdDev2);
+                        EditorGUILayout.PropertyField(profileLerpWeight,   styles.profileLerpWeight);
+                        EditorGUILayout.PropertyField(profileTransmission, styles.profileTransmission);
+
+                        Vector2 thicknessMap = profileThicknessMap.vector2Value;
+                        EditorGUILayout.LabelField("Min thickness: ", thicknessMap.x.ToString());
+                        EditorGUILayout.LabelField("Max thickness: ", thicknessMap.y.ToString());
+                        EditorGUILayout.MinMaxSlider(styles.profileThicknessScale, ref thicknessMap.x, ref thicknessMap.y, 0, 10);
+                        profileThicknessMap.vector2Value = thicknessMap;
 
                         EditorGUILayout.Space();
                         EditorGUILayout.LabelField(styles.profilePreview0, styles.centeredMiniBoldLabel);
@@ -476,10 +483,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         EditorGUILayout.Space();
 
                         // Draw the transmittance graph.
-                        m_TransmittanceMaterial.SetColor("_StdDev1",        profileStdDev1.colorValue);
-                        m_TransmittanceMaterial.SetColor("_StdDev2",        profileStdDev2.colorValue);
-                        m_TransmittanceMaterial.SetFloat("_LerpWeight",     profileLerpWeight.floatValue);
-                        m_TransmittanceMaterial.SetFloat("_ThicknessScale", profileThicknessScale.floatValue);
+                        m_TransmittanceMaterial.SetColor("_StdDev1",       profileStdDev1.colorValue);
+                        m_TransmittanceMaterial.SetColor("_StdDev2",       profileStdDev2.colorValue);
+                        m_TransmittanceMaterial.SetFloat("_LerpWeight",    profileLerpWeight.floatValue);
+                        m_TransmittanceMaterial.SetVector("_ThicknessMap", profileThicknessMap.vector2Value);
                         EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImages[i], m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
 
                         EditorGUILayout.Space();
