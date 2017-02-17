@@ -88,9 +88,8 @@ namespace UnityEditor.VFX.UI
                 AddPresentersFromModel((VFXBlock)block);
         }
 
-        public void AddBlock(int index,VFXBlockDesc desc)
+        public void AddBlock(int index,VFXBlock block)
         {
-            var block = new VFXBlock(desc);
             Model.AddChild(block, index);
             AddPresentersFromModel(block);
         }

@@ -249,10 +249,10 @@ namespace UnityEditor.VFX.UI
 			}
 		}
 
-		public void AddBlock(int index, VFXBlockDesc desc)
+		public void AddBlock(int index, VFXBlock block)
 		{
 			VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-			presenter.AddBlock(0, desc);
+            presenter.AddBlock(0, block);
 		}
 
 		public void RemoveBlock(VFXBlockUI block)

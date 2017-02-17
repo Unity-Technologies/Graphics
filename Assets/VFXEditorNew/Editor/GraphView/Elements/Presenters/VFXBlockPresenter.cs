@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.UI
 
         public Type GetPropertiesType()
         {
-            return m_Model.Desc.GetPropertiesType();
+            return m_Model.GetPropertiesType();
         }
 
         public object GetCurrentPropertiesValues()
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.UI
 
         public IEnumerable<PropertyInfo> GetProperties()
         {
-            return GetProperties(m_Model.Desc.GetPropertiesType(), GetCurrentPropertiesValues(), "", 0);
+            return GetProperties(m_Model.GetPropertiesType(), GetCurrentPropertiesValues(), "", 0);
         }
 
         public IEnumerable<PropertyInfo> GetProperties(string fieldPath)

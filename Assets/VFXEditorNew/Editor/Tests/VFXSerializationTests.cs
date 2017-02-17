@@ -63,9 +63,9 @@ namespace UnityEditor.VFX.Test
             system1.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kOutput)));
 
             // Add some block
-            var block0 = new VFXBlock(new VFXInitBlockTest());
-            var block1 = new VFXBlock(new VFXUpdateBlockTest());
-            var block2 = new VFXBlock(new VFXOutputBlockTest());
+            var block0 = new VFXInitBlockTest();
+            var block1 = new VFXUpdateBlockTest();
+            var block2 = new VFXOutputBlockTest();
 
             system0.GetChild(0).AddChild(block0);
             system0.GetChild(1).AddChild(block1);
@@ -81,15 +81,15 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(3, asset.m_Roots[0].GetNbChildren());
             Assert.AreEqual(2, asset.m_Roots[1].GetNbChildren());
 
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(0).Desc);
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(1).Desc);
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(2).Desc);
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(0).Desc);
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(1).Desc);
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(1));
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(2));
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(1));
 
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(0).GetChild(0).Desc);
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(1).GetChild(0).Desc);
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(2).GetChild(0).Desc);
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(0).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(1).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(2).GetChild(0));
         }
     }
 }
