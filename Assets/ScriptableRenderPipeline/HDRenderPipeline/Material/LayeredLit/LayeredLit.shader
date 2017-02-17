@@ -189,7 +189,7 @@ Shader "HDRenderPipeline/LayeredLit"
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 1
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilBits.Standard
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
