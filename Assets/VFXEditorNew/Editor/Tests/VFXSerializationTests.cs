@@ -86,6 +86,12 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(2));
             Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(0));
             Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(1));
+            
+            Assert.AreEqual(VFXContextType.kInit,((VFXSystem)(asset.m_Roots[0])).GetChild(0).contextType);
+            Assert.AreEqual(VFXContextType.kUpdate,((VFXSystem)(asset.m_Roots[0])).GetChild(1).contextType);
+            Assert.AreEqual(VFXContextType.kOutput,((VFXSystem)(asset.m_Roots[0])).GetChild(2).contextType);
+            Assert.AreEqual(VFXContextType.kInit,((VFXSystem)(asset.m_Roots[1])).GetChild(0).contextType);
+            Assert.AreEqual(VFXContextType.kOutput,((VFXSystem)(asset.m_Roots[1])).GetChild(1).contextType);
 
             Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(0).GetChild(0));
             Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(1).GetChild(0));
