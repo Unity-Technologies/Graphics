@@ -54,7 +54,7 @@ LightmapSettings:
     m_EnableBakedLightmaps: 0
     m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
-    serializedVersion: 6
+    serializedVersion: 8
     m_Resolution: 2
     m_BakeResolution: 40
     m_TextureWidth: 1024
@@ -71,10 +71,22 @@ LightmapSettings:
     m_FinalGatherFiltering: 1
     m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
-    m_StationaryBakeMode: 3
+    m_MixedBakeMode: 3
+    m_BakeBackend: 0
+    m_PVRSampling: 1
+    m_PVRSampleCount: 500
+    m_PVRBounces: 2
+    m_PVRFiltering: 0
+    m_PVRFilteringMode: 1
+    m_PVRCulling: 1
+    m_PVRFilteringGaussRadiusDirect: 1
+    m_PVRFilteringGaussRadiusIndirect: 5
+    m_PVRFilteringGaussRadiusAO: 2
+    m_PVRFilteringAtrousColorSigma: 1
+    m_PVRFilteringAtrousNormalSigma: 1
+    m_PVRFilteringAtrousPositionSigma: 1
   m_LightingDataAsset: {fileID: 112000001, guid: 486568bfdf60faf4ebe9d16745eee81f,
     type: 2}
-  m_RuntimeCPUUsage: 25
   m_ShadowMaskMode: 2
 --- !u!196 &4
 NavMeshSettings:
@@ -4910,7 +4922,8 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_CCT: 6500
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &1612942797
@@ -4938,6 +4951,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shadowResolution: 1024
+  m_innerSpotPercent: 0
   shadowDimmer: 1
   affectDiffuse: 1
   affectSpecular: 1
@@ -6609,12 +6623,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc357c46587fc9d4cb8f311794d7d2f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SkyRendererTypeName: UnityEngine.Experimental.ScriptableRenderLoop.HDRISkyRenderer
-  m_ShadowMaxDistance: 1000
-  m_ShadowCascadeCount: 4
-  m_ShadowCascadeSplit0: 0.015
-  m_ShadowCascadeSplit1: 0.05
-  m_ShadowCascadeSplit2: 0.15
+  m_Settings:
+    m_ShadowMaxDistance: 1000
+    m_ShadowCascadeCount: 4
+    m_ShadowCascadeSplit0: 0.05
+    m_ShadowCascadeSplit1: 0.2
+    m_ShadowCascadeSplit2: 0.3
+    m_ShadowNearPlaneOffset: 5
 --- !u!4 &2100643540
 Transform:
   m_ObjectHideFlags: 0
