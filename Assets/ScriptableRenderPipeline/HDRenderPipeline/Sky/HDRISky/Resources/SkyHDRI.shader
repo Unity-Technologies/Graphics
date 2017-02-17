@@ -64,6 +64,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
             ZWrite Off
             ZTest Always
             Blend One Zero
+            Cull Off
 
             HLSLPROGRAM
             ENDHLSL
@@ -75,6 +76,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
             ZWrite Off
             ZTest LEqual
             Blend One Zero
+            Cull Off
 
             HLSLPROGRAM
             ENDHLSL

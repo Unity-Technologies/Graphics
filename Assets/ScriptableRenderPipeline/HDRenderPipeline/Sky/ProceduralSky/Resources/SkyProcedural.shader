@@ -7,6 +7,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             ZWrite Off
             ZTest Always
             Blend One OneMinusSrcAlpha, Zero One
+            Cull Off
 
             HLSLPROGRAM
             #pragma target 4.5
