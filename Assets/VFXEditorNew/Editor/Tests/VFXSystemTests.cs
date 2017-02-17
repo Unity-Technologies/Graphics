@@ -14,15 +14,15 @@ namespace UnityEditor.VFX.Test
             var modelContainer = ScriptableObject.CreateInstance<VFXModelContainer>();
 
             var system0 = new VFXSystem();
-            system0.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kInit)));
-            system0.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kUpdate)));
-            system0.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kOutput)));
+            system0.AddChild(new VFXContext(VFXContextType.kInit));
+            system0.AddChild(new VFXContext(VFXContextType.kUpdate));
+            system0.AddChild(new VFXContext(VFXContextType.kOutput));
             modelContainer.m_Roots.Add(system0);
 
             var system1 = new VFXSystem();
-            system1.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kInit)));
-            system1.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kUpdate)));
-            system1.AddChild(new VFXContext(VFXContextDesc.CreateBasic(VFXContextType.kOutput)));
+            system1.AddChild(new VFXContext(VFXContextType.kInit));
+            system1.AddChild(new VFXContext(VFXContextType.kUpdate));
+            system1.AddChild(new VFXContext(VFXContextType.kOutput));
             modelContainer.m_Roots.Add(system1);
 
             return modelContainer;

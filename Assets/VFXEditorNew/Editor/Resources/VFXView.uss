@@ -1,15 +1,3 @@
-.VFXContext.init {
-	rect-color:#FFFF00;
-}
-
-.VFXContext.update {
-	rect-color:#00FFFF;
-}
-
-.VFXContext.output {
-	rect-color:#FF0000;
-}
-
 .FlowContainer{
 	flex: 1;
 	flex-direction: row;
@@ -40,51 +28,48 @@ VFXFlowAnchor #connector.anchorHighlight{
 }
 
 VFXContextUI {
-	font:resource("Roboto/Roboto-Regular");
 	font-size:12;
 	flex: 1;
 	flex-direction: column;
 	align-items: stretch;
 	min-height: 100;
-	min-width: 320;
-}
-
-VFXContextUI #Title {
-	font:resource("Roboto/Roboto-Regular");
-	text-color: #BBB;
-	font-size:12;
-	min-height: 24;
-	-background-color: #FFF;
-	padding-top: 2;
-	padding-left: 2;
-	padding-bottom: 2;
-	padding-right: 2;
-}
-
-VFXContextUI.selected > #NodeContents  {
-	border-color: #555;
+	min-width: 340;
+	border-color: #282828;
+	border-radius:6;
 	border-width: 2;
 }
 
-VFXContextUI > #NodeContents {
-	text-alignment:upper-center;
+VFXContextUI.selected {
+	border-color: #383838;
+	}
+
+VFXContextUI > #NodeContents > #Title {
+	text-color: #C4C4C4;
+	font-size:12;
+	font-style: bold;
 	padding-top: 8;
-	padding-left: 16;
-	padding-bottom: 16;
-	padding-right: 16;
+	padding-left: 8;
+	padding-bottom: 8;
+	padding-right: 8;
 	
+}
+
+VFXContextUI BlockContainer {
+	text-alignment:upper-center;
 
 	text-color:#8FC1DF;
 
-	font:resource("Roboto/Roboto-Medium");
 	font-size:12;
+	margin-top: 0;
+	margin-left: 32;
+	margin-bottom: 32;
+	margin-right: 32;
+	
 
 	/* currently border-XXX is only used for layout
 	   where border-width is used to paint text and border.
 	   They must keep in sync until we support variable border
 	   thickness per edge */
-	border-radius: 10;
-	background-color: #2B2B2B;
 }
 
 VFXContextUI #NodeContents > Label{
@@ -92,45 +77,33 @@ VFXContextUI #NodeContents > Label{
 
 	text-color:#8FC1DF;
 
-	font:resource("Roboto/Roboto-Medium");
 	font-size:16;
 }
 VFXBlockUI {
 	flex-direction: column;
-	background-color: #2B2B2B;
+	background-color: #383838;
 	align-items: stretch;
-	margin-bottom: 1;
 	min-height: 64;
 	padding-bottom:6;
-	padding-left:4;
+	padding-left:0;
 	padding-right:4;
-	border-color: #555;
-	border-width: 2;
 	border-radius:4;
 	margin-left:3;
 }
 
 
 VFXBlockUI.selected {
-	border-color: #606060;
-	border-width: 2;
 	background-color: #454545;
 }
 
-
-VFXBlockUI > IMGUIContainer {
-
-}
-
-VFXBlockUI > Label {
-	-min-height: 20;
-	text-color:#8FA1DF;
-	font:resource("Roboto/Roboto-Medium");
-	background-color: #555;
-	padding-top: 2;
-	padding-left: 2;
-	padding-bottom: 2;
-	padding-right: 2;
+VFXBlockUI > #Title {
+	text-color:#C4C4C4;
+	font-style: bold;
+	font-size: 12;
+	padding-top: 8;
+	padding-left: 8;
+	padding-bottom: 4;
+	padding-right: 8;
 }
 
 VFXView #VFXBackgroundGrid {
@@ -141,6 +114,7 @@ VFXView #VFXBackgroundGrid {
 	thick-lines:5;
 }
 
+/* Properties */
 VFXPropertyUI
 {
 	im-border : 4;
@@ -148,15 +122,14 @@ VFXPropertyUI
 	selected-field-background :resource("VFX/SelectedField");
 	flex-direction: row;
 	align-items: stretch;
-	font:resource("Roboto/Roboto-Medium");
+	font-style: normal;
 	text-color: #BBB;
-	font-size:12;
+	font-size:11;
 	padding-bottom:0;
 }
 
 VFXPropertyUI .slot
 {
-	width:10;
 	-background-color:#F00;
 }
 
@@ -168,97 +141,102 @@ VFXPropertyUI > IMGUIContainer
 
 VFXPropertyUI .space
 {
-	flex:1;
 	border-radius:4;
-	border-width:2;
-	-text-color: #BBB;
-	text-color: #000;
-	margin-top:2;
-	margin-bottom:2;
-	font:resource("Roboto/Roboto-Medium");
+	border-width:1;
+	margin-top:4;
+	margin-bottom:4;
+	padding-left:4;
+	padding-right:4;
+	padding-bottom:2;
+	margin-right:10;
+	border-color: rgb(153,153,153);
+	text-color: rgb(153,153,153);
 	text-alignment: middle-center;
 }
-VFXPropertyUI .space.local
-{
-	background-color:#F00;
-}
-VFXPropertyUI .space.global
-{
-	background-color:#0F0;
-}
-VFXPropertyUI .space.camera
-{
-	background-color:#00F;
-}
 
-/* used for data edges and data connectors*/
 
-.typesingle
-{
-	border-color : #9f80e6;
-}
-.typevector2
-{
-	border-color : #8fc1df;
-}
-.typevector3
-{
-	border-color : #e7ab21;
-}
-.typevector4
-{
-	border-color : #42ca48;
-}
-.typecolor
-{
-	border-color : #d1d1d1;
-}
-.typeobject
-{
-	border-color : #787878;
-}
-
+/*Data Anchors*/
 
 VFXDataAnchor
 {
 	width:24;
 	height:24;
-	padding-top:4;
-	padding-left:8;
-	margin-left:-15;
+	padding-top:5;
+	padding-left:13;
+	margin-left:-16;
 	-background-color: #555;
 }
 
-VFXDataAnchor .connector
+VFXDataAnchor > .connector
 {
-	background-color: #2B2B2B;
-	border-width: 1;
-	border-radius: 4;
-	width:8;
-	height:8;
+	background-color: #171717;
+	border-color:#383838;
+	border-width:1;
+	border-radius: 3;
+	width:6;
+	height:6;
 }
 
-VFXDataAnchor.connected > .typesingle
+VFXBlockUI.selected VFXDataAnchor .connector
 {
+	border-color:#454545;
+}
+
+VFXDataAnchor.connected > .connector.typesingle
+{
+	border-color:#9f80e6;
 	background-color : #9f80e6;
 }
-VFXDataAnchor.connected > .typevector2
+VFXDataAnchor.connected > .connector.typevector2
 {
+	border-color:#8fc1df;
 	background-color : #8fc1df;
 }
-VFXDataAnchor.connected > .typevector3
+VFXDataAnchor.connected > .connector.typevector3
 {
+	border-color:#e7ab21;
 	background-color : #e7ab21;
 }
-VFXDataAnchor.connected > .typevector4
+VFXDataAnchor.connected > .connector.typevector4
 {
+	border-color:#42ca48;
 	background-color : #42ca48;
 }
-VFXDataAnchor.connected >.typecolor
+VFXDataAnchor.connected >.connector.typecolor
 {
+	border-color:#d1d1d1;
 	background-color : #d1d1d1;
 }
-VFXDataAnchor.connected > .typeobject
+VFXDataAnchor.connected > .connector.typeobject
 {
+	border-color:#787878;
 	background-color : #787878;
+}
+
+
+/* Data edges */
+
+VFXDataEdge.typesingle
+{
+	border-color : #9f80e6;
+}
+VFXDataEdge.typevector2
+{
+	border-color : #8fc1df;
+}
+VFXDataEdge.typevector3
+{
+	border-color : #e7ab21;
+}
+VFXDataEdge.typevector4
+{
+	border-color : #42ca48;
+}
+VFXDataEdge.typecolor
+{
+	border-color : #d1d1d1;
+}
+VFXDataEdge.typeobject
+{
+	border-color : #787878;
 }

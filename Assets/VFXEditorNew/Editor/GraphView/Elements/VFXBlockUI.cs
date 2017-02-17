@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
 	{
 		static int s_Counter = 0;
 
-		Label m_Title;
+		VisualElement m_Title;
 
 		private int m_Index; // tmp
 
@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.UI
 
 			m_Index = s_Counter++;
 
-			m_Title = new Label(new GUIContent("")) {name = "Title"};
+			m_Title = new VisualElement() { content = new GUIContent(""), name = "Title"};
 			InsertChild(0,m_Title);
 
 			AddManipulator(new SelectionDropper(HandleDropEvent));

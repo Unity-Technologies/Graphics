@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
 
             // TODO : ACCESS INPUTS AND OUTPUTS
             // WIP STUFF
-            if (Model.InputType != VFXDataType.kNone)
+            if (Model.inputType != VFXDataType.kNone)
             {
                 var inAnchor = CreateInstance<VFXFlowInputAnchorPresenter>();
                 inAnchor.Init(Model);
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.UI
                 ViewPresenter.RegisterFlowAnchorPresenter(inAnchor);
             }
 
-            if (Model.OutputType != VFXDataType.kNone)
+            if (Model.outputType != VFXDataType.kNone)
             {
                 var outAnchor = CreateInstance<VFXFlowOutputAnchorPresenter>();
                 outAnchor.Init(Model);

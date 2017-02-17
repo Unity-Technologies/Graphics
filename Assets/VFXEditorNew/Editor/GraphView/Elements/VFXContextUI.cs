@@ -322,9 +322,9 @@ namespace UnityEditor.VFX.UI
 				return;
 
 			// Recreate label with good name // Dirty
-			m_Title.content.text = presenter.Model.Desc.Name;
+			m_Title.content.text = presenter.Model.name;
 
-			VFXContextType contextType = presenter.Model.ContextType;
+			VFXContextType contextType = presenter.Model.contextType;
 
 			RemoveFromClassList("init", "update", "output");
 
@@ -336,9 +336,9 @@ namespace UnityEditor.VFX.UI
 				default: throw new Exception();
 			}
 
-			if (presenter.Model.Position != presenter.position.position)
+			if (presenter.Model.position != presenter.position.position)
 			{
-				presenter.Model.Position = presenter.position.position;
+				presenter.Model.position = presenter.position.position;
 				// Needs to make the model dirty
 			}
 

@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.UI
                 Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, evt.mousePosition);
 
                 foreach(var desc in VFXLibrary.GetContexts())
-                    menu.AddItem(new GUIContent(desc.Name), false,
+                    menu.AddItem(new GUIContent(desc.name), false,
                                  contentView => AddVFXContext(tPos, desc),
                                  this);
                 foreach (var desc in VFXLibrary.GetOperators())
@@ -63,9 +63,9 @@ namespace UnityEditor.VFX.UI
             Dirty(ChangeType.Transform);
         }
 
-        void AddVFXContext(Vector2 pos,VFXContextDesc desc)
+        void AddVFXContext(Vector2 pos,VFXModelDescriptor<VFXContext> desc)
         {
-            GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc);
+            GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc.CreateInstance());
         }
 
         void AddVFXOperator(Vector2 pos, VFXOperator desc)

@@ -10,12 +10,12 @@ namespace UnityEditor.VFX
                 return false;
 
             // Check if context types are inserted in the right order
-            VFXContextType contextType = ((VFXContext)model).ContextType;
+            VFXContextType contextType = ((VFXContext)model).contextType;
             int realIndex = index == -1 ? m_Children.Count : index;
 
-            if (realIndex > 0 && GetChild(realIndex - 1).ContextType > contextType)
+            if (realIndex > 0 && GetChild(realIndex - 1).contextType > contextType)
                 return false;
-            if (realIndex < m_Children.Count - 1 && GetChild(realIndex + 1).ContextType < contextType)
+            if (realIndex < m_Children.Count - 1 && GetChild(realIndex + 1).contextType < contextType)
                 return false;
 
             return true;
