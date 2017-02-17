@@ -193,14 +193,13 @@ namespace UnityEditor.VFX.UI
 			return res;
 		}
 
-		public void AddVFXContext(Vector2 pos,VFXContextDesc desc)
+		public void AddVFXContext(Vector2 pos,VFXContext context)
 		{
-			var model = new VFXContext(desc);
-			model.Position = pos;
+            context.position = pos;
 
 			// needs to create a temp system to hold the context
 			var system = new VFXSystem();
-			system.AddChild(model);
+            system.AddChild(context);
 
 			m_ModelContainer.m_Roots.Add(system);
 			AddPresentersFromModel(system);
@@ -252,7 +251,7 @@ namespace UnityEditor.VFX.UI
 				VFXContext context = (VFXContext)model;
 				var presenter = CreateInstance<VFXContextPresenter>();
 				presenter.Init(this,context);
-				presenter.position = new Rect(context.Position.x, context.Position.y, 100, 100);
+				presenter.position = new Rect(context.position.x, context.position.y, 100, 100);
 				AddElement(presenter);
 			}
 		}

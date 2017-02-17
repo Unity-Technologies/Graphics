@@ -56,10 +56,8 @@ namespace UnityEditor.VFX
 
     static class VFXLibrary
     {
-        public static VFXContextDesc GetContext(string id)      { LoadIfNeeded(); return m_ContextDescs[id]; }
-        public static IEnumerable<VFXContextDesc> GetContexts() { LoadIfNeeded(); return m_ContextDescs.Values; }
-
-        public static IEnumerable<VFXModelDescriptor<VFXBlock>> GetBlocks() { LoadIfNeeded(); return m_BlockDescs; }
+        public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts() { LoadIfNeeded(); return m_ContextDescs; }
+        public static IEnumerable<VFXModelDescriptor<VFXBlock>> GetBlocks()     { LoadIfNeeded(); return m_BlockDescs; }
 
         public static void LoadIfNeeded()
         {
@@ -77,31 +75,10 @@ namespace UnityEditor.VFX
         {
             lock(m_Lock)
             {
-                LoadContextDescs();
+                m_ContextDescs = LoadModels<VFXContext>();
                 m_BlockDescs = LoadModels<VFXBlock>();
                 m_Loaded = true;
             }
-        }
-
-        private static void LoadContextDescs()
-        {
-            // Search for derived type of VFXContextDesc in assemblies
-            var contextDescTypes = FindConcreteSubclasses<VFXContextDesc>();
-            var contextDescs = new Dictionary<string, VFXContextDesc>();
-            foreach (var contextDesc in contextDescTypes)
-            {
-                try
-                {
-                    VFXContextDesc instance = (VFXContextDesc)contextDesc.Assembly.CreateInstance(contextDesc.FullName);
-                    contextDescs.Add(contextDesc.FullName, instance);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError("Error while loading context desc from type " + contextDesc.FullName + ": " + e.Message);
-                }
-            }
-
-            m_ContextDescs = contextDescs; // atomic set
         }
 
         private static List<VFXModelDescriptor<T>> LoadModels<T>() where T : VFXModel
@@ -147,7 +124,7 @@ namespace UnityEditor.VFX
             return types.Where(type => type.GetCustomAttributes(typeof(VFXInfoAttribute), false).Length == 1);
         }
 
-        private static volatile Dictionary<string, VFXContextDesc> m_ContextDescs;
+        private static volatile List<VFXModelDescriptor<VFXContext>> m_ContextDescs;
         private static volatile List<VFXModelDescriptor<VFXBlock>> m_BlockDescs;
 
         private static Object m_Lock = new Object();
