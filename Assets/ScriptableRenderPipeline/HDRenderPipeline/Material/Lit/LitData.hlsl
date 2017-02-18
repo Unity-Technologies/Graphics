@@ -76,26 +76,26 @@ struct LayerTexCoord
 void ApplyDoubleSidedFlip(inout FragInputs input)
 {
 #ifdef _DOUBLESIDED_ON
-    // _DoubleSidedMode is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode
-    float flipSign = input.isFrontFace ? 1.0 : _DoubleSidedMode.x; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
+    // _DoubleSidedConstants is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode
+    float flipSign = input.isFrontFace ? 1.0 : _DoubleSidedConstants.x; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
     #ifdef SURFACE_GRADIENT
     input.vtxNormalWS = flipSign * input.vtxNormalWS;
     input.mikktsBino = flipSign * input.mikktsBino;
     // TOCHECK: seems that we don't need to invert any genBasisTB(), sign cancel. Which is expected as we deal with surface gradient.
     #else
-    input.tangentToWorld[0] = flipSign * input.tangentToWorld[0];
-    input.tangentToWorld[1] = flipSign * input.tangentToWorld[1];
+    input.tangentToWorld[1] = flipSign * input.tangentToWorld[1]; // bitangent
+    input.tangentToWorld[2] = flipSign * input.tangentToWorld[2]; // normal
     #endif
 #endif
 }
 
 // To mirror a normal: in ws reflect around the vertex normal / in tangent space apply minus on the z component.
 // For surface gradient it is sufficient to take the opposite of the surface gradient.
-void ApplyDoubleSidedMirror(inout float3 normalTS)
+void ApplyDoubleSidedMirror(FragInputs input, inout float3 normalTS)
 {
 #ifdef _DOUBLESIDED_ON
-    // _DoubleSidedMode is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode
-    float flipSign = input.isFrontFace ? 1.0 : -_DoubleSidedMode.x; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
+    // _DoubleSidedConstants is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode
+    float flipSign = input.isFrontFace ? 1.0 : -_DoubleSidedConstants.x; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
     #ifdef SURFACE_GRADIENT
     normalTS = flipSign * normalTS;
     #else
@@ -278,7 +278,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
     float3 normalTS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
-    ApplyDoubleSidedMirror(normalTS); // Apply double sided mirror on the final normalTS
+    ApplyDoubleSidedMirror(input, normalTS); // Apply double sided mirror on the final normalTS
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.tangentToWorld[2].xyz, _HorizonFade);
@@ -1091,7 +1091,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.coatPerceptualSmoothness = 1.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
-    ApplyDoubleSidedMirror(normalTS); // Apply double sided mirror on the final normalTS
+    ApplyDoubleSidedMirror(input, normalTS); // Apply double sided mirror on the final normalTS
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
