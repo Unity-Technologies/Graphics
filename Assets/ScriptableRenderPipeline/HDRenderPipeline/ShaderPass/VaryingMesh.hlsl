@@ -134,16 +134,6 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     output.positionWS.xyz = input.interpolators0.xyz;
 #endif
 
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    // Normalize the normal/tangent after interpolation
-    float3 normalWS = normalize(input.interpolators1);
-    float4 tangentWS = float4(normalize(input.interpolators2.xyz), input.interpolators2.w);
-    float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
-    output.tangentToWorld[0] = tangentToWorld[0];
-    output.tangentToWorld[1] = tangentToWorld[1];
-    output.tangentToWorld[2] = tangentToWorld[2];
-#endif
-
 #ifdef VARYINGS_NEED_TEXCOORD0 
     output.texCoord0 = input.interpolators3.xy;
 #endif
@@ -162,6 +152,51 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
 #if defined(VARYINGS_NEED_CULLFACE) && SHADER_STAGE_FRAGMENT
     output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
+#endif
+
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+
+#ifdef SURFACE_GRADIENT
+    // Caution: We assume that tangent space are always use in a context where positionWS is availble.
+    // Which is true in our framework. When positionWS is 0 it mean we are in a deffered or compute pass which don't use our tangent space (so code will be remove by the compiler)
+    // TODO: We should use relative camera position here - This will be automatic when we will move to camera relative space.
+    float3 dPdx = ddx_fine(output.positionWS.xyz);
+    float3 dPdy = ddy_fine(output.positionWS.xyz);
+    float renormFactor = 1.0 / length(input.interpolators1);
+    float3 nrmVertexNormal = renormFactor * input.interpolators1;
+    float3 sigmaX = dPdx - dot(dPdx, nrmVertexNormal) * nrmVertexNormal;
+    float3 sigmaY = dPdy - dot(dPdy, nrmVertexNormal) * nrmVertexNormal;
+    //float flip_sign = dot(sigmaY, cross(nrmVertexNormal, sigmaX) ) ? -1 : 1;
+    float flipSign = dot(dPdy, cross(nrmVertexNormal, dPdx)) < 0 ? -1 : 1; // gives same as the commented out line above
+
+    output.vtxNormalWS = nrmVertexNormal;
+    // mikkts for conventional vertex level tspace (no normalizes is mandatory)  
+    output.mikktsTang = input.interpolators2.xyz;
+    // bitangent on the fly option in xnormal to reduce vertex shader outputs. Also described in https://wiki.blender.org/index.php/Dev:Shading/Tangent_Space_Normal_Maps
+    output.mikktsBino = (input.interpolators2.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale() * cross(input.interpolators1, input.interpolators2.xyz); // TODO: use CreateTangentToWorld instead once we clean code
+    // prepare for surfgrad formulation without breaking compliance (use exact same scale as applied to interpolated vertex normal to avoid breaking compliance).
+    output.mikktsTang *= renormFactor;
+    output.mikktsBino *= renormFactor;
+
+    #ifdef VARYINGS_NEED_TEXCOORD1
+    genBasisTB(nrmVertexNormal, sigmaX, sigmaY, flipSign, output.vT1, output.vB1, output.texCoord1);
+    #endif
+    #ifdef VARYINGS_NEED_TEXCOORD2
+    genBasisTB(nrmVertexNormal, sigmaX, sigmaY, flipSign, output.vT2, output.vB2, output.texCoord2);
+    #endif
+    #ifdef VARYINGS_NEED_TEXCOORD3
+    genBasisTB(nrmVertexNormal, sigmaX, sigmaY, flipSign, output.vT3, output.vB3, output.texCoord3);
+    #endif
+#else
+    // Normalize the normal/tangent after interpolation
+    float3 normalWS = normalize(input.interpolators1);
+    float4 tangentWS = float4(normalize(input.interpolators2.xyz), input.interpolators2.w > 0.0 ? 1.0 : -1.0);
+    float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
+    output.tangentToWorld[0] = tangentToWorld[0];
+    output.tangentToWorld[1] = tangentToWorld[1];
+    output.tangentToWorld[2] = tangentToWorld[2];
+#endif // SURFACE_GRADIENT
+
 #endif
 
     return output;

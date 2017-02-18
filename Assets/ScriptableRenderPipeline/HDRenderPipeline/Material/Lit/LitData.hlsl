@@ -70,6 +70,40 @@ struct LayerTexCoord
     float3 triplanarWeights;
 };
 
+// To flip in case of double sided, we must flip the vertex normal and this will apply to the whole process either in surface gradient or not.
+// As here we are in the function call GetSurfaceAndBuiltinData(), the tangent space is already built, so we need to flip both normal and bitangent.
+// This function will modify FragInputs and this is not propagate outside of GetSurfaceAndBuiltinData(). This is ok as tangent space is not use outside of GetSurfaceAndBuiltinData().
+void ApplyDoubleSidedFlip(inout FragInputs input)
+{
+#ifdef _DOUBLESIDED_ON
+    // _DoubleSidedMode is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode
+    float flipSign = input.isFrontFace ? 1.0 : _DoubleSidedMode.x; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
+    #ifdef SURFACE_GRADIENT
+    input.vtxNormalWS = flipSign * input.vtxNormalWS;
+    input.mikktsBino = flipSign * input.mikktsBino;
+    // TOCHECK: seems that we don't need to invert any genBasisTB(), sign cancel. Which is expected as we deal with surface gradient.
+    #else
+    input.tangentToWorld[0] = flipSign * input.tangentToWorld[0];
+    input.tangentToWorld[1] = flipSign * input.tangentToWorld[1];
+    #endif
+#endif
+}
+
+// To mirror a normal: in ws reflect around the vertex normal / in tangent space apply minus on the z component.
+// For surface gradient it is sufficient to take the opposite of the surface gradient.
+void ApplyDoubleSidedMirror(inout float3 normalTS)
+{
+#ifdef _DOUBLESIDED_ON
+    // _DoubleSidedMode is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode
+    float flipSign = input.isFrontFace ? 1.0 : -_DoubleSidedMode.x; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
+    #ifdef SURFACE_GRADIENT
+    normalTS = flipSign * normalTS;
+    #else
+    normalTS.z *= flipSign;
+    #endif
+#endif
+}
+
 #ifndef LAYERED_LIT_SHADER
 
 #define SAMPLER_NORMALMAP_IDX sampler_NormalMap
@@ -226,6 +260,8 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+    ApplyDoubleSidedFlip(input); // Apply double sided flip on the vertex normal
+
     LayerTexCoord layerTexCoord;
     GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
                      input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
@@ -242,6 +278,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
     float3 normalTS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
+    ApplyDoubleSidedMirror(normalTS); // Apply double sided mirror on the final normalTS
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.tangentToWorld[2].xyz, _HorizonFade);
@@ -966,7 +1003,11 @@ float3 ComputeMainNormalInfluence(FragInputs input, float3 normalTS0, float3 nor
     float3 mainNormalTS = GetNormalTS0(input, layerTexCoord, float3(0.0, 0.0, 1.0), 0.0, true, maxMipBias * (1.0 - influenceFactor));
 
     // Add on our regular normal a bit of Main Layer normal base on influence factor. Note that this affect only the "visible" normal.
+    #ifdef SURFACE_GRADIENT
+    return normalTS + influenceFactor * mainNormalTS;
+    #else
     return lerp(normalTS, BlendNormalRNM(normalTS, mainNormalTS), influenceFactor);
+    #endif
 }
 
 float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float3 baseColor2, float3 baseColor3, float compoMask, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
@@ -995,6 +1036,8 @@ float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+    ApplyDoubleSidedFlip(input); // Apply double sided flip on the vertex normal
+
     LayerTexCoord layerTexCoord;
     GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
                      input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
@@ -1048,6 +1091,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.coatPerceptualSmoothness = 1.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
+    ApplyDoubleSidedMirror(normalTS); // Apply double sided mirror on the final normalTS
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
