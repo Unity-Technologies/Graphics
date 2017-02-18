@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
             if (m_DataInputAnchorPresenters == null)
                 m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
 
-            SetModelContainer(m_ModelContainer != null ? m_ModelContainer : CreateInstance<VFXModelContainer>(),false);
+            SetGraphAsset(m_GraphAsset != null ? m_GraphAsset : CreateInstance<VFXGraphAsset>(), false);
 		}
 
 		public VFXView View
@@ -55,7 +55,7 @@ namespace UnityEditor.VFX.UI
 				var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner as VFXContext;
 				var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner as VFXContext;
 
-				VFXSystem.ConnectContexts(context0, context1, m_ModelContainer);
+				VFXSystem.ConnectContexts(context0, context1, m_GraphAsset.root);
 				RecreateFlowEdges();
 			}
 		}
@@ -69,14 +69,14 @@ namespace UnityEditor.VFX.UI
 				VFXContext context = ((VFXContextPresenter)element).Model;
 
 				// First we need to disconnect context if needed
-				VFXSystem.DisconnectContext(context, m_ModelContainer);
+				VFXSystem.DisconnectContext(context, m_GraphAsset.root);
 				var system = context.GetParent();
 				var index = system.GetIndex(context);
 				if (index < system.GetNbChildren() - 1)
-					VFXSystem.DisconnectContext(system.GetChild(index + 1), m_ModelContainer);
+					VFXSystem.DisconnectContext(system.GetChild(index + 1), m_GraphAsset.root);
 
 				// now context should be in its own system
-				m_ModelContainer.m_Roots.Remove(context.GetParent());
+				m_GraphAsset.root.RemoveChild(context.GetParent());
 				context.Detach();
 
 				RecreateFlowEdges();
@@ -86,10 +86,8 @@ namespace UnityEditor.VFX.UI
 				var anchorPresenter = ((VFXFlowEdgePresenter)element).input;
 				var context = ((VFXFlowAnchorPresenter)anchorPresenter).Owner as VFXContext;
 				if (context != null)
-					VFXSystem.DisconnectContext(context, m_ModelContainer);
+					VFXSystem.DisconnectContext(context, m_GraphAsset.root);
 			}
-
-			EditorUtility.SetDirty(m_ModelContainer);
         }
 
         public void RegisterFlowAnchorPresenter(VFXFlowAnchorPresenter presenter)
@@ -201,16 +199,15 @@ namespace UnityEditor.VFX.UI
 			var system = new VFXSystem();
             system.AddChild(context);
 
-			m_ModelContainer.m_Roots.Add(system);
+            m_GraphAsset.root.AddChild(system);
 			AddPresentersFromModel(system);
-			EditorUtility.SetDirty(m_ModelContainer);
 		}
 
 		private void RecreateFlowEdges()
 		{
 			m_Elements.RemoveAll(element => element is VFXFlowEdgePresenter);
 
-			foreach (var model in m_ModelContainer.m_Roots)
+			foreach (var model in m_GraphAsset.root.GetChildren())
 				if (model is VFXSystem)
 					CreateFlowEdges((VFXSystem)model);
 		}
@@ -255,24 +252,24 @@ namespace UnityEditor.VFX.UI
 				AddElement(presenter);
 			}
 		}
-        public VFXModelContainer GetModelContainer()
+        public VFXGraphAsset GetGraphAsset()
         {
-            return m_ModelContainer;
+            return m_GraphAsset;
         }
-		public void SetModelContainer(VFXModelContainer container,bool force)
+        public void SetGraphAsset(VFXGraphAsset graph, bool force)
 		{
-			if (m_ModelContainer != container || force)
+            if (m_GraphAsset != graph || force)
 			{
                 // Do we have a leak without this line ?
-				/*if (m_ModelContainer != null && !EditorUtility.IsPersistent(m_ModelContainer))
-					DestroyImmediate(m_ModelContainer);*/
+                /*if (m_GraphAsset != null && !EditorUtility.IsPersistent(m_GraphAsset))
+                    DestroyImmediate(m_GraphAsset);*/
 
-				m_Elements.Clear();
+                m_Elements.Clear();
 				m_FlowAnchorPresenters.Clear();
-				m_ModelContainer = container;
+                m_GraphAsset = graph;
 
-				if (m_ModelContainer != null)
-					foreach (var model in m_ModelContainer.m_Roots)
+                if (m_GraphAsset != null)
+                    foreach (var model in m_GraphAsset.root.GetChildren())
 						AddPresentersFromModel(model);
 
 				// Doesn't work for some reason
@@ -281,7 +278,7 @@ namespace UnityEditor.VFX.UI
 		}
 
 		[SerializeField]
-		private VFXModelContainer m_ModelContainer;
+		private VFXGraphAsset m_GraphAsset;
 
 		private VFXView m_View; // Don't call directly as it is lazy initialized
 	}

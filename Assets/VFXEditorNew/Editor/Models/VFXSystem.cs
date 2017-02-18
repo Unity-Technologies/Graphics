@@ -23,7 +23,7 @@ namespace UnityEditor.VFX
 
         // Helper function
         // Connect context0 to context1 and recreate another system if necessary
-        public static bool ConnectContexts(VFXContext context0, VFXContext context1, VFXModelContainer root)
+        public static bool ConnectContexts(VFXContext context0, VFXContext context1, VFXGraph root)
         {
             if (context0 == context1)
                 return false;
@@ -44,7 +44,7 @@ namespace UnityEditor.VFX
                 while (system0.GetNbChildren() > context0Index + 1)
                     system0.m_Children[context0Index + 1].Attach(newSystem, true);
 
-                root.m_Roots.Add(newSystem);
+                root.AddChild(newSystem);
             }
 
             VFXSystem system1 = context1.GetParent();
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
 
         // Helper function
         // Disconnect a context (from its input) and create another system if necessary
-        public static bool DisconnectContext(VFXContext context, VFXModelContainer root)
+        public static bool DisconnectContext(VFXContext context, VFXGraph root)
         {
             VFXSystem system = context.GetParent();
             if (system == null)
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
             while (system.GetNbChildren() > index)
                 system.GetChild(index).Attach(newSystem, true);
 
-            root.m_Roots.Add(newSystem);
+            root.AddChild(newSystem);
 
             return true;
         }

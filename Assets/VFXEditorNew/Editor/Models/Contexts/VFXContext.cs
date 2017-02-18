@@ -32,7 +32,11 @@ using System;using UnityEngine;using Type = System.Type;namespace UnityEdit
         public VFXContext(VFXContextType contextType) : this(contextType,VFXDataType.kNone,VFXDataType.kNone)
         {}
 
-        public VFXContextType contextType       { get { return m_ContextType; } }        public VFXDataType inputType            { get { return m_InputType; } }        public VFXDataType outputType           { get { return m_OutputType; } }            public Vector2 position        {            get { return m_UIPosition; }            set { m_UIPosition = value; }        }        public override bool AcceptChild(VFXModel model, int index = -1)        {            if (!base.AcceptChild(model, index))                return false;            var block = (VFXBlock)model;            return Accept(block,index);        }        public bool Accept(VFXBlock block, int index = -1)        {
+        public VFXContextType contextType       { get { return m_ContextType; } }        public VFXDataType inputType            { get { return m_InputType; } }        public VFXDataType outputType           { get { return m_OutputType; } }            public Vector2 position        {            get { return m_UIPosition; }            set            {                 if (m_UIPosition != value)
+                {
+                    m_UIPosition = value;
+                    Invalidate(InvalidationCause.kUIChanged);
+                }             }        }        public override bool AcceptChild(VFXModel model, int index = -1)        {            if (!base.AcceptChild(model, index))                return false;            var block = (VFXBlock)model;            return Accept(block,index);        }        public bool Accept(VFXBlock block, int index = -1)        {
             return (block.compatibleContexts & contextType) != 0;        }
 
         [SerializeField]

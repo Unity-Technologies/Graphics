@@ -56,10 +56,10 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(5, s_logs.Count);
             Assert.AreEqual("OnAdded VFXModelB",                    s_logs[0]);
-            Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[1]);
+            Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[1]);
             Assert.AreEqual("OnAdded VFXModelC",                    s_logs[2]);
-            Assert.AreEqual("OnInvalidate VFXModelB kModelChanged", s_logs[3]);
-            Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[4]);
+            Assert.AreEqual("OnInvalidate VFXModelB kStructureChanged", s_logs[3]);
+            Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[4]);
         }
 
         [Test]
@@ -82,11 +82,11 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(6, s_logs.Count);
             Assert.AreEqual("OnAdded VFXModelB",                    s_logs[0]);
-            Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[1]);
+            Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[1]);
             Assert.AreEqual("OnAdded VFXModelB",                    s_logs[2]);
-            Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[3]);
+            Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[3]);
             Assert.AreEqual("OnAdded VFXModelB",                    s_logs[4]);
-            Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[5]);
+            Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[5]);
         }
 
         [Test]
@@ -113,10 +113,10 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(5, s_logs.Count);
             Assert.AreEqual("OnRemoved VFXModelC",                  s_logs[0]);
-            Assert.AreEqual("OnInvalidate VFXModelB kModelChanged", s_logs[1]);
-            Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[2]);
+            Assert.AreEqual("OnInvalidate VFXModelB kStructureChanged", s_logs[1]);
+            Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[2]);
             Assert.AreEqual("OnRemoved VFXModelB",                  s_logs[3]);
-            Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[4]);
+            Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[4]);
         }
 
         [Test]
@@ -143,7 +143,7 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < 6; i += 2)
             {
                 Assert.AreEqual("OnRemoved VFXModelB", s_logs[i]);
-                Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[i + 1]);
+                Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[i + 1]);
             }
         }
 
@@ -164,11 +164,11 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(6, s_logs.Count);
             Assert.AreEqual("OnAdded VFXModelB",                    s_logs[0]);
-            Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[1]);
+            Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[1]);
             Assert.AreEqual("OnRemoved VFXModelB",                  s_logs[2]);
-            Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[3]);
+            Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[3]);
             Assert.AreEqual("OnAdded VFXModelB",                    s_logs[4]);
-            Assert.AreEqual("OnInvalidate VFXModelA kModelChanged", s_logs[5]);
+            Assert.AreEqual("OnInvalidate VFXModelA kStructureChanged", s_logs[5]);
         }
 
         [Test]

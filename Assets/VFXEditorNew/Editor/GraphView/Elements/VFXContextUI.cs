@@ -292,6 +292,7 @@ namespace UnityEditor.VFX.UI
             var boundPresenters = m_BlockContainer.children.OfType<VFXBlockUI>().Select(ui => ui.GetPresenter<VFXBlockPresenter>());
             if (!blockPresenters.SequenceEqual(boundPresenters))
             {
+                m_BlockContainer.ClearSelection();
                 m_BlockContainer.ClearChildren();
                 foreach (var presenter in blockPresenters)
                     InstantiateBlock(presenter);
