@@ -64,32 +64,54 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         normalTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
     }            
     #else // Object space
-    // to be able to combine object space normal with detail map we transform it to tangent space (object space normal composition is complex operation).
+    // to be able to combine object space normal with detail map or to apply a "scale" we transform it to tangent space (object space normal composition is complex operation).
     // then later we will re-transform it to world space.
+    // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
     if (useBias)
     {
-        float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB_BIAS(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale), bias).rgb;
+        #ifdef SURFACE_GRADIENT
+        // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
+        float3 normalOS = SAMPLE_TEXTURE2D_BIAS(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias).xyz * 2.0 - 1.0;
+        // normalize(normalOS) // TO CHECK: surfgradFromPerturbedNormal doesn't require normalOS to be normalize, to check
+        normalTS = surfgradFromPerturbedNormal(input.vtxNormalWS, normalOS);
+        normalTS *= ADD_IDX(_NormalScale);
+        #else
+        float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D_BIAS(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias), 1.0);
         normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
+        normalTS.xy *= ADD_IDX(_NormalScale);  // Scale in tangent space
+        normalTS = (normalTS);
+        #endif
     }
     else
     {
-        float3 normalOS = SAMPLE_LAYER_NORMALMAP_RGB(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale)).rgb;
+        #ifdef SURFACE_GRADIENT
+        // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
+        float3 normalOS = SAMPLE_TEXTURE2D(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
+        // normalize(normalOS) // TO CHECK: surfgradFromPerturbedNormal doesn't require normalOS to be normalize, to check
+        normalTS = surfgradFromPerturbedNormal(input.vtxNormalWS, normalOS);
+        normalTS *= ADD_IDX(_NormalScale);
+        #else
+        float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
         normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
+        normalTS.xy *= ADD_IDX(_NormalScale); // Scale in tangent space
+        normalTS = (normalTS);
+        #endif        
     }
     #endif
 
     #ifdef _DETAIL_MAP_IDX
-    normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask);
+        #ifdef SURFACE_GRADIENT
+        normalTS += detailNormalTS;
+        #else
+        normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask);
+        #endif
     #endif
 #else
+    #ifdef SURFACE_GRADIENT
+    normalTS = float3(0.0, 0.0, 0.0); // No gradient
+    #else
     normalTS = float3(0.0, 0.0, 1.0);
-#endif
-
-#ifdef _DOUBLESIDED_ON
-    // _DoubleSidedMode is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode (Mirror the normal with the plane define by vertex normal)
-    float3 oppositeNormalTS = normalTS * _DoubleSidedConstants.xyz;
-    // TODO : Test if GetOddNegativeScale() is necessary here in case of normal map, as GetOddNegativeScale is take into account in CreateTangentToWorld();
-    normalTS = input.isFrontFace ? (GetOddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS) : (-GetOddNegativeScale() >= 0.0 ? normalTS : oppositeNormalTS);
+    #endif
 #endif
 
     return normalTS;

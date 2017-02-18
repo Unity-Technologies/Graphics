@@ -16,8 +16,22 @@ struct FragInputs
     float2 texCoord1;
     float2 texCoord2;
     float2 texCoord3;
-    float3 tangentToWorld[3]; // These 3 vectors are normalized (no need for the material to normalize) and these are only for UVSet 0
     float4 color; // vertex color
+
+    #ifdef SURFACE_GRADIENT
+    // Various tangent space for all UVSet
+    // used for vertex level tangent space only (support on UV set 0 only)
+    float3 vtxNormalWS;  
+    float3 mikktsTang;
+    float3 mikktsBino;
+    // Use for the 3 other UVSet;
+    float3 vT1, vB1;
+    float3 vT2, vB2;
+    float3 vT3, vB3;
+
+    #else
+    float3 tangentToWorld[3]; // These 3 vectors are normalized (no need for the material to normalize) and these are only for UVSet 0
+    #endif
 
     // For two sided lighting
     bool isFrontFace;
