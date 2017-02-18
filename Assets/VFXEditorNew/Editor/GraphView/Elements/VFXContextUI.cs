@@ -288,10 +288,14 @@ namespace UnityEditor.VFX.UI
 			VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
             var blockPresenters = contextPresenter.blockPresenters;
 
-            // TMP recreate each time until a better solution is found
-            m_BlockContainer.ClearChildren();
-            foreach (var presenter in blockPresenters)
-                InstantiateBlock(presenter);
+            // TMP recreate everything when collections are out of sync
+            var boundPresenters = m_BlockContainer.children.OfType<VFXBlockUI>().Select(ui => ui.GetPresenter<VFXBlockPresenter>());
+            if (!blockPresenters.SequenceEqual(boundPresenters))
+            {
+                m_BlockContainer.ClearChildren();
+                foreach (var presenter in blockPresenters)
+                    InstantiateBlock(presenter);
+            }
 
             // Does not guarantee correct ordering
 			/*var blocks = m_BlockContainer.children.OfType<VFXBlockUI>().ToList();
