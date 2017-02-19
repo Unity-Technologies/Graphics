@@ -30,7 +30,10 @@ struct FragInputs
     float3 vT3, vB3;
 
     #else
-    float3 tangentToWorld[3]; // These 3 vectors are normalized (no need for the material to normalize) and these are only for UVSet 0
+    // TODO: confirm with Morten following statement
+    // Our TBN is orthogonal but is maybe not orthonormal in order to be compliant with external bakers (Like xnormal that use mikktspace).
+    // (xnormal for example take into account the interpolation when baking the normal and normalizing the tangent basis could cause distortion).
+    float3 worldToTangent[3]; // These 3 vectors are normalized (no need for the material to normalize) and these are only for UVSet 0
     #endif
 
     // For two sided lighting
@@ -44,8 +47,8 @@ FragInputs InitializeFragInputs()
     FragInputs output;
     ZERO_INITIALIZE(FragInputs, output);
 
-    output.tangentToWorld[0] = float3(0.0, 0.0, 1.0);
-    output.tangentToWorld[2] = float3(0.0, 0.0, 1.0);
+    output.worldToTangent[0] = float3(0.0, 0.0, 1.0);
+    output.worldToTangent[2] = float3(0.0, 0.0, 1.0);
 
     return output;
 }
@@ -67,13 +70,13 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
         result = float3(input.texCoord3, 0.0);
         break;
     case DEBUGVIEWVARYING_VERTEX_TANGENT_WS:
-        result = input.tangentToWorld[0].xyz * 0.5 + 0.5;
+        result = input.worldToTangent[0].xyz * 0.5 + 0.5;
         break;
     case DEBUGVIEWVARYING_VERTEX_BITANGENT_WS:
-        result = input.tangentToWorld[1].xyz * 0.5 + 0.5;
+        result = input.worldToTangent[1].xyz * 0.5 + 0.5;
         break;
     case DEBUGVIEWVARYING_VERTEX_NORMAL_WS:
-        result = input.tangentToWorld[2].xyz * 0.5 + 0.5;
+        result = input.worldToTangent[2].xyz * 0.5 + 0.5;
         break;
     case DEBUGVIEWVARYING_VERTEX_COLOR:
         result = input.color.rgb; needLinearToSRGB = true;

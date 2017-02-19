@@ -173,7 +173,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     // mikkts for conventional vertex level tspace (no normalizes is mandatory)  
     output.mikktsTang = input.interpolators2.xyz;
     // bitangent on the fly option in xnormal to reduce vertex shader outputs. Also described in https://wiki.blender.org/index.php/Dev:Shading/Tangent_Space_Normal_Maps
-    output.mikktsBino = (input.interpolators2.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale() * cross(input.interpolators1, input.interpolators2.xyz); // TODO: use CreateTangentToWorld instead once we clean code
+    output.mikktsBino = (input.interpolators2.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale() * cross(input.interpolators1, input.interpolators2.xyz); // TODO: use CreateWorldToTangent instead once we clean code
     // prepare for surfgrad formulation without breaking compliance (use exact same scale as applied to interpolated vertex normal to avoid breaking compliance).
     output.mikktsTang *= renormFactor;
     output.mikktsBino *= renormFactor;
@@ -191,10 +191,10 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     // Normalize the normal/tangent after interpolation
     float3 normalWS = normalize(input.interpolators1);
     float4 tangentWS = float4(normalize(input.interpolators2.xyz), input.interpolators2.w > 0.0 ? 1.0 : -1.0);
-    float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
-    output.tangentToWorld[0] = tangentToWorld[0];
-    output.tangentToWorld[1] = tangentToWorld[1];
-    output.tangentToWorld[2] = tangentToWorld[2];
+    float3x3 worldToTangent = CreateWorldToTangent(normalWS, tangentWS.xyz, tangentWS.w);
+    output.worldToTangent[0] = worldToTangent[0];
+    output.worldToTangent[1] = worldToTangent[1];
+    output.worldToTangent[2] = worldToTangent[2];
 #endif // SURFACE_GRADIENT
 
 #endif

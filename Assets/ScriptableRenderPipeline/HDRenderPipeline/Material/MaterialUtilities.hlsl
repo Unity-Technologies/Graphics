@@ -90,7 +90,7 @@ void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout fl
     #ifdef SURFACE_GRADIENT
     normalWS = resolveNormalFromSurfaceGradient(input.vtxNormalWS, normalTS);
     #else
-    normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+    normalWS = TransformTangentToWorld(normalTS, input.worldToTangent);
     #endif
 
     // NdotV should not be negative for visible pixels, but it can happen due to the

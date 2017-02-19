@@ -83,8 +83,8 @@ void ApplyDoubleSidedFlip(inout FragInputs input)
     input.mikktsBino = flipSign * input.mikktsBino;
     // TOCHECK: seems that we don't need to invert any genBasisTB(), sign cancel. Which is expected as we deal with surface gradient.
     #else
-    input.tangentToWorld[1] = flipSign * input.tangentToWorld[1]; // bitangent
-    input.tangentToWorld[2] = flipSign * input.tangentToWorld[2]; // normal
+    input.worldToTangent[1] = flipSign * input.worldToTangent[1]; // bitangent
+    input.worldToTangent[2] = flipSign * input.worldToTangent[2]; // normal
     #endif
 #endif
 }
@@ -241,7 +241,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, input.tangentToWorld);
+            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, input.worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
@@ -264,7 +264,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     LayerTexCoord layerTexCoord;
     GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
-                     input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
+                     input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 
 
     ApplyPerPixelDisplacement(input, V, layerTexCoord);
@@ -281,7 +281,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ApplyDoubleSidedMirror(input, normalTS); // Apply double sided mirror on the final normalTS
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
-    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.tangentToWorld[2].xyz, _HorizonFade);
+    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.worldToTangent[2].xyz, _HorizonFade);
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
@@ -891,7 +891,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, input.tangentToWorld);
+            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, input.worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
@@ -1040,7 +1040,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     LayerTexCoord layerTexCoord;
     GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
-                     input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
+                     input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 
     ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
@@ -1080,7 +1080,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
 
     // Init other unused parameter
-    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
+    surfaceData.tangentWS = input.worldToTangent[0].xyz;
     surfaceData.materialId = 0;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
@@ -1095,7 +1095,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
-    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.tangentToWorld[2].xyz, _HorizonFade);
+    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.worldToTangent[2].xyz, _HorizonFade);
 
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
