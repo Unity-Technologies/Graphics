@@ -280,15 +280,6 @@ float4 TransformWorldToHClip(float3 positionWS)
     return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
-float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
-{
-    // For odd-negative scale transforms we need to flip the sign
-    float sgn = tangentSign * GetOddNegativeScale();
-    float3 bitangent = cross(normal, tangent) * sgn;
-
-    return float3x3(tangent, bitangent, normal);
-}
-
 // Computes world space view direction, from object space position
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
@@ -304,32 +295,35 @@ float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
     return normalize(V);
 }
 
-float3 TransformTangentToWorld(float3 dirTS, float3 tangentToWorld[3])
+float3x3 CreateWorldToTangent(float3 normal, float3 tangent, float tangentSign)
 {
-    // TODO check: do we need to normalize ?
-    return normalize(mul(dirTS, float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz)));
+    // For odd-negative scale transforms we need to flip the sign
+    float sgn = tangentSign * GetOddNegativeScale();
+    float3 bitangent = cross(normal, tangent) * sgn;
+
+    return float3x3(tangent, bitangent, normal);
 }
 
-// Assume TBN is orthonormal.
-float3 TransformWorldToTangent(float3 dirWS, float3 tangentToWorld[3])
+float3 TransformTangentToWorld(float3 dirTS, float3 worldToTangent[3])
 {
-    // TODO check: do we need to normalize ?
-    return normalize(mul(float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz), dirWS));
+    // Use transpose transformation to go from tangent to world as the matrix is orthogonal
+    return mul(dirTS, float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz));
+}
+
+float3 TransformWorldToTangent(float3 dirWS, float3 worldToTangent[3])
+{
+    return mul(float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz), dirWS);
 }
 
 float3 TransformTangentToObject(float3 dirTS, float3 worldToTangent[3])
 {
-    // TODO check: do we need to normalize ?
-    // worldToTangent is orthonormal so inverse <==> transpose
-    float3x3 mWorldToTangent = float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz);
-    float3 normalWS = mul(dirTS, mWorldToTangent);
-    return normalize(mul((float3x3)unity_WorldToObject, normalWS));
+    // Use transpose transformation to go from tangent to world as the matrix is orthogonal
+    float3 normalWS = mul(dirTS, float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz));
+    return mul((float3x3)unity_WorldToObject, normalWS);
 }
 
-// Assume TBN is orthonormal.
 float3 TransformObjectToTangent(float3 dirOS, float3 worldToTangent[3])
 {
-    // TODO check: do we need to normalize ?
-    return normalize(mul(float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz), mul((float3x3)unity_ObjectToWorld, dirOS)));
+    return mul(float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz), mul((float3x3)unity_ObjectToWorld, dirOS));
 }
 #endif // UNITY_SHADER_VARIABLES_INCLUDED
