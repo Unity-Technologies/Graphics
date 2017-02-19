@@ -77,7 +77,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         normalTS *= ADD_IDX(_NormalScale);
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D_BIAS(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias), 1.0);
-        normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
+        normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
         normalTS.xy *= ADD_IDX(_NormalScale);  // Scale in tangent space
         normalTS = (normalTS);
         #endif
@@ -92,7 +92,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         normalTS *= ADD_IDX(_NormalScale);
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
-        normalTS = TransformObjectToTangent(normalOS, input.tangentToWorld);
+        normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
         normalTS.xy *= ADD_IDX(_NormalScale); // Scale in tangent space
         normalTS = (normalTS);
         #endif        
@@ -189,13 +189,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #ifdef _TANGENTMAP
 #ifdef _NORMALMAP_TANGENT_SPACE_IDX // Normal and tangent use same space
     float3 tangentTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base), 1.0);
-    surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.tangentToWorld);
+    surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.worldToTangent);
 #else // Object space
     float3 tangentOS = SAMPLE_LAYER_NORMALMAP_RGB(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base), 1.0).rgb;
     surfaceData.tangentWS = TransformObjectToWorldDir(tangentOS);
 #endif
 #else
-    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
+    surfaceData.tangentWS = input.worldToTangent[0].xyz;
 #endif
     // TODO: Is there anything todo regarding flip normal but for the tangent ?
 
@@ -232,7 +232,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // Layered shader only support materialId 0
     surfaceData.materialId = 0;
 
-    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
+    surfaceData.tangentWS = input.worldToTangent[0].xyz;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
 
