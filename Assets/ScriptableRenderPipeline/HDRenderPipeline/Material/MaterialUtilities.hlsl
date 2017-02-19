@@ -84,6 +84,38 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 #endif
 }
 
+// To flip in case of double sided, we must flip the vertex normal and this will apply to the whole process either in surface gradient or not.
+// As here we are in the function call GetSurfaceAndBuiltinData(), the tangent space is already built, so we need to flip both normal and bitangent.
+// This function will modify FragInputs and this is not propagate outside of GetSurfaceAndBuiltinData(). This is ok as tangent space is not use outside of GetSurfaceAndBuiltinData().
+void ApplyDoubleSidedFlip(inout FragInputs input)
+{
+#ifdef _DOUBLESIDED_ON
+    // _DoubleSidedConstants is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode
+    float flipSign = input.isFrontFace ? 1.0 : _DoubleSidedConstants.x; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
+    input.worldToTangent[1] = flipSign * input.worldToTangent[1]; // bitangent
+    input.worldToTangent[2] = flipSign * input.worldToTangent[2]; // normal
+
+    #ifdef SURFACE_GRADIENT
+    // TOCHECK: seems that we don't need to invert any genBasisTB(), sign cancel. Which is expected as we deal with surface gradient.
+    #endif
+#endif
+}
+
+// To mirror a normal: in ws reflect around the vertex normal / in tangent space apply minus on the z component.
+// For surface gradient it is sufficient to take the opposite of the surface gradient.
+void ApplyDoubleSidedMirror(FragInputs input, inout float3 normalTS)
+{
+#ifdef _DOUBLESIDED_ON
+    // _DoubleSidedConstants is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode
+    float flipSign = input.isFrontFace ? 1.0 : -_DoubleSidedConstants.x; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
+    #ifdef SURFACE_GRADIENT
+    normalTS = flipSign * normalTS;
+    #else
+    normalTS.z *= flipSign;
+    #endif
+#endif
+}
+
 // This function convert the tangent space normal/tangent to world space and orthonormalize it + apply a correction of the normal if it is not pointing towards the near plane
 void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout float3 normalWS, inout float3 tangentWS, bool wantNegativeNormal = false)
 {

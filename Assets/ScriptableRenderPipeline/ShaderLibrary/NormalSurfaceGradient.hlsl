@@ -1,7 +1,7 @@
 // this produces an orthonormal basis of the tangent and bitangent WITHOUT vertex level tangent/bitangent for any UV including procedurally generated
 // method released with the demo for publication of "bump mapping unparametrized surfaces on the GPU"
 // http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html
-void SurfaceGradientGenBasisTB(float3 nrmVertexNormal, float3 sigmaX, float3 sigmaY, float flip sign, out float3 vT, out float3 vB, float2 texST)
+void SurfaceGradientGenBasisTB(float3 nrmVertexNormal, float3 sigmaX, float3 sigmaY, float flipSign, float2 texST, out float3 vT, out float3 vB)
 {
     float2 dSTdx = ddx_fine(texST), dSTdy = ddy_fine(texST);
 
@@ -13,7 +13,7 @@ void SurfaceGradientGenBasisTB(float3 nrmVertexNormal, float3 sigmaX, float3 sig
     vT = sigmaX * invC0.x + sigmaY * invC0.y;
     if (abs(det) > 0.0) 
         vT = normalize(vT);
-    vB = (sign_det * flip_sign) * cross(nrmVertexNormal, vT);
+    vB = (sign_det * flipSign) * cross(nrmVertexNormal, vT);
 }
 
 // surface gradient from an on the fly TBN (deriv obtained using tspaceNormalToDerivative()) or from conventional vertex level TBN (mikktspace compliant and deriv obtained using tspaceNormalToDerivative()) 
