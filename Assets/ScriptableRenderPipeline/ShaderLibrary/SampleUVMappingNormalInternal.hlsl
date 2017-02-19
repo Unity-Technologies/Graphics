@@ -20,7 +20,7 @@ float3 ADD_FUNC_SUFFIX(ADD_NORMAL_FUNC_SUFFIX(SampleUVMappingNormal))(TEXTURE2D_
         // Assume derivXplane, derivYPlane and derivZPlane sampled using (z,y), (z,x) and (x,y) respectively.
         // TODO: Check with morten convention! Do it follow ours ?
         float3 volumeGrad = float3(derivZPlane.x + derivYPlane.y, derivZPlane.y + derivXplane.y, derivXplane.x + derivYPlane.x);
-        return surfgradFromVolumeGradient(uvMapping.normalWS, volumeGrad);
+        return SurfaceGradientFromVolumeGradient(uvMapping.normalWS, volumeGrad);
 #else
         float3 val = float3(0.0, 0.0, 0.0);
 
@@ -40,7 +40,7 @@ float3 ADD_FUNC_SUFFIX(ADD_NORMAL_FUNC_SUFFIX(SampleUVMappingNormal))(TEXTURE2D_
         float2 derivYPlane = UNPACK_DERIVATIVE_FUNC(SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping.uvXZ, param), scale);
         // See comment above
         float3 volumeGrad = float3(derivYPlane.y, 0.0, derivYPlane.x);
-        return surfgradFromVolumeGradient(uvMapping.normalWS, volumeGrad);
+        return SurfaceGradientFromVolumeGradient(uvMapping.normalWS, volumeGrad);
     }
 #endif
     else

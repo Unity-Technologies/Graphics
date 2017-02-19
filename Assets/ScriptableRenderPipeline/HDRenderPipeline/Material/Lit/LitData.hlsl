@@ -1,8 +1,8 @@
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
-#include "../MaterialUtilities.hlsl"
 #include "ShaderLibrary/SampleUVMapping.hlsl"
+#include "../MaterialUtilities.hlsl"
 
 void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, float depthOffset, out BuiltinData builtinData)
 {
@@ -76,8 +76,8 @@ struct LayerTexCoord
     // tangent basis for each UVSet - up to 4 for now
     float3 vertexTangentWS0, vertexBitangentWS0;
     float3 vertexTangentWS1, vertexBitangentWS1;
-    float3 vertexTangentWS2, vertexBitangentWS1;
-    float3 vertexTangentWS3, vertexBitangentWS2;
+    float3 vertexTangentWS2, vertexBitangentWS2;
+    float3 vertexTangentWS3, vertexBitangentWS3;
 #endif
 };
 
