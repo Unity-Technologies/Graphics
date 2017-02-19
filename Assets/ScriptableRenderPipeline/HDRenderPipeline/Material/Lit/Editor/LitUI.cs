@@ -108,8 +108,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kTexWorldScale = "_TexWorldScale";
         protected MaterialProperty UVMappingMask = null;
         protected const string kUVMappingMask = "_UVMappingMask";
-        protected MaterialProperty UVMappingPlanar = null;
-        protected const string kUVMappingPlanar = "_UVMappingPlanar";
 
         protected MaterialProperty baseColor = null;
         protected const string kBaseColor = "_BaseColor";
@@ -184,7 +182,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UVBase = FindProperty(kUVBase, props);
             TexWorldScale = FindProperty(kTexWorldScale, props);
             UVMappingMask = FindProperty(kUVMappingMask, props);
-            UVMappingPlanar = FindProperty(kUVMappingPlanar, props);  
 
             baseColor = FindProperty(kBaseColor, props);
             baseColorMap = FindProperty(kBaseColorMap, props);
@@ -289,8 +286,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GUILayout.Label("    " + Styles.textureControlText, EditorStyles.label);
             m_MaterialEditor.ShaderProperty(UVBase, Styles.UVBaseMappingText);
             // UVSet0 is always set, planar and triplanar will override it.
-            UVMappingMask.colorValue = new Color(1.0f, 0.0f, 0.0f, 0.0f); // This is override in the shader anyway but just in case.
-            UVMappingPlanar.floatValue = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) ? 1.0f : 0.0f;
+            UVMappingMask.colorValue = new Color(1.0f, 0.0f, 0.0f, 0.0f); // This is override in the shader anyway but just in case.            
             if (((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale, Styles.texWorldScaleText);
@@ -318,7 +314,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GUILayout.Label("       " + Styles.UVDetailMappingText.text + ": Triplanar");
             }
 
-            // IF planar/triplanar is not chose, setup the UVSet chosen
+            // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
             float X, Y, Z, W;
             X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
             Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
@@ -364,6 +360,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
+            SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);

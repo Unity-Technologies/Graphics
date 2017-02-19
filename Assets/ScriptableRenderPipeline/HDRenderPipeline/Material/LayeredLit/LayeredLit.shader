@@ -166,7 +166,6 @@ Shader "HDRenderPipeline/LayeredLit"
         
         [ToggleOff]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
         [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
-        [HideInInspector] _UVMappingPlanarBlendMask("_UVMappingPlanarBlendMask", Float) = 0.0
         _TexWorldScaleBlendMask("Tiling", Float) = 1.0
 
         // Following are builtin properties
@@ -233,12 +232,7 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _UVMappingMask0("_UVMappingMask0", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask1("_UVMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask2("_UVMappingMask2", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)
-     
-        [HideInInspector] _UVMappingPlanar0("_UVMappingPlanar0", Float) = 0.0
-        [HideInInspector] _UVMappingPlanar1("_UVMappingPlanar1", Float) = 0.0
-        [HideInInspector] _UVMappingPlanar2("_UVMappingPlanar2", Float) = 0.0
-        [HideInInspector] _UVMappingPlanar3("_UVMappingPlanar3", Float) = 0.0        
+        [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)     
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail0("UV Set for detail0", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail1("UV Set for detail1", Float) = 0
@@ -263,11 +257,11 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
 
     #pragma shader_feature _LAYER_TILING_UNIFORM_SCALE
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_BLENDMASK
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR0
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR1
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR2
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR3
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE0
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE1
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
