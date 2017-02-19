@@ -47,6 +47,29 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     ADD_IDX(layerTexCoord.details).uvXZ = TRANSFORM_TEX(uvXZ, ADD_IDX(_DetailMap));
     ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_DetailMap));
     ADD_IDX(layerTexCoord.details).uvZY = TRANSFORM_TEX(uvZY, ADD_IDX(_DetailMap));
+
+    #ifdef SURFACE_GRADIENT
+    // TODO:... how to pass argument, how to deal with vertex level call (like tessellation)
+    ADD_IDX(layerTexCoord.base).vT =    ADD_IDX(_UVMappingMask).x * worlToTangent[0] +
+                                        ADD_IDX(_UVMappingMask).y * vT1 +
+                                        ADD_IDX(_UVMappingMask).z * vT2 +
+                                        ADD_IDX(_UVMappingMask).w * vT3;
+
+    ADD_IDX(layerTexCoord.base).vB =    ADD_IDX(_UVMappingMask).x * worlToTangent[1] +
+                                        ADD_IDX(_UVMappingMask).y * vB1 +
+                                        ADD_IDX(_UVMappingMask).z * vB2 +
+                                        ADD_IDX(_UVMappingMask).w * vB3;
+
+    ADD_IDX(layerTexCoord.details).vT = ADD_IDX(_UVMappingMask).x * worlToTangent[0] +
+                                        ADD_IDX(_UVMappingMask).y * vT1 +
+                                        ADD_IDX(_UVMappingMask).z * vT2 +
+                                        ADD_IDX(_UVMappingMask).w * vT3;
+
+    ADD_IDX(layerTexCoord.details).vB = ADD_IDX(_UVMappingMask).x * worlToTangent[1] +
+                                        ADD_IDX(_UVMappingMask).y * vB1 +
+                                        ADD_IDX(_UVMappingMask).z * vB2 +
+                                        ADD_IDX(_UVMappingMask).w * vB3;
+    #endif
 }
 
 float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask, bool useBias, float bias)
@@ -72,8 +95,8 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         #ifdef SURFACE_GRADIENT
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D_BIAS(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias).xyz * 2.0 - 1.0;
-        // normalize(normalOS) // TO CHECK: surfgradFromPerturbedNormal doesn't require normalOS to be normalize, to check
-        normalTS = surfgradFromPerturbedNormal(input.worldToTangent[2], normalOS);
+        // normalize(normalOS) // TO CHECK: SurfaceGradientFromPerturbedNormal doesn't require normalOS to be normalize, to check
+        normalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], normalOS);
         normalTS *= ADD_IDX(_NormalScale);
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D_BIAS(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias), 1.0);
@@ -87,8 +110,8 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         #ifdef SURFACE_GRADIENT
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
-        // normalize(normalOS) // TO CHECK: surfgradFromPerturbedNormal doesn't require normalOS to be normalize, to check
-        normalTS = surfgradFromPerturbedNormal(input.worldToTangent[2], normalOS);
+        // normalize(normalOS) // TO CHECK: SurfaceGradientFromPerturbedNormal doesn't require normalOS to be normalize, to check
+        normalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], normalOS);
         normalTS *= ADD_IDX(_NormalScale);
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);

@@ -88,7 +88,7 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout float3 normalWS, inout float3 tangentWS, bool wantNegativeNormal = false)
 {
     #ifdef SURFACE_GRADIENT
-    normalWS = resolveNormalFromSurfaceGradient(input.worldToTangent[2], normalTS);
+    normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], normalTS);
     #else
     normalWS = TransformTangentToWorld(normalTS, input.worldToTangent);
     #endif
