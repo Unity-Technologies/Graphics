@@ -73,7 +73,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D_BIAS(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias).xyz * 2.0 - 1.0;
         // normalize(normalOS) // TO CHECK: surfgradFromPerturbedNormal doesn't require normalOS to be normalize, to check
-        normalTS = surfgradFromPerturbedNormal(input.vtxNormalWS, normalOS);
+        normalTS = surfgradFromPerturbedNormal(input.worldToTangent[2], normalOS);
         normalTS *= ADD_IDX(_NormalScale);
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D_BIAS(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias), 1.0);
@@ -88,7 +88,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
         // normalize(normalOS) // TO CHECK: surfgradFromPerturbedNormal doesn't require normalOS to be normalize, to check
-        normalTS = surfgradFromPerturbedNormal(input.vtxNormalWS, normalOS);
+        normalTS = surfgradFromPerturbedNormal(input.worldToTangent[2], normalOS);
         normalTS *= ADD_IDX(_NormalScale);
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(layerTex, SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
@@ -187,20 +187,24 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     // TODO: think about using BC5
 #ifdef _TANGENTMAP
-#ifdef _NORMALMAP_TANGENT_SPACE_IDX // Normal and tangent use same space
-    float3 tangentTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base), 1.0);
+    #ifdef _NORMALMAP_TANGENT_SPACE_IDX // Normal and tangent use same space
+    float3 tangentTS = SAMPLE_LAYER_NORMALMAP(_TangentMap, sampler_TangentMap, layerTexCoord.base, 1.0);
     surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.worldToTangent);
-#else // Object space
-    float3 tangentOS = SAMPLE_LAYER_NORMALMAP_RGB(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base), 1.0).rgb;
+    #else // Object space
+    // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
+    float3 tangentOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(_TangentMap, sampler_TangentMap,  layerTexCoord.base.uv), 1.0);
     surfaceData.tangentWS = TransformObjectToWorldDir(tangentOS);
-#endif
+    #endif
 #else
+    #ifdef SURFACE_GRADIENT
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent when using surface gradient
+    #else
     surfaceData.tangentWS = input.worldToTangent[0].xyz;
+    #endif
 #endif
-    // TODO: Is there anything todo regarding flip normal but for the tangent ?
 
 #ifdef _ANISOTROPYMAP
-    surfaceData.anisotropy = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_AnisotropyMap), ADD_ZERO_IDX(sampler_AnisotropyMap), ADD_IDX(layerTexCoord.base)).b;
+    surfaceData.anisotropy = SAMPLE_LAYER_TEXTURE2D(_AnisotropyMap, sampler_AnisotropyMap, layerTexCoord.base).b;
 #else
     surfaceData.anisotropy = 1.0;
 #endif
@@ -210,13 +214,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.subsurfaceProfile = _SubsurfaceProfile;
 #ifdef _SUBSURFACE_RADIUS_MAP
-	surfaceData.subsurfaceRadius = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_SubsurfaceRadiusMap), ADD_ZERO_IDX(sampler_SubsurfaceRadiusMap), ADD_IDX(layerTexCoord.base)).r * _SubsurfaceRadius;
+	surfaceData.subsurfaceRadius = SAMPLE_LAYER_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r * _SubsurfaceRadius;
 #else
     surfaceData.subsurfaceRadius = _SubsurfaceRadius;
 #endif
 
 #ifdef _THICKNESS_MAP
-	surfaceData.thickness = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_ThicknessMap), ADD_ZERO_IDX(sampler_ThicknessMap), ADD_IDX(layerTexCoord.base)).r;
+	surfaceData.thickness = SAMPLE_LAYER_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
 #else
     surfaceData.thickness = _Thickness;
 #endif
@@ -232,16 +236,17 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // Layered shader only support materialId 0
     surfaceData.materialId = 0;
 
-    surfaceData.tangentWS = input.worldToTangent[0].xyz;
-    surfaceData.anisotropy = 0;
-    surfaceData.specular = 0.04;
+    // All these parameters are ignore as they are re-setup outside of the layers function
+    surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
+    surfaceData.anisotropy = 0.0;
+    surfaceData.specular = 0.0;
 
-    surfaceData.subsurfaceRadius = 1.0;
+    surfaceData.subsurfaceRadius = 0.0;
     surfaceData.thickness = 0.0;
     surfaceData.subsurfaceProfile = 0;
 
     surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
-    surfaceData.coatPerceptualSmoothness = 1.0;
+    surfaceData.coatPerceptualSmoothness = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
 #endif // #if !defined(LAYERED_LIT_SHADER)
