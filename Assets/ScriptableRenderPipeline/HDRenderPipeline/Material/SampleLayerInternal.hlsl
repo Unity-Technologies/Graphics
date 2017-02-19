@@ -4,10 +4,11 @@
 // Also we use multiple inclusion to handle the various variation for lod and bias
 
 // param can be unused, lod or bias
-float4 ADD_FUNC_SUFFIX(SampleLayer)(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 triplanarWeights, float param)
+float4 ADD_FUNC_SUFFIX(SampleLayer)(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, CommonLayerUV common, float param)
 {
     if (layerUV.isTriplanar)
     {
+        float3 triplanarWeights = common.triplanarWeights;
         float4 val = float4(0.0, 0.0, 0.0, 0.0);
 
         if (triplanarWeights.x > 0.0)
@@ -25,69 +26,32 @@ float4 ADD_FUNC_SUFFIX(SampleLayer)(TEXTURE2D_ARGS(layerTex, layerSampler), Laye
     }
 }
 
+// Nested multiple includes of the file to handle all variations of normal map (AG, RG or RGB)
+
 // TODO: Handle BC5 format, currently this code is for DXT5nm - After the change, rename this function UnpackNormalmapRGorAG
 // This version is use for the base normal map
-float3 ADD_FUNC_SUFFIX(SampleLayerNormal)(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 triplanarWeights, float scale, float param)
-{
-    if (layerUV.isTriplanar)
-    {
-        float3 val = float3(0.0, 0.0, 0.0);
-
-        if (triplanarWeights.x > 0.0)
-            val += triplanarWeights.x * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZY, param), scale);
-        if (triplanarWeights.y > 0.0)
-            val += triplanarWeights.y * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXZ, param), scale);
-        if (triplanarWeights.z > 0.0)
-            val += triplanarWeights.z * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXY, param), scale);
-
-        return normalize(val);
-    }
-    else
-    {
-        return UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uv, param), scale);
-    }
-}
+#define ADD_NORMAL_FUNC_SUFFIX(Name) Name
+#define UNPACK_NORMAL_FUNC UnpackNormalAG
+#define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalAG
+#include "SampleLayerNormalInternal.hlsl"
+#undef ADD_NORMAL_FUNC_SUFFIX
+#undef UNPACK_NORMAL_FUNC
+#undef UNPACK_DERIVATIVE_FUNC
 
 // This version is for normalmap with AG encoding only. Mainly use with details map.
-float3 ADD_FUNC_SUFFIX(SampleLayerNormalAG)(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 triplanarWeights, float scale, float param)
-{
-    if (layerUV.isTriplanar)
-    {
-        float3 val = float3(0.0, 0.0, 0.0);
+#define ADD_NORMAL_FUNC_SUFFIX(Name) Name##AG
+#define UNPACK_NORMAL_FUNC UnpackNormalAG
+#define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalAG
+#include "SampleLayerNormalInternal.hlsl"
+#undef ADD_NORMAL_FUNC_SUFFIX
+#undef UNPACK_NORMAL_FUNC
+#undef UNPACK_DERIVATIVE_FUNC
 
-        if (triplanarWeights.x > 0.0)
-            val += triplanarWeights.x * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZY, param), scale);
-        if (triplanarWeights.y > 0.0)
-            val += triplanarWeights.y * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXZ, param), scale);
-        if (triplanarWeights.z > 0.0)
-            val += triplanarWeights.z * UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXY, param), scale);
-
-        return normalize(val);
-    }
-    else
-    {
-        return UnpackNormalAG(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uv, param), scale);
-    }
-}
-
-// This version is for normalmap with RGB encoding only, i.e uncompress or BC7. Mainly used for object space normal.
-float3 ADD_FUNC_SUFFIX(SampleLayerNormalRGB)(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 triplanarWeights, float scale, float param)
-{
-    if (layerUV.isTriplanar)
-    {
-        float3 val = float3(0.0, 0.0, 0.0);
-
-        if (triplanarWeights.x > 0.0)
-            val += triplanarWeights.x * UnpackNormalRGB(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvZY, param), scale);
-        if (triplanarWeights.y > 0.0)
-            val += triplanarWeights.y * UnpackNormalRGB(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXZ, param), scale);
-        if (triplanarWeights.z > 0.0)
-            val += triplanarWeights.z * UnpackNormalRGB(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uvXY, param), scale);
-
-        return normalize(val);
-    }
-    else
-    {
-        return UnpackNormalRGB(SAMPLE_TEXTURE_FUNC(layerTex, layerSampler, layerUV.uv, param), scale);
-    }
-}
+// This version is for normalmap with RGB encoding only, i.e uncompress or BC7.
+#define ADD_NORMAL_FUNC_SUFFIX(Name) Name##RGB
+#define UNPACK_NORMAL_FUNC UnpackNormalRGB
+#define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGB
+#include "SampleLayerNormalInternal.hlsl"
+#undef ADD_NORMAL_FUNC_SUFFIX
+#undef UNPACK_NORMAL_FUNC
+#undef UNPACK_DERIVATIVE_FUNC

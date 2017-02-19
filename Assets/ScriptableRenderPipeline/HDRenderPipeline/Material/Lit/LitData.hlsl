@@ -66,8 +66,7 @@ struct LayerTexCoord
     LayerUV blendMask;
 #endif
 
-    // triplanar weight
-    float3 triplanarWeights;
+    CommonLayerUV common;
 };
 
 // To flip in case of double sided, we must flip the vertex normal and this will apply to the whole process either in surface gradient or not.
@@ -139,8 +138,10 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 
     bool isTriplanar = false;
 #ifdef _MAPPING_TRIPLANAR
-    // one weight for each direction XYZ - Use vertex normal for triplanar
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalWS);
+    #ifdef SURFACE_GRADIENT
+    layerTexCoord.common.vertexNormalWS = normalWS;
+    #endif
+    layerTexCoord.common.triplanarWeights = ComputeTriplanarWeights(normalWS);
     isTriplanar = true;
 #endif
 
@@ -503,8 +504,10 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
 
 #if defined(_LAYER_MAPPING_TRIPLANAR_BLENDMASK) || defined(_LAYER_MAPPING_TRIPLANAR0) || defined(_LAYER_MAPPING_TRIPLANAR1) || defined(_LAYER_MAPPING_TRIPLANAR2) || defined(_LAYER_MAPPING_TRIPLANAR3)
-    // one weight for each direction XYZ - Use vertex normal for triplanar
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalWS);
+    #ifdef SURFACE_GRADIENT
+    layerTexCoord.common.vertexNormalWS = normalWS;
+    #endif
+    layerTexCoord.common.triplanarWeights = ComputeTriplanarWeights(normalWS);
 #endif
 
     bool isTriplanar = false;
