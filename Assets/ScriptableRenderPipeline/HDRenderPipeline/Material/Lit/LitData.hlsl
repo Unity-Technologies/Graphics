@@ -164,6 +164,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     _UVMappingMask = float4(1.0, 0.0, 0.0, 0.0);
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, 
+                            positionWS, normalWS, mappingType, _TexWorldScale, layerTexCoord);
 }
 
 float GetMaxDisplacement()
