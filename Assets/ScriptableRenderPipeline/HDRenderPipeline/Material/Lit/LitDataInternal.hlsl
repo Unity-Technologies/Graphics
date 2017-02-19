@@ -1,5 +1,5 @@
 void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
-                                    float3 positionWS, float3 vertexNormalWS, int mappingType, float worldScale, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
+                                    float3 positionWS, int mappingType, float worldScale, inout LayerTexCoord layerTexCoord, float additionalTiling = 1.0)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
     float2 uvBase = ADD_IDX(_UVMappingMask).x * texCoord0 +
@@ -18,6 +18,7 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
 
     // If base is planar/triplanar then detail map is forced to be planar/triplanar
     ADD_IDX(layerTexCoord.details).mappingType = ADD_IDX(layerTexCoord.base).mappingType = mappingType;
+    ADD_IDX(layerTexCoord.details).normalWS = ADD_IDX(layerTexCoord.base).normalWS = layerTexCoord.vertexNormalWS;
     // Copy data for the uvmapping
     ADD_IDX(layerTexCoord.details).triplanarWeights = ADD_IDX(layerTexCoord.base).triplanarWeights = layerTexCoord.triplanarWeights;
 
@@ -28,7 +29,7 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     float2 uvXZ;
     float2 uvXY;
     float2 uvZY;
-    GetTriplanarCoordinate(positionWS * worldScale, vertexNormalWS, uvXZ, uvXY, uvZY);
+    GetTriplanarCoordinate(positionWS * worldScale, layerTexCoord.vertexNormalWS, uvXZ, uvXY, uvZY);
  
     // Planar is just XZ of triplanar
     if (mappingType == UV_MAPPING_PLANAR)
@@ -49,8 +50,6 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     ADD_IDX(layerTexCoord.details).uvZY = TRANSFORM_TEX(uvZY, ADD_IDX(_DetailMap));
 
     #ifdef SURFACE_GRADIENT
-    ADD_IDX(layerTexCoord.details).normalWS = ADD_IDX(layerTexCoord.base).normalWS = layerTexCoord.vertexNormalWS;
-
     // This part is only relevant for normal mapping with UV_MAPPING_UVSET
     // Note: This code work only in pixel shader (as we rely on ddx), it should not be use in other context
     ADD_IDX(layerTexCoord.base).tangentWS = ADD_IDX(_UVMappingMask).x * layerTexCoord.vertexTangentWS0 +
