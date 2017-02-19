@@ -1,6 +1,8 @@
 // This structure abstract uv mapping inside one struct.
 // It represent a mapping of any uv (with its associated tangent space for derivative if SurfaceGradient mode) - UVSet0 to 4, planar, triplanar
 
+#include "ShaderLibrary/NormalSurfaceGradient.hlsl"
+
 #define UV_MAPPING_UVSET 0
 #define UV_MAPPING_PLANAR 1
 #define UV_MAPPING_TRIPLANAR 2
