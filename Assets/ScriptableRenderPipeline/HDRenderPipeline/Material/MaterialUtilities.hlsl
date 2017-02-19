@@ -85,22 +85,18 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 }
 
 // This function convert the tangent space normal/tangent to world space and orthonormalize it + apply a correction of the normal if it is not pointing towards the near plane
-void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout float3 normalWS, inout float3 tangentWS, bool twoSided = false)
+void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout float3 normalWS, inout float3 tangentWS, bool wantNegativeNormal = false)
 {
     #ifdef SURFACE_GRADIENT
-    normalWS = resolveNormalFromSurfaceGradient(input.vtxNormalWS, normalTS);
+    normalWS = resolveNormalFromSurfaceGradient(input.worldToTangent[2], normalTS);
     #else
     normalWS = TransformTangentToWorld(normalTS, input.worldToTangent);
     #endif
 
-    // NdotV should not be negative for visible pixels, but it can happen due to the
-    // perspective projection and the normal mapping + decals. In that case, the normal
-    // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
-    // Note: certain applications (e.g. SpeedTree) require to still have negative normal to perform their own two sided lighting
-    // This will  potentially reduce the length of the normal at edges of geometry.
-    GetShiftedNdotV(normalWS, V, twoSided);
+    GetShiftedNdotV(normalWS, V, wantNegativeNormal);
 
     // Orthonormalize the basis vectors using the Gram-Schmidt process.
     // We assume that the length of the surface normal is sufficiently close to 1.
+    // This is use with anisotropic material
     tangentWS = normalize(tangentWS - dot(tangentWS, normalWS));
 }

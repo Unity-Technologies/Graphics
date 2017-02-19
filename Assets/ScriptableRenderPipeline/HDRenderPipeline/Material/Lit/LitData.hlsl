@@ -78,13 +78,11 @@ void ApplyDoubleSidedFlip(inout FragInputs input)
 #ifdef _DOUBLESIDED_ON
     // _DoubleSidedConstants is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode
     float flipSign = input.isFrontFace ? 1.0 : _DoubleSidedConstants.x; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
-    #ifdef SURFACE_GRADIENT
-    input.vtxNormalWS = flipSign * input.vtxNormalWS;
-    input.mikktsBino = flipSign * input.mikktsBino;
-    // TOCHECK: seems that we don't need to invert any genBasisTB(), sign cancel. Which is expected as we deal with surface gradient.
-    #else
     input.worldToTangent[1] = flipSign * input.worldToTangent[1]; // bitangent
     input.worldToTangent[2] = flipSign * input.worldToTangent[2]; // normal
+
+    #ifdef SURFACE_GRADIENT
+    // TOCHECK: seems that we don't need to invert any genBasisTB(), sign cancel. Which is expected as we deal with surface gradient.
     #endif
 #endif
 }
@@ -239,9 +237,18 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
         {
             ppdParam.uv = layerTexCoord.base.uv;
 
+            #ifdef SURFACE_GRADIENT
+            // The TBN is not normalize, normalize it to do per pixel displacement
+            float3x3 worldToTangent = input.worldToTangent;
+            worldToTangent[1] = normalize(worldToTangent[1]);
+            worldToTangent[2] = normalize(worldToTangent[2]);
+            #else
+            float3x3 worldToTangent = input.worldToTangent;
+            #endif
+
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, input.worldToTangent);
+            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
@@ -889,9 +896,18 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             ppdParam.uv[2] = layerTexCoord.base2.uv;
             ppdParam.uv[3] = layerTexCoord.base3.uv;
 
+            #ifdef SURFACE_GRADIENT
+            // The TBN is not normalize, normalize it to do per pixel displacement
+            float3x3 worldToTangent = input.worldToTangent;
+            worldToTangent[1] = normalize(worldToTangent[1]);
+            worldToTangent[2] = normalize(worldToTangent[2]);
+            #else
+            float3x3 worldToTangent = input.worldToTangent;
+            #endif
+
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, input.worldToTangent);
+            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
@@ -1078,9 +1094,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
-
-    // Init other unused parameter
+#ifdef SURFACE_GRADIENT
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent when using surface gradient
+#else
     surfaceData.tangentWS = input.worldToTangent[0].xyz;
+#endif
+    // Init other parameters
     surfaceData.materialId = 0;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;

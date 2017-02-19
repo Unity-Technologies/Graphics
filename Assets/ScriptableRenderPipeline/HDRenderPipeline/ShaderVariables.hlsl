@@ -295,35 +295,35 @@ float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
     return normalize(V);
 }
 
-float3x3 CreateWorldToTangent(float3 normal, float3 tangent, float tangentSign)
+float3x3 CreateWorldToTangent(float3 normal, float3 tangent, float flipSign)
 {
     // For odd-negative scale transforms we need to flip the sign
-    float sgn = tangentSign * GetOddNegativeScale();
+    float sgn = flipSign * GetOddNegativeScale();
     float3 bitangent = cross(normal, tangent) * sgn;
 
     return float3x3(tangent, bitangent, normal);
 }
 
-float3 TransformTangentToWorld(float3 dirTS, float3 worldToTangent[3])
+float3 TransformTangentToWorld(float3 dirTS, float3x3 worldToTangent)
 {
     // Use transpose transformation to go from tangent to world as the matrix is orthogonal
-    return mul(dirTS, float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz));
+    return mul(dirTS, worldToTangent);
 }
 
-float3 TransformWorldToTangent(float3 dirWS, float3 worldToTangent[3])
+float3 TransformWorldToTangent(float3 dirWS, float3x3 worldToTangent)
 {
-    return mul(float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz), dirWS);
+    return mul(worldToTangent, dirWS);
 }
 
-float3 TransformTangentToObject(float3 dirTS, float3 worldToTangent[3])
+float3 TransformTangentToObject(float3 dirTS, float3x3 worldToTangent)
 {
     // Use transpose transformation to go from tangent to world as the matrix is orthogonal
-    float3 normalWS = mul(dirTS, float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz));
+    float3 normalWS = mul(dirTS, worldToTangent);
     return mul((float3x3)unity_WorldToObject, normalWS);
 }
 
-float3 TransformObjectToTangent(float3 dirOS, float3 worldToTangent[3])
+float3 TransformObjectToTangent(float3 dirOS, float3x3 worldToTangent)
 {
-    return mul(float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz), mul((float3x3)unity_ObjectToWorld, dirOS));
+    return mul(worldToTangent, mul((float3x3)unity_ObjectToWorld, dirOS));
 }
 #endif // UNITY_SHADER_VARIABLES_INCLUDED

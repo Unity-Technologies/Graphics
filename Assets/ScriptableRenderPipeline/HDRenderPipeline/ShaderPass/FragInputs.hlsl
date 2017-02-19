@@ -18,23 +18,13 @@ struct FragInputs
     float2 texCoord3;
     float4 color; // vertex color
 
-    #ifdef SURFACE_GRADIENT
-    // Various tangent space for all UVSet
-    // used for vertex level tangent space only (support on UV set 0 only)
-    float3 vtxNormalWS;  
-    float3 mikktsTang;
-    float3 mikktsBino;
-    // Use for the 3 other UVSet;
-    float3 vT1, vB1;
-    float3 vT2, vB2;
-    float3 vT3, vB3;
-
-    #else
     // TODO: confirm with Morten following statement
     // Our TBN is orthogonal but is maybe not orthonormal in order to be compliant with external bakers (Like xnormal that use mikktspace).
     // (xnormal for example take into account the interpolation when baking the normal and normalizing the tangent basis could cause distortion).
-    float3 worldToTangent[3]; // These 3 vectors are normalized (no need for the material to normalize) and these are only for UVSet 0
-    #endif
+    // When using worldToTangent with surface gradient, it doesn't normalize the tangent/bitangent vector (We instead use exact same scale as applied to interpolated vertex normal to avoid breaking compliance).
+    // this mean that any usage of worldToTangent[1] or worldToTangent[2] outside of the context of normal map (like for POM) must normalize the TBN (TCHECK if this make any difference ?)
+    // When not using surface gradient, each vector of worldToTangent are normalize (TODO: Maybe they should not even in case of no surface gradient ? Ask Morten) 
+    float3x3 worldToTangent;
 
     // For two sided lighting
     bool isFrontFace;
@@ -47,6 +37,7 @@ FragInputs InitializeFragInputs()
     FragInputs output;
     ZERO_INITIALIZE(FragInputs, output);
 
+    // Init to some default value to make the computer quiet (else it output "divide by zero" warning even if value is not used).
     output.worldToTangent[0] = float3(0.0, 0.0, 1.0);
     output.worldToTangent[2] = float3(0.0, 0.0, 1.0);
 
