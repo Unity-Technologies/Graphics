@@ -111,8 +111,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kObjectScaleAffectTile = "_ObjectScaleAffectTile";
         MaterialProperty UVBlendMask = null;
         const string kUVBlendMask = "_UVBlendMask";
-        MaterialProperty UVMappingPlanarBlendMask = null;
-        const string kUVMappingPlanarBlendMask = "_UVMappingPlanarBlendMask";
         MaterialProperty layerTilingBlendMask = null;
         const string kLayerTilingBlendMask = "_LayerTilingBlendMask";
         MaterialProperty texWorldScaleBlendMask = null;
@@ -127,7 +125,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] layerTexWorldScale = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVBase = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVMappingMask = new MaterialProperty[kMaxLayerCount];
-        MaterialProperty[] layerUVMappingPlanar = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVDetail = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
         // This one is specific to layer lit
@@ -174,7 +171,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             vertexColorMode = FindProperty(kVertexColorMode, props);
             objectScaleAffectTile = FindProperty(kObjectScaleAffectTile, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
-            UVMappingPlanarBlendMask = FindProperty(kUVMappingPlanarBlendMask, props);
             layerTilingBlendMask = FindProperty(kLayerTilingBlendMask, props);
             texWorldScaleBlendMask = FindProperty(kTexWorldScaleBlendMask, props);
 
@@ -188,7 +184,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 layerTexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, i), props);
                 layerUVBase[i] = FindProperty(string.Format("{0}{1}", kUVBase, i), props);
                 layerUVMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVMappingMask, i), props);
-                layerUVMappingPlanar[i] = FindProperty(string.Format("{0}{1}", kUVMappingPlanar, i), props);
                 layerUVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, i), props);
                 layerUVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, i), props);
                 layerTiling[i] = FindProperty(string.Format("{0}{1}", kLayerTiling, i), props);
@@ -259,7 +254,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // put the name in the exclusionList below
         static void SynchronizeLayerProperties(Material material, Material[] layers, int layerIndex)
         {
-            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVMappingPlanar, kUVDetail, kUVDetailsMappingMask };
+            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVDetailsMappingMask };
 
             Material layerMaterial = layers[layerIndex];
 
@@ -396,8 +391,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            UVMappingPlanarBlendMask.floatValue = ((LayerUVBaseMapping)UVBlendMask.floatValue == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
-
             // We setup the masking map based on the enum for each layer.
             // using mapping mask allow to reduce the number of generated combination for a very small increase in ALU
             LayerUVBaseMapping layerUVBaseMapping = (LayerUVBaseMapping)layerUVBase[layerIndex].floatValue;
@@ -408,7 +401,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Z = (layerUVBaseMapping == LayerUVBaseMapping.UV2) ? 1.0f : 0.0f;
             W = (layerUVBaseMapping == LayerUVBaseMapping.UV3) ? 1.0f : 0.0f;
             layerUVMappingMask[layerIndex].colorValue = (layerIndex == 0) ? new Color(1.0f, 0.0f, 0.0f, 0.0f) : new Color(X, Y, Z, W); // Special case for Main Layer and Blend Mask, only UV0. As Layer0 is share by both here, need to force X to 1.0 in all case
-            layerUVMappingPlanar[layerIndex].floatValue = (layerUVBaseMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f; // Planar have priority on UV0
 
             UVDetailMapping layerUVDetailMapping = (UVDetailMapping)layerUVDetail[layerIndex].floatValue;
             X = (layerUVDetailMapping == UVDetailMapping.UV0) ? 1.0f : 0.0f;
@@ -595,7 +587,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_LAYER_TILING_UNIFORM_SCALE", material.GetFloat(kObjectScaleAffectTile) > 0.0f);
 
             // Blend mask
-            LayerUVBaseMapping UVBlendMaskMapping = (LayerUVBaseMapping)material.GetFloat(kUVBlendMask);            
+            LayerUVBaseMapping UVBlendMaskMapping = (LayerUVBaseMapping)material.GetFloat(kUVBlendMask);
+            SetKeyword(material, "_LAYER_MAPPING_PLANAR_BLENDMASK", UVBlendMaskMapping == LayerUVBaseMapping.Planar);
             SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == LayerUVBaseMapping.Triplanar);
 
             int numLayer = (int)material.GetFloat(kLayerCount);
@@ -617,6 +610,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
             }
 
+            const string kLayerMappingPlanar = "_LAYER_MAPPING_PLANAR";
             const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR";
 
             // We have to check for each layer if the UV2 or UV3 is needed.
@@ -627,6 +621,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 string layerUVBaseParam = string.Format("{0}{1}", kUVBase, i);
                 LayerUVBaseMapping layerUVBaseMapping = (LayerUVBaseMapping)material.GetFloat(layerUVBaseParam);
+                string currentLayerMappingPlanar = string.Format("{0}{1}", kLayerMappingPlanar, i);
+                SetKeyword(material, currentLayerMappingPlanar, layerUVBaseMapping == LayerUVBaseMapping.Planar);
                 string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
                 SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == LayerUVBaseMapping.Triplanar);
 

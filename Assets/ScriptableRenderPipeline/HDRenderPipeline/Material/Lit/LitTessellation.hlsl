@@ -53,6 +53,7 @@ float3 GetTessellationDisplacement(VaryingsMeshToDS input)
 {
     // This call will work for both LayeredLit and Lit shader
     LayerTexCoord layerTexCoord;
+    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
     GetLayerTexCoord(
 #ifdef VARYINGS_DS_NEED_TEXCOORD0
         input.texCoord0,
