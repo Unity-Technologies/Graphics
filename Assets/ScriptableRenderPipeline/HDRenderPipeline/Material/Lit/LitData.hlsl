@@ -69,11 +69,10 @@ struct LayerTexCoord
 #endif
 
     // Store information that will be share by all UVMapping
+    float3 vertexNormalWS; // TODO: store also object normal map for object triplanar
     float3 triplanarWeights;    
 
 #ifdef SURFACE_GRADIENT
-    float3 vertexNormalWS; // TODO: store also object normal map for object triplanar
-
     // tangent basis for each UVSet - up to 4 for now
     float3 vertexTangentWS0, vertexBitangentWS0;
     float3 vertexTangentWS1, vertexBitangentWS1;
@@ -82,14 +81,11 @@ struct LayerTexCoord
 #endif
 };
 
-void FillCommonLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
+#ifdef SURFACE_GRADIENT
+void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTexCoord)
 {
     float3 vertexNormalWS = input.worldToTangent[2];
 
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
-
-#ifdef SURFACE_GRADIENT
-    layerTexCoord.vertexNormalWS = vertexNormalWS;
     layerTexCoord.vertexTangentWS0 = input.worldToTangent[1];
     layerTexCoord.vertexBitangentWS0 = input.worldToTangent[2];
 
@@ -106,14 +102,13 @@ void FillCommonLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord
     // To solve this we should track which UVSet is use for normal mapping... Maybe not as simple as it sounds
     SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord1, layerTexCoord.vertexTangentWS1, layerTexCoord.vertexBitangentWS1);
     #if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3)
-    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord1, layerTexCoord.vertexTangentWS2, layerTexCoord.vertexBitangentWS2);
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord2, layerTexCoord.vertexTangentWS2, layerTexCoord.vertexBitangentWS2);
     #endif
     #if defined(_REQUIRE_UV3)
-    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord1, layerTexCoord.vertexTangentWS3, layerTexCoord.vertexBitangentWS3);
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord3, layerTexCoord.vertexTangentWS3, layerTexCoord.vertexBitangentWS3);
     #endif
-
-#endif
 }
+#endif
 
 
 
@@ -147,12 +142,14 @@ void FillCommonLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord
 #endif
 #include "LitDataInternal.hlsl"
 
+// This maybe call directly by tessellation (domain) shader, thus all part regarding surface gradient must be done
+// in function with FragInputs input as parameters
+// layerTexCoord must have been initialize to 0 outside of this function
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
-                      float3 positionWS, float3 normalWS, out LayerTexCoord layerTexCoord)
+                      float3 positionWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
 {
-    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
-
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalWS);
+    layerTexCoord.vertexNormalWS = vertexNormalWS;
+    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
 
     int mappingType = UV_MAPPING_UVSET;
 #if defined(_MAPPING_PLANAR)
@@ -164,7 +161,19 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     _UVMappingMask = float4(1.0, 0.0, 0.0, 0.0);
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, mappingType, _TexWorldScale, layerTexCoord);
+                            positionWS, mappingType, _TexWorldScale, layerTexCoord);
+}
+
+// This is call only in this file
+// layerTexCoord must have been initialize to 0 outside of this function
+void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
+{
+#ifdef SURFACE_GRADIENT
+    GenerateLayerTexCoordBasisTB(input, layerTexCoord);
+#endif
+
+    GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
+                        input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
 float GetMaxDisplacement()
@@ -286,8 +295,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ApplyDoubleSidedFlip(input); // Apply double sided flip on the vertex normal
 
     LayerTexCoord layerTexCoord;
-    GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
-                     input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
+    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
+    GetLayerTexCoord(input, layerTexCoord);
 
 
     ApplyPerPixelDisplacement(input, V, layerTexCoord);
@@ -514,11 +523,10 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
-                      float3 positionWS, float3 normalWS, out LayerTexCoord layerTexCoord)
+                      float3 positionWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
 {
-    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
-
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalWS);
+    layerTexCoord.vertexNormalWS = vertexNormalWS;
+    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
 
     int mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR_BLENDMASK)
@@ -533,7 +541,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 
     // To share code, we simply call the regular code from the main layer for it then save the result, then do regular call for all layers.
     ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
-                            positionWS, normalWS, mappingType, _TexWorldScaleBlendMask, layerTexCoord, _LayerTilingBlendMask);
+                            positionWS, mappingType, _TexWorldScaleBlendMask, layerTexCoord, _LayerTilingBlendMask);
 
     layerTexCoord.blendMask = layerTexCoord.base0;
 
@@ -555,7 +563,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif
 
     ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
-                            positionWS, normalWS, mappingType, _TexWorldScale0, layerTexCoord, _LayerTiling0
+                            positionWS, mappingType, _TexWorldScale0, layerTexCoord, _LayerTiling0
                             #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
                             * tileObjectScale  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
                             #endif
@@ -568,7 +576,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, mappingType, _TexWorldScale1, layerTexCoord, _LayerTiling1 * tileObjectScale);
+                            positionWS, mappingType, _TexWorldScale1, layerTexCoord, _LayerTiling1 * tileObjectScale);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR2)
@@ -577,7 +585,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, mappingType, _TexWorldScale2, layerTexCoord, _LayerTiling2 * tileObjectScale);
+                            positionWS, mappingType, _TexWorldScale2, layerTexCoord, _LayerTiling2 * tileObjectScale);
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR3)
@@ -586,7 +594,19 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, mappingType, _TexWorldScale3, layerTexCoord, _LayerTiling3 * tileObjectScale);
+                            positionWS, mappingType, _TexWorldScale3, layerTexCoord, _LayerTiling3 * tileObjectScale);
+}
+
+// This is call only in this file
+// layerTexCoord must have been initialize to 0 outside of this function
+void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
+{
+#ifdef SURFACE_GRADIENT
+    GenerateLayerTexCoordBasisTB(input, layerTexCoord);
+#endif
+
+    GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
+                        input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
 // This function is just syntaxic sugar to nullify height not used based on heightmap avaibility and layer
@@ -1084,8 +1104,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ApplyDoubleSidedFlip(input); // Apply double sided flip on the vertex normal
 
     LayerTexCoord layerTexCoord;
-    GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
-                     input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
+    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
+    GetLayerTexCoord(input, layerTexCoord);
 
     ApplyPerPixelDisplacement(input, V, layerTexCoord);
 

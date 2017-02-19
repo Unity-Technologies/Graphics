@@ -15,6 +15,7 @@ struct UVMapping
     float2 uvXZ;
     float2 uvXY;
 
+    float3 normalWS; // vertex normal
     float3 triplanarWeights;
 
 #ifdef SURFACE_GRADIENT
@@ -22,8 +23,6 @@ struct UVMapping
     // these are vertex level in world space
     float3 tangentWS;
     float3 bitangentWS;
-    // normal only use with planar / triplanar
-    float3 normalWS;
     // TODO: store also object normal map for object triplanar
 #endif
 };
