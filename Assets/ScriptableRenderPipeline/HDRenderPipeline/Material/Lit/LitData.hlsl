@@ -86,8 +86,8 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 {
     float3 vertexNormalWS = input.worldToTangent[2];
 
-    layerTexCoord.vertexTangentWS0 = input.worldToTangent[1];
-    layerTexCoord.vertexBitangentWS0 = input.worldToTangent[2];
+    layerTexCoord.vertexTangentWS0 = input.worldToTangent[0];
+    layerTexCoord.vertexBitangentWS0 = input.worldToTangent[1];
 
     // TODO: We should use relative camera position here - This will be automatic when we will move to camera relative space.
     float3 dPdx = ddx_fine(input.positionWS);
@@ -292,7 +292,7 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    ApplyDoubleSidedFlip(input); // Apply double sided flip on the vertex normal
+    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
 
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
@@ -310,7 +310,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
     float3 normalTS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
-    ApplyDoubleSidedMirror(input, normalTS); // Apply double sided mirror on the final normalTS
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.worldToTangent[2].xyz, _HorizonFade);
@@ -1101,7 +1100,7 @@ float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    ApplyDoubleSidedFlip(input); // Apply double sided flip on the vertex normal
+    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
 
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
@@ -1159,7 +1158,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.coatPerceptualSmoothness = 1.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
-    ApplyDoubleSidedMirror(input, normalTS); // Apply double sided mirror on the final normalTS
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
