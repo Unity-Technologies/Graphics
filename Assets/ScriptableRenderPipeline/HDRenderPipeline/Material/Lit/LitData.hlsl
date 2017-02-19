@@ -1,8 +1,8 @@
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
+#include "ShaderLibrary/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
-#include "../SampleLayer.hlsl"
 
 void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, float depthOffset, out BuiltinData builtinData)
 {
@@ -45,30 +45,72 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
     builtinData.depthOffset = depthOffset;
 }
 
+// Struct that gather UVMapping info of all layers + common calculation
+// This is use to abstract the mapping that can differ on layers
 struct LayerTexCoord
 {
 #ifndef LAYERED_LIT_SHADER
-    LayerUV base;
-    LayerUV details;
+    UVMapping base;
+    UVMapping details;
 #else
     // Regular texcoord
-    LayerUV base0;
-    LayerUV base1;
-    LayerUV base2;
-    LayerUV base3;
+    UVMapping base0;
+    UVMapping base1;
+    UVMapping base2;
+    UVMapping base3;
 
-    LayerUV details0;
-    LayerUV details1;
-    LayerUV details2;
-    LayerUV details3;
+    UVMapping details0;
+    UVMapping details1;
+    UVMapping details2;
+    UVMapping details3;
 
     // Dedicated for blend mask
-    LayerUV blendMask;
+    UVMapping blendMask;
 #endif
 
-    // triplanar weight
-    float3 triplanarWeights;
+    // Store information that will be share by all UVMapping
+    float3 vertexNormalWS; // TODO: store also object normal map for object triplanar
+    float3 triplanarWeights;    
+
+#ifdef SURFACE_GRADIENT
+    // tangent basis for each UVSet - up to 4 for now
+    float3 vertexTangentWS0, vertexBitangentWS0;
+    float3 vertexTangentWS1, vertexBitangentWS1;
+    float3 vertexTangentWS2, vertexBitangentWS2;
+    float3 vertexTangentWS3, vertexBitangentWS3;
+#endif
 };
+
+#ifdef SURFACE_GRADIENT
+void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTexCoord)
+{
+    float3 vertexNormalWS = input.worldToTangent[2];
+
+    layerTexCoord.vertexTangentWS0 = input.worldToTangent[0];
+    layerTexCoord.vertexBitangentWS0 = input.worldToTangent[1];
+
+    // TODO: We should use relative camera position here - This will be automatic when we will move to camera relative space.
+    float3 dPdx = ddx_fine(input.positionWS);
+    float3 dPdy = ddy_fine(input.positionWS);
+
+    float3 sigmaX = dPdx - dot(dPdx, vertexNormalWS) * vertexNormalWS;
+    float3 sigmaY = dPdy - dot(dPdy, vertexNormalWS) * vertexNormalWS;
+    //float flipSign = dot(sigmaY, cross(nrmVertexNormal, sigmaX) ) ? -1.0 : 1.0;
+    float flipSign = dot(dPdy, cross(vertexNormalWS, dPdx)) < 0.0 ? -1.0 : 1.0; // gives same as the commented out line above
+
+    // TODO: Optimize! The compiler will not be able to remove the tangent space that are not use because it can't know due to our UVMapping constant we use for both base and details
+    // To solve this we should track which UVSet is use for normal mapping... Maybe not as simple as it sounds
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord1, layerTexCoord.vertexTangentWS1, layerTexCoord.vertexBitangentWS1);
+    #if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3)
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord2, layerTexCoord.vertexTangentWS2, layerTexCoord.vertexBitangentWS2);
+    #endif
+    #if defined(_REQUIRE_UV3)
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord3, layerTexCoord.vertexTangentWS3, layerTexCoord.vertexBitangentWS3);
+    #endif
+}
+#endif
+
+
 
 #ifndef LAYERED_LIT_SHADER
 
@@ -100,23 +142,38 @@ struct LayerTexCoord
 #endif
 #include "LitDataInternal.hlsl"
 
+// This maybe call directly by tessellation (domain) shader, thus all part regarding surface gradient must be done
+// in function with FragInputs input as parameters
+// layerTexCoord must have been initialize to 0 outside of this function
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
-                      float3 positionWS, float3 normalWS, out LayerTexCoord layerTexCoord)
+                      float3 positionWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
 {
-    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
+    layerTexCoord.vertexNormalWS = vertexNormalWS;
+    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
 
-    bool isTriplanar = false;
-#ifdef _MAPPING_TRIPLANAR
-    // one weight for each direction XYZ - Use vertex normal for triplanar
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalWS);
-    isTriplanar = true;
+    int mappingType = UV_MAPPING_UVSET;
+#if defined(_MAPPING_PLANAR)
+    mappingType = UV_MAPPING_PLANAR;
+#elif defined(_MAPPING_TRIPLANAR)
+    mappingType = UV_MAPPING_TRIPLANAR;
 #endif
 
-    // Be sure that the compiler is aware that we don't touch UV1 to UV3 for main layer so it can optimize code
-    // Also we have always UVset to 1, if planar/triplanar is enable, it will override it.
+    // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     _UVMappingMask = float4(1.0, 0.0, 0.0, 0.0);
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS,  _UVMappingPlanar > 0.0, isTriplanar, _TexWorldScale, layerTexCoord);
+                            positionWS, mappingType, _TexWorldScale, layerTexCoord);
+}
+
+// This is call only in this file
+// layerTexCoord must have been initialize to 0 outside of this function
+void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
+{
+#ifdef SURFACE_GRADIENT
+    GenerateLayerTexCoordBasisTB(input, layerTexCoord);
+#endif
+
+    GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
+                        input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
 float GetMaxDisplacement()
@@ -134,7 +191,7 @@ float2 GetMinUvSize(LayerTexCoord layerTexCoord)
     float2 minUvSize = float2(FLT_MAX, FLT_MAX);
 
 #if defined(_HEIGHTMAP)
-    if (layerTexCoord.base.isTriplanar)
+    if (layerTexCoord.base.mappingType == UV_MAPPING_TRIPLANAR)
     {
         minUvSize = min(layerTexCoord.base.uvZY * _HeightMap_TexelSize.zw, minUvSize);
         minUvSize = min(layerTexCoord.base.uvXZ * _HeightMap_TexelSize.zw, minUvSize);
@@ -172,8 +229,8 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 
 #if defined(_PER_PIXEL_DISPLACEMENT) &&  defined(_HEIGHTMAP)
     ppdEnable = true;
-    isPlanar = layerTexCoord.base.isPlanar;
-    isTriplanar = layerTexCoord.base.isTriplanar;
+    isPlanar = layerTexCoord.base.mappingType == UV_MAPPING_PLANAR;
+    isTriplanar = layerTexCoord.base.mappingType == UV_MAPPING_TRIPLANAR;
 #endif
 
     if (ppdEnable)
@@ -205,9 +262,18 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
         {
             ppdParam.uv = layerTexCoord.base.uv;
 
+            #ifdef SURFACE_GRADIENT
+            // The TBN is not normalize, normalize it to do per pixel displacement
+            float3x3 worldToTangent = input.worldToTangent;
+            worldToTangent[1] = normalize(worldToTangent[1]);
+            worldToTangent[2] = normalize(worldToTangent[2]);
+            #else
+            float3x3 worldToTangent = input.worldToTangent;
+            #endif
+
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, input.tangentToWorld);
+            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
@@ -221,14 +287,16 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 // Calculate displacement for per vertex displacement mapping
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
-    return (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
+    return (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
 }
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
+
     LayerTexCoord layerTexCoord;
-    GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
-                     input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
+    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
+    GetLayerTexCoord(input, layerTexCoord);
 
 
     ApplyPerPixelDisplacement(input, V, layerTexCoord);
@@ -244,7 +312,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
-    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.tangentToWorld[2].xyz, _HorizonFade);
+    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.worldToTangent[2].xyz, _HorizonFade);
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
@@ -454,26 +522,25 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
-                      float3 positionWS, float3 normalWS, out LayerTexCoord layerTexCoord)
+                      float3 positionWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
 {
-    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
+    layerTexCoord.vertexNormalWS = vertexNormalWS;
+    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
 
-#if defined(_LAYER_MAPPING_TRIPLANAR_BLENDMASK) || defined(_LAYER_MAPPING_TRIPLANAR0) || defined(_LAYER_MAPPING_TRIPLANAR1) || defined(_LAYER_MAPPING_TRIPLANAR2) || defined(_LAYER_MAPPING_TRIPLANAR3)
-    // one weight for each direction XYZ - Use vertex normal for triplanar
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalWS);
+    int mappingType = UV_MAPPING_UVSET;
+#if defined(_LAYER_MAPPING_PLANAR_BLENDMASK)
+    mappingType = UV_MAPPING_PLANAR;
+#elif defined(_LAYER_MAPPING_TRIPLANAR_BLENDMASK)
+    mappingType = UV_MAPPING_TRIPLANAR;
 #endif
 
-    bool isTriplanar = false;
-#ifdef _LAYER_MAPPING_TRIPLANAR_BLENDMASK
-    isTriplanar = true;
-#endif
+    // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer and blend mask so it can optimize code
+    // Note: Blend mask have its dedicated mapping and tiling. And as Main layer it only use UV0
+    _UVMappingMask0 = float4(1.0, 0.0, 0.0, 0.0);
 
-    // Be sure that the compiler is aware that we don't touch UV1 to UV3 for main layer so it can optimize code
-    _UVMappingMask0.yzw = float3(0.0, 0.0, 0.0);
-    // Note: Blend mask have its dedicated mapping adn tiling. And as Main layer it only use UV0
-    // To share code, we simply call the regular code from the main layer for it save the result, then do regular call for all layers.
+    // To share code, we simply call the regular code from the main layer for it then save the result, then do regular call for all layers.
     ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
-                            positionWS, normalWS, _UVMappingPlanarBlendMask > 0.0,  isTriplanar, _TexWorldScaleBlendMask, layerTexCoord, _LayerTilingBlendMask);
+                            positionWS, mappingType, _TexWorldScaleBlendMask, layerTexCoord, _LayerTilingBlendMask);
 
     layerTexCoord.blendMask = layerTexCoord.base0;
 
@@ -487,38 +554,58 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
 #endif  
 
-    isTriplanar = false;
-#ifdef _LAYER_MAPPING_TRIPLANAR0
-    isTriplanar = true;
+    mappingType = UV_MAPPING_UVSET;
+#if defined(_LAYER_MAPPING_PLANAR0)
+    mappingType = UV_MAPPING_PLANAR;
+#elif defined(_LAYER_MAPPING_TRIPLANAR0)
+    mappingType = UV_MAPPING_TRIPLANAR;
 #endif
 
     ComputeLayerTexCoord0(  texCoord0, float2(0.0, 0.0), float2(0.0, 0.0), float2(0.0, 0.0),
-                            positionWS, normalWS, _UVMappingPlanar0 > 0.0, isTriplanar, _TexWorldScale0, layerTexCoord, _LayerTiling0
+                            positionWS, mappingType, _TexWorldScale0, layerTexCoord, _LayerTiling0
                             #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
                             * tileObjectScale  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
                             #endif
                             );
 
-    isTriplanar = false;
-#ifdef _LAYER_MAPPING_TRIPLANAR1
-    isTriplanar = true;
+    mappingType = UV_MAPPING_UVSET;
+#if defined(_LAYER_MAPPING_PLANAR1)
+    mappingType = UV_MAPPING_PLANAR;
+#elif defined(_LAYER_MAPPING_TRIPLANAR1)
+    mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, _UVMappingPlanar1 > 0.0, isTriplanar, _TexWorldScale1, layerTexCoord, _LayerTiling1 * tileObjectScale);
+                            positionWS, mappingType, _TexWorldScale1, layerTexCoord, _LayerTiling1 * tileObjectScale);
 
-    isTriplanar = false;
-#ifdef _LAYER_MAPPING_TRIPLANAR2
-    isTriplanar = true;
+    mappingType = UV_MAPPING_UVSET;
+#if defined(_LAYER_MAPPING_PLANAR2)
+    mappingType = UV_MAPPING_PLANAR;
+#elif defined(_LAYER_MAPPING_TRIPLANAR2)
+    mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, _UVMappingPlanar2 > 0.0, isTriplanar, _TexWorldScale2, layerTexCoord, _LayerTiling2 * tileObjectScale);
+                            positionWS, mappingType, _TexWorldScale2, layerTexCoord, _LayerTiling2 * tileObjectScale);
 
-    isTriplanar = false;
-#ifdef _LAYER_MAPPING_TRIPLANAR3
-    isTriplanar = true;
+    mappingType = UV_MAPPING_UVSET;
+#if defined(_LAYER_MAPPING_PLANAR3)
+    mappingType = UV_MAPPING_PLANAR;
+#elif defined(_LAYER_MAPPING_TRIPLANAR3)
+    mappingType = UV_MAPPING_TRIPLANAR;
 #endif
     ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, 
-                            positionWS, normalWS, _UVMappingPlanar3 > 0.0, isTriplanar, _TexWorldScale3, layerTexCoord, _LayerTiling3 * tileObjectScale);
+                            positionWS, mappingType, _TexWorldScale3, layerTexCoord, _LayerTiling3 * tileObjectScale);
+}
+
+// This is call only in this file
+// layerTexCoord must have been initialize to 0 outside of this function
+void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
+{
+#ifdef SURFACE_GRADIENT
+    GenerateLayerTexCoordBasisTB(input, layerTexCoord);
+#endif
+
+    GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
+                        input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
 // This function is just syntaxic sugar to nullify height not used based on heightmap avaibility and layer
@@ -586,7 +673,7 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // Blend mask are Main Layer A - Layer 1 R - Layer 2 G - Layer 3 B
     // Value for main layer is not use for blending itself but for alternate weighting like density.
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
-    float4 blendMasks = useLodSampling ? SAMPLE_LAYER_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_LAYER_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
+    float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
 
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
     blendMasks *= vertexColor;
@@ -644,7 +731,7 @@ float2 GetMinUvSize(LayerTexCoord layerTexCoord)
     float2 minUvSize = float2(FLT_MAX, FLT_MAX);
 
 #if defined(_HEIGHTMAP0)
-    if (layerTexCoord.base0.isTriplanar)
+    if (layerTexCoord.base0.mappingType == UV_MAPPING_TRIPLANAR)
     {
         minUvSize = min(layerTexCoord.base0.uvZY * _HeightMap0_TexelSize.zw, minUvSize);
         minUvSize = min(layerTexCoord.base0.uvXZ * _HeightMap0_TexelSize.zw, minUvSize);
@@ -657,7 +744,7 @@ float2 GetMinUvSize(LayerTexCoord layerTexCoord)
 #endif
 
 #if defined(_HEIGHTMAP1)
-    if (layerTexCoord.base1.isTriplanar)
+    if (layerTexCoord.base1.mappingType == UV_MAPPING_TRIPLANAR)
     {
         minUvSize = min(layerTexCoord.base1.uvZY * _HeightMap1_TexelSize.zw, minUvSize);
         minUvSize = min(layerTexCoord.base1.uvXZ * _HeightMap1_TexelSize.zw, minUvSize);
@@ -671,7 +758,7 @@ float2 GetMinUvSize(LayerTexCoord layerTexCoord)
 
 #if _LAYER_COUNT >= 3
 #if defined(_HEIGHTMAP2)
-    if (layerTexCoord.base2.isTriplanar)
+    if (layerTexCoord.base2.mappingType == UV_MAPPING_TRIPLANAR)
     {
         minUvSize = min(layerTexCoord.base2.uvZY * _HeightMap2_TexelSize.zw, minUvSize);
         minUvSize = min(layerTexCoord.base2.uvXZ * _HeightMap2_TexelSize.zw, minUvSize);
@@ -686,7 +773,7 @@ float2 GetMinUvSize(LayerTexCoord layerTexCoord)
 
 #if _LAYER_COUNT >= 4
 #if defined(_HEIGHTMAP3)
-    if (layerTexCoord.base3.isTriplanar)
+    if (layerTexCoord.base3.mappingType == UV_MAPPING_TRIPLANAR)
     {
         minUvSize = min(layerTexCoord.base3.uvZY * _HeightMap3_TexelSize.zw, minUvSize);
         minUvSize = min(layerTexCoord.base3.uvXZ * _HeightMap3_TexelSize.zw, minUvSize);
@@ -750,29 +837,29 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
     // To know if we are planar or triplanar just need to check if any of the active heightmap layer is true as they are enforce to be the same mapping
 #if defined(_HEIGHTMAP0)
     ppdEnable = true;
-    isPlanar = layerTexCoord.base0.isPlanar;
-    isTriplanar = layerTexCoord.base0.isTriplanar;
+    isPlanar = layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR;
+    isTriplanar = layerTexCoord.base0.mappingType == UV_MAPPING_TRIPLANAR;
 #endif
 
 #if defined(_HEIGHTMAP1)
     ppdEnable = true;
-    isPlanar = layerTexCoord.base1.isPlanar;
-    isTriplanar = layerTexCoord.base1.isTriplanar;
+    isPlanar = layerTexCoord.base1.mappingType == UV_MAPPING_PLANAR;
+    isTriplanar = layerTexCoord.base1.mappingType == UV_MAPPING_TRIPLANAR;
 #endif
 
 #if _LAYER_COUNT >= 3
 #if defined(_HEIGHTMAP2)
     ppdEnable = true;
-    isPlanar = layerTexCoord.base2.isPlanar;
-    isTriplanar = layerTexCoord.base2.isTriplanar;
+    isPlanar = layerTexCoord.base2.mappingType == UV_MAPPING_PLANAR;
+    isTriplanar = layerTexCoord.base2.mappingType == UV_MAPPING_TRIPLANAR;
 #endif
 #endif
 
 #if _LAYER_COUNT >= 4
 #if defined(_HEIGHTMAP3)
     ppdEnable = true;
-    isPlanar = layerTexCoord.base3.isPlanar;
-    isTriplanar = layerTexCoord.base3.isTriplanar;
+    isPlanar = layerTexCoord.base3.mappingType == UV_MAPPING_PLANAR;
+    isTriplanar = layerTexCoord.base3.mappingType == UV_MAPPING_TRIPLANAR;
 #endif
 #endif
 
@@ -852,22 +939,36 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             ppdParam.uv[2] = layerTexCoord.base2.uv;
             ppdParam.uv[3] = layerTexCoord.base3.uv;
 
+            #ifdef SURFACE_GRADIENT
+            // The TBN is not normalize, normalize it to do per pixel displacement
+            float3x3 worldToTangent = input.worldToTangent;
+            worldToTangent[1] = normalize(worldToTangent[1]);
+            worldToTangent[2] = normalize(worldToTangent[2]);
+            #else
+            float3x3 worldToTangent = input.worldToTangent;
+            #endif
+
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, input.tangentToWorld);
+            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
-            // Apply offset to all planar uvset
-            // _UVMappingPlanar0 will be 1.0 is planar is used - _UVMappingMask0.x will be 1.0 is UVSet0 is used;
-            float4 offsetWeights = isPlanar ? float4(_UVMappingPlanar0, _UVMappingPlanar1, _UVMappingPlanar2, _UVMappingPlanar3) : float4(_UVMappingMask0.x, _UVMappingMask1.x, _UVMappingMask2.x, _UVMappingMask3.x);
+            // Apply offset to all planar UV if applicable
+            float4 planarWeight = float4(   layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0, 
+                                            layerTexCoord.base1.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
+                                            layerTexCoord.base2.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
+                                            layerTexCoord.base3.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0);
+
+            // _UVMappingMask0.x will be 1.0 is UVSet0 is used;
+            float4 offsetWeights = isPlanar ? planarWeight : float4(_UVMappingMask0.x, _UVMappingMask1.x, _UVMappingMask2.x, _UVMappingMask3.x);
             
             layerTexCoord.base0.uv += offsetWeights.x * offset;
             layerTexCoord.base1.uv += offsetWeights.y * offset;
             layerTexCoord.base2.uv += offsetWeights.z * offset;
             layerTexCoord.base3.uv += offsetWeights.w * offset;
 
-            offsetWeights = isPlanar ? float4(_UVMappingPlanar0, _UVMappingPlanar1, _UVMappingPlanar2, _UVMappingPlanar3) : float4(_UVDetailsMappingMask0.x, _UVDetailsMappingMask1.x, _UVDetailsMappingMask2.x, _UVDetailsMappingMask3.x);
+            offsetWeights = isPlanar ? planarWeight : float4(_UVDetailsMappingMask0.x, _UVDetailsMappingMask1.x, _UVDetailsMappingMask2.x, _UVDetailsMappingMask3.x);
 
             layerTexCoord.details0.uv += offsetWeights.x * offset;
             layerTexCoord.details1.uv += offsetWeights.y * offset;
@@ -886,10 +987,10 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     ComputeMaskWeights(blendMasks, weights);
 
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
-    float height0 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0, lod).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
-    float height1 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
-    float height2 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
-    float height3 = (SAMPLE_LAYER_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
+    float height0 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0, lod).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
+    float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
+    float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
+    float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
 
@@ -930,10 +1031,10 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 #if defined(_HEIGHT_BASED_BLEND)
 
 #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
-    float height0 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
-    float height1 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
-    float height2 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
-    float height3 = (SAMPLE_LAYER_TEXTURE2D(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
+    float height0 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0).r - _LayerCenterOffset0) * _LayerHeightAmplitude0;
+    float height1 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
+    float height2 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
+    float height3 = (SAMPLE_UVMAPPING_TEXTURE2D(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float4 heights = float4(height0, height1, height2, height3);
 
@@ -966,7 +1067,11 @@ float3 ComputeMainNormalInfluence(FragInputs input, float3 normalTS0, float3 nor
     float3 mainNormalTS = GetNormalTS0(input, layerTexCoord, float3(0.0, 0.0, 1.0), 0.0, true, maxMipBias * (1.0 - influenceFactor));
 
     // Add on our regular normal a bit of Main Layer normal base on influence factor. Note that this affect only the "visible" normal.
+    #ifdef SURFACE_GRADIENT
+    return normalTS + influenceFactor * mainNormalTS;
+    #else
     return lerp(normalTS, BlendNormalRNM(normalTS, mainNormalTS), influenceFactor);
+    #endif
 }
 
 float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float3 baseColor2, float3 baseColor3, float compoMask, LayerTexCoord layerTexCoord, float weights[_MAX_LAYER])
@@ -980,10 +1085,10 @@ float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float
 
     // We want to calculate the mean color of the texture. For this we will sample a low mipmap
     float textureBias = 15.0; // Use maximum bias
-    float3 baseMeanColor0 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
-    float3 baseMeanColor1 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap1, sampler_BaseColorMap0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
-    float3 baseMeanColor2 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
-    float3 baseMeanColor3 = SAMPLE_LAYER_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
+    float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
+    float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap1, sampler_BaseColorMap0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
+    float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
+    float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
 
     float3 meanColor = BlendLayeredVector3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
 
@@ -995,9 +1100,11 @@ float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
+
     LayerTexCoord layerTexCoord;
-    GetLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
-                     input.positionWS, input.tangentToWorld[2].xyz, layerTexCoord);
+    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
+    GetLayerTexCoord(input, layerTexCoord);
 
     ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
@@ -1035,9 +1142,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
-
-    // Init other unused parameter
-    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
+#ifdef SURFACE_GRADIENT
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent when using surface gradient
+#else
+    surfaceData.tangentWS = input.worldToTangent[0].xyz;
+#endif
+    // Init other parameters
     surfaceData.materialId = 0;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
@@ -1051,7 +1161,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
-    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.tangentToWorld[2].xyz, _HorizonFade);
+    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.worldToTangent[2].xyz, _HorizonFade);
 
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }

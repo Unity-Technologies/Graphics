@@ -85,7 +85,6 @@ SAMPLER2D(sampler_ThicknessMap);
 //SAMPLER2D(sampler_CoatRoughnessMap);
 
 float _TexWorldScale;
-float _UVMappingPlanar;
 float4 _UVMappingMask;
 float4 _UVDetailsMappingMask;
 
@@ -169,8 +168,6 @@ PROP_DECL(float, _LayerTiling);
 
 float _TexWorldScaleBlendMask;
 PROP_DECL(float, _TexWorldScale);
-float _UVMappingPlanarBlendMask;
-PROP_DECL(float, _UVMappingPlanar);  
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
 
