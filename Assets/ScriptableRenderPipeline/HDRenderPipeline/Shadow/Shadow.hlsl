@@ -44,18 +44,18 @@
 #include "ShadowContext.hlsl"
 
 // helper function to extract shadowmap data from the ShadowData struct
-void unpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx, out float slice )
+void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx, out float slice )
 {
 	texIdx  = (shadowmapId >> 24) & 0xff;
 	sampIdx = (shadowmapId >> 16) & 0xff;
 	slice   = (float)(shadowmapId & 0xffff);
 }
-void unpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx )
+void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx )
 {
 	texIdx  = (shadowmapId >> 24) & 0xff;
 	sampIdx = (shadowmapId >> 16) & 0xff;
 }
-void unpackShadowmapId( uint shadowmapId, out float slice )
+void UnpackShadowmapId( uint shadowmapId, out float slice )
 {
 	slice = (float)(shadowmapId & 0xffff);
 }
@@ -71,7 +71,7 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 
 
 // wedge in the actual shadow sampling algorithms
-#include "ShadowSampling.hlsl"			// sampling patterns
+#include "ShadowSampling.hlsl"			// sampling patterns (don't modify)
 #include "ShadowAlgorithms.hlsl"		// engine default algorithms (don't modify)
 #include "ShadowAlgorithmsCustom.hlsl"	// project specific custom algorithms (project can modify this)
 

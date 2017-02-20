@@ -32,7 +32,7 @@ float EvalShadow_PointDepth( ShadowContext shadowContext, float3 positionWS, int
 	// sample the texture
 	uint texIdx, sampIdx;
 	float slice;
-	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
+	UnpackShadowmapId( sd.id, texIdx, sampIdx, slice );
 	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, texIdx, sampIdx );
 }
 
@@ -46,7 +46,7 @@ float EvalShadow_PointDepth( ShadowContext shadowContext, Texture2DArray tex, Sa
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
 	// sample the texture
 	float slice;
-	unpackShadowmapId( sd.id, slice );
+	UnpackShadowmapId( sd.id, slice );
 	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, tex, compSamp );
 }
 
@@ -63,7 +63,7 @@ float EvalShadow_SpotDepth( ShadowContext shadowContext, float3 positionWS, int 
 	// sample the texture
 	uint texIdx, sampIdx;
 	float slice;
-	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
+	UnpackShadowmapId( sd.id, texIdx, sampIdx, slice );
 	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, texIdx, sampIdx );
 }
 
@@ -75,7 +75,7 @@ float EvalShadow_SpotDepth( ShadowContext shadowContext, Texture2DArray tex, Sam
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
 	// sample the texture
 	float slice;
-	unpackShadowmapId( sd.id, slice );
+	UnpackShadowmapId( sd.id, slice );
 	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, tex, compSamp );
 }
 
@@ -97,7 +97,7 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, 
 	// sample the texture
 	uint texIdx, sampIdx;
 	float slice;
-	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
+	UnpackShadowmapId( sd.id, texIdx, sampIdx, slice );
 	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, texIdx, sampIdx );
 }
 
@@ -115,7 +115,7 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, Texture2DArray tex,
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
 	// sample the texture
 	float slice;
-	unpackShadowmapId( sd.id, slice );
+	UnpackShadowmapId( sd.id, slice );
 	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, tex, compSamp );
 }
 
@@ -165,7 +165,7 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, 
 	// sample the texture
 	uint texIdx, sampIdx;
 	float slice;
-	unpackShadowmapId( sd.id, texIdx, sampIdx, slice );
+	UnpackShadowmapId( sd.id, texIdx, sampIdx, slice );
 
 	return SampleShadow_PCF_9tap_Adaptive( shadowContext, sd.texelSizeRcp, posTC, slice, texIdx, sampIdx );
 }
@@ -181,7 +181,7 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, Texture2DArray tex,
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
 	// sample the texture
 	float slice;
-	unpackShadowmapId(sd.id, slice);
+	UnpackShadowmapId(sd.id, slice);
 
 	return SampleShadow_PCF_9tap_Adaptive( shadowContext, sd.texelSizeRcp, posTC, slice, tex, compSamp );
 }
