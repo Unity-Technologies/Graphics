@@ -376,22 +376,36 @@ float2 DirectionToLatLongCoordinate(float3 dir)
 // World position reconstruction / transformation
 // ----------------------------------------------------------------------------
 
-// Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane)
+// Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane).
+// Does not correctly handle oblique view frustums.
 float Linear01DepthFromNear(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x + zBufferParam.y / depth);
 }
 
-// Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane)
+// Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane).
+// Does not correctly handle oblique view frustums.
 float Linear01Depth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x * depth + zBufferParam.y);
 }
 
-// Z buffer to linear depth
+// Z buffer to linear depth.
+// Does not correctly handle oblique view frustums.
 float LinearEyeDepth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
+}
+
+// Z buffer to linear depth.
+// Correctly handles oblique view frustums.
+// positionNDC.xy are in [-1, 1] and positionNDC.z is in [0, 1].
+// Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
+float LinearEyeDepth(float3 positionNDC, float4 invProjParam)
+{
+    float z = 1.0 / dot(float4(positionNDC, 1), invProjParam);
+    // The view space uses a right-handed coordinate system.
+    return -z;
 }
 
 struct PositionInputs

@@ -182,6 +182,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 viewProjectionMatrix;
         public Matrix4x4 invViewProjectionMatrix;
         public Matrix4x4 invProjectionMatrix;
+        public Vector4   invProjectionParam;
     }
 
     public class GBufferManager
@@ -412,6 +413,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushGlobalParams(HDCamera hdCamera, ScriptableRenderContext renderContext, SubsurfaceScatteringParameters sssParameters)
         {
+            var cmd = new CommandBuffer {name = "Push Global Parameters"};
+
+            cmd.SetGlobalVector("_ScreenSize",        hdCamera.screenSize);
+            cmd.SetGlobalMatrix("_ViewProjMatrix",    hdCamera.viewProjectionMatrix);
+            cmd.SetGlobalMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
+            cmd.SetGlobalMatrix("_InvProjMatrix",     hdCamera.invProjectionMatrix);
+            cmd.SetGlobalVector("_InvProjParam",      hdCamera.invProjectionParam);
+
+            // TODO: cmd.SetGlobalInt() does not exist, so we are forced to use Shader.SetGlobalInt() instead.
+
             if (m_SkyManager.IsSkyValid())
             {
                 m_SkyManager.SetGlobalSkyTexture();
@@ -424,23 +435,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Broadcast SSS parameters to all shaders.
             Shader.SetGlobalInt("_TransmissionFlags", sssParameters.transmissionFlags);
-            Shader.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
-            Shader.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
+            cmd.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
+            cmd.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
 
             if (sssParameters.enableSSS)
             {
-                Shader.EnableKeyword("_SUBSURFACE_SCATTERING");
+                cmd.EnableShaderKeyword("_SUBSURFACE_SCATTERING");
             }
             else
             {
-                Shader.DisableKeyword("_SUBSURFACE_SCATTERING");
+                cmd.DisableShaderKeyword("_SUBSURFACE_SCATTERING");
             }
-
-            var cmd = new CommandBuffer {name = "Push Global Parameters"};
-
-            cmd.SetGlobalVector("_ScreenSize", hdCamera.screenSize);
-            cmd.SetGlobalMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);
-            cmd.SetGlobalMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
 
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -765,7 +770,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var cmd = new CommandBuffer() { name = "Subsurface Scattering Pass" };
 
             // Perform the vertical SSS filtering pass.
-            m_FilterSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
             m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
             m_FilterSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
@@ -773,7 +777,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                      m_CameraFilteringBufferRT, m_CameraStencilBufferRT);
 
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
-            m_FilterAndCombineSubsurfaceScattering.SetMatrix("_InvProjMatrix", hdCamera.invProjectionMatrix);
             m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
             m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
