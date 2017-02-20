@@ -8,57 +8,67 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2666b914d007585499b757ff7d45538c, type: 3}
+  m_Script: {fileID: 11500000, guid: 5249e0291a48ab94e85d843830520b69, type: 3}
   m_Name: TestAsset
   m_EditorClassIdentifier: 
-  m_SerializedRoots:
-  - typeInfo:
-      fullName: UnityEditor.VFX.VFXSystem
+  m_SerializedRoot:
+    typeInfo:
+      fullName: UnityEditor.VFX.VFXGraph
       assemblyName: Assembly-CSharp-Editor-testable
     JSONnodeData: "{\n    \"m_SerializableChildren\": [\n        {\n            \"typeInfo\":
-      {\n                \"fullName\": \"UnityEditor.VFX.VFXContext\",\n                \"assemblyName\":
+      {\n                \"fullName\": \"UnityEditor.VFX.VFXSystem\",\n                \"assemblyName\":
       \"Assembly-CSharp-Editor-testable\"\n            },\n            \"JSONnodeData\":
       \"{\\n    \\\"m_SerializableChildren\\\": [\\n        {\\n            \\\"typeInfo\\\":
-      {\\n                \\\"fullName\\\": \\\"UnityEditor.VFX.VFXInitBlockTest\\\",\\n
+      {\\n                \\\"fullName\\\": \\\"UnityEditor.VFX.VFXContext\\\",\\n
       \               \\\"assemblyName\\\": \\\"Assembly-CSharp-Editor-testable\\\"\\n
       \           },\\n            \\\"JSONnodeData\\\": \\\"{\\\\n    \\\\\\\"m_SerializableChildren\\\\\\\":
-      []\\\\n}\\\"\\n        }\\n    ],\\n    \\\"m_ContextType\\\": 1,\\n    \\\"m_InputType\\\":
-      0,\\n    \\\"m_OutputType\\\": 0,\\n    \\\"m_UIPosition\\\": {\\n        \\\"x\\\":
-      0.0,\\n        \\\"y\\\": 0.0\\n    }\\n}\"\n        },\n        {\n            \"typeInfo\":
-      {\n                \"fullName\": \"UnityEditor.VFX.VFXContext\",\n                \"assemblyName\":
-      \"Assembly-CSharp-Editor-testable\"\n            },\n            \"JSONnodeData\":
-      \"{\\n    \\\"m_SerializableChildren\\\": [\\n        {\\n            \\\"typeInfo\\\":
-      {\\n                \\\"fullName\\\": \\\"UnityEditor.VFX.VFXUpdateBlockTest\\\",\\n
+      [\\\\n        {\\\\n            \\\\\\\"typeInfo\\\\\\\": {\\\\n                \\\\\\\"fullName\\\\\\\":
+      \\\\\\\"UnityEditor.VFX.VFXInitBlockTest\\\\\\\",\\\\n                \\\\\\\"assemblyName\\\\\\\":
+      \\\\\\\"Assembly-CSharp-Editor-testable\\\\\\\"\\\\n            },\\\\n            \\\\\\\"JSONnodeData\\\\\\\":
+      \\\\\\\"{\\\\\\\\n    \\\\\\\\\\\\\\\"m_SerializableChildren\\\\\\\\\\\\\\\":
+      []\\\\\\\\n}\\\\\\\"\\\\n        }\\\\n    ],\\\\n    \\\\\\\"m_ContextType\\\\\\\":
+      1,\\\\n    \\\\\\\"m_InputType\\\\\\\": 0,\\\\n    \\\\\\\"m_OutputType\\\\\\\":
+      0,\\\\n    \\\\\\\"m_UIPosition\\\\\\\": {\\\\n        \\\\\\\"x\\\\\\\": 0.0,\\\\n
+      \       \\\\\\\"y\\\\\\\": 0.0\\\\n    }\\\\n}\\\"\\n        },\\n        {\\n
+      \           \\\"typeInfo\\\": {\\n                \\\"fullName\\\": \\\"UnityEditor.VFX.VFXContext\\\",\\n
       \               \\\"assemblyName\\\": \\\"Assembly-CSharp-Editor-testable\\\"\\n
       \           },\\n            \\\"JSONnodeData\\\": \\\"{\\\\n    \\\\\\\"m_SerializableChildren\\\\\\\":
-      []\\\\n}\\\"\\n        }\\n    ],\\n    \\\"m_ContextType\\\": 2,\\n    \\\"m_InputType\\\":
-      0,\\n    \\\"m_OutputType\\\": 0,\\n    \\\"m_UIPosition\\\": {\\n        \\\"x\\\":
-      0.0,\\n        \\\"y\\\": 0.0\\n    }\\n}\"\n        },\n        {\n            \"typeInfo\":
-      {\n                \"fullName\": \"UnityEditor.VFX.VFXContext\",\n                \"assemblyName\":
-      \"Assembly-CSharp-Editor-testable\"\n            },\n            \"JSONnodeData\":
-      \"{\\n    \\\"m_SerializableChildren\\\": [\\n        {\\n            \\\"typeInfo\\\":
-      {\\n                \\\"fullName\\\": \\\"UnityEditor.VFX.VFXOutputBlockTest\\\",\\n
+      [\\\\n        {\\\\n            \\\\\\\"typeInfo\\\\\\\": {\\\\n                \\\\\\\"fullName\\\\\\\":
+      \\\\\\\"UnityEditor.VFX.VFXUpdateBlockTest\\\\\\\",\\\\n                \\\\\\\"assemblyName\\\\\\\":
+      \\\\\\\"Assembly-CSharp-Editor-testable\\\\\\\"\\\\n            },\\\\n            \\\\\\\"JSONnodeData\\\\\\\":
+      \\\\\\\"{\\\\\\\\n    \\\\\\\\\\\\\\\"m_SerializableChildren\\\\\\\\\\\\\\\":
+      []\\\\\\\\n}\\\\\\\"\\\\n        }\\\\n    ],\\\\n    \\\\\\\"m_ContextType\\\\\\\":
+      2,\\\\n    \\\\\\\"m_InputType\\\\\\\": 0,\\\\n    \\\\\\\"m_OutputType\\\\\\\":
+      0,\\\\n    \\\\\\\"m_UIPosition\\\\\\\": {\\\\n        \\\\\\\"x\\\\\\\": 0.0,\\\\n
+      \       \\\\\\\"y\\\\\\\": 0.0\\\\n    }\\\\n}\\\"\\n        },\\n        {\\n
+      \           \\\"typeInfo\\\": {\\n                \\\"fullName\\\": \\\"UnityEditor.VFX.VFXContext\\\",\\n
       \               \\\"assemblyName\\\": \\\"Assembly-CSharp-Editor-testable\\\"\\n
       \           },\\n            \\\"JSONnodeData\\\": \\\"{\\\\n    \\\\\\\"m_SerializableChildren\\\\\\\":
-      []\\\\n}\\\"\\n        }\\n    ],\\n    \\\"m_ContextType\\\": 4,\\n    \\\"m_InputType\\\":
-      0,\\n    \\\"m_OutputType\\\": 0,\\n    \\\"m_UIPosition\\\": {\\n        \\\"x\\\":
-      0.0,\\n        \\\"y\\\": 0.0\\n    }\\n}\"\n        }\n    ]\n}"
-  - typeInfo:
-      fullName: UnityEditor.VFX.VFXSystem
-      assemblyName: Assembly-CSharp-Editor-testable
-    JSONnodeData: "{\n    \"m_SerializableChildren\": [\n        {\n            \"typeInfo\":
-      {\n                \"fullName\": \"UnityEditor.VFX.VFXContext\",\n                \"assemblyName\":
-      \"Assembly-CSharp-Editor-testable\"\n            },\n            \"JSONnodeData\":
-      \"{\\n    \\\"m_SerializableChildren\\\": [],\\n    \\\"m_ContextType\\\": 1,\\n
-      \   \\\"m_InputType\\\": 0,\\n    \\\"m_OutputType\\\": 0,\\n    \\\"m_UIPosition\\\":
-      {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0\\n    }\\n}\"\n        },\n
-      \       {\n            \"typeInfo\": {\n                \"fullName\": \"UnityEditor.VFX.VFXContext\",\n
-      \               \"assemblyName\": \"Assembly-CSharp-Editor-testable\"\n            },\n
-      \           \"JSONnodeData\": \"{\\n    \\\"m_SerializableChildren\\\": [],\\n
-      \   \\\"m_ContextType\\\": 4,\\n    \\\"m_InputType\\\": 0,\\n    \\\"m_OutputType\\\":
-      0,\\n    \\\"m_UIPosition\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
-      0.0\\n    }\\n}\"\n        }\n    ]\n}"
-  - typeInfo:
+      [\\\\n        {\\\\n            \\\\\\\"typeInfo\\\\\\\": {\\\\n                \\\\\\\"fullName\\\\\\\":
+      \\\\\\\"UnityEditor.VFX.VFXOutputBlockTest\\\\\\\",\\\\n                \\\\\\\"assemblyName\\\\\\\":
+      \\\\\\\"Assembly-CSharp-Editor-testable\\\\\\\"\\\\n            },\\\\n            \\\\\\\"JSONnodeData\\\\\\\":
+      \\\\\\\"{\\\\\\\\n    \\\\\\\\\\\\\\\"m_SerializableChildren\\\\\\\\\\\\\\\":
+      []\\\\\\\\n}\\\\\\\"\\\\n        }\\\\n    ],\\\\n    \\\\\\\"m_ContextType\\\\\\\":
+      4,\\\\n    \\\\\\\"m_InputType\\\\\\\": 0,\\\\n    \\\\\\\"m_OutputType\\\\\\\":
+      0,\\\\n    \\\\\\\"m_UIPosition\\\\\\\": {\\\\n        \\\\\\\"x\\\\\\\": 0.0,\\\\n
+      \       \\\\\\\"y\\\\\\\": 0.0\\\\n    }\\\\n}\\\"\\n        }\\n    ]\\n}\"\n
+      \       },\n        {\n            \"typeInfo\": {\n                \"fullName\":
+      \"UnityEditor.VFX.VFXSystem\",\n                \"assemblyName\": \"Assembly-CSharp-Editor-testable\"\n
+      \           },\n            \"JSONnodeData\": \"{\\n    \\\"m_SerializableChildren\\\":
+      [\\n        {\\n            \\\"typeInfo\\\": {\\n                \\\"fullName\\\":
+      \\\"UnityEditor.VFX.VFXContext\\\",\\n                \\\"assemblyName\\\":
+      \\\"Assembly-CSharp-Editor-testable\\\"\\n            },\\n            \\\"JSONnodeData\\\":
+      \\\"{\\\\n    \\\\\\\"m_SerializableChildren\\\\\\\": [],\\\\n    \\\\\\\"m_ContextType\\\\\\\":
+      1,\\\\n    \\\\\\\"m_InputType\\\\\\\": 0,\\\\n    \\\\\\\"m_OutputType\\\\\\\":
+      0,\\\\n    \\\\\\\"m_UIPosition\\\\\\\": {\\\\n        \\\\\\\"x\\\\\\\": 0.0,\\\\n
+      \       \\\\\\\"y\\\\\\\": 0.0\\\\n    }\\\\n}\\\"\\n        },\\n        {\\n
+      \           \\\"typeInfo\\\": {\\n                \\\"fullName\\\": \\\"UnityEditor.VFX.VFXContext\\\",\\n
+      \               \\\"assemblyName\\\": \\\"Assembly-CSharp-Editor-testable\\\"\\n
+      \           },\\n            \\\"JSONnodeData\\\": \\\"{\\\\n    \\\\\\\"m_SerializableChildren\\\\\\\":
+      [],\\\\n    \\\\\\\"m_ContextType\\\\\\\": 4,\\\\n    \\\\\\\"m_InputType\\\\\\\":
+      0,\\\\n    \\\\\\\"m_OutputType\\\\\\\": 0,\\\\n    \\\\\\\"m_UIPosition\\\\\\\":
+      {\\\\n        \\\\\\\"x\\\\\\\": 0.0,\\\\n        \\\\\\\"y\\\\\\\": 0.0\\\\n
+      \   }\\\\n}\\\"\\n        }\\n    ]\\n}\"\n        }\n    ]\n}"
       fullName: UnityEditor.VFX.VFXOperatorAdd
       assemblyName: Assembly-CSharp-Editor-testable
     JSONnodeData: "{\n    \"m_SerializableChildren\": [],\n    \"m_UIPosition\": {\n

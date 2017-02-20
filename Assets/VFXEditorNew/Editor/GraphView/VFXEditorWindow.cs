@@ -30,26 +30,26 @@ namespace UnityEditor.VFX.UI
         {
             base.OnEnable();
             var objs = Selection.objects;
-            if (objs != null && objs.Length == 1 && objs[0] is VFXModelContainer)
+            if (objs != null && objs.Length == 1 && objs[0] is VFXGraphAsset)
             {
-                m_ViewPresenter.SetModelContainer(objs[0] as VFXModelContainer, true);
+                m_ViewPresenter.SetGraphAsset(objs[0] as VFXGraphAsset, true);
             }
             else
-                m_ViewPresenter.SetModelContainer(m_ViewPresenter.GetModelContainer(), true);
+                m_ViewPresenter.SetGraphAsset(m_ViewPresenter.GetGraphAsset(), true);
         }
 
         protected new void OnDisable()
         {
-            m_ViewPresenter.SetModelContainer(null,false);
+            m_ViewPresenter.SetGraphAsset(null,false);
             base.OnDisable();
         }
 
         void OnSelectionChange()
         {
             var objs = Selection.objects;
-            if (objs != null && objs.Length == 1 && objs[0] is VFXModelContainer)
+            if (objs != null && objs.Length == 1 && objs[0] is VFXGraphAsset)
             {
-                m_ViewPresenter.SetModelContainer(objs[0] as VFXModelContainer, false);
+                m_ViewPresenter.SetGraphAsset(objs[0] as VFXGraphAsset, false);
             }
         }
 

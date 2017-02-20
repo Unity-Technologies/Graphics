@@ -252,7 +252,7 @@ namespace UnityEditor.VFX.UI
 		public void AddBlock(int index, VFXBlock block)
 		{
 			VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-            presenter.AddBlock(0, block);
+            presenter.AddBlock(-1, block);
 		}
 
 		public void RemoveBlock(VFXBlockUI block)
@@ -263,7 +263,7 @@ namespace UnityEditor.VFX.UI
 			m_BlockContainer.RemoveFromSelection(block);
 			m_BlockContainer.RemoveChild(block);
 			VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
-			contextPresenter.blockPresenters.Remove(block.GetPresenter<VFXBlockPresenter>());
+			contextPresenter.RemoveBlock(block.GetPresenter<VFXBlockPresenter>().Model);
 		}
 
 		private void InstantiateBlock(VFXBlockPresenter blockPresenter)
@@ -286,8 +286,20 @@ namespace UnityEditor.VFX.UI
 		public void RefreshContext()
 		{
 			VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
+            var blockPresenters = contextPresenter.blockPresenters;
 
-			var blocks = m_BlockContainer.children.OfType<VFXBlockUI>().ToList();
+            // TMP recreate everything when collections are out of sync
+            var boundPresenters = m_BlockContainer.children.OfType<VFXBlockUI>().Select(ui => ui.GetPresenter<VFXBlockPresenter>());
+            if (!blockPresenters.SequenceEqual(boundPresenters))
+            {
+                m_BlockContainer.ClearSelection();
+                m_BlockContainer.ClearChildren();
+                foreach (var presenter in blockPresenters)
+                    InstantiateBlock(presenter);
+            }
+
+            // Does not guarantee correct ordering
+			/*var blocks = m_BlockContainer.children.OfType<VFXBlockUI>().ToList();
 
 			// Process removals
 			foreach (var c in blocks)
@@ -310,7 +322,7 @@ namespace UnityEditor.VFX.UI
 				{
                     InstantiateBlock(blockPresenter);
 				}
-			}
+			}*/
 		}
 
 		public override void OnDataChanged()

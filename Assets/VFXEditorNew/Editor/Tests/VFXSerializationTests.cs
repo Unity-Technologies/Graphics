@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Test
             // If the asset does not exist, create it
             if (guids.Length == 0)
             {
-                VFXModelContainer asset = ScriptableObject.CreateInstance<VFXModelContainer>();
+                VFXGraphAsset asset = ScriptableObject.CreateInstance<VFXGraphAsset>();
                 InitAsset(asset);
                 AssetDatabase.CreateAsset(asset,kTestAssetPath);
             }
@@ -31,8 +31,8 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeModel()
         {
-            VFXModelContainer assetSrc = ScriptableObject.CreateInstance<VFXModelContainer>();
-            VFXModelContainer assetDst = ScriptableObject.CreateInstance<VFXModelContainer>();
+            VFXGraphAsset assetSrc = ScriptableObject.CreateInstance<VFXGraphAsset>();
+            VFXGraphAsset assetDst = ScriptableObject.CreateInstance<VFXGraphAsset>();
 
             InitAsset(assetSrc);
             EditorUtility.CopySerialized(assetSrc, assetDst);
@@ -45,13 +45,13 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void LoadAssetFromPath()
         {
-            VFXModelContainer asset = AssetDatabase.LoadAssetAtPath<VFXModelContainer>(kTestAssetPath);
+            VFXGraphAsset asset = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(kTestAssetPath);
             CheckAsset(asset);
         }
 
-        private void InitAsset(VFXModelContainer asset)
+        private void InitAsset(VFXGraphAsset asset)
         {
-            asset.m_Roots.Clear();
+            asset.root.RemoveAllChildren();
 
             VFXSystem system0 = new VFXSystem();
             system0.AddChild(new VFXContext(VFXContextType.kInit));
@@ -67,40 +67,39 @@ namespace UnityEditor.VFX.Test
             var block1 = new VFXUpdateBlockTest();
             var block2 = new VFXOutputBlockTest();
 
-            system0.GetChild(0).AddChild(block0);
-            system0.GetChild(1).AddChild(block1);
-            system0.GetChild(2).AddChild(block2);
+            system0[0].AddChild(block0);
+            system0[1].AddChild(block1);
+            system0[2].AddChild(block2);
 
-            // Add some operator
-            VFXOperator add = new VFXOperatorAdd();
+            asset.root.AddChild(system0);
+            asset.root.AddChild(system1);
 
             asset.m_Roots.Add(system0);
             asset.m_Roots.Add(system1);
             asset.m_Roots.Add(add);
         }
 
-        private void CheckAsset(VFXModelContainer asset)
+        private void CheckAsset(VFXGraphAsset asset)
         {
-            Assert.AreEqual(3, asset.m_Roots.Count);
-            Assert.AreEqual(3, asset.m_Roots[0].GetNbChildren());
-            Assert.AreEqual(2, asset.m_Roots[1].GetNbChildren());
+            Assert.AreEqual(3, asset.root[0].GetNbChildren());
+            Assert.AreEqual(2, asset.root[1].GetNbChildren());
             Assert.AreEqual(0, asset.m_Roots[2].GetNbChildren());
 
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(1));
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(2));
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[1])).GetChild(1));
-            
-            Assert.AreEqual(VFXContextType.kInit,((VFXSystem)(asset.m_Roots[0])).GetChild(0).contextType);
-            Assert.AreEqual(VFXContextType.kUpdate,((VFXSystem)(asset.m_Roots[0])).GetChild(1).contextType);
-            Assert.AreEqual(VFXContextType.kOutput,((VFXSystem)(asset.m_Roots[0])).GetChild(2).contextType);
-            Assert.AreEqual(VFXContextType.kInit,((VFXSystem)(asset.m_Roots[1])).GetChild(0).contextType);
-            Assert.AreEqual(VFXContextType.kOutput,((VFXSystem)(asset.m_Roots[1])).GetChild(1).contextType);
+            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(1));
+            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(2));
+            Assert.IsNotNull(((VFXSystem)(asset.root[1])).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(asset.root[1])).GetChild(1));
 
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(0).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(1).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(asset.m_Roots[0])).GetChild(2).GetChild(0));
+            Assert.AreEqual(VFXContextType.kInit, ((VFXSystem)(asset.root[0])).GetChild(0).contextType);
+            Assert.AreEqual(VFXContextType.kUpdate, ((VFXSystem)(asset.root[0])).GetChild(1).contextType);
+            Assert.AreEqual(VFXContextType.kOutput, ((VFXSystem)(asset.root[0])).GetChild(2).contextType);
+            Assert.AreEqual(VFXContextType.kInit, ((VFXSystem)(asset.root[1])).GetChild(0).contextType);
+            Assert.AreEqual(VFXContextType.kOutput, ((VFXSystem)(asset.root[1])).GetChild(1).contextType);
+
+            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(0).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(1).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(2).GetChild(0));
             Assert.IsNotNull((VFXOperatorAdd)asset.m_Roots[2]);
         }
     }

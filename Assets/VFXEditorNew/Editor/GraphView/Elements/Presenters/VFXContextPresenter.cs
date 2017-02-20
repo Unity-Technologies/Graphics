@@ -82,23 +82,37 @@ namespace UnityEditor.VFX.UI
                 ViewPresenter.RegisterFlowAnchorPresenter(outAnchor);
             }
 
-            // Recreate presenters from model
-            blockPresenters.Clear();
-            foreach (var block in Model.GetChildren())
-                AddPresentersFromModel((VFXBlock)block);
+            SyncPresenters();
         }
 
         public void AddBlock(int index,VFXBlock block)
         {
             Model.AddChild(block, index);
-            AddPresentersFromModel(block);
+            SyncPresenters();
         }
 
-        private void AddPresentersFromModel(VFXBlock block)
+        public void RemoveBlock(VFXBlock block)
         {
-            var presenter = CreateInstance<VFXBlockPresenter>();
-            presenter.Init(block, this);
-            m_BlockPresenters.Add(presenter);
+            Model.RemoveChild(block);
+            SyncPresenters();
+        }
+
+        private void SyncPresenters()
+        {
+            var m_NewPresenters = new List<VFXBlockPresenter>();
+            foreach (var block in Model.GetChildren())
+            {
+                var presenter = blockPresenters.Find(p => p.Model == block);
+                if (presenter == null) // If the presenter does not exist for this model, create it
+                {
+                    presenter = CreateInstance<VFXBlockPresenter>();
+                    presenter.Init(block, this);
+                }
+
+                m_NewPresenters.Add(presenter);
+            }
+
+            m_BlockPresenters = m_NewPresenters;
         }
     }
 }
