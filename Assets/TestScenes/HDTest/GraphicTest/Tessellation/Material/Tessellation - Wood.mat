@@ -23,7 +23,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 2800000, guid: 0353c00d9bc99f14780836a6a51a6d97, type: 3}
+        m_Texture: {fileID: 2800000, guid: 927434958f610214aa6a4179f134f5fd, type: 3}
         m_Scale: {x: 2, y: 2}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -59,7 +59,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightMap:
-        m_Texture: {fileID: 2800000, guid: db7b513b0c2406e40be832dc28133281, type: 3}
+        m_Texture: {fileID: 2800000, guid: 870243a1ef675dd4cac0433df1aa80a3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -75,7 +75,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: ccbd506f77c77e04eaa274a3d3d417e3, type: 3}
+        m_Texture: {fileID: 2800000, guid: ca958f697884e254d8d7c1d8a2255a37, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
