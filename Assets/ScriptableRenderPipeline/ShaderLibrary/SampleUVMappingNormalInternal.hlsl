@@ -37,7 +37,8 @@ float3 ADD_FUNC_SUFFIX(ADD_NORMAL_FUNC_SUFFIX(SampleUVMappingNormal))(TEXTURE2D_
 #ifdef SURFACE_GRADIENT
     else if (uvMapping.mappingType == UV_MAPPING_PLANAR)
     {
-        float2 derivYPlane = UNPACK_DERIVATIVE_FUNC(SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping.uvXZ, param), scale);
+        // Note: Planar is on uv coordinate (and not uvXZ)
+        float2 derivYPlane = UNPACK_DERIVATIVE_FUNC(SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping.uv, param), scale);
         // See comment above
         float3 volumeGrad = float3(derivYPlane.y, 0.0, derivYPlane.x);
         return SurfaceGradientFromVolumeGradient(uvMapping.normalWS, volumeGrad);
