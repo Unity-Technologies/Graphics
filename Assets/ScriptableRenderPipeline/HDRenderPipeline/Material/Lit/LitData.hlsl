@@ -312,7 +312,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     depthOffset = -depthOffset * 20.0;
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, _ViewProjMatrix, posInput);
 #endif
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
@@ -1126,7 +1126,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float depthOffset = 0.0;
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, _ViewProjMatrix, posInput);
 #endif
 
     SurfaceData surfaceData0, surfaceData1, surfaceData2, surfaceData3;

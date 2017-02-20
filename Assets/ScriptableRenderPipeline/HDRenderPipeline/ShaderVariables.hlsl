@@ -282,7 +282,7 @@ float4 TransformWorldToHClip(float3 positionWS)
     return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
-// Computes world space view direction, from object space position
+// Computes the world space view direction (pointing towards the camera).
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
     float3 V = _WorldSpaceCameraPos.xyz - positionWS;
