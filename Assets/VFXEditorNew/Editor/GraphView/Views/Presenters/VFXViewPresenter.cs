@@ -231,22 +231,55 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        private static void CollectParentOperator(VFXOperator operatorInput, HashSet<VFXOperator> listParent)
+        {
+            listParent.Add(operatorInput);
+            foreach (var input in operatorInput.InputSlots)
+            {
+                if (input.parent != null)
+                {
+                    CollectParentOperator(input.parent, listParent);
+                }
+            }
+        }
+
+        private static void CollectChildOperator(VFXOperator operatorInput, HashSet<VFXOperator> listChildren, IEnumerable<VFXOperatorEdgePresenter> allEdges)
+        {
+            listChildren.Add(operatorInput);
+
+            var ouputOperators = allEdges.Where(o => (o.input as VFXOperatorAnchorPresenter).sourceOperator.Operator == operatorInput)
+                                .Select(o => (o.output as VFXOperatorAnchorPresenter).sourceOperator.Operator);
+            foreach (var output in ouputOperators)
+            {
+                CollectChildOperator(output, listChildren, allEdges);
+            }
+        }
+
         public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
 		{
             if (startAnchorPresenter is VFXOperatorAnchorPresenter)
             {
                 var allOperatorPresenter = elements.OfType<VFXOperatorPresenter>();
+                var currentOperator = (startAnchorPresenter as VFXOperatorAnchorPresenter).sourceOperator.Operator;
                 if (startAnchorPresenter.direction == Direction.Input)
+                {
+                    var childrenOperators = new HashSet<VFXOperator>();
+                    CollectChildOperator(currentOperator, childrenOperators, elements.OfType<VFXOperatorEdgePresenter>().Cast<VFXOperatorEdgePresenter>().ToArray());
+                    allOperatorPresenter = allOperatorPresenter.Where(o => !childrenOperators.Contains(o.Operator));
                     return allOperatorPresenter.SelectMany(o => o.outputAnchors).ToList();
+                }
+
+                var parentOperators = new HashSet<VFXOperator>();
+                CollectParentOperator(currentOperator, parentOperators);
+                allOperatorPresenter = allOperatorPresenter.Where(o => !parentOperators.Contains(o.Operator));
                 return allOperatorPresenter.SelectMany(o => o.inputAnchors).ToList();
             }
-
-            if( startAnchorPresenter is VFXDataAnchorPresenter )
+            else if (startAnchorPresenter is VFXDataAnchorPresenter)
             {
                 var dictionary = startAnchorPresenter is VFXDataInputAnchorPresenter ? m_DataOutputAnchorPresenters : m_DataInputAnchorPresenters;
 
                 List<NodeAnchorPresenter> presenters;
-                if( !dictionary.TryGetValue(startAnchorPresenter.anchorType,out presenters) )
+                if (!dictionary.TryGetValue(startAnchorPresenter.anchorType, out presenters))
                 {
                     presenters = new List<NodeAnchorPresenter>();
                     dictionary[startAnchorPresenter.anchorType] = presenters;
@@ -254,37 +287,40 @@ namespace UnityEditor.VFX.UI
 
                 return presenters;
             }
+            else
+            {
 
-            var res = new List<NodeAnchorPresenter>();
+                var res = new List<NodeAnchorPresenter>();
 
-            if (!(startAnchorPresenter is VFXFlowAnchorPresenter))
-				return res;
+                if (!(startAnchorPresenter is VFXFlowAnchorPresenter))
+                    return res;
 
-			var startFlowAnchorPresenter = (VFXFlowAnchorPresenter)startAnchorPresenter;
+                var startFlowAnchorPresenter = (VFXFlowAnchorPresenter)startAnchorPresenter;
+                foreach (var anchorPresenter in m_FlowAnchorPresenters)
+                {
+                    VFXModel owner = anchorPresenter.Owner;
+                    if (owner == null ||
+                        startAnchorPresenter == anchorPresenter ||
+                        !anchorPresenter.IsConnectable() ||
+                        startAnchorPresenter.direction == anchorPresenter.direction ||
+                        owner == startFlowAnchorPresenter.Owner)
+                        continue;
 
-			foreach (var anchorPresenter in m_FlowAnchorPresenters)
-			{
-				VFXModel owner = anchorPresenter.Owner;
-				if (owner == null ||
-					startAnchorPresenter == anchorPresenter ||
-					!anchorPresenter.IsConnectable() ||
-					startAnchorPresenter.direction == anchorPresenter.direction ||
-					owner == startFlowAnchorPresenter.Owner)
-					continue;
+                    if (owner is VFXContext)
+                    {
+                        VFXSystem system = ((VFXContext)owner).GetParent();
+                        if (system == null)
+                            continue;
 
-				if (owner is VFXContext)
-				{
-					VFXSystem system = ((VFXContext)owner).GetParent();
-					if (system == null)
-						continue;
+                        int indexOffset = startAnchorPresenter.direction == Direction.Output ? 0 : 1;
+                        if (system.AcceptChild(startFlowAnchorPresenter.Owner, system.GetIndex(owner) + indexOffset))
+                            res.Add(anchorPresenter);
+                    }
+                }
+                return res;
+            }
 
-					int indexOffset = startAnchorPresenter.direction == Direction.Output ? 0 : 1;
-					if (system.AcceptChild(startFlowAnchorPresenter.Owner, system.GetIndex(owner) + indexOffset))
-						res.Add(anchorPresenter);
-				}
-			}
-
-			return res;
+            throw new NotImplementedException();
 		}
 
 		public void AddVFXContext(Vector2 pos,VFXContext context)
@@ -302,7 +338,7 @@ namespace UnityEditor.VFX.UI
         public void AddVFXOperator(Vector2 pos, VFXOperator desc)
         {
             var model = desc;
-            model.Position = pos;
+            model.position = pos;
             m_GraphAsset.root.AddChild(model);
             AddPresentersFromModel(model);
         }
@@ -361,7 +397,7 @@ namespace UnityEditor.VFX.UI
                 VFXOperator context = (VFXOperator)model;
                 var presenter = CreateInstance<VFXOperatorPresenter>();
                 presenter.Init(context);
-                presenter.position = new Rect(context.Position.x, context.Position.y, 100, 100);
+                presenter.position = new Rect(context.position.x, context.position.y, 100, 100);
                 AddElement(presenter);
             }
             else
