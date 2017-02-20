@@ -177,8 +177,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public struct HDCamera
     {
-        public Camera camera;
-        public Vector4 screenSize;
+        public Camera    camera;
+        public Vector4   screenSize;
         public Matrix4x4 viewProjectionMatrix;
         public Matrix4x4 invViewProjectionMatrix;
         public Matrix4x4 invProjectionMatrix;
