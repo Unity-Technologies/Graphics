@@ -8,6 +8,19 @@ using System.Linq;using UnityEngine;using UnityEngine.Graphing;namespace Uni
             get { return GetChild(index); }
         }
 
+        public Vector2 position
+        {
+            get { return m_UIPosition; }
+            set
+            {
+                if (m_UIPosition != value)
+                {
+                    m_UIPosition = value;
+                    Invalidate(InvalidationCause.kUIChanged);
+                }
+            }
+        }
+
         public int GetNbChildren()        {            return m_Children.Count;        }        public int GetIndex(VFXModel child)        {            return m_Children.IndexOf(child);        }
 
         public void Invalidate(InvalidationCause cause)        {            Invalidate(this,cause);        }        private void Invalidate(VFXModel model,InvalidationCause cause)
@@ -15,7 +28,7 @@ using System.Linq;using UnityEngine;using UnityEngine.Graphing;namespace Uni
             OnInvalidate(model,cause);
             if (m_Parent != null)
                 m_Parent.Invalidate(model,cause);
-        }        public virtual void OnBeforeSerialize()        {            m_SerializableChildren = SerializationHelper.Serialize<VFXModel>(m_Children);        }        public virtual void OnAfterDeserialize()        {            m_Children = SerializationHelper.Deserialize<VFXModel>(m_SerializableChildren, null);            foreach (var child in m_Children)                child.m_Parent = this;            m_SerializableChildren = null; // No need to keep it        }        protected VFXModel m_Parent = null;        protected List<VFXModel> m_Children = new List<VFXModel>();        [SerializeField]        private List<SerializationHelper.JSONSerializedElement> m_SerializableChildren = null;     }    abstract class VFXModel<ParentType, ChildrenType> : VFXModel        where ParentType : VFXModel        where ChildrenType : VFXModel    {        public override bool AcceptChild(VFXModel model, int index = -1)        {            return index >= -1 && index <= m_Children.Count && model is ChildrenType;        }        public new ParentType GetParent()        {            return (ParentType)m_Parent;        }        public new ChildrenType GetChild(int index)        {            return (ChildrenType)m_Children[index];        }
+        }        public virtual void OnBeforeSerialize()        {            m_SerializableChildren = SerializationHelper.Serialize<VFXModel>(m_Children);        }        public virtual void OnAfterDeserialize()        {            m_Children = SerializationHelper.Deserialize<VFXModel>(m_SerializableChildren, null);            foreach (var child in m_Children)                child.m_Parent = this;            m_SerializableChildren = null; // No need to keep it        }        protected VFXModel m_Parent = null;        protected List<VFXModel> m_Children = new List<VFXModel>();        [SerializeField]        private List<SerializationHelper.JSONSerializedElement> m_SerializableChildren = null;        [SerializeField]        private Vector2 m_UIPosition;    }    abstract class VFXModel<ParentType, ChildrenType> : VFXModel        where ParentType : VFXModel        where ChildrenType : VFXModel    {        public override bool AcceptChild(VFXModel model, int index = -1)        {            return index >= -1 && index <= m_Children.Count && model is ChildrenType;        }        public new ParentType GetParent()        {            return (ParentType)m_Parent;        }        public new ChildrenType GetChild(int index)        {            return (ChildrenType)m_Children[index];        }
 
         public new ChildrenType this[int index]
         {
