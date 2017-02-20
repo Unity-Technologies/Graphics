@@ -221,7 +221,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 
 #include "ShaderLibrary/PerPixelDisplacement.hlsl"
 
-void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
+float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
     bool ppdEnable = false;
     bool isPlanar = false;
@@ -241,6 +241,8 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
         float lod = ComputeTextureLOD(minUvSize);
 
         PerPixelHeightDisplacementParam ppdParam;
+
+        float height; // final height processed
 
         // We need to calculate the texture space direction. It depends on the mapping.
         if (isTriplanar)
@@ -275,13 +277,18 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
             float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+            float2 offset;
+            ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, offset, height);
 
             // Apply offset to all UVSet
             layerTexCoord.base.uv += offset;
             layerTexCoord.details.uv += offset;
         }
+
+        return height * maxHeight;
     }
+
+    return 0.0;
 }
 
 // Calculate displacement for per vertex displacement mapping
@@ -299,8 +306,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetLayerTexCoord(input, layerTexCoord);
 
 
-    ApplyPerPixelDisplacement(input, V, layerTexCoord);
-    float depthOffset = 0.0;
+    float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
+
+    // TEMP
+    depthOffset = -depthOffset * 20.0;
 
 #ifdef _DEPTHOFFSET_ON
     ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
@@ -826,7 +835,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 // - Blend Mask use same mapping as main layer (UVO, Planar, Triplanar)
 // From these rules it mean that PPD is enable only if the user 1) ask for it, 2) if there is one heightmap enabled on active layer, 3) if mapping is the same for all layer respecting 2), 4) if mapping is UV0, planar or triplanar mapping
 // Most contraint are handled by the inspector (i.e the UI) like the mapping constraint and is assumed in the shader.
-void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
+float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
     bool ppdEnable = false;
     bool isPlanar = false;
@@ -907,6 +916,8 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
         ppdParam.mainHeightInfluence = 0.0;
 #endif
 
+        float height;
+
         // We need to calculate the texture space direction. It depends on the mapping.
         if (isTriplanar)
         {
@@ -952,7 +963,8 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
             float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+            float2 offset;
+            ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, offset, height);
 
             // Apply offset to all planar UV if applicable
             float4 planarWeight = float4(   layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0, 
@@ -975,7 +987,11 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             layerTexCoord.details2.uv += offsetWeights.z * offset;
             layerTexCoord.details3.uv += offsetWeights.w * offset;
         }
+
+        return height * maxHeight;
     }
+
+    return 0.0;
 }
 
 // Calculate displacement for per vertex displacement mapping
