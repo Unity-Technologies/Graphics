@@ -135,14 +135,36 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    // Normalize the normal/tangent after interpolation
+    float4 tangentWS = float4(input.interpolators2.xyz, input.interpolators2.w > 0.0 ? 1.0 : -1.0);
+    // TODO: We should be able to not make distinction between the two path, but it mean material need to be aware to normalize the TBN when required, like for example for POM.
+    // For now do some test by keeping code consistent with previous visual.
+#ifdef SURFACE_GRADIENT
+    // Normalize normalWS vector but keep the renormFactor to apply it to bitangent and tangent
+    float renormFactor = 1.0 / length(input.interpolators1);
+    float3 normalWS = renormFactor * input.interpolators1;
+
+    // no normalizes is mandatory for tangentWS
+ 
+    // bitangent on the fly option in xnormal to reduce vertex shader outputs.
+    float3x3 worldToTangent = CreateWorldToTangent(normalWS, tangentWS.xyz, tangentWS.w);
+    output.worldToTangent[0] = worldToTangent[0];
+    // prepare for surfgrad formulation without breaking compliance (use exact same scale as applied to interpolated vertex normal to avoid breaking compliance).
+    output.worldToTangent[1] = worldToTangent[1] * renormFactor;
+    output.worldToTangent[2] = worldToTangent[2] * renormFactor;
+#else
+    // TODO: Check if we must do like for surface gradient (i.e not normalize ?) For now, for consistency with previous code we normalize
+    // Normalize after the interpolation
     float3 normalWS = normalize(input.interpolators1);
-    float4 tangentWS = float4(normalize(input.interpolators2.xyz), input.interpolators2.w);
-    float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
-    output.tangentToWorld[0] = tangentToWorld[0];
-    output.tangentToWorld[1] = tangentToWorld[1];
-    output.tangentToWorld[2] = tangentToWorld[2];
+    tangentWS.xyz = normalize(tangentWS.xyz);
+
+    // bitangent on the fly option in xnormal to reduce vertex shader outputs.
+    float3x3 worldToTangent = CreateWorldToTangent(normalWS, tangentWS.xyz, tangentWS.w);
+    output.worldToTangent[0] = worldToTangent[0];
+    output.worldToTangent[1] = worldToTangent[1];
+    output.worldToTangent[2] = worldToTangent[2];
 #endif
+
+#endif // VARYINGS_NEED_TANGENT_TO_WORLD
 
 #ifdef VARYINGS_NEED_TEXCOORD0 
     output.texCoord0 = input.interpolators3.xy;

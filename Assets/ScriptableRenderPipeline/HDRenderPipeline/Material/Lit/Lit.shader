@@ -82,7 +82,6 @@ Shader "HDRenderPipeline/Lit"
         [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVMappingPlanar("_UVMappingPlanar", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
         [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2, Specular Color, 3)] _MaterialID("MaterialId", Int) = 0
@@ -106,7 +105,7 @@ Shader "HDRenderPipeline/Lit"
 
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 metal // TEMP: until we go futher in dev
-    // #pragma enable_d3d11_debug_symbols
+    //#pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -118,7 +117,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _PER_PIXEL_DISPLACEMENT
 
-    #pragma shader_feature _MAPPING_TRIPLANAR
+    #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR

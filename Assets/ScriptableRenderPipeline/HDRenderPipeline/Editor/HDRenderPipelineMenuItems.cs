@@ -20,8 +20,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     LayeredLitGUI.SynchronizeAllLayers(mat);
                     EditorUtility.SetDirty(mat);
                 }
-                }
             }
+        }
 
         static void RemoveMaterialKeywords(Material material)
         {
