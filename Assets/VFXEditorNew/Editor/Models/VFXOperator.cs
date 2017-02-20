@@ -60,7 +60,7 @@ namespace UnityEditor.VFX
                     };
                 }).ToArray();
             }            
-            OnInvalidate(InvalidationCause.kParamChanged);
+            Invalidate(InvalidationCause.kParamChanged);
         }
         private System.Type GetPropertiesType()
         {
@@ -156,9 +156,9 @@ namespace UnityEditor.VFX
             });
         }
 
-        protected override void OnInvalidate(InvalidationCause cause)
+        protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
-            base.OnInvalidate(cause);
+            base.OnInvalidate(model,cause);
 
             IEnumerable<VFXExpression> inputExpressions = GetInputExpressions();
             var ouputExpressions = BuildExpression(inputExpressions.ToArray());

@@ -53,7 +53,12 @@ namespace UnityEditor.VFX
         public virtual void OnAfterDeserialize()
         {
             m_Root = SerializationHelper.Deserialize<VFXGraph>(m_SerializedRoot, null);
-            m_Root.owner = this;
+            m_Root.onInvalidateDelegate += OnModelInvalidate;
+        }
+
+        private void OnModelInvalidate(VFXModel model,VFXModel.InvalidationCause cause)
+        {
+            EditorUtility.SetDirty(this);
         }
 
         void OnEnable()
@@ -61,31 +66,25 @@ namespace UnityEditor.VFX
             if (m_Root == null)
             {
                 m_Root = new VFXGraph();
-                m_Root.owner = this;
+                m_Root.onInvalidateDelegate += OnModelInvalidate;
             }
         }
     }
 
     class VFXGraph : VFXModel
     {
-        public ScriptableObject owner
-        {
-            get { return m_Owner; }
-            set { m_Owner = value; }
-        }
+        public delegate void InvalidateEvent(VFXModel model,InvalidationCause cause);
+        public event InvalidateEvent onInvalidateDelegate;
 
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
             return true; // Can hold any model
         }
 
-        protected override void OnInvalidate(InvalidationCause cause)
+        protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
-            if (m_Owner != null)
-            {
-                EditorUtility.SetDirty(m_Owner);
-                Debug.Log("Invalidate VFXAsset " + m_Owner + " - Cause: " + cause);
-            }
+            if (onInvalidateDelegate != null)
+                onInvalidateDelegate(model, cause); 
         }
 
         private ScriptableObject m_Owner;

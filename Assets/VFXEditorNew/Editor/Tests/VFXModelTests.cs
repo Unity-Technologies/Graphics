@@ -10,24 +10,27 @@ namespace UnityEditor.VFX.Test
     {
         static List<string> s_logs = new List<string>();
 
+        private class VFXDummyModel : VFXModel<VFXGraph, VFXModel>
+        {}
+
         // VFXModelA <>- VFXModelB <>- VFXModelC
         private class VFXModelA : VFXModel<VFXModel,  VFXModelB> 
         {
-            protected override void OnInvalidate(InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelA " + cause); }
+            protected override void OnInvalidate(VFXModel model,InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelA " + cause); }
             protected override void OnAdded() { s_logs.Add("OnAdded VFXModelA"); }
             protected override void OnRemoved() { s_logs.Add("OnRemoved VFXModelA"); }
         }
 
         private class VFXModelB : VFXModel<VFXModelA, VFXModelC> 
         {
-            protected override void OnInvalidate(InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelB " + cause); }
+            protected override void OnInvalidate(VFXModel model, InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelB " + cause); }
             protected override void OnAdded() { s_logs.Add("OnAdded VFXModelB"); }
             protected override void OnRemoved() { s_logs.Add("OnRemoved VFXModelB"); }
         }
 
         private class VFXModelC : VFXModel<VFXModelB, VFXModel>  
         {
-            protected override void OnInvalidate(InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelC " + cause); }
+            protected override void OnInvalidate(VFXModel model, InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelC " + cause); }
             protected override void OnAdded() { s_logs.Add("OnAdded VFXModelC"); }
             protected override void OnRemoved() { s_logs.Add("OnRemoved VFXModelC"); }
 
@@ -201,6 +204,31 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, modelB.GetNbChildren());
             Assert.IsNull(modelA.GetParent());
             Assert.AreEqual(0, s_logs.Count);
+        }
+
+        [Test]
+        public void OnInvalidateDelegate()
+        {
+            s_logs.Clear();
+
+            VFXGraph graph = new VFXGraph();
+            graph.AddChild(new VFXDummyModel());
+            graph.onInvalidateDelegate += OnModelInvalidated;
+            graph.AddChild(new VFXDummyModel());
+            graph.onInvalidateDelegate -= OnModelInvalidated;
+            graph.AddChild(new VFXDummyModel());
+            graph.onInvalidateDelegate += OnModelInvalidated;
+            graph.RemoveAllChildren();
+            graph.onInvalidateDelegate -= OnModelInvalidated;
+
+            Assert.AreEqual(4, s_logs.Count);
+            for (int i = 0; i < 4; ++i )
+                Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.VFXGraph kStructureChanged", s_logs[i]);
+        }
+
+        private void OnModelInvalidated(VFXModel model, VFXModel.InvalidationCause cause)
+        {
+            s_logs.Add("OnInvalidateDelegate " + model + " " + cause);
         }
     }
 }
