@@ -308,8 +308,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
-    // TEMP
-    depthOffset = -depthOffset * 20.0;
+    // TODO: remove the scale once the bug is fixed.
+    depthOffset = depthOffset * 6.0;
 
 #ifdef _DEPTHOFFSET_ON
     ApplyDepthOffsetPositionInput(V, depthOffset, _ViewProjMatrix, posInput);
