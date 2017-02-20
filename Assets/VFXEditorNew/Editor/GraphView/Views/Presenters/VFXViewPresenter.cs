@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.UI
                         currentOperator.Init(currentOperator.Operator);
                     }
                 }
-                m_ModelContainer.m_Roots.Remove(operatorPresenter.Operator);
+                m_GraphAsset.root.RemoveChild(operatorPresenter.Operator);
                 RecreateOperatorEdges();
             }
 			else if (element is VFXFlowEdgePresenter)
@@ -303,9 +303,8 @@ namespace UnityEditor.VFX.UI
         {
             var model = desc;
             model.Position = pos;
-            m_ModelContainer.m_Roots.Add(model);
+            m_GraphAsset.root.AddChild(model);
             AddPresentersFromModel(model);
-            EditorUtility.SetDirty(m_ModelContainer);
         }
 
 
