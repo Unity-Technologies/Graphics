@@ -322,6 +322,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
     #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl    
     #define TESSELLATION_ON
+    // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+    #define SURFACE_GRADIENT
 
     //-------------------------------------------------------------------------------------
     // Include
