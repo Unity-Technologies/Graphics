@@ -137,17 +137,18 @@ namespace UnityEditor.VFX.UI
 			{
 				name = "FlowInputs",
 				pickingMode = PickingMode.Ignore,
-				classList = new ClassList("FlowContainer")
 			};
+            m_FlowInputConnectorContainer.AddToClassList("FlowContainer", "Input");
 
-			m_FlowOutputConnectorContainer = new VisualContainer()
-			{
-				name = "FlowOutputs",
-				pickingMode = PickingMode.Ignore,
-				classList = new ClassList("FlowContainer")
+            m_FlowOutputConnectorContainer = new VisualContainer()
+            {
+                name = "FlowOutputs",
+                pickingMode = PickingMode.Ignore,
+                
 			};
+            m_FlowOutputConnectorContainer.AddToClassList("FlowContainer", "Output");
 
-			m_NodeContainer = new VisualContainer()
+            m_NodeContainer = new VisualContainer()
 			{
 				name = "NodeContents"
 			};
@@ -160,12 +161,12 @@ namespace UnityEditor.VFX.UI
 					{Event.KeyboardEvent("#n"), ClearSelection},
 					{Event.KeyboardEvent("delete"), DeleteSelection},
 				}));
+            m_Title = new VisualElement() { name = "Title", content = new GUIContent("Title") };
 
-			AddChild(m_FlowInputConnectorContainer);
-			AddChild(m_NodeContainer);
+            AddChild(m_FlowInputConnectorContainer);
+            AddChild(m_Title);
+            AddChild(m_NodeContainer);
 			AddChild(m_FlowOutputConnectorContainer);
-			m_Title = new VisualElement() { name = "Title" ,content = new GUIContent("Title") };
-			m_NodeContainer.AddChild(m_Title);
 
 			m_BlockContainer = new BlockContainer()
 			{
