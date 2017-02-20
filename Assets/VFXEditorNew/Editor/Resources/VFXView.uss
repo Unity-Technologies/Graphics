@@ -1,9 +1,14 @@
 .FlowContainer{
-	flex: 1;
 	flex-direction: row;
 	justify-content: space-between;
-	padding-left: 20;
+	padding-left: 40;
 	padding-right: 20;
+}
+.FlowContainer.Output{
+	margin-top:-24;
+}
+.FlowContainer.Input{
+	padding-bottom:-24;
 }
 
 VFXFlowAnchor.InputEdgeConnector {
@@ -43,7 +48,7 @@ VFXContextUI.selected {
 	border-color: #383838;
 	}
 
-VFXContextUI > #NodeContents > #Title {
+VFXContextUI > #Title {
 	text-color: #C4C4C4;
 	font-size:12;
 	font-style: bold;
@@ -63,6 +68,7 @@ VFXContextUI BlockContainer {
 	margin-top: 0;
 	margin-left: 32;
 	margin-bottom: 32;
+	border-radius:4;
 	margin-right: 32;
 	
 
@@ -78,6 +84,7 @@ VFXContextUI #NodeContents > Label{
 	text-color:#8FC1DF;
 
 	font-size:16;
+	background-color: #383838;
 }
 VFXBlockUI {
 	flex-direction: column;
@@ -87,7 +94,6 @@ VFXBlockUI {
 	padding-bottom:6;
 	padding-left:0;
 	padding-right:4;
-	border-radius:4;
 	margin-left:3;
 }
 
