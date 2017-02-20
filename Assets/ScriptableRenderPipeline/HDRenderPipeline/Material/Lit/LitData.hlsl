@@ -228,6 +228,7 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
     bool isTriplanar = false;
 
 #if defined(_PER_PIXEL_DISPLACEMENT) &&  defined(_HEIGHTMAP)
+    // All variable are compile time value
     ppdEnable = true;
     isPlanar = layerTexCoord.base.mappingType == UV_MAPPING_PLANAR;
     isTriplanar = layerTexCoord.base.mappingType == UV_MAPPING_TRIPLANAR;
@@ -242,25 +243,49 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 
         PerPixelHeightDisplacementParam ppdParam;
 
+        // planar/triplanar
+        float2 uvXZ;
+        float2 uvXY;
+        float2 uvZY;
+        GetTriplanarCoordinate(V, uvXZ, uvXY, uvZY);
+
+        // TODO: support object space planar/triplanar ?
+
         // We need to calculate the texture space direction. It depends on the mapping.
         if (isTriplanar)
         {
-            // TODO: implement. Require 3 call to POM + dedicated viewDirTS based on triplanar convention
-            // apply the 3 offset on all layers
-            /*
+            float3 viewDirTS;
+            int numSteps;
 
-            ppdParam.uv = layerTexCoord.base0.uvZY;
+            // Perform a POM in each direction and modify appropriate texture coordinate
+            ppdParam.uv = layerTexCoord.base.uvZY;
+            viewDirTS = float3(V.x > 0.0 ? uvZY : -uvZY, V.x);
+            numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
+            float2 offsetZY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
-            float3 viewDirTS = ;
-            int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, abs(viewDirTS.z));
-            ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+            // Apply offset to all triplanar UVSet
+            layerTexCoord.base.uvZY += offsetZY;
+            layerTexCoord.details.uvZY += offsetZY;
 
-            (...)
-            */
+            ppdParam.uv = layerTexCoord.base.uvXZ;
+            viewDirTS = float3(V.y > 0.0 ? uvXZ : -uvXZ, V.y);
+            numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
+            float2 offsetXZ = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+
+            layerTexCoord.base.uvXZ += offsetXZ;
+            layerTexCoord.details.uvXZ += offsetXZ;
+
+            ppdParam.uv = layerTexCoord.base.uvXY;
+            viewDirTS = float3(V.z > 0.0 ? uvXY : -uvXY, V.z);
+            numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
+            float2 offsetXY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+
+            layerTexCoord.base.uvXY += offsetXY;
+            layerTexCoord.details.uvXY += offsetXY;
         }
         else
         {
-            ppdParam.uv = layerTexCoord.base.uv;
+            ppdParam.uv = layerTexCoord.base.uv; // For planar it is uv too, not uvXZ
 
             #ifdef SURFACE_GRADIENT
             // The TBN is not normalize, normalize it to do per pixel displacement
@@ -271,15 +296,13 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             float3x3 worldToTangent = input.worldToTangent;
             #endif
 
-            // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
-            // TODO: do we support object triplanar ? See ComputeLayerTexCoord
-            float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
+            float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
 
-            // Apply offset to all UVSet
+            // Apply offset to all UVSet0 / planar
             layerTexCoord.base.uv += offset;
-            layerTexCoord.details.uv += offset;
+            layerTexCoord.details.uv += isPlanar ? offset : _UVDetailsMappingMask.x * offset; // Only apply offset if details map use UVSet0 _UVDetailsMappingMask.x will be 1 in this case, else 0
         }
     }
 }
