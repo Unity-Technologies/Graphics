@@ -85,7 +85,7 @@ LightmapSettings:
     m_PVRFilteringAtrousColorSigma: 1
     m_PVRFilteringAtrousNormalSigma: 1
     m_PVRFilteringAtrousPositionSigma: 1
-  m_LightingDataAsset: {fileID: 112000002, guid: caf3024f11d329d4f976f542c8fc360c,
+  m_LightingDataAsset: {fileID: 112000002, guid: 740b181ab47c46a47ae28377711d7097,
     type: 2}
   m_ShadowMaskMode: 2
 --- !u!196 &4
