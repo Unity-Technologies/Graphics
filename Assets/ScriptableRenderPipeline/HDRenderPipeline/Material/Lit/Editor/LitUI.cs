@@ -59,6 +59,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
             public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
+
+            public static GUIContent normalMapSpaceWarning = new GUIContent("Object space normal can't be use with triplanar mapping.");            
         }
 
         public enum UVBaseMapping
@@ -260,6 +262,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(horizonFade, Styles.horizonFadeText);
 
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
+
+            // Triplanar only work with tangent space normal
+            if ((NormalMapSpace)normalMapSpace.floatValue == NormalMapSpace.ObjectSpace && ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
+            {
+                EditorGUILayout.HelpBox(Styles.normalMapSpaceWarning.text, MessageType.Error);
+            }            
+
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap);
