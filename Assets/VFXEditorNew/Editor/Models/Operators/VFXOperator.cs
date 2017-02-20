@@ -164,14 +164,5 @@ namespace UnityEditor.VFX
             var ouputExpressions = BuildExpression(inputExpressions.ToArray());
             OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
         }
-
-        public Vector2 Position
-        {
-            get { return m_UIPosition; }
-            set { m_UIPosition = value; }
-        }
-
-        [SerializeField]
-        private Vector2 m_UIPosition;
     }
 }

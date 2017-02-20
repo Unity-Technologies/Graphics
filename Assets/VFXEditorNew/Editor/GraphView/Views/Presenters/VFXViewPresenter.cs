@@ -338,7 +338,7 @@ namespace UnityEditor.VFX.UI
         public void AddVFXOperator(Vector2 pos, VFXOperator desc)
         {
             var model = desc;
-            model.Position = pos;
+            model.position = pos;
             m_GraphAsset.root.AddChild(model);
             AddPresentersFromModel(model);
         }
@@ -397,7 +397,7 @@ namespace UnityEditor.VFX.UI
                 VFXOperator context = (VFXOperator)model;
                 var presenter = CreateInstance<VFXOperatorPresenter>();
                 presenter.Init(context);
-                presenter.position = new Rect(context.Position.x, context.Position.y, 100, 100);
+                presenter.position = new Rect(context.position.x, context.position.y, 100, 100);
                 AddElement(presenter);
             }
             else
