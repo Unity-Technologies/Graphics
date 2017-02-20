@@ -25,9 +25,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
-
-            public static GUIContent emissiveWarning = new GUIContent("Emissive value is animated but the material has not been configured to support emissive. Please make sure the material itself has some amount of emissive.");
-            public static GUIContent emissiveColorWarning = new GUIContent("Ensure emissive color is non-black for emission to have effect.");
         }
 
         public enum SurfaceType
@@ -237,6 +234,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             SetKeyword(material, "_DISTORTION_ON", distortionEnable);
+
+            // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect
+            // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
+            // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
+            MaterialEditor.FixupEmissiveFlag(material);
         }
 
         static public void SetupBaseUnlitMaterialPass(Material material)
