@@ -36,8 +36,8 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _StdDev1, _StdDev2;
-            float _LerpWeight, _ThicknessScale; // See 'SubsurfaceScatteringParameters'
+            float4 _StdDev1, _StdDev2, _ThicknessRemap;
+            float _LerpWeight; // See 'SubsurfaceScatteringParameters'
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -65,7 +65,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float thickness = input.texcoord.x * _ThicknessScale;
+                float thickness = _ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x);
                 float t2        = thickness * thickness;
 
                 float3 var1 = _StdDev1.rgb * _StdDev1.rgb;

@@ -424,7 +424,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Broadcast SSS parameters to all shaders.
             Shader.SetGlobalInt("_TransmissionFlags", sssParameters.transmissionFlags);
-            Shader.SetGlobalFloatArray("_ThicknessScales", sssParameters.thicknessScales);
+            Shader.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
             Shader.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
 
             if (sssParameters.enableSSS)
