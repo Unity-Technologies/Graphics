@@ -6,11 +6,8 @@ using RMGUI.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXDataEdgePresenter: EdgePresenter
+    public class VFXOperatorEdgePresenter: EdgePresenter
     {
-        public VFXDataEdgePresenter()
-        {
 
-        }
     }
 }

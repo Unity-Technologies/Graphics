@@ -68,4 +68,9 @@ MonoBehaviour:
       [],\\\\n    \\\\\\\"m_ContextType\\\\\\\": 4,\\\\n    \\\\\\\"m_InputType\\\\\\\":
       0,\\\\n    \\\\\\\"m_OutputType\\\\\\\": 0,\\\\n    \\\\\\\"m_UIPosition\\\\\\\":
       {\\\\n        \\\\\\\"x\\\\\\\": 0.0,\\\\n        \\\\\\\"y\\\\\\\": 0.0\\\\n
-      \   }\\\\n}\\\"\\n        }\\n    ]\\n}\"\n        }\n    ]\n}"
+      \   }\\\\n}\\\"\\n        }\\n    ]\\n}\"\n        },\n        {\n            \"typeInfo\":
+      {\n                \"fullName\": \"UnityEditor.VFX.VFXOperatorAdd\",\n                \"assemblyName\":
+      \"Assembly-CSharp-Editor-testable\"\n            },\n            \"JSONnodeData\":
+      \"{\\n    \\\"m_SerializableChildren\\\": [],\\n    \\\"m_UIPosition\\\": {\\n
+      \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0\\n    }\\n}\"\n        }\n
+      \   ]\n}"

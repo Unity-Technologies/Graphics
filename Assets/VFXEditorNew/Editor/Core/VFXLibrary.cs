@@ -58,6 +58,7 @@ namespace UnityEditor.VFX
     {
         public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts() { LoadIfNeeded(); return m_ContextDescs; }
         public static IEnumerable<VFXModelDescriptor<VFXBlock>> GetBlocks()     { LoadIfNeeded(); return m_BlockDescs; }
+        public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators() { LoadIfNeeded(); return m_OperatorDescs; }
 
         public static void LoadIfNeeded()
         {
@@ -77,6 +78,7 @@ namespace UnityEditor.VFX
             {
                 m_ContextDescs = LoadModels<VFXContext>();
                 m_BlockDescs = LoadModels<VFXBlock>();
+                m_OperatorDescs = LoadModels<VFXOperator>();
                 m_Loaded = true;
             }
         }
@@ -125,6 +127,7 @@ namespace UnityEditor.VFX
         }
 
         private static volatile List<VFXModelDescriptor<VFXContext>> m_ContextDescs;
+        private static volatile List<VFXModelDescriptor<VFXOperator>> m_OperatorDescs;
         private static volatile List<VFXModelDescriptor<VFXBlock>> m_BlockDescs;
 
         private static Object m_Lock = new Object();

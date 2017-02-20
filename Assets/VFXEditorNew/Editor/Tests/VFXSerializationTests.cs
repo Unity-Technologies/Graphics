@@ -67,19 +67,25 @@ namespace UnityEditor.VFX.Test
             var block1 = new VFXUpdateBlockTest();
             var block2 = new VFXOutputBlockTest();
 
+            // Add some operator
+            VFXOperator add = new VFXOperatorAdd();
+
             system0[0].AddChild(block0);
             system0[1].AddChild(block1);
             system0[2].AddChild(block2);
 
             asset.root.AddChild(system0);
             asset.root.AddChild(system1);
+            asset.root.AddChild(add);
         }
 
         private void CheckAsset(VFXGraphAsset asset)
         {
-            Assert.AreEqual(2, asset.root.GetNbChildren());
+            Assert.AreEqual(3, asset.root.GetNbChildren());
+
             Assert.AreEqual(3, asset.root[0].GetNbChildren());
             Assert.AreEqual(2, asset.root[1].GetNbChildren());
+            Assert.AreEqual(0, asset.root[2].GetNbChildren());
 
             Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(0));
             Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(1));
@@ -96,6 +102,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(0).GetChild(0));
             Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(1).GetChild(0));
             Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(2).GetChild(0));
+            Assert.IsNotNull((VFXOperatorAdd)asset.root[2]);
         }
     }
 }
