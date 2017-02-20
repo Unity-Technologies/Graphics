@@ -54,7 +54,7 @@ SAMPLER2D(sampler_LtcData);
 // SSS parameters
 #define N_PROFILES 8
 uint   _TransmissionFlags;                             // One bit per profile; 1 = enabled
-float  _ThicknessMaps[N_PROFILES][2];                  // Remap: 0 = start, 1 = end - start
+float  _ThicknessRemaps[N_PROFILES][2];                // Remap: 0 = start, 1 = end - start
 float4 _HalfRcpVariancesAndLerpWeights[N_PROFILES][2]; // 2x Gaussians per color channel, A is the the associated interpolation weight
 
 //-----------------------------------------------------------------------------
@@ -167,8 +167,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
         bsdfData.subsurfaceProfile = surfaceData.subsurfaceProfile;
         bsdfData.subsurfaceRadius  = 0.01 * surfaceData.subsurfaceRadius;
-        bsdfData.thickness         = 0.01 * (_ThicknessMaps[bsdfData.subsurfaceProfile][0]
-                                           + _ThicknessMaps[bsdfData.subsurfaceProfile][1] * surfaceData.thickness);
+        bsdfData.thickness         = 0.01 * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
+                                             _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * surfaceData.thickness);
         bsdfData.enableTransmission = (1 << bsdfData.subsurfaceProfile) & _TransmissionFlags;
         if (bsdfData.enableTransmission)
         {
@@ -350,8 +350,8 @@ void DecodeFromGBuffer(
         bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
         bsdfData.subsurfaceProfile = 8.00 * inGBuffer2.a;
         bsdfData.subsurfaceRadius  = 0.01 * inGBuffer2.r;
-        bsdfData.thickness         = 0.01 * (_ThicknessMaps[bsdfData.subsurfaceProfile][0]
-                                           + _ThicknessMaps[bsdfData.subsurfaceProfile][1] * inGBuffer2.g);
+        bsdfData.thickness         = 0.01 * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
+                                             _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * inGBuffer2.g);
         bsdfData.enableTransmission = (1 << bsdfData.subsurfaceProfile) & _TransmissionFlags;
         if (bsdfData.enableTransmission)
         {
