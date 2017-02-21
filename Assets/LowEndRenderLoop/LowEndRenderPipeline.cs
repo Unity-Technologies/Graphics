@@ -57,7 +57,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
                 SetupShadowShaderVariables(context, camera.nearClipPlane, cullingParameters.shadowDistance, m_ShadowSettings.directionalLightCascadeCount);
 
             // Render Opaques
-            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("LowEndForwardBase"));
+            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardBase"));
             settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque();
 
