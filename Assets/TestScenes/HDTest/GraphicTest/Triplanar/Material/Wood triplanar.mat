@@ -157,7 +157,7 @@ Material:
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
-    - _TexWorldScale: 0.05
+    - _TexWorldScale: 0.1
     - _Thickness: 1
     - _UVBase: 2
     - _UVDetail: 0
