@@ -133,6 +133,7 @@ public class TextureCacheCubemap : TextureCache
             {
                 hideFlags = HideFlags.HideAndDontSave,
                 wrapMode = TextureWrapMode.Repeat,
+                wrapModeV = TextureWrapMode.Clamp,
                 filterMode = FilterMode.Trilinear,
                 anisoLevel = 0
             };
