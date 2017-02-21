@@ -8,9 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: POM - Rock
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DEPTHOFFSETENABLE_OFF _DETAIL_MAP_WITH_NORMAL
-    _DISTORTIONDEPTHTEST_OFF _DISTORTIONENABLE_OFF _DISTORTIONONLY_OFF _HEIGHTMAP
-    _NORMALMAP _NORMALMAP_TANGENT_SPACE _PER_PIXEL_DISPLACEMENT
+  m_ShaderKeywords: _HEIGHTMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PER_PIXEL_DISPLACEMENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
@@ -25,7 +23,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 2800000, guid: 37411c7405e8c1a42ac0a0f50983bd46, type: 3}
+        m_Texture: {fileID: 2800000, guid: 25f2c87d04c2d19479e747dc71259c7d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -61,7 +59,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightMap:
-        m_Texture: {fileID: 2800000, guid: a3f1edea0cb01de42968bf3e4317f387, type: 3}
+        m_Texture: {fileID: 2800000, guid: 2fe61f09f223eab4a85aef4a327f3040, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -77,7 +75,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: bbc15758a54df6f43a834cbf4e150d45, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7b40159cc66d36e4baef6f3290b9078e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -96,7 +94,15 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SubsurfaceRadiusMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TangentMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThicknessMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -119,6 +125,8 @@ Material:
     - _DistortionDepthTest: 0
     - _DistortionEnable: 0
     - _DistortionOnly: 0
+    - _DoubleSidedEnable: 0
+    - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedMode: 0
     - _DstBlend: 0
     - _EmissiveColorMode: 1
@@ -129,12 +137,14 @@ Material:
     - _GlossyReflections: 1
     - _HeightAmplitude: 0.09
     - _HeightCenter: 0.5
-    - _MaterialId: 0
+    - _HorizonFade: 1
+    - _MaterialID: 0
     - _Metallic: 0
     - _Mode: 0
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _OcclusionStrength: 1
+    - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
     - _Parallax: 0.02
@@ -142,9 +152,12 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _SubSurfaceRadius: 0
+    - _StencilRef: 2
+    - _SubsurfaceProfile: 0
+    - _SubsurfaceRadius: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1
+    - _Thickness: 1
     - _UVBase: 0
     - _UVDetail: 0
     - _UVMappingPlanar: 0
@@ -154,6 +167,7 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}

@@ -132,10 +132,9 @@ Material:
     - _HeightMapMode: 0
     - _HeightScale: 1
     - _MaterialID: 0
-    - _MaterialId: 0
+    - _StencilRef: 1
     - _Metalic: 0
     - _Metallic: 0
-    - _Mettalic: 0
     - _Mode: 0
     - _NormalMapSpace: 0
     - _OcclusionStrength: 1
@@ -144,7 +143,6 @@ Material:
     - _SmoothnessTextureChannel: 1
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _SubSurfaceRadius: 0
     - _SurfaceType: 0
     - _UVSec: 0
     - _ZWrite: 1

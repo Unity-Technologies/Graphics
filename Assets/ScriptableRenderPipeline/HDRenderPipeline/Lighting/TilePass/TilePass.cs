@@ -1,9 +1,104 @@
+//#define SHADOWS_ENABLED
+//#define SHADOWS_FIXSHADOWIDX
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+#if SHADOWS_ENABLED
+    using ShadowExp;
+
+    class ShadowSetup : IDisposable
+    {
+        // shadow related stuff
+        const int k_MaxShadowDataSlots              = 64;
+        const int k_MaxPayloadSlotsPerShadowData    =  4;
+        ShadowmapBase[]         m_Shadowmaps;
+        ShadowManager           m_ShadowMgr;
+        static ComputeBuffer    s_ShadowDataBuffer;
+        static ComputeBuffer    s_ShadowPayloadBuffer;
+
+        public ShadowSetup( ShadowSettings shadowSettings, out IShadowManager shadowManager )
+        {
+            s_ShadowDataBuffer      = new ComputeBuffer( k_MaxShadowDataSlots, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowExp.ShadowData ) ) );
+            s_ShadowPayloadBuffer   = new ComputeBuffer( k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowExp.ShadowData ) ) );
+            ShadowAtlas.AtlasInit atlasInit;
+            atlasInit.baseInit.width           = (uint) shadowSettings.shadowAtlasWidth;
+            atlasInit.baseInit.height          = (uint) shadowSettings.shadowAtlasHeight;
+            atlasInit.baseInit.slices          = 1;
+            atlasInit.baseInit.shadowmapBits   = 32;
+            atlasInit.baseInit.shadowmapFormat = RenderTextureFormat.Shadowmap;
+            atlasInit.baseInit.clearColor      = new Vector4( 0.0f, 0.0f, 0.0f, 0.0f );
+            atlasInit.baseInit.maxPayloadCount = 0;
+            atlasInit.baseInit.shadowSupport   = ShadowmapBase.ShadowSupport.Directional;
+            atlasInit.shaderKeyword            = null;
+            atlasInit.cascadeCount             = shadowSettings.directionalLightCascadeCount;
+            atlasInit.cascadeRatios            = shadowSettings.directionalLightCascades;
+                
+            var atlasInit2 = atlasInit;
+            atlasInit2.baseInit.shadowSupport  = ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
+            m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowAtlas( ref atlasInit ), new ShadowExp.ShadowAtlas( ref atlasInit2 ) };
+
+            ShadowContext.SyncDel syncer = (ShadowContext sc) =>
+                {
+                    // update buffers
+                    uint offset, count;
+                    ShadowExp.ShadowData[] sds;
+                    sc.GetShadowDatas( out sds, out offset, out count );
+                    Debug.Assert( offset == 0 );
+                    s_ShadowDataBuffer.SetData( sds ); // unfortunately we can't pass an offset or count to this function
+                    ShadowPayload[] payloads;
+                    sc.GetPayloads( out payloads, out offset, out count );
+                    Debug.Assert( offset == 0 );
+                    s_ShadowPayloadBuffer.SetData( payloads );
+                };
+            
+            // binding code. This needs to be in sync with ShadowContext.hlsl
+            ShadowContext.BindDel binder = (ShadowContext sc, CommandBuffer cb ) =>
+                {
+                    // bind buffers
+                    cb.SetGlobalBuffer( "_ShadowDatasExp", s_ShadowDataBuffer );
+                    cb.SetGlobalBuffer( "_ShadowPayloads", s_ShadowPayloadBuffer );
+                    // bind textures
+                    uint offset, count;
+                    RenderTargetIdentifier[] tex;
+                    sc.GetTex2DArrays( out tex, out offset, out count );
+                    cb.SetGlobalTexture( "_ShadowmapExp_Dir", tex[0] );
+                    cb.SetGlobalTexture( "_ShadowmapExp_PointSpot", tex[1] );
+                    // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
+                };
+
+            ShadowContext.CtxtInit scInit;
+            scInit.storage.maxShadowDataSlots        = k_MaxShadowDataSlots;
+            scInit.storage.maxPayloadSlots           = k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData;
+            scInit.storage.maxTex2DArraySlots        = 4;
+            scInit.storage.maxTexCubeArraySlots      = 2;
+            scInit.storage.maxComparisonSamplerSlots = 2;
+            scInit.storage.maxSamplerSlots           = 2;
+            scInit.dataSyncer                        = syncer;
+            scInit.resourceBinder                    = binder;
+
+            m_ShadowMgr = new ShadowExp.ShadowManager( shadowSettings, ref scInit, m_Shadowmaps );
+            shadowManager = m_ShadowMgr;
+        }
+        public void Dispose()
+        {
+            if( m_Shadowmaps != null )
+            {
+
+                (m_Shadowmaps[0] as ShadowAtlas).Dispose();
+                (m_Shadowmaps[1] as ShadowAtlas).Dispose();
+                m_Shadowmaps = null;
+            }
+            m_ShadowMgr = null;
+
+            Utilities.SafeRelease( s_ShadowDataBuffer );
+            Utilities.SafeRelease( s_ShadowPayloadBuffer );
+        }
+    }
+#endif
+
     namespace TilePass
     {
         //-----------------------------------------------------------------------------
@@ -218,6 +313,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             const int k_TileSize = 16;
 
+#if (SHADOWS_ENABLED)
+            // shadow related stuff
+            FrameId                 m_FrameId;
+            ShadowSetup             m_ShadowSetup; // doesn't actually have to reside here, it would be enough to pass the IShadowManager in from the outside
+            IShadowManager          m_ShadowMgr;
+            List<int>               m_ShadowRequests = new List<int>();
+            Dictionary<int, int>    m_ShadowIndices = new Dictionary<int,int>();
+
+            void InitShadowSystem( ShadowSettings shadowSettings )
+            {
+                m_ShadowSetup = new ShadowSetup( shadowSettings, out m_ShadowMgr );
+            }
+
+            void DeinitShadowSystem()
+            {
+                if( m_ShadowSetup != null )
+                {
+                    m_ShadowSetup.Dispose();
+                    m_ShadowSetup = null;
+                    m_ShadowMgr = null;
+                }
+            }
+#endif
+
+
             int GetNumTileX(Camera camera)
             {
                 return (camera.pixelWidth + (k_TileSize - 1)) / k_TileSize;
@@ -298,7 +418,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SelectKeyword(m_DeferredDirectMaterialSRT, tileKeywords, 0);
                 m_DeferredDirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredDirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
+                m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
+                m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
                 m_DeferredDirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredDirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -307,6 +428,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DeferredDirectMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredDirectMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredDirectMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_DeferredDirectMaterialMRT.SetInt("_StencilCmp", 3 /* Equal */);
                 m_DeferredDirectMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredDirectMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -314,7 +436,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SelectKeyword(m_DeferredIndirectMaterialSRT, tileKeywords, 1);
                 m_DeferredIndirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredIndirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
+                m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
+                m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
                 m_DeferredIndirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredIndirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.One); // Additive color & alpha source
 
@@ -323,6 +446,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DeferredIndirectMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredIndirectMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredIndirectMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_DeferredIndirectMaterialMRT.SetInt("_StencilCmp", 3 /* Equal */);
                 m_DeferredIndirectMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredIndirectMaterialMRT.SetInt("_DstBlend", (int)BlendMode.One); // Additive color & alpha source
 
@@ -330,7 +454,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SelectKeyword(m_DeferredAllMaterialSRT, tileKeywords, 2);
                 m_DeferredAllMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredAllMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
+                m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
+                m_DeferredAllMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
                 m_DeferredAllMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredAllMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -339,6 +464,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DeferredAllMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredAllMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_DeferredAllMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_DeferredAllMaterialMRT.SetInt("_StencilCmp", 3 /* Equal */);
                 m_DeferredAllMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredAllMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -347,7 +473,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SingleDeferredMaterialSRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
                 m_SingleDeferredMaterialSRT.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
                 m_SingleDeferredMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)StencilBits.None);
+                m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
+                m_SingleDeferredMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
                 m_SingleDeferredMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_SingleDeferredMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -355,6 +482,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SingleDeferredMaterialMRT.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
                 m_SingleDeferredMaterialMRT.EnableKeyword("OUTPUT_SPLIT_LIGHTING");
                 m_SingleDeferredMaterialMRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_SingleDeferredMaterialMRT.SetInt("_StencilCmp", 3 /* Equal */);
                 m_SingleDeferredMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_SingleDeferredMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -365,6 +493,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
                 UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
                 UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
+#endif
+
+#if (SHADOWS_ENABLED)
+                InitShadowSystem(ShadowSettings.Default);
 #endif
             }
 
@@ -919,6 +1051,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (cullResults.visibleLights.Length == 0 && cullResults.visibleReflectionProbes.Length == 0)
                     return;
 
+#if (SHADOWS_ENABLED)
+                // 0. deal with shadows
+                {
+                    m_FrameId.frameCount++;
+                    // get the indices for all lights that want to have shadows
+                    m_ShadowRequests.Clear();
+                    m_ShadowRequests.Capacity = cullResults.visibleLights.Length;
+                    int lcnt = cullResults.visibleLights.Length;
+                    for( int i = 0; i < lcnt; ++i )
+                    {
+                        if( cullResults.visibleLights[i].light.shadows != LightShadows.None )
+                            m_ShadowRequests.Add( i );
+                    }
+                    // pass this list to a routine that assigns shadows based on some heuristic
+                    uint    shadowRequestCount = (uint) m_ShadowRequests.Count;
+                    int[]   shadowRequests = m_ShadowRequests.ToArray();
+                    int[]   shadowDataIndices;
+                    uint    originalRequestCount = shadowRequestCount;
+                    m_ShadowMgr.ProcessShadowRequests( m_FrameId, cullResults, camera, cullResults.visibleLights, 
+                        ref shadowRequestCount, shadowRequests, out shadowDataIndices );
+
+                    // update the visibleLights with the shadow information
+                    m_ShadowIndices.Clear();
+                    for( uint i = 0; i < shadowRequestCount; i++ )
+                    {
+                        m_ShadowIndices.Add( shadowRequests[i], shadowDataIndices[i] );
+                    }
+                }
+#endif
+
                 // 1. Count the number of lights and sort all light by category, type and volume
                 int directionalLightcount = 0;
                 int punctualLightcount = 0;
@@ -1013,8 +1175,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
+#if (SHADOWS_ENABLED)
+                    uint shadow = m_ShadowIndices.ContainsKey( lightIndex  ) ? 1u : 0;
+                    // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
+                    sortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | shadow << 16 | (uint)lightIndex;
+#else
                     // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 6 bit (0x3F) lightVolume, 16 bit index
                     sortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 16 | (uint)lightIndex;
+#endif
                 }
 
                 Array.Sort(sortKeys);
@@ -1040,7 +1208,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     uint sortKey = sortKeys[sortIndex];
                     LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
                     GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
+#if (SHADOWS_ENABLED)
+                    LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
+#else
                     LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0x3F);
+#endif
                     int lightIndex = (int)(sortKey & 0xFFFF);
 
                     var light = cullResults.visibleLights[lightIndex];
@@ -1051,6 +1223,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref directionalShadowcount);
 
+#if (SHADOWS_ENABLED && SHADOWS_FIXSHADOWIDX)
+                        // fix up shadow information
+                        int shadowIdxDir;
+                        if( m_ShadowIndices.TryGetValue( lightIndex, out shadowIdxDir ) )
+                        {
+                            var lightData = m_lightList.directionalLights[m_lightList.directionalLights.Count-1];
+                            lightData.shadowIndex = shadowIdxDir;
+                            m_lightList.directionalLights[m_lightList.directionalLights.Count-1] = lightData;
+                        }
+#endif
                         continue;
                     }
 
@@ -1058,6 +1240,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     GetLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref shadowCount);
                     // Then culling side. Must be call in this order as we pass the created Light data to the function
                     GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], worldToView);
+
+#if (SHADOWS_ENABLED && SHADOWS_FIXSHADOWIDX)
+                    // fix up shadow information
+                    int shadowIdx;
+                    if( m_ShadowIndices.TryGetValue( lightIndex, out shadowIdx ) )
+                    {
+                        var lightData = m_lightList.lights[m_lightList.lights.Count-1];
+                        lightData.shadowIndex = shadowIdx;
+                        m_lightList.lights[m_lightList.lights.Count-1] = lightData;
+                    }
+#endif
                 }
 
                 // Sanity check
@@ -1313,6 +1506,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             private void BindGlobalParams(CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, Camera camera, ScriptableRenderContext loop)
             {
+#if (SHADOWS_ENABLED)
+                m_ShadowMgr.BindResources(loop);
+#endif
                 SetGlobalPropertyRedirect(computeShader, kernelIndex, cmd);
 
                 SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
@@ -1367,7 +1563,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_ConvexBoundsBuffer.SetData(m_lightList.bounds.ToArray());
                 s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes.ToArray());
 
-
+#if (SHADOWS_ENABLED)
+                // Shadows
+                m_ShadowMgr.SyncData();
+#endif
                 BindGlobalParams(cmd, null, 0, camera, loop);
 
                 SetGlobalPropertyRedirect(null, 0, null);
@@ -1385,22 +1584,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
-            private void SetupRenderingForDebug(LightingDebugParameters lightDebugParameters)
+            public override void RenderShadows( ScriptableRenderContext renderContext, CullResults cullResults )
             {
-                Utilities.SetKeyword(m_DeferredDirectMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredDirectMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredIndirectMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredIndirectMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredAllMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredAllMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_SingleDeferredMaterialSRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "LIGHTING_DEBUG", lightDebugParameters.lightingDebugMode != LightingDebugMode.None);
+#if (SHADOWS_ENABLED)
+                // kick off the shadow jobs here
+                m_ShadowMgr.RenderShadows( m_FrameId, renderContext, cullResults, cullResults.visibleLights );
+#endif
+            }
+
+            private void SetupRenderingForDebug(LightingDebugSettings lightDebugSettings)
+            {
+                Utilities.SetKeyword(m_DeferredDirectMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredDirectMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredIndirectMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredIndirectMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredAllMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredAllMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_SingleDeferredMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
             }
 
             public override void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
-                                                        LightingDebugParameters lightDebugParameters,
+                                                        LightingDebugSettings lightDebugSettings,
                                                         RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier stencilBuffer,
-                                                        bool outputSplitLighting)
+                                                        bool outputSplitLightingForSSS, bool enableSSS)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
@@ -1421,7 +1628,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
-                    if (lightDebugParameters.lightingDebugMode == LightingDebugMode.None)
+                    if (lightDebugSettings.lightingDebugMode == LightingDebugMode.None)
                         SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlKernel : s_shadeOpaqueClusteredKernel, cmd);
                     else
                         SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlDebugLightingKernel : s_shadeOpaqueClusteredDebugLightingKernel, cmd);
@@ -1433,17 +1640,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Must be done after setting up the compute shader above.
-                    SetupRenderingForDebug(lightDebugParameters);
+                    SetupRenderingForDebug(lightDebugSettings);
 
                     if (m_PassSettings.disableTileAndCluster)
                     {
                         // This is a debug brute force renderer to debug tile/cluster which render all the lights
-                        if (outputSplitLighting)
+                        if (outputSplitLightingForSSS)
                         {
                             Utilities.DrawFullScreen(cmd, m_SingleDeferredMaterialMRT, hdCamera, colorBuffers, stencilBuffer);
                         }
                         else
                         {
+                            m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)(enableSSS ? StencilBits.Standard : StencilBits.SSS));
                             Utilities.DrawFullScreen(cmd, m_SingleDeferredMaterialSRT, hdCamera, colorBuffers[0], stencilBuffer);
                         }
                     }
@@ -1510,7 +1718,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Pixel shader evaluation
                             if (m_PassSettings.enableSplitLightEvaluation)
                             {
-                                if (outputSplitLighting)
+                                if (outputSplitLightingForSSS)
                                 {
                                     Utilities.SelectKeyword(m_DeferredDirectMaterialMRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredDirectMaterialMRT, hdCamera, colorBuffers, stencilBuffer);
@@ -1520,22 +1728,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 }
                                 else
                                 {
+                                    m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)(enableSSS ? StencilBits.Standard : StencilBits.SSS));
                                     Utilities.SelectKeyword(m_DeferredDirectMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredDirectMaterialSRT, hdCamera, colorBuffers[0], stencilBuffer);
 
+                                    m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)(enableSSS ? StencilBits.Standard : StencilBits.SSS));
                                     Utilities.SelectKeyword(m_DeferredIndirectMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredIndirectMaterialSRT, hdCamera, colorBuffers[0], stencilBuffer);
                                 }
                             }
                             else
                             {
-                                if (outputSplitLighting)
+                                if (outputSplitLightingForSSS)
                                 {
                                     Utilities.SelectKeyword(m_DeferredAllMaterialMRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialMRT, hdCamera, colorBuffers, stencilBuffer);
                                 }
                                 else
                                 {
+                                    m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)(enableSSS ? StencilBits.Standard : StencilBits.SSS));
                                     Utilities.SelectKeyword(m_DeferredAllMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialSRT, hdCamera, colorBuffers[0], stencilBuffer);
                                 }
