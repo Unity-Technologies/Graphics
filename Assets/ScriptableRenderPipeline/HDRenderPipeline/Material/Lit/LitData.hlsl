@@ -180,9 +180,7 @@ float GetMaxDisplacement()
 {
     float maxDisplacement = 0.0;
 #if defined(_HEIGHTMAP)
-    // TEMP: achieve parity between tessellation and POM w.r.t. height for a single tile.
-    // TODO: for tiling, the max. height of the tessellated height map should be reduced by NumTiles.
-    maxDisplacement = 0.1 * _HeightAmplitude;
+    maxDisplacement = _HeightAmplitude;
 #endif
     return maxDisplacement;
 }
@@ -280,14 +278,17 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset;
-            ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, offset, height);
+            // TEMP: 0.1 to achieve parity between tessellation and POM w.r.t. height for a single tile.
+            // TODO: for tiling, the max. height of the tessellated height map should be reduced by NumTiles.
+            ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, 0.1 * maxHeight, ppdParam, offset, height);
 
             // Apply offset to all UVSet
             layerTexCoord.base.uv += offset;
             layerTexCoord.details.uv += offset;
         }
 
-        return height * maxHeight;
+        // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
+        return height * maxHeight - maxHeight;
     }
 
     return 0.0;
@@ -309,9 +310,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
-
-    // TODO: remove the scale once the bug is fixed.
-    depthOffset = depthOffset * 6.0;
 
 #ifdef _DEPTHOFFSET_ON
     ApplyDepthOffsetPositionInput(V, depthOffset, _ViewProjMatrix, posInput);
@@ -966,17 +964,19 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
             float2 offset;
-            ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, offset, height);
+            // TEMP: 0.1 to achieve parity between tessellation and POM w.r.t. height for a single tile.
+            // TODO: for tiling, the max. height of the tessellated height map should be reduced by NumTiles.
+            ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, 0.1 * maxHeight, ppdParam, offset, height);
 
             // Apply offset to all planar UV if applicable
-            float4 planarWeight = float4(   layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0, 
+            float4 planarWeight = float4(   layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
                                             layerTexCoord.base1.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
                                             layerTexCoord.base2.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
                                             layerTexCoord.base3.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0);
 
             // _UVMappingMask0.x will be 1.0 is UVSet0 is used;
             float4 offsetWeights = isPlanar ? planarWeight : float4(_UVMappingMask0.x, _UVMappingMask1.x, _UVMappingMask2.x, _UVMappingMask3.x);
-            
+
             layerTexCoord.base0.uv += offsetWeights.x * offset;
             layerTexCoord.base1.uv += offsetWeights.y * offset;
             layerTexCoord.base2.uv += offsetWeights.z * offset;
@@ -990,7 +990,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             layerTexCoord.details3.uv += offsetWeights.w * offset;
         }
 
-        return height * maxHeight;
+        // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
+        return height * maxHeight - maxHeight;
     }
 
     return 0.0;
