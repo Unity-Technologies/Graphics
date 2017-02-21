@@ -36,6 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool displayOpaqueObjects = true;
         public bool displayTransparentObjects = true;
         public bool enableDistortion = true;
+        public bool enableSSS = true;
     }
 
     public enum ShadowDebugMode

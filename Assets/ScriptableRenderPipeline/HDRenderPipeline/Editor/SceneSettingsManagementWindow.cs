@@ -28,7 +28,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void OnGUI()
         {
             // Keep it there temporarily until it's back to an "engine" setting in the HDRenderPipeline asset.
-            SubsurfaceScatteringSettings.overrideSettings = (SubsurfaceScatteringParameters)EditorGUILayout.ObjectField(new GUIContent("SSS Settings"), SubsurfaceScatteringSettings.overrideSettings, typeof(SubsurfaceScatteringParameters), false);
             EditorGUILayout.Space();
 
             if (GUILayout.Button("Create new Common Settings"))
@@ -44,11 +43,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (GUILayout.Button("Create new Procedural sky params"))
             {
                 CreateAsset<ProceduralSkySettings>("NewProceduralSkyParameters");
-            }
-
-            if (GUILayout.Button("Create new SSS params"))
-            {
-                CreateAsset<SubsurfaceScatteringParameters>("NewSssParameters");
             }
 
             EditorGUILayout.Space();

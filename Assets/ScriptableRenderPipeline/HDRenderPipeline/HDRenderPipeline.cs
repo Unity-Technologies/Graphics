@@ -73,13 +73,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Those that are not will be refatored later.
 
         // Debugging
-        public GlobalDebugSettings globalDebugSettings = new GlobalDebugSettings();
+        public GlobalDebugSettings          globalDebugSettings = new GlobalDebugSettings();
 
         // Renderer Settings (per project)
-        public RenderingSettings                        renderingSettings = new RenderingSettings();
-        [SerializeField] ShadowSettings                 m_ShadowSettings = ShadowSettings.Default;
-        public SubsurfaceScatteringParameters           localSssParameters;
-        [SerializeField] TextureSettings                m_TextureSettings = TextureSettings.Default;
+        public RenderingSettings            renderingSettings = new RenderingSettings();
+        public SubsurfaceScatteringSettings sssSettings = new SubsurfaceScatteringSettings();
+
+        [SerializeField]
+        ShadowSettings                      m_ShadowSettings = ShadowSettings.Default;
+        [SerializeField] TextureSettings    m_TextureSettings = TextureSettings.Default;
 
         public ShadowSettings shadowSettings                { get { return m_ShadowSettings; } }
         public TextureSettings textureSettings              { get { return m_TextureSettings; } set { m_TextureSettings = value; } }
@@ -116,23 +118,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
         
-        public SubsurfaceScatteringParameters sssParameters
-        {
-            get
-            {
-                if (SubsurfaceScatteringSettings.overrideSettings != null)
-                {
-                    return SubsurfaceScatteringSettings.overrideSettings;
-                }
-
-                if (localSssParameters == null)
-                {
-                    localSssParameters = CreateInstance<SubsurfaceScatteringParameters>();
-                }
-
-                return localSssParameters;
-            }
-        }
         public void ApplyDebugSettings()
         {
             m_ShadowSettings.enabled = globalDebugSettings.lightingDebugSettings.enableShadows;
@@ -158,6 +143,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void OnValidate()
         {
             globalDebugSettings.OnValidate();
+            sssSettings.OnValidate();
         }
     }
 
@@ -410,7 +396,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void PushGlobalParams(HDCamera hdCamera, ScriptableRenderContext renderContext, SubsurfaceScatteringParameters sssParameters)
+        public void PushGlobalParams(HDCamera hdCamera, ScriptableRenderContext renderContext, SubsurfaceScatteringSettings sssParameters)
         {
             if (m_SkyManager.IsSkyValid())
             {
@@ -427,7 +413,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
             Shader.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
 
-            if (sssParameters.enableSSS)
+            if (globalDebugSettings.renderingDebugSettings.enableSSS)
             {
                 Shader.EnableKeyword("_SUBSURFACE_SCATTERING");
             }
@@ -546,19 +532,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                PushGlobalParams(hdCamera, renderContext, m_Owner.sssParameters);
+                PushGlobalParams(hdCamera, renderContext, m_Owner.sssSettings);
 
                 // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
                 // must be call after BuildGPULightLists.
                 // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
                 UpdateSkyEnvironment(hdCamera, renderContext);
 
-                RenderDeferredLighting(hdCamera, renderContext, m_Owner.sssParameters.enableSSS);
+                RenderDeferredLighting(hdCamera, renderContext, m_Owner.globalDebugSettings.renderingDebugSettings.enableSSS);
 
                 // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
                 // Currently, there is no efficient way to switch between SRT and MRT for the forward pass;
                 // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
-                CombineSubsurfaceScattering(hdCamera, renderContext, m_Owner.sssParameters);
+                CombineSubsurfaceScattering(hdCamera, renderContext, m_Owner.sssSettings);
 
                 // For opaque forward we have split rendering in two categories
                 // Material that are always forward and material that can be deferred or forward depends on render pipeline options (like switch to rendering forward only mode)
@@ -755,12 +741,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
-        void CombineSubsurfaceScattering(HDCamera hdCamera, ScriptableRenderContext context, SubsurfaceScatteringParameters sssParameters)
+        void CombineSubsurfaceScattering(HDCamera hdCamera, ScriptableRenderContext context, SubsurfaceScatteringSettings sssParameters)
         {
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
             if (m_Owner.renderingSettings.ShouldUseForwardRenderingOnly()) return;
 
-            if (!sssParameters.enableSSS) return;
+            if (!globalDebugSettings.renderingDebugSettings.enableSSS) return;
 
             var cmd = new CommandBuffer() { name = "Subsurface Scattering Pass" };
 
