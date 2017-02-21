@@ -6,9 +6,10 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: POM - Wood
+  m_Name: POM - Wood triplanar
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _HEIGHTMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PER_PIXEL_DISPLACEMENT
+  m_ShaderKeywords: _ENABLEPERPIXELDISPLACEMENT_OFF _HEIGHTMAP _MAPPING_TRIPLANAR
+    _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
@@ -131,11 +132,11 @@ Material:
     - _DstBlend: 0
     - _EmissiveColorMode: 1
     - _EmissiveIntensity: 0
-    - _EnablePerPixelDisplacement: 1
+    - _EnablePerPixelDisplacement: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightAmplitude: 1.27
+    - _HeightAmplitude: 0.17
     - _HeightCenter: 0.5
     - _HorizonFade: 1
     - _MaterialID: 0
@@ -156,9 +157,9 @@ Material:
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
-    - _TexWorldScale: 0.2
+    - _TexWorldScale: 0.1
     - _Thickness: 1
-    - _UVBase: 0
+    - _UVBase: 2
     - _UVDetail: 0
     - _UVMappingPlanar: 0
     - _UVSec: 0

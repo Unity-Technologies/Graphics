@@ -6,7 +6,7 @@
 // it return the offset to apply to the UVSet provide in PerPixelHeightDisplacementParam
 // viewDirTS is view vector in texture space matching the UVSet
 // ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
-void ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float3 viewDirTS, float maxHeight, PerPixelHeightDisplacementParam ppdParam, out float2 outOffset, out float outHeight)
+float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float3 viewDirTS, float maxHeight, PerPixelHeightDisplacementParam ppdParam, out float outHeight)
 {
     // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion
     float stepSize = 1.0 / (float)numSteps;
@@ -52,10 +52,10 @@ void ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float
     float pt1 = rayHeight;
     float delta0 = pt0 - prevHeight;
     float delta1 = pt1 - currHeight;
-    
+
     float delta;
     float2 offset;
- 
+
     // Secant method to affine the search
     // Ref: Faster Relief Mapping Using the Secant Method - Eric Risser
     for (int i = 0; i < 5; ++i)
@@ -86,9 +86,9 @@ void ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float
     }
 
 #else // regular POM intersection
-    
+
     //float pt0 = rayHeight + stepSize;
-    //float pt1 = rayHeight; 
+    //float pt1 = rayHeight;
     //float delta0 = pt0 - prevHeight;
     //float delta1 = pt1 - currHeight;
     //float intersectionHeight = (pt0 * delta1 - pt1 * delta0) / (delta1 - delta0);
@@ -104,9 +104,10 @@ void ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float
 
 #endif
 
+    outHeight = currHeight;
+
     // Fade the effect with lod (allow to avoid pop when switching to a discrete LOD mesh)
     offset *= (1.0 - saturate(lod - lodThreshold));
 
-    outOffset = offset;
-    outHeight = currHeight;
+    return offset;
 }
