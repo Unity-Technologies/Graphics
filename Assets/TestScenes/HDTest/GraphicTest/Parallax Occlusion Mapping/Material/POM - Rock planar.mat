@@ -6,9 +6,10 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: POM - Wood
+  m_Name: POM - Rock planar
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _HEIGHTMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PER_PIXEL_DISPLACEMENT
+  m_ShaderKeywords: _HEIGHTMAP _MAPPING_PLANAR _NORMALMAP _NORMALMAP_TANGENT_SPACE
+    _PER_PIXEL_DISPLACEMENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
@@ -23,8 +24,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 2800000, guid: 927434958f610214aa6a4179f134f5fd, type: 3}
-        m_Scale: {x: 2, y: 2}
+        m_Texture: {fileID: 2800000, guid: 25f2c87d04c2d19479e747dc71259c7d, type: 3}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
@@ -59,7 +60,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightMap:
-        m_Texture: {fileID: 2800000, guid: 870243a1ef675dd4cac0433df1aa80a3, type: 3}
+        m_Texture: {fileID: 2800000, guid: 2fe61f09f223eab4a85aef4a327f3040, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -75,7 +76,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: ca958f697884e254d8d7c1d8a2255a37, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7b40159cc66d36e4baef6f3290b9078e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -135,7 +136,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightAmplitude: 1.27
+    - _HeightAmplitude: 0.09
     - _HeightCenter: 0.5
     - _HorizonFade: 1
     - _MaterialID: 0
@@ -146,7 +147,7 @@ Material:
     - _OcclusionStrength: 1
     - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
-    - _PPDMinSamples: 1
+    - _PPDMinSamples: 5
     - _Parallax: 0.02
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
@@ -156,9 +157,9 @@ Material:
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
-    - _TexWorldScale: 0.2
+    - _TexWorldScale: 0.1
     - _Thickness: 1
-    - _UVBase: 0
+    - _UVBase: 1
     - _UVDetail: 0
     - _UVMappingPlanar: 0
     - _UVSec: 0

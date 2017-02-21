@@ -32,18 +32,139 @@ MonoBehaviour:
       displayOpaqueObjects: 1
       displayTransparentObjects: 1
       enableDistortion: 1
+      enableSSS: 1
   renderingSettings:
     useForwardRenderingOnly: 0
     useDepthPrepass: 0
+  sssSettings:
+    numProfiles: 1
+    transmissionFlags: 0
+    profiles:
+    - stdDev1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+      stdDev2: {r: 0.6, g: 0.6, b: 0.6, a: 0}
+      lerpWeight: 0.5
+      enableTransmission: 0
+      thicknessRemap: {x: 0, y: 3}
+      m_FilterKernel:
+      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.6594821}
+      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.3561445}
+      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.16454786}
+      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.000000048879357}
+      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.16454786}
+      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.35614443}
+      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.659482}
+      m_HalfRcpVariances:
+      - {x: 5.5555553, y: 5.5555553, z: 5.5555553}
+      - {x: 1.3888888, y: 1.3888888, z: 1.3888888}
+      m_HalfRcpWeightedVariances: {x: 2.4691355, y: 2.4691355, z: 2.4691355, w: 2.4691355}
+    thicknessRemaps:
+    - 0
+    - 3
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    halfRcpVariancesAndLerpWeights:
+    - {x: 5.5555553, y: 5.5555553, z: 5.5555553, w: 0.5}
+    - {x: 1.3888888, y: 1.3888888, z: 1.3888888, w: 0.5}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    halfRcpWeightedVariances:
+    - {x: 2.4691355, y: 2.4691355, z: 2.4691355, w: 2.4691355}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    filterKernels:
+    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.6594821}
+    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.3561445}
+    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.16454786}
+    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.000000048879357}
+    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.16454786}
+    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.35614443}
+    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.659482}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
+    - {x: 0, y: 0, z: 0, w: 0}
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
-    maxShadowDistance: 400
+    maxShadowDistance: 1000
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
     directionalLightNearPlaneOffset: 5
-  localSssParameters: {fileID: 0}
   m_TextureSettings:
     spotCookieSize: 128
     pointCookieSize: 512

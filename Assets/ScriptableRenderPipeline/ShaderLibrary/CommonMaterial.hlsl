@@ -111,18 +111,14 @@ float3 ComputeTriplanarWeights(float3 normal)
     return blendWeights;
 }
 
-// Planar/Triplanar convention for Unity
-// position and vertex normal must be in the same space
-void GetTriplanarCoordinate(float3 position, float3 vertexNormal, out float2 uvXZ, out float2 uvXY, out float2 uvZY)
-{
-    float3 direction = sign(vertexNormal);
-
-    // In triplanar, if we are facing away from the world axis, a different axis will be flipped for each direction.
-    // This is particularly problematic for tangent space normal maps which need to be in the right direction.
-    // So we multiplying the offending coordinate by the sign of the normal.
-    uvXZ = -float2(position.x, direction.y * position.z);
-    uvXY = float2(-position.x, direction.z * position.y);
-    uvZY = float2(direction.x * position.z, position.y);
+// Planar/Triplanar convention for Unity in world space
+void GetTriplanarCoordinate(float3 position, out float2 uvXZ, out float2 uvXY, out float2 uvZY)
+{ 
+    // Caution: This must follow the same rule as what is use for SurfaceGradient triplanar
+    // TODO: Currently the normal mapping looks wrong without SURFACE_GRADIENT option because we don't handle corretly the tangent space
+    uvXZ = float2(position.z, position.x);
+    uvXY = float2(position.x, position.y);
+    uvZY = float2(position.z, position.y);    
 }
 
 float LerpWhiteTo(float b, float t)
