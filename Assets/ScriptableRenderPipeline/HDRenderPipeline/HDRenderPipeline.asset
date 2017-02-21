@@ -11,7 +11,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f365a473b136bef4797c7281a02cd510, type: 3}
   m_Name: HDRenderPipeline
   m_EditorClassIdentifier: 
-  m_LightLoopProducer: {fileID: 0}
+  m_LightLoopProducer: {fileID: 11400000, guid: bf8cd9ae03ff7d54c89603e67be0bfc5,
+    type: 2}
   globalDebugSettings:
     debugOverlayRatio: 0.33
     displayMaterialDebug: 0
@@ -160,10 +161,10 @@ MonoBehaviour:
     enabled: 1
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
-    maxShadowDistance: 800
+    maxShadowDistance: 1000
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
-    directionalLightNearPlaneOffset: 10
+    directionalLightNearPlaneOffset: 5
   m_TextureSettings:
     spotCookieSize: 128
     pointCookieSize: 512
