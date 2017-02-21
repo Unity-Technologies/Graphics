@@ -17,6 +17,7 @@ namespace UnityEditor.VFX
         {
             if (node.Type == JTokenType.Object || node.Type == JTokenType.Array)
             {
+                //Object type
                 var currentPath = string.Format("{0}.{1}", parentPath, currentName);
                 if (!m_foldoutState.ContainsKey(currentPath))
                 {
@@ -28,7 +29,7 @@ namespace UnityEditor.VFX
                 if (newFoldoutState != oldFoldoutState)
                 {
                     m_foldoutState[currentPath] = newFoldoutState;
-                    Repaint(); //Share render with other inspectors
+                    Repaint();
                 }
 
                 if (newFoldoutState)
@@ -68,7 +69,7 @@ namespace UnityEditor.VFX
             }
             else
             {
-                //Concrete fall back
+                //Concrete type
                 if (node.Type == JTokenType.Float)
                 {
                     var oldFloat = node.Value<float>();
@@ -89,11 +90,14 @@ namespace UnityEditor.VFX
                 }
                 else if (node.Type == JTokenType.String)
                 {
-                    var oldString = node.Value<string>();
-                    var newString = EditorGUILayout.TextField(currentName, oldString);
-                    if (oldString != newString)
+                    if (currentName != "assemblyName")
                     {
-                        node.Replace(newString);
+                        var oldString = node.Value<string>();
+                        var newString = EditorGUILayout.TextField(currentName, oldString);
+                        if (oldString != newString)
+                        {
+                            node.Replace(newString);
+                        }
                     }
                 }
                 else
