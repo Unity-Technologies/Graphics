@@ -8,19 +8,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d440c0deec24a2f478b3e9021cb66c29, type: 3}
+  m_Script: {fileID: 11500000, guid: f365a473b136bef4797c7281a02cd510, type: 3}
   m_Name: HDRenderPipeline
   m_EditorClassIdentifier: 
   m_LightLoopProducer: {fileID: 11400000, guid: bf8cd9ae03ff7d54c89603e67be0bfc5,
     type: 2}
-  globalDebugParameters:
+  globalDebugSettings:
     debugOverlayRatio: 0.33
     displayMaterialDebug: 0
     displayRenderingDebug: 0
     displayLightingDebug: 0
-    materialDebugParameters:
+    materialDebugSettings:
       debugViewMaterial: 0
-    lightingDebugParameters:
+    lightingDebugSettings:
       enableShadows: 1
       shadowDebugMode: 0
       shadowMapIndex: 0
@@ -28,18 +28,18 @@ MonoBehaviour:
       overrideSmoothness: 0
       overrideSmoothnessValue: 0.5
       debugLightingAlbedo: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    renderingDebugParametrs:
+    renderingDebugSettings:
       displayOpaqueObjects: 1
       displayTransparentObjects: 1
       enableDistortion: 1
-  renderingParameters:
+  renderingSettings:
     useForwardRenderingOnly: 0
     useDepthPrepass: 0
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
-    maxShadowDistance: 1000
+    maxShadowDistance: 400
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
     directionalLightNearPlaneOffset: 5
@@ -55,4 +55,4 @@ MonoBehaviour:
     m_ShadowCascadeSplit1: 0.2
     m_ShadowCascadeSplit2: 0.3
     m_ShadowNearPlaneOffset: 5
-  m_SkyParameters: {fileID: 0}
+  m_SkySettings: {fileID: 0}

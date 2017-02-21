@@ -147,7 +147,8 @@ Material:
     - _HeightAmplitude: 0
     - _HeightCenter: 0
     - _HorizonFade: 1
-    - _MaterialId: 0
+    - _MaterialID: 0
+    - _StencilRef: 1
     - _Metallic: 0
     - _Mode: 0
     - _NormalDetailMul: 0.347
@@ -164,7 +165,6 @@ Material:
     - _SmoothnessVar: 0.491
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _SubSurfaceRadius: 0
     - _SurfaceType: 0
     - _Tess: 8
     - _TessFar: 1

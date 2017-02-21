@@ -21,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public virtual void NewFrame() {}
 
         public virtual void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput) { }
+        public virtual void RenderShadows( ScriptableRenderContext renderContext, CullResults cullResults ) { }
         
         // TODO: this should not be part of the interface but for now make something working
         public virtual void BuildGPULightLists(Camera camera, ScriptableRenderContext loop, RenderTargetIdentifier cameraDepthBufferRT) { }
@@ -28,9 +29,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public virtual void PushGlobalParams(Camera camera, ScriptableRenderContext loop) {}
 
         public virtual void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
-                                                   LightingDebugParameters lightDebugParameters,
+                                                   LightingDebugSettings lightDebugParameters,
                                                    RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier stencilBuffer,
-                                                   bool outputSplitLighting) {}
+                                                   bool outputSplitLightingForSSS, bool enableSSS) {}
 
         public virtual void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque) {}
 

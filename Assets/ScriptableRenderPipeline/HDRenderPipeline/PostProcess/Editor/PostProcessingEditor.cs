@@ -64,24 +64,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty intensity;
             public SerializedProperty smoothness;
         }
-
-        public class BloomSettings
-        {
-            public SerializedProperty enabled;
-            public SerializedProperty intensity;
-            public SerializedProperty threshold;
-            public SerializedProperty softKnee;
-            public SerializedProperty radius;
-            public SerializedProperty lensTexture;
-            public SerializedProperty lensIntensity;
-        }
         #endregion
 
         public ColorGradingSettings colorGrading;
         public EyeAdaptationSettings eyeAdaptation;
         public ChromaticAberrationSettings chromaSettings;
         public VignetteSettings vignetteSettings;
-        public BloomSettings bloomSettings;
         public SerializedProperty globalDithering;
 
         SerializedProperty FindProperty<TValue>(Expression<Func<PostProcessing, TValue>> expr)
@@ -144,20 +132,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 smoothness = FindProperty(x => x.vignetteSettings.smoothness)
             };
 
-            bloomSettings = new BloomSettings
-            {
-                enabled = FindProperty(x => x.bloomSettings.enabled),
-
-                intensity = FindProperty(x => x.bloomSettings.intensity),
-                threshold = FindProperty(x => x.bloomSettings.threshold),
-
-                softKnee = FindProperty(x => x.bloomSettings.softKnee),
-                radius = FindProperty(x => x.bloomSettings.radius),
-
-                lensTexture = FindProperty(x => x.bloomSettings.lensTexture),
-                lensIntensity = FindProperty(x => x.bloomSettings.lensIntensity)
-            };
-
             globalDithering = FindProperty(x => x.globalDithering);
         }
 
@@ -167,7 +141,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Do("Color Grading", ColorGradingUI);
             Do("Eye Adaptation", EyeAdaptationUI);
-            Do("Bloom", BloomUI);
             Do("Chromatic Aberration", ChromaticAberrationUI);
             Do("Vignette", VignetteUI);
 
@@ -283,27 +256,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.PropertyField(eyeAdaptation.speedDown);
                     EditorGUI.indentLevel--;
                 }
-            }
-        }
-
-        void BloomUI()
-        {
-            EditorGUILayout.PropertyField(bloomSettings.enabled);
-
-            if (bloomSettings.enabled.boolValue)
-            {
-                EditorGUILayout.PropertyField(bloomSettings.intensity);
-                EditorGUILayout.PropertyField(bloomSettings.threshold);
-
-                EditorGUILayout.PropertyField(bloomSettings.softKnee);
-                EditorGUILayout.PropertyField(bloomSettings.radius);
-
-                EditorGUILayout.PropertyField(bloomSettings.lensTexture);
-                EditorGUILayout.PropertyField(bloomSettings.lensIntensity);
-
-                bloomSettings.intensity.floatValue = Mathf.Max(0f, bloomSettings.intensity.floatValue);
-                bloomSettings.threshold.floatValue = Mathf.Max(0f, bloomSettings.threshold.floatValue);
-                bloomSettings.lensIntensity.floatValue = Mathf.Max(0f, bloomSettings.lensIntensity.floatValue);
             }
         }
 

@@ -15,7 +15,7 @@ public class TestRealtime : MonoBehaviour {
 	void Update () {
         if (m_SceneSettings != null)
         {
-            HDRISkyParameters skyParams = m_SceneSettings.GetComponent<HDRISkyParameters>();
+            HDRISkySettings skyParams = m_SceneSettings.GetComponent<HDRISkySettings>();
             if (skyParams)
                 skyParams.rotation = (skyParams.rotation + Time.deltaTime * m_RotationSpeed) % 360.0f;
         }
