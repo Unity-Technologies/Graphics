@@ -180,7 +180,9 @@ float GetMaxDisplacement()
 {
     float maxDisplacement = 0.0;
 #if defined(_HEIGHTMAP)
-    maxDisplacement = _HeightAmplitude;
+    // TEMP: achieve parity between tessellation and POM w.r.t. height for a single tile.
+    // TODO: for tiling, the max. height of the tessellated height map should be reduced by NumTiles.
+    maxDisplacement = 0.1 * _HeightAmplitude;
 #endif
     return maxDisplacement;
 }
