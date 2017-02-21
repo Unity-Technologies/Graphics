@@ -419,16 +419,29 @@ namespace UnityEditor.VFX.UI
 
                 m_Elements.Clear();
 				m_FlowAnchorPresenters.Clear();
+               
+                if (m_GraphAsset != null)
+                    m_GraphAsset.root.onInvalidateDelegate -= OnModelInvalidate;
+                
                 m_GraphAsset = graph;
 
                 if (m_GraphAsset != null)
+                {
                     foreach (var model in m_GraphAsset.root.GetChildren())
-						AddPresentersFromModel(model);
+                        AddPresentersFromModel(model);
+                    m_GraphAsset.root.onInvalidateDelegate += OnModelInvalidate;
+                }
 
 				// Doesn't work for some reason
 				//View.FrameAll();
 			}
 		}
+
+        private void OnModelInvalidate(VFXModel model,VFXModel.InvalidationCause cause)
+        {
+            // TODO Sync presenter from here!
+            Debug.Log("Invalidate Model: " + model + " Cause: " + cause);      
+        }
 
 		[SerializeField]
 		private VFXGraphAsset m_GraphAsset;
