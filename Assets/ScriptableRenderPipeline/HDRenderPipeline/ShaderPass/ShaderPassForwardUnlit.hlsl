@@ -41,6 +41,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 		
+    return float4(Linear01Depth((_MainDepthTexture.Sample(sampler_MainDepthTexture, posInput.positionSS.xy).x), _ZBufferParams).xxx , 1.0);
 	// TODO: we must not access bsdfData here, it break the genericity of the code!
     return float4(bsdfData.color + builtinData.emissiveColor, builtinData.opacity);
 }
