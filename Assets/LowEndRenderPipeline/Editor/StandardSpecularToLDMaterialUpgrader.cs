@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class StandardSpecularToLDMaterialUpgrader : MaterialUpgrader
 {
-    [MenuItem("LDRenderPipeline/Upgrade Materials")]
+    [MenuItem("LDRenderPipeline/Upgrade Standard Materials to LDRenderPipeline")]
     private static void UpgradeMaterialsToLD()
     {
         List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -19,9 +19,9 @@ public class StandardSpecularToLDMaterialUpgrader : MaterialUpgrader
 
     StandardSpecularToLDMaterialUpgrader(string oldShaderName)
     {
-        RenameShader(oldShaderName, "RenderLoop/LowEnd");
-        RemoveTexture("_OcclusionMap");
-        RemoveTexture("_DetailAlbedoMap");
-        RemoveTexture("_DetailNormalMap");
+        RenameShader(oldShaderName, "LDRenderPipeline/Specular");
+        //RemoveTexture("_OcclusionMap");
+        //RemoveTexture("_DetailAlbedoMap");
+        //RemoveTexture("_DetailNormalMap");
     }
 }

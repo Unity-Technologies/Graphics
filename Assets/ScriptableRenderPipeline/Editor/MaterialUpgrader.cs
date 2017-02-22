@@ -119,6 +119,10 @@ namespace UnityEditor.Experimental.Rendering
 
         public static void UpgradeProjectFolder(List<MaterialUpgrader> upgraders, string progressBarName)
         {
+            if (!EditorUtility.DisplayDialog("Material Upgrader", "The upgrade will overwrite material settings in your project." +
+                                                                  "Be sure to have a project backup before proceeding", "Proceed", "Cancel"))
+                return;
+
             int totalMaterialCount = 0;
             foreach (string s in UnityEditor.AssetDatabase.GetAllAssetPaths())
             {

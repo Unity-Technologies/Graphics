@@ -57,7 +57,7 @@ public class LowEndRenderPipelineInstance : RenderPipeline
                 SetupShadowShaderVariables(context, camera.nearClipPlane, cullingParameters.shadowDistance, m_ShadowSettings.directionalLightCascadeCount);
 
             // Render Opaques
-            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardBase"));
+            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("LDForwardLight"));
             settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque();
 
@@ -309,9 +309,9 @@ public class LowEndRenderPipelineInstance : RenderPipeline
 
         // TODO: shadow resolution per cascade in case cascades endup being supported.
         float invShadowResolution = 1.0f / shadowResolution;
-        float[] pcfKernel = {-1.5f * invShadowResolution,  0.5f * invShadowResolution,
+        float[] pcfKernel = {-0.5f * invShadowResolution,  0.5f * invShadowResolution,
                               0.5f * invShadowResolution,  0.5f * invShadowResolution,
-                             -1.5f * invShadowResolution, -0.5f * invShadowResolution,
+                             -0.5f * invShadowResolution, -0.5f * invShadowResolution,
                               0.5f * invShadowResolution, -0.5f * invShadowResolution };
 
         var setupShadow = new CommandBuffer() { name = "SetupShadowShaderConstants" };
