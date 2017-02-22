@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UI
 
         void AddVFXContext(Vector2 pos,VFXModelDescriptor<VFXContext> desc)
         {
-            GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc.CreateInstance());
+            GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc);
         }
 
         void AddVFXOperator(Vector2 pos, VFXOperator desc)
