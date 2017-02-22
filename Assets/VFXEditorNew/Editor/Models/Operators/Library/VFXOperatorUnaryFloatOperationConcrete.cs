@@ -18,6 +18,52 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
+    class VFXOperatorComponentMask : VFXOperatorUnaryFloatOperation
+    {
+        override public string name { get { return "ComponentMask"; } }
+
+        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        {
+            var placeHolder = "yxx";
+            var inputComponents = VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray();
+
+            var componentStack = new Stack<VFXExpression>();
+            for (int iComponent = 0; iComponent < placeHolder.Length; iComponent++)
+            {
+                var iChannelIndex = -1;
+                switch (placeHolder[iComponent])
+                {
+                    case 'x': case 'r': iChannelIndex = 0; break;
+                    case 'y': case 'g': iChannelIndex = 1; break;
+                    case 'z': case 'b': iChannelIndex = 2; break;
+                    case 'w': case 'a': iChannelIndex = 3; break;
+                    default: throw new Exception("unexpected component name");
+                }
+
+                if (iChannelIndex < inputComponents.Length)
+                {
+                    componentStack.Push(inputComponents[iChannelIndex]);
+                }
+                else
+                {
+                    componentStack.Push(new VFXValueFloat(0.0f, true));
+                }
+            }
+
+            VFXExpression finalExpression = null;
+            if (componentStack.Count == 1)
+            {
+                finalExpression = componentStack.Pop();
+            }
+            else
+            {
+                finalExpression = new VFXExpressionCombine(componentStack.ToArray());
+            }
+            return new[] { finalExpression };
+        }
+    }
+
+    [VFXInfo]
     class VFXOperatorCeil : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Ceil"; } }
