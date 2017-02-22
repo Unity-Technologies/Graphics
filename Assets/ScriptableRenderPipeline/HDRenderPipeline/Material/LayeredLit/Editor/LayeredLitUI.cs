@@ -584,7 +584,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static public void SetupLayersMappingKeywords(Material material)
         {
             // object scale affect tile
-            SetKeyword(material, "_LAYER_TILING_UNIFORM_SCALE", material.GetFloat(kObjectScaleAffectTile) > 0.0f);
+            SetKeyword(material, "_LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE", material.GetFloat(kObjectScaleAffectTile) > 0.0f);
 
             // Blend mask
             LayerUVBaseMapping UVBlendMaskMapping = (LayerUVBaseMapping)material.GetFloat(kUVBlendMask);
