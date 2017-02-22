@@ -176,6 +176,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
                         input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
+// Note: This function is call by both Per vertex and Per pixel displacement
 float GetMaxDisplacement()
 {
     float maxDisplacement = 0.0;
@@ -323,7 +324,12 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 // Calculate displacement for per vertex displacement mapping
 float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
-    return (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
+    float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
+    #ifdef _TESSELLATION_TILING_SCALE
+    // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
+    height /= max(_BaseColorMap_ST.x, _BaseColorMap_ST.y);
+    #endif
+    return height;
 }
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -582,7 +588,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // On all layers (but not on blend mask) we can scale the tiling with object scale (only uniform supported)
     // Note: the object scale doesn't affect planar/triplanar mapping as they already handle the object scale.
     float tileObjectScale = 1.0;
-#ifdef _LAYER_TILING_UNIFORM_SCALE
+#ifdef _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     // Extract scaling from world transform
     float4x4 worldTransform = GetObjectToWorldMatrix();
     // assuming uniform scaling, take only the first column
@@ -641,6 +647,28 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 
     GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
                         input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
+}
+
+void ApplyTessellationTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
+{
+    // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
+#ifdef _TESSELLATION_TILING_SCALE
+    float tileObjectScale = 1.0;
+    #ifdef _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
+    // Extract scaling from world transform
+    float4x4 worldTransform = GetObjectToWorldMatrix();
+    // assuming uniform scaling, take only the first column
+    tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+    #endif  
+
+    height0 /= _LayerTiling0 * max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y);
+    #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
+    height0 *= tileObjectScale;  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
+    #endif
+    height1 /= tileObjectScale * _LayerTiling1 * max(_BaseColorMap1_ST.x, _BaseColorMap1_ST.y);
+    height2 /= tileObjectScale * _LayerTiling2 * max(_BaseColorMap2_ST.x, _BaseColorMap2_ST.y);
+    height3 /= tileObjectScale * _LayerTiling3 * max(_BaseColorMap3_ST.x, _BaseColorMap3_ST.y);
+#endif
 }
 
 // This function is just syntaxic sugar to nullify height not used based on heightmap avaibility and layer
@@ -721,6 +749,7 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
 
 // Return the maximun amplitude use by all enabled heightmap
 // use for tessellation culling and per pixel displacement
+// TODO: For vertex displacement this should take into account the modification in ApplyTessellationTileScale but it should be conservative here (as long as tiling is not negative)
 float GetMaxDisplacement()
 {
     float maxDisplacement = 0.0;
@@ -1035,6 +1064,7 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     float height1 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1, lod).r - _LayerCenterOffset1) * _LayerHeightAmplitude1;
     float height2 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2, lod).r - _LayerCenterOffset2) * _LayerHeightAmplitude2;
     float height3 = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3, lod).r - _LayerCenterOffset3) * _LayerHeightAmplitude3;
+    ApplyTessellationTileScale(height0, height1, height2, height3); // Only apply with per vertex displacement
     SetEnabledHeightByLayer(height0, height1, height2, height3);
     float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
 
