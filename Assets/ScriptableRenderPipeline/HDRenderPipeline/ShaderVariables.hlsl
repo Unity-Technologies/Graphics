@@ -211,9 +211,11 @@ CBUFFER_END
 // ----------------------------------------------------------------------------
 
 // TODO: move this to constant buffer by Pass
-float4x4 _InvViewProjMatrix;
+float4   _ScreenSize;
 float4x4 _ViewProjMatrix; // Looks like using UNITY_MATRIX_VP in pixel shader doesn't work ??? need to setup my own...
-float4		_ScreenSize;
+float4x4 _InvViewProjMatrix;
+float4x4 _InvProjMatrix;
+float4   _InvProjParam;
 
 float4x4 GetWorldToViewMatrix()
 {
@@ -280,7 +282,7 @@ float4 TransformWorldToHClip(float3 positionWS)
     return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
-// Computes world space view direction, from object space position
+// Computes the world space view direction (pointing towards the camera).
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
     float3 V = _WorldSpaceCameraPos.xyz - positionWS;

@@ -376,22 +376,36 @@ float2 DirectionToLatLongCoordinate(float3 dir)
 // World position reconstruction / transformation
 // ----------------------------------------------------------------------------
 
-// Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane)
+// Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane).
+// Does not correctly handle oblique view frustums.
 float Linear01DepthFromNear(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x + zBufferParam.y / depth);
 }
 
-// Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane)
+// Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane).
+// Does not correctly handle oblique view frustums.
 float Linear01Depth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x * depth + zBufferParam.y);
 }
 
-// Z buffer to linear depth
+// Z buffer to linear depth.
+// Does not correctly handle oblique view frustums.
 float LinearEyeDepth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
+}
+
+// Z buffer to linear depth.
+// Correctly handles oblique view frustums. Only valid for projection matrices!
+// Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
+float LinearEyeDepth(float2 positionSS, float depthRaw, float4 invProjParam)
+{
+    float4 positionCS = float4(positionSS * 2.0 - 1.0, depthRaw, 1.0);
+    float  viewSpaceZ = rcp(dot(positionCS, invProjParam));
+    // The view space uses a right-handed coordinate system.
+    return -viewSpaceZ;
 }
 
 struct PositionInputs
@@ -404,7 +418,6 @@ struct PositionInputs
     float depthRaw; // raw depth from depth buffer
     float depthVS;
 
-    float4 positionCS;
     float3 positionWS;
 };
 
@@ -433,11 +446,8 @@ PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
 // depthRaw and depthVS come directly form .zw of SV_Position
 void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout PositionInputs posInput)
 {
-    posInput.depthRaw = depthRaw;
-    posInput.depthVS = depthVS;
-
-    // TODO: We revert for DX but maybe it is not the case of OGL ? Test the define ?
-    posInput.positionCS = float4((posInput.positionSS - 0.5) * float2(2.0, -2.0), depthRaw, 1.0) * depthVS; // depthVS is SV_Position.w
+    posInput.depthRaw   = depthRaw;
+    posInput.depthVS    = depthVS;
     posInput.positionWS = positionWS;
 }
 
@@ -446,45 +456,46 @@ void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
 // It may be necessary to flip the Y axis as the origin of the screen-space coordinate system
 // of Direct3D is at the top left corner of the screen, with the Y axis pointing downwards.
-void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4 ViewProjectionMatrix,
+void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 ViewProjMatrix,
                          inout PositionInputs posInput, bool flipY = false)
 {
-    posInput.depthRaw = depth;
+    posInput.depthRaw = depthRaw;
 
     float2 screenSpacePos;
     screenSpacePos.x = posInput.positionSS.x;
     screenSpacePos.y = flipY ? 1.0 - posInput.positionSS.y : posInput.positionSS.y;
 
-    posInput.positionCS = float4(screenSpacePos * 2.0 - 1.0, depth, 1.0);
-    float4 hpositionWS  = mul(invViewProjectionMatrix, posInput.positionCS);
+    float4 positionCS   = float4(screenSpacePos * 2.0 - 1.0, depthRaw, 1.0);
+    float4 hpositionWS  = mul(invViewProjMatrix, positionCS);
     posInput.positionWS = hpositionWS.xyz / hpositionWS.w;
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
-    posInput.depthVS = mul(ViewProjectionMatrix, float4(posInput.positionWS, 1.0)).w;
-
-    posInput.positionCS *= posInput.depthVS;
+    posInput.depthVS = mul(ViewProjMatrix, float4(posInput.positionWS, 1.0)).w;
 }
 
-float3 ComputeViewSpacePosition(float2 positionSS, float rawDepth, float4x4 invProjMatrix)
+// It may be necessary to flip the Y axis as the origin of the screen-space coordinate system
+// of Direct3D is at the top left corner of the screen, with the Y axis pointing downwards.
+float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invProjMatrix, bool flipY = false)
 {
-    float4 positionCS = float4(positionSS * 2.0 - 1.0, rawDepth, 1.0);
+    float2 screenSpacePos;
+    screenSpacePos.x = positionSS.x;
+    screenSpacePos.y = flipY ? 1.0 - positionSS.y : positionSS.y;
+
+    float4 positionCS = float4(screenSpacePos * 2.0 - 1.0, depthRaw, 1.0);
     float4 positionVS = mul(invProjMatrix, positionCS);
     // The view space uses a right-handed coordinate system.
     positionVS.z = -positionVS.z;
     return positionVS.xyz / positionVS.w;
 }
 
-// depthOffsetVS is always in the direction of the view vector (V)
-void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, inout PositionInputs posInput)
+// 'depthOffsetVS' is in the direction opposite to the view vector 'V', e.i. away from the camera.
+void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
-    posInput.depthVS += depthOffsetVS;
-    // TODO: it is an approx, need a correct value where we use projection matrix to reproject the depth from VS
-    posInput.depthRaw = posInput.positionCS.z / posInput.depthVS;
+    posInput.depthVS    += depthOffsetVS;
+    posInput.positionWS -= depthOffsetVS * V;
 
-    // TODO: Do we need to flip Y axis here on OGL ?
-    posInput.positionCS = float4(posInput.positionSS.xy * 2.0 - 1.0, posInput.depthRaw, 1.0) * posInput.depthVS;
-    // Just add the offset along the view vector is sufficiant for world position
-    posInput.positionWS += V * depthOffsetVS;
+    float4 positionCS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
+    posInput.depthRaw = positionCS.z / positionCS.w;
 }
 
 // Generates a triangle in homogeneous clip space, s.t.

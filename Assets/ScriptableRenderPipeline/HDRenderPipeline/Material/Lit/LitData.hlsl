@@ -221,7 +221,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 
 #include "ShaderLibrary/PerPixelDisplacement.hlsl"
 
-void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
+float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
     bool ppdEnable = false;
     bool isPlanar = false;
@@ -243,6 +243,8 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 
         PerPixelHeightDisplacementParam ppdParam;
 
+        float height; // final height processed
+
         // planar/triplanar
         float2 uvXZ;
         float2 uvXY;
@@ -255,33 +257,37 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
         if (isTriplanar)
         {
             float3 viewDirTS;
+            float planeHeight;
             int numSteps;
 
             // Perform a POM in each direction and modify appropriate texture coordinate
             ppdParam.uv = layerTexCoord.base.uvZY;
             viewDirTS = float3(V.x > 0.0 ? uvZY : -uvZY, V.x);
             numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offsetZY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+            float2 offsetZY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, planeHeight);
 
             // Apply offset to all triplanar UVSet
             layerTexCoord.base.uvZY += offsetZY;
             layerTexCoord.details.uvZY += offsetZY;
+            height = layerTexCoord.triplanarWeights.x * planeHeight;
 
             ppdParam.uv = layerTexCoord.base.uvXZ;
             viewDirTS = float3(V.y > 0.0 ? uvXZ : -uvXZ, V.y);
             numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offsetXZ = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+            float2 offsetXZ = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, planeHeight);
 
             layerTexCoord.base.uvXZ += offsetXZ;
             layerTexCoord.details.uvXZ += offsetXZ;
+            height += layerTexCoord.triplanarWeights.y * planeHeight;
 
             ppdParam.uv = layerTexCoord.base.uvXY;
             viewDirTS = float3(V.z > 0.0 ? uvXY : -uvXY, V.z);
             numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offsetXY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+            float2 offsetXY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, planeHeight);
 
             layerTexCoord.base.uvXY += offsetXY;
             layerTexCoord.details.uvXY += offsetXY;
+            height += layerTexCoord.triplanarWeights.z * planeHeight;
         }
         else
         {
@@ -298,13 +304,20 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
 
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+
+            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
 
             // Apply offset to all UVSet0 / planar
             layerTexCoord.base.uv += offset;
             layerTexCoord.details.uv += isPlanar ? offset : _UVDetailsMappingMask.x * offset; // Only apply offset if details map use UVSet0 _UVDetailsMappingMask.x will be 1 in this case, else 0
         }
+
+        // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
+        // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
+        return maxHeight - height * maxHeight;
     }
+
+    return 0.0;
 }
 
 // Calculate displacement for per vertex displacement mapping
@@ -322,11 +335,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetLayerTexCoord(input, layerTexCoord);
 
 
-    ApplyPerPixelDisplacement(input, V, layerTexCoord);
-    float depthOffset = 0.0;
+    float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, _ViewProjMatrix, posInput);
 #endif
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
@@ -849,7 +861,7 @@ float ComputePerPixelHeightDisplacement(float2 texOffsetCurrent, float lod, PerP
 // - Blend Mask use same mapping as main layer (UVO, Planar, Triplanar)
 // From these rules it mean that PPD is enable only if the user 1) ask for it, 2) if there is one heightmap enabled on active layer, 3) if mapping is the same for all layer respecting 2), 4) if mapping is UV0, planar or triplanar mapping
 // Most contraint are handled by the inspector (i.e the UI) like the mapping constraint and is assumed in the shader.
-void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
+float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
 {
     bool ppdEnable = false;
     bool isPlanar = false;
@@ -930,6 +942,8 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
         ppdParam.mainHeightInfluence = 0.0;
 #endif
 
+        float height; // final height processed
+
         // We need to calculate the texture space direction. It depends on the mapping.
         if (isTriplanar)
         {
@@ -975,17 +989,18 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
             float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam);
+
+            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
 
             // Apply offset to all planar UV if applicable
-            float4 planarWeight = float4(   layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0, 
+            float4 planarWeight = float4(   layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
                                             layerTexCoord.base1.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
                                             layerTexCoord.base2.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
                                             layerTexCoord.base3.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0);
 
             // _UVMappingMask0.x will be 1.0 is UVSet0 is used;
             float4 offsetWeights = isPlanar ? planarWeight : float4(_UVMappingMask0.x, _UVMappingMask1.x, _UVMappingMask2.x, _UVMappingMask3.x);
-            
+
             layerTexCoord.base0.uv += offsetWeights.x * offset;
             layerTexCoord.base1.uv += offsetWeights.y * offset;
             layerTexCoord.base2.uv += offsetWeights.z * offset;
@@ -998,7 +1013,13 @@ void ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord l
             layerTexCoord.details2.uv += offsetWeights.z * offset;
             layerTexCoord.details3.uv += offsetWeights.w * offset;
         }
+
+        // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
+        // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
+        return maxHeight - height * maxHeight;
     }
+
+    return 0.0;
 }
 
 // Calculate displacement for per vertex displacement mapping
@@ -1129,11 +1150,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
     GetLayerTexCoord(input, layerTexCoord);
 
-    ApplyPerPixelDisplacement(input, V, layerTexCoord);
+    float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
-    float depthOffset = 0.0;
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, depthOffset, posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, _ViewProjMatrix, posInput);
 #endif
 
     SurfaceData surfaceData0, surfaceData1, surfaceData2, surfaceData3;

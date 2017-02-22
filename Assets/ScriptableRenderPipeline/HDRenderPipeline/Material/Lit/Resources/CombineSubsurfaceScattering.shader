@@ -46,7 +46,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             float4   _FilterKernels[N_PROFILES][N_SAMPLES]; // RGB = weights, A = radial distance
             float4   _HalfRcpWeightedVariances[N_PROFILES]; // RGB for chromatic, A for achromatic
-            float4x4 _InvProjMatrix;
 
             TEXTURE2D_FLOAT(_CameraDepthTexture);
             TEXTURE2D(_GBufferTexture2);
