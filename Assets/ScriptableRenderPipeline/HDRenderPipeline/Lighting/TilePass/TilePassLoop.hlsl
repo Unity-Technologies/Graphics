@@ -62,7 +62,7 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
 
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
-    uint2 tileIndex = posInput.unPositionSS / TILE_SIZE;
+    uint2 tileIndex = posInput.unPositionSS / TILE_SIZE_CLUSTERED;
 
     float logBase = g_fClustBase;
     if (g_isLogBaseBufferEnabled)
