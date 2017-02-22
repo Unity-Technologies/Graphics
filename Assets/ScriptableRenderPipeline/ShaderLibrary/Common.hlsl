@@ -492,7 +492,7 @@ float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invP
 void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
     posInput.depthVS    += depthOffsetVS;
-    posInput.positionWS -= depthOffsetVS * V;
+    posInput.positionWS += depthOffsetVS * -V; // opposite to V
 
     float4 positionCS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
     posInput.depthRaw = positionCS.z / positionCS.w;
