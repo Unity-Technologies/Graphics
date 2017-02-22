@@ -488,13 +488,11 @@ float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invP
     return positionVS.xyz / positionVS.w;
 }
 
-// depthOffsetVS is always in the direction of the view vector (V)
+// 'depthOffsetVS' is in the direction opposite to the view vector 'V', e.i. away from the camera.
 void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
-    posInput.depthVS -= depthOffsetVS;
-
-    // Just add the offset along the view vector is sufficient for world position
-    posInput.positionWS += V * depthOffsetVS;
+    posInput.depthVS    += depthOffsetVS;
+    posInput.positionWS -= depthOffsetVS * V;
 
     float4 positionCS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
     posInput.depthRaw = positionCS.z / positionCS.w;
