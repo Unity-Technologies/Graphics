@@ -18,6 +18,8 @@ StructuredBuffer<uint> g_vLightListGlobal;		// don't support Buffer yet in unity
 #define TILE_SIZE 16 // This is fixed
 #define DWORD_PER_TILE 16 // See dwordsPerTile in TilePass.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
+#define TILE_SIZE_CLUSTERED		16
+
 // these uniforms are only needed for when OPAQUES_ONLY is NOT defined
 // but there's a problem with our front-end compilation of compute shaders with multiple kernels causing it to error
 //#ifdef USE_CLUSTERED_LIGHTLIST
