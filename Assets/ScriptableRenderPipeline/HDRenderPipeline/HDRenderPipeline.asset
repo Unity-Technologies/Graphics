@@ -11,7 +11,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f365a473b136bef4797c7281a02cd510, type: 3}
   m_Name: HDRenderPipeline
   m_EditorClassIdentifier: 
-  m_LightLoopProducer: {fileID: 0}
+  m_LightLoopProducer: {fileID: 11400000, guid: bf8cd9ae03ff7d54c89603e67be0bfc5,
+    type: 2}
   globalDebugSettings:
     debugOverlayRatio: 0.33
     displayMaterialDebug: 0
