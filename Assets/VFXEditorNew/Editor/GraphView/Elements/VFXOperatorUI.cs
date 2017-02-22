@@ -13,7 +13,20 @@ namespace UnityEditor.VFX.UI
     {
         public VFXOperatorUI()
         {
+        }
 
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+            var presenter = GetPresenter<VFXOperatorPresenter>();
+            if (presenter == null || presenter.Operator == null)
+                return;
+
+            if (presenter.Operator.position != presenter.position.position)
+            {
+                presenter.Operator.position = presenter.position.position;
+                // Needs to make the model dirty
+            }
         }
     }
 }

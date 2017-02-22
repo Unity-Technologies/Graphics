@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorBinaryFloatOperation : VFXOperator
     {
-        protected override void OnInvalidate(InvalidationCause cause)
+        protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
             var newInputSlots = InputSlots.ToList();
 
