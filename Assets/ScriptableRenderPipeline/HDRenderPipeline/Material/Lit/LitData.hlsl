@@ -313,7 +313,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         }
 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
-        return height * maxHeight - maxHeight;
+        // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
+        return maxHeight - height * maxHeight;
     }
 
     return 0.0;
@@ -1014,7 +1015,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         }
 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
-        return height * maxHeight - maxHeight;
+        // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
+        return maxHeight - height * maxHeight;
     }
 
     return 0.0;
