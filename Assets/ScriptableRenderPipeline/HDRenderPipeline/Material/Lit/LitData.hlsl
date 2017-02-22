@@ -303,9 +303,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
 
-            // TEMP: 0.1 to achieve parity between tessellation and POM w.r.t. height for a single tile.
-            // TODO: for tiling, the max. height of the tessellated height map should be reduced by NumTiles.
-            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, 0.1 * maxHeight, ppdParam, height);
+            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
 
             // Apply offset to all UVSet0 / planar
             layerTexCoord.base.uv += offset;
@@ -989,9 +987,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
 
-            // TEMP: 0.1 to achieve parity between tessellation and POM w.r.t. height for a single tile.
-            // TODO: for tiling, the max. height of the tessellated height map should be reduced by NumTiles.
-            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, 0.1 * maxHeight, ppdParam, height);
+            float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
 
             // Apply offset to all planar UV if applicable
             float4 planarWeight = float4(   layerTexCoord.base0.mappingType == UV_MAPPING_PLANAR ? 1.0 : 0.0,
