@@ -1,11 +1,7 @@
 // Shader targeted for LowEnd mobile devices. Single Pass Forward Rendering. Shader Model 2
-//
-// The parameters and inspector of the shader are the same as Standard shader,
-// for easier experimentation.
 Shader "LDRenderPipeline/Specular"
 {
-	// Properties is just a copy of Standard (Specular Setup).shader. Our example shader does not use all of them,
-	// but the inspector UI expects all these to exist.
+	// Keep properties of StandardSpecular shader for upgrade reasons.
 	Properties
 	{
 		_Color("Color", Color) = (1,1,1,1)
@@ -13,34 +9,34 @@ Shader "LDRenderPipeline/Specular"
 
 		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-		_Glossiness("Shininess", Range(0.0, 1.0)) = 0.5
-		[HideInInspector] _GlossMapScale("Smoothness Factor", Range(0.0, 1.0)) = 1.0
-		[HideInInspector] [Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
+		_Glossiness("Shininess", Range(0.01, 1.0)) = 0.5
+		_GlossMapScale("Smoothness Factor", Range(0.0, 1.0)) = 1.0
+		[Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
 		_SpecColor("Specular", Color) = (1.0, 1.0, 1.0)
-		[HideInInspector] _SpecGlossMap("Specular", 2D) = "white" {}
-		[HideInInspector] [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
-		[HideInInspector] [ToggleOff] _GlossyReflections("Glossy Reflections", Float) = 1.0
+		_SpecGlossMap("Specular", 2D) = "white" {}
+		[ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
+		[ToggleOff] _GlossyReflections("Glossy Reflections", Float) = 1.0
 
 		[HideInInspector] _BumpScale("Scale", Float) = 1.0
 		[NoScaleOffset] _BumpMap("Normal Map", 2D) = "bump" {}
 
-		[HideInInspector] _Parallax("Height Scale", Range(0.005, 0.08)) = 0.02
-		[HideInInspector] _ParallaxMap("Height Map", 2D) = "black" {}
+		_Parallax("Height Scale", Range(0.005, 0.08)) = 0.02
+		_ParallaxMap("Height Map", 2D) = "black" {}
 
-		[HideInInspector] _OcclusionStrength("Strength", Range(0.0, 1.0)) = 1.0
-		[HideInInspector] _OcclusionMap("Occlusion", 2D) = "white" {}
+		_OcclusionStrength("Strength", Range(0.0, 1.0)) = 1.0
+		_OcclusionMap("Occlusion", 2D) = "white" {}
 
 		_EmissionColor("Emission Color", Color) = (0,0,0)
-		[HideInInspector] _EmissionMap("Emission", 2D) = "white" {}
+		_EmissionMap("Emission", 2D) = "white" {}
 
-		[HideInInspector] _DetailMask("Detail Mask", 2D) = "white" {}
+		_DetailMask("Detail Mask", 2D) = "white" {}
 
-		[HideInInspector] _DetailAlbedoMap("Detail Albedo x2", 2D) = "grey" {}
-		[HideInInspector] _DetailNormalMapScale("Scale", Float) = 1.0
-		[HideInInspector] _DetailNormalMap("Normal Map", 2D) = "bump" {}
+		_DetailAlbedoMap("Detail Albedo x2", 2D) = "grey" {}
+		_DetailNormalMapScale("Scale", Float) = 1.0
+		_DetailNormalMap("Normal Map", 2D) = "bump" {}
 
-		[HideInInspector] [Enum(UV0,0,UV1,1)] _UVSec("UV Set for secondary textures", Float) = 0
+		[Enum(UV0,0,UV1,1)] _UVSec("UV Set for secondary textures", Float) = 0
 
 		// Blending state
 		[HideInInspector] _Mode("__mode", Float) = 0.0
@@ -207,9 +203,7 @@ Shader "LDRenderPipeline/Specular"
 				float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
 				shadowCoord.z = saturate(shadowCoord.z);
 
-#ifdef SHADOWS_FILTERING_VSM
-				half shadowAttenuation = ShadowVSM(shadowCoord);
-#elif defined(SHADOWS_FILTERING_PCF)
+#ifdef SHADOWS_FILTERING_PCF
 				half shadowAttenuation = ShadowPCF(shadowCoord);
 #else
 				half shadowAttenuation = ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
@@ -278,7 +272,7 @@ Shader "LDRenderPipeline/Specular"
 			half4 frag(v2f i) : SV_Target
 			{
 				half4 diffuseAlpha = tex2D(_MainTex, i.uv01.xy);
-				half3 diffuse = diffuseAlpha.rgb;
+				half3 diffuse = diffuseAlpha.rgb * _Color.rgb;
 				half alpha = diffuseAlpha.a * _Color.a;
 
 #ifdef _ALPHATEST_ON
@@ -296,9 +290,8 @@ Shader "LDRenderPipeline/Specular"
 				half3 normal = normalize(i.normal);
 #endif
 
-				
-#if _SPECGLOSSMAP
-				half4 specularGloss = tex2D(_SpecGlossMap, i.uv01.xy);
+#ifdef _SPECGLOSSMAP
+				half4 specularGloss = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
 #else
 				half4 specularGloss = _SpecColor;
 #endif
@@ -394,7 +387,7 @@ Shader "LDRenderPipeline/Specular"
 			NAME "Dummy2"
 		}
 		
-		// This pass it not used during regular rendering.
+		// This pass it not used during regular rendering, only for lightmap baking.
 		Pass
 		{
 			Name "META"
@@ -417,5 +410,5 @@ Shader "LDRenderPipeline/Specular"
 		}
 	}
 	Fallback "Standard (Specular setup)"
-	//CustomEditor "StandardShaderGUI"
+	CustomEditor "LDRenderPipelineMaterialEditor"
 }
