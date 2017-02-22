@@ -257,35 +257,37 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         if (isTriplanar)
         {
             float3 viewDirTS;
+            float planeHeight;
             int numSteps;
 
             // Perform a POM in each direction and modify appropriate texture coordinate
             ppdParam.uv = layerTexCoord.base.uvZY;
             viewDirTS = float3(V.x > 0.0 ? uvZY : -uvZY, V.x);
             numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offsetZY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
+            float2 offsetZY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, planeHeight);
 
             // Apply offset to all triplanar UVSet
             layerTexCoord.base.uvZY += offsetZY;
             layerTexCoord.details.uvZY += offsetZY;
+            height = layerTexCoord.triplanarWeights.x * planeHeight;
 
             ppdParam.uv = layerTexCoord.base.uvXZ;
             viewDirTS = float3(V.y > 0.0 ? uvXZ : -uvXZ, V.y);
             numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offsetXZ = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
+            float2 offsetXZ = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, planeHeight);
 
             layerTexCoord.base.uvXZ += offsetXZ;
             layerTexCoord.details.uvXZ += offsetXZ;
+            height += layerTexCoord.triplanarWeights.y * planeHeight;
 
             ppdParam.uv = layerTexCoord.base.uvXY;
             viewDirTS = float3(V.z > 0.0 ? uvXY : -uvXY, V.z);
             numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
-            float2 offsetXY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
+            float2 offsetXY = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, planeHeight);
 
             layerTexCoord.base.uvXY += offsetXY;
             layerTexCoord.details.uvXY += offsetXY;
-
-            height = 0.0; // TODO
+            height += layerTexCoord.triplanarWeights.z * planeHeight;
         }
         else
         {
