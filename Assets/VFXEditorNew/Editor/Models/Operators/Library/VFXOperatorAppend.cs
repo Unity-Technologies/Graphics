@@ -17,26 +17,13 @@ namespace UnityEditor.VFX
             public float b = 0.0f;
         }
 
-        private static IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
-        {
-            if (expression.ValueType == VFXValueType.kFloat)
-            {
-                return new[] { expression };
-            }
 
-            var components = new List<VFXExpression>();
-            for (int i = 0; i < VFXExpression.TypeToSize(expression.ValueType); ++i)
-            {
-                components.Add(new VFXExpressionExtractComponent(expression, i));
-            }
-            return components;
-        }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var a = inputExpression[0];
             var b = inputExpression[1];
-            var allComponent = ExtractComponents(a).Concat(ExtractComponents(b)).ToArray();
+            var allComponent = VFXOperatorUtility.ExtractComponents(a).Concat(VFXOperatorUtility.ExtractComponents(b)).ToArray();
             return new[] { new VFXExpressionCombine(allComponent) };
         }
     }

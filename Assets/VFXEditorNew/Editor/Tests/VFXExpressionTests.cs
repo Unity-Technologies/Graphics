@@ -47,65 +47,7 @@ namespace UnityEditor.VFX.Test
             function = string.Format("{0}\n{{\n{1}\n}}\n", fnHeader, fnContent);
             call = string.Format("{0} {1} = {2}({3});", VFXExpression.TypeToCode(expression.ValueType), temp_GetUniqueName(expression), fnName, temp_AggregateWithComa(expression.Parents.Select(o => temp_GetUniqueName(o))));
         }
-
-        //Will be an helper in Node System
-        static public VFXExpression temp_CastFloat(VFXExpression from, VFXValueType toValueType, float defautValue = 0.0f)
-        {
-            if (!VFXExpressionFloatOperation.IsFloatValueType(from.ValueType) || !VFXExpressionFloatOperation.IsFloatValueType(toValueType))
-            {
-                throw new ArgumentException(string.Format("Invalid CastFloat : {0} to {1}", from, toValueType));
-            }
-
-            if (from.ValueType == toValueType)
-            {
-                throw new ArgumentException(string.Format("Incoherent CastFloat : {0} to {1}", from, toValueType));
-            }
-
-            var fromValueType = from.ValueType;
-            var fromValueTypeSize = VFXExpression.TypeToSize(fromValueType);
-            var toValueTypeSize = VFXExpression.TypeToSize(toValueType);
-
-            var inputComponent = new VFXExpression[fromValueTypeSize];
-            var outputComponent = new VFXExpression[toValueTypeSize];
-
-            if (inputComponent.Length == 1)
-            {
-                inputComponent[0] = from;
-            }
-            else
-            {
-                for (int iChannel = 0; iChannel < fromValueTypeSize; ++iChannel)
-                {
-                    inputComponent[iChannel] = new VFXExpressionExtractComponent(from, iChannel);
-                }
-            }
-
-            for (int iChannel = 0; iChannel < toValueTypeSize; ++iChannel)
-            {
-                if (iChannel < fromValueTypeSize)
-                {
-                    outputComponent[iChannel] = inputComponent[iChannel];
-                }
-                else if (fromValueTypeSize == 1)
-                {
-                    //Manage same logic behavior for float => floatN in HLSL
-                    outputComponent[iChannel] = inputComponent[0];
-                }
-                else
-                {
-                    outputComponent[iChannel] = new VFXValueFloat(defautValue, true);
-                }
-            }
-
-            if (toValueTypeSize == 1)
-            {
-                return outputComponent[0];
-            }
-
-            var combine = new VFXExpressionCombine(outputComponent);
-            return combine;
-        }
-
+        
         [Test]
         public void ProcessExpressionBasic()
         {
@@ -126,10 +68,10 @@ namespace UnityEditor.VFX.Test
             var value_c = new VFXValueFloat(c, true);
             var value_d = new VFXValueFloat(d, true);
 
-            var addExpression = new VFXExpressionAdd(temp_CastFloat(value_a, value_b.ValueType), value_b);
+            var addExpression = new VFXExpressionAdd(VFXOperatorUtility.CastFloat(value_a, value_b.ValueType), value_b);
             var sinExpression = new VFXExpressionSin(addExpression);
-            var mulExpression = new VFXExpressionMul(sinExpression, temp_CastFloat(value_c, sinExpression.ValueType));
-            var substractExpression = new VFXExpressionSubtract(temp_CastFloat(value_d, mulExpression.ValueType), mulExpression);
+            var mulExpression = new VFXExpressionMul(sinExpression, VFXOperatorUtility.CastFloat(value_c, sinExpression.ValueType));
+            var substractExpression = new VFXExpressionSubtract(VFXOperatorUtility.CastFloat(value_d, mulExpression.ValueType), mulExpression);
 
             var context = new VFXExpression.Context();
             var resultA = context.Compile(addExpression);
@@ -252,10 +194,10 @@ namespace UnityEditor.VFX.Test
             var value_c = new VFXValueFloat(c, true);
             var value_d = new VFXValueFloat(d, true);
 
-            var addExpression = new VFXExpressionAdd(temp_CastFloat(value_a, value_b.ValueType), value_b);
+            var addExpression = new VFXExpressionAdd(VFXOperatorUtility.CastFloat(value_a, value_b.ValueType), value_b);
             var sinExpression = new VFXExpressionSin(addExpression);
-            var mulExpression = new VFXExpressionMul(sinExpression, temp_CastFloat(value_c, sinExpression.ValueType));
-            var substractExpression = new VFXExpressionSubtract(temp_CastFloat(value_d, mulExpression.ValueType), mulExpression);
+            var mulExpression = new VFXExpressionMul(sinExpression, VFXOperatorUtility.CastFloat(value_c, sinExpression.ValueType));
+            var substractExpression = new VFXExpressionSubtract(VFXOperatorUtility.CastFloat(value_d, mulExpression.ValueType), mulExpression);
 
             var addedExpression = new HashSet<VFXExpression>();
             var graphLevel = new Stack<VFXExpression[]>();
