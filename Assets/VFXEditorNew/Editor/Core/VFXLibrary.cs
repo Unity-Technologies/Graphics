@@ -100,7 +100,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            return modelDescs;
+            return modelDescs.OrderBy(o => o.name).ToList();
         }
 
         private static IEnumerable<Type> FindConcreteSubclasses<T>()
