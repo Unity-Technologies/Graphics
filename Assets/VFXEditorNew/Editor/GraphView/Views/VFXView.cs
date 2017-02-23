@@ -58,8 +58,6 @@ namespace UnityEditor.VFX.UI
     //[StyleSheet("Assets/VFXEditorNew/Editor/GraphView/Views/")]
     class VFXView : GraphView
     {
-        private FilterPopup m_PopupManipulator;
-
         public VFXView()
         {
             forceNotififcationOnAdd = true;
@@ -82,7 +80,9 @@ namespace UnityEditor.VFX.UI
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
             InsertChild(0, bg);
 
-            m_PopupManipulator = new FilterPopup(new VFXNodeProvider((d, mPos) =>
+
+            /*
+            AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) =>
             {
                 Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
                 if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
@@ -93,8 +93,26 @@ namespace UnityEditor.VFX.UI
                 {
                     AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
                 }
+            })));
+            */
+
+            AddManipulator(new ContextualMenu((evt, customData) =>
+            {
+                var menu = new GenericMenu();
+                Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, evt.mousePosition);
+
+                foreach (var desc in VFXLibrary.GetContexts())
+                    menu.AddItem(new GUIContent(desc.name), false,
+                                 contentView => AddVFXContext(tPos, desc),
+                                 this);
+                foreach (var desc in VFXLibrary.GetOperators())
+                    menu.AddItem(new GUIContent(desc.name), false,
+                                 contentView => AddVFXOperator(tPos, desc.CreateInstance()),
+                                 this);
+                menu.ShowAsContext();
+                return EventPropagation.Continue;
             }));
-            AddManipulator(m_PopupManipulator);
+
 
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
 
