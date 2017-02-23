@@ -47,7 +47,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             float4   _FilterKernels[N_PROFILES][N_SAMPLES]; // RGB = weights, A = radial distance
             float4   _HalfRcpWeightedVariances[N_PROFILES]; // RGB for chromatic, A for achromatic
 
-            TEXTURE2D_FLOAT(_CameraDepthTexture);
             TEXTURE2D(_GBufferTexture2);
             TEXTURE2D(_IrradianceSource);
 
@@ -82,7 +81,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float  invDistScale = rcp(distScale);
 
                 // Reconstruct the view-space position.
-                float  rawDepth    = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r;
+                float  rawDepth    = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r;
                 float3 centerPosVS = ComputeViewSpacePosition(posInput.positionSS, rawDepth, _InvProjMatrix);
 
                 // Compute the dimensions of the surface fragment viewed as a quad facing the camera.
@@ -125,7 +124,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     samplePosition = posInput.unPositionSS + scaledDirection * _FilterKernels[profileID][i].a;
                     sampleWeight   = _FilterKernels[profileID][i].rgb;
 
-                    rawDepth         = LOAD_TEXTURE2D(_CameraDepthTexture, samplePosition).r;
+                    rawDepth         = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
                     sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource,   samplePosition).rgb;
 
                     // Apply bilateral weighting.

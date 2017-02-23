@@ -163,9 +163,8 @@ CBUFFER_START(UnityLighting)
 	float4 unity_SHC;
 CBUFFER_END
 
-// Use the regular depth camera texture sampler for sampling this: sampler_CameraDepthTexture
-TEXTURE2D_FLOAT(_CameraDepthTextureCopy);
-SAMPLER2D(sampler_CameraDepthTextureCopy);
+TEXTURE2D_FLOAT(_MainDepthTexture);
+SAMPLER2D(sampler_MainDepthTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
