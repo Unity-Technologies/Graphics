@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.UI
             return result;
         }
 
-
+        [SerializeField]
         public struct PropertyInfo
         {
             public string name;

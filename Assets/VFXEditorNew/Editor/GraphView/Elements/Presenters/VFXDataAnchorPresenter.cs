@@ -11,9 +11,13 @@ namespace UnityEditor.VFX.UI
         private VFXModel m_Owner;
         public VFXModel Owner { get { return m_Owner; } }
 
+        [SerializeField]
         VFXBlockPresenter.PropertyInfo m_PropertyInfo;
 
         VFXBlockPresenter m_NodePresenter;
+
+        [SerializeField]
+        bool m_DirtyHack;
 
 
         public VFXBlockPresenter.PropertyInfo propertyInfo
@@ -45,6 +49,7 @@ namespace UnityEditor.VFX.UI
         {
             m_PropertyInfo.value = value;
             m_NodePresenter.PropertyValueChanged(ref m_PropertyInfo);
+            m_DirtyHack = !m_DirtyHack;
         }
 
 		public override void Connect(EdgePresenter edgePresenter)

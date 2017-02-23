@@ -170,7 +170,7 @@ VFXPropertyUI .slot
 	-background-color:#F00;
 }
 
-VFXPropertyUI .space
+VFXDataAnchor .space
 {
 	border-radius:4;
 	border-width:1;
