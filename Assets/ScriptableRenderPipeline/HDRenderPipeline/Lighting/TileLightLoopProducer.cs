@@ -25,9 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable]
         public class TileSettings
         {
-            public bool enableDrawLightBoundsDebug;
-            public bool disableTileAndCluster; // For debug / test
-            public bool disableDeferredShadingInCompute;
+            public bool enableTileAndCluster; // For debug / test
             public bool enableSplitLightEvaluation;
             public bool enableComputeLightEvaluation;
 
@@ -39,9 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public static TileSettings defaultSettings = new TileSettings
             {
-                enableDrawLightBoundsDebug = false,
-                disableTileAndCluster = false,
-                disableDeferredShadingInCompute = true,
+                enableTileAndCluster = true,
                 enableSplitLightEvaluation = true,
                 enableComputeLightEvaluation = false,
 

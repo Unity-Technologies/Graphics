@@ -23,8 +23,8 @@ void ApplyDebug(inout float3 diffuseLighting, inout float3 specularLighting)
 // Calculate the offset in global light index light for current light category
 int GetTileOffset(PositionInputs posInput, uint lightCategory)
 {
-    uint2 tileIndex = posInput.unPositionSS / TILE_SIZE;
-    return (tileIndex.y + lightCategory * _NumTileY) * _NumTileX + tileIndex.x;
+    uint2 tileIndex = posInput.unPositionSS / TILE_SIZE_FPTL;
+    return (tileIndex.y + lightCategory * _NumTileFtplY) * _NumTileFtplX + tileIndex.x;
 }
 
 void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
@@ -67,13 +67,13 @@ void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out ui
     float logBase = g_fClustBase;
     if (g_isLogBaseBufferEnabled)
     {
-        logBase = g_logBaseBuffer[tileIndex.y * _NumTileX + tileIndex.x];
+        logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
     }
 
     int clustIdx = SnapToClusterIdxFlex(posInput.depthVS, logBase, g_isLogBaseBufferEnabled != 0);
 
     int nrClusters = (1 << g_iLog2NumClusters);
-    const int idx = ((lightCategory * nrClusters + clustIdx) * _NumTileY + tileIndex.y) * _NumTileX + tileIndex.x;
+    const int idx = ((lightCategory * nrClusters + clustIdx) * _NumTileClusteredY + tileIndex.y) * _NumTileClusteredX + tileIndex.x;
     uint dataPair = g_vLayeredOffsetsBuffer[idx];
     start = dataPair & 0x7ffffff;
     lightCount = (dataPair >> 27) & 31;
