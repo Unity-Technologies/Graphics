@@ -8,6 +8,7 @@ namespace UnityEditor.VFX.UI
     interface IVFXPresenter
     {
         VFXModel model { get; }
+        void Init(VFXModel model, VFXViewPresenter viewPresenter);
     }
 }
 

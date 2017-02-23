@@ -55,10 +55,10 @@ namespace UnityEditor.VFX.UI
                 ViewPresenter.UnregisterFlowAnchorPresenter(anchor);
         }
 
-        public void Init(VFXViewPresenter viewPresenter, VFXContext model)
+        public virtual void Init(VFXModel model,VFXViewPresenter viewPresenter)
         {
             m_ViewPresenter = viewPresenter;
-            m_Model = model;
+            m_Model = (VFXContext)model;
 
             UnregisterAnchors();
 
