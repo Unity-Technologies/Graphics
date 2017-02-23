@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockPresenter : GraphElementPresenter
+    class VFXBlockPresenter : NodePresenter
     {
 		protected new void OnEnable()
 		{
@@ -21,8 +21,9 @@ namespace UnityEditor.VFX.UI
         void AddDataAnchor(PropertyInfo prop)
         {
             VFXDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXDataInputAnchorPresenter>();
-            anchorPresenter.Init(Model, prop.type);
+            anchorPresenter.Init(Model, this, prop);
             m_Anchors.Add(prop.path, anchorPresenter);
+            inputAnchors.Add(anchorPresenter);
             ContextPresenter.ViewPresenter.RegisterDataAnchorPresenter(anchorPresenter);
         }
 
@@ -72,7 +73,7 @@ namespace UnityEditor.VFX.UI
         {
             public string name;
             public object value;
-            public Type type;
+            public System.Type type;
             public bool expandable;
             public bool expanded;
             public int depth;
@@ -88,7 +89,6 @@ namespace UnityEditor.VFX.UI
             string[] fields = info.parentPath.Split(new char[] { '.' },StringSplitOptions.RemoveEmptyEntries);
 
             object buffer = GetCurrentPropertiesValues();
-            Type type = GetPropertiesType();
 
             List<object> stack= new List<object>();
             stack.Add(buffer);
