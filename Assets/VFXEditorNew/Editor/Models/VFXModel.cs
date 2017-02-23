@@ -19,7 +19,18 @@ namespace UnityEditor.VFX
 
         public virtual string name { get { return string.Empty; }}
 
-        protected virtual void OnInvalidate(VFXModel model,InvalidationCause cause) {}
+
+        public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
+
+        public event InvalidateEvent onInvalidateDelegate;
+
+        protected virtual void OnInvalidate(VFXModel model,InvalidationCause cause)
+        {
+            if (onInvalidateDelegate != null)
+            {
+                onInvalidateDelegate(model, cause);
+            }
+        }
         protected virtual void OnAdded() {}
         protected virtual void OnRemoved() {}
 

@@ -58,19 +58,10 @@ namespace UnityEditor.VFX
     [Serializable]
     class VFXGraph : VFXModel
     {
-        public delegate void InvalidateEvent(VFXModel model,InvalidationCause cause);
-
-        public event InvalidateEvent onInvalidateDelegate;
 
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
             return true; // Can hold any model
-        }
-
-        protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
-        {
-            if (onInvalidateDelegate != null)
-                onInvalidateDelegate(model, cause); 
         }
 
         private ScriptableObject m_Owner;

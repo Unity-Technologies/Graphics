@@ -18,13 +18,14 @@ namespace UnityEditor.VFX.UI
             // Most initialization will be done in Init
 		}
 
-        void AddDataAnchor(PropertyInfo prop)
+        VFXDataInputAnchorPresenter AddDataAnchor(PropertyInfo prop)
         {
             VFXDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXDataInputAnchorPresenter>();
             anchorPresenter.Init(Model, this, prop);
-            m_Anchors.Add(prop.path, anchorPresenter);
             inputAnchors.Add(anchorPresenter);
             ContextPresenter.ViewPresenter.RegisterDataAnchorPresenter(anchorPresenter);
+
+            return anchorPresenter;
         }
 
         public void Init(VFXBlock model,VFXContextPresenter contextPresenter)
@@ -32,9 +33,36 @@ namespace UnityEditor.VFX.UI
             m_Model = model;
             m_ContextPresenter = contextPresenter;
 
-            foreach (var prop in GetProperties())
+
+            //TODO unregister when the block is destroyed
+            model.onInvalidateDelegate += OnInvalidate;
+
+            OnInvalidate(model, VFXModel.InvalidationCause.kParamChanged);
+        }
+
+        private void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
+        {
+            if( model is VFXBlock)
             {
-                AddDataAnchor(prop);
+                VFXBlock block = model as VFXBlock;
+
+
+                Dictionary<string, VFXDataInputAnchorPresenter> newAnchors = new Dictionary<string, VFXDataInputAnchorPresenter>();
+
+                foreach ( var property in GetProperties())
+                {
+                    var prop = property;
+                    VFXDataInputAnchorPresenter propPresenter = GetPropertyPresenter(ref prop);
+
+                    if( propPresenter == null)
+                    {
+                        propPresenter = AddDataAnchor(property);
+                    }
+                    newAnchors[property.path] = propPresenter;
+
+                    propPresenter.Update(ref prop);
+                }
+                m_Anchors = newAnchors;
             }
         }
 
@@ -124,11 +152,7 @@ namespace UnityEditor.VFX.UI
         {
             //TODO undo/redo
             m_Model.ExpandPath(fieldPath);
-
-            foreach( var prop in GetProperties(fieldPath))
-            {
-                AddDataAnchor(prop);
-            }
+            
             m_DirtyHack = !m_DirtyHack;
         }
 
@@ -136,14 +160,6 @@ namespace UnityEditor.VFX.UI
         {
             //TODO undo/redo
             m_Model.RetractPath(fieldPath);
-
-
-            var toRemove = m_Anchors.Keys.Where(t => t != fieldPath && t.StartsWith(fieldPath)).ToArray();
-
-            foreach(var remove in toRemove)
-            {
-                m_Anchors.Remove(remove);
-            }
 
             m_DirtyHack = !m_DirtyHack;
         }

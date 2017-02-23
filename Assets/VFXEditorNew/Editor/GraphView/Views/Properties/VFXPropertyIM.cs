@@ -16,26 +16,14 @@ namespace UnityEditor.VFX.UI
 
 
             var infos = presenter.propertyInfo;
-
-            bool savedExpanded = presenter.propertyInfo.expanded;
+            
 
             object result = DoOnGUI(presenter,styles);
 
             if (EditorGUI.EndChangeCheck())
             {
-                if (savedExpanded != infos.expanded)
-                    if (infos.expanded)
-                    {
-                        presenter.nodePresenter.ExpandPath(infos.path);
-                    }
-                    else
-                    {
-                        presenter.nodePresenter.RetractPath(infos.path);
-                    }
-                else
-                {
-                    presenter.SetPropertyValue(result);
-                }
+                presenter.SetPropertyValue(result);
+
                 return true;
             }
             else
@@ -93,10 +81,30 @@ namespace UnityEditor.VFX.UI
                 GUILayout.Space(infos.depth * depthOffset);
             GUILayout.BeginVertical();
             GUILayout.Space(3);
+
+            bool expanded = infos.expanded;
             if (infos.expandable)
-                infos.expanded = GUILayout.Toggle(infos.expanded, "", styles.GetGUIStyleForExpandableType(infos.type), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
+            {
+                if (GUILayout.Toggle(infos.expanded, "", styles.GetGUIStyleForExpandableType(infos.type), GUILayout.Width(iconSize), GUILayout.Height(iconSize)) != expanded)
+                {
+                    if (!expanded)
+                    {
+                        presenter.nodePresenter.ExpandPath(infos.path);
+                    }
+                    else
+                    {
+                        presenter.nodePresenter.RetractPath(infos.path);
+                    }
+
+                    // remove the change check to avoid property being regarded as modified
+                    EditorGUI.EndChangeCheck();
+                    EditorGUI.BeginChangeCheck();
+                }
+            }
             else
+            {
                 GUILayout.Label("", styles.GetGUIStyleForType(infos.type), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
+            }
             GUILayout.EndVertical();
             GUILayout.Label(infos.name, styles.baseStyle, GUILayout.Width(kLabelWidth), GUILayout.Height(styles.lineHeight));
         }

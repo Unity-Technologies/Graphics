@@ -24,11 +24,13 @@ namespace UnityEditor.VFX
         public void ExpandPath(string fieldPath)
         {
             m_expandedPaths.Add(fieldPath);
+            Invalidate(InvalidationCause.kParamChanged);
         }
 
         public void RetractPath(string fieldPath)
         {
             m_expandedPaths.Remove(fieldPath);
+            Invalidate(InvalidationCause.kParamChanged);
         }
 
         public bool IsPathExpanded(string fieldPath)
