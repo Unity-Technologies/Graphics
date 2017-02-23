@@ -169,12 +169,13 @@ namespace UnityEditor.VFX
                     if (!m_readOnly && oldJson != newJson)
                     {
                         jsonNodeData.stringValue = newJson;
-                        EditorUtility.SetDirty(target);
                     }
                 }
                 GUILayout.EndScrollView();
             }
-            serializedObject.ApplyModifiedProperties();
+            if (serializedObject.ApplyModifiedProperties())
+                ((VFXGraphAsset)target).root.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
+
         }
     }
 }
