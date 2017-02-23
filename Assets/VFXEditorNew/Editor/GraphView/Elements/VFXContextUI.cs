@@ -137,14 +137,14 @@ namespace UnityEditor.VFX.UI
 			{
 				name = "FlowInputs",
 				pickingMode = PickingMode.Ignore,
-				classList = new ClassList("FlowContainer")
+				classList = new ClassList("FlowContainer","Input")
 			};
 
 			m_FlowOutputConnectorContainer = new VisualContainer()
 			{
 				name = "FlowOutputs",
 				pickingMode = PickingMode.Ignore,
-				classList = new ClassList("FlowContainer")
+				classList = new ClassList("FlowContainer","Output")
 			};
 
 			m_NodeContainer = new VisualContainer()
@@ -260,8 +260,6 @@ namespace UnityEditor.VFX.UI
 			if (block == null)
 				return;
 
-			m_BlockContainer.RemoveFromSelection(block);
-			m_BlockContainer.RemoveChild(block);
 			VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
 			contextPresenter.RemoveBlock(block.GetPresenter<VFXBlockPresenter>().Model);
 		}
@@ -288,15 +286,29 @@ namespace UnityEditor.VFX.UI
 			VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
             var blockPresenters = contextPresenter.blockPresenters;
 
-            // TMP recreate everything when collections are out of sync
-            var boundPresenters = m_BlockContainer.children.OfType<VFXBlockUI>().Select(ui => ui.GetPresenter<VFXBlockPresenter>());
-            if (!blockPresenters.SequenceEqual(boundPresenters))
+            // recreate the children list based on the presenter list to keep the order.
+
+            var blocksUIs = m_BlockContainer.children.OfType<VFXBlockUI>().ToDictionary(t=>t.GetPresenter<VFXBlockPresenter>(),t=>t);
+
+            foreach(var kv in blocksUIs)
             {
-                m_BlockContainer.ClearSelection();
-                m_BlockContainer.ClearChildren();
-                foreach (var presenter in blockPresenters)
-                    InstantiateBlock(presenter);
+                m_BlockContainer.RemoveChild(kv.Value);
             }
+            foreach(var blockPresenter in blockPresenters)
+            {
+                VFXBlockUI blockUI;
+                if( blocksUIs.TryGetValue(blockPresenter,out blockUI))
+                {
+                    m_BlockContainer.AddChild(blockUI);
+                }
+                else
+                {
+                    InstantiateBlock(blockPresenter);
+                }
+            }
+
+
+            
 
             // Does not guarantee correct ordering
 			/*var blocks = m_BlockContainer.children.OfType<VFXBlockUI>().ToList();

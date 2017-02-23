@@ -48,7 +48,7 @@ VFXContextUI.selected {
 	border-color: #383838;
 	}
 
-VFXContextUI > #Title {
+VFXContextUI #Title {
 	text-color: #C4C4C4;
 	font-size:12;
 	font-style: bold;

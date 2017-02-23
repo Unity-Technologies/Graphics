@@ -325,17 +325,20 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
 		}
 
-		public void AddVFXContext(Vector2 pos,VFXContext context)
+		public void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
 		{
-            context.position = pos;
+            VFXContext newContext = desc.CreateInstance();
+            newContext.position = pos;
 
 			// needs to create a temp system to hold the context
 			var system = new VFXSystem();
-            system.AddChild(context);
+            system.AddChild(newContext);
 
             m_GraphAsset.root.AddChild(system);
-			AddPresentersFromModel(system);
-		}
+
+            AddPresentersFromModel(system);
+        }
+
 
         public void AddVFXOperator(Vector2 pos, VFXOperator desc)
         {

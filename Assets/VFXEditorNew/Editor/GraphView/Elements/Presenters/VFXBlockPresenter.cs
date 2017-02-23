@@ -112,10 +112,14 @@ namespace UnityEditor.VFX.UI
 
                 fi.SetValue(prev, current);
             }
-
-            m_DirtyHack = !m_DirtyHack;
+            //TODO update slots for now the buffer content is changed and then we invalidate the model
+            m_Model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
 
         }
+
+
+        public event System.Action<VFXBlockPresenter> OnParamChanged;
+
         public void ExpandPath(string fieldPath)
         {
             //TODO undo/redo

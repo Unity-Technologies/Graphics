@@ -70,7 +70,7 @@ namespace UnityEngine.Graphing
                 throw new ArgumentNullException("item", "Can not serialize null element");
 
             var typeInfo = GetTypeSerializableAsString(item.GetType());
-            var data = JsonUtility.ToJson(item, true);
+            var data = JsonUtility.ToJson(item, false);
 
             if (string.IsNullOrEmpty(data))
                 throw new ArgumentException(string.Format("Can not serialize {0}", item));

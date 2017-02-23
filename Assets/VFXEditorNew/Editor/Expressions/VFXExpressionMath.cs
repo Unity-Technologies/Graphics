@@ -43,6 +43,44 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionAbs : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionAbs() : this(VFXValueFloat.Default) { }
+
+        public VFXExpressionAbs(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXAbsOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("abs({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Abs(input);
+        }
+    }
+
+    class VFXExpressionFloor : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionFloor() : this(VFXValueFloat.Default) { }
+
+        public VFXExpressionFloor(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXFloorOp)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("floor({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Floor(input);
+        }
+    }
+
     class VFXExpressionAdd : VFXExpressionBinaryFloatOperation
     {
         public VFXExpressionAdd() : this(VFXValueFloat.Default, VFXValueFloat.Default)
@@ -84,6 +122,26 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionDivide : VFXExpressionBinaryFloatOperation
+    {
+        public VFXExpressionDivide() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        {
+        }
+
+        public VFXExpressionDivide(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXDivideOp)
+        {
+        }
+
+        sealed protected override float ProcessBinaryOperation(float left, float right)
+        {
+            return left / right;
+        }
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("{0} / {1}", left, right);
+        }
+    }
+
     class VFXExpressionSubtract : VFXExpressionBinaryFloatOperation
     {
         public VFXExpressionSubtract() : this(VFXValueFloat.Default, VFXValueFloat.Default)
@@ -103,24 +161,60 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionLerp : VFXExpressionTernaryFloatOperation
+    class VFXExpressionMin : VFXExpressionBinaryFloatOperation
     {
-        public VFXExpressionLerp() : this(VFXValueFloat.Default, VFXValueFloat.Default, VFXValueFloat.Default)
+        public VFXExpressionMin() : this(VFXValueFloat.Default, VFXValueFloat.Default)
         {
         }
 
-        public VFXExpressionLerp(VFXExpression x, VFXExpression y, VFXExpression s) : base(x, y, s, VFXExpressionOp.kVFXLerpOp)
+        public VFXExpressionMin(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMinOp)
+        {
+        }
+        sealed protected override float ProcessBinaryOperation(float left, float right)
+        {
+            return Mathf.Min(left, right);
+        }
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("min({0}, {1})", left, right);
+        }
+    }
+
+    class VFXExpressionMax : VFXExpressionBinaryFloatOperation
+    {
+        public VFXExpressionMax() : this(VFXValueFloat.Default, VFXValueFloat.Default)
         {
         }
 
-        sealed protected override float ProcessTernaryOperation(float x, float y, float s)
+        public VFXExpressionMax(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMaxOp)
         {
-            return Mathf.Lerp(x, y, s);
+        }
+        sealed protected override float ProcessBinaryOperation(float left, float right)
+        {
+            return Mathf.Max(left, right);
+        }
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("max({0}, {1})", left, right);
+        }
+    }
+
+    class VFXExpressionPow : VFXExpressionBinaryFloatOperation
+    {
+        public VFXExpressionPow() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        {
         }
 
-        sealed protected override string GetTernaryOperationCode(string x, string y, string s)
+        public VFXExpressionPow(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXPowOp)
         {
-            return string.Format("lerp({0}, {1}, {2})", x, y, s);
+        }
+        sealed protected override float ProcessBinaryOperation(float left, float right)
+        {
+            return Mathf.Max(left, right);
+        }
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("pow({0}, {1})", left, right);
         }
     }
 }

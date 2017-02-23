@@ -114,6 +114,18 @@ namespace UnityEditor.VFX
                 expression = new VFXValueFloat((float)value, true);
 
             }
+            else if (value is Vector2)
+            {
+                expression = new VFXValueFloat2((Vector2)value, true);
+            }
+            else if (value is Vector3)
+            {
+                expression = new VFXValueFloat3((Vector3)value, true);
+            }
+            else if (value is Vector4)
+            {
+                expression = new VFXValueFloat4((Vector4)value, true);
+            }
             else if(value is AnimationCurve)
             {
                 expression = new VFXValueCurve(value as AnimationCurve, true);

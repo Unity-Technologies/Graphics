@@ -211,12 +211,32 @@ namespace UnityEditor.VFX.UI
 
         public void DataChanged(VFXBlockUI block,VFXBlockPresenter.PropertyInfo info)
         {
-            m_Presenter = block.GetPresenter<VFXBlockPresenter>();
+            var newPresenter = block.GetPresenter<VFXBlockPresenter>();
+
+            if( newPresenter != m_Presenter)
+            {
+                if( m_Presenter != null)
+                {
+                    m_Presenter.OnParamChanged -= OnParamChanged;
+                }
+                if( newPresenter != null)
+                {
+                    newPresenter.OnParamChanged += OnParamChanged;
+                }
+
+                m_Presenter = newPresenter;
+            }
+
+
+            
             if( m_PropertyInfo.type != info.type)
             {
                 m_Property = VFXPropertyIM.Create(info.type);
             }
             m_PropertyInfo = info;
+
+
+            m_Presenter.OnParamChanged += OnParamChanged;
 
 
             VFXDataAnchorPresenter presenter = m_Presenter.GetPropertyPresenter(ref info);
@@ -257,7 +277,12 @@ namespace UnityEditor.VFX.UI
                     RemoveChild(m_SpaceButton);
                 }
             }
+            
         }
-        
+
+        private void OnParamChanged(VFXBlockPresenter blockPresenter)
+        {
+            //TODO update RMGUIControl
+        }
     }
 }
