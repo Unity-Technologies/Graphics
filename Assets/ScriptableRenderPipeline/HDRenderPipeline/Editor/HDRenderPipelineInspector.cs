@@ -54,8 +54,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent splitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
             public readonly GUIContent bigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
             public readonly GUIContent clustered = new GUIContent("Enable clustered", "Toggle");
-            public readonly GUIContent disableTileAndCluster = new GUIContent("Disable Tile/clustered", "Toggle");
-            public readonly GUIContent disableDeferredShadingInCompute = new GUIContent("Disable deferred shading in compute", "Toggle");
+            public readonly GUIContent enableTileAndCluster = new GUIContent("Enable Tile/clustered", "Toggle");
+            public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Enable Compute Light Evaluation", "Toggle");
 
             // Sky Settings
             public readonly GUIContent skyParams = new GUIContent("Sky Settings");
@@ -578,8 +578,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 tilePass.debugViewTilesFlags = EditorGUILayout.MaskField("DebugView Tiles", tilePass.debugViewTilesFlags, styles.tileLightLoopDebugTileFlagStrings);
                 tilePass.enableSplitLightEvaluation = EditorGUILayout.Toggle(styles.splitLightEvaluation, tilePass.enableSplitLightEvaluation);
-                tilePass.disableTileAndCluster = EditorGUILayout.Toggle(styles.disableTileAndCluster, tilePass.disableTileAndCluster);
-                tilePass.disableDeferredShadingInCompute = EditorGUILayout.Toggle(styles.disableDeferredShadingInCompute, tilePass.disableDeferredShadingInCompute);
+                tilePass.enableTileAndCluster = EditorGUILayout.Toggle(styles.enableTileAndCluster, tilePass.enableTileAndCluster);
+                tilePass.enableComputeLightEvaluation = EditorGUILayout.Toggle(styles.enableComputeLightEvaluation, tilePass.enableComputeLightEvaluation);
 
                 if (EditorGUI.EndChangeCheck())
                 {
