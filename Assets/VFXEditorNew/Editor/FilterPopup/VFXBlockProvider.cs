@@ -29,7 +29,6 @@ namespace UnityEditor.VFX.UI
         protected VFXAbstractProvider(Action<T, Vector2> onAddBlock) : base(null)
         {
             m_onSpawnDesc = onAddBlock;
-            //m_mousePosition = Event.current.mousePosition;
         }
 
         protected abstract IEnumerable<T> GetDescriptors();
@@ -38,7 +37,7 @@ namespace UnityEditor.VFX.UI
 
         public void CreateComponentTree(List<VFXFilterWindow.Element> tree)
         {
-            tree.Add(new VFXFilterWindow.GroupElement(0, "__NodeBlocks__"));
+            tree.Add(new VFXFilterWindow.GroupElement(0, "Node"));
             var descriptors = GetDescriptors();
 
             var categories = new HashSet<string>();
@@ -119,16 +118,12 @@ namespace UnityEditor.VFX.UI
             var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.Model)).ToList();
             filteredBlocks.Sort((blockA, blockB) =>
             {
-
                 var infoA = blockA.info;
                 var infoB = blockB.info;
-
                 int res = infoA.category.CompareTo(infoB.category);
                 return res != 0 ? res : blockA.name.CompareTo(blockB.name);
             });
             return filteredBlocks;
         }
-
-
     }
 }
