@@ -22,7 +22,6 @@ namespace UnityEditor.VFX.UI
         {
             VFXDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXDataInputAnchorPresenter>();
             anchorPresenter.Init(Model, this, prop);
-            inputAnchors.Add(anchorPresenter);
             ContextPresenter.ViewPresenter.RegisterDataAnchorPresenter(anchorPresenter);
 
             return anchorPresenter;
@@ -47,6 +46,8 @@ namespace UnityEditor.VFX.UI
                 VFXBlock block = model as VFXBlock;
 
 
+                var inputs = inputAnchors;
+                inputs.Clear();
                 Dictionary<string, VFXDataInputAnchorPresenter> newAnchors = new Dictionary<string, VFXDataInputAnchorPresenter>();
 
                 foreach ( var property in GetProperties())
@@ -61,11 +62,9 @@ namespace UnityEditor.VFX.UI
                     newAnchors[property.path] = propPresenter;
 
                     propPresenter.UpdateInfos(ref prop);
+                    inputs.Add(propPresenter);
                 }
                 m_Anchors = newAnchors;
-                var inputs = inputAnchors;
-                inputs.Clear();
-                inputs.AddRange(m_Anchors.Values.ToArray());
             }
         }
 
