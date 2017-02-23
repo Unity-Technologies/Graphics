@@ -63,6 +63,9 @@ namespace UnityEditor.VFX.UI
                     propPresenter.UpdateInfos(ref prop);
                 }
                 m_Anchors = newAnchors;
+                var inputs = inputAnchors;
+                inputs.Clear();
+                inputs.AddRange(m_Anchors.Values.ToArray());
             }
         }
 
