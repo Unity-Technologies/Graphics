@@ -6,11 +6,13 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXOperatorPresenter : NodePresenter
+    class VFXOperatorPresenter : NodePresenter, IVFXPresenter
     {
         [SerializeField]
         private VFXOperator m_Operator;
-        public VFXOperator Operator { get { return m_Operator; } }
+        public VFXOperator Operator     { get { return m_Operator; } }
+        public virtual VFXModel model   { get { return m_Operator; } }
+
 
         private NodeAnchorPresenter CreateAnchorPresenter(VFXOperator.VFXMitoSlot slot, Direction direction)
         {
@@ -21,9 +23,9 @@ namespace UnityEditor.VFX.UI
             return inAnchor;
         }
 
-        public void Init(VFXOperator _operator)
+        public virtual void Init(VFXModel model,VFXViewPresenter viewPresenter)
         {
-            m_Operator = _operator;
+            m_Operator = (VFXOperator)model;
 
             title = m_Operator.name;
 

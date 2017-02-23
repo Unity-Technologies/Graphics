@@ -136,7 +136,6 @@ namespace UnityEditor.VFX
 
             if (m_debugMode)
             {
-                var jsonDataProperty = serializedObject.FindProperty("m_SerializedRoot.JSONnodeData");
                 GUILayout.BeginHorizontal();
                 if(GUILayout.Button("Collapse all"))
                 {
@@ -150,24 +149,30 @@ namespace UnityEditor.VFX
                 }
 
                 GUILayout.EndHorizontal();
-                var oldJson = jsonDataProperty.stringValue;
-                var token = JToken.Parse(oldJson);
+                var jsonDataProperties = serializedObject.FindProperty("m_Root.m_SerializableChildren");
 
                 var newScrollViewPosition = GUILayout.BeginScrollView(m_scrollViewPosition);
-                if (newScrollViewPosition != m_scrollViewPosition)
+                for (int i = 0; i < jsonDataProperties.arraySize; ++i)
                 {
-                    m_scrollViewPosition = newScrollViewPosition;
-                    Repaint();
-                }
-                ProcessJSonTokenGUI(token, "", "root");
-                GUILayout.EndScrollView();
+                    var jsonDataPropertyRoot = jsonDataProperties.GetArrayElementAtIndex(i);
+                    var jsonNodeData = jsonDataPropertyRoot.FindPropertyRelative("JSONnodeData");
+                    var oldJson = jsonNodeData.stringValue;
 
-                var newJson = JsonConvert.SerializeObject(token);
-                if (!m_readOnly && oldJson != newJson)
-                {
-                    jsonDataProperty.stringValue = newJson;
-                    EditorUtility.SetDirty(target);
+                    var token = JToken.Parse(oldJson);
+                    if (newScrollViewPosition != m_scrollViewPosition)
+                    {
+                        m_scrollViewPosition = newScrollViewPosition;
+                        Repaint();
+                    }
+                    ProcessJSonTokenGUI(token, "", string.Format("m_SerializableChildren[{0}]", i));
+                    var newJson = JsonConvert.SerializeObject(token);
+                    if (!m_readOnly && oldJson != newJson)
+                    {
+                        jsonNodeData.stringValue = newJson;
+                        EditorUtility.SetDirty(target);
+                    }
                 }
+                GUILayout.EndScrollView();
             }
             serializedObject.ApplyModifiedProperties();
         }

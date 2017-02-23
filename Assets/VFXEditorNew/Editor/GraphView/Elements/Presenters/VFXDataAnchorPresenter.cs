@@ -11,10 +11,35 @@ namespace UnityEditor.VFX.UI
         private VFXModel m_Owner;
         public VFXModel Owner { get { return m_Owner; } }
 
-        public void Init(VFXModel owner,Type type)
+        VFXBlockPresenter.PropertyInfo m_PropertyInfo;
+
+        VFXBlockPresenter m_NodePresenter;
+
+
+        public VFXBlockPresenter.PropertyInfo propertyInfo
+        {
+            get { return m_PropertyInfo; }
+        }
+
+        public void Init(VFXModel owner, VFXBlockPresenter nodePresenter, VFXBlockPresenter.PropertyInfo propertyInfo)
         {
             m_Owner = owner;
-            anchorType = type;
+            anchorType = propertyInfo.type;
+            m_NodePresenter = nodePresenter;
+            m_PropertyInfo = propertyInfo;
+        }
+
+
+        public VFXBlockPresenter nodePresenter
+        {
+            get { return m_NodePresenter; }
+        }
+
+
+        public void SetPropertyValue(object value)
+        {
+            m_PropertyInfo.value = value;
+            m_NodePresenter.PropertyValueChanged(ref m_PropertyInfo);
         }
 
 		public override void Connect(EdgePresenter edgePresenter)

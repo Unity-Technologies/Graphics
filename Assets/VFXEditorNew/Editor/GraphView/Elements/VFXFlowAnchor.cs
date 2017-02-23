@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-            m_ConnectorText.content.text = "";
+            m_ConnectorText.text = "";
         }
 
     }

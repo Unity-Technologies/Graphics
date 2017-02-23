@@ -5,14 +5,15 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextPresenter : GraphElementPresenter
+    class VFXContextPresenter : GraphElementPresenter, IVFXPresenter
     {
         private VFXViewPresenter m_ViewPresenter;
         public VFXViewPresenter ViewPresenter { get { return m_ViewPresenter; } }
 
         [SerializeField]
         private VFXContext m_Model;
-        public VFXContext Model { get { return m_Model; } }
+        public VFXContext context       { get { return m_Model; } }
+        public virtual VFXModel model   { get { return m_Model; } }
 
 		[SerializeField]
         private List<VFXBlockPresenter> m_BlockPresenters;
@@ -54,10 +55,10 @@ namespace UnityEditor.VFX.UI
                 ViewPresenter.UnregisterFlowAnchorPresenter(anchor);
         }
 
-        public void Init(VFXViewPresenter viewPresenter, VFXContext model)
+        public virtual void Init(VFXModel model,VFXViewPresenter viewPresenter)
         {
             m_ViewPresenter = viewPresenter;
-            m_Model = model;
+            m_Model = (VFXContext)model;
 
             UnregisterAnchors();
 
@@ -66,18 +67,18 @@ namespace UnityEditor.VFX.UI
 
             // TODO : ACCESS INPUTS AND OUTPUTS
             // WIP STUFF
-            if (Model.inputType != VFXDataType.kNone)
+            if (context.inputType != VFXDataType.kNone)
             {
                 var inAnchor = CreateInstance<VFXFlowInputAnchorPresenter>();
-                inAnchor.Init(Model);
+                inAnchor.Init(context);
                 inputAnchors.Add(inAnchor);
                 ViewPresenter.RegisterFlowAnchorPresenter(inAnchor);
             }
 
-            if (Model.outputType != VFXDataType.kNone)
+            if (context.outputType != VFXDataType.kNone)
             {
                 var outAnchor = CreateInstance<VFXFlowOutputAnchorPresenter>();
-                outAnchor.Init(Model);
+                outAnchor.Init(context);
                 outputAnchors.Add(outAnchor);
                 ViewPresenter.RegisterFlowAnchorPresenter(outAnchor);
             }
@@ -87,26 +88,30 @@ namespace UnityEditor.VFX.UI
 
         public void AddBlock(int index,VFXBlock block)
         {
-            Model.AddChild(block, index);
+            context.AddChild(block, index);
             SyncPresenters();
         }
 
         public void RemoveBlock(VFXBlock block)
         {
-            Model.RemoveChild(block);
+            context.RemoveChild(block);
             SyncPresenters();
         }
+
+
+        static int s_Counter = 1;
 
         private void SyncPresenters()
         {
             var m_NewPresenters = new List<VFXBlockPresenter>();
-            foreach (var block in Model.GetChildren())
+            foreach (var block in context.GetChildren())
             {
                 var presenter = blockPresenters.Find(p => p.Model == block);
                 if (presenter == null) // If the presenter does not exist for this model, create it
                 {
                     presenter = CreateInstance<VFXBlockPresenter>();
                     presenter.Init(block, this);
+                    presenter.title = string.Format("{0} ({1})", block.name, s_Counter++);
                 }
 
                 m_NewPresenters.Add(presenter);
