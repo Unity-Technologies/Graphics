@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.UI
                                  this);
                 menu.ShowAsContext();
                 return EventPropagation.Continue;
-            }));
+            }, null));
 
 
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
