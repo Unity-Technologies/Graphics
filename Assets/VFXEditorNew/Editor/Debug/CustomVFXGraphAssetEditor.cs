@@ -136,7 +136,7 @@ namespace UnityEditor.VFX
 
             if (m_debugMode)
             {
-                var jsonDataProperty = serializedObject.FindProperty("m_SerializedRoot.JSONnodeData");
+                var jsonDataProperty = serializedObject.FindProperty("root.m_SerializedChildren"); // TODO Fix that
                 GUILayout.BeginHorizontal();
                 if(GUILayout.Button("Collapse all"))
                 {
