@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.UI
             m_PropertyInfo = propertyInfo;
         }
 
-        public void Update(ref VFXBlockPresenter.PropertyInfo propertyInfo)
+        public void UpdateInfos(ref VFXBlockPresenter.PropertyInfo propertyInfo)
         {
             m_PropertyInfo = propertyInfo;
         }

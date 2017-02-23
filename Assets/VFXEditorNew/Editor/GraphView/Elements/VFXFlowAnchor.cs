@@ -12,12 +12,12 @@ namespace UnityEditor.VFX.UI
                 m_EdgeConnector = new EdgeConnector<TEdgePresenter>()
             };
             anchor.AddManipulator(anchor.m_EdgeConnector);
+            anchor.presenter = presenter;
             return anchor;
         }
 
         protected VFXFlowAnchor(VFXFlowAnchorPresenter presenter) : base(presenter)
         {
-
             switch(presenter.direction)
             {
                 case Direction.Input:

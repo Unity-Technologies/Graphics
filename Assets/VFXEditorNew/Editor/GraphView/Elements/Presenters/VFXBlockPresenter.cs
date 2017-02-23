@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
                     }
                     newAnchors[property.path] = propPresenter;
 
-                    propPresenter.Update(ref prop);
+                    propPresenter.UpdateInfos(ref prop);
                 }
                 m_Anchors = newAnchors;
             }
