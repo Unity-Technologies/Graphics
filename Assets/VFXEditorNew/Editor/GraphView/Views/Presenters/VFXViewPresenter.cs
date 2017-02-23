@@ -19,6 +19,8 @@ namespace UnityEditor.VFX.UI
         [SerializeField]
         public Dictionary<Type, List<NodeAnchorPresenter>> m_DataOutputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
 
+        //private Dictionary<VFXModel, GraphElementPresenter> m_ModelToPresenter = new Dictionary<VFXModel, GraphElementPresenter>();
+
         protected new void OnEnable()
 		{
 			base.OnEnable();
@@ -116,7 +118,7 @@ namespace UnityEditor.VFX.UI
 
 			if (element is VFXContextPresenter)
 			{
-				VFXContext context = ((VFXContextPresenter)element).Model;
+				VFXContext context = ((VFXContextPresenter)element).context;
 
 				// First we need to disconnect context if needed
 				VFXSystem.DisconnectContext(context, m_GraphAsset.root);
@@ -362,8 +364,8 @@ namespace UnityEditor.VFX.UI
 			{
 				var inModel = system.GetChild(i);
 				var outModel = system.GetChild(i + 1);
-				var inPresenter = elements.OfType<VFXContextPresenter>().First(x => x.Model == inModel);
-				var outPresenter = elements.OfType<VFXContextPresenter>().First(x => x.Model == outModel);
+				var inPresenter = elements.OfType<VFXContextPresenter>().First(x => x.model == inModel);
+                var outPresenter = elements.OfType<VFXContextPresenter>().First(x => x.model == outModel);
 
 				var edgePresenter = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
 				edgePresenter.output = inPresenter.outputAnchors[0];
@@ -427,9 +429,12 @@ namespace UnityEditor.VFX.UI
 
                 if (m_GraphAsset != null)
                 {
-                    foreach (var model in m_GraphAsset.root.GetChildren())
-                        AddPresentersFromModel(model);
                     m_GraphAsset.root.onInvalidateDelegate += OnModelInvalidate;
+
+                    // Trigger a sync between model and presenters
+                    foreach (var model in m_GraphAsset.root.children)
+                        AddPresentersFromModel(model);
+                    //SyncPresentersFromModel(m_GraphAsset.root);
                 }
 
 				// Doesn't work for some reason
@@ -440,8 +445,96 @@ namespace UnityEditor.VFX.UI
         private void OnModelInvalidate(VFXModel model,VFXModel.InvalidationCause cause)
         {
             // TODO Sync presenter from here!
-            Debug.Log("Invalidate Model: " + model + " Cause: " + cause);      
+            Debug.Log("Invalidate Model: " + model + " Cause: " + cause);  
+    
+           // if (cause == VFXModel.InvalidationCause.kStructureChanged) // Something has changed to direct children
+            //    SyncPresentersFromModel(model);
         }
+
+       /* private HashSet<VFXModel> m_SyncedModels;
+        private Dictionary<VFXModel, HashSet<VFXModel>> m_SyncedContexts; // as systems are flattened within the view prensenter atm, we must keep a list of synced contexts
+
+        private void AddPresentersFromModel(VFXModel model)
+        {
+
+        }
+
+        private void RemovePresentersFromModel(VFXModel model,HashSet<VFXModel> syncedModels)
+        {
+            if (model is VFXSystem)
+                RemovePresentersFromModel(context,m_SyncedContexts[model);
+            else
+                RemoveElement(model);
+
+            elements.Remove(elements.Where(p => ))
+        }
+
+        private void AddPresentersFromModel(VFXModel model,HashSet<VFXModel> syncedModels)
+        {
+            if (model is VFXSystem)
+            {
+                m_SyncedContexts[model].Remove(
+            }
+
+
+            syncedModels.AddElement(syncedModels);
+        }
+
+        private void SyncPresentersFromModel(VFXModel model)
+        {
+            if (model is VFXGraph) // Only handle model that are directly atteched to graph
+            {
+                var toRemove = m_SyncedModels.Except(model.children);
+                var toAdd = model.childre
+                foreach (var m in toRemove)
+                {
+                    m_SyncedModel.Remove();
+
+                }
+
+                var modelFromPresenters = elements.Select(p => p.m).Where(m => !(m is VFXContext));
+                var flattendModels = elements.SelectMany()
+
+
+            }
+            else if (model is VFXSystem)
+            {
+                if (m_Syn)
+            }
+
+            else if (model is VFXSystem)
+			{
+				VFXSystem system = (VFXSystem)model;
+
+				foreach (var context in system.GetChildren())
+                    SyncPresentersFromModel(context);
+
+				// Add the connections if any
+				CreateFlowEdges(system);
+			}
+			else if (model is VFXContext)
+			{
+                var presenter = elements.Find()
+
+				VFXContext context = (VFXContext)model;
+				var presenter = CreateInstance<VFXContextPresenter>();
+				presenter.Init(this,context);
+				presenter.position = new Rect(context.position.x, context.position.y, 100, 100);
+				AddElement(presenter);
+			}
+            else if (model is VFXOperator)
+            {
+                VFXOperator context = (VFXOperator)model;
+                var presenter = CreateInstance<VFXOperatorPresenter>();
+                presenter.Init(context);
+                presenter.position = new Rect(context.position.x, context.position.y, 100, 100);
+                AddElement(presenter);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }*/
 
 		[SerializeField]
 		private VFXGraphAsset m_GraphAsset;

@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.UI
 
             var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
 
-            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.Model)).ToList();
+            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.model)).ToList();
 
             filteredBlocks.Sort((blockA, blockB) => {
 

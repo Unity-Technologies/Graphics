@@ -35,26 +35,28 @@ namespace UnityEditor.VFX
     }
 
     [Serializable]
-    class VFXGraphAsset : ScriptableObject, ISerializationCallbackReceiver
+    class VFXGraphAsset : ScriptableObject/*, ISerializationCallbackReceiver*/
     {
         public VFXGraph root { get { return m_Root; } }
 
-        [NonSerialized]
+        [SerializeField]
         private VFXGraph m_Root;
 
-        [SerializeField]
-        private SerializationHelper.JSONSerializedElement m_SerializedRoot;
+        //[SerializeField]
+       // private SerializationHelper.JSONSerializedElement m_SerializedRoot;
 
-        public virtual void OnBeforeSerialize()
+       /* public virtual void OnBeforeSerialize()
         {
             m_SerializedRoot = SerializationHelper.Serialize<VFXGraph>(m_Root);
         }
 
         public virtual void OnAfterDeserialize()
         {
+            if (m_Root != null)
+                m_Root.onInvalidateDelegate -= OnModelInvalidate;
             m_Root = SerializationHelper.Deserialize<VFXGraph>(m_SerializedRoot, null);
             m_Root.onInvalidateDelegate += OnModelInvalidate;
-        }
+        }*/
 
         private void OnModelInvalidate(VFXModel model,VFXModel.InvalidationCause cause)
         {
@@ -66,8 +68,9 @@ namespace UnityEditor.VFX
             if (m_Root == null)
             {
                 m_Root = new VFXGraph();
-                m_Root.onInvalidateDelegate += OnModelInvalidate;
+                //m_Root.onInvalidateDelegate += OnModelInvalidate;
             }
+            m_Root.onInvalidateDelegate += OnModelInvalidate;
         }
     }
 

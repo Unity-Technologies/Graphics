@@ -330,13 +330,13 @@ namespace UnityEditor.VFX.UI
 			base.OnDataChanged();
 
 			VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-			if (presenter == null || presenter.Model == null)
+			if (presenter == null || presenter.context == null)
 				return;
 
 			// Recreate label with good name // Dirty
-			m_Title.content.text = presenter.Model.name;
+            m_Title.content.text = presenter.context.name;
 
-			VFXContextType contextType = presenter.Model.contextType;
+            VFXContextType contextType = presenter.context.contextType;
 
 			RemoveFromClassList("init", "update", "output");
 
@@ -348,9 +348,9 @@ namespace UnityEditor.VFX.UI
 				default: throw new Exception();
 			}
 
-			if (presenter.Model.position != presenter.position.position)
+            if (presenter.context.position != presenter.position.position)
 			{
-				presenter.Model.position = presenter.position.position;
+                presenter.context.position = presenter.position.position;
 				// Needs to make the model dirty
 			}
 

@@ -211,19 +211,25 @@ namespace UnityEditor.VFX.Test
         {
             s_logs.Clear();
 
-            VFXGraph graph = new VFXGraph();
-            graph.AddChild(new VFXDummyModel());
+            var graph = new VFXGraph();
+            var model = new VFXDummyModel();
+            graph.AddChild(model);
             graph.onInvalidateDelegate += OnModelInvalidated;
             graph.AddChild(new VFXDummyModel());
             graph.onInvalidateDelegate -= OnModelInvalidated;
             graph.AddChild(new VFXDummyModel());
             graph.onInvalidateDelegate += OnModelInvalidated;
+            model.position = new Vector2(32.0f, 32.0f);
             graph.RemoveAllChildren();
             graph.onInvalidateDelegate -= OnModelInvalidated;
 
-            Assert.AreEqual(4, s_logs.Count);
-            for (int i = 0; i < 4; ++i )
-                Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.VFXGraph kStructureChanged", s_logs[i]);
+            Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.VFXGraph kStructureChanged", s_logs[0]);
+            Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.Test.VFXModelTests+VFXDummyModel kUIChanged", s_logs[1]);
+
+            // Removal
+            Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.VFXGraph kStructureChanged", s_logs[2]);
+            Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.VFXGraph kStructureChanged", s_logs[3]);
+            Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.VFXGraph kStructureChanged", s_logs[4]);
         }
 
         private void OnModelInvalidated(VFXModel model, VFXModel.InvalidationCause cause)

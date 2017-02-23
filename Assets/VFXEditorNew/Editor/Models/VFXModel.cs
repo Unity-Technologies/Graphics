@@ -1,7 +1,12 @@
 using System;using System.Collections.Generic;
 using System.Linq;using UnityEngine;using UnityEngine.Graphing;namespace UnityEditor.VFX{    [Serializable]    abstract class VFXModel : ISerializationCallbackReceiver    {        public enum InvalidationCause        {
             kStructureChanged,  // Model structure (hierarchy) has changed            kParamChanged,      // Some parameter values have changed            kDataChanged,       // Data layout have changed            kUIChanged,         // UI stuff has changed        }        public virtual string name { get { return string.Empty; }}        protected virtual void OnInvalidate(VFXModel model,InvalidationCause cause) {}        protected virtual void OnAdded() {}        protected virtual void OnRemoved() {}        public abstract bool AcceptChild(VFXModel model, int index = -1);        public void AddChild(VFXModel model, int index = -1, bool notify = true)        {            int realIndex = index == -1 ? m_Children.Count : index;            if (model.m_Parent != this || realIndex != GetIndex(model))            {                if (!AcceptChild(model, index))                    throw new ArgumentException("Cannot attach " + model + " to " + this);                model.Detach(notify && model.m_Parent != this); // Dont notify if the owner is already this to avoid double invalidation                realIndex = index == -1 ? m_Children.Count : index; // Recompute as the child may have been removed                m_Children.Insert(realIndex, model);                model.m_Parent = this;                model.OnAdded();                if (notify)                    Invalidate(InvalidationCause.kStructureChanged);            }        }        public void RemoveChild(VFXModel model, bool notify = true)        {            if (model.m_Parent != this)                return;            model.OnRemoved();            m_Children.Remove(model);            model.m_Parent = null;                        if (notify)
-                Invalidate(InvalidationCause.kStructureChanged);             }        public void RemoveAllChildren(bool notify = true)        {            while (m_Children.Count > 0)                RemoveChild(m_Children[m_Children.Count - 1], notify);        }        public VFXModel GetParent()        {            return m_Parent;        }        public void Attach(VFXModel parent, bool notify = true)        {            if (parent == null)                throw new ArgumentNullException();            parent.AddChild(this, -1, notify);        }        public void Detach(bool notify = true)        {            if (m_Parent == null)                return;            m_Parent.RemoveChild(this, notify);        }        public IEnumerable<VFXModel> GetChildren()        {            return m_Children;        }        public VFXModel GetChild(int index)        {            return m_Children[index];        }
+                Invalidate(InvalidationCause.kStructureChanged);             }        public void RemoveAllChildren(bool notify = true)        {            while (m_Children.Count > 0)                RemoveChild(m_Children[m_Children.Count - 1], notify);        }        public VFXModel GetParent()        {            return m_Parent;        }        public void Attach(VFXModel parent, bool notify = true)        {            if (parent == null)                throw new ArgumentNullException();            parent.AddChild(this, -1, notify);        }        public void Detach(bool notify = true)        {            if (m_Parent == null)                return;            m_Parent.RemoveChild(this, notify);        }
+
+        public IEnumerable<VFXModel> children
+        {
+            get { return m_Children; }
+        }        public IEnumerable<VFXModel> GetChildren()        {            return m_Children;        }        public VFXModel GetChild(int index)        {            return m_Children[index];        }
 
         public VFXModel this[int index]
         {
@@ -35,7 +40,12 @@ using System.Linq;using UnityEngine;using UnityEngine.Graphing;namespace Uni
             get { return GetChild(index); }
         }
 
+        public new IEnumerable<ChildrenType> children
+        {
+            get { return m_Children.Cast<ChildrenType>(); }
+        }
+
         public new IEnumerable<ChildrenType> GetChildren()
         {
-            return base.GetChildren().OfType<ChildrenType>();
+            return base.GetChildren().Cast<ChildrenType>();
         }    }}
