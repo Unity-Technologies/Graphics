@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEngine;
@@ -5,10 +7,60 @@ using UnityEngine.RMGUI;
 
 namespace UnityEditor.VFX.UI
 {
+    class VFXNodeProvider : VFXAbstractProvider<VFXNodeProvider.Descriptor>
+    {
+        public class Descriptor
+        {
+            public object modelDescriptor;
+            public string category;
+            public string name;
+        }
+
+        public VFXNodeProvider(Action<Descriptor, Vector2> onAddBlock) : base(onAddBlock)
+        {
+        }
+
+        protected override string GetCategory(Descriptor desc)
+        {
+            return desc.category;
+        }
+
+        protected override string GetName(Descriptor desc)
+        {
+            return desc.name;
+        }
+        protected override IEnumerable<Descriptor> GetDescriptors()
+        {
+            var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
+            {
+                return new Descriptor()
+                {
+                    modelDescriptor = o,
+                    category = "Context/" + o.info.category,
+                    name = o.name
+                };
+            });
+
+            var descriptorsOperator = VFXLibrary.GetOperators().Select(o =>
+            {
+                return new Descriptor()
+                {
+                    modelDescriptor = o,
+                    category = "Operator/" + o.info.category,
+                    name = o.name
+                };
+            });
+
+            return descriptorsContext.Concat(descriptorsOperator);
+        }
+    }
+
     //[StyleSheet("Assets/VFXEditorNew/Editor/GraphView/Views/")]
     class VFXView : GraphView
     {
-		public VFXView()
+        private FilterPopup m_PopupManipulator;
+
+        public VFXView()
         {
             forceNotififcationOnAdd = true;
             AddManipulator(new ContentZoomer());
@@ -30,23 +82,19 @@ namespace UnityEditor.VFX.UI
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
             InsertChild(0, bg);
 
-            AddManipulator(new ContextualMenu((evt, customData) =>
+            m_PopupManipulator = new FilterPopup(new VFXNodeProvider((d, mPos) =>
             {
-                var menu = new GenericMenu();
-                Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, evt.mousePosition);
-
-                foreach(var desc in VFXLibrary.GetContexts())
-                    menu.AddItem(new GUIContent(desc.name), false,
-                                 contentView => AddVFXContext(tPos, desc),
-                                 this);
-                foreach (var desc in VFXLibrary.GetOperators())
-                    menu.AddItem(new GUIContent(desc.name), false,
-                                 contentView => AddVFXOperator(tPos, desc.CreateInstance()),
-                                 this);
-
-                menu.ShowAsContext();
-                return EventPropagation.Continue;
-            },null));
+                Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
+                if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
+                {
+                    AddVFXOperator(tPos, (d.modelDescriptor as VFXModelDescriptor<VFXOperator>).CreateInstance());
+                }
+                else if (d.modelDescriptor is VFXModelDescriptor<VFXContext>)
+                {
+                    AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
+                }
+            }));
+            AddManipulator(m_PopupManipulator);
 
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
 

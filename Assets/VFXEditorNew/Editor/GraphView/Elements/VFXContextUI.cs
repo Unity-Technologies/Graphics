@@ -249,12 +249,6 @@ namespace UnityEditor.VFX.UI
 			}
 		}
 
-		public void AddBlock(int index, VFXBlock block)
-		{
-			VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-            presenter.AddBlock(-1, block);
-		}
-
 		public void RemoveBlock(VFXBlockUI block)
 		{
 			if (block == null)
@@ -388,7 +382,10 @@ namespace UnityEditor.VFX.UI
             {
                 m_NodeContainer.RemoveManipulator(m_PopupManipulator);
             }
-            m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, AddBlock));
+            m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, (d, mPos) =>
+            {
+                GetPresenter<VFXContextPresenter>().AddBlock(-1, d.CreateInstance());
+            }));
             m_NodeContainer.AddManipulator(m_PopupManipulator);
 
         }
