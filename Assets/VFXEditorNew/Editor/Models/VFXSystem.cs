@@ -54,6 +54,12 @@ namespace UnityEditor.VFX
             while (system1.GetNbChildren() > context1Index)
                 system1.m_Children[context1Index].Attach(system0, true);
 
+            // Remove empty systems
+            if (system0.GetNbChildren() == 0)
+                system0.Detach();
+            if (system1.GetNbChildren() == 0)
+                system1.Detach();
+
             return true;
         }
 
