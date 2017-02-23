@@ -67,9 +67,6 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
-            TEXTURE2D_FLOAT(_CameraDepthTexture);
-            SAMPLER2D(sampler_CameraDepthTexture);
-
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
@@ -101,7 +98,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             {
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
