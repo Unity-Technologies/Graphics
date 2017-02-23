@@ -16,6 +16,8 @@ namespace UnityEditor.VFX.UI
         {
             void CreateComponentTree(List<VFXFilterWindow.Element> tree);
             bool GoToChild(VFXFilterWindow.Element element, bool addIfComponent);
+
+            Vector2 position { get; set; }
         }
 
         public static readonly float DefaultWidth = 240f;
@@ -219,6 +221,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Provider = provider;
             // Has to be done before calling Show / ShowWithMode
+            m_Provider.position = position;
             position = GUIUtility.GUIToScreenPoint(position);
             Rect buttonRect = new Rect(position.x - DefaultWidth / 2, position.y - 16, DefaultWidth, 1);
 
