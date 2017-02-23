@@ -48,7 +48,7 @@ VFXContextUI.selected {
 	border-color: #383838;
 	}
 
-VFXContextUI #Title {
+VFXContextUI > * >#Title {
 	text-color: #C4C4C4;
 	font-size:12;
 	font-style: bold;
@@ -90,26 +90,57 @@ VFXBlockUI {
 	flex-direction: column;
 	background-color: #383838;
 	align-items: stretch;
-	min-height: 64;
-	padding-bottom:6;
-	padding-left:0;
-	padding-right:4;
-	margin-left:3;
 }
 
+VFXBlockUI.node
+{
+	border-width: 2;
+	border-radius: 0;
+}
+
+VFXBlockUI.node.horizontal #pane
+{
+	flex:2;
+	border-left: 2;
+	border-top: 2;
+	border-right: 2;
+	border-bottom: 2;
+}
+
+VFXBlockUI.horizontal #pane > #left 
+{
+	width: -1;
+	flex:1;
+}
+
+VFXBlockUI #left > #title > Label {
+	text-color: #FFFFFF;
+	font-style: bold;
+	text-alignment: middle-left;
+	flex: 2;
+}
+
+VFXBlockUI #left > #title > Button {
+	text-color: rgb(153, 153, 153);
+	min-width:60;
+	margin-right: 6;
+	padding-right: 0;
+	padding-left: 0;
+	text-alignment: middle-center;
+}
 
 VFXBlockUI.selected {
 	background-color: #454545;
 }
 
-VFXBlockUI > #Title {
-	text-color:#C4C4C4;
-	font-style: bold;
-	font-size: 12;
-	padding-top: 8;
-	padding-left: 8;
-	padding-bottom: 4;
-	padding-right: 8;
+VFXBlockUI #title {
+	flex-direction:row;
+}
+
+VFXBlockUI #input
+{
+	align-items: stretch;
+	padding-bottom:3;
 }
 
 VFXView #VFXBackgroundGrid {
@@ -121,7 +152,7 @@ VFXView #VFXBackgroundGrid {
 }
 
 /* Properties */
-VFXPropertyUI
+VFXDataAnchor
 {
 	im-border : 4;
 	im-padding : 2;
@@ -137,12 +168,6 @@ VFXPropertyUI
 VFXPropertyUI .slot
 {
 	-background-color:#F00;
-}
-
-VFXPropertyUI > IMGUIContainer
-{
-	flex:2;
-	align-items: stretch;
 }
 
 VFXPropertyUI .space
@@ -165,16 +190,16 @@ VFXPropertyUI .space
 
 VFXDataAnchor
 {
-	width:24;
-	height:24;
-	padding-top:5;
-	padding-left:13;
-	margin-left:-16;
-	-background-color: #555;
+	flex-direction:row,
+	background-color: #555;
 }
 
-VFXDataAnchor > .connector
+VFXDataAnchor #connector
 {
+	margin-top:5;
+	padding-top:5;
+	margin-left:-12;
+	margin-right:6;
 	background-color: #171717;
 	border-color:#383838;
 	border-width:1;
@@ -182,13 +207,19 @@ VFXDataAnchor > .connector
 	width:6;
 	height:6;
 }
+VFXDataAnchor  #IMGUI
+{
+	flex:2;
+	align-items: stretch;
+	-background-color: #F00;
+}
 
-VFXBlockUI.selected VFXDataAnchor .connector
+VFXBlockUI.selected VFXDataAnchor #connector
 {
 	border-color:#454545;
 }
 
-VFXDataAnchor.connected > .connector.typesingle
+VFXDataAnchor.connected > #connector.typesingle
 {
 	border-color:#9f80e6;
 	background-color : #9f80e6;

@@ -164,7 +164,7 @@ namespace UnityEditor.VFX.UI
 			AddChild(m_FlowInputConnectorContainer);
 			AddChild(m_NodeContainer);
 			AddChild(m_FlowOutputConnectorContainer);
-			m_Title = new VisualElement() { name = "Title" ,content = new GUIContent("Title") };
+			m_Title = new VisualElement() { name = "Title" ,text = "Title" };
 			m_NodeContainer.AddChild(m_Title);
 
 			m_BlockContainer = new BlockContainer()
@@ -194,8 +194,10 @@ namespace UnityEditor.VFX.UI
             */
 			typeFactory = new GraphViewTypeFactory();
 			typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
+            typeFactory[typeof(VFXDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(VFXDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
 
-			classList = new ClassList("VFXContext");
+            classList = new ClassList("VFXContext");
 		}
 
 		public EventPropagation SelectAll()
@@ -346,7 +348,7 @@ namespace UnityEditor.VFX.UI
 				return;
 
 			// Recreate label with good name // Dirty
-            m_Title.content.text = presenter.context.name;
+            m_Title.text = presenter.context.name;
 
             VFXContextType contextType = presenter.context.contextType;
 

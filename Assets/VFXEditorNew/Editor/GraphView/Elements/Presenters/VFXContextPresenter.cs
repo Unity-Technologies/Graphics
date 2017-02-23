@@ -98,6 +98,9 @@ namespace UnityEditor.VFX.UI
             SyncPresenters();
         }
 
+
+        static int s_Counter = 1;
+
         private void SyncPresenters()
         {
             var m_NewPresenters = new List<VFXBlockPresenter>();
@@ -108,6 +111,7 @@ namespace UnityEditor.VFX.UI
                 {
                     presenter = CreateInstance<VFXBlockPresenter>();
                     presenter.Init(block, this);
+                    presenter.title = string.Format("{0} ({1})", block.name, s_Counter++);
                 }
 
                 m_NewPresenters.Add(presenter);
