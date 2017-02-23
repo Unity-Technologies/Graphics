@@ -26,9 +26,9 @@ namespace UnityEditor.VFX.UI
 
 
 
-        protected VFXAbstractProvider(Action<T, Vector2> onAddBlock) : base(null)
+        protected VFXAbstractProvider(Action<T, Vector2> onSpawnDesc) : base(null)
         {
-            m_onSpawnDesc = onAddBlock;
+            m_onSpawnDesc = onSpawnDesc;
         }
 
         protected abstract IEnumerable<T> GetDescriptors();
@@ -115,7 +115,7 @@ namespace UnityEditor.VFX.UI
         protected override IEnumerable<VFXModelDescriptor<VFXBlock>> GetDescriptors()
         {
             var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
-            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.Model)).ToList();
+            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.model)).ToList();
             filteredBlocks.Sort((blockA, blockB) =>
             {
                 var infoA = blockA.info;
