@@ -319,8 +319,6 @@ namespace UnityEditor.VFX.UI
                 }
                 return res;
             }
-
-            throw new NotImplementedException();
 		}
 
 		public void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)

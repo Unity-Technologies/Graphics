@@ -8,36 +8,23 @@ using UnityEngine.RMGUI.StyleEnums;
 
 namespace UnityEditor.VFX.UI
 {
-	class VFXBlockUI : GraphElement
+	class VFXBlockUI : Node
 	{
-		static int s_Counter = 0;
-
-		VisualElement m_Title;
-
-		private int m_Index; // tmp
-
-        List<VFXPropertyUI> m_PropertiesUI = new List<VFXPropertyUI>();
-
         public GraphViewTypeFactory typeFactory { get; set; }
 
         public VFXBlockUI()
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Position;
-            classList = ClassList.empty;
-
-			m_Index = s_Counter++;
-
-			m_Title = new VisualElement() { content = new GUIContent(""), name = "Title"};
-			InsertChild(0,m_Title);
 
 			AddManipulator(new SelectionDropper(HandleDropEvent));
             clipChildren = false;
+            leftContainer.alignContent = Align.Stretch;
 
-            typeFactory = new GraphViewTypeFactory();
-
-            typeFactory[typeof(VFXDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(VFXDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
+            leftContainer.clipChildren = false;
+            leftContainer.parent.clipChildren = false;
+            inputContainer.clipChildren = false;
+            clipChildren = false;
         }
 
 		// This function is a placeholder for common stuff to do before we delegate the action to the drop target
@@ -57,9 +44,13 @@ namespace UnityEditor.VFX.UI
 			}
 
 			return EventPropagation.Stop;
-		}
+        }
+        public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
+        {
+            return VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
+        }
 
-		public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
+        public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
 		{
 			BlockContainer blockContainer = selectionContainer as BlockContainer;
 			if (blockContainer == null || blockContainer != parent || !IsSelectable())
@@ -104,6 +95,7 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDataChanged()
 		{
+            base.OnDataChanged();
 			var presenter = GetPresenter<VFXBlockPresenter>();
 
 			if (presenter == null)
@@ -118,30 +110,9 @@ namespace UnityEditor.VFX.UI
 				RemoveFromClassList("selected");
 			}
 
-			m_Title.content.text = presenter.Model.name + " " + m_Index;
-
 			SetPosition(presenter.position);
 
 
-
-            int cpt = 0;
-            foreach (VFXBlockPresenter.PropertyInfo propertyInfo in presenter.GetProperties())
-            {
-                if( m_PropertiesUI.Count <= cpt)
-                {
-                    VFXPropertyUI propertyUI = new VFXPropertyUI();
-                    m_PropertiesUI.Add(propertyUI);
-                    AddChild(propertyUI);
-                }
-                m_PropertiesUI[cpt++].DataChanged(this,propertyInfo);
-
-            }
-
-            while (cpt < m_PropertiesUI.Count)
-            {
-                RemoveChild(m_PropertiesUI[m_PropertiesUI.Count - 1]);
-                m_PropertiesUI.RemoveAt(m_PropertiesUI.Count - 1);
-            }
 
         }
 
