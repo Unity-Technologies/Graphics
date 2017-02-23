@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.UI
             InsertChild(0, bg);
 
 
-            /*
+            
             AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) =>
             {
                 Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
@@ -93,27 +93,8 @@ namespace UnityEditor.VFX.UI
                 {
                     AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
                 }
-            })));
-            */
-
-            AddManipulator(new ContextualMenu((evt, customData) =>
-            {
-                var menu = new GenericMenu();
-                Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, evt.mousePosition);
-
-                foreach (var desc in VFXLibrary.GetContexts())
-                    menu.AddItem(new GUIContent(desc.name), false,
-                                 contentView => AddVFXContext(tPos, desc),
-                                 this);
-                foreach (var desc in VFXLibrary.GetOperators())
-                    menu.AddItem(new GUIContent(desc.name), false,
-                                 contentView => AddVFXOperator(tPos, desc.CreateInstance()),
-                                 this);
-                menu.ShowAsContext();
-                return EventPropagation.Continue;
-            }, null));
-
-
+            }), null));
+            
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
 
             typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
