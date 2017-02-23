@@ -11,7 +11,6 @@
 #define LIGHTLOOP_TILE_DIRECT 1
 #define LIGHTLOOP_TILE_INDIRECT 1
 #define LIGHTLOOP_TILE_ALL 1
-#define USE_FPTL_LIGHTLIST 1
 
 //-------------------------------------------------------------------------------------
 // Include
