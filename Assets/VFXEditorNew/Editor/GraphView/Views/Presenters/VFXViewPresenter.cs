@@ -27,8 +27,10 @@ namespace UnityEditor.VFX.UI
 
         private class PresenterFactory : BaseTypeFactory<VFXModel, GraphElementPresenter> 
         { 
-            public PresenterFactory() : base(null) // TODO Need to do that because basetypefactory has no default contructor...
-            {} 
+            protected override GraphElementPresenter InternalCreate(Type valueType)
+            {
+                return (GraphElementPresenter)ScriptableObject.CreateInstance(valueType);
+            }
         }
         private PresenterFactory m_PresenterFactory = new PresenterFactory();
 
@@ -374,13 +376,17 @@ namespace UnityEditor.VFX.UI
 			{
 				var inModel = system.GetChild(i);
 				var outModel = system.GetChild(i + 1);
-				var inPresenter = elements.OfType<VFXContextPresenter>().First(x => x.model == inModel);
-                var outPresenter = elements.OfType<VFXContextPresenter>().First(x => x.model == outModel);
+				var inPresenter = elements.OfType<VFXContextPresenter>().FirstOrDefault(x => x.model == inModel);
+                var outPresenter = elements.OfType<VFXContextPresenter>().FirstOrDefault(x => x.model == outModel);
+
+                if (inPresenter == null || outPresenter == null)
+                    break;
 
 				var edgePresenter = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
 				edgePresenter.output = inPresenter.outputAnchors[0];
 				edgePresenter.input = outPresenter.inputAnchors[0];
 				base.AddElement(edgePresenter);
+                //Debug.Log("Create Edge: " + edgePresenter.GetHashCode());
 			}
 		}
 
@@ -430,6 +436,10 @@ namespace UnityEditor.VFX.UI
                         else if (model is VFXSystem)
                             syncedModels = m_SyncedContexts[model];
 
+                        // TODO Temp We remove previous flow edges
+                        if (model is VFXSystem)
+                            RemoveFlowEdges(syncedModels.Values.OfType<VFXContextPresenter>());
+
                         if (syncedModels != null)
                         {
                             var toRemove = syncedModels.Keys.Except(model.children).ToList();
@@ -441,8 +451,9 @@ namespace UnityEditor.VFX.UI
                                 AddPresentersFromModel(m, syncedModels);
                         }
 
-                        // TODO Temp We recreate flow edges at each structure change but this is bad!
-                        RecreateFlowEdges();
+                        // TODO Temp We recreate flow edges
+                        if (model is VFXSystem)
+                            CreateFlowEdges((VFXSystem)model);
 
                         break;
                     }
@@ -460,6 +471,8 @@ namespace UnityEditor.VFX.UI
                 foreach (var context in system.GetChildren())
                     AddPresentersFromModel(context, syncContexts);
                 m_SyncedContexts[model] = syncContexts;
+
+                CreateFlowEdges((VFXSystem)model);
             }
             else
             {
@@ -490,6 +503,8 @@ namespace UnityEditor.VFX.UI
 
             if (model is VFXSystem)
             {
+                RemoveFlowEdges(m_SyncedContexts[model].Values.OfType<VFXContextPresenter>());
+
                 foreach (var context in m_SyncedContexts[model].Keys.ToList())
                     RemovePresentersFromModel(context, m_SyncedContexts[model]);
                 m_SyncedContexts.Remove(model);
@@ -497,6 +512,27 @@ namespace UnityEditor.VFX.UI
 
             if (presenter != null)
                 m_Elements.RemoveAll(x => x == presenter); // We dont call RemoveElement as it modifies the model...
+        }
+
+        private void RemoveFlowEdges(IEnumerable<VFXContextPresenter> presenters)
+        {
+            foreach (var p in presenters)
+            {
+                m_Elements.RemoveAll(e =>
+                {
+                    if (e is VFXFlowEdgePresenter)
+                    {
+                        var edge = (VFXFlowEdgePresenter)e;
+                        if (p.outputAnchors.FirstOrDefault(a => a == edge.output) != null ||
+                            p.inputAnchors.FirstOrDefault(a => a == edge.input) != null)
+                        {
+                            //Debug.Log("Remove Edge: " + edge.GetHashCode());
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+            }
         }
 
 		[SerializeField]
