@@ -60,6 +60,8 @@ namespace UnityEditor.VFX.UI
             m_ViewPresenter = viewPresenter;
             m_Model = (VFXContext)model;
 
+            position = new Rect(model.position.x, model.position.y, position.width, position.height);
+
             UnregisterAnchors();
 
             inputAnchors.Clear();
@@ -111,6 +113,7 @@ namespace UnityEditor.VFX.UI
                 {
                     presenter = CreateInstance<VFXBlockPresenter>();
                     presenter.Init(block, this);
+                    presenter.expanded = !block.collapsed;
                     presenter.title = string.Format("{0} ({1})", block.name, s_Counter++);
                 }
 

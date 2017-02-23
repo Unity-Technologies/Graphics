@@ -22,11 +22,8 @@ namespace UnityEditor.VFX.UI
             if (presenter == null || presenter.Operator == null)
                 return;
 
-            if (presenter.Operator.position != presenter.position.position)
-            {
-                presenter.Operator.position = presenter.position.position;
-                // Needs to make the model dirty
-            }
+            presenter.Operator.position = presenter.position.position;
+            presenter.Operator.collapsed = !presenter.expanded;
         }
     }
 }

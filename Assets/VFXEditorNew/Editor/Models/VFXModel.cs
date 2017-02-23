@@ -19,7 +19,6 @@ namespace UnityEditor.VFX
 
         public virtual string name { get { return string.Empty; }}
 
-
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 
         public event InvalidateEvent onInvalidateDelegate;
@@ -130,6 +129,19 @@ namespace UnityEditor.VFX
             }
         }
 
+        public bool collapsed
+        {
+            get { return m_UICollapsed; }
+            set
+            {
+                if (m_UICollapsed != value)
+                {
+                    m_UICollapsed = value;
+                    Invalidate(InvalidationCause.kUIChanged);
+                }
+            }
+        }
+
         public int GetNbChildren()
         {
             return m_Children.Count;
@@ -173,6 +185,9 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         private Vector2 m_UIPosition;
+
+        [SerializeField]
+        private bool m_UICollapsed;
     }
 
     abstract class VFXModel<ParentType, ChildrenType> : VFXModel

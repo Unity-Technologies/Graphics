@@ -356,11 +356,7 @@ namespace UnityEditor.VFX.UI
 				default: throw new Exception();
 			}
 
-            if (presenter.context.position != presenter.position.position)
-			{
-                presenter.context.position = presenter.position.position;
-				// Needs to make the model dirty
-			}
+            presenter.context.position = presenter.position.position;
 
 			m_FlowInputConnectorContainer.ClearChildren();
 			m_FlowOutputConnectorContainer.ClearChildren();

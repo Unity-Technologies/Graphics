@@ -485,13 +485,6 @@ namespace UnityEditor.VFX.UI
             {
                 var presenter = (GraphElementPresenter)newPresenter;
                 newPresenter.Init(model,this);
-
-                // Update UI data from model
-                var pos = presenter.position;
-                pos.x = model.position.x;
-                pos.y = model.position.y;
-                presenter.position = pos;
-
                 AddElement(presenter);
             }
         }

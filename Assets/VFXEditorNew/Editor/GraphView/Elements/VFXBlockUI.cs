@@ -111,9 +111,7 @@ namespace UnityEditor.VFX.UI
 			}
 
 			SetPosition(presenter.position);
-
-
-
+            presenter.Model.collapsed = !presenter.expanded;
         }
 
 

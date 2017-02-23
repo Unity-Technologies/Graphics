@@ -27,6 +27,9 @@ namespace UnityEditor.VFX.UI
         {
             m_Operator = (VFXOperator)model;
 
+            position = new Rect(model.position.x,model.position.y,position.width,position.height);
+            expanded = !model.collapsed;
+
             title = m_Operator.name;
 
             inputAnchors.Clear();
