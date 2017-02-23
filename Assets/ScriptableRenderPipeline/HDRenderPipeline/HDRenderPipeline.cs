@@ -398,24 +398,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_LightLoop == null)
                 return;
 
-            if (camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight)
+            bool resolutionChanged = camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight;
+
+            if (resolutionChanged || m_CameraDepthStencilBuffer == null)
             {
                 CreateDepthBuffer(camera);
-                
-                if(m_LightLoop.NeedResize())
-                {
-                    if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
-                    {
-                        m_LightLoop.ReleaseResolutionDependentBuffers();
-                    }
+            }
 
-                    m_LightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
+            if (resolutionChanged || m_LightLoop.NeedResize())
+            {
+                if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
+                {
+                    m_LightLoop.ReleaseResolutionDependentBuffers();
                 }
 
-                // update recorded window resolution
-                m_CurrentWidth = camera.pixelWidth;
-                m_CurrentHeight = camera.pixelHeight;
+                m_LightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
             }
+
+            // update recorded window resolution
+            m_CurrentWidth = camera.pixelWidth;
+            m_CurrentHeight = camera.pixelHeight;
         }
 
         public void PushGlobalParams(HDCamera hdCamera, ScriptableRenderContext renderContext, SubsurfaceScatteringSettings sssParameters)
