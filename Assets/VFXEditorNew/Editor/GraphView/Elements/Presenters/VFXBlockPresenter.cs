@@ -134,7 +134,7 @@ namespace UnityEditor.VFX.UI
             FieldInfo fieldInfo = stack[stack.Count - 1].GetType().GetField(info.name);
             fieldInfo.SetValue(stack[stack.Count - 1], info.value);
 
-            for (int i = fields.Length-1; i > 0 ; --i)
+            for (int i = fields.Length; i > 0 ; --i)
             {
                 object current = stack[i];
                 object prev = stack[i - 1];
