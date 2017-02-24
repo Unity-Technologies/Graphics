@@ -19,13 +19,14 @@ namespace UnityEditor.VFX
             m_Buffers = new object[fields.Length];
 
 
+            var defaultBuffer = System.Activator.CreateInstance(type);
+
+
             for (int i = 0; i < fields.Length; ++i)
             {
                 m_Properties[i] = new Property() { type = fields[i].FieldType, name = fields[i].Name };
-                if (!typeof(Object).IsAssignableFrom(m_Properties[i].type)) // Objects are left at the default value of null
-                {
-                    m_Buffers[i] = System.Activator.CreateInstance(m_Properties[i].type);
-                }
+                
+                m_Buffers[i] = fields[i].GetValue(defaultBuffer);
             }
         }
 

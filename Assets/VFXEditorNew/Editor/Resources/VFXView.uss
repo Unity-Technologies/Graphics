@@ -221,6 +221,13 @@ VFXBlockUI.selected VFXDataAnchor #connector
 	border-color:#454545;
 }
 
+/*Default*/
+VFXDataAnchor.connected > #connector
+{
+	border-color:#787878;
+	background-color : #787878;
+}
+
 VFXDataAnchor.connected > #connector.typesingle
 {
 	border-color:#6be6b0;
@@ -265,6 +272,12 @@ VFXDataAnchor.connected > #connector.typetexture3d
 
 
 /* Data edges */
+
+/*Default*/
+VFXDataEdge
+{
+	border-color : #787878;
+}
 
 VFXDataEdge.typesingle
 {

@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.UI
 {
     static class VFXTypeDefinition
     {
-        public static readonly Type[] potentialTypes = new Type[] { typeof(float), typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Color), typeof(Texture2D), typeof(Texture3D), typeof(Object) };
+        public static readonly Type[] potentialTypes = new Type[] { typeof(int),typeof(float), typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Color), typeof(Texture2D), typeof(Texture3D),typeof(Vector),typeof(Position), typeof(Object) };
         private static readonly string[] cssClasses = null;
 
 

@@ -88,4 +88,10 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         public Vector3 vector;
     }
+
+    struct FlipBook
+    {
+        public int x;
+        public int y;
+    }
 }
