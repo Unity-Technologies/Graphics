@@ -31,6 +31,7 @@ namespace UnityEditor.VFX.UI
             anchorType = propertyInfo.type;
             m_NodePresenter = nodePresenter;
             m_PropertyInfo = propertyInfo;
+            name = m_PropertyInfo.path;
         }
 
         public void UpdateInfos(ref VFXBlockPresenter.PropertyInfo propertyInfo)
