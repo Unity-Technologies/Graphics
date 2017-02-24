@@ -5,10 +5,7 @@
 	padding-right: 20;
 }
 .FlowContainer.Output{
-	margin-top:-24;
-}
-.FlowContainer.Input{
-	padding-bottom:-24;
+	margin-top:0;
 }
 
 VFXFlowAnchor.InputEdgeConnector {
@@ -37,16 +34,21 @@ VFXContextUI {
 	flex: 1;
 	flex-direction: column;
 	align-items: stretch;
-	min-height: 100;
 	min-width: 340;
+	margin-top:0;
+}
+VFXContextUI #NodeContents{
+	
 	border-color: #282828;
 	border-radius:6;
 	border-width: 2;
 }
-
-VFXContextUI.selected {
+VFXContextUI.selected #NodeContents
+{
 	border-color: #383838;
-	}
+	border-radius:6;
+	border-width: 2;
+}
 
 VFXContextUI > * >#Title {
 	text-color: #C4C4C4;
@@ -190,8 +192,8 @@ VFXDataAnchor .space
 
 VFXDataAnchor
 {
-	flex-direction:row,
-	background-color: #555;
+	flex-direction:row;
+	min-height:17;
 }
 
 VFXDataAnchor #connector
@@ -224,27 +226,27 @@ VFXDataAnchor.connected > #connector.typesingle
 	border-color:#9f80e6;
 	background-color : #9f80e6;
 }
-VFXDataAnchor.connected > .connector.typevector2
+VFXDataAnchor.connected > #connector.typevector2
 {
 	border-color:#8fc1df;
 	background-color : #8fc1df;
 }
-VFXDataAnchor.connected > .connector.typevector3
+VFXDataAnchor.connected > #connector.typevector3
 {
 	border-color:#e7ab21;
 	background-color : #e7ab21;
 }
-VFXDataAnchor.connected > .connector.typevector4
+VFXDataAnchor.connected > #connector.typevector4
 {
 	border-color:#42ca48;
 	background-color : #42ca48;
 }
-VFXDataAnchor.connected >.connector.typecolor
+VFXDataAnchor.connected > #connector.typecolor
 {
 	border-color:#d1d1d1;
 	background-color : #d1d1d1;
 }
-VFXDataAnchor.connected > .connector.typeobject
+VFXDataAnchor.connected > #connector.typeobject
 {
 	border-color:#787878;
 	background-color : #787878;

@@ -247,9 +247,10 @@ namespace UnityEditor.VFX.UI
     {
         public override Color OnParameterGUI(VFXDataAnchorPresenter presenter, Color value, VFXDataAnchor.GUIStyles styles)
         {
+            Color startValue = value;
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
-            EditorGUILayout.ColorField(value);
+            Color color = EditorGUILayout.ColorField(value);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Space((presenter.propertyInfo.depth + 1) * depthOffset);
@@ -263,7 +264,7 @@ namespace UnityEditor.VFX.UI
             value.a = EditorGUILayout.FloatField(value.a, styles.baseStyle, GUILayout.Height(styles.lineHeight));
             GUILayout.EndHorizontal();
 
-            return value;
+            return startValue != value ? value : color;
         }
     }
     class VFXObjectPropertyIM<T> : VFXPropertyIM<T> where T : Object
