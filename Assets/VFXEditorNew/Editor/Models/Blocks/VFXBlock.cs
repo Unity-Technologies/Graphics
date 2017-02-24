@@ -13,20 +13,25 @@ namespace UnityEditor.VFX
         {
             System.Type type = GetType().GetNestedType("Properties");
 
-            var fields = type != null ? type.GetFields() : new FieldInfo[0];
-
-            m_Properties = new Property[fields.Length];
-            m_Buffers = new object[fields.Length];
-
-
-            var defaultBuffer = System.Activator.CreateInstance(type);
-
-
-            for (int i = 0; i < fields.Length; ++i)
+            if (type != null)
             {
-                m_Properties[i] = new Property() { type = fields[i].FieldType, name = fields[i].Name };
-                
-                m_Buffers[i] = fields[i].GetValue(defaultBuffer);
+                var fields = type.GetFields();
+
+                m_Properties = new Property[fields.Length];
+                m_Buffers = new object[fields.Length];
+
+                var defaultBuffer = System.Activator.CreateInstance(type);
+
+                for (int i = 0; i < fields.Length; ++i)
+                {
+                    m_Properties[i] = new Property() { type = fields[i].FieldType, name = fields[i].Name };
+                    m_Buffers[i] = fields[i].GetValue(defaultBuffer);
+                }
+            }
+            else
+            {
+                m_Properties = new Property[0];
+                m_Buffers = new object[0];
             }
         }
 
