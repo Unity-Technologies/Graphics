@@ -87,6 +87,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent lightingDebugOverrideSmoothness = new GUIContent("Override Smoothness");
             public readonly GUIContent lightingDebugOverrideSmoothnessValue = new GUIContent("Smoothness Value");
             public readonly GUIContent lightingDebugAlbedo = new GUIContent("Lighting Debug Albedo");
+            public readonly GUIContent lightingDisplaySkyReflection = new GUIContent("Display Sky Reflection");
+            public readonly GUIContent lightingDisplaySkyReflectionMipmap = new GUIContent("Reflection Mipmap");
 
             public Styles()
             {
@@ -131,6 +133,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_LightingDebugOverrideSmoothness = null;
         SerializedProperty m_LightingDebugOverrideSmoothnessValue = null;
         SerializedProperty m_LightingDebugAlbedo = null;
+        SerializedProperty m_LightingDebugDisplaySkyReflection = null;
+        SerializedProperty m_LightingDebugDisplaySkyReflectionMipmap = null;
 
         // Rendering Settings
         SerializedProperty m_RenderingUseForwardOnly = null;
@@ -169,6 +173,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LightingDebugOverrideSmoothness = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.overrideSmoothness);
             m_LightingDebugOverrideSmoothnessValue = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.overrideSmoothnessValue);
             m_LightingDebugAlbedo = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.debugLightingAlbedo);
+            m_LightingDebugDisplaySkyReflection = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.displaySkyReflection);
+            m_LightingDebugDisplaySkyReflectionMipmap = FindProperty(x => x.globalDebugSettings.lightingDebugSettings.skyReflectionMipmap);
 
             // Rendering settings
             m_RenderingUseForwardOnly = FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
@@ -457,12 +463,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_LightingDebugMode.hasMultipleDifferentValues)
             {
                 if ((LightingDebugMode)m_LightingDebugMode.intValue != LightingDebugMode.None)
-            {
+                {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(m_LightingDebugAlbedo, styles.lightingDebugAlbedo);
                     EditorGUILayout.PropertyField(m_LightingDebugOverrideSmoothness, styles.lightingDebugOverrideSmoothness);
                     if (!m_LightingDebugOverrideSmoothness.hasMultipleDifferentValues && m_LightingDebugOverrideSmoothness.boolValue == true)
-                {
+                    {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(m_LightingDebugOverrideSmoothnessValue, styles.lightingDebugOverrideSmoothnessValue);
                         EditorGUI.indentLevel--;
@@ -470,6 +476,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     EditorGUI.indentLevel--;
                 }
             }
+
+            EditorGUILayout.PropertyField(m_LightingDebugDisplaySkyReflection, styles.lightingDisplaySkyReflection);
+            if (!m_LightingDebugDisplaySkyReflection.hasMultipleDifferentValues && m_LightingDebugDisplaySkyReflection.boolValue == true)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_LightingDebugDisplaySkyReflectionMipmap, styles.lightingDisplaySkyReflectionMipmap);
+                EditorGUI.indentLevel--;
+            }
+
             EditorGUI.indentLevel--;
 
             if (EditorGUI.EndChangeCheck())
