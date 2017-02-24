@@ -74,7 +74,7 @@ namespace UnityEditor.VFX
                 {
                     var oldFloat = node.Value<float>();
                     var newFloat = EditorGUILayout.FloatField(currentName, oldFloat);
-                    if (oldFloat != newFloat)
+                    if (Mathf.Abs(oldFloat - newFloat) > float.Epsilon)
                     {
                         node.Replace(newFloat);
                     }
@@ -86,6 +86,15 @@ namespace UnityEditor.VFX
                     if (oldInt != newInt)
                     {
                         node.Replace(newInt);
+                    }
+                }
+                else if (node.Type == JTokenType.Boolean)
+                {
+                    var oldToggle = node.Value<bool>();
+                    var newToggle = EditorGUILayout.Toggle(currentName, oldToggle);
+                    if (oldToggle != newToggle)
+                    {
+                        node.Replace(newToggle);
                     }
                 }
                 else if (node.Type == JTokenType.String)
@@ -164,11 +173,12 @@ namespace UnityEditor.VFX
                         m_scrollViewPosition = newScrollViewPosition;
                         Repaint();
                     }
+
+                    EditorGUI.BeginChangeCheck();
                     ProcessJSonTokenGUI(token, "", string.Format("m_SerializableChildren[{0}]", i));
-                    var newJson = JsonConvert.SerializeObject(token);
-                    if (!m_readOnly && oldJson != newJson)
+                    if (!m_readOnly && EditorGUI.EndChangeCheck())
                     {
-                        jsonNodeData.stringValue = newJson;
+                        jsonNodeData.stringValue = JsonConvert.SerializeObject(token);
                     }
                 }
                 GUILayout.EndScrollView();
