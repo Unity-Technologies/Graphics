@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         {
             kStructureChanged,  // Model structure (hierarchy) has changed
             kParamChanged,      // Some parameter values have changed
-            kDataChanged,       // Data layout have changed
+            kConnectionChanged, // Connection have changed
             kUIChanged,         // UI stuff has changed
         }
 
