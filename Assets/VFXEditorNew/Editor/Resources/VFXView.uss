@@ -269,6 +269,31 @@ VFXDataAnchor.connected > #connector.typetexture3d
 	border-color : #f7add7;
 	background-color : #f7add7;
 }
+VFXDataAnchor.connected > #connector.typeboolean
+{
+	border-color : #a081e6;
+	background-color : #a081e6;
+}
+VFXDataAnchor.connected > #connector.typeint32
+{
+	border-color : #a081e6;
+	background-color : #a081e6;
+}
+VFXDataAnchor.connected > #connector.typeflipbook
+{
+	border-color : #c2a8ff;
+	background-color : #c2a8ff;
+}
+VFXDataAnchor.connected > #connector.typemesh
+{
+	border-color : #7aa3ea;
+	background-color : #7aa3ea;
+}
+VFXDataAnchor.connected > #connector.typeanimationcurve
+{
+	border-color : #84e4e7;
+	background-color : #84e4e7;
+}
 
 
 /* Data edges */
@@ -310,4 +335,24 @@ VFXDataEdge.typetexture2d
 VFXDataEdge.typetexture3d
 {
 	border-color : #f7add7;
+}
+VFXDataEdge.typeboolean
+{
+	border-color : #a081e6;
+}
+VFXDataEdge.typeint32
+{
+	border-color : #a081e6;
+}
+VFXDataEdge.typeflipbook
+{
+	border-color : #c2a8ff;
+}
+VFXDataEdge.typemesh
+{
+	border-color : #7aa3ea;
+}
+VFXDataEdge.typeanimationcurve
+{
+	border-color : #84e4e7;
 }

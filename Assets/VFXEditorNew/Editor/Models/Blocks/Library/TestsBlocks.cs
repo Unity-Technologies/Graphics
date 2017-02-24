@@ -67,6 +67,9 @@ namespace UnityEditor.VFX
             public Position aPosition = new Position { space = CoordinateSpace.Local, position = Vector3.forward };
             public int anInt;
             public FlipBook aFlipBook;
+            public bool aBool;
+            public AnimationCurve curve = new AnimationCurve();
+            public Mesh aMesh;
         }
     }
 }

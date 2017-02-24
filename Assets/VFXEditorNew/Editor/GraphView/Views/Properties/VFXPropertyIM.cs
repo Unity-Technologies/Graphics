@@ -47,7 +47,9 @@ namespace UnityEditor.VFX.UI
             {typeof(Color),typeof(VFXColorPropertyIM) },
             {typeof(Texture2D),typeof(VFXObjectPropertyIM<Texture2D>) },
             {typeof(Texture3D),typeof(VFXObjectPropertyIM<Texture3D>) },
-            {typeof(int),typeof(VFXIntPropertyIM) }
+            {typeof(Mesh),typeof(VFXObjectPropertyIM<Mesh>) },
+            {typeof(int),typeof(VFXIntPropertyIM) },
+            {typeof(AnimationCurve),typeof(VFXAnimationCurvePropertyIM) }
         };
         public static VFXPropertyIM Create(Type type)
         {
@@ -254,7 +256,7 @@ namespace UnityEditor.VFX.UI
             Color startValue = value;
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
-            Color color = EditorGUILayout.ColorField(new GUIContent(""),value,true,true,true,new ColorPickerHDRConfig(-10,10,-10,10));
+            Color color = EditorGUILayout.ColorField(new GUIContent(""), value, true, true, true, new ColorPickerHDRConfig(-10, 10, -10, 10));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Space((presenter.propertyInfo.depth + 1) * depthOffset);
@@ -269,6 +271,21 @@ namespace UnityEditor.VFX.UI
             GUILayout.EndHorizontal();
 
             return startValue != value ? value : color;
+        }
+    }
+    class VFXAnimationCurvePropertyIM : VFXPropertyIM<AnimationCurve>
+    {
+        public override AnimationCurve OnParameterGUI(VFXDataAnchorPresenter presenter, AnimationCurve value, VFXDataAnchor.GUIStyles styles)
+        {
+            GUILayout.BeginHorizontal();
+            Label(presenter, styles);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            value = EditorGUILayout.CurveField(value);
+            GUILayout.EndHorizontal();
+
+            return value;
         }
     }
     class VFXObjectPropertyIM<T> : VFXPropertyIM<T> where T : Object
