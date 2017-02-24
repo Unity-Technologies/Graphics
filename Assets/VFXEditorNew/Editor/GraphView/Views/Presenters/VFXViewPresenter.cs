@@ -424,8 +424,6 @@ namespace UnityEditor.VFX.UI
 
         public void SyncPresentersFromModel(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            Debug.Log("Invalidate Model: " + model + " Cause: " + cause);
-
             switch (cause)
             {
                 case VFXModel.InvalidationCause.kStructureChanged:
@@ -458,6 +456,8 @@ namespace UnityEditor.VFX.UI
                         break;
                     }
             }
+
+            Debug.Log("Invalidate Model: " + model + " Cause: " + cause + " nbElements:" + m_Elements.Count);
         }
 
         private void AddPresentersFromModel(VFXModel model,Dictionary<VFXModel, IVFXPresenter> syncedModels)

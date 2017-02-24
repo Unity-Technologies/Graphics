@@ -17,11 +17,17 @@ namespace UnityEditor.VFX
             kUIChanged,         // UI stuff has changed
         }
 
-        public virtual string name { get { return string.Empty; }}
+        public virtual string name  { get { return string.Empty; } }
+        public Guid id              { get { return m_Id; } }
 
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 
         public event InvalidateEvent onInvalidateDelegate;
+
+        protected VFXModel()
+        {
+            m_Id = Guid.NewGuid();
+        }
 
         protected virtual void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
@@ -166,16 +172,26 @@ namespace UnityEditor.VFX
 
         public virtual void OnBeforeSerialize()
         {
+            m_SerializableId = m_Id.ToString();
             m_SerializableChildren = SerializationHelper.Serialize<VFXModel>(m_Children);
         }
 
         public virtual void OnAfterDeserialize()
         {
+            if (!String.IsNullOrEmpty(m_SerializableId))
+                m_Id = new Guid(m_SerializableId);
+            else
+                m_Id = Guid.NewGuid();
             m_Children = SerializationHelper.Deserialize<VFXModel>(m_SerializableChildren, null);
             foreach (var child in m_Children)
                 child.m_Parent = this;
             m_SerializableChildren = null; // No need to keep it
         }
+      
+        private Guid m_Id;
+
+        [SerializeField]
+        private string m_SerializableId;
 
         protected VFXModel m_Parent = null;
         protected List<VFXModel> m_Children = new List<VFXModel>();
