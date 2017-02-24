@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         {
             System.Type type = GetType().GetNestedType("Properties");
 
-            var fields = type.GetFields();
+            var fields = type != null ? type.GetFields() : new FieldInfo[0];
 
             m_Properties = new Property[fields.Length];
             m_Buffers = new object[fields.Length];
