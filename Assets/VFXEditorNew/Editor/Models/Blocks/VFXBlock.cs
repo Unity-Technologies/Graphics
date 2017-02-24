@@ -11,14 +11,38 @@ namespace UnityEditor.VFX
 
         public VFXBlock()
         {
-            var propertyType = GetPropertiesType();
-            if (propertyType != null)
-                m_PropertyBuffer = System.Activator.CreateInstance(propertyType);
+            System.Type type = GetType().GetNestedType("Properties");
+
+            var fields = type.GetFields();
+
+            m_Properties = new Property[fields.Length];
+            m_Buffers = new object[fields.Length];
+
+
+            for (int i = 0; i < fields.Length; ++i)
+            {
+                m_Properties[i] = new Property() { type = fields[i].FieldType, name = fields[i].Name };
+                if (!typeof(Object).IsAssignableFrom(m_Properties[i].type)) // Objects are left at the default value of null
+                {
+                    m_Buffers[i] = System.Activator.CreateInstance(m_Properties[i].type);
+                }
+            }
         }
 
-        public System.Type GetPropertiesType()
+
+        Property[] m_Properties;
+        object[] m_Buffers;
+
+
+        public struct Property
         {
-            return GetType().GetNestedType("Properties");
+            public System.Type type;
+            public string name;
+        }
+
+        public Property[] GetProperties()
+        {
+            return m_Properties;
         }
 
         public void ExpandPath(string fieldPath)
@@ -39,14 +63,12 @@ namespace UnityEditor.VFX
         }
 
 
-        public object GetCurrentPropertiesValue()
+        public object[] GetCurrentPropertiesValues()
         {
-            return m_PropertyBuffer;
+            return m_Buffers;
         }
 
         [SerializeField]
         HashSet<string> m_expandedPaths = new HashSet<string>();
-
-        public object m_PropertyBuffer;
     }
 }

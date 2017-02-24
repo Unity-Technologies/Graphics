@@ -78,16 +78,6 @@ namespace UnityEditor.VFX.UI
             get { return m_ContextPresenter; }
         }
 
-        public Type GetPropertiesType()
-        {
-            return m_Model.GetPropertiesType();
-        }
-
-        public object GetCurrentPropertiesValues()
-        {
-            return m_Model.GetCurrentPropertiesValue();
-        }
-
 
         public VFXDataInputAnchorPresenter GetPropertyPresenter(ref PropertyInfo info)
         {
@@ -116,33 +106,42 @@ namespace UnityEditor.VFX.UI
         {
             //TODO undo/redo
 
-            string[] fields = info.parentPath.Split(new char[] { '.' },StringSplitOptions.RemoveEmptyEntries);
+            string[] fields = info.path.Split(new char[] { '.' },StringSplitOptions.RemoveEmptyEntries);
 
-            object buffer = GetCurrentPropertiesValues();
+
+            var properties = m_Model.GetProperties();
+            var buffers = m_Model.GetCurrentPropertiesValues();
+
+
+            int index = System.Array.FindIndex(properties, t => t.name == fields[0]);
+            var prop = properties[index];
+            var buffer = buffers[index];
 
             List<object> stack= new List<object>();
+
             stack.Add(buffer);
 
-            for (int i = 0; i < fields.Length; ++i)
+            for (int i = 1; i < fields.Length; ++i)
             {
-                object current = stack[i];
+                object current = stack[i-1];
                 FieldInfo fi = current.GetType().GetField(fields[i]);
 
                 stack.Add(fi.GetValue(current));
             }
-            FieldInfo fieldInfo = stack[stack.Count - 1].GetType().GetField(info.name);
-            fieldInfo.SetValue(stack[stack.Count - 1], info.value);
+            stack[stack.Count - 1] = info.value;
 
-            for (int i = fields.Length; i > 0 ; --i)
+            for (int i = stack.Count -1 ; i > 0 ; --i)
             {
                 object current = stack[i];
                 object prev = stack[i - 1];
 
-                FieldInfo fi = prev.GetType().GetField(fields[i-1]);
+                FieldInfo fi = prev.GetType().GetField(fields[i]);
 
                 fi.SetValue(prev, current);
             }
-            //TODO update slots for now the buffer content is changed and then we invalidate the model
+
+            buffers[index] = stack[0];
+
             m_Model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
 
         }
@@ -168,18 +167,48 @@ namespace UnityEditor.VFX.UI
 
         public IEnumerable<PropertyInfo> GetProperties()
         {
-            return GetProperties(m_Model.GetPropertiesType(), GetCurrentPropertiesValues(), "", 0);
+            var properties = m_Model.GetProperties();
+            var values = m_Model.GetCurrentPropertiesValues();
+
+            for(int i = 0; i < properties.Count(); ++i)
+            {
+                PropertyInfo info = new PropertyInfo()
+                {
+                    type = properties[i].type,
+                    name = properties[i].name,
+                    value = values[i],
+                    parentPath = "",
+                    expandable = IsTypeExpandable(properties[i].type),
+                    expanded = m_Model.IsPathExpanded(properties[i].name),
+                    depth = 0
+                };
+
+                yield return info;
+
+                if (info.expanded)
+                {
+                    foreach (var subField in GetProperties(info.type, info.value, info.name, 1))
+                    {
+                        yield return subField;
+                    }
+                }
+            }
         }
 
         public IEnumerable<PropertyInfo> GetProperties(string fieldPath)
         {
             string[] fields = fieldPath.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
 
-            object buffer = GetCurrentPropertiesValues();
-            Type type = GetPropertiesType();
+            var properties = m_Model.GetProperties();
+            var buffers = m_Model.GetCurrentPropertiesValues();
 
-            Type current = type;
-            for (int i = 0; i < fields.Length; ++i)
+
+            int index = System.Array.FindIndex(properties, t => t.name == fields[0]);
+            var prop = properties[index];
+            var buffer = buffers[index];
+
+            Type current = prop.type;
+            for (int i = 1; i < fields.Length; ++i)
             {
                 FieldInfo fi = current.GetField(fields[i]);
 
@@ -188,6 +217,12 @@ namespace UnityEditor.VFX.UI
             }
 
             return GetProperties(current, buffer, fieldPath, fields.Length);
+        }
+
+
+        bool IsTypeExpandable(System.Type type)
+        {
+            return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type);
         }
 
         private IEnumerable<PropertyInfo> GetProperties(Type type, object value, string prefix, int depth)
@@ -216,7 +251,7 @@ namespace UnityEditor.VFX.UI
                     name = field.Name,
                     value = fieldValue,
                     type = field.FieldType,
-                    expandable = !field.FieldType.IsPrimitive && ! typeof(Object).IsAssignableFrom(field.FieldType),
+                    expandable = IsTypeExpandable(field.FieldType),
                     expanded = expanded,
                     depth = depth,
                     parentPath = prefix
