@@ -321,14 +321,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // post update
+            var cblast = new CommandBuffer();
+            PostUpdate( frameId, cblast, curSlice );
             if( !string.IsNullOrEmpty( m_ShaderKeyword ) )
             {
-                var cb = new CommandBuffer();
-                cb.name = "Shadowmap.DisableShaderKeyword";
-                cb.DisableShaderKeyword( m_ShaderKeyword );
-                renderContext.ExecuteCommandBuffer( cb );
-                cb.Dispose();
+                cblast.name = "Shadowmap.DisableShaderKeyword";
+                cblast.DisableShaderKeyword( m_ShaderKeyword );
             }
+            renderContext.ExecuteCommandBuffer( cblast );
+            cblast.Dispose();
 
             m_ActiveEntriesCount = 0;
 
