@@ -83,6 +83,20 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kConnectionChanged);
         }
 
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            if (direction == Direction.kOutput)
+            {
+                if (cause == InvalidationCause.kConnectionChanged) // If connection has changed, propagate to linked inputs
+                    foreach (var slot in m_LinkedSlots)
+                        slot.Invalidate(model, InvalidationCause.kConnectionPropagated);
+
+                if (cause == InvalidationCause.kParamChanged) // If param has changed, propagate to linked inputs
+                    foreach (var slot in m_LinkedSlots)
+                        slot.Invalidate(model, InvalidationCause.kParamPropagated);
+            }
+        }
+
         [SerializeField]
         private Direction m_Direction;
 
