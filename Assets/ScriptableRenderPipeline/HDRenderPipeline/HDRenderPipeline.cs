@@ -231,11 +231,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly GBufferManager m_gbufferManager = new GBufferManager();
 
         // Various set of material use in render loop
-        readonly Material m_DebugViewMaterialGBuffer;
         readonly Material m_FilterSubsurfaceScattering;
         readonly Material m_FilterAndCombineSubsurfaceScattering;
-        readonly Material m_DebugDisplayShadowMap;
-
+        
+        private Material m_DebugDisplayShadowMap;
+        private Material m_DebugViewMaterialGBuffer;
+        private Material m_DebugDisplayLatlong;
+        
         // Various buffer
         readonly int m_CameraColorBuffer;
         readonly int m_CameraSubsurfaceBuffer;
@@ -285,8 +287,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraSubsurfaceBufferRT          = new RenderTargetIdentifier(m_CameraSubsurfaceBuffer);
             m_CameraFilteringBufferRT           = new RenderTargetIdentifier(m_CameraFilteringBuffer);
 
-            m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
-
             m_FilterSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
             m_FilterSubsurfaceScattering.DisableKeyword("FILTER_HORIZONTAL");
             m_FilterSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.Zero);
@@ -295,7 +295,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FilterSubsurfaceScattering.EnableKeyword("FILTER_HORIZONTAL");
             m_FilterAndCombineSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.One);
 
-            m_DebugDisplayShadowMap = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayShadowMap");
+            InitializeDebugMaterials();
 
             m_ShadowPass = new ShadowRenderPass(owner.shadowSettings);
 
@@ -332,6 +332,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.Build();
             m_SkyManager.skySettings = owner.skySettingsToUse;
+        }
+
+        void InitializeDebugMaterials()
+        {
+            m_DebugDisplayShadowMap = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayShadowMap");
+            m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
+            m_DebugDisplayLatlong = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayLatlong");
         }
 
         public override void Dispose()
@@ -963,13 +970,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
 
-            LightingDebugSettings shadowDebug = globalDebugSettings.lightingDebugSettings;
+            LightingDebugSettings lightingDebug = globalDebugSettings.lightingDebugSettings;
 
-            if (shadowDebug.shadowDebugMode != ShadowDebugMode.None)
+            if (lightingDebug.shadowDebugMode != ShadowDebugMode.None)
             {
-                if (shadowDebug.shadowDebugMode == ShadowDebugMode.VisualizeShadowMap)
+                if (lightingDebug.shadowDebugMode == ShadowDebugMode.VisualizeShadowMap)
                 {
-                    uint visualizeShadowIndex = Math.Min(shadowDebug.shadowMapIndex, (uint)(GetCurrentShadowCount() - 1));
+                    uint visualizeShadowIndex = Math.Min(lightingDebug.shadowMapIndex, (uint)(GetCurrentShadowCount() - 1));
                     ShadowLight shadowLight = m_ShadowsResult.shadowLights[visualizeShadowIndex];
                     for (int slice = 0; slice < shadowLight.shadowSliceCount; ++slice)
                     {
@@ -988,7 +995,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
                     }
                 }
-                else if (shadowDebug.shadowDebugMode == ShadowDebugMode.VisualizeAtlas)
+                else if (lightingDebug.shadowDebugMode == ShadowDebugMode.VisualizeAtlas)
                 {
                     propertyBlock.SetVector("_TextureScaleBias", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
 
@@ -997,6 +1004,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
                 }
+            }
+
+            if(lightingDebug.displaySkyReflection)
+            {
+                Texture skyReflection = m_SkyManager.skyReflection;
+                propertyBlock.SetTexture("_InputCubemap", skyReflection);
+                propertyBlock.SetFloat("_Mipmap", lightingDebug.skyReflectionMipmap);
+                debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayLatlong, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
+                NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
             }
 
             renderContext.ExecuteCommandBuffer(debugCB);

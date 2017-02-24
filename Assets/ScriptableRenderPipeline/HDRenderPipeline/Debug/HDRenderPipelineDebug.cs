@@ -66,9 +66,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                overrideSmoothnessValue = 0.5f;
         public Color                debugLightingAlbedo = new Color(0.5f, 0.5f, 0.5f);
 
+        public bool                 displaySkyReflection = false;
+        public float                skyReflectionMipmap = 0.0f;
+
         public void OnValidate()
         {
             overrideSmoothnessValue = Mathf.Clamp(overrideSmoothnessValue, 0.0f, 1.0f);
+            skyReflectionMipmap = Mathf.Clamp(skyReflectionMipmap, 0.0f, 1.0f);
         }
     }
 }
