@@ -25,6 +25,22 @@ namespace UnityEditor.VFX
             } 
         }
 
+        public IVFXSlotContainer owner
+        {
+            get { return m_Owner; }
+            set 
+            {
+                if (GetParent() == null && m_Owner != value) // Cannot add an owner to a sub slot
+                {
+                    if (m_Owner != null)
+                        m_Owner.RemoveSlot(this);
+                    m_Owner = value;
+                    if (m_Owner != null)
+                        m_Owner.AddSlot(this);
+                }
+            }
+        }
+
         private VFXSlot() {} // For serialization only
         public VFXSlot(Direction direction)
         {
@@ -97,10 +113,25 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+            m_LinkedSlotRefs = m_LinkedSlots.Select(slot => slot.id.ToString()).ToList();
+        }
+
+       /* public virtual void OnAfterDeserialize()
+        {
+            base.OnBeforeSerialize();
+        }*/
+
+        private IVFXSlotContainer m_Owner;
+
         [SerializeField]
         private Direction m_Direction;
 
         private List<VFXSlot> m_LinkedSlots = new List<VFXSlot>();
+        [SerializeField]
+        private List<string> m_LinkedSlotRefs;
     }
 
     /*class VFXSlotFloat : VFXSlot<float>
