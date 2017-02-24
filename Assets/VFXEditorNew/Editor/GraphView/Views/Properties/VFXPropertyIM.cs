@@ -35,35 +35,29 @@ namespace UnityEditor.VFX.UI
 
 
         public const float kLabelWidth = 70;
+
+
+
+        static Dictionary<Type, Type> m_PropertyIMTypes = new Dictionary<Type, Type>
+        {
+            {typeof(float),typeof(VFXFloatPropertyIM) },
+            {typeof(Vector2),typeof(VFXVector2PropertyIM) },
+            {typeof(Vector3),typeof(VFXVector3PropertyIM) },
+            {typeof(Vector4),typeof(VFXVector4PropertyIM) },
+            {typeof(Color),typeof(VFXColorPropertyIM) },
+            {typeof(Texture2D),typeof(VFXObjectPropertyIM<Texture2D>) },
+            {typeof(Texture3D),typeof(VFXObjectPropertyIM<Texture3D>) },
+            {typeof(Mesh),typeof(VFXObjectPropertyIM<Mesh>) },
+            {typeof(int),typeof(VFXIntPropertyIM) },
+            {typeof(AnimationCurve),typeof(VFXAnimationCurvePropertyIM) }
+        };
         public static VFXPropertyIM Create(Type type)
         {
-            if(type == typeof(float))
+            Type propertyIMType;
+
+            if(m_PropertyIMTypes.TryGetValue(type,out propertyIMType))
             {
-                return new VFXFloatPropertyIM();
-            }
-            else if (type == typeof(Vector2))
-            {
-                return new VFXVector2PropertyIM();
-            }
-            else if (type == typeof(Vector3))
-            {
-                return new VFXVector3PropertyIM();
-            }
-            else if (type == typeof(Vector4))
-            {
-                return new VFXVector4PropertyIM();
-            }
-            else if (type == typeof(Color))
-            {
-                return new VFXColorPropertyIM();
-            }
-            else if (type == typeof(Texture2D))
-            {
-                return new VFXObjectPropertyIM<Texture2D>();
-            }
-            else if (type == typeof(Texture3D))
-            {
-                return new VFXObjectPropertyIM<Texture3D>();
+                return System.Activator.CreateInstance(propertyIMType) as VFXPropertyIM;
             }
             else
             {
@@ -187,6 +181,18 @@ namespace UnityEditor.VFX.UI
             return value;
         }
     }
+    class VFXIntPropertyIM : VFXPropertyIM<int>
+    {
+        public override int OnParameterGUI(VFXDataAnchorPresenter presenter, int value, VFXDataAnchor.GUIStyles styles)
+        {
+            GUILayout.BeginHorizontal();
+            Label(presenter, styles);
+            value = EditorGUILayout.IntField(value, styles.baseStyle, GUILayout.Height(styles.lineHeight));
+            GUILayout.EndHorizontal();
+
+            return value;
+        }
+    }
     class VFXVector3PropertyIM : VFXPropertyIM<Vector3>
     {
         public override Vector3 OnParameterGUI(VFXDataAnchorPresenter presenter, Vector3 value, VFXDataAnchor.GUIStyles styles)
@@ -250,7 +256,7 @@ namespace UnityEditor.VFX.UI
             Color startValue = value;
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
-            Color color = EditorGUILayout.ColorField(value);
+            Color color = EditorGUILayout.ColorField(new GUIContent(""), value, true, true, true, new ColorPickerHDRConfig(-10, 10, -10, 10));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Space((presenter.propertyInfo.depth + 1) * depthOffset);
@@ -265,6 +271,21 @@ namespace UnityEditor.VFX.UI
             GUILayout.EndHorizontal();
 
             return startValue != value ? value : color;
+        }
+    }
+    class VFXAnimationCurvePropertyIM : VFXPropertyIM<AnimationCurve>
+    {
+        public override AnimationCurve OnParameterGUI(VFXDataAnchorPresenter presenter, AnimationCurve value, VFXDataAnchor.GUIStyles styles)
+        {
+            GUILayout.BeginHorizontal();
+            Label(presenter, styles);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            value = EditorGUILayout.CurveField(value);
+            GUILayout.EndHorizontal();
+
+            return value;
         }
     }
     class VFXObjectPropertyIM<T> : VFXPropertyIM<T> where T : Object
