@@ -372,6 +372,21 @@ float2 DirectionToLatLongCoordinate(float3 dir)
     return float2(1.0 - 0.5 * INV_PI * atan2(dir.x, -dir.z), asin(dir.y) * INV_PI + 0.5);
 }
 
+float3 LatlongToDirectionCoordinate(float2 coord)
+{
+    float theta = coord.y * PI;
+    float phi = (coord.x * 2.f * PI - PI*0.5f);
+
+    float cosTheta = cos(theta);
+    float sinTheta = sqrt(1.0f - min(1.0f, cosTheta*cosTheta));
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+
+    float3 direction = float3(sinTheta*cosPhi, cosTheta, sinTheta*sinPhi);
+    direction.xy *= -1.0;
+    return direction;
+}
+
 // ----------------------------------------------------------------------------
 // World position reconstruction / transformation
 // ----------------------------------------------------------------------------
