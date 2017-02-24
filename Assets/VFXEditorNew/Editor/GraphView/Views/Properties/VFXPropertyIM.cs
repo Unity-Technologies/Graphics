@@ -250,7 +250,7 @@ namespace UnityEditor.VFX.UI
             Color startValue = value;
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
-            Color color = EditorGUILayout.ColorField(value);
+            Color color = EditorGUILayout.ColorField(new GUIContent(""),value,true,true,true,new ColorPickerHDRConfig(-10,10,-10,10));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Space((presenter.propertyInfo.depth + 1) * depthOffset);
