@@ -40,7 +40,7 @@ namespace UnityEditor.VFX
         public override string name                         { get { return "Rotate"; } }
         public override VFXContextType compatibleContexts   { get { return VFXContextType.kInitAndUpdate; } }
 
-        public class Properties
+        public class InputProperties
         {
             public float angle = 30;
             public Vector3 axis = Vector3.forward;
@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
         public override string name                         { get { return "Test"; } }
         public override VFXContextType compatibleContexts   { get { return VFXContextType.kAll; } }
 
-        public class Properties
+        public class InputProperties
         {
             public float aFloat = 123.456f;
             public Vector2 aVector2 = Vector2.left;
