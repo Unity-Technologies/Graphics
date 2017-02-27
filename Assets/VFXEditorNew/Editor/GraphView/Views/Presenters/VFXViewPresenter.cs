@@ -96,6 +96,35 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        private void InvalidateChildrenOperator(IEnumerable<VFXOperator> seeds)
+        {
+            var allVFXOperatorPresenter = elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>();
+            var allVFXOperator = allVFXOperatorPresenter.Select(o => o.Operator).ToArray();
+
+            var childrenOperators = new HashSet<VFXOperator>();
+            foreach (var start in seeds)
+            {
+                CollectChildOperator(start, childrenOperators, allVFXOperator);
+            }
+
+            foreach (var currentOperator in childrenOperators)
+            {
+                currentOperator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
+            }
+
+            foreach (var currentOperator in childrenOperators)
+            {
+                var presenter = allVFXOperatorPresenter.Where(o => o.Operator == currentOperator).First();
+                presenter.Reset();
+            }
+            RecreateOperatorEdges();
+        }
+
+        private void InvalidateChildrenOperator(VFXOperator seed)
+        {
+            InvalidateChildrenOperator(new[] { seed });
+        }
+
 		public override void AddElement(EdgePresenter edge)
 		{
 			if (edge is VFXFlowEdgePresenter)
@@ -116,13 +145,8 @@ namespace UnityEditor.VFX.UI
                 //Update connection
                 var inputSlots = toAnchor.sourceOperator.Operator.InputSlots;
                 var sourceIndex = Array.FindIndex(inputSlots, s => s.slotID == toAnchor.slotID);
-
-
                 inputSlots[sourceIndex].Connect(fromAnchor.sourceOperator.Operator, fromAnchor.slotID);
-                toAnchor.sourceOperator.Operator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
-
-                toAnchor.sourceOperator.Init(toAnchor.sourceOperator.Operator,this);
-                RecreateOperatorEdges();
+                InvalidateChildrenOperator(toAnchor.sourceOperator.Operator);
             }
             else
             {
@@ -153,21 +177,22 @@ namespace UnityEditor.VFX.UI
             {
                 var operatorPresenter = element as VFXOperatorPresenter;
                 var allOperator = m_Elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>();
+
+                var invalidOperators = new List<VFXOperator>();
                 foreach (var currentOperator in allOperator)
                 {
-                    var slotToDelete = currentOperator.Operator.InputSlots.Where(s => s.parent == operatorPresenter.Operator).ToArray();
-                    if (slotToDelete.Length > 0)
+                    var slotConnectionToDelete = currentOperator.Operator.InputSlots.Where(s => s.parent == operatorPresenter.Operator).ToArray();
+                    if (slotConnectionToDelete.Length > 0)
                     {
-                        foreach (var inputSlot in slotToDelete)
+                        foreach (var inputSlot in slotConnectionToDelete)
                         {
                             inputSlot.Disconnect();
                         }
-                        currentOperator.Operator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
-                        currentOperator.Init(currentOperator.Operator,this);
+                        invalidOperators.Add(currentOperator.Operator);
                     }
                 }
+                InvalidateChildrenOperator(invalidOperators);
                 m_GraphAsset.root.RemoveChild(operatorPresenter.Operator);
-                //RecreateOperatorEdges();
             }
 			else if (element is VFXFlowEdgePresenter)
 			{
@@ -185,14 +210,11 @@ namespace UnityEditor.VFX.UI
                 var toOperator = to.sourceOperator.Operator;
                 var toSlot = toOperator.InputSlots.First(o => o.slotID == to.slotID);
                 toSlot.Disconnect();
-                toOperator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
-
-                to.sourceOperator.Init(toOperator,this);
-                RecreateOperatorEdges();
+                InvalidateChildrenOperator(toOperator);
             }
             else
             {
-                throw new NotImplementedException(string.Format("Unexpected type   : {0}", element.GetType().FullName));
+                throw new NotImplementedException(string.Format("Unexpected type : {0}", element.GetType().FullName));
             }
         }
 
@@ -261,15 +283,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private static void CollectChildOperator(VFXOperator operatorInput, HashSet<VFXOperator> listChildren, IEnumerable<VFXOperatorEdgePresenter> allEdges)
+        private static void CollectChildOperator(VFXOperator operatorInput, HashSet<VFXOperator> listChildren, VFXOperator[] allOperator)
         {
             listChildren.Add(operatorInput);
-
-            var ouputOperators = allEdges.Where(o => (o.input as VFXOperatorAnchorPresenter).sourceOperator.Operator == operatorInput)
-                                .Select(o => (o.output as VFXOperatorAnchorPresenter).sourceOperator.Operator);
-            foreach (var output in ouputOperators)
+            var connectedChildren = allOperator.Where(o => o.InputSlots.Any(s => s.parent == operatorInput));
+            foreach (var child in connectedChildren)
             {
-                CollectChildOperator(output, listChildren, allEdges);
+                CollectChildOperator(child, listChildren, allOperator);
             }
         }
 
@@ -282,7 +302,7 @@ namespace UnityEditor.VFX.UI
                 if (startAnchorPresenter.direction == Direction.Input)
                 {
                     var childrenOperators = new HashSet<VFXOperator>();
-                    CollectChildOperator(currentOperator, childrenOperators, elements.OfType<VFXOperatorEdgePresenter>().Cast<VFXOperatorEdgePresenter>().ToArray());
+                    CollectChildOperator(currentOperator, childrenOperators, elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>().Select(o => o.Operator).ToArray());
                     allOperatorPresenter = allOperatorPresenter.Where(o => !childrenOperators.Contains(o.Operator));
                     return allOperatorPresenter.SelectMany(o => o.outputAnchors).ToList();
                 }
