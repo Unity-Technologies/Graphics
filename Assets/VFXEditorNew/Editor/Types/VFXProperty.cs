@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
 
         public bool IsExpandable()
         {
-            return !type.IsPrimitive && !typeof(System.Object).IsAssignableFrom(type) && type != typeof(AnimationCurve);
+            return !type.IsPrimitive && !typeof(UnityEngine.Object).IsAssignableFrom(type) && type != typeof(AnimationCurve);
         }
     }
 }

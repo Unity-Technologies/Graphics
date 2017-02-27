@@ -93,5 +93,20 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, output0.GetNbLinks());
             Assert.AreEqual(0, output1.GetNbLinks());
         }
+
+        [Test]
+        public void Create()
+        {
+            VFXSlot float4Slot = VFXSlot.Create(new VFXProperty(typeof(Vector4),"test"),VFXSlot.Direction.kInput);
+
+            Assert.IsNotNull(float4Slot);
+            Assert.AreEqual(4, float4Slot.GetNbChildren());
+
+            foreach (var child in float4Slot.children)
+            {
+                Assert.IsNotNull(child);
+                Assert.AreEqual(0,child.GetNbChildren());
+            }
+        }
     }
 }
