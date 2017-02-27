@@ -607,8 +607,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (m_PassSettings.enableClustered)
                 {
-                    s_PerVoxelOffset = new ComputeBuffer((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrTiles, sizeof(uint));
-                    s_PerVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrTiles, sizeof(uint));
+                    var nrClustersX = (width + LightDefinitions.TILE_SIZE_CLUSTERED - 1) / LightDefinitions.TILE_SIZE_CLUSTERED;
+                    var nrClustersY = (height + LightDefinitions.TILE_SIZE_CLUSTERED - 1) / LightDefinitions.TILE_SIZE_CLUSTERED;
+                    var nrClusters = nrClustersX * nrClustersY;
+
+                    s_PerVoxelOffset = new ComputeBuffer((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusters, sizeof(uint));
+                    s_PerVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrClusters, sizeof(uint));
 
                     if (k_UseDepthBuffer)
                     {
@@ -666,9 +670,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return shadowOutput.GetShadowSliceCountLightIndex(lightIndex);
             }
 
-            public void GetDirectionalLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int directionalShadowcount)
+            public bool GetDirectionalLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int directionalShadowcount)
             {
                 var directionalLightData = new DirectionalLightData();
+
+                float diffuseIntensity = m_PassSettings.diffuseGlobalDimmer * additionalData.lightDimmer;
+                float specularIntensity = m_PassSettings.specularGlobalDimmer * additionalData.lightDimmer;
+                if (diffuseIntensity  <= 0.0f && specularIntensity <= 0.0f)
+                    return false;
 
                 // Light direction for directional is opposite to the forward direction
                 directionalLightData.forward = light.light.transform.forward;
@@ -676,8 +685,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 directionalLightData.right = light.light.transform.right;
                 directionalLightData.positionWS = light.light.transform.position;
                 directionalLightData.color = GetLightColor(light);
-                directionalLightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
-                directionalLightData.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
+                directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseIntensity : 0.0f;
+                directionalLightData.specularScale = additionalData.affectSpecular ? specularIntensity : 0.0f;
                 directionalLightData.invScaleX = 1.0f / light.light.transform.localScale.x;
                 directionalLightData.invScaleY = 1.0f / light.light.transform.localScale.y;
                 directionalLightData.cosAngle = 0.0f;
@@ -716,9 +725,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 m_lightList.directionalLights.Add(directionalLightData);
+
+                return true;
             }
 
-            public void GetLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int shadowCount)
+            float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
+            {
+                // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarly chosen but should work well enough.
+                float distanceFadeNear = 0.9f * fadeDistance;
+                return 1.0f - Mathf.Clamp01((distanceToCamera - distanceFadeNear) / (fadeDistance - distanceFadeNear));
+            }
+
+            public bool GetLightData(ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int shadowCount)
             {
                 var lightData = new LightData();
 
@@ -756,9 +774,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightData.angleOffset = 2.0f;
                 }
 
-                lightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
-                lightData.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
-                lightData.shadowDimmer = additionalData.shadowDimmer;
+                float distanceToCamera = (lightData.positionWS - camera.transform.position).magnitude;
+                float distanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalData.fadeDistance);
+                float lightIntensity = additionalData.lightDimmer * distanceFade;
+
+                lightData.diffuseScale = additionalData.affectDiffuse ? lightIntensity * m_PassSettings.diffuseGlobalDimmer : 0.0f;
+                lightData.specularScale = additionalData.affectSpecular ? lightIntensity * m_PassSettings.specularGlobalDimmer : 0.0f;
+
+                if (lightData.diffuseScale <= 0.0f && lightData.specularScale <= 0.0f)
+                    return false;
 
                 lightData.IESIndex = -1;
                 lightData.cookieIndex = -1;
@@ -778,8 +802,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
+                float shadowDistanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalData.shadowFadeDistance);
+                lightData.shadowDimmer = additionalData.shadowDimmer * shadowDistanceFade;
+
                 // Setup shadow data arrays
-                bool hasShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
+                // In case lightData.shadowDimmer == 0.0 we need to avoid rendering the shadow map... see how it can be done with the culling (and more specifically, how can we do that BEFORE sending for shadows)
+                bool hasShadows = lightData.shadowDimmer > 0.0f && light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
                 bool hasNotReachMaxLimit = shadowCount + (lightData.lightType == GPULightType.Point ? 6 : 1) <= k_MaxShadowOnScreen;
 
                 // TODO: Read the comment about shadow limit/management at the beginning of this loop
@@ -797,6 +825,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 m_lightList.lights.Add(lightData);
+
+                return true;
             }
 
             // TODO: we should be able to do this calculation only with LightData without VisibleLight light, but for now pass both
@@ -1132,7 +1162,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 lightCategory = LightCategory.Punctual;
                                 gpuLightType = GPULightType.Point;
                                 lightVolumeType = LightVolumeType.Sphere;
-                                ++punctualLightcount;
                                 break;
 
                             case LightType.Spot:
@@ -1141,7 +1170,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 lightCategory = LightCategory.Punctual;
                                 gpuLightType = GPULightType.Spot;
                                 lightVolumeType = LightVolumeType.Cone;
-                                ++punctualLightcount;
                                 break;
 
                             case LightType.Directional:
@@ -1151,7 +1179,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 gpuLightType = GPULightType.Directional;
                                 // No need to add volume, always visible
                                 lightVolumeType = LightVolumeType.Count; // Count is none
-                                ++directionalLightcount;
                                 break;
 
                             default:
@@ -1168,7 +1195,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 lightCategory = LightCategory.Area;
                                 gpuLightType = GPULightType.Rectangle;
                                 lightVolumeType = LightVolumeType.Box;
-                                ++areaLightCount;
                                 break;
 
                             case LightArchetype.Line:
@@ -1177,7 +1203,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 lightCategory = LightCategory.Area;
                                 gpuLightType = GPULightType.Line;
                                 lightVolumeType = LightVolumeType.Box;
-                                ++areaLightCount;
                                 break;
 
                             default:
@@ -1231,7 +1256,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Directional rendering side, it is separated as it is always visible so no volume to handle here
                     if (gpuLightType == GPULightType.Directional)
                     {
-                        GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref directionalShadowcount);
+                        if (GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref directionalShadowcount))
+                            directionalLightcount++;
 
 #if (SHADOWS_ENABLED && SHADOWS_FIXSHADOWIDX)
                         // fix up shadow information
@@ -1247,9 +1273,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Spot, point, rect, line light - Rendering side
-                    GetLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref shadowCount);
-                    // Then culling side. Must be call in this order as we pass the created Light data to the function
-                    GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], worldToView);
+                    if(GetLightData(shadowSettings, camera, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref shadowCount))
+                    {
+                        if (lightCategory == LightCategory.Punctual)
+                            punctualLightcount++;
+                        else if (lightCategory == LightCategory.Area)
+                            areaLightCount++;
+                        else
+                            Debug.Assert(false); // Should not be anything else here.
+                        // Then culling side. Must be call in this order as we pass the created Light data to the function
+                        GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], worldToView);
+                    }
 
 #if (SHADOWS_ENABLED && SHADOWS_FIXSHADOWIDX)
                     // fix up shadow information
