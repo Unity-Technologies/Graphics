@@ -28,20 +28,25 @@ namespace UnityEditor.VFX.UI
             return inAnchor;
         }
 
-        public virtual void Init(VFXModel model,VFXViewPresenter viewPresenter)
+        public void Reset()
         {
-            m_Operator = (VFXOperator)model;
-
-            position = new Rect(model.position.x,model.position.y,position.width,position.height);
-            expanded = !model.collapsed;
-
-            title = m_Operator.name;
-
             inputAnchors.Clear();
             outputAnchors.Clear();
 
-            inputAnchors.AddRange(m_Operator.InputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)));
-            outputAnchors.AddRange(m_Operator.OutputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)));
+            if (m_Operator != null)
+            {
+                position = new Rect(model.position.x, model.position.y, position.width, position.height);
+                expanded = !model.collapsed;
+                title = Operator.name;
+                inputAnchors.AddRange(Operator.InputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)));
+                outputAnchors.AddRange(Operator.OutputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)));
+            }
+        }
+
+        public virtual void Init(VFXModel model, VFXViewPresenter viewPresenter)
+        {
+            m_Operator = (VFXOperator)model;
+            Reset();
         }
     }
 }
