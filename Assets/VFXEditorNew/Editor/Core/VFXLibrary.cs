@@ -76,10 +76,10 @@ namespace UnityEditor.VFX
         {
             lock(m_Lock)
             {
+                m_Loaded = true;
                 m_ContextDescs = LoadModels<VFXContext>();
                 m_BlockDescs = LoadModels<VFXBlock>();
                 m_OperatorDescs = LoadModels<VFXOperator>();
-                m_Loaded = true;
             }
         }
 
@@ -97,6 +97,7 @@ namespace UnityEditor.VFX
                 catch (Exception e)
                 {
                     Debug.LogError("Error while loading model from type " + modelType + ": " + e.Message);
+                    m_Loaded = false;
                 }
             }
 
