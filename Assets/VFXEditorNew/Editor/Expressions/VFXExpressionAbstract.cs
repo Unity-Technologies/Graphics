@@ -66,8 +66,9 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat2: return typeof(Vector2);
                 case VFXValueType.kFloat3: return typeof(Vector3);
                 case VFXValueType.kFloat4: return typeof(Vector4);
+                case VFXValueType.kCurve: return typeof(AnimationCurve);
             }
-            throw new NotImplementedException();
+            throw new NotImplementedException(type.ToString());
         }
 
 
