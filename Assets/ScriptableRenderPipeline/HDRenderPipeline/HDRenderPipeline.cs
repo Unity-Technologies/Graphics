@@ -960,6 +960,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext)
         {
+            // We don't want any overlay for these kind of rendering
+            if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
+                return;
+
             CommandBuffer debugCB = new CommandBuffer();
             debugCB.name = "Debug Overlay";
 
