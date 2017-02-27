@@ -122,5 +122,15 @@ namespace UnityEditor.VFX.UI
 
             m_BlockPresenters = m_NewPresenters;
         }
+
+        public override IEnumerable<GraphElementPresenter> allChildren
+        {
+            get {
+                foreach( var presenter in m_BlockPresenters)
+                {
+                    yield return presenter;
+                }
+            }
+        }
     }
 }

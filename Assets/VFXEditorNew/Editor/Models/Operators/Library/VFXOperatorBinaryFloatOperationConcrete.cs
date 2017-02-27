@@ -51,12 +51,12 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
-    class VFXOperatorFmod : VFXOperator
+    class VFXOperatorFmod : VFXOperatorFloatUnified
     {
         public class Properties
         {
-            public float left = 0.0f;
-            public float right = 0.0f;
+            public FloatN right = new FloatN(new[] { 1.0f });
+            public FloatN left = new FloatN(new[] { 1.0f });
         }
 
         override public string name { get { return "Fmod"; } }
@@ -102,12 +102,12 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
-    class VFXOperatorDot : VFXOperator
+    class VFXOperatorDot : VFXOperatorFloatUnified
     {
         public class Properties
         {
-            public Vector3 left = Vector3.one;
-            public Vector3 right = Vector3.one;
+            public FloatN right = new FloatN(new[] { 0.0f, 0.0f, 0.0f });
+            public FloatN left = new FloatN(new[] { 0.0f, 0.0f, 0.0f });
         }
 
         override public string name { get { return "Dot"; } }

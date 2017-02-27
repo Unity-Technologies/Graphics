@@ -250,8 +250,8 @@ VFXDataAnchor.connected > #connector.typevector4
 }
 VFXDataAnchor.connected > #connector.typecolor
 {
-	border-color:#d1d1d1;
-	background-color : #d1d1d1;
+	border-color:#effe5c;
+	background-color : #effe5c;
 }
 VFXDataAnchor.connected > #connector.typeobject
 {
@@ -323,6 +323,10 @@ VFXDataEdge.typevector4
 VFXDataEdge.typecolor
 {
 	border-color : #d1d1d1;
+}
+VFXDataEdge.typecolor
+{
+	border-color : #effe5c;
 }
 VFXDataEdge.typeobject
 {

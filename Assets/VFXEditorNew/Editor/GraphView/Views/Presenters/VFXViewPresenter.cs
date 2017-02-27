@@ -339,7 +339,7 @@ namespace UnityEditor.VFX.UI
             }
 		}
 
-		public void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
+		public VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
 		{
             VFXContext newContext = desc.CreateInstance();
             newContext.position = pos;
@@ -349,6 +349,8 @@ namespace UnityEditor.VFX.UI
             system.AddChild(newContext);
 
             m_GraphAsset.root.AddChild(system);
+
+            return newContext;
         }
 
         public void AddVFXOperator(Vector2 pos, VFXOperator desc)

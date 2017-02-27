@@ -17,8 +17,13 @@ namespace UnityEditor.VFX.UI
         private NodeAnchorPresenter CreateAnchorPresenter(VFXOperator.VFXMitoSlot slot, Direction direction)
         {
             var inAnchor = CreateInstance<VFXOperatorAnchorPresenter>();
-            inAnchor.anchorType = slot.type;
-            inAnchor.name = slot.name;
+            var expression = slot.expression;
+            inAnchor.anchorType = expression == null ? typeof(float) : VFXExpression.TypeToType(expression.ValueType);
+            if (expression == null)
+            {
+                inAnchor.name = "Empty";
+            }
+
             inAnchor.Init(this, slot.slotID, direction);
             return inAnchor;
         }

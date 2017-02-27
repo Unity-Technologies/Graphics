@@ -14,16 +14,60 @@ namespace UnityEditor.VFX
         /*draft slot class waiting for real slot implementation*/
         public abstract class VFXMitoSlot
         {
-            public Type type;
-            public Guid slotID = Guid.NewGuid();
+            public abstract VFXExpression expression { get; }
 
-            public string name = "";
+            public Guid slotID = Guid.NewGuid();
         }
 
         public class VFXMitoSlotInput : VFXMitoSlot
         {
             public VFXOperator parent { get; private set; }
             public Guid parentSlotID { get; private set; }
+
+            private object m_defaultValue;
+            public object defaultValue { get { return m_defaultValue; } }
+
+            public VFXMitoSlotInput(object defaultValue)
+            {
+                m_defaultValue = defaultValue;
+            }
+
+            public override VFXExpression expression
+            {
+                get
+                {
+                    if (parent != null)
+                    {
+                        return parent.OutputSlots.First(s => s.slotID == parentSlotID).expression;
+                    }
+                    if (m_defaultValue is float)
+                    {
+                        return new VFXValueFloat((float)m_defaultValue, true);
+                    }
+                    else if (m_defaultValue is Vector2)
+                    {
+                        return new VFXValueFloat2((Vector2)m_defaultValue, true);
+                    }
+                    else if (m_defaultValue is Vector3)
+                    {
+                        return new VFXValueFloat3((Vector3)m_defaultValue, true);
+                    }
+                    else if (m_defaultValue is Vector4)
+                    {
+                        return new VFXValueFloat4((Vector4)m_defaultValue, true);
+                    }
+                    else if (m_defaultValue is FloatN)
+                    {
+                        return (FloatN)m_defaultValue;
+                    }
+                    else if (m_defaultValue is AnimationCurve)
+                    {
+                        return new VFXValueCurve(m_defaultValue as AnimationCurve, true);
+                    }
+
+                    throw new NotImplementedException();
+                }
+            }
 
             public void Disconnect()
             {
@@ -40,29 +84,39 @@ namespace UnityEditor.VFX
 
         public class VFXMitoSlotOutput : VFXMitoSlot
         {
-            public VFXExpression expression;
+            private VFXExpression m_expression;
+
+            public VFXMitoSlotOutput(VFXExpression expression)
+            {
+                m_expression = expression;
+            }
+
+            public override VFXExpression expression
+            {
+                get
+                {
+                    return m_expression;
+                }
+            }
         }
 
         protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
         public VFXOperator()
         {
-            System.Type propertyType = GetPropertiesType();
+            var propertyType = GetPropertiesType();
             if (propertyType != null)
             {
                 m_PropertyBuffer = System.Activator.CreateInstance(propertyType);
-                m_InputSlots = propertyType.GetFields().Select(o =>
+                m_InputSlots = propertyType.GetFields().Where(o => !o.IsStatic).Select(o =>
                 {
-                    return new VFXMitoSlotInput()
-                    {
-                        type = o.FieldType,
-                        name = o.Name,
-                    };
+                    var value = o.GetValue(m_PropertyBuffer);
+                    return new VFXMitoSlotInput(value);
                 }).ToArray();
-            }            
+            }
             Invalidate(InvalidationCause.kParamChanged);
         }
-        private System.Type GetPropertiesType()
+        protected System.Type GetPropertiesType()
         {
             return GetType().GetNestedType("Properties");
         }
@@ -103,68 +157,16 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        static private VFXMitoSlotOutput GetExpression(object defaultProperties, string name)
+        virtual protected IEnumerable<VFXExpression> GetInputExpressions()
         {
-            var fieldInfo = defaultProperties.GetType().GetField(name);
-            var value = fieldInfo.GetValue(defaultProperties);
-
-            VFXExpression expression = null;
-            if (value is float)
-            {
-                expression = new VFXValueFloat((float)value, true);
-
-            }
-            else if (value is Vector2)
-            {
-                expression = new VFXValueFloat2((Vector2)value, true);
-            }
-            else if (value is Vector3)
-            {
-                expression = new VFXValueFloat3((Vector3)value, true);
-            }
-            else if (value is Vector4)
-            {
-                expression = new VFXValueFloat4((Vector4)value, true);
-            }
-            else if(value is AnimationCurve)
-            {
-                expression = new VFXValueCurve(value as AnimationCurve, true);
-            }
-
-            if (expression == null)
-                throw new NotImplementedException();
-
-            return new VFXMitoSlotOutput()
-            {
-                expression = expression,
-                type = value.GetType()
-            };
-        }
-
-        protected IEnumerable<VFXExpression> GetInputExpressions()
-        {
-            return m_InputSlots.Select(o =>
-            {
-                VFXExpression expression = new VFXValueFloat(0, true);
-                if (o.parent != null)
-                {
-                    expression = o.parent.OutputSlots.First(s => s.slotID == o.parentSlotID).expression;
-                }
-                else if (o.name != null)
-                {
-                    expression = GetExpression(m_PropertyBuffer, o.name).expression;
-                }
-                return expression;
-            });
+            return m_InputSlots.Select(o => o.expression).Where(e => e != null);
         }
     
         protected IEnumerable<VFXMitoSlotOutput> BuildOuputSlot(IEnumerable<VFXExpression> inputExpression)
         {
-            return inputExpression.Select((o, i) => new VFXMitoSlotOutput()
+            return inputExpression.Select((o, i) => new VFXMitoSlotOutput(o)
             {
                 slotID = i < m_OutputSlots.Length ? m_OutputSlots[i].slotID : Guid.NewGuid(),
-                expression = o,
-                type = VFXExpression.TypeToType(o.ValueType),
             });
         }
 
@@ -172,7 +174,7 @@ namespace UnityEditor.VFX
         {
             base.OnInvalidate(model,cause);
 
-            IEnumerable<VFXExpression> inputExpressions = GetInputExpressions();
+            var inputExpressions = GetInputExpressions();
             var ouputExpressions = BuildExpression(inputExpressions.ToArray());
             OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
         }

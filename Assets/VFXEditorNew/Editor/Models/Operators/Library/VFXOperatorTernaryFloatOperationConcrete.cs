@@ -7,13 +7,13 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXInfo]
-    class VFXOperatorClamp : VFXOperator
+    class VFXOperatorClamp : VFXOperatorFloatUnified
     {
         public class Properties
         {
-            public float input = 0.0f;
-            public float min = 0.0f;
-            public float max = 1.0f;
+            public FloatN input = new FloatN(new[] { 0.0f });
+            public FloatN min = new FloatN(new[] { 0.0f });
+            public FloatN max = new FloatN(new[] { 1.0f });
         }
 
         override public string name { get { return "Clamp"; } }
@@ -25,13 +25,13 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
-    class VFXOperatorLerp : VFXOperator
+    class VFXOperatorLerp : VFXOperatorFloatUnified
     {
         public class Properties
         {
-            public float x = 0.0f;
-            public float y = 1.0f;
-            public float s = 0.0f;
+            public FloatN x = new FloatN(new[] { 0.0f });
+            public FloatN y = new FloatN(new[] { 1.0f });
+            public FloatN s = new FloatN(new[] { 0.5f });
         }
 
         override public string name { get { return "Lerp"; } }
