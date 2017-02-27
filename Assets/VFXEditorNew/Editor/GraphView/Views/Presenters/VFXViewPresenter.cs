@@ -339,7 +339,7 @@ namespace UnityEditor.VFX.UI
             }
 		}
 
-		public void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
+		public VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
 		{
             VFXContext newContext = desc.CreateInstance();
             newContext.position = pos;
@@ -349,6 +349,8 @@ namespace UnityEditor.VFX.UI
             system.AddChild(newContext);
 
             m_GraphAsset.root.AddChild(system);
+
+            return newContext;
         }
 
         public void AddVFXOperator(Vector2 pos, VFXOperator desc)
@@ -424,8 +426,6 @@ namespace UnityEditor.VFX.UI
 
         public void SyncPresentersFromModel(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            Debug.Log("Invalidate Model: " + model + " Cause: " + cause);
-
             switch (cause)
             {
                 case VFXModel.InvalidationCause.kStructureChanged:
@@ -458,6 +458,8 @@ namespace UnityEditor.VFX.UI
                         break;
                     }
             }
+
+            Debug.Log("Invalidate Model: " + model + " Cause: " + cause + " nbElements:" + m_Elements.Count);
         }
 
         private void AddPresentersFromModel(VFXModel model,Dictionary<VFXModel, IVFXPresenter> syncedModels)

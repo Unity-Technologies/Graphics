@@ -63,6 +63,13 @@ namespace UnityEditor.VFX
             public Texture2D aTexture2D = null;
             public Texture3D aTexture3D = null;
             public Sphere aSphere;
+            public Vector aVector = new Vector { space = CoordinateSpace.Local, vector = Vector3.one };
+            public Position aPosition = new Position { space = CoordinateSpace.Local, position = Vector3.forward };
+            public int anInt;
+            public FlipBook aFlipBook;
+            public bool aBool;
+            public AnimationCurve curve = new AnimationCurve();
+            public Mesh aMesh;
         }
     }
 }

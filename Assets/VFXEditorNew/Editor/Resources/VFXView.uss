@@ -221,30 +221,37 @@ VFXBlockUI.selected VFXDataAnchor #connector
 	border-color:#454545;
 }
 
+/*Default*/
+VFXDataAnchor.connected > #connector
+{
+	border-color:#787878;
+	background-color : #787878;
+}
+
 VFXDataAnchor.connected > #connector.typesingle
 {
-	border-color:#9f80e6;
-	background-color : #9f80e6;
+	border-color:#6be6b0;
+	background-color : #6be6b0;
 }
 VFXDataAnchor.connected > #connector.typevector2
 {
-	border-color:#8fc1df;
-	background-color : #8fc1df;
+	border-color:#9aef92;
+	background-color : #9aef92;
 }
 VFXDataAnchor.connected > #connector.typevector3
 {
-	border-color:#e7ab21;
-	background-color : #e7ab21;
+	border-color:#c9f774;
+	background-color : #c9f774;
 }
 VFXDataAnchor.connected > #connector.typevector4
 {
-	border-color:#42ca48;
-	background-color : #42ca48;
+	border-color:#effe5c;
+	background-color : #effe5c;
 }
 VFXDataAnchor.connected > #connector.typecolor
 {
-	border-color:#d1d1d1;
-	background-color : #d1d1d1;
+	border-color:#effe5c;
+	background-color : #effe5c;
 }
 VFXDataAnchor.connected > #connector.typeobject
 {
@@ -252,30 +259,104 @@ VFXDataAnchor.connected > #connector.typeobject
 	background-color : #787878;
 }
 
+VFXDataAnchor.connected > #connector.typetexture2d
+{
+	border-color : #e681ba;
+	background-color : #e681ba;
+}
+VFXDataAnchor.connected > #connector.typetexture3d
+{
+	border-color : #f7add7;
+	background-color : #f7add7;
+}
+VFXDataAnchor.connected > #connector.typeboolean
+{
+	border-color : #a081e6;
+	background-color : #a081e6;
+}
+VFXDataAnchor.connected > #connector.typeint32
+{
+	border-color : #a081e6;
+	background-color : #a081e6;
+}
+VFXDataAnchor.connected > #connector.typeflipbook
+{
+	border-color : #c2a8ff;
+	background-color : #c2a8ff;
+}
+VFXDataAnchor.connected > #connector.typemesh
+{
+	border-color : #7aa3ea;
+	background-color : #7aa3ea;
+}
+VFXDataAnchor.connected > #connector.typeanimationcurve
+{
+	border-color : #84e4e7;
+	background-color : #84e4e7;
+}
+
 
 /* Data edges */
 
+/*Default*/
+VFXDataEdge
+{
+	border-color : #787878;
+}
+
 VFXDataEdge.typesingle
 {
-	border-color : #9f80e6;
+	border-color : #6be6b0;
 }
 VFXDataEdge.typevector2
 {
-	border-color : #8fc1df;
+	border-color : #9aef92;
 }
 VFXDataEdge.typevector3
 {
-	border-color : #e7ab21;
+	border-color : #c9f774;
 }
 VFXDataEdge.typevector4
 {
-	border-color : #42ca48;
+	border-color : #effe5c;
 }
 VFXDataEdge.typecolor
 {
 	border-color : #d1d1d1;
 }
+VFXDataEdge.typecolor
+{
+	border-color : #effe5c;
+}
 VFXDataEdge.typeobject
 {
 	border-color : #787878;
+}
+VFXDataEdge.typetexture2d
+{
+	border-color : #e681ba;
+}
+VFXDataEdge.typetexture3d
+{
+	border-color : #f7add7;
+}
+VFXDataEdge.typeboolean
+{
+	border-color : #a081e6;
+}
+VFXDataEdge.typeint32
+{
+	border-color : #a081e6;
+}
+VFXDataEdge.typeflipbook
+{
+	border-color : #c2a8ff;
+}
+VFXDataEdge.typemesh
+{
+	border-color : #7aa3ea;
+}
+VFXDataEdge.typeanimationcurve
+{
+	border-color : #84e4e7;
 }
