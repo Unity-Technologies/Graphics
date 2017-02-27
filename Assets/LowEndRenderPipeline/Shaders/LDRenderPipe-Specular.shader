@@ -72,7 +72,7 @@ Shader "LDRenderPipeline/Specular"
 			#pragma multi_compile _ SHADOWS_DEPTH
 			#pragma multi_compile _ SHADOWS_FILTERING_PCF
 			#pragma multi_compile_fog
-			#pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3
+			#pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3 metal
 			#pragma enable_d3d11_debug_symbols
 			
 			#define DIFFUSE_AND_SPECULAR_INPUT SpecularInput
@@ -103,7 +103,7 @@ Shader "LDRenderPipeline/Specular"
 			half4 globalLightAtten[MAX_LIGHTS];
 			int4  globalLightCount; // x: pixelLightCount, y = totalLightCount (pixel + vert)
 
-			sampler2D _ShadowMap;
+			sampler2D_float _ShadowMap;
 			float _PCFKernel[8];
 
 			half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
