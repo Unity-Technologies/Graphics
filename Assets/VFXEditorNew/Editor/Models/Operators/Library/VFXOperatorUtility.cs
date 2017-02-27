@@ -63,9 +63,16 @@ namespace UnityEditor.VFX
 
             var mul = new VFXExpressionMul(a, b);
             var sum = new Stack<VFXExpression>();
-            for (int iChannel = 0; iChannel < size; ++iChannel)
+            if (size == 1)
             {
-                sum.Push(new VFXExpressionExtractComponent(mul, iChannel));
+                sum.Push(mul);
+            }
+            else
+            {
+                for (int iChannel = 0; iChannel < size; ++iChannel)
+                {
+                    sum.Push(new VFXExpressionExtractComponent(mul, iChannel));
+                }
             }
 
             while (sum.Count > 1)
