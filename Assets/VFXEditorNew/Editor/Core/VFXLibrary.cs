@@ -61,8 +61,14 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts()     { LoadIfNeeded(); return m_ContextDescs; }
         public static IEnumerable<VFXModelDescriptor<VFXBlock>> GetBlocks()         { LoadIfNeeded(); return m_BlockDescs; }
         public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators()   { LoadIfNeeded(); return m_OperatorDescs; }
-        public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots()           { LoadIfNeeded(); return m_SlotDescs.Values; }
-        public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)         { LoadIfNeeded(); return m_SlotDescs[type]; }
+        public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots()           { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
+        public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)         
+        { 
+            LoadSlotsIfNeeded(); 
+            VFXModelDescriptor<VFXSlot> desc;
+            m_SlotDescs.TryGetValue(type,out desc);
+            return desc;
+        }
 
         public static void LoadIfNeeded()
         {
@@ -80,11 +86,11 @@ namespace UnityEditor.VFX
         {
             lock(m_Lock)
             {
-                
+                LoadSlotsIfNeeded();
                 m_ContextDescs = LoadModels<VFXContext>();
                 m_BlockDescs = LoadModels<VFXBlock>();
                 m_OperatorDescs = LoadModels<VFXOperator>();
-                m_SlotDescs = LoadSlots();
+                
                 m_Loaded = true;
 
                 // Debug
@@ -92,6 +98,21 @@ namespace UnityEditor.VFX
                 foreach (var slot in m_SlotDescs)
                 {
                     Debug.Log(slot.Key + " -> " + slot.Value.modelType);
+                }
+            }
+        }
+
+        private static void LoadSlotsIfNeeded()
+        {
+            if (m_SlotLoaded)
+                return;
+
+            lock (m_Lock)
+            {
+                if (!m_SlotLoaded)
+                {
+                    m_SlotDescs = LoadSlots();
+                    m_SlotLoaded = true;
                 }
             }
         }
@@ -109,7 +130,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("Error while loading model from type " + modelType + ": " + e.Message);
+                    Debug.LogError("Error while loading model from type " + modelType + ": " + e);
                 }
             }
 
@@ -136,7 +157,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("Error while loading slot from type " + slotType + ": " + e.Message);
+                    Debug.LogError("Error while loading slot from type " + slotType + ": " + e);
                 }
             }
             return dictionary;
@@ -172,5 +193,6 @@ namespace UnityEditor.VFX
 
         private static Object m_Lock = new Object();
         private static volatile bool m_Loaded = false;
+        private static volatile bool m_SlotLoaded = false;
     }
 }

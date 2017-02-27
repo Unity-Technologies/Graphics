@@ -6,6 +6,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEditor.VFX
 {
+    [Serializable]
     class VFXSlot : VFXModel<VFXSlot, VFXSlot>
     {
         public enum Direction
@@ -14,7 +15,10 @@ namespace UnityEditor.VFX
             kOutput,
         }
 
-        public Direction direction  { get { return m_Direction; } }
+        public Direction direction { get { return m_Direction; } }
+        public VFXProperty property { get { return m_Property; } }
+        public override string name { get { return m_Property.name; } }
+
         public VFXSlot refSlot 
         { 
             get 
@@ -25,21 +29,7 @@ namespace UnityEditor.VFX
             } 
         }
 
-        public IVFXSlotContainer owner
-        {
-            get { return m_Owner; }
-            set 
-            {
-                if (GetParent() == null && m_Owner != value) // Cannot add an owner to a sub slot
-                {
-                    if (m_Owner != null)
-                        m_Owner.RemoveSlot(this);
-                    m_Owner = value;
-                    if (m_Owner != null)
-                        m_Owner.AddSlot(this);
-                }
-            }
-        }
+        public IVFXSlotContainer owner { get { return m_Owner; } }
 
         protected VFXSlot() {} // For serialization only
         public VFXSlot(Direction direction)
@@ -55,6 +45,7 @@ namespace UnityEditor.VFX
             {
                 var slot = desc.CreateInstance();
                 slot.m_Direction = direction;
+                slot.m_Property = info;
 
                 foreach (var subInfo in info.SubProperties())
                 {
@@ -147,7 +138,11 @@ namespace UnityEditor.VFX
             base.OnBeforeSerialize();
         }*/
 
-        private IVFXSlotContainer m_Owner;
+        [NonSerialized]
+        public IVFXSlotContainer m_Owner; // Dont set that directly! Only called by SlotContainer!
+
+        [SerializeField]
+        private VFXProperty m_Property;
 
         [SerializeField]
         private Direction m_Direction;

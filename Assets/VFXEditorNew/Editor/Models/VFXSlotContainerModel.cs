@@ -36,21 +36,38 @@ namespace UnityEditor.VFX
 
         public virtual void AddSlot(VFXSlot slot)
         {
-            // TODO
+            var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
+
+            if (slot.owner != this)
+            {
+                if (slot.owner != null)
+                    slot.owner.RemoveSlot(slot);
+
+                slotList.Add(slot);
+                slot.m_Owner = this;
+                Invalidate(InvalidationCause.kStructureChanged);
+            }          
         }
 
         public virtual void RemoveSlot(VFXSlot slot)
         {
-            // TODO
+            var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
+
+            if (slot.owner == this)
+            {
+                slotList.Remove(slot);
+                slot.m_Owner = null;
+                Invalidate(InvalidationCause.kStructureChanged);
+            }
         }
 
         protected VFXSlotContainerModel()
         {
-            InitProperties("InputProperties", out m_InputProperties, out m_InputValues);
-            InitProperties("OutputProperties", out m_OutputProperties, out m_OutputValues);
+            InitProperties("InputProperties", out m_InputProperties, out m_InputValues,VFXSlot.Direction.kInput);
+            InitProperties("OutputProperties", out m_OutputProperties, out m_OutputValues,VFXSlot.Direction.kOutput);
         }
 
-        private void InitProperties(string className, out VFXProperty[] properties, out object[] values)
+        private void InitProperties(string className, out VFXProperty[] properties, out object[] values,VFXSlot.Direction direction)
         {
             System.Type type = GetType().GetNestedType(className);
 
@@ -67,6 +84,14 @@ namespace UnityEditor.VFX
                 {
                     properties[i] = new VFXProperty() { type = fields[i].FieldType, name = fields[i].Name };
                     values[i] = fields[i].GetValue(defaultBuffer);
+                }
+
+                // Create slot hierarchy
+                foreach (var property in properties)
+                {
+                    var slot = VFXSlot.Create(property, direction);
+                    if (slot != null)
+                        AddSlot(slot);
                 }
             }
             else
@@ -110,10 +135,39 @@ namespace UnityEditor.VFX
             return m_InputValues;
         }
 
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+
+            m_SerializableInputSlots = SerializationHelper.Serialize<VFXSlot>(m_InputSlots);
+            m_SerializableOutputSlots = SerializationHelper.Serialize<VFXSlot>(m_OutputSlots);
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+           
+            m_InputSlots = SerializationHelper.Deserialize<VFXSlot>(m_SerializableInputSlots, null);
+            m_OutputSlots = SerializationHelper.Deserialize<VFXSlot>(m_SerializableOutputSlots, null);
+            
+            foreach (var slot in m_InputSlots)
+                slot.m_Owner = this;
+            foreach (var slot in m_OutputSlots)
+                slot.m_Owner = this;
+            
+            m_SerializableInputSlots = null;
+            m_SerializableOutputSlots = null;
+        }
+
         //[SerializeField]
         HashSet<string> m_expandedPaths = new HashSet<string>();
 
-        private List<VFXSlot> m_InputSlots;
-        private List<VFXSlot> m_OutputSlots;
+        private List<VFXSlot> m_InputSlots = new List<VFXSlot>();
+        [SerializeField]
+        private List<SerializationHelper.JSONSerializedElement> m_SerializableInputSlots = null;
+
+        private List<VFXSlot> m_OutputSlots = new List<VFXSlot>();
+        [SerializeField]
+        private List<SerializationHelper.JSONSerializedElement> m_SerializableOutputSlots = null;
     }
 }

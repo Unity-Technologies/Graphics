@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    [Serializable]
     struct VFXProperty
     {
         public System.Type type;
