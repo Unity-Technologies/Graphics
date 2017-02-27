@@ -214,7 +214,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                throw new NotImplementedException(string.Format("Unexpected type : {0}", element.GetType().FullName));
+                Debug.LogErrorFormat("Unexpected type : {0}", element.GetType().FullName);
             }
         }
 
