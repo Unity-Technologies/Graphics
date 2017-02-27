@@ -159,7 +159,7 @@ namespace UnityEditor.VFX
 
         virtual protected IEnumerable<VFXExpression> GetInputExpressions()
         {
-            return m_InputSlots.Select(o => o.expression);
+            return m_InputSlots.Select(o => o.expression).Where(e => e != null);
         }
     
         protected IEnumerable<VFXMitoSlotOutput> BuildOuputSlot(IEnumerable<VFXExpression> inputExpression)

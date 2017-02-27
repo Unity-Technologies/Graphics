@@ -119,7 +119,7 @@ namespace UnityEditor.VFX
         //Convert automatically input expression with diverging floatN size to floatMax
         sealed override protected IEnumerable<VFXExpression> GetInputExpressions()
         {
-            var inputExpression = base.GetInputExpressions().Where(e => e != null);
+            var inputExpression = base.GetInputExpressions();
             return VFXOperatorUtility.UnifyFloatLevel(inputExpression, m_FallbackValue);
         }
     }
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
             for (int slotIndex = newInputSlots.Count - 1; slotIndex >= 0 && newInputSlots.Count > 2; --slotIndex)
             {
                 var currentSlot = newInputSlots[slotIndex];
-                if (currentSlot.parent == null && ((FloatN)currentSlot.defaultValue).realSize == 0)
+                if (currentSlot.expression == null)
                 {
                     newInputSlots.RemoveAt(slotIndex);
                 }
@@ -175,8 +175,8 @@ namespace UnityEditor.VFX
         public class Properties
         {
             static public float FallbackValue = 1.0f;
-            public FloatN right = new FloatN(new[] { FallbackValue });
-            public FloatN left = new FloatN(new[] { FallbackValue });
+            public FloatN right = FallbackValue;
+            public FloatN left = FallbackValue;
         }
     }
 
@@ -185,8 +185,8 @@ namespace UnityEditor.VFX
         public class Properties
         {
             static public float FallbackValue = 0.0f;
-            public FloatN right = new FloatN(new[] { FallbackValue });
-            public FloatN left = new FloatN(new[] { FallbackValue });
+            public FloatN right = FallbackValue;
+            public FloatN left = FallbackValue;
         }
     }
 }
