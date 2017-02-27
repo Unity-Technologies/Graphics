@@ -13,18 +13,37 @@ namespace UnityEditor.VFX
 
         public class Properties
         {
-            public float a = 0.0f;
-            public float b = 0.0f;
+            public FloatN a = 0.0f;
+            public FloatN b = 0.0f;
         }
 
+        sealed protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            var newInputSlots = new List<VFXMitoSlotInput>();
+            var size = 0;
+            foreach (var slot in InputSlots)
+            {
+                var expression = slot.expression;
+                if (expression != null)
+                {
+                    size += VFXExpression.TypeToSize(expression.ValueType);
+                    newInputSlots.Add(slot);
+                }
+            }
 
+            if (newInputSlots.All(s => s.parent != null) && size < 4)
+            {
+                newInputSlots.Add(new VFXMitoSlotInput(new FloatN()));
+            }
+
+            InputSlots = newInputSlots.ToArray();
+            base.OnInvalidate(model, cause);
+        }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var a = inputExpression[0];
-            var b = inputExpression[1];
-            var allComponent = VFXOperatorUtility.ExtractComponents(a).Concat(VFXOperatorUtility.ExtractComponents(b)).ToArray();
-            return new[] { new VFXExpressionCombine(allComponent) };
+            var allComponent = inputExpression.SelectMany(e => VFXOperatorUtility.ExtractComponents(e));
+            return new[] { new VFXExpressionCombine(allComponent.Take(4).ToArray()) };
         }
     }
 }
