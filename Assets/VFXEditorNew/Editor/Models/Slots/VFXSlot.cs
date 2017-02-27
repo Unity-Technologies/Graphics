@@ -46,6 +46,29 @@ namespace UnityEditor.VFX
         {
             m_Direction = direction;
         }
+
+        // Create and return a slot hierarchy from a property info
+        public static VFXSlot Create(VFXProperty info, Direction direction)
+        {
+            var desc = VFXLibrary.GetSlot(info.type);
+            if (desc != null)
+            {
+                var slot = desc.CreateInstance();
+                slot.m_Direction = direction;
+
+                foreach (var subInfo in info.SubProperties())
+                {
+                    var subSlot = Create(subInfo, direction);
+                    if (subSlot != null)
+                        subSlot.Attach(slot);
+                }
+
+                return slot;
+            }
+
+            // TODO log error
+            return null;
+        }
     
         public int GetNbLinks() { return m_LinkedSlots.Count; }
         public bool HasLink() { return GetNbLinks() != 0; }

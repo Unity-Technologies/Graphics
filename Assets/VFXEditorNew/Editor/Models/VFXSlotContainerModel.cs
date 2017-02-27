@@ -25,12 +25,6 @@ namespace UnityEditor.VFX
         where ParentType : VFXModel
         where ChildrenType : VFXModel
     {
-        public struct Property
-        {
-            public System.Type type;
-            public string name;
-        }
-
         public virtual IEnumerable<VFXSlot> inputSlots  { get { return m_InputSlots; } }
         public virtual IEnumerable<VFXSlot> outputSlots { get { return m_OutputSlots; } }
 
@@ -56,7 +50,7 @@ namespace UnityEditor.VFX
             InitProperties("OutputProperties", out m_OutputProperties, out m_OutputValues);
         }
 
-        private void InitProperties(string className, out Property[] properties, out object[] values)
+        private void InitProperties(string className, out VFXProperty[] properties, out object[] values)
         {
             System.Type type = GetType().GetNestedType(className);
 
@@ -64,31 +58,31 @@ namespace UnityEditor.VFX
             {
                 var fields = type.GetFields();
 
-                properties = new Property[fields.Length];
+                properties = new VFXProperty[fields.Length];
                 values = new object[fields.Length];
 
                 var defaultBuffer = System.Activator.CreateInstance(type);
 
                 for (int i = 0; i < fields.Length; ++i)
                 {
-                    properties[i] = new Property() { type = fields[i].FieldType, name = fields[i].Name };
+                    properties[i] = new VFXProperty() { type = fields[i].FieldType, name = fields[i].Name };
                     values[i] = fields[i].GetValue(defaultBuffer);
                 }
             }
             else
             {
-                properties = new Property[0];
+                properties = new VFXProperty[0];
                 values = new object[0];
             }
         }
 
-        protected Property[] m_InputProperties;
+        protected VFXProperty[] m_InputProperties;
         protected object[] m_InputValues;
 
-        protected Property[] m_OutputProperties;
+        protected VFXProperty[] m_OutputProperties;
         protected object[] m_OutputValues;
 
-        public Property[] GetProperties()
+        public VFXProperty[] GetProperties()
         {
             return m_InputProperties;
         }
