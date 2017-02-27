@@ -1120,6 +1120,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 #endif
+                float oldSpecularGlobalDimmer = m_PassSettings.specularGlobalDimmer;
+                // Change some parameters in case of "special" rendering (can be preview, reflection, etc.
+                if(camera.cameraType == CameraType.Reflection)
+                {
+                    m_PassSettings.specularGlobalDimmer = 0.0f;
+                }
 
                 // 1. Count the number of lights and sort all light by category, type and volume
                 int directionalLightcount = 0;
@@ -1349,6 +1355,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
                 Debug.Assert(m_lightList.bounds.Count == m_lightCount);
                 Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
+
+                // Restore values after "special rendering"
+                m_PassSettings.specularGlobalDimmer = oldSpecularGlobalDimmer;
             }
 
             void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
