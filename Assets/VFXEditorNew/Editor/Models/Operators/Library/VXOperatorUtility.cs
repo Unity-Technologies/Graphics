@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
         {
             //a.x*b.x + a.y*b.y + ...
             var size = VFXExpression.TypeToSize(a.ValueType);
-            if (a.ValueType != b.ValueType || size < 2)
+            if (a.ValueType != b.ValueType)
             {
                 throw new ArgumentException(string.Format("Invalid Dot type input : {0} and {1}", a.ValueType, b.ValueType));
             }
@@ -107,6 +107,13 @@ namespace UnityEditor.VFX
             return components;
         }
 
+        static public IEnumerable<VFXExpression> UnifyFloatLevel(IEnumerable<VFXExpression> inputExpression, float defaultValue = 0.0f)
+        {
+            var maxValueType = inputExpression.Select(o => o.ValueType).OrderBy(t => VFXExpression.TypeToSize(t)).Last();
+            var newVFXExpression = inputExpression.Select(o => CastFloat(o, maxValueType, defaultValue));
+            return newVFXExpression.ToArray();
+        }
+
         static public VFXExpression CastFloat(VFXExpression from, VFXValueType toValueType, float defautValue = 0.0f)
         {
             if (!VFXExpressionFloatOperation.IsFloatValueType(from.ValueType) || !VFXExpressionFloatOperation.IsFloatValueType(toValueType))
@@ -116,7 +123,7 @@ namespace UnityEditor.VFX
 
             if (from.ValueType == toValueType)
             {
-                throw new ArgumentException(string.Format("Incoherent CastFloat : {0} to {1}", from, toValueType));
+                return from;
             }
 
             var fromValueType = from.ValueType;

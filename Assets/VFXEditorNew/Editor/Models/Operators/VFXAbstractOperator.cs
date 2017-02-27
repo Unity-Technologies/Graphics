@@ -6,17 +6,135 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXOperatorUnaryFloatOperation : VFXOperator
+    struct FloatN
     {
-        public class Properties
+        public FloatN(float[] currentValues = null)
         {
-            public float input = 0.0f;
+            m_Components = currentValues;
+        }
+
+        public float this[int i]
+        {
+            get
+            {
+                if (realSize == 1)
+                {
+                    return m_Components[0];
+                }
+                return realSize > i ? m_Components[i] : 0.0f;
+            }
+            set
+            {
+                if (realSize > i)
+                {
+                    m_Components[i] = value;
+                }
+            }
+        }
+
+        public float x { get { return this[0]; } set { this[0] = value; } }
+        public float y { get { return this[1]; } set { this[1] = value; } }
+        public float z { get { return this[2]; } set { this[2] = value; } }
+        public float w { get { return this[3]; } set { this[3] = value; } }
+        public int realSize { get { return m_Components == null ? 0 : m_Components.Length; } }
+
+        public static implicit operator FloatN(float value)
+        {
+            return new FloatN(new[] { value });
+        }
+
+        public static implicit operator FloatN(Vector2 value)
+        {
+            return new FloatN(new[] { value.x, value.y });
+        }
+
+        public static implicit operator FloatN(Vector3 value)
+        {
+            return new FloatN(new[] { value.x, value.y, value.z });
+        }
+
+        public static implicit operator FloatN(Vector4 value)
+        {
+            return new FloatN(new[] { value.x, value.y, value.z, value.w });
+        }
+
+        public static implicit operator float(FloatN value)
+        {
+            return value.x;
+        }
+
+        public static implicit operator Vector2(FloatN value)
+        {
+            return new Vector2(value.x, value.y);
+        }
+
+        public static implicit operator Vector3(FloatN value)
+        {
+            return new Vector3(value.x, value.y, value.z);
+        }
+
+        public static implicit operator Vector4(FloatN value)
+        {
+            return new Vector4(value.x, value.y, value.z, value.w);
+        }
+
+        public static implicit operator VFXExpression(FloatN value)
+        {
+            switch (value.realSize)
+            {
+                case 1: return new VFXValueFloat(value, true);
+                case 2: return new VFXValueFloat2(value, true);
+                case 3: return new VFXValueFloat3(value, true);
+                case 4: return new VFXValueFloat4(value, true);
+            }
+            return null;
+        }
+
+        private float[] m_Components;
+    }
+
+    abstract class VFXOperatorFloatUnified : VFXOperator
+    {
+        private float m_FallbackValue = 0.0f;
+
+        protected VFXOperatorFloatUnified()
+        {
+            if (InputSlots.Any(o => !(o.defaultValue is FloatN) || ((FloatN)o.defaultValue).realSize == 0))
+            {
+                throw new Exception(string.Format("VFXOperatorFloatUnified except only FloatN with size > 0 as input : {0}", GetType()));
+            }
+
+            var propertyType = GetPropertiesType();
+            if (propertyType != null)
+            {
+                var fields = propertyType.GetFields().Where(o => o.IsStatic && o.Name == "FallbackValue");
+                var field = fields.FirstOrDefault(o => o.FieldType == typeof(float));
+                if (field != null)
+                {
+                    m_FallbackValue = (float)field.GetValue(null);
+                }
+            }
+        }
+
+        //Convert automatically input expression with diverging floatN size to floatMax
+        sealed override protected IEnumerable<VFXExpression> GetInputExpressions()
+        {
+            var inputExpression = base.GetInputExpressions().Where(e => e != null);
+            return VFXOperatorUtility.UnifyFloatLevel(inputExpression, m_FallbackValue);
         }
     }
 
-    abstract class VFXOperatorBinaryFloatOperation : VFXOperator
+    abstract class VFXOperatorUnaryFloatOperation : VFXOperatorFloatUnified
     {
-        protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
+        public class Properties
+        {
+            public FloatN input = new FloatN(new[] { 0.0f });
+        }
+    }
+
+    abstract class VFXOperatorBinaryFloatCascadableOperation : VFXOperatorFloatUnified
+    {
+        sealed protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
             var newInputSlots = InputSlots.ToList();
 
@@ -24,7 +142,7 @@ namespace UnityEditor.VFX
             for (int slotIndex = newInputSlots.Count - 1; slotIndex >= 0 && newInputSlots.Count > 2; --slotIndex)
             {
                 var currentSlot = newInputSlots[slotIndex];
-                if (currentSlot.parent == null)
+                if (currentSlot.parent == null && ((FloatN)currentSlot.defaultValue).realSize == 0)
                 {
                     newInputSlots.RemoveAt(slotIndex);
                 }
@@ -32,13 +150,8 @@ namespace UnityEditor.VFX
 
             if (newInputSlots.All(s => s.parent != null))
             {
-                var lastElement = newInputSlots.Last();
                 //Add new available slot element
-                newInputSlots.Add(new VFXMitoSlotInput()
-                {
-                    name = lastElement.name,
-                    type = lastElement.type
-                });
+                newInputSlots.Add(new VFXMitoSlotInput(new FloatN()));
             }
             InputSlots = newInputSlots.ToArray();
 
@@ -57,21 +170,23 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorBinaryFloatOperationOne : VFXOperatorBinaryFloatOperation
+    abstract class VFXOperatorBinaryFloatOperationOne : VFXOperatorBinaryFloatCascadableOperation
     {
         public class Properties
         {
-            public float right = 1.0f;
-            public float left = 1.0f;
+            static public float FallbackValue = 1.0f;
+            public FloatN right = new FloatN(new[] { FallbackValue });
+            public FloatN left = new FloatN(new[] { FallbackValue });
         }
     }
 
-    abstract class VFXOperatorBinaryFloatOperationZero : VFXOperatorBinaryFloatOperation
+    abstract class VFXOperatorBinaryFloatOperationZero : VFXOperatorBinaryFloatCascadableOperation
     {
         public class Properties
         {
-            public float right = 0.0f;
-            public float left = 0.0f;
+            static public float FallbackValue = 0.0f;
+            public FloatN right = new FloatN(new[] { FallbackValue });
+            public FloatN left = new FloatN(new[] { FallbackValue });
         }
     }
 }
