@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private VFXSlot() {} // For serialization only
+        protected VFXSlot() {} // For serialization only
         public VFXSlot(Direction direction)
         {
             m_Direction = direction;

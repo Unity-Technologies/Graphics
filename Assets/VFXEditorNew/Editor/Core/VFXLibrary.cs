@@ -40,7 +40,8 @@ namespace UnityEditor.VFX
         }
 
         public string name { get { return m_Template.name; } }
-        public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template); }}
+        public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template); } }
+        public Type modelType { get { return m_Template.GetType(); } }
 
         public bool AcceptParent(VFXModel parent, int index = -1)
         {
@@ -83,6 +84,14 @@ namespace UnityEditor.VFX
                 m_BlockDescs = LoadModels<VFXBlock>();
                 m_OperatorDescs = LoadModels<VFXOperator>();
                 m_SlotDescs = LoadSlots();
+
+                // Debug
+                Debug.Log("ALL REGISTERED SLOTS:");
+                foreach (var slot in m_SlotDescs)
+                {
+                    Debug.Log(slot.Key + " -> " + slot.Value.modelType);
+                }
+
                 m_Loaded = true;
             }
         }
