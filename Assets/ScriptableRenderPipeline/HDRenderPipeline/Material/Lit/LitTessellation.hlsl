@@ -9,7 +9,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // TODO: Handle inverse culling (for mirror)!
     if (_TessellationBackFaceCullEpsilon > -0.99) // Is backface culling enabled ?
     {
-        faceCull = BackFaceCullTriangle(p0, p1, p2, _TessellationBackFaceCullEpsilon, _WorldSpaceCameraPos);
+        faceCull = BackFaceCullTriangle(p0, p1, p2, _TessellationBackFaceCullEpsilon, GetCurrentCameraPosition());
     }
 #endif
 
@@ -31,7 +31,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // Distance based tessellation
     if (_TessellationFactorMaxDistance > 0.0)
     {
-        float3 distFactor = GetDistanceBasedTessFactor(p0, p1, p2, _WorldSpaceCameraPos, _TessellationFactorMinDistance, _TessellationFactorMaxDistance);
+        float3 distFactor = GetDistanceBasedTessFactor(p0, p1, p2, GetCurrentCameraPosition(), _TessellationFactorMinDistance, _TessellationFactorMaxDistance);
         // We square the disance factor as it allow a better percptual descrease of vertex density.
         tessFactor *= distFactor * distFactor;
     }

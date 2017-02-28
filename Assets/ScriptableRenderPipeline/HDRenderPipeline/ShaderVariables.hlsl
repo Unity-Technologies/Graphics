@@ -281,10 +281,23 @@ float4 TransformWorldToHClip(float3 positionWS)
     return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
+float3 GetCurrentCameraPosition()
+{
+#if SHADERPASS != SHADERPASS_DEPTH_ONLY
+    return _WorldSpaceCameraPos;
+#else
+    // TEMP: this is a workaround until the shadow map pass sets '_WorldSpaceCameraPos'.
+    // This code is far more expensive than loading a constant from a cbuffer!
+    float4x4 viewMat   = transpose(GetWorldToViewMatrix());
+    float3   rotCamPos = viewMat[3].xyz;
+   return mul((float3x3)viewMat, -rotCamPos);
+#endif
+}
+
 // Computes the world space view direction (pointing towards the camera).
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
-    float3 V = _WorldSpaceCameraPos.xyz - positionWS;
+    float3 V = GetCurrentCameraPosition() - positionWS;
 
     // Uncomment this once the compiler bug is fixed.
     // if (unity_OrthoParams.w == 1.0)
