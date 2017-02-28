@@ -297,20 +297,36 @@ namespace UnityEditor.VFX.UI
 		{
             if (startAnchorPresenter is VFXOperatorAnchorPresenter)
             {
+                /* wip (will be managed with slot class) */
                 var allOperatorPresenter = elements.OfType<VFXOperatorPresenter>();
-                var currentOperator = (startAnchorPresenter as VFXOperatorAnchorPresenter).sourceOperator.Operator;
+                var startAnchorOperatorPresenter = (startAnchorPresenter as VFXOperatorAnchorPresenter);
+                var currentOperator = startAnchorOperatorPresenter.sourceOperator.Operator;
                 if (startAnchorPresenter.direction == Direction.Input)
                 {
                     var childrenOperators = new HashSet<VFXOperator>();
                     CollectChildOperator(currentOperator, childrenOperators, elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>().Select(o => o.Operator).ToArray());
                     allOperatorPresenter = allOperatorPresenter.Where(o => !childrenOperators.Contains(o.Operator));
-                    return allOperatorPresenter.SelectMany(o => o.outputAnchors).ToList();
+                    var toSlot = currentOperator.InputSlots.First(s => s.slotID == startAnchorOperatorPresenter.slotID);
+                    var allOutputCandidate = allOperatorPresenter.SelectMany(o => o.outputAnchors).Where(o =>
+                    {
+                        var candidate = o as VFXOperatorAnchorPresenter;
+                        return toSlot.CanConnect(candidate.sourceOperator.Operator, candidate.slotID);
+                    }).ToList();
+                    return allOutputCandidate;
                 }
-
-                var parentOperators = new HashSet<VFXOperator>();
-                CollectParentOperator(currentOperator, parentOperators);
-                allOperatorPresenter = allOperatorPresenter.Where(o => !parentOperators.Contains(o.Operator));
-                return allOperatorPresenter.SelectMany(o => o.inputAnchors).ToList();
+                else
+                {
+                    var parentOperators = new HashSet<VFXOperator>();
+                    CollectParentOperator(currentOperator, parentOperators);
+                    allOperatorPresenter = allOperatorPresenter.Where(o => !parentOperators.Contains(o.Operator));
+                    var allInputCandidates = allOperatorPresenter.SelectMany(o => o.inputAnchors).Where(o =>
+                    {
+                        var candidate = o as VFXOperatorAnchorPresenter;
+                        var toSlot = candidate.sourceOperator.Operator.InputSlots.First(s => s.slotID == candidate.slotID);
+                        return toSlot.CanConnect(currentOperator, startAnchorOperatorPresenter.slotID);
+                    }).ToList();
+                    return allInputCandidates;
+                }
             }
             else if (startAnchorPresenter is VFXDataAnchorPresenter)
             {

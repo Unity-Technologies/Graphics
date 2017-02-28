@@ -69,6 +69,32 @@ namespace UnityEditor.VFX
                 }
             }
 
+            public bool CanConnect(VFXOperator _parent, Guid _slotID)
+            {
+                var slot = _parent.OutputSlots.FirstOrDefault(s => s.slotID == _slotID);
+                if (slot != null)
+                {
+                    var fromType = VFXExpression.TypeToType(slot.expression.ValueType);
+                    var toType = m_defaultValue.GetType();
+                    if (fromType.IsAssignableFrom(toType))
+                    {
+                        return true;
+                    }
+
+                    if (toType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                        .Where(mi => mi.Name == "op_Implicit" && mi.ReturnType == fromType)
+                        .Any(mi =>
+                        {
+                            var pi = mi.GetParameters().FirstOrDefault();
+                            return pi != null && pi.ParameterType == toType;
+                        }))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
             public void Disconnect()
             {
                 parent = null;
@@ -77,8 +103,11 @@ namespace UnityEditor.VFX
 
             public void Connect(VFXOperator _parent, Guid _slotID)
             {
-                parent = _parent;
-                parentSlotID = _slotID;
+                if (CanConnect(_parent, _slotID))
+                {
+                    parent = _parent;
+                    parentSlotID = _slotID;
+                }
             }
         }
 
@@ -175,6 +204,14 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model,cause);
             if (cause == InvalidationCause.kParamChanged)
             {
+                foreach (var slot in InputSlots)
+                {
+                    if (slot.parent != null && !slot.CanConnect(slot.parent, slot.parentSlotID))
+                    {
+                        slot.Disconnect();
+                    }
+                }
+
                 var inputExpressions = GetInputExpressions();
                 var ouputExpressions = BuildExpression(inputExpressions.ToArray());
                 OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
