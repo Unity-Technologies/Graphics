@@ -217,7 +217,8 @@ VFXDataAnchor  #IMGUI
 {
 	flex:2;
 	align-items: stretch;
-	margin-left:12px;
+	margin-left:12;
+	margin-right:4;
 	
 }
 

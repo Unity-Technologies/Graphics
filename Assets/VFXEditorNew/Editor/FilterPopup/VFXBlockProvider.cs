@@ -5,10 +5,11 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.RMGUI;
+using UnityEditor.Experimental;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXAbstractProvider<T> : RMGUI.GraphView.ContextualMenu, VFXFilterWindow.IProvider
+    abstract class VFXAbstractProvider<T> : ContextualMenu, VFXFilterWindow.IProvider
     {
         Action<T, Vector2> m_onSpawnDesc;
 
@@ -86,11 +87,6 @@ namespace UnityEditor.VFX.UI
         public Vector2 position
         {
             get; set;
-        }
-
-        public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
-        {
-            return EventPropagation.Continue;
         }
     }
 
