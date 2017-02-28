@@ -18,8 +18,23 @@ namespace UnityEditor.VFX
         public Direction direction { get { return m_Direction; } }
         public VFXProperty property { get { return m_Property; } }
         public override string name { get { return m_Property.name; } }
+        public virtual VFXExpression expression 
+        { 
+            get { return m_CachedExpression; } 
+            set 
+            {
+                if (m_DefaultExpression != value)
+                {
+                    if (!CanConvert(value))
+                        throw new IllegalArgumentException();
 
-        public VFXSlot refSlot 
+                    m_DefaultExpression = ConvertExpression(value);
+                    Invalidate(InvalidationCause.kConnectionChanged); // trigger a rebuild
+                }
+            }
+        }
+
+        public VFXSlot refSlot
         { 
             get 
             {
@@ -57,8 +72,7 @@ namespace UnityEditor.VFX
                 return slot;
             }
 
-            // TODO log error
-            return null;
+            throw new InvalidOperationException();
         }
     
         public int GetNbLinks() { return m_LinkedSlots.Count; }
@@ -71,12 +85,22 @@ namespace UnityEditor.VFX
 
         public bool Link(VFXSlot other)
         {
-            if (!CanLink(other) || !other.CanLink(this))
+            if (other == null)
                 return false;
 
-            InnerLink(other);
-            if (other != null)
+            if (!CanLink(other) || !other.CanLink(this)) // can link
+                return false;
+
+            if (other.direction == Direction.kInput)
+            {
+                InnerLink(other);
                 other.InnerLink(this);
+            }
+            else
+            {
+                other.InnerLink(this);
+                InnerLink(other);
+            }
 
             return true;
         }
@@ -101,7 +125,20 @@ namespace UnityEditor.VFX
         {
             // inputs can only be linked to one output at a time
             if (direction == Direction.kInput)
+            {
                 UnlinkAll();
+
+                // We need to unlink any potential slots link in the hierarchy
+                var currentParent = GetParent();
+                while (currentParent != null)
+                {
+                    currentParent.UnlinkAll();
+                    currentParent = currentParent.GetParent();
+                }
+
+                foreach (var child in children)
+                    child.UnlinkAll();
+            }
 
             m_LinkedSlots.Add(other);
             Invalidate(InvalidationCause.kConnectionChanged);
@@ -111,6 +148,15 @@ namespace UnityEditor.VFX
         {
             m_LinkedSlots.Remove(other);
             Invalidate(InvalidationCause.kConnectionChanged);
+        }
+
+        protected override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.Invalidate(model, cause);
+
+            // Propagate to the owner if any
+            if (m_Owner != null)
+                m_Owner.OnInvalidate(model, cause);
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -125,7 +171,26 @@ namespace UnityEditor.VFX
                     foreach (var slot in m_LinkedSlots)
                         slot.Invalidate(model, InvalidationCause.kParamPropagated);
             }
+            else // input
+            {
+                BuildExpression();
+            }
         }
+
+        private VFXExpression BuildExpression()
+        {
+            /*if (direction == Direction.kInput && HasLink())
+                m_CachedExpression = ConvertExpression(refSlot.expression);
+            else
+                m_CachedExpression = GetExpressionFromChildren();
+
+            if (m_CachedExpression == null)
+                m_CachedExpression = m_DefaultExpression;*/
+        }
+
+        protected virtual bool CanConvert(VFXExpression expression);
+        protected virtual bool ConvertExpression(VFXExpression expression);
+
 
         public virtual void OnBeforeSerialize()
         {
@@ -137,6 +202,9 @@ namespace UnityEditor.VFX
         {
             base.OnBeforeSerialize();
         }*/
+
+        private VFXExpression m_CachedExpression;
+        private VFXExpression m_DefaultExpression;
 
         [NonSerialized]
         public IVFXSlotContainer m_Owner; // Dont set that directly! Only called by SlotContainer!

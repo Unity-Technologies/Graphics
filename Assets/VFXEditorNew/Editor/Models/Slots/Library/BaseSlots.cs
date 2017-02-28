@@ -4,10 +4,25 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(float))]
-    class VFXSlotFloat : VFXSlot {}
+    class VFXSlotFloat : VFXSlot
+    {
+
+    }
 
     [VFXInfo(type = typeof(Vector2))]
-    class VFXSlotFloat2 : VFXSlot {}
+    class VFXSlotFloat2 : VFXSlot
+    {
+        /*protected override VFXExpression FromChildren()
+        {
+            return new VFXExpressionCombine(GetChild(0).expression, GetChild(1).expression);
+        }
+
+        protected override void ToChildren()
+        {
+            for (int i = 0; i < GetNbChildren(); ++i )
+                GetChild(i).expression = new VFXExpressionExtractComponent(this.expression, i);
+        }*/
+    }
 
     [VFXInfo(type = typeof(Vector3))]
     class VFXSlotFloat3 : VFXSlot {}

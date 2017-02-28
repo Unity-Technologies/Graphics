@@ -90,9 +90,6 @@ namespace UnityEditor.VFX
 
         public void Attach(VFXModel parent, bool notify = true)
         {
-            if (parent == null)
-                throw new ArgumentNullException();
-
             parent.AddChild(this, -1, notify);
         }
 
@@ -165,7 +162,7 @@ namespace UnityEditor.VFX
             Invalidate(this,cause);
         }
 
-        protected void Invalidate(VFXModel model,InvalidationCause cause)
+        protected virtual void Invalidate(VFXModel model,InvalidationCause cause)
         {
             OnInvalidate(model,cause);
             if (m_Parent != null)

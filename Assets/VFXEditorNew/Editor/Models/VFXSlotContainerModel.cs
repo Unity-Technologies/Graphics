@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
                 slot.m_Owner = null;
                 Invalidate(InvalidationCause.kStructureChanged);
             }
-        }
+        } 
 
         protected VFXSlotContainerModel()
         {
