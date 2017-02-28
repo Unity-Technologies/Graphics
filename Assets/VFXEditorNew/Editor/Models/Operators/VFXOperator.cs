@@ -173,10 +173,12 @@ namespace UnityEditor.VFX
         protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
             base.OnInvalidate(model,cause);
-
-            var inputExpressions = GetInputExpressions();
-            var ouputExpressions = BuildExpression(inputExpressions.ToArray());
-            OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
+            if (cause == InvalidationCause.kParamChanged)
+            {
+                var inputExpressions = GetInputExpressions();
+                var ouputExpressions = BuildExpression(inputExpressions.ToArray());
+                OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
+            }
         }
     }
 }

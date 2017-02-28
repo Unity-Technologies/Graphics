@@ -19,24 +19,26 @@ namespace UnityEditor.VFX
 
         sealed protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            var newInputSlots = new List<VFXMitoSlotInput>();
-            var size = 0;
-            foreach (var slot in InputSlots)
+            if (cause == InvalidationCause.kParamChanged)
             {
-                var expression = slot.expression;
-                if (expression != null)
+                var newInputSlots = new List<VFXMitoSlotInput>();
+                var size = 0;
+                foreach (var slot in InputSlots)
                 {
-                    size += VFXExpression.TypeToSize(expression.ValueType);
-                    newInputSlots.Add(slot);
+                    var expression = slot.expression;
+                    if (expression != null)
+                    {
+                        size += VFXExpression.TypeToSize(expression.ValueType);
+                        newInputSlots.Add(slot);
+                    }
                 }
-            }
 
-            if (newInputSlots.All(s => s.parent != null) && size < 4)
-            {
-                newInputSlots.Add(new VFXMitoSlotInput(new FloatN()));
+                if (newInputSlots.All(s => s.parent != null) && size < 4)
+                {
+                    newInputSlots.Add(new VFXMitoSlotInput(new FloatN()));
+                }
+                InputSlots = newInputSlots.ToArray();
             }
-
-            InputSlots = newInputSlots.ToArray();
             base.OnInvalidate(model, cause);
         }
 
