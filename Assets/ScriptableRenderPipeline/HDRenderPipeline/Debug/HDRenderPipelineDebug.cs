@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableSSS = true;
     }
 
-    public enum ShadowDebugMode
+    public enum ShadowMapDebugMode
     {
         None,
         VisualizeAtlas,
@@ -51,14 +51,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         None,
         DiffuseLighting,
-        SpecularLighting
+        SpecularLighting,
+        VisualizeCascade
     }
 
     [Serializable]
     public class LightingDebugSettings
     {
         public bool                 enableShadows = true;
-        public ShadowDebugMode      shadowDebugMode = ShadowDebugMode.None;
+        public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         public uint                 shadowMapIndex = 0;
 
         public LightingDebugMode    lightingDebugMode = LightingDebugMode.None;

@@ -81,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Lighting Debug
             public readonly GUIContent lightingDebugSettings = new GUIContent("Lighting Debug");
             public readonly GUIContent shadowDebugEnable = new GUIContent("Enable Shadows");
-            public readonly GUIContent shadowDebugVisualizationMode = new GUIContent("Shadow Debug Mode");
+            public readonly GUIContent shadowDebugVisualizationMode = new GUIContent("Shadow Maps Debug Mode");
             public readonly GUIContent shadowDebugVisualizeShadowIndex = new GUIContent("Visualize Shadow Index");
             public readonly GUIContent lightingDebugMode = new GUIContent("Lighting Debug Mode");
             public readonly GUIContent lightingDebugOverrideSmoothness = new GUIContent("Override Smoothness");
@@ -454,7 +454,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_ShadowDebugMode, styles.shadowDebugVisualizationMode);
             if (!m_ShadowDebugMode.hasMultipleDifferentValues)
             {
-                if ((ShadowDebugMode)m_ShadowDebugMode.intValue == ShadowDebugMode.VisualizeShadowMap)
+                if ((ShadowMapDebugMode)m_ShadowDebugMode.intValue == ShadowMapDebugMode.VisualizeShadowMap)
                 {
                     EditorGUILayout.IntSlider(m_ShadowDebugShadowMapIndex, 0, renderpipelineInstance.GetCurrentShadowCount() - 1, styles.shadowDebugVisualizeShadowIndex);
                 }

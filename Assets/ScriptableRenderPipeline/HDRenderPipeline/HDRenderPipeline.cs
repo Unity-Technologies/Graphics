@@ -976,9 +976,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             LightingDebugSettings lightingDebug = globalDebugSettings.lightingDebugSettings;
 
-            if (lightingDebug.shadowDebugMode != ShadowDebugMode.None)
+            if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
             {
-                if (lightingDebug.shadowDebugMode == ShadowDebugMode.VisualizeShadowMap)
+                if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                 {
                     uint visualizeShadowIndex = Math.Min(lightingDebug.shadowMapIndex, (uint)(GetCurrentShadowCount() - 1));
                     ShadowLight shadowLight = m_ShadowsResult.shadowLights[visualizeShadowIndex];
@@ -999,7 +999,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
                     }
                 }
-                else if (lightingDebug.shadowDebugMode == ShadowDebugMode.VisualizeAtlas)
+                else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                 {
                     propertyBlock.SetVector("_TextureScaleBias", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
 
