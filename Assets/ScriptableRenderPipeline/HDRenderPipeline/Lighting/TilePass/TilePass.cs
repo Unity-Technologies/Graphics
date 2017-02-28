@@ -674,9 +674,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var directionalLightData = new DirectionalLightData();
 
-                float diffuseIntensity = m_PassSettings.diffuseGlobalDimmer * additionalData.lightDimmer;
-                float specularIntensity = m_PassSettings.specularGlobalDimmer * additionalData.lightDimmer;
-                if (diffuseIntensity  <= 0.0f && specularIntensity <= 0.0f)
+                float diffuseDimmer = m_PassSettings.diffuseGlobalDimmer * additionalData.lightDimmer;
+                float specularDimmer = m_PassSettings.specularGlobalDimmer * additionalData.lightDimmer;
+                if (diffuseDimmer  <= 0.0f && specularDimmer <= 0.0f)
                     return false;
 
                 // Light direction for directional is opposite to the forward direction
@@ -685,8 +685,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 directionalLightData.right = light.light.transform.right;
                 directionalLightData.positionWS = light.light.transform.position;
                 directionalLightData.color = GetLightColor(light);
-                directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseIntensity : 0.0f;
-                directionalLightData.specularScale = additionalData.affectSpecular ? specularIntensity : 0.0f;
+                directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
+                directionalLightData.specularScale = additionalData.affectSpecular ? specularDimmer : 0.0f;
                 directionalLightData.invScaleX = 1.0f / light.light.transform.localScale.x;
                 directionalLightData.invScaleY = 1.0f / light.light.transform.localScale.y;
                 directionalLightData.cosAngle = 0.0f;
@@ -776,10 +776,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 float distanceToCamera = (lightData.positionWS - camera.transform.position).magnitude;
                 float distanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalData.fadeDistance);
-                float lightIntensity = additionalData.lightDimmer * distanceFade;
+                float lightScale = additionalData.lightDimmer * distanceFade;
 
-                lightData.diffuseScale = additionalData.affectDiffuse ? lightIntensity * m_PassSettings.diffuseGlobalDimmer : 0.0f;
-                lightData.specularScale = additionalData.affectSpecular ? lightIntensity * m_PassSettings.specularGlobalDimmer : 0.0f;
+                lightData.diffuseScale = additionalData.affectDiffuse ? lightScale * m_PassSettings.diffuseGlobalDimmer : 0.0f;
+                lightData.specularScale = additionalData.affectSpecular ? lightScale * m_PassSettings.specularGlobalDimmer : 0.0f;
 
                 if (lightData.diffuseScale <= 0.0f && lightData.specularScale <= 0.0f)
                     return false;
