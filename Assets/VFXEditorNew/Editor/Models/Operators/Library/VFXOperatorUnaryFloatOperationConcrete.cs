@@ -170,11 +170,11 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
-    class VFXOperatorLength : VFXOperator
+    class VFXOperatorLength : VFXOperatorFloatUnified
     {
         public class Properties
         {
-            public Vector3 input = Vector3.one;
+            public FloatN input = Vector3.one;
         }
 
         override public string name { get { return "Length"; } }
@@ -186,11 +186,11 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
-    class VFXOperatorNormalize : VFXOperator
+    class VFXOperatorNormalize : VFXOperatorFloatUnified
     {
         public class Properties
         {
-            public Vector3 input = Vector3.one;
+            public FloatN input = Vector3.one;
         }
 
         override public string name { get { return "Normalize"; } }

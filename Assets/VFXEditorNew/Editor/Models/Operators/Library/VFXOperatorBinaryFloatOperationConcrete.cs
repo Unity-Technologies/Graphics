@@ -106,8 +106,8 @@ namespace UnityEditor.VFX
     {
         public class Properties
         {
-            public FloatN right = new FloatN(new[] { 0.0f, 0.0f, 0.0f });
-            public FloatN left = new FloatN(new[] { 0.0f, 0.0f, 0.0f });
+            public FloatN right = Vector3.zero;
+            public FloatN left = Vector3.zero;
         }
 
         override public string name { get { return "Dot"; } }
