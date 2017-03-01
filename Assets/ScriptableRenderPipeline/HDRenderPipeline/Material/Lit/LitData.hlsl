@@ -247,6 +247,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         PerPixelHeightDisplacementParam ppdParam;
 
         float height; // final height processed
+        float NdotV;
 
         // planar/triplanar
         float2 uvXZ;
@@ -291,6 +292,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             layerTexCoord.base.uvXY += offsetXY;
             layerTexCoord.details.uvXY += offsetXY;
             height += layerTexCoord.triplanarWeights.z * planeHeight;
+
+            NdotV = 1; // TODO.
         }
         else
         {
@@ -306,6 +309,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             #endif
 
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
+            NdotV = viewDirTS.z;
+
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
 
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
@@ -317,7 +322,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
         // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
-        return maxHeight - height * maxHeight;
+        float verticalDisplacement = maxHeight - height * maxHeight;
+        return verticalDisplacement / NdotV;
     }
 
     return 0.0;
@@ -346,8 +352,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
 #ifdef _DEPTHOFFSET_ON
-    float3 camDirWS = GetCameraForwardDirInWorldSpace();
-    ApplyDepthOffsetPositionInput(camDirWS, depthOffset, _ViewProjMatrix, posInput);
+    ApplyDepthOffsetPositionInput(GetCameraForwardDir(), depthOffset, GetWorldToHClipMatrix(), posInput);
 #endif
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
@@ -977,6 +982,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 #endif
 
         float height; // final height processed
+        float NdotV;
 
         // We need to calculate the texture space direction. It depends on the mapping.
         if (isTriplanar)
@@ -1002,6 +1008,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
             // Apply to all layer that used triplanar
             */
+            height = 1;
+            NdotV  = 1;
         }
         else
         {
@@ -1022,6 +1030,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
             float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
+            NdotV = viewDirTS.z;
+
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
 
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
@@ -1050,7 +1060,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
         // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
-        return maxHeight - height * maxHeight;
+        float verticalDisplacement = maxHeight - height * maxHeight;
+        return verticalDisplacement / NdotV;
     }
 
     return 0.0;
@@ -1188,8 +1199,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
 #ifdef _DEPTHOFFSET_ON
-    float3 camDirWS = GetCameraForwardDirInWorldSpace();
-    ApplyDepthOffsetPositionInput(camDirWS, depthOffset, _ViewProjMatrix, posInput);
+    ApplyDepthOffsetPositionInput(GetCameraForwardDir(), depthOffset, GetWorldToHClipMatrix(), posInput);
 #endif
 
     SurfaceData surfaceData0, surfaceData1, surfaceData2, surfaceData3;

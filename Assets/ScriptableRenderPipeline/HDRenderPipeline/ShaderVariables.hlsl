@@ -309,11 +309,11 @@ float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
     return normalize(V);
 }
 
-// Returns the forward direction of the current camera in world space.
-float3 GetCameraForwardDirInWorldSpace()
+// Returns the forward direction of the current camera in the world space.
+float3 GetCameraForwardDir()
 {
-     float4x4 viewMat = GetWorldToViewMatrix();
-     return -viewMat[2].xyz;
+    float4x4 viewMat = GetWorldToViewMatrix();
+    return -viewMat[2].xyz;
 }
 
 float3x3 CreateWorldToTangent(float3 normal, float3 tangent, float flipSign)
