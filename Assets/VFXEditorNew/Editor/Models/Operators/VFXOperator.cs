@@ -97,16 +97,24 @@ namespace UnityEditor.VFX
 
             public void Disconnect()
             {
+                if (parent != null)
+                {
+                    var slotParent = parent.OutputSlots.First(o => o.slotID == parentSlotID);
+                    slotParent.RemoveChild(slotID);
+                }
+
                 parent = null;
                 parentSlotID = Guid.Empty;
             }
 
-            public void Connect(VFXOperator _parent, Guid _slotID)
+            public void Connect(VFXOperator current, VFXOperator _parent, Guid _slotID)
             {
                 if (CanConnect(_parent, _slotID))
                 {
                     parent = _parent;
                     parentSlotID = _slotID;
+                    var slotParent = parent.OutputSlots.First(o => o.slotID == parentSlotID);
+                    slotParent.AddChild(current, slotID);
                 }
             }
         }
@@ -114,6 +122,40 @@ namespace UnityEditor.VFX
         public class VFXMitoSlotOutput : VFXMitoSlot
         {
             private VFXExpression m_expression;
+
+            public class MitoChildInfo
+            {
+                public VFXOperator model;
+                public Guid slotID;
+            }
+            public List<MitoChildInfo> children = new List<MitoChildInfo>();
+
+            public void AddChild(VFXOperator _child, Guid _slotID)
+            {
+                RemoveChild(_slotID);
+                children.Add(new MitoChildInfo()
+                {
+                    model = _child,
+                    slotID = _slotID
+                });
+            }
+
+            public void RemoveChild(Guid _slotID)
+            {
+                var entry = children.FirstOrDefault(o => o.slotID == _slotID);
+                if (entry != null)
+                {
+                    children.Remove(entry);
+                }
+            }
+
+            public void Invalidate(VFXModel.InvalidationCause cause)
+            {
+                foreach (var child in children)
+                {
+                    child.model.Invalidate(cause);
+                }
+            }
 
             public VFXMitoSlotOutput(VFXExpression expression)
             {
@@ -247,6 +289,7 @@ namespace UnityEditor.VFX
             return inputExpression.Select((o, i) => new VFXMitoSlotOutput(o)
             {
                 slotID = i < m_OutputSlots.Length ? m_OutputSlots[i].slotID : Guid.NewGuid(),
+                children = i < m_OutputSlots.Length ? m_OutputSlots[i].children : new List<VFXMitoSlotOutput.MitoChildInfo>()
             });
         }
 
@@ -272,6 +315,11 @@ namespace UnityEditor.VFX
         {
             OnOperatorInvalidate(model, cause);
             base.OnInvalidate(model, cause);
+
+            foreach (var slot in OutputSlots)
+            {
+                slot.Invalidate(cause);
+            }
         }
     }
 }

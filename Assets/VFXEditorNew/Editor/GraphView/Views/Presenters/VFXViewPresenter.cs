@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.UI
 			}
 		}
 
-        private void RecreateOperatorEdges()
+        public void RecreateOperatorEdges()
         {
             m_Elements.RemoveAll(e => e is VFXOperatorEdgePresenter);
 
@@ -96,30 +96,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void InvalidateChildrenOperator(IEnumerable<VFXOperator> seeds)
-        {
-            var allVFXOperatorPresenter = elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>();
-            var allVFXOperator = allVFXOperatorPresenter.Select(o => o.Operator).ToArray();
-
-            var childrenOperators = new HashSet<VFXOperator>();
-            foreach (var start in seeds)
-            {
-                CollectChildOperator(start, childrenOperators, allVFXOperator);
-            }
-
-            foreach (var currentOperator in childrenOperators)
-            {
-                currentOperator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
-            }
-
-            RecreateOperatorEdges();
-        }
-
-        private void InvalidateChildrenOperator(VFXOperator seed)
-        {
-            InvalidateChildrenOperator(new[] { seed });
-        }
-
 		public override void AddElement(EdgePresenter edge)
 		{
 			if (edge is VFXFlowEdgePresenter)
@@ -140,8 +116,9 @@ namespace UnityEditor.VFX.UI
                 //Update connection
                 var inputSlots = toAnchor.sourceOperator.Operator.InputSlots;
                 var sourceIndex = Array.FindIndex(inputSlots, s => s.slotID == toAnchor.slotID);
-                inputSlots[sourceIndex].Connect(fromAnchor.sourceOperator.Operator, fromAnchor.slotID);
-                InvalidateChildrenOperator(toAnchor.sourceOperator.Operator);
+                inputSlots[sourceIndex].Connect(toAnchor.sourceOperator.Operator, fromAnchor.sourceOperator.Operator, fromAnchor.slotID);
+                toAnchor.sourceOperator.Operator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
+                RecreateOperatorEdges();
             }
             else
             {
@@ -183,10 +160,10 @@ namespace UnityEditor.VFX.UI
                         {
                             inputSlot.Disconnect();
                         }
-                        invalidOperators.Add(currentOperator.Operator);
+                        currentOperator.Operator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
                     }
                 }
-                InvalidateChildrenOperator(invalidOperators);
+                RecreateOperatorEdges();
                 m_GraphAsset.root.RemoveChild(operatorPresenter.Operator);
             }
 			else if (element is VFXFlowEdgePresenter)
@@ -205,7 +182,8 @@ namespace UnityEditor.VFX.UI
                 var toOperator = to.sourceOperator.Operator;
                 var toSlot = toOperator.InputSlots.First(o => o.slotID == to.slotID);
                 toSlot.Disconnect();
-                InvalidateChildrenOperator(toOperator);
+                toOperator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
+                RecreateOperatorEdges();
             }
             else
             {
@@ -278,13 +256,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private static void CollectChildOperator(VFXOperator operatorInput, HashSet<VFXOperator> listChildren, VFXOperator[] allOperator)
+        private static void CollectChildOperator(VFXOperator operatorInput, HashSet<VFXOperator> listChildren, VFXOperator[] allOperator, bool includeSelf = true)
         {
-            listChildren.Add(operatorInput);
+            if (includeSelf)
+            {
+                listChildren.Add(operatorInput);
+            }
+
             var connectedChildren = allOperator.Where(o => o.InputSlots.Any(s => s.parent == operatorInput));
             foreach (var child in connectedChildren)
             {
-                CollectChildOperator(child, listChildren, allOperator);
+                CollectChildOperator(child, listChildren, allOperator, true);
             }
         }
 
@@ -384,9 +366,9 @@ namespace UnityEditor.VFX.UI
             return newContext;
         }
 
-        public void AddVFXOperator(Vector2 pos, VFXOperator desc)
+        public void AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
-            var model = desc;
+            var model = desc.CreateInstance();
             model.position = pos;
             m_GraphAsset.root.AddChild(model);
         }

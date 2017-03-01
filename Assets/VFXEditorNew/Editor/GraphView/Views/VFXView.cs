@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
                 Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
                 if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
                 {
-                    AddVFXOperator(tPos, (d.modelDescriptor as VFXModelDescriptor<VFXOperator>).CreateInstance());
+                    AddVFXOperator(tPos, (d.modelDescriptor as VFXModelDescriptor<VFXOperator>));
                 }
                 else if (d.modelDescriptor is VFXModelDescriptor<VFXContext>)
                 {
@@ -115,7 +115,7 @@ namespace UnityEditor.VFX.UI
             GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc);
         }
 
-        void AddVFXOperator(Vector2 pos, VFXOperator desc)
+        void AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
             GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
         }
