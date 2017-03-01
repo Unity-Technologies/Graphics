@@ -84,13 +84,15 @@ namespace UnityEditor.VFX.UI
                         var operatorPresenterFrom = operatorPresenters.First(e => e.Operator == input.parent);
                         var operatorPresenterTo = operatorPresenters.First(e => e.Operator == modelOperator);
 
-                        var anchorFrom = operatorPresenterFrom.outputAnchors.First(o => (o as VFXOperatorAnchorPresenter).slotID == input.parentSlotID);
-                        var anchorTo = operatorPresenterTo.inputAnchors.First(o => (o as VFXOperatorAnchorPresenter).slotID == input.slotID);
+                        var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXOperatorAnchorPresenter).slotID == input.parentSlotID);
+                        var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXOperatorAnchorPresenter).slotID == input.slotID);
 
-                        edgePresenter.output = anchorFrom;
-                        edgePresenter.input = anchorTo;
-
-                        base.AddElement(edgePresenter);
+                        if (anchorFrom != null && anchorTo != null)
+                        {
+                            edgePresenter.output = anchorFrom;
+                            edgePresenter.input = anchorTo;
+                            base.AddElement(edgePresenter);
+                        }
                     }
                 }
             }

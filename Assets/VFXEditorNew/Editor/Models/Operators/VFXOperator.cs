@@ -38,7 +38,8 @@ namespace UnityEditor.VFX
                 {
                     if (parent != null)
                     {
-                        return parent.OutputSlots.First(s => s.slotID == parentSlotID).expression;
+                        var slot = parent.OutputSlots.FirstOrDefault(s => s.slotID == parentSlotID);
+                        return slot.expression; //shouldn't be null at this stage
                     }
                     if (m_defaultValue is float)
                     {
@@ -99,8 +100,11 @@ namespace UnityEditor.VFX
             {
                 if (parent != null)
                 {
-                    var slotParent = parent.OutputSlots.First(o => o.slotID == parentSlotID);
-                    slotParent.RemoveChild(slotID);
+                    var slotParent = parent.OutputSlots.FirstOrDefault(o => o.slotID == parentSlotID);
+                    if (slotParent != null)
+                    {
+                        slotParent.RemoveChild(slotID);
+                    }
                 }
 
                 parent = null;
@@ -289,14 +293,6 @@ namespace UnityEditor.VFX
         {
             if (cause == InvalidationCause.kParamChanged)
             {
-                foreach (var slot in InputSlots)
-                {
-                    if (slot.parent != null && !slot.CanConnect(slot.parent, slot.parentSlotID))
-                    {
-                        slot.Disconnect();
-                    }
-                }
-
                 var inputExpressions = GetInputExpressions();
                 var ouputExpressions = BuildExpression(inputExpressions.ToArray());
                 OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
@@ -305,10 +301,20 @@ namespace UnityEditor.VFX
 
         sealed override protected void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
+            var allConnectedChildModel = OutputSlots.SelectMany(o => o.children.Select(c => c.model)).Distinct();
+            if (cause == InvalidationCause.kParamChanged)
+            {
+                foreach (var slot in InputSlots)
+                {
+                    if (slot.parent != null && !slot.CanConnect(slot.parent, slot.parentSlotID))
+                    {
+                        slot.Disconnect();
+                    }
+                }
+            }
+
             OnOperatorInvalidate(model, cause);
             base.OnInvalidate(model, cause);
-
-            var allConnectedChildModel = OutputSlots.SelectMany(o => o.children.Select(c => c.model)).Distinct();
             foreach (var slot in allConnectedChildModel)
             {
                 slot.Invalidate(cause);
