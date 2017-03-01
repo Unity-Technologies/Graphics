@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.UI
             return inAnchor;
         }
 
-        public void Reset()
+        private void Reset()
         {
             inputAnchors.Clear();
             outputAnchors.Clear();
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
 
         void OnOperatorInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            if (model == m_Operator)
+            if (model == m_Operator && cause != VFXModel.InvalidationCause.kUIChanged)
             {
                 Reset();
             }

@@ -134,7 +134,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorBinaryFloatCascadableOperation : VFXOperatorFloatUnified
     {
-        sealed protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
+        sealed protected override void OnOperatorInvalidate(VFXModel model,InvalidationCause cause)
         {
             if (cause == InvalidationCause.kParamChanged)
             {

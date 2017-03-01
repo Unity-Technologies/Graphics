@@ -112,11 +112,6 @@ namespace UnityEditor.VFX.UI
                 currentOperator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
             }
 
-            foreach (var currentOperator in childrenOperators)
-            {
-                var presenter = allVFXOperatorPresenter.Where(o => o.Operator == currentOperator).First();
-                presenter.Reset();
-            }
             RecreateOperatorEdges();
         }
 

@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
             public FloatN b = 0.0f;
         }
 
-        sealed protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        sealed protected override void OnOperatorInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (cause == InvalidationCause.kParamChanged)
             {
@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
                 }
                 InputSlots = newInputSlots.ToArray();
             }
-            base.OnInvalidate(model, cause);
+            base.OnOperatorInvalidate(model, cause);
         }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

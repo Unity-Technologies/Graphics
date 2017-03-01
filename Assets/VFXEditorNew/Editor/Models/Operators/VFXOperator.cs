@@ -250,9 +250,8 @@ namespace UnityEditor.VFX
             });
         }
 
-        protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
+        virtual protected void OnOperatorInvalidate(VFXModel mode, InvalidationCause cause)
         {
-            base.OnInvalidate(model,cause);
             if (cause == InvalidationCause.kParamChanged)
             {
                 foreach (var slot in InputSlots)
@@ -267,6 +266,12 @@ namespace UnityEditor.VFX
                 var ouputExpressions = BuildExpression(inputExpressions.ToArray());
                 OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
             }
+        }
+
+        sealed override protected void OnInvalidate(VFXModel model,InvalidationCause cause)
+        {
+            OnOperatorInvalidate(model, cause);
+            base.OnInvalidate(model, cause);
         }
     }
 }
