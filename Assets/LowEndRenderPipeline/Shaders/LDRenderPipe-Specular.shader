@@ -127,9 +127,9 @@ Shader "LDRenderPipeline/Specular"
 	#else
 				half3 normal : TEXCOORD2;
 	#endif
-				half4 viewDir : TEXCOORD5; // xyz: viewDir, w: grazingTerm;
+				half4 viewDir : TEXCOORD5; // xyz: viewDir
 				UNITY_FOG_COORDS_PACKED(6, half4) // x: fogCoord, yzw: vertexColor
-					float4 hpos : SV_POSITION;
+				float4 hpos : SV_POSITION;
 			};
 
 			struct LightInput
@@ -264,7 +264,6 @@ Shader "LDRenderPipeline/Specular"
 				o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
 #endif
 
-				o.fogCoord.x = 1.0;
 				UNITY_TRANSFER_FOG(o, o.hpos);
 				return o;
 			}
@@ -375,18 +374,6 @@ Shader "LDRenderPipeline/Specular"
 			ENDCG
 		}
 
-		// Temporary Hack to overcome the globalrender pipeline crashing
-		//  When baking lightmap due to lack of META pass
-		Pass
-		{
-			NAME "Dummy1"
-		}
-
-		Pass
-		{
-			NAME "Dummy2"
-		}
-		
 		// This pass it not used during regular rendering, only for lightmap baking.
 		Pass
 		{
