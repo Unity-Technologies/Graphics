@@ -183,9 +183,7 @@ float GetMaxDisplacement()
 #if defined(_HEIGHTMAP)
     maxDisplacement = _HeightAmplitude;
 #endif
-    // TODO: explain this 0.5 factor. It is likely related to the fact that
-    // setting the amplitude to 2 in the UI only results in the max. displacement of 1.
-    return 0.5 * maxDisplacement;
+    return maxDisplacement;
 }
 
 // Return the minimun uv size for all layers including triplanar
@@ -322,7 +320,9 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
         // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
         float verticalDisplacement = maxHeight - height * maxHeight;
-        return verticalDisplacement / NdotV;
+        // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
+        float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
+        return tilingScale * verticalDisplacement / NdotV;
     }
 
     return 0.0;
@@ -334,7 +334,9 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
     #ifdef _TESSELLATION_TILING_SCALE
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
-    height /= max(_BaseColorMap_ST.x, _BaseColorMap_ST.y);
+    // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
+    float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
+    height *= tilingScale;
     #endif
     return height;
 }
@@ -1059,7 +1061,9 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
         // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
         float verticalDisplacement = maxHeight - height * maxHeight;
-        return verticalDisplacement / NdotV;
+        // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
+        float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
+        return tilingScale * verticalDisplacement / NdotV;
     }
 
     return 0.0;
