@@ -256,17 +256,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private static void CollectChildOperator(VFXOperator operatorInput, HashSet<VFXOperator> listChildren, VFXOperator[] allOperator, bool includeSelf = true)
+        private static void CollectChildOperator(VFXOperator operatorInput, HashSet<VFXOperator> listChildren)
         {
-            if (includeSelf)
-            {
-                listChildren.Add(operatorInput);
-            }
-
-            var connectedChildren = allOperator.Where(o => o.InputSlots.Any(s => s.parent == operatorInput));
+            listChildren.Add(operatorInput);
+            var connectedChildren = operatorInput.OutputSlots.SelectMany(o => o.children.Select(c => c.model)).Distinct();
             foreach (var child in connectedChildren)
             {
-                CollectChildOperator(child, listChildren, allOperator, true);
+                CollectChildOperator(child, listChildren);
             }
         }
 
@@ -281,7 +277,7 @@ namespace UnityEditor.VFX.UI
                 if (startAnchorPresenter.direction == Direction.Input)
                 {
                     var childrenOperators = new HashSet<VFXOperator>();
-                    CollectChildOperator(currentOperator, childrenOperators, elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>().Select(o => o.Operator).ToArray());
+                    CollectChildOperator(currentOperator, childrenOperators);
                     allOperatorPresenter = allOperatorPresenter.Where(o => !childrenOperators.Contains(o.Operator));
                     var toSlot = currentOperator.InputSlots.First(s => s.slotID == startAnchorOperatorPresenter.slotID);
                     var allOutputCandidate = allOperatorPresenter.SelectMany(o => o.outputAnchors).Where(o =>
