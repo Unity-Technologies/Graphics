@@ -194,26 +194,32 @@ VFXDataAnchor
 {
 	flex-direction:row;
 	min-height:17;
+	margin-left:-12px;
+	-background-color: #F00;
 }
 
 VFXDataAnchor #connector
 {
+	position-type:absolute;
 	margin-top:5;
 	padding-top:5;
-	margin-left:-12;
-	margin-right:6;
+	margin-left:0;
+	margin-right:-6;
 	background-color: #171717;
 	border-color:#383838;
 	border-width:1;
 	border-radius: 3;
 	width:6;
 	height:6;
+	
 }
 VFXDataAnchor  #IMGUI
 {
 	flex:2;
 	align-items: stretch;
-	-background-color: #F00;
+	margin-left:12;
+	margin-right:4;
+	
 }
 
 VFXBlockUI.selected VFXDataAnchor #connector

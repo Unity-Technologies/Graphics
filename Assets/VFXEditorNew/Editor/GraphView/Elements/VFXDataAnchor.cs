@@ -219,7 +219,7 @@ namespace UnityEditor.VFX.UI
 
             clipChildren = false;
         }
-        /*
+        
         public override bool ContainsPoint(Vector2 localPoint)
         {
             return position.Contains(localPoint);
@@ -227,7 +227,7 @@ namespace UnityEditor.VFX.UI
             // Here local point comes without position offset...
             //localPoint -= position.position;
             //return m_ConnectorBox.ContainsPoint(m_ConnectorBox.transform.MultiplyPoint3x4(localPoint));
-        }*/
+        }
 
     }
 }
