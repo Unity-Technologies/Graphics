@@ -149,14 +149,6 @@ namespace UnityEditor.VFX
                 }
             }
 
-            public void Invalidate(VFXModel.InvalidationCause cause)
-            {
-                foreach (var child in children)
-                {
-                    child.model.Invalidate(cause);
-                }
-            }
-
             public VFXMitoSlotOutput(VFXExpression expression)
             {
                 m_expression = expression;
@@ -316,7 +308,8 @@ namespace UnityEditor.VFX
             OnOperatorInvalidate(model, cause);
             base.OnInvalidate(model, cause);
 
-            foreach (var slot in OutputSlots)
+            var allConnectedChildModel = OutputSlots.SelectMany(o => o.children.Select(c => c.model)).Distinct();
+            foreach (var slot in allConnectedChildModel)
             {
                 slot.Invalidate(cause);
             }
