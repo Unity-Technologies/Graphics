@@ -299,14 +299,13 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         {
             ppdParam.uv = layerTexCoord.base.uv; // For planar it is uv too, not uvXZ
 
-            #ifdef SURFACE_GRADIENT
-            // The TBN is not normalize, normalize it to do per pixel displacement
             float3x3 worldToTangent = input.worldToTangent;
+
+        #ifdef SURFACE_GRADIENT
+            // The TBN is not normalize, normalize it to do per pixel displacement
             worldToTangent[1] = normalize(worldToTangent[1]);
             worldToTangent[2] = normalize(worldToTangent[2]);
-            #else
-            float3x3 worldToTangent = input.worldToTangent;
-            #endif
+        #endif
 
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
             NdotV = viewDirTS.z;
@@ -1018,14 +1017,13 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             ppdParam.uv[2] = layerTexCoord.base2.uv;
             ppdParam.uv[3] = layerTexCoord.base3.uv;
 
-            #ifdef SURFACE_GRADIENT
-            // The TBN is not normalize, normalize it to do per pixel displacement
             float3x3 worldToTangent = input.worldToTangent;
+
+        #ifdef SURFACE_GRADIENT
+            // The TBN is not normalize, normalize it to do per pixel displacement
             worldToTangent[1] = normalize(worldToTangent[1]);
             worldToTangent[2] = normalize(worldToTangent[2]);
-            #else
-            float3x3 worldToTangent = input.worldToTangent;
-            #endif
+        #endif
 
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
