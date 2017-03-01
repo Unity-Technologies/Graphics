@@ -50,9 +50,26 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void OnOperatorInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
+        {
+            if (model == m_Operator)
+            {
+                Reset();
+            }
+        }
+
         public virtual void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
-            m_Operator = (VFXOperator)model;
+            if (m_Operator != model)
+            {
+                if (m_Operator != null)
+                {
+                    m_Operator.onInvalidateDelegate -= OnOperatorInvalidate;
+                }
+
+                m_Operator = (VFXOperator)model;
+                m_Operator.onInvalidateDelegate += OnOperatorInvalidate;
+            }
             Reset();
         }
     }

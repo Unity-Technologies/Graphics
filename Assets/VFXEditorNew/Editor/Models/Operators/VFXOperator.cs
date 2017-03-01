@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEditor.Experimental;
 using UnityEngine;
+using UnityEngine.Graphing;
 
-using Type = System.Type;
 
 namespace UnityEditor.VFX
 {
@@ -128,6 +128,7 @@ namespace UnityEditor.VFX
                 }
             }
         }
+        /*end draft slot class waiting for real slot implementation*/
 
         protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
@@ -167,6 +168,28 @@ namespace UnityEditor.VFX
         private object m_PropertyBuffer;
         private object m_SettingsBuffer;
 
+        [SerializeField]
+        private SerializationHelper.JSONSerializedElement m_SerializableSettings;
+
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+            if (settings != null)
+            {
+                m_SerializableSettings = SerializationHelper.Serialize(settings);
+            }
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+            if (!m_SerializableSettings.Equals(SerializationHelper.nullElement))
+            {
+                settings = SerializationHelper.Deserialize<object>(m_SerializableSettings, null);
+            }
+            m_SerializableSettings = SerializationHelper.nullElement;
+        }
+
         public object settings
         {
             get
@@ -181,6 +204,10 @@ namespace UnityEditor.VFX
                     Invalidate(InvalidationCause.kParamChanged);
                 }
             }
+        }
+        public override bool AcceptChild(VFXModel model, int index = -1)
+        {
+            return false;
         }
 
         public VFXMitoSlotInput[] InputSlots
@@ -208,11 +235,6 @@ namespace UnityEditor.VFX
                 m_OutputSlots = value;
             }
 
-        }
-
-        public override bool AcceptChild(VFXModel model, int index = -1)
-        {
-            return false;
         }
 
         virtual protected IEnumerable<VFXExpression> GetInputExpressions()
