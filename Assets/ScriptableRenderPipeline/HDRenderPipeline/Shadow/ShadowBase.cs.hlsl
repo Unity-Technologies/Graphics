@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderPipeline/Shadow/ShadowBase.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Shadow/ShadowBase.cs.  Please don't edit by hand.
 //
 
 #ifndef SHADOWBASE_CS_HLSL
@@ -11,6 +11,16 @@
 #define GPUSHADOWTYPE_SPOT (1)
 #define GPUSHADOWTYPE_DIRECTIONAL (2)
 #define GPUSHADOWTYPE_MAX (3)
+#define GPUSHADOWTYPE_UNKNOWN (3)
+#define GPUSHADOWTYPE_ALL (3)
+
+//
+// UnityEngine.Experimental.Rendering.HDPipeline.GPUShadowSampling:  static fields
+//
+#define GPUSHADOWSAMPLING_PCF_1TAP (0)
+#define GPUSHADOWSAMPLING_PCF_9TAPS_ADAPTIVE (1)
+#define GPUSHADOWSAMPLING_VSM_1TAP (2)
+#define GPUSHADOWSAMPLING_MSM_1TAP (3)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.ShadowExp.ShadowData
 // PackingRules = Exact
