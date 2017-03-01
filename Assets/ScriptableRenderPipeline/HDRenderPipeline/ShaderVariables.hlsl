@@ -309,6 +309,13 @@ float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
     return normalize(V);
 }
 
+// Returns the forward direction of the current camera in world space.
+float3 GetCameraForwardDirInWorldSpace()
+{
+     float4x4 viewMat = GetWorldToViewMatrix();
+     return -viewMat[2].xyz;
+}
+
 float3x3 CreateWorldToTangent(float3 normal, float3 tangent, float flipSign)
 {
     // For odd-negative scale transforms we need to flip the sign

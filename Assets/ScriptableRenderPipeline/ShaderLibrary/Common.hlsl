@@ -471,7 +471,7 @@ void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
 // It may be necessary to flip the Y axis as the origin of the screen-space coordinate system
 // of Direct3D is at the top left corner of the screen, with the Y axis pointing downwards.
-void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 ViewProjMatrix,
+void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 viewProjMatrix,
                          inout PositionInputs posInput, bool flipY = false)
 {
     posInput.depthRaw = depthRaw;
@@ -485,7 +485,7 @@ void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 Vi
     posInput.positionWS = hpositionWS.xyz / hpositionWS.w;
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
-    posInput.depthVS = mul(ViewProjMatrix, float4(posInput.positionWS, 1.0)).w;
+    posInput.depthVS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
 }
 
 // It may be necessary to flip the Y axis as the origin of the screen-space coordinate system
@@ -503,11 +503,11 @@ float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invP
     return positionVS.xyz / positionVS.w;
 }
 
-// 'depthOffsetVS' is in the opposite direction of the view vector 'V', e.i. away from the camera.
-void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
+// 'depthOffsetVS' is always along the forward direction 'camDirWS' pointing away from the camera.
+void ApplyDepthOffsetPositionInput(float3 camDirWS, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
     posInput.depthVS    += depthOffsetVS;
-    posInput.positionWS += depthOffsetVS * -V; // opposite to V
+    posInput.positionWS += depthOffsetVS * camDirWS;
 
     float4 positionCS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
     posInput.depthRaw = positionCS.z / positionCS.w;
