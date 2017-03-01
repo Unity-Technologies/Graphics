@@ -143,6 +143,13 @@ namespace UnityEditor.VFX
                     return new VFXMitoSlotInput(value);
                 }).ToArray();
             }
+
+            var settingsType = GetPropertiesSettings();
+            if (settingsType != null)
+            {
+                m_SettingsBuffer = System.Activator.CreateInstance(settingsType);
+            }
+
             Invalidate(InvalidationCause.kParamChanged);
         }
         protected System.Type GetPropertiesType()
@@ -150,9 +157,31 @@ namespace UnityEditor.VFX
             return GetType().GetNestedType("Properties");
         }
 
+        protected System.Type GetPropertiesSettings()
+        {
+            return GetType().GetNestedType("Settings");
+        }
+
         private VFXMitoSlotInput[] m_InputSlots = new VFXMitoSlotInput[] { };
         private VFXMitoSlotOutput[] m_OutputSlots = new VFXMitoSlotOutput[] { };
         private object m_PropertyBuffer;
+        private object m_SettingsBuffer;
+
+        public object settings
+        {
+            get
+            {
+                return m_SettingsBuffer;
+            }
+            set
+            {
+                if (m_SettingsBuffer != value)
+                {
+                    m_SettingsBuffer = value;
+                    Invalidate(InvalidationCause.kParamChanged);
+                }
+            }
+        }
 
         public VFXMitoSlotInput[] InputSlots
         {
