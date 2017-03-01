@@ -67,8 +67,6 @@ namespace UnityEditor.VFX.UI
                 var field = presenter.settings.GetType().GetFields().FirstOrDefault(o => o.FieldType == typeof(string));
                 m_Settings.text = field == null ? "" : (string)field.GetValue(presenter.settings);
             }
-
-            presenter.Reset(); /*hacky : how the presenter is notified from its own changes ?*/
         }
     }
 }
