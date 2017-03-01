@@ -183,7 +183,9 @@ float GetMaxDisplacement()
 #if defined(_HEIGHTMAP)
     maxDisplacement = _HeightAmplitude;
 #endif
-    return maxDisplacement;
+    // TODO: explain this 0.5 factor. It is likely related to the fact that
+    // setting the amplitude to 2 in the UI only results in the max. displacement of 1.
+    return 0.5 * maxDisplacement;
 }
 
 // Return the minimun uv size for all layers including triplanar
@@ -786,7 +788,9 @@ float GetMaxDisplacement()
 #endif
 #endif
 
-    return maxDisplacement;
+    // TODO: explain this 0.5 factor. It is likely related to the fact that
+    // setting the amplitude to 2 in the UI only results in the max. displacement of 1.
+    return 0.5 * maxDisplacement;
 }
 
 // Return the minimun uv size for all layers including triplanar
