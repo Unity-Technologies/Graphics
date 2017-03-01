@@ -9,7 +9,7 @@ Material:
   m_Name: Lit_Emissive_Blue
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _EMISSIVE_COLOR _NORMALMAP_TANGENT_SPACE
-  m_LightmapFlags: 6
+  m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -149,7 +149,7 @@ Material:
     - _DoubleSidedMode: 0
     - _DstBlend: 0
     - _EmissiveColorMode: 0
-    - _EmissiveIntensity: 100
+    - _EmissiveIntensity: 10
     - _EnablePerPixelDisplacement: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5

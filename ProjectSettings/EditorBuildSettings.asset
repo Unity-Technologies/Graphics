@@ -4,7 +4,4 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes:
-  - enabled: 1
-    path: Assets/TestScenes/HDTest/CascadedShadowsTest.unity
-    guid: e30864c7c4266b24cb1c708c206200a6
+  m_Scenes: []
