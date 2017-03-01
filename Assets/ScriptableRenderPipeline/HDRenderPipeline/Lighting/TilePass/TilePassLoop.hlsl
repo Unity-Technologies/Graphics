@@ -2,7 +2,7 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
-void ApplyDebug(inout float3 diffuseLighting, inout float3 specularLighting)
+void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef LIGHTING_DEBUG
     int lightDebugMode = (int)_DebugLightModeAndAlbedo.x;
@@ -14,6 +14,32 @@ void ApplyDebug(inout float3 diffuseLighting, inout float3 specularLighting)
     else if (lightDebugMode == LIGHTINGDEBUGMODE_SPECULAR_LIGHTING)
     {
         diffuseLighting = float3(0.0, 0.0, 0.0);
+    }
+    else if (lightDebugMode == LIGHTINGDEBUGMODE_VISUALIZE_CASCADE)
+    {
+        specularLighting = float3(0.0, 0.0, 0.0);
+
+        const float3 s_CascadeColors[] = {
+            float3(1.0, 0.0, 0.0),
+            float3(0.0, 1.0, 0.0),
+            float3(0.0, 0.0, 1.0),
+            float3(1.0, 1.0, 0.0)
+        };
+
+#ifdef SHADOWS_USE_SHADOWCTXT
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
+#else
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
+#endif
+
+        int shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _DirShadowSplitSpheres);
+        if (shadowSplitIndex == -1)
+            diffuseLighting = float3(0.0, 0.0, 0.0);
+        else
+        {
+            diffuseLighting = s_CascadeColors[shadowSplitIndex] * shadow;
+        }
+
     }
 #endif
 }
@@ -222,7 +248,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     diffuseLighting += bakeDiffuseLighting;
 #endif
 
-    ApplyDebug(diffuseLighting, specularLighting);
+    ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
 }
 
 #else // LIGHTLOOP_SINGLE_PASS
@@ -322,7 +348,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     // Add indirect diffuse + emissive (if any)
     diffuseLighting += bakeDiffuseLighting;
 
-    ApplyDebug(diffuseLighting, specularLighting);
+    ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
 }
 
 #endif

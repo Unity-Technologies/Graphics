@@ -134,7 +134,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int USE_LEFTHAND_CAMERASPACE = 1;
 
             public static int TILE_SIZE_FPTL = 16;
-            public static int TILE_SIZE_CLUSTERED = 32;
+            public static int TILE_SIZE_CLUSTERED = 16;
 
             // flags
             public static int IS_CIRCULAR_SPOT_SHAPE = 1;
