@@ -9,9 +9,12 @@ namespace UnityEditor.VFX.UI
 {
     partial class VFXDataAnchor : NodeAnchor
     {
-        VFXPropertyIM   m_Property;
+        VFXPropertyIM   m_PropertyIM;
         IMGUIContainer  m_Container;
-        VisualElement m_SpaceButton;
+        GUIStyles m_GUIStyles = null;
+
+
+        PropertyRM      m_PropertyRM;
 
         static int s_ContextCount = 1;
 
@@ -82,7 +85,6 @@ namespace UnityEditor.VFX.UI
             { get { return baseStyle.fontSize * 1.25f; } }
         }
 
-        GUIStyles m_GUIStyles = new GUIStyles();
 
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static VFXDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
@@ -97,30 +99,24 @@ namespace UnityEditor.VFX.UI
 
         protected VFXDataAnchor(VFXDataAnchorPresenter presenter) : base(presenter)
         {
-            m_Container = new IMGUIContainer() { name = "IMGUI" };
-            m_Container.OnGUIHandler = OnGUI;
-            m_Container.executionContext = s_ContextCount++;
-            AddChild(m_Container);
-
-            m_SpaceButton = new VisualElement();
-            m_SpaceButton.AddManipulator(new Clickable(SwitchSpace));
-            m_SpaceButton.AddToClassList("space");
-
             clipChildren = false;
 
-            
+            m_PropertyRM = PropertyRM.Create(presenter);
+            if(m_PropertyRM != null)
+            {
+                AddChild(m_PropertyRM);
+            }
+            else
+            {
+                m_GUIStyles = new GUIStyles();
+                m_GUIStyles.baseStyle = new GUIStyle();
+                m_PropertyIM = VFXPropertyIM.Create(presenter.type);
 
-            m_GUIStyles.baseStyle = new GUIStyle();
-
-            m_Property = VFXPropertyIM.Create(presenter.propertyInfo.type);
-        }
-        void SwitchSpace()
-        {
-            Spaceable spaceable = (Spaceable)GetPresenter<VFXDataAnchorPresenter>().propertyInfo.value;
-
-            spaceable.space = (CoordinateSpace)((int)(spaceable.space + 1) % (int)CoordinateSpace.SpaceCount);
-
-            GetPresenter<VFXDataAnchorPresenter>().SetPropertyValue(spaceable);
+                m_Container = new IMGUIContainer() { name = "IMGUI" };
+                m_Container.OnGUIHandler = OnGUI;
+                m_Container.executionContext = s_ContextCount++;
+                AddChild(m_Container);
+            }
         }
         void OnGUI()
         {
@@ -146,7 +142,7 @@ namespace UnityEditor.VFX.UI
             if (different)
                 m_GUIStyles.Reset();
 
-            bool changed = m_Property.OnGUI(GetPresenter<VFXDataAnchorPresenter>(), m_GUIStyles);
+            bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXDataAnchorPresenter>(), m_GUIStyles);
 
             if (changed)
             {
@@ -189,33 +185,10 @@ namespace UnityEditor.VFX.UI
                     break;
             }
 
-
-            if (typeof(Spaceable).IsAssignableFrom(presenter.propertyInfo.type))
+            if(m_PropertyRM != null )
             {
-                if (m_SpaceButton.parent == null)
-                {
-                    AddChild(m_SpaceButton);
-                }
-
-                CoordinateSpace space = ((Spaceable)presenter.propertyInfo.value).space;
-                m_SpaceButton.text = space.ToString();
-
-                foreach (string spaceName in System.Enum.GetNames(typeof(CoordinateSpace)))
-                {
-                    m_SpaceButton.RemoveFromClassList(spaceName.ToLower());
-                }
-
-                m_SpaceButton.AddToClassList(space.ToString().ToLower());
-                m_SpaceButton.Dirty(ChangeType.Styles | ChangeType.Repaint);
+                m_PropertyRM.SetValue(presenter.value);
             }
-            else
-            {
-                if (m_SpaceButton.parent != null)
-                {
-                    RemoveChild(m_SpaceButton);
-                }
-            }
-
 
             clipChildren = false;
         }

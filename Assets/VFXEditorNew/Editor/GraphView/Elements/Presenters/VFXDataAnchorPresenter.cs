@@ -20,10 +20,37 @@ namespace UnityEditor.VFX.UI
         bool m_DirtyHack;
 
 
-        public VFXBlockPresenter.PropertyInfo propertyInfo
+
+        public Type type
         {
-            get { return m_PropertyInfo; }
+            get {return m_PropertyInfo.type;}
         }
+
+        public object value
+        {
+            get { return m_PropertyInfo.value;}
+        }
+
+        public string path
+        {
+            get { return m_PropertyInfo.path;}
+        }
+
+        public int depth
+        {
+            get { return m_PropertyInfo.depth;}
+        }
+
+        public bool expandable
+        {
+            get { return m_PropertyInfo.expandable;}
+        }
+
+        public bool expanded
+        {
+            get { return m_PropertyInfo.expanded;}
+        }
+
 
         public void Init(VFXModel owner, VFXBlockPresenter nodePresenter, VFXBlockPresenter.PropertyInfo propertyInfo)
         {
@@ -31,7 +58,7 @@ namespace UnityEditor.VFX.UI
             anchorType = propertyInfo.type;
             m_NodePresenter = nodePresenter;
             m_PropertyInfo = propertyInfo;
-            name = m_PropertyInfo.path;
+            name = m_PropertyInfo.name;
         }
 
         public void UpdateInfos(ref VFXBlockPresenter.PropertyInfo propertyInfo)
@@ -48,8 +75,7 @@ namespace UnityEditor.VFX.UI
 
         public void SetPropertyValue(object value)
         {
-            m_PropertyInfo.value = value;
-            m_NodePresenter.PropertyValueChanged(ref m_PropertyInfo);
+            m_NodePresenter.PropertyValueChanged(this,value);
             m_DirtyHack = !m_DirtyHack;
         }
 

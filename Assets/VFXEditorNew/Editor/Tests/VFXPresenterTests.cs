@@ -182,11 +182,7 @@ namespace UnityEditor.VFX.Test
 
             var aVector3Presenter = blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).name == "aVector3").First() as VFXDataInputAnchorPresenter;
 
-            var propertyInfo = aVector3Presenter.propertyInfo;
-
-            propertyInfo.value = new Vector3(1.2f, 3.4f, 5.6f);
-
-            blockPresenter.PropertyValueChanged(ref propertyInfo);
+            blockPresenter.PropertyValueChanged(aVector3Presenter,new Vector3(1.2f, 3.4f, 5.6f));
 
 
             var properties = newBlock.GetProperties();
@@ -201,11 +197,7 @@ namespace UnityEditor.VFX.Test
 
             var vector3yPresenter = blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).name == "aVector3.y").First() as VFXDataInputAnchorPresenter;
 
-            propertyInfo = vector3yPresenter.propertyInfo;
-
-            propertyInfo.value = 7.8f;
-
-            blockPresenter.PropertyValueChanged(ref propertyInfo);
+            blockPresenter.PropertyValueChanged(vector3yPresenter,7.8f);
 
             Assert.AreEqual(values[vector3Index], new Vector3(1.2f, 7.8f, 5.6f));
 
