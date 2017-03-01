@@ -14,10 +14,10 @@ MonoBehaviour:
   m_LightLoopProducer: {fileID: 11400000, guid: bf8cd9ae03ff7d54c89603e67be0bfc5,
     type: 2}
   globalDebugSettings:
-    debugOverlayRatio: 0.33
+    debugOverlayRatio: 0.658
     displayMaterialDebug: 0
     displayRenderingDebug: 0
-    displayLightingDebug: 0
+    displayLightingDebug: 1
     materialDebugSettings:
       debugViewMaterial: 0
     lightingDebugSettings:
@@ -28,6 +28,8 @@ MonoBehaviour:
       overrideSmoothness: 0
       overrideSmoothnessValue: 0.5
       debugLightingAlbedo: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+      displaySkyReflection: 0
+      skyReflectionMipmap: 0.51
     renderingDebugSettings:
       displayOpaqueObjects: 1
       displayTransparentObjects: 1
@@ -161,10 +163,10 @@ MonoBehaviour:
     enabled: 1
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
-    maxShadowDistance: 1000
+    maxShadowDistance: 800
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
-    directionalLightNearPlaneOffset: 5
+    directionalLightNearPlaneOffset: 10
   m_TextureSettings:
     spotCookieSize: 128
     pointCookieSize: 512

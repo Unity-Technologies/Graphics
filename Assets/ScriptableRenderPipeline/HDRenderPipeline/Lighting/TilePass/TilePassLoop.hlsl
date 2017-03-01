@@ -19,7 +19,7 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
     {
         specularLighting = float3(0.0, 0.0, 0.0);
 
-        static const float3 s_CascadeColors[] = {
+        const float3 s_CascadeColors[] = {
             float3(1.0, 0.0, 0.0),
             float3(0.0, 1.0, 0.0),
             float3(0.0, 0.0, 1.0),
