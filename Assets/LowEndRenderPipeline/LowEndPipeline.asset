@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae13646e45aa3634da32df7c7da1c380, type: 3}
   m_Name: LowEndPipeline
   m_EditorClassIdentifier: 
-  m_SupportsVertexLight: 0
+  m_SupportsVertexLight: 1
   m_EnableLightmaps: 1
   m_EnableAmbientProbe: 1
   m_ShadowType: 1
