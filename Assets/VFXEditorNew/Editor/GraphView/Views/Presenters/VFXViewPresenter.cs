@@ -116,9 +116,7 @@ namespace UnityEditor.VFX.UI
                 var toAnchor = flowEdge.input as VFXOperatorAnchorPresenter;
 
                 //Update connection
-                var inputSlots = toAnchor.sourceOperator.Operator.InputSlots;
-                var sourceIndex = Array.FindIndex(inputSlots, s => s.slotID == toAnchor.slotID);
-                inputSlots[sourceIndex].Connect(toAnchor.sourceOperator.Operator, fromAnchor.sourceOperator.Operator, fromAnchor.slotID);
+                toAnchor.sourceOperator.Operator.ConnectInput(toAnchor.slotID, fromAnchor.sourceOperator.Operator, fromAnchor.slotID);
                 toAnchor.sourceOperator.Operator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
                 RecreateOperatorEdges();
             }
@@ -150,20 +148,10 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXOperatorPresenter)
             {
                 var operatorPresenter = element as VFXOperatorPresenter;
-                var allOperator = m_Elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>();
-
-                var invalidOperators = new List<VFXOperator>();
+                var allOperator = m_Elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>().ToArray();
                 foreach (var currentOperator in allOperator)
                 {
-                    var slotConnectionToDelete = currentOperator.Operator.InputSlots.Where(s => s.parent == operatorPresenter.Operator).ToArray();
-                    if (slotConnectionToDelete.Length > 0)
-                    {
-                        foreach (var inputSlot in slotConnectionToDelete)
-                        {
-                            inputSlot.Disconnect();
-                        }
-                        currentOperator.Operator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
-                    }
+                    currentOperator.Operator.DisconnectAllInputs();
                 }
                 RecreateOperatorEdges();
                 m_GraphAsset.root.RemoveChild(operatorPresenter.Operator);
@@ -182,9 +170,7 @@ namespace UnityEditor.VFX.UI
 
                 //Update connection (*wip* : will be a function of VFXOperator)
                 var toOperator = to.sourceOperator.Operator;
-                var toSlot = toOperator.InputSlots.First(o => o.slotID == to.slotID);
-                toSlot.Disconnect();
-                toOperator.Invalidate(VFXModel.InvalidationCause.kParamChanged);
+                toOperator.DisconnectInput(to.slotID);
                 RecreateOperatorEdges();
             }
             else

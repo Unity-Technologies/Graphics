@@ -113,13 +113,10 @@ namespace UnityEditor.VFX
 
             public void Connect(VFXOperator current, VFXOperator _parent, Guid _slotID)
             {
-                if (CanConnect(_parent, _slotID))
-                {
-                    parent = _parent;
-                    parentSlotID = _slotID;
-                    var slotParent = parent.OutputSlots.First(o => o.slotID == parentSlotID);
-                    slotParent.AddChild(current, slotID);
-                }
+                parent = _parent;
+                parentSlotID = _slotID;
+                var slotParent = parent.OutputSlots.First(o => o.slotID == parentSlotID);
+                slotParent.AddChild(current, slotID);
             }
         }
 
@@ -167,8 +164,6 @@ namespace UnityEditor.VFX
             }
         }
         /*end draft slot class waiting for real slot implementation*/
-
-        protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
         public VFXOperator()
         {
@@ -288,6 +283,37 @@ namespace UnityEditor.VFX
                 children = i < m_OutputSlots.Length ? m_OutputSlots[i].children : new List<VFXMitoSlotOutput.MitoChildInfo>()
             });
         }
+
+        public void ConnectInput(Guid slotID, VFXOperator parentOperator, Guid parentSlotID)
+        {
+            var slot = InputSlots.First(s => s.slotID == slotID);
+            if (slot.CanConnect(parentOperator, parentSlotID))
+            {
+                slot.Connect(this, parentOperator, parentSlotID);
+                Invalidate(InvalidationCause.kParamChanged);
+            }
+        }
+
+        public void DisconnectInput(Guid slotID)
+        {
+            var slot = InputSlots.First(s => s.slotID == slotID);
+            slot.Disconnect();
+            Invalidate(InvalidationCause.kParamChanged);
+        }
+
+        public void DisconnectAllInputs()
+        {
+            if (InputSlots.Length > 0)
+            {
+                foreach (var slot in InputSlots)
+                {
+                    slot.Disconnect();
+                }
+                Invalidate(InvalidationCause.kParamChanged);
+            }
+        }
+
+        protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
         virtual protected void OnOperatorInvalidate(VFXModel mode, InvalidationCause cause)
         {
