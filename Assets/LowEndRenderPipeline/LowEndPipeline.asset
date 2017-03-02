@@ -11,13 +11,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae13646e45aa3634da32df7c7da1c380, type: 3}
   m_Name: LowEndPipeline
   m_EditorClassIdentifier: 
+  m_MaxPixelLights: 1
   m_SupportsVertexLight: 1
   m_EnableLightmaps: 1
   m_EnableAmbientProbe: 1
   m_ShadowType: 1
+  m_ShadowAtlasResolution: 1024
   m_ShadowNearPlaneOffset: 2
   m_ShadowDistance: 50
-  m_ShadowAtlasResolution: 1024
+  m_ShadowBias: 0.07
   m_ShadowCascades: 4
-  m_CascadeSplit: {x: 0.067, y: 0.2, z: 0.467}
-  m_ShadowFiltering: 1
+  m_Cascade2Split: 0.25
+  m_Cascade4Split: {x: 0.2, y: 0.5, z: 0.7}

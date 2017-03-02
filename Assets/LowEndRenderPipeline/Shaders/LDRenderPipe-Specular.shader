@@ -69,8 +69,7 @@ Shader "LDRenderPipeline/Specular"
 			#pragma shader_feature _NORMALMAP
 			
 			#pragma multi_compile _ LIGHTMAP_ON
-			#pragma multi_compile _ SHADOWS_DEPTH
-			#pragma multi_compile _ SHADOWS_FILTERING_PCF
+			#pragma multi_compile _ HARD_SHADOWS SOFT_SHADOWS
 			#pragma multi_compile_fog
 			#pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3 metal
 			#pragma enable_d3d11_debug_symbols
@@ -159,11 +158,8 @@ Shader "LDRenderPipeline/Specular"
 
 			inline half ShadowPCF(half4 shadowCoord)
 			{
-				// GPU Gems 4x4 kernel with 4 taps.
-				half2 offset = (float)(frac(shadowCoord.xy * 0.5) > 0.25);  // mod
-				offset.y += offset.x;  // y ^= x in floating point
-				offset *= _PSSMDistancesAndShadowResolution.w;
-
+				// TODO: simulate textureGatherOffset not available, simulate it
+				half2 offset = half2(0, 0);
 				half attenuation = ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[0], _PCFKernel[1]) + offset, shadowCoord.z) +
 					ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[2], _PCFKernel[3]) + offset, shadowCoord.z) +
 					ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[4], _PCFKernel[5]) + offset, shadowCoord.z) +
@@ -199,24 +195,23 @@ Shader "LDRenderPipeline/Specular"
 
 			inline half3 EvaluateMainLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float4 posWorld, half3 viewDir)
 			{
-				int cascadeIndex = ComputeCascadeIndex(posWorld.w);
-				float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
-				shadowCoord.z = saturate(shadowCoord.z);
-
-#ifdef SHADOWS_FILTERING_PCF
-				half shadowAttenuation = ShadowPCF(shadowCoord);
-#else
-				half shadowAttenuation = ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
-#endif
+				half3 color = EvaluateOneLight(lightInput, diffuseColor, specularGloss, normal, posWorld, viewDir);
 
 #if DEBUG_CASCADES
 				half3 cascadeColors[MAX_SHADOW_CASCADES] = { half3(1.0, 0.0, 0.0), half3(0.0, 1.0, 0.0),  half3(0.0, 0.0, 1.0),  half3(1.0, 0.0, 1.0) };
 				return cascadeColors[cascadeIndex] * diffuseColor * max(shadowAttenuation, 0.5);
 #endif
 
-				half3 color = EvaluateOneLight(lightInput, diffuseColor, specularGloss, normal, posWorld, viewDir);
+#if defined(HARD_SHADOWS) || defined(SOFT_SHADOWS)
+				int cascadeIndex = ComputeCascadeIndex(posWorld.w);
+				float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
+				shadowCoord.z = saturate(shadowCoord.z);
 
-#ifdef SHADOWS_DEPTH
+	#ifdef SOFT_SHADOWS
+				half shadowAttenuation = ShadowPCF(shadowCoord);
+	#else
+				half shadowAttenuation = ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
+	#endif
 				return color * shadowAttenuation;
 #else
 				return color;
@@ -340,31 +335,57 @@ Shader "LDRenderPipeline/Specular"
 			Name "SHADOW_CASTER"
 			Tags { "Lightmode" = "ShadowCaster" }
 
-			ZWrite On ZTest LEqual Cull Front
+			ZWrite On ZTest LEqual 
 
 			CGPROGRAM
 			#pragma target 2.0
 			#pragma vertex vert
 			#pragma fragment frag
 
-			float4 _ShadowBias;
+			float4 _WorldLightDirAndBias;
 
 			#include "UnityCG.cginc"
 			
-			inline void ApplyLinearBias(half4 clipPos)
+			struct VertexInput
 			{
+				float4 pos : POSITION;
+				float3 normal : NORMAL;
+			};
+
+			// Similar to UnityClipSpaceShadowCasterPos but using LDPipeline lightdir and bias and applying near plane clamp
+			float4 ClipSpaceShadowCasterPos(float4 vertex, float3 normal)
+			{
+				float4 wPos = mul(unity_ObjectToWorld, vertex);
+
+				if (_WorldLightDirAndBias.w > 0.0)
+				{
+					float3 wNormal = UnityObjectToWorldNormal(normal);
+
+					// apply normal offset bias (inset position along the normal)
+					// bias needs to be scaled by sine between normal and light direction
+					// (http://the-witness.net/news/2013/09/shadow-mapping-summary-part-1/)
+					//
+					// _WorldLightDirAndBias.w shadow bias defined in LRRenderPipeline asset
+
+					float shadowCos = dot(wNormal, _WorldLightDirAndBias.xyz);
+					float shadowSine = sqrt(1 - shadowCos*shadowCos);
+					float normalBias = _WorldLightDirAndBias.w * shadowSine;
+
+					wPos.xyz -= wNormal * normalBias;
+				}
+
+				float4 clipPos = mul(UNITY_MATRIX_VP, wPos);
 #if defined(UNITY_REVERSED_Z)
-				clipPos.z -= _ShadowBias.x;
+				clipPos.z = min(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #else
-				clipPos.z += _ShadowBias.x;
+				clipPos.z = max(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #endif
+				return clipPos;
 			}
 
-			float4 vert(float4 position : POSITION) : SV_POSITION
+			float4 vert(VertexInput i) : SV_POSITION
 			{
-				float4 clipPos = UnityObjectToClipPos(position);
-				ApplyLinearBias(clipPos);
-				return clipPos;
+				return ClipSpaceShadowCasterPos(i.pos, i.normal);
 			}
 				
 			half4 frag() : SV_TARGET
