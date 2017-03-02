@@ -14,10 +14,6 @@ namespace UnityEditor.VFX.UI
         {
             EditorGUI.BeginChangeCheck();
 
-
-            var infos = presenter.propertyInfo;
-            
-
             object result = DoOnGUI(presenter,styles);
 
             if (EditorGUI.EndChangeCheck())
@@ -69,25 +65,24 @@ namespace UnityEditor.VFX.UI
 
         public void Label(VFXDataAnchorPresenter presenter, VFXDataAnchor.GUIStyles styles)
         {
-            var infos = presenter.propertyInfo;
 
-            if (infos.depth > 0)
-                GUILayout.Space(infos.depth * depthOffset);
+            if (presenter.depth > 0)
+                GUILayout.Space(presenter.depth * depthOffset);
             GUILayout.BeginVertical();
             GUILayout.Space(3);
 
-            bool expanded = infos.expanded;
-            if (infos.expandable)
+            bool expanded = presenter.expanded;
+            if (presenter.expandable)
             {
-                if (GUILayout.Toggle(infos.expanded, "", styles.GetGUIStyleForExpandableType(infos.type), GUILayout.Width(iconSize), GUILayout.Height(iconSize)) != expanded)
+                if (GUILayout.Toggle(presenter.expanded, "", styles.GetGUIStyleForExpandableType(presenter.type), GUILayout.Width(iconSize), GUILayout.Height(iconSize)) != expanded)
                 {
                     if (!expanded)
                     {
-                        presenter.nodePresenter.ExpandPath(infos.path);
+                        presenter.nodePresenter.ExpandPath(presenter.path);
                     }
                     else
                     {
-                        presenter.nodePresenter.RetractPath(infos.path);
+                        presenter.nodePresenter.RetractPath(presenter.path);
                     }
 
                     // remove the change check to avoid property being regarded as modified
@@ -97,10 +92,10 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                GUILayout.Label("", styles.GetGUIStyleForType(infos.type), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
+                GUILayout.Label("", styles.GetGUIStyleForType(presenter.type), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
             }
             GUILayout.EndVertical();
-            GUILayout.Label(infos.name, styles.baseStyle, GUILayout.Width(kLabelWidth), GUILayout.Height(styles.lineHeight));
+            GUILayout.Label(presenter.name, styles.baseStyle, GUILayout.Width(kLabelWidth), GUILayout.Height(styles.lineHeight));
         }
 
         public const int iconSize = 14;
@@ -111,7 +106,7 @@ namespace UnityEditor.VFX.UI
     {
         protected override object DoOnGUI(VFXDataAnchorPresenter presenter, VFXDataAnchor.GUIStyles styles)
         {
-            return OnParameterGUI(presenter, (T)presenter.propertyInfo.value, styles);
+            return OnParameterGUI(presenter, (T)presenter.value, styles);
 
         }
 
@@ -235,7 +230,7 @@ namespace UnityEditor.VFX.UI
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Space((presenter.propertyInfo.depth+1) * depthOffset);
+            GUILayout.Space((presenter.depth+1) * depthOffset);
             GUILayout.Label("x", styles.baseStyle, GUILayout.Height(styles.lineHeight));
             value.x = EditorGUILayout.FloatField(value.x, styles.baseStyle, GUILayout.Height(styles.lineHeight));
             GUILayout.Label("y", styles.baseStyle, GUILayout.Height(styles.lineHeight));
@@ -259,7 +254,7 @@ namespace UnityEditor.VFX.UI
             Color color = EditorGUILayout.ColorField(new GUIContent(""), value, true, true, true, new ColorPickerHDRConfig(-10, 10, -10, 10));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Space((presenter.propertyInfo.depth + 1) * depthOffset);
+            GUILayout.Space((presenter.depth + 1) * depthOffset);
             GUILayout.Label("r", styles.baseStyle, GUILayout.Height(styles.lineHeight));
             value.r = EditorGUILayout.FloatField(value.r, styles.baseStyle, GUILayout.Height(styles.lineHeight));
             GUILayout.Label("g", styles.baseStyle, GUILayout.Height(styles.lineHeight));

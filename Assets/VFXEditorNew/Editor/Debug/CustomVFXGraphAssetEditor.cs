@@ -42,12 +42,19 @@ namespace UnityEditor.VFX
                             if (property.Name == "JSONnodeData") //deeper serialize *inception*
                             {
                                 var innerJson = property.Value.Value<string>();
-                                var innerToken = JToken.Parse(innerJson);
-                                ProcessJSonTokenGUI(innerToken, currentPath, property.Name);
-                                var newInnerJson = JsonConvert.SerializeObject(innerToken);
-                                if (innerJson != newInnerJson)
+                                try
                                 {
-                                    property.Value.Replace(newInnerJson);
+                                    var innerToken = JToken.Parse(innerJson);
+                                    ProcessJSonTokenGUI(innerToken, currentPath, property.Name);
+                                    var newInnerJson = JsonConvert.SerializeObject(innerToken);
+                                    if (innerJson != newInnerJson)
+                                    {
+                                        property.Value.Replace(newInnerJson);
+                                    }
+                                }
+                                catch
+                                {
+                                    ProcessJSonTokenGUI(property.Value, currentPath, property.Name);
                                 }
                             }
                             else

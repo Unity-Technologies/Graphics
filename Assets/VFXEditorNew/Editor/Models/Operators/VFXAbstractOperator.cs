@@ -134,39 +134,41 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorBinaryFloatCascadableOperation : VFXOperatorFloatUnified
     {
-        sealed protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
+        sealed protected override void OnOperatorInvalidate(VFXModel model,InvalidationCause cause)
         {
-            var newInputSlots = InputSlots.ToList();
-
-            //Remove useless unplugged slot (ensuring there is at least 2 slots)
-            for (int slotIndex = newInputSlots.Count - 1; slotIndex >= 0 && newInputSlots.Count > 2; --slotIndex)
+            if (cause == InvalidationCause.kParamChanged)
             {
-                var currentSlot = newInputSlots[slotIndex];
-                if (currentSlot.expression == null)
+                var newInputSlots = InputSlots.ToList();
+
+                //Remove useless unplugged slot (ensuring there is at least 2 slots)
+                for (int slotIndex = newInputSlots.Count - 1; slotIndex >= 0 && newInputSlots.Count > 2; --slotIndex)
                 {
-                    newInputSlots.RemoveAt(slotIndex);
+                    var currentSlot = newInputSlots[slotIndex];
+                    if (currentSlot.expression == null)
+                    {
+                        newInputSlots.RemoveAt(slotIndex);
+                    }
                 }
-            }
 
-            if (newInputSlots.All(s => s.parent != null))
-            {
-                //Add new available slot element
-                newInputSlots.Add(new VFXMitoSlotInput(new FloatN()));
-            }
-            InputSlots = newInputSlots.ToArray();
+                if (newInputSlots.All(s => s.parent != null))
+                {
+                    //Add new available slot element
+                    newInputSlots.Add(new VFXMitoSlotInput(new FloatN()));
+                }
+                InputSlots = newInputSlots.ToArray();
 
-            IEnumerable<VFXExpression> inputExpression = GetInputExpressions();
-
-            //Process aggregate two by two element until result
-            var outputExpression = new Stack<VFXExpression>(inputExpression.Reverse());
-            while (outputExpression.Count > 1)
-            {
-                var a = outputExpression.Pop();
-                var b = outputExpression.Pop();
-                var compose = BuildExpression(new[] { a, b })[0];
-                outputExpression.Push(compose);
+                var inputExpression = GetInputExpressions();
+                //Process aggregate two by two element until result
+                var outputExpression = new Stack<VFXExpression>(inputExpression.Reverse());
+                while (outputExpression.Count > 1)
+                {
+                    var a = outputExpression.Pop();
+                    var b = outputExpression.Pop();
+                    var compose = BuildExpression(new[] { a, b })[0];
+                    outputExpression.Push(compose);
+                }
+                OutputSlots = BuildOuputSlot(outputExpression).ToArray();
             }
-            OutputSlots = BuildOuputSlot(outputExpression).ToArray();
         }
     }
 

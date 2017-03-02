@@ -22,16 +22,23 @@ namespace UnityEditor.VFX
     {
         override public string name { get { return "ComponentMask"; } }
 
+        public class Settings
+        {
+            public string mask = "zyx";
+        }
+
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var placeHolder = "yxx";
+            var currentSettings = settings as Settings;
+
+            var mask = currentSettings.mask;
             var inputComponents = VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray();
 
             var componentStack = new Stack<VFXExpression>();
-            for (int iComponent = 0; iComponent < placeHolder.Length; iComponent++)
+            for (int iComponent = 0; iComponent < mask.Length; iComponent++)
             {
                 var iChannelIndex = -1;
-                switch (placeHolder[iComponent])
+                switch (mask[iComponent])
                 {
                     case 'x': case 'r': iChannelIndex = 0; break;
                     case 'y': case 'g': iChannelIndex = 1; break;
@@ -170,11 +177,11 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
-    class VFXOperatorLength : VFXOperator
+    class VFXOperatorLength : VFXOperatorFloatUnified
     {
         public class Properties
         {
-            public Vector3 input = Vector3.one;
+            public FloatN input = Vector3.one;
         }
 
         override public string name { get { return "Length"; } }
@@ -186,11 +193,11 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
-    class VFXOperatorNormalize : VFXOperator
+    class VFXOperatorNormalize : VFXOperatorFloatUnified
     {
         public class Properties
         {
-            public Vector3 input = Vector3.one;
+            public FloatN input = Vector3.one;
         }
 
         override public string name { get { return "Normalize"; } }

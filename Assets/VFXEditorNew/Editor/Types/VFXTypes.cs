@@ -93,6 +93,5 @@ namespace UnityEditor.VFX
     {
         public int x;
         public int y;
-        public bool boo;
     }
 }

@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEditor.Experimental;
 using UnityEngine;
+using UnityEngine.Graphing;
 
-using Type = System.Type;
 
 namespace UnityEditor.VFX
 {
@@ -38,7 +38,8 @@ namespace UnityEditor.VFX
                 {
                     if (parent != null)
                     {
-                        return parent.OutputSlots.First(s => s.slotID == parentSlotID).expression;
+                        var slot = parent.OutputSlots.FirstOrDefault(s => s.slotID == parentSlotID);
+                        return slot.expression; //shouldn't be null at this stage
                     }
                     if (m_defaultValue is float)
                     {
@@ -69,22 +70,85 @@ namespace UnityEditor.VFX
                 }
             }
 
+            public bool CanConnect(VFXOperator _parent, Guid _slotID)
+            {
+                var slot = _parent.OutputSlots.FirstOrDefault(s => s.slotID == _slotID);
+                if (slot != null)
+                {
+                    var fromType = VFXExpression.TypeToType(slot.expression.ValueType);
+                    var toType = m_defaultValue.GetType();
+                    if (fromType.IsAssignableFrom(toType))
+                    {
+                        return true;
+                    }
+
+                    if (toType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                        .Where(mi => mi.Name == "op_Implicit" && mi.ReturnType == fromType)
+                        .Any(mi =>
+                        {
+                            var pi = mi.GetParameters().FirstOrDefault();
+                            return pi != null && pi.ParameterType == toType;
+                        }))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
             public void Disconnect()
             {
+                if (parent != null)
+                {
+                    var slotParent = parent.OutputSlots.FirstOrDefault(o => o.slotID == parentSlotID);
+                    if (slotParent != null)
+                    {
+                        slotParent.RemoveChild(slotID);
+                    }
+                }
+
                 parent = null;
                 parentSlotID = Guid.Empty;
             }
 
-            public void Connect(VFXOperator _parent, Guid _slotID)
+            public void Connect(VFXOperator current, VFXOperator _parent, Guid _slotID)
             {
                 parent = _parent;
                 parentSlotID = _slotID;
+                var slotParent = parent.OutputSlots.First(o => o.slotID == parentSlotID);
+                slotParent.AddChild(current, slotID);
             }
         }
 
         public class VFXMitoSlotOutput : VFXMitoSlot
         {
             private VFXExpression m_expression;
+
+            public class MitoChildInfo
+            {
+                public VFXOperator model;
+                public Guid slotID;
+            }
+            public List<MitoChildInfo> children = new List<MitoChildInfo>();
+
+            public void AddChild(VFXOperator _child, Guid _slotID)
+            {
+                RemoveChild(_slotID);
+                children.Add(new MitoChildInfo()
+                {
+                    model = _child,
+                    slotID = _slotID
+                });
+            }
+
+            public void RemoveChild(Guid _slotID)
+            {
+                var entry = children.FirstOrDefault(o => o.slotID == _slotID);
+                if (entry != null)
+                {
+                    children.Remove(entry);
+                }
+            }
 
             public VFXMitoSlotOutput(VFXExpression expression)
             {
@@ -99,8 +163,7 @@ namespace UnityEditor.VFX
                 }
             }
         }
-
-        protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
+        /*end draft slot class waiting for real slot implementation*/
 
         public VFXOperator()
         {
@@ -114,6 +177,13 @@ namespace UnityEditor.VFX
                     return new VFXMitoSlotInput(value);
                 }).ToArray();
             }
+
+            var settingsType = GetPropertiesSettings();
+            if (settingsType != null)
+            {
+                m_SettingsBuffer = System.Activator.CreateInstance(settingsType);
+            }
+
             Invalidate(InvalidationCause.kParamChanged);
         }
         protected System.Type GetPropertiesType()
@@ -121,9 +191,64 @@ namespace UnityEditor.VFX
             return GetType().GetNestedType("Properties");
         }
 
+        protected System.Type GetPropertiesSettings()
+        {
+            return GetType().GetNestedType("Settings");
+        }
+
         private VFXMitoSlotInput[] m_InputSlots = new VFXMitoSlotInput[] { };
         private VFXMitoSlotOutput[] m_OutputSlots = new VFXMitoSlotOutput[] { };
         private object m_PropertyBuffer;
+        private object m_SettingsBuffer;
+
+        [SerializeField]
+        private SerializationHelper.JSONSerializedElement m_SerializableSettings;
+
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+            if (settings != null)
+            {
+                m_SerializableSettings = SerializationHelper.Serialize(settings);
+            }
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+            if (!m_SerializableSettings.Equals(SerializationHelper.nullElement))
+            {
+                settings = SerializationHelper.Deserialize<object>(m_SerializableSettings, null);
+            }
+            m_SerializableSettings = SerializationHelper.nullElement;
+        }
+
+        public object settings
+        {
+            get
+            {
+                return m_SettingsBuffer;
+            }
+            set
+            {
+                if (m_SettingsBuffer != value)
+                {
+                    if (m_SettingsBuffer != null && value != null)
+                    {
+                        if (value.GetType() != m_SettingsBuffer.GetType())
+                        {
+                            throw new Exception(string.Format("Settings is assigned with invalid type, expected : {0} given : {1}", m_SettingsBuffer.GetType(), value.GetType()));
+                        }
+                    }
+                    m_SettingsBuffer = value;
+                    Invalidate(InvalidationCause.kParamChanged);
+                }
+            }
+        }
+        public override bool AcceptChild(VFXModel model, int index = -1)
+        {
+            return false;
+        }
 
         public VFXMitoSlotInput[] InputSlots
         {
@@ -152,11 +277,6 @@ namespace UnityEditor.VFX
 
         }
 
-        public override bool AcceptChild(VFXModel model, int index = -1)
-        {
-            return false;
-        }
-
         virtual protected IEnumerable<VFXExpression> GetInputExpressions()
         {
             return m_InputSlots.Select(o => o.expression).Where(e => e != null);
@@ -167,16 +287,71 @@ namespace UnityEditor.VFX
             return inputExpression.Select((o, i) => new VFXMitoSlotOutput(o)
             {
                 slotID = i < m_OutputSlots.Length ? m_OutputSlots[i].slotID : Guid.NewGuid(),
+                children = i < m_OutputSlots.Length ? m_OutputSlots[i].children : new List<VFXMitoSlotOutput.MitoChildInfo>()
             });
         }
 
-        protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
+        public void ConnectInput(Guid slotID, VFXOperator parentOperator, Guid parentSlotID)
         {
-            base.OnInvalidate(model,cause);
+            var slot = InputSlots.First(s => s.slotID == slotID);
+            if (slot.CanConnect(parentOperator, parentSlotID))
+            {
+                slot.Connect(this, parentOperator, parentSlotID);
+                Invalidate(InvalidationCause.kParamChanged);
+            }
+        }
 
-            var inputExpressions = GetInputExpressions();
-            var ouputExpressions = BuildExpression(inputExpressions.ToArray());
-            OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
+        public void DisconnectInput(Guid slotID)
+        {
+            var slot = InputSlots.First(s => s.slotID == slotID);
+            slot.Disconnect();
+            Invalidate(InvalidationCause.kParamChanged);
+        }
+
+        public void DisconnectAllInputs()
+        {
+            if (InputSlots.Length > 0)
+            {
+                foreach (var slot in InputSlots)
+                {
+                    slot.Disconnect();
+                }
+                Invalidate(InvalidationCause.kParamChanged);
+            }
+        }
+
+        protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
+
+        virtual protected void OnOperatorInvalidate(VFXModel mode, InvalidationCause cause)
+        {
+            if (cause == InvalidationCause.kParamChanged)
+            {
+                var inputExpressions = GetInputExpressions();
+                var ouputExpressions = BuildExpression(inputExpressions.ToArray());
+                OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
+            }
+        }
+
+        sealed override protected void OnInvalidate(VFXModel model,InvalidationCause cause)
+        {
+            var allConnectedChildModel = OutputSlots.SelectMany(o => o.children.Select(c => c.model)).Distinct().ToArray();
+            if (cause == InvalidationCause.kParamChanged)
+            {
+                foreach (var slot in InputSlots)
+                {
+                    if (slot.parent != null && !slot.CanConnect(slot.parent, slot.parentSlotID))
+                    {
+                        slot.Disconnect();
+                    }
+                }
+            }
+
+            OnOperatorInvalidate(model, cause);
+            base.OnInvalidate(model, cause);
+            foreach (var slot in allConnectedChildModel)
+            {
+                slot.Invalidate(cause);
+            }
         }
     }
 }

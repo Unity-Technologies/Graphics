@@ -1,9 +1,13 @@
 using System;
 using RMGUI.GraphView;
 using UnityEngine;
+using UnityEditor.VFX.UI;
+using UnityEditor.VFX;
+using UnityEditor;
 
-namespace UnityEditor.VFX.UI
+namespace  UnityEditor.VFX.UI
 {
+
     [Serializable]
     class VFXViewWindow : GraphViewEditorWindow
     {

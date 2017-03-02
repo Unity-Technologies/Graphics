@@ -194,31 +194,85 @@ VFXDataAnchor
 {
 	flex-direction:row;
 	min-height:17;
+	margin-left:-12px;
+	-background-color: #F00;
 }
 
 VFXDataAnchor #connector
 {
+	position-type:absolute;
 	margin-top:5;
 	padding-top:5;
-	margin-left:-12;
-	margin-right:6;
+	margin-left:0;
+	margin-right:-6;
 	background-color: #171717;
 	border-color:#383838;
 	border-width:1;
 	border-radius: 3;
 	width:6;
 	height:6;
+	
 }
 VFXDataAnchor  #IMGUI
 {
 	flex:2;
 	align-items: stretch;
-	-background-color: #F00;
+	margin-left:12;
+	margin-right:4;
+	
 }
 
 VFXBlockUI.selected VFXDataAnchor #connector
 {
 	border-color:#454545;
+}
+
+
+.propertyrm
+{
+	margin-left:12px;
+	flex:1;
+	flex-direction: row;
+	-align-items: stretch;
+}
+
+.propertyrm #icon
+{
+	margin-top:2;
+	width:16;
+	height:16;
+}
+
+.propertyrm .button
+{
+	-flex:1;
+	border-width:1;
+	border-radius:4;
+
+	border-color: rgb(153,153,153);
+	text-color: rgb(153,153,153);
+	text-alignment: middle-center;
+	margin-top:2;
+	margin-bottom:2;
+	margin-right:2;
+	margin-left:2;
+	padding-top:1;
+	padding-bottom:1;
+	padding-left:1;
+	padding-right:1;
+	width:50;
+}
+
+.propertyrm #label
+{
+	text-color: rgb(153,153,153);
+	width:70;
+}
+
+BoolPropertyRM Toggle
+{
+	width:32,
+	height:32
 }
 
 /*Default*/

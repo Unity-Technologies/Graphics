@@ -102,11 +102,11 @@ namespace UnityEditor.VFX.UI
             public string path { get { return !string.IsNullOrEmpty(parentPath)?parentPath + "." + name : name; } }
         }
 
-        public void PropertyValueChanged(ref PropertyInfo info)
+        public void PropertyValueChanged(VFXDataAnchorPresenter presenter,object newValue)
         {
             //TODO undo/redo
 
-            string[] fields = info.path.Split(new char[] { '.' },StringSplitOptions.RemoveEmptyEntries);
+            string[] fields = presenter.path.Split(new char[] { '.' },StringSplitOptions.RemoveEmptyEntries);
 
 
             var properties = m_Model.GetProperties();
@@ -128,7 +128,7 @@ namespace UnityEditor.VFX.UI
 
                 stack.Add(fi.GetValue(current));
             }
-            stack[stack.Count - 1] = info.value;
+            stack[stack.Count - 1] = newValue;
 
             for (int i = stack.Count -1 ; i > 0 ; --i)
             {
@@ -222,7 +222,7 @@ namespace UnityEditor.VFX.UI
 
         bool IsTypeExpandable(System.Type type)
         {
-            return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type) && type != typeof(AnimationCurve);
+            return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && ! type.IsEnum;
         }
 
         private IEnumerable<PropertyInfo> GetProperties(Type type, object value, string prefix, int depth)
