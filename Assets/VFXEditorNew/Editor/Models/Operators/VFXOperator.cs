@@ -327,7 +327,7 @@ namespace UnityEditor.VFX
 
         sealed override protected void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
-            var allConnectedChildModel = OutputSlots.SelectMany(o => o.children.Select(c => c.model)).Distinct();
+            var allConnectedChildModel = OutputSlots.SelectMany(o => o.children.Select(c => c.model)).Distinct().ToArray();
             if (cause == InvalidationCause.kParamChanged)
             {
                 foreach (var slot in InputSlots)

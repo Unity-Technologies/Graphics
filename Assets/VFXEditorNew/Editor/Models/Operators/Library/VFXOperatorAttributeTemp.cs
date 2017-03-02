@@ -7,17 +7,6 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     //Temp Only (behavior)
-
-    [VFXInfo]
-    class VFXOperatorFloatOne : VFXOperator
-    {
-        override public string name { get { return "Temp_Float"; } }
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
-        {
-            return new[] { new VFXValueFloat(1.0f, true) };
-        }
-    }
-
     [VFXInfo]
     class VFXOperatorFloat : VFXOperator
     {
