@@ -35,6 +35,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool disableFptlWhenClustered; // still useful on opaques. Should be false by default to force tile on opaque.
             public bool enableBigTilePrepass;
 
+            [Range(0.0f, 1.0f)]
+            public float diffuseGlobalDimmer = 1.0f;
+            [Range(0.0f, 1.0f)]
+            public float specularGlobalDimmer = 1.0f;
+
             public static TileSettings defaultSettings = new TileSettings
             {
                 enableTileAndCluster = true,
