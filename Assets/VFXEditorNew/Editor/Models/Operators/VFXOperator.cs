@@ -14,9 +14,10 @@ namespace UnityEditor.VFX
         /*draft slot class waiting for real slot implementation*/
         public abstract class VFXMitoSlot
         {
-            public abstract VFXExpression expression { get; }
+            public abstract VFXExpression expression { get; set; }
 
-            public Guid slotID = Guid.NewGuid();
+            private Guid m_slotID = Guid.NewGuid();
+            public Guid slotID { get { return m_slotID; } }
         }
 
         public class VFXMitoSlotInput : VFXMitoSlot
@@ -67,6 +68,9 @@ namespace UnityEditor.VFX
                     }
 
                     throw new NotImplementedException();
+                }
+                set
+                {
                 }
             }
 
@@ -150,16 +154,15 @@ namespace UnityEditor.VFX
                 }
             }
 
-            public VFXMitoSlotOutput(VFXExpression expression)
-            {
-                m_expression = expression;
-            }
-
             public override VFXExpression expression
             {
                 get
                 {
                     return m_expression;
+                }
+                set
+                {
+                    m_expression = value;
                 }
             }
         }
@@ -282,13 +285,29 @@ namespace UnityEditor.VFX
             return m_InputSlots.Select(o => o.expression).Where(e => e != null);
         }
     
-        protected IEnumerable<VFXMitoSlotOutput> BuildOuputSlot(IEnumerable<VFXExpression> inputExpression)
+        protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> inputExpression)
         {
-            return inputExpression.Select((o, i) => new VFXMitoSlotOutput(o)
+            //Resize
+            var inputExpressionArray = inputExpression.ToArray();
+            if (inputExpressionArray.Length < OutputSlots.Length)
             {
-                slotID = i < m_OutputSlots.Length ? m_OutputSlots[i].slotID : Guid.NewGuid(),
-                children = i < m_OutputSlots.Length ? m_OutputSlots[i].children : new List<VFXMitoSlotOutput.MitoChildInfo>()
-            });
+                m_OutputSlots = m_OutputSlots.Take(inputExpressionArray.Length).ToArray();
+            }
+            else if (inputExpressionArray.Length > OutputSlots.Length)
+            {
+                var slotList = m_OutputSlots.ToList();
+                while (slotList.Count != inputExpressionArray.Length)
+                {
+                    slotList.Add(new VFXMitoSlotOutput());
+                }
+                m_OutputSlots = slotList.ToArray();
+            }
+
+            //Apply
+            for (int iSlot = 0; iSlot < inputExpressionArray.Length; ++iSlot)
+            {
+                m_OutputSlots[iSlot].expression = inputExpressionArray[iSlot];
+            }
         }
 
         public void ConnectInput(Guid slotID, VFXOperator parentOperator, Guid parentSlotID)
@@ -328,7 +347,7 @@ namespace UnityEditor.VFX
             {
                 var inputExpressions = GetInputExpressions();
                 var ouputExpressions = BuildExpression(inputExpressions.ToArray());
-                OutputSlots = BuildOuputSlot(ouputExpressions).ToArray();
+                SetOuputSlotFromExpression(ouputExpressions);
             }
         }
 
