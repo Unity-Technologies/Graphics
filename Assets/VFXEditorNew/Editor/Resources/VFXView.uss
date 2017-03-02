@@ -278,21 +278,23 @@ BoolPropertyRM Toggle
 
 FloatPropertyRM EditorTextField
 {
-	padding-top:1;
-	padding-left:1;
+	position-type:absolute;
+	position-right:0;
 	text-color:#BBB;
-	flex:1;
+
+	border-width:1;
+	border-right:1;
+	border-color:rgba(0,0,0,0);
+	
+	padding-top:1;
+	padding-bottom:1;
+	padding-left:3;
+	padding-right:3;
 }
 
 FloatPropertyRM EditorTextField:focus
 {
-	text-color:#BBB;
-	flex:1;
-	border-width:1;
 	border-color:#BBB;
-	
-	padding-top:0;
-	padding-left:0;
 }
 
 /*Default*/

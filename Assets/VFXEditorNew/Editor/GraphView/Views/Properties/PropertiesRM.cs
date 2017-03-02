@@ -198,7 +198,9 @@ namespace UnityEditor.VFX.UI
         }
         object m_UserData;
         IFloatChangeListener m_Listener;
-        Vector2 m_PrevPos;
+
+        float m_OriginalValue;
+        bool m_Dragging;
         public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)   
 		{
             switch( evt.type)
@@ -206,29 +208,33 @@ namespace UnityEditor.VFX.UI
             case EventType.MouseDown:
                 if ( evt.button == 0 )
                 {
-				    m_PrevPos = evt.mousePosition;
 				    EditorGUIUtility.SetWantsMouseJumping(1);
                     this.TakeCapture();
+                    m_Dragging = true;
+                    m_OriginalValue = m_Listener.GetValue(m_UserData);
                     return EventPropagation.Stop;
 		    	}
             break;
 		    case EventType.MouseUp:
 			    if ( evt.button == 0 )
                 {
+                    m_Dragging = false;
                     this.ReleaseCapture();
                     EditorGUIUtility.SetWantsMouseJumping(0);
 				    return EventPropagation.Stop;
                 }
 			break;
 		    case EventType.MouseDrag:
-                if ( evt.button == 0 )
+                if ( evt.button == 0 && m_Dragging)
                 {
                     ApplyDelta(HandleUtility.niceMouseDelta);
                 }
 			break;
 		    case EventType.KeyDown:
-                if (evt.keyCode == KeyCode.Escape)
+                if (m_Dragging && evt.keyCode == KeyCode.Escape)
                 {
+                    m_Listener.SetValue(m_OriginalValue,m_UserData);
+                    m_Dragging = false;
                     return EventPropagation.Stop;
                 }
 			break;
