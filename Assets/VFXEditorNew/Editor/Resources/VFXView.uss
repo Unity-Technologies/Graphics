@@ -271,8 +271,41 @@ VFXBlockUI.selected VFXDataAnchor #connector
 
 BoolPropertyRM Toggle
 {
+	margin-top:-4;
 	width:32,
-	height:32
+	height:17
+}
+
+FloatPropertyRM TextField
+{
+	flex:1;
+}
+
+FloatPropertyRM .textfieldparent
+{
+	padding-top:2;
+	padding-left:2;
+	padding-right:2;
+	flex:1;
+}
+
+FloatPropertyRM EditorTextField
+{
+	padding-top:1;
+	padding-left:1;
+	text-color:#BBB;
+	flex:1;
+}
+
+FloatPropertyRM EditorTextField:focus
+{
+	text-color:#BBB;
+	flex:1;
+	border-width:1;
+	border-color:#BBB;
+	
+	padding-top:0;
+	padding-left:0;
 }
 
 /*Default*/

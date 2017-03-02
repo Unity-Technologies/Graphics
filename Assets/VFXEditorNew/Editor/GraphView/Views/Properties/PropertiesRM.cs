@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.RMGUI;
+using UnityEditor.RMGUI;
 using UnityEditor.VFX;
 using Object = UnityEngine.Object;
 using Type = System.Type;
@@ -66,7 +67,8 @@ namespace UnityEditor.VFX.UI
         static Dictionary<Type,Type> m_TypeDictionary =  new Dictionary<Type,Type>
         {
             {typeof(Spaceable),typeof(SpaceablePropertyRM)},
-            {typeof(bool),typeof(BoolPropertyRM)}
+            {typeof(bool),typeof(BoolPropertyRM)},
+            {typeof(float),typeof(FloatPropertyRM)}
         };
 
         public static PropertyRM Create(VFXDataAnchorPresenter presenter)
@@ -151,13 +153,13 @@ namespace UnityEditor.VFX.UI
 
         void OnButtonClick()
         {
-            ((Spaceable)m_Value).space = (CoordinateSpace)((int)(((Spaceable)m_Value).space + 1) % (int)CoordinateSpace.SpaceCount);
+            m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % (int)CoordinateSpace.SpaceCount);
             NotifyValueChanged();
         }
 
         public override void UpdateGUI()
         {
-            m_Button.text = ((Spaceable)m_Value).space.ToString();
+            m_Button.text = m_Value.space.ToString();
         }
 
         VisualElement m_Button;
@@ -178,9 +180,40 @@ namespace UnityEditor.VFX.UI
         }
         public override void UpdateGUI()
         {
-            m_Toggle.on = (bool)m_Value;
+            m_Toggle.on = m_Value;
         }
 
         Toggle m_Toggle;
+    }
+
+    class FloatPropertyRM : PropertyRM<float>
+    {
+        public FloatPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        {
+            m_TextField = new EditorTextField(20,false,false,'*');
+            m_TextField.onTextChanged = OnTextChanged;
+            m_TextField.useStylePainter = true;
+            AddChild(m_TextField);;
+        }
+        public override void UpdateGUI()
+        {
+            m_TextField.text = m_Value.ToString("0.###");
+        }
+
+        void OnTextChanged()
+        {
+            float newValue = 0;
+            if( ! float.TryParse(m_TextField.text,out newValue) )
+            {
+                newValue = 0;
+            }
+            if( newValue != m_Value )
+            {
+                m_Value = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        EditorTextField m_TextField;
     }
 }

@@ -144,6 +144,15 @@ namespace UnityEditor.VFX.UI
 
             m_Model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
 
+
+            foreach(var anchorPresenter in m_Anchors.Values)
+            {
+                if( anchorPresenter.path.StartsWith(presenter.path))
+                {
+                    anchorPresenter.Dirty();
+                }
+            }
+
         }
 
 
