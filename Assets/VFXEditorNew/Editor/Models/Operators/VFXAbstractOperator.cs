@@ -167,7 +167,7 @@ namespace UnityEditor.VFX
                     var compose = BuildExpression(new[] { a, b })[0];
                     outputExpression.Push(compose);
                 }
-                OutputSlots = BuildOuputSlot(outputExpression).ToArray();
+                SetOuputSlotFromExpression(outputExpression);
             }
         }
     }
