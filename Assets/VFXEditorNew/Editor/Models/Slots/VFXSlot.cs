@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
                 if (m_DefaultExpression != value)
                 {
                     if (!CanConvert(value))
-                        throw new IllegalArgumentException();
+                        throw new Exception();
 
                     m_DefaultExpression = ConvertExpression(value);
                     Invalidate(InvalidationCause.kConnectionChanged); // trigger a rebuild
@@ -156,7 +156,7 @@ namespace UnityEditor.VFX
 
             // Propagate to the owner if any
             if (m_Owner != null)
-                m_Owner.OnInvalidate(model, cause);
+                m_Owner.Invalidate(cause);
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -186,10 +186,17 @@ namespace UnityEditor.VFX
 
             if (m_CachedExpression == null)
                 m_CachedExpression = m_DefaultExpression;*/
+            return null;
         }
 
-        protected virtual bool CanConvert(VFXExpression expression);
-        protected virtual bool ConvertExpression(VFXExpression expression);
+        protected virtual bool CanConvert(VFXExpression expression)
+        {
+            return true;
+        }
+        protected virtual VFXExpression ConvertExpression(VFXExpression expression)
+        {
+            return null;
+        }
 
 
         public virtual void OnBeforeSerialize()
@@ -207,7 +214,7 @@ namespace UnityEditor.VFX
         private VFXExpression m_DefaultExpression;
 
         [NonSerialized]
-        public IVFXSlotContainer m_Owner; // Dont set that directly! Only called by SlotContainer!
+        public IVFXSlotContainer m_Owner; // Don't set that directly! Only called by SlotContainer!
 
         [SerializeField]
         private VFXProperty m_Property;
