@@ -15,11 +15,11 @@ namespace UnityEditor.VFX.UI
         public abstract void SetValue(object obj);
         public abstract object GetValue();
 
-        VisualElement m_Icon;
+        public VisualElement m_Icon;
 
         Texture2D[] m_IconStates;
 
-        VisualElement m_Label;
+        public VisualElement m_Label;
 
         public PropertyRM(VFXDataAnchorPresenter presenter)
         {
@@ -186,27 +186,111 @@ namespace UnityEditor.VFX.UI
         Toggle m_Toggle;
     }
 
-    class FloatPropertyRM : PropertyRM<float>
+
+
+    class DragFloatManipulator : Manipulator
+    {
+        public DragFloatManipulator(IFloatChangeListener listener,object userdata)
+        {
+            phaseInterest = EventPhase.Capture;
+            m_UserData = userdata;
+            m_Listener = listener;
+        }
+        object m_UserData;
+        IFloatChangeListener m_Listener;
+        Vector2 m_PrevPos;
+        public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)   
+		{
+            switch( evt.type)
+            {
+            case EventType.MouseDown:
+                if ( evt.button == 0 )
+                {
+				    m_PrevPos = evt.mousePosition;
+				    EditorGUIUtility.SetWantsMouseJumping(1);
+                    this.TakeCapture();
+                    return EventPropagation.Stop;
+		    	}
+            break;
+		    case EventType.MouseUp:
+			    if ( evt.button == 0 )
+                {
+                    this.ReleaseCapture();
+                    EditorGUIUtility.SetWantsMouseJumping(0);
+				    return EventPropagation.Stop;
+                }
+			break;
+		    case EventType.MouseDrag:
+                if ( evt.button == 0 )
+                {
+                    ApplyDelta(HandleUtility.niceMouseDelta);
+                }
+			break;
+		    case EventType.KeyDown:
+                if (evt.keyCode == KeyCode.Escape)
+                {
+                    return EventPropagation.Stop;
+                }
+			break;
+            }
+			return EventPropagation.Continue;
+		}
+        void ApplyDelta(float delta)
+        {
+            float value = m_Listener.GetValue(m_UserData);
+
+            value += delta * 1.0f;
+
+            m_Listener.SetValue(value,m_UserData);
+        }
+    }
+
+
+    interface IFloatChangeListener
+    {
+        float GetValue(object userData);
+
+        void SetValue(float value,object userData);
+    }
+
+    class FloatPropertyRM : PropertyRM<float>, IFloatChangeListener
     {
         public FloatPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
         {
             m_TextField = new EditorTextField(20,false,false,'*');
             m_TextField.onTextChanged = OnTextChanged;
             m_TextField.useStylePainter = true;
-            AddChild(m_TextField);;
+            AddChild(m_TextField);
+
+            m_Label.AddManipulator(new DragFloatManipulator(this,null));
+
+
         }
         public override void UpdateGUI()
         {
             m_TextField.text = m_Value.ToString("0.###");
         }
 
-        void OnTextChanged()
+        public float GetValue(object userData)
         {
             float newValue = 0;
             if( ! float.TryParse(m_TextField.text,out newValue) )
             {
                 newValue = 0;
             }
+            return newValue;
+        }
+
+        public void SetValue(float value,object userData)
+        {
+            m_Value = value;
+            //UpdateGUI();
+            NotifyValueChanged();
+        }
+
+        public void OnTextChanged()
+        {
+            float newValue = GetValue(null);
             if( newValue != m_Value )
             {
                 m_Value = newValue;
