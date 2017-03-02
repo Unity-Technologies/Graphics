@@ -30,6 +30,12 @@ namespace UnityEngine.Experimental.Rendering
 
         [Range(0.0F, 1.0F)]
         public float shadowDimmer = 1.0f;
+        [Range(0.0F, 1.0F)]
+        public float lightDimmer = 1.0f;
+
+        // Not used for directional lights.
+        public float fadeDistance = 10000.0f;
+        public float shadowFadeDistance = 10000.0f;
 
         public bool affectDiffuse = true;
         public bool affectSpecular = true;
