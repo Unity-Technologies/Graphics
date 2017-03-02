@@ -233,6 +233,13 @@ namespace UnityEditor.VFX
             {
                 if (m_SettingsBuffer != value)
                 {
+                    if (m_SettingsBuffer != null && value != null)
+                    {
+                        if (value.GetType() != m_SettingsBuffer.GetType())
+                        {
+                            throw new Exception(string.Format("Settings is assigned with invalid type, expected : {0} given : {1}", m_SettingsBuffer.GetType(), value.GetType()));
+                        }
+                    }
                     m_SettingsBuffer = value;
                     Invalidate(InvalidationCause.kParamChanged);
                 }
