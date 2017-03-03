@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
         private object m_settings;
         public object settings { get { return m_settings; } set { m_settings = value; m_dirtyHack++; } }
 
-        private NodeAnchorPresenter CreateAnchorPresenter(VFXOperator.VFXMitoSlot slot, Direction direction)
+        private NodeAnchorPresenter CreateAnchorPresenter(VFXSlot slot, Direction direction)
         {
             var inAnchor = CreateInstance<VFXOperatorAnchorPresenter>();
             var expression = slot.expression;
@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
                 inAnchor.name = "Empty";
             }
 
-            inAnchor.Init(this, slot.slotID, direction);
+            inAnchor.Init(this, slot.id, direction);
             return inAnchor;
         }
 
@@ -63,8 +63,8 @@ namespace UnityEditor.VFX.UI
                 title = Operator.name;
                 settings = Operator.settings;
 
-                var newinputAnchors = Operator.InputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)).ToArray();
-                var newoutputAnchors = Operator.OutputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)).ToArray();
+                var newinputAnchors = Operator.inputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)).ToArray();
+                var newoutputAnchors = Operator.outputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)).ToArray();
 
                 Func<NodeAnchorPresenter, NodeAnchorPresenter, bool> fnComparer = delegate (NodeAnchorPresenter x, NodeAnchorPresenter y)
                 {
@@ -80,8 +80,8 @@ namespace UnityEditor.VFX.UI
                 {
                     inputAnchors.Clear();
                     outputAnchors.Clear();
-                    inputAnchors.AddRange(Operator.InputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)));
-                    outputAnchors.AddRange(Operator.OutputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)));
+                    inputAnchors.AddRange(Operator.inputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)));
+                    outputAnchors.AddRange(Operator.outputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)));
                     m_View.RecreateOperatorEdges();
                 }
             }

@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorClamp : VFXOperatorFloatUnified
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN input = new FloatN(new[] { 0.0f });
             public FloatN min = new FloatN(new[] { 0.0f });
@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorLerp : VFXOperatorFloatUnified
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN x = new FloatN(new[] { 0.0f });
             public FloatN y = new FloatN(new[] { 1.0f });

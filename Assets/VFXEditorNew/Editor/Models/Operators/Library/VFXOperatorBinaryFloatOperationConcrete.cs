@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorFmod : VFXOperatorFloatUnified
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN right = new FloatN(new[] { 1.0f });
             public FloatN left = new FloatN(new[] { 1.0f });
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorDot : VFXOperatorFloatUnified
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN right = Vector3.zero;
             public FloatN left = Vector3.zero;
@@ -121,7 +121,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorCross : VFXOperator
     {
-        public class Properties
+        public class InputProperties
         {
             public Vector3 left = Vector3.right;
             public Vector3 right = Vector3.up;

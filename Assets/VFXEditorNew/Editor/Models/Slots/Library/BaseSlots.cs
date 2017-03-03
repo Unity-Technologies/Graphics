@@ -38,4 +38,7 @@ namespace UnityEditor.VFX
 
     [VFXInfo(type = typeof(Texture3D))]
     class VFXSlotTexture3D : VFXSlot {}
+
+    [VFXInfo(type = typeof(FloatN))]
+    class VFXSlotFloatN : VFXSlot {}
 }

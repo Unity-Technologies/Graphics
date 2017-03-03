@@ -41,7 +41,10 @@ namespace UnityEditor.VFX
         protected virtual void OnAdded() {}
         protected virtual void OnRemoved() {}
 
-        public abstract bool AcceptChild(VFXModel model, int index = -1);
+        public virtual bool AcceptChild(VFXModel model, int index = -1)
+        {
+            return false;
+        }
 
         public void AddChild(VFXModel model, int index = -1, bool notify = true)
         {

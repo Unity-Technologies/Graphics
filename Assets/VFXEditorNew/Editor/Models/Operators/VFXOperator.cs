@@ -9,8 +9,9 @@ using UnityEngine.Graphing;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXOperator : VFXModel
+    abstract class VFXOperator : VFXSlotContainerModel<VFXModel, VFXModel>
     {
+#if __TODOPAUL_CLEAN_
         /*draft slot class waiting for real slot implementation*/
         public abstract class VFXMitoSlot
         {
@@ -167,20 +168,10 @@ namespace UnityEditor.VFX
             }
         }
         /*end draft slot class waiting for real slot implementation*/
+#endif
 
         public VFXOperator()
         {
-            var propertyType = GetPropertiesType();
-            if (propertyType != null)
-            {
-                m_PropertyBuffer = System.Activator.CreateInstance(propertyType);
-                m_InputSlots = propertyType.GetFields().Where(o => !o.IsStatic).Select(o =>
-                {
-                    var value = o.GetValue(m_PropertyBuffer);
-                    return new VFXMitoSlotInput(value);
-                }).ToArray();
-            }
-
             var settingsType = GetPropertiesSettings();
             if (settingsType != null)
             {
@@ -191,7 +182,7 @@ namespace UnityEditor.VFX
         }
         protected System.Type GetPropertiesType()
         {
-            return GetType().GetNestedType("Properties");
+            return GetType().GetNestedType("InputProperties"); //TODOPAUL (move to base)
         }
 
         protected System.Type GetPropertiesSettings()
@@ -199,8 +190,6 @@ namespace UnityEditor.VFX
             return GetType().GetNestedType("Settings");
         }
 
-        private VFXMitoSlotInput[] m_InputSlots = new VFXMitoSlotInput[] { };
-        private VFXMitoSlotOutput[] m_OutputSlots = new VFXMitoSlotOutput[] { };
         private object m_PropertyBuffer;
         private object m_SettingsBuffer;
 
@@ -248,94 +237,35 @@ namespace UnityEditor.VFX
                 }
             }
         }
-        public override bool AcceptChild(VFXModel model, int index = -1)
-        {
-            return false;
-        }
-
-        public VFXMitoSlotInput[] InputSlots
-        {
-            get
-            {
-                return m_InputSlots;
-            }
-
-            protected set
-            {
-                m_InputSlots = value;
-            }
-        }
-
-        public VFXMitoSlotOutput[] OutputSlots
-        {
-            get
-            {
-                return m_OutputSlots;
-            }
-
-            protected set
-            {
-                m_OutputSlots = value;
-            }
-
-        }
 
         virtual protected IEnumerable<VFXExpression> GetInputExpressions()
         {
-            return m_InputSlots.Select(o => o.expression).Where(e => e != null);
+            return inputSlots.Select(o => o.expression).Where(e => e != null);
         }
     
         protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> inputExpression)
         {
             //Resize
             var inputExpressionArray = inputExpression.ToArray();
-            if (inputExpressionArray.Length < OutputSlots.Length)
+            if (inputExpressionArray.Length < outputSlots.Count())
             {
-                m_OutputSlots = m_OutputSlots.Take(inputExpressionArray.Length).ToArray();
-            }
-            else if (inputExpressionArray.Length > OutputSlots.Length)
-            {
-                var slotList = m_OutputSlots.ToList();
-                while (slotList.Count != inputExpressionArray.Length)
+                while (outputSlots.Count() != inputExpressionArray.Length)
                 {
-                    slotList.Add(new VFXMitoSlotOutput());
+                    RemoveSlot(outputSlots.Last());
                 }
-                m_OutputSlots = slotList.ToArray();
+            }
+            else if (inputExpressionArray.Length > outputSlots.Count())
+            {
+                while (outputSlots.Count() != inputExpressionArray.Length)
+                {
+                    AddSlot(new VFXSlot(VFXSlot.Direction.kOutput));
+                }
             }
 
             //Apply
             for (int iSlot = 0; iSlot < inputExpressionArray.Length; ++iSlot)
             {
-                m_OutputSlots[iSlot].expression = inputExpressionArray[iSlot];
-            }
-        }
-
-        public void ConnectInput(Guid slotID, VFXOperator parentOperator, Guid parentSlotID)
-        {
-            var slot = InputSlots.First(s => s.slotID == slotID);
-            if (slot.CanConnect(parentOperator, parentSlotID))
-            {
-                slot.Connect(this, parentOperator, parentSlotID);
-                Invalidate(InvalidationCause.kParamChanged);
-            }
-        }
-
-        public void DisconnectInput(Guid slotID)
-        {
-            var slot = InputSlots.First(s => s.slotID == slotID);
-            slot.Disconnect();
-            Invalidate(InvalidationCause.kParamChanged);
-        }
-
-        public void DisconnectAllInputs()
-        {
-            if (InputSlots.Length > 0)
-            {
-                foreach (var slot in InputSlots)
-                {
-                    slot.Disconnect();
-                }
-                Invalidate(InvalidationCause.kParamChanged);
+                GetOutputSlot(iSlot).expression = inputExpressionArray[iSlot];
             }
         }
 
@@ -343,7 +273,7 @@ namespace UnityEditor.VFX
 
         virtual protected void OnOperatorInvalidate(VFXModel mode, InvalidationCause cause)
         {
-            if (cause == InvalidationCause.kParamChanged)
+            if (cause != InvalidationCause.kUIChanged)
             {
                 var inputExpressions = GetInputExpressions();
                 var ouputExpressions = BuildExpression(inputExpressions.ToArray());
@@ -353,24 +283,8 @@ namespace UnityEditor.VFX
 
         sealed override protected void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
-            var allConnectedChildModel = OutputSlots.SelectMany(o => o.children.Select(c => c.model)).Distinct().ToArray();
-            if (cause == InvalidationCause.kParamChanged)
-            {
-                foreach (var slot in InputSlots)
-                {
-                    if (slot.parent != null && !slot.CanConnect(slot.parent, slot.parentSlotID))
-                    {
-                        slot.Disconnect();
-                    }
-                }
-            }
-
             OnOperatorInvalidate(model, cause);
             base.OnInvalidate(model, cause);
-            foreach (var slot in allConnectedChildModel)
-            {
-                slot.Invalidate(cause);
-            }
         }
     }
 }

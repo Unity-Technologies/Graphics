@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     {
         override public string name { get { return "SampleCurve"; } }
 
-        public class Properties
+        public class InputProperties
         {
             public float time = 0.0f;
             public AnimationCurve curve = new AnimationCurve();

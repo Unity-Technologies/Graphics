@@ -18,17 +18,21 @@ namespace UnityEditor.VFX
         public Direction direction { get { return m_Direction; } }
         public VFXProperty property { get { return m_Property; } }
         public override string name { get { return m_Property.name; } }
+
         public virtual VFXExpression expression 
         { 
-            get { return m_CachedExpression; } 
+            get
+            {
+                return m_Expression;
+            }
             set 
             {
-                if (m_DefaultExpression != value)
+                if (m_Expression != value)
                 {
                     if (!CanConvert(value))
                         throw new Exception();
 
-                    m_DefaultExpression = ConvertExpression(value);
+                    m_Expression = ConvertExpression(value);
                     Invalidate(InvalidationCause.kConnectionChanged); // trigger a rebuild
                 }
             }
@@ -53,16 +57,16 @@ namespace UnityEditor.VFX
         }
 
         // Create and return a slot hierarchy from a property info
-        public static VFXSlot Create(VFXProperty info, Direction direction)
+        public static VFXSlot Create(VFXProperty property, Direction direction)
         {
-            var desc = VFXLibrary.GetSlot(info.type);
+            var desc = VFXLibrary.GetSlot(property.type);
             if (desc != null)
             {
                 var slot = desc.CreateInstance();
                 slot.m_Direction = direction;
-                slot.m_Property = info;
+                slot.m_Property = property;
 
-                foreach (var subInfo in info.SubProperties())
+                foreach (var subInfo in property.SubProperties())
                 {
                     var subSlot = Create(subInfo, direction);
                     if (subSlot != null)
@@ -155,8 +159,20 @@ namespace UnityEditor.VFX
             base.Invalidate(model, cause);
 
             // Propagate to the owner if any
-            if (m_Owner != null)
-                m_Owner.Invalidate(cause);
+            if (direction == Direction.kInput)
+            {
+                expression = refSlot.expression;
+
+                if (m_Owner != null)
+                    m_Owner.Invalidate(cause);
+            }
+            else
+            {
+                foreach (var link in m_LinkedSlots)
+                {
+                    link.Invalidate(cause);
+                }
+            }
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -195,7 +211,7 @@ namespace UnityEditor.VFX
         }
         protected virtual VFXExpression ConvertExpression(VFXExpression expression)
         {
-            return null;
+            return expression;
         }
 
 
@@ -210,8 +226,8 @@ namespace UnityEditor.VFX
             base.OnBeforeSerialize();
         }*/
 
-        private VFXExpression m_CachedExpression;
-        private VFXExpression m_DefaultExpression;
+        //private VFXExpression m_CachedExpression;
+        private VFXExpression m_Expression;
 
         [NonSerialized]
         public IVFXSlotContainer m_Owner; // Don't set that directly! Only called by SlotContainer!

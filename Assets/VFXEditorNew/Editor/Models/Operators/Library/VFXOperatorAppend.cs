@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     {
         override public string name { get { return "AppendVector"; } }
 
-        public class Properties
+        public class InputProperties
         {
             public FloatN a = 0.0f;
             public FloatN b = 0.0f;
@@ -19,11 +19,13 @@ namespace UnityEditor.VFX
 
         sealed protected override void OnOperatorInvalidate(VFXModel model, InvalidationCause cause)
         {
+            /*
+            TODOPAUL
             if (cause == InvalidationCause.kParamChanged)
             {
                 var newInputSlots = new List<VFXMitoSlotInput>();
                 var size = 0;
-                foreach (var slot in InputSlots)
+                foreach (var slot in inputSlots)
                 {
                     var expression = slot.expression;
                     if (expression != null)
@@ -39,6 +41,7 @@ namespace UnityEditor.VFX
                 }
                 InputSlots = newInputSlots.ToArray();
             }
+            */
             base.OnOperatorInvalidate(model, cause);
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -8,8 +9,8 @@ namespace UnityEditor.VFX
 {
     interface IVFXSlotContainer
     {
-        IEnumerable<VFXSlot> inputSlots     { get; }
-        IEnumerable<VFXSlot> outputSlots    { get; }
+        ReadOnlyCollection<VFXSlot> inputSlots     { get; }
+        ReadOnlyCollection<VFXSlot> outputSlots    { get; }
 
         int GetNbInputSlots();
         int GetNbOutputSlots();
@@ -27,8 +28,8 @@ namespace UnityEditor.VFX
         where ParentType : VFXModel
         where ChildrenType : VFXModel
     {
-        public virtual IEnumerable<VFXSlot> inputSlots  { get { return m_InputSlots; } }
-        public virtual IEnumerable<VFXSlot> outputSlots { get { return m_OutputSlots; } }
+        public virtual ReadOnlyCollection<VFXSlot> inputSlots  { get { return m_InputSlots.AsReadOnly(); } }
+        public virtual ReadOnlyCollection<VFXSlot> outputSlots { get { return m_OutputSlots.AsReadOnly(); } }
 
         public virtual int GetNbInputSlots()            { return m_InputSlots.Count; }
         public virtual int GetNbOutputSlots()           { return m_OutputSlots.Count; }
@@ -69,13 +70,42 @@ namespace UnityEditor.VFX
             InitProperties("OutputProperties", out m_OutputProperties, out m_OutputValues,VFXSlot.Direction.kOutput);
         }
 
+        static private VFXExpression GetExpressionFromObject(object value)
+        {
+            if (value is float)
+            {
+                return new VFXValueFloat((float)value, true);
+            }
+            else if (value is Vector2)
+            {
+                return new VFXValueFloat2((Vector2)value, true);
+            }
+            else if (value is Vector3)
+            {
+                return new VFXValueFloat3((Vector3)value, true);
+            }
+            else if (value is Vector4)
+            {
+                return new VFXValueFloat4((Vector4)value, true);
+            }
+            else if (value is FloatN)
+            {
+                return (FloatN)value;
+            }
+            else if (value is AnimationCurve)
+            {
+                return new VFXValueCurve(value as AnimationCurve, true);
+            }
+            return null;
+        }
+
         private void InitProperties(string className, out VFXProperty[] properties, out object[] values,VFXSlot.Direction direction)
         {
             System.Type type = GetType().GetNestedType(className);
 
             if (type != null)
             {
-                var fields = type.GetFields();
+                var fields = type.GetFields().Where(f => !f.IsStatic).ToArray();
 
                 properties = new VFXProperty[fields.Length];
                 values = new object[fields.Length];
@@ -89,11 +119,16 @@ namespace UnityEditor.VFX
                 }
 
                 // Create slot hierarchy
-                foreach (var property in properties)
+                for (int i = 0; i < fields.Length; ++i)
                 {
+                    var property = properties[i];
+                    var value = values[i];
                     var slot = VFXSlot.Create(property, direction);
                     if (slot != null)
+                    {
+                        slot.expression = GetExpressionFromObject(value);
                         AddSlot(slot);
+                    }
                 }
             }
             else
@@ -159,6 +194,26 @@ namespace UnityEditor.VFX
             
             m_SerializableInputSlots = null;
             m_SerializableOutputSlots = null;
+        }
+
+        protected override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            /*
+             * Will be the job of expression
+            var allConnectedChildModel = outputSlots.SelectMany(o => o.children.Select(c => c.owner)).Distinct().ToArray();
+            if (cause == InvalidationCause.kParamChanged)
+            {
+                foreach (var slot in inputSlots)
+                {
+                    if (slot.parent != null && !slot.CanConnect(slot.parent, slot.parentSlotID))
+                    {
+                        slot.Disconnect();
+                    }
+                }
+            }*/
+
+            base.Invalidate(model, cause);
+
         }
 
         //[SerializeField]
