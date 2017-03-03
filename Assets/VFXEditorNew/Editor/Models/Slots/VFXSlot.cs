@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -37,6 +38,14 @@ namespace UnityEditor.VFX
                     m_CurrentExpression = ConvertExpression(value);
                     Invalidate(InvalidationCause.kConnectionChanged); // trigger a rebuild
                 }
+            }
+        }
+
+        public ReadOnlyCollection<VFXSlot> LinkedSlots
+        {
+            get
+            {
+                return m_LinkedSlots.AsReadOnly();
             }
         }
 
@@ -88,7 +97,7 @@ namespace UnityEditor.VFX
         
         public bool CanLink(VFXSlot other)
         {
-            return direction != other.direction && !m_LinkedSlots.Contains(other);
+            return direction != other.direction && !m_LinkedSlots.Contains(other) && CanConvert(other.expression);
         }
 
         public bool Link(VFXSlot other)

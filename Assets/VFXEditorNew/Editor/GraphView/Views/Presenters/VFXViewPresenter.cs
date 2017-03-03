@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.UI
                     {
                         var edgePresenter = CreateInstance<VFXOperatorEdgePresenter>();
 
-                        var operatorPresenterFrom = operatorPresenters.First(e => e.Operator == input.owner);
+                        var operatorPresenterFrom = operatorPresenters.First(e => e.Operator == input.refSlot.owner);
                         var operatorPresenterTo = operatorPresenters.First(e => e.Operator == modelOperator);
 
                         var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXOperatorAnchorPresenter).slotID == input.refSlot.id);
@@ -149,13 +149,13 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXOperatorPresenter)
             {
                 var operatorPresenter = element as VFXOperatorPresenter;
-                var allOperator = m_Elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>().ToArray();
-                foreach (var currentOperator in allOperator)
+                var allSlots = operatorPresenter.Operator.inputSlots.Concat(operatorPresenter.Operator.outputSlots).ToArray();
+                foreach (var slot in allSlots)
                 {
-                    //currentOperator.Operator.DisconnectAllInputs(); //TODOPAUL
+                    slot.UnlinkAll();
                 }
-                RecreateOperatorEdges();
                 m_GraphAsset.root.RemoveChild(operatorPresenter.Operator);
+                RecreateOperatorEdges();
             }
 			else if (element is VFXFlowEdgePresenter)
 			{
@@ -246,23 +246,21 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private static void CollectChildOperator(VFXOperator operatorInput, HashSet<VFXOperator> listChildren)
+        private static void CollectChildOperator(VFXOperator operatorInput, HashSet<VFXOperator> hashChildren)
         {
-            /* TODOPAUL
-            listChildren.Add(operatorInput);
-            var connectedChildren = operatorInput.outputSlots.SelectMany(o => o.children.Select(c => c.model)).Distinct();
-            foreach (var child in connectedChildren)
+            hashChildren.Add(operatorInput);
+
+            var children = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(o => o.m_Owner).Cast<VFXOperator>());
+            foreach (var child in children)
             {
-                CollectChildOperator(child, listChildren);
+                CollectChildOperator(child, hashChildren);
             }
-            */
         }
 
         public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchorPresenter, NodeAdapter nodeAdapter)
 		{
             if (startAnchorPresenter is VFXOperatorAnchorPresenter)
             {
-                /* wip (will be managed with slot class) */
                 var allOperatorPresenter = elements.OfType<VFXOperatorPresenter>();
                 var startAnchorOperatorPresenter = (startAnchorPresenter as VFXOperatorAnchorPresenter);
                 var currentOperator = startAnchorOperatorPresenter.sourceOperator.Operator;
@@ -275,8 +273,7 @@ namespace UnityEditor.VFX.UI
                     var allOutputCandidate = allOperatorPresenter.SelectMany(o => o.outputAnchors).Where(o =>
                     {
                         var candidate = o as VFXOperatorAnchorPresenter;
-                        return true; //TODOPAUL
-                        //return toSlot.CanConnect(candidate.sourceOperator.Operator, candidate.slotID);
+                        return toSlot.CanLink(currentOperator.outputSlots.First(s => s.id == startAnchorOperatorPresenter.slotID));
                     }).ToList();
                     return allOutputCandidate;
                 }
@@ -289,8 +286,7 @@ namespace UnityEditor.VFX.UI
                     {
                         var candidate = o as VFXOperatorAnchorPresenter;
                         var toSlot = candidate.sourceOperator.Operator.inputSlots.First(s => s.id == candidate.slotID);
-                        return true; //TODOPAUL
-                        //return toSlot.CanConnect(currentOperator, startAnchorOperatorPresenter.slotID);
+                        return toSlot.CanLink(currentOperator.outputSlots.First(s => s.id == startAnchorOperatorPresenter.slotID));
                     }).ToList();
                     return allInputCandidates;
                 }
