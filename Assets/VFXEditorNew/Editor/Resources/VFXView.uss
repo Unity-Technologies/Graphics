@@ -276,15 +276,19 @@ BoolPropertyRM Toggle
 	height:17
 }
 
-FloatPropertyRM EditorTextField
+FloatPropertyRM FloatField
 {
-	position-type:absolute;
-	position-right:0;
+	flex:1;
+}
+
+FloatPropertyRM FloatField .textfield
+{
 	text-color:#BBB;
 
 	border-width:1;
 	border-right:1;
 	border-color:rgba(0,0,0,0);
+	text-alignment:middle-right;
 	
 	padding-top:1;
 	padding-bottom:1;
@@ -292,7 +296,7 @@ FloatPropertyRM EditorTextField
 	padding-right:3;
 }
 
-FloatPropertyRM EditorTextField:focus
+FloatPropertyRM FloatField .textfield:focus
 {
 	border-color:#BBB;
 }
