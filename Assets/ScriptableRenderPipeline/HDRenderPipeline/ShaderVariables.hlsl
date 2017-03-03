@@ -286,8 +286,10 @@ float3 GetCurrentCameraPosition()
 #if SHADERPASS != SHADERPASS_DEPTH_ONLY
     return _WorldSpaceCameraPos;
 #else
-    // TEMP: this is a workaround until the shadow map pass sets '_WorldSpaceCameraPos'.
-    // This code is far more expensive than loading a constant from a cbuffer!
+    // TEMP: this is rather expensive. Then again, we need '_WorldSpaceCameraPos'
+    // to represent the position of the primary (scene view) camera in order to
+    // have identical tessellation levels for both the scene view and shadow views.
+    // Otherwise, depth comparisons become meaningless!
     float4x4 viewMat   = transpose(GetWorldToViewMatrix());
     float3   rotCamPos = viewMat[3].xyz;
    return mul((float3x3)viewMat, -rotCamPos);
