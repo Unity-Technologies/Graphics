@@ -183,7 +183,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorLength : VFXOperator
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN input = Vector3.one;
         }
@@ -204,7 +204,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorNormalize : VFXOperator
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN input = Vector3.one;
         }
