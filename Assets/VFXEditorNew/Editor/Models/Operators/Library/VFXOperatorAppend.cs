@@ -19,11 +19,9 @@ namespace UnityEditor.VFX
 
         sealed protected override void OnOperatorInvalidate(VFXModel model, InvalidationCause cause)
         {
-            /*
-            TODOPAUL
-            if (cause == InvalidationCause.kParamChanged)
+            if (cause != InvalidationCause.kUIChanged)
             {
-                var newInputSlots = new List<VFXMitoSlotInput>();
+                var newInputSlots = new List<VFXSlot>();
                 var size = 0;
                 foreach (var slot in inputSlots)
                 {
@@ -35,20 +33,35 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (newInputSlots.All(s => s.parent != null) && size < 4)
+                if (inputSlots.All(s => s.HasLink()) && size < 4)
                 {
-                    newInputSlots.Add(new VFXMitoSlotInput(new FloatN()));
+                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
                 }
-                InputSlots = newInputSlots.ToArray();
+
+                var uselessSlot = newInputSlots.Except(inputSlots).ToArray();
+                foreach (var deprecatedSlot in uselessSlot)
+                {
+                    RemoveSlot(deprecatedSlot);
+                }
             }
-            */
+
             base.OnOperatorInvalidate(model, cause);
         }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var allComponent = inputExpression.SelectMany(e => VFXOperatorUtility.ExtractComponents(e));
-            return new[] { new VFXExpressionCombine(allComponent.Take(4).ToArray()) };
+            var allComponent = inputExpression.SelectMany(e => VFXOperatorUtility.ExtractComponents(e))
+                                                .Take(4)
+                                                .ToArray();
+            if (allComponent.Length == 0)
+            {
+                return new VFXExpression[] { };
+            }
+            else if (allComponent.Length == 1)
+            {
+                return allComponent;
+            }
+            return new[] { new VFXExpressionCombine(allComponent) };
         }
     }
 }

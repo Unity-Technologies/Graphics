@@ -41,27 +41,27 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(count, eight);
         }
 
-        /*TODOPAUL
         [Test]
         public void CascadedMulOperator()
         {
             var one = new VFXOperatorFloatOne();
             var two = new VFXOperatorAdd();
 
-            two.ConnectInput(two.inputSlots[0].id, one, one.outputSlots[0].id);
-            two.ConnectInput(two.inputSlots[1].id, one, one.outputSlots[0].id);
+            two.inputSlots[0].Link(one.outputSlots[0]);
+            two.inputSlots[1].Link(one.outputSlots[0]);
 
             var vec2_Two = new VFXOperatorAppendVector();
-            vec2_Two.ConnectInput(vec2_Two.inputSlots[0].id, two, two.outputSlots[0].id);
-            vec2_Two.ConnectInput(vec2_Two.inputSlots[1].id, two, two.outputSlots[0].id);
+            vec2_Two.inputSlots[0].Link(two.outputSlots[0]);
+            vec2_Two.inputSlots[1].Link(two.outputSlots[0]);
 
             var vec3_Two = new VFXOperatorAppendVector();
-            vec3_Two.ConnectInput(vec3_Two.inputSlots[0].id, vec2_Two, vec2_Two.outputSlots[0].id);
-            vec3_Two.ConnectInput(vec3_Two.inputSlots[1].id, two, two.outputSlots[0].id);
+            vec3_Two.inputSlots[0].Link(two.outputSlots[0]);
+            vec3_Two.inputSlots[1].Link(two.outputSlots[0]);
+            vec3_Two.inputSlots[2].Link(two.outputSlots[0]);
 
             var mul = new VFXOperatorMul();
-            mul.ConnectInput(mul.inputSlots[0].id, vec2_Two, vec2_Two.outputSlots[0].id);
-            mul.ConnectInput(mul.inputSlots[1].id, vec3_Two, vec3_Two.outputSlots[0].id);
+            mul.inputSlots[0].Link(vec2_Two.outputSlots[0]);
+            mul.inputSlots[1].Link(vec3_Two.outputSlots[0]);
 
             var context = new VFXExpression.Context();
             var result = context.Compile(mul.outputSlots[0].expression);
@@ -70,6 +70,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(final, new Vector3(4, 4, 2));
         }
 
+        /*TODOPAUL
         [Test]
         public void ChangeTypeInCascade()
         {
