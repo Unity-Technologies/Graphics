@@ -84,7 +84,7 @@ namespace UnityEditor.VFX.RMGUI
 		    	}
             break;
 		    case EventType.MouseUp:
-			    if ( evt.button == 0 )
+			    if ( evt.button == 0 && m_Dragging)
                 {
                     m_Dragging = false;
                     this.ReleaseCapture();
