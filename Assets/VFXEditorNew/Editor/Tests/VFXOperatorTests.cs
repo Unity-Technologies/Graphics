@@ -70,35 +70,35 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(final, new Vector3(4, 4, 2));
         }
 
-        /*TODOPAUL
         [Test]
         public void ChangeTypeInCascade()
         {
             var one = new VFXOperatorFloatOne();
 
             var vec2_One = new VFXOperatorAppendVector();
-            vec2_One.ConnectInput(vec2_One.inputSlots[0].id, one, one.outputSlots[0].id);
-            vec2_One.ConnectInput(vec2_One.inputSlots[1].id, one, one.outputSlots[0].id);
+            vec2_One.inputSlots[0].Link(one.outputSlots[0]);
+            vec2_One.inputSlots[1].Link(one.outputSlots[0]);
 
             var vec3_One = new VFXOperatorAppendVector();
-            vec3_One.ConnectInput(vec3_One.inputSlots[0].id, vec2_One, vec2_One.outputSlots[0].id);
-            vec3_One.ConnectInput(vec3_One.inputSlots[1].id, one, one.outputSlots[0].id);
+            vec3_One.inputSlots[0].Link(vec2_One.outputSlots[0]);
+            vec3_One.inputSlots[1].Link(one.outputSlots[0]);
 
             var cos = new VFXOperatorCos();
-            cos.ConnectInput(cos.inputSlots[0].id, vec2_One, vec2_One.outputSlots[0].id);
+            cos.inputSlots[0].Link(vec2_One.outputSlots[0]);
 
             var sin = new VFXOperatorSin();
-            sin.ConnectInput(sin.inputSlots[0].id, cos, cos.outputSlots[0].id);
+            sin.inputSlots[0].Link(cos.outputSlots[0]);
 
             var abs = new VFXOperatorAbs();
-            abs.ConnectInput(abs.inputSlots[0].id, sin, sin.outputSlots[0].id);
+            abs.inputSlots[0].Link(sin.outputSlots[0]);
             Assert.AreEqual(abs.outputSlots[0].expression.ValueType, VFXValueType.kFloat2);
 
             //Cascaded invalidation should occurs
-            cos.ConnectInput(cos.inputSlots[0].id, vec3_One, vec3_One.outputSlots[0].id);
+            cos.inputSlots[0].Link(vec3_One.outputSlots[0]);
             Assert.AreEqual(abs.outputSlots[0].expression.ValueType, VFXValueType.kFloat3);
         }
 
+        /*TODOPAUL
         [Test]
         public void AutoDisconnectInvalid()
         {
