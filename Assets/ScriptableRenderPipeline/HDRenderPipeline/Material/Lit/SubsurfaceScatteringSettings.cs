@@ -191,9 +191,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class SubsurfaceScatteringSettings
     {
+        public enum TexturingMode : int { PreScatter = 0, PostScatter = 1, PreAndPostScatter = 2, MaxValue = 2 };  
+
         public const int maxNumProfiles = 8;
 
         public int                           numProfiles;
+        public TexturingMode                 texturingMode;
         public int                           transmissionFlags;
         public SubsurfaceScatteringProfile[] profiles;
         public float[]                       thicknessRemaps;
@@ -205,8 +208,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public SubsurfaceScatteringSettings()
         {
-            numProfiles = 1;
-            profiles    = new SubsurfaceScatteringProfile[numProfiles];
+            numProfiles   = 1;
+            texturingMode = 0;
+            profiles      = new SubsurfaceScatteringProfile[numProfiles];
 
             for (int i = 0; i < numProfiles; i++)
             {
@@ -223,8 +227,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Array.Resize(ref profiles, maxNumProfiles);
             }
 
-            numProfiles       = profiles.Length;
-            transmissionFlags = 0;
+            numProfiles   = profiles.Length;
+            texturingMode = (TexturingMode)Math.Max(0, Math.Min((int)texturingMode, (int)TexturingMode.MaxValue));
 
             if (thicknessRemaps == null)
             {
@@ -246,6 +250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 filterKernels = new Vector4[maxNumProfiles * SubsurfaceScatteringProfile.numSamples];
             }
 
+            transmissionFlags = 0;
             Color c = new Color();
 
             for (int i = 0; i < numProfiles; i++)
