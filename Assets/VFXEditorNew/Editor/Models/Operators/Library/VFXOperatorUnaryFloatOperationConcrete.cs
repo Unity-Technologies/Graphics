@@ -30,6 +30,10 @@ namespace UnityEditor.VFX
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var currentSettings = settings as Settings;
+            if (inputExpression.Length != 1 || currentSettings == null)
+            {
+                return new VFXExpression[] { };
+            }
 
             var mask = currentSettings.mask;
             var inputComponents = VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray();
@@ -177,7 +181,7 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo]
-    class VFXOperatorLength : VFXOperatorFloatUnified
+    class VFXOperatorLength : VFXOperator
     {
         public class Properties
         {
@@ -188,12 +192,17 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            if (inputExpression.Length != 1)
+            {
+                return new VFXExpression[] { };
+            }
+
             return new[] { VFXOperatorUtility.Length(inputExpression[0]) };
         }
     }
 
     [VFXInfo]
-    class VFXOperatorNormalize : VFXOperatorFloatUnified
+    class VFXOperatorNormalize : VFXOperator
     {
         public class Properties
         {
@@ -204,6 +213,11 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            if (inputExpression.Length != 1)
+            {
+                return new VFXExpression[] { };
+            }
+
             var invLength = new VFXExpressionDivide(VFXOperatorUtility.OneExpression[1], VFXOperatorUtility.Length(inputExpression[0]));
             var invLengthVector = VFXOperatorUtility.CastFloat(invLength, inputExpression[0].ValueType);
             return new[] { new VFXExpressionMul(inputExpression[0], invLengthVector) };

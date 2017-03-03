@@ -19,6 +19,11 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            if (inputExpression.Length != 2)
+            {
+                return new VFXExpression[] { };
+            }
+
             return new[] { new VFXExpressionSampleCurve(inputExpression[0], inputExpression[1]) };
         }
     }

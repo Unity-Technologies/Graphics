@@ -63,6 +63,11 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            if (inputExpression.Length != 2)
+            {
+                return new VFXExpression[] { };
+            }
+
             var div = new VFXExpressionDivide(inputExpression[0], inputExpression[1]);
             return new[] { VFXOperatorUtility.Frac(div) };
         }
@@ -114,6 +119,11 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            if (inputExpression.Length != 2)
+            {
+                return new VFXExpression[] { };
+            }
+
             return new[] { VFXOperatorUtility.Dot(inputExpression[0], inputExpression[1]) };
         }
     }
