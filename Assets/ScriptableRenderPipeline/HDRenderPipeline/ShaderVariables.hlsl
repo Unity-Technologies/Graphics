@@ -306,7 +306,15 @@ float3 GetCameraForwardDir()
 // Computes the world space view direction (pointing towards the camera).
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
+#if SHADERPASS != SHADERPASS_DEPTH_ONLY
     if (unity_OrthoParams.w == 0)
+#else
+    // TODO: set 'unity_OrthoParams' during the shadow pass.
+    if (GetWorldToHClipMatrix()[3].x != 0 &&
+        GetWorldToHClipMatrix()[3].y != 0 &&
+        GetWorldToHClipMatrix()[3].z != 0 &&
+        GetWorldToHClipMatrix()[3].w != 1)
+#endif
     {
         // Perspective
         float3 V = GetCurrentCameraPosition() - positionWS;
