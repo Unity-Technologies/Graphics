@@ -98,25 +98,23 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(abs.outputSlots[0].expression.ValueType, VFXValueType.kFloat3);
         }
 
-        /*TODOPAUL
         [Test]
         public void AutoDisconnectInvalid()
         {
             var one = new VFXOperatorFloatOne();
 
             var append = new VFXOperatorAppendVector();
-            append.ConnectInput(append.inputSlots[0].id, one, one.outputSlots[0].id);
-            append.ConnectInput(append.inputSlots[1].id, one, one.outputSlots[0].id);
-            append.ConnectInput(append.inputSlots[2].id, one, one.outputSlots[0].id);
+            append.inputSlots[0].Link(one.outputSlots[0]);
+            append.inputSlots[1].Link(one.outputSlots[0]);
+            append.inputSlots[2].Link(one.outputSlots[0]);
 
             var cross = new VFXOperatorCross();
-            cross.ConnectInput(cross.inputSlots[0].id, append, append.outputSlots[0].id);
+            cross.inputSlots[0].Link(append.outputSlots[0]);
 
-            Assert.AreNotEqual(cross.inputSlots[0].parent, null);
+            Assert.AreEqual(true, cross.inputSlots[0].HasLink());
 
-            append.DisconnectInput(append.inputSlots[2].id);
-            Assert.AreEqual(cross.inputSlots[0].parent, null);
+            append.inputSlots[2].UnlinkAll();
+            Assert.AreEqual(false, cross.inputSlots[0].HasLink());
         }
-        */
     }
 }

@@ -40,5 +40,11 @@ namespace UnityEditor.VFX
     class VFXSlotTexture3D : VFXSlot {}
 
     [VFXInfo(type = typeof(FloatN))]
-    class VFXSlotFloatN : VFXSlot {}
+    class VFXSlotFloatN : VFXSlot
+    {
+        protected override bool CanConvert(VFXExpression expression)
+        {
+            return expression == null || VFXExpression.IsFloatValueType(expression.ValueType);
+        }
+    }
 }

@@ -23,16 +23,18 @@ namespace UnityEditor.VFX
         { 
             get
             {
-                return m_Expression;
+                return m_CurrentExpression;
             }
             set 
             {
-                if (m_Expression != value)
+                if (m_CurrentExpression != value)
                 {
                     if (!CanConvert(value))
+                    {
                         throw new Exception();
+                    }
 
-                    m_Expression = ConvertExpression(value);
+                    m_CurrentExpression = ConvertExpression(value);
                     Invalidate(InvalidationCause.kConnectionChanged); // trigger a rebuild
                 }
             }
@@ -57,7 +59,7 @@ namespace UnityEditor.VFX
         }
 
         // Create and return a slot hierarchy from a property info
-        public static VFXSlot Create(VFXProperty property, Direction direction)
+        public static VFXSlot Create(VFXProperty property, Direction direction, VFXExpression defaultExpression = null)
         {
             var desc = VFXLibrary.GetSlot(property.type);
             if (desc != null)
@@ -65,10 +67,12 @@ namespace UnityEditor.VFX
                 var slot = desc.CreateInstance();
                 slot.m_Direction = direction;
                 slot.m_Property = property;
+                slot.m_DefaultExpression = defaultExpression;
+                slot.m_CurrentExpression = slot.m_DefaultExpression;
 
                 foreach (var subInfo in property.SubProperties())
                 {
-                    var subSlot = Create(subInfo, direction);
+                    var subSlot = Create(subInfo, direction, null /* TODOPAUL */);
                     if (subSlot != null)
                         subSlot.Attach(slot);
                 }
@@ -161,10 +165,30 @@ namespace UnityEditor.VFX
             // Propagate to the owner if any
             if (direction == Direction.kInput)
             {
-                expression = refSlot.expression;
+                if (HasLink())
+                {
+                    if (!CanConvert(refSlot.expression))
+                    {
+                        //Invalid link, disconnect it
+                        UnlinkAll();
+                    }
+                    else
+                    {
+                        //Reapply expression
+                        expression = refSlot.expression;
+                    }
+                }
+                else
+                {
+                    //No link anymore, default fallback
+                    expression = m_DefaultExpression;
+                }
 
                 if (m_Owner != null)
+                {
                     m_Owner.Invalidate(cause);
+                }
+                
             }
             else
             {
@@ -179,12 +203,13 @@ namespace UnityEditor.VFX
         {
             if (direction == Direction.kOutput)
             {
+                var linkedSlot = m_LinkedSlots.ToArray();
                 if (cause == InvalidationCause.kConnectionChanged) // If connection has changed, propagate to linked inputs
-                    foreach (var slot in m_LinkedSlots)
+                    foreach (var slot in linkedSlot)
                         slot.Invalidate(model, InvalidationCause.kConnectionPropagated);
 
                 if (cause == InvalidationCause.kParamChanged) // If param has changed, propagate to linked inputs
-                    foreach (var slot in m_LinkedSlots)
+                    foreach (var slot in linkedSlot)
                         slot.Invalidate(model, InvalidationCause.kParamPropagated);
             }
             else // input
@@ -195,19 +220,12 @@ namespace UnityEditor.VFX
 
         private VFXExpression BuildExpression()
         {
-            /*if (direction == Direction.kInput && HasLink())
-                m_CachedExpression = ConvertExpression(refSlot.expression);
-            else
-                m_CachedExpression = GetExpressionFromChildren();
-
-            if (m_CachedExpression == null)
-                m_CachedExpression = m_DefaultExpression;*/
             return null;
         }
 
         protected virtual bool CanConvert(VFXExpression expression)
         {
-            return true;
+            return m_DefaultExpression == null || expression == null || m_DefaultExpression.ValueType == expression.ValueType;
         }
         protected virtual VFXExpression ConvertExpression(VFXExpression expression)
         {
@@ -215,7 +233,7 @@ namespace UnityEditor.VFX
         }
 
 
-        public virtual void OnBeforeSerialize()
+        public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
             m_LinkedSlotRefs = m_LinkedSlots.Select(slot => slot.id.ToString()).ToList();
@@ -227,7 +245,8 @@ namespace UnityEditor.VFX
         }*/
 
         //private VFXExpression m_CachedExpression;
-        private VFXExpression m_Expression;
+        private VFXExpression m_CurrentExpression;
+        private VFXExpression m_DefaultExpression;
 
         [NonSerialized]
         public IVFXSlotContainer m_Owner; // Don't set that directly! Only called by SlotContainer!

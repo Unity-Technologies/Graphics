@@ -34,6 +34,14 @@ namespace UnityEditor.VFX
             ValidOnCPU =    1 << 3, // Expression can be evaluated on CPU
         }
 
+        public static bool IsFloatValueType(VFXValueType valueType)
+        {
+            return valueType == VFXValueType.kFloat
+                    || valueType == VFXValueType.kFloat2
+                    || valueType == VFXValueType.kFloat3
+                    || valueType == VFXValueType.kFloat4;
+        }
+
         public static int TypeToSize(VFXValueType type)
         {
             switch (type)

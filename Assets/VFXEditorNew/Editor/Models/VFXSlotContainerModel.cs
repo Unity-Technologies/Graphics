@@ -123,10 +123,9 @@ namespace UnityEditor.VFX
                 {
                     var property = properties[i];
                     var value = values[i];
-                    var slot = VFXSlot.Create(property, direction);
+                    var slot = VFXSlot.Create(property, direction, GetExpressionFromObject(value));
                     if (slot != null)
                     {
-                        slot.expression = GetExpressionFromObject(value);
                         AddSlot(slot);
                     }
                 }
