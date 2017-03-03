@@ -1062,7 +1062,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
         float verticalDisplacement = maxHeight - height * maxHeight;
         // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
-        float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
+        float tilingScale = rcp(max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y));
         return tilingScale * verticalDisplacement / NdotV;
     }
 
