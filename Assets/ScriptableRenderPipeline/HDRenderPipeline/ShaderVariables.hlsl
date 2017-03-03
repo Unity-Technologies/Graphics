@@ -294,26 +294,27 @@ float3 GetCurrentCameraPosition()
 #endif
 }
 
-// Computes the world space view direction (pointing towards the camera).
-float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
-{
-    float3 V = GetCurrentCameraPosition() - positionWS;
-
-    // Uncomment this once the compiler bug is fixed.
-    // if (unity_OrthoParams.w == 1.0)
-    // {
-    //     float4x4 M = GetWorldToViewMatrix();
-    //     V = M[1].xyz;
-    // }
-
-    return normalize(V);
-}
-
 // Returns the forward direction of the current camera in the world space.
 float3 GetCameraForwardDir()
 {
     float4x4 viewMat = GetWorldToViewMatrix();
     return -viewMat[2].xyz;
+}
+
+// Computes the world space view direction (pointing towards the camera).
+float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
+{
+    if (unity_OrthoParams.w == 0)
+    {
+        // Perspective
+        float3 V = GetCurrentCameraPosition() - positionWS;
+        return normalize(V);
+    }
+    else
+    {
+        // Orthographic
+        return -GetCameraForwardDir();
+    }
 }
 
 float3x3 CreateWorldToTangent(float3 normal, float3 tangent, float flipSign)
