@@ -288,11 +288,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraFilteringBufferRT           = new RenderTargetIdentifier(m_CameraFilteringBuffer);
 
             m_FilterSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
-            m_FilterSubsurfaceScattering.DisableKeyword("FILTER_HORIZONTAL");
+            m_FilterSubsurfaceScattering.DisableKeyword("FILTER_HORIZONTAL_AND_COMBINE");
             m_FilterSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.Zero);
 
             m_FilterAndCombineSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
-            m_FilterSubsurfaceScattering.EnableKeyword("FILTER_HORIZONTAL");
+            m_FilterSubsurfaceScattering.EnableKeyword("FILTER_HORIZONTAL_AND_COMBINE");
             m_FilterAndCombineSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.One);
 
             InitializeDebugMaterials();
@@ -453,6 +453,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalInt("_TransmissionFlags", sssParameters.transmissionFlags);
             cmd.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
             cmd.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
+
+            switch (sssParameters.texturingMode)
+            {
+                case SubsurfaceScatteringSettings.TexturingMode.PreScatter:
+                    cmd.EnableShaderKeyword("SSS_PRE_SCATTER_TEXTURING");
+                    cmd.DisableShaderKeyword("SSS_POST_SCATTER_TEXTURING");
+                    break;
+                case SubsurfaceScatteringSettings.TexturingMode.PostScatter:
+                    cmd.DisableShaderKeyword("SSS_PRE_SCATTER_TEXTURING");
+                    cmd.EnableShaderKeyword("SSS_POST_SCATTER_TEXTURING");
+                    break;
+                case SubsurfaceScatteringSettings.TexturingMode.PreAndPostScatter:
+                    cmd.DisableShaderKeyword("SSS_PRE_SCATTER_TEXTURING");
+                    cmd.DisableShaderKeyword("SSS_POST_SCATTER_TEXTURING");
+                    break;
+            }
 
             if (globalDebugSettings.renderingDebugSettings.enableSSS)
             {

@@ -44,6 +44,10 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
 
+         // #ifdef OUTPUT_SPLIT_LIGHTING
+            #pragma shader_feature _ SSS_PRE_SCATTER_TEXTURING SSS_POST_SCATTER_TEXTURING
+         // #endif
+
             #pragma multi_compile _ LIGHTING_DEBUG
 
             //-------------------------------------------------------------------------------------
