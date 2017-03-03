@@ -147,7 +147,8 @@ namespace UnityEditor.VFX.UI
 
             foreach(var anchorPresenter in m_Anchors.Values)
             {
-                if( anchorPresenter.path.StartsWith(presenter.path))
+                // update child and parents.
+                if( anchorPresenter.path.StartsWith(presenter.path) || presenter.path.StartsWith(anchorPresenter.path))
                 {
                     anchorPresenter.Dirty();
                 }

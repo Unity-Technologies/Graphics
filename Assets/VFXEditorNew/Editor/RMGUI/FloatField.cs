@@ -45,22 +45,16 @@ namespace UnityEditor.VFX.RMGUI
         {
             CreateTextField();            
 
-            if( string.IsNullOrEmpty(label) )
+            if( !string.IsNullOrEmpty(label) )
             {
                 m_Label = new VisualElement(){text = label};
+                m_Label.AddToClassList("label");
+                m_Label.AddManipulator(new DragValueManipulator<float>(this,null));
+                AddChild(m_Label);
             }
-
-            AddChild(m_Label);
-            AddChild(m_TextField);
 
             flexDirection = FlexDirection.Row;
-            m_TextField.flex = 1;
-
-
-            if( m_Label != null)
-            {
-                m_Label.flex = 1;
-            }
+            AddChild(m_TextField);
         }
 
         void OnTextChanged()

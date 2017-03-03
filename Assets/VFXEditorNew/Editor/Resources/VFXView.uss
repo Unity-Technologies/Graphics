@@ -281,7 +281,7 @@ FloatPropertyRM FloatField
 	flex:1;
 }
 
-FloatPropertyRM FloatField .textfield
+.propertyrm FloatField .textfield
 {
 	text-color:#BBB;
 
@@ -296,9 +296,20 @@ FloatPropertyRM FloatField .textfield
 	padding-right:3;
 }
 
-FloatPropertyRM FloatField .textfield:focus
+.propertyrm FloatField .textfield:focus
 {
 	border-color:#BBB;
+}
+
+.propertyrm FloatField .label
+{
+	text-color:#888;
+}
+.propertyrm .fieldContainer
+{
+	align-items: center;
+	flex-direction:row;
+	flex:1
 }
 
 /*Default*/
