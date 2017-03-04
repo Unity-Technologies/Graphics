@@ -45,6 +45,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent sssProfileLerpWeight = new GUIContent("Filter interpolation", "Controls linear interpolation between the two Gaussian filters.");
             public readonly GUIContent sssProfileTransmission = new GUIContent("Enable transmission", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
             public readonly GUIContent sssProfileThicknessRemap = new GUIContent("Thickness remap", "Remaps the thickness parameter from [0, 1] to the desired range.");
+            public readonly GUIContent sssTexturingMode = new GUIContent("Texturing mode", "Specifies when the diffuse texture should be applied.");
+            public readonly GUIContent[] sssTexturingModeOptions = new GUIContent[3] { new GUIContent("Pre-scatter", "Before the blurring pass. Effectively results in the diffuse texture getting blurred together with the lighting."), new GUIContent("Post-scatter", "After the blurring pass. Effectively preserves the sharpness of the diffuse texture."), new GUIContent("Pre- and post-scatter", "Both before and after the blurring pass.") };
 
             public readonly GUIStyle centeredMiniBoldLabel = new GUIStyle(GUI.skin.label);
 
@@ -141,6 +143,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_RenderingUseDepthPrepass = null;
 
         // Subsurface Scattering Settings
+        SerializedProperty m_TexturingMode = null;
         SerializedProperty m_Profiles = null;
         SerializedProperty m_NumProfiles = null;
 
@@ -181,6 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepass);
 
             // Subsurface Scattering Settings
+            m_TexturingMode = FindProperty(x => x.sssSettings.texturingMode);
             m_Profiles = FindProperty(x => x.sssSettings.profiles);
             m_NumProfiles = m_Profiles.FindPropertyRelative("Array.size");
         }
@@ -373,69 +377,62 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
 
             EditorGUILayout.PropertyField(m_NumProfiles, styles.sssNumProfiles);
-            EditorGUILayout.PropertyField(m_Profiles);
+            m_TexturingMode.intValue = EditorGUILayout.Popup(styles.sssTexturingMode, m_TexturingMode.intValue, styles.sssTexturingModeOptions, (GUILayoutOption[])null);
 
-            if (m_Profiles.isExpanded)
+            for (int i = 0, n = Math.Min(m_Profiles.arraySize, SubsurfaceScatteringSettings.maxNumProfiles); i < n; i++)
             {
-                EditorGUI.indentLevel++;
+                SerializedProperty profile = m_Profiles.GetArrayElementAtIndex(i);
+                EditorGUILayout.PropertyField(profile, styles.sssProfiles[i]);
 
-                for (int i = 0, n = Math.Min(m_Profiles.arraySize, SubsurfaceScatteringSettings.maxNumProfiles); i < n; i++)
+                if (profile.isExpanded)
                 {
-                    SerializedProperty profile = m_Profiles.GetArrayElementAtIndex(i);
-                    EditorGUILayout.PropertyField(profile, styles.sssProfiles[i]);
+                    EditorGUI.indentLevel++;
 
-                    if (profile.isExpanded)
-                    {
-                        EditorGUI.indentLevel++;
+                    SerializedProperty profileStdDev1 = profile.FindPropertyRelative("stdDev1");
+                    SerializedProperty profileStdDev2 = profile.FindPropertyRelative("stdDev2");
+                    SerializedProperty profileLerpWeight = profile.FindPropertyRelative("lerpWeight");
+                    SerializedProperty profileTransmission = profile.FindPropertyRelative("enableTransmission");
+                    SerializedProperty profileThicknessRemap = profile.FindPropertyRelative("thicknessRemap");
 
-                        SerializedProperty profileStdDev1 = profile.FindPropertyRelative("stdDev1");
-                        SerializedProperty profileStdDev2 = profile.FindPropertyRelative("stdDev2");
-                        SerializedProperty profileLerpWeight = profile.FindPropertyRelative("lerpWeight");
-                        SerializedProperty profileTransmission = profile.FindPropertyRelative("enableTransmission");
-                        SerializedProperty profileThicknessRemap = profile.FindPropertyRelative("thicknessRemap");
+                    EditorGUILayout.PropertyField(profileStdDev1, styles.sssProfileStdDev1);
+                    EditorGUILayout.PropertyField(profileStdDev2, styles.sssProfileStdDev2);
+                    EditorGUILayout.PropertyField(profileLerpWeight, styles.sssProfileLerpWeight);
+                    EditorGUILayout.PropertyField(profileTransmission, styles.sssProfileTransmission);
 
-                        EditorGUILayout.PropertyField(profileStdDev1, styles.sssProfileStdDev1);
-                        EditorGUILayout.PropertyField(profileStdDev2, styles.sssProfileStdDev2);
-                        EditorGUILayout.PropertyField(profileLerpWeight, styles.sssProfileLerpWeight);
-                        EditorGUILayout.PropertyField(profileTransmission, styles.sssProfileTransmission);
+                    Vector2 thicknessRemap = profileThicknessRemap.vector2Value;
+                    EditorGUILayout.LabelField("Min thickness: ", thicknessRemap.x.ToString());
+                    EditorGUILayout.LabelField("Max thickness: ", thicknessRemap.y.ToString());
+                    EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0, 10);
+                    profileThicknessRemap.vector2Value = thicknessRemap;
 
-                        Vector2 thicknessRemap = profileThicknessRemap.vector2Value;
-                        EditorGUILayout.LabelField("Min thickness: ", thicknessRemap.x.ToString());
-                        EditorGUILayout.LabelField("Max thickness: ", thicknessRemap.y.ToString());
-                        EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0, 10);
-                        profileThicknessRemap.vector2Value = thicknessRemap;
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField(styles.sssProfilePreview0, styles.centeredMiniBoldLabel);
+                    EditorGUILayout.LabelField(styles.sssProfilePreview1, EditorStyles.centeredGreyMiniLabel);
+                    EditorGUILayout.LabelField(styles.sssProfilePreview2, EditorStyles.centeredGreyMiniLabel);
+                    EditorGUILayout.Space();
 
-                        EditorGUILayout.Space();
-                        EditorGUILayout.LabelField(styles.sssProfilePreview0, styles.centeredMiniBoldLabel);
-                        EditorGUILayout.LabelField(styles.sssProfilePreview1, EditorStyles.centeredGreyMiniLabel);
-                        EditorGUILayout.LabelField(styles.sssProfilePreview2, EditorStyles.centeredGreyMiniLabel);
-                        EditorGUILayout.Space();
+                    // Draw the profile.
+                    m_ProfileMaterial.SetColor("_StdDev1", profileStdDev1.colorValue);
+                    m_ProfileMaterial.SetColor("_StdDev2", profileStdDev2.colorValue);
+                    m_ProfileMaterial.SetFloat("_LerpWeight", profileLerpWeight.floatValue);
+                    EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImages[i], m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
 
-                        // Draw the profile.
-                        m_ProfileMaterial.SetColor("_StdDev1", profileStdDev1.colorValue);
-                        m_ProfileMaterial.SetColor("_StdDev2", profileStdDev2.colorValue);
-                        m_ProfileMaterial.SetFloat("_LerpWeight", profileLerpWeight.floatValue);
-                        EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImages[i], m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField(styles.sssTransmittancePreview0, styles.centeredMiniBoldLabel);
+                    EditorGUILayout.LabelField(styles.sssTransmittancePreview1, EditorStyles.centeredGreyMiniLabel);
+                    EditorGUILayout.Space();
 
-                        EditorGUILayout.Space();
-                        EditorGUILayout.LabelField(styles.sssTransmittancePreview0, styles.centeredMiniBoldLabel);
-                        EditorGUILayout.LabelField(styles.sssTransmittancePreview1, EditorStyles.centeredGreyMiniLabel);
-                        EditorGUILayout.Space();
+                    // Draw the transmittance graph.
+                    m_TransmittanceMaterial.SetColor("_StdDev1", profileStdDev1.colorValue);
+                    m_TransmittanceMaterial.SetColor("_StdDev2", profileStdDev2.colorValue);
+                    m_TransmittanceMaterial.SetFloat("_LerpWeight", profileLerpWeight.floatValue);
+                    m_TransmittanceMaterial.SetVector("_ThicknessRemap", profileThicknessRemap.vector2Value);
+                    EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImages[i], m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
 
-                        // Draw the transmittance graph.
-                        m_TransmittanceMaterial.SetColor("_StdDev1", profileStdDev1.colorValue);
-                        m_TransmittanceMaterial.SetColor("_StdDev2", profileStdDev2.colorValue);
-                        m_TransmittanceMaterial.SetFloat("_LerpWeight", profileLerpWeight.floatValue);
-                        m_TransmittanceMaterial.SetVector("_ThicknessRemap", profileThicknessRemap.vector2Value);
-                        EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImages[i], m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
+                    EditorGUILayout.Space();
 
-                        EditorGUILayout.Space();
-
-                        EditorGUI.indentLevel--;
-                    }
+                    EditorGUI.indentLevel--;
                 }
-
-                EditorGUI.indentLevel--;
             }
 
             EditorGUI.indentLevel--;

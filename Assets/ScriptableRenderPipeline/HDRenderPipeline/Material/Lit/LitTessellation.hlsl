@@ -5,11 +5,17 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     bool frustumCulled = WorldViewFrustumCull(p0, p1, p2, maxDisplacement, (float4[4])unity_CameraWorldClipPlanes);
 
     bool faceCull = false;
+
+    // We use the position of the primary (scene view) camera in order
+    // to have identical tessellation levels for both the scene view and
+    // shadow views. Otherwise, depth comparisons become meaningless!
+    float3 camPosWS = _WorldSpaceCameraPos;
+
 #ifndef _DOUBLESIDED_ON
     // TODO: Handle inverse culling (for mirror)!
     if (_TessellationBackFaceCullEpsilon > -0.99) // Is backface culling enabled ?
     {
-        faceCull = BackFaceCullTriangle(p0, p1, p2, _TessellationBackFaceCullEpsilon, _WorldSpaceCameraPos);
+        faceCull = BackFaceCullTriangle(p0, p1, p2, _TessellationBackFaceCullEpsilon, camPosWS);
     }
 #endif
 
@@ -31,7 +37,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // Distance based tessellation
     if (_TessellationFactorMaxDistance > 0.0)
     {
-        float3 distFactor = GetDistanceBasedTessFactor(p0, p1, p2, _WorldSpaceCameraPos, _TessellationFactorMinDistance, _TessellationFactorMaxDistance);
+        float3 distFactor = GetDistanceBasedTessFactor(p0, p1, p2, camPosWS, _TessellationFactorMinDistance, _TessellationFactorMaxDistance);
         // We square the disance factor as it allow a better percptual descrease of vertex density.
         tessFactor *= distFactor * distFactor;
     }
@@ -75,7 +81,7 @@ float3 GetTessellationDisplacement(VaryingsMeshToDS input)
 #else
         float2(0.0, 0.0),
 #endif
-        input.positionWS, 
+        input.positionWS,
         input.normalWS,
         layerTexCoord);
 
