@@ -8,8 +8,7 @@
 // ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
 float2 ParallaxOcclusionMapping(float lod, float lodThreshold, int numSteps, float3 viewDirTS, float maxHeight, PerPixelHeightDisplacementParam ppdParam, out float outHeight)
 {
-    // TEMP: 0.1 to achieve parity between tessellation and POM w.r.t. height for a single tile.
-    // TODO: for tiling, the max. height of the tessellated height map should be reduced by NumTiles.
+    // TODO: explain this factor! Necessary to achieve parity between tessellation and POM w.r.t. height.
     maxHeight *= 0.1;
 
     // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion

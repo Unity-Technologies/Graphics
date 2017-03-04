@@ -245,6 +245,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         PerPixelHeightDisplacementParam ppdParam;
 
         float height; // final height processed
+        float NdotV;
 
         // planar/triplanar
         float2 uvXZ;
@@ -289,21 +290,24 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             layerTexCoord.base.uvXY += offsetXY;
             layerTexCoord.details.uvXY += offsetXY;
             height += layerTexCoord.triplanarWeights.z * planeHeight;
+
+            NdotV = 1; // TODO.
         }
         else
         {
             ppdParam.uv = layerTexCoord.base.uv; // For planar it is uv too, not uvXZ
 
-            #ifdef SURFACE_GRADIENT
-            // The TBN is not normalize, normalize it to do per pixel displacement
             float3x3 worldToTangent = input.worldToTangent;
+
+        #ifdef SURFACE_GRADIENT
+            // The TBN is not normalize, normalize it to do per pixel displacement
             worldToTangent[1] = normalize(worldToTangent[1]);
             worldToTangent[2] = normalize(worldToTangent[2]);
-            #else
-            float3x3 worldToTangent = input.worldToTangent;
-            #endif
+        #endif
 
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
+            NdotV = viewDirTS.z;
+
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
 
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
@@ -315,7 +319,10 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
         // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
-        return maxHeight - height * maxHeight;
+        float verticalDisplacement = maxHeight - height * maxHeight;
+        // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
+        float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
+        return tilingScale * verticalDisplacement / NdotV;
     }
 
     return 0.0;
@@ -327,7 +334,9 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
     #ifdef _TESSELLATION_TILING_SCALE
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
-    height /= max(_BaseColorMap_ST.x, _BaseColorMap_ST.y);
+    // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
+    float tilingScale = rcp(max(_BaseColorMap_ST.x, _BaseColorMap_ST.y));
+    height *= tilingScale;
     #endif
     return height;
 }
@@ -344,7 +353,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, depthOffset, _ViewProjMatrix, posInput);
+    ApplyDepthOffsetPositionInput(GetCameraForwardDir(), depthOffset, GetWorldToHClipMatrix(), posInput);
 #endif
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
@@ -972,6 +981,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 #endif
 
         float height; // final height processed
+        float NdotV;
 
         // We need to calculate the texture space direction. It depends on the mapping.
         if (isTriplanar)
@@ -997,6 +1007,8 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
             // Apply to all layer that used triplanar
             */
+            height = 1;
+            NdotV  = 1;
         }
         else
         {
@@ -1005,18 +1017,19 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             ppdParam.uv[2] = layerTexCoord.base2.uv;
             ppdParam.uv[3] = layerTexCoord.base3.uv;
 
-            #ifdef SURFACE_GRADIENT
-            // The TBN is not normalize, normalize it to do per pixel displacement
             float3x3 worldToTangent = input.worldToTangent;
+
+        #ifdef SURFACE_GRADIENT
+            // The TBN is not normalize, normalize it to do per pixel displacement
             worldToTangent[1] = normalize(worldToTangent[1]);
             worldToTangent[2] = normalize(worldToTangent[2]);
-            #else
-            float3x3 worldToTangent = input.worldToTangent;
-            #endif
+        #endif
 
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
             float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
+            NdotV = viewDirTS.z;
+
             int numSteps = (int)lerp(_PPDMaxSamples, _PPDMinSamples, viewDirTS.z);
 
             float2 offset = ParallaxOcclusionMapping(lod, _PPDLodThreshold, numSteps, viewDirTS, maxHeight, ppdParam, height);
@@ -1045,7 +1058,10 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
         // Since POM "pushes" geometry inwards (rather than extrude it), { height = height - 1 }.
         // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign.
-        return maxHeight - height * maxHeight;
+        float verticalDisplacement = maxHeight - height * maxHeight;
+        // IDEA: precompute the tiling scale? MOV-MUL vs MOV-MOV-MAX-RCP-MUL.
+        float tilingScale = rcp(max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y));
+        return tilingScale * verticalDisplacement / NdotV;
     }
 
     return 0.0;
@@ -1183,7 +1199,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, depthOffset, _ViewProjMatrix, posInput);
+    ApplyDepthOffsetPositionInput(GetCameraForwardDir(), depthOffset, GetWorldToHClipMatrix(), posInput);
 #endif
 
     SurfaceData surfaceData0, surfaceData1, surfaceData2, surfaceData3;

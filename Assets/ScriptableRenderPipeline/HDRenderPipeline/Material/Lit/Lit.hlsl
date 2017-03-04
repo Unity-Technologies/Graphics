@@ -114,6 +114,17 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
+void ConfigureTexturingForSSS(inout BSDFData bsdfData)
+{
+#ifdef SSS_PRE_SCATTER_TEXTURING
+    bsdfData.diffuseColor = bsdfData.diffuseColor;
+#elif SSS_POST_SCATTER_TEXTURING
+    bsdfData.diffuseColor = float3(1, 1, 1);
+#else // combine pre-scatter and post-scatter texturing
+    bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
+#endif
+}
+
 // Evaluates transmittance for a linear combination of two normalized 2D Gaussians.
 // Computes results for each color channel separately.
 // Ref: Real-Time Realistic Skin Translucency (2010), equation 9 (modified).
@@ -192,8 +203,11 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.fresnel0 = surfaceData.specularColor;
     }
 
+#ifdef OUTPUT_SPLIT_LIGHTING
+    ConfigureTexturingForSSS(bsdfData);
+#endif
     ApplyDebugToBSDFData(bsdfData);
-    
+
     return bsdfData;
 }
 
@@ -281,7 +295,23 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     #endif
 }
 
-void DecodeFromGBuffer( 
+float4 DecodeGBuffer0(GBufferType0 encodedGBuffer0)
+{
+    float4 decodedGBuffer0;
+#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+    decodedGBuffer0.x = UnpackUIntToFloat(encodedGBuffer0.x, 8, 0);
+    decodedGBuffer0.y = UnpackUIntToFloat(encodedGBuffer0.x, 8, 8);
+    decodedGBuffer0.z = UnpackUIntToFloat(encodedGBuffer0.y, 8, 0);
+    decodedGBuffer0.w = UnpackUIntToFloat(encodedGBuffer0.y, 8, 8);
+
+    decodedGBuffer0.xyz = Gamma20ToLinear(encodedGBuffer0.xyz);
+#else
+    decodedGBuffer0 = encodedGBuffer0;
+#endif
+    return decodedGBuffer0;
+}
+
+void DecodeFromGBuffer(
                         #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
                         GBufferType0 inGBufferU0,
                         GBufferType1 inGBufferU1,
@@ -298,17 +328,12 @@ void DecodeFromGBuffer(
 
     #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
     float4 inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3;
-    
-    inGBuffer0.x = UnpackUIntToFloat(inGBufferU0.x, 8, 0);
-    inGBuffer0.y = UnpackUIntToFloat(inGBufferU0.x, 8, 8);
-    inGBuffer0.z = UnpackUIntToFloat(inGBufferU0.y, 8, 0);
-    inGBuffer0.w = UnpackUIntToFloat(inGBufferU0.y, 8, 8);
 
-    inGBuffer0.xyz = Gamma20ToLinear(inGBuffer0.xyz);
+    inGBuffer0 = DecodeGBuffer0(inGBufferU0);
 
     uint packedGBuffer1 = inGBufferU0.z | inGBufferU0.w << 16;
     inGBuffer1 = UnpackR10G10B10A2(packedGBuffer1);
-    
+
     inGBuffer2.x = UnpackUIntToFloat(inGBufferU1.x, 8, 0);
     inGBuffer2.y = UnpackUIntToFloat(inGBufferU1.x, 8, 8);
     inGBuffer2.z = UnpackUIntToFloat(inGBufferU1.y, 8, 0);
@@ -381,6 +406,9 @@ void DecodeFromGBuffer(
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 
+#ifdef OUTPUT_SPLIT_LIGHTING
+    ConfigureTexturingForSSS(bsdfData);
+#endif
     ApplyDebugToBSDFData(bsdfData);
 }
 
