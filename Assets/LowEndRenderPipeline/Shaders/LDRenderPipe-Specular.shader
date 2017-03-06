@@ -9,12 +9,15 @@ Shader "LDRenderPipeline/Specular"
 
 		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-		_Glossiness("Shininess", Range(0.01, 1.0)) = 0.5
+		_Glossiness("Shininess", Range(0.0, 1.0)) = 0.5
+		_SpecularStrength("Specular Strength", Range(0.0, 255.0)) = 200
 		_GlossMapScale("Smoothness Factor", Range(0.0, 1.0)) = 1.0
 		[Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
+		[HideInInspector] _SpecSource("Specular Color Source", Float) = 0.0
 		_SpecColor("Specular", Color) = (1.0, 1.0, 1.0)
 		_SpecGlossMap("Specular", 2D) = "white" {}
+		[HideInInspector] _GlossinessSource("Glossiness Source", Float) = 0.0
 		[ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
 		[ToggleOff] _GlossyReflections("Glossy Reflections", Float) = 1.0
 
@@ -52,7 +55,7 @@ Shader "LDRenderPipeline/Specular"
 
 		Pass
 		{
-			Name "SINGLE_PASS_FORWARD"
+			Name "LD_SINGLE_PASS_FORWARD"
 			Tags { "LightMode" = "LDForwardLight" }
 
 			// Use same blending / depth states as Standard shader
@@ -64,8 +67,8 @@ Shader "LDRenderPipeline/Specular"
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
-			#pragma shader_feature _SPECGLOSSMAP
-			#pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+			#pragma shader_feature _ _SHARED_SPECULAR_DIFFUSE _SPECGLOSSMAP _SPECULAR_COLOR
+			#pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
 			#pragma shader_feature _NORMALMAP
 			
 			#pragma multi_compile _ LIGHTMAP_ON
@@ -74,8 +77,6 @@ Shader "LDRenderPipeline/Specular"
 			#pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3 metal
 			#pragma enable_d3d11_debug_symbols
 			
-			#define DIFFUSE_AND_SPECULAR_INPUT SpecularInput
-
 			#include "UnityCG.cginc"
 			#include "UnityStandardBRDF.cginc"
 			#include "UnityStandardInput.cginc"
@@ -91,8 +92,6 @@ Shader "LDRenderPipeline/Specular"
 							light.atten = globalLightAtten[lightIndex]; \
 							light.spotDir = globalLightSpotDir[lightIndex]
 
-			#define FRESNEL_TERM(normal, viewDir) Pow4(1.0 - saturate(dot(normal, viewDir)))
-			
 			// The variables are very similar to built-in unity_LightColor, unity_LightPosition,
 			// unity_LightAtten, unity_SpotDirection as used by the VertexLit shaders, except here
 			// we use world space positions instead of view space.
@@ -107,6 +106,7 @@ Shader "LDRenderPipeline/Specular"
 
 			half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 			half4 _PSSMDistancesAndShadowResolution; // xyz: PSSM Distance for 4 cascades, w: 1 / shadowmap resolution. Used for filtering
+			half _SpecularStrength;
 
 			struct LowendVertexInput
 			{
@@ -152,7 +152,7 @@ Shader "LDRenderPipeline/Specular"
 	#if defined(UNITY_REVERSED_Z)
 				return step(depth, shadowCoordDepth);
 	#else
-				return step(shadowCoordDepth, depth);
+				return step(shadowCoordDepth, depth); 
 	#endif
 			}
 
@@ -189,29 +189,35 @@ Shader "LDRenderPipeline/Specular"
 
 				half3 lightColor = lightInput.color.rgb * lightAtten;
 				half3 diffuse = diffuseColor * lightColor * NdotL;
-				half3 specular = specularGloss.rgb * lightColor * pow(NdotH, _Glossiness * 128.0) * specularGloss.a;
+
+#if defined(_SHARED_SPECULAR_DIFFUSE) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
+				half3 specular = specularGloss.rgb * lightColor * pow(NdotH, 256.0 - _SpecularStrength) * specularGloss.a;
 				return diffuse + specular;
+#else
+				return diffuse;
+#endif
 			}
 
 			inline half3 EvaluateMainLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float4 posWorld, half3 viewDir)
 			{
 				half3 color = EvaluateOneLight(lightInput, diffuseColor, specularGloss, normal, posWorld, viewDir);
 
-#if DEBUG_CASCADES
-				half3 cascadeColors[MAX_SHADOW_CASCADES] = { half3(1.0, 0.0, 0.0), half3(0.0, 1.0, 0.0),  half3(0.0, 0.0, 1.0),  half3(1.0, 0.0, 1.0) };
-				return cascadeColors[cascadeIndex] * diffuseColor * max(shadowAttenuation, 0.5);
-#endif
-
 #if defined(HARD_SHADOWS) || defined(SOFT_SHADOWS)
 				int cascadeIndex = ComputeCascadeIndex(posWorld.w);
 				float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
 				shadowCoord.z = saturate(shadowCoord.z);
 
-	#ifdef SOFT_SHADOWS
+#ifdef SOFT_SHADOWS
 				half shadowAttenuation = ShadowPCF(shadowCoord);
-	#else
+#else
 				half shadowAttenuation = ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
-	#endif
+#endif
+
+#if DEBUG_CASCADES
+				half3 cascadeColors[MAX_SHADOW_CASCADES] = { half3(1.0, 0.0, 0.0), half3(0.0, 1.0, 0.0),  half3(0.0, 0.0, 1.0),  half3(1.0, 0.0, 1.0) };
+				return cascadeColors[cascadeIndex] * diffuseColor * max(shadowAttenuation, 0.5);
+#endif
+
 				return color * shadowAttenuation;
 #else
 				return color;
@@ -232,7 +238,6 @@ Shader "LDRenderPipeline/Specular"
 
 				o.viewDir.xyz = normalize(_WorldSpaceCameraPos - o.posWS.xyz);
 				half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
-				half fresnelTerm = FRESNEL_TERM(normal, o.viewDir.xyz);
 
 #if _NORMALMAP
 				half sign = v.tangent.w * unity_WorldTransformParams.w;
@@ -284,10 +289,24 @@ Shader "LDRenderPipeline/Specular"
 				half3 normal = normalize(i.normal);
 #endif
 
-#ifdef _SPECGLOSSMAP
-				half4 specularGloss = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
+				half4 specularGloss; 
+#ifdef _SHARED_SPECULAR_DIFFUSE
+				specularGloss.rgb = diffuse;
+				specularGloss.a = alpha;
+#elif defined(_SHARED_SPECULAR_DIFFUSE)
+#if _GLOSSINESS_FROM_BASE_ALPHA
+				specularGloss.rgb = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
+				specularGloss.a = alpha;
 #else
-				half4 specularGloss = _SpecColor;
+				specularGloss = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
+#endif
+#else
+#if _GLOSSINESS_FROM_BASE_ALPHA
+				specularGloss.rgb = _SpecColor;
+				specularGloss.a = alpha;
+#else
+				specularGloss = _SpecColor;
+#endif
 #endif
 				
 				float3 posWorld = i.posWS.xyz;
@@ -332,7 +351,7 @@ Shader "LDRenderPipeline/Specular"
 
 		Pass
 		{
-			Name "SHADOW_CASTER"
+			Name "LD_SHADOW_CASTER"
 			Tags { "Lightmode" = "ShadowCaster" }
 
 			ZWrite On ZTest LEqual 
@@ -398,7 +417,7 @@ Shader "LDRenderPipeline/Specular"
 		// This pass it not used during regular rendering, only for lightmap baking.
 		Pass
 		{
-			Name "META"
+			Name "LD_META"
 			Tags{ "LightMode" = "Meta" }
 
 			Cull Off
