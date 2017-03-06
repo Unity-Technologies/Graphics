@@ -20,8 +20,5 @@ public class StandardSpecularToLDMaterialUpgrader : MaterialUpgrader
     StandardSpecularToLDMaterialUpgrader(string oldShaderName)
     {
         RenameShader(oldShaderName, "LDRenderPipeline/Specular");
-        //RemoveTexture("_OcclusionMap");
-        //RemoveTexture("_DetailAlbedoMap");
-        //RemoveTexture("_DetailNormalMap");
     }
 }

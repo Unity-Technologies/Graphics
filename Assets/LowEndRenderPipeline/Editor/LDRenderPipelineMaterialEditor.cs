@@ -9,9 +9,11 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
     private MaterialProperty albedoMap = null;
     private MaterialProperty albedoColor = null;
     private MaterialProperty alphaCutoff = null;
+    private MaterialProperty specularSource = null;
+    private MaterialProperty glossinessSourceProp = null;
     private MaterialProperty specularGlossMap = null;
     private MaterialProperty specularColor = null;
-    private MaterialProperty shininess = null;
+    private MaterialProperty specularStrength = null;
     private MaterialProperty bumpMap = null;
     private MaterialProperty emissionColor = null;
 
@@ -22,30 +24,60 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
         Alpha
     }
 
+    public enum SpecularSource
+    {
+        SpecularTextureAndColor,
+        BaseTexture,
+        NoSpecular
+    }
+
+    public enum GlossinessSource
+    {
+        AlphaFromBaseTextureAndColor,
+        AlphaFromSpecularTextureAndColor
+    }
+
     private void Awake()
     {
         Material material = target as Material;
         FindMaterialProperties(material);
         UpdateMaterialKeywords(material);
+
+        Styles.warningStyle.normal.textColor = Color.yellow;
     }
 
     private static class Styles
     {
-        public static GUIContent albedoGlosinessLabel = new GUIContent("Base (RGB)", "Base Color");
-        public static GUIContent albedoAlphaLabel = new GUIContent("Base (RGB) Alpha (A)", "Base Color (RGB) and Transparency (A)");
-        public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
-        public static GUIContent specularGlossMapLabel = new GUIContent("Specular Color (RGB) Glossiness (A)", "Specular Color (RGB) Glossiness (a)");
-        public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map");
-        public static GUIContent emissionText = new GUIContent("Color", "Emission (RGB)");
-        public static readonly string[] blendNames = Enum.GetNames(typeof(BlendMode));
+        public static GUIContent[] albedoGlosinessLabels =
+        {
+            new GUIContent("Base (RGB) Glossiness (A)", "Base Color (RGB) and Glossiness (A)"),
+            new GUIContent("Base (RGB)", "Base Color (RGB)")
+        };
 
-        public static string renderingModeLabel = "RenderingMode";
+        public static GUIContent albedoAlphaLabel = new GUIContent("Base (RGB) Alpha (A)", "Base Color (RGB) and Transparency (A)");
+
+        public static GUIContent[] specularGlossMapLabels =
+        {
+            new GUIContent("Specular Color (RGB)", "Specular Color (RGB)"),
+            new GUIContent("Specular Color (RGB) Glossiness (A)", "Specular Color (RGB) Glossiness (A)")
+        };
+
+        public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map");
+        public static GUIContent alphaCutoutWarning = new GUIContent("This material has alpha cutout enabled. Alpha cutout has severe performance impact on mobile!");
+        public static GUIStyle warningStyle = new GUIStyle();
+        public static readonly string[] blendNames = Enum.GetNames(typeof(BlendMode));
+        public static readonly string[] specSourceNames = Enum.GetNames(typeof(SpecularSource));
+        public static readonly string[] glossinessSourceNames = Enum.GetNames(typeof(GlossinessSource));
+
+        public static string renderingModeLabel = "Rendering Mode";
+        public static string specularSourceLabel = "Specular Color Source";
+        public static string glossinessSourceLable = "Glossiness Source";
+        public static string glossinessSource = "Glossiness Source";
         public static string albedoColorLabel = "Base Color";
         public static string albedoMapAlphaLabel = "Base(RGB) Alpha(A)";
         public static string albedoMapGlossinessLabel = "Base(RGB) Glossiness (A)";
-        public static string alphaCutoffLabel = "Cutoff";
-        public static string specularColorLabel = "Specular Color (RGB) Glossiness (A)";
-        public static string shininessLabel = "Shininess";
+        public static string alphaCutoffLabel = "Alpha Cutoff";
+        public static string specularStrength = "Specular Strength";
         public static string normalMapLabel = "Normal map";
         public static string emissionColorLabel = "Emission Color";
     }
@@ -58,9 +90,11 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
         albedoColor = GetMaterialProperty(mats, "_Color");
         
         alphaCutoff = GetMaterialProperty(mats, "_Cutoff");
+        specularSource = GetMaterialProperty(mats, "_SpecSource");
+        glossinessSourceProp = GetMaterialProperty(mats, "_GlossinessSource");
         specularGlossMap = GetMaterialProperty(mats, "_SpecGlossMap");
         specularColor = GetMaterialProperty(mats, "_SpecColor");
-        shininess = GetMaterialProperty(mats, "_Glossiness");
+        specularStrength = GetMaterialProperty(mats, "_SpecularStrength");
         bumpMap = GetMaterialProperty(mats, "_BumpMap");
         emissionColor = GetMaterialProperty(mats, "_EmissionColor");
     }
@@ -76,33 +110,9 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
 
             EditorGUI.BeginChangeCheck();
             DoBlendMode();
-            
-            BlendMode mode = (BlendMode)blendMode.floatValue;
 
             EditorGUILayout.Space();
-            EditorGUILayout.Space();
-            switch (mode)
-            {
-                case BlendMode.Opaque:
-                    TexturePropertySingleLine(Styles.albedoGlosinessLabel, albedoMap, albedoColor);
-                    TextureScaleOffsetProperty(albedoMap);
-                    break;
-
-                case BlendMode.Cutout:
-                    TexturePropertySingleLine(Styles.albedoGlosinessLabel, albedoMap, albedoColor);
-                    TextureScaleOffsetProperty(albedoMap);
-                    RangeProperty(alphaCutoff, "Cutoff");
-                    break;
-
-                case BlendMode.Alpha:
-                    TexturePropertySingleLine(Styles.albedoAlphaLabel, albedoMap, albedoColor);
-                    TextureScaleOffsetProperty(albedoMap);
-                    break;
-            }
-
-            EditorGUILayout.Space();
-            TexturePropertySingleLine(Styles.specularGlossMapLabel, specularGlossMap, specularColor);
-            RangeProperty(shininess, Styles.shininessLabel);
+            DoSpecular();
 
             EditorGUILayout.Space();
             TexturePropertySingleLine(Styles.normalMapText, bumpMap);
@@ -112,21 +122,85 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
 
             if (EditorGUI.EndChangeCheck())
                 UpdateMaterialKeywords(material);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+
+            if ((BlendMode) blendMode.floatValue == BlendMode.Cutout)
+            {
+                Styles.warningStyle.normal.textColor = Color.yellow;
+                EditorGUILayout.LabelField(Styles.alphaCutoutWarning, Styles.warningStyle);
+            }
         }
     }
 
     private void DoBlendMode()
     {
-        int mode = (int)blendMode.floatValue;
+        int modeValue = (int)blendMode.floatValue;
         EditorGUI.BeginChangeCheck();
-        mode = EditorGUILayout.Popup(Styles.renderingModeLabel, mode, Styles.blendNames);
+        modeValue = EditorGUILayout.Popup(Styles.renderingModeLabel, modeValue, Styles.blendNames);
         if (EditorGUI.EndChangeCheck())
-            blendMode.floatValue = mode;
+            blendMode.floatValue = modeValue;
+
+        BlendMode mode = (BlendMode)blendMode.floatValue;
+
+        EditorGUILayout.Space();
+
+        if (mode == BlendMode.Opaque)
+        {
+            int glossSource = (int) glossinessSourceProp.floatValue;
+            TexturePropertySingleLine(Styles.albedoGlosinessLabels[glossSource], albedoMap, albedoColor);
+            TextureScaleOffsetProperty(albedoMap);
+        }
+        else
+        {
+            TexturePropertySingleLine(Styles.albedoAlphaLabel, albedoMap, albedoColor);
+            TextureScaleOffsetProperty(albedoMap);
+            if (mode == BlendMode.Cutout)
+                RangeProperty(alphaCutoff, "Cutoff");
+        }
+    }
+
+    private void DoSpecular()
+    {
+        EditorGUILayout.Space();
+
+        int source = (int)specularSource.floatValue;
+        EditorGUI.BeginChangeCheck();
+        source = EditorGUILayout.Popup(Styles.specularSourceLabel, source, Styles.specSourceNames);
+        if (EditorGUI.EndChangeCheck())
+        {
+            specularSource.floatValue = source;
+            if (source == (int)SpecularSource.BaseTexture)
+                glossinessSourceProp.floatValue = (float)GlossinessSource.AlphaFromBaseTextureAndColor;
+        }
+
+        SpecularSource specSource = (SpecularSource)specularSource.floatValue;
+        if (specSource != SpecularSource.NoSpecular)
+        {
+            int glossinessSource = (int) glossinessSourceProp.floatValue;
+            EditorGUI.BeginChangeCheck();
+            glossinessSource = EditorGUILayout.Popup(Styles.glossinessSourceLable, glossinessSource, Styles.glossinessSourceNames);
+            if (EditorGUI.EndChangeCheck())
+                glossinessSourceProp.floatValue = (float)glossinessSource;
+        }
+
+        int glossSource = (int)glossinessSourceProp.floatValue;
+        if (specSource == SpecularSource.SpecularTextureAndColor)
+        {
+            TexturePropertySingleLine(Styles.specularGlossMapLabels[glossSource], specularGlossMap, specularColor);
+        }
+
+        if (specSource != SpecularSource.NoSpecular)
+        {
+            RangeProperty(specularStrength, Styles.specularStrength);
+        }
     }
 
     private void UpdateMaterialKeywords(Material material)
     {
         UpdateMaterialBlendMode(material);
+        UpdateMaterialSpecularSource(material);
         SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
         SetKeyword(material, "_SPECGLOSSMAP", material.GetTexture("_SpecGlossMap"));
     }
@@ -163,6 +237,41 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
                 SetKeyword(material, "_ALPHABLEND_ON", true);
                 break;
         }
+    }
+
+    private void UpdateMaterialSpecularSource(Material material)
+    {
+        SpecularSource specSource = (SpecularSource) specularSource.floatValue;
+        if (specSource == SpecularSource.NoSpecular)
+        {
+            SetKeyword(material, "_SHARED_SPECULAR_DIFFUSE", false);
+            SetKeyword(material, "_SPECULAR_MAP", false);
+            SetKeyword(material, "_SPECULAR_COLOR", false);
+        }
+        else if (specSource == SpecularSource.BaseTexture)
+        {
+            SetKeyword(material, "_SHARED_SPECULAR_DIFFUSE", true);
+            SetKeyword(material, "_SPECULAR_MAP", false);
+            SetKeyword(material, "_SPECULAR_COLOR", false);
+        }
+        else if (specSource == SpecularSource.SpecularTextureAndColor && material.GetTexture("_SpecGlossMap"))
+        {
+            SetKeyword(material, "_SHARED_SPECULAR_DIFFUSE", false);
+            SetKeyword(material, "_SPECULAR_MAP", true);
+            SetKeyword(material, "_SPECULAR_COLOR", false);
+        }
+        else
+        {
+            SetKeyword(material, "_SHARED_SPECULAR_DIFFUSE", false);
+            SetKeyword(material, "_SPECULAR_MAP", false);
+            SetKeyword(material, "_SPECULAR_COLOR", true);
+        }
+
+        GlossinessSource glossSource = (GlossinessSource) glossinessSourceProp.floatValue;
+        if (glossSource == GlossinessSource.AlphaFromBaseTextureAndColor)
+            SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", true);
+        else
+            SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", false);
     }
 
     private void SetKeyword(Material material, string keyword, bool enable)
