@@ -143,7 +143,7 @@ namespace UnityEditor.VFX
             {
                 //Remove useless unplugged slot (ensuring there is at least 2 slots)
                 var currentSlots = inputSlots.ToList();
-                var uselessSlots = new Stack<VFXSlot>(currentSlots.Where((s, i) => i > 2 && !s.HasLink()));
+                var uselessSlots = new Stack<VFXSlot>(currentSlots.Where((s, i) => i >= 2 && !s.HasLink()));
                 foreach (var slot in uselessSlots)
                 {
                     currentSlots.Remove(slot);
