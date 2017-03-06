@@ -1,5 +1,5 @@
 // Shader targeted for LowEnd mobile devices. Single Pass Forward Rendering. Shader Model 2
-Shader "LDRenderPipeline/Specular"
+Shader "LowEndMobilePipeline/Specular"
 {
 	// Keep properties of StandardSpecular shader for upgrade reasons.
 	Properties
@@ -50,13 +50,13 @@ Shader "LDRenderPipeline/Specular"
 
 	SubShader
 	{
-		Tags { "RenderType" = "Opaque" "PerformanceChecks" = "False" "RenderPipeline" = "LDRenderPipeline" }
+		Tags { "RenderType" = "Opaque" "RenderPipeline" = "LowEndMobilePipeline" }
 		LOD 300
 
 		Pass
 		{
 			Name "LD_SINGLE_PASS_FORWARD"
-			Tags { "LightMode" = "LDForwardLight" }
+			Tags { "LightMode" = "LowEndMobileForward" }
 
 			// Use same blending / depth states as Standard shader
 			Blend[_SrcBlend][_DstBlend]
@@ -437,5 +437,5 @@ Shader "LDRenderPipeline/Specular"
 		}
 	}
 	Fallback "Standard (Specular setup)"
-	CustomEditor "LDRenderPipelineMaterialEditor"
+	CustomEditor "LowendMobilePipelineMaterialEditor"
 }
