@@ -2,8 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-// TODO: Implement AssignNewShaderToMaterial to handle cases from update to different mobile shaders having different props
-public class LDRenderPipelineMaterialEditor : MaterialEditor
+public class LowendMobilePipelineMaterialEditor : MaterialEditor
 {
     private MaterialProperty blendMode = null;
     private MaterialProperty albedoMap = null;
@@ -54,7 +53,8 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
             new GUIContent("Base (RGB)", "Base Color (RGB)")
         };
 
-        public static GUIContent albedoAlphaLabel = new GUIContent("Base (RGB) Alpha (A)", "Base Color (RGB) and Transparency (A)");
+        public static GUIContent albedoAlphaLabel = new GUIContent("Base (RGB) Alpha (A)",
+            "Base Color (RGB) and Transparency (A)");
 
         public static GUIContent[] specularGlossMapLabels =
         {
@@ -63,7 +63,11 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
         };
 
         public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map");
-        public static GUIContent alphaCutoutWarning = new GUIContent("This material has alpha cutout enabled. Alpha cutout has severe performance impact on mobile!");
+
+        public static GUIContent alphaCutoutWarning =
+            new GUIContent(
+                "This material has alpha cutout enabled. Alpha cutout has severe performance impact on mobile!");
+
         public static GUIStyle warningStyle = new GUIStyle();
         public static readonly string[] blendNames = Enum.GetNames(typeof(BlendMode));
         public static readonly string[] specSourceNames = Enum.GetNames(typeof(SpecularSource));
@@ -88,7 +92,7 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
         blendMode = GetMaterialProperty(mats, "_Mode");
         albedoMap = GetMaterialProperty(mats, "_MainTex");
         albedoColor = GetMaterialProperty(mats, "_Color");
-        
+
         alphaCutoff = GetMaterialProperty(mats, "_Cutoff");
         specularSource = GetMaterialProperty(mats, "_SpecSource");
         glossinessSourceProp = GetMaterialProperty(mats, "_GlossinessSource");
@@ -126,7 +130,7 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
             EditorGUILayout.Space();
             EditorGUILayout.Space();
 
-            if ((BlendMode) blendMode.floatValue == BlendMode.Cutout)
+            if ((BlendMode)blendMode.floatValue == BlendMode.Cutout)
             {
                 Styles.warningStyle.normal.textColor = Color.yellow;
                 EditorGUILayout.LabelField(Styles.alphaCutoutWarning, Styles.warningStyle);
@@ -148,7 +152,7 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
 
         if (mode == BlendMode.Opaque)
         {
-            int glossSource = (int) glossinessSourceProp.floatValue;
+            int glossSource = (int)glossinessSourceProp.floatValue;
             TexturePropertySingleLine(Styles.albedoGlosinessLabels[glossSource], albedoMap, albedoColor);
             TextureScaleOffsetProperty(albedoMap);
         }
@@ -178,9 +182,10 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
         SpecularSource specSource = (SpecularSource)specularSource.floatValue;
         if (specSource != SpecularSource.NoSpecular)
         {
-            int glossinessSource = (int) glossinessSourceProp.floatValue;
+            int glossinessSource = (int)glossinessSourceProp.floatValue;
             EditorGUI.BeginChangeCheck();
-            glossinessSource = EditorGUILayout.Popup(Styles.glossinessSourceLable, glossinessSource, Styles.glossinessSourceNames);
+            glossinessSource = EditorGUILayout.Popup(Styles.glossinessSourceLable, glossinessSource,
+                Styles.glossinessSourceNames);
             if (EditorGUI.EndChangeCheck())
                 glossinessSourceProp.floatValue = (float)glossinessSource;
         }
@@ -241,7 +246,7 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
 
     private void UpdateMaterialSpecularSource(Material material)
     {
-        SpecularSource specSource = (SpecularSource) specularSource.floatValue;
+        SpecularSource specSource = (SpecularSource)specularSource.floatValue;
         if (specSource == SpecularSource.NoSpecular)
         {
             SetKeyword(material, "_SHARED_SPECULAR_DIFFUSE", false);
@@ -267,7 +272,7 @@ public class LDRenderPipelineMaterialEditor : MaterialEditor
             SetKeyword(material, "_SPECULAR_COLOR", true);
         }
 
-        GlossinessSource glossSource = (GlossinessSource) glossinessSourceProp.floatValue;
+        GlossinessSource glossSource = (GlossinessSource)glossinessSourceProp.floatValue;
         if (glossSource == GlossinessSource.AlphaFromBaseTextureAndColor)
             SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", true);
         else

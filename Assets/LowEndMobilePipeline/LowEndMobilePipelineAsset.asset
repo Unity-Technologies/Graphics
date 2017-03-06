@@ -8,8 +8,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ae13646e45aa3634da32df7c7da1c380, type: 3}
-  m_Name: LowEndPipeline
+  m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
+  m_Name: LowEndMobilePipelineAsset
   m_EditorClassIdentifier: 
   m_MaxPixelLights: 1
   m_SupportsVertexLight: 1
@@ -19,7 +19,7 @@ MonoBehaviour:
   m_ShadowAtlasResolution: 1024
   m_ShadowNearPlaneOffset: 2
   m_ShadowDistance: 50
-  m_ShadowBias: 0.07
+  m_ShadowBias: 0.05
   m_ShadowCascades: 4
   m_Cascade2Split: 0.25
-  m_Cascade4Split: {x: 0.25, y: 0.5, z: 0.7}
+  m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
