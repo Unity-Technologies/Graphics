@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.RMGUI;
+using UnityEngine.RMGUI.StyleEnums;
 using UnityEditor.RMGUI;
 using UnityEditor.VFX;
 using UnityEditor.VFX.RMGUI;
@@ -72,7 +73,8 @@ namespace UnityEditor.VFX.UI
             {typeof(float),typeof(FloatPropertyRM)},
             {typeof(Vector2),typeof(Vector2PropertyRM)},
             {typeof(Vector3),typeof(Vector3PropertyRM)},
-            {typeof(Vector4),typeof(Vector4PropertyRM)}
+            {typeof(Vector4),typeof(Vector4PropertyRM)},
+            {typeof(Color),typeof(ColorPropertyRM)}
         };
 
         public static PropertyRM Create(VFXDataAnchorPresenter presenter)
@@ -361,6 +363,76 @@ namespace UnityEditor.VFX.UI
             m_YFloatField.SetValue(m_Value.y);
             m_ZFloatField.SetValue(m_Value.z);
             m_WFloatField.SetValue(m_Value.w);
+        }
+    }
+    class ColorPropertyRM : PropertyRM<Color>
+    {
+        public ColorPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        {
+            VisualContainer mainContainer = new VisualContainer();
+
+            m_ColorField = new ColorField(m_Label);
+            m_ColorField.onValueChanged = OnValueChanged;
+
+            mainContainer.AddChild(m_ColorField);
+
+            VisualContainer fieldContainer = new VisualContainer();
+            fieldContainer.AddToClassList("fieldContainer");
+
+            m_XFloatField = new FloatField("R");
+            m_XFloatField.onValueChanged = OnValueChanged;
+
+            m_YFloatField = new FloatField("G");
+            m_YFloatField.onValueChanged = OnValueChanged;
+
+            m_ZFloatField = new FloatField("B");
+            m_ZFloatField.onValueChanged = OnValueChanged;
+
+            m_WFloatField = new FloatField("A");
+            m_WFloatField.onValueChanged = OnValueChanged;
+
+
+            VisualElement spacer = new VisualElement(){flex=1};
+
+            fieldContainer.AddChild(spacer);
+            fieldContainer.AddChild(m_XFloatField);
+            fieldContainer.AddChild(m_YFloatField);
+            fieldContainer.AddChild(m_ZFloatField);
+            fieldContainer.AddChild(m_WFloatField);
+
+            mainContainer.AddChild(fieldContainer);
+
+            mainContainer.flexDirection = FlexDirection.Column;
+            mainContainer.alignItems = Align.Stretch;
+            mainContainer.minWidth= 100;
+            mainContainer.minHeight = 13;
+
+            AddChild(mainContainer);
+        }
+
+        public void OnValueChanged()
+        {
+            /*Color newValue = new Color(m_XFloatField.GetValue(),m_YFloatField.GetValue(),m_ZFloatField.GetValue(),m_WFloatField.GetValue());
+            if( newValue != m_Value )
+            {
+                m_Value = newValue;
+                NotifyValueChanged();
+            }*/
+        }
+
+        FloatField m_XFloatField;
+        FloatField m_YFloatField;
+        FloatField m_ZFloatField;
+        FloatField m_WFloatField;
+
+        ColorField m_ColorField;
+        public override void UpdateGUI()
+        {
+            m_ColorField.SetValue(m_Value);
+            m_XFloatField.SetValue(m_Value.r);
+            m_YFloatField.SetValue(m_Value.g);
+            m_ZFloatField.SetValue(m_Value.b);
+            m_WFloatField.SetValue(m_Value.a);
         }
     }
 }
