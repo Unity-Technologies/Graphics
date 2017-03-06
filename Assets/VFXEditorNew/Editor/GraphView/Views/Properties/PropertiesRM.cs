@@ -71,6 +71,7 @@ namespace UnityEditor.VFX.UI
             {typeof(Spaceable),typeof(SpaceablePropertyRM)},
             {typeof(bool),typeof(BoolPropertyRM)},
             {typeof(float),typeof(FloatPropertyRM)},
+            {typeof(int),typeof(IntPropertyRM)},
             {typeof(Vector2),typeof(Vector2PropertyRM)},
             {typeof(Vector3),typeof(Vector3PropertyRM)},
             {typeof(Vector4),typeof(Vector4PropertyRM)},
@@ -197,18 +198,18 @@ namespace UnityEditor.VFX.UI
 
     class FloatPropertyRM : PropertyRM<float>
     {
-        public FloatPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public FloatPropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
         {
             m_FloatField = new FloatField(m_Label);
             m_FloatField.onValueChanged = OnValueChanged;
-            
+
             AddChild(m_FloatField);
         }
 
         public void OnValueChanged()
         {
             float newValue = m_FloatField.GetValue();
-            if( newValue != m_Value )
+            if (newValue != m_Value)
             {
                 m_Value = newValue;
                 NotifyValueChanged();
@@ -221,6 +222,34 @@ namespace UnityEditor.VFX.UI
         }
 
         FloatField m_FloatField;
+    }
+
+    class IntPropertyRM : PropertyRM<int>
+    {
+        public IntPropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        {
+            m_IntField = new IntField(m_Label);
+            m_IntField.onValueChanged = OnValueChanged;
+
+            AddChild(m_IntField);
+        }
+
+        public void OnValueChanged()
+        {
+            int newValue = m_IntField.GetValue();
+            if (newValue != m_Value)
+            {
+                m_Value = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        public override void UpdateGUI()
+        {
+            m_IntField.SetValue(m_Value);
+        }
+
+        IntField m_IntField;
     }
 
 
