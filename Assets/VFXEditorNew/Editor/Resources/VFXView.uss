@@ -265,6 +265,16 @@ BoolPropertyRM Toggle
 	height:17
 }
 
+ColorField
+{
+	border-width:1;
+	border-top:1;
+	border-bottom:1;
+	border-left:1;
+	border-right:1;
+	border-color:#000;
+}
+
 FloatPropertyRM FloatField
 {
 	align-self:flex-end;
