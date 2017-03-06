@@ -15,6 +15,10 @@ namespace UnityEditor.VFX.UI
             m_SlotID = slotId;
         }
 
+        //Ignore m_Connection, this information is store in model
+        public override void Connect(EdgePresenter edgePresenter) {}
+        public override void Disconnect(EdgePresenter edgePresenter) {}
+
         private VFXOperatorPresenter m_SourceOperator;
         private Direction m_Direction;
         private Guid m_SlotID;
