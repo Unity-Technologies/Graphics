@@ -81,17 +81,19 @@ namespace UnityEditor.VFX.UI
                     {
                         var edgePresenter = CreateInstance<VFXOperatorEdgePresenter>();
 
-                        var operatorPresenterFrom = operatorPresenters.First(e => e.Operator == input.refSlot.owner);
-                        var operatorPresenterTo = operatorPresenters.First(e => e.Operator == modelOperator);
+                        var operatorPresenterFrom = operatorPresenters.FirstOrDefault(e => e.Operator == input.refSlot.owner);
+                        var operatorPresenterTo = operatorPresenters.FirstOrDefault(e => e.Operator == modelOperator);
 
-                        var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXOperatorAnchorPresenter).slotID == input.refSlot.id);
-                        var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXOperatorAnchorPresenter).slotID == input.id);
-
-                        if (anchorFrom != null && anchorTo != null)
+                        if (operatorPresenterFrom != null && operatorPresenterTo != null)
                         {
-                            edgePresenter.output = anchorFrom;
-                            edgePresenter.input = anchorTo;
-                            base.AddElement(edgePresenter);
+                            var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXOperatorAnchorPresenter).slotID == input.refSlot.id);
+                            var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXOperatorAnchorPresenter).slotID == input.id);
+                            if (anchorFrom != null && anchorTo != null)
+                            {
+                                edgePresenter.output = anchorFrom;
+                                edgePresenter.input = anchorTo;
+                                base.AddElement(edgePresenter);
+                            }
                         }
                     }
                 }
@@ -171,9 +173,12 @@ namespace UnityEditor.VFX.UI
 
                 //Update connection (*wip* : will be a function of VFXOperator)
                 var toOperator = to.sourceOperator.Operator;
-                var slot = toOperator.inputSlots.First(s => s.id == to.slotID);
-                slot.UnlinkAll();
-                RecreateOperatorEdges();
+                var slot = toOperator.inputSlots.FirstOrDefault(s => s.id == to.slotID);
+                if (slot != null)
+                {
+                    slot.UnlinkAll();
+                    RecreateOperatorEdges();
+                }
             }
             else
             {
