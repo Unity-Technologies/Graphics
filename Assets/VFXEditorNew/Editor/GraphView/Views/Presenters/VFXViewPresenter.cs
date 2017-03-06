@@ -273,7 +273,8 @@ namespace UnityEditor.VFX.UI
                     var allOutputCandidate = allOperatorPresenter.SelectMany(o => o.outputAnchors).Where(o =>
                     {
                         var candidate = o as VFXOperatorAnchorPresenter;
-                        return toSlot.CanLink(currentOperator.outputSlots.First(s => s.id == startAnchorOperatorPresenter.slotID));
+                        var fromSlot = candidate.sourceOperator.Operator.outputSlots.First(s => s.id == candidate.slotID);
+                        return toSlot.CanLink(fromSlot);
                     }).ToList();
                     return allOutputCandidate;
                 }
