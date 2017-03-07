@@ -29,6 +29,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             HLSLPROGRAM
             #pragma target 4.5
             #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
+            // #pragma enable_d3d11_debug_symbols
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -42,6 +43,10 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
+
+         // #ifdef OUTPUT_SPLIT_LIGHTING
+            #pragma shader_feature _ SSS_PRE_SCATTER_TEXTURING SSS_POST_SCATTER_TEXTURING
+         // #endif
 
             #pragma multi_compile _ LIGHTING_DEBUG
 
@@ -66,9 +71,6 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             //-------------------------------------------------------------------------------------
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
-
-            TEXTURE2D_FLOAT(_CameraDepthTexture);
-            SAMPLER2D(sampler_CameraDepthTexture);
 
             struct Attributes
             {
@@ -101,7 +103,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             {
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 

@@ -86,7 +86,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 #ifdef PERFORM_SKY_OCCLUSION_TEST
                     // Determine whether the sky is occluded by the scene geometry.
                     // Do not perform blending with the environment map if the sky is occluded.
-                    float depthRaw     = max(skyDepth, LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r);
+                    float depthRaw     = max(skyDepth, LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r);
                     float skyTexWeight = (depthRaw > skyDepth) ? 0.0 : 1.0;
                 #else
                     float depthRaw     = skyDepth;

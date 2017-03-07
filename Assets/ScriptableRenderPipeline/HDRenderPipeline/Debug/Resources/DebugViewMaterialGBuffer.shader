@@ -26,8 +26,6 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
-            TEXTURE2D_FLOAT(_CameraDepthTexture);
-            SAMPLER2D(sampler_CameraDepthTexture);
             int         _DebugViewMaterial;
 
             struct Attributes
@@ -54,7 +52,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             {
 				// input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);

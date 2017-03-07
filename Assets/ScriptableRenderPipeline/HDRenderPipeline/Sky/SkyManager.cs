@@ -96,6 +96,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_SkySettings; }
         }
 
+        public Texture skyReflection { get { return m_SkyboxGGXCubemapRT; } }
+
         protected Mesh BuildSkyMesh(Vector3 cameraPosition, Matrix4x4 cameraInvViewProjectionMatrix, bool forceUVBottom)
         {
             Vector4 vertData0 = new Vector4(-1.0f, -1.0f, 1.0f, 1.0f);

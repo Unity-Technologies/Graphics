@@ -163,9 +163,8 @@ CBUFFER_START(UnityLighting)
 	float4 unity_SHC;
 CBUFFER_END
 
-// Use the regular depth camera texture sampler for sampling this: sampler_CameraDepthTexture
-TEXTURE2D_FLOAT(_CameraDepthTextureCopy);
-SAMPLER2D(sampler_CameraDepthTextureCopy);
+TEXTURE2D_FLOAT(_MainDepthTexture);
+SAMPLER2D(sampler_MainDepthTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
@@ -211,9 +210,11 @@ CBUFFER_END
 // ----------------------------------------------------------------------------
 
 // TODO: move this to constant buffer by Pass
-float4x4 _InvViewProjMatrix;
+float4   _ScreenSize;
 float4x4 _ViewProjMatrix; // Looks like using UNITY_MATRIX_VP in pixel shader doesn't work ??? need to setup my own...
-float4		_ScreenSize;
+float4x4 _InvViewProjMatrix;
+float4x4 _InvProjMatrix;
+float4   _InvProjParam;
 
 float4x4 GetWorldToViewMatrix()
 {
@@ -280,19 +281,50 @@ float4 TransformWorldToHClip(float3 positionWS)
     return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
-// Computes world space view direction, from object space position
+float3 GetCurrentCameraPosition()
+{
+#if SHADERPASS != SHADERPASS_DEPTH_ONLY
+    return _WorldSpaceCameraPos;
+#else
+    // TEMP: this is rather expensive. Then again, we need '_WorldSpaceCameraPos'
+    // to represent the position of the primary (scene view) camera in order to
+    // have identical tessellation levels for both the scene view and shadow views.
+    // Otherwise, depth comparisons become meaningless!
+    float4x4 viewMat   = transpose(GetWorldToViewMatrix());
+    float3   rotCamPos = viewMat[3].xyz;
+   return mul((float3x3)viewMat, -rotCamPos);
+#endif
+}
+
+// Returns the forward direction of the current camera in the world space.
+float3 GetCameraForwardDir()
+{
+    float4x4 viewMat = GetWorldToViewMatrix();
+    return -viewMat[2].xyz;
+}
+
+// Computes the world space view direction (pointing towards the camera).
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
-    float3 V = _WorldSpaceCameraPos.xyz - positionWS;
-
-    // Uncomment this once the compiler bug is fixed.
-    // if (unity_OrthoParams.w == 1.0)
-    // {
-    //     float4x4 M = GetWorldToViewMatrix();
-    //     V = M[1].xyz;
-    // }
-
-    return normalize(V);
+#if SHADERPASS != SHADERPASS_DEPTH_ONLY
+    if (unity_OrthoParams.w == 0)
+#else
+    // TODO: set 'unity_OrthoParams' during the shadow pass.
+    if (GetWorldToHClipMatrix()[3].x != 0 &&
+        GetWorldToHClipMatrix()[3].y != 0 &&
+        GetWorldToHClipMatrix()[3].z != 0 &&
+        GetWorldToHClipMatrix()[3].w != 1)
+#endif
+    {
+        // Perspective
+        float3 V = GetCurrentCameraPosition() - positionWS;
+        return normalize(V);
+    }
+    else
+    {
+        // Orthographic
+        return -GetCameraForwardDir();
+    }
 }
 
 float3x3 CreateWorldToTangent(float3 normal, float3 tangent, float flipSign)
