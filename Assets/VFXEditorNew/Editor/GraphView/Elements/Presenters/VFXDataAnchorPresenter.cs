@@ -73,10 +73,15 @@ namespace UnityEditor.VFX.UI
         }
 
 
+        public void Dirty()
+        {
+            m_DirtyHack = !m_DirtyHack;
+        }
+
+
         public void SetPropertyValue(object value)
         {
             m_NodePresenter.PropertyValueChanged(this,value);
-            m_DirtyHack = !m_DirtyHack;
         }
 
 		public override void Connect(EdgePresenter edgePresenter)

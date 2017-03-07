@@ -16,9 +16,6 @@ VFXFlowAnchor.OutputEdgeConnector {
 	background-image:resource("VFX/LayoutFlow_Out");
 }
 
-VFXFlowAnchor #type{
-}
-
 VFXFlowAnchor #connector{
 	width: 32;
 	height: 16;
@@ -31,10 +28,10 @@ VFXFlowAnchor #connector.anchorHighlight{
 
 VFXContextUI {
 	font-size:12;
-	flex: 1;
+	-flex: 1;
 	flex-direction: column;
-	align-items: stretch;
-	min-width: 340;
+	-align-items: stretch;
+	-min-width: 340;
 	margin-top:0;
 }
 VFXContextUI #NodeContents{
@@ -72,12 +69,6 @@ VFXContextUI BlockContainer {
 	margin-bottom: 32;
 	border-radius:4;
 	margin-right: 32;
-	
-
-	/* currently border-XXX is only used for layout
-	   where border-width is used to paint text and border.
-	   They must keep in sync until we support variable border
-	   thickness per edge */
 }
 
 VFXContextUI #NodeContents > Label{
@@ -88,40 +79,45 @@ VFXContextUI #NodeContents > Label{
 	font-size:16;
 	background-color: #383838;
 }
+VFXBlockUI.node.horizontal #title Button
+{
+	min-width:40;
+}
 VFXBlockUI {
 	flex-direction: column;
 	background-color: #383838;
 	align-items: stretch;
+
 }
 
-VFXBlockUI.node
+VFXBlockUI.node.horizontal
 {
 	border-width: 2;
 	border-radius: 0;
+	min-width:150;
+	
+	flex-direction:column;
 }
 
 VFXBlockUI.node.horizontal #pane
 {
-	flex:2;
 	border-left: 2;
 	border-top: 2;
 	border-right: 2;
 	border-bottom: 2;
+	flex-direction:column;
 }
 
-VFXBlockUI.horizontal #pane > #left 
+VFXBlockUI.horizontal.node #pane > #left
 {
-	width: -1;
-	flex:1;
+	width:-1;
 }
-
 VFXBlockUI #left > #title > Label {
 	text-color: #FFFFFF;
 	font-style: bold;
 	text-alignment: middle-left;
-	flex: 2;
+	-flex: 2;
 }
-
 VFXBlockUI #left > #title > Button {
 	text-color: rgb(153, 153, 153);
 	min-width:60;
@@ -139,8 +135,10 @@ VFXBlockUI #title {
 	flex-direction:row;
 }
 
-VFXBlockUI #input
+VFXBlockUI #pane #left VisualContainer#input
 {
+	flex:0;
+	flex-grow:1;
 	align-items: stretch;
 	padding-bottom:3;
 }
@@ -165,6 +163,8 @@ VFXDataAnchor
 	text-color: #BBB;
 	font-size:11;
 	padding-bottom:0;
+	min-height:17;
+	margin-left:-12px;
 }
 
 VFXPropertyUI .slot
@@ -185,17 +185,6 @@ VFXDataAnchor .space
 	border-color: rgb(153,153,153);
 	text-color: rgb(153,153,153);
 	text-alignment: middle-center;
-}
-
-
-/*Data Anchors*/
-
-VFXDataAnchor
-{
-	flex-direction:row;
-	min-height:17;
-	margin-left:-12px;
-	-background-color: #F00;
 }
 
 VFXDataAnchor #connector
@@ -231,9 +220,9 @@ VFXBlockUI.selected VFXDataAnchor #connector
 .propertyrm
 {
 	margin-left:12px;
-	flex:1;
 	flex-direction: row;
 	-align-items: stretch;
+	-background-color: #F00;
 }
 
 .propertyrm #icon
@@ -266,13 +255,50 @@ VFXBlockUI.selected VFXDataAnchor #connector
 .propertyrm #label
 {
 	text-color: rgb(153,153,153);
-	width:70;
+	min-width:70;
 }
 
 BoolPropertyRM Toggle
 {
+	margin-top:-4;
 	width:32,
-	height:32
+	height:17
+}
+
+FloatPropertyRM FloatField
+{
+	align-self:flex-end;
+}
+
+.propertyrm FloatField .textfield
+{
+	text-color:#BBB;
+
+	border-width:1;
+	border-right:1;
+	border-color:rgba(0,0,0,0);
+	text-alignment:middle-right;
+	
+	padding-top:1;
+	padding-bottom:1;
+	padding-left:3;
+	padding-right:3;
+}
+
+.propertyrm FloatField .textfield:focus
+{
+	border-color:#BBB;
+}
+
+.propertyrm FloatField .label
+{
+	text-color:#888;
+}
+.propertyrm .fieldContainer
+{
+	align-items: center;
+	flex-direction:row;
+	-flex:1
 }
 
 /*Default*/
