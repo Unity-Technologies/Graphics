@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.RMGUI;
+using UnityEditor.RMGUI;
 using UnityEditor.VFX;
+using UnityEditor.VFX.RMGUI;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
@@ -14,11 +16,11 @@ namespace UnityEditor.VFX.UI
         public abstract void SetValue(object obj);
         public abstract object GetValue();
 
-        VisualElement m_Icon;
+        public VisualElement m_Icon;
 
         Texture2D[] m_IconStates;
 
-        VisualElement m_Label;
+        public VisualElement m_Label;
 
         public PropertyRM(VFXDataAnchorPresenter presenter)
         {
@@ -66,7 +68,11 @@ namespace UnityEditor.VFX.UI
         static Dictionary<Type,Type> m_TypeDictionary =  new Dictionary<Type,Type>
         {
             {typeof(Spaceable),typeof(SpaceablePropertyRM)},
-            {typeof(bool),typeof(BoolPropertyRM)}
+            {typeof(bool),typeof(BoolPropertyRM)},
+            {typeof(float),typeof(FloatPropertyRM)},
+            {typeof(Vector2),typeof(Vector2PropertyRM)},
+            {typeof(Vector3),typeof(Vector3PropertyRM)},
+            {typeof(Vector4),typeof(Vector4PropertyRM)}
         };
 
         public static PropertyRM Create(VFXDataAnchorPresenter presenter)
@@ -151,13 +157,13 @@ namespace UnityEditor.VFX.UI
 
         void OnButtonClick()
         {
-            ((Spaceable)m_Value).space = (CoordinateSpace)((int)(((Spaceable)m_Value).space + 1) % (int)CoordinateSpace.SpaceCount);
+            m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % (int)CoordinateSpace.SpaceCount);
             NotifyValueChanged();
         }
 
         public override void UpdateGUI()
         {
-            m_Button.text = ((Spaceable)m_Value).space.ToString();
+            m_Button.text = m_Value.space.ToString();
         }
 
         VisualElement m_Button;
@@ -178,9 +184,183 @@ namespace UnityEditor.VFX.UI
         }
         public override void UpdateGUI()
         {
-            m_Toggle.on = (bool)m_Value;
+            m_Toggle.on = m_Value;
         }
 
         Toggle m_Toggle;
+    }
+
+
+
+
+    class FloatPropertyRM : PropertyRM<float>
+    {
+        public FloatPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        {
+            m_FloatField = new FloatField(m_Label);
+            m_FloatField.onValueChanged = OnValueChanged;
+            
+            AddChild(m_FloatField);
+        }
+
+        public void OnValueChanged()
+        {
+            float newValue = m_FloatField.GetValue();
+            if( newValue != m_Value )
+            {
+                m_Value = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        public override void UpdateGUI()
+        {
+            m_FloatField.SetValue(m_Value);
+        }
+
+        FloatField m_FloatField;
+    }
+
+
+    class Vector2PropertyRM : PropertyRM<Vector2>
+    {
+        public Vector2PropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        {
+            VisualContainer fieldContainer = new VisualContainer();
+            fieldContainer.AddToClassList("fieldContainer");
+
+            m_XFloatField = new FloatField("X");
+            m_XFloatField.onValueChanged = OnValueChanged;
+
+            m_YFloatField = new FloatField("Y");
+            m_YFloatField.onValueChanged = OnValueChanged;
+             
+
+            VisualElement spacer = new VisualElement(){flex=1};
+
+            fieldContainer.AddChild(spacer);
+            fieldContainer.AddChild(m_XFloatField);
+            fieldContainer.AddChild(m_YFloatField);
+
+            AddChild(fieldContainer);
+        }
+
+        public void OnValueChanged()
+        {
+            Vector2 newValue = new Vector2(m_XFloatField.GetValue(),m_YFloatField.GetValue());
+            if( newValue != m_Value )
+            {
+                m_Value = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        FloatField m_XFloatField;
+        FloatField m_YFloatField;
+        public override void UpdateGUI()
+        {
+            m_XFloatField.SetValue(m_Value.x);
+            m_YFloatField.SetValue(m_Value.y);
+        }
+    }
+    class Vector3PropertyRM : PropertyRM<Vector3>
+    {
+        public Vector3PropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        {
+            VisualContainer fieldContainer = new VisualContainer();
+            fieldContainer.AddToClassList("fieldContainer");
+
+            m_XFloatField = new FloatField("X");
+            m_XFloatField.onValueChanged = OnValueChanged;
+
+            m_YFloatField = new FloatField("Y");
+            m_YFloatField.onValueChanged = OnValueChanged;
+
+            m_ZFloatField = new FloatField("Z");
+            m_ZFloatField.onValueChanged = OnValueChanged;
+             
+
+            VisualElement spacer = new VisualElement(){flex=1};
+
+            fieldContainer.AddChild(spacer);
+            fieldContainer.AddChild(m_XFloatField);
+            fieldContainer.AddChild(m_YFloatField);
+            fieldContainer.AddChild(m_ZFloatField);
+
+            AddChild(fieldContainer);
+        }
+
+        public void OnValueChanged()
+        {
+            Vector3 newValue = new Vector3(m_XFloatField.GetValue(),m_YFloatField.GetValue(),m_ZFloatField.GetValue());
+            if( newValue != m_Value )
+            {
+                m_Value = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        FloatField m_XFloatField;
+        FloatField m_YFloatField;
+        FloatField m_ZFloatField;
+        public override void UpdateGUI()
+        {
+            m_XFloatField.SetValue(m_Value.x);
+            m_YFloatField.SetValue(m_Value.y);
+            m_ZFloatField.SetValue(m_Value.z);
+        }
+    }
+    class Vector4PropertyRM : PropertyRM<Vector4>
+    {
+        public Vector4PropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        {
+            VisualContainer fieldContainer = new VisualContainer();
+            fieldContainer.AddToClassList("fieldContainer");
+
+            m_XFloatField = new FloatField("X");
+            m_XFloatField.onValueChanged = OnValueChanged;
+
+            m_YFloatField = new FloatField("Y");
+            m_YFloatField.onValueChanged = OnValueChanged;
+
+            m_ZFloatField = new FloatField("Z");
+            m_ZFloatField.onValueChanged = OnValueChanged;
+
+            m_WFloatField = new FloatField("W");
+            m_WFloatField.onValueChanged = OnValueChanged;
+             
+
+            VisualElement spacer = new VisualElement(){flex=1};
+
+            fieldContainer.AddChild(spacer);
+            fieldContainer.AddChild(m_XFloatField);
+            fieldContainer.AddChild(m_YFloatField);
+            fieldContainer.AddChild(m_ZFloatField);
+            fieldContainer.AddChild(m_WFloatField);
+
+            AddChild(fieldContainer);
+        }
+
+        public void OnValueChanged()
+        {
+            Vector4 newValue = new Vector4(m_XFloatField.GetValue(),m_YFloatField.GetValue(),m_ZFloatField.GetValue(),m_WFloatField.GetValue());
+            if( newValue != m_Value )
+            {
+                m_Value = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        FloatField m_XFloatField;
+        FloatField m_YFloatField;
+        FloatField m_ZFloatField;
+        FloatField m_WFloatField;
+        public override void UpdateGUI()
+        {
+            m_XFloatField.SetValue(m_Value.x);
+            m_YFloatField.SetValue(m_Value.y);
+            m_ZFloatField.SetValue(m_Value.z);
+            m_WFloatField.SetValue(m_Value.w);
+        }
     }
 }
