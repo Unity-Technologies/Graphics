@@ -11,12 +11,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: LowEndMobilePipelineAsset
   m_EditorClassIdentifier: 
-  m_MaxPixelLights: 1
+  m_MaxPixelLights: 4
   m_SupportsVertexLight: 1
   m_EnableLightmaps: 1
   m_EnableAmbientProbe: 1
   m_ShadowType: 1
-  m_ShadowAtlasResolution: 1024
+  m_ShadowAtlasResolution: 2048
   m_ShadowNearPlaneOffset: 2
   m_ShadowDistance: 50
   m_ShadowBias: 0.05

@@ -137,7 +137,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             int vertexLightCount = (m_Asset.SupportsVertexLight)
                 ? Mathf.Min(lights.Length - pixelLightCount, kMaxLights)
                 : 0;
-            int totalLightCount = pixelLightCount + vertexLightCount;
+            int totalLightCount = Mathf.Min(pixelLightCount + vertexLightCount, kMaxLights);
 
             for (int i = 0; i < totalLightCount; ++i)
             {
