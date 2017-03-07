@@ -41,7 +41,7 @@ DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
     RWTexture2D<float4> combinedLightingUAV;
 #endif
 
-[numthreads(TILE_SIZE, TILE_SIZE, 1)]
+[numthreads(16, 16, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
     uint2 pixelCoord = dispatchThreadId;
