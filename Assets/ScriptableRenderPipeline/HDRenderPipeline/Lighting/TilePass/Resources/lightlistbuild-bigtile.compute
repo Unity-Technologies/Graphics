@@ -3,9 +3,7 @@
 #include "ShaderLibrary/common.hlsl"
 #include "../TilePass.cs.hlsl"
 #include "../LightingConvexHullUtils.hlsl"
-#if !defined(SHADER_API_XBOXONE)
 #include "../SortingComputeUtils.hlsl"
-#endif
 
 #define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -118,7 +116,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 		}
 	}
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if /*!defined(SHADER_API_XBOXONE) && */!defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
