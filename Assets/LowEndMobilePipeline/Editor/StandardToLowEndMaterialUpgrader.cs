@@ -4,7 +4,7 @@ using UnityEditor.Experimental.Rendering;
 
 public class StandardToLowEndMaterialUpgrader : MaterialUpgrader
 {
-    [MenuItem("LowEndMobilePipeline/Material Upgraders/Upgrade Standard Materials to LDRenderPipeline")]
+    [MenuItem("LowEndMobilePipeline/Material Upgraders/Upgrade Standard Materials to Low End Mobile")]
     private static void UpgradeMaterialsToLD()
     {
         List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -17,6 +17,6 @@ public class StandardToLowEndMaterialUpgrader : MaterialUpgrader
 
     StandardToLowEndMaterialUpgrader(string oldShaderName)
     {
-        RenameShader(oldShaderName, "LowEndMobilePipeline/Specular");
+        RenameShader(oldShaderName, "ScriptableRenderPipeline/LowEndMobile");
     }
 }

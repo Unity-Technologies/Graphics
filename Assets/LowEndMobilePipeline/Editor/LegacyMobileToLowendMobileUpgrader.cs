@@ -20,7 +20,7 @@ public class LegacyMobileToLowendMobileUpgrader : MaterialUpgrader
 
     LegacyMobileToLowendMobileUpgrader(string oldShaderName)
     {
-        RenameShader(oldShaderName, "LowEndMobilePipeline/Specular");
+        RenameShader(oldShaderName, "ScriptableRenderPipeline/LowEndMobile");
         RenameFloat("_Shininess", "_Glossiness");
     }
 }
