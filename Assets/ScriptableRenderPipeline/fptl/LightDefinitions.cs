@@ -69,6 +69,9 @@ public class LightDefinitions
     public static int MAX_NR_BIGTILE_LIGHTS_PLUSONE = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.
     public static float VIEWPORT_SCALE_Z = 1.0f;
 
+    // must be either 16, 32 or 64. Could go higher in principle but big tiles in the pre-pass are already 64x64
+    public static int TILE_SIZE_CLUSTERED = 32;
+
     // enable unity's original left-hand shader camera space (right-hand internally in unity).
     public static int USE_LEFTHAND_CAMERASPACE = 0;
 

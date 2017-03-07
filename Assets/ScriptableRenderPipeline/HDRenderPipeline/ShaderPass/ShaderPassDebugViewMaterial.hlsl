@@ -27,7 +27,12 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 			
-float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
+void Frag(  PackedVaryingsToPS packedInput
+            , out float4 outColor : SV_Target
+            #ifdef _DEPTHOFFSET_ON
+            , out float outputDepth : SV_Depth
+            #endif
+            )
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
@@ -56,6 +61,10 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 	if (!needLinearToSRGB)
 		result = SRGBToLinear(max(0, result));
 
-	return float4(result, 0.0);
+#ifdef _DEPTHOFFSET_ON
+    outputDepth = posInput.depthRaw;
+#endif
+
+    outColor = float4(result, 1.0);
 }
 

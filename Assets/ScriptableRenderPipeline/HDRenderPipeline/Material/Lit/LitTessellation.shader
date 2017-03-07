@@ -109,6 +109,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
         _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
         [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
+        [ToggleOff] _TessellationTilingScale("Tessellation tiling height scale", Float) = 1.0
          // TODO: Handle culling mode for backface culling
     }
 
@@ -116,6 +117,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
     #pragma target 5.0
     #pragma only_renderers d3d11 ps4// TEMP: until we go futher in dev
+    // #pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -129,6 +131,7 @@ Shader "HDRenderPipeline/LitTessellation"
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
     #pragma shader_feature _TESSELLATION_OBJECT_SCALE
+    #pragma shader_feature _TESSELLATION_TILING_SCALE
 
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE

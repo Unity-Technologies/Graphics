@@ -2,7 +2,7 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
-void ApplyDebug(inout float3 diffuseLighting, inout float3 specularLighting)
+void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef LIGHTING_DEBUG
     int lightDebugMode = (int)_DebugLightModeAndAlbedo.x;
@@ -15,6 +15,32 @@ void ApplyDebug(inout float3 diffuseLighting, inout float3 specularLighting)
     {
         diffuseLighting = float3(0.0, 0.0, 0.0);
     }
+    else if (lightDebugMode == LIGHTINGDEBUGMODE_VISUALIZE_CASCADE)
+    {
+        specularLighting = float3(0.0, 0.0, 0.0);
+
+        const float3 s_CascadeColors[] = {
+            float3(1.0, 0.0, 0.0),
+            float3(0.0, 1.0, 0.0),
+            float3(0.0, 0.0, 1.0),
+            float3(1.0, 1.0, 0.0)
+        };
+
+#ifdef SHADOWS_USE_SHADOWCTXT
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
+#else
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
+#endif
+
+        int shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _DirShadowSplitSpheres);
+        if (shadowSplitIndex == -1)
+            diffuseLighting = float3(0.0, 0.0, 0.0);
+        else
+        {
+            diffuseLighting = s_CascadeColors[shadowSplitIndex] * shadow;
+        }
+
+    }
 #endif
 }
 
@@ -23,8 +49,8 @@ void ApplyDebug(inout float3 diffuseLighting, inout float3 specularLighting)
 // Calculate the offset in global light index light for current light category
 int GetTileOffset(PositionInputs posInput, uint lightCategory)
 {
-    uint2 tileIndex = posInput.unPositionSS / TILE_SIZE;
-    return (tileIndex.y + lightCategory * _NumTileY) * _NumTileX + tileIndex.x;
+    uint2 tileIndex = posInput.unPositionSS / TILE_SIZE_FPTL;
+    return (tileIndex.y + lightCategory * _NumTileFtplY) * _NumTileFtplX + tileIndex.x;
 }
 
 void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
@@ -62,18 +88,18 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
 
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
-    uint2 tileIndex = posInput.unPositionSS / TILE_SIZE;
+    uint2 tileIndex = posInput.unPositionSS / TILE_SIZE_CLUSTERED;
 
     float logBase = g_fClustBase;
     if (g_isLogBaseBufferEnabled)
     {
-        logBase = g_logBaseBuffer[tileIndex.y * _NumTileX + tileIndex.x];
+        logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
     }
 
     int clustIdx = SnapToClusterIdxFlex(posInput.depthVS, logBase, g_isLogBaseBufferEnabled != 0);
 
     int nrClusters = (1 << g_iLog2NumClusters);
-    const int idx = ((lightCategory * nrClusters + clustIdx) * _NumTileY + tileIndex.y) * _NumTileX + tileIndex.x;
+    const int idx = ((lightCategory * nrClusters + clustIdx) * _NumTileClusteredY + tileIndex.y) * _NumTileClusteredX + tileIndex.x;
     uint dataPair = g_vLayeredOffsetsBuffer[idx];
     start = dataPair & 0x7ffffff;
     lightCount = (dataPair >> 27) & 31;
@@ -222,7 +248,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     diffuseLighting += bakeDiffuseLighting;
 #endif
 
-    ApplyDebug(diffuseLighting, specularLighting);
+    ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
 }
 
 #else // LIGHTLOOP_SINGLE_PASS
@@ -322,7 +348,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     // Add indirect diffuse + emissive (if any)
     diffuseLighting += bakeDiffuseLighting;
 
-    ApplyDebug(diffuseLighting, specularLighting);
+    ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
 }
 
 #endif

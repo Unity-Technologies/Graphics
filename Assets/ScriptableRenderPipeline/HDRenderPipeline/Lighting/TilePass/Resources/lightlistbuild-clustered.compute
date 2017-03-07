@@ -179,11 +179,12 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #else
 	g_depth_tex.GetDimensions(iWidth, iHeight);
 #endif
-	uint nrTilesX = (iWidth+15)/16;
-	uint nrTilesY = (iHeight+15)/16;
+	const uint log2TileSize = firstbithigh(TILE_SIZE_CLUSTERED);
+	uint nrTilesX = (iWidth+(TILE_SIZE_CLUSTERED-1))>>log2TileSize;
+	uint nrTilesY = (iHeight+(TILE_SIZE_CLUSTERED-1))>>log2TileSize;
 
-	uint2 viTilLL = 16*tileIDX;
-	uint2 viTilUR = min( viTilLL+uint2(16,16), uint2(iWidth, iHeight) );		// not width and height minus 1 since viTilUR represents the end of the tile corner.
+	uint2 viTilLL = TILE_SIZE_CLUSTERED*tileIDX;
+	uint2 viTilUR = min( viTilLL+uint2(TILE_SIZE_CLUSTERED,TILE_SIZE_CLUSTERED), uint2(iWidth, iHeight) );		// not width and height minus 1 since viTilUR represents the end of the tile corner.
 
 	if(t==0)
 	{
@@ -204,9 +205,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	// establish min and max depth first
 	dpt_ma=0.0;
 
-	for(int idx=t; idx<256; idx+=NR_THREADS)
+	for(int idx=t; idx<(TILE_SIZE_CLUSTERED*TILE_SIZE_CLUSTERED); idx+=NR_THREADS)
 	{
-		uint2 uPixCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
+		uint2 uPixCrd = min( uint2(viTilLL.x+(idx&(TILE_SIZE_CLUSTERED-1)), viTilLL.y+(idx>>log2TileSize)), uint2(iWidth-1, iHeight-1) );
 #ifdef MSAA_ENABLED
 		for(uint i=0; i<iNumSamplesMSAA; i++)
 		{
@@ -238,8 +239,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	// build coarse list using AABB
 #ifdef USE_TWO_PASS_TILED_LIGHTING
-	int NrBigTilesX = (nrTilesX+3)>>2;
-	const int bigTileIdx = (tileIDX.y>>2)*NrBigTilesX + (tileIDX.x>>2);		// map the idx to 64x64 tiles
+	const uint log2BigTileToClustTileRatio = firstbithigh(64) - log2TileSize;
+
+	int NrBigTilesX = (nrTilesX+((1<<log2BigTileToClustTileRatio)-1))>>log2BigTileToClustTileRatio;
+	const int bigTileIdx = (tileIDX.y>>log2BigTileToClustTileRatio)*NrBigTilesX + (tileIDX.x>>log2BigTileToClustTileRatio);		// map the idx to 64x64 tiles
 	int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+0];
 	for(int l0=(int) t; l0<(int) nrBigTileLights; l0 += NR_THREADS)
 	{
@@ -267,7 +270,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int iNrCoarseLights = min(lightOffs,MAX_NR_COARSE_ENTRIES);
 	
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
+	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(TILE_SIZE_CLUSTERED/2,TILE_SIZE_CLUSTERED/2), uint2(iWidth-1, iHeight-1))) );
 #endif
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
@@ -409,7 +412,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #endif
 
 	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
-	float halfTileSizeAtZDistOne = 8*onePixDiagDist;		// scale by half a tile
+	float halfTileSizeAtZDistOne = (TILE_SIZE_CLUSTERED/2)*onePixDiagDist;		// scale by half a tile
 	
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
