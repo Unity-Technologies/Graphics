@@ -89,7 +89,7 @@ namespace UnityEditor.VFX
                 return slot;
             }
 
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}",property.name,property.type));
         }
     
         public int GetNbLinks() { return m_LinkedSlots.Count; }

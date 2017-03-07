@@ -50,4 +50,40 @@ namespace UnityEditor.VFX
             return expression == null || VFXExpression.IsFloatValueType(expression.ValueType);
         }
     }
+
+    [VFXInfo(type = typeof(int))]
+    class VFXSlotInt : VFXSlot { }
+
+    [VFXInfo(type = typeof(Sphere))]
+    class VFXSlotSphere : VFXSlot { }
+
+    [VFXInfo(type = typeof(OrientedBox))]
+    class VFXSlotOrientedBox : VFXSlot { }
+
+    [VFXInfo(type = typeof(AABox))]
+    class VFXSlotAABox : VFXSlot { }
+
+    [VFXInfo(type = typeof(Plane))]
+    class VFXSlotPlane : VFXSlot { }
+
+    [VFXInfo(type = typeof(Cylinder))]
+    class VFXSlotCylinder : VFXSlot { }
+
+    [VFXInfo(type = typeof(Transform))]
+    class VFXSlotTransform : VFXSlot { }
+
+    [VFXInfo(type = typeof(Position))]
+    class VFXSlotPosition : VFXSlot { }
+
+    [VFXInfo(type = typeof(Vector))]
+    class VFXSlotVector : VFXSlot { }
+
+    [VFXInfo(type = typeof(FlipBook))]
+    class VFXSlotFlipBook : VFXSlot { }
+
+    [VFXInfo(type = typeof(bool))]
+    class VFXSlotBool : VFXSlot { }
+
+    [VFXInfo(type = typeof(Mesh))]
+    class VFXSlotMesh : VFXSlot { }
 }
