@@ -210,7 +210,7 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if (direction == Direction.kOutput)
+            /*if (direction == Direction.kOutput)
             {
                 var linkedSlot = m_LinkedSlots.ToArray();
                 if (cause == InvalidationCause.kConnectionChanged) // If connection has changed, propagate to linked inputs
@@ -221,7 +221,7 @@ namespace UnityEditor.VFX
                     foreach (var slot in linkedSlot)
                         slot.Invalidate(model, InvalidationCause.kParamPropagated);
             }
-            else // input
+            else*/ // input
             {
                 BuildExpression();
             }

@@ -150,7 +150,7 @@ namespace UnityEditor.VFX
                 {
                     if (uselessSlots.Count == 0)
                     {
-                        AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
+                        AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput),false);
                     }
                     else
                     {
@@ -161,7 +161,7 @@ namespace UnityEditor.VFX
                 //Update deprecated Slot
                 foreach (var slot in uselessSlots)
                 {
-                    RemoveSlot(slot);
+                    RemoveSlot(slot,false);
                 }
 
                 var inputExpression = GetInputExpressions();

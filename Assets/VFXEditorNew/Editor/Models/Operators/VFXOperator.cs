@@ -88,14 +88,14 @@ namespace UnityEditor.VFX
             {
                 while (outputSlots.Count() != inputExpressionArray.Length)
                 {
-                    RemoveSlot(outputSlots.Last());
+                    RemoveSlot(outputSlots.Last(),false);
                 }
             }
             else if (inputExpressionArray.Length > outputSlots.Count())
             {
                 while (outputSlots.Count() != inputExpressionArray.Length)
                 {
-                    AddSlot(new VFXSlot(VFXSlot.Direction.kOutput));
+                    AddSlot(new VFXSlot(VFXSlot.Direction.kOutput),false);
                 }
             }
 

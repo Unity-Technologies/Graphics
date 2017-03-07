@@ -18,8 +18,8 @@ namespace UnityEditor.VFX
         VFXSlot GetInputSlot(int index);
         VFXSlot GetOutputSlot(int index);
 
-        void AddSlot(VFXSlot slot);
-        void RemoveSlot(VFXSlot slot);
+        void AddSlot(VFXSlot slot, bool notify = true);
+        void RemoveSlot(VFXSlot slot, bool notify = true);
 
         void Invalidate(VFXModel.InvalidationCause cause);
     }
@@ -37,22 +37,24 @@ namespace UnityEditor.VFX
         public virtual VFXSlot GetInputSlot(int index)  { return m_InputSlots[index]; }
         public virtual VFXSlot GetOutputSlot(int index) { return m_OutputSlots[index]; }
 
-        public virtual void AddSlot(VFXSlot slot)
+        public virtual void AddSlot(VFXSlot slot, bool notify = true)
         {
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
 
             if (slot.owner != this)
             {
                 if (slot.owner != null)
-                    slot.owner.RemoveSlot(slot);
+                    slot.owner.RemoveSlot(slot,notify);
 
                 slotList.Add(slot);
                 slot.m_Owner = this;
-                Invalidate(InvalidationCause.kStructureChanged);
+
+                if (notify)
+                    Invalidate(InvalidationCause.kStructureChanged);
             }          
         }
 
-        public virtual void RemoveSlot(VFXSlot slot)
+        public virtual void RemoveSlot(VFXSlot slot, bool notify = true)
         {
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
 
@@ -60,7 +62,9 @@ namespace UnityEditor.VFX
             {
                 slotList.Remove(slot);
                 slot.m_Owner = null;
-                Invalidate(InvalidationCause.kStructureChanged);
+
+                if (notify)
+                    Invalidate(InvalidationCause.kStructureChanged);
             }
         }
 

@@ -35,13 +35,13 @@ namespace UnityEditor.VFX
 
                 if (inputSlots.All(s => s.HasLink()) && size < 4)
                 {
-                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
+                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput),false);
                 }
 
                 var uselessSlot = newInputSlots.Except(inputSlots).ToArray();
                 foreach (var deprecatedSlot in uselessSlot)
                 {
-                    RemoveSlot(deprecatedSlot);
+                    RemoveSlot(deprecatedSlot,false);
                 }
             }
 
