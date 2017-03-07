@@ -282,7 +282,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     bool isEnabledMSAA = false;
                     Debug.Assert(!isEnabledMSAA || m_PassSettings.enableClustered);
-                    bool disableFptl = (m_PassSettings.disableFptlWhenClustered && m_PassSettings.enableClustered) || isEnabledMSAA;
+                    bool disableFptl = (!m_PassSettings.enableFptlForOpaqueWhenClustered && m_PassSettings.enableClustered) || isEnabledMSAA;
                     return !disableFptl;
                 }
             }
