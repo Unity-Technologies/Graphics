@@ -1,0 +1,110 @@
+.propertyrm
+{
+	margin-left:12px;
+	flex-direction: row;
+	-align-items: stretch;
+	-background-color: #F00;
+}
+
+.propertyrm #icon
+{
+	margin-top:2;
+	width:16;
+	height:16;
+}
+
+.propertyrm .button
+{
+	-flex:1;
+	border-width:1;
+	border-radius:4;
+
+	border-color: rgb(153,153,153);
+	text-color: rgb(153,153,153);
+	text-alignment: middle-center;
+	margin-top:2;
+	margin-bottom:2;
+	margin-right:2;
+	margin-left:2;
+	padding-top:1;
+	padding-bottom:1;
+	padding-left:1;
+	padding-right:1;
+	width:50;
+}
+
+.propertyrm #label
+{
+	text-color: rgb(153,153,153);
+	min-width:70;
+}
+
+.propertyrm * .textfield
+{
+	text-color:#BBB;
+
+	border-width:1;
+	border-right:1;
+	border-color:rgba(0,0,0,0);
+	text-alignment:middle-right;
+	
+	padding-top:1;
+	padding-bottom:1;
+	padding-left:3;
+	padding-right:3;
+}
+
+.propertyrm * .textfield:focus
+{
+	border-color:#BBB;
+}
+
+.propertyrm * .label
+{
+	text-color:#888;
+}
+.propertyrm .fieldContainer
+{
+	align-items: center;
+	flex-direction:row;
+	-flex:1
+}
+
+BoolPropertyRM Toggle
+{
+	margin-top:-4;
+	width:32,
+	height:17
+}
+
+ColorField
+{
+	border-width:1;
+	border-top:1;
+	border-bottom:1;
+	border-left:1;
+	border-right:1;
+	border-color:#000;
+}
+
+FloatPropertyRM FloatField
+{
+	align-self:flex-end;
+}
+
+CurveField .curve
+{
+	flex:1;
+	height:13;
+	border-width:1;
+	border-color:#000;
+}
+CurvePropertyRM CurveField
+{
+	flex:1;
+}
+CurvePropertyRM
+{
+	flex:1;
+	min-width:100;
+}

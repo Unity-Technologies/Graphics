@@ -105,6 +105,7 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(VFXDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
 
+            AddStyleSheetPath("PropertyRM");
             AddStyleSheetPath("VFXView");
 
             Dirty(ChangeType.Transform);

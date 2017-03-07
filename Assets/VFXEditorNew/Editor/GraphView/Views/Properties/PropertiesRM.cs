@@ -75,7 +75,8 @@ namespace UnityEditor.VFX.UI
             {typeof(Vector2),typeof(Vector2PropertyRM)},
             {typeof(Vector3),typeof(Vector3PropertyRM)},
             {typeof(Vector4),typeof(Vector4PropertyRM)},
-            {typeof(Color),typeof(ColorPropertyRM)}
+            {typeof(Color),typeof(ColorPropertyRM)},
+            {typeof(AnimationCurve),typeof(CurvePropertyRM)}
         };
 
         public static PropertyRM Create(VFXDataAnchorPresenter presenter)
@@ -408,26 +409,26 @@ namespace UnityEditor.VFX.UI
             VisualContainer fieldContainer = new VisualContainer();
             fieldContainer.AddToClassList("fieldContainer");
 
-            m_XFloatField = new FloatField("R");
-            m_XFloatField.onValueChanged = OnValueChanged;
+            m_RFloatField = new FloatField("R");
+            m_RFloatField.onValueChanged = OnValueChanged;
 
-            m_YFloatField = new FloatField("G");
-            m_YFloatField.onValueChanged = OnValueChanged;
+            m_GFloatField = new FloatField("G");
+            m_GFloatField.onValueChanged = OnValueChanged;
 
-            m_ZFloatField = new FloatField("B");
-            m_ZFloatField.onValueChanged = OnValueChanged;
+            m_BFloatField = new FloatField("B");
+            m_BFloatField.onValueChanged = OnValueChanged;
 
-            m_WFloatField = new FloatField("A");
-            m_WFloatField.onValueChanged = OnValueChanged;
+            m_AFloatField = new FloatField("A");
+            m_AFloatField.onValueChanged = OnValueChanged;
 
 
             VisualElement spacer = new VisualElement(){flex=1};
 
             fieldContainer.AddChild(spacer);
-            fieldContainer.AddChild(m_XFloatField);
-            fieldContainer.AddChild(m_YFloatField);
-            fieldContainer.AddChild(m_ZFloatField);
-            fieldContainer.AddChild(m_WFloatField);
+            fieldContainer.AddChild(m_RFloatField);
+            fieldContainer.AddChild(m_GFloatField);
+            fieldContainer.AddChild(m_BFloatField);
+            fieldContainer.AddChild(m_AFloatField);
 
             mainContainer.AddChild(fieldContainer);
 
@@ -441,27 +442,60 @@ namespace UnityEditor.VFX.UI
 
         public void OnValueChanged()
         {
-            /*Color newValue = new Color(m_XFloatField.GetValue(),m_YFloatField.GetValue(),m_ZFloatField.GetValue(),m_WFloatField.GetValue());
+            Color newValue = new Color(m_RFloatField.GetValue(),m_GFloatField.GetValue(),m_BFloatField.GetValue(),m_AFloatField.GetValue());
             if( newValue != m_Value )
             {
                 m_Value = newValue;
                 NotifyValueChanged();
-            }*/
+            }
+            else
+            {
+                newValue = m_ColorField.GetValue();
+                if(newValue != m_Value)
+                {
+                    m_Value = newValue;
+                    NotifyValueChanged();
+                }
+            }
         }
 
-        FloatField m_XFloatField;
-        FloatField m_YFloatField;
-        FloatField m_ZFloatField;
-        FloatField m_WFloatField;
-
+        FloatField m_RFloatField;
+        FloatField m_GFloatField;
+        FloatField m_BFloatField;
+        FloatField m_AFloatField;
         ColorField m_ColorField;
+
         public override void UpdateGUI()
         {
             m_ColorField.SetValue(m_Value);
-            m_XFloatField.SetValue(m_Value.r);
-            m_YFloatField.SetValue(m_Value.g);
-            m_ZFloatField.SetValue(m_Value.b);
-            m_WFloatField.SetValue(m_Value.a);
+            m_RFloatField.SetValue(m_Value.r);
+            m_GFloatField.SetValue(m_Value.g);
+            m_BFloatField.SetValue(m_Value.b);
+            m_AFloatField.SetValue(m_Value.a);
+        }
+    }
+
+
+    class CurvePropertyRM : PropertyRM<AnimationCurve>
+    {
+        public CurvePropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        {
+            m_CurveField = new CurveField(m_Label);
+            m_CurveField.onValueChanged = OnValueChanged;
+
+            AddChild(m_CurveField);
+        }
+
+        public void OnValueChanged()
+        {
+            m_Value = m_CurveField.GetValue();
+            NotifyValueChanged();
+        }
+
+        CurveField m_CurveField;
+        public override void UpdateGUI()
+        {
+            m_CurveField.SetValue(m_Value);
         }
     }
 }
