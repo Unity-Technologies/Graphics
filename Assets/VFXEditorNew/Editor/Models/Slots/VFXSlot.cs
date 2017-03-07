@@ -81,7 +81,7 @@ namespace UnityEditor.VFX
 
                 foreach (var subInfo in property.SubProperties())
                 {
-                    var subSlot = Create(subInfo, direction, null /* TODOPAUL */);
+                    var subSlot = Create(subInfo, direction, null /* TODO : transform base expression to subproperty */);
                     if (subSlot != null)
                         subSlot.Attach(slot);
                 }

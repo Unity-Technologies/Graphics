@@ -62,12 +62,21 @@ namespace UnityEditor.VFX
                 slot.m_Owner = null;
                 Invalidate(InvalidationCause.kStructureChanged);
             }
-        } 
+        }
+
+        protected string GetInputPropertiesTypeName()
+        {
+            return "InputProperties";
+        }
+        protected string GetOutputPropertiesTypeName()
+        {
+            return "OutputProperties";
+        }
 
         protected VFXSlotContainerModel()
         {
-            InitProperties("InputProperties", out m_InputProperties, out m_InputValues,VFXSlot.Direction.kInput);
-            InitProperties("OutputProperties", out m_OutputProperties, out m_OutputValues,VFXSlot.Direction.kOutput);
+            InitProperties(GetInputPropertiesTypeName(), out m_InputProperties, out m_InputValues,VFXSlot.Direction.kInput);
+            InitProperties(GetOutputPropertiesTypeName(), out m_OutputProperties, out m_OutputValues,VFXSlot.Direction.kOutput);
         }
 
         static private VFXExpression GetExpressionFromObject(object value)
