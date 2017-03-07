@@ -34,17 +34,25 @@ VFXContextUI {
 	-min-width: 340;
 	margin-top:0;
 }
-VFXContextUI #NodeContents{
+VFXContextUI #NodeContents
+{
 	
-	border-color: #282828;
+	border-color: rgba(0,0,0,0);
 	border-radius:6;
 	border-width: 2;
 }
 VFXContextUI.selected #NodeContents
 {
-	border-color: #383838;
-	border-radius:6;
-	border-width: 2;
+	border-color: rgb(210, 152, 0);
+}
+
+VFXContextUI #NodeContents > Label{
+	text-alignment:upper-center;
+
+	text-color:#8FC1DF;
+
+	font-size:16;
+	background-color: #383838;
 }
 
 VFXContextUI > * >#Title {
@@ -67,36 +75,14 @@ VFXContextUI BlockContainer {
 	margin-top: 0;
 	margin-left: 32;
 	margin-bottom: 32;
-	border-radius:4;
+	-border-radius:4;
 	margin-right: 32;
 }
 
-VFXContextUI #NodeContents > Label{
-	text-alignment:upper-center;
 
-	text-color:#8FC1DF;
-
-	font-size:16;
-	background-color: #383838;
-}
-VFXBlockUI.node.horizontal #title Button
-{
-	min-width:40;
-}
-VFXBlockUI {
-	flex-direction: column;
-	background-color: #383838;
-	align-items: stretch;
-
-}
-
-VFXBlockUI.node.horizontal
-{
-	border-width: 2;
-	border-radius: 0;
-	min-width:150;
 	
-	flex-direction:column;
+VFXBlockUI.node.horizontal {
+	background-color: #2C2C2C;
 }
 
 VFXBlockUI.node.horizontal #pane
@@ -112,27 +98,32 @@ VFXBlockUI.horizontal.node #pane > #left
 {
 	width:-1;
 }
-VFXBlockUI #left > #title > Label {
+
+VFXBlockUI.node.horizontal #title {
+	flex-direction:row;
+	background-color:#F00;
+}
+
+VFXBlockUI.node.horizontal #title Button
+{
+	min-width:40;
+}
+
+VFXBlockUI.node.horizontal #left > #title > Label {
 	text-color: #FFFFFF;
 	font-style: bold;
 	text-alignment: middle-left;
-	-flex: 2;
+	flex: 1;
 }
-VFXBlockUI #left > #title > Button {
+
+VFXBlockUI.node.horizontal #left > #title > Button {
 	text-color: rgb(153, 153, 153);
-	min-width:60;
+	min-width:50;
 	margin-right: 6;
 	padding-right: 0;
 	padding-left: 0;
+	flex:0;
 	text-alignment: middle-center;
-}
-
-VFXBlockUI.selected {
-	background-color: #454545;
-}
-
-VFXBlockUI #title {
-	flex-direction:row;
 }
 
 VFXBlockUI #pane #left VisualContainer#input
@@ -165,11 +156,6 @@ VFXDataAnchor
 	padding-bottom:0;
 	min-height:17;
 	margin-left:-12px;
-}
-
-VFXPropertyUI .slot
-{
-	-background-color:#F00;
 }
 
 VFXDataAnchor .space
