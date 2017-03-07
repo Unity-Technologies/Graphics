@@ -134,7 +134,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int USE_LEFTHAND_CAMERASPACE = 1;
 
             public static int TILE_SIZE_FPTL = 16;
-            public static int TILE_SIZE_CLUSTERED = 16;
+            public static int TILE_SIZE_CLUSTERED = 32;
 
             // flags
             public static int IS_CIRCULAR_SPOT_SHAPE = 1;
@@ -609,14 +609,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     var nrClustersX = (width + LightDefinitions.TILE_SIZE_CLUSTERED - 1) / LightDefinitions.TILE_SIZE_CLUSTERED;
                     var nrClustersY = (height + LightDefinitions.TILE_SIZE_CLUSTERED - 1) / LightDefinitions.TILE_SIZE_CLUSTERED;
-                    var nrClusters = nrClustersX * nrClustersY;
+                    var nrClusterTiles = nrClustersX * nrClustersY;
 
-                    s_PerVoxelOffset = new ComputeBuffer((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusters, sizeof(uint));
-                    s_PerVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrClusters, sizeof(uint));
+                    s_PerVoxelOffset = new ComputeBuffer((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint));
+                    s_PerVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrClusterTiles, sizeof(uint));
 
                     if (k_UseDepthBuffer)
                     {
-                        s_PerTileLogBaseTweak = new ComputeBuffer(nrTiles, sizeof(float));
+                        s_PerTileLogBaseTweak = new ComputeBuffer(nrClusterTiles, sizeof(float));
                     }
                 }
 
@@ -1762,10 +1762,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Since we need the stencil test, the compute path does not currently support SSS.
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "combinedLightingUAV", colorBuffers[0]);                            
 
+                            // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
                             int w = camera.pixelWidth;
                             int h = camera.pixelHeight;
-                            int numTilesX = bUseClusteredForDeferred ? GetNumTileClusteredX(camera) : GetNumTileFtplX(camera);
-                            int numTilesY = bUseClusteredForDeferred ? GetNumTileClusteredY(camera) : GetNumTileFtplY(camera);
+                            int numTilesX = (w+15)/16;
+                            int numTilesY = (h+15)/16;
                             cmd.DispatchCompute(shadeOpaqueShader, kernel, numTilesX, numTilesY, 1);
                         }
                         else
