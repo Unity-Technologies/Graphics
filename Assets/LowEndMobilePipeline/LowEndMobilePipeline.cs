@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
         private int m_ShadowMapProperty;
         private RenderTargetIdentifier m_ShadowMapRTID;
         private int m_DepthBufferBits = 24;
+        private Vector4[] m_DirectionalShadowSplitDistances = new Vector4[kMaxCascades];
 
         private static readonly ShaderPassName m_ForwardBasePassName = new ShaderPassName("LowEndMobileForward");
 
@@ -43,7 +44,6 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             foreach (Camera camera in cameras)
             {
                 CullingParameters cullingParameters;
-                camera.farClipPlane = 1000.0f;
                 if (!CullResults.GetCullingParameters(camera, out cullingParameters))
                     continue;
 
@@ -74,12 +74,10 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 settings.inputFilter.SetQueuesOpaque();
 
                 if (m_Asset.EnableLightmap)
-                    settings.rendererConfiguration = settings.rendererConfiguration |
-                                                     RendererConfiguration.PerObjectLightmaps;
+                    settings.rendererConfiguration |= RendererConfiguration.PerObjectLightmaps;
 
                 if (m_Asset.EnableAmbientProbe)
-                    settings.rendererConfiguration = settings.rendererConfiguration |
-                                                     RendererConfiguration.PerObjectLightProbe;
+                    settings.rendererConfiguration |= RendererConfiguration.PerObjectLightProbe;
 
                 context.DrawRenderers(ref settings);
 
@@ -236,6 +234,9 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                     cascadeIdx, cascadeCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj,
                     out settings.splitData);
 
+                m_DirectionalShadowSplitDistances[cascadeIdx] = settings.splitData.cullingSphere;
+                m_DirectionalShadowSplitDistances[cascadeIdx].w *= settings.splitData.cullingSphere.w;
+
                 if (needRendering)
                 {
                     SetupShadowSliceTransform(cascadeIdx, shadowResolution, proj, view);
@@ -262,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             matScaleBias.m23 = 0.5f;
             matScaleBias.m13 = 0.5f;
 
-            // Later down the pipeline the proj matrix will be scaled to reverse-z in case of DX. 
+            // Later down the pipeline the proj matrix will be scaled to reverse-z in case of DX.
             // We need account for that scale in the shadowTransform.
             if (SystemInfo.usesReversedZBuffer)
                 matScaleBias.m22 = -0.5f;
@@ -349,6 +350,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             SetShadowKeywords(setupShadow);
             setupShadow.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
             setupShadow.SetGlobalVector("_PSSMDistancesAndShadowResolution", PSSMDistances);
+            setupShadow.SetGlobalVectorArray("g_vDirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
             setupShadow.SetGlobalFloatArray("_PCFKernel", pcfKernel);
             SetShadowKeywords(setupShadow);
             context.ExecuteCommandBuffer(setupShadow);

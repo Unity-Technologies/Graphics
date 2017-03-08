@@ -15,7 +15,7 @@ MonoBehaviour:
   m_SupportsVertexLight: 1
   m_EnableLightmaps: 1
   m_EnableAmbientProbe: 1
-  m_ShadowType: 1
+  m_ShadowType: 2
   m_ShadowAtlasResolution: 2048
   m_ShadowNearPlaneOffset: 2
   m_ShadowDistance: 50
