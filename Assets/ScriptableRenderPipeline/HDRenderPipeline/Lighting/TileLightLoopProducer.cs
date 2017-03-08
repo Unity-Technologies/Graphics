@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // clustered light list specific buffers and data begin
             public int debugViewTilesFlags;
             public bool enableClustered;
-            public bool disableFptlWhenClustered; // still useful on opaques. Should be false by default to force tile on opaque.
+            public bool enableFptlForOpaqueWhenClustered; // still useful on opaques. Should be true by default to force tile on opaque.
             public bool enableBigTilePrepass;
 
             [Range(0.0f, 1.0f)]
@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 debugViewTilesFlags = 0,
                 enableClustered = true,
-                disableFptlWhenClustered = false,
+                enableFptlForOpaqueWhenClustered = true,
                 enableBigTilePrepass = true,
             };
         }

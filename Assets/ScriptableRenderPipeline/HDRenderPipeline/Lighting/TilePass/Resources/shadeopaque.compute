@@ -3,6 +3,8 @@
 #pragma kernel ShadeOpaque_Clustered		            SHADE_OPAQUE_ENTRY=ShadeOpaque_Clustered		        USE_CLUSTERED_LIGHTLIST
 #pragma kernel ShadeOpaque_Clustered_DebugLighting		SHADE_OPAQUE_ENTRY=ShadeOpaque_Clustered_DebugLighting	USE_CLUSTERED_LIGHTLIST   LIGHTING_DEBUG
 
+#pragma #pragma enable_d3d11_debug_symbols
+
 // Split lighting is required for the SSS pass.
 // Not currently possible since we need to access the stencil buffer from the compute shader.
 // #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
