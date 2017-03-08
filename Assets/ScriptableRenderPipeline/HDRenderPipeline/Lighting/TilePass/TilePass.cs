@@ -1723,6 +1723,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // TODO: get rid of this by making global parameters visible to compute shaders
                             BindGlobalParams(cmd, shadeOpaqueShader, kernel, camera, renderContext);
 
+                            cmd.SetComputeBufferParam(shadeOpaqueShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
+
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_MainDepthTexture", depthStencilTexture);
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture0", Shader.PropertyToID("_GBufferTexture0"));
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture1", Shader.PropertyToID("_GBufferTexture1"));
@@ -1731,14 +1733,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture4", Shader.PropertyToID("_GBufferTexture4"));
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "g_tShadowBuffer", Shader.PropertyToID("g_tShadowBuffer"));
 
-
+                            cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcData", Shader.GetGlobalTexture(Shader.PropertyToID("_LtcData")));
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_PreIntegratedFGD", Shader.GetGlobalTexture("_PreIntegratedFGD"));
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcGGXMatrix", Shader.GetGlobalTexture("_LtcGGXMatrix"));
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcDisneyDiffuseMatrix", Shader.GetGlobalTexture("_LtcDisneyDiffuseMatrix"));
                             cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcMultiGGXFresnelDisneyDiffuse", Shader.GetGlobalTexture("_LtcMultiGGXFresnelDisneyDiffuse"));
 
-                            Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "_InvViewProjMatrix", Shader.GetGlobalMatrix("_InvViewProjMatrix"));
-                            Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "_ViewProjMatrix", Shader.GetGlobalMatrix("_ViewProjMatrix"));
+                            Matrix4x4 viewToWorld = camera.cameraToWorldMatrix;
+                            Matrix4x4 worldToView = camera.worldToCameraMatrix;
+                            Matrix4x4 viewProjection = hdCamera.viewProjectionMatrix;
+                            Matrix4x4 invViewProjection = hdCamera.invViewProjectionMatrix;
+
+                            Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "unity_MatrixV", worldToView);
+                            Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "unity_MatrixInvV", viewToWorld);
+                            Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "unity_MatrixVP", viewProjection);
+
+                            Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "_InvViewProjMatrix", invViewProjection);
+                            Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "_ViewProjMatrix", viewProjection);
                             Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "g_mInvScrProjection", Shader.GetGlobalMatrix("g_mInvScrProjection"));
                             cmd.SetComputeVectorParam(shadeOpaqueShader, "_ScreenSize", Shader.GetGlobalVector("_ScreenSize"));
                             cmd.SetComputeIntParam(shadeOpaqueShader, "_UseTileLightList", Shader.GetGlobalInt("_UseTileLightList"));
