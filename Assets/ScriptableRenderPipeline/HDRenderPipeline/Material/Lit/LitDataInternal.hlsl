@@ -15,6 +15,8 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
                         ADD_IDX(_UVDetailsMappingMask).y * texCoord1 +
                         ADD_IDX(_UVDetailsMappingMask).z * texCoord2 +
                         ADD_IDX(_UVDetailsMappingMask).w * texCoord3;
+						
+	uvDetails *= additionalTiling.xx;
 
     // If base is planar/triplanar then detail map is forced to be planar/triplanar
     ADD_IDX(layerTexCoord.details).mappingType = ADD_IDX(layerTexCoord.base).mappingType = mappingType;
