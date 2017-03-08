@@ -70,159 +70,18 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 			#pragma shader_feature _ _SHARED_SPECULAR_DIFFUSE _SPECGLOSSMAP _SPECULAR_COLOR
 			#pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
 			#pragma shader_feature _NORMALMAP
-			
+
 			#pragma multi_compile _ LIGHTMAP_ON
 			#pragma multi_compile _ HARD_SHADOWS SOFT_SHADOWS
 			#pragma multi_compile_fog
 			#pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3 metal
 			#pragma enable_d3d11_debug_symbols
-			
+
 			#include "UnityCG.cginc"
 			#include "UnityStandardBRDF.cginc"
 			#include "UnityStandardInput.cginc"
 			#include "UnityStandardUtils.cginc"
-
-			#define DEBUG_CASCADES 0
-			#define MAX_SHADOW_CASCADES 4
-			#define MAX_LIGHTS 8
-
-			#define INITIALIZE_LIGHT(light, lightIndex) \
-							light.pos = globalLightPos[lightIndex]; \
-							light.color = globalLightColor[lightIndex]; \
-							light.atten = globalLightAtten[lightIndex]; \
-							light.spotDir = globalLightSpotDir[lightIndex]
-
-			// The variables are very similar to built-in unity_LightColor, unity_LightPosition,
-			// unity_LightAtten, unity_SpotDirection as used by the VertexLit shaders, except here
-			// we use world space positions instead of view space.
-			half4 globalLightColor[MAX_LIGHTS];
-			float4 globalLightPos[MAX_LIGHTS];
-			half4 globalLightSpotDir[MAX_LIGHTS];
-			half4 globalLightAtten[MAX_LIGHTS];
-			int4  globalLightCount; // x: pixelLightCount, y = totalLightCount (pixel + vert)
-
-			sampler2D_float _ShadowMap;
-			float _PCFKernel[8];
-
-			half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
-			half4 _PSSMDistancesAndShadowResolution; // xyz: PSSM Distance for 4 cascades, w: 1 / shadowmap resolution. Used for filtering
-			half _SpecularStrength;
-
-			struct LowendVertexInput
-			{
-				float4 vertex : POSITION;
-				float3 normal : NORMAL;
-				float4 tangent : TANGENT;
-				float3 texcoord : TEXCOORD0;
-				float2 lightmapUV : TEXCOORD1;
-			};
-
-			struct v2f
-			{
-				float4 uv01 : TEXCOORD0; // uv01.xy: uv0, uv01.zw: uv1
-				float4 posWS : TEXCOORD1; // xyz: posWorld, w: eyeZ
-	#if _NORMALMAP
-				half3 tangentToWorld[3] : TEXCOORD2; // tangentToWorld matrix
-	#else
-				half3 normal : TEXCOORD2;
-	#endif
-				half4 viewDir : TEXCOORD5; // xyz: viewDir
-				UNITY_FOG_COORDS_PACKED(6, half4) // x: fogCoord, yzw: vertexColor
-				float4 hpos : SV_POSITION;
-			};
-
-			struct LightInput
-			{
-				half4 pos;
-				half4 color;
-				half4 atten;
-				half4 spotDir;
-			};
-
-			inline half ComputeCascadeIndex(half eyeZ)
-			{
-				// PSSMDistance is set to infinity for non active cascades. This way the comparison for unavailable cascades will always be zero. 
-				half3 cascadeCompare = step(_PSSMDistancesAndShadowResolution.xyz, half3(eyeZ, eyeZ, eyeZ));
-				return dot(cascadeCompare, cascadeCompare);
-			}
-
-			inline half ShadowAttenuation(half2 shadowCoord, half shadowCoordDepth)
-			{
-				half depth = tex2D(_ShadowMap, shadowCoord).r;
-	#if defined(UNITY_REVERSED_Z)
-				return step(depth, shadowCoordDepth);
-	#else
-				return step(shadowCoordDepth, depth); 
-	#endif
-			}
-
-			inline half ShadowPCF(half4 shadowCoord)
-			{
-				// TODO: simulate textureGatherOffset not available, simulate it
-				half2 offset = half2(0, 0);
-				half attenuation = ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[0], _PCFKernel[1]) + offset, shadowCoord.z) +
-					ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[2], _PCFKernel[3]) + offset, shadowCoord.z) +
-					ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[4], _PCFKernel[5]) + offset, shadowCoord.z) +
-					ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[6], _PCFKernel[7]) + offset, shadowCoord.z);
-				return attenuation * 0.25;
-			}
-
-			inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float3 posWorld, half3 viewDir)
-			{
-				float3 posToLight = lightInput.pos.xyz;
-				posToLight -= posWorld * lightInput.pos.w;
-
-				float distanceSqr = max(dot(posToLight, posToLight), 0.001);
-				float lightAtten = 1.0 / (1.0 + distanceSqr * lightInput.atten.z);
-
-				float3 lightDir = posToLight * rsqrt(distanceSqr);
-				float SdotL = saturate(dot(lightInput.spotDir.xyz, lightDir));
-				lightAtten *= saturate((SdotL - lightInput.atten.x) / lightInput.atten.y);
-
-				float cutoff = step(distanceSqr, lightInput.atten.w);
-				lightAtten *= cutoff;
-
-				float NdotL = saturate(dot(normal, lightDir));
-
-				half3 halfVec = normalize(lightDir + viewDir);
-				half NdotH = saturate(dot(normal, halfVec));
-
-				half3 lightColor = lightInput.color.rgb * lightAtten;
-				half3 diffuse = diffuseColor * lightColor * NdotL;
-
-#if defined(_SHARED_SPECULAR_DIFFUSE) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-				half3 specular = specularGloss.rgb * lightColor * pow(NdotH, 256.0 - _SpecularStrength) * specularGloss.a;
-				return diffuse + specular;
-#else
-				return diffuse;
-#endif
-			}
-
-			inline half3 EvaluateMainLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float4 posWorld, half3 viewDir)
-			{
-				half3 color = EvaluateOneLight(lightInput, diffuseColor, specularGloss, normal, posWorld, viewDir);
-
-#if defined(HARD_SHADOWS) || defined(SOFT_SHADOWS)
-				int cascadeIndex = ComputeCascadeIndex(posWorld.w);
-				float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
-				shadowCoord.z = saturate(shadowCoord.z);
-
-#ifdef SOFT_SHADOWS
-				half shadowAttenuation = ShadowPCF(shadowCoord);
-#else
-				half shadowAttenuation = ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
-#endif
-
-#if DEBUG_CASCADES
-				half3 cascadeColors[MAX_SHADOW_CASCADES] = { half3(1.0, 0.0, 0.0), half3(0.0, 1.0, 0.0),  half3(0.0, 0.0, 1.0),  half3(1.0, 0.0, 1.0) };
-				return cascadeColors[cascadeIndex] * diffuseColor * max(shadowAttenuation, 0.5);
-#endif
-
-				return color * shadowAttenuation;
-#else
-				return color;
-#endif
-			}
+            #include "LowEndMobilePipelineCore.cginc"
 
 			v2f vert(LowendVertexInput v)
 			{
@@ -234,7 +93,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 				o.hpos = UnityObjectToClipPos(v.vertex);
 
 				o.posWS.xyz = mul(unity_ObjectToWorld, v.vertex).xyz;
-				o.posWS.w = -UnityObjectToViewPos(v.vertex).z; 
+				o.posWS.w = -UnityObjectToViewPos(v.vertex).z;
 
 				o.viewDir.xyz = normalize(_WorldSpaceCameraPos - o.posWS.xyz);
 				half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
@@ -278,56 +137,29 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 				clip(alpha - _Cutoff);
 #endif
 
-#if _NORMALMAP
-				half3 normalmap = UnpackNormal(tex2D(_BumpMap, i.uv01.xy));
+                half3 normal;
+                NormalMap(i, normal);
 
-				// glsl compiler will generate underperforming code by using a row-major pre multiplication matrix: mul(normalmap, i.tangentToWorld)
-				// i.tangetToWorld was initialized as column-major in vs and here dot'ing individual for better performance. 
-				// The code below is similar to post multiply: mul(i.tangentToWorld, normalmap)
-				half3 normal = half3(dot(normalmap, i.tangentToWorld[0]), dot(normalmap, i.tangentToWorld[1]), dot(normalmap, i.tangentToWorld[2]));
-#else
-				half3 normal = normalize(i.normal);
-#endif
-
-				half4 specularGloss; 
-#ifdef _SHARED_SPECULAR_DIFFUSE
-				specularGloss.rgb = diffuse;
-				specularGloss.a = alpha;
-#elif defined(_SHARED_SPECULAR_DIFFUSE)
-#if _GLOSSINESS_FROM_BASE_ALPHA
-				specularGloss.rgb = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
-				specularGloss.a = alpha;
-#else
-				specularGloss = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
-#endif
-#else
-#if _GLOSSINESS_FROM_BASE_ALPHA
-				specularGloss.rgb = _SpecColor;
-				specularGloss.a = alpha;
-#else
-				specularGloss = _SpecColor;
-#endif
-#endif
-				
-				float3 posWorld = i.posWS.xyz;
-				half3 viewDir = i.viewDir.xyz;
+				half4 specularGloss;
+                SpecularGloss(diffuse, alpha, specularGloss);
 
 				// Indirect Light Contribution
 				half3 indirectDiffuse;
-#ifdef LIGHTMAP_ON
-				indirectDiffuse = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
-#else
-				indirectDiffuse = i.fogCoord.yzw * diffuse;
-#endif
+                IndirectDiffuse(i, diffuse, indirectDiffuse);
+
 				// Compute direct contribution from main directional light.
 				// Only a single directional shadow caster is supported.
 				LightInput mainLight;
 				INITIALIZE_LIGHT(mainLight, 0);
 
+                float3 posWorld = i.posWS.xyz;
+                 half3 viewDir = i.viewDir.xyz;
+
 #if DEBUG_CASCADES
 				return half4(EvaluateMainLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir), 1.0);
 #endif
-				half3 directColor = EvaluateMainLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir);
+
+                half3 directColor = EvaluateMainLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir);
 
 				// Compute direct contribution from additional lights.
 				for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)
@@ -338,13 +170,9 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 				}
 
 				half3 color = directColor + indirectDiffuse + _EmissionColor;
-				UNITY_APPLY_FOG(i.fogCoord, color); 
+				UNITY_APPLY_FOG(i.fogCoord, color);
 
-#ifdef _ALPHABLEND_ON 
-				return half4(color, alpha);
-#else
-				return half4(color, 1);
-#endif
+                return OutputColor(color, alpha);
 			};
 			ENDCG
 		}
@@ -354,7 +182,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 			Name "LD_SHADOW_CASTER"
 			Tags { "Lightmode" = "ShadowCaster" }
 
-			ZWrite On ZTest LEqual 
+			ZWrite On ZTest LEqual
 
 			CGPROGRAM
 			#pragma target 2.0
@@ -364,7 +192,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 			float4 _WorldLightDirAndBias;
 
 			#include "UnityCG.cginc"
-			
+
 			struct VertexInput
 			{
 				float4 pos : POSITION;
@@ -406,7 +234,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 			{
 				return ClipSpaceShadowCasterPos(i.pos, i.normal);
 			}
-				
+
 			half4 frag() : SV_TARGET
 			{
 				return 0;
