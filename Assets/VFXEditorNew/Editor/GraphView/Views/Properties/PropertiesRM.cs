@@ -68,7 +68,9 @@ namespace UnityEditor.VFX.UI
 
         static Dictionary<Type,Type> m_TypeDictionary =  new Dictionary<Type,Type>
         {
-            {typeof(Spaceable),typeof(SpaceablePropertyRM)},
+            {typeof(Vector),typeof(VectorPropertyRM)},
+            {typeof(Position),typeof(PositionPropertyRM)},
+            {typeof(Spaceable),typeof(SpaceablePropertyRM<Spaceable>)},
             {typeof(bool),typeof(BoolPropertyRM)},
             {typeof(float),typeof(FloatPropertyRM)},
             {typeof(int),typeof(IntPropertyRM)},
@@ -148,29 +150,6 @@ namespace UnityEditor.VFX.UI
         public abstract void UpdateGUI();
 
         protected T m_Value;
-    }
-    class SpaceablePropertyRM : PropertyRM<Spaceable>
-    {
-        public SpaceablePropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
-        {
-            m_Button = new VisualElement(){text=presenter.name};
-            m_Button.AddManipulator(new Clickable(OnButtonClick));
-            m_Button.AddToClassList("button");
-            AddChild(m_Button);
-        }
-
-        void OnButtonClick()
-        {
-            m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % (int)CoordinateSpace.SpaceCount);
-            NotifyValueChanged();
-        }
-
-        public override void UpdateGUI()
-        {
-            m_Button.text = m_Value.space.ToString();
-        }
-
-        VisualElement m_Button;
     }
 
     class BoolPropertyRM : PropertyRM<bool>
@@ -267,10 +246,6 @@ namespace UnityEditor.VFX.UI
             m_YFloatField = new FloatField("Y");
             m_YFloatField.onValueChanged = OnValueChanged;
              
-
-            VisualElement spacer = new VisualElement(){flex=1};
-
-            fieldContainer.AddChild(spacer);
             fieldContainer.AddChild(m_XFloatField);
             fieldContainer.AddChild(m_YFloatField);
 
@@ -312,9 +287,6 @@ namespace UnityEditor.VFX.UI
             m_ZFloatField.onValueChanged = OnValueChanged;
              
 
-            VisualElement spacer = new VisualElement(){flex=1};
-
-            fieldContainer.AddChild(spacer);
             fieldContainer.AddChild(m_XFloatField);
             fieldContainer.AddChild(m_YFloatField);
             fieldContainer.AddChild(m_ZFloatField);
@@ -361,10 +333,10 @@ namespace UnityEditor.VFX.UI
             m_WFloatField = new FloatField("W");
             m_WFloatField.onValueChanged = OnValueChanged;
              
-
+            /*
             VisualElement spacer = new VisualElement(){flex=1};
 
-            fieldContainer.AddChild(spacer);
+            fieldContainer.AddChild(spacer);*/
             fieldContainer.AddChild(m_XFloatField);
             fieldContainer.AddChild(m_YFloatField);
             fieldContainer.AddChild(m_ZFloatField);
@@ -405,6 +377,7 @@ namespace UnityEditor.VFX.UI
             m_ColorField.onValueChanged = OnValueChanged;
 
             mainContainer.AddChild(m_ColorField);
+            mainContainer.AddToClassList("maincontainer");
 
             VisualContainer fieldContainer = new VisualContainer();
             fieldContainer.AddToClassList("fieldContainer");
@@ -421,10 +394,6 @@ namespace UnityEditor.VFX.UI
             m_AFloatField = new FloatField("A");
             m_AFloatField.onValueChanged = OnValueChanged;
 
-
-            VisualElement spacer = new VisualElement(){flex=1};
-
-            fieldContainer.AddChild(spacer);
             fieldContainer.AddChild(m_RFloatField);
             fieldContainer.AddChild(m_GFloatField);
             fieldContainer.AddChild(m_BFloatField);
@@ -434,9 +403,6 @@ namespace UnityEditor.VFX.UI
 
             mainContainer.flexDirection = FlexDirection.Column;
             mainContainer.alignItems = Align.Stretch;
-            mainContainer.minWidth= 100;
-            mainContainer.minHeight = 13;
-
             AddChild(mainContainer);
         }
 
@@ -496,6 +462,112 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             m_CurveField.SetValue(m_Value);
+        }
+    }
+
+
+    class SpaceablePropertyRM<T> : PropertyRM<T> where T : Spaceable
+    {
+        public SpaceablePropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        {
+            m_Button = new VisualElement(){text="L"};
+            m_Button.AddManipulator(new Clickable(OnButtonClick));
+            m_Button.AddToClassList("button");
+            AddChild(m_Button);
+            AddToClassList("spaceablepropertyrm");
+        }
+
+        void OnButtonClick()
+        {
+            m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % (int)CoordinateSpace.SpaceCount);
+            NotifyValueChanged();
+        }
+
+        public override void UpdateGUI()
+        {
+            m_Button.text = m_Value.space.ToString().Substring(0,1);
+        }
+
+        VisualElement m_Button;
+    }
+
+    abstract class Vector3SpacabledPropertyRM<T> : SpaceablePropertyRM<T> where T : Spaceable
+    {
+        public Vector3SpacabledPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        {
+            VisualContainer fieldContainer = new VisualContainer();
+            fieldContainer.AddToClassList("fieldContainer");
+
+            m_XFloatField = new FloatField("X");
+            m_XFloatField.onValueChanged = OnValueChanged;
+
+            m_YFloatField = new FloatField("Y");
+            m_YFloatField.onValueChanged = OnValueChanged;
+
+            m_ZFloatField = new FloatField("Z");
+            m_ZFloatField.onValueChanged = OnValueChanged;
+             
+
+            fieldContainer.AddChild(m_XFloatField);
+            fieldContainer.AddChild(m_YFloatField);
+            fieldContainer.AddChild(m_ZFloatField);
+
+            AddChild(fieldContainer);
+        }
+
+        public abstract void OnValueChanged();
+
+        protected FloatField m_XFloatField;
+        protected FloatField m_YFloatField;
+        protected FloatField m_ZFloatField;
+        
+    }
+
+    class VectorPropertyRM : Vector3SpacabledPropertyRM<Vector>
+    {
+        public VectorPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        {
+        }
+
+        public override void OnValueChanged()
+        {
+            Vector3 newValue = new Vector3(m_XFloatField.GetValue(),m_YFloatField.GetValue(),m_ZFloatField.GetValue());
+            if( newValue != m_Value.vector )
+            {
+                m_Value.vector = newValue;
+                NotifyValueChanged();
+            }
+        }
+        public override void UpdateGUI()
+        {
+            base.UpdateGUI();
+            m_XFloatField.SetValue(m_Value.vector.x);
+            m_YFloatField.SetValue(m_Value.vector.y);
+            m_ZFloatField.SetValue(m_Value.vector.z);
+        }
+    }
+
+    class PositionPropertyRM : Vector3SpacabledPropertyRM<Position>
+    {
+        public PositionPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        {
+        }
+
+        public override void OnValueChanged()
+        {
+            Vector3 newValue = new Vector3(m_XFloatField.GetValue(),m_YFloatField.GetValue(),m_ZFloatField.GetValue());
+            if( newValue != m_Value.position )
+            {
+                m_Value.position = newValue;
+                NotifyValueChanged();
+            }
+        }
+        public override void UpdateGUI()
+        {
+            base.UpdateGUI();
+            m_XFloatField.SetValue(m_Value.position.x);
+            m_YFloatField.SetValue(m_Value.position.y);
+            m_ZFloatField.SetValue(m_Value.position.z);
         }
     }
 }

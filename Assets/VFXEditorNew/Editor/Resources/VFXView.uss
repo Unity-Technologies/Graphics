@@ -36,8 +36,8 @@ VFXContextUI {
 }
 VFXContextUI #NodeContents
 {
-	
-	border-color: rgba(0,0,0,0);
+	width:368;
+	border-color: rgb(100, 100, 100);
 	border-radius:6;
 	border-width: 2;
 }
@@ -63,6 +63,7 @@ VFXContextUI > * >#Title {
 	padding-left: 8;
 	padding-bottom: 8;
 	padding-right: 8;
+	flex:1;
 	
 }
 
@@ -83,6 +84,8 @@ VFXContextUI BlockContainer {
 	
 VFXBlockUI.node.horizontal {
 	background-color: #2C2C2C;
+	flex:1;
+	align-items:stretch;
 }
 
 VFXBlockUI.node.horizontal #pane
@@ -92,6 +95,7 @@ VFXBlockUI.node.horizontal #pane
 	border-right: 2;
 	border-bottom: 2;
 	flex-direction:column;
+	flex:1;
 }
 
 VFXBlockUI.horizontal.node #pane > #left
@@ -101,7 +105,6 @@ VFXBlockUI.horizontal.node #pane > #left
 
 VFXBlockUI.node.horizontal #title {
 	flex-direction:row;
-	background-color:#F00;
 }
 
 VFXBlockUI.node.horizontal #title Button
@@ -156,6 +159,13 @@ VFXDataAnchor
 	padding-bottom:0;
 	min-height:17;
 	margin-left:-12px;
+	margin-bottom:1;
+	margin-right:4px;
+}
+
+VFXDataAnchor .propertyrm
+{
+	flex:1;
 }
 
 VFXDataAnchor .space

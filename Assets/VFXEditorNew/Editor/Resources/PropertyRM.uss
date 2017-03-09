@@ -1,110 +1,141 @@
 .propertyrm
 {
-	margin-left:12px;
-	flex-direction: row;
-	-align-items: stretch;
-	-background-color: #F00;
+    margin-left:12px;
+    flex-direction: row;
 }
 
 .propertyrm #icon
 {
-	margin-top:2;
-	width:16;
-	height:16;
+    margin-top:2;
+    width:16;
+    height:16;
 }
 
 .propertyrm .button
 {
-	-flex:1;
-	border-width:1;
-	border-radius:4;
+    -flex:1;
+    border-width:1;
+    border-radius:4;
 
-	border-color: rgb(153,153,153);
-	text-color: rgb(153,153,153);
-	text-alignment: middle-center;
-	margin-top:2;
-	margin-bottom:2;
-	margin-right:2;
-	margin-left:2;
-	padding-top:1;
-	padding-bottom:1;
-	padding-left:1;
-	padding-right:1;
-	width:50;
+    border-color: rgb(153,153,153);
+    text-color: rgb(153,153,153);
+    text-alignment: middle-center;
+    margin-top:2;
+    margin-bottom:2;
+    margin-right:2;
+    margin-left:2;
+    padding-top:1;
+    padding-bottom:1;
+    padding-left:1;
+    padding-right:3;
+    width:14;
 }
 
 .propertyrm #label
 {
-	text-color: rgb(153,153,153);
-	min-width:70;
+    text-color: rgb(153,153,153);
+    min-width:80;
 }
 
-.propertyrm * .textfield
+.spaceablepropertyrm.propertyrm #label
 {
-	text-color:#BBB;
-
-	border-width:1;
-	border-right:1;
-	border-color:rgba(0,0,0,0);
-	text-alignment:middle-right;
-	
-	padding-top:1;
-	padding-bottom:1;
-	padding-left:3;
-	padding-right:3;
+    min-width:64;
 }
 
-.propertyrm * .textfield:focus
+
+.propertyrm .fieldContainer > *
 {
-	border-color:#BBB;
+    flex:1;
+}
+.propertyrm .textfield
+{
+    text-color:#BBB;
+
+    border-width:1;
+    border-right:1;
+    
+    border-color:#BBB;
+    text-alignment:middle-left;
+    
+    padding-top:1;
+    padding-bottom:1;
+    padding-left:3;
+    padding-right:3;
+    flex:1;
 }
 
-.propertyrm * .label
+.propertyrm .fieldContainer  * .textfield:focus
 {
-	text-color:#888;
+}
+
+.propertyrm .fieldContainer * .label
+{
+    text-color:#888;
+    width:12;
+    padding-left:2;
 }
 .propertyrm .fieldContainer
 {
-	align-items: center;
-	flex-direction:row;
-	-flex:1
+    -align-items: center;
+    flex-direction:row;
+    flex:1;
 }
 
-BoolPropertyRM Toggle
+BoolPropertyRM Toogle
 {
-	margin-top:-4;
-	width:32,
-	height:17
+    margin-top:-4;
+    width:17;
+    height:17;
+    border-color:#F00;
+    border-width:2;
+}
+
+ColorPropertyRM
+{
+	flex-direction:row;
+}
+
+ColorPropertyRM .maincontainer
+{
+	flex:1;
 }
 
 ColorField
 {
-	border-width:1;
-	border-top:1;
-	border-bottom:1;
-	border-left:1;
-	border-right:1;
-	border-color:#000;
+    border-width:1;
+    border-top:1;
+    border-bottom:1;
+    border-left:1;
+    border-right:1;
+    border-color:#000;
+    flex:1;
 }
 
 FloatPropertyRM FloatField
 {
-	align-self:flex-end;
+    align-self:flex-end;
+    flex:1;
+}
+
+IntPropertyRM IntField
+{
+    align-self:flex-end;
+    flex:1;
 }
 
 CurveField .curve
 {
-	flex:1;
-	height:13;
-	border-width:1;
-	border-color:#000;
+    flex:1;
+    height:13;
+    border-width:1;
+    border-color:#000;
 }
 CurvePropertyRM CurveField
 {
-	flex:1;
+    flex:1;
 }
 CurvePropertyRM
 {
-	flex:1;
-	min-width:100;
+    flex:1;
+    min-width:100;
 }
