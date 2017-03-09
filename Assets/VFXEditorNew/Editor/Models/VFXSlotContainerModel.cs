@@ -139,7 +139,7 @@ namespace UnityEditor.VFX
                     var slot = VFXSlot.Create(property, direction, GetExpressionFromObject(value));
                     if (slot != null)
                     {
-                        AddSlot(slot);
+                        AddSlot(slot,false);
                     }
                 }
             }

@@ -26,18 +26,20 @@ namespace UnityEditor.VFX
             {
                 return m_CurrentExpression;
             }
-            set 
-            {
-                if (m_CurrentExpression != value)
-                {
-                    if (!CanConvert(value))
-                    {
-                        throw new Exception();
-                    }
+        }
 
-                    m_CurrentExpression = ConvertExpression(value);
-                    Invalidate(InvalidationCause.kConnectionChanged); // trigger a rebuild
+        public void SetExpression(VFXExpression expression,bool notify = true)
+        {
+            if (m_CurrentExpression != expression)
+            {
+                if (!CanConvert(expression))
+                {
+                    throw new Exception();
                 }
+
+                m_CurrentExpression = ConvertExpression(expression);
+                if (notify)
+                    Invalidate(InvalidationCause.kConnectionChanged); // trigger a rebuild
             }
         }
 
@@ -83,7 +85,7 @@ namespace UnityEditor.VFX
                 {
                     var subSlot = Create(subInfo, direction, null /* TODO : transform base expression to subproperty */);
                     if (subSlot != null)
-                        subSlot.Attach(slot);
+                        subSlot.Attach(slot,false);
                 }
 
                 return slot;
@@ -100,7 +102,7 @@ namespace UnityEditor.VFX
             return direction != other.direction && !m_LinkedSlots.Contains(other) && CanConvert(other.expression);
         }
 
-        public bool Link(VFXSlot other)
+        public bool Link(VFXSlot other, bool notify = true)
         {
             if (other == null)
                 return false;
@@ -110,40 +112,106 @@ namespace UnityEditor.VFX
 
             if (other.direction == Direction.kInput)
             {
-                InnerLink(other);
-                other.InnerLink(this);
+                InnerLink(other, notify);
+                other.InnerLink(this, notify);
             }
             else
             {
-                other.InnerLink(this);
-                InnerLink(other);
+                other.InnerLink(this, notify);
+                InnerLink(other, notify);
             }
 
             return true;
         }
 
-        public void Unlink(VFXSlot other)
+        public void Unlink(VFXSlot other, bool notify = true)
         {
             if (m_LinkedSlots.Contains(other))
             {
-                InnerUnlink(other);
-                other.InnerUnlink(this);
+                InnerUnlink(other,notify);
+                other.InnerUnlink(this,notify);
             }
         }
 
-        public void UnlinkAll()
+        protected void PropagateToOwner(Action<IVFXSlotContainer> func)
+        {
+            if (m_Owner != null)
+                func(m_Owner);
+            else
+            {
+                var parent = GetParent();
+                if (parent != null)
+                    parent.PropagateToOwner(func);
+            }
+        }
+
+        protected void PropagateToParent(Action<VFXSlot> func)
+        {
+            var parent = GetParent();
+            if (parent != null)
+            {
+                func(parent);
+                PropagateToParent(func);   
+            }
+        }
+
+        protected void PropagateToChildren(Action<VFXSlot> func)
+        {
+            foreach (var child in children)
+            {
+                func(child);
+                PropagateToChildren(func);
+            }
+        }
+
+        protected void PropagateToTree(Action<VFXSlot> func)
+        {
+            PropagateToParent(func);
+            PropagateToChildren(func);
+        }
+
+        private void SetAndPropagateExpression(VFXExpression expression)
+        {
+            SetExpression(refSlot.expression, false);
+            PropagateToParent(s => s.SetExpressionFromChildren());
+            PropagateToChildren(s => s.SetExpressionFromParent());
+            PropagateToOwner(o => o.Invalidate(VFXModel.InvalidationCause.kConnectionChanged)); // TODO Needs an invalidate with model passed   
+        }
+
+        private void ConnectInput(VFXSlot slot)
+        {
+            PropagateToTree(s => s.UnlinkAll(false)); // First unlink other links in tree
+            SetAndPropagateExpression(ConvertExpression(slot.expression));
+        }
+
+        private void DisconnectInput()
+        {
+            SetAndPropagateExpression(m_DefaultExpression); // Set the default expression
+        }
+
+        private void ConnectOutput(VFXSlot slot)
+        {
+            // Nothing
+        }
+
+        private void DisconnectOutput()
+        {
+            // Nothing
+        }
+
+        public void UnlinkAll(bool notify = true)
         {
             var currentSlots = new List<VFXSlot>(m_LinkedSlots);
             foreach (var slot in currentSlots)
-                Unlink(slot);
+                Unlink(slot,notify);
         }
 
-        private void InnerLink(VFXSlot other)
+        private void InnerLink(VFXSlot other,bool notify)
         {
             // inputs can only be linked to one output at a time
             if (direction == Direction.kInput)
             {
-                UnlinkAll();
+                UnlinkAll(notify);
 
                 // We need to unlink any potential slots link in the hierarchy
                 var currentParent = GetParent();
@@ -154,20 +222,36 @@ namespace UnityEditor.VFX
                 }
 
                 foreach (var child in children)
-                    child.UnlinkAll();
+                    child.UnlinkAll(notify);
             }
 
             m_LinkedSlots.Add(other);
-            Invalidate(InvalidationCause.kConnectionChanged);
+            if (notify)
+                Invalidate(InvalidationCause.kConnectionChanged);
         }
 
-        private void InnerUnlink(VFXSlot other)
+        private void InnerUnlink(VFXSlot other, bool notify)
         {
-            m_LinkedSlots.Remove(other);
-            Invalidate(InvalidationCause.kConnectionChanged);
+            if (m_LinkedSlots.Remove(other) && notify)
+                Invalidate(InvalidationCause.kConnectionChanged);
         }
 
-        protected override void Invalidate(VFXModel model, InvalidationCause cause)
+        protected virtual void Invalidate(VFXModel model,InvalidationCause cause)
+        {
+            // Dont call the base invalidate as we dont want to propagate to parent systematically
+
+            if (direction == Direction.kInput)
+            {
+
+            }
+
+        }
+
+
+
+
+
+        /*protected override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             base.Invalidate(model, cause);
 
@@ -184,13 +268,13 @@ namespace UnityEditor.VFX
                     else
                     {
                         //Reapply expression
-                        expression = refSlot.expression;
+                        SetExpression(refSlot.expression,false);
                     }
                 }
                 else
                 {
                     //No link anymore, default fallback
-                    expression = m_DefaultExpression;
+                    SetExpression(m_DefaultExpression,false);
                 }
 
                 if (m_Owner != null)
@@ -206,7 +290,7 @@ namespace UnityEditor.VFX
                     link.Invalidate(cause);
                 }
             }
-        }
+        }*/
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
@@ -241,6 +325,8 @@ namespace UnityEditor.VFX
             return expression;
         }
 
+        protected virtual void SetExpressionFromParent() {}
+        protected virtual void SetExpressionFromChildren() {}
 
         public override void OnBeforeSerialize()
         {
