@@ -235,6 +235,19 @@ namespace UnityEditor.VFX.UI
             return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && ! type.IsEnum;
         }
 
+
+
+        bool ShouldSkipLevel(Type type)
+        {
+            return typeof(Spaceable).IsAssignableFrom(type) && type.GetFields().Length == 2; // spaceable having only one member plus their space member.
+        }
+
+
+        bool ShouldIgnoreMember(Type type, FieldInfo field)
+        {
+            return typeof(Spaceable).IsAssignableFrom(type) && field.Name == "space";
+        }
+
         private IEnumerable<PropertyInfo> GetProperties(Type type, object value, string prefix, int depth)
         {
             if (type == null)
@@ -242,13 +255,29 @@ namespace UnityEditor.VFX.UI
 
             FieldInfo[] infos = type.GetFields(BindingFlags.Public|BindingFlags.Instance);
 
+
+            if( ShouldSkipLevel(type) )
+            {
+                foreach (var field in infos)
+                {
+                    if( ShouldIgnoreMember(type,field))
+                        continue;
+
+                    object fieldValue = field.GetValue(value);
+                    string fieldPath = string.IsNullOrEmpty(prefix)? field.Name:prefix + "." + field.Name;
+
+                    foreach (var subField in GetProperties(field.FieldType, fieldValue, fieldPath, depth + 1))
+                    {
+                        yield return subField;
+                    }
+                }
+                yield break;
+            }
+
             foreach (var field in infos)
             {
-                if (typeof(Spaceable).IsAssignableFrom(type))
-                {
-                    if( field.Name == "space")
-                        continue;
-                }
+                if( ShouldIgnoreMember(type,field))
+                    continue;
 
                 object fieldValue = field.GetValue(value);
 
