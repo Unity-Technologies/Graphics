@@ -48,7 +48,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             //-------------------------------------------------------------------------------------
 
             #define N_PROFILES 8
-            #define N_SAMPLES  7
+            #define N_SAMPLES  11
 
             float4 _FilterKernels[N_PROFILES][N_SAMPLES]; // RGB = weights, A = radial distance
             float4 _HalfRcpWeightedVariances[N_PROFILES]; // RGB for chromatic, A for achromatic
@@ -108,7 +108,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float  stepSize      = stepSizeY;
                 float2 unitDirection = float2(0, 1);
             #endif
-                float2 scaledDirection = distScale * stepSize * unitDirection;
+
+                float2   scaledDirection  = distScale * stepSize * unitDirection;
+                float    phi              = 0; // Random rotation; unused for now
+                float2x2 rotationMatrix   = float2x2(cos(phi), -sin(phi), sin(phi), cos(phi));
+                float2   rotatedDirection = mul(rotationMatrix, scaledDirection);
 
                 // Load (1 / (2 * WeightedVariance)) for bilateral weighting.
             #ifdef RBG_BILATERAL_WEIGHTS
@@ -132,7 +136,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [unroll]
                 for (int i = 1; i < N_SAMPLES; i++)
                 {
-                    samplePosition = posInput.unPositionSS + scaledDirection * _FilterKernels[profileID][i].a;
+                    samplePosition = posInput.unPositionSS + rotatedDirection * _FilterKernels[profileID][i].a;
                     sampleWeight   = _FilterKernels[profileID][i].rgb;
 
                     rawDepth         = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
