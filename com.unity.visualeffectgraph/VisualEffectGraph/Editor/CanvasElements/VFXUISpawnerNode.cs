@@ -41,6 +41,7 @@ namespace UnityEditor.Experimental.VFX
             menu.AddItem("Add New...", new MiniMenu.CallbackItem("Variable Rate", AddSpawnBlock,VFXSpawnerBlockModel.Type.kVariableRate));
             menu.AddItem("Add New...", new MiniMenu.CallbackItem("Simple Burst", AddSpawnBlock,VFXSpawnerBlockModel.Type.kBurst));
             menu.AddItem("Add New...", new MiniMenu.CallbackItem("Periodic Burst", AddSpawnBlock,VFXSpawnerBlockModel.Type.kPeriodicBurst));
+            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Custom Callback (WIP)", AddSpawnBlock, VFXSpawnerBlockModel.Type.kCustomCallback));
             return menu;
         }
 
