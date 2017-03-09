@@ -5,7 +5,14 @@ namespace UnityEditor.VFX.UI
 {
     public class VFXFlowEdge : Edge
     {
-		protected override void DrawEdge(IStylePainter painter)
+        public override int layer
+        {
+            get
+            {
+                return -1;
+            }
+        }
+        protected override void DrawEdge(IStylePainter painter)
 		{
 			var edgePresenter = GetPresenter<EdgePresenter>();
 
