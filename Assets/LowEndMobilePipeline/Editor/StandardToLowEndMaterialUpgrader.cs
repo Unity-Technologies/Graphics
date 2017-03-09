@@ -4,7 +4,7 @@ using UnityEditor.Experimental.Rendering;
 
 public class StandardToLowEndMaterialUpgrader : MaterialUpgrader
 {
-    [MenuItem("LowEndMobilePipeline/Material Upgraders/Upgrade Standard Materials to Low End Mobile")]
+    [MenuItem("RenderPipeline/LowEndMobilePipeline/Material Upgraders/Upgrade Standard Materials to Low End Mobile")]
     private static void UpgradeMaterialsToLD()
     {
         List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();

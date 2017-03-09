@@ -65,8 +65,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 // Setup light and shadow shader constants
                 SetupLightShaderVariables(cull.visibleLights, context);
                 if (shadowsRendered)
-                    SetupShadowShaderVariables(context, camera.nearClipPlane, cullingParameters.shadowDistance,
-                        m_ShadowSettings.directionalLightCascadeCount);
+                    SetupShadowShaderVariables(context, m_ShadowSettings.directionalLightCascadeCount);
 
                 // Render Opaques
                 var settings = new DrawRendererSettings(cull, camera, m_ForwardBasePassName);
@@ -315,21 +314,9 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             return resolution;
         }
 
-        void SetupShadowShaderVariables(ScriptableRenderContext context, float shadowNear, float shadowFar,
-            int cascadeCount)
+        void SetupShadowShaderVariables(ScriptableRenderContext context, int cascadeCount)
         {
             float shadowResolution = m_ShadowSlices[0].shadowResolution;
-
-            // PSSM distance settings
-            float shadowFrustumDepth = shadowFar - shadowNear;
-            Vector3 shadowSplitRatio = m_ShadowSettings.directionalLightCascades;
-
-            // We set PSSMDistance to infinity for non active cascades so the comparison test always fails for unavailable cascades
-            Vector4 PSSMDistances = new Vector4(
-                shadowNear + shadowSplitRatio.x*shadowFrustumDepth,
-                (shadowSplitRatio.y > 0.0f) ? shadowNear + shadowSplitRatio.y*shadowFrustumDepth : Mathf.Infinity,
-                (shadowSplitRatio.z > 0.0f) ? shadowNear + shadowSplitRatio.z*shadowFrustumDepth : Mathf.Infinity,
-                1.0f/shadowResolution);
 
             const int maxShadowCascades = 4;
             Matrix4x4[] shadowMatrices = new Matrix4x4[maxShadowCascades];
@@ -349,8 +336,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             var setupShadow = new CommandBuffer() {name = "SetupShadowShaderConstants"};
             SetShadowKeywords(setupShadow);
             setupShadow.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
-            setupShadow.SetGlobalVector("_PSSMDistancesAndShadowResolution", PSSMDistances);
-            setupShadow.SetGlobalVectorArray("g_vDirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
+            setupShadow.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
             setupShadow.SetGlobalFloatArray("_PCFKernel", pcfKernel);
             SetShadowKeywords(setupShadow);
             context.ExecuteCommandBuffer(setupShadow);
