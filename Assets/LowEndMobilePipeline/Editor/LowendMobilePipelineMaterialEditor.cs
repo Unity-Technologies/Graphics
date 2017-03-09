@@ -32,8 +32,8 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
 
     public enum GlossinessSource
     {
-        AlphaFromBaseTextureAndColor,
-        AlphaFromSpecularTextureAndColor
+        BaseAlpha,
+        SpecularAlpha
     }
 
     private void Awake()
@@ -176,7 +176,7 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
         {
             specularSource.floatValue = source;
             if (source == (int)SpecularSource.BaseTexture)
-                glossinessSourceProp.floatValue = (float)GlossinessSource.AlphaFromBaseTextureAndColor;
+                glossinessSourceProp.floatValue = (float)GlossinessSource.BaseAlpha;
         }
 
         SpecularSource specSource = (SpecularSource)specularSource.floatValue;
@@ -273,7 +273,7 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
         }
 
         GlossinessSource glossSource = (GlossinessSource)glossinessSourceProp.floatValue;
-        if (glossSource == GlossinessSource.AlphaFromBaseTextureAndColor)
+        if (glossSource == GlossinessSource.BaseAlpha)
             SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", true);
         else
             SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", false);

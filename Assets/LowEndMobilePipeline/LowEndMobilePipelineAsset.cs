@@ -26,7 +26,7 @@
         #region AssetAndPipelineCreation
 
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("LowEndMobilePipeline/Create Pipeline Asset")]
+        [UnityEditor.MenuItem("RenderPipeline/LowEndMobilePipeline/Create Pipeline Asset")]
         static void CreateLowEndPipeline()
         {
             var instance = ScriptableObject.CreateInstance<LowEndMobilePipelineAsset>();

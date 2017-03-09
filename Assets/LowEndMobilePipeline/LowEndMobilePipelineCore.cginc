@@ -28,7 +28,7 @@ struct LowendVertexInput
 struct v2f
 {
     float4 uv01 : TEXCOORD0; // uv01.xy: uv0, uv01.zw: uv1
-    float4 posWS : TEXCOORD1; // xyz: posWorld, w: eyeZ
+    float4 posWS : TEXCOORD1; // xyz: posWorld
 #if _NORMALMAP
     half3 tangentToWorld[3] : TEXCOORD2; // tangentToWorld matrix
 #else
@@ -52,8 +52,7 @@ sampler2D_float _ShadowMap;
 float _PCFKernel[8];
 
 half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
-float4 g_vDirShadowSplitSpheres[MAX_SHADOW_CASCADES];
-half4 _PSSMDistancesAndShadowResolution; // xyz: PSSM Distance for 4 cascades, w: 1 / shadowmap resolution. Used for filtering
+float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
 half _SpecularStrength;
 
 
@@ -77,19 +76,19 @@ inline void SpecularGloss(half3 diffuse, half alpha, out half4 specularGloss)
     specularGloss.rgb = diffuse;
     specularGloss.a = alpha;
 #elif defined(_SHARED_SPECULAR_DIFFUSE)
-    #if _GLOSSINESS_FROM_BASE_ALPHA
-        specularGloss.rgb = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
-        specularGloss.a = alpha;
-    #else
-        specularGloss = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
-    #endif
+#if _GLOSSINESS_FROM_BASE_ALPHA
+    specularGloss.rgb = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
+    specularGloss.a = alpha;
 #else
-    #if _GLOSSINESS_FROM_BASE_ALPHA
-        specularGloss.rgb = _SpecColor;
-        specularGloss.a = alpha;
-    #else
-        specularGloss = _SpecColor;
-    #endif
+    specularGloss = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
+#endif
+#else
+#if _GLOSSINESS_FROM_BASE_ALPHA
+    specularGloss.rgb = _SpecColor;
+    specularGloss.a = alpha;
+#else
+    specularGloss = _SpecColor;
+#endif
 #endif
 }
 
@@ -113,17 +112,17 @@ half4 OutputColor(half3 color, half alpha)
 
 inline half ComputeCascadeIndex(float3 wpos)
 {
-    float3 fromCenter0 = wpos.xyz - g_vDirShadowSplitSpheres[0].xyz;
-    float3 fromCenter1 = wpos.xyz - g_vDirShadowSplitSpheres[1].xyz;
-    float3 fromCenter2 = wpos.xyz - g_vDirShadowSplitSpheres[2].xyz;
-    float3 fromCenter3 = wpos.xyz - g_vDirShadowSplitSpheres[3].xyz;
+    float3 fromCenter0 = wpos.xyz - _DirShadowSplitSpheres[0].xyz;
+    float3 fromCenter1 = wpos.xyz - _DirShadowSplitSpheres[1].xyz;
+    float3 fromCenter2 = wpos.xyz - _DirShadowSplitSpheres[2].xyz;
+    float3 fromCenter3 = wpos.xyz - _DirShadowSplitSpheres[3].xyz;
     float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
 
     float4 vDirShadowSplitSphereSqRadii;
-    vDirShadowSplitSphereSqRadii.x = g_vDirShadowSplitSpheres[0].w;
-    vDirShadowSplitSphereSqRadii.y = g_vDirShadowSplitSpheres[1].w;
-    vDirShadowSplitSphereSqRadii.z = g_vDirShadowSplitSpheres[2].w;
-    vDirShadowSplitSphereSqRadii.w = g_vDirShadowSplitSpheres[3].w;
+    vDirShadowSplitSphereSqRadii.x = _DirShadowSplitSpheres[0].w;
+    vDirShadowSplitSphereSqRadii.y = _DirShadowSplitSpheres[1].w;
+    vDirShadowSplitSphereSqRadii.z = _DirShadowSplitSpheres[2].w;
+    vDirShadowSplitSphereSqRadii.w = _DirShadowSplitSpheres[3].w;
     fixed4 weights = float4(distances2 < vDirShadowSplitSphereSqRadii);
     weights.yzw = saturate(weights.yzw - weights.xyz);
     return 4 - dot(weights, float4(4, 3, 2, 1));
@@ -198,9 +197,9 @@ inline half3 EvaluateMainLight(LightInput lightInput, half3 diffuseColor, half4 
         shadowCoord.z = saturate(shadowCoord.z);
 
 #ifdef SOFT_SHADOWS
-    shadowAttenuation = ShadowPCF(shadowCoord);
+        shadowAttenuation = ShadowPCF(shadowCoord);
 #else
-    shadowAttenuation = ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
+        shadowAttenuation = ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
 #endif
     }
 
