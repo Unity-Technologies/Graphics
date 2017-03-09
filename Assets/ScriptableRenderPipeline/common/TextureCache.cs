@@ -59,7 +59,7 @@ public class TextureCacheCubemap : TextureCache
 
     // alternative panorama path intended for mobile
     // the member variables below are only in use when m_IsNoCubeArray is true.
-    private bool m_IsNoCubeArray = false;
+    private bool m_IsNoCubeArray = true;
     private Texture2DArray m_CacheNoCubeArray;
     private RenderTexture[] m_StagingRTs;
     private int m_NumPanoMipLevels;
