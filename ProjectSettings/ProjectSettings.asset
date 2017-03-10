@@ -10,7 +10,7 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: DefaultCompany
+  companyName: Unity
   productName: dev
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
@@ -85,6 +85,7 @@ PlayerSettings:
   xboxEnableFitness: 0
   visibleInBackground: 1
   allowFullscreenSwitch: 1
+  graphicsJobMode: 0
   macFullscreenMode: 2
   d3d9FullscreenMode: 1
   d3d11FullscreenMode: 1
@@ -138,7 +139,7 @@ PlayerSettings:
     Android: com.Company.ProductName
     Standalone: unity.DefaultCompany.dev
     Tizen: com.Company.ProductName
-    iOS: com.Company.ProductName
+    iOS: com.Unity.VV
     tvOS: com.Company.ProductName
   buildNumber:
     iOS: 0
@@ -207,7 +208,7 @@ PlayerSettings:
   iOSBackgroundModes: 0
   iOSMetalForceHardShadows: 0
   metalEditorSupport: 1
-  metalAPIValidation: 1
+  metalAPIValidation: 0
   appleDeveloperTeamID: 
   iOSManualSigningProvisioningProfileID: 
   tvOSManualSigningProvisioningProfileID: 
@@ -443,16 +444,6 @@ PlayerSettings:
   switchParentalControl: 0
   switchAllowsScreenshot: 1
   switchDataLossConfirmation: 0
-  XboxTitleId: 
-  XboxImageXexPath: 
-  XboxSpaPath: 
-  XboxGenerateSpa: 0
-  XboxDeployKinectResources: 0
-  XboxSplashScreen: {fileID: 0}
-  xboxEnableSpeech: 0
-  xboxAdditionalTitleMemorySize: 0
-  xboxDeployKinectHeadOrientation: 0
-  xboxDeployKinectHeadPosition: 0
   ps4NPAgeRating: 12
   ps4NPTitleSecret: 
   ps4NPTrophyPackPath: 

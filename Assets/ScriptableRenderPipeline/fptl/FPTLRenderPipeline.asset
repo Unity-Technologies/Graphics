@@ -33,7 +33,7 @@ MonoBehaviour:
     type: 3}
   buildScreenAABBShader: {fileID: 7200000, guid: e7a739144e735934b89a42a4b9d9e23c,
     type: 3}
-  buildPerTileLightListShader: {fileID: 7200000, guid: f54ef7cb596a714488693ef9cdaf63fb,
+  buildPerTileLightListShader: {fileID: 7200000, guid: 6b1c9f74123904a5bba79a11d6f48893,
     type: 3}
   buildPerBigTileLightListShader: {fileID: 7200000, guid: b5507a2ffdae8a84f94211c10d428920,
     type: 3}
