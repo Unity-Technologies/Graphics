@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class SubsurfaceScatteringProfile
     {
-        public const int numSamples = 7; // Must be an odd number
+        public const int numSamples = 11; // Must be an odd number
 
         [SerializeField, ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
         public Color   stdDev1;
@@ -61,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateKernelAndVarianceData()
         {
-            if (m_FilterKernel == null)
+            if (m_FilterKernel == null || m_FilterKernel.Length != numSamples)
             {
                 m_FilterKernel = new Vector4[numSamples];
             }
@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // as a product of a linear combination of two normalized 1D Gaussians
             // as suggested by Jimenez et al. in "Separable Subsurface Scattering".
             // A normalized (i.e. energy-preserving) 1D Gaussian with the mean of 0
-            // is defined as follows: G1(x, v) = exp(-x� / (2 * v)) / sqrt(2 * Pi * v),
+            // is defined as follows: G1(x, v) = exp(-x * x / (2 * v)) / sqrt(2 * Pi * v),
             // where 'v' is variance and 'x' is the radial distance from the origin.
             // Using the weight 'w', our 1D and the resulting 2D filters are given as:
             // A1(v1, v2, w, x)    = G1(x, v1) * (1 - w) + G1(r, v2) * w,
@@ -245,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 halfRcpWeightedVariances = new Vector4[maxNumProfiles];
             }
 
-            if (filterKernels == null)
+            if (filterKernels == null || filterKernels.Length != (maxNumProfiles * SubsurfaceScatteringProfile.numSamples))
             {
                 filterKernels = new Vector4[maxNumProfiles * SubsurfaceScatteringProfile.numSamples];
             }

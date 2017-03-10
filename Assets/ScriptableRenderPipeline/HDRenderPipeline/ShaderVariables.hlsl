@@ -290,9 +290,9 @@ float3 GetCurrentCameraPosition()
     // to represent the position of the primary (scene view) camera in order to
     // have identical tessellation levels for both the scene view and shadow views.
     // Otherwise, depth comparisons become meaningless!
-    float4x4 viewMat   = transpose(GetWorldToViewMatrix());
-    float3   rotCamPos = viewMat[3].xyz;
-   return mul((float3x3)viewMat, -rotCamPos);
+    float4x4 trViewMat = transpose(GetWorldToViewMatrix());
+    float3   rotCamPos = trViewMat[3].xyz;
+   return mul((float3x3)trViewMat, -rotCamPos);
 #endif
 }
 
