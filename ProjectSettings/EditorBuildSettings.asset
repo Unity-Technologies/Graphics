@@ -4,4 +4,10 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 0
+    path: Assets/TestScenes/FPTL/FPTL.unity
+    guid: ac502c5271c0a254b8a18fbe4b8a3bf1
+  - enabled: 1
+    path: Assets/TestScenes/Big/BenchRenderVikingVillageStatic/renderloopTest.unity
+    guid: 97926ffe68fa77947be0d1979ec2fc73
