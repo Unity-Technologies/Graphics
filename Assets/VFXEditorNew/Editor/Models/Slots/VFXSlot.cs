@@ -173,13 +173,14 @@ namespace UnityEditor.VFX
         private void SetAndPropagateExpression(VFXExpression expression)
         {
             SetExpression(refSlot.expression, false);
-            PropagateToParent(s => s.SetExpressionFromChildren());
-            PropagateToChildren(s => s.SetExpressionFromParent());
+            PropagateToParent(s => s.m_CurrentExpression = s.ExpressionFromChildren());
+            PropagateToChildren(s => s.m_CurrentExpression = s.GetParent().ExpressionToChildren()[0]);
             PropagateToOwner(o => o.Invalidate(VFXModel.InvalidationCause.kConnectionChanged)); // TODO Needs an invalidate with model passed   
         }
 
         private void ConnectInput(VFXSlot slot)
         {
+            UnlinkAll(false); // First disconnect any other linked slot
             PropagateToTree(s => s.UnlinkAll(false)); // First unlink other links in tree
             SetAndPropagateExpression(ConvertExpression(slot.expression));
         }
@@ -209,7 +210,7 @@ namespace UnityEditor.VFX
         private void InnerLink(VFXSlot other,bool notify)
         {
             // inputs can only be linked to one output at a time
-            if (direction == Direction.kInput)
+            /*if (direction == Direction.kInput)
             {
                 UnlinkAll(notify);
 
@@ -223,11 +224,17 @@ namespace UnityEditor.VFX
 
                 foreach (var child in children)
                     child.UnlinkAll(notify);
-            }
+            }*/
 
+
+
+            
             m_LinkedSlots.Add(other);
-            if (notify)
-                Invalidate(InvalidationCause.kConnectionChanged);
+            if (direction == Direction.kInput)
+                ConnectInput(other);
+
+            //if (notify)
+            //    Invalidate(InvalidationCause.kConnectionChanged);
         }
 
         private void InnerUnlink(VFXSlot other, bool notify)
@@ -325,8 +332,8 @@ namespace UnityEditor.VFX
             return expression;
         }
 
-        protected virtual void SetExpressionFromParent() {}
-        protected virtual void SetExpressionFromChildren() {}
+        protected virtual VFXExpression[] ExpressionToChildren()    { return null; }
+        protected virtual VFXExpression ExpressionFromChildren()    { return null; }
 
         public override void OnBeforeSerialize()
         {
@@ -339,9 +346,11 @@ namespace UnityEditor.VFX
             base.OnBeforeSerialize();
         }*/
 
-        //private VFXExpression m_CachedExpression;
+        private VFXExpression m_CachedExpression;
         private VFXExpression m_CurrentExpression;
         private VFXExpression m_DefaultExpression;
+        private VFXExpression m_InExpression;
+        private VFXExpression m_OutExpression;
 
         [NonSerialized]
         public IVFXSlotContainer m_Owner; // Don't set that directly! Only called by SlotContainer!
