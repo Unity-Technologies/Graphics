@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.Test
 
         [Test]
         public void LoadAssetFromPath()
-        {
+            {
             VFXGraphAsset asset = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(kTestAssetPath);
             CheckAsset(asset);
         }

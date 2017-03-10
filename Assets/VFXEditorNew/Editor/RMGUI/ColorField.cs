@@ -25,6 +25,7 @@ namespace UnityEditor.VFX.RMGUI
 
             m_Container.flexDirection = FlexDirection.Column;
             m_Container.alignItems = Align.Stretch;
+            m_Container.flex = 1;
             m_Container.AddToClassList("colorcontainer");
 
             m_ColorDisplay = new VisualElement(){height=10};
@@ -60,12 +61,24 @@ namespace UnityEditor.VFX.RMGUI
             alphaContainer.AddChild(m_NotAlphaDisplay);
 
 
+
+
             return m_Container;
         }
 
         void OnColorClick()
         {
-            ColorPicker.Show((System.Action < Color > )OnColorChanged, m_Value, true, true, new ColorPickerHDRConfig(0.0f, 100.0f, 0.0f, 100.0f));
+            ColorPicker.Show(OnColorChanged, m_Value, true, true, new ColorPickerHDRConfig(0.0f, 100.0f, 0.0f, 100.0f));
+        }
+
+        VisualElement CreateEyeDropper()
+        {
+            Texture2D eyeDropperIcon = EditorGUIUtility.IconContent ("EyeDropper.Large").image as Texture2D;
+            VisualElement eyeDropper = new VisualElement(){backgroundImage=eyeDropperIcon,width=eyeDropperIcon.width,height =eyeDropperIcon.height};
+
+            eyeDropper.AddManipulator(new Clickable(()=>EyeDropper.Start(OnColorChanged)));
+
+            return eyeDropper;
         }
 
         public ColorField(string label) 
@@ -81,9 +94,11 @@ namespace UnityEditor.VFX.RMGUI
 
             flexDirection = FlexDirection.Row;
             AddChild(container);
-        }
 
-        
+            
+
+            AddChild(CreateEyeDropper());
+        }
 
         public ColorField(VisualElement existingLabel)
         {
@@ -91,6 +106,8 @@ namespace UnityEditor.VFX.RMGUI
             AddChild(container);
 
             m_Label = existingLabel;
+            
+            AddChild(CreateEyeDropper());
         }
 
         void OnColorChanged(Color color)

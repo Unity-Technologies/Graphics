@@ -99,16 +99,27 @@ ColorPropertyRM .maincontainer
 {
 	flex:1;
 }
-
-ColorField
+ColorPropertyRM .colordisplay
 {
+	flex:1;
+}
+ColorPropertyRM .colorcontainer
+{
+	flex:1;
     border-width:1;
     border-top:1;
     border-bottom:1;
     border-left:1;
     border-right:1;
     border-color:#000;
+    margin-top:2;
+    margin-bottom:2;
+}
+
+ColorField
+{
     flex:1;
+    flex-direction:row;
 }
 
 FloatPropertyRM FloatField
