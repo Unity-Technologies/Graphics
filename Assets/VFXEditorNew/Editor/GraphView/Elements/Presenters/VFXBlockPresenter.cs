@@ -43,9 +43,6 @@ namespace UnityEditor.VFX.UI
         {
             if( model is VFXBlock)
             {
-                VFXBlock block = model as VFXBlock;
-
-
                 var inputs = inputAnchors;
                 inputs.Clear();
                 Dictionary<string, VFXDataInputAnchorPresenter> newAnchors = new Dictionary<string, VFXDataInputAnchorPresenter>();
@@ -102,62 +99,58 @@ namespace UnityEditor.VFX.UI
             public string path { get { return !string.IsNullOrEmpty(parentPath)?parentPath + "." + name : name; } }
         }
 
-        public void PropertyValueChanged(VFXDataAnchorPresenter presenter,object newValue)
-        {
-            //TODO undo/redo
+		public void PropertyValueChanged(VFXDataAnchorPresenter presenter, object newValue)
+		{
+			//TODO undo/redo
 
-            string[] fields = presenter.path.Split(new char[] { '.' },StringSplitOptions.RemoveEmptyEntries);
-
-
-            var properties = m_Model.GetProperties();
-            var buffers = m_Model.GetCurrentPropertiesValues();
+			string[] fields = presenter.path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
 
 
-            int index = System.Array.FindIndex(properties, t => t.name == fields[0]);
-            var prop = properties[index];
-            var buffer = buffers[index];
-
-            List<object> stack= new List<object>();
-
-            stack.Add(buffer);
-
-            for (int i = 1; i < fields.Length; ++i)
-            {
-                object current = stack[i-1];
-                FieldInfo fi = current.GetType().GetField(fields[i]);
-
-                stack.Add(fi.GetValue(current));
-            }
-            stack[stack.Count - 1] = newValue;
-
-            for (int i = stack.Count -1 ; i > 0 ; --i)
-            {
-                object current = stack[i];
-                object prev = stack[i - 1];
-
-                FieldInfo fi = prev.GetType().GetField(fields[i]);
-
-                fi.SetValue(prev, current);
-            }
-
-            buffers[index] = stack[0];
-
-            m_Model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
+			var properties = m_Model.GetProperties();
+			var buffers = m_Model.GetCurrentPropertiesValues();
 
 
-            foreach(var anchorPresenter in m_Anchors.Values)
-            {
-                // update child and parents.
-                if( anchorPresenter.path.StartsWith(presenter.path) || presenter.path.StartsWith(anchorPresenter.path))
-                {
-                    anchorPresenter.Dirty();
-                }
-            }
+			int index = System.Array.FindIndex(properties, t => t.name == fields[0]);
+			var buffer = buffers[index];
 
-        }
+			List<object> stack = new List<object>();
+
+			stack.Add(buffer);
+
+			for (int i = 1; i < fields.Length; ++i)
+			{
+				object current = stack[i - 1];
+				FieldInfo fi = current.GetType().GetField(fields[i]);
+
+				stack.Add(fi.GetValue(current));
+			}
+			stack[stack.Count - 1] = newValue;
+
+			for (int i = stack.Count - 1; i > 0; --i)
+			{
+				object current = stack[i];
+				object prev = stack[i - 1];
+
+				FieldInfo fi = prev.GetType().GetField(fields[i]);
+
+				fi.SetValue(prev, current);
+			}
+
+			buffers[index] = stack[0];
+
+			m_Model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
 
 
-        public event System.Action<VFXBlockPresenter> OnParamChanged;
+			foreach (var anchorPresenter in m_Anchors.Values)
+			{
+				// update child and parents.
+				if (anchorPresenter.path.StartsWith(presenter.path) || presenter.path.StartsWith(anchorPresenter.path))
+				{
+					anchorPresenter.Dirty();
+				}
+			}
+
+		}
 
         public void ExpandPath(string fieldPath)
         {

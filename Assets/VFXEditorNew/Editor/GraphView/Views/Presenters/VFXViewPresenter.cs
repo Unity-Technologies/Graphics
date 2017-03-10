@@ -503,7 +503,7 @@ namespace UnityEditor.VFX.UI
             }
 
             if (presenter != null)
-                m_Elements.RemoveAll(x => x == presenter); // We dont call RemoveElement as it modifies the model...
+				m_Elements.RemoveAll(x => (x == presenter)); // We dont call RemoveElement as it modifies the model...
         }
 
         private void RemoveFlowEdges(IEnumerable<VFXContextPresenter> presenters)
