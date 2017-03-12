@@ -69,11 +69,16 @@ TEXTURE2D_ARRAY(_CookieTextures);
 SAMPLER2D(sampler_CookieTextures);
 
 // Used by point lights
+#ifdef UNITY_NO_CUBEMAP_ARRAY
+TEXTURE2D_ARRAY(_CookieCubeTextures);
+SAMPLER2D(sampler_CookieCubeTextures);
+#else
 TEXTURECUBE_ARRAY(_CookieCubeTextures);
 SAMPLERCUBE(sampler_CookieCubeTextures);
+#endif
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
-#ifdef CUBE_ARRAY_NOT_SUPPORTED
+#ifdef UNITY_NO_CUBEMAP_ARRAY
 TEXTURE2D_ARRAY(_EnvTextures);
 SAMPLER2D(sampler_EnvTextures);
 #else
@@ -236,7 +241,11 @@ float4 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index
 // Returns the color in the RGB components, and the transparency (lack of occlusion) in A.
 float4 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
 {
+    #ifdef UNITY_NO_CUBEMAP_ARRAY
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieCubeTextures, sampler_CookieCubeTextures, DirectionToLatLongCoordinate(coord), index, 0);
+    #else
     return SAMPLE_TEXTURECUBE_ARRAY_LOD(_CookieCubeTextures, sampler_CookieCubeTextures, coord, index, 0);
+    #endif
 }
 
 //-----------------------------------------------------------------------------
@@ -263,7 +272,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
-        #ifdef CUBE_ARRAY_NOT_SUPPORTED
+        #ifdef UNITY_NO_CUBEMAP_ARRAY
         return SAMPLE_TEXTURE2D_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, DirectionToLatLongCoordinate(texCoord), index, lod);
         #else
         return SAMPLE_TEXTURECUBE_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, texCoord, index, lod);
