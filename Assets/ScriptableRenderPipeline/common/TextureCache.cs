@@ -1,5 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class TextureCache2D : TextureCache
 {
@@ -57,22 +60,17 @@ public class TextureCacheCubemap : TextureCache
 {
     private CubemapArray m_Cache;
 
-    // alternative panorama path intended for mobile
-    // the member variables below are only in use when m_IsNoCubeArray is true.
-    private bool m_IsNoCubeArray = true;
+    // the member variables below are only in use when TextureCache.supportsCubemapArrayTextures is false
     private Texture2DArray m_CacheNoCubeArray;
     private RenderTexture[] m_StagingRTs;
     private int m_NumPanoMipLevels;
     private Material m_CubeBlitMaterial;
     private int m_CubeMipLevelPropName;
     private int m_cubeSrcTexPropName;
-    // alternative panorama path intended for mobile
-    // the member variables below are only in use when m_IsNoCubeArray is true.
-
 
     public override void TransferToSlice(int sliceIndex, Texture texture)
     {
-        if(m_IsNoCubeArray)
+        if(!TextureCache.supportsCubemapArrayTextures)
             TransferToPanoCache(sliceIndex, texture);
         else
         {
@@ -112,7 +110,7 @@ public class TextureCacheCubemap : TextureCache
 
     public override Texture GetTexCache()
     {
-        return m_IsNoCubeArray ? (Texture) m_CacheNoCubeArray : m_Cache;
+        return !TextureCache.supportsCubemapArrayTextures ? (Texture) m_CacheNoCubeArray : m_Cache;
     }
 
     public bool AllocTextureArray(int numCubeMaps, int width, TextureFormat format, bool isMipMapped)
@@ -120,14 +118,14 @@ public class TextureCacheCubemap : TextureCache
         var res = AllocTextureArray(numCubeMaps);
         m_NumMipLevels = GetNumMips(width, width);      // will calculate same way whether we have cube array or not
         
-        if(m_IsNoCubeArray)
+        if(!TextureCache.supportsCubemapArrayTextures)
         {
             if(!m_CubeBlitMaterial) m_CubeBlitMaterial = new Material(Shader.Find("Hidden/CubeToPano"));
 
             int panoWidthTop = 4*width;
             int panoHeightTop = 2*width;
 
-            // create panorama 2D array. Hardcoding the render target for now when m_IsNoCubeArray is true. No convenient way atm. to
+            // create panorama 2D array. Hardcoding the render target for now. No convenient way atm to
             // map from TextureFormat to RenderTextureFormat and don't want to deal with sRGB issues for now.
             m_CacheNoCubeArray = new Texture2DArray(panoWidthTop, panoHeightTop, numCubeMaps, TextureFormat.RGBAHalf, isMipMapped)
             {
@@ -167,7 +165,7 @@ public class TextureCacheCubemap : TextureCache
 
     public void Release()
     {
-        if(m_IsNoCubeArray)
+        if (m_CacheNoCubeArray)
         {
             Texture.DestroyImmediate(m_CacheNoCubeArray);
             for(int m=0; m<m_NumPanoMipLevels; m++)
@@ -177,7 +175,8 @@ public class TextureCacheCubemap : TextureCache
             m_StagingRTs=null;
             if(m_CubeBlitMaterial) Material.DestroyImmediate(m_CubeBlitMaterial);
         }
-        else Texture.DestroyImmediate(m_Cache);
+        if (m_Cache)
+            Texture.DestroyImmediate(m_Cache);
     }
 
     private void TransferToPanoCache(int sliceIndex, Texture texture)
@@ -212,6 +211,52 @@ public abstract class TextureCache
         }
     }
 #endif
+
+    public static bool isMobileBuildTarget
+    {
+        get
+        {
+#if UNITY_EDITOR
+            switch (EditorUserBuildSettings.activeBuildTarget)
+            {
+                case BuildTarget.iOS:
+                case BuildTarget.Android:
+                case BuildTarget.Tizen:
+                case BuildTarget.WSAPlayer:
+                    // Note: We return true on purpose even if Windows Store Apps are running on Desktop.
+                    return true;
+                default:
+                    return false;
+            }
+#else
+            return Application.isMobilePlatform;
+#endif
+        }
+    }
+
+    public static TextureFormat GetPreferredCompressedTextureFormat
+    {
+        get
+        {
+            var format = TextureFormat.RGBAHalf;
+
+            var probeFormat = TextureFormat.BC6H;
+
+            // On editor the texture is uncompressed when operating against mobile build targets
+            if (SystemInfo.SupportsTextureFormat(probeFormat) && !TextureCache.isMobileBuildTarget)
+                format = probeFormat;
+
+            return format;
+        }
+    }
+
+    public static bool supportsCubemapArrayTextures
+    {
+        get
+        {
+            return (SystemInfo.supportsCubemapArrayTextures && !TextureCache.isMobileBuildTarget);
+        }
+    }
 
     private struct SSliceEntry
     {

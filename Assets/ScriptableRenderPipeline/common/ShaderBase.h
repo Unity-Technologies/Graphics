@@ -1,9 +1,6 @@
 #ifndef __SHADERBASE_H__
 #define __SHADERBASE_H__
 
-
-//#define CUBE_ARRAY_NOT_SUPPORTED
-
 half2 DirectionToSphericalTexCoordinate(half3 dir)
 {
 	// coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
@@ -11,8 +8,8 @@ half2 DirectionToSphericalTexCoordinate(half3 dir)
 	return half2( 1.0-0.5*recipPi*atan2(dir.x, -dir.z), asin(dir.y)*recipPi+0.5 );
 }
 
-#define CUBE_ARRAY_NOT_SUPPORTED
-#ifdef CUBE_ARRAY_NOT_SUPPORTED
+
+#ifdef UNITY_NO_CUBEMAP_ARRAY
 	#define UNITY_DECLARE_ABSTRACT_CUBE_ARRAY						UNITY_DECLARE_TEX2DARRAY
 	#define	UNITY_PASS_ABSTRACT_CUBE_ARRAY							UNITY_PASS_TEX2DARRAY
 	#define UNITY_ARGS_ABSTRACT_CUBE_ARRAY							UNITY_ARGS_TEX2DARRAY
