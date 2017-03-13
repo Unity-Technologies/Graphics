@@ -434,20 +434,6 @@ namespace UnityEditor.Experimental
                         continue;
 
                     var customTypeArr = new List<Type>();
-#if OLD_METHOD
-                    List<uint> spawnerStream = new List<uint>();
-                    spawnerStream.Add((uint)nbBlocks);
-                    for (int i = 0; i < nbBlocks; ++i)
-                    {
-                        VFXSpawnerBlockModel block = spawner.GetChild(i);
-                        customTypeArr.Add(block.SpawnerType == VFXSpawnerBlockModel.Type.kCustomCallback ? typeof(WorkInProgress.CustomSpawnerCallback) : default(Type)); //WIP
-                        spawnerStream.Add((uint)block.SpawnerType);
-                        for (int j = 0; j < block.GetNbInputSlots(); ++j)
-                            spawnerStream.Add((uint)m_Expressions[block.GetInputSlot(j).ValueRef].index); // Warning: This wont work for composite type but we dont have any in spawners atm
-                    }
-
-                    int spawnerIndex = asset.AddSpawner_Old(spawnerStream.ToArray(), customTypeArr.ToArray());
-#else
                     var spawnerDesc = new List<VFXSpawnerDesc>();
                     for (int i = 0; i < nbBlocks; ++i)
                     {
@@ -465,7 +451,6 @@ namespace UnityEditor.Experimental
                         spawnerDesc.Add(desc);
                     }
                     int spawnerIndex = asset.AddSpawner(spawnerDesc.ToArray());
-#endif
                     foreach (var context in spawner.LinkedContexts)
                         asset.LinkSpawner(context.GetOwner().Id, spawnerIndex);
 
