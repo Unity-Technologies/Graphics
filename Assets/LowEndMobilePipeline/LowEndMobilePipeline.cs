@@ -50,17 +50,17 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 cullingParameters.shadowDistance = m_ShadowSettings.maxShadowDistance;
                 CullResults cull = CullResults.Cull(ref cullingParameters, context);
 
-                var cmd = new CommandBuffer() {name = "Clear"};
-                cmd.ClearRenderTarget(true, true, Color.black);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
-
                 // Render Shadow Map
                 bool shadowsRendered = RenderShadows(cull, context);
 
                 // Draw Opaques with support to one directional shadow cascade
                 // Setup camera matrices
                 context.SetupCameraProperties(camera);
+
+                var cmd = new CommandBuffer() { name = "Clear" };
+                cmd.ClearRenderTarget(true, true, Color.black);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
 
                 // Setup light and shadow shader constants
                 SetupLightShaderVariables(cull.visibleLights, context);
