@@ -43,9 +43,9 @@ namespace UnityEditor.Experimental
 
         private class VFXSpawnerElement : VFXFilterWindow.Element
         {
-            public VFXSpawnerBlockModel.Type m_Type;
+            public VFXSpawnerType m_Type;
 
-            public VFXSpawnerElement(int level, VFXSpawnerBlockModel.Type type)
+            public VFXSpawnerElement(int level, VFXSpawnerType type)
             {
                 this.level = level;
                 content = new GUIContent("Spawner : " + VFXSpawnerBlockModel.TypeToName(type));
@@ -70,10 +70,10 @@ namespace UnityEditor.Experimental
             tree.Add(new VFXEventElement(2, "Custom", false));
 
             tree.Add(new VFXFilterWindow.GroupElement(1, "Spawner"));
-            tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kConstantRate));
-            tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kBurst));
-            tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kPeriodicBurst));
-            tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kVariableRate));
+            tree.Add(new VFXSpawnerElement(2, VFXSpawnerType.kConstantRate));
+            tree.Add(new VFXSpawnerElement(2, VFXSpawnerType.kBurst));
+            tree.Add(new VFXSpawnerElement(2, VFXSpawnerType.kPeriodicBurst));
+            tree.Add(new VFXSpawnerElement(2, VFXSpawnerType.kVariableRate));
 
             var contexts = new List<VFXContextDesc>(VFXEditor.ContextLibrary.GetContexts());
             contexts.Sort((blockA, blockB) => {

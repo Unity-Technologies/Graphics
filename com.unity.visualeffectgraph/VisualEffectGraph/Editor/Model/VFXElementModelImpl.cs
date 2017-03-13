@@ -429,22 +429,28 @@ namespace UnityEditor.Experimental
                 asset.ClearSpawnerData();
                 foreach (var spawner in spawners)
                 {
-                    List<uint> spawnerStream = new List<uint>();
-
                     int nbBlocks = spawner.GetNbChildren();
                     if (nbBlocks == 0)
                         continue;
 
-                    spawnerStream.Add((uint)nbBlocks);
+                    var customTypeArr = new List<Type>();
+                    var spawnerDesc = new List<VFXSpawnerDesc>();
                     for (int i = 0; i < nbBlocks; ++i)
                     {
                         VFXSpawnerBlockModel block = spawner.GetChild(i);
-                        spawnerStream.Add((uint)block.SpawnerType);
-                        for (int j = 0; j < block.GetNbInputSlots(); ++j)
-                            spawnerStream.Add((uint)m_Expressions[block.GetInputSlot(j).ValueRef].index); // Warning: This wont work for composite type but we dont have any in spawners atm
-                    }
 
-                    int spawnerIndex = asset.AddSpawner(spawnerStream.ToArray());
+                        VFXSpawnerDesc desc;
+                        desc.type = block.SpawnerType;
+                        desc.customBehavior = block.SpawnerType == VFXSpawnerType.kCustomCallback ? typeof(WorkInProgress.CustomSpawnerCallback) : default(Type); //WIP
+                        var expressionStream = new List<uint>();
+                        for (int j = 0; j < block.GetNbInputSlots(); ++j)
+                        {
+                            expressionStream.Add((uint)m_Expressions[block.GetInputSlot(j).ValueRef].index);
+                        }
+                        desc.expressionStream = expressionStream.ToArray();
+                        spawnerDesc.Add(desc);
+                    }
+                    int spawnerIndex = asset.AddSpawner(spawnerDesc.ToArray());
                     foreach (var context in spawner.LinkedContexts)
                         asset.LinkSpawner(context.GetOwner().Id, spawnerIndex);
 
