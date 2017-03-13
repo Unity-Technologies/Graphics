@@ -12,60 +12,60 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(Vector2))]
     class VFXSlotFloat2 : VFXSlot
     {
-        protected override VFXExpression ExpressionFromChildren()
+        protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {
             return new VFXExpressionCombine(
-                GetChild(0).expression,
-                GetChild(1).expression);
+                expr[0],
+                expr[1]);
         }
 
-        protected override VFXExpression[] ExpressionToChildren()
+        protected override VFXExpression[] ExpressionToChildren(VFXExpression expr)
         {
             return new VFXExpression[2] {
-                new VFXExpressionExtractComponent(expression,0),
-                new VFXExpressionExtractComponent(expression,1)};
+                new VFXExpressionExtractComponent(expr,0),
+                new VFXExpressionExtractComponent(expr,1)};
         }
     }
 
     [VFXInfo(type = typeof(Vector3))]
     class VFXSlotFloat3 : VFXSlot 
     {
-        protected override VFXExpression ExpressionFromChildren()
+        protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {
             return new VFXExpressionCombine(
-                GetChild(0).expression, 
-                GetChild(1).expression,
-                GetChild(2).expression);
+                expr[0],
+                expr[1],
+                expr[2]);
         }
 
-        protected override VFXExpression[] ExpressionToChildren()
+        protected override VFXExpression[] ExpressionToChildren(VFXExpression expr)
         {
             return new VFXExpression[3] {
-                new VFXExpressionExtractComponent(expression,0),
-                new VFXExpressionExtractComponent(expression,1),
-                new VFXExpressionExtractComponent(expression,2)};
+                new VFXExpressionExtractComponent(expr,0),
+                new VFXExpressionExtractComponent(expr,1),
+                new VFXExpressionExtractComponent(expr,2)};
         }
     }
 
     [VFXInfo(type = typeof(Vector4))]
     class VFXSlotFloat4 : VFXSlot
     {
-        protected override VFXExpression ExpressionFromChildren()
+        protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {
             return new VFXExpressionCombine(
-                GetChild(0).expression,
-                GetChild(1).expression,
-                GetChild(2).expression,
-                GetChild(3).expression);
+                expr[0],
+                expr[1],
+                expr[2],
+                expr[3]);
         }
 
-        protected override VFXExpression[] ExpressionToChildren()
+        protected override VFXExpression[] ExpressionToChildren(VFXExpression expr)
         {
             return new VFXExpression[4] {
-                new VFXExpressionExtractComponent(expression,0),
-                new VFXExpressionExtractComponent(expression,1),
-                new VFXExpressionExtractComponent(expression,2),
-                new VFXExpressionExtractComponent(expression,3)};
+                new VFXExpressionExtractComponent(expr,0),
+                new VFXExpressionExtractComponent(expr,1),
+                new VFXExpressionExtractComponent(expr,2),
+                new VFXExpressionExtractComponent(expr,3)};
         }
     }
 
