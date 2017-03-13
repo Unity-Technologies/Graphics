@@ -37,17 +37,17 @@ namespace UnityEditor.Experimental.VFX
         protected override MiniMenu.MenuSet GetNodeMenu(Vector2 mousePosition)
         {
             MiniMenu.MenuSet menu = new MiniMenu.MenuSet();
-            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Constant Rate", AddSpawnBlock, VFXSpawnerBlockModel.Type.kConstantRate));
-            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Variable Rate", AddSpawnBlock,VFXSpawnerBlockModel.Type.kVariableRate));
-            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Simple Burst", AddSpawnBlock,VFXSpawnerBlockModel.Type.kBurst));
-            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Periodic Burst", AddSpawnBlock,VFXSpawnerBlockModel.Type.kPeriodicBurst));
-            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Custom Callback (WIP)", AddSpawnBlock, VFXSpawnerBlockModel.Type.kCustomCallback));
+            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Constant Rate", AddSpawnBlock, VFXSpawnerType.kConstantRate));
+            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Variable Rate", AddSpawnBlock, VFXSpawnerType.kVariableRate));
+            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Simple Burst", AddSpawnBlock, VFXSpawnerType.kBurst));
+            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Periodic Burst", AddSpawnBlock, VFXSpawnerType.kPeriodicBurst));
+            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Custom Callback (WIP)", AddSpawnBlock, VFXSpawnerType.kCustomCallback));
             return menu;
         }
 
         private void AddSpawnBlock(Vector2 position, object type)
         {
-            VFXSpawnerBlockModel.Type modeltype = (VFXSpawnerBlockModel.Type)type;
+            VFXSpawnerType modeltype = (VFXSpawnerType)type;
             VFXSpawnerBlockModel spawnerBlock = new VFXSpawnerBlockModel(modeltype);
             DataSource.Create(spawnerBlock, Model);
         }

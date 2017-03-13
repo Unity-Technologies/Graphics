@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental
             Vector2 systempos = pos + new Vector2(0, 200);
 
             VFXSpawnerNodeModel spawner = dataSource.CreateSpawnerNode(pos);
-            VFXSpawnerBlockModel spawnerBlock = new VFXSpawnerBlockModel(VFXSpawnerBlockModel.Type.kConstantRate);
+            VFXSpawnerBlockModel spawnerBlock = new VFXSpawnerBlockModel(VFXSpawnerType.kConstantRate);
             spawnerBlock.GetInputSlot(0).Set(10.0f);
 
             dataSource.Create(spawnerBlock, spawner);

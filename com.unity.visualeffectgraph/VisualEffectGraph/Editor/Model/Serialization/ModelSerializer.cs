@@ -740,7 +740,7 @@ namespace UnityEditor.Experimental.VFX
 
         private static VFXSpawnerBlockModel DeserializeSpawnerBlock(XElement xml, MetaData data)
         {
-            var spawnerType = (VFXSpawnerBlockModel.Type)Enum.Parse(typeof(VFXSpawnerBlockModel.Type), xml.Attribute("Type").Value);
+            var spawnerType = (VFXSpawnerType)Enum.Parse(typeof(VFXSpawnerType), xml.Attribute("Type").Value);
             var block = new VFXSpawnerBlockModel(spawnerType);
             block.UpdateCollapsed(bool.Parse(xml.Attribute("Collapsed").Value));
 
