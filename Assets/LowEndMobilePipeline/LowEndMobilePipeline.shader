@@ -85,8 +85,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 
             v2f vert(LowendVertexInput v)
             {
-                v2f o;
-                UNITY_INITIALIZE_OUTPUT(v2f, o);
+                v2f o = (v2f)0;
 
                 o.uv01.xy = TRANSFORM_TEX(v.texcoord, _MainTex);
                 o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
