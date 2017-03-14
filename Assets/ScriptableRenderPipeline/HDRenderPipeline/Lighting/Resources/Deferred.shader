@@ -48,6 +48,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             #pragma shader_feature _ SSS_PRE_SCATTER_TEXTURING SSS_POST_SCATTER_TEXTURING
          // #endif
 
+            #pragma shader_feature SKY_LIGHTING
+
             #pragma multi_compile _ LIGHTING_DEBUG
 
             //-------------------------------------------------------------------------------------

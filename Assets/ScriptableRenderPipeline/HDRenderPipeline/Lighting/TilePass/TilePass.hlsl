@@ -10,10 +10,6 @@
 
 #include "TilePass.cs.hlsl"
 
-// For FPTL
-uint _NumTileFtplX;
-uint _NumTileFtplY;
-
 StructuredBuffer<uint> g_vLightListGlobal;		// don't support Buffer yet in unity
 
 #ifdef USE_FPTL_LIGHTLIST
@@ -29,8 +25,6 @@ StructuredBuffer<uint> g_vLightListGlobal;		// don't support Buffer yet in unity
 // these uniforms are only needed for when OPAQUES_ONLY is NOT defined
 // but there's a problem with our front-end compilation of compute shaders with multiple kernels causing it to error
 //#ifdef USE_CLUSTERED_LIGHTLIST
-float4x4 g_mInvScrProjection;
-
 float g_fClustScale;
 float g_fClustBase;
 float g_fNearPlane;
@@ -48,10 +42,31 @@ StructuredBuffer<uint> g_vLayeredOffsetsBuffer;		// don't support Buffer yet in 
 StructuredBuffer<float> g_logBaseBuffer;			// don't support Buffer yet in unity
 //#endif
 
-StructuredBuffer<DirectionalLightData>  _DirectionalLightDatas;
-StructuredBuffer<LightData>             _LightDatas;
-StructuredBuffer<EnvLightData>          _EnvLightDatas;
-StructuredBuffer<ShadowData>            _ShadowDatas;
+struct LightingSettings
+{
+    uint   directionalLightCount;
+    uint   punctualLightCount;
+    uint   areaLightCount;
+    uint   envLightCount;
+    uint   numTileFtplX;
+    uint   numTileFtplY;
+    // uint   numTileClusteredX;
+    // uint   numTileClusteredY;
+    // uint   isLogBaseBufferEnabled;
+    // uint   log2NumClusters;
+    // float  clusterScale;
+    // float  clusterBase;
+    // float  nearPlane;
+    // float  farPlane;
+    float4 dirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
+};
+
+// We use a structured buffer instead of a constant buffer due to the delay between setting values via constant and other buffer types on PS4
+StructuredBuffer<LightingSettings>     _LightingSettings; // 1 element
+StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
+StructuredBuffer<LightData>            _LightDatas;
+StructuredBuffer<EnvLightData>         _EnvLightDatas;
+StructuredBuffer<ShadowData>           _ShadowDatas;
 
 // Use texture atlas for shadow map
 //TEXTURE2D(_ShadowAtlas);
@@ -89,15 +104,11 @@ SAMPLERCUBE(sampler_EnvTextures);
 TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
 
+/*
 CBUFFER_START(UnityPerLightLoop)
-uint _DirectionalLightCount;
-uint _PunctualLightCount;
-uint _AreaLightCount;
-uint _EnvLightCount;
-float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
-
-int  _EnvLightSkyEnabled;         // TODO: make it a bool	
+    // See _LightingSettings
 CBUFFER_END
+*/
 
 struct LightLoopContext
 {
@@ -168,8 +179,8 @@ int GetSplitSphereIndexForDirshadows(float3 positionWS, float4 dirShadowSplitSph
 
 float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS)
 {
-    // Note Index is 0 for now, but else we need to provide the correct index in _DirShadowSplitSpheres and _ShadowDatas
-    int shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _DirShadowSplitSpheres);
+    // Note Index is 0 for now, but else we need to provide the correct index in _LightingSettings[0].dirShadowSplitSpheres and _ShadowDatas
+    int shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _LightingSettings[0].dirShadowSplitSpheres);
     if (shadowSplitIndex == -1)
         return 1.0;
 
