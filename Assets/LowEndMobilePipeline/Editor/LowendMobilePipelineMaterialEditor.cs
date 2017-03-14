@@ -4,17 +4,18 @@ using UnityEngine;
 
 public class LowendMobilePipelineMaterialEditor : MaterialEditor
 {
-    private MaterialProperty blendMode = null;
-    private MaterialProperty albedoMap = null;
-    private MaterialProperty albedoColor = null;
-    private MaterialProperty alphaCutoff = null;
-    private MaterialProperty specularSource = null;
+    private MaterialProperty blendModeProp = null;
+    private MaterialProperty albedoMapProp = null;
+    private MaterialProperty albedoColorProp = null;
+    private MaterialProperty alphaCutoffProp = null;
+    private MaterialProperty specularSourceProp = null;
     private MaterialProperty glossinessSourceProp = null;
-    private MaterialProperty specularGlossMap = null;
-    private MaterialProperty specularColor = null;
-    private MaterialProperty specularStrength = null;
-    private MaterialProperty bumpMap = null;
-    private MaterialProperty emissionColor = null;
+    private MaterialProperty specularGlossMapProp = null;
+    private MaterialProperty specularColorProp = null;
+    private MaterialProperty shininessProp = null;
+    private MaterialProperty bumpMapProp = null;
+    private MaterialProperty emissionMapProp = null;
+    private MaterialProperty emissionColorProp = null;
 
     public enum BlendMode
     {
@@ -63,6 +64,7 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
         };
 
         public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map");
+        public static GUIContent emissionMapLabel = new GUIContent("Emission Map", "Emission Map");
 
         public static GUIContent alphaCutoutWarning =
             new GUIContent(
@@ -81,7 +83,7 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
         public static string albedoMapAlphaLabel = "Base(RGB) Alpha(A)";
         public static string albedoMapGlossinessLabel = "Base(RGB) Glossiness (A)";
         public static string alphaCutoffLabel = "Alpha Cutoff";
-        public static string specularStrength = "Specular Strength";
+        public static string shininessLabel = "Shininess";
         public static string normalMapLabel = "Normal map";
         public static string emissionColorLabel = "Emission Color";
     }
@@ -89,18 +91,19 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
     private void FindMaterialProperties(Material material)
     {
         Material[] mats = { material };
-        blendMode = GetMaterialProperty(mats, "_Mode");
-        albedoMap = GetMaterialProperty(mats, "_MainTex");
-        albedoColor = GetMaterialProperty(mats, "_Color");
+        blendModeProp = GetMaterialProperty(mats, "_Mode");
+        albedoMapProp = GetMaterialProperty(mats, "_MainTex");
+        albedoColorProp = GetMaterialProperty(mats, "_Color");
 
-        alphaCutoff = GetMaterialProperty(mats, "_Cutoff");
-        specularSource = GetMaterialProperty(mats, "_SpecSource");
+        alphaCutoffProp = GetMaterialProperty(mats, "_Cutoff");
+        specularSourceProp = GetMaterialProperty(mats, "_SpecSource");
         glossinessSourceProp = GetMaterialProperty(mats, "_GlossinessSource");
-        specularGlossMap = GetMaterialProperty(mats, "_SpecGlossMap");
-        specularColor = GetMaterialProperty(mats, "_SpecColor");
-        specularStrength = GetMaterialProperty(mats, "_SpecularStrength");
-        bumpMap = GetMaterialProperty(mats, "_BumpMap");
-        emissionColor = GetMaterialProperty(mats, "_EmissionColor");
+        specularGlossMapProp = GetMaterialProperty(mats, "_SpecGlossMap");
+        specularColorProp = GetMaterialProperty(mats, "_SpecColor");
+        shininessProp = GetMaterialProperty(mats, "_Shininess");
+        bumpMapProp = GetMaterialProperty(mats, "_BumpMap");
+        emissionMapProp = GetMaterialProperty(mats, "_EmissionMap");
+        emissionColorProp = GetMaterialProperty(mats, "_EmissionColor");
     }
 
     public override void OnInspectorGUI()
@@ -119,10 +122,10 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
             DoSpecular();
 
             EditorGUILayout.Space();
-            TexturePropertySingleLine(Styles.normalMapText, bumpMap);
+            TexturePropertySingleLine(Styles.normalMapText, bumpMapProp);
 
             EditorGUILayout.Space();
-            ColorProperty(emissionColor, Styles.emissionColorLabel);
+            TexturePropertySingleLine(Styles.emissionMapLabel, emissionMapProp, emissionColorProp);
 
             if (EditorGUI.EndChangeCheck())
                 UpdateMaterialKeywords(material);
@@ -130,7 +133,7 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
             EditorGUILayout.Space();
             EditorGUILayout.Space();
 
-            if ((BlendMode)blendMode.floatValue == BlendMode.Cutout)
+            if ((BlendMode)blendModeProp.floatValue == BlendMode.Cutout)
             {
                 Styles.warningStyle.normal.textColor = Color.yellow;
                 EditorGUILayout.LabelField(Styles.alphaCutoutWarning, Styles.warningStyle);
@@ -140,28 +143,28 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
 
     private void DoBlendMode()
     {
-        int modeValue = (int)blendMode.floatValue;
+        int modeValue = (int)blendModeProp.floatValue;
         EditorGUI.BeginChangeCheck();
         modeValue = EditorGUILayout.Popup(Styles.renderingModeLabel, modeValue, Styles.blendNames);
         if (EditorGUI.EndChangeCheck())
-            blendMode.floatValue = modeValue;
+            blendModeProp.floatValue = modeValue;
 
-        BlendMode mode = (BlendMode)blendMode.floatValue;
+        BlendMode mode = (BlendMode)blendModeProp.floatValue;
 
         EditorGUILayout.Space();
 
         if (mode == BlendMode.Opaque)
         {
             int glossSource = (int)glossinessSourceProp.floatValue;
-            TexturePropertySingleLine(Styles.albedoGlosinessLabels[glossSource], albedoMap, albedoColor);
-            TextureScaleOffsetProperty(albedoMap);
+            TexturePropertySingleLine(Styles.albedoGlosinessLabels[glossSource], albedoMapProp, albedoColorProp);
+            TextureScaleOffsetProperty(albedoMapProp);
         }
         else
         {
-            TexturePropertySingleLine(Styles.albedoAlphaLabel, albedoMap, albedoColor);
-            TextureScaleOffsetProperty(albedoMap);
+            TexturePropertySingleLine(Styles.albedoAlphaLabel, albedoMapProp, albedoColorProp);
+            TextureScaleOffsetProperty(albedoMapProp);
             if (mode == BlendMode.Cutout)
-                RangeProperty(alphaCutoff, "Cutoff");
+                RangeProperty(alphaCutoffProp, "Cutoff");
         }
     }
 
@@ -169,17 +172,17 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
     {
         EditorGUILayout.Space();
 
-        int source = (int)specularSource.floatValue;
+        int source = (int)specularSourceProp.floatValue;
         EditorGUI.BeginChangeCheck();
         source = EditorGUILayout.Popup(Styles.specularSourceLabel, source, Styles.specSourceNames);
         if (EditorGUI.EndChangeCheck())
         {
-            specularSource.floatValue = source;
+            specularSourceProp.floatValue = source;
             if (source == (int)SpecularSource.BaseTexture)
                 glossinessSourceProp.floatValue = (float)GlossinessSource.BaseAlpha;
         }
 
-        SpecularSource specSource = (SpecularSource)specularSource.floatValue;
+        SpecularSource specSource = (SpecularSource)specularSourceProp.floatValue;
         if (specSource != SpecularSource.NoSpecular)
         {
             int glossinessSource = (int)glossinessSourceProp.floatValue;
@@ -193,12 +196,12 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
         int glossSource = (int)glossinessSourceProp.floatValue;
         if (specSource == SpecularSource.SpecularTextureAndColor)
         {
-            TexturePropertySingleLine(Styles.specularGlossMapLabels[glossSource], specularGlossMap, specularColor);
+            TexturePropertySingleLine(Styles.specularGlossMapLabels[glossSource], specularGlossMapProp, specularColorProp);
         }
 
         if (specSource != SpecularSource.NoSpecular)
         {
-            RangeProperty(specularStrength, Styles.specularStrength);
+            RangeProperty(shininessProp, Styles.shininessLabel);
         }
     }
 
@@ -212,7 +215,7 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
 
     private void UpdateMaterialBlendMode(Material material)
     {
-        BlendMode mode = (BlendMode)blendMode.floatValue;
+        BlendMode mode = (BlendMode)blendModeProp.floatValue;
         switch (mode)
         {
             case BlendMode.Opaque:
@@ -246,7 +249,7 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
 
     private void UpdateMaterialSpecularSource(Material material)
     {
-        SpecularSource specSource = (SpecularSource)specularSource.floatValue;
+        SpecularSource specSource = (SpecularSource)specularSourceProp.floatValue;
         if (specSource == SpecularSource.NoSpecular)
         {
             SetKeyword(material, "_SHARED_SPECULAR_DIFFUSE", false);

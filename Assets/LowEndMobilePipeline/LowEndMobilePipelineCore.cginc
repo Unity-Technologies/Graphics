@@ -58,7 +58,7 @@ float _PCFKernel[8];
 
 half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
-half _SpecularStrength;
+half _Shininess;
 
 
 inline void NormalMap(v2f i, out half3 normal)
@@ -94,6 +94,15 @@ inline void SpecularGloss(half3 diffuse, half alpha, out half4 specularGloss)
 #else
     specularGloss = _SpecColor;
 #endif
+#endif
+}
+
+inline void Emission(v2f i, out half3 emission)
+{
+#ifdef _EMISSION_MAP
+    emission = tex2D(_EmissionMap, i.uv01.xy) * _EmissionColor
+#else
+    emission = _EmissionColor;
 #endif
 }
 
@@ -181,7 +190,7 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
     half3 diffuse = diffuseColor * lightColor * NdotL;
 
 #if defined(_SHARED_SPECULAR_DIFFUSE) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-    half3 specular = specularGloss.rgb * lightColor * pow(NdotH, 256.0 - _SpecularStrength) * specularGloss.a;
+    half3 specular = specularGloss.rgb * lightColor * pow(NdotH, _Shininess * 128.0) * specularGloss.a;
     return diffuse + specular;
 #else
     return diffuse;
