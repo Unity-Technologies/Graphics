@@ -73,6 +73,8 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ HARD_SHADOWS SOFT_SHADOWS
+            #pragma multi_compile _ _SHADOW_CASCADES
+            #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile_fog
             #pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3 metal
             #pragma enable_d3d11_debug_symbols
@@ -91,9 +93,9 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
                 o.uv01.zw = v.lightmapUV * unity_LightmapST.xy + unity_LightmapST.zw;
                 o.hpos = UnityObjectToClipPos(v.vertex);
 
-                o.posWS.xyz = mul(unity_ObjectToWorld, v.vertex).xyz;
+                o.posWS = mul(unity_ObjectToWorld, v.vertex).xyz;
 
-                o.viewDir.xyz = normalize(_WorldSpaceCameraPos - o.posWS.xyz);
+                o.viewDir.xyz = normalize(_WorldSpaceCameraPos - o.posWS);
                 half3 normal = normalize(UnityObjectToWorldNormal(v.normal));
 
 #if _NORMALMAP
@@ -102,20 +104,26 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
                 half3 binormal = cross(normal, tangent) * v.tangent.w;
 
                 // Initialize tangetToWorld in column-major to benefit from better glsl matrix multiplication code
-                o.tangentToWorld[0] = half3(tangent.x, binormal.x, normal.x);
-                o.tangentToWorld[1] = half3(tangent.y, binormal.y, normal.y);
-                o.tangentToWorld[2] = half3(tangent.z, binormal.z, normal.z);
+                o.tangentToWorld0 = half3(tangent.x, binormal.x, normal.x);
+                o.tangentToWorld1 = half3(tangent.y, binormal.y, normal.y);
+                o.tangentToWorld2 = half3(tangent.z, binormal.z, normal.z);
 #else
                 o.normal = normal;
 #endif
 
+#if _VERTEX_LIGHTS
                 half4 diffuseAndSpecular = half4(1.0, 1.0, 1.0, 1.0);
                 for (int lightIndex = globalLightCount.x; lightIndex < globalLightCount.y; ++lightIndex)
                 {
                     LightInput lightInput;
                     INITIALIZE_LIGHT(lightInput, lightIndex);
-                    o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS.xyz, o.viewDir.xyz);
+                    o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS, o.viewDir.xyz);
                 }
+#endif
+
+#ifndef _SHADOW_CASCADES
+                o.shadowCoord = mul(_WorldToShadow[0], float4(o.posWS, 1.0)).xyz;
+#endif
 
 #ifndef LIGHTMAP_ON
                 o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
@@ -152,21 +160,19 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
                 LightInput mainLight;
                 INITIALIZE_LIGHT(mainLight, 0);
 
-                float3 posWorld = i.posWS.xyz;
-                 half3 viewDir = i.viewDir.xyz;
+                half3 viewDir = i.viewDir.xyz;
 
-#if DEBUG_CASCADES
-                return half4(EvaluateMainLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir), 1.0);
-#endif
-
-                half3 directColor = EvaluateMainLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir);
-
+                half3 directColor = EvaluateOneLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir);
+                #if defined(HARD_SHADOWS) || defined(SOFT_SHADOWS)
+                directColor *= ComputeShadowAttenuation(i);
+                #endif
+ 
                 // Compute direct contribution from additional lights.
                 for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)
                 {
                     LightInput additionalLight;
                     INITIALIZE_LIGHT(additionalLight, lightIndex);
-                    directColor += EvaluateOneLight(additionalLight, diffuse, specularGloss, normal, posWorld, viewDir);
+                    directColor += EvaluateOneLight(additionalLight, diffuse, specularGloss, normal, i.posWS, viewDir);
                 }
 
                 half3 color = directColor + indirectDiffuse + _EmissionColor;

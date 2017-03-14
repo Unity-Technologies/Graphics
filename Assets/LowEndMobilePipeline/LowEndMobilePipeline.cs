@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -180,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             cmd.SetGlobalVectorArray("globalLightAtten", m_LightAttenuations);
             cmd.SetGlobalVectorArray("globalLightSpotDir", m_LightSpotDirections);
             cmd.SetGlobalVector("globalLightCount", new Vector4(pixelLightCount, totalLightCount, 0.0f, 0.0f));
-            SetShadowKeywords(cmd);
+            SetShaderKeywords(cmd);
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
@@ -334,17 +334,25 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             };
 
             var setupShadow = new CommandBuffer() {name = "SetupShadowShaderConstants"};
-            SetShadowKeywords(setupShadow);
             setupShadow.SetGlobalMatrixArray("_WorldToShadow", shadowMatrices);
             setupShadow.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
             setupShadow.SetGlobalFloatArray("_PCFKernel", pcfKernel);
-            SetShadowKeywords(setupShadow);
             context.ExecuteCommandBuffer(setupShadow);
             setupShadow.Dispose();
         }
 
-        void SetShadowKeywords(CommandBuffer cmd)
+        void SetShaderKeywords(CommandBuffer cmd)
         {
+        	if (m_Asset.SupportsVertexLight) 
+        		cmd.EnableShaderKeyword("_VERTEX_LIGHTS");
+        	else 
+        		cmd.DisableShaderKeyword("_VERTEX_LIGHTS");
+
+            if (m_Asset.CascadeCount == 1)
+            	cmd.DisableShaderKeyword("_SHADOW_CASCADES");
+           	else
+           		cmd.EnableShaderKeyword("_SHADOW_CASCADES");
+
             switch (m_Asset.CurrShadowType)
             {
                 case ShadowType.NO_SHADOW:

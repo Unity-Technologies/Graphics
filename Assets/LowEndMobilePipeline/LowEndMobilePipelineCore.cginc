@@ -28,15 +28,20 @@ struct LowendVertexInput
 struct v2f
 {
     float4 uv01 : TEXCOORD0; // uv01.xy: uv0, uv01.zw: uv1
-    float4 posWS : TEXCOORD1; // xyz: posWorld
+    float3 posWS : TEXCOORD1;
 #if _NORMALMAP
-    half3 tangentToWorld[3] : TEXCOORD2; // tangentToWorld matrix
+    half3 tangentToWorld0 : TEXCOORD2; // tangentToWorld matrix
+    half3 tangentToWorld1 : TEXCOORD3; // tangentToWorld matrix
+    half3 tangentToWorld2 : TEXCOORD4; // tangentToWorld matrix
 #else
     half3 normal : TEXCOORD2;
 #endif
     half4 viewDir : TEXCOORD5; // xyz: viewDir
     UNITY_FOG_COORDS_PACKED(6, half4) // x: fogCoord, yzw: vertexColor
-        float4 hpos : SV_POSITION;
+#ifndef _SHADOW_CASCADES
+    float3 shadowCoord : TEXCOORD7;
+#endif
+    float4 hpos : SV_POSITION;
 };
 
 // The variables are very similar to built-in unity_LightColor, unity_LightPosition,
@@ -64,7 +69,7 @@ inline void NormalMap(v2f i, out half3 normal)
     // glsl compiler will generate underperforming code by using a row-major pre multiplication matrix: mul(normalmap, i.tangentToWorld)
     // i.tangetToWorld was initialized as column-major in vs and here dot'ing individual for better performance.
     // The code below is similar to post multiply: mul(i.tangentToWorld, normalmap)
-    normal = half3(dot(normalmap, i.tangentToWorld[0]), dot(normalmap, i.tangentToWorld[1]), dot(normalmap, i.tangentToWorld[2]));
+    normal = half3(dot(normalmap, i.tangentToWorld0), dot(normalmap, i.tangentToWorld1), dot(normalmap, i.tangentToWorld2));
 #else
     normal = normalize(i.normal);
 #endif
@@ -123,9 +128,9 @@ inline half ComputeCascadeIndex(float3 wpos)
     vDirShadowSplitSphereSqRadii.y = _DirShadowSplitSpheres[1].w;
     vDirShadowSplitSphereSqRadii.z = _DirShadowSplitSpheres[2].w;
     vDirShadowSplitSphereSqRadii.w = _DirShadowSplitSpheres[3].w;
-    fixed4 weights = float4(distances2 < vDirShadowSplitSphereSqRadii);
+    fixed4 weights = fixed4(distances2 < vDirShadowSplitSphereSqRadii);
     weights.yzw = saturate(weights.yzw - weights.xyz);
-    return 4 - dot(weights, float4(4, 3, 2, 1));
+    return 4 - dot(weights, fixed4(4, 3, 2, 1));
 }
 
 inline half ShadowAttenuation(half2 shadowCoord, half shadowCoordDepth)
@@ -141,7 +146,7 @@ inline half ShadowAttenuation(half2 shadowCoord, half shadowCoordDepth)
 #endif
 }
 
-inline half ShadowPCF(half4 shadowCoord)
+inline half ShadowPCF(half3 shadowCoord)
 {
     // TODO: simulate textureGatherOffset not available, simulate it
     half2 offset = half2(0, 0);
@@ -160,14 +165,14 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
     float distanceSqr = max(dot(posToLight, posToLight), 0.001);
     float lightAtten = 1.0 / (1.0 + distanceSqr * lightInput.atten.z);
 
-    float3 lightDir = posToLight * rsqrt(distanceSqr);
-    float SdotL = saturate(dot(lightInput.spotDir.xyz, lightDir));
+    half3 lightDir = posToLight * rsqrt(distanceSqr);
+    half SdotL = saturate(dot(lightInput.spotDir.xyz, lightDir));
     lightAtten *= saturate((SdotL - lightInput.atten.x) / lightInput.atten.y);
 
-    float cutoff = step(distanceSqr, lightInput.atten.w);
+    half cutoff = step(distanceSqr, lightInput.atten.w);
     lightAtten *= cutoff;
 
-    float NdotL = saturate(dot(normal, lightDir));
+    half NdotL = saturate(dot(normal, lightDir));
 
     half3 halfVec = normalize(lightDir + viewDir);
     half NdotH = saturate(dot(normal, halfVec));
@@ -183,33 +188,24 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
 #endif
 }
 
-inline half3 EvaluateMainLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float4 posWorld, half3 viewDir)
+inline half ComputeShadowAttenuation(v2f i)
 {
-    half3 color = EvaluateOneLight(lightInput, diffuseColor, specularGloss, normal, posWorld, viewDir);
+	half3 shadowCoord;
+ #ifndef _SHADOW_CASCADES
+ 	shadowCoord = i.shadowCoord;
+ #else
+	int cascadeIndex = ComputeCascadeIndex(i.posWS);
+	if (cascadeIndex < 4)
+   		shadowCoord = mul(_WorldToShadow[cascadeIndex], half4(i.posWS, 1.0)).xyz;
+	else
+		return 1.0;
+#endif
 
-#if defined(HARD_SHADOWS) || defined(SOFT_SHADOWS)
-    int cascadeIndex = ComputeCascadeIndex(posWorld);
-
-    half shadowAttenuation = 1.0;
-    if (cascadeIndex < 4)
-    {
-        float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorld.xyz, 1.0));
-        shadowCoord.z = saturate(shadowCoord.z);
+	shadowCoord.z = saturate(shadowCoord.z);
 
 #ifdef SOFT_SHADOWS
-        shadowAttenuation = ShadowPCF(shadowCoord);
+    return ShadowPCF(shadowCoord);
 #else
-        shadowAttenuation = ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
-#endif
-    }
-
-#if DEBUG_CASCADES
-    half3 cascadeColors[MAX_SHADOW_CASCADES] = {half3(1.0, 0.0, 0.0), half3(0.0, 1.0, 0.0),  half3(0.0, 0.0, 1.0),  half3(1.0, 0.0, 1.0)};
-    return cascadeColors[cascadeIndex] * diffuseColor * max(shadowAttenuation, 0.5);
-#endif
-
-    return color * shadowAttenuation;
-#else
-    return color;
+    return ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
 #endif
 }
