@@ -101,12 +101,28 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsNotNull(float4Slot);
             Assert.AreEqual(4, float4Slot.GetNbChildren());
+            Assert.IsInstanceOf<VFXExpressionCombine>(float4Slot.expression);
 
             foreach (var child in float4Slot.children)
             {
                 Assert.IsNotNull(child);
                 Assert.AreEqual(0,child.GetNbChildren());
+                Assert.IsInstanceOf<VFXValueFloat>(child.expression);
             }
+        }
+
+        [Test]
+        public void CheckExpression()
+        {
+            VFXSlot sphereSlot = VFXSlot.Create(new VFXProperty(typeof(Sphere), "sphere"), VFXSlot.Direction.kInput);
+            VFXSlot floatSlot = VFXSlot.Create(new VFXProperty(typeof(float), "float"), VFXSlot.Direction.kOutput);
+
+            sphereSlot.GetChild(0).GetChild(0).Link(floatSlot);
+            sphereSlot.GetChild(1).Link(floatSlot);
+
+            var expr = sphereSlot.GetChild(0).GetChild(0).expression;
+            Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
+            Assert.AreEqual(floatSlot.expression, expr.Parents[0].Parents[0]);
         }
     }
 }

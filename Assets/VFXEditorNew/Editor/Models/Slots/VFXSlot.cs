@@ -186,6 +186,14 @@ namespace UnityEditor.VFX
             PropagateToChildren(func);
         }
 
+        private VFXSlot TopMostParent()
+        {
+            if (GetParent() == null)
+                return this;
+            else
+                return GetParent().TopMostParent();
+        }
+
         private void SetInExpression(VFXExpression expression, bool propagateDown = true, bool notify = true)
         {
             if (!CanConvertFrom(expression))
@@ -197,7 +205,7 @@ namespace UnityEditor.VFX
 
             // First propagate to tree up and down from modified slot
             m_InExpression = newExpression;
-            PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(children.Select(c => c.m_InExpression).ToArray()));
+            PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(s.children.Select(c => c.m_InExpression).ToArray()));
             if (propagateDown)
                 PropagateToChildren(s => {
                     var exp = s.ExpressionToChildren(s.m_InExpression);
@@ -215,8 +223,7 @@ namespace UnityEditor.VFX
                 });
 
             // Then find top most slot and propagate back to children
-            var topParent = this;
-            while (GetParent() != null) topParent = GetParent();
+            var topParent = TopMostParent();
 
             topParent.m_OutExpression = topParent.m_InExpression;
             topParent.PropagateToChildren(s => {
@@ -245,22 +252,6 @@ namespace UnityEditor.VFX
             }
 
             return false;
-        }
-
-        private void DisconnectInput()
-        {
-            VFXExpression expr = GetNbChildren() == 0 ? m_DefaultExpression : ExpressionFromChildren(children.Select(c => c.m_InExpression).ToArray());
-            SetInExpression(expr, false, true);
-        }
-
-        private void ConnectOutput(VFXSlot slot)
-        {
-            // Nothing
-        }
-
-        private void DisconnectOutput()
-        {
-            // Nothing
         }
 
         public void UnlinkAll(bool notify = true)
