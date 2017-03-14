@@ -43,9 +43,6 @@ namespace UnityEditor.VFX.UI
         {
             if( model is VFXBlock)
             {
-                VFXBlock block = model as VFXBlock;
-
-
                 var inputs = inputAnchors;
                 inputs.Clear();
                 Dictionary<string, VFXDataInputAnchorPresenter> newAnchors = new Dictionary<string, VFXDataInputAnchorPresenter>();
@@ -102,62 +99,58 @@ namespace UnityEditor.VFX.UI
             public string path { get { return !string.IsNullOrEmpty(parentPath)?parentPath + "." + name : name; } }
         }
 
-        public void PropertyValueChanged(VFXDataAnchorPresenter presenter,object newValue)
-        {
-            //TODO undo/redo
+		public void PropertyValueChanged(VFXDataAnchorPresenter presenter, object newValue)
+		{
+			//TODO undo/redo
 
-            string[] fields = presenter.path.Split(new char[] { '.' },StringSplitOptions.RemoveEmptyEntries);
-
-
-            var properties = m_Model.GetProperties();
-            var buffers = m_Model.GetCurrentPropertiesValues();
+			string[] fields = presenter.path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
 
 
-            int index = System.Array.FindIndex(properties, t => t.name == fields[0]);
-            var prop = properties[index];
-            var buffer = buffers[index];
-
-            List<object> stack= new List<object>();
-
-            stack.Add(buffer);
-
-            for (int i = 1; i < fields.Length; ++i)
-            {
-                object current = stack[i-1];
-                FieldInfo fi = current.GetType().GetField(fields[i]);
-
-                stack.Add(fi.GetValue(current));
-            }
-            stack[stack.Count - 1] = newValue;
-
-            for (int i = stack.Count -1 ; i > 0 ; --i)
-            {
-                object current = stack[i];
-                object prev = stack[i - 1];
-
-                FieldInfo fi = prev.GetType().GetField(fields[i]);
-
-                fi.SetValue(prev, current);
-            }
-
-            buffers[index] = stack[0];
-
-            m_Model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
+			var properties = m_Model.GetProperties();
+			var buffers = m_Model.GetCurrentPropertiesValues();
 
 
-            foreach(var anchorPresenter in m_Anchors.Values)
-            {
-                // update child and parents.
-                if( anchorPresenter.path.StartsWith(presenter.path) || presenter.path.StartsWith(anchorPresenter.path))
-                {
-                    anchorPresenter.Dirty();
-                }
-            }
+			int index = System.Array.FindIndex(properties, t => t.name == fields[0]);
+			var buffer = buffers[index];
 
-        }
+			List<object> stack = new List<object>();
+
+			stack.Add(buffer);
+
+			for (int i = 1; i < fields.Length; ++i)
+			{
+				object current = stack[i - 1];
+				FieldInfo fi = current.GetType().GetField(fields[i]);
+
+				stack.Add(fi.GetValue(current));
+			}
+			stack[stack.Count - 1] = newValue;
+
+			for (int i = stack.Count - 1; i > 0; --i)
+			{
+				object current = stack[i];
+				object prev = stack[i - 1];
+
+				FieldInfo fi = prev.GetType().GetField(fields[i]);
+
+				fi.SetValue(prev, current);
+			}
+
+			buffers[index] = stack[0];
+
+			m_Model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
 
 
-        public event System.Action<VFXBlockPresenter> OnParamChanged;
+			foreach (var anchorPresenter in m_Anchors.Values)
+			{
+				// update child and parents.
+				if (anchorPresenter.path.StartsWith(presenter.path) || presenter.path.StartsWith(anchorPresenter.path))
+				{
+					anchorPresenter.Dirty();
+				}
+			}
+
+		}
 
         public void ExpandPath(string fieldPath)
         {
@@ -235,6 +228,19 @@ namespace UnityEditor.VFX.UI
             return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && ! type.IsEnum;
         }
 
+
+
+        bool ShouldSkipLevel(Type type)
+        {
+            return typeof(Spaceable).IsAssignableFrom(type) && type.GetFields().Length == 2; // spaceable having only one member plus their space member.
+        }
+
+
+        bool ShouldIgnoreMember(Type type, FieldInfo field)
+        {
+            return typeof(Spaceable).IsAssignableFrom(type) && field.Name == "space";
+        }
+
         private IEnumerable<PropertyInfo> GetProperties(Type type, object value, string prefix, int depth)
         {
             if (type == null)
@@ -242,13 +248,29 @@ namespace UnityEditor.VFX.UI
 
             FieldInfo[] infos = type.GetFields(BindingFlags.Public|BindingFlags.Instance);
 
+
+            if( ShouldSkipLevel(type) )
+            {
+                foreach (var field in infos)
+                {
+                    if( ShouldIgnoreMember(type,field))
+                        continue;
+
+                    object fieldValue = field.GetValue(value);
+                    string fieldPath = string.IsNullOrEmpty(prefix)? field.Name:prefix + "." + field.Name;
+
+                    foreach (var subField in GetProperties(field.FieldType, fieldValue, fieldPath, depth + 1))
+                    {
+                        yield return subField;
+                    }
+                }
+                yield break;
+            }
+
             foreach (var field in infos)
             {
-                if (typeof(Spaceable).IsAssignableFrom(type))
-                {
-                    if( field.Name == "space")
-                        continue;
-                }
+                if( ShouldIgnoreMember(type,field))
+                    continue;
 
                 object fieldValue = field.GetValue(value);
 

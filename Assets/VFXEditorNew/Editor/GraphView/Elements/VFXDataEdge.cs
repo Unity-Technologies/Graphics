@@ -46,19 +46,7 @@ namespace UnityEditor.VFX.UI
 			Vector2 to = Vector2.zero;
 			GetFromToPoints(ref from, ref to);
 
-            //Color edgeColor = edgePresenter.selected ? new Color(240/255f,240/255f,240/255f) : new Color(146/255f,146/255f,146/255f);
-
-            System.Type type = inputPresenter != null ? inputPresenter.anchorType : outputPresenter.anchorType;
-
-
             Color edgeColor = borderColor;
-            /*
-            if( edgePresenter.selected )
-            {
-                edgeColor.r += 0.3f;
-                edgeColor.g += 0.3f;
-                edgeColor.b += 0.3f;
-            }*/
 
             Orientation orientation = Orientation.Horizontal;
 			Vector3[] points, tangents;

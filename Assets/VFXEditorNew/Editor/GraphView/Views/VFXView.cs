@@ -61,7 +61,8 @@ namespace UnityEditor.VFX.UI
         public VFXView()
         {
             forceNotififcationOnAdd = true;
-            AddManipulator(new ContentZoomer());
+            SetupZoom(new Vector3(0.125f,0.125f,1),Vector3.one);
+
 			AddManipulator(new ContentDragger());
 			AddManipulator(new RectangleSelector());
 			AddManipulator(new SelectionDragger());
@@ -105,6 +106,7 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(VFXDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
 
+            AddStyleSheetPath("PropertyRM");
             AddStyleSheetPath("VFXView");
 
             Dirty(ChangeType.Transform);

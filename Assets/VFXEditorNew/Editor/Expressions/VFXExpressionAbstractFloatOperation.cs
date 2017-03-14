@@ -177,7 +177,7 @@ namespace UnityEditor.VFX
             var result = new float[source_a.Length];
             for (int iChannel = 0; iChannel < source_a.Length; ++iChannel)
             {
-                result[iChannel] = ProcessTernaryOperation(source_a[iChannel], source_a[iChannel], source_c[iChannel]);
+                result[iChannel] = ProcessTernaryOperation(source_a[iChannel], source_b[iChannel], source_c[iChannel]);
             }
 
             return ToFloatN(result);
