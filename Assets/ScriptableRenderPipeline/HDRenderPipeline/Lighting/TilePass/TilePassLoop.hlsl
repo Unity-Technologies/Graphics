@@ -32,7 +32,7 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
         float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
 #endif
 
-        int shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _DirShadowSplitSpheres);
+        int shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _LightingSettings[0].dirShadowSplitSpheres);
         if (shadowSplitIndex == -1)
             diffuseLighting = float3(0.0, 0.0, 0.0);
         else
@@ -50,7 +50,7 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
 int GetTileOffset(PositionInputs posInput, uint lightCategory)
 {
     uint2 tileIndex = posInput.unPositionSS / TILE_SIZE_FPTL;
-    return (tileIndex.y + lightCategory * _NumTileFtplY) * _NumTileFtplX + tileIndex.x;
+    return (tileIndex.y + lightCategory * _LightingSettings[0].numTileFtplY) * _LightingSettings[0].numTileFtplX + tileIndex.x;
 }
 
 void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
@@ -148,7 +148,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
 #ifdef PROCESS_DIRECTIONAL_LIGHT
-    for (i = 0; i < _DirectionalLightCount; ++i)
+    for (i = 0; i < _LightingSettings[0].directionalLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
@@ -212,7 +212,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
 
     // Only apply sky IBL if the sky texture is available.
-    if (_EnvLightSkyEnabled)
+#ifdef SKY_LIGHTING
     {
         float3 localDiffuseLighting, localSpecularLighting;
         float2 weight;
@@ -223,6 +223,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
         iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
     }
+#endif
 
     uint envLightStart;
     uint envLightCount;
@@ -272,7 +273,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 
     uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
-    for (i = 0; i < _DirectionalLightCount; ++i)
+    for (i = 0; i < _LightingSettings[0].directionalLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
@@ -283,7 +284,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         specularLighting += localSpecularLighting;
     }
 
-    for (i = 0; i < _PunctualLightCount; ++i)
+
+    for (i = 0; i < _LightingSettings[0].punctualLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
@@ -295,7 +297,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     }
 
     // Area are store with punctual, just offset the index
-    for (i = _PunctualLightCount; i < _AreaLightCount + _PunctualLightCount; ++i)
+    for (i = _LightingSettings[0].punctualLightCount; i < _LightingSettings[0].punctualLightCount + _LightingSettings[0].areaLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
@@ -320,7 +322,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
 
     // Only apply sky IBL if the sky texture is available.
-    if (_EnvLightSkyEnabled)
+#ifdef SKY_LIGHTING
     {
         float3 localDiffuseLighting, localSpecularLighting;
         float2 weight;
@@ -331,8 +333,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
         iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
     }
+#endif
 
-    for (i = 0; i < _EnvLightCount; ++i)
+    for (i = 0; i < _LightingSettings[0].envLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
         float2 weight;
