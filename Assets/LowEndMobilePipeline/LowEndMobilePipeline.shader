@@ -9,8 +9,8 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        _Glossiness("Shininess", Range(0.0, 1.0)) = 0.5
-        _SpecularStrength("Specular Strength", Range(0.0, 255.0)) = 200
+        _Glossiness("Glossiness", Range(0.0, 1.0)) = 0.5
+        _Shininess("Shininess", Range(0.0, 1.0)) = 1.0
         _GlossMapScale("Smoothness Factor", Range(0.0, 1.0)) = 1.0
         [Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
@@ -70,6 +70,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
             #pragma shader_feature _ _SHARED_SPECULAR_DIFFUSE _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
             #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _EMISSION_MAP
 
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ HARD_SHADOWS SOFT_SHADOWS
@@ -140,7 +141,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
                 half alpha = diffuseAlpha.a * _Color.a;
 
                 // Keep for compatibility reasons. Shader Inpector throws a warning when using cutoff
-                // due overdraw performance impact. 
+                // due overdraw performance impact.
 #ifdef _ALPHATEST_ON
                 clip(alpha - _Cutoff);
 #endif
@@ -155,6 +156,9 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
                 half3 indirectDiffuse;
                 IndirectDiffuse(i, diffuse, indirectDiffuse);
 
+                half3 emissionColor;
+                Emission(i, emissionColor);
+
                 // Compute direct contribution from main directional light.
                 // Only a single directional shadow caster is supported.
                 LightInput mainLight;
@@ -166,7 +170,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
                 #if defined(HARD_SHADOWS) || defined(SOFT_SHADOWS)
                 directColor *= ComputeShadowAttenuation(i);
                 #endif
- 
+
                 // Compute direct contribution from additional lights.
                 for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)
                 {
@@ -175,7 +179,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
                     directColor += EvaluateOneLight(additionalLight, diffuse, specularGloss, normal, i.posWS, viewDir);
                 }
 
-                half3 color = directColor + indirectDiffuse + _EmissionColor;
+                half3 color = directColor + indirectDiffuse + emissionColor;
                 UNITY_APPLY_FOG(i.fogCoord, color);
 
                 return OutputColor(color, alpha);
@@ -270,6 +274,6 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
                     ENDCG
                 }
         }
-            Fallback "Standard (Specular setup)"
-                CustomEditor "LowendMobilePipelineMaterialEditor"
+        Fallback "Standard (Specular setup)"
+        CustomEditor "LowendMobilePipelineMaterialEditor"
 }

@@ -165,6 +165,10 @@ namespace UnityEditor.Experimental.Rendering
 
         public static void UpgradeSelection(List<MaterialUpgrader> upgraders, string progressBarName)
         {
+            if (!EditorUtility.DisplayDialog("Material Upgrader", "The upgrade will overwrite all selected material settings" +
+                                                                  "Be sure to have a project backup before proceeding", "Proceed", "Cancel"))
+                return;
+
             string lastMaterialName = "";
             var selection = Selection.objects;
             for (int i = 0; i < selection.Length; i++)
