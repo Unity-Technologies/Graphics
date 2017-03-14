@@ -210,7 +210,7 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 	for(int l=0; l<iNrCoarseLights; l++)
 	{
 		const uint idxCoarse = lightsListLDS[l];
-    
+
 		bool canEnter = idxCoarse<(uint) g_iNrVisibLights;
 		if(canEnter) canEnter = g_vLightData[idxCoarse].lightType!=SPHERE_LIGHT;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		[branch]if(canEnter)
@@ -219,7 +219,7 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 	
 			const float3 boxX = lgtDat.boxAxisX.xyz;
 			const float3 boxY = lgtDat.boxAxisY.xyz;
-			const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip axis (so it points away from the light direction for a spot-light)
+			const float3 boxZ = -lgtDat.boxAxisZ.xyz;	// flip axis (so it points away from the light direction for a spot-light)
 			const float3 center = lgtDat.center.xyz;
 			const float2 scaleXY = lgtDat.scaleXY;
 

@@ -6,10 +6,8 @@
 #pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile		LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile		ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED		USE_TWO_PASS_TILED_LIGHTING
 #pragma kernel ClearAtomic
 
-
 #include "..\common\ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
-
 #include "LightingConvexHullUtils.hlsl"
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
@@ -209,7 +207,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	{
 		uint2 uPixCrd = min( uint2(viTilLL.x+(idx&(TILE_SIZE_CLUSTERED-1)), viTilLL.y+(idx>>log2TileSize)), uint2(iWidth-1, iHeight-1) );
 #ifdef MSAA_ENABLED
-		for(int i=0; i<iNumSamplesMSAA; i++)
+		for(uint i=0; i<iNumSamplesMSAA; i++)
 		{
 		const float fDpth = FetchDepthMSAA(g_depth_tex, uPixCrd, i);
 #else

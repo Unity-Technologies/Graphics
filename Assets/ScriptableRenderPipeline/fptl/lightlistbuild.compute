@@ -4,16 +4,13 @@
 #pragma kernel TileLightListGen					LIGHTLISTGEN=TileLightListGen
 #pragma kernel TileLightListGen_SrcBigTile		LIGHTLISTGEN=TileLightListGen_SrcBigTile		USE_TWO_PASS_TILED_LIGHTING
 
-
 #include "..\common\ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
-
 #include "LightingConvexHullUtils.hlsl"
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 #include "SortingComputeUtils.hlsl"
 #endif
-
 
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -265,7 +262,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		localOffs += nrLightsFinal;
 		offs += (nrTilesX*nrTilesY);
 	}
-
 }
 
 
