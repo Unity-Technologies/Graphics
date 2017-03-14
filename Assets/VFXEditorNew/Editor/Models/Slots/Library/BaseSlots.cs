@@ -79,7 +79,13 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo(type = typeof(Texture2D))]
-    class VFXSlotTexture2D : VFXSlot {}
+    class VFXSlotTexture2D : VFXSlot
+    {
+        protected override VFXValue DefaultExpression()
+        {
+            return new VFXValueTexture2D(Texture2D.whiteTexture, false);
+        }
+    }
 
     [VFXInfo(type = typeof(Texture3D))]
     class VFXSlotTexture3D : VFXSlot {}

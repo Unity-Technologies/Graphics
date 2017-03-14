@@ -247,13 +247,6 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        private void ConnectInput(VFXSlot slot)
-        {
-            UnlinkAll(false); // First disconnect any other linked slot
-            PropagateToTree(s => s.UnlinkAll(false)); // Unlink other links in tree
-            SetInExpression(slot.m_OutExpression);
-        }
-
         private void DisconnectInput()
         {
             VFXExpression expr = GetNbChildren() == 0 ? m_DefaultExpression : ExpressionFromChildren(children.Select(c => c.m_InExpression).ToArray());
@@ -295,10 +288,16 @@ namespace UnityEditor.VFX
                 foreach (var child in children)
                     child.UnlinkAll(notify);
             }*/
-            
-            m_LinkedSlots.Add(other);
+
             if (direction == Direction.kInput)
-                ConnectInput(other);
+            {
+                UnlinkAll(false); // First disconnect any other linked slot
+                PropagateToTree(s => s.UnlinkAll(false)); // Unlink other links in tree
+                m_LinkedSlots.Add(other);
+                SetInExpression(other.m_OutExpression,notify);
+            }
+            else
+                m_LinkedSlots.Add(other);
 
             //if (notify)
             //    Invalidate(InvalidationCause.kConnectionChanged);
@@ -306,8 +305,16 @@ namespace UnityEditor.VFX
 
         private void InnerUnlink(VFXSlot other, bool notify)
         {
-            if (m_LinkedSlots.Remove(other) && notify)
-                Invalidate(InvalidationCause.kConnectionChanged);
+            if (m_LinkedSlots.Remove(other))
+            {
+                if (direction == Direction.kInput)
+                {
+                    VFXExpression expr = GetNbChildren() == 0 ? m_DefaultExpression : ExpressionFromChildren(children.Select(c => c.m_InExpression).ToArray());
+                    SetInExpression(expr, false, notify);
+                }
+                //if (notify)
+                //    Invalidate(InvalidationCause.kConnectionChanged);
+            }
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
