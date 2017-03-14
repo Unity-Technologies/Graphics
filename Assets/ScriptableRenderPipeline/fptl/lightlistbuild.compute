@@ -14,6 +14,12 @@
 #include "SortingComputeUtils.hlsl"
 #endif
 
+#define NARROW_MOBILE_ENABLED
+
+#ifdef NARROW_MOBILE_ENABLED
+	#define EMUL_LOCAL_ATOMICS
+#endif
+
 
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -34,7 +40,13 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );		// don't support Buffer yet in unity
 #endif
 
-#define NR_THREADS			64
+#ifdef NARROW_MOBILE_ENABLED
+	#define NR_THREADS			32
+#else
+	#define NR_THREADS			64
+#endif
+
+#include "LocalAtomics.hlsl"
 
 // output buffer
 RWStructuredBuffer<uint> g_vLightList : register( u0 );				// don't support RWBuffer yet in unity
@@ -102,7 +114,13 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #endif
 
 #ifdef FINE_PRUNING_ENABLED
+
+#ifndef NARROW_MOBILE_ENABLED
 void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths);
+#else
+void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths1, float4 vLinDepths2);
+#endif
+
 #endif
 
 
@@ -112,8 +130,13 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	uint2 tileIDX = u3GroupID.xy;
 	uint t=threadID;
 
+#ifndef NARROW_MOBILE_ENABLED
 	if(t<MAX_NR_COARSE_ENTRIES)
 		prunedList[t]=0;
+#else
+	for(int i=(int) t; i<MAX_NR_COARSE_ENTRIES; i+=NR_THREADS)
+		prunedList[i]=0;
+#endif
 	
 	uint iWidth = g_viDimensions.x;
 	uint iHeight = g_viDimensions.y;
@@ -141,15 +164,28 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 
 	float4 vLinDepths;
+#ifdef NARROW_MOBILE_ENABLED
+	float4 vLinDepths2;
+#endif
 	{
 		// Fetch depths and calculate min/max
 		[unroll]
+#ifndef NARROW_MOBILE_ENABLED
 		for(int i = 0; i < 4; i++)
+#else
+		for(int i = 0; i < 8; i++)
+#endif
 		{
 			int idx = i * NR_THREADS + t;
 			uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
 			const float fDepth = FetchDepth(g_depth_tex, uCrd);
-			vLinDepths[i] = GetLinearDepth(fDepth);
+			const float linDepth = GetLinearDepth(fDepth);
+#ifndef NARROW_MOBILE_ENABLED
+			vLinDepths[i] = linDepth;
+#else
+			if(i<4) vLinDepths[i] = linDepth;
+			else vLinDepths2[i-4] = linDepth;
+#endif
 			if(fDepth<VIEWPORT_SCALE_Z)		// if not skydome
 			{
 				dpt_mi = min(fDepth, dpt_mi);
@@ -157,8 +193,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 			}
 		}
 
-		InterlockedMax(ldsZMax, asuint(dpt_ma));
-		InterlockedMin(ldsZMin, asuint(dpt_mi));
+		InterlockedMAX(ldsZMax, asuint(dpt_ma), threadID);
+		InterlockedMIN(ldsZMin, asuint(dpt_mi), threadID);
 
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
@@ -177,16 +213,18 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int NrBigTilesX = (nrTilesX+3)>>2;
 	const int bigTileIdx = (tileIDX.y>>2)*NrBigTilesX + (tileIDX.x>>2);		// map the idx to 64x64 tiles
 	int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+0];
+	int nrLightsIn = nrBigTileLights;
 	for(int l0=(int) t; l0<(int) nrBigTileLights; l0 += NR_THREADS)
 	{
 		int l = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+l0+1];
 #else
+	int nrLightsIn = (int) g_iNrVisibLights;
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
 #endif
 		const float3 vMi = g_vBoundsBuffer[l];
 		const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights];
-
+#ifndef EMUL_LOCAL_ATOMICS
 		if( all(vMa>vTileLL) && all(vMi<vTileUR))
 		{
 			unsigned int uInc = 1;
@@ -194,6 +232,12 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 			InterlockedAdd(lightOffs, uInc, uIndex);
 			if(uIndex<MAX_NR_COARSE_ENTRIES) coarseList[uIndex] = l;		// add to light list
 		}
+#else
+		unsigned int uInc = (all(vMa>vTileLL) && all(vMi<vTileUR)) ? 1 : 0;
+		unsigned int uIndex;
+		InterlockedADDAndPrev(lightOffs, uInc, uIndex, t, l, nrLightsIn);
+		if(uIndex<MAX_NR_COARSE_ENTRIES && uInc!=0) coarseList[uIndex] = l;		// add to light list
+#endif
 	}
 
 #ifdef FINE_PRUNING_ENABLED	
@@ -212,14 +256,22 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 #ifndef FINE_PRUNING_ENABLED	
 	{
+#ifndef NARROW_MOBILE_ENABLED
 		if((int)t<iNrCoarseLights) prunedList[t] = coarseList[t];
+#else
+		for(int i=(int) t; t<iNrCoarseLights; i+=NR_THREADS) prunedList[i] = coarseList[i];
+#endif
 		if(t==0) ldsNrLightsFinal=iNrCoarseLights;
 	}
 #else
 	{
 		// initializes ldsNrLightsFinal with the number of accepted lights.
 		// all accepted entries delivered in prunedList[].
+#ifndef NARROW_MOBILE_ENABLED
 		FinePruneLights(t, iNrCoarseLights, viTilLL, vLinDepths);
+#else
+		FinePruneLights(t, iNrCoarseLights, viTilLL, vLinDepths, vLinDepths2);
+#endif
 	}
 #endif
 
@@ -234,12 +286,21 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int nrLightsCombinedList = min(ldsNrLightsFinal,MAX_NR_COARSE_ENTRIES);
 	for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS) 
 	{
+#ifndef EMUL_LOCAL_ATOMICS
 		InterlockedAdd(ldsModelListCount[ g_vLightData[ prunedList[i] ].lightModel ], 1);
+#else
+		uint model = g_vLightData[ prunedList[i] ].lightModel;
+		for(int m=0; m<NR_LIGHT_MODELS; m++)
+		{
+			uint uInc = model==m ? 1 : 0;
+			InterlockedADD(ldsModelListCount[m], uInc, threadID, i, nrLightsCombinedList);
+		}
+#endif
 	}
 
 
 	// sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL) && !defined(NARROW_MOBILE_ENABLED)
 	SORTLIST(prunedList, nrLightsCombinedList, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
 	//MERGESORTLIST(prunedList, coarseList, nrLightsCombinedList, t, NR_THREADS);
 #endif
@@ -295,13 +356,21 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
 		SFiniteLightBound lightData = g_data[prunedList[l]];
-	
-		if( DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lightData.center.xyz, lightData.radius) )
+
+		bool bHit = DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lightData.center.xyz, lightData.radius);
+#ifndef EMUL_LOCAL_ATOMICS	
+		if( bHit )
 		{
 			unsigned int uIndex;
 			InterlockedAdd(lightOffsSph, 1, uIndex);
 			coarseList[uIndex]=prunedList[l];		// read from the original copy of coarseList which is backed up in prunedList
 		}
+#else
+		unsigned int uInc = bHit ? 1 : 0;
+		unsigned int uIndex;
+		InterlockedADDAndPrev(lightOffsSph, uInc, uIndex, threadID, l, iNrCoarseLights);
+		if(bHit) coarseList[uIndex]=prunedList[l];		// read from the original copy of coarseList which is backed up in prunedList
+#endif
 	}
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
@@ -316,8 +385,18 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #ifdef FINE_PRUNING_ENABLED
 // initializes ldsNrLightsFinal with the number of accepted lights.
 // all accepted entries delivered in prunedList[].
+
+#ifndef NARROW_MOBILE_ENABLED
 void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths)
+#else
+void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths1, float4 vLinDepths2)
+#endif
 {
+#ifndef NARROW_MOBILE_ENABLED
+	const int numPixSerial = 4;
+#else
+	const int numPixSerial = 8;
+#endif
 	uint t = threadID;
 	uint iWidth = g_viDimensions.x;
 	uint iHeight = g_viDimensions.y;
@@ -340,12 +419,15 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 				
 			// serially check 4 pixels
 			uint uVal = 0;
-			for(int i=0; i<4; i++)
+			for(int i=0; i<numPixSerial; i++)
 			{
 				int idx = t + i*NR_THREADS;
 	
 				uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
-				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
+#ifdef NARROW_MOBILE_ENABLED
+				float4 vLinDepths = i<4 ? vLinDepths1 : vLinDepths2;
+#endif
+				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i&0x3]);
 	
 				// check pixel
 				float3 fromLight = vVPos-lightData.lightPos.xyz;
@@ -370,12 +452,15 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			// serially check 4 pixels
 			uint uVal = 0;
-			for(int i=0; i<4; i++)
+			for(int i=0; i<numPixSerial; i++)
 			{
 				int idx = t + i*NR_THREADS;
 	
 				uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
-				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
+#ifdef NARROW_MOBILE_ENABLED
+				float4 vLinDepths = i<4 ? vLinDepths1 : vLinDepths2;
+#endif
+				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i&0x3]);
 	
 				// check pixel
 				float3 vLp = lightData.lightPos.xyz;
@@ -397,12 +482,15 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			// serially check 4 pixels
 			uint uVal = 0;
-			for(int i=0; i<4; i++)
+			for(int i=0; i<numPixSerial; i++)
 			{
 				int idx = t + i*NR_THREADS;
 	
 				uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
-				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
+#ifdef NARROW_MOBILE_ENABLED
+				float4 vLinDepths = i<4 ? vLinDepths1 : vLinDepths2;
+#endif
+				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i&0x3]);
 
 				// check pixel
 				float3 toLight  = lightData.lightPos.xyz - vVPos;
@@ -421,14 +509,15 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 		if(uLgtType>=MAX_TYPES) ++l;
 	}
 
-	InterlockedOr(ldsDoesLightIntersect[0], uLightsFlags[0]);
-	InterlockedOr(ldsDoesLightIntersect[1], uLightsFlags[1]);
+	InterlockedOR(ldsDoesLightIntersect[0], uLightsFlags[0], threadID);
+	InterlockedOR(ldsDoesLightIntersect[1], uLightsFlags[1], threadID);
 	if(t==0) ldsNrLightsFinal = 0;
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
+#ifndef NARROW_MOBILE_ENABLED
 	if(t<(uint) iNrCoarseLights && (ldsDoesLightIntersect[t<32 ? 0 : 1]&(1<<(t&31)))!=0 )
 	{
 		unsigned int uInc = 1;
@@ -436,5 +525,14 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 		InterlockedAdd(ldsNrLightsFinal, uInc, uIndex);
 		if(uIndex<MAX_NR_COARSE_ENTRIES) prunedList[uIndex] = coarseList[t];		// we allow up to 64 pruned lights while stored in LDS.
 	}
+#else
+	for(uint i=t; i<MAX_NR_COARSE_ENTRIES; i+=NR_THREADS)
+	{
+		unsigned int uInc = (i<(uint) iNrCoarseLights && (ldsDoesLightIntersect[i<32 ? 0 : 1]&(1<<(i&31)))!=0) ? 1 : 0;
+		unsigned int uIndex;
+		InterlockedADDAndPrev(ldsNrLightsFinal, uInc, uIndex, t, i, MAX_NR_COARSE_ENTRIES);
+		if(uInc!=0 && uIndex<MAX_NR_COARSE_ENTRIES) prunedList[uIndex] = coarseList[i];		// we allow up to 64 pruned lights while stored in LDS.
+	}
+#endif
 }
 #endif
