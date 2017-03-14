@@ -6,7 +6,10 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(float))]
     class VFXSlotFloat : VFXSlot
     {
-
+        protected override VFXValue DefaultExpression()
+        {
+            return new VFXValueFloat(0.0f, false);
+        }
     }
 
     [VFXInfo(type = typeof(Vector2))]
@@ -87,7 +90,7 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(FloatN))]
     class VFXSlotFloatN : VFXSlot
     {
-        protected override bool CanConvert(VFXExpression expression)
+        protected override bool CanConvertFrom(VFXExpression expression)
         {
             return expression == null || VFXExpression.IsFloatValueType(expression.ValueType);
         }

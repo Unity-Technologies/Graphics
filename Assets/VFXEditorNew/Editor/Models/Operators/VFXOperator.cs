@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
             //Apply
             for (int iSlot = 0; iSlot < inputExpressionArray.Length; ++iSlot)
             {
-                GetOutputSlot(iSlot).SetExpression(inputExpressionArray[iSlot]);
+                GetOutputSlot(iSlot).SetExpression(inputExpressionArray[iSlot],false); // dont notify
             }
         }
 
