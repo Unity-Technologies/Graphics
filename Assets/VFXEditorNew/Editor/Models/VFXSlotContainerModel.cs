@@ -135,8 +135,8 @@ namespace UnityEditor.VFX
                 for (int i = 0; i < fields.Length; ++i)
                 {
                     var property = properties[i];
-                    var value = values[i];
-                    var slot = VFXSlot.Create(property, direction, GetExpressionFromObject(value));
+                    //var value = values[i];
+                    var slot = VFXSlot.Create(property, direction);
                     if (slot != null)
                     {
                         AddSlot(slot,false);

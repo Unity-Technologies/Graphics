@@ -62,7 +62,14 @@ namespace UnityEditor.VFX
         }
 
         // Create and return a slot hierarchy from a property info
-        public static VFXSlot Create(VFXProperty property, Direction direction, VFXExpression defaultExpression = null)
+        public static VFXSlot Create(VFXProperty property, Direction direction)
+        {
+            var slot = CreateSub(property, direction); // First create slot tree
+            slot.InitExpression(); // Initialize expressions
+            return slot;
+        }
+     
+        private static VFXSlot CreateSub(VFXProperty property, Direction direction)
         {
             var desc = VFXLibrary.GetSlot(property.type);
             if (desc != null)
@@ -70,11 +77,10 @@ namespace UnityEditor.VFX
                 var slot = desc.CreateInstance();
                 slot.m_Direction = direction;
                 slot.m_Property = property;
-                slot.m_DefaultExpression = defaultExpression;
 
                 foreach (var subInfo in property.SubProperties())
                 {
-                    var subSlot = Create(subInfo, direction, null /* TODO : transform base expression to subproperty */);
+                    var subSlot = CreateSub(subInfo, direction);
                     if (subSlot != null)
                         subSlot.Attach(slot,false);
                 }
@@ -83,6 +89,26 @@ namespace UnityEditor.VFX
             }
 
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}",property.name,property.type));
+        }
+
+        private void InitExpression()
+        {
+            if (GetNbChildren() == 0)
+            {
+                m_DefaultExpression = DefaultExpression();
+                if (m_DefaultExpression == null)
+                    throw new NotImplementedException("Default expression must return a VFXValue for slot of type: " + this.ToString());
+            }
+            else
+            {
+                // Depth first
+                foreach (var child in children)
+                    child.InitExpression();
+
+                m_DefaultExpression = ExpressionFromChildren(children.Select(c => c.m_InExpression).ToArray());
+            }
+
+            m_InExpression = m_OutExpression = m_DefaultExpression;
         }
     
         public int GetNbLinks() { return m_LinkedSlots.Count; }
@@ -158,22 +184,6 @@ namespace UnityEditor.VFX
         {
             PropagateToParent(func);
             PropagateToChildren(func);
-        }
-
-        private void InitExpression()
-        {
-            if (GetNbChildren() == 0)
-                m_DefaultExpression = DefaultExpression();
-            else
-            {
-                // Depth first
-                foreach (var child in children)
-                    InitExpression();
-
-                m_DefaultExpression = ExpressionFromChildren(children.Select(c => c.m_InExpression).ToArray());
-            }
-
-            m_InExpression = m_DefaultExpression;
         }
 
         private void SetInExpression(VFXExpression expression, bool propagateDown = true, bool notify = true)
@@ -318,7 +328,10 @@ namespace UnityEditor.VFX
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
         protected virtual VFXExpression ExpressionFromChildren(VFXExpression[] exp) { return null; }
 
-        protected virtual VFXValue DefaultExpression() { return null; }
+        protected virtual VFXValue DefaultExpression() 
+        {
+            return null; 
+        }
 
         public override void OnBeforeSerialize()
         {
