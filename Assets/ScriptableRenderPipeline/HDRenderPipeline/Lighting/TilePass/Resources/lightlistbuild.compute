@@ -8,10 +8,10 @@
 #include "../ShaderBase.hlsl"
 #include "../TilePass.cs.hlsl"
 #include "../LightingConvexHullUtils.hlsl"
+
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 #include "../SortingComputeUtils.hlsl"
 #endif
-
 
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -22,6 +22,7 @@ uniform uint2 g_viDimensions;
 uniform float4x4 g_mInvScrProjection;
 uniform float4x4 g_mScrProjection;
 uniform int _EnvLightIndexShift;
+
 
 Texture2D g_depth_tex : register( t0 );
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
@@ -232,7 +233,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int nrLightsCombinedList = min(ldsNrLightsFinal,MAX_NR_COARSE_ENTRIES);
 	for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS) 
 	{
-        InterlockedAdd(ldsCategoryListCount[_LightVolumeData[prunedList[i]].lightCategory], 1);
+		InterlockedAdd(ldsCategoryListCount[_LightVolumeData[prunedList[i]].lightCategory], 1);
 	}
 
 
@@ -246,9 +247,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int localOffs=0;
 	int offs = tileIDX.y*nrTilesX + tileIDX.x;
 
-    // All our cull data are in the same list, but at render time envLights are separated so we need to shit the index
-    // to make it work correctly
-    int shiftIndex[LIGHTCATEGORY_COUNT] = {0, 0, _EnvLightIndexShift}; // 3 for now, will throw an error if we change LIGHTCATEGORY_COUNT
+	// All our cull data are in the same list, but at render time envLights are separated so we need to shit the index
+	// to make it work correctly
+	int shiftIndex[LIGHTCATEGORY_COUNT] = {0, 0, _EnvLightIndexShift}; // 3 for now, will throw an error if we change LIGHTCATEGORY_COUNT
 
 	for(int category=0; category<LIGHTCATEGORY_COUNT; category++)
 	{
@@ -259,9 +260,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		const int nrDWords = ((nrLightsFinalClamped+1)+1)>>1;
 		for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
 		{
-            // We remap the prunedList index to the original LightData / EnvLightData indices
+			// We remap the prunedList index to the original LightData / EnvLightData indices
 			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[2*l-1+localOffs] - shiftIndex[category];
-            uint uHigh = prunedList[2 * l + 0 + localOffs] - shiftIndex[category];
+			uint uHigh = prunedList[2 * l + 0 + localOffs] - shiftIndex[category];
 
 			g_vLightList[16*offs + l] = (uLow&0xffff) | (uHigh<<16);
 		}
@@ -279,7 +280,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	if(threadID==0) lightOffsSph = 0;
 
 	// make a copy of coarseList in prunedList.
-    int l;
+	int l;
 	for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 		prunedList[l]=coarseList[l];
 
@@ -334,14 +335,14 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 	{
 		// fetch light
 		int idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-        uint uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
+		uint uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
 
 		// spot
 		while(l<iNrCoarseLights && uLightVolume==LIGHTVOLUMETYPE_CONE)
 		{
-            LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            // TODO: Change by SebL
-            const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
+			LightVolumeData lightData = _LightVolumeData[idxCoarse];
+			// TODO: Change by SebL
+			const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
 				
 			// serially check 4 pixels
 			uint uVal = 0;
@@ -365,13 +366,13 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
 			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-            uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
+			uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
 		}
 
 		// sphere
 		while(l<iNrCoarseLights && uLightVolume==LIGHTVOLUMETYPE_SPHERE)
 		{
-            LightVolumeData lightData = _LightVolumeData[idxCoarse];
+			LightVolumeData lightData = _LightVolumeData[idxCoarse];
 
 			// serially check 4 pixels
 			uint uVal = 0;
@@ -392,13 +393,13 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
 			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-            uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
+			uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
 		}
 
 		// Box
 		while(l<iNrCoarseLights && uLightVolume==LIGHTVOLUMETYPE_BOX)
 		{
-            LightVolumeData lightData = _LightVolumeData[idxCoarse];
+			LightVolumeData lightData = _LightVolumeData[idxCoarse];
 
 			// serially check 4 pixels
 			uint uVal = 0;
