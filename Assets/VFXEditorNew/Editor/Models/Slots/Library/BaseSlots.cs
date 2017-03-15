@@ -88,7 +88,13 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo(type = typeof(Texture3D))]
-    class VFXSlotTexture3D : VFXSlot {}
+    class VFXSlotTexture3D : VFXSlot 
+    {
+        /*protected override VFXValue DefaultExpression()
+        {
+            return new VFXValueTexture3D(null, false);
+        }*/
+    }
 
     [VFXInfo(type = typeof(AnimationCurve))]
     class VFXSlotAnimationCurve : VFXSlot { }
@@ -99,6 +105,38 @@ namespace UnityEditor.VFX
         protected override bool CanConvertFrom(VFXExpression expression)
         {
             return expression == null || VFXExpression.IsFloatValueType(expression.ValueType);
+        }
+
+        protected virtual VFXExpression ConvertExpression(VFXExpression expression)
+        {
+           /* if (expression == null)
+            {
+                PropagateToChildren(c => c.UnlinkAll());
+                RemoveAllChildren();
+            }
+            else
+            {
+                var nbComponents = VFXExpression.TypeToSize(expression.ValueType);
+                var nbChildren = GetNbChildren();
+
+                if (nbChildren > nbComponents)
+                {
+                    for (int i = nbComponents; i < nbChildren; ++i)
+                    {
+                        var child = GetChild(GetNbChildren() - 1);
+                        child.UnlinkAll();
+                        GetChild(GetNbChildren() - 1).Detach();
+                    }
+                }
+
+                if (GetNbChildren() != nbComponents)
+                {
+
+                }
+            }*/
+
+
+            return expression;
         }
     }
 

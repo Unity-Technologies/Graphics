@@ -8,6 +8,11 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXSlotTests
     {
+        class VFXDummySlot : VFXSlot
+        {
+
+        }
+
         [Test]
         public void Link()
         {
@@ -123,6 +128,13 @@ namespace UnityEditor.VFX.Test
             var expr = sphereSlot.GetChild(0).GetChild(0).expression;
             Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
             Assert.AreEqual(floatSlot.expression, expr.Parents[0].Parents[0]);
+            Assert.AreEqual(floatSlot.expression, sphereSlot.GetChild(1).expression);
+
+            floatSlot.UnlinkAll();
+            expr = sphereSlot.GetChild(0).GetChild(0).expression;
+            Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
+            Assert.AreNotEqual(floatSlot.expression, expr.Parents[0].Parents[0]);
+            Assert.AreNotEqual(floatSlot.expression, sphereSlot.GetChild(1).expression);
         }
     }
 }

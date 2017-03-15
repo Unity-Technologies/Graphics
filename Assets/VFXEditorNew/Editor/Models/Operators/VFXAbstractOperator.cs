@@ -197,5 +197,7 @@ namespace UnityEditor.VFX
             public FloatN right = FallbackValue;
             public FloatN left = FallbackValue;
         }
+
+
     }
 }
