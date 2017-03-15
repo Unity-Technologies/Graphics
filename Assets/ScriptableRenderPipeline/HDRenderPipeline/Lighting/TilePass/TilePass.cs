@@ -248,6 +248,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 public uint    envLightCount;
                 public uint    numTileFtplX;
                 public uint    numTileFtplY;
+                public uint    pad0, pad1; // 16-byte alignment
                 // public uint    numTileClusteredX;
                 // public uint    numTileClusteredY;
                 // public uint    isLogBaseBufferEnabled;

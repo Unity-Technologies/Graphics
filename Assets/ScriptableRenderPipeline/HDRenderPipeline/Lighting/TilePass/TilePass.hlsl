@@ -50,6 +50,7 @@ struct LightingSettings
     uint   envLightCount;
     uint   numTileFtplX;
     uint   numTileFtplY;
+    uint   pad0, pad1; // 16-byte alignment
     // uint   numTileClusteredX;
     // uint   numTileClusteredY;
     // uint   isLogBaseBufferEnabled;
