@@ -10,12 +10,15 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
     private MaterialProperty alphaCutoffProp = null;
     private MaterialProperty specularSourceProp = null;
     private MaterialProperty glossinessSourceProp = null;
+    private MaterialProperty reflectionSourceProp = null;
     private MaterialProperty specularGlossMapProp = null;
     private MaterialProperty specularColorProp = null;
     private MaterialProperty shininessProp = null;
     private MaterialProperty bumpMapProp = null;
     private MaterialProperty emissionMapProp = null;
     private MaterialProperty emissionColorProp = null;
+    private MaterialProperty reflectionMapProp = null;
+    private MaterialProperty reflectionColorProp = null;
 
     public enum BlendMode
     {
@@ -35,6 +38,13 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
     {
         BaseAlpha,
         SpecularAlpha
+    }
+
+    public enum ReflectionSource
+    {
+        NoReflection,
+        Cubemap,
+        ReflectionProbe
     }
 
     private void Awake()
@@ -65,6 +75,7 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
 
         public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map");
         public static GUIContent emissionMapLabel = new GUIContent("Emission Map", "Emission Map");
+        public static GUIContent reflectionMapLabel = new GUIContent("Reflection Source", "Reflection Source Map");
 
         public static GUIContent alphaCutoutWarning =
             new GUIContent(
@@ -74,6 +85,7 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
         public static readonly string[] blendNames = Enum.GetNames(typeof(BlendMode));
         public static readonly string[] specSourceNames = Enum.GetNames(typeof(SpecularSource));
         public static readonly string[] glossinessSourceNames = Enum.GetNames(typeof(GlossinessSource));
+        public static readonly string[] speculaSourceNames = Enum.GetNames(typeof(ReflectionSource));
 
         public static string renderingModeLabel = "Rendering Mode";
         public static string specularSourceLabel = "Specular Color Source";
@@ -86,6 +98,7 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
         public static string shininessLabel = "Shininess";
         public static string normalMapLabel = "Normal map";
         public static string emissionColorLabel = "Emission Color";
+        public static string reflectionSourceLabel = "Reflection Source";
     }
 
     private void FindMaterialProperties(Material material)
@@ -104,6 +117,9 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
         bumpMapProp = GetMaterialProperty(mats, "_BumpMap");
         emissionMapProp = GetMaterialProperty(mats, "_EmissionMap");
         emissionColorProp = GetMaterialProperty(mats, "_EmissionColor");
+        reflectionMapProp = GetMaterialProperty(mats, "_Cube");
+        reflectionColorProp = GetMaterialProperty(mats, "_ReflectColor");
+        reflectionSourceProp = GetMaterialProperty(mats, "_ReflectionSource");
     }
 
     public override void OnInspectorGUI()
@@ -126,6 +142,9 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
 
             EditorGUILayout.Space();
             TexturePropertySingleLine(Styles.emissionMapLabel, emissionMapProp, emissionColorProp);
+
+            EditorGUILayout.Space();
+            DoReflection();
 
             if (EditorGUI.EndChangeCheck())
                 UpdateMaterialKeywords(material);
@@ -205,12 +224,30 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
         }
     }
 
+    private void DoReflection()
+    {
+        EditorGUILayout.Space();
+
+        int source = (int) reflectionSourceProp.floatValue;
+        EditorGUI.BeginChangeCheck();
+        source = EditorGUILayout.Popup(Styles.reflectionSourceLabel, source, Styles.speculaSourceNames);
+        if (EditorGUI.EndChangeCheck())
+            reflectionSourceProp.floatValue = (float) source;
+
+        EditorGUILayout.Space();
+        ReflectionSource reflectionSource = (ReflectionSource) reflectionSourceProp.floatValue;
+        if (reflectionSource == ReflectionSource.Cubemap)
+            TexturePropertySingleLine(Styles.reflectionMapLabel, reflectionMapProp, reflectionColorProp);
+    }
+
     private void UpdateMaterialKeywords(Material material)
     {
         UpdateMaterialBlendMode(material);
         UpdateMaterialSpecularSource(material);
+        UpdateMaterialReflectionSource(material);
         SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
         SetKeyword(material, "_SPECGLOSSMAP", material.GetTexture("_SpecGlossMap"));
+        SetKeyword(material, "_CUBEMAP_REFLECTION", material.GetTexture("_Cube"));
     }
 
     private void UpdateMaterialBlendMode(Material material)
@@ -280,6 +317,28 @@ public class LowendMobilePipelineMaterialEditor : MaterialEditor
             SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", true);
         else
             SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", false);
+    }
+
+    private void UpdateMaterialReflectionSource(Material material)
+    {
+        ReflectionSource reflectionSource = (ReflectionSource) reflectionSourceProp.floatValue;
+        if (reflectionSource == ReflectionSource.NoReflection)
+        {
+            SetKeyword(material, "_CUBEMAP_REFLECTION", false);
+        }
+        else if (reflectionSource == ReflectionSource.Cubemap && material.GetTexture("_Cube"))
+        {
+            SetKeyword(material, "_CUBEMAP_REFLECTION", true);
+        }
+        else if (reflectionSource == ReflectionSource.ReflectionProbe)
+        {
+            Debug.LogWarning("Reflection probe not implemented yet");
+            SetKeyword(material, "_CUBEMAP_REFLECTION", false);
+        }
+        else
+        {
+            SetKeyword(material, "_CUBEMAP_REFLECTION", false);
+        }
     }
 
     private void SetKeyword(Material material, string keyword, bool enable)

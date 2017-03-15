@@ -12,6 +12,8 @@ namespace UnityEditor.Experimental.Rendering
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
         Dictionary<string, string> m_FloatRename = new Dictionary<string, string>();
         Dictionary<string, string> m_ColorRename = new Dictionary<string, string>();
+
+        Dictionary<string, float> m_FloatPropertiesToSet = new Dictionary<string, float>();
         List<string> m_TexturesToRemove = new List<string>();
 
         [Flags]
@@ -20,6 +22,7 @@ namespace UnityEditor.Experimental.Rendering
             None = 0,
             LogErrorOnNonExistingProperty = 1,
             CleanupNonUpgradedProperties = 2,
+            LogMessageWhenNoUpgraderFound = 4
         }
 
         public void Upgrade(Material material, UpgradeFlags flags)
@@ -40,6 +43,12 @@ namespace UnityEditor.Experimental.Rendering
             material.shader = Shader.Find(m_NewShader);
             material.CopyPropertiesFromMaterial(newMaterial);
             UnityEngine.Object.DestroyImmediate(newMaterial);
+
+            material.shaderKeywords = new string[0];
+
+            var matEditor = Editor.CreateEditor(material) as MaterialEditor;
+            matEditor.SetShader(Shader.Find(m_NewShader), false);
+            matEditor.serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Overridable function to implement custom material upgrading functionality
@@ -60,6 +69,9 @@ namespace UnityEditor.Experimental.Rendering
 
             foreach (var prop in m_TexturesToRemove)
                 dstMaterial.SetTexture(prop, null);
+
+            foreach (var prop in m_FloatPropertiesToSet)
+                dstMaterial.SetFloat(prop.Key, prop.Value);
         }
 
         public void RenameShader(string oldName, string newName)
@@ -86,6 +98,11 @@ namespace UnityEditor.Experimental.Rendering
         public void RemoveTexture(string name)
         {
             m_TexturesToRemove.Add(name);
+        }
+
+        public void SetNewFloatProperty(string propertyName, float value)
+        {
+            m_FloatPropertiesToSet[propertyName] = value;
         }
 
         static bool IsMaterialPath(string path)
@@ -117,7 +134,7 @@ namespace UnityEditor.Experimental.Rendering
             AssetDatabase.Refresh();
         }
 
-        public static void UpgradeProjectFolder(List<MaterialUpgrader> upgraders, string progressBarName)
+        public static void UpgradeProjectFolder(List<MaterialUpgrader> upgraders, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
             if (!EditorUtility.DisplayDialog("Material Upgrader", "The upgrade will overwrite material settings in your project." +
                                                                   "Be sure to have a project backup before proceeding", "Proceed", "Cancel"))
@@ -140,7 +157,7 @@ namespace UnityEditor.Experimental.Rendering
                         break;
 
                     Material m = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path) as Material;
-                    Upgrade(m, upgraders, UpgradeFlags.None);
+                    Upgrade(m, upgraders, flags);
 
                     //SaveAssetsAndFreeMemory();
                 }
@@ -159,18 +176,21 @@ namespace UnityEditor.Experimental.Rendering
         public static void Upgrade(Material material, List<MaterialUpgrader> upgraders, UpgradeFlags flags)
         {
             var upgrader = GetUpgrader(upgraders, material);
+
             if (upgrader != null)
                 upgrader.Upgrade(material, flags);
+            else if ((flags & UpgradeFlags.LogMessageWhenNoUpgraderFound) == UpgradeFlags.LogMessageWhenNoUpgraderFound)
+               Debug.Log(string.Format("There's no upgrader to convert {0} shader to selected pipeline", material.shader.name));
         }
 
-        public static void UpgradeSelection(List<MaterialUpgrader> upgraders, string progressBarName)
+        public static void UpgradeSelection(List<MaterialUpgrader> upgraders, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
-            if (!EditorUtility.DisplayDialog("Material Upgrader", "The upgrade will overwrite all selected material settings" +
+            var selection = Selection.objects;
+            if (!EditorUtility.DisplayDialog("Material Upgrader", string.Format("The upgrade will possibly overwrite all the {0} selected material settings", selection.Length) +
                                                                   "Be sure to have a project backup before proceeding", "Proceed", "Cancel"))
                 return;
 
             string lastMaterialName = "";
-            var selection = Selection.objects;
             for (int i = 0; i < selection.Length; i++)
             {
 
@@ -178,7 +198,7 @@ namespace UnityEditor.Experimental.Rendering
                     break;
 
                 var material = selection[i] as Material;
-                Upgrade(material, upgraders, UpgradeFlags.None);
+                Upgrade(material, upgraders, flags);
                 if (material != null)
                     lastMaterialName = material.name;
             }
