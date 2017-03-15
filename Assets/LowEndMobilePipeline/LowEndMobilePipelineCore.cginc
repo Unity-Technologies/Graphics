@@ -59,7 +59,8 @@ float _PCFKernel[8];
 half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
 half _Shininess;
-
+samplerCUBE _Cube;
+half4 _ReflectColor;
 
 inline void NormalMap(v2f i, out half3 normal)
 {
@@ -106,12 +107,19 @@ inline void Emission(v2f i, out half3 emission)
 #endif
 }
 
-inline void IndirectDiffuse(v2f i, half3 diffuse, out half3 indirectDiffuse)
+inline void Indirect(v2f i, half3 diffuse, half3 normal, half glossiness, out half3 indirect)
 {
 #ifdef LIGHTMAP_ON
-    indirectDiffuse = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
+    indirect = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
 #else
-    indirectDiffuse = i.fogCoord.yzw * diffuse;
+    indirect = i.fogCoord.yzw * diffuse;
+#endif
+
+    // TODO: we can use reflect vec to compute specular instead of half when computing cubemap reflection
+#ifdef _CUBEMAP_REFLECTION
+    half3 reflectVec = reflect(-i.viewDir.xyz, normal);
+    half3 indirectSpecular = texCUBE(_Cube, reflectVec) * _ReflectColor * glossiness;
+    indirect += indirectSpecular;
 #endif
 }
 

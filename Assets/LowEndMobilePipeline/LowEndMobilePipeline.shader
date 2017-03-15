@@ -9,10 +9,15 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        _Glossiness("Glossiness", Range(0.0, 1.0)) = 0.5
         _Shininess("Shininess", Range(0.0, 1.0)) = 1.0
         _GlossMapScale("Smoothness Factor", Range(0.0, 1.0)) = 1.0
+
+        _Glossiness("Glossiness", Range(0.0, 1.0)) = 0.5
         [Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
+
+        _Cube ("Reflection Cubemap", CUBE) = "" {}
+        _ReflectColor("Reflection Color", Color) = (1, 1, 1, 1)
+        _ReflectionSource("Reflection Source", Float) = 0
 
         [HideInInspector] _SpecSource("Specular Color Source", Float) = 0.0
         _SpecColor("Specular", Color) = (1.0, 1.0, 1.0)
@@ -26,9 +31,6 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
 
         _Parallax("Height Scale", Range(0.005, 0.08)) = 0.02
         _ParallaxMap("Height Map", 2D) = "black" {}
-
-        _OcclusionStrength("Strength", Range(0.0, 1.0)) = 1.0
-        _OcclusionMap("Occlusion", 2D) = "white" {}
 
         _EmissionColor("Emission Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
@@ -71,6 +73,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
             #pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _EMISSION_MAP
+            #pragma shader_feature _CUBEMAP_REFLECTION
 
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ HARD_SHADOWS SOFT_SHADOWS
@@ -153,8 +156,8 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
                 SpecularGloss(diffuse, alpha, specularGloss);
 
                 // Indirect Light Contribution
-                half3 indirectDiffuse;
-                IndirectDiffuse(i, diffuse, indirectDiffuse);
+                half3 indirect;
+                Indirect(i, diffuse, normal, alpha, indirect);
 
                 half3 emissionColor;
                 Emission(i, emissionColor);
@@ -179,7 +182,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile"
                     directColor += EvaluateOneLight(additionalLight, diffuse, specularGloss, normal, i.posWS, viewDir);
                 }
 
-                half3 color = directColor + indirectDiffuse + emissionColor;
+                half3 color = directColor + indirect + emissionColor;
                 UNITY_APPLY_FOG(i.fogCoord, color);
 
                 return OutputColor(color, alpha);
