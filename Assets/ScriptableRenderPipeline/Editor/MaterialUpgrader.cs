@@ -47,7 +47,7 @@ namespace UnityEditor.Experimental.Rendering
             material.shaderKeywords = new string[0];
 
             var matEditor = Editor.CreateEditor(material) as MaterialEditor;
-            matEditor.SetShader(Shader.Find(m_NewShader), false);
+            matEditor.SetShader(material.shader, false);
             matEditor.serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 

@@ -105,6 +105,7 @@ public class LegacyShadersToLowEndUpgrader : MaterialUpgrader
         MaterialUpgrader.UpgradeProjectFolder(materialUpgraders, "Upgrade to LD Materials");
     }
 
+    // TODO: Replace this logic with AssignNewShaderToMaterial
     private static void GetUpgraders(ref List<MaterialUpgrader> materialUpgraders)
     {
         /////////////////////////////////////
@@ -126,9 +127,9 @@ public class LegacyShadersToLowEndUpgrader : MaterialUpgrader
 
         // Alpha Blended
         materialUpgraders.Add(new LegacyShadersToLowEndUpgrader("Legacy Shaders/Transparent/Diffuse", SupportedUpgradeParams.diffuseAlpha));
-        materialUpgraders.Add(new LegacyShadersToLowEndUpgrader("Legacy Shaders/Transparent/Specular", SupportedUpgradeParams.specularCubemap));
+        materialUpgraders.Add(new LegacyShadersToLowEndUpgrader("Legacy Shaders/Transparent/Specular", SupportedUpgradeParams.specularAlpha));
         materialUpgraders.Add(new LegacyShadersToLowEndUpgrader("Legacy Shaders/Transparent/Bumped Diffuse", SupportedUpgradeParams.diffuseAlpha));
-        materialUpgraders.Add(new LegacyShadersToLowEndUpgrader("Legacy Shaders/Transparent/Bumped Specular", SupportedUpgradeParams.specularCubemap));
+        materialUpgraders.Add(new LegacyShadersToLowEndUpgrader("Legacy Shaders/Transparent/Bumped Specular", SupportedUpgradeParams.specularAlpha));
 
         // Cutout
         materialUpgraders.Add(new LegacyShadersToLowEndUpgrader("Legacy Shaders/Transparent/Cutout/Diffuse", SupportedUpgradeParams.diffuseAlphaCutout));
