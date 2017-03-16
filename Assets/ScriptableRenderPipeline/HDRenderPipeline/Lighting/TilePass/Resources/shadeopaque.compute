@@ -47,7 +47,8 @@ DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
     uint2 pixelCoord = dispatchThreadId;
-    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw);
+    //PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, uint2(pixelCoord.xy) / GetTileSize());
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, groupId);
     float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
     UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);

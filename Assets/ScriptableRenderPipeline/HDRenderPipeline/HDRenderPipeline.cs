@@ -437,16 +437,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix("_InvProjMatrix",     hdCamera.invProjectionMatrix);
             cmd.SetGlobalVector("_InvProjParam",      hdCamera.invProjectionParam);
 
-            // TODO: cmd.SetGlobalInt() does not exist, so we are forced to use Shader.SetGlobalInt() instead.
-
+            // TODO: setting the Sky Settings to 'None' appears to do nothing (so no invalidation happens).
             if (m_SkyManager.IsSkyValid())
             {
+                Shader.EnableKeyword("SKY_LIGHTING");
                 m_SkyManager.SetGlobalSkyTexture();
-                Shader.SetGlobalInt("_EnvLightSkyEnabled", 1);
             }
             else
             {
-                Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
+                Shader.DisableKeyword("SKY_LIGHTING");
             }
 
             // Broadcast SSS parameters to all shaders.

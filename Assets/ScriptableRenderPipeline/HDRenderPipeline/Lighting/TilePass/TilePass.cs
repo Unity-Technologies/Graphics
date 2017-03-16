@@ -187,6 +187,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
 
             // Static keyword is required here else we get a "DestroyBuffer can only be call in main thread"
+            static ComputeBuffer s_LightingSettings = null; // We use a structured buffer instead of a constant buffer due to the delay between setting values via constant and other buffer types on PS4
             static ComputeBuffer s_DirectionalLightDatas = null;
             static ComputeBuffer s_LightDatas = null;
             static ComputeBuffer s_EnvLightDatas = null;
@@ -237,6 +238,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int m_punctualLightCount = 0;
             int m_areaLightCount = 0;
             int m_lightCount = 0;
+
+            // See LightingSettings in TilePass.hlsl.
+            public struct LightingSettings
+            {
+                public uint    directionalLightCount;
+                public uint    punctualLightCount;
+                public uint    areaLightCount;
+                public uint    envLightCount;
+                public uint    numTileFtplX;
+                public uint    numTileFtplY;
+                public uint    pad0, pad1; // 16-byte alignment
+                // public uint    numTileClusteredX;
+                // public uint    numTileClusteredY;
+                // public uint    isLogBaseBufferEnabled;
+                // public uint    log2NumClusters;
+                // public float   clusterScale;
+                // public float   clusterBase;
+                // public float   nearPlane;
+                // public float   farPlane;
+                public Vector4 dirShadowSplitSpheres0;
+                public Vector4 dirShadowSplitSpheres1;
+                public Vector4 dirShadowSplitSpheres2;
+                public Vector4 dirShadowSplitSpheres3;
+            };
+
+            LightingSettings[] m_LightingSettings = new LightingSettings[1];
 
             private ComputeShader buildScreenAABBShader { get { return m_PassResources.buildScreenAABBShader; } }
             private ComputeShader buildPerTileLightListShader { get { return m_PassResources.buildPerTileLightListShader; } }
@@ -372,6 +399,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_lightList = new LightList();
                 m_lightList.Allocate();
 
+                s_LightingSettings = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightingSettings)));
                 s_DirectionalLightDatas = new ComputeBuffer(k_MaxDirectionalLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
                 s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 s_EnvLightDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
@@ -516,6 +544,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
 #endif
 
+                Utilities.SafeRelease(s_LightingSettings);
                 Utilities.SafeRelease(s_DirectionalLightDatas);
                 Utilities.SafeRelease(s_LightDatas);
                 Utilities.SafeRelease(s_EnvLightDatas);
@@ -1568,18 +1597,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SetGlobalTexture("_CookieCubeTextures", m_CubeCookieTexArray.GetTexCache());
                 SetGlobalTexture("_EnvTextures", m_CubeReflTexArray.GetTexCache());
 
+                SetGlobalBuffer("_LightingSettings", s_LightingSettings);
                 SetGlobalBuffer("_DirectionalLightDatas", s_DirectionalLightDatas);
-                SetGlobalInt("_DirectionalLightCount", m_lightList.directionalLights.Count);
                 SetGlobalBuffer("_LightDatas", s_LightDatas);
-                SetGlobalInt("_PunctualLightCount", m_punctualLightCount);
-                SetGlobalInt("_AreaLightCount", m_areaLightCount);
                 SetGlobalBuffer("_EnvLightDatas", s_EnvLightDatas);
-                SetGlobalInt("_EnvLightCount", m_lightList.envLights.Count);
                 SetGlobalBuffer("_ShadowDatas", s_shadowDatas);
-                SetGlobalVectorArray("_DirShadowSplitSpheres", m_lightList.directionalShadowSplitSphereSqr);
-
-                SetGlobalInt("_NumTileFtplX", GetNumTileFtplX(camera));
-                SetGlobalInt("_NumTileFtplY", GetNumTileFtplY(camera));
 
                 SetGlobalInt("_NumTileClusteredX", GetNumTileClusteredX(camera));
                 SetGlobalInt("_NumTileClusteredY", GetNumTileClusteredY(camera));
@@ -1609,7 +1631,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var cmd = new CommandBuffer { name = "Push Global Parameters" };
 
+                m_LightingSettings[0].directionalLightCount  = (uint)m_lightList.directionalLights.Count;
+                m_LightingSettings[0].punctualLightCount     = (uint)m_punctualLightCount;
+                m_LightingSettings[0].areaLightCount         = (uint)m_areaLightCount;
+                m_LightingSettings[0].envLightCount          = (uint)m_lightList.envLights.Count;
+                m_LightingSettings[0].numTileFtplX           = (uint)GetNumTileFtplX(camera);
+                m_LightingSettings[0].numTileFtplY           = (uint)GetNumTileFtplY(camera);
+                // m_LightingSettings[0].numTileClusteredX      = (uint)GetNumTileClusteredX(camera);
+                // m_LightingSettings[0].numTileClusteredY      = (uint)GetNumTileClusteredY(camera);
+                // m_LightingSettings[0].isLogBaseBufferEnabled = (uint)(k_UseDepthBuffer ? 1 : 0);
+                // m_LightingSettings[0].log2NumClusters        = k_Log2NumClusters;
+                // m_LightingSettings[0].clusterBase            = k_ClustLogBase;
+                // m_LightingSettings[0].clusterScale           = m_ClustScale;
+                // m_LightingSettings[0].nearPlane              = camera.nearClipPlane;
+                // m_LightingSettings[0].farPlane               = camera.farClipPlane;
+                m_LightingSettings[0].dirShadowSplitSpheres0 = m_lightList.directionalShadowSplitSphereSqr[0];
+                m_LightingSettings[0].dirShadowSplitSpheres1 = m_lightList.directionalShadowSplitSphereSqr[1];
+                m_LightingSettings[0].dirShadowSplitSpheres2 = m_lightList.directionalShadowSplitSphereSqr[2];
+                m_LightingSettings[0].dirShadowSplitSpheres3 = m_lightList.directionalShadowSplitSphereSqr[3];
 
+                s_LightingSettings.SetData(m_LightingSettings);
                 s_DirectionalLightDatas.SetData(m_lightList.directionalLights.ToArray());
                 s_LightDatas.SetData(m_lightList.lights.ToArray());
                 s_EnvLightDatas.SetData(m_lightList.envLights.ToArray());
@@ -1750,7 +1791,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "_InvViewProjMatrix", invViewProjection);
                             Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "_ViewProjMatrix", viewProjection);
-                            Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "g_mInvScrProjection", Shader.GetGlobalMatrix("g_mInvScrProjection"));
                             cmd.SetComputeVectorParam(shadeOpaqueShader, "_ScreenSize", Shader.GetGlobalVector("_ScreenSize"));
                             cmd.SetComputeIntParam(shadeOpaqueShader, "_UseTileLightList", Shader.GetGlobalInt("_UseTileLightList"));
 
@@ -1763,7 +1803,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.SetComputeVectorParam(shadeOpaqueShader, "_ScreenParams", Shader.GetGlobalVector("_ScreenParams"));
                             cmd.SetComputeVectorParam(shadeOpaqueShader, "_ZBufferParams", Shader.GetGlobalVector("_ZBufferParams"));
                             cmd.SetComputeVectorParam(shadeOpaqueShader, "unity_OrthoParams", Shader.GetGlobalVector("unity_OrthoParams"));
-                            cmd.SetComputeIntParam(shadeOpaqueShader, "_EnvLightSkyEnabled", Shader.GetGlobalInt("_EnvLightSkyEnabled"));
 
                             Texture skyTexture = Shader.GetGlobalTexture("_SkyTexture");
                             Texture IESArrayTexture = Shader.GetGlobalTexture("_IESArray");
