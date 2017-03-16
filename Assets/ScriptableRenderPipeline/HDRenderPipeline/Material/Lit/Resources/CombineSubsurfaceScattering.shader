@@ -83,7 +83,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(0, 0));
 
                 float2 gBufferData  = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
                 int    profileID    = int(gBufferData.y * N_PROFILES);
