@@ -283,7 +283,7 @@ float4 TransformWorldToHClip(float3 positionWS)
 
 float3 GetCurrentCameraPosition()
 {
-#if SHADERPASS != SHADERPASS_DEPTH_ONLY
+#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_DEPTH_ONLY)
     return _WorldSpaceCameraPos;
 #else
     // TEMP: this is rather expensive. Then again, we need '_WorldSpaceCameraPos'
@@ -303,18 +303,24 @@ float3 GetCameraForwardDir()
     return -viewMat[2].xyz;
 }
 
+// Returns 'true' if the current camera performs a perspective projection.
+bool IsPerspectiveCamera()
+{
+#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_DEPTH_ONLY)
+    return (unity_OrthoParams.w == 0);
+#else
+    // TODO: set 'unity_OrthoParams' during the shadow pass.
+    return (GetWorldToHClipMatrix()[3].x != 0 ||
+            GetWorldToHClipMatrix()[3].y != 0 ||
+            GetWorldToHClipMatrix()[3].z != 0 ||
+            GetWorldToHClipMatrix()[3].w != 1);
+#endif
+}
+
 // Computes the world space view direction (pointing towards the camera).
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
-#if SHADERPASS != SHADERPASS_DEPTH_ONLY
-    if (unity_OrthoParams.w == 0)
-#else
-    // TODO: set 'unity_OrthoParams' during the shadow pass.
-    if (GetWorldToHClipMatrix()[3].x != 0 &&
-        GetWorldToHClipMatrix()[3].y != 0 &&
-        GetWorldToHClipMatrix()[3].z != 0 &&
-        GetWorldToHClipMatrix()[3].w != 1)
-#endif
+    if (IsPerspectiveCamera())
     {
         // Perspective
         float3 V = GetCurrentCameraPosition() - positionWS;
