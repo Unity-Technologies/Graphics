@@ -5,10 +5,33 @@
     #define FLT_EPSILON     1.192092896e-07f
 #endif
 
+// Using pow often result to a warning like this
+// "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
+// PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
+float PositivePow(float base, float power)
+{
+    return pow(max(abs(base), float(FLT_EPSILON)), power);
+}
+
+float2 PositivePow(float2 base, float2 power)
+{
+    return pow(max(abs(base), float2(FLT_EPSILON, FLT_EPSILON)), power);
+}
+
+float3 PositivePow(float3 base, float3 power)
+{
+    return pow(max(abs(base), float3(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
+}
+
+float4 PositivePow(float4 base, float4 power)
+{
+    return pow(max(abs(base), float4(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
+}
+
 float GetScaleFromBase(float base)
 {
     const float C = (float)(1 << g_iLog2NumClusters);
-    const float geomSeries = (1.0 - pow(base, C)) / (1 - base);     // geometric series: sum_k=0^{C-1} base^k
+    const float geomSeries = (1.0 - PositivePow(base, C)) / (1 - base);     // geometric series: sum_k=0^{C-1} base^k
     return geomSeries / (g_fFarPlane - g_fNearPlane);
 }
 
@@ -48,7 +71,7 @@ float ClusterIdxToZFlex(int k, float suggestedBase, bool logBasePerTile)
     if (logBasePerTile)
         userscale = GetScaleFromBase(suggestedBase);
 
-    float dist = (pow(suggestedBase, (float)k) - 1.0) / (userscale * (suggestedBase - 1.0f));
+    float dist = (PositivePow(suggestedBase, (float)k) - 1.0) / (userscale * (suggestedBase - 1.0f));
     res = dist + g_fNearPlane;
 
 #if USE_LEFTHAND_CAMERASPACE
