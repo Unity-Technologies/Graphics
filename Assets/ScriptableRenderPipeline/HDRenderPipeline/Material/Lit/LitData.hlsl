@@ -1185,7 +1185,10 @@ float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float
     // If we inherit from base layer, we will add a bit of it
     // We add variance of current visible level and the base color 0 or mean (to retrieve initial color) depends on influence
     // (baseColor - meanColor) + lerp(meanColor, baseColor0, inheritBaseColor) simplify to
-    return saturate(influenceFactor * (baseColor0 - meanColor) + baseColor);
+    // saturate(influenceFactor * (baseColor0 - meanColor) + baseColor);
+    // There is a special case when baseColor < meanColor to avoid getting negative values.
+    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / meanColor - baseColor);
+    return influenceFactor * factor + baseColor;
 }
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
