@@ -10,9 +10,7 @@ uniform int g_iNrVisibLights;
 uniform float4x4 g_mInvProjection;
 uniform float4x4 g_mProjection;
 
-
 StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
-
 
 #define NR_THREADS			64
 
