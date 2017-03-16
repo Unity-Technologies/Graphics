@@ -430,6 +430,7 @@ struct PositionInputs
     float2 positionSS;
     // Unormalize screen position (offset by 0.5)
     uint2 unPositionSS;
+    uint2 unTileCoord;
 
     float depthRaw; // raw depth from depth buffer
     float depthVS;
@@ -441,7 +442,7 @@ struct PositionInputs
 // This allow to easily share code.
 // If a compute shader call this function unPositionSS is an integer usually calculate like: uint2 unPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
 // else it is current unormalized screen coordinate like return by SV_Position
-PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
+PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize, uint2 unTileCoord)	// Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
 {
     PositionInputs posInput;
     ZERO_INITIALIZE(PositionInputs, posInput);
@@ -454,6 +455,7 @@ PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
     posInput.positionSS *= invScreenSize;
 
     posInput.unPositionSS = uint2(unPositionSS);
+    posInput.unTileCoord = unTileCoord;
 
     return posInput;
 }

@@ -78,7 +78,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 float3 rotatedDir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
 
                 // input.positionCS is SV_Position
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(0,0));
 
                 // An arbitrary value attempting to match the size of the sky mesh from the Blacksmith demo.
                 const float skyDepth = 0.00025;

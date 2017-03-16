@@ -49,7 +49,7 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
 // Calculate the offset in global light index light for current light category
 int GetTileOffset(PositionInputs posInput, uint lightCategory)
 {
-    uint2 tileIndex = posInput.unPositionSS / TILE_SIZE_FPTL;
+    uint2 tileIndex = posInput.unTileCoord;
     return (tileIndex.y + lightCategory * _LightingSettings[0].numTileFtplY) * _LightingSettings[0].numTileFtplX + tileIndex.x;
 }
 
@@ -69,8 +69,12 @@ uint FetchIndexTile(uint tileOffset, uint lightIndex)
     return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1)] >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
 }
 
-
 #ifdef USE_FPTL_LIGHTLIST
+
+uint GetTileSize()
+{
+    return TILE_SIZE_FPTL;
+}
 
 void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
@@ -86,9 +90,14 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
 
 #include "ClusteredUtils.hlsl"
 
+uint GetTileSize()
+{
+    return TILE_SIZE_CLUSTERED;
+}
+
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
-    uint2 tileIndex = posInput.unPositionSS / TILE_SIZE_CLUSTERED;
+    uint2 tileIndex = posInput.unTileCoord;
 
     float logBase = g_fClustBase;
     if (g_isLogBaseBufferEnabled)
@@ -253,6 +262,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 }
 
 #else // LIGHTLOOP_SINGLE_PASS
+
+uint GetTileSize()
+{
+    return 1;
+}
+
 
 // bakeDiffuseLighting is part of the prototype so a user is able to implement a "base pass" with GI and multipass direct light (aka old unity rendering path)
 void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BSDFData bsdfData, float3 bakeDiffuseLighting,
