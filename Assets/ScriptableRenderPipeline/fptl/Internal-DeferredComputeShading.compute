@@ -1,0 +1,146 @@
+#pragma kernel ShadeDeferred_Fptl				SHADE_DEFERRED_ENTRY=ShadeDeferred_Fptl				USE_FPTL_LIGHTLIST=1		ENABLE_DEBUG=0
+#pragma kernel ShadeDeferred_Clustered			SHADE_DEFERRED_ENTRY=ShadeDeferred_Clustered		USE_CLUSTERED_LIGHTLIST=1	ENABLE_DEBUG=0		//TODO: disabled clustered permutations so far as it leads to the error "All kernels must use same constant buffer layouts"
+#pragma kernel ShadeDeferred_Fptl_Debug			SHADE_DEFERRED_ENTRY=ShadeDeferred_Fptl_Debug		USE_FPTL_LIGHTLIST=1		ENABLE_DEBUG=1
+#pragma kernel ShadeDeferred_Clustered_Debug	SHADE_DEFERRED_ENTRY=ShadeDeferred_Clustered_Debug	USE_CLUSTERED_LIGHTLIST=1	ENABLE_DEBUG=1
+
+#define TILE_SIZE 8
+
+
+// Hacks to get the header to compile in compute
+#define SHADER_TARGET 50
+#define UNITY_PBS_USE_BRDF1
+#define fixed4 float4
+#include "UnityLightingCommon.cginc"
+#undef fixed4
+
+float3 EvalMaterial(UnityLight light, UnityIndirect ind);
+float3 EvalIndirectSpecular(UnityLight light, UnityIndirect ind);
+
+// uses the optimized single layered light list for opaques only
+
+#ifdef USE_FPTL_LIGHTLIST
+#define OPAQUES_ONLY
+#endif
+
+#include "TiledLightingTemplate.hlsl"
+#include "TiledReflectionTemplate.hlsl"
+
+UNITY_DECLARE_TEX2D_FLOAT(_CameraDepthTexture);
+Texture2D _CameraGBufferTexture0;
+Texture2D _CameraGBufferTexture1;
+Texture2D _CameraGBufferTexture2;
+Texture2D _CameraGBufferTexture3;
+
+RWTexture2D<float4> uavOutput : register(u0);
+
+struct v2f {
+	float4 vertex : SV_POSITION;
+	float2 texcoord : TEXCOORD0;
+};
+
+v2f vert(float4 vertex : POSITION, float2 texcoord : TEXCOORD0)
+{
+	v2f o;
+	o.vertex = UnityObjectToClipPos(vertex);
+	o.texcoord = texcoord.xy;
+	return o;
+}
+
+struct StandardData
+{
+	float3 specularColor;
+	float3 diffuseColor;
+	float3 normalWorld;
+	float smoothness;
+	float occlusion;
+	float3 emission;
+};
+
+struct LocalDataBRDF
+{
+	StandardData gbuf;
+
+	// extras
+	float oneMinusReflectivity;
+	float3 Vworld;
+};
+
+static LocalDataBRDF g_localParams;
+
+StandardData UnityStandardDataFromGbufferAux(float4 gbuffer0, float4 gbuffer1, float4 gbuffer2, float4 gbuffer3)
+{
+	StandardData data;
+
+	data.normalWorld = normalize(2 * gbuffer2.xyz - 1);
+	data.smoothness = gbuffer1.a;
+	data.diffuseColor = gbuffer0.xyz; data.specularColor = gbuffer1.xyz;
+	data.occlusion = gbuffer0.a;
+	data.emission = gbuffer3.xyz;
+	
+	return data;
+}
+
+half3 BRDF3_Direct2(half3 diffColor, half3 specColor, half rlPow4, half smoothness)
+{
+	half LUT_RANGE = 16.0; // must match range in NHxRoughness() function in GeneratedTextures.cpp
+						   // Lookup texture to save instructions
+	half specular = tex2Dlod(unity_NHxRoughness, half4(rlPow4, SmoothnessToPerceptualRoughness(smoothness), 0, 0)).UNITY_ATTEN_CHANNEL * LUT_RANGE;
+#if defined(_SPECULARHIGHLIGHTS_OFF)
+	specular = 0.0;
+#endif
+
+	return diffColor + specular * specColor;
+}
+
+
+float3 EvalMaterial(UnityLight light, UnityIndirect ind)
+{
+	StandardData data = g_localParams.gbuf;
+	return UNITY_BRDF_PBS(data.diffuseColor, data.specularColor, g_localParams.oneMinusReflectivity, data.smoothness, data.normalWorld, g_localParams.Vworld, light, ind);
+}
+
+float3 EvalIndirectSpecular(UnityLight light, UnityIndirect ind)
+{
+	StandardData data = g_localParams.gbuf;
+
+	return data.occlusion * UNITY_BRDF_PBS(0, data.specularColor, g_localParams.oneMinusReflectivity, data.smoothness, data.normalWorld, g_localParams.Vworld, light, ind).rgb;
+}
+
+[numthreads(TILE_SIZE, TILE_SIZE, 1)]
+void SHADE_DEFERRED_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
+{
+	uint2 pixCoord = dispatchThreadId;
+
+	float zbufDpth = FetchDepth(_CameraDepthTexture, pixCoord.xy).x;
+	float linDepth = GetLinearDepth(zbufDpth);
+
+	float3 vP = GetViewPosFromLinDepth(pixCoord, linDepth);
+	float3 vPw = mul(g_mViewToWorld, float4(vP, 1)).xyz;
+	float3 Vworld = normalize(mul((float3x3) g_mViewToWorld, -vP).xyz);     //unity_CameraToWorld
+
+	float4 gbuffer0 = _CameraGBufferTexture0.Load(uint3(pixCoord.xy, 0));
+	float4 gbuffer1 = _CameraGBufferTexture1.Load(uint3(pixCoord.xy, 0));
+	float4 gbuffer2 = _CameraGBufferTexture2.Load(uint3(pixCoord.xy, 0));
+	float4 gbuffer3 = _CameraGBufferTexture3.Load(uint3(pixCoord.xy, 0));
+
+	StandardData data = UnityStandardDataFromGbufferAux(gbuffer0, gbuffer1, gbuffer2, gbuffer3);
+
+	g_localParams.gbuf = data;
+	g_localParams.oneMinusReflectivity = 1.0 - SpecularStrength(data.specularColor.rgb);
+	g_localParams.Vworld = Vworld;
+
+	uint2 tileCoord = groupId >> 1;
+
+	uint numLightsProcessed = 0;
+	float3 c = data.emission + ExecuteLightList(numLightsProcessed, tileCoord, vP, vPw, Vworld);
+
+	uint numReflectionsProcessed = 0;
+	c += ExecuteReflectionList(numReflectionsProcessed, tileCoord, vP, data.normalWorld, Vworld, data.smoothness);
+
+#if ENABLE_DEBUG
+	c = OverlayHeatMap(pixCoord & 15, numLightsProcessed, c);
+#endif
+	
+	uavOutput[pixCoord] = float4(c, 1.0);
+}
+
