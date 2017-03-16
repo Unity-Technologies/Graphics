@@ -66,7 +66,7 @@ groupshared float4 lightPlanes[4*6];
 groupshared uint lightOffs;
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-groupshared int ldsZMax;
+groupshared uint ldsZMax;
 #endif
 
 #ifdef EXACT_EDGE_TESTS
@@ -231,9 +231,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	dpt_ma = asfloat(ldsZMax);
 #endif
 
-	float3 vTileLL = float3(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight, 0.0);
-	float3 vTileUR = float3(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight, 1.0);
-	
+	float2 vTileLL = float2(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight);
+	float2 vTileUR = float2(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight);
 
 	// build coarse list using AABB
 #ifdef USE_TWO_PASS_TILED_LIGHTING
@@ -249,10 +248,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
 #endif
-		const float3 vMi = g_vBoundsBuffer[l];
-		const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights];
+		const float2 vMi = g_vBoundsBuffer[l].xy;
+		const float2 vMa = g_vBoundsBuffer[l+g_iNrVisibLights].xy;
 
-		if( all(vMa.xy>vTileLL.xy) && all(vMi.xy<vTileUR.xy))
+		if( all(vMa>vTileLL) && all(vMi<vTileUR))
 		{
 			unsigned int uInc = 1;
 			unsigned int uIndex;
@@ -348,8 +347,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		{
 			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase) )
 			{
-				uint lightModel = g_vLightData[ coarseList[l] ].lightModel;
-				++modelListCount[ lightModel==REFLECTION_LIGHT ? 1 : 0];
+				uint lightModel = g_vLightData[coarseList[l]].lightModel;
+				++modelListCount[lightModel==REFLECTION_LIGHT ? 1 : 0];
 				g_vLayeredLightList[offs++] = coarseList[l];			// reflection lights will be last since we sorted
 			}
 		}
@@ -361,14 +360,14 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	uint localOffs=0;
 	offs = i*nrTilesX*nrTilesY + tileIDX.y*nrTilesX + tileIDX.x;
-	for(int m=0; m<NR_LIGHT_MODELS; m++)
+	for(int category=0; category<NR_LIGHT_MODELS; category++)
 	{
-		int numLights = min(modelListCount[m],31);		// only allow 5 bits
+		int numLights = min(modelListCount[category],31);		// only allow 5 bits
 		if(i<nrClusters)
 		{
 			g_LayeredOffset[offs] = (start+localOffs) | (((uint) numLights)<<27);
 			offs += (nrClusters*nrTilesX*nrTilesY);
-			localOffs += modelListCount[m];		// use unclamped count for localOffs
+			localOffs += modelListCount[category];		// use unclamped count for localOffs
 		}
 	}
 
