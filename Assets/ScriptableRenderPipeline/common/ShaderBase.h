@@ -66,7 +66,7 @@ float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
 
 float FetchDepthMSAA(Texture2DMS<float> depthTexture, uint2 pixCoord, uint sampleIdx)
 {
-	float zdpth = depthTexture.Load(uint3(pixCoord.xy, 0), sampleIdx).x;
+	float zdpth = depthTexture.Load(pixCoord.xy, sampleIdx).x;
 #ifdef REVERSE_ZBUF
 	zdpth = 1.0 - zdpth;
 #endif
