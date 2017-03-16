@@ -135,6 +135,8 @@ PlayerSettings:
       depthFormat: 1
   protectGraphicsMemory: 0
   useHDRDisplay: 0
+  targetPixelDensity: 0
+  resolutionScalingMode: 0
   applicationIdentifier:
     Android: com.Company.ProductName
     Standalone: unity.DefaultCompany.dev
@@ -591,6 +593,7 @@ PlayerSettings:
   scriptingBackend:
     Android: 0
     Metro: 2
+    PS4: 1
     Standalone: 0
     WP8: 2
     WebGL: 1

@@ -51,7 +51,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             float4 Frag(Varyings input) : SV_Target
             {
 				// input.positionCS is SV_Position
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(0, 0));
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
