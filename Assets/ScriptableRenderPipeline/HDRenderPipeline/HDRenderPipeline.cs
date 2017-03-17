@@ -77,11 +77,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Renderer Settings (per project)
         public RenderingSettings            renderingSettings = new RenderingSettings();
-        public SubsurfaceScatteringSettings sssSettings = new SubsurfaceScatteringSettings();
+        public SubsurfaceScatteringSettings sssSettings
+        {
+            get
+            {
+                Debug.Assert(m_SssSettings != null);
+                return m_SssSettings;
+            }
+            set
+            {
+                m_SssSettings = value;
+            }
+        }
 
         [SerializeField]
-        ShadowSettings                      m_ShadowSettings = ShadowSettings.Default;
-        [SerializeField] TextureSettings    m_TextureSettings = TextureSettings.Default;
+        SubsurfaceScatteringSettings m_SssSettings     = new SubsurfaceScatteringSettings();
+        [SerializeField]
+        ShadowSettings               m_ShadowSettings  = ShadowSettings.Default;
+        [SerializeField]
+        TextureSettings              m_TextureSettings = TextureSettings.Default;
 
         public ShadowSettings shadowSettings                { get { return m_ShadowSettings; } }
         public TextureSettings textureSettings              { get { return m_TextureSettings; } set { m_TextureSettings = value; } }
@@ -117,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_SkySettings;
             }
         }
-        
+
         public void ApplyDebugSettings()
         {
             m_ShadowSettings.enabled = globalDebugSettings.lightingDebugSettings.enableShadows;
