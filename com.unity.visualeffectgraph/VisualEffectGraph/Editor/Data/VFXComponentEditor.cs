@@ -117,6 +117,7 @@ public class VFXComponentEditor : Editor
 
     SerializedProperty m_VFXAsset;
     SerializedProperty m_RandomSeed;
+    SerializedProperty m_VFXPropertySheetFloatArray;
 
     private Contents m_Contents;
     private Styles m_Styles;
@@ -139,8 +140,8 @@ public class VFXComponentEditor : Editor
     {
         m_RandomSeed = serializedObject.FindProperty("m_Seed");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
+        m_VFXPropertySheetFloatArray = serializedObject.FindProperty("m_propertySheet.m_Float.m_Array");
         m_DebugPanel = new VFXComponentDebugPanel((VFXComponent)target);
-        InitSlots();
     }
 
     void OnDisable()
@@ -315,13 +316,11 @@ public class VFXComponentEditor : Editor
         
         var component = (VFXComponent)target;
 
-        // ASSET CONTROL
-
+        EditorGUI.BeginChangeCheck();
+        //Asset
         GUILayout.Label(m_Contents.HeaderMain, m_Styles.InspectorHeader);
-
         using (new GUILayout.HorizontalScope())
         {
-
             EditorGUILayout.PropertyField(m_VFXAsset, m_Contents.AssetPath);
             if(GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
@@ -329,6 +328,7 @@ public class VFXComponentEditor : Editor
             }
         }
 
+        //Seed
         using (new GUILayout.HorizontalScope())
         {
             EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
@@ -340,6 +340,28 @@ public class VFXComponentEditor : Editor
             }
         }
 
+        if (m_VFXPropertySheetFloatArray != null)
+        {
+            for (int i = 0; i < m_VFXPropertySheetFloatArray.arraySize; ++i)
+            {
+                var property = m_VFXPropertySheetFloatArray.GetArrayElementAtIndex(i);
+                var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                var valueProperty = property.FindPropertyRelative("m_Value");
+                Color previousColor = GUI.color;
+                var animated = AnimationMode.IsPropertyAnimated(target, valueProperty.propertyPath);
+                if (animated)
+                {
+                    GUI.color = AnimationMode.animatedPropertyColor;
+                }
+                EditorGUILayout.PropertyField(valueProperty, new GUIContent(nameProperty));
+                if (animated)
+                {
+                    GUI.color = previousColor;
+                }
+            }
+        }
+
+        /* //TODOPAUL : Port & Clean
         // Update parameters
         bool valueDirty = false;
         foreach (var exposed in m_ExposedData)
@@ -382,10 +404,11 @@ public class VFXComponentEditor : Editor
             //serializedObject.SetIsDifferentCacheDirty();
             serializedObject.Update();
         }
+        */
 
-        if(serializedObject.ApplyModifiedProperties())
+        if (EditorGUI.EndChangeCheck())
         {
-            InitSlots();
+            serializedObject.ApplyModifiedProperties();
         }
         serializedObject.Update();
     }
