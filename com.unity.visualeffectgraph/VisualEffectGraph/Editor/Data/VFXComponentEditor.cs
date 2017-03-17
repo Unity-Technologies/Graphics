@@ -117,7 +117,7 @@ public class VFXComponentEditor : Editor
 
     SerializedProperty m_VFXAsset;
     SerializedProperty m_RandomSeed;
-    SerializedProperty m_VFXPropertySheetFloatArray;
+    SerializedProperty m_VFXPropertySheet;
 
     private Contents m_Contents;
     private Styles m_Styles;
@@ -140,7 +140,7 @@ public class VFXComponentEditor : Editor
     {
         m_RandomSeed = serializedObject.FindProperty("m_Seed");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
-        m_VFXPropertySheetFloatArray = serializedObject.FindProperty("m_PropertySheet.m_Float.m_Array");
+        m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
         m_DebugPanel = new VFXComponentDebugPanel((VFXComponent)target);
     }
 
@@ -340,23 +340,29 @@ public class VFXComponentEditor : Editor
             }
         }
 
-        if (m_VFXPropertySheetFloatArray != null)
+        //Fields
+        var fields = new string[] { "m_Float", "m_Vector2f", "m_Vector3f", "m_Vector4f" };
+        foreach (var field in fields)
         {
-            for (int i = 0; i < m_VFXPropertySheetFloatArray.arraySize; ++i)
+            var vfxField = m_VFXPropertySheet.FindPropertyRelative(field + ".m_Array");
+            if (vfxField != null)
             {
-                var property = m_VFXPropertySheetFloatArray.GetArrayElementAtIndex(i);
-                var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                var valueProperty = property.FindPropertyRelative("m_Value");
-                Color previousColor = GUI.color;
-                var animated = AnimationMode.IsPropertyAnimated(target, valueProperty.propertyPath);
-                if (animated)
+                for (int i = 0; i < vfxField.arraySize; ++i)
                 {
-                    GUI.color = AnimationMode.animatedPropertyColor;
-                }
-                EditorGUILayout.PropertyField(valueProperty, new GUIContent(nameProperty));
-                if (animated)
-                {
-                    GUI.color = previousColor;
+                    var property = vfxField.GetArrayElementAtIndex(i);
+                    var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                    var valueProperty = property.FindPropertyRelative("m_Value");
+                    Color previousColor = GUI.color;
+                    var animated = AnimationMode.IsPropertyAnimated(target, valueProperty.propertyPath);
+                    if (animated)
+                    {
+                        GUI.color = AnimationMode.animatedPropertyColor;
+                    }
+                    EditorGUILayout.PropertyField(valueProperty, new GUIContent(nameProperty));
+                    if (animated)
+                    {
+                        GUI.color = previousColor;
+                    }
                 }
             }
         }
