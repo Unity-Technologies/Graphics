@@ -140,7 +140,7 @@ public class VFXComponentEditor : Editor
     {
         m_RandomSeed = serializedObject.FindProperty("m_Seed");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
-        m_VFXPropertySheetFloatArray = serializedObject.FindProperty("m_propertySheet.m_Float.m_Array");
+        m_VFXPropertySheetFloatArray = serializedObject.FindProperty("m_PropertySheet.m_Float.m_Array");
         m_DebugPanel = new VFXComponentDebugPanel((VFXComponent)target);
     }
 
