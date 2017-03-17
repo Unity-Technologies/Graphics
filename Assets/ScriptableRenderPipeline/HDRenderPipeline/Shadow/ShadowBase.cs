@@ -1,5 +1,6 @@
 using UnityEngine.Rendering;
 using System;
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -14,19 +15,237 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         All = Point | Spot | Directional
     };
 
+    
+    public enum ShadowAlgorithm // 6 bits
+    {
+        PCF,
+        VSM,
+        EVSM,
+        MSM,
+        Custom = 32
+    };
+
+    public enum ShadowVariant // 3 bits
+    {
+        V0,
+        V1,
+        V2,
+        V3,
+        V4,
+        V5,
+        V6,
+        V7
+    }
 
     [GenerateHLSL]
-    public enum GPUShadowSampling
+    public enum GPUShadowAlgorithm // 9 bits
     {
-        PCF_1tap,
-        PCF_9Taps_Adaptive,
-        VSM_1tap,
-        MSM_1tap
-    };
+        PCF_1tap    = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V0,
+        PCF_9tap    = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V1,
+        VSM         = ShadowAlgorithm.VSM       << 3,
+        EVSM_2      = ShadowAlgorithm.EVSM      << 3 | ShadowVariant.V0,
+        EVSM_4      = ShadowAlgorithm.EVSM      << 3 | ShadowVariant.V1,
+        MSM_Ham     = ShadowAlgorithm.MSM       << 3 | ShadowVariant.V0,
+        MSM_Haus    = ShadowAlgorithm.MSM       << 3 | ShadowVariant.V1,
+        Custom      = ShadowAlgorithm.Custom    << 3
+    }
 
     namespace ShadowExp // temporary namespace until everything can be merged into the HDPipeline
     {
 
+    // Central location for storing various shadow constants and bitmasks. These can be used to pack enums into ints, for example.
+    // These are all guaranteed to be positive, but C# doesn't like uints, so they're all ints.
+    public static class ShadowConstants
+    {
+        public struct Counts
+        {
+            public const int k_ShadowAlgorithm = 64;
+            public const int k_ShadowVariant   = 8;
+            public const int k_GPUShadowType   = 3;
+        }
+        public struct Bits
+        {
+            public const int k_ShadowAlgorithm    = 6;
+            public const int k_ShadowVariant      = 3;
+            public const int k_GPUShadowAlgorithm = k_ShadowAlgorithm + k_ShadowVariant;
+            public const int k_GPUShadowType      = 4;
+        }
+
+        public struct Masks
+        {
+            public const int k_ShadowAlgorithm     = (1 << Bits.k_ShadowAlgorithm    ) - 1;
+            public const int k_ShadowVariant       = (1 << Bits.k_ShadowVariant      ) - 1;
+            public const int k_GPUShadowAlgorithm  = (1 << Bits.k_GPUShadowAlgorithm ) - 1;
+            public const int k_GPUShadowType       = (1 << Bits.k_GPUShadowType      ) - 1;
+        }
+    }
+
+    // Shadow Registry for exposing shadow features to the UI
+    public class ShadowRegistry
+    {
+
+        public delegate void VariantDelegate( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ref int[] dataContainer );
+        struct Entry
+        {
+            public string              algorithmDesc;
+            public int                 variantsAvailable;
+            public string[]            variantDescs;
+            public VariantDelegate[]   variantDels;
+        }
+        Dictionary<ShadowAlgorithm, Entry>[] m_Entries = new Dictionary<ShadowAlgorithm, Entry>[ShadowConstants.Counts.k_GPUShadowType]
+                                                        {   new Dictionary<ShadowAlgorithm, Entry>(),
+                                                            new Dictionary<ShadowAlgorithm, Entry>(),
+                                                            new Dictionary<ShadowAlgorithm, Entry>() };
+
+        public void ClearRegistry()
+        {
+            foreach( var d in m_Entries )
+                d.Clear();
+        }
+
+        public void Register( GPUShadowType type, ShadowAlgorithm algorithm, string algorithmDescriptor, ShadowVariant[] variants, string[] variantDescriptors, VariantDelegate[] variantDelegates )
+        {
+            if( Validate( algorithmDescriptor, variants, variantDescriptors, variantDelegates ) )
+                Register( m_Entries[(int)type], algorithm, algorithmDescriptor, variants, variantDescriptors, variantDelegates );
+        }
+
+        private bool Validate( string algorithmDescriptor, ShadowVariant[] variants, string[] variantDescriptors, VariantDelegate[] variantDelegates )
+        {
+            if( string.IsNullOrEmpty( algorithmDescriptor ) )
+            {
+                Debug.LogError( "Tried to register a shadow algorithm but the algorithm descriptor is empty." );
+                return false;
+            }
+            if( variantDescriptors == null || variantDescriptors.Length == 0 )
+            {
+                Debug.LogError( "Tried to register a shadow algorithm (" + algorithmDescriptor + ") but the variant descriptors are empty. At least one variant descriptor is required for registration." );
+                return false;
+            }
+            if( variantDescriptors.Length > ShadowConstants.Counts.k_ShadowVariant )
+            {
+                Debug.LogError( "Tried to register a shadow algorithm (" + algorithmDescriptor + ") with more than the valid amount of variants. Variant count: " + variantDescriptors.Length + ", valid count: " + ShadowConstants.Counts.k_ShadowVariant + "." );
+                return false;
+            }
+            if( variantDescriptors.Length != variants.Length )
+            {
+                Debug.LogError( "Tried to register a shadow algorithm (" + algorithmDescriptor + ") but the length of variant descriptors (" + variantDescriptors.Length + ") does not match the length of variants (" + variants.Length + ")." );
+                return false;
+            }
+            if( variantDelegates.Length != variants.Length )
+            {
+                Debug.LogError( "Tried to register a shadow algorithm (" + algorithmDescriptor + ") but the length of variant delegates (" + variantDelegates.Length + ") does not match the length of variants (" + variants.Length + ")." );
+                return false;
+            }
+            return true;
+        }
+        private void Register( Dictionary<ShadowAlgorithm, Entry> dict, ShadowAlgorithm algorithm, string algorithmDescriptor, ShadowVariant[] variants, string[] variantDescriptors, VariantDelegate[] variantDelegates )
+        {
+            if( !dict.ContainsKey( algorithm ) )
+            {
+                Entry e;
+                e.algorithmDesc     = algorithmDescriptor;
+                e.variantsAvailable = variants.Length;
+                e.variantDescs      = new string[ShadowConstants.Counts.k_ShadowVariant];
+                e.variantDels       = new VariantDelegate[ShadowConstants.Counts.k_ShadowVariant];
+                for( uint i = 0, cnt = (uint) variants.Length; i < cnt; ++i )
+                {
+                    e.variantDescs[(uint) variants[i]]  = variantDescriptors[i];
+                    e.variantDels[(uint) variants[i]]    = variantDelegates[i];
+                }
+                dict.Add( algorithm, e );
+            }
+            else
+            {
+                var entry = dict[algorithm];
+                for( uint i = 0, cnt = (uint) variants.Length; i < cnt; ++i )
+                {
+                    if( string.IsNullOrEmpty( entry.variantDescs[(uint) variants[i]] ) )
+                    {
+                        entry.variantsAvailable++;
+                        entry.variantDescs[(uint) variants[i]] = variantDescriptors[i];
+                        entry.variantDels[(uint) variants[i]]  = variantDelegates[i];
+                    }
+                    else
+                        Debug.Log( "Tried to register variant " + variants[i] + " for algorithm " + algorithm + ", but this variant is already registered. Skipping registration." );
+                }
+            }
+        }
+        
+        public void Draw( Light l )
+        {
+            AdditionalLightData ald = l.GetComponent<AdditionalLightData>();
+            Debug.Assert(ald != null, "Light has no valid AdditionalLightData component attached.");
+
+            GPULightType lightType;
+            GPUShadowType shadowType;
+            ShadowUtils.MapLightType( ald.archetype, l.type, out lightType, out shadowType );
+
+            // check if this has supported shadows
+            if( (int) shadowType >= ShadowConstants.Counts.k_GPUShadowType )
+                return;
+
+            int shadowAlgorithm;
+            int shadowVariant;
+            ald.GetShadowAlgorithm( out shadowAlgorithm, out shadowVariant );
+
+            DrawWidgets( l, shadowType, (ShadowAlgorithm) shadowAlgorithm, (ShadowVariant) shadowVariant );
+        }
+
+        void DrawWidgets(  Light l, GPUShadowType shadowType, ShadowAlgorithm shadowAlgorithm, ShadowVariant shadowVariant )
+        {
+            var          dict           = m_Entries[(int)shadowType];
+            int[]        algoOptions    = new int[dict.Count];
+            GUIContent[] algoDescs      = new GUIContent[dict.Count];
+            int idx = 0;
+
+            foreach( var entry in dict )
+            {
+                algoOptions[idx] = (int) entry.Key;
+                algoDescs[idx]   = new GUIContent( entry.Value.algorithmDesc );
+                idx++;
+            }
+
+            UnityEditor.EditorGUI.BeginChangeCheck();
+            shadowAlgorithm = (ShadowAlgorithm) UnityEditor.EditorGUILayout.IntPopup( new GUIContent( "Shadow Algorithm" ), (int) shadowAlgorithm, algoDescs, algoOptions );
+            if( UnityEditor.EditorGUI.EndChangeCheck() )
+                shadowVariant = 0;
+
+            UnityEditor.EditorGUI.indentLevel++;
+            Entry e = dict[shadowAlgorithm];
+
+            int          varsAvailable  = e.variantsAvailable;
+            int[]        varOptions     = new int[varsAvailable];
+            GUIContent[] varDescs       = new GUIContent[varsAvailable];
+            
+            idx = 0;
+            for( int writeIdx = 0; writeIdx < varsAvailable; idx++ )
+            {
+                if( e.variantDels[idx] != null )
+                {
+                    varOptions[writeIdx] = idx;
+                    varDescs[writeIdx] = new GUIContent( e.variantDescs[idx] );
+                    writeIdx++;
+                }
+            }
+
+            UnityEditor.EditorGUILayout.BeginHorizontal();
+
+            shadowVariant = (ShadowVariant) UnityEditor.EditorGUILayout.IntPopup( new GUIContent( "Variant" ), (int) shadowVariant, varDescs, varOptions );
+
+            AdditionalLightData ald = l.GetComponent<AdditionalLightData>();
+            GPUShadowAlgorithm packedAlgo = ShadowUtils.Pack( shadowAlgorithm, shadowVariant );
+            int[] shadowData = null;
+            if( !GUILayout.Button( "Reset", GUILayout.MaxWidth( 80.0f ) ) )
+                shadowData = ald.GetShadowData( (int) packedAlgo );
+
+            UnityEditor.EditorGUILayout.EndHorizontal();
+
+            e.variantDels[(int) shadowVariant]( l, shadowAlgorithm, shadowVariant, ref shadowData );
+            ald.SetShadowAlgorithm( (int) shadowAlgorithm, (int) shadowVariant, (int) packedAlgo, shadowData );
+            
+            UnityEditor.EditorGUI.indentLevel--;
+        }
+    }
 
     // This is the struct passed into shaders
     [GenerateHLSL]
@@ -37,13 +256,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4       scaleOffset;    // scale and offset of shadowmap in atlas
         public Vector2       texelSizeRcp;   // reciprocal of the shadowmap's texel size in x and y
         public uint          id;             // packed texture id, sampler id and slice idx
-        public GPUShadowType shadowType;     // determines the shadow algorithm, i.e. which map to sample and how to interpret the data
+        public uint          shadowType;     // determines the shadow algorithm, i.e. which map to sample and how to interpret the data
         public uint          payloadOffset;  // if this shadow type requires additional data it can be fetched from a global Buffer<uint> at payloadOffset.
 
         // light related params (need to be set via ShadowMgr and derivatives)
         public GPULightType lightType;      // the light type
         public float        bias;           // bias setting
-        public float        quality;        // some quality parameters
+        public float        normalBias;     // bias based on the normal
 
         public void PackShadowmapId( uint texIdx, uint sampIdx, uint slice )
         {
@@ -51,6 +270,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert( sampIdx <= 0xff   );
             Debug.Assert( slice   <= 0xffff );
             id = texIdx << 24 | sampIdx << 16 | slice;
+        }
+
+        public void PackShadowType( GPUShadowType type, GPUShadowAlgorithm algorithm )
+        {
+            shadowType = (uint)type << 9 | (uint) algorithm;
         }
     };
 
@@ -63,23 +287,58 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // -------------- Begin temporary structs that need to be replaced at some point ---------------
     public struct SamplerState
     {
+        FilterMode      filterMode;
+        TextureWrapMode wrapMode;
+        uint            anisotropy;
+
+        public static SamplerState Default()
+        {
+            SamplerState defaultState;
+            defaultState.filterMode = FilterMode.Bilinear;
+            defaultState.wrapMode   = TextureWrapMode.Clamp;
+            defaultState.anisotropy = 1;
+            return defaultState;
+        }
         // TODO: this should either contain the description for a sampler, or be replaced by a struct that does
-        public static bool operator ==( SamplerState lhs, SamplerState rhs ) { return false; }
-        public static bool operator !=( SamplerState lhs, SamplerState rhs ) { return true; }
+        public static bool operator ==( SamplerState lhs, SamplerState rhs )
+        {
+            return false; // TODO: Remove this once shared samplers are in
+            //return lhs.filterMode == rhs.filterMode && lhs.wrapMode == rhs.wrapMode && lhs.anisotropy == rhs.anisotropy;
+        }
+        public static bool operator !=( SamplerState lhs, SamplerState rhs ) { return !(lhs == rhs); }
         public override bool Equals( object obj ) { return (obj is SamplerState) && (SamplerState) obj == this; }
         public override int GetHashCode() { /* TODO: implement this at some point */ throw new NotImplementedException(); }
-        }
+    }
 
     public struct ComparisonSamplerState
     {
+        FilterMode      filterMode;
+        TextureWrapMode wrapMode;
+        uint            anisotropy;
+
+        public static ComparisonSamplerState Default()
+        {
+            ComparisonSamplerState defaultState;
+            defaultState.filterMode = FilterMode.Bilinear;
+            defaultState.wrapMode   = TextureWrapMode.Clamp;
+            defaultState.anisotropy = 1;
+            return defaultState;
+        }
+
         // TODO: this should either contain the description for a comparison sampler, or be replaced by a struct that does
-        public static bool operator ==(ComparisonSamplerState lhs, ComparisonSamplerState rhs) { return false; }
-        public static bool operator !=(ComparisonSamplerState lhs, ComparisonSamplerState rhs) { return true; }
+        public static bool operator ==(ComparisonSamplerState lhs, ComparisonSamplerState rhs)
+        {
+            return false;
+            //return lhs.filterMode == rhs.filterMode && lhs.wrapMode == rhs.wrapMode && lhs.anisotropy == rhs.anisotropy;
+        }
+        public static bool operator !=(ComparisonSamplerState lhs, ComparisonSamplerState rhs) { return !(lhs == rhs); }
         public override bool Equals( object obj ) { return (obj is ComparisonSamplerState) && (ComparisonSamplerState) obj == this; }
         public override int GetHashCode() { /* TODO: implement this at some point */ throw new NotImplementedException(); }
     }
     // -------------- End temporary structs that need to be replaced at some point ---------------
 
+    // Helper struct for passing arbitrary data into shaders. Entry size is 4 ints to minimize load instructions
+    // in shaders. This should really be int p[4] but C# doesn't let us do that.
     public struct ShadowPayload
     {
         public int p0;
@@ -94,6 +353,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             p2 = ShadowUtils.Asint( v2 );
             p3 = ShadowUtils.Asint( v3 );
         }
+        public void Set( int v0, int v1, int v2, int v3 )
+        {
+            p0 = v0;
+            p1 = v1;
+            p2 = v2;
+            p3 = v3;
+        }
+
         public void Set( Vector4 v ) { Set( v.x, v.y, v.z, v.w ); }
     }
 
@@ -197,6 +464,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Spot        = 1 << GPUShadowType.Spot,
             Directional = 1 << GPUShadowType.Directional
         }
+
         public struct ShadowRequest
         {
             private const byte k_IndexBits    = 24;
@@ -207,10 +475,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // combined face mask and visible light index
             private uint m_MaskIndex;
+            private  int m_ShadowTypeAndAlgorithm;
             // instance Id for this light
             public int   instanceId { get; set; }
             // shadow type of this light
-            public GPUShadowType shadowType { get; set; }
+            public GPUShadowType shadowType
+            {
+                get { return (GPUShadowType) (m_ShadowTypeAndAlgorithm >> ShadowConstants.Bits.k_GPUShadowAlgorithm); }
+                set { m_ShadowTypeAndAlgorithm = ((int)value << ShadowConstants.Bits.k_GPUShadowAlgorithm) | (m_ShadowTypeAndAlgorithm & ShadowConstants.Masks.k_GPUShadowAlgorithm); }
+            }
+            public GPUShadowAlgorithm shadowAlgorithm
+            {
+                get { return (GPUShadowAlgorithm) (m_ShadowTypeAndAlgorithm & ShadowConstants.Masks.k_GPUShadowAlgorithm); }
+                set { m_ShadowTypeAndAlgorithm = (m_ShadowTypeAndAlgorithm & ~(ShadowConstants.Masks.k_GPUShadowAlgorithm)) | (int)value; }
+            }
             // index into the visible lights array
             public uint index
             {
@@ -303,6 +581,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_ShadowmapFormat == RenderTextureFormat.Shadowmap || m_ShadowmapFormat == RenderTextureFormat.Depth;
         }
 
+        public void Register( ShadowRegistry registry )
+        {
+            int bit = 1;
+            for( GPUShadowType i = GPUShadowType.Point; i < GPUShadowType.MAX; ++i, bit <<= 1 )
+            {
+                if( ((int)m_ShadowSupport & bit) != 0 )
+                    Register( i, registry );
+            }
+        }
 
                  public ShadowSupport QueryShadowSupport() { return m_ShadowSupport; }
                  public uint GetMaxPayload() { return m_MaxPayloadCount; }
@@ -314,6 +601,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         abstract public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
         abstract public void ReserveSlots( ShadowContextStorage sc );
         abstract public void Fill( ShadowContextStorage cs );
+        abstract protected void Register( GPUShadowType type, ShadowRegistry registry );
     }
 
     interface IShadowManager
@@ -336,7 +624,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void BindResources( ScriptableRenderContext renderContext );
     }
 
-    abstract public class ShadowManagerBase : IShadowManager
+    abstract public class ShadowManagerBase : ShadowRegistry, IShadowManager
     {
         public    abstract void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, VisibleLight[] lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices );
         public    abstract void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );

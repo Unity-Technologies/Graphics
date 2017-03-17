@@ -6,24 +6,18 @@
 // example of overriding directional lights
 //#define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL
-float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, int shadowDataIndex, float3 L )
+float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
 {
 	Texture2DArray tex = shadowContext.tex2DArray[0];
-	SamplerComparisonState compSamp = shadowContext.compSamplers[0];
+	SamplerState samp = shadowContext.samplers[0];
+	uint algo = GPUSHADOWALGORITHM_MSM_HAUS;
 
-	return EvalShadow_CascadedDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
-
-	//return EvalShadow_CascadedMomentum( shadowContext, positionWS, shadowDataIndex, L );
+	return EvalShadow_CascadedDepth( shadowContext, algo, tex, samp, positionWS, normalWS, shadowDataIndex, L );
 }
 
-float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, int shadowDataIndex, float3 L, float2 unPositionSS )
+float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
 {
-	Texture2DArray tex = shadowContext.tex2DArray[0];
-	SamplerComparisonState compSamp = shadowContext.compSamplers[0];
-
-	return EvalShadow_CascadedDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
-
-	//return EvalShadow_CascadedMomentum( shadowContext, positionWS, shadowDataIndex, L );
+	return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 #endif
 
@@ -35,18 +29,33 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 // and that on the C# side the shadowContext bindDelegate binds the correct resource to the correct texture id.
 //#define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, int shadowDataIndex, float3 L )
+#define SHADOW_USE_SEPARATE_ALGOS 0
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
 {
-	Texture2DArray tex = shadowContext.tex2DArray[1];
+
+	Texture2DArray tex = shadowContext.tex2DArray[2];
 	SamplerComparisonState compSamp = shadowContext.compSamplers[1];
 
-	return EvalShadow_PunctualDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
+#if SHADOW_USE_SEPARATE_ALGOS != 0
+	// example for choosing different algos for point and spot lights
+	ShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
+	uint shadowType;
+	UnpackShadowType( sd.shadowType, shadowType );
+
+	[branch]
+	if( shadowType == GPUSHADOWTYPE_POINT )
+		return EvalShadow_PointDepth( shadowContext, GPUSHADOWALGORITHM_PCF_1TAP, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
+	else
+		return EvalShadow_SpotDepth( shadowContext, GPUSHADOWALGORITHM_PCF_9TAP, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
+#else
+	// example for choosing the same algo 
+	uint algo = GPUSHADOWALGORITHM_PCF_1TAP;
+	return EvalShadow_PunctualDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
+#endif
 }
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, int shadowDataIndex, float3 L, float2 unPositionSS )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
 {
-	Texture2DArray tex = shadowContext.tex2DArray[1];
-	SamplerComparisonState compSamp = shadowContext.compSamplers[1];
-	
-	return EvalShadow_PunctualDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
+	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
+#undef SHADOW_USE_SEPARATE_ALGOS
 #endif

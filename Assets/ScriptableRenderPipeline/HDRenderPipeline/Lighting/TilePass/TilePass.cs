@@ -1,5 +1,5 @@
-//#define SHADOWS_ENABLED
-//#define SHADOWS_FIXSHADOWIDX
+#define SHADOWS_ENABLED
+#define SHADOWS_FIXSHADOWIDX
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
@@ -22,13 +22,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ShadowSetup( ShadowSettings shadowSettings, out IShadowManager shadowManager )
         {
             s_ShadowDataBuffer      = new ComputeBuffer( k_MaxShadowDataSlots, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowExp.ShadowData ) ) );
-            s_ShadowPayloadBuffer   = new ComputeBuffer( k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowExp.ShadowData ) ) );
+            s_ShadowPayloadBuffer   = new ComputeBuffer( k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowExp.ShadowPayload ) ) );
             ShadowAtlas.AtlasInit atlasInit;
             atlasInit.baseInit.width           = (uint) shadowSettings.shadowAtlasWidth;
             atlasInit.baseInit.height          = (uint) shadowSettings.shadowAtlasHeight;
             atlasInit.baseInit.slices          = 1;
             atlasInit.baseInit.shadowmapBits   = 32;
             atlasInit.baseInit.shadowmapFormat = RenderTextureFormat.Shadowmap;
+            atlasInit.baseInit.samplerState    = SamplerState.Default();
+            atlasInit.baseInit.comparisonSamplerState = ComparisonSamplerState.Default();
             atlasInit.baseInit.clearColor      = new Vector4( 0.0f, 0.0f, 0.0f, 0.0f );
             atlasInit.baseInit.maxPayloadCount = 0;
             atlasInit.baseInit.shadowSupport   = ShadowmapBase.ShadowSupport.Directional;
@@ -38,7 +40,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 
             var atlasInit2 = atlasInit;
             atlasInit2.baseInit.shadowSupport  = ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
-            m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowAtlas( ref atlasInit ), new ShadowExp.ShadowAtlas( ref atlasInit2 ) };
+            
+            var varianceInit = atlasInit;
+            varianceInit.baseInit.shadowmapFormat = RenderTextureFormat.ARGBFloat;
+
+            m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowVariance( ref varianceInit ), new ShadowExp.ShadowAtlas( ref atlasInit ), new ShadowExp.ShadowAtlas( ref atlasInit2 ) };
+            //m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowAtlas( ref atlasInit ), new ShadowExp.ShadowAtlas( ref atlasInit2 ) };
 
             ShadowContext.SyncDel syncer = (ShadowContext sc) =>
                 {
@@ -64,8 +71,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     uint offset, count;
                     RenderTargetIdentifier[] tex;
                     sc.GetTex2DArrays( out tex, out offset, out count );
-                    cb.SetGlobalTexture( "_ShadowmapExp_Dir", tex[0] );
-                    cb.SetGlobalTexture( "_ShadowmapExp_PointSpot", tex[1] );
+                    cb.SetGlobalTexture( "_ShadowmapExp_Dir_VSM", tex[0] );
+                    cb.SetGlobalTexture( "_ShadowmapExp_Dir", tex[1] );
+                    cb.SetGlobalTexture( "_ShadowmapExp_PointSpot", tex[2] );
                     // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
                 };
 
@@ -89,6 +97,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 (m_Shadowmaps[0] as ShadowAtlas).Dispose();
                 (m_Shadowmaps[1] as ShadowAtlas).Dispose();
+                (m_Shadowmaps[2] as ShadowAtlas).Dispose();
                 m_Shadowmaps = null;
             }
             m_ShadowMgr = null;
@@ -502,6 +511,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public override void Cleanup()
             {
+                DeinitShadowSystem();
 #if UNITY_EDITOR
                 UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
 #endif

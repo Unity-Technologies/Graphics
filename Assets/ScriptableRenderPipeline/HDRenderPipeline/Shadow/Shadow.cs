@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     using ShadowDataVector    = VectorArray<ShadowData>;
     using ShadowPayloadVector = VectorArray<ShadowPayload>;
     using ShadowIndicesVector = VectorArray<int>;
+    using ShadowAlgoVector    = VectorArray<GPUShadowAlgorithm>;
 
     // Standard shadow map atlas implementation using one large shadow map
     public class ShadowAtlas : ShadowmapBase, IDisposable
@@ -32,6 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         protected          uint[]                     m_TmpWidths  = new uint[ShadowmapBase.ShadowRequest.k_MaxFaceCount];
         protected          uint[]                     m_TmpHeights = new uint[ShadowmapBase.ShadowRequest.k_MaxFaceCount];
         protected          Vector4[]                  m_TmpSplits  = new Vector4[k_MaxCascadesInShader];
+        protected          ShadowAlgoVector           m_SupportedAlgorithms = new ShadowAlgoVector( 0, false );
 
         protected struct Key
         {
@@ -43,14 +45,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected struct Data
         {
-            public FrameId          frameId;
-            public int              contentHash;
-            public uint             slice;
-            public Rect             viewport;
-            public Matrix4x4        view;
-            public Matrix4x4        proj;
-            public Vector4          lightDir;
-            public ShadowSplitData  splitData;
+            public FrameId              frameId;
+            public int                  contentHash;
+            public GPUShadowAlgorithm   shadowAlgo;
+            public uint                 slice;
+            public Rect                 viewport;
+            public Matrix4x4            view;
+            public Matrix4x4            proj;
+            public Vector4              lightDir;
+            public ShadowSplitData      splitData;
 
             public bool IsValid() { return viewport.width > 0 && viewport.height > 0; }
         }
@@ -81,6 +84,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3  cascadeRatios;      // cascade split ratios
         }
 
+        // UI stuff
+        protected struct ValRange
+        {
+            GUIContent  Name;
+            float       ValMin;
+            float       ValDef;
+            float       ValMax;
+            float       ValScale;
+
+            public ValRange( string name, float valMin, float valDef, float valMax, float valScale ) { Name = new GUIContent( name ); ValMin = valMin; ValDef = valDef; ValMax = valMax; ValScale = valScale; }
+            public void Slider( ref int currentVal ) { currentVal = ShadowUtils.Asint( ValScale * UnityEditor.EditorGUILayout.Slider( Name, ShadowUtils.Asfloat( currentVal ) / ValScale, ValMin, ValMax ) ); }
+            public int Default() { return ShadowUtils.Asint( ValScale * ValDef ); }
+        }
+        readonly ValRange m_DefPCF_DepthBias = new ValRange( "Depth Bias", 0.0f, 0.05f, 1.0f, 00.1f );
+        readonly ValRange m_DefPCF_FilterSize = new ValRange( "Filter Size", 1.0f, 1.0f, 10.0f, 1.0f );
+
 
         public ShadowAtlas( ref AtlasInit init ) : base( ref init.baseInit )
         {
@@ -95,6 +114,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             Initialize( init );
+        }
+
+        override protected void Register( GPUShadowType type, ShadowRegistry registry )
+        {
+            m_SupportedAlgorithms.Reserve( 2 );
+            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.PCF_1tap );
+            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.PCF_9tap );
+
+            ShadowRegistry.VariantDelegate del = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ref int[] dataBlock ) =>
+                {
+                    CheckDataIntegrity( dataAlgorithm, dataVariant, ref dataBlock );
+
+                    m_DefPCF_DepthBias.Slider( ref dataBlock[0] );
+                    if( dataVariant == ShadowVariant.V1 )
+                        m_DefPCF_FilterSize.Slider( ref dataBlock[1] );
+                };
+            registry.Register( type, ShadowAlgorithm.PCF, "Percentage Closer Filtering (PCF)", 
+                new ShadowVariant[]{ ShadowVariant.V0, ShadowVariant.V1 }, new string[]{"1 tap", "9 tap adaptive" }, new ShadowRegistry.VariantDelegate[] { del, del } );
+        }
+        // returns true if the original data passed integrity checks, false if the data had to be modified
+        virtual protected bool CheckDataIntegrity( ShadowAlgorithm algorithm, ShadowVariant variant, ref int[] dataBlock )
+        {
+            if( algorithm != ShadowAlgorithm.PCF || (variant != ShadowVariant.V0 && variant != ShadowVariant.V1) )
+                return true;
+
+            const int k_BlockSize = 2;
+            if( dataBlock == null || dataBlock.Length != k_BlockSize )
+            {
+                // set defaults
+                dataBlock = new int[k_BlockSize];
+                dataBlock[0] = m_DefPCF_DepthBias.Default();
+                dataBlock[1] = m_DefPCF_FilterSize.Default();
+                return false;
+            }
+            return true;
         }
 
         public void Initialize( AtlasInit init )
@@ -132,6 +186,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, VisibleLight[] lights )
         {
+            if( m_FrameId.frameCount != frameId.frameCount )
+                m_ActiveEntriesCount = 0;
+
+            m_FrameId = frameId;
+
+            uint algoIdx;
+            GPUShadowAlgorithm shadowAlgo = sr.shadowAlgorithm;
+            if( !m_SupportedAlgorithms.FindFirst( out algoIdx, ref shadowAlgo ) )
+                return false;
+
             ShadowData  sd    = shadowData;
             ShadowData  dummy = new ShadowData();
 
@@ -158,10 +222,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             uint facemask = sr.facemask;
             uint bit      = 1;
             int  resIdx   = 0;
+            bool multiFace= sr.shadowType != GPUShadowType.Spot;
 
-            entries.Reserve( 6 );
+            const uint k_MaxShadowDatasPerLight = 7; // 1 shared ShadowData and up to 6 faces for point lights
+            entries.Reserve( k_MaxShadowDatasPerLight ); 
 
             float   nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
+
+            if( multiFace )
+            {
+                // For lights with multiple faces, the first shadow data contains 
+                // per light information, so not all fields contain valid data.
+                // Shader code must make sure to read per face data from per face entries.
+                sd.texelSizeRcp = new Vector2( m_WidthRcp, m_HeightRcp );
+                sd.PackShadowType( sr.shadowType, sr.shadowAlgorithm );
+                sd.payloadOffset = payload.Count();
+                entries.AddUnchecked( sd );
+                key.shadowDataIdx++;
+            }
+            payload.Resize( payload.Count() + ReservePayload( sr ) );
 
             while ( facecnt > 0 )
             {
@@ -199,15 +278,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     else
                         vp = Matrix4x4.identity; // should never happen, though
                     // write :(
+                    ce.current.shadowAlgo = shadowAlgo;
                     m_EntryCache[ceIdx] = ce;
 
                     sd.worldToShadow = vp.transpose; // apparently we need to transpose matrices that are sent to HLSL
                     sd.scaleOffset   = new Vector4( ce.current.viewport.width * m_WidthRcp, ce.current.viewport.height * m_HeightRcp, ce.current.viewport.x, ce.current.viewport.y );
                     sd.texelSizeRcp  = new Vector2( m_WidthRcp, m_HeightRcp );
                     sd.PackShadowmapId( m_TexSlot, m_SampSlot, ce.current.slice );
-                    sd.shadowType    = sr.shadowType;
-                    sd.payloadOffset = payload.Count();
-                    entries.AddUnchecked(sd);
+                    sd.PackShadowType( sr.shadowType, sr.shadowAlgorithm );
+                    sd.payloadOffset = originalPayloadCount;
+                    entries.AddUnchecked( sd );
 
                     resIdx++;
                     facecnt--;
@@ -222,18 +302,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bit <<= 1;
             }
 
-            if (sr.shadowType == GPUShadowType.Directional)
-            {
-                ShadowPayload sp = new ShadowPayload();
-                payload.Reserve( k_MaxCascadesInShader );
-                for( uint i = 0; i < k_MaxCascadesInShader; i++ )
-                {
-                    sp.Set( m_TmpSplits[i] );
-                    payload.AddUnchecked( sp );
-                }
-            }
+            WritePerLightPayload( ref lights[sr.index], sr, ref sd, ref payload, ref originalPayloadCount );
 
             return true;
+        }
+
+        // Returns how many entries will be written into the payload buffer per light.
+        virtual protected uint ReservePayload( ShadowRequest sr )
+        {
+            uint payloadSize  = sr.shadowType == GPUShadowType.Directional ? k_MaxCascadesInShader : 0;
+                 payloadSize += ShadowUtils.ExtractAlgorithm( sr.shadowAlgorithm ) == ShadowAlgorithm.PCF ? 1u : 0;
+            return payloadSize;
+        }
+
+        // Writes additional per light data into the payload vector. Make sure to call base.WritePerLightPayload first.
+        virtual protected void WritePerLightPayload( ref VisibleLight light, ShadowRequest sr, ref ShadowData sd, ref ShadowPayloadVector payload, ref uint payloadOffset )
+        {
+            ShadowPayload sp = new ShadowPayload();
+            if( sr.shadowType == GPUShadowType.Directional )
+            {
+                for( uint i = 0; i < k_MaxCascadesInShader; i++, payloadOffset++ )
+                {
+                    sp.Set( m_TmpSplits[i] );
+                    payload[payloadOffset] = sp;
+                }
+            }
+            ShadowAlgorithm algo; ShadowVariant vari;
+            ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari );
+            if( algo  == ShadowAlgorithm.PCF )
+            {
+                AdditionalLightData ald = light.light.GetComponent<AdditionalLightData>();
+                if( !ald )
+                    return;
+
+                int shadowDataFormat;
+                int[] shadowData = ald.GetShadowData( out shadowDataFormat );
+                if( !CheckDataIntegrity( algo, vari, ref shadowData ) )
+                {
+                    ald.SetShadowAlgorithm( (int)algo, (int)vari, shadowDataFormat, shadowData );
+                    Debug.Log( "Fixed up shadow data for algorithm " + algo + ", variant " + vari );
+                }
+
+                switch( sr.shadowAlgorithm )
+                {
+                case GPUShadowAlgorithm.PCF_1tap:
+                case GPUShadowAlgorithm.PCF_9tap:
+                    {
+                        sp.Set( shadowData[0] | (SystemInfo.usesReversedZBuffer ? 1 : 0), shadowData[1], 0, 0 );
+                        payload[payloadOffset] = sp;
+                        payloadOffset++;
+                    }
+                break;
+                }
+            }
         }
 
         override public bool ReserveFinalize( FrameId frameId, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload )
@@ -302,7 +423,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if( curSlice != uint.MaxValue )
                     {
-                        PostUpdate( frameId, cb, curSlice );
+                        PostUpdate( frameId, cb, curSlice, lights );
                     }
                     curSlice = entrySlice;
                     PreUpdate( frameId, cb, curSlice );
@@ -322,7 +443,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // post update
             var cblast = new CommandBuffer();
-            PostUpdate( frameId, cblast, curSlice );
+            PostUpdate( frameId, cblast, curSlice, lights );
             if( !string.IsNullOrEmpty( m_ShaderKeyword ) )
             {
                 cblast.name = "Shadowmap.DisableShaderKeyword";
@@ -336,7 +457,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             profilingSample.Dispose();
         }
 
-        virtual protected void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice )
+        virtual protected void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, VisibleLight[] lights )
         {
             if( !IsNativeDepth() )
                 cb.ReleaseTemporaryRT( m_TempDepthId );
@@ -425,6 +546,364 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 //
+//                                                      ShadowVariance
+//
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+
+    // Shadowmap supporting various flavors of variance shadow maps.
+    public class ShadowVariance : ShadowAtlas
+    {
+        protected const int     k_MomentBlurThreadsPerWorkgroup = 16;
+        protected const int     k_BlurKernelMinSize             = 3;
+        protected const int     k_BlurKernelDefSize             = (7 - k_BlurKernelMinSize) / 2;
+        protected const int     k_BlurKernelMaxSize             = 17;
+        protected const int     k_BlurKernelCount               = k_BlurKernelMaxSize / 2;
+        protected ComputeShader m_MomentBlurCS;
+        protected int[]         m_KernelVSM    = new int[k_BlurKernelCount];
+        protected int[]         m_KernelEVSM_2 = new int[k_BlurKernelCount];
+        protected int[]         m_KernelEVSM_4 = new int[k_BlurKernelCount];
+        protected int[]         m_KernelMSM    = new int[k_BlurKernelCount];
+        protected float[][]     m_BlurWeights  = new float[k_BlurKernelCount][];
+        protected int           m_SampleCount;
+
+        // default values
+        readonly ValRange m_DefVSM_LightLeakBias    = new ValRange( "Light leak bias"   , 0.0f, 0.5f    ,  0.99f , 1.0f   );
+        readonly ValRange m_DefVSM_VarianceBias     = new ValRange( "Variance bias"     , 0.0f, 0.1f    ,  1.0f  , 0.01f  );
+        readonly ValRange m_DefEVSM_LightLeakBias   = new ValRange( "Light leak bias"   , 0.0f, 0.0f    ,  0.99f , 1.0f   );
+        readonly ValRange m_DefEVSM_VarianceBias    = new ValRange( "Variance bias"     , 0.0f, 0.1f    ,  1.0f  , 0.01f  );
+        readonly ValRange m_DefEVSM_PosExponent     = new ValRange( "Positive Exponent" , 1.0f, 1.0f    , 42.0f  , 1.0f   );
+        readonly ValRange m_DefEVSM_NegExponent     = new ValRange( "Negative Exponent" , 1.0f, 1.0f    , 42.0f  , 1.0f   );
+        readonly ValRange m_DefMSM_LightLeakBias    = new ValRange( "Light leak bias"   , 0.0f, 0.5f    ,  0.99f , 1.0f   );
+        readonly ValRange m_DefMSM_MomentBias       = new ValRange( "Moment Bias"       , 0.0f, 0.3f   ,   1.0f  , 0.00003f);
+        readonly ValRange m_DefMSM_DepthBias        = new ValRange( "Depth Bias"        , 0.0f, 0.1f    ,  1.0f  , 0.1f   );
+
+        public ShadowVariance( ref AtlasInit init ) : base( ref init )
+        {
+            m_Shadowmap.enableRandomWrite = true;
+            m_SampleCount    = 1; // TODO: Unity can't bind msaa rts as textures, yet, so this has to remain 1 for now
+            m_MomentBlurCS = Resources.Load<ComputeShader>( "ShadowBlurMoments" );
+
+            if( m_MomentBlurCS )
+            {
+                for( int i = 0, blurSize = 3; i < k_BlurKernelCount; ++i, blurSize += 2 )
+                {
+                    m_KernelVSM[i]    = m_MomentBlurCS.FindKernel( "main_VSM_"      + blurSize );
+                    m_KernelEVSM_2[i] = m_MomentBlurCS.FindKernel( "main_EVSM_2_"   + blurSize );
+                    m_KernelEVSM_4[i] = m_MomentBlurCS.FindKernel( "main_EVSM_4_"   + blurSize );
+                    m_KernelMSM[i]    = m_MomentBlurCS.FindKernel( "main_MSM_"      + blurSize );
+
+                    m_BlurWeights[i] = new float[2+i];
+                    FillBlurWeights( i );
+                }
+            }
+
+            // normalize blur weights
+            for( int i = 0; i < k_BlurKernelCount; ++i )
+            {
+                float weightSum = 0.0f;
+                for( int j = 0; j < m_BlurWeights[i].Length; ++j )
+                    weightSum += m_BlurWeights[i][j];
+                weightSum = 1.0f / (2.0f * weightSum - m_BlurWeights[i][0]);
+                for( int j = 0; j < m_BlurWeights[i].Length; ++j )
+                    m_BlurWeights[i][j] *= weightSum;
+            }
+        }
+
+        private void FillBlurWeights( int idx )
+        {
+            if( idx == 0 )
+            {
+                m_BlurWeights[0][0] = 2.0f;
+                m_BlurWeights[0][1] = 1.0f;
+                return;
+            }
+
+            float[] prev = m_BlurWeights[idx-1];
+            float[] cur  = m_BlurWeights[idx];
+            int prevSize = prev.Length;
+            for( int i = 0; i < prevSize; ++i )
+            {
+                cur[i] = prev[Math.Abs( i-1 )] + prev[i] * 2.0f + (i == (prevSize-1) ? 0.0f : prev[i+1]);
+            }
+            cur[cur.Length-1] = 1.0f;
+        }
+
+        private void BlurSlider( ref int currentVal )
+        {
+            currentVal = k_BlurKernelMinSize + currentVal * 2;
+            currentVal = (int) Math.Round( UnityEditor.EditorGUILayout.Slider( "Blur Size", currentVal, k_BlurKernelMinSize, k_BlurKernelMaxSize ) );
+            currentVal = (currentVal - k_BlurKernelMinSize) / 2;
+        }
+
+        override protected void Register( GPUShadowType type, ShadowRegistry registry )
+        {
+            m_SupportedAlgorithms.Reserve( 5 );
+            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.VSM );
+            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.EVSM_2 );
+            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.EVSM_4 );
+            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.MSM_Ham );
+            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.MSM_Haus );
+
+            ShadowRegistry.VariantDelegate vsmDel = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ref int[] dataBlock ) => 
+                {
+                    CheckDataIntegrity( dataAlgorithm, dataVariant, ref dataBlock );
+
+                    m_DefVSM_LightLeakBias.Slider( ref dataBlock[0] );
+                    m_DefVSM_VarianceBias.Slider( ref dataBlock[1] );
+                    BlurSlider( ref dataBlock[2] );
+                };
+
+            ShadowRegistry.VariantDelegate evsmDel = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ref int[] dataBlock ) => 
+                {
+                    CheckDataIntegrity( dataAlgorithm, dataVariant, ref dataBlock );
+
+                    m_DefEVSM_LightLeakBias.Slider( ref dataBlock[0] );
+                    m_DefEVSM_VarianceBias.Slider( ref dataBlock[1] );
+                    m_DefEVSM_PosExponent.Slider( ref dataBlock[2] );
+                    if( dataVariant == ShadowVariant.V1 )
+                    {
+                        m_DefEVSM_NegExponent.Slider( ref dataBlock[3] );
+                    }
+                    BlurSlider( ref dataBlock[4] );
+                };
+
+            ShadowRegistry.VariantDelegate msmDel = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ref int[] dataBlock ) => 
+                {
+                    CheckDataIntegrity( dataAlgorithm, dataVariant, ref dataBlock );
+
+                    m_DefMSM_LightLeakBias.Slider( ref dataBlock[0] );
+                    m_DefMSM_MomentBias.Slider( ref dataBlock[1] );
+                    m_DefMSM_DepthBias.Slider( ref dataBlock[2] );
+                    BlurSlider( ref dataBlock[3] );
+                };
+
+            registry.Register( type, ShadowAlgorithm.VSM, "Variance shadow map (VSM)", 
+                new ShadowVariant[] { ShadowVariant.V0 }, new string[] { "2 moments" }, new ShadowRegistry.VariantDelegate[] { vsmDel } );
+            registry.Register( type, ShadowAlgorithm.EVSM, "Exponential variance shadow map (EVSM)",
+                new ShadowVariant[] { ShadowVariant.V0, ShadowVariant.V1 }, new string[] { "2 moments", "4 moments" }, new ShadowRegistry.VariantDelegate[] { evsmDel, evsmDel } );
+            registry.Register( type, ShadowAlgorithm.MSM, "Momentum shadow map (MSM)",
+                new ShadowVariant[] { ShadowVariant.V0, ShadowVariant.V1 }, new string[] { "Hamburg", "Hausdorff" }, new ShadowRegistry.VariantDelegate[] { msmDel, msmDel } );
+        }
+
+        override protected bool CheckDataIntegrity( ShadowAlgorithm algorithm, ShadowVariant variant, ref int[] dataBlock )
+        {
+            switch( algorithm )
+            {
+            case ShadowAlgorithm.VSM:
+                {
+                    const int k_BlockSize = 3;
+                    if( dataBlock == null || dataBlock.Length != k_BlockSize )
+                    {
+                        // set defaults
+                        dataBlock = new int[k_BlockSize];
+                        dataBlock[0] = m_DefVSM_LightLeakBias.Default();
+                        dataBlock[1] = m_DefVSM_VarianceBias.Default();
+                        dataBlock[2] = k_BlurKernelDefSize;
+                        return false;
+                    }
+                    return true;
+                }
+            case ShadowAlgorithm.EVSM:
+                {
+                    const int k_BlockSize = 5;
+                    if( dataBlock == null || dataBlock.Length != k_BlockSize )
+                    {
+                        // set defaults
+                        dataBlock = new int[k_BlockSize];
+                        dataBlock[0] = m_DefEVSM_LightLeakBias.Default();
+                        dataBlock[1] = m_DefEVSM_VarianceBias.Default();
+                        dataBlock[2] = m_DefEVSM_PosExponent.Default();
+                        dataBlock[3] = m_DefEVSM_NegExponent.Default();
+                        dataBlock[4] = k_BlurKernelDefSize;
+                        return false;
+                    }
+                    return true;
+                }
+            case ShadowAlgorithm.MSM:
+                {
+                    const int k_BlockSize = 4;
+                    if( dataBlock == null || dataBlock.Length != k_BlockSize )
+                    {
+                        // set defaults
+                        dataBlock = new int[k_BlockSize];
+                        dataBlock[0] = m_DefMSM_LightLeakBias.Default();
+                        dataBlock[1] = m_DefMSM_MomentBias.Default();
+                        dataBlock[2] = m_DefMSM_DepthBias.Default();
+                        dataBlock[3] = k_BlurKernelDefSize;
+                        return false;
+                    }
+                    return true;
+                }
+            default: return base.CheckDataIntegrity( algorithm, variant, ref dataBlock );
+            }
+        }
+
+
+        override protected uint ReservePayload( ShadowRequest sr )
+        {
+            uint cnt = base.ReservePayload( sr );
+            switch( sr.shadowAlgorithm )
+            {
+            case GPUShadowAlgorithm.VSM     : return cnt + 1;
+            case GPUShadowAlgorithm.EVSM_2  :
+            case GPUShadowAlgorithm.EVSM_4  : return cnt + 1;
+            case GPUShadowAlgorithm.MSM_Ham :
+            case GPUShadowAlgorithm.MSM_Haus: return cnt + 1;
+            default: return cnt;
+            }
+        }
+
+        // Writes additional per light data into the payload vector. Make sure to call base.WritePerLightPayload first.
+        override protected void WritePerLightPayload( ref VisibleLight light, ShadowRequest sr, ref ShadowData sd, ref ShadowPayloadVector payload, ref uint payloadOffset )
+        {
+            base.WritePerLightPayload( ref light, sr, ref sd, ref payload, ref payloadOffset );
+
+            AdditionalLightData ald = light.light.GetComponent<AdditionalLightData>();
+            if( !ald )
+                return;
+
+            ShadowPayload sp = new ShadowPayload();
+            int shadowDataFormat;
+            int[] shadowData = ald.GetShadowData( out shadowDataFormat );
+            if( shadowData == null )
+                return;
+
+            ShadowAlgorithm algo;
+            ShadowVariant vari;
+            ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari );
+            CheckDataIntegrity( algo, vari, ref shadowData );
+
+            switch (sr.shadowAlgorithm)
+            {
+            case GPUShadowAlgorithm.VSM:
+                {
+                    sp.p0 = shadowData[0];
+                    sp.p1 = shadowData[1];
+                    payload[payloadOffset] = sp;
+                    payloadOffset++;
+                }
+                break;
+            case GPUShadowAlgorithm.EVSM_2:
+            case GPUShadowAlgorithm.EVSM_4:
+                {
+                    sp.p0 = shadowData[0];
+                    sp.p1 = shadowData[1];
+                    sp.p2 = shadowData[2];
+                    sp.p3 = shadowData[3];
+
+                    payload[payloadOffset] = sp;
+                    payloadOffset++;
+                }
+                break;
+            case GPUShadowAlgorithm.MSM_Ham:
+            case GPUShadowAlgorithm.MSM_Haus:
+                {
+                    sp.Set( shadowData[0], shadowData[1], shadowData[2] | (SystemInfo.usesReversedZBuffer ? 1 : 0), 0 );
+                    payload[payloadOffset] = sp;
+                    payloadOffset++;
+                }
+                break;
+            }
+        }
+
+
+        override protected void PreUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice )
+        {
+            cb.SetRenderTarget( m_ShadowmapId, 0, (CubemapFace) 0, (int) rendertargetSlice );
+            cb.GetTemporaryRT( m_TempDepthId, (int) m_Width, (int) m_Height, (int) m_ShadowmapBits, FilterMode.Bilinear, RenderTextureFormat.Shadowmap, RenderTextureReadWrite.Default, m_SampleCount );
+            cb.SetRenderTarget( new RenderTargetIdentifier( m_TempDepthId ) );
+            cb.ClearRenderTarget( true, true, m_ClearColor );
+        }
+
+        protected override void PostUpdate( FrameId frameId, CommandBuffer cb, uint rendertargetSlice, VisibleLight[] lights )
+        {
+            cb.name = "VSM conversion";
+            if ( rendertargetSlice == uint.MaxValue )
+            {
+                base.PostUpdate( frameId, cb, rendertargetSlice, lights );
+                return;
+            }
+            base.PostUpdate( frameId, cb, rendertargetSlice, lights );
+
+            uint cnt = m_EntryCache.Count();
+            uint i = 0;
+            while( i < cnt && m_EntryCache[i].current.slice < rendertargetSlice )
+            {
+                i++;
+            }
+            if( i >= cnt || m_EntryCache[i].current.slice > rendertargetSlice )
+                return;
+
+            
+            int kernelIdx = 2;
+            int currentKernel = 0;
+
+            for( int j = 0; j < k_BlurKernelCount; ++j )
+            {
+                cb.SetComputeTextureParam( m_MomentBlurCS, m_KernelVSM[j]   , "depthTex" , new RenderTargetIdentifier( m_TempDepthId ) );
+                cb.SetComputeTextureParam( m_MomentBlurCS, m_KernelVSM[j]   , "outputTex", m_ShadowmapId );
+                cb.SetComputeTextureParam( m_MomentBlurCS, m_KernelEVSM_2[j], "depthTex" , new RenderTargetIdentifier( m_TempDepthId ) );
+                cb.SetComputeTextureParam( m_MomentBlurCS, m_KernelEVSM_2[j], "outputTex", m_ShadowmapId );
+                cb.SetComputeTextureParam( m_MomentBlurCS, m_KernelEVSM_4[j], "depthTex" , new RenderTargetIdentifier( m_TempDepthId ) );
+                cb.SetComputeTextureParam( m_MomentBlurCS, m_KernelEVSM_4[j], "outputTex", m_ShadowmapId );
+                cb.SetComputeTextureParam( m_MomentBlurCS, m_KernelMSM[j]   , "depthTex" , new RenderTargetIdentifier( m_TempDepthId ) );
+                cb.SetComputeTextureParam( m_MomentBlurCS, m_KernelMSM[j]   , "outputTex", m_ShadowmapId );
+            }
+
+            while( i < cnt && m_EntryCache[i].current.slice == rendertargetSlice )
+            {
+                AdditionalLightData ald = lights[m_EntryCache[i].key.visibleIdx].light.GetComponent<AdditionalLightData>();
+                int shadowDataFormat;
+                int[] shadowData = ald.GetShadowData( out shadowDataFormat );
+
+                switch( m_EntryCache[i].current.shadowAlgo )
+                {
+                case GPUShadowAlgorithm.VSM:
+                    {
+                        kernelIdx = shadowData[2];
+                        currentKernel = m_KernelVSM[kernelIdx];
+                    }
+                    break;
+                case GPUShadowAlgorithm.EVSM_2:
+                    {
+                        Debug.Assert( (GPUShadowAlgorithm) shadowDataFormat == GPUShadowAlgorithm.EVSM_2 );
+                        float evsmExponent1 = ShadowUtils.Asfloat( shadowData[2] );
+                        cb.SetComputeFloatParam( m_MomentBlurCS, "evsmExponent", evsmExponent1 );
+                        kernelIdx = shadowData[4];
+                        currentKernel = m_KernelEVSM_2[kernelIdx]; 
+                    }
+                    break;
+                case GPUShadowAlgorithm.EVSM_4:
+                    {
+                        Debug.Assert( (GPUShadowAlgorithm) shadowDataFormat == GPUShadowAlgorithm.EVSM_4 );
+                        float evsmExponent1 = ShadowUtils.Asfloat( shadowData[2] );
+                        float evsmExponent2 = ShadowUtils.Asfloat( shadowData[3] );
+                        cb.SetComputeFloatParams( m_MomentBlurCS, "evsmExponents", new float[] { evsmExponent1, evsmExponent2 } );
+                        kernelIdx = shadowData[4];
+                        currentKernel = m_KernelEVSM_4[kernelIdx];
+                    }
+                    break;
+                case GPUShadowAlgorithm.MSM_Ham :
+                case GPUShadowAlgorithm.MSM_Haus:
+                    {
+                        kernelIdx = shadowData[3];
+                        currentKernel = m_KernelMSM[kernelIdx];
+                    }
+                    break;
+                default: Debug.LogError( "Unknown shadow algorithm selected for momentum type shadow maps." ); break;
+                }
+                // TODO: Need a check here whether the shadowmap actually got updated, but right now that's queried on the cullResults.
+                Rect r = m_EntryCache[i].current.viewport;
+                cb.SetComputeIntParams( m_MomentBlurCS, "srcRect", new int[] { (int) r.x, (int) r.y, (int) r.width, (int) r.height } );
+                cb.SetComputeIntParams( m_MomentBlurCS, "dstRect", new int[] { (int) r.x, (int) r.y, (int) rendertargetSlice } );
+                cb.SetComputeFloatParams( m_MomentBlurCS, "blurWeightsStorage", m_BlurWeights[kernelIdx] );
+                cb.DispatchCompute( m_MomentBlurCS, currentKernel, ((int) r.width) / k_MomentBlurThreadsPerWorkgroup, (int) r.height / k_MomentBlurThreadsPerWorkgroup, 1 );
+                i++;
+            }
+        }
+    }
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+//
 //                                                      ShadowManager
 //
 // -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -462,6 +941,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Shadowmaps = shadowmaps;
             foreach( var sm in shadowmaps )
             {
+                sm.Register( this );
                 sm.ReserveSlots( m_ShadowCtxt );
                 ShadowmapBase.ShadowSupport smsupport = sm.QueryShadowSupport();
                 for( int i = 0, bit = 1; i < (int) GPUShadowType.MAX; ++i, bit <<= 1 )
@@ -484,7 +964,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_MaxShadows[(int)GPUShadowType.Point      ,0] = m_MaxShadows[(int)GPUShadowType.Point        ,1] = 4;
             m_MaxShadows[(int)GPUShadowType.Spot       ,0] = m_MaxShadows[(int)GPUShadowType.Spot         ,1] = 8;
-            m_MaxShadows[(int)GPUShadowType.Directional,0] = m_MaxShadows[(int)GPUShadowType.Directional  ,1] = 1;
+            m_MaxShadows[(int)GPUShadowType.Directional,0] = m_MaxShadows[(int)GPUShadowType.Directional  ,1] = 2;
+
+            // and register itself
+            AdditionalLightDataEditor.SetRegistry( this );
         }
 
         public override void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, VisibleLight[] lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices )
@@ -585,9 +1068,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 switch( vl.lightType )
                 {
-                    case LightType.Directional  : add = m_MaxShadows[(int)GPUShadowType.Directional  , 0]-- >= 0; shadowType = GPUShadowType.Directional; facecount = m_ShadowSettings.directionalLightCascadeCount; break;
-                    case LightType.Point        : add = m_MaxShadows[(int)GPUShadowType.Point        , 0]-- >= 0; shadowType = GPUShadowType.Point      ; facecount = 6; break;
-                    case LightType.Spot         : add = m_MaxShadows[(int)GPUShadowType.Spot         , 0]-- >= 0; shadowType = GPUShadowType.Spot       ; facecount = 1; break;
+                    case LightType.Directional  : add = --m_MaxShadows[(int)GPUShadowType.Directional  , 0] >= 0; shadowType = GPUShadowType.Directional; facecount = m_ShadowSettings.directionalLightCascadeCount; break;
+                    case LightType.Point        : add = --m_MaxShadows[(int)GPUShadowType.Point        , 0] >= 0; shadowType = GPUShadowType.Point      ; facecount = 6; break;
+                    case LightType.Spot         : add = --m_MaxShadows[(int)GPUShadowType.Spot         , 0] >= 0; shadowType = GPUShadowType.Spot       ; facecount = 1; break;
                 }
 
                 if( add )
@@ -596,6 +1079,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     sreq.index      = (uint) requestIdx;
                     sreq.facemask   = (uint) (1 << facecount) - 1;
                     sreq.shadowType = shadowType;
+
+                    int sa, sv;
+                    vl.light.GetComponent<AdditionalLightData>().GetShadowAlgorithm( out sa, out sv );
+                    sreq.shadowAlgorithm = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv );
                     totalRequestCount += (uint) facecount;
                     requestsGranted.AddUnchecked( sreq );
                     totalSlots--;
@@ -623,8 +1110,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // set light specific values that are not related to the shadowmap
                 GPUShadowType shadowtype;
                 ShadowUtils.MapLightType( ald.archetype, vl.lightType, out sd.lightType, out shadowtype );
-                sd.bias = l.shadowBias;
-                sd.quality = 0;
+                sd.bias = SystemInfo.usesReversedZBuffer ? l.shadowBias : -l.shadowBias;
+                sd.normalBias = l.shadowNormalBias;
                 
                 shadowIndices.AddUnchecked( (int) shadowDatas.Count() );
 
