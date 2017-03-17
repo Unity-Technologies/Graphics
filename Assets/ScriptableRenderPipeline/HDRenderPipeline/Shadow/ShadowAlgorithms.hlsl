@@ -2,12 +2,17 @@
 // There are two variants provided, one takes the texture and sampler explicitly so they can be statically passed in.
 // The variant without resource parameters dynamically accesses the texture when sampling.
 
+// Helper function to offset depth based on the surface normal and light direction.
+// If the light hits the surface perpendicularly there will be no offset.
+float3 EvalShadow_NormalBias( float3 normalWS, float NoL, float2 texelSize, float normalBias )
+{
+	return 2.0 * max( texelSize.x, texelSize.y ) * normalBias * (1.0 - NoL) * normalWS;
+}
+
 // function called by spot, point and directional eval routines to calculate shadow coordinates
 float3 EvalShadow_GetTexcoords( ShadowData sd, float3 positionWS )
 {
 	float4 posCS = mul( float4( positionWS, 1.0 ), sd.worldToShadow );
-	// apply a bias
-	posCS.z -= sd.bias;
 	float3 posNDC = posCS.xyz / posCS.w;
 	// calc TCs
 	float3 posTC = posNDC * 0.5 + 0.5;
@@ -21,103 +26,139 @@ float3 EvalShadow_GetTexcoords( ShadowData sd, float3 positionWS )
 //
 //	Point shadows
 //
-float EvalShadow_PointDepth( ShadowContext shadowContext, float3 positionWS, int index, float3 L )
+float EvalShadow_PointDepth( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int index, float3 L )
 {
 	// load the right shadow data for the current face
 	int faceIndex = 0;
 	GetCubeFaceID( L, faceIndex );
-	ShadowData sd = shadowContext.shadowDatas[index + faceIndex];
+	ShadowData sd = shadowContext.shadowDatas[index + 1 + faceIndex];
+	uint payloadOffset = GetPayloadOffset( sd );
 	// get shadowmap texcoords
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
-	// sample the texture
+	// get the algorithm
+	uint shadowType, shadowAlgorithm;
+	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
+	// sample the texture according to the given algorithm
 	uint texIdx, sampIdx;
 	float slice;
 	UnpackShadowmapId( sd.id, texIdx, sampIdx, slice );
-	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, texIdx, sampIdx );
+	return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, texIdx, sampIdx );
 }
 
-float EvalShadow_PointDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
-{
-	// load the right shadow data for the current face
-	int faceIndex = 0;
-	GetCubeFaceID( L, faceIndex );
-	ShadowData sd = shadowContext.shadowDatas[index + faceIndex];
-	// get shadowmap texcoords
-	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
-	// sample the texture
-	float slice;
-	UnpackShadowmapId( sd.id, slice );
-	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, tex, compSamp );
-}
-
+#define EvalShadow_PointDepth_( _samplerType )																																			\
+	float EvalShadow_PointDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, float3 positionWS, float3 normalWS, int index, float3 L )	\
+	{																																													\
+		/* load the right shadow data for the current face */																															\
+		int faceIndex = 0;																																								\
+		GetCubeFaceID( L, faceIndex );																																					\
+		ShadowData sd = shadowContext.shadowDatas[index + 1 + faceIndex];																												\
+		uint payloadOffset = GetPayloadOffset( sd );																																	\
+		/* get shadowmap texcoords */																																					\
+		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );																														\
+		/* sample the texture */																																						\
+		float slice;																																									\
+		UnpackShadowmapId( sd.id, slice );																																				\
+		return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, tex, samp );														\
+	}
+	EvalShadow_PointDepth_( SamplerComparisonState )
+	EvalShadow_PointDepth_( SamplerState )
+#undef EvalShadow_PointDepth_
 
 //
 //	Spot shadows
 //
-float EvalShadow_SpotDepth( ShadowContext shadowContext, float3 positionWS, int index, float3 L )
+float EvalShadow_SpotDepth( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int index, float3 L )
 {
 	// load the right shadow data for the current face
 	ShadowData sd = shadowContext.shadowDatas[index];
+	uint payloadOffset = GetPayloadOffset( sd );
 	// get shadowmap texcoords
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
-	// sample the texture
+	// get the algorithm
+	uint shadowType, shadowAlgorithm;
+	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
+	// sample the texture according to the given algorithm
 	uint texIdx, sampIdx;
 	float slice;
 	UnpackShadowmapId( sd.id, texIdx, sampIdx, slice );
-	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, texIdx, sampIdx );
+	return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, texIdx, sampIdx );
 }
 
-float EvalShadow_SpotDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
-{
-	// load the right shadow data for the current face
-	ShadowData sd = shadowContext.shadowDatas[index];
-	// get shadowmap texcoords
-	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
-	// sample the texture
-	float slice;
-	UnpackShadowmapId( sd.id, slice );
-	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, tex, compSamp );
-}
+#define EvalShadow_SpotDepth_( _samplerType )																																		\
+	float EvalShadow_SpotDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, float3 positionWS, float3 normalWS, int index, float3 L )	\
+	{																																												\
+		/* load the right shadow data for the current face */																														\
+		ShadowData sd = shadowContext.shadowDatas[index];																															\
+		uint payloadOffset = GetPayloadOffset( sd );																																\
+		/* get shadowmap texcoords */																																				\
+		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );																													\
+		/* sample the texture */																																					\
+		float slice;																																								\
+		UnpackShadowmapId( sd.id, slice );																																			\
+		return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, tex, samp );													\
+	}
+	EvalShadow_SpotDepth_( SamplerComparisonState )
+	EvalShadow_SpotDepth_( SamplerState )
+#undef EvalShadow_SpotDepth_
 
 //
 //	Punctual shadows for Point and Spot
 //
-float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, int index, float3 L )
+float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int index, float3 L )
 {
 	// load the right shadow data for the current face
 	int faceIndex = 0;
+	// get the algorithm
+	uint shadowType, shadowAlgorithm;
+	UnpackShadowType( shadowContext.shadowDatas[index].shadowType, shadowType );
 
 	[branch]
-	if( shadowContext.shadowDatas[index].shadowType == GPUSHADOWTYPE_POINT )
+	if( shadowType == GPUSHADOWTYPE_POINT )
+	{
 		GetCubeFaceID( L, faceIndex );
+		faceIndex++;
+	}
 
 	ShadowData sd = shadowContext.shadowDatas[index + faceIndex];
+	uint payloadOffset = GetPayloadOffset( sd );
 	// get shadowmap texcoords
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
-	// sample the texture
+	// sample the texture according to the given algorithm
 	uint texIdx, sampIdx;
 	float slice;
 	UnpackShadowmapId( sd.id, texIdx, sampIdx, slice );
-	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, texIdx, sampIdx );
+	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
+	return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, texIdx, sampIdx );
 }
 
-float EvalShadow_PunctualDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
-{
-	// load the right shadow data for the current face
-	int faceIndex = 0;
-
-	[branch]
-	if( shadowContext.shadowDatas[index].shadowType == GPUSHADOWTYPE_POINT )
-		GetCubeFaceID( L, faceIndex );
-
-	ShadowData sd = shadowContext.shadowDatas[index + faceIndex];
-	// get shadowmap texcoords
-	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
-	// sample the texture
-	float slice;
-	UnpackShadowmapId( sd.id, slice );
-	return SampleShadow_PCF_1tap( shadowContext, posTC, slice, tex, compSamp );
-}
+#define EvalShadow_PunctualDepth_( _samplerType )																																		\
+	float EvalShadow_PunctualDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, float3 positionWS, float3 normalWS, int index, float3 L )	\
+	{																																													\
+		/* load the right shadow data for the current face */																															\
+		int faceIndex = 0;																																								\
+		/* get the shadow type */																																						\
+		uint shadowType;																																								\
+		UnpackShadowType( shadowContext.shadowDatas[index].shadowType, shadowType );																									\
+																																														\
+		[branch]																																										\
+		if( shadowType == GPUSHADOWTYPE_POINT )																																			\
+		{																																												\
+			GetCubeFaceID( L, faceIndex );																																				\
+			faceIndex++;																																								\
+		}																																												\
+																																														\
+		ShadowData sd = shadowContext.shadowDatas[index + faceIndex];																													\
+		uint payloadOffset = GetPayloadOffset( sd );																																	\
+		/* get shadowmap texcoords */																																					\
+		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );																														\
+		/* sample the texture */																																						\
+		float slice;																																									\
+		UnpackShadowmapId( sd.id, slice );																																				\
+		return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, tex, samp );														\
+	}
+	EvalShadow_PunctualDepth_( SamplerComparisonState )
+	EvalShadow_PunctualDepth_( SamplerState )
+#undef EvalShadow_PunctualDepth_
 
 //
 //	Directional shadows (cascaded shadow map)
@@ -142,7 +183,7 @@ uint EvalShadow_GetSplitSphereIndexForDirshadows( float3 positionWS, float4 dirS
 	return uint( 4.0 - dot( weights, float4(4.0, 3.0, 2.0, 1.0 ) ) );
 }
 
-void EvalShadow_LoadSplitSpheres( ShadowContext shadowContext, int index, out float4 splitSpheres[4] )
+uint EvalShadow_LoadSplitSpheres( ShadowContext shadowContext, int index, out float4 splitSpheres[4] )
 {
 	uint offset = GetPayloadOffset( shadowContext.shadowDatas[index] );
 
@@ -150,15 +191,18 @@ void EvalShadow_LoadSplitSpheres( ShadowContext shadowContext, int index, out fl
 	splitSpheres[1] = asfloat( shadowContext.payloads[offset + 1] );
 	splitSpheres[2] = asfloat( shadowContext.payloads[offset + 2] );
 	splitSpheres[3] = asfloat( shadowContext.payloads[offset + 3] );
+	return offset + 4;
 }
 
-float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, int index, float3 L )
+float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int index, float3 L )
 {
 	// load the right shadow data for the current face
 	float4 dirShadowSplitSpheres[4];
-	EvalShadow_LoadSplitSpheres( shadowContext, index, dirShadowSplitSpheres );
+	uint payloadOffset = EvalShadow_LoadSplitSpheres( shadowContext, index, dirShadowSplitSpheres );
 	uint shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres );
-	ShadowData sd = shadowContext.shadowDatas[index + shadowSplitIndex];
+	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
+	// normal based bias
+	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp, sd.normalBias );
 	// get shadowmap texcoords
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
 
@@ -167,22 +211,30 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, 
 	float slice;
 	UnpackShadowmapId( sd.id, texIdx, sampIdx, slice );
 
-	return SampleShadow_PCF_9tap_Adaptive( shadowContext, sd.texelSizeRcp, posTC, slice, texIdx, sampIdx );
+	uint shadowType, shadowAlgorithm;
+	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
+
+	return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, texIdx, sampIdx );
 }
 
-float EvalShadow_CascadedDepth( ShadowContext shadowContext, Texture2DArray tex, SamplerComparisonState compSamp, float3 positionWS, int index, float3 L )
-{
-	// load the right shadow data for the current face
-	float4 dirShadowSplitSpheres[4];
-	EvalShadow_LoadSplitSpheres( shadowContext, index, dirShadowSplitSpheres );
-	uint shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres );
-	ShadowData sd = shadowContext.shadowDatas[index + shadowSplitIndex];
-	// get shadowmap texcoords
-	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
-	// sample the texture
-	float slice;
-	UnpackShadowmapId(sd.id, slice);
-
-	return SampleShadow_PCF_9tap_Adaptive( shadowContext, sd.texelSizeRcp, posTC, slice, tex, compSamp );
-}
-
+#define EvalShadow_CascadedDepth_( _samplerType ) 																																		\
+	float EvalShadow_CascadedDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, float3 positionWS, float3 normalWS, int index, float3 L ) \
+	{																																													\
+		/* load the right shadow data for the current face */																															\
+		float4 dirShadowSplitSpheres[4];																																				\
+		uint payloadOffset = EvalShadow_LoadSplitSpheres( shadowContext, index, dirShadowSplitSpheres );																				\
+		uint shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres );																		\
+		ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];																										\
+		/* normal based bias */																																							\
+		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp, sd.normalBias );																\
+		/* get shadowmap texcoords */																																					\
+		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );																														\
+		/* sample the texture */																																						\
+		float slice;																																									\
+		UnpackShadowmapId( sd.id, slice );																																				\
+																																														\
+		return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, tex, samp );														\
+	}
+	EvalShadow_CascadedDepth_( SamplerComparisonState )
+	EvalShadow_CascadedDepth_( SamplerState )
+#undef EvalShadow_CascadedDepth_

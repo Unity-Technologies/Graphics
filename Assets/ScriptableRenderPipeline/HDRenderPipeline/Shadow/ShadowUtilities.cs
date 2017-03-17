@@ -80,9 +80,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             case LightType.Area         : gputype = GPULightType.Rectangle; shadowtype = GPUShadowType.Unknown; return false;   // area lights by themselves can't be mapped to any GPU type
             }
         }
-
+        public static GPUShadowAlgorithm Pack( ShadowAlgorithm algo, ShadowVariant vari )
+        {
+            return (GPUShadowAlgorithm) (((int) algo << ShadowExp.ShadowConstants.Bits.k_ShadowVariant) | (int)vari);
+        }
+        public static ShadowAlgorithm ExtractAlgorithm( GPUShadowAlgorithm gpuAlgo ) { return (ShadowAlgorithm) (((int)gpuAlgo >> ShadowExp.ShadowConstants.Bits.k_ShadowVariant) & ShadowExp.ShadowConstants.Masks.k_ShadowAlgorithm ); }
+        public static ShadowVariant   ExtractVariant(   GPUShadowAlgorithm gpuAlgo ) { return (ShadowVariant  ) ( (int)gpuAlgo                                                    & ShadowExp.ShadowConstants.Masks.k_ShadowVariant   ); }
+        public static void Unpack( GPUShadowAlgorithm gpuAlgo, out ShadowAlgorithm algo, out ShadowVariant vari )
+        {
+            algo = ExtractAlgorithm( gpuAlgo );
+            vari = ExtractVariant( gpuAlgo );
+        }
         public static float Asfloat( uint val ) { return System.BitConverter.ToSingle( System.BitConverter.GetBytes( val ), 0 ); }
+        public static float Asfloat( int val )  { return System.BitConverter.ToSingle( System.BitConverter.GetBytes( val ), 0 ); }
         public static int Asint( float val )    { return System.BitConverter.ToInt32( System.BitConverter.GetBytes( val ), 0 ); }
         public static uint Asuint( float val )  { return System.BitConverter.ToUInt32( System.BitConverter.GetBytes( val ), 0 ); }
+
+
     }
 } // end of namespace UnityEngine.Experimental.ScriptableRenderLoop
