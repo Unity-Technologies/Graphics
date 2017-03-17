@@ -1,0 +1,472 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!203 &20300000
+VFXAsset:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: _Test
+  m_XmlGraph: "<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<Graph Version=\"10\">\r\n
+    \   <System ModelId=\"0\" WorldSpace=\"True\" MaxNb=\"65536\" SpawnRate=\"10\"
+    BlendingMode=\"kAdditive\" SoftParticlesFadeDistance=\"0\" OrderPriority=\"0\"
+    RenderQueueDelta=\"0\">\r\n        <Context DescId=\"Initialize\" Position=\"-800,-780\"
+    Collapsed=\"False\">\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockPositionCylinderSurface\"
+    Hash=\"-293313664\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"0\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>1</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>1</kFloat>\r\n
+    \                       <kFloat>0.1</kFloat>\r\n                    </Values>\r\n
+    \                   <Collapsed>false true true true true true true true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false false
+    false false false false false false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetColorConstant\"
+    Hash=\"-801129419\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"11\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
+    \                       <kFloat>1</kFloat>\r\n                        <kFloat>1</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVelocityConstant\"
+    Hash=\"-754220764\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"15\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0.8</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetLifetimeRandom\"
+    Hash=\"680700548\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"19\">\r\n                    <Values>\r\n                        <kFloat>3</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \               <Slot SlotId=\"20\">\r\n                    <Values>\r\n                        <kFloat>3.5</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVelocityRandomVector\"
+    Hash=\"-754220764\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"21\">\r\n                    <Values>\r\n                        <kFloat>0.1</kFloat>\r\n
+    \                       <kFloat>0.1</kFloat>\r\n                        <kFloat>0.09999993</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSizeRandomSquare\"
+    Hash=\"680700548\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"25\">\r\n                    <Values>\r\n                        <kFloat>0.015</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \               <Slot SlotId=\"26\">\r\n                    <Values>\r\n                        <kFloat>0.02</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Particle
+    Update\" Position=\"-830,-100\" Collapsed=\"False\" />\r\n        <Context DescId=\"Billboard
+    Output\" Position=\"-830,100\" Collapsed=\"False\">\r\n            <Slot SlotId=\"27\">\r\n
+    \               <Values>\r\n                    <kTexture2D>d01d8874889eebc4ab0cde7f2b3309de</kTexture2D>\r\n
+    \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
+    \           </Slot>\r\n            <Slot SlotId=\"28\">\r\n                <Values>\r\n
+    \                   <kFloat>0</kFloat>\r\n                    <kFloat>0</kFloat>\r\n
+    \               </Values>\r\n                <Collapsed>true true true</Collapsed>\r\n
+    \               <WorldSpace>false false false</WorldSpace>\r\n            </Slot>\r\n
+    \           <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetAlphaCurveOverLifetime\"
+    Hash=\"-2014196462\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"31\">\r\n                    <Values>\r\n                        <kCurve
+    PreWrapMode=\"ClampForever\" PostWrapMode=\"ClampForever\">\r\n                            <KeyFrame
+    t=\"0\" v=\"0\" inT=\"0\" outT=\"0\" tMode=\"0\" />\r\n                            <KeyFrame
+    t=\"0.1082242\" v=\"0.8763443\" inT=\"0.7500008\" outT=\"0.7500008\" tMode=\"0\"
+    />\r\n                            <KeyFrame t=\"0.838181\" v=\"0.9680741\" inT=\"-0.06382582\"
+    outT=\"-0.06382582\" tMode=\"0\" />\r\n                            <KeyFrame t=\"0.9983751\"
+    v=\"0.009496222\" inT=\"0\" outT=\"0\" tMode=\"0\" />\r\n                        </kCurve>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n        </Context>\r\n    </System>\r\n    <DataNode ModelId=\"1\"
+    Position=\"-1390,-700\" Exposed=\"True\">\r\n        <DataBlock DescId=\"UnityEngine.Experimental.VFX.VFXFloatType\"
+    Collapsed=\"False\" ExposedName=\"SpawnRadius\">\r\n            <Slot SlotId=\"32\">\r\n
+    \               <Values>\r\n                    <kFloat>0.5</kFloat>\r\n                </Values>\r\n
+    \               <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
+    \           </Slot>\r\n        </DataBlock>\r\n    </DataNode>\r\n    <SpawnerNode
+    ModelId=\"2\" Position=\"-870,-970\">\r\n        <SpawnerBlock Type=\"kConstantRate\"
+    Collapsed=\"False\">\r\n            <Slot SlotId=\"33\">\r\n                <Values>\r\n
+    \                   <kFloat>8096</kFloat>\r\n                </Values>\r\n                <Collapsed>true</Collapsed>\r\n
+    \               <WorldSpace>false</WorldSpace>\r\n            </Slot>\r\n        </SpawnerBlock>\r\n
+    \   </SpawnerNode>\r\n    <Connections>\r\n        <Connection Id=\"32\">9</Connection>\r\n
+    \   </Connections>\r\n    <SpawnerConnections Id=\"2\">0</SpawnerConnections>\r\n</Graph>"
+  m_Systems:
+  - m_Id: 0
+    m_Capacity: 65536
+    m_SimulationShader: {fileID: 7200000, guid: c8dde2da75e09c84f8ded33930caba4b,
+      type: 3}
+    m_OutputShader: {fileID: 4800000, guid: c633a1adbcd4c144e8eafaade0e9c59c, type: 3}
+    m_BufferDesc:
+    - m_InitName: <noninit>
+      m_UpdateName: outputBuffer
+      m_OutputName: outputBuffer
+      m_Flags: 514
+      m_Stride: 48
+      m_PerPoint: 1
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 12
+      m_PerPoint: 0
+    - m_InitName: flags
+      m_UpdateName: flags
+      m_OutputName: flags
+      m_Flags: 512
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: deadListIn
+      m_UpdateName: deadListOut
+      m_OutputName: <noninit>
+      m_Flags: 514
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: deadListCount
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
+      m_Flags: 768
+      m_Stride: 4
+      m_PerPoint: 0
+    - m_InitName: attribBuffer0
+      m_UpdateName: attribBuffer0
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 16
+      m_PerPoint: 1
+    - m_InitName: attribBuffer1
+      m_UpdateName: attribBuffer1_RO
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 16
+      m_PerPoint: 1
+    - m_InitName: attribBuffer2
+      m_UpdateName: attribBuffer2_RO
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 8
+      m_PerPoint: 1
+    - m_InitName: attribBuffer3
+      m_UpdateName: attribBuffer3_RO
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 16
+      m_PerPoint: 1
+    - m_InitName: attribBuffer4
+      m_UpdateName: attribBuffer4_RO
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 4
+      m_PerPoint: 1
+    m_OutputType: 1
+    m_SpawnRate: 10
+    m_OrderPriority: 0
+    m_HasKill: 1
+    m_HasIndirectOutput: 1
+    m_OutputDataIndex: -1
+    m_InitUniforms:
+      m_Uniforms:
+      - name: initUniform0_kVFXTransformPosOp
+        index: 27
+      - name: initUniform1_kVFXTransformDirOp
+        index: 32
+      - name: initUniform2_kVFXValueOp
+        index: 0
+      - name: initUniform3_kVFXValueOp
+        index: 28
+      - name: initUniform4_kVFXCombine3fOp
+        index: 29
+      - name: initUniform5_kVFXTransformVecOp
+        index: 30
+      - name: initUniform6_kVFXValueOp
+        index: 31
+      - name: initUniform7_kVFXValueOp
+        index: 34
+      - name: initUniform8_kVFXTransformVecOp
+        index: 33
+      - name: initUniform9_kVFXValueOp
+        index: 21
+      - name: initUniform10_kVFXValueOp
+        index: 20
+      - name: initUniform11_kVFXSystemSeedOp
+        index: 25
+    m_UpdateUniforms:
+      m_Uniforms:
+      - name: updateUniform0_kVFXDeltaTimeOp
+        index: 26
+    m_OutputUniforms:
+      m_Uniforms:
+      - name: outputUniform0_kVFXValueOp
+        index: 22
+      - name: outputSampler0_kVFXValueOpTexture
+        index: 23
+    m_SpawnerIndices: 00000000
+  m_Values:
+    m_Values: 0000003f000000000000803f00000000cdcc4c3f000000000000000000000000cdcccc3dc3cccc3d00000000cdcccc3d00000000ffffffffffffffffffffffffffffffffffffffffffffffff0000803f0000803fffffffffffffffffffffffffffffffffffffffffffffffff0000803f0ad7a33c8fc2753c5535803f000000800000003f0c0000000000fd45ffffffffffffffffffffffffffffffffffffffffcdcccc3dffffffffffffffffffffffffffffffffffffffffffffffff00004040ffffffffffffffffffffffffffffffffffffffffffffffff00006040
+    m_Textures:
+    - {fileID: 2800000, guid: d01d8874889eebc4ab0cde7f2b3309de, type: 3}
+    m_Meshes: []
+  m_Expressions:
+    m_Expressions:
+    - op: 0
+      valueIndex: 0
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 1
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 2
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 3
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 4
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 5
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 6
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 7
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 8
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 9
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 10
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 11
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 12
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 13
+      data[0]: 6
+      data[1]: 4
+      data[2]: 5
+      data[3]: 0
+    - op: 2
+      valueIndex: 16
+      data[0]: 11
+      data[1]: 8
+      data[2]: 9
+      data[3]: 0
+    - op: 0
+      valueIndex: 19
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 20
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 21
+      data[0]: 3
+      data[1]: 2
+      data[2]: 1
+      data[3]: 0
+    - op: 2
+      valueIndex: 24
+      data[0]: 7
+      data[1]: 10
+      data[2]: 12
+      data[3]: 0
+    - op: 0
+      valueIndex: 27
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 28
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 29
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 30
+      data[0]: 4
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 0
+      data[0]: 7
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 34
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 12
+      valueIndex: 35
+      data[0]: 0
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 10
+      valueIndex: 36
+      data[0]: 0
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 7
+      valueIndex: 37
+      data[0]: 18
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 40
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 41
+      data[0]: 16
+      data[1]: 19
+      data[2]: 15
+      data[3]: 0
+    - op: 8
+      valueIndex: 44
+      data[0]: 13
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 47
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 9
+      valueIndex: 48
+      data[0]: 17
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 8
+      valueIndex: 51
+      data[0]: 14
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 54
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    m_NeedsLocalToWorld: 1
+    m_NeedsWorldToLocal: 0
+  m_Spawners:
+  - - m_Type: 0
+      m_ExpressionIndices: 18000000
+      m_CustomUserClass: {fileID: 0}
+  m_SpawnerEvents:
+  - m_Name: OnStart
+    m_StartSpawners: 00000000
+    m_StopSpawners: 
+  - m_Name: OnStop
+    m_StartSpawners: 
+    m_StopSpawners: 00000000
+  m_ExposedExpressions:
+  - m_Name: SpawnRadius
+    m_Type: 1
+    m_ValueIndex: 0
+  m_ExposedEditorDescs:
+  - m_SemanticsTypeID: UnityEngine.Experimental.VFX.VFXFloatType
+    m_ExposedName: SpawnRadius
+    m_WorldSpace: 0
+  m_FloatTexture: {fileID: 28508536957181426}
+  m_Bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+--- !u!28 &28508536957181426
+Texture2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  serializedVersion: 2
+  m_Width: 128
+  m_Height: 1
+  m_CompleteImageSize: 1024
+  m_TextureFormat: 17
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapMode: 0
+  m_LightmapFormat: 0
+  m_ColorSpace: 0
+  image data: 1024
+  _typelessdata: 0000cdcdcdcdcdcd8e22cdcdcdcdcdcd3a2acdcdcdcdcdcda22ecdcdcdcdcdcd9231cdcdcdcdcdcd1834cdcdcdcdcdcd8735cdcdcdcdcdcd0637cdcdcdcdcdcd4238cdcdcdcdcdcdf938cdcdcdcdcdcda139cdcdcdcdcdcd313acdcdcdcdcdcda13acdcdcdcdcdcdea3acdcdcdcdcdcd053bcdcdcdcdcdcd113bcdcdcdcdcdcd1c3bcdcdcdcdcdcd273bcdcdcdcdcdcd323bcdcdcdcdcdcd3d3bcdcdcdcdcdcd473bcdcdcdcdcdcd503bcdcdcdcdcdcd5a3bcdcdcdcdcdcd633bcdcdcdcdcdcd6b3bcdcdcdcdcdcd743bcdcdcdcdcdcd7c3bcdcdcdcdcdcd843bcdcdcdcdcdcd8b3bcdcdcdcdcdcd923bcdcdcdcdcdcd993bcdcdcdcdcdcda03bcdcdcdcdcdcda63bcdcdcdcdcdcdac3bcdcdcdcdcdcdb23bcdcdcdcdcdcdb83bcdcdcdcdcdcdbd3bcdcdcdcdcdcdc23bcdcdcdcdcdcdc73bcdcdcdcdcdcdcb3bcdcdcdcdcdcdcf3bcdcdcdcdcdcdd33bcdcdcdcdcdcdd73bcdcdcdcdcdcddb3bcdcdcdcdcdcdde3bcdcdcdcdcdcde13bcdcdcdcdcdcde43bcdcdcdcdcdcde73bcdcdcdcdcdcde93bcdcdcdcdcdcdeb3bcdcdcdcdcdcded3bcdcdcdcdcdcdef3bcdcdcdcdcdcdf13bcdcdcdcdcdcdf23bcdcdcdcdcdcdf43bcdcdcdcdcdcdf53bcdcdcdcdcdcdf63bcdcdcdcdcdcdf73bcdcdcdcdcdcdf73bcdcdcdcdcdcdf83bcdcdcdcdcdcdf83bcdcdcdcdcdcdf83bcdcdcdcdcdcdf93bcdcdcdcdcdcdf83bcdcdcdcdcdcdf83bcdcdcdcdcdcdf83bcdcdcdcdcdcdf83bcdcdcdcdcdcdf73bcdcdcdcdcdcdf63bcdcdcdcdcdcdf63bcdcdcdcdcdcdf53bcdcdcdcdcdcdf43bcdcdcdcdcdcdf33bcdcdcdcdcdcdf23bcdcdcdcdcdcdf13bcdcdcdcdcdcdef3bcdcdcdcdcdcdee3bcdcdcdcdcdcded3bcdcdcdcdcdcdeb3bcdcdcdcdcdcdea3bcdcdcdcdcdcde83bcdcdcdcdcdcde73bcdcdcdcdcdcde53bcdcdcdcdcdcde33bcdcdcdcdcdcde23bcdcdcdcdcdcde03bcdcdcdcdcdcdde3bcdcdcdcdcdcddd3bcdcdcdcdcdcddb3bcdcdcdcdcdcdd93bcdcdcdcdcdcdd73bcdcdcdcdcdcdd53bcdcdcdcdcdcdd43bcdcdcdcdcdcdd23bcdcdcdcdcdcdd03bcdcdcdcdcdcdcf3bcdcdcdcdcdcdcd3bcdcdcdcdcdcdcb3bcdcdcdcdcdcdca3bcdcdcdcdcdcdc83bcdcdcdcdcdcdc73bcdcdcdcdcdcdc53bcdcdcdcdcdcdc43bcdcdcdcdcdcdc23bcdcdcdcdcdcdc13bcdcdcdcdcdcdc03bcdcdcdcdcdcdbf3bcdcdcdcdcdcdbc3bcdcdcdcdcdcda33bcdcdcdcdcdcd723bcdcdcdcdcdcd2c3bcdcdcdcdcdcdd23acdcdcdcdcdcd693acdcdcdcdcdcdf239cdcdcdcdcdcd7139cdcdcdcdcdcde938cdcdcdcdcdcd5b38cdcdcdcdcdcd9637cdcdcdcdcdcd7736cdcdcdcdcdcd5f35cdcdcdcdcdcd5334cdcdcdcdcdcdb232cdcdcdcdcdcdec30cdcdcdcdcdcdc02ecdcdcdcdcdcd312ccdcdcdcdcdcd8428cdcdcdcdcdcd2324cdcdcdcdcdcddc20cdcdcdcdcdcd
+  m_StreamData:
+    offset: 0
+    size: 0
+    path: 
