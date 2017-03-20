@@ -351,6 +351,7 @@ public class VFXComponentEditor : Editor
                 {
                     var property = vfxField.GetArrayElementAtIndex(i);
                     var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                    var overriddenProperty = property.FindPropertyRelative("m_Overridden");
                     var valueProperty = property.FindPropertyRelative("m_Value");
                     Color previousColor = GUI.color;
                     var animated = AnimationMode.IsPropertyAnimated(target, valueProperty.propertyPath);
@@ -358,7 +359,13 @@ public class VFXComponentEditor : Editor
                     {
                         GUI.color = AnimationMode.animatedPropertyColor;
                     }
-                    EditorGUILayout.PropertyField(valueProperty, new GUIContent(nameProperty));
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        overriddenProperty.boolValue = EditorGUILayout.ToggleLeft(new GUIContent(nameProperty), overriddenProperty.boolValue);
+                        EditorGUI.BeginDisabledGroup(!overriddenProperty.boolValue);
+                        EditorGUILayout.PropertyField(valueProperty, new GUIContent(""));
+                        EditorGUI.EndDisabledGroup();
+                    }
                     if (animated)
                     {
                         GUI.color = previousColor;
