@@ -6,7 +6,7 @@ using System;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public class SubsurfaceScatteringProfile
+    public class SubsurfaceScatteringProfile : ScriptableObject
     {
         public const int numSamples = 11; // Must be an odd number
 
@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             stdDev2            = new Color(0.6f, 0.6f, 0.6f, 0.0f);
             lerpWeight         = 0.5f;
             enableTransmission = false;
-            thicknessRemap     = new Vector2(0, 3);
+            thicknessRemap     = new Vector2(0, 1);
 
             UpdateKernelAndVarianceData();
         }
@@ -187,18 +187,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
-    public class SssProfileAsset : ScriptableObject
-    {
-        [SerializeField]
-        private SubsurfaceScatteringProfile m_Profile = new SubsurfaceScatteringProfile();
-
-        public SubsurfaceScatteringProfile data
-        {
-            get { return m_Profile; }
-            set { m_Profile = value; }
-        }
-    }
-
     [Serializable]
     public class SubsurfaceScatteringSettings
     {
@@ -206,79 +194,66 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public const int maxNumProfiles = 8;
 
-        public int               numProfiles;
-        public TexturingMode     texturingMode;
-        public int               transmissionFlags;
-        public SssProfileAsset[] profileAssets;
-        public float[]           thicknessRemaps;
-        public Vector4[]         halfRcpVariancesAndLerpWeights;
-        public Vector4[]         halfRcpWeightedVariances;
-        public Vector4[]         filterKernels;
-        public bool              isInitialized;
+        public int                           numProfiles;
+        public TexturingMode                 texturingMode;
+        public int                           transmissionFlags;
+        public SubsurfaceScatteringProfile[] profiles;
+        public float[]                       thicknessRemaps;
+        public Vector4[]                     halfRcpVariancesAndLerpWeights;
+        public Vector4[]                     halfRcpWeightedVariances;
+        public Vector4[]                     filterKernels;
 
-        private static SssProfileAsset s_DefaultSssAsset = null;
+        private static SubsurfaceScatteringSettings s_Instance       = null; // Singleton
+        private static SubsurfaceScatteringProfile  s_DefaultProfile = null;
 
         // --- Public Methods ---
 
-        public SubsurfaceScatteringSettings()
+        public  static SubsurfaceScatteringSettings instance
         {
-            // Unity's limitation: can't do anything useful with assets in the constructor...
-            Reset();
+            get
+            {
+                if (s_Instance == null)
+                {
+                    s_Instance = new SubsurfaceScatteringSettings();
+                    s_Instance.CreateProfiles();
+                }
+                return s_Instance;
+            }
         }
 
-        public void Reset()
+
+        public SubsurfaceScatteringSettings()
         {
             numProfiles                    = 1;
-            texturingMode                  = TexturingMode.PostScatter;
-            profileAssets                  = null;
+            texturingMode                  = TexturingMode.PreScatter;
+            profiles                       = null;
             thicknessRemaps                = null;
             halfRcpVariancesAndLerpWeights = null;
             halfRcpWeightedVariances       = null;
             filterKernels                  = null;
-            isInitialized                  = false;
-        }
-
-        public void Initialize()
-        {
-            profileAssets = new SssProfileAsset[numProfiles];
-
-            for (int i = 0; i < numProfiles; i++)
-            {
-                profileAssets[i] = defaultSssProfileAsset;
-            }
-
-            isInitialized = true;
-        }
-
-        static public SubsurfaceScatteringSettings Create()
-        {
-            SubsurfaceScatteringSettings settings = new SubsurfaceScatteringSettings();
-
-            settings.Initialize();
-
-            return settings;
         }
 
         public void OnValidate()
         {
-            if (!isInitialized)
+            if (profiles == null)
             {
-                Initialize();
+                // It will be called during the initialization of the HDRenderPipeline.
+                CreateProfiles();
             }
 
-            numProfiles = Math.Max(1, Math.Min(profileAssets.Length, maxNumProfiles));
+            numProfiles = Math.Max(1, Math.Min(profiles.Length, maxNumProfiles));
 
-            if (profileAssets.Length != numProfiles)
+            if (profiles.Length != numProfiles)
             {
-                Array.Resize(ref profileAssets, numProfiles);
+                Array.Resize(ref profiles, numProfiles);
             }
 
             for (int i = 0; i < numProfiles; i++)
             {
-                if (profileAssets[i] == null)
+                if (profiles[i] == null)
                 {
                     // No invalid/empty assets allowed!
-                    profileAssets[i] = defaultSssProfileAsset;
+                    profiles[i] = defaultProfile;
                 }
             }
 
@@ -309,99 +284,108 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < numProfiles; i++)
             {
-                SubsurfaceScatteringProfile profile = profileAssets[i].data; // Reference var
+                transmissionFlags |= (profiles[i].enableTransmission ? 1 : 0) << i;
 
-                transmissionFlags |= (profile.enableTransmission ? 1 : 0) << i;
-
-                c.r = Mathf.Clamp(profile.stdDev1.r, 0.05f, 2.0f);
-                c.g = Mathf.Clamp(profile.stdDev1.g, 0.05f, 2.0f);
-                c.b = Mathf.Clamp(profile.stdDev1.b, 0.05f, 2.0f);
+                c.r = Mathf.Clamp(profiles[i].stdDev1.r, 0.05f, 2.0f);
+                c.g = Mathf.Clamp(profiles[i].stdDev1.g, 0.05f, 2.0f);
+                c.b = Mathf.Clamp(profiles[i].stdDev1.b, 0.05f, 2.0f);
                 c.a = 0.0f;
 
-                profile.stdDev1 = c;
+                profiles[i].stdDev1 = c;
 
-                c.r = Mathf.Clamp(profile.stdDev2.r, 0.05f, 2.0f);
-                c.g = Mathf.Clamp(profile.stdDev2.g, 0.05f, 2.0f);
-                c.b = Mathf.Clamp(profile.stdDev2.b, 0.05f, 2.0f);
+                c.r = Mathf.Clamp(profiles[i].stdDev2.r, 0.05f, 2.0f);
+                c.g = Mathf.Clamp(profiles[i].stdDev2.g, 0.05f, 2.0f);
+                c.b = Mathf.Clamp(profiles[i].stdDev2.b, 0.05f, 2.0f);
                 c.a = 0.0f;
 
-                profile.stdDev2 = c;
+                profiles[i].stdDev2 = c;
 
-                profile.lerpWeight = Mathf.Clamp01(profile.lerpWeight);
+                profiles[i].lerpWeight = Mathf.Clamp01(profiles[i].lerpWeight);
 
-                profile.thicknessRemap.x = Mathf.Clamp(profile.thicknessRemap.x, 0, profile.thicknessRemap.y);
-                profile.thicknessRemap.y = Mathf.Max(profile.thicknessRemap.x, profile.thicknessRemap.y);
+                profiles[i].thicknessRemap.x = Mathf.Clamp(profiles[i].thicknessRemap.x, 0, profiles[i].thicknessRemap.y);
+                profiles[i].thicknessRemap.y = Mathf.Max(profiles[i].thicknessRemap.x, profiles[i].thicknessRemap.y);
 
-                profile.UpdateKernelAndVarianceData();
+                profiles[i].UpdateKernelAndVarianceData();
             }
 
             // Use the updated data to fill the cache.
             for (int i = 0; i < numProfiles; i++)
             {
-                SubsurfaceScatteringProfile profile = profileAssets[i].data; // Reference var
-
-                thicknessRemaps[2 * i]                      = profile.thicknessRemap.x;
-                thicknessRemaps[2 * i + 1]                  = profile.thicknessRemap.y - profile.thicknessRemap.x;
-                halfRcpVariancesAndLerpWeights[2 * i]       = profile.halfRcpVariances[0];
-                halfRcpVariancesAndLerpWeights[2 * i].w     = 1.0f - profile.lerpWeight;
-                halfRcpVariancesAndLerpWeights[2 * i + 1]   = profile.halfRcpVariances[1];
-                halfRcpVariancesAndLerpWeights[2 * i + 1].w = profile.lerpWeight;
-                halfRcpWeightedVariances[i]                 = profile.halfRcpWeightedVariances;
+                thicknessRemaps[2 * i]                      = profiles[i].thicknessRemap.x;
+                thicknessRemaps[2 * i + 1]                  = profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x;
+                halfRcpVariancesAndLerpWeights[2 * i]       = profiles[i].halfRcpVariances[0];
+                halfRcpVariancesAndLerpWeights[2 * i].w     = 1.0f - profiles[i].lerpWeight;
+                halfRcpVariancesAndLerpWeights[2 * i + 1]   = profiles[i].halfRcpVariances[1];
+                halfRcpVariancesAndLerpWeights[2 * i + 1].w = profiles[i].lerpWeight;
+                halfRcpWeightedVariances[i]                 = profiles[i].halfRcpWeightedVariances;
 
                 for (int j = 0, n = SubsurfaceScatteringProfile.numSamples; j < n; j++)
                 {
-                    filterKernels[n * i + j] = profile.filterKernel[j];
+                    filterKernels[n * i + j] = profiles[i].filterKernel[j];
                 }
             }
         }
 
         // --- Private Methods ---
 
-        private static SssProfileAsset defaultSssProfileAsset
+        private static SubsurfaceScatteringProfile defaultProfile
         {
             get
             {
-                if (s_DefaultSssAsset == null)
+                if (s_DefaultProfile == null)
                 {
-                    s_DefaultSssAsset = ScriptableObject.CreateInstance<SssProfileAsset>();
-                    AssetDatabase.CreateAsset(s_DefaultSssAsset, "Assets/ScriptableRenderPipeline/HDRenderPipeline/Default SSS Profile.asset");
+                    s_DefaultProfile = ScriptableObject.CreateInstance<SubsurfaceScatteringProfile>();
+                    AssetDatabase.CreateAsset(s_DefaultProfile, "Assets/ScriptableRenderPipeline/HDRenderPipeline/Default SSS Profile.asset");
                     AssetDatabase.SaveAssets();
                 }
-                return s_DefaultSssAsset;
+                return s_DefaultProfile;
+            }
+        }
+
+        // Limitation of Unity - cannot create assets in the constructor.
+        public void CreateProfiles()
+        {
+            profiles = new SubsurfaceScatteringProfile[numProfiles];
+
+            for (int i = 0; i < numProfiles; i++)
+            {
+                profiles[i] = defaultProfile;
             }
         }
     }
 
 #if UNITY_EDITOR
-    public class SssProfileAssetFactory
+    public class SubsurfaceScatteringProfileFactory
     {
         [MenuItem("Assets/Create/Subsurface Scattering Profile", priority = 666)]
-        static void MenuCreatePostProcessingProfile()
+        static void MenuCreateSubsurfaceScatteringProfile()
         {
             Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateSssProfileAsset>(), "New SSS Profile.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0,
+                ScriptableObject.CreateInstance<DoCreateSubsurfaceScatteringProfile>(),
+                    "New SSS Profile.asset", icon, null);
         }
 
-        public static SssProfileAsset CreateSssProfileAssetAtPath(string path)
+        public static SubsurfaceScatteringProfile CreateSssProfileAtPath(string path)
         {
-            SssProfileAsset profile = ScriptableObject.CreateInstance<SssProfileAsset>();
+            var profile  = ScriptableObject.CreateInstance<SubsurfaceScatteringProfile>();
             profile.name = System.IO.Path.GetFileName(path);
             AssetDatabase.CreateAsset(profile, path);
             return profile;
         }
     }
 
-    class DoCreateSssProfileAsset : UnityEditor.ProjectWindowCallback.EndNameEditAction
+    class DoCreateSubsurfaceScatteringProfile : UnityEditor.ProjectWindowCallback.EndNameEditAction
     {
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            SssProfileAsset profile = SssProfileAssetFactory.CreateSssProfileAssetAtPath(pathName);
-            ProjectWindowUtil.ShowCreatedAsset(profile);
+            var profiles = SubsurfaceScatteringProfileFactory.CreateSssProfileAtPath(pathName);
+            ProjectWindowUtil.ShowCreatedAsset(profiles);
         }
     }
 
-    [CustomEditor(typeof(SssProfileAsset))]
-    public class SssProfileAssetEditor : Editor {
+    [CustomEditor(typeof(SubsurfaceScatteringProfile))]
+    public class SubsurfaceScatteringProfileEditor : Editor {
         private class Styles
         {
             public readonly GUIContent sssProfilePreview0        = new GUIContent("Profile preview");
@@ -439,20 +423,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private static Styles      s_Styles = null;
 
-        private Material           m_ProfileMaterial, m_TransmittanceMaterial;
         private RenderTexture      m_ProfileImage,   m_TransmittanceImage;
+        private Material           m_ProfileMaterial, m_TransmittanceMaterial;
         private SerializedProperty m_Profile, m_ProfileStdDev1, m_ProfileStdDev2,
                                    m_ProfileLerpWeight, m_ProfileTransmission,
                                    m_ProfileThicknessRemap;
 
         void OnEnable()
         {
-            m_Profile               = serializedObject.FindProperty("m_Profile");
-            m_ProfileStdDev1        = m_Profile.FindPropertyRelative("stdDev1");
-            m_ProfileStdDev2        = m_Profile.FindPropertyRelative("stdDev2");
-            m_ProfileLerpWeight     = m_Profile.FindPropertyRelative("lerpWeight");
-            m_ProfileTransmission   = m_Profile.FindPropertyRelative("enableTransmission");
-            m_ProfileThicknessRemap = m_Profile.FindPropertyRelative("thicknessRemap");
+            m_ProfileStdDev1        = serializedObject.FindProperty("stdDev1");
+            m_ProfileStdDev2        = serializedObject.FindProperty("stdDev2");
+            m_ProfileLerpWeight     = serializedObject.FindProperty("lerpWeight");
+            m_ProfileTransmission   = serializedObject.FindProperty("enableTransmission");
+            m_ProfileThicknessRemap = serializedObject.FindProperty("thicknessRemap");
 
             m_ProfileMaterial       = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawGaussianProfile");
             m_TransmittanceMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
@@ -464,22 +447,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void OnInspectorGUI() {
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(m_ProfileStdDev1,      styles.sssProfileStdDev1);
-            EditorGUILayout.PropertyField(m_ProfileStdDev2,      styles.sssProfileStdDev2);
-            EditorGUILayout.PropertyField(m_ProfileLerpWeight,   styles.sssProfileLerpWeight);
-            EditorGUILayout.PropertyField(m_ProfileTransmission, styles.sssProfileTransmission);
+            EditorGUI.BeginChangeCheck();
+            {
+                EditorGUILayout.PropertyField(m_ProfileStdDev1,      styles.sssProfileStdDev1);
+                EditorGUILayout.PropertyField(m_ProfileStdDev2,      styles.sssProfileStdDev2);
+                EditorGUILayout.PropertyField(m_ProfileLerpWeight,   styles.sssProfileLerpWeight);
+                EditorGUILayout.PropertyField(m_ProfileTransmission, styles.sssProfileTransmission);
 
-            Vector2 thicknessRemap = m_ProfileThicknessRemap.vector2Value;
-            EditorGUILayout.LabelField("Min thickness: ", thicknessRemap.x.ToString());
-            EditorGUILayout.LabelField("Max thickness: ", thicknessRemap.y.ToString());
-            EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0, 10);
-            m_ProfileThicknessRemap.vector2Value = thicknessRemap;
+                Vector2 thicknessRemap = m_ProfileThicknessRemap.vector2Value;
+                EditorGUILayout.LabelField("Min thickness: ", thicknessRemap.x.ToString());
+                EditorGUILayout.LabelField("Max thickness: ", thicknessRemap.y.ToString());
+                EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0, 10);
+                m_ProfileThicknessRemap.vector2Value = thicknessRemap;
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(styles.sssProfilePreview0, styles.centeredMiniBoldLabel);
-            EditorGUILayout.LabelField(styles.sssProfilePreview1, EditorStyles.centeredGreyMiniLabel);
-            EditorGUILayout.LabelField(styles.sssProfilePreview2, EditorStyles.centeredGreyMiniLabel);
-            EditorGUILayout.Space();
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField(styles.sssProfilePreview0, styles.centeredMiniBoldLabel);
+                EditorGUILayout.LabelField(styles.sssProfilePreview1, EditorStyles.centeredGreyMiniLabel);
+                EditorGUILayout.LabelField(styles.sssProfilePreview2, EditorStyles.centeredGreyMiniLabel);
+                EditorGUILayout.Space();
+            }
 
             // Draw the profile.
             m_ProfileMaterial.SetColor("_StdDev1",    m_ProfileStdDev1.colorValue);
@@ -500,6 +486,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImage, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
 
             serializedObject.ApplyModifiedProperties();
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                // Validate each individual asset and update caches.
+                SubsurfaceScatteringSettings.instance.OnValidate();
+            }
         }
     }
 #endif
