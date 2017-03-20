@@ -162,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Subsurface Scattering Settings
             m_TexturingMode = serializedObject.FindProperty("m_SssSettings.texturingMode");
-            m_Profiles      = serializedObject.FindProperty("m_SssSettings.profileAssets");
+            m_Profiles      = serializedObject.FindProperty("m_SssSettings.profiles");
             m_NumProfiles   = m_Profiles.FindPropertyRelative("Array.size");
         }
 

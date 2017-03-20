@@ -81,17 +81,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                Debug.Assert(m_SssSettings != null);
+                if (m_SssSettings == null)
+                {
+                    m_SssSettings = SubsurfaceScatteringSettings.instance;
+                }
                 return m_SssSettings;
-            }
-            set
-            {
-                m_SssSettings = value;
             }
         }
 
         [SerializeField]
-        SubsurfaceScatteringSettings m_SssSettings     = new SubsurfaceScatteringSettings();
+        SubsurfaceScatteringSettings m_SssSettings     = null;
         [SerializeField]
         ShadowSettings               m_ShadowSettings  = ShadowSettings.Default;
         [SerializeField]
