@@ -1,5 +1,5 @@
 using RMGUI.GraphView;
-using UnityEngine.RMGUI.StyleSheets;
+using UnityEngine.Experimental.RMGUI.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
@@ -21,10 +21,10 @@ namespace UnityEditor.VFX.UI
             switch(presenter.direction)
             {
                 case Direction.Input:
-                    classList = new ClassList("InputEdgeConnector");
+                    AddToClassList("InputEdgeConnector");
                     break;
                 case Direction.Output:
-                    classList = new ClassList("OutputEdgeConnector");
+                    AddToClassList("OutputEdgeConnector");
                     break;
             }
         }
