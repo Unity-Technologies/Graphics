@@ -133,7 +133,7 @@ float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
     // thickness /= radiusScale;
-    thickness *= 100;
+    thickness *= 300;
 
     float t2 = thickness * thickness;
 
@@ -174,9 +174,10 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
         bsdfData.subsurfaceProfile = surfaceData.subsurfaceProfile;
-        bsdfData.subsurfaceRadius  = 0.01 * surfaceData.subsurfaceRadius;
-        bsdfData.thickness         = 0.01 * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
-                                             _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * surfaceData.thickness);
+        // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
+        bsdfData.subsurfaceRadius  = (1.0 / 300.0) * surfaceData.subsurfaceRadius;
+        bsdfData.thickness         = (1.0 / 300.0) * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
+                                                      _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * surfaceData.thickness);
         bsdfData.enableTransmission = (1 << bsdfData.subsurfaceProfile) & _TransmissionFlags;
         if (bsdfData.enableTransmission)
         {
@@ -252,7 +253,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subsurfaceProfile / 8.0); // Number of profile not define yet
+        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subsurfaceProfile * rcp(N_PROFILES));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -370,10 +371,11 @@ void DecodeFromGBuffer(
     {
         bsdfData.diffuseColor = baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
-        bsdfData.subsurfaceProfile = 8.00 * inGBuffer2.a;
-        bsdfData.subsurfaceRadius  = 0.01 * inGBuffer2.r;
-        bsdfData.thickness         = 0.01 * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
-                                             _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * inGBuffer2.g);
+        bsdfData.subsurfaceProfile = N_PROFILES * inGBuffer2.a;
+        // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
+        bsdfData.subsurfaceRadius  = (1.0 / 300.0) * inGBuffer2.r;
+        bsdfData.thickness         = (1.0 / 300.0) * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
+                                                      _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * inGBuffer2.g);
         bsdfData.enableTransmission = (1 << bsdfData.subsurfaceProfile) & _TransmissionFlags;
         if (bsdfData.enableTransmission)
         {
