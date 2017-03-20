@@ -31,7 +31,7 @@ public class StandardToLowEndMaterialUpgrader : MaterialUpgrader
 
     StandardToLowEndMaterialUpgrader(string oldShaderName)
     {
-        RenameShader(oldShaderName, "ScriptableRenderPipeline/LowEndMobile");
+        RenameShader(oldShaderName, "ScriptableRenderPipeline/LowEndMobile/NonPBR");
         RenameFloat("_Glossiness", "_Shininess");
     }
 }
