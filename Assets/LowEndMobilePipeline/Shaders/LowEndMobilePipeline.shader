@@ -1,5 +1,5 @@
 // Shader targeted for LowEnd mobile devices. Single Pass Forward Rendering. Shader Model 2
-Shader "ScriptableRenderPipeline/LowEndMobile"
+Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
 {
     // Keep properties of StandardSpecular shader for upgrade reasons.
     Properties
