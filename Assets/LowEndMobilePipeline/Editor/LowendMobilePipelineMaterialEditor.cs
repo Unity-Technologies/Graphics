@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class LowendMobilePipelineMaterialEditor : ShaderGUI
 {
@@ -142,6 +143,11 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
         EditorGUILayout.Space();
         EditorGUILayout.Space();
 
+        materialEditor.RenderQueueField();
+
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+
         if ((BlendMode)blendModeProp.floatValue == BlendMode.Cutout)
         {
             Styles.warningStyle.normal.textColor = Color.yellow;
@@ -259,6 +265,7 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
                 material.SetInt("_ZWrite", 1);
                 SetKeyword(material, "_ALPHATEST_ON", false);
                 SetKeyword(material, "_ALPHABLEND_ON", false);
+                material.renderQueue = -1;
                 break;
 
             case BlendMode.Cutout:
@@ -268,6 +275,7 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
                 material.SetInt("_ZWrite", 1);
                 SetKeyword(material, "_ALPHATEST_ON", true);
                 SetKeyword(material, "_ALPHABLEND_ON", false);
+                material.renderQueue = (int)RenderQueue.AlphaTest;
                 break;
 
             case BlendMode.Alpha:
@@ -277,6 +285,7 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
                 material.SetInt("_ZWrite", 0);
                 SetKeyword(material, "_ALPHATEST_ON", false);
                 SetKeyword(material, "_ALPHABLEND_ON", true);
+                material.renderQueue = (int) RenderQueue.Transparent;
                 break;
         }
     }
