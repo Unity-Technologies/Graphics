@@ -42,7 +42,7 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 11
+  serializedVersion: 9
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -54,7 +54,7 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
-    serializedVersion: 9
+    serializedVersion: 8
     m_Resolution: 2
     m_BakeResolution: 40
     m_TextureWidth: 1024
@@ -74,7 +74,6 @@ LightmapSettings:
     m_MixedBakeMode: 1
     m_BakeBackend: 0
     m_PVRSampling: 1
-    m_PVRDirectSampleCount: 32
     m_PVRSampleCount: 500
     m_PVRBounces: 2
     m_PVRFiltering: 0
@@ -88,7 +87,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigma: 1
   m_LightingDataAsset: {fileID: 112000002, guid: 94f8793cc1c3e0248901e8f336236333,
     type: 2}
-  m_UseShadowmask: 1
+  m_ShadowMaskMode: 2
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -476,9 +475,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -1123,7 +1119,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 192903503}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.317, y: -3.331, z: -2}
+  m_LocalPosition: {x: -0.05, y: -0.25, z: -2.0000005}
   m_LocalScale: {x: 0, y: 0, z: 1.0000005}
   m_Children: []
   m_Father: {fileID: 2026378394}
@@ -1143,9 +1139,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -1262,9 +1255,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -2184,9 +2174,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -2623,9 +2610,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -2712,9 +2696,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -2867,9 +2848,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -3517,9 +3495,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -3785,9 +3760,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 2
@@ -3874,7 +3846,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 733865593}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -70.16, y: 19.980022, z: 20.6868}
+  m_LocalPosition: {x: -15.023401, y: 19.980022, z: 20.6868}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 645322208}
@@ -3930,9 +3902,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -4774,7 +4743,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 785457124}
   m_LocalRotation: {x: -0.0034919123, y: 0.0089843245, z: -0.007998787, w: 0.99992156}
-  m_LocalPosition: {x: -98.92, y: 1.87, z: 0}
+  m_LocalPosition: {x: 4.38, y: 1.87, z: 6.11}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 144382660}
@@ -4794,9 +4763,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -4922,9 +4888,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
@@ -5350,9 +5313,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -5828,7 +5788,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 970745596}
   m_LocalRotation: {x: 0.31429112, y: 0.005978446, z: -0.010438241, w: 0.94925046}
-  m_LocalPosition: {x: -93.29, y: 2.75, z: -3.662}
+  m_LocalPosition: {x: 3.576, y: 2.75, z: -3.662}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 144382660}
@@ -5848,9 +5808,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -6055,9 +6012,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -6340,9 +6294,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -6580,7 +6531,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1035518232}
   m_LocalRotation: {x: -0, y: 0.51840013, z: -0, w: 0.8551382}
-  m_LocalPosition: {x: -19.7, y: 1.8, z: -16.28}
+  m_LocalPosition: {x: -0.7599983, y: 1.8, z: -1.5999994}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 933267878}
@@ -6744,9 +6695,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -6930,7 +6878,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1085128921}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.067, y: -3.081, z: -2}
+  m_LocalPosition: {x: -0.3, y: 0, z: -2.0000005}
   m_LocalScale: {x: 1, y: 1, z: 1.0000005}
   m_Children: []
   m_Father: {fileID: 2026378394}
@@ -6950,9 +6898,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -7299,9 +7244,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -7388,9 +7330,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -7757,7 +7696,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1220024533}
   m_LocalRotation: {x: -0.0034919123, y: 0.0089843245, z: -0.007998787, w: 0.99992156}
-  m_LocalPosition: {x: -96.23, y: 1.453, z: 1.334}
+  m_LocalPosition: {x: 0.632, y: 1.453, z: 1.334}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 144382660}
@@ -7777,9 +7716,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -7943,9 +7879,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -8403,9 +8336,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -8492,9 +8422,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -8887,9 +8814,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -9944,9 +9868,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -10033,9 +9954,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -10371,7 +10289,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1634702262}
   m_Layer: 0
-  m_Name: Test - Parallax occlusion mapping - Triplanar
+  m_Name: Test - Parallax occlusion mapping - Triplanar (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10428,9 +10346,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
@@ -11795,13 +11710,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1828470159}
-  m_LocalRotation: {x: 0.45985717, y: -0, z: -0, w: 0.887993}
-  m_LocalPosition: {x: -99.9, y: 4.52, z: -8.07}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 54.756004, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1828470165
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12049,7 +11964,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1854618464}
   m_LocalRotation: {x: -0.0034919123, y: 0.0089843245, z: -0.007998787, w: 0.99992156}
-  m_LocalPosition: {x: -99.85, y: 1.411, z: -3.83}
+  m_LocalPosition: {x: 3.446, y: 1.411, z: 2.277}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 144382660}
@@ -12069,9 +11984,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -12577,9 +12489,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -12754,9 +12663,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -12911,7 +12817,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2015022933}
   m_LocalRotation: {x: -0.258819, y: 0, z: 0, w: 0.9659259}
-  m_LocalPosition: {x: 1.317, y: -3.081, z: -2}
+  m_LocalPosition: {x: -0.05, y: 0, z: -2}
   m_LocalScale: {x: 0, y: 0, z: 1.0000005}
   m_Children: []
   m_Father: {fileID: 2026378394}
@@ -12931,9 +12837,6 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
