@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_SssSettings == null)
                 {
-                    m_SssSettings = SubsurfaceScatteringSettings.instance;
+                    m_SssSettings = new SubsurfaceScatteringSettings();
                 }
                 return m_SssSettings;
             }
@@ -288,6 +288,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_Owner.globalDebugSettings; }
         }
 
+        public SubsurfaceScatteringSettings sssSettings
+        {
+            get { return m_Owner.sssSettings; }
+        }
         public HDRenderPipelineInstance(HDRenderPipeline owner)
         {
             m_Owner = owner;

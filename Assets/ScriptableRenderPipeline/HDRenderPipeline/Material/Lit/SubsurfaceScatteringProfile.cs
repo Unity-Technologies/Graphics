@@ -21,13 +21,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         public Vector2 thicknessRemap;
         [SerializeField] [HideInInspector]
+        public int     settingsIndex;
+        [SerializeField] [HideInInspector]
         Vector4[]      m_FilterKernel;
         [SerializeField] [HideInInspector]
         Vector3[]      m_HalfRcpVariances;
         [SerializeField] [HideInInspector]
         Vector4        m_HalfRcpWeightedVariances;
 
+        private static SubsurfaceScatteringProfile s_DefaultProfile = null; // Singleton
+
         // --- Public Methods ---
+
+        public static SubsurfaceScatteringProfile defaultProfile
+        {
+            get
+            {
+                if (s_DefaultProfile == null)
+                {
+                    s_DefaultProfile = CreateInstance<SubsurfaceScatteringProfile>();
+                    AssetDatabase.CreateAsset(s_DefaultProfile, "Assets/ScriptableRenderPipeline/HDRenderPipeline/Default SSS Profile.asset");
+                    AssetDatabase.SaveAssets();
+                }
+                return s_DefaultProfile;
+            }
+        }
 
         public SubsurfaceScatteringProfile()
         {
@@ -36,6 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lerpWeight         = 0.5f;
             enableTransmission = false;
             thicknessRemap     = new Vector2(0, 1);
+            settingsIndex      = 0;
 
             UpdateKernelAndVarianceData();
         }
@@ -203,24 +222,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4[]                     halfRcpWeightedVariances;
         public Vector4[]                     filterKernels;
 
-        private static SubsurfaceScatteringSettings s_Instance       = null; // Singleton
-        private static SubsurfaceScatteringProfile  s_DefaultProfile = null;
-
         // --- Public Methods ---
-
-        public  static SubsurfaceScatteringSettings instance
-        {
-            get
-            {
-                if (s_Instance == null)
-                {
-                    s_Instance = new SubsurfaceScatteringSettings();
-                    s_Instance.CreateProfiles();
-                }
-                return s_Instance;
-            }
-        }
-
 
         public SubsurfaceScatteringSettings()
         {
@@ -253,8 +255,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (profiles[i] == null)
                 {
                     // No invalid/empty assets allowed!
-                    profiles[i] = defaultProfile;
+                    profiles[i] = SubsurfaceScatteringProfile.defaultProfile;
                 }
+
+                // Assign profile IDs.
+                profiles[i].settingsIndex = i;
             }
 
             texturingMode = (TexturingMode)Math.Max(0, Math.Min((int)texturingMode, (int)TexturingMode.MaxValue));
@@ -328,20 +333,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // --- Private Methods ---
 
-        private static SubsurfaceScatteringProfile defaultProfile
-        {
-            get
-            {
-                if (s_DefaultProfile == null)
-                {
-                    s_DefaultProfile = ScriptableObject.CreateInstance<SubsurfaceScatteringProfile>();
-                    AssetDatabase.CreateAsset(s_DefaultProfile, "Assets/ScriptableRenderPipeline/HDRenderPipeline/Default SSS Profile.asset");
-                    AssetDatabase.SaveAssets();
-                }
-                return s_DefaultProfile;
-            }
-        }
-
         // Limitation of Unity - cannot create assets in the constructor.
         public void CreateProfiles()
         {
@@ -349,7 +340,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < numProfiles; i++)
             {
-                profiles[i] = defaultProfile;
+                profiles[i] = SubsurfaceScatteringProfile.defaultProfile;
             }
         }
     }
@@ -490,7 +481,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 // Validate each individual asset and update caches.
-                SubsurfaceScatteringSettings.instance.OnValidate();
+                HDRenderPipelineInstance hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+                hdPipeline.sssSettings.OnValidate();
             }
         }
     }
