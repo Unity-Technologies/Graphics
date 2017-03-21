@@ -77,20 +77,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Renderer Settings (per project)
         public RenderingSettings            renderingSettings = new RenderingSettings();
-        public SubsurfaceScatteringSettings sssSettings
-        {
-            get
-            {
-                if (m_SssSettings == null)
-                {
-                    m_SssSettings = new SubsurfaceScatteringSettings();
-                }
-                return m_SssSettings;
-            }
-        }
+        public SubsurfaceScatteringSettings sssSettings = new SubsurfaceScatteringSettings();
 
-        [SerializeField]
-        SubsurfaceScatteringSettings m_SssSettings     = null;
         [SerializeField]
         ShadowSettings               m_ShadowSettings  = ShadowSettings.Default;
         [SerializeField]

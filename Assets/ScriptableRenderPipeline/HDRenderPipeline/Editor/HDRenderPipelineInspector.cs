@@ -161,8 +161,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepass);
 
             // Subsurface Scattering Settings
-            m_TexturingMode = serializedObject.FindProperty("m_SssSettings.texturingMode");
-            m_Profiles      = serializedObject.FindProperty("m_SssSettings.profiles");
+            m_TexturingMode = FindProperty(x => x.sssSettings.texturingMode);
+            m_Profiles      = FindProperty(x => x.sssSettings.profiles);
             m_NumProfiles   = m_Profiles.FindPropertyRelative("Array.size");
         }
 
