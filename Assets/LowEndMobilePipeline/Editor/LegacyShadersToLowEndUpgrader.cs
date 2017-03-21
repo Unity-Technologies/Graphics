@@ -114,8 +114,11 @@ public class LegacyShadersToLowEndUpgrader
         materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Legacy Shaders/Reflective/Diffuse", SupportedUpgradeParams.diffuseCubemap));
         materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Legacy Shaders/Reflective/Specular", SupportedUpgradeParams.specularOpaque));
 
-        // Self-Illum upgrade still not supported
-        //materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Legacy Shaders/Self-Illum/Bumped Specular"));
+        // Self-Illum upgrader
+        materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Legacy Shaders/Self-Illumin/Diffuse", SupportedUpgradeParams.diffuseOpaque));
+        materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Legacy Shaders/Self-Illumin/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque));
+        materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Legacy Shaders/Self-Illumin/Specular", SupportedUpgradeParams.specularOpaque));
+        materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Legacy Shaders/Self-Illumin/Bumped Specular", SupportedUpgradeParams.specularOpaque));
 
         // Alpha Blended
         materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Legacy Shaders/Transparent/Diffuse", SupportedUpgradeParams.diffuseAlpha));

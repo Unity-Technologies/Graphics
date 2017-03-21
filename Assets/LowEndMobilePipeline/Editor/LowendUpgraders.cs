@@ -1,4 +1,5 @@
 ﻿using UnityEditor.Experimental.Rendering;
+using UnityEngine;
 
 public struct UpgradeParams
 {
@@ -17,6 +18,13 @@ public class LegacyBlinnPhongUpgrader : MaterialUpgrader
         SetNewFloatProperty("_SpecSource", upgraderParams.specularSource);
         SetNewFloatProperty("_GlossinessSource", upgraderParams.glosinessSource);
         SetNewFloatProperty("_ReflectionSource", upgraderParams.reflectionSource);
+
+        if (oldShaderName.Contains("Legacy Shaders/Self-Illumin"))
+        {
+            RenameTexture("_MainTex", "_EmissionMap");
+            RemoveTexture("_MainTex");
+            SetNewColorProperty("_EmissionColor", Color.white);
+        }
     }
 }
 
