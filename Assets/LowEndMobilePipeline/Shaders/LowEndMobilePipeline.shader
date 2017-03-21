@@ -126,7 +126,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
 #endif
 
 #ifndef _SHADOW_CASCADES
-                o.shadowCoord = mul(_WorldToShadow[0], float4(o.posWS, 1.0)).xyz;
+                o.shadowCoord = mul(_WorldToShadow[0], float4(o.posWS, 1.0));
 #endif
 
 #ifndef LIGHTMAP_ON

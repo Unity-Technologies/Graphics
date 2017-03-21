@@ -39,7 +39,7 @@ struct v2f
     half4 viewDir : TEXCOORD5; // xyz: viewDir
     UNITY_FOG_COORDS_PACKED(6, half4) // x: fogCoord, yzw: vertexColor
 #ifndef _SHADOW_CASCADES
-    float3 shadowCoord : TEXCOORD7;
+    float4 shadowCoord : TEXCOORD7;
 #endif
     float4 hpos : SV_POSITION;
 };
@@ -150,16 +150,16 @@ inline half ComputeCascadeIndex(float3 wpos)
     return 4 - dot(weights, fixed4(4, 3, 2, 1));
 }
 
-inline half ShadowAttenuation(half2 shadowCoord, half shadowCoordDepth)
+inline half ShadowAttenuation(half3 shadowCoord)
 {
     if (shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1)
         return 1;
 
     half depth = tex2D(_ShadowMap, shadowCoord).r;
 #if defined(UNITY_REVERSED_Z)
-    return step(depth, shadowCoordDepth);
+    return step(depth, shadowCoord.z);
 #else
-    return step(shadowCoordDepth, depth);
+    return step(shadowCoord.z, depth);
 #endif
 }
 
@@ -167,10 +167,10 @@ inline half ShadowPCF(half3 shadowCoord)
 {
     // TODO: simulate textureGatherOffset not available, simulate it
     half2 offset = half2(0, 0);
-    half attenuation = ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[0], _PCFKernel[1]) + offset, shadowCoord.z) +
-        ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[2], _PCFKernel[3]) + offset, shadowCoord.z) +
-        ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[4], _PCFKernel[5]) + offset, shadowCoord.z) +
-        ShadowAttenuation(shadowCoord.xy + half2(_PCFKernel[6], _PCFKernel[7]) + offset, shadowCoord.z);
+    half attenuation = ShadowAttenuation(half3(shadowCoord.xy + half2(_PCFKernel[0], _PCFKernel[1]) + offset, shadowCoord.z)) +
+        ShadowAttenuation(half3(shadowCoord.xy + half2(_PCFKernel[2], _PCFKernel[3]) + offset, shadowCoord.z)) +
+        ShadowAttenuation(half3(shadowCoord.xy + half2(_PCFKernel[4], _PCFKernel[5]) + offset, shadowCoord.z)) +
+        ShadowAttenuation(half3(shadowCoord.xy + half2(_PCFKernel[6], _PCFKernel[7]) + offset, shadowCoord.z));
     return attenuation * 0.25;
 }
 
@@ -207,22 +207,23 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
 
 inline half ComputeShadowAttenuation(v2f i)
 {
-	half3 shadowCoord;
+	half4 shadowCoord;
  #ifndef _SHADOW_CASCADES
  	shadowCoord = i.shadowCoord;
  #else
 	int cascadeIndex = ComputeCascadeIndex(i.posWS);
 	if (cascadeIndex < 4)
-   		shadowCoord = mul(_WorldToShadow[cascadeIndex], half4(i.posWS, 1.0)).xyz;
+   		shadowCoord = mul(_WorldToShadow[cascadeIndex], half4(i.posWS, 1.0));
 	else
 		return 1.0;
 #endif
 
+    shadowCoord.xyz /= shadowCoord.w;
 	shadowCoord.z = saturate(shadowCoord.z);
 
 #ifdef SOFT_SHADOWS
-    return ShadowPCF(shadowCoord);
+    return ShadowPCF(shadowCoord.xyz);
 #else
-    return ShadowAttenuation(shadowCoord.xy, shadowCoord.z);
+    return ShadowAttenuation(shadowCoord.xyz);
 #endif
 }

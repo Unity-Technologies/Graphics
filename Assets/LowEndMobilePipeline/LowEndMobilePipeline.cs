@@ -123,8 +123,6 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             }
         }
 
-        #region HelperMethods
-
         private void SetupLightShaderVariables(VisibleLight[] lights, ScriptableRenderContext context)
         {
             if (lights.Length <= 0)
@@ -196,9 +194,13 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             int lightIndex = -1;
             for (int i = 0; i < lightCount; ++i)
             {
-                if (lights[i].light.shadows != LightShadows.None && lights[i].lightType == LightType.Directional)
+                LightType type = lights[i].lightType;
+                if (lights[i].light.shadows != LightShadows.None && (type == LightType.Directional || type == LightType.Spot))
                 {
                     lightIndex = i;
+                    if (lights[i].lightType == LightType.Spot)
+                        cascadeCount = 1;
+
                     shadowResolution = GetMaxTileResolutionInAtlas(m_ShadowSettings.shadowAtlasWidth,
                         m_ShadowSettings.shadowAtlasHeight, cascadeCount);
                     break;
@@ -224,23 +226,44 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
             float shadowNearPlane = m_Asset.ShadowNearOffset;
             Vector3 splitRatio = m_ShadowSettings.directionalLightCascades;
-            Vector3 lightDir = lights[lightIndex].light.transform.forward;
-            for (int cascadeIdx = 0; cascadeIdx < cascadeCount; ++cascadeIdx)
-            {
-                Matrix4x4 view, proj;
-                var settings = new DrawShadowsSettings(cullResults, lightIndex);
-                bool needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex,
-                    cascadeIdx, cascadeCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj,
-                    out settings.splitData);
+            Vector3 lightDir = Vector3.Normalize(lights[lightIndex].light.transform.forward);
 
-                m_DirectionalShadowSplitDistances[cascadeIdx] = settings.splitData.cullingSphere;
-                m_DirectionalShadowSplitDistances[cascadeIdx].w *= settings.splitData.cullingSphere.w;
+            Matrix4x4 view, proj;
+            var settings = new DrawShadowsSettings(cullResults, lightIndex);
+            bool needRendering = false;
+
+            if (lights[lightIndex].lightType == LightType.Spot)
+            {
+                needRendering = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(lightIndex, out view, out proj,
+                        out settings.splitData);
 
                 if (needRendering)
                 {
-                    SetupShadowSliceTransform(cascadeIdx, shadowResolution, proj, view);
-                    RenderShadowSlice(ref context, lightDir, cascadeIdx, proj, view, settings);
+                    SetupShadowSliceTransform(0, shadowResolution, proj, view);
+                    RenderShadowSlice(ref context, lightDir, 0, proj, view, settings);
                 }
+            }
+            else if (lights[lightIndex].lightType == LightType.Directional)
+            {
+                for (int cascadeIdx = 0; cascadeIdx < cascadeCount; ++cascadeIdx)
+                {
+                    needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex,
+                    cascadeIdx, cascadeCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj,
+                        out settings.splitData);
+
+                    m_DirectionalShadowSplitDistances[cascadeIdx] = settings.splitData.cullingSphere;
+                    m_DirectionalShadowSplitDistances[cascadeIdx].w *= settings.splitData.cullingSphere.w;
+
+                    if (needRendering)
+                    {
+                        SetupShadowSliceTransform(cascadeIdx, shadowResolution, proj, view);
+                        RenderShadowSlice(ref context, lightDir, cascadeIdx, proj, view, settings);
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Only spot and directional shadow casters are supported in lowend mobile pipeline");
             }
 
             return true;
@@ -343,15 +366,15 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
         void SetShaderKeywords(CommandBuffer cmd)
         {
-        	if (m_Asset.SupportsVertexLight) 
-        		cmd.EnableShaderKeyword("_VERTEX_LIGHTS");
-        	else 
-        		cmd.DisableShaderKeyword("_VERTEX_LIGHTS");
+            if (m_Asset.SupportsVertexLight)
+                cmd.EnableShaderKeyword("_VERTEX_LIGHTS");
+            else
+                cmd.DisableShaderKeyword("_VERTEX_LIGHTS");
 
             if (m_Asset.CascadeCount == 1)
-            	cmd.DisableShaderKeyword("_SHADOW_CASCADES");
+                cmd.DisableShaderKeyword("_SHADOW_CASCADES");
            	else
-           		cmd.EnableShaderKeyword("_SHADOW_CASCADES");
+                cmd.EnableShaderKeyword("_SHADOW_CASCADES");
 
             switch (m_Asset.CurrShadowType)
             {
@@ -371,7 +394,5 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                     break;
             }
         }
-
-        #endregion
     }
 }
