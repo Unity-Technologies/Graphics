@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 Shader "Hidden/VFX_4"
 {
 	SubShader
@@ -72,7 +74,7 @@ Shader "Hidden/VFX_4"
 				VFXBlockSetAlphaOverLifetime( local_alpha,outputData.age,outputData.lifetime,outputUniform1_kVFXValueOp,outputUniform2_kVFXValueOp);
 				
 				float3 worldPos = outputData.position;
-				o.pos = mul(UNITY_MATRIX_MVP, float4(worldPos,1.0f));
+				o.pos = UnityObjectToClipPos(float4(worldPos,1.0f));
 				o.col = float4(local_color.xyz,local_alpha);
 				return o;
 			}

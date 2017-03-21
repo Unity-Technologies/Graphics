@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 Shader "Hidden/VFX_0"
 {
 	SubShader
@@ -107,7 +109,7 @@ Shader "Hidden/VFX_0"
 				position += up * (posOffsets.y * size.y);
 				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
 				
-				o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+				o.pos = UnityObjectToClipPos (float4(position,1.0f));
 				o.col = float4(local_color.xyz,1.0);
 				return o;
 			}

@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 Shader "Hidden/VFX_0"
 {
 	SubShader
@@ -102,7 +104,7 @@ Shader "Hidden/VFX_0"
 				#ifdef VFX_WORLD_SPACE
 	float clipPosW = mul(UNITY_MATRIX_VP,float4(position,1.0f)).w;
 	#else
-	float clipPosW = mul(UNITY_MATRIX_MVP,float4(position,1.0f)).w;
+	float clipPosW = UnityObjectToClipPos(float4(position,1.0f)).w;
 	#endif
 	float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)); // max size in one pixel
 	float2 clampedSize = max(size,minSize);
@@ -144,7 +146,7 @@ Shader "Hidden/VFX_0"
 					position += up * (posOffsets.y * size.y);
 					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
 					
-					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+					o.pos = UnityObjectToClipPos (float4(position,1.0f));
 					o.col = float4(local_color.xyz,local_alpha);
 				}
 				else

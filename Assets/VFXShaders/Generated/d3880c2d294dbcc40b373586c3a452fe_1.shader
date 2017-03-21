@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 Shader "Hidden/VFX_1"
 {
 	SubShader
@@ -157,7 +159,7 @@ Shader "Hidden/VFX_1"
 					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
 					o.flipbookIndex = attrib1.texIndex;
 					
-					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+					o.pos = UnityObjectToClipPos (float4(position,1.0f));
 					o.projPos = ComputeScreenPos(o.pos); // For depth texture fetch
 					o.col = float4(local_color.xyz,local_alpha);
 					if (kill)
