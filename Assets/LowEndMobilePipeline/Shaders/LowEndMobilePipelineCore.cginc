@@ -101,7 +101,7 @@ inline void SpecularGloss(half3 diffuse, half alpha, out half4 specularGloss)
 inline void Emission(v2f i, out half3 emission)
 {
 #ifdef _EMISSION_MAP
-    emission = tex2D(_EmissionMap, i.uv01.xy) * _EmissionColor
+    emission = tex2D(_EmissionMap, i.uv01.xy) * _EmissionColor;
 #else
     emission = _EmissionColor;
 #endif

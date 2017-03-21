@@ -14,6 +14,7 @@ namespace UnityEditor.Experimental.Rendering
         Dictionary<string, string> m_ColorRename = new Dictionary<string, string>();
 
         Dictionary<string, float> m_FloatPropertiesToSet = new Dictionary<string, float>();
+        Dictionary<string, Color> m_ColorPropertiesToSet = new Dictionary<string, Color>();
         List<string> m_TexturesToRemove = new List<string>();
 
         [Flags]
@@ -72,6 +73,9 @@ namespace UnityEditor.Experimental.Rendering
 
             foreach (var prop in m_FloatPropertiesToSet)
                 dstMaterial.SetFloat(prop.Key, prop.Value);
+
+            foreach (var prop in m_ColorPropertiesToSet)
+                dstMaterial.SetColor(prop.Key, prop.Value);
         }
 
         public void RenameShader(string oldName, string newName)
@@ -103,6 +107,11 @@ namespace UnityEditor.Experimental.Rendering
         public void SetNewFloatProperty(string propertyName, float value)
         {
             m_FloatPropertiesToSet[propertyName] = value;
+        }
+
+        public void SetNewColorProperty(string propertyName, Color value)
+        {
+            m_ColorPropertiesToSet[propertyName] = value;
         }
 
         static bool IsMaterialPath(string path)

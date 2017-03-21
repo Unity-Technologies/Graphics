@@ -250,11 +250,11 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
         SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
         SetKeyword(material, "_SPECGLOSSMAP", material.GetTexture("_SpecGlossMap"));
         SetKeyword(material, "_CUBEMAP_REFLECTION", material.GetTexture("_Cube"));
+        SetKeyword(material, "_EMISSION_MAP", material.GetTexture("_EmissionMap"));
     }
 
     private void UpdateMaterialBlendMode(Material material)
     {
-        Debug.Log("BlendMode");
         BlendMode mode = (BlendMode) material.GetFloat("_Mode");
         switch (mode)
         {
@@ -292,7 +292,6 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
 
     private void UpdateMaterialSpecularSource(Material material)
     {
-        Debug.Log("SpecularSource");
         SpecularSource specSource = (SpecularSource) material.GetFloat("_SpecSource");
         if (specSource == SpecularSource.NoSpecular)
         {
@@ -328,7 +327,6 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
 
     private void UpdateMaterialReflectionSource(Material material)
     {
-        Debug.Log("ReflectionSource");
         ReflectionSource reflectionSource = (ReflectionSource) material.GetFloat("_ReflectionSource");
         if (reflectionSource == ReflectionSource.NoReflection)
         {
