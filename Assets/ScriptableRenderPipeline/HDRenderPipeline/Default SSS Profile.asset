@@ -16,6 +16,7 @@ MonoBehaviour:
   lerpWeight: 0.5
   enableTransmission: 0
   thicknessRemap: {x: 0, y: 1}
+  settingsIndex: 0
   m_FilterKernel:
   - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: -0.7609476}
   - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: -0.49358216}
