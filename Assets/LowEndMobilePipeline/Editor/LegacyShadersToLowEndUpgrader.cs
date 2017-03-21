@@ -70,6 +70,14 @@ public class LegacyShadersToLowEndUpgrader
             reflectionSource = (float)LowendMobilePipelineMaterialEditor.ReflectionSource.Cubemap
         };
 
+        static public UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
+        {
+            blendMode = (float)LowendMobilePipelineMaterialEditor.BlendMode.Alpha,
+            specularSource = (float)LowendMobilePipelineMaterialEditor.SpecularSource.NoSpecular,
+            glosinessSource = (float)LowendMobilePipelineMaterialEditor.GlossinessSource.BaseAlpha,
+            reflectionSource = (float)LowendMobilePipelineMaterialEditor.ReflectionSource.Cubemap
+        };
+
         static public UpgradeParams specularCubemapAlpha = new UpgradeParams()
         {
             blendMode = (float)LowendMobilePipelineMaterialEditor.BlendMode.Alpha,
@@ -135,6 +143,7 @@ public class LegacyShadersToLowEndUpgrader
         /////////////////////////////////////
         // Reflective Shader Upgraders      /
         /////////////////////////////////////
+        materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Reflective/Diffuse Transperant", SupportedUpgradeParams.diffuseCubemapAlpha));
         materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Reflective/Diffuse Reflection Spec", SupportedUpgradeParams.specularCubemap));
         materialUpgraders.Add(new LegacyBlinnPhongUpgrader("Reflective/Diffuse Reflection Spec Transp", SupportedUpgradeParams.specularCubemapAlpha));
 
