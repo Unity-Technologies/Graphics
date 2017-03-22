@@ -945,7 +945,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // All of this is temporary, sub-optimal and quickly hacked together but is necessary
                 // for artists to do lighting work until the fully-featured framework is ready
 
-                var localPostProcess = camera.GetComponent<PostProcessing>();
+                var localPostProcess = camera.GetComponent<PostProcessingSRP>();
 
                 bool localActive = localPostProcess != null && localPostProcess.enabled;
 

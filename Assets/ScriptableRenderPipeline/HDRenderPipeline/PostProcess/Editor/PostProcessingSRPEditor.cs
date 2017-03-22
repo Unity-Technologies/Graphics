@@ -6,10 +6,10 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using GradingType = PostProcessing.ColorGradingSettings.GradingType;
-    using EyeAdaptationType = PostProcessing.EyeAdaptationSettings.EyeAdaptationType;
+    using GradingType = PostProcessingSRP.ColorGradingSettings.GradingType;
+    using EyeAdaptationType = PostProcessingSRP.EyeAdaptationSettings.EyeAdaptationType;
 
-    [CustomEditor(typeof(PostProcessing))]
+    [CustomEditor(typeof(PostProcessingSRP))]
     public class PostProcessingEditor : Editor
     {
         #region Serialized settings
@@ -72,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public VignetteSettings vignetteSettings;
         public SerializedProperty globalDithering;
 
-        SerializedProperty FindProperty<TValue>(Expression<Func<PostProcessing, TValue>> expr)
+        SerializedProperty FindProperty<TValue>(Expression<Func<PostProcessingSRP, TValue>> expr)
         {
             var path = Utilities.GetFieldPath(expr);
             return serializedObject.FindProperty(path);
@@ -165,7 +165,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void ColorGradingUI()
         {
-            var camera = (target as PostProcessing).GetComponent<Camera>();
+            var camera = (target as PostProcessingSRP).GetComponent<Camera>();
             if (camera != null)
             {
                 using (new EditorGUILayout.HorizontalScope())
@@ -286,7 +286,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         #region Color grading stuff
         void SetLUTImportSettings()
         {
-            var lut = (target as PostProcessing).colorGrading.logLut;
+            var lut = (target as PostProcessingSRP).colorGrading.logLut;
             var importer = (TextureImporter)AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(lut));
             importer.textureType = TextureImporterType.Default;
             importer.filterMode = FilterMode.Bilinear;
@@ -301,7 +301,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         bool ValidateLutImportSettings()
         {
-            var lut = (target as PostProcessing).colorGrading.logLut;
+            var lut = (target as PostProcessingSRP).colorGrading.logLut;
 
             if (lut == null)
                 return true;
@@ -327,8 +327,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var targetRt = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
 
             // Render the current frame without post processing
-            var oldPPState = (target as PostProcessing).enabled;
-            (target as PostProcessing).enabled = false;
+            var oldPPState = (target as PostProcessingSRP).enabled;
+            (target as PostProcessingSRP).enabled = false;
             var oldTarget = camera.targetTexture;
             var oldActive = RenderTexture.active;
             camera.targetTexture = targetRt;
@@ -359,7 +359,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             texture.ReadPixels(new Rect(0, 0, targetRt.width, targetRt.height), 0, 0);
             camera.targetTexture = oldTarget;
             RenderTexture.active = oldActive;
-            (target as PostProcessing).enabled = oldPPState;
+            (target as PostProcessingSRP).enabled = oldPPState;
 
             // Cleanup
             RenderTexture.ReleaseTemporary(stampRt);

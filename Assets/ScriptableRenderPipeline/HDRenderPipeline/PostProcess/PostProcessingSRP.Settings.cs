@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    partial class PostProcessing
+    partial class PostProcessingSRP
     {
         [Serializable]
         public sealed class ColorGradingSettings
