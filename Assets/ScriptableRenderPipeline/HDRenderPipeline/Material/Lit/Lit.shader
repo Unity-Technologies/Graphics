@@ -32,7 +32,7 @@ Shader "HDRenderPipeline/Lit"
         _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
-        _SubsurfaceProfile("Subsurface Profile", Int) = 0
+        _SubsurfaceProfile("Subsurface Profile", Float) = 0
         _SubsurfaceRadius("Subsurface Radius", Range(0.004, 1.0)) = 1.0
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
         _Thickness("Thickness", Range(0.004, 1.0)) = 1.0
