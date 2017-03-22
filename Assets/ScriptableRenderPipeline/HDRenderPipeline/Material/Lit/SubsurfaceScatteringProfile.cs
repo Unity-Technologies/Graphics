@@ -416,7 +416,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private RenderTexture      m_ProfileImage,   m_TransmittanceImage;
         private Material           m_ProfileMaterial, m_TransmittanceMaterial;
-        private SerializedProperty m_Profile, m_ProfileStdDev1, m_ProfileStdDev2,
+        private SerializedProperty m_ProfileStdDev1, m_ProfileStdDev2,
                                    m_ProfileLerpWeight, m_ProfileTransmission,
                                    m_ProfileThicknessRemap;
 
