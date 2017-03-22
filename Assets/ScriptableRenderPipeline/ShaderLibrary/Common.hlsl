@@ -533,4 +533,20 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID)
     return float4(uv * 2.0 - 1.0, 1.0, 1.0);
 }
 
+// LOD dithering transition helper
+// ditherFactor should be a quantized value between 0..15/16, i.e the one provide by Unity
+// LOD0 must use this function with ditherFactor 1..0
+// LOD1 must use this functoin with ditherFactor 0..1
+void LODDitheringTransition(uint2 unPositionSS, float ditherFactor)
+{
+    // Generate a fixed pattern
+    float p = cos(dot(unPositionSS, float2(443.8975, 397.2973)));
+    p = frac(p * 491.1871);
+
+    // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
+    // this is handled by this test which reverse the pattern
+    p = (ditherFactor >= 0.5) ? (15.0 / 16.0) - p : p;
+    clip(ditherFactor - t);
+}
+
 #endif // UNITY_COMMON_INCLUDED
