@@ -5,6 +5,7 @@ using UnityEngine.Rendering;
 
 public class LowendMobilePipelineMaterialEditor : ShaderGUI
 {
+    private const float kMinShininessValue = 0.01f;
     private MaterialProperty blendModeProp = null;
     private MaterialProperty albedoMapProp = null;
     private MaterialProperty albedoColorProp = null;
@@ -159,6 +160,10 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
     {
         base.AssignNewShaderToMaterial(material, oldShader, newShader);
 
+        // Shininess value cannot be zero since it will produce undefined values for cases where pow(0, 0).
+        float shininess = material.GetFloat("_Shininess");
+        material.SetFloat("_Shininess", Mathf.Clamp(shininess, kMinShininessValue, 1.0f));
+
         UpdateMaterialKeywords(material);
     }
 
@@ -222,7 +227,10 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
 
         if (specSource != SpecularSource.NoSpecular)
         {
-            m_MaterialEditor.RangeProperty(shininessProp, Styles.shininessLabel);
+            EditorGUI.BeginChangeCheck();
+            float shininess = EditorGUILayout.Slider(Styles.shininessLabel, shininessProp.floatValue, kMinShininessValue, 1.0f);
+            if (EditorGUI.EndChangeCheck())
+                shininessProp.floatValue = shininess;
         }
     }
 
