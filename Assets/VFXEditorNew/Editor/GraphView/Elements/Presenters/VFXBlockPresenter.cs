@@ -75,6 +75,10 @@ namespace UnityEditor.VFX.UI
             get { return m_ContextPresenter; }
         }
 
+        public int index
+        {
+            get { return m_ContextPresenter.blockPresenters.FindIndex(t=>t == this); }
+        }
 
         public VFXDataInputAnchorPresenter GetPropertyPresenter(ref PropertyInfo info)
         {

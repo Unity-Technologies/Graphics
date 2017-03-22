@@ -6,11 +6,12 @@ using UnityEngine.Experimental.RMGUI;
 using UnityEngine.Experimental.RMGUI.StyleSheets;
 using System.Reflection;
 using UnityEngine.Experimental.RMGUI.StyleEnums;
+using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-	class VFXBlockUI : Node
-	{
+	class VFXBlockUI : Node, IDropTarget
+    {
         public GraphViewTypeFactory typeFactory { get; set; }
 
         public VFXBlockUI()
@@ -120,5 +121,31 @@ namespace UnityEditor.VFX.UI
 		{
 			base.DoRepaint(painter);
 		}
-	}
+
+        bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
+        {
+            return selection.Any(t => t is VFXBlockUI);
+        }
+        EventPropagation IDropTarget.DragUpdated(Event evt, List<ISelectable> selection, IDropTarget dropTarget)
+        {
+            return EventPropagation.Continue;
+        }
+        EventPropagation IDropTarget.DragPerform(Event evt, List<ISelectable> selection, IDropTarget dropTarget)
+        {
+            IEnumerable<VFXBlockPresenter> draggedBlocks = selection.Select(t => t as VFXBlockUI).Where(t=>t != null).Select(t=>t.GetPresenter<VFXBlockPresenter>());
+
+            VFXBlockPresenter blockPresenter = GetPresenter<VFXBlockPresenter>();
+            VFXContextPresenter presenter = blockPresenter.ContextPresenter;
+
+            presenter.BlocksDropped(blockPresenter, evt.mousePosition.y > position.width / 2, draggedBlocks);
+
+            return EventPropagation.Continue;
+        }
+        EventPropagation IDropTarget.DragExited()
+        {
+            return EventPropagation.Continue;
+        }
+
+
+    }
 }

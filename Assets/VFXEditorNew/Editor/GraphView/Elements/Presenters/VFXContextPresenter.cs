@@ -2,6 +2,7 @@ using RMGUI.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace UnityEditor.VFX.UI
 {
@@ -130,6 +131,26 @@ namespace UnityEditor.VFX.UI
                 {
                     yield return presenter;
                 }
+            }
+        }
+
+        internal void BlocksDropped(VFXBlockPresenter blockPresenter, bool after, IEnumerable<VFXBlockPresenter> draggedBlocks)
+        {
+            //Sort draggedBlock in the order we want them to appear and not the selected order ( blocks in the same context should appear in the same order as they where relative to each other).
+            
+            draggedBlocks = draggedBlocks.OrderBy(t=>t.index).GroupBy(t => t.ContextPresenter).SelectMany<IGrouping<VFXContextPresenter,VFXBlockPresenter>,VFXBlockPresenter>(t=>t.Select(u=>u));
+
+            foreach(VFXBlockPresenter draggedBlock in draggedBlocks)
+            {
+                draggedBlock.ContextPresenter.RemoveBlock(draggedBlock.Model);
+            }
+
+            int insertIndex = blockPresenter.index;
+            if (after) insertIndex++;
+
+            foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
+            {
+                draggedBlock.ContextPresenter.AddBlock(insertIndex++,draggedBlock.Model);
             }
         }
     }
