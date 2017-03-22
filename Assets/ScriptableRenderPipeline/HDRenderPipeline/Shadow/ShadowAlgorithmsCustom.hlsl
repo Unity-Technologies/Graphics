@@ -1,6 +1,6 @@
 // This file is empty on purpose. Projects can put their custom shadow algorithms in here so they get automatically included by Shadow.hlsl.
 
-float EvalShadow_CascadedMomentum( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
+float EvalShadow_CascadedMoment( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
 {
 	// load the right shadow data for the current face
 	float4 dirShadowSplitSpheres[4];
@@ -27,7 +27,7 @@ float EvalShadow_CascadedMomentum( ShadowContext shadowContext, float3 positionW
 	}
 }
 
-float EvalShadow_CascadedMomentum( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
+float EvalShadow_CascadedMoment( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
 {
-	return EvalShadow_CascadedMomentum( shadowContext, positionWS, normalWS, shadowDataIndex, L );
+	return EvalShadow_CascadedMoment( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }

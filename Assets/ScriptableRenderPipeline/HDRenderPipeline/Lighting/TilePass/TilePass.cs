@@ -33,19 +33,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             atlasInit.baseInit.comparisonSamplerState = ComparisonSamplerState.Default();
             atlasInit.baseInit.clearColor      = new Vector4( 0.0f, 0.0f, 0.0f, 0.0f );
             atlasInit.baseInit.maxPayloadCount = 0;
-            atlasInit.baseInit.shadowSupport   = ShadowmapBase.ShadowSupport.Directional;
+            atlasInit.baseInit.shadowSupport   = ShadowmapBase.ShadowSupport.Directional | ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
             atlasInit.shaderKeyword            = null;
             atlasInit.cascadeCount             = shadowSettings.directionalLightCascadeCount;
             atlasInit.cascadeRatios            = shadowSettings.directionalLightCascades;
                 
-            var atlasInit2 = atlasInit;
-            atlasInit2.baseInit.shadowSupport  = ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
-            
             var varianceInit = atlasInit;
-            varianceInit.baseInit.shadowmapFormat = RenderTextureFormat.ARGBFloat;
+            varianceInit.baseInit.shadowmapFormat = ShadowVariance.GetFormat( false, false, true );
 
-            m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowVariance( ref varianceInit ), new ShadowExp.ShadowAtlas( ref atlasInit ), new ShadowExp.ShadowAtlas( ref atlasInit2 ) };
-            //m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowAtlas( ref atlasInit ), new ShadowExp.ShadowAtlas( ref atlasInit2 ) };
+            var varianceInit2 = varianceInit;
+            varianceInit2.baseInit.shadowmapFormat = ShadowVariance.GetFormat( true, true, false );
+
+            var varianceInit3 = varianceInit;
+            varianceInit3.baseInit.shadowmapFormat = ShadowVariance.GetFormat( true, false, true );
+
+        m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowVariance( ref varianceInit ), new ShadowExp.ShadowVariance( ref varianceInit2 ), new ShadowExp.ShadowVariance( ref varianceInit3 ), new ShadowExp.ShadowAtlas( ref atlasInit ) };
 
             ShadowContext.SyncDel syncer = (ShadowContext sc) =>
                 {
@@ -71,9 +73,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     uint offset, count;
                     RenderTargetIdentifier[] tex;
                     sc.GetTex2DArrays( out tex, out offset, out count );
-                    cb.SetGlobalTexture( "_ShadowmapExp_Dir_VSM", tex[0] );
-                    cb.SetGlobalTexture( "_ShadowmapExp_Dir", tex[1] );
-                    cb.SetGlobalTexture( "_ShadowmapExp_PointSpot", tex[2] );
+                    cb.SetGlobalTexture( "_ShadowmapExp_VSM_0", tex[0] );
+                    cb.SetGlobalTexture( "_ShadowmapExp_VSM_1", tex[1] );
+                    cb.SetGlobalTexture( "_ShadowmapExp_VSM_2", tex[2] );
+                    cb.SetGlobalTexture( "_ShadowmapExp_PCF"  , tex[3] );
                     // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
                 };
 
