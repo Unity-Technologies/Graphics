@@ -49,10 +49,11 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX 2 // RGB, A unused
 
 // SSS parameters
-#define N_PROFILES 8
-uint   _TransmissionFlags;                             // One bit per profile; 1 = enabled
-float  _ThicknessRemaps[N_PROFILES][2];                // Remap: 0 = start, 1 = end - start
-float4 _HalfRcpVariancesAndLerpWeights[N_PROFILES][2]; // 2x Gaussians per color channel, A is the the associated interpolation weight
+#define SSS_N_PROFILES 8
+#define SSS_UNIT_CONVERSION (1.0 / 300.0)                  // From meters to 1/3 centimeters
+uint   _TransmissionFlags;                                 // One bit per profile; 1 = enabled
+float  _ThicknessRemaps[SSS_N_PROFILES][2];                // Remap: 0 = start, 1 = end - start
+float4 _HalfRcpVariancesAndLerpWeights[SSS_N_PROFILES][2]; // 2x Gaussians per color channel, A is the the associated interpolation weight
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -133,7 +134,7 @@ float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
     // thickness /= radiusScale;
-    thickness *= 100;
+    thickness /= SSS_UNIT_CONVERSION;
 
     float t2 = thickness * thickness;
 
@@ -174,9 +175,10 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
         bsdfData.subsurfaceProfile = surfaceData.subsurfaceProfile;
-        bsdfData.subsurfaceRadius  = 0.01 * surfaceData.subsurfaceRadius;
-        bsdfData.thickness         = 0.01 * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
-                                             _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * surfaceData.thickness);
+        // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
+        bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * surfaceData.subsurfaceRadius;
+        bsdfData.thickness         = SSS_UNIT_CONVERSION * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
+                                                            _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * surfaceData.thickness);
         bsdfData.enableTransmission = (1 << bsdfData.subsurfaceProfile) & _TransmissionFlags;
         if (bsdfData.enableTransmission)
         {
@@ -252,7 +254,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subsurfaceProfile / 8.0); // Number of profile not define yet
+        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subsurfaceProfile * rcp(SSS_N_PROFILES));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -370,10 +372,11 @@ void DecodeFromGBuffer(
     {
         bsdfData.diffuseColor = baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
-        bsdfData.subsurfaceProfile = 8.00 * inGBuffer2.a;
-        bsdfData.subsurfaceRadius  = 0.01 * inGBuffer2.r;
-        bsdfData.thickness         = 0.01 * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
-                                             _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * inGBuffer2.g);
+        bsdfData.subsurfaceProfile = SSS_N_PROFILES * inGBuffer2.a;
+        // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
+        bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * inGBuffer2.r;
+        bsdfData.thickness         = SSS_UNIT_CONVERSION * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
+                                                            _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * inGBuffer2.g);
         bsdfData.enableTransmission = (1 << bsdfData.subsurfaceProfile) & _TransmissionFlags;
         if (bsdfData.enableTransmission)
         {

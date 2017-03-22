@@ -80,8 +80,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SubsurfaceScatteringSettings sssSettings = new SubsurfaceScatteringSettings();
 
         [SerializeField]
-        ShadowSettings                      m_ShadowSettings = ShadowSettings.Default;
-        [SerializeField] TextureSettings    m_TextureSettings = TextureSettings.Default;
+        ShadowSettings               m_ShadowSettings  = ShadowSettings.Default;
+        [SerializeField]
+        TextureSettings              m_TextureSettings = TextureSettings.Default;
 
         public ShadowSettings shadowSettings                { get { return m_ShadowSettings; } }
         public TextureSettings textureSettings              { get { return m_TextureSettings; } set { m_TextureSettings = value; } }
@@ -117,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_SkySettings;
             }
         }
-        
+
         public void ApplyDebugSettings()
         {
             m_ShadowSettings.enabled = globalDebugSettings.lightingDebugSettings.enableShadows;
@@ -275,6 +276,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_Owner.globalDebugSettings; }
         }
 
+        public SubsurfaceScatteringSettings sssSettings
+        {
+            get { return m_Owner.sssSettings; }
+        }
         public HDRenderPipelineInstance(HDRenderPipeline owner)
         {
             m_Owner = owner;
@@ -437,15 +442,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix("_InvProjMatrix",     hdCamera.invProjectionMatrix);
             cmd.SetGlobalVector("_InvProjParam",      hdCamera.invProjectionParam);
 
-            // TODO: setting the Sky Settings to 'None' appears to do nothing (so no invalidation happens).
+            // TODO: cmd.SetGlobalInt() does not exist, so we are forced to use Shader.SetGlobalInt() instead.
+
             if (m_SkyManager.IsSkyValid())
             {
-                Shader.EnableKeyword("SKY_LIGHTING");
                 m_SkyManager.SetGlobalSkyTexture();
+                Shader.SetGlobalInt("_EnvLightSkyEnabled", 1);
             }
             else
             {
-                Shader.DisableKeyword("SKY_LIGHTING");
+                Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
             }
 
             // Broadcast SSS parameters to all shaders.
