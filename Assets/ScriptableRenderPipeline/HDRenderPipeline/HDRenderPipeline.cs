@@ -80,8 +80,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SubsurfaceScatteringSettings sssSettings = new SubsurfaceScatteringSettings();
 
         [SerializeField]
-        ShadowSettings                      m_ShadowSettings = ShadowSettings.Default;
-        [SerializeField] TextureSettings    m_TextureSettings = TextureSettings.Default;
+        ShadowSettings               m_ShadowSettings  = ShadowSettings.Default;
+        [SerializeField]
+        TextureSettings              m_TextureSettings = TextureSettings.Default;
 
         public ShadowSettings shadowSettings                { get { return m_ShadowSettings; } }
         public TextureSettings textureSettings              { get { return m_TextureSettings; } set { m_TextureSettings = value; } }
@@ -117,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_SkySettings;
             }
         }
-        
+
         public void ApplyDebugSettings()
         {
             m_ShadowSettings.enabled = globalDebugSettings.lightingDebugSettings.enableShadows;
@@ -275,6 +276,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_Owner.globalDebugSettings; }
         }
 
+        public SubsurfaceScatteringSettings sssSettings
+        {
+            get { return m_Owner.sssSettings; }
+        }
         public HDRenderPipelineInstance(HDRenderPipeline owner)
         {
             m_Owner = owner;
@@ -946,7 +951,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // All of this is temporary, sub-optimal and quickly hacked together but is necessary
                 // for artists to do lighting work until the fully-featured framework is ready
 
-                var localPostProcess = camera.GetComponent<PostProcessing>();
+                var localPostProcess = camera.GetComponent<PostProcessingSRP>();
 
                 bool localActive = localPostProcess != null && localPostProcess.enabled;
 
