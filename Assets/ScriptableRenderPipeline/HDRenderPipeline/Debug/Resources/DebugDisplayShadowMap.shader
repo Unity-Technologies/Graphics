@@ -16,7 +16,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayShadowMap"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "ShaderLibrary/Common.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
 
             TEXTURE2D_FLOAT(g_tShadowBuffer);
 
