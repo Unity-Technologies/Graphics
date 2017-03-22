@@ -9,7 +9,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        _Shininess("Shininess", Range(0.0, 1.0)) = 1.0
+        _Shininess("Shininess", Range(0.01, 1.0)) = 1.0 
         _GlossMapScale("Smoothness Factor", Range(0.0, 1.0)) = 1.0
 
         _Glossiness("Glossiness", Range(0.0, 1.0)) = 0.5

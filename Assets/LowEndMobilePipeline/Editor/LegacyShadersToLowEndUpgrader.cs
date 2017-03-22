@@ -87,22 +87,22 @@ public class LegacyShadersToLowEndUpgrader
         };
     }
 
-    [MenuItem("RenderPipeline/LowEndMobilePipeline/Material Upgraders/Upgrade Legacy Materials to LowEndMobile - Selection", false, 3)]
-    public static void UpgradeMaterialsToLDSelection()
-    {
-        List<MaterialUpgrader> materialUpgraders = new List<MaterialUpgrader>();
-        GetUpgraders(ref materialUpgraders);
-
-        MaterialUpgrader.UpgradeSelection(materialUpgraders, "Upgrade to LD Materials");
-    }
-
-    [MenuItem("RenderPipeline/LowEndMobilePipeline/Material Upgraders/Upgrade Legacy Materials to LowEndMobile - Project", false, 4)]
+    [MenuItem("RenderPipeline/LowEndMobilePipeline/Material Upgraders/Upgrade Legacy Materials to LowEndMobile - Project", false, 3)]
     public static void UpgradeMaterialsToLDProject()
     {
         List<MaterialUpgrader> materialUpgraders = new List<MaterialUpgrader>();
         GetUpgraders(ref materialUpgraders);
 
         MaterialUpgrader.UpgradeProjectFolder(materialUpgraders, "Upgrade to LD Materials");
+    }
+
+    [MenuItem("RenderPipeline/LowEndMobilePipeline/Material Upgraders/Upgrade Legacy Materials to LowEndMobile - Selection", false, 4)]
+    public static void UpgradeMaterialsToLDSelection()
+    {
+        List<MaterialUpgrader> materialUpgraders = new List<MaterialUpgrader>();
+        GetUpgraders(ref materialUpgraders);
+
+        MaterialUpgrader.UpgradeSelection(materialUpgraders, "Upgrade to LD Materials");
     }
 
     // TODO: Replace this logic with AssignNewShaderToMaterial

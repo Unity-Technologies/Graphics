@@ -43,3 +43,21 @@ public class ParticlesAdditiveUpgrader : MaterialUpgrader
         RenameShader(oldShaderName, "ScriptableRenderPipeline/LowEndMobile/Particles/Additive");
     }
 }
+
+public class StandardUpgrader : MaterialUpgrader
+{
+    public StandardUpgrader(string oldShaderName)
+    {
+        RenameShader(oldShaderName, "ScriptableRenderPipeline/LowEndMobile/NonPBR");
+        RenameFloat("_Glossiness", "_Shininess");
+    }
+}
+
+public class TerrainUpgrader : MaterialUpgrader
+{
+    public TerrainUpgrader(string oldShaderName)
+    {
+        RenameShader(oldShaderName, "ScriptableRenderPipeline/LowEndMobile/NonPBR");
+        SetNewFloatProperty("_Shininess", 1.0f);
+    }
+}
