@@ -24,15 +24,15 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "ShaderLibrary/Common.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem), 
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-            #include "HDRenderPipeline/ShaderVariables.hlsl"
-            #include "HDRenderPipeline/Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "../../ShaderConfig.cs.hlsl"
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
 
             //-------------------------------------------------------------------------------------
             // variable declaration

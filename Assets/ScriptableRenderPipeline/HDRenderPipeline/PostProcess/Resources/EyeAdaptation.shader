@@ -8,8 +8,8 @@ Shader "Hidden/HDRenderPipeline/EyeAdaptation"
     HLSLINCLUDE
 
         #pragma target 4.5
-        #include "ShaderLibrary/Common.hlsl"
-        #include "HDRenderPipeline/ShaderVariables.hlsl"
+        #include "../../../ShaderLibrary/Common.hlsl"
+        #include "../../ShaderVariables.hlsl"
         #include "EyeAdaptation.hlsl"
 
         TEXTURE2D(_MainTex);
