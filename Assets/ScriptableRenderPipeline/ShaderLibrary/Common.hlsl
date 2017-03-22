@@ -70,6 +70,22 @@
 // This is the purpose of this macro
 #define MERGE_NAME(X, Y) X##Y
 
+// These define are use to abstract the way we sample into a cubemap array.
+// Some platform don't support cubemap array so we fallback on 2D latlong
+#ifdef UNITY_NO_CUBEMAP_ARRAY
+#define TEXTURECUBE_ARRAY_ABSTRACT TEXTURE2D_ARRAY
+#define SAMPLERCUBE_ABSTRACT SAMPLER2D
+#define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURE2D_ARRAY_ARGS
+#define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURE2D_ARRAY_PARAM
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, DirectionToLatLongCoordinate(coord3), index, lod)
+#else
+#define TEXTURECUBE_ARRAY_ABSTRACT TEXTURECUBE_ARRAY
+#define SAMPLERCUBE_ABSTRACT SAMPLERCUBE
+#define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURECUBE_ARRAY_ARGS
+#define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURECUBE_ARRAY_PARAM
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)
+#endif
+
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
