@@ -160,7 +160,7 @@ Material:
     - _HorizonFade: 1
     - _MaterialID: 0
     - _Metalic: 0
-    - _Metallic: 0.583
+    - _Metallic: 0
     - _Mettalic: 0
     - _Mode: 0
     - _NormalMapSpace: 0
@@ -170,7 +170,7 @@ Material:
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
     - _Parallax: 0.02
-    - _Smoothness: 0
+    - _Smoothness: 0.524
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
