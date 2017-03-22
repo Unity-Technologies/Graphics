@@ -215,14 +215,17 @@ float SampleShadow_EVSM_1tap( ShadowContext shadowContext, inout uint payloadOff
 //
 float SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, float3 tcs, uint slice, uint texIdx, uint sampIdx, bool useHamburger )
 {
-	float3 params        = asfloat( shadowContext.payloads[payloadOffset].xyz );
+	float4 params        = asfloat( shadowContext.payloads[payloadOffset] );
 	float  lightLeakBias = params.x;
 	float  momentBias    = params.y;
 	float  depthBias	 = params.z;
+	float  bpp16		 = params.w;
 	float  depth         = tcs.z + depthBias;
 	payloadOffset++;
 
 	float4 moments = SampleShadow_T2DA( shadowContext, texIdx, sampIdx, tcs.xy, slice );
+	if( bpp16 != 0.0 )
+		moments = ShadowMoments_Decode16MSM( moments );
 
 	float3 z;
 	float4 b;
@@ -236,14 +239,17 @@ float SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffs
 
 float SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, float3 tcs, uint slice, Texture2DArray tex, SamplerState samp, bool useHamburger )
 {
-	float3 params        = asfloat( shadowContext.payloads[payloadOffset].xyz );
+	float4 params        = asfloat( shadowContext.payloads[payloadOffset] );
 	float  lightLeakBias = params.x;
 	float  momentBias    = params.y;
 	float  depthBias	 = params.z;
+	float  bpp16		 = params.w;
 	float  depth = tcs.z + depthBias;
 	payloadOffset++;
 
 	float4 moments = SAMPLE_TEXTURE2D_ARRAY_LOD( tex, samp, tcs.xy, slice, 0.0 );
+	if( bpp16 != 0.0 )
+		moments = ShadowMoments_Decode16MSM( moments );
 
 	float3 z;
 	float4 b;

@@ -37,6 +37,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         V7
     }
 
+    public enum ShadowPrecision // 1 bits
+    {
+        Low,
+        High
+    }
+
     [GenerateHLSL]
     public enum GPUShadowAlgorithm // 9 bits
     {
@@ -61,13 +67,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public const int k_ShadowAlgorithm = 64;
             public const int k_ShadowVariant   = 8;
+            public const int k_ShadowPrecision = 2;
             public const int k_GPUShadowType   = 3;
         }
         public struct Bits
         {
             public const int k_ShadowAlgorithm    = 6;
             public const int k_ShadowVariant      = 3;
-            public const int k_GPUShadowAlgorithm = k_ShadowAlgorithm + k_ShadowVariant;
+            public const int k_ShadowPrecision    = 1;
+            public const int k_GPUShadowAlgorithm = k_ShadowAlgorithm + k_ShadowVariant + k_ShadowPrecision;
             public const int k_GPUShadowType      = 4;
         }
 
@@ -75,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public const int k_ShadowAlgorithm     = (1 << Bits.k_ShadowAlgorithm    ) - 1;
             public const int k_ShadowVariant       = (1 << Bits.k_ShadowVariant      ) - 1;
+            public const int k_ShadowPrecision     = (1 << Bits.k_ShadowPrecision    ) - 1;
             public const int k_GPUShadowAlgorithm  = (1 << Bits.k_GPUShadowAlgorithm ) - 1;
             public const int k_GPUShadowType       = (1 << Bits.k_GPUShadowType      ) - 1;
         }
@@ -84,14 +93,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class ShadowRegistry
     {
 
-        public delegate void VariantDelegate( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ref int[] dataContainer );
+        public delegate void VariantDelegate( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ShadowPrecision dataPrecision, ref int[] dataContainer );
+
+        struct Dels
+        {
+            public VariantDelegate low;
+            public VariantDelegate high;
+        }
         struct Entry
         {
-            public string              algorithmDesc;
-            public int                 variantsAvailable;
-            public string[]            variantDescs;
-            public VariantDelegate[]   variantDels;
+            public string   algorithmDesc;
+            public int      variantsAvailable;
+            public string[] variantDescs;
+            public Dels[]   variantDels;
         }
+
         Dictionary<ShadowAlgorithm, Entry>[] m_Entries = new Dictionary<ShadowAlgorithm, Entry>[ShadowConstants.Counts.k_GPUShadowType]
                                                         {   new Dictionary<ShadowAlgorithm, Entry>(),
                                                             new Dictionary<ShadowAlgorithm, Entry>(),
@@ -103,10 +119,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 d.Clear();
         }
 
-        public void Register( GPUShadowType type, ShadowAlgorithm algorithm, string algorithmDescriptor, ShadowVariant[] variants, string[] variantDescriptors, VariantDelegate[] variantDelegates )
+        public void Register( GPUShadowType type, ShadowPrecision precision, ShadowAlgorithm algorithm, string algorithmDescriptor, ShadowVariant[] variants, string[] variantDescriptors, VariantDelegate[] variantDelegates )
         {
             if( Validate( algorithmDescriptor, variants, variantDescriptors, variantDelegates ) )
-                Register( m_Entries[(int)type], algorithm, algorithmDescriptor, variants, variantDescriptors, variantDelegates );
+                Register( m_Entries[(int)type], precision, algorithm, algorithmDescriptor, variants, variantDescriptors, variantDelegates );
         }
 
         private bool Validate( string algorithmDescriptor, ShadowVariant[] variants, string[] variantDescriptors, VariantDelegate[] variantDelegates )
@@ -138,7 +154,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             return true;
         }
-        private void Register( Dictionary<ShadowAlgorithm, Entry> dict, ShadowAlgorithm algorithm, string algorithmDescriptor, ShadowVariant[] variants, string[] variantDescriptors, VariantDelegate[] variantDelegates )
+        private void Register( Dictionary<ShadowAlgorithm, Entry> dict, ShadowPrecision precision, ShadowAlgorithm algorithm, string algorithmDescriptor, ShadowVariant[] variants, string[] variantDescriptors, VariantDelegate[] variantDelegates )
         {
             if( !dict.ContainsKey( algorithm ) )
             {
@@ -146,11 +162,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 e.algorithmDesc     = algorithmDescriptor;
                 e.variantsAvailable = variants.Length;
                 e.variantDescs      = new string[ShadowConstants.Counts.k_ShadowVariant];
-                e.variantDels       = new VariantDelegate[ShadowConstants.Counts.k_ShadowVariant];
+                e.variantDels       = new Dels[ShadowConstants.Counts.k_ShadowVariant];
                 for( uint i = 0, cnt = (uint) variants.Length; i < cnt; ++i )
                 {
-                    e.variantDescs[(uint) variants[i]]  = variantDescriptors[i];
-                    e.variantDels[(uint) variants[i]]    = variantDelegates[i];
+                    e.variantDescs[(uint) variants[i]] = variantDescriptors[i];
+                    if( precision == ShadowPrecision.Low )
+                        e.variantDels[(uint) variants[i]].low = variantDelegates[i];
+                    else
+                        e.variantDels[(uint) variants[i]].high = variantDelegates[i];
                 }
                 dict.Add( algorithm, e );
             }
@@ -162,11 +181,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if( string.IsNullOrEmpty( entry.variantDescs[(uint) variants[i]] ) )
                     {
                         entry.variantsAvailable++;
-                        entry.variantDescs[(uint) variants[i]] = variantDescriptors[i];
-                        entry.variantDels[(uint) variants[i]]  = variantDelegates[i];
+                        entry.variantDescs[(uint) variants[i]]     = variantDescriptors[i];
+                        entry.variantDels[(uint) variants[i]].low  = precision == ShadowPrecision.Low  ? variantDelegates[i] : null;
+                        entry.variantDels[(uint) variants[i]].high = precision == ShadowPrecision.High ? variantDelegates[i] : null;
+                    }
+                    else if( precision == ShadowPrecision.Low && entry.variantDels[(uint)variants[i]].low == null )
+                    {
+                        entry.variantDels[(uint)variants[i]].low = variantDelegates[i];
+                    }
+                    else if( precision == ShadowPrecision.High && entry.variantDels[(uint)variants[i]].high == null )
+                    {
+                        entry.variantDels[(uint)variants[i]].high = variantDelegates[i];
                     }
                     else
-                        Debug.Log( "Tried to register variant " + variants[i] + " for algorithm " + algorithm + ", but this variant is already registered. Skipping registration." );
+                        Debug.Log( "Tried to register variant " + variants[i] + " for algorithm " + algorithm + " with precision " + precision + ", but this variant is already registered. Skipping registration." );
                 }
             }
         }
@@ -186,12 +214,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int shadowAlgorithm;
             int shadowVariant;
-            ald.GetShadowAlgorithm( out shadowAlgorithm, out shadowVariant );
+            int shadowPrecision;
+            ald.GetShadowAlgorithm( out shadowAlgorithm, out shadowVariant, out shadowPrecision );
 
-            DrawWidgets( l, shadowType, (ShadowAlgorithm) shadowAlgorithm, (ShadowVariant) shadowVariant );
+            DrawWidgets( l, shadowType, (ShadowAlgorithm) shadowAlgorithm, (ShadowVariant) shadowVariant, (ShadowPrecision) shadowPrecision );
         }
 
-        void DrawWidgets(  Light l, GPUShadowType shadowType, ShadowAlgorithm shadowAlgorithm, ShadowVariant shadowVariant )
+        void DrawWidgets(  Light l, GPUShadowType shadowType, ShadowAlgorithm shadowAlgorithm, ShadowVariant shadowVariant, ShadowPrecision shadowPrecision )
         {
             var          dict           = m_Entries[(int)shadowType];
             int[]        algoOptions    = new int[dict.Count];
@@ -220,7 +249,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             idx = 0;
             for( int writeIdx = 0; writeIdx < varsAvailable; idx++ )
             {
-                if( e.variantDels[idx] != null )
+                if( e.variantDels[idx].low != null || e.variantDels[idx].high != null )
                 {
                     varOptions[writeIdx] = idx;
                     varDescs[writeIdx] = new GUIContent( e.variantDescs[idx] );
@@ -230,18 +259,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             UnityEditor.EditorGUILayout.BeginHorizontal();
 
-            shadowVariant = (ShadowVariant) UnityEditor.EditorGUILayout.IntPopup( new GUIContent( "Variant" ), (int) shadowVariant, varDescs, varOptions );
+            shadowVariant = (ShadowVariant) UnityEditor.EditorGUILayout.IntPopup( new GUIContent( "Variant + Precision" ), (int) shadowVariant, varDescs, varOptions );
+
+            if( e.variantDels[(int)shadowVariant].low != null && e.variantDels[(int)shadowVariant].high != null )
+            {
+                GUIContent[] precDescs   = new GUIContent[] { new GUIContent( "Low" ), new GUIContent( "High" ) };
+                int[]        precOptions = new int[] { 0, 1 };
+                shadowPrecision = (ShadowPrecision)UnityEditor.EditorGUILayout.IntPopup((int)shadowPrecision, precDescs, precOptions, GUILayout.MaxWidth(65));
+            }
+            else
+            {
+                using( new UnityEditor.EditorGUI.DisabledScope() )
+                {
+                    GUIContent[] precDescs   = new GUIContent[] { new GUIContent( e.variantDels[(int)shadowVariant].low == null ? "High" : "Low" ) };
+                    int[]        precOptions = new int[] { e.variantDels[(int)shadowVariant].low == null ? 1 : 0 };
+                    UnityEditor.EditorGUILayout.IntPopup(precOptions[0], precDescs, precOptions, GUILayout.MaxWidth(65));
+                    shadowPrecision = (ShadowPrecision) precOptions[0];
+                }
+            }
 
             AdditionalLightData ald = l.GetComponent<AdditionalLightData>();
-            GPUShadowAlgorithm packedAlgo = ShadowUtils.Pack( shadowAlgorithm, shadowVariant );
+            GPUShadowAlgorithm packedAlgo = ShadowUtils.Pack( shadowAlgorithm, shadowVariant, shadowPrecision );
             int[] shadowData = null;
             if( !GUILayout.Button( "Reset", GUILayout.MaxWidth( 80.0f ) ) )
                 shadowData = ald.GetShadowData( (int) packedAlgo );
 
             UnityEditor.EditorGUILayout.EndHorizontal();
 
-            e.variantDels[(int) shadowVariant]( l, shadowAlgorithm, shadowVariant, ref shadowData );
-            ald.SetShadowAlgorithm( (int) shadowAlgorithm, (int) shadowVariant, (int) packedAlgo, shadowData );
+            if( shadowPrecision == ShadowPrecision.Low )
+                e.variantDels[(int) shadowVariant].low( l, shadowAlgorithm, shadowVariant, shadowPrecision, ref shadowData );
+            else
+                e.variantDels[(int) shadowVariant].high( l, shadowAlgorithm, shadowVariant, shadowPrecision, ref shadowData );
+            ald.SetShadowAlgorithm( (int) shadowAlgorithm, (int) shadowVariant, (int) shadowPrecision, (int) packedAlgo, shadowData );
             
             UnityEditor.EditorGUI.indentLevel--;
         }
@@ -274,7 +323,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PackShadowType( GPUShadowType type, GPUShadowAlgorithm algorithm )
         {
-            shadowType = (uint)type << 9 | (uint) algorithm;
+            shadowType = (uint)type << ShadowConstants.Bits.k_GPUShadowAlgorithm | (uint) algorithm;
         }
     };
 
@@ -533,7 +582,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         protected readonly float                    m_HeightRcp;
         protected readonly uint                     m_MaxPayloadCount;
         protected readonly ShadowSupport            m_ShadowSupport;
-        protected          uint                     m_ShadowId;
         protected          CullResults              m_CullResults; // TODO: Temporary, due to CullResults dependency in ShadowUtils' matrix extraction code. Remove this member once that dependency is gone.
 
         public struct BaseInit
@@ -564,7 +612,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_HeightRcp         = 1.0f / initializer.height;
             m_MaxPayloadCount   = initializer.maxPayloadCount;
             m_ShadowSupport     = initializer.shadowSupport;
-            m_ShadowId          = 0;
 
             if( IsNativeDepth() && m_Slices > 1 )
             {
@@ -593,7 +640,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                  public ShadowSupport QueryShadowSupport() { return m_ShadowSupport; }
                  public uint GetMaxPayload() { return m_MaxPayloadCount; }
-                 public void AssignId( uint shadowId ) { m_ShadowId = shadowId; }
                  public void Assign( CullResults cullResults ) { m_CullResults = cullResults; } // TODO: Remove when m_CullResults is removed again
         abstract public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payloads, VisibleLight[] lights );
         abstract public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint[] widths, uint[] heights, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payloads, VisibleLight[] lights );

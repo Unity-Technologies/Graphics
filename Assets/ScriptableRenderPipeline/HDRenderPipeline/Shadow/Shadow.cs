@@ -118,23 +118,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         override protected void Register( GPUShadowType type, ShadowRegistry registry )
         {
+            ShadowPrecision precision = m_ShadowmapBits == 32 ? ShadowPrecision.High : ShadowPrecision.Low;
             m_SupportedAlgorithms.Reserve( 2 );
-            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.PCF_1tap );
-            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.PCF_9tap );
+            m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V0, precision ) );
+            m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V1, precision ) );
 
-            ShadowRegistry.VariantDelegate del = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ref int[] dataBlock ) =>
+            ShadowRegistry.VariantDelegate del = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ShadowPrecision dataPrecision, ref int[] dataBlock ) =>
                 {
-                    CheckDataIntegrity( dataAlgorithm, dataVariant, ref dataBlock );
+                    CheckDataIntegrity( dataAlgorithm, dataVariant, dataPrecision, ref dataBlock );
 
                     m_DefPCF_DepthBias.Slider( ref dataBlock[0] );
                     if( dataVariant == ShadowVariant.V1 )
                         m_DefPCF_FilterSize.Slider( ref dataBlock[1] );
                 };
-            registry.Register( type, ShadowAlgorithm.PCF, "Percentage Closer Filtering (PCF)", 
+            registry.Register( type, precision, ShadowAlgorithm.PCF, "Percentage Closer Filtering (PCF)", 
                 new ShadowVariant[]{ ShadowVariant.V0, ShadowVariant.V1 }, new string[]{"1 tap", "9 tap adaptive" }, new ShadowRegistry.VariantDelegate[] { del, del } );
         }
         // returns true if the original data passed integrity checks, false if the data had to be modified
-        virtual protected bool CheckDataIntegrity( ShadowAlgorithm algorithm, ShadowVariant variant, ref int[] dataBlock )
+        virtual protected bool CheckDataIntegrity( ShadowAlgorithm algorithm, ShadowVariant variant, ShadowPrecision precision, ref int[] dataBlock )
         {
             if( algorithm != ShadowAlgorithm.PCF || (variant != ShadowVariant.V0 && variant != ShadowVariant.V1) )
                 return true;
@@ -229,13 +230,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             float   nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
 
+            GPUShadowAlgorithm sanitizedAlgo = ShadowUtils.ClearPrecision( sr.shadowAlgorithm );
+
             if( multiFace )
             {
                 // For lights with multiple faces, the first shadow data contains 
                 // per light information, so not all fields contain valid data.
                 // Shader code must make sure to read per face data from per face entries.
                 sd.texelSizeRcp = new Vector2( m_WidthRcp, m_HeightRcp );
-                sd.PackShadowType( sr.shadowType, sr.shadowAlgorithm );
+                sd.PackShadowType( sr.shadowType, sanitizedAlgo );
                 sd.payloadOffset = payload.Count();
                 entries.AddUnchecked( sd );
                 key.shadowDataIdx++;
@@ -285,7 +288,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     sd.scaleOffset   = new Vector4( ce.current.viewport.width * m_WidthRcp, ce.current.viewport.height * m_HeightRcp, ce.current.viewport.x, ce.current.viewport.y );
                     sd.texelSizeRcp  = new Vector2( m_WidthRcp, m_HeightRcp );
                     sd.PackShadowmapId( m_TexSlot, m_SampSlot, ce.current.slice );
-                    sd.PackShadowType( sr.shadowType, sr.shadowAlgorithm );
+                    sd.PackShadowType( sr.shadowType, sanitizedAlgo );
                     sd.payloadOffset = originalPayloadCount;
                     entries.AddUnchecked( sd );
 
@@ -327,9 +330,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     payload[payloadOffset] = sp;
                 }
             }
-            ShadowAlgorithm algo; ShadowVariant vari;
-            ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari );
-            if( algo  == ShadowAlgorithm.PCF )
+            ShadowAlgorithm algo; ShadowVariant vari; ShadowPrecision prec;
+            ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari, out prec );
+            if( algo == ShadowAlgorithm.PCF )
             {
                 AdditionalLightData ald = light.light.GetComponent<AdditionalLightData>();
                 if( !ald )
@@ -337,16 +340,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 int shadowDataFormat;
                 int[] shadowData = ald.GetShadowData( out shadowDataFormat );
-                if( !CheckDataIntegrity( algo, vari, ref shadowData ) )
+                if( !CheckDataIntegrity( algo, vari, prec, ref shadowData ) )
                 {
-                    ald.SetShadowAlgorithm( (int)algo, (int)vari, shadowDataFormat, shadowData );
+                    ald.SetShadowAlgorithm( (int)algo, (int)vari, (int) prec, shadowDataFormat, shadowData );
                     Debug.Log( "Fixed up shadow data for algorithm " + algo + ", variant " + vari );
                 }
 
-                switch( sr.shadowAlgorithm )
+                switch( vari )
                 {
-                case GPUShadowAlgorithm.PCF_1tap:
-                case GPUShadowAlgorithm.PCF_9tap:
+                case ShadowVariant.V0:
+                case ShadowVariant.V1:
                     {
                         sp.Set( shadowData[0] | (SystemInfo.usesReversedZBuffer ? 1 : 0), shadowData[1], 0, 0 );
                         payload[payloadOffset] = sp;
@@ -566,21 +569,46 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         protected float[][]     m_BlurWeights  = new float[k_BlurKernelCount][];
         protected int           m_SampleCount;
 
+        [Flags]
+        protected enum Flags
+        {
+            bpp_16        = 1 << 0,
+            channels_2    = 1 << 1,
+        }
+        protected readonly Flags m_Flags;
+
         // default values
         readonly ValRange m_DefVSM_LightLeakBias    = new ValRange( "Light leak bias"   , 0.0f, 0.5f    ,  0.99f , 1.0f   );
         readonly ValRange m_DefVSM_VarianceBias     = new ValRange( "Variance bias"     , 0.0f, 0.1f    ,  1.0f  , 0.01f  );
         readonly ValRange m_DefEVSM_LightLeakBias   = new ValRange( "Light leak bias"   , 0.0f, 0.0f    ,  0.99f , 1.0f   );
         readonly ValRange m_DefEVSM_VarianceBias    = new ValRange( "Variance bias"     , 0.0f, 0.1f    ,  1.0f  , 0.01f  );
-        readonly ValRange m_DefEVSM_PosExponent     = new ValRange( "Positive Exponent" , 1.0f, 1.0f    , 42.0f  , 1.0f   );
-        readonly ValRange m_DefEVSM_NegExponent     = new ValRange( "Negative Exponent" , 1.0f, 1.0f    , 42.0f  , 1.0f   );
+        readonly ValRange m_DefEVSM_PosExponent_32  = new ValRange( "Positive Exponent" , 1.0f, 1.0f    , 42.0f  , 1.0f   );
+        readonly ValRange m_DefEVSM_NegExponent_32  = new ValRange( "Negative Exponent" , 1.0f, 1.0f    , 42.0f  , 1.0f   );
+        readonly ValRange m_DefEVSM_PosExponent_16  = new ValRange( "Positive Exponent" , 1.0f, 1.0f    ,  5.54f , 1.0f   );
+        readonly ValRange m_DefEVSM_NegExponent_16  = new ValRange( "Negative Exponent" , 1.0f, 1.0f    ,  5.54f , 1.0f   );
         readonly ValRange m_DefMSM_LightLeakBias    = new ValRange( "Light leak bias"   , 0.0f, 0.5f    ,  0.99f , 1.0f   );
-        readonly ValRange m_DefMSM_MomentBias       = new ValRange( "Moment Bias"       , 0.0f, 0.3f   ,   1.0f  , 0.00003f);
+        readonly ValRange m_DefMSM_MomentBias       = new ValRange( "Moment Bias"       , 0.0f, 0.3f    ,  1.0f  , 0.0001f);
         readonly ValRange m_DefMSM_DepthBias        = new ValRange( "Depth Bias"        , 0.0f, 0.1f    ,  1.0f  , 0.1f   );
 
+        public static RenderTextureFormat GetFormat( bool use_16_BitsPerChannel, bool use_2_Channels, bool use_MSM )
+        {
+            Debug.Assert( !use_2_Channels || !use_MSM ); // MSM always requires 4 channels
+            if( use_16_BitsPerChannel )
+            {
+                return use_2_Channels ? RenderTextureFormat.RGHalf : (use_MSM ? RenderTextureFormat.ARGB64 : RenderTextureFormat.ARGBHalf);
+            }
+            else
+            {
+                return use_2_Channels ? RenderTextureFormat.RGFloat : RenderTextureFormat.ARGBFloat;
+            }
+        }
         public ShadowVariance( ref AtlasInit init ) : base( ref init )
         {
+            m_Flags |= (base.m_ShadowmapFormat == RenderTextureFormat.ARGBHalf || base.m_ShadowmapFormat == RenderTextureFormat.RGHalf || base.m_ShadowmapFormat == RenderTextureFormat.ARGB64) ? Flags.bpp_16 : 0;
+            m_Flags |= (base.m_ShadowmapFormat == RenderTextureFormat.RGFloat  || base.m_ShadowmapFormat == RenderTextureFormat.RGHalf) ? Flags.channels_2 : 0;
+
             m_Shadowmap.enableRandomWrite = true;
-            m_SampleCount    = 1; // TODO: Unity can't bind msaa rts as textures, yet, so this has to remain 1 for now
+            m_SampleCount  = 1; // TODO: Unity can't bind msaa rts as textures, yet, so this has to remain 1 for now
             m_MomentBlurCS = Resources.Load<ComputeShader>( "ShadowBlurMoments" );
 
             if( m_MomentBlurCS )
@@ -637,39 +665,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         override protected void Register( GPUShadowType type, ShadowRegistry registry )
         {
-            m_SupportedAlgorithms.Reserve( 5 );
-            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.VSM );
-            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.EVSM_2 );
-            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.EVSM_4 );
-            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.MSM_Ham );
-            m_SupportedAlgorithms.AddUnchecked( GPUShadowAlgorithm.MSM_Haus );
+            bool supports_VSM    = m_ShadowmapFormat != RenderTextureFormat.ARGB64;
+            bool supports_EVSM_2 = m_ShadowmapFormat != RenderTextureFormat.ARGB64;
+            bool supports_EVSM_4 = m_ShadowmapFormat != RenderTextureFormat.ARGB64 && (m_Flags & Flags.channels_2) == 0;
+            bool supports_MSM    = (m_Flags & Flags.channels_2) == 0 && ((m_Flags & Flags.bpp_16) == 0 || m_ShadowmapFormat == RenderTextureFormat.ARGB64);
 
-            ShadowRegistry.VariantDelegate vsmDel = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ref int[] dataBlock ) => 
+            ShadowRegistry.VariantDelegate vsmDel = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ShadowPrecision dataPrecision, ref int[] dataBlock ) => 
                 {
-                    CheckDataIntegrity( dataAlgorithm, dataVariant, ref dataBlock );
+                    CheckDataIntegrity( dataAlgorithm, dataVariant, dataPrecision, ref dataBlock );
 
                     m_DefVSM_LightLeakBias.Slider( ref dataBlock[0] );
                     m_DefVSM_VarianceBias.Slider( ref dataBlock[1] );
                     BlurSlider( ref dataBlock[2] );
                 };
 
-            ShadowRegistry.VariantDelegate evsmDel = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ref int[] dataBlock ) => 
+            ShadowRegistry.VariantDelegate evsmDel = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ShadowPrecision dataPrecision, ref int[] dataBlock ) => 
                 {
-                    CheckDataIntegrity( dataAlgorithm, dataVariant, ref dataBlock );
+                    CheckDataIntegrity( dataAlgorithm, dataVariant, dataPrecision, ref dataBlock );
 
                     m_DefEVSM_LightLeakBias.Slider( ref dataBlock[0] );
                     m_DefEVSM_VarianceBias.Slider( ref dataBlock[1] );
-                    m_DefEVSM_PosExponent.Slider( ref dataBlock[2] );
+                    if( (m_Flags & Flags.bpp_16) != 0 )
+                        m_DefEVSM_PosExponent_16.Slider( ref dataBlock[2] );
+                    else
+                        m_DefEVSM_PosExponent_32.Slider( ref dataBlock[2] );
                     if( dataVariant == ShadowVariant.V1 )
                     {
-                        m_DefEVSM_NegExponent.Slider( ref dataBlock[3] );
+                        if( (m_Flags & Flags.bpp_16) != 0 )
+                            m_DefEVSM_NegExponent_16.Slider( ref dataBlock[3] );
+                        else
+                            m_DefEVSM_NegExponent_32.Slider( ref dataBlock[3] );
                     }
                     BlurSlider( ref dataBlock[4] );
                 };
 
-            ShadowRegistry.VariantDelegate msmDel = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ref int[] dataBlock ) => 
+            ShadowRegistry.VariantDelegate msmDel = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ShadowPrecision dataPrecision, ref int[] dataBlock ) => 
                 {
-                    CheckDataIntegrity( dataAlgorithm, dataVariant, ref dataBlock );
+                    CheckDataIntegrity( dataAlgorithm, dataVariant, dataPrecision, ref dataBlock );
 
                     m_DefMSM_LightLeakBias.Slider( ref dataBlock[0] );
                     m_DefMSM_MomentBias.Slider( ref dataBlock[1] );
@@ -677,15 +709,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     BlurSlider( ref dataBlock[3] );
                 };
 
-            registry.Register( type, ShadowAlgorithm.VSM, "Variance shadow map (VSM)", 
-                new ShadowVariant[] { ShadowVariant.V0 }, new string[] { "2 moments" }, new ShadowRegistry.VariantDelegate[] { vsmDel } );
-            registry.Register( type, ShadowAlgorithm.EVSM, "Exponential variance shadow map (EVSM)",
-                new ShadowVariant[] { ShadowVariant.V0, ShadowVariant.V1 }, new string[] { "2 moments", "4 moments" }, new ShadowRegistry.VariantDelegate[] { evsmDel, evsmDel } );
-            registry.Register( type, ShadowAlgorithm.MSM, "Momentum shadow map (MSM)",
-                new ShadowVariant[] { ShadowVariant.V0, ShadowVariant.V1 }, new string[] { "Hamburg", "Hausdorff" }, new ShadowRegistry.VariantDelegate[] { msmDel, msmDel } );
+            ShadowPrecision precision = (m_Flags & Flags.bpp_16) == 0 ? ShadowPrecision.High : ShadowPrecision.Low;
+            m_SupportedAlgorithms.Reserve( 5 );
+            if( supports_VSM )
+            {
+                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.VSM, ShadowVariant.V0, precision ) );
+                registry.Register( type, precision, ShadowAlgorithm.VSM, "Variance shadow map (VSM)", 
+                    new ShadowVariant[] { ShadowVariant.V0 }, new string[] { "2 moments" }, new ShadowRegistry.VariantDelegate[] { vsmDel } );
+            }
+            if( supports_EVSM_2 && !supports_EVSM_4 )
+            {
+                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.EVSM, ShadowVariant.V0, precision ) );
+                registry.Register( type, precision, ShadowAlgorithm.EVSM, "Exponential variance shadow map (EVSM)",
+                    new ShadowVariant[] { ShadowVariant.V0 }, new string[] { "2 moments" }, new ShadowRegistry.VariantDelegate[] { evsmDel } );
+            }
+            if( supports_EVSM_4 )
+            {
+                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.EVSM, ShadowVariant.V0, precision ) );
+                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.EVSM, ShadowVariant.V1, precision ) );
+                registry.Register( type, precision, ShadowAlgorithm.EVSM, "Exponential variance shadow map (EVSM)",
+                    new ShadowVariant[] { ShadowVariant.V0, ShadowVariant.V1 }, new string[] { "2 moments", "4 moments" }, new ShadowRegistry.VariantDelegate[] { evsmDel, evsmDel } );
+            }
+            if( supports_MSM )
+            {
+                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.MSM, ShadowVariant.V0, precision ) );
+                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.MSM, ShadowVariant.V1, precision ) );
+                registry.Register( type, precision, ShadowAlgorithm.MSM, "Moment shadow map (MSM)",
+                    new ShadowVariant[] { ShadowVariant.V0, ShadowVariant.V1 }, new string[] { "Hamburg", "Hausdorff" }, new ShadowRegistry.VariantDelegate[] { msmDel, msmDel } );
+            }
         }
 
-        override protected bool CheckDataIntegrity( ShadowAlgorithm algorithm, ShadowVariant variant, ref int[] dataBlock )
+        override protected bool CheckDataIntegrity( ShadowAlgorithm algorithm, ShadowVariant variant, ShadowPrecision precision, ref int[] dataBlock )
         {
             switch( algorithm )
             {
@@ -712,8 +766,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         dataBlock = new int[k_BlockSize];
                         dataBlock[0] = m_DefEVSM_LightLeakBias.Default();
                         dataBlock[1] = m_DefEVSM_VarianceBias.Default();
-                        dataBlock[2] = m_DefEVSM_PosExponent.Default();
-                        dataBlock[3] = m_DefEVSM_NegExponent.Default();
+                        dataBlock[2] = (m_Flags & Flags.bpp_16) != 0 ? m_DefEVSM_PosExponent_16.Default() : m_DefEVSM_PosExponent_32.Default();
+                        dataBlock[3] = (m_Flags & Flags.bpp_16) != 0 ? m_DefEVSM_NegExponent_16.Default() : m_DefEVSM_NegExponent_32.Default();
                         dataBlock[4] = k_BlurKernelDefSize;
                         return false;
                     }
@@ -734,7 +788,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     return true;
                 }
-            default: return base.CheckDataIntegrity( algorithm, variant, ref dataBlock );
+            default: return base.CheckDataIntegrity( algorithm, variant, precision, ref dataBlock );
             }
         }
 
@@ -742,13 +796,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         override protected uint ReservePayload( ShadowRequest sr )
         {
             uint cnt = base.ReservePayload( sr );
-            switch( sr.shadowAlgorithm )
+            switch( ShadowUtils.ExtractAlgorithm( sr.shadowAlgorithm ) )
             {
-            case GPUShadowAlgorithm.VSM     : return cnt + 1;
-            case GPUShadowAlgorithm.EVSM_2  :
-            case GPUShadowAlgorithm.EVSM_4  : return cnt + 1;
-            case GPUShadowAlgorithm.MSM_Ham :
-            case GPUShadowAlgorithm.MSM_Haus: return cnt + 1;
+            case ShadowAlgorithm.VSM : return cnt + 1;
+            case ShadowAlgorithm.EVSM: return cnt + 1;
+            case ShadowAlgorithm.MSM : return cnt + 1;
             default: return cnt;
             }
         }
@@ -770,12 +822,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             ShadowAlgorithm algo;
             ShadowVariant vari;
-            ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari );
-            CheckDataIntegrity( algo, vari, ref shadowData );
+            ShadowPrecision prec;
+            ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari, out prec );
+            CheckDataIntegrity( algo, vari, prec, ref shadowData );
 
-            switch (sr.shadowAlgorithm)
+            switch( ShadowUtils.ExtractAlgorithm( sr.shadowAlgorithm ) )
             {
-            case GPUShadowAlgorithm.VSM:
+            case ShadowAlgorithm.VSM:
                 {
                     sp.p0 = shadowData[0];
                     sp.p1 = shadowData[1];
@@ -783,8 +836,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     payloadOffset++;
                 }
                 break;
-            case GPUShadowAlgorithm.EVSM_2:
-            case GPUShadowAlgorithm.EVSM_4:
+            case ShadowAlgorithm.EVSM:
                 {
                     sp.p0 = shadowData[0];
                     sp.p1 = shadowData[1];
@@ -795,10 +847,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     payloadOffset++;
                 }
                 break;
-            case GPUShadowAlgorithm.MSM_Ham:
-            case GPUShadowAlgorithm.MSM_Haus:
+            case ShadowAlgorithm.MSM:
                 {
-                    sp.Set( shadowData[0], shadowData[1], shadowData[2] | (SystemInfo.usesReversedZBuffer ? 1 : 0), 0 );
+                    sp.Set( shadowData[0], shadowData[1], shadowData[2] | (SystemInfo.usesReversedZBuffer ? 1 : 0), (m_Flags & Flags.bpp_16) != 0 ? 0x3f800000 : 0 );
                     payload[payloadOffset] = sp;
                     payloadOffset++;
                 }
@@ -856,46 +907,49 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int shadowDataFormat;
                 int[] shadowData = ald.GetShadowData( out shadowDataFormat );
 
-                switch( m_EntryCache[i].current.shadowAlgo )
+                ShadowAlgorithm algo;
+                ShadowVariant vari;
+                ShadowPrecision prec;
+                ShadowUtils.Unpack( m_EntryCache[i].current.shadowAlgo, out algo, out vari, out prec );
+                switch( algo )
                 {
-                case GPUShadowAlgorithm.VSM:
+                case ShadowAlgorithm.VSM:
                     {
                         kernelIdx = shadowData[2];
                         currentKernel = m_KernelVSM[kernelIdx];
                     }
                     break;
-                case GPUShadowAlgorithm.EVSM_2:
+                case ShadowAlgorithm.EVSM:
                     {
-                        Debug.Assert( (GPUShadowAlgorithm) shadowDataFormat == GPUShadowAlgorithm.EVSM_2 );
-                        float evsmExponent1 = ShadowUtils.Asfloat( shadowData[2] );
-                        cb.SetComputeFloatParam( m_MomentBlurCS, "evsmExponent", evsmExponent1 );
-                        kernelIdx = shadowData[4];
-                        currentKernel = m_KernelEVSM_2[kernelIdx]; 
+                        if( vari == ShadowVariant.V0 )
+                        {
+                            float evsmExponent1 = ShadowUtils.Asfloat( shadowData[2] );
+                            cb.SetComputeFloatParam( m_MomentBlurCS, "evsmExponent", evsmExponent1 );
+                            kernelIdx = shadowData[4];
+                            currentKernel = m_KernelEVSM_2[kernelIdx]; 
+                        }
+                        else
+                        {
+                            float evsmExponent1 = ShadowUtils.Asfloat( shadowData[2] );
+                            float evsmExponent2 = ShadowUtils.Asfloat( shadowData[3] );
+                            cb.SetComputeFloatParams( m_MomentBlurCS, "evsmExponents", new float[] { evsmExponent1, evsmExponent2 } );
+                            kernelIdx = shadowData[4];
+                            currentKernel = m_KernelEVSM_4[kernelIdx];
+                        }
                     }
                     break;
-                case GPUShadowAlgorithm.EVSM_4:
-                    {
-                        Debug.Assert( (GPUShadowAlgorithm) shadowDataFormat == GPUShadowAlgorithm.EVSM_4 );
-                        float evsmExponent1 = ShadowUtils.Asfloat( shadowData[2] );
-                        float evsmExponent2 = ShadowUtils.Asfloat( shadowData[3] );
-                        cb.SetComputeFloatParams( m_MomentBlurCS, "evsmExponents", new float[] { evsmExponent1, evsmExponent2 } );
-                        kernelIdx = shadowData[4];
-                        currentKernel = m_KernelEVSM_4[kernelIdx];
-                    }
-                    break;
-                case GPUShadowAlgorithm.MSM_Ham :
-                case GPUShadowAlgorithm.MSM_Haus:
+                case ShadowAlgorithm.MSM :
                     {
                         kernelIdx = shadowData[3];
                         currentKernel = m_KernelMSM[kernelIdx];
                     }
                     break;
-                default: Debug.LogError( "Unknown shadow algorithm selected for momentum type shadow maps." ); break;
+                default: Debug.LogError( "Unknown shadow algorithm selected for moment type shadow maps." ); break;
                 }
                 // TODO: Need a check here whether the shadowmap actually got updated, but right now that's queried on the cullResults.
                 Rect r = m_EntryCache[i].current.viewport;
                 cb.SetComputeIntParams( m_MomentBlurCS, "srcRect", new int[] { (int) r.x, (int) r.y, (int) r.width, (int) r.height } );
-                cb.SetComputeIntParams( m_MomentBlurCS, "dstRect", new int[] { (int) r.x, (int) r.y, (int) rendertargetSlice } );
+                cb.SetComputeIntParams( m_MomentBlurCS, "dstRect", new int[] { (int) r.x, (int) r.y, (int) rendertargetSlice, (int) m_Flags } );
                 cb.SetComputeFloatParams( m_MomentBlurCS, "blurWeightsStorage", m_BlurWeights[kernelIdx] );
                 cb.DispatchCompute( m_MomentBlurCS, currentKernel, ((int) r.width) / k_MomentBlurThreadsPerWorkgroup, (int) r.height / k_MomentBlurThreadsPerWorkgroup, 1 );
                 i++;
@@ -1080,9 +1134,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     sreq.facemask   = (uint) (1 << facecount) - 1;
                     sreq.shadowType = shadowType;
 
-                    int sa, sv;
-                    vl.light.GetComponent<AdditionalLightData>().GetShadowAlgorithm( out sa, out sv );
-                    sreq.shadowAlgorithm = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv );
+                    int sa, sv, sp;
+                    vl.light.GetComponent<AdditionalLightData>().GetShadowAlgorithm( out sa, out sv, out sp );
+                    sreq.shadowAlgorithm = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv, (ShadowPrecision) sp );
                     totalRequestCount += (uint) facecount;
                     requestsGranted.AddUnchecked( sreq );
                     totalSlots--;
@@ -1118,7 +1172,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int smidx = 0;
                 while( smidx < k_MaxShadowmapPerType )
                 {
-                    if( m_ShadowmapsPerType[(int)shadowtype,smidx].Reserve( frameId, ref sd, grantedRequests[i], (uint) ald.shadowResolution, (uint) ald.shadowResolution, ref shadowDatas, ref shadowmapPayload, lights ) )
+                    if( m_ShadowmapsPerType[(int)shadowtype,smidx] != null && m_ShadowmapsPerType[(int)shadowtype,smidx].Reserve( frameId, ref sd, grantedRequests[i], (uint) ald.shadowResolution, (uint) ald.shadowResolution, ref shadowDatas, ref shadowmapPayload, lights ) )
                         break;
                     smidx++;
                 }

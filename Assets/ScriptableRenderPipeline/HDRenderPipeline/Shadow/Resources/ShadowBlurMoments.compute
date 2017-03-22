@@ -54,11 +54,13 @@ Texture2DMS<float>			depthTex;
 #endif
 
 uniform uint4				srcRect; // .xy = offset, .zw = width/height
-uniform uint4				dstRect; // .xy = offset, .z  = array slice , .w = unused
+uniform uint4				dstRect; // .xy = offset, .z  = array slice , .w = Flags: 1 := 16bpp, 2 := 2 channels pp
 
 uniform float4 blurWeightsStorage[3]; // Unity expects float arrays to be tightly packed
 static float   blurWeights[12] = (float[12])blurWeightsStorage;
 
+static const int kBits_16	 = 1; // 16 bits per channel
+static const int kChannels_2 = 2; // 2 channels per pixel
 
 #if (SHADOW_MOMENT_ALGORITHM == VSM)
 #	define SHADOW_MOMENTS 2
@@ -91,8 +93,14 @@ static float   blurWeights[12] = (float[12])blurWeightsStorage;
 #	define SHADOW_MOMENTS 4
 	float4 DepthToMoments( float depth )
 	{
-		float dsq = depth * depth;
-		return float4( depth, dsq, depth * dsq, dsq * dsq );
+		[branch]
+		if( (dstRect.w & kBits_16) != 0 )
+			return ShadowMoments_Encode16MSM( depth );
+		else
+		{
+			float dsq = depth * depth;
+			return float4( depth, dsq, depth * dsq, dsq * dsq );
+		}
 	}
 #else
 #	error "No valid shadow moment algorithm has been set to the define SHADOW_MOMENT_ALGORITHM."

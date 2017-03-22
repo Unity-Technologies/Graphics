@@ -56,14 +56,16 @@ namespace UnityEngine.Experimental.Rendering
 
         [HideInInspector, SerializeField] private int           shadowAlgorithm;
         [HideInInspector, SerializeField] private int           shadowVariant;
+        [HideInInspector, SerializeField] private int           shadowPrecision;
         [HideInInspector, SerializeField] private ShadowData    shadowData;
         [HideInInspector, SerializeField] private ShadowData[]  shadowDatas = new ShadowData[0];
 
-        public void GetShadowAlgorithm( out int algorithm, out int variant )    { algorithm = shadowAlgorithm; variant = shadowVariant; }
-        public void SetShadowAlgorithm( int algorithm, int variant, int format, int[] data )
+        public void GetShadowAlgorithm( out int algorithm, out int variant, out int precision )    { algorithm = shadowAlgorithm; variant = shadowVariant; precision = shadowPrecision; }
+        public void SetShadowAlgorithm( int algorithm, int variant, int precision, int format, int[] data )
         {
             shadowAlgorithm   = algorithm;
             shadowVariant     = variant;
+            shadowPrecision   = precision;
             shadowData.format = format;
             shadowData.data   = data;
 
