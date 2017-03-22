@@ -11,6 +11,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
         private static readonly int kMaxCascades = 4;
         private static readonly int kMaxLights = 8;
+        private int m_ShadowCasterCascadesCount = kMaxCascades;
         private int m_ShadowMapProperty;
         private RenderTargetIdentifier m_ShadowMapRTID;
         private int m_DepthBufferBits = 24;
@@ -65,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 // Setup light and shadow shader constants
                 SetupLightShaderVariables(cull.visibleLights, context);
                 if (shadowsRendered)
-                    SetupShadowShaderVariables(context, m_ShadowSettings.directionalLightCascadeCount);
+                    SetupShadowShaderVariables(context, m_ShadowCasterCascadesCount);
 
                 // Render Opaques
                 var settings = new DrawRendererSettings(cull, camera, m_ForwardBasePassName);
@@ -185,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
         private bool RenderShadows(CullResults cullResults, ScriptableRenderContext context)
         {
-            int cascadeCount = m_ShadowSettings.directionalLightCascadeCount;
+            m_ShadowCasterCascadesCount = m_ShadowSettings.directionalLightCascadeCount;
 
             VisibleLight[] lights = cullResults.visibleLights;
             int lightCount = lights.Length;
@@ -199,10 +200,10 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 {
                     lightIndex = i;
                     if (lights[i].lightType == LightType.Spot)
-                        cascadeCount = 1;
+                        m_ShadowCasterCascadesCount = 1;
 
                     shadowResolution = GetMaxTileResolutionInAtlas(m_ShadowSettings.shadowAtlasWidth,
-                        m_ShadowSettings.shadowAtlasHeight, cascadeCount);
+                        m_ShadowSettings.shadowAtlasHeight, m_ShadowCasterCascadesCount);
                     break;
                 }
             }
@@ -245,10 +246,10 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             }
             else if (lights[lightIndex].lightType == LightType.Directional)
             {
-                for (int cascadeIdx = 0; cascadeIdx < cascadeCount; ++cascadeIdx)
+                for (int cascadeIdx = 0; cascadeIdx < m_ShadowCasterCascadesCount; ++cascadeIdx)
                 {
                     needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex,
-                    cascadeIdx, cascadeCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj,
+                    cascadeIdx, m_ShadowCasterCascadesCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj,
                         out settings.splitData);
 
                     m_DirectionalShadowSplitDistances[cascadeIdx] = settings.splitData.cullingSphere;
@@ -371,7 +372,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             else
                 cmd.DisableShaderKeyword("_VERTEX_LIGHTS");
 
-            if (m_Asset.CascadeCount == 1)
+            if (m_ShadowCasterCascadesCount == 1)
                 cmd.DisableShaderKeyword("_SHADOW_CASCADES");
            	else
                 cmd.EnableShaderKeyword("_SHADOW_CASCADES");
