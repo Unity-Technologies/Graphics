@@ -546,7 +546,7 @@ void LODDitheringTransition(uint2 unPositionSS, float ditherFactor)
     // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
     // this is handled by this test which reverse the pattern
     p = (ditherFactor >= 0.5) ? (15.0 / 16.0) - p : p;
-    clip(ditherFactor - t);
+    clip(ditherFactor - p);
 }
 
 #endif // UNITY_COMMON_INCLUDED
