@@ -6,12 +6,23 @@ namespace UnityEditor.Experimental.Rendering
 {
     public class MaterialUpgrader
     {
+        public delegate void MaterialFinalizer(Material mat);
+
         string m_OldShader;
         string m_NewShader;
+        MaterialFinalizer m_Finalizer;
 
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
         Dictionary<string, string> m_FloatRename = new Dictionary<string, string>();
         Dictionary<string, string> m_ColorRename = new Dictionary<string, string>();
+
+        class KeywordFloatRename
+        {
+            public string keyword;
+            public string property;
+            public float setVal, unsetVal;
+        }
+        List<KeywordFloatRename> m_KeywordFloatRename = new List<KeywordFloatRename>();
 
         [Flags]
         public enum UpgradeFlags
@@ -39,6 +50,9 @@ namespace UnityEditor.Experimental.Rendering
             material.shader = Shader.Find(m_NewShader);
             material.CopyPropertiesFromMaterial(newMaterial);
             UnityEngine.Object.DestroyImmediate(newMaterial);
+
+            if(m_Finalizer != null)
+                m_Finalizer(material);
         }
 
         // Overridable function to implement custom material upgrading functionality
@@ -56,12 +70,16 @@ namespace UnityEditor.Experimental.Rendering
 
             foreach (var t in m_ColorRename)
                 dstMaterial.SetColor(t.Value, srcMaterial.GetColor(t.Key));
+
+            foreach (var t in m_KeywordFloatRename)
+                dstMaterial.SetFloat(t.property, srcMaterial.IsKeywordEnabled(t.keyword) ? t.setVal : t.unsetVal);
         }
 
-        public void RenameShader(string oldName, string newName)
+        public void RenameShader(string oldName, string newName, MaterialFinalizer finalizer)
         {
             m_OldShader = oldName;
             m_NewShader = newName;
+            m_Finalizer = finalizer;
         }
 
         public void RenameTexture(string oldName, string newName)
@@ -77,6 +95,11 @@ namespace UnityEditor.Experimental.Rendering
         public void RenameColor(string oldName, string newName)
         {
             m_ColorRename[oldName] = newName;
+        }
+
+        public void RenameKeywordToFloat(string oldName, string newName, float setVal, float unsetVal)
+        {
+            m_KeywordFloatRename.Add(new KeywordFloatRename { keyword = oldName, property = newName, setVal = setVal, unsetVal = unsetVal });
         }
 
         static bool IsMaterialPath(string path)

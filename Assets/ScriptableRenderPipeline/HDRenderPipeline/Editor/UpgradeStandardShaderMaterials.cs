@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-	public class UpgradeStandardShaderMaterials
+    public class UpgradeStandardShaderMaterials
     {
         static List<MaterialUpgrader> GetHDUpgraders()
         {
             var upgraders = new List<MaterialUpgrader>();
-            upgraders.Add(new StandardToHDLitMaterialUpgrader());
-            upgraders.Add(new StandardSpecularToHDLitMaterialUpgrader());
+            upgraders.Add(new StandardToHDLitMaterialUpgrader("Standard", "HDRenderPipeline/Lit", LitGUI.SetupMaterialKeywordsAndPass));
+            upgraders.Add(new StandardSpecularToHDLitMaterialUpgrader("Standard (Specular setup)", "HDRenderPipeline/Lit", LitGUI.SetupMaterialKeywordsAndPass));
             return upgraders;
         }
 
