@@ -150,7 +150,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
             {
-                draggedBlock.ContextPresenter.AddBlock(insertIndex++,draggedBlock.Model);
+                this.AddBlock(insertIndex++,draggedBlock.Model);
             }
         }
     }
