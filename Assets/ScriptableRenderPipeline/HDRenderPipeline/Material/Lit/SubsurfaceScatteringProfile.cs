@@ -39,9 +39,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (s_DefaultProfile == null)
                 {
+#if UNITY_EDITOR
                     s_DefaultProfile = CreateInstance<SubsurfaceScatteringProfile>();
                     AssetDatabase.CreateAsset(s_DefaultProfile, "Assets/ScriptableRenderPipeline/HDRenderPipeline/Default SSS Profile.asset");
                     AssetDatabase.SaveAssets();
+#else
+                    throw new UnassignedReferenceException("SubsurfaceScatteringProfile.defaultProfile can not be null.");
+#endif
                 }
                 return s_DefaultProfile;
             }
