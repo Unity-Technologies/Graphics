@@ -5,35 +5,11 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 using UnityEngine;
 using UnityEngine.Graphing;
+using UnityEngine.Profiling;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    public class VFXGraphAssetFactory
-    {
-        [MenuItem("Assets/Create/VFXGraphAsset", priority = 301)]
-        private static void MenuCreateVFXGraphAsset()
-        {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateVFXGraphAsset>(), "New VFXGraph.asset", null, null);
-        }
-
-        internal static VFXGraphAsset CreateVFXGraphAssetAtPath(string path)
-        {
-            VFXGraphAsset asset = ScriptableObject.CreateInstance<VFXGraphAsset>();
-            asset.name = Path.GetFileName(path);
-            AssetDatabase.CreateAsset(asset, path);
-            return asset;
-        }
-    }
-
-    internal class DoCreateVFXGraphAsset : EndNameEditAction
-    {
-        public override void Action(int instanceId, string pathName, string resourceFile)
-        {
-            VFXGraphAsset asset = VFXGraphAssetFactory.CreateVFXGraphAssetAtPath(pathName);
-            ProjectWindowUtil.ShowCreatedAsset(asset);
-        }
-    }
-
     [Serializable]
     class VFXGraphAsset : ScriptableObject
     {
@@ -42,28 +18,60 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXGraph m_Root;
 
+        public void UpdateSubAssets()
+        {
+            if (EditorUtility.IsPersistent(this))
+            {
+                Profiler.BeginSample("UpdateSubAssets");
+
+                try
+                {
+                    HashSet<Object> persistentObjects = new HashSet<Object>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)));
+                    persistentObjects.Remove(this);
+
+                    //foreach (var o in persistentObjects)
+                    //    Debug.Log("PERSISTENT: " + o);
+
+                    HashSet<Object> currentObjects = new HashSet<Object>();
+
+                    m_Root.CollectDependencies(currentObjects);
+                    currentObjects.Add(m_Root);
+
+                    //foreach (var o in currentObjects)
+                    //    Debug.Log("CURRENT: " + o);
+
+                    // Add sub assets that are not already present
+                    foreach (var obj in currentObjects)
+                        if (!persistentObjects.Contains(obj))
+                            AssetDatabase.AddObjectToAsset(obj, this);
+
+                    // Remove sub assets that are not referenced anymore
+                    foreach (var obj in persistentObjects)
+                        if (!currentObjects.Contains(obj))
+                            ScriptableObject.DestroyImmediate(obj, true);
+                }
+                catch (Exception e)
+                {
+                    Debug.Log(e);
+                }
+
+                Profiler.EndSample();
+            }
+        }
+
         private void OnModelInvalidate(VFXModel model,VFXModel.InvalidationCause cause)
         {
+            if (cause == VFXModel.InvalidationCause.kStructureChanged)
+                UpdateSubAssets();
+
             EditorUtility.SetDirty(this);
         }
 
         void OnEnable()
         {
             if (m_Root == null)
-                m_Root = new VFXGraph();
+                m_Root = ScriptableObject.CreateInstance<VFXGraph>();
             m_Root.onInvalidateDelegate += OnModelInvalidate;
         }
-    }
-
-    [Serializable]
-    class VFXGraph : VFXModel
-    {
-
-        public override bool AcceptChild(VFXModel model, int index = -1)
-        {
-            return true; // Can hold any model
-        }
-
-        private ScriptableObject m_Owner;
     }
 }

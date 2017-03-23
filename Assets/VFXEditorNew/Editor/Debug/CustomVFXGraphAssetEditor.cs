@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace UnityEditor.VFX
 {
-    [CustomEditor(typeof(VFXGraphAsset))]
+   /* [CustomEditor(typeof(VFXGraphAsset))]
     public class VFXGraphAssetEditor : Editor
     {
         private void ProcessJSonTokenGUI(JToken node, string parentPath, string currentName)
@@ -194,5 +194,5 @@ namespace UnityEditor.VFX
                 ((VFXGraphAsset)target).root.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
 
         }
-    }
+    }*/
 }

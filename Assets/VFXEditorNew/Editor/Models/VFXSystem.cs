@@ -1,4 +1,4 @@
-
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
 
             if (system0.GetNbChildren() > context0Index + 1)
             {
-                VFXSystem newSystem = new VFXSystem();
+                VFXSystem newSystem = CreateInstance<VFXSystem>();
 
                 while (system0.GetNbChildren() > context0Index + 1)
                     system0.m_Children[context0Index + 1].Attach(newSystem, true);
@@ -75,7 +75,7 @@ namespace UnityEditor.VFX
             if (index == 0)
                 return false;
 
-            VFXSystem newSystem = new VFXSystem();
+            VFXSystem newSystem = CreateInstance<VFXSystem>();
             while (system.GetNbChildren() > index)
                 system.GetChild(index).Attach(newSystem, true);
 
