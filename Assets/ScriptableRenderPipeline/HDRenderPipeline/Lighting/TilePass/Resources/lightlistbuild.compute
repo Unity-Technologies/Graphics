@@ -4,7 +4,7 @@
 #pragma kernel TileLightListGen					LIGHTLISTGEN=TileLightListGen
 #pragma kernel TileLightListGen_SrcBigTile		LIGHTLISTGEN=TileLightListGen_SrcBigTile		USE_TWO_PASS_TILED_LIGHTING
 
-#include "ShaderLibrary/common.hlsl"
+#include "../../../../ShaderLibrary/common.hlsl"
 #include "../ShaderBase.hlsl"
 #include "../TilePass.cs.hlsl"
 #include "../LightingConvexHullUtils.hlsl"

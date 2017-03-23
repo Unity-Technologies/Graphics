@@ -8,9 +8,9 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
 
-    #include "ShaderLibrary/Color.hlsl"
-    #include "ShaderLibrary/Common.hlsl"
-    #include "ShaderLibrary/CommonLighting.hlsl"
+    #include "../../../../ShaderLibrary/Color.hlsl"
+    #include "../../../../ShaderLibrary/Common.hlsl"
+    #include "../../../../ShaderLibrary/CommonLighting.hlsl"
 
     TEXTURECUBE(_Cubemap);
     SAMPLERCUBE(sampler_Cubemap);

@@ -27,9 +27,9 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "ShaderLibrary/Common.hlsl"
-            #include "ShaderLibrary/Color.hlsl"
-            #include "HDRenderPipeline/ShaderVariables.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
+            #include "../../../ShaderLibrary/Color.hlsl"
+            #include "../../ShaderVariables.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
