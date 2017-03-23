@@ -1,0 +1,11 @@
+#pragma kernel ClearDispatchIndirect
+
+RWBuffer<uint> g_DispatchIndirectBuffer : register( u0 );	// Indirect arguments have to be in a _buffer_, not a structured buffer
+
+[numthreads(64, 1, 1)]
+void ClearDispatchIndirect(uint dispatchThreadId : SV_DispatchThreadID)
+{
+	g_DispatchIndirectBuffer[dispatchThreadId * 3 + 0] = 0;	// ThreadGroupCountX
+	g_DispatchIndirectBuffer[dispatchThreadId * 3 + 1] = 1;	// ThreadGroupCountY
+	g_DispatchIndirectBuffer[dispatchThreadId * 3 + 2] = 1;	// ThreadGroupCountZ
+}

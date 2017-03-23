@@ -17,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader buildPerTileLightListShader = null;     // FPTL
         public ComputeShader buildPerBigTileLightListShader = null;
         public ComputeShader buildPerVoxelLightListShader = null;    // clustered
+        public ComputeShader clearDispatchIndirectShader = null;
         public ComputeShader shadeOpaqueShader = null;
 
         // Various set of material use in render loop
