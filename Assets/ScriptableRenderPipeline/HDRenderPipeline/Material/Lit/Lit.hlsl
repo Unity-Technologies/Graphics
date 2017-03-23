@@ -3,9 +3,7 @@
 //-----------------------------------------------------------------------------
 
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
-//TODO: return this original relative path include after fixing a bug in Unity side
-//#include "Lit.cs.hlsl"
-#include "../../Material/Lit/Lit.cs.hlsl"
+#include "Lit.cs.hlsl"
 
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
