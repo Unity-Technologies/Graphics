@@ -51,6 +51,14 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
         ReflectionProbe
     }
 
+    public struct UpgradeParams
+    {
+        public BlendMode blendMode;
+        public SpecularSource specularSource;
+        public GlossinessSource glosinessSource;
+        public ReflectionSource reflectionSource;
+    }
+
     private static class Styles
     {
         public static GUIContent[] albedoGlosinessLabels =
@@ -163,6 +171,14 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
         // Shininess value cannot be zero since it will produce undefined values for cases where pow(0, 0).
         float shininess = material.GetFloat("_Shininess");
         material.SetFloat("_Shininess", Mathf.Clamp(shininess, kMinShininessValue, 1.0f));
+
+        string oldShaderName = oldShader.name;
+        string[] shaderStrings = oldShaderName.Split('/');
+
+        if (shaderStrings[0].Equals("Legacy Shaders") || shaderStrings[0].Equals("Mobile") || shaderStrings[0].Equals("Reflective"))
+        {
+            ConvertFromLegacy(material, oldShaderName);
+        }
 
         UpdateMaterialKeywords(material);
     }
@@ -361,5 +377,48 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
             material.EnableKeyword(keyword);
         else
             material.DisableKeyword(keyword);
+    }
+
+    private void ConvertFromLegacy(Material material, string oldShaderName)
+    {
+        UpgradeParams shaderUpgradeParams;
+
+        if (oldShaderName.Contains("Transp"))
+        {
+            shaderUpgradeParams.blendMode = BlendMode.Alpha;
+            shaderUpgradeParams.glosinessSource = GlossinessSource.SpecularAlpha;
+        }
+        else if (oldShaderName.Contains("Cutout"))
+        {
+            shaderUpgradeParams.blendMode = BlendMode.Cutout;
+            shaderUpgradeParams.glosinessSource = GlossinessSource.SpecularAlpha;
+        }
+        else
+        {
+            shaderUpgradeParams.blendMode = BlendMode.Opaque;
+            shaderUpgradeParams.glosinessSource = GlossinessSource.BaseAlpha;
+        }
+
+        if (oldShaderName.Contains("Spec"))
+            shaderUpgradeParams.specularSource = SpecularSource.SpecularTextureAndColor;
+        else
+            shaderUpgradeParams.specularSource = SpecularSource.NoSpecular;
+
+        if (oldShaderName.Contains("Reflective"))
+            shaderUpgradeParams.reflectionSource = ReflectionSource.Cubemap;
+        else
+            shaderUpgradeParams.reflectionSource = ReflectionSource.NoReflection;
+
+        material.SetFloat("_Mode", (float)shaderUpgradeParams.blendMode);
+        material.SetFloat("_SpecSource", (float)shaderUpgradeParams.specularSource);
+        material.SetFloat("_GlossinessSource", (float)shaderUpgradeParams.glosinessSource);
+        material.SetFloat("_ReflectionSource", (float)shaderUpgradeParams.reflectionSource);
+
+        if (oldShaderName.Contains("Self-Illumin"))
+        {
+            material.SetTexture("_EmissionMap", material.GetTexture("_MainTex"));
+            material.SetTexture("_MainTex", null);
+            material.SetColor("_EmissionColor", Color.white);
+        }
     }
 }

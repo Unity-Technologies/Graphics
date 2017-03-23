@@ -104,12 +104,12 @@ namespace UnityEditor.Experimental.Rendering
             m_TexturesToRemove.Add(name);
         }
 
-        public void SetNewFloatProperty(string propertyName, float value)
+        public void SetFloat(string propertyName, float value)
         {
             m_FloatPropertiesToSet[propertyName] = value;
         }
 
-        public void SetNewColorProperty(string propertyName, Color value)
+        public void SetColor(string propertyName, Color value)
         {
             m_ColorPropertiesToSet[propertyName] = value;
         }
