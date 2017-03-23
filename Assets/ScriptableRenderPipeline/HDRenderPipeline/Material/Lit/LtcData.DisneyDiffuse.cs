@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public partial class RenderLoop : Object
         {
-			static double[,] s_LtcDisneyDiffuseMatrixData = new double[k_LtcLUTResolution * k_LtcLUTResolution, k_LtcLUTMatrixDim * k_LtcLUTMatrixDim]
+			public static double[,] s_LtcDisneyDiffuseMatrixData = new double[k_LtcLUTResolution * k_LtcLUTResolution, k_LtcLUTMatrixDim * k_LtcLUTMatrixDim]
 			{
 				{1.018309, 0, 0.000000, 0, 1.018309, 0, 0.000000, 0, 1}, 
 				{1.018309, 0, 0.000000, 0, 1.018309, 0, 0.000000, 0, 1}, 
@@ -4108,7 +4108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 				{1.106979, 0, 0.286686, 0, 1.061540, 0, -0.391058, 0, 1}
 			};
 
-			static float[] s_LtcDisneyDiffuseMagnitudeData = new float[k_LtcLUTResolution * k_LtcLUTResolution]
+            public static float[] s_LtcDisneyDiffuseMagnitudeData = new float[k_LtcLUTResolution * k_LtcLUTResolution]
 			{
 				0.978932f, 
 				0.978932f, 

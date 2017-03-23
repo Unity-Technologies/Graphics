@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 using System;
 
@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // This table is precomputed for squared roughness and normalized so that last entry
             // is 1 and thus does not need to be store in a texture.
-            static double[,] s_LtcGGXMatrixData = new double[k_LtcLUTResolution * k_LtcLUTResolution, k_LtcLUTMatrixDim * k_LtcLUTMatrixDim]
+            public static double[,] s_LtcGGXMatrixData = new double[k_LtcLUTResolution * k_LtcLUTResolution, k_LtcLUTMatrixDim * k_LtcLUTMatrixDim]
 			{
 				{499.999756, 0, 0.000000, 0, 499.999756, 0, 0.000000, 0, 1}, 
 				{499.999756, 0, 0.000000, 0, 499.999756, 0, 0.000000, 0, 1}, 
@@ -4114,7 +4114,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 				{0.609037, 0, -0.053470, 0, 0.607151, 0, 0.031450, 0, 1}
 			};
 
-			static float[] s_LtcGGXMagnitudeData = new float[k_LtcLUTResolution * k_LtcLUTResolution]
+            public static float[] s_LtcGGXMagnitudeData = new float[k_LtcLUTResolution * k_LtcLUTResolution]
 			{
 				1.000000f, 
 				1.000000f, 
@@ -8214,7 +8214,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 				0.887423f
 			};
 
-			static float[] s_LtcGGXFresnelData = new float[k_LtcLUTResolution * k_LtcLUTResolution]
+            public static float[] s_LtcGGXFresnelData = new float[k_LtcLUTResolution * k_LtcLUTResolution]
 			{
 				0.000000f, 
 				0.000000f, 
