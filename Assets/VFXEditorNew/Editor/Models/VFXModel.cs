@@ -46,6 +46,13 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual T Clone<T>() where T : VFXModel
+        {
+            T clone = (T)Instantiate(this);
+            clone.m_Parent = null;
+            return clone;
+        }
+
         protected virtual void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
             if (onInvalidateDelegate != null)
