@@ -12,6 +12,13 @@ namespace UnityEditor.VFX.UI
                 return -1;
             }
         }
+
+
+        public VFXFlowEdge()
+        {
+
+        }
+
         protected override void DrawEdge(IStylePainter painter)
 		{
 			var edgePresenter = GetPresenter<EdgePresenter>();

@@ -8,6 +8,9 @@ namespace UnityEditor.VFX.UI
 {
     public class VFXFlowEdgePresenter: EdgePresenter
     {
+        public VFXFlowEdgePresenter()
+        {
 
+        }
     }
 }
