@@ -1,4 +1,4 @@
-#if defined (LIGHTLOOP_TILE_DIRECT) || defined(LIGHTLOOP_TILE_ALL)
+﻿#if defined (LIGHTLOOP_TILE_DIRECT) || defined(LIGHTLOOP_TILE_ALL)
 #define PROCESS_DIRECTIONAL_LIGHT
 #define PROCESS_PUNCTUAL_LIGHT
 #define PROCESS_AREA_LIGHT
@@ -48,10 +48,10 @@ StructuredBuffer<uint> g_vLayeredOffsetsBuffer;		// don't support Buffer yet in 
 StructuredBuffer<float> g_logBaseBuffer;			// don't support Buffer yet in unity
 //#endif
 
-StructuredBuffer<DirectionalLightData>  _DirectionalLightDatas;
-StructuredBuffer<LightData>             _LightDatas;
-StructuredBuffer<EnvLightData>          _EnvLightDatas;
-StructuredBuffer<ShadowData>            _ShadowDatas;
+StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
+StructuredBuffer<LightData>            _LightDatas;
+StructuredBuffer<EnvLightData>         _EnvLightDatas;
+StructuredBuffer<ShadowData>           _ShadowDatas;
 
 // Use texture atlas for shadow map
 //TEXTURE2D(_ShadowAtlas);

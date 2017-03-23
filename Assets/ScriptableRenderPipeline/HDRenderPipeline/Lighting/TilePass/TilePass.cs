@@ -402,29 +402,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
                 s_DispatchIndirectBuffer = new ComputeBuffer(LightDefinitions.NUM_FEATURE_VARIANTS * 3, sizeof(uint), ComputeBufferType.IndirectArguments);
 
-                buildScreenAABBShader.SetBuffer(s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
-                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "_LightVolumeData", s_LightVolumeDataBuffer);
-                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_data", s_ConvexBoundsBuffer);
-
                 if (m_PassSettings.enableClustered)
                 {
                     var kernelName = m_PassSettings.enableBigTilePrepass ? (k_UseDepthBuffer ? "TileLightListGen_DepthRT_SrcBigTile" : "TileLightListGen_NoDepthRT_SrcBigTile") : (k_UseDepthBuffer ? "TileLightListGen_DepthRT" : "TileLightListGen_NoDepthRT");
                     s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
                     s_ClearVoxelAtomicKernel = buildPerVoxelLightListShader.FindKernel("ClearAtomic");
-                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "_LightVolumeData", s_LightVolumeDataBuffer);
-                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_data", s_ConvexBoundsBuffer);
-
                     s_GlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
                 }
 
                 if (m_PassSettings.enableBigTilePrepass)
                 {
                     s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
-                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "_LightVolumeData", s_LightVolumeDataBuffer);
-                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_data", s_ConvexBoundsBuffer);
                 }
 
                 s_ClearDispatchIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDispatchIndirect");
@@ -1377,6 +1365,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Restore values after "special rendering"
                 m_PassSettings.specularGlobalDimmer = oldSpecularGlobalDimmer;
+
+                UpdateDataBuffers();
             }
 
             void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
@@ -1420,6 +1410,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_logBaseBuffer", s_PerTileLogBaseTweak);
                 }
 
+                cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+                cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "_LightVolumeData", s_LightVolumeDataBuffer);
+                cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_data", s_ConvexBoundsBuffer);
+
                 var numTilesX = GetNumTileClusteredX(camera);
                 var numTilesY = GetNumTileClusteredY(camera);
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
@@ -1455,6 +1449,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var invProjh = projh.inverse;
 
                     cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", m_lightCount);
+                    cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
+
                     Utilities.SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
                     Utilities.SetMatrixCS(cmd, buildScreenAABBShader, "g_mInvProjection", invProjh);
                     cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
@@ -1472,6 +1468,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fNearPlane", camera.nearClipPlane);
                     cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fFarPlane", camera.farClipPlane);
                     cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, "g_vLightList", s_BigTileLightList);
+                    cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+                    cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, "_LightVolumeData", s_LightVolumeDataBuffer);
+                    cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, "g_data", s_ConvexBoundsBuffer);
                     cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, 1);
                 }
 
@@ -1487,6 +1486,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
                     cmd.SetComputeIntParam(buildPerTileLightListShader, "_EnvLightIndexShift", m_lightList.lights.Count);
                     cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", m_lightCount);
+
+                    cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+                    cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "_LightVolumeData", s_LightVolumeDataBuffer);
+                    cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_data", s_ConvexBoundsBuffer);
+
                     Utilities.SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
                     Utilities.SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
                     cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", cameraDepthBufferRT);
@@ -1524,7 +1528,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (activeComputeShader)
                     activeCommandBuffer.SetComputeTextureParam(activeComputeShader, activeComputeKernel, name, value);
                 else
-                    Shader.SetGlobalTexture(name, value);
+                    activeCommandBuffer.SetGlobalTexture(name, value);
 
             }
 
@@ -1533,7 +1537,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (activeComputeShader)
                     activeCommandBuffer.SetComputeBufferParam(activeComputeShader, activeComputeKernel, name, buffer);
                 else
-                    Shader.SetGlobalBuffer(name, buffer);
+                    activeCommandBuffer.SetGlobalBuffer(name, buffer);
             }
 
             private void SetGlobalInt(string name, int value)
@@ -1549,7 +1553,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (activeComputeShader)
                     activeCommandBuffer.SetComputeFloatParam(activeComputeShader, name, value);
                 else
-                    Shader.SetGlobalFloat(name, value);
+                    activeCommandBuffer.SetGlobalFloat(name, value);
             }
 
             private void SetGlobalVector(string name, Vector4 value)
@@ -1557,7 +1561,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (activeComputeShader)
                     activeCommandBuffer.SetComputeVectorParam(activeComputeShader, name, value);
                 else
-                    Shader.SetGlobalVector(name, value);
+                    activeCommandBuffer.SetGlobalVector(name, value);
             }
 
             private void SetGlobalVectorArray(string name, Vector4[] values)
@@ -1579,8 +1583,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    Shader.SetGlobalVectorArray(name, values);
+                    activeCommandBuffer.SetGlobalVectorArray(name, values);
                 }
+            }
+
+            private void UpdateDataBuffers()
+            {
+                s_DirectionalLightDatas.SetData(m_lightList.directionalLights.ToArray());
+                s_LightDatas.SetData(m_lightList.lights.ToArray());
+                s_EnvLightDatas.SetData(m_lightList.envLights.ToArray());
+                s_shadowDatas.SetData(m_lightList.shadows.ToArray());
+
+                // These two buffers have been set in Rebuild()
+                s_ConvexBoundsBuffer.SetData(m_lightList.bounds.ToArray());
+                s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes.ToArray());
             }
 
             private void BindGlobalParams(CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, Camera camera, ScriptableRenderContext loop)
@@ -1588,7 +1604,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if (SHADOWS_ENABLED)
                 m_ShadowMgr.BindResources(loop);
 #endif
-                SetGlobalPropertyRedirect(computeShader, kernelIndex, cmd);
+                SetGlobalBuffer("g_vLightListGlobal", !usingFptl ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
                 SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
                 SetGlobalTexture("_CookieCubeTextures", m_CubeCookieTexArray.GetTexCache());
@@ -1631,26 +1647,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            public override void PushGlobalParams(Camera camera, ScriptableRenderContext loop)
+            private void PushGlobalParams(Camera camera, ScriptableRenderContext loop, ComputeShader computeShader, int kernelIndex)
             {
                 var cmd = new CommandBuffer { name = "Push Global Parameters" };
-
-
-                s_DirectionalLightDatas.SetData(m_lightList.directionalLights.ToArray());
-                s_LightDatas.SetData(m_lightList.lights.ToArray());
-                s_EnvLightDatas.SetData(m_lightList.envLights.ToArray());
-                s_shadowDatas.SetData(m_lightList.shadows.ToArray());
-
-                // These two buffers have been set in Rebuild()
-                s_ConvexBoundsBuffer.SetData(m_lightList.bounds.ToArray());
-                s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes.ToArray());
 
 #if (SHADOWS_ENABLED)
                 // Shadows
                 m_ShadowMgr.SyncData();
 #endif
-                BindGlobalParams(cmd, null, 0, camera, loop);
-
+                SetGlobalPropertyRedirect(computeShader, kernelIndex, cmd);
+                BindGlobalParams(cmd, computeShader, kernelIndex, camera, loop);
                 SetGlobalPropertyRedirect(null, 0, null);
 
                 loop.ExecuteCommandBuffer(cmd);
@@ -1705,27 +1711,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new Utilities.ProfilingSample(m_PassSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass", renderContext))
                 {
                     var cmd = new CommandBuffer();
-
                     cmd.name = bUseClusteredForDeferred ? "Clustered pass" : "Tiled pass";
 
-                    SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
-
-                    if (lightDebugSettings.lightingDebugMode == LightingDebugMode.None)
-                        SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlKernel : s_shadeOpaqueClusteredKernel, cmd);
-                    else
-                        SetGlobalPropertyRedirect(shadeOpaqueShader, usingFptl ? s_shadeOpaqueFptlDebugLightingKernel : s_shadeOpaqueClusteredDebugLightingKernel, cmd);
-
-                    // In case of bUseClusteredForDeferred disable toggle option since we're using m_perVoxelLightLists as opposed to lightList
-                    if (bUseClusteredForDeferred)
-                    {
-                        SetGlobalFloat("_UseTileLightList", 0);
-                    }
+                    var camera = hdCamera.camera;
 
                     // Must be done after setting up the compute shader above.
                     SetupRenderingForDebug(lightDebugSettings);
 
                     if (!m_PassSettings.enableTileAndCluster)
                     {
+                        PushGlobalParams(camera, renderContext, null, 0);
+
                         // This is a debug brute force renderer to debug tile/cluster which render all the lights
                         if (outputSplitLightingForSSS)
                         {
@@ -1741,13 +1737,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         if (m_PassSettings.enableComputeLightEvaluation)
                         {
-                            // Compute shader evaluation
-                            int kernel = bUseClusteredForDeferred ? s_shadeOpaqueClusteredKernel : s_shadeOpaqueFptlKernel;
+                            int kernel = 0;
+                            if (lightDebugSettings.lightingDebugMode == LightingDebugMode.None)
+                                kernel = usingFptl ? s_shadeOpaqueFptlKernel : s_shadeOpaqueClusteredKernel;
+                            else
+                                kernel = usingFptl ? s_shadeOpaqueFptlDebugLightingKernel : s_shadeOpaqueClusteredDebugLightingKernel;
 
-                            var camera = hdCamera.camera;
                             // Pass global parameters to compute shader
                             // TODO: get rid of this by making global parameters visible to compute shaders
-                            BindGlobalParams(cmd, shadeOpaqueShader, kernel, camera, renderContext);
+                            PushGlobalParams(camera, renderContext, shadeOpaqueShader, kernel);
 
                             cmd.SetComputeBufferParam(shadeOpaqueShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
 
@@ -1809,6 +1807,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         else
                         {
                             // Pixel shader evaluation
+                            PushGlobalParams(camera, renderContext, null, 0);
+
                             if (m_PassSettings.enableSplitLightEvaluation)
                             {
                                 if (outputSplitLightingForSSS)

@@ -486,9 +486,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
-
-            if (m_LightLoop != null)
-                m_LightLoop.PushGlobalParams(hdCamera.camera, renderContext);
         }
 
         bool NeedDepthBufferCopy()
