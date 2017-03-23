@@ -341,7 +341,7 @@ public class VFXComponentEditor : Editor
         }
 
         //Fields
-        var fields = new string[] { "m_Float", "m_Vector2f", "m_Vector3f", "m_Vector4f" };
+        var fields = new string[] { "m_Float", "m_Vector2f", "m_Vector3f", "m_Vector4f", "m_Texture"};
         foreach (var field in fields)
         {
             var vfxField = m_VFXPropertySheet.FindPropertyRelative(field + ".m_Array");
