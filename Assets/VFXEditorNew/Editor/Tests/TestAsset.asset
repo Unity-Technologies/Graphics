@@ -8,23 +8,208 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5249e0291a48ab94e85d843830520b69, type: 3}
+  m_Script: {fileID: 11500000, guid: 50af7eaf6e2b10a48bf29d26134cf7e4, type: 3}
   m_Name: TestAsset
   m_EditorClassIdentifier: 
-  m_Root:
-    m_SerializableId: 0b823667-65cb-41f7-86b0-22c7244d9707
-    m_SerializableChildren:
-    - typeInfo:
-        fullName: UnityEditor.VFX.VFXSystem
-        assemblyName: Assembly-CSharp-Editor-testable
-      JSONnodeData: '{"m_SerializableId":"651087f2-8647-443b-910d-03fff656e7ff","m_SerializableChildren":[{"typeInfo":{"fullName":"UnityEditor.VFX.VFXContext","assemblyName":"Assembly-CSharp-Editor-testable"},"JSONnodeData":"{\"m_SerializableId\":\"60ffd5b7-8c83-4e5e-8113-4ffbfb449568\",\"m_SerializableChildren\":[{\"typeInfo\":{\"fullName\":\"UnityEditor.VFX.VFXInitBlockTest\",\"assemblyName\":\"Assembly-CSharp-Editor-testable\"},\"JSONnodeData\":\"{\\\"m_SerializableId\\\":\\\"8f37b322-ede9-4c4a-a8d7-650128f78578\\\",\\\"m_SerializableChildren\\\":[],\\\"m_UIPosition\\\":{\\\"x\\\":0.0,\\\"y\\\":0.0},\\\"m_UICollapsed\\\":false}\"}],\"m_UIPosition\":{\"x\":0.0,\"y\":0.0},\"m_UICollapsed\":false,\"m_ContextType\":1,\"m_InputType\":0,\"m_OutputType\":0}"},{"typeInfo":{"fullName":"UnityEditor.VFX.VFXContext","assemblyName":"Assembly-CSharp-Editor-testable"},"JSONnodeData":"{\"m_SerializableId\":\"52731a21-8a92-41e1-b64d-a0832a02a35b\",\"m_SerializableChildren\":[{\"typeInfo\":{\"fullName\":\"UnityEditor.VFX.VFXUpdateBlockTest\",\"assemblyName\":\"Assembly-CSharp-Editor-testable\"},\"JSONnodeData\":\"{\\\"m_SerializableId\\\":\\\"d54718ae-5160-4c64-82e3-6744b65197c0\\\",\\\"m_SerializableChildren\\\":[],\\\"m_UIPosition\\\":{\\\"x\\\":0.0,\\\"y\\\":0.0},\\\"m_UICollapsed\\\":false}\"}],\"m_UIPosition\":{\"x\":0.0,\"y\":0.0},\"m_UICollapsed\":false,\"m_ContextType\":2,\"m_InputType\":0,\"m_OutputType\":0}"},{"typeInfo":{"fullName":"UnityEditor.VFX.VFXContext","assemblyName":"Assembly-CSharp-Editor-testable"},"JSONnodeData":"{\"m_SerializableId\":\"05a66c8f-b646-401d-aa0e-7ca6b96e53ac\",\"m_SerializableChildren\":[{\"typeInfo\":{\"fullName\":\"UnityEditor.VFX.VFXOutputBlockTest\",\"assemblyName\":\"Assembly-CSharp-Editor-testable\"},\"JSONnodeData\":\"{\\\"m_SerializableId\\\":\\\"0fe19727-ee7c-41ac-9b48-92b2ea37ba1c\\\",\\\"m_SerializableChildren\\\":[],\\\"m_UIPosition\\\":{\\\"x\\\":0.0,\\\"y\\\":0.0},\\\"m_UICollapsed\\\":false}\"}],\"m_UIPosition\":{\"x\":0.0,\"y\":0.0},\"m_UICollapsed\":false,\"m_ContextType\":4,\"m_InputType\":0,\"m_OutputType\":0}"}],"m_UIPosition":{"x":0.0,"y":0.0},"m_UICollapsed":false}'
-    - typeInfo:
-        fullName: UnityEditor.VFX.VFXSystem
-        assemblyName: Assembly-CSharp-Editor-testable
-      JSONnodeData: '{"m_SerializableId":"2ea993bc-467b-403f-a7ec-8b1149f0eab4","m_SerializableChildren":[{"typeInfo":{"fullName":"UnityEditor.VFX.VFXContext","assemblyName":"Assembly-CSharp-Editor-testable"},"JSONnodeData":"{\"m_SerializableId\":\"db8505bc-e339-41d8-94ba-6b107656b435\",\"m_SerializableChildren\":[],\"m_UIPosition\":{\"x\":0.0,\"y\":0.0},\"m_UICollapsed\":false,\"m_ContextType\":1,\"m_InputType\":0,\"m_OutputType\":0}"},{"typeInfo":{"fullName":"UnityEditor.VFX.VFXContext","assemblyName":"Assembly-CSharp-Editor-testable"},"JSONnodeData":"{\"m_SerializableId\":\"27ca3d9c-5250-4860-8039-9977eee530ec\",\"m_SerializableChildren\":[],\"m_UIPosition\":{\"x\":0.0,\"y\":0.0},\"m_UICollapsed\":false,\"m_ContextType\":4,\"m_InputType\":0,\"m_OutputType\":0}"}],"m_UIPosition":{"x":0.0,"y":0.0},"m_UICollapsed":false}'
-    - typeInfo:
-        fullName: UnityEditor.VFX.VFXOperatorAdd
-        assemblyName: Assembly-CSharp-Editor-testable
-      JSONnodeData: '{"m_SerializableId":"7c5ae37b-60e9-46e5-9fe8-7c7fd0317d04","m_SerializableChildren":[],"m_UIPosition":{"x":0.0,"y":0.0},"m_UICollapsed":false,"m_SerializableSettings":{"typeInfo":{"fullName":"","assemblyName":""},"JSONnodeData":""}}'
-    m_UIPosition: {x: 0, y: 0}
-    m_UICollapsed: 0
+  m_Root: {fileID: 114512323004784206}
+--- !u!114 &114033423222457856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 515aa73a6b508f441a2ce0e583435f55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 114747379986247628}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+--- !u!114 &114064821135964270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85a065f9117f7204f869b219219f2105, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 114165375492000628}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+--- !u!114 &114163888492529540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 11500000, guid: 015eabc1f22b29644b722ce5fb0da63f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 114512323004784206}
+  m_Children:
+  - {fileID: 114747379986247628}
+  - {fileID: 114905303357033580}
+  - {fileID: 114165375492000628}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+--- !u!114 &114165375492000628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eac2724ce3930b4dbd1a5cc4e63ec72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 114163888492529540}
+  m_Children:
+  - {fileID: 114064821135964270}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_ContextType: 4
+  m_InputType: 2
+  m_OutputType: 0
+--- !u!114 &114421113375260316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce3c8f2f082d66940aad4832890a5527, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 114905303357033580}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+--- !u!114 &114476974557582962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eac2724ce3930b4dbd1a5cc4e63ec72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 114854367488817682}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_ContextType: 4
+  m_InputType: 2
+  m_OutputType: 0
+--- !u!114 &114512323004784206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 114163888492529540}
+  - {fileID: 114854367488817682}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+--- !u!114 &114747379986247628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dfea48843f53fc438eabc12a3a30abc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 114163888492529540}
+  m_Children:
+  - {fileID: 114033423222457856}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_ContextType: 1
+  m_InputType: 0
+  m_OutputType: 2
+--- !u!114 &114849674400874170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dfea48843f53fc438eabc12a3a30abc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 114854367488817682}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_ContextType: 1
+  m_InputType: 0
+  m_OutputType: 2
+--- !u!114 &114854367488817682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 11500000, guid: 015eabc1f22b29644b722ce5fb0da63f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 114512323004784206}
+  m_Children:
+  - {fileID: 114849674400874170}
+  - {fileID: 114476974557582962}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+--- !u!114 &114905303357033580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dc095764ededfa4bb32fa602511ea4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializableId: 
+  m_Parent: {fileID: 114163888492529540}
+  m_Children:
+  - {fileID: 114421113375260316}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_ContextType: 2
+  m_InputType: 2
+  m_OutputType: 2

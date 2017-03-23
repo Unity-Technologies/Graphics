@@ -223,13 +223,13 @@ namespace UnityEditor.VFX.Test
             graph.RemoveAllChildren();
             graph.onInvalidateDelegate -= OnModelInvalidated;
 
-            Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.VFXGraph kStructureChanged", s_logs[0]);
-            Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.Test.VFXModelTests+VFXDummyModel kUIChanged", s_logs[1]);
+            Assert.AreEqual("OnInvalidateDelegate  (UnityEditor.VFX.VFXGraph) kStructureChanged", s_logs[0]);
+            Assert.AreEqual("OnInvalidateDelegate  (VFXDummyModel) kUIChanged", s_logs[1]);
 
             // Removal
-            Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.VFXGraph kStructureChanged", s_logs[2]);
-            Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.VFXGraph kStructureChanged", s_logs[3]);
-            Assert.AreEqual("OnInvalidateDelegate UnityEditor.VFX.VFXGraph kStructureChanged", s_logs[4]);
+            Assert.AreEqual("OnInvalidateDelegate  (UnityEditor.VFX.VFXGraph) kStructureChanged", s_logs[2]);
+            Assert.AreEqual("OnInvalidateDelegate  (UnityEditor.VFX.VFXGraph) kStructureChanged", s_logs[3]);
+            Assert.AreEqual("OnInvalidateDelegate  (UnityEditor.VFX.VFXGraph) kStructureChanged", s_logs[4]);
         }
 
         private void OnModelInvalidated(VFXModel model, VFXModel.InvalidationCause cause)
