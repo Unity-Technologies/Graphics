@@ -27,6 +27,8 @@
 #include "Lit/Lit.hlsl"
 #elif defined(UNITY_MATERIAL_UNLIT)
 #include "Unlit/Unlit.hlsl"
+#elif defined(UNITY_MATERIAL_IRIDESCENCE)
+#include "Iridescence/Iridescence.hlsl"
 #endif
 
 //-----------------------------------------------------------------------------
