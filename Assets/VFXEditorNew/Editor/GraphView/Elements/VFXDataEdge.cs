@@ -1,6 +1,6 @@
 using UnityEngine;
 using RMGUI.GraphView;
-using UnityEngine.RMGUI.StyleSheets;
+using UnityEngine.Experimental.RMGUI.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
@@ -14,8 +14,8 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
 
-
-            RemoveFromClassList(VFXTypeDefinition.GetTypeCSSClasses());
+            foreach( var cls in VFXTypeDefinition.GetTypeCSSClasses())
+                RemoveFromClassList(cls);
 
 
             var edgePresenter = GetPresenter<EdgePresenter>();

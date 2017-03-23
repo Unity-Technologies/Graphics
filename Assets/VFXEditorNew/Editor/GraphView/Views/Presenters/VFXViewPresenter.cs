@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
 using UnityEngine;
-using UnityEngine.RMGUI;
+using UnityEngine.Experimental.RMGUI;
 
 namespace UnityEditor.VFX.UI
 {
