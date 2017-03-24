@@ -1,7 +1,25 @@
-#pragma kernel ShadeOpaque_Fptl				            SHADE_OPAQUE_ENTRY=ShadeOpaque_Fptl				        USE_FPTL_LIGHTLIST
-#pragma kernel ShadeOpaque_Fptl_DebugLighting			SHADE_OPAQUE_ENTRY=ShadeOpaque_Fptl_DebugLighting		USE_FPTL_LIGHTLIST        LIGHTING_DEBUG
-#pragma kernel ShadeOpaque_Clustered		            SHADE_OPAQUE_ENTRY=ShadeOpaque_Clustered		        USE_CLUSTERED_LIGHTLIST
-#pragma kernel ShadeOpaque_Clustered_DebugLighting		SHADE_OPAQUE_ENTRY=ShadeOpaque_Clustered_DebugLighting	USE_CLUSTERED_LIGHTLIST   LIGHTING_DEBUG
+#pragma kernel ShadeOpaque_Direct_Fptl                          SHADE_OPAQUE_ENTRY=ShadeOpaque_Direct_Fptl                              USE_FPTL_LIGHTLIST
+#pragma kernel ShadeOpaque_Direct_Fptl_DebugLighting            SHADE_OPAQUE_ENTRY=ShadeOpaque_Direct_Fptl_DebugLighting                USE_FPTL_LIGHTLIST        LIGHTING_DEBUG
+#pragma kernel ShadeOpaque_Direct_Clustered                     SHADE_OPAQUE_ENTRY=ShadeOpaque_Direct_Clustered                         USE_CLUSTERED_LIGHTLIST
+#pragma kernel ShadeOpaque_Direct_Clustered_DebugLighting       SHADE_OPAQUE_ENTRY=ShadeOpaque_Direct_Clustered_DebugLighting           USE_CLUSTERED_LIGHTLIST   LIGHTING_DEBUG
+
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant0               SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant0                   USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=0
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant1               SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant1                   USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=1
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant2               SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant2                   USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=2
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant3               SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant3                   USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=3
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant4               SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant4                   USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=4
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant5               SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant5                   USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=5
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant6               SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant6                   USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=6
+#pragma kernel ShadeOpaque_Indirect_Fptl_Variant7               SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Fptl_Variant7                   USE_FPTL_LIGHTLIST          USE_INDIRECT    VARIANT=7
+
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant0          SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant0              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=0
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant1          SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant1              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=1
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant2          SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant2              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=2
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant3          SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant3              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=3
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant4          SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant4              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=4
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant5          SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant5              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=5
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant6          SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant6              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=6
+#pragma kernel ShadeOpaque_Indirect_Clustered_Variant7          SHADE_OPAQUE_ENTRY=ShadeOpaque_Indirect_Clustered_Variant7              USE_CLUSTERED_LIGHTLIST     USE_INDIRECT    VARIANT=7
 
 #pragma #pragma enable_d3d11_debug_symbols
 
@@ -29,7 +47,7 @@
 #include "../../../ShaderConfig.cs.hlsl"
 #include "../../../ShaderVariables.hlsl"
 #include "../../../Lighting/Lighting.hlsl" // This include Material.hlsl
-
+#include "../../../Lighting/TilePass/FeatureFlags.hlsl"
 //-------------------------------------------------------------------------------------
 // variable declaration
 //-------------------------------------------------------------------------------------
@@ -43,12 +61,29 @@ DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
     RWTexture2D<float4> combinedLightingUAV;
 #endif
 
+#if USE_INDIRECT
+	uint g_TileListOffset;
+    StructuredBuffer<uint> g_TileList;
+// Indirect
+[numthreads(16, 16, 1)]
+void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
+{
+    uint tileIndex = g_TileList[g_TileListOffset + groupId];
+    uint2 tileCoord = uint2(tileIndex & 0xFFFF, tileIndex >> 16);
+    uint2 pixelCoord = tileCoord * GetTileSize() + groupThreadId;
+
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
+    uint featureFlags = FeatureFlagsToTileVariant(VARIANT);
+#else
+// Direct
 [numthreads(16, 16, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
     uint2 pixelCoord = dispatchThreadId;
-    //PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, uint2(pixelCoord.xy) / GetTileSize());
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, groupId);
+	uint featureFlags = 0xFFFFFFFF;
+#endif
+    
     float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
     UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);

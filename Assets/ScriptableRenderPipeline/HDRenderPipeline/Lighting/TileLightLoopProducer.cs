@@ -40,8 +40,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [Range(0.0f, 1.0f)]
             public float specularGlobalDimmer = 1.0f;
 
-            public enum TileDebugByCategory : int { None = 0, Punctual = 1, Area = 2, AreaAndPunctual = 3, Environment = 4, EnvironmentAndPunctual = 5, EnvironmentAndArea = 6, EnvironmentAndAreaAndPunctual };
-            public TileDebugByCategory tileDebugByCategory;
+            public enum TileDebug : int { None = 0, Punctual = 1, Area = 2, AreaAndPunctual = 3, Environment = 4, EnvironmentAndPunctual = 5, EnvironmentAndArea = 6, EnvironmentAndAreaAndPunctual = 7, FeatureVariants = 8 };
+            public TileDebug tileDebugByCategory;
 
             public static TileSettings defaultSettings = new TileSettings
             {
@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableComputeLightEvaluation = false,
                 enableComputeFeatureVariants = false,
 
-                tileDebugByCategory = TileDebugByCategory.None,
+                tileDebugByCategory = TileDebug.None,
                 enableClustered = true,
                 enableFptlForOpaqueWhenClustered = true,
                 enableBigTilePrepass = true,
