@@ -651,7 +651,7 @@ void fragDeferred (
 	UnityStandardDataToGbuffer(data, outGBuffer0, outGBuffer1, outGBuffer2);
 
 	// Emissive lighting buffer
-	outEmission = half4(emissiveColor*0.0, 1);
+	outEmission = half4(emissiveColor, 1);
 
 	// Baked direct lighting occlusion if any
 	#if (UNITY_ALLOWED_MRT_COUNT > 4)
