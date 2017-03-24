@@ -97,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void Slider( ref int currentVal ) { currentVal = ShadowUtils.Asint( ValScale * UnityEditor.EditorGUILayout.Slider( Name, ShadowUtils.Asfloat( currentVal ) / ValScale, ValMin, ValMax ) ); }
             public int Default() { return ShadowUtils.Asint( ValScale * ValDef ); }
         }
-        readonly ValRange m_DefPCF_DepthBias = new ValRange( "Depth Bias", 0.0f, 0.05f, 1.0f, 00.1f );
+        readonly ValRange m_DefPCF_DepthBias = new ValRange( "Depth Bias", 0.0f, 0.05f, 1.0f, 000.1f );
         readonly ValRange m_DefPCF_FilterSize = new ValRange( "Filter Size", 1.0f, 1.0f, 10.0f, 1.0f );
 
 
@@ -1164,7 +1164,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // set light specific values that are not related to the shadowmap
                 GPUShadowType shadowtype;
                 ShadowUtils.MapLightType( ald.archetype, vl.lightType, out sd.lightType, out shadowtype );
-                sd.bias = SystemInfo.usesReversedZBuffer ? l.shadowBias : -l.shadowBias;
+                // current bias value range is way too large, so scale by 0.01 for now until we've decided  whether to actually keep this value or not.
+                sd.bias = 0.01f * (SystemInfo.usesReversedZBuffer ? l.shadowBias : -l.shadowBias);
                 sd.normalBias = l.shadowNormalBias;
                 
                 shadowIndices.AddUnchecked( (int) shadowDatas.Count() );
