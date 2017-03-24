@@ -49,6 +49,15 @@ namespace UnityEditor.VFX
         public virtual T Clone<T>() where T : VFXModel
         {
             T clone = (T)Instantiate(this);
+
+            clone.m_Children.Clear();
+            foreach (var child in children)
+            {
+                var cloneChild = child.Clone<VFXModel>();
+                clone.m_Children.Add(cloneChild);
+                cloneChild.m_Parent = clone;
+            }
+
             clone.m_Parent = null;
             return clone;
         }
