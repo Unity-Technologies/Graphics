@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Experimental;
@@ -338,27 +339,27 @@ public class VFXComponentEditor : Editor
     public override void OnInspectorGUI()
     {
         InitializeGUI();
-        
+
         var component = (VFXComponent)target;
 
-        //Asset
+        // ASSET CONTROL
+
         GUILayout.Label(m_Contents.HeaderMain, m_Styles.InspectorHeader);
 
         using (new GUILayout.HorizontalScope())
         {
 
             EditorGUILayout.PropertyField(m_VFXAsset, m_Contents.AssetPath);
-            if(GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+            if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
                 VFXEditor.ShowWindow();
             }
         }
 
-        //Seed
         using (new GUILayout.HorizontalScope())
         {
             EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
-            if(GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+            if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
                 m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
                 component.seed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
@@ -366,101 +367,39 @@ public class VFXComponentEditor : Editor
             }
         }
 
-        //Fields
+        // Update parameters
+        bool valueDirty = false;
+        foreach (var exposed in m_ExposedData)
+            foreach (var valueBinder in exposed.valueBinders)
+                valueDirty |= valueBinder.Update();
+
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
-        m_useNewSerializedField = EditorGUILayout.ToggleLeft("Enable new inspector (WIP)", m_useNewSerializedField);
-
-        if (m_useNewSerializedField)
+        foreach (var exposed in m_ExposedData)
         {
-            EditorGUI.BeginChangeCheck();
-            var fields = new string[] { "m_Float", "m_Vector2f", "m_Vector3f", "m_Vector4f", "m_Texture" };
-            foreach (var field in fields)
+            using (new GUILayout.HorizontalScope())
             {
-                var vfxField = m_VFXPropertySheet.FindPropertyRelative(field + ".m_Array");
-                if (vfxField != null)
+                CanSetOverride = true;
+                bool showWidget = GUILayout.Toggle(exposed.widget != null, m_Contents.ToggleWidget, m_Styles.ToggleGizmo, GUILayout.Width(10));
+                if (showWidget && exposed.widget == null)
+                    exposed.widget = exposed.slot.Semantics.CreateUIWidget(exposed.slot, component.transform);
+                else if (!showWidget && exposed.widget != null)
+                    exposed.widget = null;
+
+                using (new GUILayout.VerticalScope())
                 {
-                    for (int i = 0; i < vfxField.arraySize; ++i)
-                    {
-                        var property = vfxField.GetArrayElementAtIndex(i);
-                        var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                        var overriddenProperty = property.FindPropertyRelative("m_Overridden");
-                        var valueProperty = property.FindPropertyRelative("m_Value");
-                        Color previousColor = GUI.color;
-                        var animated = AnimationMode.IsPropertyAnimated(target, valueProperty.propertyPath);
-                        if (animated)
-                        {
-                            GUI.color = AnimationMode.animatedPropertyColor;
-                        }
-                        using (new GUILayout.HorizontalScope())
-                        {
-                            overriddenProperty.boolValue = EditorGUILayout.ToggleLeft(new GUIContent(nameProperty), overriddenProperty.boolValue);
-                            EditorGUI.BeginDisabledGroup(!overriddenProperty.boolValue);
-                            EditorGUILayout.PropertyField(valueProperty, new GUIContent(""));
-                            EditorGUI.EndDisabledGroup();
-                        }
-                        if (animated)
-                        {
-                            GUI.color = previousColor;
-                        }
-                    }
+                    int l = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
+                    exposed.slot.Semantics.OnInspectorGUI(exposed.slot);
+                    EditorGUI.indentLevel = l;
+                }
+                CanSetOverride = false;
+
+                if (GUILayout.Button(m_Contents.ResetOverrides, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                {
+                    foreach (var valueBinder in exposed.valueBinders)
+                        component.ResetOverride(valueBinder.Name);
                 }
             }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                serializedObject.ApplyModifiedProperties();
-            }
-            serializedObject.Update();
-        }
-        else
-        {
-            //Parameters
-            bool valueDirty = false;
-            foreach (var exposed in m_ExposedData)
-                foreach (var valueBinder in exposed.valueBinders)
-                    valueDirty |= valueBinder.Update();
-
-            foreach (var exposed in m_ExposedData)
-            {
-                using (new GUILayout.HorizontalScope())
-                {
-                    CanSetOverride = true;
-                    bool showWidget = GUILayout.Toggle(exposed.widget != null, m_Contents.ToggleWidget, m_Styles.ToggleGizmo, GUILayout.Width(10));
-                    if (showWidget && exposed.widget == null)
-                        exposed.widget = exposed.slot.Semantics.CreateUIWidget(exposed.slot, component.transform);
-                    else if (!showWidget && exposed.widget != null)
-                        exposed.widget = null;
-
-                    using (new GUILayout.VerticalScope())
-                    {
-                        int l = EditorGUI.indentLevel;
-                        EditorGUI.indentLevel = 0;
-                        exposed.slot.Semantics.OnInspectorGUI(exposed.slot);
-                        EditorGUI.indentLevel = l;
-                    }
-                    CanSetOverride = false;
-
-                    if (GUILayout.Button(m_Contents.ResetOverrides, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
-                    {
-                        foreach (var valueBinder in exposed.valueBinders)
-                            component.ResetOverride(valueBinder.Name);
-                    }
-                }
-            }
-
-            if (valueDirty && !Application.isPlaying)
-            {
-                // TODO Do that better ?
-                EditorSceneManager.MarkSceneDirty(component.gameObject.scene);
-                //serializedObject.SetIsDifferentCacheDirty();
-                serializedObject.Update();
-            }
-
-            if (serializedObject.ApplyModifiedProperties())
-            {
-                InitSlots();
-            }
-            serializedObject.Update();
         }
     }
 
