@@ -35,6 +35,9 @@
 #define HAS_SHADOW (8)
 #define FEATURE_FLAG_PUNCTUAL_LIGHT (1)
 #define FEATURE_FLAG_AREA_LIGHT (2)
+#define FEATURE_FLAG_DIRECTIONAL_LIGHT (4)
+#define FEATURE_FLAG_ENV_LIGHT (8)
+#define FEATURE_FLAG_SKY_LIGHT (16)
 #define NUM_FEATURE_VARIANTS (8)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.TilePass.SFiniteLightBound

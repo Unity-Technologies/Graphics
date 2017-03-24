@@ -143,8 +143,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int HAS_SHADOW = 8;
 
             // feature flags
-            public static uint FEATURE_FLAG_PUNCTUAL_LIGHT = 1;
-            public static uint FEATURE_FLAG_AREA_LIGHT = 2;
+            public static uint FEATURE_FLAG_PUNCTUAL_LIGHT = 1<<0;
+            public static uint FEATURE_FLAG_AREA_LIGHT = 1<<1;
+            public static uint FEATURE_FLAG_DIRECTIONAL_LIGHT = 1<<2;
+            public static uint FEATURE_FLAG_ENV_LIGHT = 1<<3;
+            public static uint FEATURE_FLAG_SKY_LIGHT = 1<<4;
 
             // feature variants
             public static int NUM_FEATURE_VARIANTS = 8;
@@ -1065,7 +1068,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public void GetEnvLightVolumeDataAndBound(VisibleReflectionProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
             {
                 var bound = new SFiniteLightBound();
-                var ligthVolumeData = new LightVolumeData();
+                var lightVolumeData = new LightVolumeData();
 
                 var bnds = probe.bounds;
                 var boxOffset = probe.center;                  // reflection volume offset relative to cube map capture point
@@ -1102,19 +1105,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bound.radius = combinedExtent.magnitude;
 
 
-                ligthVolumeData.lightCategory = (uint)LightCategory.Env;
-                ligthVolumeData.lightVolume = (uint)lightVolumeType;
+                lightVolumeData.lightCategory = (uint)LightCategory.Env;
+                lightVolumeData.lightVolume = (uint)lightVolumeType;
+                lightVolumeData.featureFlags = LightDefinitions.FEATURE_FLAG_ENV_LIGHT;
 
-                ligthVolumeData.lightPos = Cw;
-                ligthVolumeData.lightAxisX = vx;
-                ligthVolumeData.lightAxisY = vy;
-                ligthVolumeData.lightAxisZ = vz;
+                lightVolumeData.lightPos = Cw;
+                lightVolumeData.lightAxisX = vx;
+                lightVolumeData.lightAxisY = vy;
+                lightVolumeData.lightAxisZ = vz;
                 var delta = combinedExtent - e;
-                ligthVolumeData.boxInnerDist = e;
-                ligthVolumeData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
+                lightVolumeData.boxInnerDist = e;
+                lightVolumeData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
 
                 m_lightList.bounds.Add(bound);
-                m_lightList.lightVolumes.Add(ligthVolumeData);
+                m_lightList.lightVolumes.Add(lightVolumeData);
             }
 
             public override void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
@@ -1526,8 +1530,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if(enableFeatureVariants)
                     {
+                        uint baseFeatureFlags = 0;
+                        if(m_lightList.directionalLights.Count > 0)
+                        {
+                            baseFeatureFlags |= LightDefinitions.FEATURE_FLAG_DIRECTIONAL_LIGHT;
+                        }
+                        if(Shader.GetGlobalInt("_EnvLightSkyEnabled") != 0)
+                        {
+                            baseFeatureFlags |= LightDefinitions.FEATURE_FLAG_SKY_LIGHT;
+                        }
                         cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
                         cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_TileList", s_TileList);
+                        cmd.SetComputeIntParam(buildPerTileLightListShader, "g_BaseFeatureFlags", (int)baseFeatureFlags);
                     }
 
                     var numTilesX = GetNumTileFtplX(camera);

@@ -138,7 +138,7 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
 #endif
 
 // bakeDiffuseLighting is part of the prototype so a user is able to implement a "base pass" with GI and multipass direct light (aka old unity rendering path)
-void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BSDFData bsdfData, float3 bakeDiffuseLighting,
+void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BSDFData bsdfData, float3 bakeDiffuseLighting, uint featureFlags,
                 out float3 diffuseLighting,
                 out float3 specularLighting)
 {
@@ -146,9 +146,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 #ifndef SHADOWS_USE_SHADOWCTXT
     ZERO_INITIALIZE(LightLoopContext, context);
 #else
-	context.sampleShadow = 0;
-	context.sampleReflection = 0;
-	context.shadowContext = InitShadowContext();
+    context.sampleShadow = 0;
+    context.sampleReflection = 0;
+    context.shadowContext = InitShadowContext();
 #endif
 
     diffuseLighting = float3(0.0, 0.0, 0.0);
@@ -157,95 +157,111 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
 #ifdef PROCESS_DIRECTIONAL_LIGHT
-    for (i = 0; i < _DirectionalLightCount; ++i)
+    if(featureFlags & FEATURE_FLAG_DIRECTIONAL_LIGHT)
     {
-        float3 localDiffuseLighting, localSpecularLighting;
+        for(i = 0; i < _DirectionalLightCount; ++i)
+        {
+            float3 localDiffuseLighting, localSpecularLighting;
 
-        EvaluateBSDF_Directional(   context, V, posInput, prelightData, _DirectionalLightDatas[i], bsdfData,
-                                    localDiffuseLighting, localSpecularLighting);
+            EvaluateBSDF_Directional(context, V, posInput, prelightData, _DirectionalLightDatas[i], bsdfData,
+                localDiffuseLighting, localSpecularLighting);
 
-        diffuseLighting += localDiffuseLighting;
-        specularLighting += localSpecularLighting;
+            diffuseLighting += localDiffuseLighting;
+            specularLighting += localSpecularLighting;
+        }
     }
 #endif
 
 #ifdef PROCESS_PUNCTUAL_LIGHT
-    // TODO: Convert the for loop below to a while on each type as we know we are sorted!
-    uint punctualLightStart;
-    uint punctualLightCount;
-    GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, punctualLightStart, punctualLightCount);
-
-	for (i = 0; i < punctualLightCount; ++i)
+    if(featureFlags & FEATURE_FLAG_PUNCTUAL_LIGHT)
     {
-        float3 localDiffuseLighting, localSpecularLighting;
+        // TODO: Convert the for loop below to a while on each type as we know we are sorted!
+        uint punctualLightStart;
+        uint punctualLightCount;
+        GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, punctualLightStart, punctualLightCount);
 
-        EvaluateBSDF_Punctual(  context, V, posInput, prelightData, _LightDatas[FetchIndex(punctualLightStart, i)], bsdfData,
-                                localDiffuseLighting, localSpecularLighting);
+        for(i = 0; i < punctualLightCount; ++i)
+        {
+            float3 localDiffuseLighting, localSpecularLighting;
 
-        diffuseLighting += localDiffuseLighting;
-        specularLighting += localSpecularLighting;
+            EvaluateBSDF_Punctual(context, V, posInput, prelightData, _LightDatas[FetchIndex(punctualLightStart, i)], bsdfData,
+                localDiffuseLighting, localSpecularLighting);
+
+            diffuseLighting += localDiffuseLighting;
+            specularLighting += localSpecularLighting;
+        }
     }
 #endif
 
 #ifdef PROCESS_AREA_LIGHT
-    // TODO: Convert the for loop below to a while on each type as we know we are sorted!
-    uint areaLightStart;
-    uint areaLightCount;
-    GetCountAndStart(posInput, LIGHTCATEGORY_AREA, areaLightStart, areaLightCount);
-    for (i = 0; i < areaLightCount; ++i)
+    if(featureFlags & FEATURE_FLAG_AREA_LIGHT)
     {
-        float3 localDiffuseLighting, localSpecularLighting;
-
-        uint areaIndex = FetchIndex(areaLightStart, i);
-
-        if(_LightDatas[areaIndex].lightType == GPULIGHTTYPE_LINE)
+        // TODO: Convert the for loop below to a while on each type as we know we are sorted!
+        uint areaLightStart;
+        uint areaLightCount;
+        GetCountAndStart(posInput, LIGHTCATEGORY_AREA, areaLightStart, areaLightCount);
+        for(i = 0; i < areaLightCount; ++i)
         {
-            EvaluateBSDF_Line(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
-                                localDiffuseLighting, localSpecularLighting);
-        }
-        else
-        {
-            EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
-                                localDiffuseLighting, localSpecularLighting);
-        }
+            float3 localDiffuseLighting, localSpecularLighting;
+
+            uint areaIndex = FetchIndex(areaLightStart, i);
+
+            if(_LightDatas[areaIndex].lightType == GPULIGHTTYPE_LINE)
+            {
+                EvaluateBSDF_Line(context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
+                    localDiffuseLighting, localSpecularLighting);
+            }
+            else
+            {
+                EvaluateBSDF_Area(context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
+                    localDiffuseLighting, localSpecularLighting);
+            }
 
 
-        diffuseLighting += localDiffuseLighting;
-        specularLighting += localSpecularLighting;
+            diffuseLighting += localDiffuseLighting;
+            specularLighting += localSpecularLighting;
+        }
     }
 #endif
 
 #ifdef PROCESS_ENV_LIGHT
-
     float3 iblDiffuseLighting = float3(0.0, 0.0, 0.0);
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
 
     // Only apply sky IBL if the sky texture is available.
-    if (_EnvLightSkyEnabled)
+    if(featureFlags & FEATURE_FLAG_SKY_LIGHT)
     {
-        float3 localDiffuseLighting, localSpecularLighting;
-        float2 weight;
-        // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
-        context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
-        EnvLightData envLightSky = InitSkyEnvLightData(0); // The sky data are generated on the fly so the compiler can optimize the code
-        EvaluateBSDF_Env(context, V, posInput, prelightData, envLightSky, bsdfData, localDiffuseLighting, localSpecularLighting, weight);
-        iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
-        iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
+        if(_EnvLightSkyEnabled)
+        {
+            float3 localDiffuseLighting, localSpecularLighting;
+            float2 weight;
+            // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
+            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
+            EnvLightData envLightSky = InitSkyEnvLightData(0); // The sky data are generated on the fly so the compiler can optimize the code
+            EvaluateBSDF_Env(context, V, posInput, prelightData, envLightSky, bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+            iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
+            iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
+        }
     }
+    
 
-    uint envLightStart;
-    uint envLightCount;
-    GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
-
-    for (i = 0; i < envLightCount; ++i)
+    if(featureFlags & FEATURE_FLAG_ENV_LIGHT)
     {
-        float3 localDiffuseLighting, localSpecularLighting;
-        float2 weight;
-        context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
-        EvaluateBSDF_Env(context, V, posInput, prelightData, _EnvLightDatas[FetchIndex(envLightStart, i)], bsdfData, localDiffuseLighting, localSpecularLighting, weight);
-        iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
-        iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
+        uint envLightStart;
+        uint envLightCount;
+        GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
+
+        for(i = 0; i < envLightCount; ++i)
+        {
+            float3 localDiffuseLighting, localSpecularLighting;
+            float2 weight;
+            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
+            EvaluateBSDF_Env(context, V, posInput, prelightData, _EnvLightDatas[FetchIndex(envLightStart, i)], bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+            iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
+            iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
+        }
     }
+    
 
     diffuseLighting += iblDiffuseLighting;
     specularLighting += iblSpecularLighting;
@@ -269,17 +285,17 @@ uint GetTileSize()
 
 
 // bakeDiffuseLighting is part of the prototype so a user is able to implement a "base pass" with GI and multipass direct light (aka old unity rendering path)
-void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BSDFData bsdfData, float3 bakeDiffuseLighting,
+void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BSDFData bsdfData, float3 bakeDiffuseLighting, uint featureFlag,
                 out float3 diffuseLighting,
                 out float3 specularLighting)
 {
     LightLoopContext context;
 #ifndef SHADOWS_USE_SHADOWCTXT
-	ZERO_INITIALIZE(LightLoopContext, context);
+    ZERO_INITIALIZE(LightLoopContext, context);
 #else
-	context.sampleShadow = 0;
-	context.sampleReflection = 0;
-	context.shadowContext = InitShadowContext();
+    context.sampleShadow = 0;
+    context.sampleReflection = 0;
+    context.shadowContext = InitShadowContext();
 #endif
 
     diffuseLighting = float3(0.0, 0.0, 0.0);
