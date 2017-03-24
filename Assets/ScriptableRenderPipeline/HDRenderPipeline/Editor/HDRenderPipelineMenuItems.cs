@@ -80,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("HDRenderPipeline/Remove tessellation materials (not reversible)")]
+        [MenuItem("HDRenderPipeline/Debug/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()
         {
             Object[] materials = Resources.FindObjectsOfTypeAll<Material>();
