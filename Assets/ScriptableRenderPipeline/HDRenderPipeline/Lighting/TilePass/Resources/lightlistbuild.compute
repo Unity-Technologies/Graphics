@@ -1,13 +1,16 @@
 // The implementation is based on the demo on "fine pruned tiled lighting" published in GPU Pro 7.
 // https://github.com/wolfgangfengel/GPU-Pro-7
 
-#pragma kernel TileLightListGen					LIGHTLISTGEN=TileLightListGen
-#pragma kernel TileLightListGen_SrcBigTile		LIGHTLISTGEN=TileLightListGen_SrcBigTile		USE_TWO_PASS_TILED_LIGHTING
+#pragma kernel TileLightListGen                             LIGHTLISTGEN=TileLightListGen
+#pragma kernel TileLightListGen_SrcBigTile                  LIGHTLISTGEN=TileLightListGen_SrcBigTile                    USE_TWO_PASS_TILED_LIGHTING
+#pragma kernel TileLightListGen_FeatureFlags                LIGHTLISTGEN=TileLightListGen_FeatureFlags                  USE_FEATURE_FLAGS
+#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags     LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags       USE_TWO_PASS_TILED_LIGHTING		USE_FEATURE_FLAGS
 
 #include "../../../../ShaderLibrary/common.hlsl"
 #include "../ShaderBase.hlsl"
 #include "../TilePass.cs.hlsl"
 #include "../LightingConvexHullUtils.hlsl"
+#include "../FeatureFlags.hlsl"
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 #include "../SortingComputeUtils.hlsl"
@@ -57,6 +60,13 @@ groupshared int ldsCategoryListCount[LIGHTCATEGORY_COUNT];		// since LIGHTCATEGO
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 groupshared uint lightOffsSph;
+#endif
+
+
+#ifdef USE_FEATURE_FLAGS
+groupshared uint ldsFeatureFlags;
+RWBuffer<uint> g_DispatchIndirectBuffer;
+RWStructuredBuffer<uint> g_TileList;
 #endif
 
 
@@ -118,6 +128,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	uint iHeight = g_viDimensions.y;
 	uint nrTilesX = (iWidth+15)/16;
 	uint nrTilesY = (iHeight+15)/16;
+	uint nrTiles = nrTilesX * nrTilesY;	// Precompute?
 
 	// build tile scr boundary
 	const uint uFltMax = 0x7f7fffff;  // FLT_MAX as a uint
@@ -224,6 +235,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	//
 	if(t<LIGHTCATEGORY_COUNT) ldsCategoryListCount[t]=0;
+#ifdef USE_FEATURE_FLAGS
+	if(t==0) ldsFeatureFlags=0;
+#endif
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
@@ -234,13 +248,25 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS) 
 	{
 		InterlockedAdd(ldsCategoryListCount[_LightVolumeData[prunedList[i]].lightCategory], 1);
+#ifdef USE_FEATURE_FLAGS
+		InterlockedOr(ldsFeatureFlags, _LightVolumeData[prunedList[i]].featureFlags);
+#endif
 	}
-
 
 	// sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	SORTLIST(prunedList, nrLightsCombinedList, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
 	//MERGESORTLIST(prunedList, coarseList, nrLightsCombinedList, t, NR_THREADS);
+#endif
+
+#ifdef USE_FEATURE_FLAGS
+	if(t == 0)
+	{
+		uint variant = FeatureFlagsToTileVariant(ldsFeatureFlags);
+		uint offset;
+		InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 1, offset);
+		g_TileList[variant*nrTiles + offset] = (tileIDX.y << 16) + tileIDX.x;
+	}
 #endif
 
 	// write lights to global buffers
