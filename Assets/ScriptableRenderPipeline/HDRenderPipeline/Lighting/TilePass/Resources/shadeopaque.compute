@@ -73,7 +73,7 @@ void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : S
     uint2 pixelCoord = tileCoord * GetTileSize() + groupThreadId;
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
-    uint featureFlags = FeatureFlagsToTileVariant(VARIANT);
+    uint featureFlags = TileVariantToFeatureFlags(VARIANT);
 #else
 // Direct
 [numthreads(16, 16, 1)]
@@ -97,7 +97,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     float3 diffuseLighting;
     float3 specularLighting;
-    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
 #ifdef OUTPUT_SPLIT_LIGHTING
     specularLightingUAV[pixelCoord] = float4(specularLighting, 1.0);

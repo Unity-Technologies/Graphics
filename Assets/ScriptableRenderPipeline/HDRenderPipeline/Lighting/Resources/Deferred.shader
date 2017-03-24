@@ -114,9 +114,10 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
+                uint featureFlags = 0xFFFFFFFF;
                 float3 diffuseLighting;
                 float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
                 Outputs outputs;
             #ifdef OUTPUT_SPLIT_LIGHTING
