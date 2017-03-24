@@ -42,7 +42,7 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 11
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -54,7 +54,7 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
-    serializedVersion: 8
+    serializedVersion: 9
     m_Resolution: 2
     m_BakeResolution: 40
     m_TextureWidth: 1024
@@ -74,6 +74,7 @@ LightmapSettings:
     m_MixedBakeMode: 1
     m_BakeBackend: 0
     m_PVRSampling: 1
+    m_PVRDirectSampleCount: 32
     m_PVRSampleCount: 500
     m_PVRBounces: 2
     m_PVRFiltering: 0
@@ -87,7 +88,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigma: 1
   m_LightingDataAsset: {fileID: 112000002, guid: 94f8793cc1c3e0248901e8f336236333,
     type: 2}
-  m_ShadowMaskMode: 2
+  m_UseShadowmask: 1
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -475,6 +476,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -1139,6 +1143,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -1255,6 +1262,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -2174,6 +2184,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -2610,6 +2623,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -2696,6 +2712,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -2848,6 +2867,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -3495,6 +3517,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -3760,6 +3785,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 2
@@ -3902,6 +3930,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -4763,6 +4794,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -4888,6 +4922,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
@@ -5313,6 +5350,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -5808,6 +5848,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -6012,6 +6055,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -6294,6 +6340,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -6695,6 +6744,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -6898,6 +6950,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -7244,6 +7299,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -7330,6 +7388,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -7716,6 +7777,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -7744,7 +7808,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1226270484}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 10, y: 0, z: -35}
+  m_LocalPosition: {x: 10, y: 1, z: -35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 399109505}
@@ -7879,6 +7943,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -8336,6 +8403,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -8422,6 +8492,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -8814,6 +8887,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -9868,6 +9944,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -9954,6 +10033,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -10289,7 +10371,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1634702262}
   m_Layer: 0
-  m_Name: Test - Parallax occlusion mapping - Triplanar (1)
+  m_Name: Test - Parallax occlusion mapping - Triplanar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10346,6 +10428,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
@@ -11640,6 +11725,7 @@ GameObject:
   - component: {fileID: 1828470161}
   - component: {fileID: 1828470160}
   - component: {fileID: 1828470165}
+  - component: {fileID: 1828470166}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -11728,6 +11814,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92bb16b4ee20841929b24d6bd771738d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1828470166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1828470159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 618b0e3f6c65dd247a4a016150006c57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_LookSpeedController: 120
+  m_LookSpeedMouse: 10
+  m_MoveSpeed: 50
+  m_Turbo: 10
 --- !u!1 &1828745839
 GameObject:
   m_ObjectHideFlags: 0
@@ -11984,6 +12085,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -12489,6 +12593,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -12663,6 +12770,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
@@ -12837,6 +12947,9 @@ MonoBehaviour:
   shadowResolution: 512
   m_innerSpotPercent: 0
   shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
