@@ -188,13 +188,14 @@ namespace UnityEditor.VFX.UI
 
             m_ConnectorBox.AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
 
+            AddToClassList("EdgeConnector");
             switch (presenter.direction)
             {
                 case Direction.Input:
-                    AddToClassList("InputEdgeConnector");
+                    AddToClassList("Input");
                     break;
                 case Direction.Output:
-                    AddToClassList("OutputEdgeConnector");
+                    AddToClassList("Output");
                     break;
             }
 

@@ -385,6 +385,8 @@ namespace UnityEditor.VFX.UI
 				edgePresenter.output = inPresenter.outputAnchors[0];
 				edgePresenter.input = outPresenter.inputAnchors[0];
 				base.AddElement(edgePresenter);
+
+
                 //Debug.Log("Create Edge: " + edgePresenter.GetHashCode());
 			}
 		}
