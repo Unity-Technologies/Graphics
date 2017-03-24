@@ -277,7 +277,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();
                 
-                blockPres.ContextPresenter.RemoveBlock(blockPres.Model);
+                //blockPres.ContextPresenter.RemoveBlock(blockPres.Model); // No need to remove, it's implicit when adding the block
                 presenter.AddBlock(-1,blockPres.Model);
             }
 
