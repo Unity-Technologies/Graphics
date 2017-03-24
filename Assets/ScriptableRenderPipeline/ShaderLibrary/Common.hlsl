@@ -522,13 +522,14 @@ float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invP
     return positionVS.xyz / positionVS.w;
 }
 
-// 'depthOffsetVS' is always along the forward direction 'camDirWS' pointing away from the camera.
-void ApplyDepthOffsetPositionInput(float3 camDirWS, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
+// The view direction 'V' points towards the camera.
+// 'depthOffsetVS' is always applied in the opposite direction (-V).
+void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
-    posInput.depthVS    += depthOffsetVS;
-    posInput.positionWS += depthOffsetVS * camDirWS;
+    posInput.positionWS += depthOffsetVS * (-V);
 
     float4 positionCS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
+    posInput.depthVS  = positionCS.w;
     posInput.depthRaw = positionCS.z / positionCS.w;
 }
 
