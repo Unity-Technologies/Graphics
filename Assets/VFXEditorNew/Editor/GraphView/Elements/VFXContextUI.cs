@@ -275,9 +275,7 @@ namespace UnityEditor.VFX.UI
 
             foreach(var blockui in blocksUI)
             {
-                VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();
-                
-                //blockPres.ContextPresenter.RemoveBlock(blockPres.Model); // No need to remove, it's implicit when adding the block
+                VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();   
                 presenter.AddBlock(-1,blockPres.Model);
             }
 
