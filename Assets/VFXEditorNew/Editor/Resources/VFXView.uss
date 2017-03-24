@@ -37,7 +37,7 @@ VFXContextUI {
 VFXContextUI #NodeContents
 {
 	width:368;
-	border-color: rgb(100, 100, 100);
+	border-color: rgb(51, 51, 51);
 	border-radius:6;
 	border-width: 2;
 }
@@ -46,13 +46,54 @@ VFXContextUI.selected #NodeContents
 	border-color: rgb(210, 152, 0);
 }
 
-VFXContextUI #NodeContents > Label{
-	text-alignment:upper-center;
+VFXContextUI #Header
+{
+	flex-direction:row;
+	margin-left: 20;
+	margin-right:20;
+	margin-top:20;
+	padding-top:10;
+	padding-bottom:10;
+	justify-content:center;
+	background-color: #333333;
+}
 
-	text-color:#8FC1DF;
+VFXContextUI #Footer
+{
+	flex-direction:row;
+	margin-left: 20;
+	margin-right:20;
+	margin-bottom:20;
+	padding-top:10;
+	padding-bottom:10;
+	justify-content:center;
+	background-color: #333333;
+}
 
-	font-size:16;
-	background-color: #383838;
+VFXContextUI	.title
+{
+	text-alignment:middle-center;
+
+	text-color:#C4C4C4;
+	font-size:14;
+	font-style: bold;
+}
+
+VFXContextUI #HeaderIcon
+{
+	background-image:resource("VFX/Execution");
+}
+
+VFXContextUI #FooterIcon
+{
+	background-image:resource("VFX/Execution");
+}
+
+VFXContextUI .icon
+{
+	background-image:resource("VFX/Execution");
+	width:16;
+	height:16;
 }
 
 VFXContextUI > * >#Title {
@@ -74,10 +115,10 @@ VFXContextUI BlockContainer {
 
 	font-size:12;
 	margin-top: 0;
-	margin-left: 32;
-	margin-bottom: 32;
+	margin-left: 20;
+	margin-bottom: 0;
 	-border-radius:4;
-	margin-right: 32;
+	margin-right: 20;
 }
 
 
