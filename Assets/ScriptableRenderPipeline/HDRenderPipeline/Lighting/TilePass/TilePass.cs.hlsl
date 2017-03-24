@@ -33,6 +33,9 @@
 #define HAS_COOKIE_TEXTURE (2)
 #define IS_BOX_PROJECTED (4)
 #define HAS_SHADOW (8)
+#define FEATURE_FLAG_PUNCTUAL_LIGHT (1)
+#define FEATURE_FLAG_AREA_LIGHT (2)
+#define NUM_FEATURE_VARIANTS (8)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.TilePass.SFiniteLightBound
 // PackingRules = Exact
@@ -59,7 +62,7 @@ struct LightVolumeData
 	float3 lightAxisZ;
 	float cotan;
 	float3 boxInnerDist;
-	float unused;
+	uint featureFlags;
 	float3 boxInvRange;
 	float unused2;
 };
@@ -131,9 +134,9 @@ float3 GetBoxInnerDist(LightVolumeData value)
 {
 	return value.boxInnerDist;
 }
-float GetUnused(LightVolumeData value)
+uint GetFeatureFlags(LightVolumeData value)
 {
-	return value.unused;
+	return value.featureFlags;
 }
 float3 GetBoxInvRange(LightVolumeData value)
 {
