@@ -48,7 +48,8 @@ namespace UnityEditor.VFX
 
         public T CreateInstance()
         {
-            return (T)System.Activator.CreateInstance(m_Template.GetType());
+            //return (T)System.Activator.CreateInstance(m_Template.GetType());
+            return (T)ScriptableObject.CreateInstance(m_Template.GetType());
         }
 
         private T m_Template;
@@ -91,7 +92,7 @@ namespace UnityEditor.VFX
             {
                 try
                 {
-                    T instance = (T)System.Activator.CreateInstance(modelType);
+                    T instance = (T)ScriptableObject.CreateInstance(modelType);
                     modelDescs.Add(new VFXModelDescriptor<T>(instance));
                 }
                 catch (Exception e)

@@ -75,7 +75,8 @@ namespace UnityEditor.VFX.UI
 					{Event.KeyboardEvent("o"), FrameOrigin},
 					{Event.KeyboardEvent("delete"), DeleteSelection},
 					{Event.KeyboardEvent("#tab"), FramePrev},
-					{Event.KeyboardEvent("tab"), FrameNext}
+					{Event.KeyboardEvent("tab"), FrameNext},
+                    {Event.KeyboardEvent("c"), CloneContexts}, // TEST
 				}));
 
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
@@ -120,6 +121,19 @@ namespace UnityEditor.VFX.UI
         void AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
             GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
+        }
+
+        public EventPropagation CloneContexts() // TEST clean that
+        {
+            var contexts = selection.OfType<VFXContextUI>().Select(p => p.GetPresenter<VFXContextPresenter>().context.Clone<VFXContext>());
+            foreach (var context in contexts)
+            {
+                var system = ScriptableObject.CreateInstance<VFXSystem>();
+                system.AddChild(context);
+                context.position = context.position + new Vector2(50, 50);
+                GetPresenter<VFXViewPresenter>().GetGraphAsset().root.AddChild(system);
+            }
+            return EventPropagation.Stop;
         }
     }
 }

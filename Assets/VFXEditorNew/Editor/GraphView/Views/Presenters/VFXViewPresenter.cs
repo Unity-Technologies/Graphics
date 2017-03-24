@@ -342,7 +342,7 @@ namespace UnityEditor.VFX.UI
             newContext.position = pos;
 
 			// needs to create a temp system to hold the context
-			var system = new VFXSystem();
+            var system = ScriptableObject.CreateInstance<VFXSystem>();
             system.AddChild(newContext);
 
             m_GraphAsset.root.AddChild(system);
