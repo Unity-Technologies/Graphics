@@ -41,6 +41,22 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		var instance = ScriptableObject.CreateInstance<ClassicDeferredPipeline> ();
 		UnityEditor.AssetDatabase.CreateAsset (instance, "Assets/ClassicDeferredPipeline.asset");
 	}
+
+	[UnityEditor.MenuItem("MobileRenderPipeline/Setup Materials")]
+	static void SetupDeferredRenderPipelineMaterials()
+	{
+		Renderer[] _renderers = Component.FindObjectsOfType<Renderer> ();
+		foreach (Renderer _renderer in _renderers) {
+			Material[] _materials = _renderer.sharedMaterials;
+			foreach (Material _material in _materials) {
+				if (_material.shader.name.Contains ("Standard (Specular setup)")) {
+					_material.shader = Shader.Find("Standard-SRP (Specular setup)");
+				} else if (_material.shader.name.Contains ("Standard")) {
+					_material.shader = Shader.Find("Standard-SRP");
+				}
+			}
+		}
+	}
 #endif
 
 	protected override IRenderPipeline InternalCreatePipeline()
