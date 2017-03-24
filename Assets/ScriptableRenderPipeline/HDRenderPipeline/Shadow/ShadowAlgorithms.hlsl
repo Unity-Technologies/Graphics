@@ -13,6 +13,7 @@ float3 EvalShadow_NormalBias( float3 normalWS, float NoL, float2 texelSize, floa
 float3 EvalShadow_GetTexcoords( ShadowData sd, float3 positionWS )
 {
 	float4 posCS = mul( float4( positionWS, 1.0 ), sd.worldToShadow );
+	posCS.z -= sd.bias * posCS.w;
 	float3 posNDC = posCS.xyz / posCS.w;
 	// calc TCs
 	float3 posTC = posNDC * 0.5 + 0.5;
