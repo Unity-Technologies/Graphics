@@ -44,9 +44,9 @@ namespace UnityEditor.VFX
         public VFXContext(VFXContextType contextType) : this(contextType,VFXDataType.kNone,VFXDataType.kNone)
         {}
 
-        public VFXContextType contextType       { get { return m_ContextType; } }
-        public VFXDataType inputType            { get { return m_InputType; } }
-        public VFXDataType outputType           { get { return m_OutputType; } }    
+        public virtual VFXContextType contextType   { get { return m_ContextType; } }
+        public virtual VFXDataType inputType        { get { return m_InputType; } }
+        public virtual VFXDataType outputType       { get { return m_OutputType; } }    
 
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
@@ -62,13 +62,9 @@ namespace UnityEditor.VFX
             return (block.compatibleContexts & contextType) != 0;
         }
 
-        [SerializeField]
+        // Not serialized nor exposed
         private VFXContextType m_ContextType;
-
-        [SerializeField]
         private VFXDataType m_InputType;
-
-        [SerializeField]
         private VFXDataType m_OutputType; 
     }
 

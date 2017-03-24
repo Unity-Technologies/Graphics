@@ -30,23 +30,15 @@ namespace UnityEditor.VFX
                     HashSet<Object> persistentObjects = new HashSet<Object>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)));
                     persistentObjects.Remove(this);
 
-                  //  foreach (var o in persistentObjects)
-                  //      Debug.Log("PERSISTENT: " + o);
-
                     HashSet<Object> currentObjects = new HashSet<Object>();
-
                     m_Root.CollectDependencies(currentObjects);
                     currentObjects.Add(m_Root);
 
-                   // foreach (var o in currentObjects)
-                  //      Debug.Log("CURRENT: " + o);
-
-                    // Add sub assets that are not already present
-                    
+                    // Add sub assets that are not already present         
                     foreach (var obj in currentObjects)
                         if (!persistentObjects.Contains(obj))
                         {
-                            //Debug.Log("ADD: " + obj);
+                            obj.name = obj.GetType().Name;
                             AssetDatabase.AddObjectToAsset(obj, this);
                             modified = true;
                         }
@@ -55,10 +47,7 @@ namespace UnityEditor.VFX
                     foreach (var obj in persistentObjects)
                         if (!currentObjects.Contains(obj))
                         {
-                           // Debug.Log("REMOVE: " + obj);
-                           // ScriptableObject.DestroyImmediate(obj, true);
                             AssetDatabase.RemoveObject(obj);
-                            //AssetDatabase.AddObjectToAsset(obj, (Object)null);
                             modified = true;
                         }
                 }

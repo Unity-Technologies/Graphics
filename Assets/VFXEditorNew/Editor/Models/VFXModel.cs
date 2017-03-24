@@ -200,36 +200,19 @@ namespace UnityEditor.VFX
 
         public virtual void OnBeforeSerialize()
         {
-           /* m_SerializableId = m_Id.ToString();
-            m_SerializableChildren = SerializationHelper.Serialize<VFXModel>(m_Children);*/
         }
 
         public virtual void OnAfterDeserialize()
         {
-            /*if (!String.IsNullOrEmpty(m_SerializableId))
-                m_Id = new Guid(m_SerializableId);
-            else
-                m_Id = Guid.NewGuid();
-            m_Children = SerializationHelper.Deserialize<VFXModel>(m_SerializableChildren, null);
-            foreach (var child in m_Children)
-                child.m_Parent = this;
-            m_SerializableChildren = null; // No need to keep it
-            */
         }
       
-        private Guid m_Id;
-
-        [SerializeField]
-        private string m_SerializableId;
+        private Guid m_Id; // TODO Not used
 
         [SerializeField]
         protected VFXModel m_Parent = null;
 
         [SerializeField]
         protected List<VFXModel> m_Children;
-
-      /*  [SerializeField]
-        private List<SerializationHelper.JSONSerializedElement> m_SerializableChildren = null;*/
 
         [SerializeField]
         private Vector2 m_UIPosition;
