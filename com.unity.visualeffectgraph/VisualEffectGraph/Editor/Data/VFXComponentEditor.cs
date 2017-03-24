@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Experimental;
@@ -118,6 +117,7 @@ public class VFXComponentEditor : Editor
     SerializedProperty m_VFXAsset;
     SerializedProperty m_RandomSeed;
     SerializedProperty m_VFXPropertySheet;
+    bool m_useNewSerializedField = false;
 
     private Contents m_Contents;
     private Styles m_Styles;
@@ -130,23 +130,35 @@ public class VFXComponentEditor : Editor
     }
 
     private List<ExposedData> m_ExposedData = new List<ExposedData>();
-    //private List<VFXOutputSlot> m_Slots = new List<VFXOutputSlot>();
-    //private List<SlotValueBinder> m_ValueBinders = new List<SlotValueBinder>(); 
 
-    private VFXComponentDebugPanel m_DebugPanel;
+    // Debug Stats : To be refactored into Debug Views
     private bool m_ShowDebugStats = false;
+    private enum DebugStatMode
+    {
+        Efficiency = 0
+    }
+    private DebugStatMode m_DebugStatMode = DebugStatMode.Efficiency;
+    private VFXSystemComponentStat[] m_DebugStatCurrentData;
+    private List<uint>[] m_DebugStatAliveHistory;
+    private uint[] m_DebugStatMaxCapacity;
+    private double m_DebugStatLastUpdateTime;
+
+    private static Color[] s_DebugStatCurveColors;
+    private const uint DEBUGSTAT_CURVE_COLOR_COUNT = 25;
+    private const float DEBUGSTAT_UPDATE_INTERVAL = 0.033f;
+    private const uint DEBUGSTAT_NUM_SAMPLES = 100;
 
     void OnEnable()
     {
         m_RandomSeed = serializedObject.FindProperty("m_Seed");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
         m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
-        m_DebugPanel = new VFXComponentDebugPanel((VFXComponent)target);
+
+        InitSlots();
     }
 
     void OnDisable()
     {
-        m_DebugPanel = null;
         foreach (var exposed in m_ExposedData)
             exposed.slot.RemoveAllObservers();
     }
@@ -215,11 +227,23 @@ public class VFXComponentEditor : Editor
     public void OnSceneGUI()
     {
         InitializeGUI();
+        UpdateDebugData();
 
-        if(m_ShowDebugStats)
+        var component = (VFXComponent)target;
+        var stats = VFXComponent.GetSystemComponentsStatsFilter(component);
+
+        //Basic display BBox
+        var debugColors = new Color[] { Color.magenta, Color.green, Color.cyan, Color.yellow };
+        for (int iStat = 0; iStat < stats.Length; ++iStat)
         {
-            m_DebugPanel.UpdateDebugData();
-            m_DebugPanel.OnSceneGUI();
+            var stat = stats[iStat];
+
+            var transform = component.GetComponent<Transform>();
+            var bckpMatrix = Handles.matrix;
+            Handles.matrix = transform.localToWorldMatrix;
+            Handles.color = debugColors[iStat % debugColors.Length];
+            Handles.DrawWireCube(stat.localBounds.center, stat.localBounds.extents * 2);
+            Handles.matrix = bckpMatrix;
         }
 
         GameObject sceneCamObj = GameObject.Find("SceneCamera");
@@ -229,10 +253,11 @@ public class VFXComponentEditor : Editor
             Handles.BeginGUI();
             Camera cam = sceneCamObj.GetComponent<Camera>();
             Rect windowRect = new Rect(cam.pixelWidth / 2 - 140, cam.pixelHeight - 64 , 324, 68);
+            Rect debugWindowRect = new Rect(10, 28, 480, 300 + m_DebugStatCurrentData.Length * 16);
             GUI.Window(666, windowRect, DrawPlayControlsWindow, "VFX Playback Control");
 
             if(m_ShowDebugStats)
-                m_DebugPanel.OnWindowGUI();
+                GUI.Window(667, debugWindowRect, DrawDebugControlsWindow, "VFX Debug Information");
 
             Handles.EndGUI();
             GL.sRGBWrite = false;
@@ -316,11 +341,12 @@ public class VFXComponentEditor : Editor
         
         var component = (VFXComponent)target;
 
-        EditorGUI.BeginChangeCheck();
         //Asset
         GUILayout.Label(m_Contents.HeaderMain, m_Styles.InspectorHeader);
+
         using (new GUILayout.HorizontalScope())
         {
+
             EditorGUILayout.PropertyField(m_VFXAsset, m_Contents.AssetPath);
             if(GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
@@ -341,89 +367,101 @@ public class VFXComponentEditor : Editor
         }
 
         //Fields
-        var fields = new string[] { "m_Float", "m_Vector2f", "m_Vector3f", "m_Vector4f", "m_Texture"};
-        foreach (var field in fields)
-        {
-            var vfxField = m_VFXPropertySheet.FindPropertyRelative(field + ".m_Array");
-            if (vfxField != null)
-            {
-                for (int i = 0; i < vfxField.arraySize; ++i)
-                {
-                    var property = vfxField.GetArrayElementAtIndex(i);
-                    var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                    var overriddenProperty = property.FindPropertyRelative("m_Overridden");
-                    var valueProperty = property.FindPropertyRelative("m_Value");
-                    Color previousColor = GUI.color;
-                    var animated = AnimationMode.IsPropertyAnimated(target, valueProperty.propertyPath);
-                    if (animated)
-                    {
-                        GUI.color = AnimationMode.animatedPropertyColor;
-                    }
-                    using (new GUILayout.HorizontalScope())
-                    {
-                        overriddenProperty.boolValue = EditorGUILayout.ToggleLeft(new GUIContent(nameProperty), overriddenProperty.boolValue);
-                        EditorGUI.BeginDisabledGroup(!overriddenProperty.boolValue);
-                        EditorGUILayout.PropertyField(valueProperty, new GUIContent(""));
-                        EditorGUI.EndDisabledGroup();
-                    }
-                    if (animated)
-                    {
-                        GUI.color = previousColor;
-                    }
-                }
-            }
-        }
-
-        /* //TODOPAUL : Port & Clean
-        // Update parameters
-        bool valueDirty = false;
-        foreach (var exposed in m_ExposedData)
-            foreach (var valueBinder in exposed.valueBinders)
-                valueDirty |= valueBinder.Update();
-
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
-        foreach (var exposed in m_ExposedData)
+        m_useNewSerializedField = EditorGUILayout.ToggleLeft("Enable new inspector (WIP)", m_useNewSerializedField);
+
+        if (m_useNewSerializedField)
         {
-            using (new GUILayout.HorizontalScope())
+            EditorGUI.BeginChangeCheck();
+            var fields = new string[] { "m_Float", "m_Vector2f", "m_Vector3f", "m_Vector4f", "m_Texture" };
+            foreach (var field in fields)
             {
-                CanSetOverride = true;
-                bool showWidget = GUILayout.Toggle(exposed.widget != null, m_Contents.ToggleWidget, m_Styles.ToggleGizmo , GUILayout.Width(10));
-                if (showWidget && exposed.widget == null)
-                    exposed.widget = exposed.slot.Semantics.CreateUIWidget(exposed.slot, component.transform);
-                else if (!showWidget && exposed.widget != null)
-                    exposed.widget = null;
-
-                using (new GUILayout.VerticalScope())
+                var vfxField = m_VFXPropertySheet.FindPropertyRelative(field + ".m_Array");
+                if (vfxField != null)
                 {
-                    int l = EditorGUI.indentLevel;
-                    EditorGUI.indentLevel = 0;
-                    exposed.slot.Semantics.OnInspectorGUI(exposed.slot);
-                    EditorGUI.indentLevel = l;
-                }
-                CanSetOverride = false;
-
-                if (GUILayout.Button(m_Contents.ResetOverrides, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
-                {
-                    foreach (var valueBinder in exposed.valueBinders)
-                        component.ResetOverride(valueBinder.Name);
+                    for (int i = 0; i < vfxField.arraySize; ++i)
+                    {
+                        var property = vfxField.GetArrayElementAtIndex(i);
+                        var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                        var overriddenProperty = property.FindPropertyRelative("m_Overridden");
+                        var valueProperty = property.FindPropertyRelative("m_Value");
+                        Color previousColor = GUI.color;
+                        var animated = AnimationMode.IsPropertyAnimated(target, valueProperty.propertyPath);
+                        if (animated)
+                        {
+                            GUI.color = AnimationMode.animatedPropertyColor;
+                        }
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            overriddenProperty.boolValue = EditorGUILayout.ToggleLeft(new GUIContent(nameProperty), overriddenProperty.boolValue);
+                            EditorGUI.BeginDisabledGroup(!overriddenProperty.boolValue);
+                            EditorGUILayout.PropertyField(valueProperty, new GUIContent(""));
+                            EditorGUI.EndDisabledGroup();
+                        }
+                        if (animated)
+                        {
+                            GUI.color = previousColor;
+                        }
+                    }
                 }
             }
-        }
 
-        if (valueDirty && !Application.isPlaying)
-        {
-            // TODO Do that better ?
-            EditorSceneManager.MarkSceneDirty(component.gameObject.scene);
-            //serializedObject.SetIsDifferentCacheDirty();
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
             serializedObject.Update();
         }
-        */
-
-        if (EditorGUI.EndChangeCheck())
+        else
         {
-            serializedObject.ApplyModifiedProperties();
+            //Parameters
+            bool valueDirty = false;
+            foreach (var exposed in m_ExposedData)
+                foreach (var valueBinder in exposed.valueBinders)
+                    valueDirty |= valueBinder.Update();
+
+            foreach (var exposed in m_ExposedData)
+            {
+                using (new GUILayout.HorizontalScope())
+                {
+                    CanSetOverride = true;
+                    bool showWidget = GUILayout.Toggle(exposed.widget != null, m_Contents.ToggleWidget, m_Styles.ToggleGizmo, GUILayout.Width(10));
+                    if (showWidget && exposed.widget == null)
+                        exposed.widget = exposed.slot.Semantics.CreateUIWidget(exposed.slot, component.transform);
+                    else if (!showWidget && exposed.widget != null)
+                        exposed.widget = null;
+
+                    using (new GUILayout.VerticalScope())
+                    {
+                        int l = EditorGUI.indentLevel;
+                        EditorGUI.indentLevel = 0;
+                        exposed.slot.Semantics.OnInspectorGUI(exposed.slot);
+                        EditorGUI.indentLevel = l;
+                    }
+                    CanSetOverride = false;
+
+                    if (GUILayout.Button(m_Contents.ResetOverrides, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                    {
+                        foreach (var valueBinder in exposed.valueBinders)
+                            component.ResetOverride(valueBinder.Name);
+                    }
+                }
+            }
+
+            if (valueDirty && !Application.isPlaying)
+            {
+                // TODO Do that better ?
+                EditorSceneManager.MarkSceneDirty(component.gameObject.scene);
+                //serializedObject.SetIsDifferentCacheDirty();
+                serializedObject.Update();
+            }
+
+            if (serializedObject.ApplyModifiedProperties())
+            {
+                InitSlots();
+            }
+            serializedObject.Update();
         }
-        serializedObject.Update();
     }
 
     private void SetPlayRate(object rate)
@@ -432,6 +470,189 @@ public class VFXComponentEditor : Editor
         component.playRate = (float)rate;
     }
 
+
+#region Debug Window
+
+    public void InitDebug(int count, VFXSystemComponentStat[] stats)
+    {
+        m_DebugStatCurrentData = stats;
+        m_DebugStatAliveHistory = new List<uint>[count];
+        m_DebugStatMaxCapacity = new uint[count];
+
+        if(s_DebugStatCurveColors == null)
+        {
+            s_DebugStatCurveColors = new Color[DEBUGSTAT_CURVE_COLOR_COUNT];
+            for(int i = 0; i < DEBUGSTAT_CURVE_COLOR_COUNT; i++)
+                s_DebugStatCurveColors[i] = Color.HSVToRGB( (0.71405f+i*0.37135766f) % 1.0f , 0.5f , 1 );
+        }
+
+        for(int i = 0; i < count; i++)
+        {
+            m_DebugStatAliveHistory[i] = new List<uint>();
+            m_DebugStatMaxCapacity[i] = 0;
+        }
+    }
+
+    private void UpdateDebugData()
+    {
+        double time = Time.time; //EditorApplication.timeSinceStartup;
+
+        var stats = VFXComponent.GetSystemComponentsStatsFilter((VFXComponent)target);
+
+        // First frame, or system count changed
+        if (m_DebugStatCurrentData == null || m_DebugStatCurrentData.Length != stats.Length)
+        {
+            InitDebug(stats.Length, stats);
+        }
+
+
+        if(time - m_DebugStatLastUpdateTime > DEBUGSTAT_UPDATE_INTERVAL)
+        {
+
+            for(int i = 0; i < m_DebugStatMaxCapacity.Length; i++)
+            {
+                if (m_DebugStatAliveHistory[i].Count > DEBUGSTAT_NUM_SAMPLES)
+                {
+                    m_DebugStatAliveHistory[i].RemoveAt(0);
+                }
+                m_DebugStatAliveHistory[i].Add(m_DebugStatCurrentData[i].alive);
+
+                m_DebugStatMaxCapacity[i] = Math.Max(m_DebugStatCurrentData[i].capacity, m_DebugStatMaxCapacity[i]);
+            }
+
+            m_DebugStatCurrentData = stats;
+            m_DebugStatLastUpdateTime = time;
+        }
+        else
+        {
+            for(int i = 0; i < m_DebugStatMaxCapacity.Length; i++)
+            {
+                m_DebugStatCurrentData[i].alive = Math.Max(stats[i].alive, m_DebugStatCurrentData[i].alive);
+                m_DebugStatCurrentData[i].spawnRequest += stats[i].spawnRequest;
+            }
+        }
+
+    }
+
+
+    public void DrawDebugControlsWindow(int windowID)
+    {
+        using (new GUILayout.VerticalScope())
+        {
+            if (m_DebugStatCurrentData.Length > 0)
+            {
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label("Debug Mode", GUILayout.Width(120));
+                    m_DebugStatMode = (DebugStatMode)EditorGUILayout.EnumPopup(m_DebugStatMode);
+                    GUILayout.Space(32);
+                }
+
+
+                GUILayout.Space(16);
+
+                Rect curveRect;
+
+                using (new GUILayout.HorizontalScope(GUILayout.Height(200)))
+                {
+                    curveRect = GUILayoutUtility.GetRect(400, 200);
+                    using (new GUILayout.VerticalScope(GUILayout.Width(32)))
+                    {
+                        GUILayout.Label("100%");
+                        GUILayout.FlexibleSpace();
+                        GUILayout.Label("75%");
+                        GUILayout.FlexibleSpace();
+                        GUILayout.Label("50%");
+                        GUILayout.FlexibleSpace();
+                        GUILayout.Label("25%");
+                        GUILayout.FlexibleSpace();
+                        GUILayout.Label("0%");
+                    }
+                }
+
+                Handles.DrawSolidRectangleWithOutline(curveRect,new Color(0.1f,0.1f,0.1f,1.0f), new Color(0.2f,0.2f,0.2f,1.0f));
+                Handles.color = new Color(0.2f, 0.2f, 0.2f, 1.0f);
+                Handles.DrawLine(new Vector3(curveRect.xMin, curveRect.yMin + 0.25f * curveRect.height),new Vector3(curveRect.xMax, curveRect.yMin + 0.25f * curveRect.height));
+                Handles.DrawLine(new Vector3(curveRect.xMin, curveRect.yMin + 0.5f * curveRect.height),new Vector3(curveRect.xMax, curveRect.yMin + 0.5f * curveRect.height));
+                Handles.DrawLine(new Vector3(curveRect.xMin, curveRect.yMin + 0.75f * curveRect.height),new Vector3(curveRect.xMax, curveRect.yMin + 0.75f * curveRect.height));
+                Handles.color = Color.white;
+
+                for(int i = 0; i < m_DebugStatMaxCapacity.Length; i++)
+                {
+                    Vector3 offset = new Vector3(40, 40);
+                    Vector3[] points = new Vector3[m_DebugStatAliveHistory[i].Count];
+                    for (int j = 0 ; j < m_DebugStatAliveHistory[i].Count; j++)
+                    {
+                        points[j] = new Vector3(curveRect.position.x + curveRect.width*(float)j/DEBUGSTAT_NUM_SAMPLES, curveRect.position.y + curveRect.height * (1-(float)m_DebugStatAliveHistory[i][j]/m_DebugStatMaxCapacity[i]));
+                    }
+                    Handles.matrix = GUI.matrix;
+                    Handles.color = s_DebugStatCurveColors[i % DEBUGSTAT_CURVE_COLOR_COUNT];
+                    Handles.DrawAAPolyLine(4,points);
+                    Handles.color = Color.white;
+                }
+
+                GUILayout.Space(16);
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label("#", m_Styles.entryHeader, GUILayout.Width(32));
+                    GUILayout.Label("Alive", m_Styles.entryHeader, GUILayout.Width(80));
+                    GUILayout.Label("Allocated", m_Styles.entryHeader, GUILayout.Width(80));
+                    GUILayout.Label("Spawned", m_Styles.entryHeader, GUILayout.Width(80));
+                    GUILayout.Label("Overflow", m_Styles.entryHeader, GUILayout.Width(80));
+                    GUILayout.Box(GUIContent.none, m_Styles.entryHeader, GUILayout.ExpandWidth(true));
+                    GUILayout.Label("Efficiency", m_Styles.entryHeader, GUILayout.Width(80));
+                }
+
+
+                var allsum = m_DebugStatCurrentData.Aggregate((a, b) => new VFXSystemComponentStat { alive = a.alive + b.alive, capacity = a.capacity + b.capacity });
+                var allpercentage = (float)allsum.alive / (float)allsum.capacity;
+
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUI.contentColor = Color.white;
+                    GUILayout.Label("ALL", m_Styles.entryEven, GUILayout.Width(32));
+                    GUILayout.Label(allsum.alive.ToString(), m_Styles.entryEven, GUILayout.Width(80));
+                    GUILayout.Label(allsum.capacity.ToString(), m_Styles.entryEven, GUILayout.Width(80));
+                    GUILayout.Box(GUIContent.none, m_Styles.entryEven, GUILayout.ExpandWidth(true));
+
+                    float percentage = (float)allsum.alive / allsum.capacity;
+                    GUI.contentColor = percentage < 0.33f ? Color.red : percentage < 0.66f ? Color.yellow : Color.green;
+                    GUILayout.Label((int)(percentage*100)+"%", m_Styles.entryEven, GUILayout.Width(80));
+                }
+
+                for(int i = 0; i < m_DebugStatMaxCapacity.Length; i++)
+                {
+                    GUIStyle s = (i % 2 == 0) ? m_Styles.entryOdd : m_Styles.entryEven ;
+
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUI.contentColor = s_DebugStatCurveColors[i % DEBUGSTAT_CURVE_COLOR_COUNT];
+                        GUILayout.Label("#"+(i+1), s, GUILayout.Width(32));
+                        GUILayout.Label(m_DebugStatCurrentData[i].alive.ToString(), s, GUILayout.Width(80));
+                        GUILayout.Label(m_DebugStatCurrentData[i].capacity.ToString(), s, GUILayout.Width(80));
+                        GUILayout.Label(m_DebugStatCurrentData[i].spawnRequest.ToString(), s, GUILayout.Width(80));
+
+                        int overflow = Math.Max((int)m_DebugStatCurrentData[i].alive + (int) m_DebugStatCurrentData[i].spawnRequest - (int) m_DebugStatCurrentData[i].capacity,0);
+                        GUILayout.Label(overflow.ToString(), s, GUILayout.Width(80));
+
+                        GUILayout.Box(GUIContent.none, s, GUILayout.ExpandWidth(true));
+
+                        float percentage = (float)m_DebugStatCurrentData[i].alive / m_DebugStatCurrentData[i].capacity;
+                        GUI.contentColor = percentage < 0.33f ? Color.red : percentage < 0.66f ? Color.yellow : Color.green;
+                        GUILayout.Label((int)(percentage*100)+"%", s, GUILayout.Width(80));
+                    }
+                }
+
+            }
+        }
+
+        // Handle click in window to avoid unselecting asset
+        if (Event.current.type == EventType.mouseDown)
+            Event.current.Use();
+    }
+
+#endregion
+
     private class Styles
     {
         public GUIStyle InspectorHeader;
@@ -439,6 +660,10 @@ public class VFXComponentEditor : Editor
 
         public GUILayoutOption MiniButtonWidth = GUILayout.Width(48);
         public GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
+
+        public GUIStyle entryEven;
+        public GUIStyle entryOdd;
+        public GUIStyle entryHeader;
 
         public Styles()
         {
@@ -463,6 +688,17 @@ public class VFXComponentEditor : Editor
             ToggleGizmo.onFocused.background = showIcon;
             ToggleGizmo.hover.background = hideIcon;
             ToggleGizmo.onHover.background = showIcon;
+
+            entryEven = new GUIStyle("OL EntryBackEven");
+            entryEven.margin = new RectOffset();
+            entryEven.contentOffset = new Vector2();
+            entryEven.padding = new RectOffset(8,0,0,0);
+            entryOdd = new GUIStyle("OL EntryBackOdd");
+            entryOdd.margin = new RectOffset();
+            entryOdd.contentOffset = new Vector2();
+            entryOdd.padding = new RectOffset(8,0,0,0);
+            entryHeader = new GUIStyle(entryOdd);
+            entryHeader.fontStyle = FontStyle.Bold;
 
         }
     }
