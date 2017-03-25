@@ -295,9 +295,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	//////////// cell specific code
 	{
-		for(int l=(int) t; l<((iNrCoarseLights+1)>>1); l += NR_THREADS)
+		int pad = iNrCoarseLights & 1;
+		for(int l=(int) t; l<((iNrCoarseLights+pad)>>1); l += NR_THREADS)
 		{
-			const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights)];
+			const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights-pad)];
 			const unsigned int clustIdxMi0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0].z), suggestedBase));
 			const unsigned int clustIdxMa0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0+g_iNrVisibLights].z), suggestedBase));
 			const unsigned int clustIdxMi1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1].z), suggestedBase));
@@ -424,7 +425,10 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	{
 		int offs = 0;
 		for(int l=0; l<iNrCoarseLights; l++)
-		{	if(coarseList[l]!=0xffffffff) coarseList[offs++] = coarseList[l]; }
+		{
+			if(coarseList[l]!=0xffffffff)
+				coarseList[offs++] = coarseList[l];
+		}
 		lightOffsSph = offs;
 	}
 

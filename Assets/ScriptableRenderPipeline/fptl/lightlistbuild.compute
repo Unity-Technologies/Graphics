@@ -253,7 +253,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		const int nrDWords = ((nrLightsFinalClamped+1)+1)>>1;
 		for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
 		{
-			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[2 * l - 1 + localOffs];
+			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[max(0,2 * l - 1 + localOffs)];
 			uint uHigh = prunedList[2 * l + 0 + localOffs];
 
 			g_vLightList[16*offs + l] = (uLow&0xffff) | (uHigh<<16);
