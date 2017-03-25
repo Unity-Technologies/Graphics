@@ -46,10 +46,11 @@ void Frag(PackedVaryingsToPS packedInput,
 
 	PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
+	uint featureFlags = 0xFFFFFFFF;
 	float3 diffuseLighting;
 	float3 specularLighting;
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
-    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
     outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
 

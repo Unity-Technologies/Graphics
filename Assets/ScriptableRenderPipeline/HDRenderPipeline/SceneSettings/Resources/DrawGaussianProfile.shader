@@ -27,9 +27,9 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "ShaderLibrary/Common.hlsl"
-            #include "ShaderLibrary/Color.hlsl"
-            #include "HDRenderPipeline/ShaderVariables.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
+            #include "../../../ShaderLibrary/Color.hlsl"
+            #include "../../ShaderVariables.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
@@ -63,7 +63,7 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float  dist = length(2 * input.texcoord - 1);
+                float  dist = length(input.texcoord - 0.5);
 
                 float3 var1 = _StdDev1.rgb * _StdDev1.rgb;
                 float3 var2 = _StdDev2.rgb * _StdDev2.rgb;

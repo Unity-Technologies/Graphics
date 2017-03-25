@@ -343,6 +343,10 @@ float ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCol
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+#ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+    LODDitheringTransition(posInput.unPositionSS, unity_LODFade.y); // Note that we pass the quantized value of LOD fade
+#endif
+
     ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
 
     LayerTexCoord layerTexCoord;
@@ -353,7 +357,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(GetCameraForwardDir(), depthOffset, GetWorldToHClipMatrix(), posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, GetWorldToHClipMatrix(), posInput);
 #endif
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
@@ -1193,6 +1197,10 @@ float3 ComputeMainBaseColorInfluence(float3 baseColor0, float3 baseColor1, float
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+#ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+    LODDitheringTransition(posInput.unPositionSS, unity_LODFade.y); // Note that we pass the quantized value of LOD fade
+#endif
+
     ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
 
     LayerTexCoord layerTexCoord;
@@ -1202,7 +1210,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
 #ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(GetCameraForwardDir(), depthOffset, GetWorldToHClipMatrix(), posInput);
+    ApplyDepthOffsetPositionInput(V, depthOffset, GetWorldToHClipMatrix(), posInput);
 #endif
 
     SurfaceData surfaceData0, surfaceData1, surfaceData2, surfaceData3;

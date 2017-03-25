@@ -9,7 +9,7 @@ Material:
   m_Name: Tessellation - Rock
   m_Shader: {fileID: 4800000, guid: 756bac9090102564582875f4c7e30202, type: 3}
   m_ShaderKeywords: _EMISSIVE_COLOR _HEIGHTMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
-    _TESSELLATION_DISPLACEMENT
+    _TESSELLATION_DISPLACEMENT _TESSELLATION_TILING_SCALE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
@@ -165,6 +165,7 @@ Material:
     - _TessellationMode: 1
     - _TessellationObjectScale: 0
     - _TessellationShapeFactor: 0.75
+    - _TessellationTilingScale: 1
     - _TexWorldScale: 1
     - _Thickness: 0.5
     - _UVBase: 0

@@ -10,9 +10,9 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD"
             #pragma target 4.5
             #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
 
-            #include "ShaderLibrary/Common.hlsl"
-            #include "ShaderLibrary/ImageBasedLighting.hlsl"
-            #include "HDRenderPipeline/ShaderVariables.hlsl"
+            #include "../../../../ShaderLibrary/Common.hlsl"
+            #include "../../../../ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "../../../ShaderVariables.hlsl"
 
 
             struct Attributes 

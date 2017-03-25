@@ -70,6 +70,22 @@
 // This is the purpose of this macro
 #define MERGE_NAME(X, Y) X##Y
 
+// These define are use to abstract the way we sample into a cubemap array.
+// Some platform don't support cubemap array so we fallback on 2D latlong
+#ifdef UNITY_NO_CUBEMAP_ARRAY
+#define TEXTURECUBE_ARRAY_ABSTRACT TEXTURE2D_ARRAY
+#define SAMPLERCUBE_ABSTRACT SAMPLER2D
+#define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURE2D_ARRAY_ARGS
+#define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURE2D_ARRAY_PARAM
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, DirectionToLatLongCoordinate(coord3), index, lod)
+#else
+#define TEXTURECUBE_ARRAY_ABSTRACT TEXTURECUBE_ARRAY
+#define SAMPLERCUBE_ABSTRACT SAMPLERCUBE
+#define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURECUBE_ARRAY_ARGS
+#define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURECUBE_ARRAY_PARAM
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)
+#endif
+
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
@@ -506,13 +522,14 @@ float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invP
     return positionVS.xyz / positionVS.w;
 }
 
-// 'depthOffsetVS' is always along the forward direction 'camDirWS' pointing away from the camera.
-void ApplyDepthOffsetPositionInput(float3 camDirWS, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
+// The view direction 'V' points towards the camera.
+// 'depthOffsetVS' is always applied in the opposite direction (-V).
+void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
-    posInput.depthVS    += depthOffsetVS;
-    posInput.positionWS += depthOffsetVS * camDirWS;
+    posInput.positionWS += depthOffsetVS * (-V);
 
     float4 positionCS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
+    posInput.depthVS  = positionCS.w;
     posInput.depthRaw = positionCS.z / positionCS.w;
 }
 
@@ -531,6 +548,22 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID)
 {
     float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
     return float4(uv * 2.0 - 1.0, 1.0, 1.0);
+}
+
+// LOD dithering transition helper
+// ditherFactor should be a quantized value between 0..15/16, i.e the one provide by Unity
+// LOD0 must use this function with ditherFactor 1..0
+// LOD1 must use this functoin with ditherFactor 0..1
+void LODDitheringTransition(uint2 unPositionSS, float ditherFactor)
+{
+    // Generate a fixed pattern
+    float p = cos(dot(unPositionSS, float2(443.8975, 397.2973)));
+    p = frac(p * 491.1871);
+
+    // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
+    // this is handled by this test which reverse the pattern
+    p = (ditherFactor >= 0.5) ? (15.0 / 16.0) - p : p;
+    clip(ditherFactor - p);
 }
 
 #endif // UNITY_COMMON_INCLUDED

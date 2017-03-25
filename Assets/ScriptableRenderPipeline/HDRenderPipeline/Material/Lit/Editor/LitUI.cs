@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -159,8 +160,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty detailSmoothnessScale = null;
         protected const string kDetailSmoothnessScale = "_DetailSmoothnessScale";
 
-        protected MaterialProperty subsurfaceProfile    = null;
-        protected const string     kSubsurfaceProfile   = "_SubsurfaceProfile";
+        protected SubsurfaceScatteringProfile subsurfaceProfile = null;
+        protected MaterialProperty subsurfaceProfileID  = null;
+        protected const string     kSubsurfaceProfileID = "_SubsurfaceProfile";
         protected MaterialProperty subsurfaceRadius     = null;
         protected const string     kSubsurfaceRadius    = "_SubsurfaceRadius";
         protected MaterialProperty subsurfaceRadiusMap  = null;
@@ -212,7 +214,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             detailSmoothnessScale = FindProperty(kDetailSmoothnessScale, props);
 
             // Sub surface
-            subsurfaceProfile = FindProperty(kSubsurfaceProfile, props);
+            subsurfaceProfileID = FindProperty(kSubsurfaceProfileID, props);
             subsurfaceRadius = FindProperty(kSubsurfaceRadius, props);
             subsurfaceRadiusMap = FindProperty(kSubsurfaceRadiusMap, props);
             thickness = FindProperty(kThickness, props);
@@ -227,7 +229,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void ShaderSSSInputGUI()
         {
-            m_MaterialEditor.ShaderProperty(subsurfaceProfile, Styles.subsurfaceProfileText);
+            if (subsurfaceProfile == null)
+            {
+                int profileID = (int)subsurfaceProfileID.floatValue;
+
+                HDRenderPipelineInstance hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+
+                if (profileID >= 0 && profileID < hdPipeline.sssSettings.profiles.Length)
+                {
+                    // This is a valid profile ID.
+                    subsurfaceProfile = hdPipeline.sssSettings.profiles[profileID];
+                }
+                else
+                {
+                    subsurfaceProfile = SubsurfaceScatteringProfile.defaultProfile;
+                }
+
+                // Refresh the ID of the profile.
+                hdPipeline.sssSettings.OnValidate();
+            }
+
+            // Extract the profile ID.
+            subsurfaceProfile = EditorGUILayout.ObjectField(Styles.subsurfaceProfileText, subsurfaceProfile, subsurfaceProfile.GetType(), false, null) as SubsurfaceScatteringProfile;
+            subsurfaceProfileID.floatValue = subsurfaceProfile.settingsIndex;
+
             m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);
             m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceRadiusMapText, subsurfaceRadiusMap);
             m_MaterialEditor.ShaderProperty(thickness, Styles.thicknessText);
