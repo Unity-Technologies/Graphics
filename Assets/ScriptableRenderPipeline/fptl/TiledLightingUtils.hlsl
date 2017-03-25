@@ -33,6 +33,12 @@ void GetCountAndStartOpaque(out uint uStart, out uint uNrLights, uint2 pixCoord,
     uStart = tileOffs;
 }
 
+uint FetchIndexOpaque(const uint tileOffs, const uint l)
+{
+    const uint l1 = l+1;
+    return (g_vLightListGlobal[ 16*tileOffs + (l1>>1)]>>((l1&1)*16))&0xffff;
+}
+
 #ifdef OPAQUES_ONLY
 
 void GetCountAndStart(out uint uStart, out uint uNrLights, uint2 pixCoord, float linDepth, uint model)
@@ -42,8 +48,7 @@ void GetCountAndStart(out uint uStart, out uint uNrLights, uint2 pixCoord, float
 
 uint FetchIndex(const uint tileOffs, const uint l)
 {
-    const uint l1 = l+1;
-    return (g_vLightListGlobal[ 16*tileOffs + (l1>>1)]>>((l1&1)*16))&0xffff;
+    return FetchIndexOpaque(tileOffs, l);
 }
 
 #else
@@ -82,16 +87,10 @@ void GetCountAndStart(out uint uStart, out uint uNrLights, uint2 pixCoord, float
 
 uint FetchIndex(const uint tileOffs, const uint l)
 {
-    uint offs = tileOffs+l;
-    const uint l1 = l+1;
-
     if(g_isOpaquesOnlyEnabled)
-        offs = 16*tileOffs + (l1>>1);
-
-    // Avoid generated HLSL bytecode to always access g_vLightListGlobal with
-    // two different offsets, fixes out of bounds issue
-    uint value = g_vLightListGlobal[offs];
-    return (g_isOpaquesOnlyEnabled ? ((value >>((l1&1)*16))&0xffff) : value);
+        return FetchIndexOpaque(tileOffs, l);
+    else
+        return g_vLightListGlobal[ tileOffs+l ];
 }
 
 #endif
