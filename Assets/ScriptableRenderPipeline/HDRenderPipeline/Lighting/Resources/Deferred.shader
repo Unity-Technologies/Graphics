@@ -48,25 +48,23 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             #pragma shader_feature _ SSS_PRE_SCATTER_TEXTURING SSS_POST_SCATTER_TEXTURING
          // #endif
 
-            #pragma multi_compile _ SKY_LIGHTING
-
             #pragma multi_compile _ LIGHTING_DEBUG
 
             //-------------------------------------------------------------------------------------
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "ShaderLibrary/Common.hlsl"
-            #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
+            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "../../Debug/DebugLighting.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-            #include "HDRenderPipeline/ShaderVariables.hlsl"
-            #include "HDRenderPipeline/Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "../../ShaderConfig.cs.hlsl"
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
 
             //-------------------------------------------------------------------------------------
             // variable declaration
@@ -116,9 +114,10 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
+                uint featureFlags = 0xFFFFFFFF;
                 float3 diffuseLighting;
                 float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
                 Outputs outputs;
             #ifdef OUTPUT_SPLIT_LIGHTING

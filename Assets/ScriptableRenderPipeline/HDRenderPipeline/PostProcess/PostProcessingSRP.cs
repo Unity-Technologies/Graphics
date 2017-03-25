@@ -5,12 +5,12 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    using GradingType = PostProcessing.ColorGradingSettings.GradingType;
-    using EyeAdaptationType = PostProcessing.EyeAdaptationSettings.EyeAdaptationType;
+    using GradingType = PostProcessingSRP.ColorGradingSettings.GradingType;
+    using EyeAdaptationType = PostProcessingSRP.EyeAdaptationSettings.EyeAdaptationType;
 
     [ExecuteInEditMode, ImageEffectAllowedInSceneView]
     [RequireComponent(typeof(Camera))]
-    public sealed partial class PostProcessing : MonoBehaviour
+    public sealed partial class PostProcessingSRP : MonoBehaviour
     {
         public EyeAdaptationSettings eyeAdaptation = new EyeAdaptationSettings();
         public ColorGradingSettings colorGrading = new ColorGradingSettings();
