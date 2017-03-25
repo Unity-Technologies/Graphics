@@ -62,13 +62,6 @@ void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint 
     start = tileOffset;
 }
 
-uint FetchIndexTile(uint tileOffset, uint lightIndex)
-{
-    const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
-    // Light index are store on 16bit
-    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1)] >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
-}
-
 #ifdef USE_FPTL_LIGHTLIST
 
 uint GetTileSize()
@@ -83,7 +76,9 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
 
 uint FetchIndex(uint tileOffset, uint lightIndex)
 {
-    return FetchIndexTile(tileOffset, lightIndex);
+    const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
+    // Light index are store on 16bit
+    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1)] >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
 }
 
 #elif defined(USE_CLUSTERED_LIGHTLIST)
@@ -114,11 +109,6 @@ void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out ui
     lightCount = (dataPair >> 27) & 31;
 }
 
-uint FetchIndexCluster(uint tileOffset, uint lightIndex)
-{
-    return g_vLightListGlobal[tileOffset + lightIndex];
-}
-
 void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
     if (_UseTileLightList)
@@ -129,10 +119,18 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
 
 uint FetchIndex(uint tileOffset, uint lightIndex)
 {
+    uint offset = tileOffset + lightIndex;
+    const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
+
     if (_UseTileLightList)
-        return FetchIndexTile(tileOffset, lightIndex);
-    else
-        return FetchIndexCluster(tileOffset, lightIndex);
+        offset = DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1);
+
+    // Avoid generated HLSL bytecode to always access g_vLightListGlobal with
+    // two different offsets, fixes out of bounds issue
+    uint value = g_vLightListGlobal[offset];
+
+    // Light index are store on 16bit
+    return (_UseTileLightList ? ((value >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff) : value);
 }
 
 #endif
