@@ -13,8 +13,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ShadowSettings:
     enabled: 1
-    shadowAtlasWidth: 2048
-    shadowAtlasHeight: 2048
+    shadowAtlasWidth: 4096
+    shadowAtlasHeight: 4096
     maxShadowDistance: 600
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0, y: 0.05, z: 0.1}
