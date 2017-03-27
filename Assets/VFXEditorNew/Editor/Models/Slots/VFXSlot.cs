@@ -291,7 +291,7 @@ namespace UnityEditor.VFX
                 UnlinkAll(false); // First disconnect any other linked slot
                 PropagateToTree(s => s.UnlinkAll(false)); // Unlink other links in tree
                 m_LinkedSlots.Add(other);
-                SetInExpression(other.m_OutExpression,true,false);
+                SetInExpression(other.m_OutExpression,true, notify);
             }
             else
                 m_LinkedSlots.Add(other);

@@ -22,7 +22,6 @@ namespace UnityEditor.VFX.Test
                 var inputSlots = add.inputSlots.ToArray();
                 var emptySlot = inputSlots.First(s => !s.HasLink());
                 emptySlot.Link(one.outputSlots.First());
-                add.Invalidate(VFXModel.InvalidationCause.kStructureChanged); //TODOPAUL : Should be called by Link !
             }
 
             var finalExpr = add.outputSlots.First().expression;
