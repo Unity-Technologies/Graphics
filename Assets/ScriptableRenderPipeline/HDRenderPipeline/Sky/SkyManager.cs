@@ -168,7 +168,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.Destroy(m_SkyboxMarginalRowCdfRT);
                 Utilities.Destroy(m_SkyboxConditionalCdfRT);
 
-                m_UpdateRequired = true; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
+                m_SkyboxCubemapRT = null;
+                m_SkyboxGGXCubemapRT = null;
+                m_SkyboxMarginalRowCdfRT = null;
+                m_SkyboxConditionalCdfRT = null;
             }
 
             if (m_SkyboxCubemapRT == null)
@@ -208,6 +211,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_SkyboxConditionalCdfRT.filterMode = FilterMode.Point;
                     m_SkyboxConditionalCdfRT.Create();
                 }
+
+                m_UpdateRequired = true; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
             }
 
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
