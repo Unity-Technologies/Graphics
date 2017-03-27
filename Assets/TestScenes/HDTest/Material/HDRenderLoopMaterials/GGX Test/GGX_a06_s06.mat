@@ -8,11 +8,13 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: GGX_a06_s06
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
-    _EMISSION _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
+  m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
+  disabledShaderPasses:
+  - DistortionVectors
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -36,6 +38,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _DetailMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DetailMask:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -45,6 +51,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DiffuseLightingMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DistortionVectorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -100,7 +110,15 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SubsurfaceRadiusMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TangentMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThicknessMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -112,40 +130,66 @@ Material:
     - _BumpScale: 1
     - _CullMode: 2
     - _Cutoff: 0.5
+    - _DepthOffsetEnable: 0
+    - _DetailAlbedoScale: 1
     - _DetailNormalMapScale: 1
+    - _DetailNormalScale: 1
+    - _DetailSmoothnessScale: 1
     - _DistortionDepthTest: 0
+    - _DistortionEnable: 0
     - _DistortionOnly: 0
     - _DoubleSided: 1
+    - _DoubleSidedEnable: 0
     - _DoubleSidedLigthing: 1
+    - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedMode: 0
     - _DstBlend: 0
     - _EmissiveColorMode: 1
     - _EmissiveIntensity: 0
+    - _EnablePerPixelDisplacement: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _HeightAmplitude: 0.01
     - _HeightBias: 0
+    - _HeightCenter: 0.5
     - _HeightMapMode: 0
     - _HeightScale: 1
+    - _HorizonFade: 1
     - _MaterialID: 0
-    - _MaterialId: 0
     - _Metalic: 0
     - _Metallic: 1
     - _Mettalic: 0
     - _Mode: 0
     - _NormalMapSpace: 0
+    - _NormalScale: 1
     - _OcclusionStrength: 1
+    - _PPDLodThreshold: 5
+    - _PPDMaxSamples: 15
+    - _PPDMinSamples: 5
     - _Parallax: 0.02
     - _Smoothness: 0.6
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _StencilRef: 2
     - _SubSurfaceRadius: 0
+    - _SubsurfaceProfile: 0
+    - _SubsurfaceRadius: 1
     - _SurfaceType: 0
+    - _TexWorldScale: 1
+    - _Thickness: 0.5
+    - _UVBase: 0
+    - _UVDetail: 0
+    - _UVMappingPlanar: 0
     - _UVSec: 0
+    - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
+    - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
+    - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}

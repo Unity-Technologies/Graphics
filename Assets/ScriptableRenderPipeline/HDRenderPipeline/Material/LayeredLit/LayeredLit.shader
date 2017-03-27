@@ -166,7 +166,6 @@ Shader "HDRenderPipeline/LayeredLit"
         
         [ToggleOff]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
         [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
-        [HideInInspector] _UVMappingPlanarBlendMask("_UVMappingPlanarBlendMask", Float) = 0.0
         _TexWorldScaleBlendMask("Tiling", Float) = 1.0
 
         // Following are builtin properties
@@ -188,6 +187,9 @@ Shader "HDRenderPipeline/LayeredLit"
 
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
+        // Stencil state
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilBits.Standard
+
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
         [HideInInspector] _BlendMode ("__blendmode", Float) = 0.0
@@ -198,12 +200,20 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
+        [ToggleOff] _DoubleSidedMirrorEnable("Double sided mirror enable", Float) = 1.0
+        [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
+
+        // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
+        // value that exist to identify if the GI emission need to be enabled.
+        // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
+        // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
+        _EmissionColor("Color", Color) = (1, 1, 1)
 
         // WARNING
         // All the following properties that concern the UV mapping are the same as in the Lit shader.
@@ -222,12 +232,7 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _UVMappingMask0("_UVMappingMask0", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask1("_UVMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask2("_UVMappingMask2", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)
-     
-        [HideInInspector] _UVMappingPlanar0("_UVMappingPlanar0", Float) = 0.0
-        [HideInInspector] _UVMappingPlanar1("_UVMappingPlanar1", Float) = 0.0
-        [HideInInspector] _UVMappingPlanar2("_UVMappingPlanar2", Float) = 0.0
-        [HideInInspector] _UVMappingPlanar3("_UVMappingPlanar3", Float) = 0.0        
+        [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)     
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail0("UV Set for detail0", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail1("UV Set for detail1", Float) = 0
@@ -249,18 +254,18 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
+    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
 
-    #pragma shader_feature _LAYER_TILING_UNIFORM_SCALE
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_BLENDMASK
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR0
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR1
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR2
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR3
+    #pragma shader_feature _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE0
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE1
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE3
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
@@ -294,6 +299,8 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
     #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+    // enable dithering LOD crossfade
+    #pragma multi_compile _ LOD_FADE_CROSSFADE
     // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
     //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON 
 
@@ -302,16 +309,18 @@ Shader "HDRenderPipeline/LayeredLit"
     //-------------------------------------------------------------------------------------
 
     #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
+    // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+    #define SURFACE_GRADIENT
 
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "ShaderLibrary/common.hlsl"
-    #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-    #include "HDRenderPipeline/ShaderVariables.hlsl"
-    #include "HDRenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "HDRenderPipeline/ShaderPass/ShaderPass.cs.hlsl"    
+    #include "../../../ShaderLibrary/common.hlsl"
+    #include "../../ShaderConfig.cs.hlsl"
+    #include "../../ShaderVariables.hlsl"
+    #include "../../ShaderPass/FragInputs.hlsl"
+    #include "../../ShaderPass/ShaderPass.cs.hlsl"    
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -334,7 +343,7 @@ Shader "HDRenderPipeline/LayeredLit"
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    #include "HDRenderPipeline/Material/Lit/LitProperties.hlsl"
+    #include "../../Material/Lit/LitProperties.hlsl"
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
@@ -352,14 +361,21 @@ Shader "HDRenderPipeline/LayeredLit"
             Name "GBuffer"  // Name is not used
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
-            Cull  [_CullMode]
+            Cull [_CullMode]
+
+            Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_GBUFFER
 
-            #include "../../Material/Material.hlsl"            
-            #include "../Lit/ShaderPass/LitSharePass.hlsl"    
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -371,14 +387,21 @@ Shader "HDRenderPipeline/LayeredLit"
             Name "GBufferDebugLighting"  // Name is not used
             Tags{ "LightMode" = "GBufferDebugLighting" } // This will be only for opaque object based on the RenderQueue index
 
-            Cull[_CullMode]
+            Cull [_CullMode]
+
+            Stencil
+            {
+                Ref  [_StencilRef]
+                Comp Always
+                Pass Replace
+            }
 
             HLSLPROGRAM
 
             #define LIGHTING_DEBUG
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "../../Debug/DebugLighting.hlsl"
             #include "../../Material/Material.hlsl"            
             #include "../Lit/ShaderPass/LitSharePass.hlsl"    
             #include "../Lit/LitData.hlsl"
@@ -550,8 +573,8 @@ Shader "HDRenderPipeline/LayeredLit"
             #define LIGHTING_DEBUG
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../Lighting/Forward.hlsl"
-            #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "../../Debug/DebugLighting.hlsl"
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
 

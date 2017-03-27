@@ -35,7 +35,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.unPositionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
+    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw, uint2(0, 0));
     UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 

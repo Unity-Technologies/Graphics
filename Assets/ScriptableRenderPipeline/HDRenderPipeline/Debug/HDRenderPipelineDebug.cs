@@ -6,39 +6,40 @@ using System;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public class GlobalDebugParameters
+    public class GlobalDebugSettings
     {
         public float debugOverlayRatio = 0.33f;
         public bool displayMaterialDebug = false;
         public bool displayRenderingDebug = false;
         public bool displayLightingDebug = false;
 
-        public MaterialDebugParameters materialDebugParameters = new MaterialDebugParameters();
-        public LightingDebugParameters lightingDebugParameters = new LightingDebugParameters();
-        public RenderingDebugParameters renderingDebugParametrs = new RenderingDebugParameters();
+        public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
+        public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
+        public RenderingDebugSettings renderingDebugSettings = new RenderingDebugSettings();
 
         public void OnValidate()
         {
-            lightingDebugParameters.OnValidate();
+            lightingDebugSettings.OnValidate();
         }
     }
 
 
     [Serializable]
-    public class MaterialDebugParameters
+    public class MaterialDebugSettings
     {
         public int debugViewMaterial = 0;
     }
 
     [Serializable]
-    public class RenderingDebugParameters
+    public class RenderingDebugSettings
     {
         public bool displayOpaqueObjects = true;
         public bool displayTransparentObjects = true;
         public bool enableDistortion = true;
+        public bool enableSSS = true;
     }
 
-    public enum ShadowDebugMode
+    public enum ShadowMapDebugMode
     {
         None,
         VisualizeAtlas,
@@ -50,14 +51,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         None,
         DiffuseLighting,
-        SpecularLighting
+        SpecularLighting,
+        VisualizeCascade
     }
 
     [Serializable]
-    public class LightingDebugParameters
+    public class LightingDebugSettings
     {
         public bool                 enableShadows = true;
-        public ShadowDebugMode      shadowDebugMode = ShadowDebugMode.None;
+        public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         public uint                 shadowMapIndex = 0;
 
         public LightingDebugMode    lightingDebugMode = LightingDebugMode.None;
@@ -65,9 +67,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                overrideSmoothnessValue = 0.5f;
         public Color                debugLightingAlbedo = new Color(0.5f, 0.5f, 0.5f);
 
+        public bool                 displaySkyReflection = false;
+        public float                skyReflectionMipmap = 0.0f;
+
         public void OnValidate()
         {
             overrideSmoothnessValue = Mathf.Clamp(overrideSmoothnessValue, 0.0f, 1.0f);
+            skyReflectionMipmap = Mathf.Clamp(skyReflectionMipmap, 0.0f, 1.0f);
         }
     }
 }

@@ -4,8 +4,8 @@
 // Ref: PBRT v3, 13.6.7 "Piecewise-Constant 2D Distributions".
 // Note that we use the equiareal sphere-to-square mapping instead of the latitude-longitude one.
 
-#include "ShaderLibrary/Common.hlsl"
-#include "ShaderLibrary/ImageBasedLighting.hlsl"
+#include "../../../ShaderLibrary/Common.hlsl"
+#include "../../../ShaderLibrary/ImageBasedLighting.hlsl"
 
 /* --- Input --- */
 

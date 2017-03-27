@@ -19,9 +19,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Flags]
     public enum StencilBits
     {
-        None      = Lit.MaterialId.LitStandard, 
-        SSS       = Lit.MaterialId.LitSSS,
-        ClearCoat = Lit.MaterialId.LitClearCoat,
+        None      = 0,
+        SSS       = 0 + Lit.MaterialId.LitSSS,       // 1
+        Standard  = 2 + Lit.MaterialId.LitStandard,  // 2
+        ClearCoat = 1 + Lit.MaterialId.LitClearCoat, // 3
         All       = 255 // 0xff
     }
 
@@ -223,18 +224,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
             var gpuVP = gpuProj * camera.worldToCameraMatrix;
 
+            // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
+            Vector4 invProjectionParam = new Vector4(gpuProj.m20 / (gpuProj.m00 * gpuProj.m23),
+                                                     gpuProj.m21 / (gpuProj.m11 * gpuProj.m23),
+                                                     -1.0f / gpuProj.m23,
+                                                     (-gpuProj.m22
+                                                     + gpuProj.m20 * gpuProj.m02 / gpuProj.m00
+                                                     + gpuProj.m21 * gpuProj.m12 / gpuProj.m11) / gpuProj.m23); 
+
             hdCamera.viewProjectionMatrix    = gpuVP;
             hdCamera.invViewProjectionMatrix = gpuVP.inverse;
             hdCamera.invProjectionMatrix     = gpuProj.inverse;
+            hdCamera.invProjectionParam      = invProjectionParam;
 
             return hdCamera;
         }
 
         public static void SetupMaterialHDCamera(HDCamera hdCamera, Material material)
         {
-            material.SetVector("_ScreenSize", hdCamera.screenSize);
-            material.SetMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);
+            material.SetVector("_ScreenSize",        hdCamera.screenSize);
+            material.SetMatrix("_ViewProjMatrix",    hdCamera.viewProjectionMatrix);
             material.SetMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
+            material.SetMatrix("_InvProjMatrix",     hdCamera.invProjectionMatrix);
+            material.SetVector("_InvProjParam",      hdCamera.invProjectionParam);
         }
 
         // TEMP: These functions should be implemented C++ side, for now do it in C#

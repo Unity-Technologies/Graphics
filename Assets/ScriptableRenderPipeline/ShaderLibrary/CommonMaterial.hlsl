@@ -64,12 +64,6 @@ float PerceptualSmoothnessToPerceptualRoughness(float perceptualSmoothness)
 // Parallax mapping
 // ----------------------------------------------------------------------------
 
-float2 ParallaxOffset(float3 viewDirTS, float height)
-{
-    // Parallax mapping with offset limiting to reduce weird artifcat (i.e do not divide by z), also save performance
-    return viewDirTS.xy * height;
-}
-
 // ref https://www.gamedev.net/topic/678043-how-to-blend-world-space-normals/#entry5287707
 // assume compositing in world space
 // Note: Using vtxNormal = float3(0, 0, 1) give the BlendNormalRNM formulation.
@@ -102,13 +96,14 @@ float3 BlendNormal(float3 n1, float3 n2)
     return normalize(float3(n1.xy * n2.z + n2.xy * n1.z, n1.z * n2.z));
 }
 
-// Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch01.html
+// Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch01.html / http://www.slideshare.net/icastano/cascades-demo-secrets
 float3 ComputeTriplanarWeights(float3 normal)
 { 
     // Determine the blend weights for the 3 planar projections.  
     float3 blendWeights = abs(normal);
     // Tighten up the blending zone
     blendWeights = (blendWeights - 0.2) * 7.0;
+    blendWeights = blendWeights * blendWeights * blendWeights; // pow(blendWeights, 3);
     // Force weights to sum to 1.0 (very important!)  
     blendWeights = max(blendWeights, float3(0.0, 0.0, 0.0));
     blendWeights /= dot(blendWeights, 1.0);
@@ -116,18 +111,14 @@ float3 ComputeTriplanarWeights(float3 normal)
     return blendWeights;
 }
 
-// Planar/Triplanar convention for Unity
-// position and vertex normal must be in the same space
-void GetTriplanarCoordinate(float3 position, float3 vertexNormal, out float2 uvXZ, out float2 uvXY, out float2 uvZY)
-{
-    float3 direction = sign(vertexNormal);
-
-    // In triplanar, if we are facing away from the world axis, a different axis will be flipped for each direction.
-    // This is particularly problematic for tangent space normal maps which need to be in the right direction.
-    // So we multiplying the offending coordinate by the sign of the normal.
-    uvXZ = -float2(position.x, direction.y * position.z);
-    uvXY = float2(-position.x, direction.z * position.y);
-    uvZY = float2(direction.x * position.z, position.y);
+// Planar/Triplanar convention for Unity in world space
+void GetTriplanarCoordinate(float3 position, out float2 uvXZ, out float2 uvXY, out float2 uvZY)
+{ 
+    // Caution: This must follow the same rule as what is use for SurfaceGradient triplanar
+    // TODO: Currently the normal mapping looks wrong without SURFACE_GRADIENT option because we don't handle corretly the tangent space
+    uvXZ = float2(position.z, position.x);
+    uvXY = float2(position.x, position.y);
+    uvZY = float2(position.z, position.y);    
 }
 
 float LerpWhiteTo(float b, float t)

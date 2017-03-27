@@ -1,4 +1,4 @@
-#if defined (LIGHTLOOP_TILE_DIRECT) || defined(LIGHTLOOP_TILE_ALL)
+﻿#if defined (LIGHTLOOP_TILE_DIRECT) || defined(LIGHTLOOP_TILE_ALL)
 #define PROCESS_DIRECTIONAL_LIGHT
 #define PROCESS_PUNCTUAL_LIGHT
 #define PROCESS_AREA_LIGHT
@@ -10,12 +10,20 @@
 
 #include "TilePass.cs.hlsl"
 
-uint _NumTileX;
-uint _NumTileY;
+// For FPTL
+uint _NumTileFtplX;
+uint _NumTileFtplY;
 
 StructuredBuffer<uint> g_vLightListGlobal;		// don't support Buffer yet in unity
 
-#define TILE_SIZE 16 // This is fixed
+#ifdef USE_FPTL_LIGHTLIST
+#define TILE_SIZE TILE_SIZE_FPTL
+#endif
+// Don't do a "#else" so we can catch error if including call don't setup thing correctly
+#ifdef USE_CLUSTERED_LIGHTLIST
+#define TILE_SIZE TILE_SIZE_CLUSTERED
+#endif
+
 #define DWORD_PER_TILE 16 // See dwordsPerTile in TilePass.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
 // these uniforms are only needed for when OPAQUES_ONLY is NOT defined
@@ -34,14 +42,16 @@ uint _UseTileLightList;
 //#endif
 
 //#ifdef USE_CLUSTERED_LIGHTLIST
+uint _NumTileClusteredX;
+uint _NumTileClusteredY;
 StructuredBuffer<uint> g_vLayeredOffsetsBuffer;		// don't support Buffer yet in unity
 StructuredBuffer<float> g_logBaseBuffer;			// don't support Buffer yet in unity
 //#endif
 
-StructuredBuffer<DirectionalLightData>  _DirectionalLightDatas;
-StructuredBuffer<LightData>             _LightDatas;
-StructuredBuffer<EnvLightData>          _EnvLightDatas;
-StructuredBuffer<ShadowData>            _ShadowDatas;
+StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
+StructuredBuffer<LightData>            _LightDatas;
+StructuredBuffer<EnvLightData>         _EnvLightDatas;
+StructuredBuffer<ShadowData>           _ShadowDatas;
 
 // Use texture atlas for shadow map
 //TEXTURE2D(_ShadowAtlas);
@@ -59,17 +69,12 @@ TEXTURE2D_ARRAY(_CookieTextures);
 SAMPLER2D(sampler_CookieTextures);
 
 // Used by point lights
-TEXTURECUBE_ARRAY(_CookieCubeTextures);
-SAMPLERCUBE(sampler_CookieCubeTextures);
+TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
+SAMPLERCUBE_ABSTRACT(sampler_CookieCubeTextures);
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
-#ifdef CUBE_ARRAY_NOT_SUPPORTED
-TEXTURE2D_ARRAY(_EnvTextures);
-SAMPLER2D(sampler_EnvTextures);
-#else
-TEXTURECUBE_ARRAY(_EnvTextures);
-SAMPLERCUBE(sampler_EnvTextures);
-#endif
+TEXTURECUBE_ARRAY_ABSTRACT(_EnvTextures);
+SAMPLERCUBE_ABSTRACT(sampler_EnvTextures);
 
 TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
@@ -88,7 +93,12 @@ struct LightLoopContext
 {
     int sampleShadow;
     int sampleReflection;
+#ifdef SHADOWS_USE_SHADOWCTXT
+	ShadowContext shadowContext;
+#endif
 };
+
+#ifndef SHADOWS_USE_SHADOWCTXT
 
 //-----------------------------------------------------------------------------
 // Shadow sampling function
@@ -107,8 +117,8 @@ float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, uint light
     // Note: scale and bias of shadow atlas are included in ShadowTransform but could be apply here.
     float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
     positionTXS.xyz /= positionTXS.w;
-    //	positionTXS.z -=  shadowData.bias; // Apply a linear bias
-    positionTXS.z -= 0.001;
+    // positionTXS.z -=  shadowData.bias;
+    positionTXS.z -= 0.001; // Apply a linear bias
 
 #if UNITY_REVERSED_Z
     positionTXS.z = 1.0 - positionTXS.z;
@@ -145,6 +155,7 @@ int GetSplitSphereIndexForDirshadows(float3 positionWS, float4 dirShadowSplitSph
     return int(4.0 - dot(weights, float4(4.0, 3.0, 2.0, 1.0)));
 }
 
+
 float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS)
 {
     // Note Index is 0 for now, but else we need to provide the correct index in _DirShadowSplitSpheres and _ShadowDatas
@@ -157,8 +168,8 @@ float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 
     // Note: scale and bias of shadow atlas are included in ShadowTransform but could be apply here.
     float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
     positionTXS.xyz /= positionTXS.w;
-    //	positionTXS.z -=  shadowData.bias; // Apply a linear bias
-    positionTXS.z -= 0.003;
+    // positionTXS.z -=  shadowData.bias;
+    positionTXS.z -= 0.003; // Apply a linear bias
 
 #if UNITY_REVERSED_Z
     positionTXS.z = 1.0 - positionTXS.z;
@@ -203,6 +214,7 @@ float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 
     return flSum;
 
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // Cookie sampling functions
@@ -219,7 +231,7 @@ float4 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index
 // Returns the color in the RGB components, and the transparency (lack of occlusion) in A.
 float4 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
 {
-    return SAMPLE_TEXTURECUBE_ARRAY_LOD(_CookieCubeTextures, sampler_CookieCubeTextures, coord, index, 0);
+    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, sampler_CookieCubeTextures, coord, index, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -246,11 +258,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
-        #ifdef CUBE_ARRAY_NOT_SUPPORTED
-        return SAMPLE_TEXTURE2D_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, DirectionToLatLongCoordinate(texCoord), index, lod);
-        #else
-        return SAMPLE_TEXTURECUBE_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, texCoord, index, lod);
-        #endif
+        return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvTextures, sampler_EnvTextures, texCoord, index, lod);
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {

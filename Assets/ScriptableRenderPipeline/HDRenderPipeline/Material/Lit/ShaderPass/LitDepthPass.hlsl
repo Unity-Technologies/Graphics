@@ -42,6 +42,7 @@
 // Varying - Use for pixel shader
 // This second set of define allow to say which varyings will be output in the vertex (no more tesselation)
 #if REQUIRE_TANGENT_TO_WORLD
+#define VARYINGS_NEED_POSITION_WS // Required to get view vector
 #define VARYINGS_NEED_TANGENT_TO_WORLD
 #endif
 

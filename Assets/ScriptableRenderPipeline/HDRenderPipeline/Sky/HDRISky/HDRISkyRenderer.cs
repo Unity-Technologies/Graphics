@@ -5,9 +5,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDRISkyRenderer : SkyRenderer
     {
         Material m_SkyHDRIMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
-        private HDRISkyParameters m_HdriSkyParams;
+        private HDRISkySettings m_HdriSkyParams;
 
-        public HDRISkyRenderer(HDRISkyParameters hdriSkyParams)
+        public HDRISkyRenderer(HDRISkySettings hdriSkyParams)
         {
             m_HdriSkyParams = hdriSkyParams;
         }
@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public override void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, bool renderForCubemap)
+        public override void RenderSky(BuiltinSkyParameters builtinParams, SkySettings skyParameters, bool renderForCubemap)
         {
             m_SkyHDRIMaterial.SetTexture("_Cubemap", m_HdriSkyParams.skyHDRI);
             m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(m_HdriSkyParams.exposure, m_HdriSkyParams.multiplier, m_HdriSkyParams.rotation, 0.0f));
