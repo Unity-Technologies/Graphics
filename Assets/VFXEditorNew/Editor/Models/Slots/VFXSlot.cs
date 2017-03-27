@@ -270,11 +270,7 @@ namespace UnityEditor.VFX
                         Unlink(slot);
                 }
             }
-
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
         public void UnlinkAll(bool notify = true)
