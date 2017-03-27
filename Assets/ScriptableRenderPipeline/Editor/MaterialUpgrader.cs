@@ -6,8 +6,11 @@ namespace UnityEditor.Experimental.Rendering
 {
     public class MaterialUpgrader
     {
+        public delegate void MaterialFinalizer(Material mat);
+
         string m_OldShader;
         string m_NewShader;
+        MaterialFinalizer m_Finalizer;
 
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
         Dictionary<string, string> m_FloatRename = new Dictionary<string, string>();
@@ -16,6 +19,15 @@ namespace UnityEditor.Experimental.Rendering
         Dictionary<string, float> m_FloatPropertiesToSet = new Dictionary<string, float>();
         Dictionary<string, Color> m_ColorPropertiesToSet = new Dictionary<string, Color>();
         List<string> m_TexturesToRemove = new List<string>();
+
+
+        class KeywordFloatRename
+        {
+            public string keyword;
+            public string property;
+            public float setVal, unsetVal;
+        }
+        List<KeywordFloatRename> m_KeywordFloatRename = new List<KeywordFloatRename>();
 
         [Flags]
         public enum UpgradeFlags
@@ -45,11 +57,8 @@ namespace UnityEditor.Experimental.Rendering
             material.CopyPropertiesFromMaterial(newMaterial);
             UnityEngine.Object.DestroyImmediate(newMaterial);
 
-            material.shaderKeywords = new string[0];
-
-            var matEditor = Editor.CreateEditor(material) as MaterialEditor;
-            matEditor.SetShader(material.shader, false);
-            matEditor.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            if(m_Finalizer != null)
+                m_Finalizer(material);
         }
 
         // Overridable function to implement custom material upgrading functionality
@@ -76,12 +85,15 @@ namespace UnityEditor.Experimental.Rendering
 
             foreach (var prop in m_ColorPropertiesToSet)
                 dstMaterial.SetColor(prop.Key, prop.Value);
+            foreach (var t in m_KeywordFloatRename)
+                dstMaterial.SetFloat(t.property, srcMaterial.IsKeywordEnabled(t.keyword) ? t.setVal : t.unsetVal);
         }
 
-        public void RenameShader(string oldName, string newName)
+        public void RenameShader(string oldName, string newName, MaterialFinalizer finalizer)
         {
             m_OldShader = oldName;
             m_NewShader = newName;
+            m_Finalizer = finalizer;
         }
 
         public void RenameTexture(string oldName, string newName)
@@ -112,6 +124,11 @@ namespace UnityEditor.Experimental.Rendering
         public void SetColor(string propertyName, Color value)
         {
             m_ColorPropertiesToSet[propertyName] = value;
+        }
+
+        public void RenameKeywordToFloat(string oldName, string newName, float setVal, float unsetVal)
+        {
+            m_KeywordFloatRename.Add(new KeywordFloatRename { keyword = oldName, property = newName, setVal = setVal, unsetVal = unsetVal });
         }
 
         static bool IsMaterialPath(string path)

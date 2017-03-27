@@ -250,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             m_CubeReflTexArray = new TextureCacheCubemap();
             m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-            m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
+            m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredCompressedTextureFormat, true);
 
             //m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
             //m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
@@ -1073,7 +1073,11 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             // render shadow maps (for mobile shadow map rendering should happen before we render g-buffer).
             // on GCN it needs to be after to leverage async compute since we need the depth-buffer for optimal light list building.
-            if(k_UseAsyncCompute) RenderShadowMaps(cullResults, loop);
+            if(k_UseAsyncCompute) 
+            {
+                RenderShadowMaps(cullResults, loop);
+                loop.SetupCameraProperties(camera);
+            }
 
             // Push all global params
             var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);
@@ -1189,12 +1193,17 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             if (enableClustered)
             {
-                s_PerVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * (1 << k_Log2NumClusters) * nrTiles, sizeof(uint));
-                s_PerVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrTiles, sizeof(uint));
+                var tileSizeClust = LightDefinitions.TILE_SIZE_CLUSTERED;
+                var nrTilesClustX = (width + (tileSizeClust-1)) / tileSizeClust;
+                var nrTilesClustY = (height + (tileSizeClust-1)) / tileSizeClust;
+                var nrTilesClust = nrTilesClustX * nrTilesClustY;
+
+                s_PerVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * (1 << k_Log2NumClusters) * nrTilesClust, sizeof(uint));
+                s_PerVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrTilesClust, sizeof(uint));
 
                 if (k_UseDepthBuffer)
                 {
-                    s_PerTileLogBaseTweak = new ComputeBuffer(nrTiles, sizeof(float));
+                    s_PerTileLogBaseTweak = new ComputeBuffer(nrTilesClust, sizeof(float));
                 }
             }
 
@@ -1246,9 +1255,11 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_logBaseBuffer", s_PerTileLogBaseTweak);
             }
 
-            var numTilesX = (camera.pixelWidth + 15) / 16;
-            var numTilesY = (camera.pixelHeight + 15) / 16;
-            cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
+            var tileSizeClust = LightDefinitions.TILE_SIZE_CLUSTERED;
+            var nrTilesClustX = (camera.pixelWidth + (tileSizeClust-1)) / tileSizeClust;
+            var nrTilesClustY = (camera.pixelHeight + (tileSizeClust-1)) / tileSizeClust;
+
+            cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, nrTilesClustX, nrTilesClustY, 1);
         }
 
         void BuildPerTileLightLists(Camera camera, ScriptableRenderContext loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr)

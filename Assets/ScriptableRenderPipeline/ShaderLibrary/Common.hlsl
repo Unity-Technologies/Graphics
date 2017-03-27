@@ -57,6 +57,7 @@
 #elif defined(SHADER_API_PSSL)
 #include "API/PSSL.hlsl"
 #elif defined(SHADER_API_XBOXONE)
+#include "API/D3D11.hlsl"
 #include "API/D3D11_1.hlsl"
 #elif defined(SHADER_API_METAL)
 #include "API/Metal.hlsl"
@@ -64,6 +65,26 @@
 #error unsupported shader api
 #endif
 #include "API/Validate.hlsl"
+
+// Some shader compiler don't support to do multiple ## for concatenation inside the same macro, it require an indirection.
+// This is the purpose of this macro
+#define MERGE_NAME(X, Y) X##Y
+
+// These define are use to abstract the way we sample into a cubemap array.
+// Some platform don't support cubemap array so we fallback on 2D latlong
+#ifdef UNITY_NO_CUBEMAP_ARRAY
+#define TEXTURECUBE_ARRAY_ABSTRACT TEXTURE2D_ARRAY
+#define SAMPLERCUBE_ABSTRACT SAMPLER2D
+#define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURE2D_ARRAY_ARGS
+#define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURE2D_ARRAY_PARAM
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, DirectionToLatLongCoordinate(coord3), index, lod)
+#else
+#define TEXTURECUBE_ARRAY_ABSTRACT TEXTURECUBE_ARRAY
+#define SAMPLERCUBE_ABSTRACT SAMPLERCUBE
+#define TEXTURECUBE_ARRAY_ARGS_ABSTRACT TEXTURECUBE_ARRAY_ARGS
+#define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURECUBE_ARRAY_PARAM
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(textureName, samplerName, coord3, index, lod) SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, index, lod)
+#endif
 
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
@@ -368,26 +389,55 @@ float2 DirectionToLatLongCoordinate(float3 dir)
     return float2(1.0 - 0.5 * INV_PI * atan2(dir.x, -dir.z), asin(dir.y) * INV_PI + 0.5);
 }
 
+float3 LatlongToDirectionCoordinate(float2 coord)
+{
+    float theta = coord.y * PI;
+    float phi = (coord.x * 2.f * PI - PI*0.5f);
+
+    float cosTheta = cos(theta);
+    float sinTheta = sqrt(1.0f - min(1.0f, cosTheta*cosTheta));
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+
+    float3 direction = float3(sinTheta*cosPhi, cosTheta, sinTheta*sinPhi);
+    direction.xy *= -1.0;
+    return direction;
+}
+
 // ----------------------------------------------------------------------------
 // World position reconstruction / transformation
 // ----------------------------------------------------------------------------
 
-// Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane)
+// Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane).
+// Does not correctly handle oblique view frustums.
 float Linear01DepthFromNear(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x + zBufferParam.y / depth);
 }
 
-// Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane)
+// Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane).
+// Does not correctly handle oblique view frustums.
 float Linear01Depth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x * depth + zBufferParam.y);
 }
 
-// Z buffer to linear depth
+// Z buffer to linear depth.
+// Does not correctly handle oblique view frustums.
 float LinearEyeDepth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
+}
+
+// Z buffer to linear depth.
+// Correctly handles oblique view frustums. Only valid for projection matrices!
+// Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
+float LinearEyeDepth(float2 positionSS, float depthRaw, float4 invProjParam)
+{
+    float4 positionCS = float4(positionSS * 2.0 - 1.0, depthRaw, 1.0);
+    float  viewSpaceZ = rcp(dot(positionCS, invProjParam));
+    // The view space uses a right-handed coordinate system.
+    return -viewSpaceZ;
 }
 
 struct PositionInputs
@@ -396,11 +446,11 @@ struct PositionInputs
     float2 positionSS;
     // Unormalize screen position (offset by 0.5)
     uint2 unPositionSS;
+    uint2 unTileCoord;
 
     float depthRaw; // raw depth from depth buffer
     float depthVS;
 
-    float4 positionCS;
     float3 positionWS;
 };
 
@@ -408,7 +458,7 @@ struct PositionInputs
 // This allow to easily share code.
 // If a compute shader call this function unPositionSS is an integer usually calculate like: uint2 unPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
 // else it is current unormalized screen coordinate like return by SV_Position
-PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
+PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize, uint2 unTileCoord)	// Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
 {
     PositionInputs posInput;
     ZERO_INITIALIZE(PositionInputs, posInput);
@@ -421,6 +471,7 @@ PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
     posInput.positionSS *= invScreenSize;
 
     posInput.unPositionSS = uint2(unPositionSS);
+    posInput.unTileCoord = unTileCoord;
 
     return posInput;
 }
@@ -429,11 +480,8 @@ PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
 // depthRaw and depthVS come directly form .zw of SV_Position
 void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout PositionInputs posInput)
 {
-    posInput.depthRaw = depthRaw;
-    posInput.depthVS = depthVS;
-
-    // TODO: We revert for DX but maybe it is not the case of OGL ? Test the define ?
-    posInput.positionCS = float4((posInput.positionSS - 0.5) * float2(2.0, -2.0), depthRaw, 1.0) * depthVS; // depthVS is SV_Position.w
+    posInput.depthRaw   = depthRaw;
+    posInput.depthVS    = depthVS;
     posInput.positionWS = positionWS;
 }
 
@@ -442,45 +490,47 @@ void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
 // It may be necessary to flip the Y axis as the origin of the screen-space coordinate system
 // of Direct3D is at the top left corner of the screen, with the Y axis pointing downwards.
-void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4 ViewProjectionMatrix,
+void UpdatePositionInput(float depthRaw, float4x4 invViewProjMatrix, float4x4 viewProjMatrix,
                          inout PositionInputs posInput, bool flipY = false)
 {
-    posInput.depthRaw = depth;
+    posInput.depthRaw = depthRaw;
 
     float2 screenSpacePos;
     screenSpacePos.x = posInput.positionSS.x;
     screenSpacePos.y = flipY ? 1.0 - posInput.positionSS.y : posInput.positionSS.y;
 
-    posInput.positionCS = float4(screenSpacePos * 2.0 - 1.0, depth, 1.0);
-    float4 hpositionWS  = mul(invViewProjectionMatrix, posInput.positionCS);
+    float4 positionCS   = float4(screenSpacePos * 2.0 - 1.0, depthRaw, 1.0);
+    float4 hpositionWS  = mul(invViewProjMatrix, positionCS);
     posInput.positionWS = hpositionWS.xyz / hpositionWS.w;
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
-    posInput.depthVS = mul(ViewProjectionMatrix, float4(posInput.positionWS, 1.0)).w;
-
-    posInput.positionCS *= posInput.depthVS;
+    posInput.depthVS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
 }
 
-float3 ComputeViewSpacePosition(float2 positionSS, float rawDepth, float4x4 invProjMatrix)
+// It may be necessary to flip the Y axis as the origin of the screen-space coordinate system
+// of Direct3D is at the top left corner of the screen, with the Y axis pointing downwards.
+float3 ComputeViewSpacePosition(float2 positionSS, float depthRaw, float4x4 invProjMatrix, bool flipY = false)
 {
-    float4 positionCS = float4(positionSS * 2.0 - 1.0, rawDepth, 1.0);
+    float2 screenSpacePos;
+    screenSpacePos.x = positionSS.x;
+    screenSpacePos.y = flipY ? 1.0 - positionSS.y : positionSS.y;
+
+    float4 positionCS = float4(screenSpacePos * 2.0 - 1.0, depthRaw, 1.0);
     float4 positionVS = mul(invProjMatrix, positionCS);
     // The view space uses a right-handed coordinate system.
     positionVS.z = -positionVS.z;
     return positionVS.xyz / positionVS.w;
 }
 
-// depthOffsetVS is always in the direction of the view vector (V)
-void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, inout PositionInputs posInput)
+// The view direction 'V' points towards the camera.
+// 'depthOffsetVS' is always applied in the opposite direction (-V).
+void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
-    posInput.depthVS += depthOffsetVS;
-    // TODO: it is an approx, need a correct value where we use projection matrix to reproject the depth from VS
-    posInput.depthRaw = posInput.positionCS.z / posInput.depthVS;
+    posInput.positionWS += depthOffsetVS * (-V);
 
-    // TODO: Do we need to flip Y axis here on OGL ?
-    posInput.positionCS = float4(posInput.positionSS.xy * 2.0 - 1.0, posInput.depthRaw, 1.0) * posInput.depthVS;
-    // Just add the offset along the view vector is sufficiant for world position
-    posInput.positionWS += V * depthOffsetVS;
+    float4 positionCS = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
+    posInput.depthVS  = positionCS.w;
+    posInput.depthRaw = positionCS.z / positionCS.w;
 }
 
 // Generates a triangle in homogeneous clip space, s.t.
@@ -498,6 +548,22 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID)
 {
     float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
     return float4(uv * 2.0 - 1.0, 1.0, 1.0);
+}
+
+// LOD dithering transition helper
+// ditherFactor should be a quantized value between 0..15/16, i.e the one provide by Unity
+// LOD0 must use this function with ditherFactor 1..0
+// LOD1 must use this functoin with ditherFactor 0..1
+void LODDitheringTransition(uint2 unPositionSS, float ditherFactor)
+{
+    // Generate a fixed pattern
+    float p = cos(dot(unPositionSS, float2(443.8975, 397.2973)));
+    p = frac(p * 491.1871);
+
+    // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
+    // this is handled by this test which reverse the pattern
+    p = (ditherFactor >= 0.5) ? (15.0 / 16.0) - p : p;
+    clip(ditherFactor - p);
 }
 
 #endif // UNITY_COMMON_INCLUDED

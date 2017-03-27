@@ -1,14 +1,14 @@
 #ifndef UNITY_MATERIAL_INCLUDED
 #define UNITY_MATERIAL_INCLUDED
 
-#include "ShaderLibrary/Color.hlsl"
-#include "ShaderLibrary/Packing.hlsl"
-#include "ShaderLibrary/BSDF.hlsl"
-#include "ShaderLibrary/Debug.hlsl"
-#include "ShaderLibrary/GeometricTools.hlsl"
-#include "ShaderLibrary/CommonMaterial.hlsl"
-#include "ShaderLibrary/EntityLighting.hlsl"
-#include "ShaderLibrary/ImageBasedLighting.hlsl"
+#include "../../ShaderLibrary/Color.hlsl"
+#include "../../ShaderLibrary/Packing.hlsl"
+#include "../../ShaderLibrary/BSDF.hlsl"
+#include "../../ShaderLibrary/Debug.hlsl"
+#include "../../ShaderLibrary/GeometricTools.hlsl"
+#include "../../ShaderLibrary/CommonMaterial.hlsl"
+#include "../../ShaderLibrary/EntityLighting.hlsl"
+#include "../../ShaderLibrary/ImageBasedLighting.hlsl"
 
 //-----------------------------------------------------------------------------
 // BuiltinData
@@ -27,6 +27,8 @@
 #include "Lit/Lit.hlsl"
 #elif defined(UNITY_MATERIAL_UNLIT)
 #include "Unlit/Unlit.hlsl"
+#elif defined(UNITY_MATERIAL_IRIDESCENCE)
+//#include "Iridescence/Iridescence.hlsl"
 #endif
 
 //-----------------------------------------------------------------------------

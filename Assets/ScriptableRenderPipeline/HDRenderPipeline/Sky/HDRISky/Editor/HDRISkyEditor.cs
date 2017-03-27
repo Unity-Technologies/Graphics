@@ -6,7 +6,7 @@ using UnityEditor;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(HDRISkyParameters))]
+    [CustomEditor(typeof(HDRISkySettings))]
     public class HDRISkyParametersEditor
         : Editor
     {

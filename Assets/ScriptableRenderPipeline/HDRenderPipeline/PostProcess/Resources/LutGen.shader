@@ -1,10 +1,10 @@
-﻿Shader "Hidden/HDRenderPipeline/LutGen"
+Shader "Hidden/HDRenderPipeline/LutGen"
 {
     HLSLINCLUDE
 
         #pragma target 4.5
-        #include "ShaderLibrary/Common.hlsl"
-        #include "HDRenderPipeline/ShaderVariables.hlsl"
+        #include "../../../ShaderLibrary/Common.hlsl"
+        #include "../../ShaderVariables.hlsl"
         #include "ColorGrading.hlsl"
 
         float4 _LutParams;

@@ -32,11 +32,10 @@ Shader "HDRenderPipeline/LitTessellation"
         _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
-        [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2, Specular Color, 3)] _MaterialID("MaterialId", Int) = 0
         _SubsurfaceProfile("Subsurface Profile", Int) = 0
         _SubsurfaceRadius("Subsurface Radius", Range(0.004, 1.0)) = 1.0
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
-        _Thickness("Thickness", Range(0.004, 1.0)) = 0.5
+        _Thickness("Thickness", Range(0.004, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
 
         //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
@@ -65,7 +64,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 0
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 1
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -76,16 +75,17 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
-        // Material Id
-        [HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
-
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
+        [ToggleOff] _DoubleSidedMirrorEnable("Double sided mirror enable", Float) = 1.0
+        [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVMappingPlanar("_UVMappingPlanar", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
+
+        [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2, Specular Color, 3)] _MaterialID("MaterialId", Int) = 0
+
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
@@ -93,6 +93,12 @@ Shader "HDRenderPipeline/LitTessellation"
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
+
+        // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
+        // value that exist to identify if the GI emission need to be enabled.
+        // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
+        // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
+        _EmissionColor("Color", Color) = (1, 1, 1)
 
         // Tessellation specific
         [Enum(Phong, 0, Displacement, 1, DisplacementPhong, 2)] _TessellationMode("Tessellation mode", Float) = 0
@@ -103,6 +109,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
         _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
         [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
+        [ToggleOff] _TessellationTilingScale("Tessellation tiling height scale", Float) = 1.0
          // TODO: Handle culling mode for backface culling
     }
 
@@ -110,6 +117,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
     #pragma target 5.0
     #pragma only_renderers d3d11 ps4// TEMP: until we go futher in dev
+    // #pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -119,17 +127,18 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _DISTORTION_ON
     #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _DOUBLESIDED_ON
+    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
     #pragma shader_feature _TESSELLATION_OBJECT_SCALE
+    #pragma shader_feature _TESSELLATION_TILING_SCALE
 
-    #pragma shader_feature _MAPPING_TRIPLANAR
+    #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
-    #pragma shader_feature _PER_PIXEL_DISPLACEMENT
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
-    #pragma shader_feature _NORMALMAP  
+    #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
     #pragma shader_feature _SPECULAROCCLUSIONMAP
     #pragma shader_feature _EMISSIVE_COLOR_MAP
@@ -139,10 +148,13 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
     #pragma shader_feature _THICKNESS_MAP
+    #pragma shader_feature _SUBSURFACE_SCATTERING
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
     #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+    // enable dithering LOD crossfade
+    #pragma multi_compile _ LOD_FADE_CROSSFADE
     // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
     //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON
 
@@ -152,23 +164,25 @@ Shader "HDRenderPipeline/LitTessellation"
 
     #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
     #define TESSELLATION_ON
+    // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+    #define SURFACE_GRADIENT
 
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "ShaderLibrary/common.hlsl"
-    #include "ShaderLibrary/tessellation.hlsl"
-    #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-    #include "HDRenderPipeline/ShaderVariables.hlsl"
-    #include "HDRenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "HDRenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    #include "../../../ShaderLibrary/common.hlsl"
+    #include "../../../ShaderLibrary/tessellation.hlsl"
+    #include "../../ShaderConfig.cs.hlsl"
+    #include "../../ShaderVariables.hlsl"
+    #include "../../ShaderPass/FragInputs.hlsl"
+    #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    #include "HDRenderPipeline/Material/Lit/LitProperties.hlsl"
+    #include "../../Material/Lit/LitProperties.hlsl"
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
@@ -186,7 +200,7 @@ Shader "HDRenderPipeline/LitTessellation"
             Name "GBuffer"  // Name is not used
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
-            Cull  [_CullMode]
+            Cull [_CullMode]
 
             Stencil
             {
@@ -214,11 +228,11 @@ Shader "HDRenderPipeline/LitTessellation"
             Name "GBufferDebugLighting"  // Name is not used
             Tags{ "LightMode" = "GBufferDebugLighting" } // This will be only for opaque object based on the RenderQueue index
 
-            Cull[_CullMode]
+            Cull [_CullMode]
 
-                Stencil
+            Stencil
             {
-                Ref[_StencilRef]
+                Ref  [_StencilRef]
                 Comp Always
                 Pass Replace
             }
@@ -230,8 +244,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
             #define LIGHTING_DEBUG
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "../../Debug/DebugLighting.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
@@ -273,7 +287,7 @@ Shader "HDRenderPipeline/LitTessellation"
             HLSLPROGRAM
 
             // Lightmap memo
-            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
+            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             // No tessellation for Meta pass
@@ -347,6 +361,8 @@ Shader "HDRenderPipeline/LitTessellation"
             HLSLPROGRAM
 
             // TODO: Tesselation can't work with velocity for now...
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../Material/Material.hlsl"
@@ -425,8 +441,8 @@ Shader "HDRenderPipeline/LitTessellation"
             #define LIGHTING_DEBUG
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../Lighting/Forward.hlsl"
-            #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "../../Debug/DebugLighting.hlsl"
 
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
@@ -438,7 +454,6 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ENDHLSL
         }
-
     }
 
     CustomEditor "Experimental.Rendering.HDPipeline.LitGUI"
