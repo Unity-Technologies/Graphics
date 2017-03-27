@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
             m_Id = Guid.NewGuid();
         }
 
-        public void OnEnable()
+        public virtual void OnEnable()
         {
             if (m_Children == null)
                 m_Children = new List<VFXModel>();

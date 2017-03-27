@@ -105,8 +105,9 @@ namespace UnityEditor.VFX
             if (GetNbChildren() == 0)
             {
                 m_DefaultExpression = DefaultExpression();
-                if (m_DefaultExpression == null)
-                    throw new NotImplementedException("Default expression must return a VFXValue for slot of type: " + this.ToString());
+                //TODOPAUL : be able to create VFXExpression from FloatN reference value
+                //if (m_DefaultExpression == null)
+                //    throw new NotImplementedException("Default expression must return a VFXValue for slot of type: " + this.ToString());
             }
             else
             {
@@ -249,7 +250,10 @@ namespace UnityEditor.VFX
             });
 
             // Finally notify owner
-            NotifyOwner();
+            if (notify)
+            {
+                NotifyOwner();
+            }
         }
 
         private void NotifyOwner()

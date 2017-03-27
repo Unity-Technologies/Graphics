@@ -99,6 +99,11 @@ namespace UnityEditor.VFX
 
         protected VFXOperatorFloatUnified()
         {
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
             if (inputSlots.Any(s => s.property.type != typeof(FloatN)))
             {
                 throw new Exception(string.Format("VFXOperatorFloatUnified except only FloatN as input : {0}", GetType()));

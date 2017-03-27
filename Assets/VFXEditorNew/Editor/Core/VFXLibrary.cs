@@ -152,7 +152,7 @@ namespace UnityEditor.VFX
                         if (dictionary.ContainsKey(boundType))
                             throw new Exception(boundType + " was already bound to a slot type");
 
-                        VFXSlot instance = (VFXSlot)System.Activator.CreateInstance(slotType);
+                        VFXSlot instance = (VFXSlot)ScriptableObject.CreateInstance(slotType);
                         dictionary[boundType] = new VFXModelDescriptor<VFXSlot>(instance);
                     }
                 }

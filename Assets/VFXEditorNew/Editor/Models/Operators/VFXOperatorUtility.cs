@@ -116,6 +116,11 @@ namespace UnityEditor.VFX
 
         static public IEnumerable<VFXExpression> UnifyFloatLevel(IEnumerable<VFXExpression> inputExpression, float defaultValue = 0.0f)
         {
+            if (inputExpression.Count() <= 1)
+            {
+                return inputExpression;
+            }
+
             var maxValueType = inputExpression.Select(o => o.ValueType).OrderBy(t => VFXExpression.TypeToSize(t)).Last();
             var newVFXExpression = inputExpression.Select(o => CastFloat(o, maxValueType, defaultValue));
             return newVFXExpression.ToArray();

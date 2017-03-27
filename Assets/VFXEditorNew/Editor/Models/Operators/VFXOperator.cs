@@ -11,8 +11,13 @@ namespace UnityEditor.VFX
 {
     abstract class VFXOperator : VFXSlotContainerModel<VFXModel, VFXModel>
     {
-        public VFXOperator()
+        protected VFXOperator()
         {
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
             var settingsType = GetPropertiesSettings();
             if (settingsType != null)
             {
@@ -80,29 +85,48 @@ namespace UnityEditor.VFX
             return inputSlots.Select(o => o.expression).Where(e => e != null);
         }
     
-        protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> inputExpression)
+        protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> outputExpression)
         {
-            //Resize
-            var inputExpressionArray = inputExpression.ToArray();
-            if (inputExpressionArray.Length < outputSlots.Count())
+            var outputExpressionArray = outputExpression.ToArray();
+
+            //Check change
+            bool bOuputputLayoutChanged = false;
+            if (outputExpressionArray.Length != outputSlots.Count())
             {
-                while (outputSlots.Count() != inputExpressionArray.Length)
+                bOuputputLayoutChanged = true;
+            }
+            else
+            {
+                for (int iSlot = 0; iSlot < outputExpressionArray.Length; ++iSlot)
                 {
-                    RemoveSlot(outputSlots.Last(),false);
+                    var slot = GetOutputSlot(iSlot);
+                    var expression = outputExpressionArray[iSlot];
+                    if (slot.property.type != VFXExpression.TypeToType(expression.ValueType))
+                    {
+                        bOuputputLayoutChanged = true;
+                        break;
+                    }
                 }
             }
-            else if (inputExpressionArray.Length > outputSlots.Count())
+
+            if (bOuputputLayoutChanged)
             {
-                while (outputSlots.Count() != inputExpressionArray.Length)
+                while(outputSlots.Count > 0)
                 {
-                    AddSlot(new VFXSlot(VFXSlot.Direction.kOutput),false);
+                    RemoveSlot(outputSlots.Last());
+                }
+
+                for (int iSlot = 0; iSlot < outputExpressionArray.Length; ++iSlot)
+                {
+                    var expression = outputExpressionArray[iSlot];
+                    AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.ValueType), "o"), VFXSlot.Direction.kOutput), false);
                 }
             }
 
             //Apply
-            for (int iSlot = 0; iSlot < inputExpressionArray.Length; ++iSlot)
+            for (int iSlot = 0; iSlot < outputExpressionArray.Length; ++iSlot)
             {
-                GetOutputSlot(iSlot).SetExpression(inputExpressionArray[iSlot],false); // dont notify
+                GetOutputSlot(iSlot).SetExpression(outputExpressionArray[iSlot],false); // don't notify
             }
         }
 

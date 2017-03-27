@@ -10,26 +10,19 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXOperatorTests
     {
-        class VFXOperatorFloatOne : VFXOperator
-        {
-            override public string name { get { return "Temp_Float_One"; } }
-            override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
-            {
-                return new[] { new VFXValueFloat(1.0f, true) };
-            }
-        }
-
         [Test]
         public void CascadedAddOperator()
         {
-            var one = new VFXOperatorFloatOne();
-            var add = new VFXOperatorAdd();
+            var one = ScriptableObject.CreateInstance<VFXOperatorFloatOne>();
+            var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
 
             var count = 8.0f;
             for (int i = 0; i < (int)count; i++)
             {
-                var emptySlot = add.inputSlots.First(s => !s.HasLink());
+                var inputSlots = add.inputSlots.ToArray();
+                var emptySlot = inputSlots.First(s => !s.HasLink());
                 emptySlot.Link(one.outputSlots.First());
+                add.Invalidate(VFXModel.InvalidationCause.kStructureChanged); //TODOPAUL : Should be called by Link !
             }
 
             var finalExpr = add.outputSlots.First().expression;

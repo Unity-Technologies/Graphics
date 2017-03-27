@@ -79,8 +79,13 @@ namespace UnityEditor.VFX
 
         protected VFXSlotContainerModel()
         {
-            InitProperties(GetInputPropertiesTypeName(), out m_InputProperties, out m_InputValues,VFXSlot.Direction.kInput);
-            InitProperties(GetOutputPropertiesTypeName(), out m_OutputProperties, out m_OutputValues,VFXSlot.Direction.kOutput);
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            InitProperties(GetInputPropertiesTypeName(), out m_InputProperties, out m_InputValues, VFXSlot.Direction.kInput);
+            InitProperties(GetOutputPropertiesTypeName(), out m_OutputProperties, out m_OutputValues, VFXSlot.Direction.kOutput);
         }
 
         static private VFXExpression GetExpressionFromObject(object value)

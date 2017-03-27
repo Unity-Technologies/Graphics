@@ -135,7 +135,6 @@ namespace UnityEditor.VFX
                 }
             }*/
 
-
             return expression;
         }
     }
