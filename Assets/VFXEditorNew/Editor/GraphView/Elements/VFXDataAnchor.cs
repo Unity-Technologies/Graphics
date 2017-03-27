@@ -1,7 +1,7 @@
 using RMGUI.GraphView;
-using UnityEngine.RMGUI.StyleSheets;
+using UnityEngine.Experimental.RMGUI.StyleSheets;
 using UnityEngine;
-using UnityEngine.RMGUI;
+using UnityEngine.Experimental.RMGUI;
 using System.Collections.Generic;
 using Type = System.Type;
 
@@ -112,47 +112,55 @@ namespace UnityEditor.VFX.UI
                 m_GUIStyles.baseStyle = new GUIStyle();
                 m_PropertyIM = VFXPropertyIM.Create(presenter.type);
 
-                m_Container = new IMGUIContainer() { name = "IMGUI" };
-                m_Container.OnGUIHandler = OnGUI;
-                m_Container.executionContext = s_ContextCount++;
+                m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
+                //m_Container.executionContext = s_ContextCount++;
                 AddChild(m_Container);
             }
         }
         void OnGUI()
         {
             // update the GUISTyle from the element style defined in USS
-            bool different = false;
 
-            if (m_GUIStyles.baseStyle.font != font)
+
+            try
             {
-                m_GUIStyles.baseStyle.font = font;
-                different = true;
+               bool different = false;
+
+                if (m_GUIStyles.baseStyle.font != font)
+                {
+                    m_GUIStyles.baseStyle.font = font;
+                    different = true;
+                }
+                if (m_GUIStyles.baseStyle.fontSize != fontSize)
+                {
+                    m_GUIStyles.baseStyle.fontSize = fontSize;
+                    different = true;
+                }
+                if (m_GUIStyles.baseStyle.focused.textColor != textColor)
+                {
+                    m_GUIStyles.baseStyle.focused.textColor = m_GUIStyles.baseStyle.active.textColor = m_GUIStyles.baseStyle.normal.textColor = textColor;
+                    different = true;
+                }
+
+                if (different)
+                    m_GUIStyles.Reset();
+
+                bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXDataAnchorPresenter>(), m_GUIStyles);
+
+                if (changed)
+                {
+                    Dirty(ChangeType.Transform | ChangeType.Repaint);
+                }
+
+                if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
+                {
+                    Rect r = GUILayoutUtility.GetLastRect();
+                    m_Container.height = r.yMax;
+                }
             }
-            if (m_GUIStyles.baseStyle.fontSize != fontSize)
+            catch(System.Exception e)
             {
-                m_GUIStyles.baseStyle.fontSize = fontSize;
-                different = true;
-            }
-            if (m_GUIStyles.baseStyle.focused.textColor != textColor)
-            {
-                m_GUIStyles.baseStyle.focused.textColor = m_GUIStyles.baseStyle.active.textColor = m_GUIStyles.baseStyle.normal.textColor = textColor;
-                different = true;
-            }
-
-            if (different)
-                m_GUIStyles.Reset();
-
-            bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXDataAnchorPresenter>(), m_GUIStyles);
-
-            if (changed)
-            {
-                Dirty(ChangeType.Transform | ChangeType.Repaint);
-            }
-
-            if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
-            {
-                Rect r = GUILayoutUtility.GetLastRect();
-                m_Container.height = r.yMax;
+                Debug.LogError(e.Message);
             }
         }
 
@@ -163,6 +171,9 @@ namespace UnityEditor.VFX.UI
 
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
+            if(m_Container != null)
+                m_Container.executionContext = presenter.GetInstanceID();
+
             // reverse because we want the flex to choose the position of the connector
             presenter.position = position;
 
@@ -172,7 +183,9 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("connected");
 
             // update the css type of the class
-            m_ConnectorBox.RemoveFromClassList(VFXTypeDefinition.GetTypeCSSClasses());
+            foreach( var cls in VFXTypeDefinition.GetTypeCSSClasses())
+                m_ConnectorBox.RemoveFromClassList(cls);
+
             m_ConnectorBox.AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
 
             switch (presenter.direction)

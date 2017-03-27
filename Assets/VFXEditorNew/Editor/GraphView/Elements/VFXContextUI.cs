@@ -3,18 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
 using UnityEngine;
-using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleEnums;
-using UnityEngine.RMGUI.StyleSheets;
+using UnityEngine.Experimental.RMGUI;
+using UnityEngine.Experimental.RMGUI.StyleEnums;
+using UnityEngine.Experimental.RMGUI.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-	class BlockContainer : VisualContainer, ISelection, IDropTarget
+	class BlockContainer : VisualContainer, ISelection
 	{
 		// ISelection implementation
 		public List<ISelectable> selection { get; private set; }
 
-		bool m_DragStarted;
 
 		public BlockContainer()
 		{
@@ -26,10 +25,11 @@ namespace UnityEditor.VFX.UI
 		{
 			ClearSelection();
 
-			var blocks = children.OfType<VFXBlockUI>().ToList();
-			foreach (var c in blocks)
+            for(int i = 0; i < childrenCount; ++i)
 			{
-				AddToSelection(c);
+                var child = GetChildAt(0) as VFXBlockUI;
+                if( child != null)
+				    AddToSelection(child);
 			}
 
 			return EventPropagation.Stop;
@@ -62,60 +62,10 @@ namespace UnityEditor.VFX.UI
 
 			selection.Clear();
 		}
-
-		public bool CanAcceptDrop(List<ISelectable> selection)
-		{
-			foreach (var item in selection)
-			{
-				if ((item as VFXBlockUI) == null)
-				{
-					return false;
-				}
-			}
-
-			return true;
-		}
-
-		public EventPropagation DragUpdated(Event evt, List<ISelectable> selection, IDropTarget dropTarget)
-		{
-			if (!m_DragStarted)
-			{
-				// TODO: Do something on first DragUpdated event (initiate drag)
-				m_DragStarted = true;
-			}
-			else
-			{
-				// TODO: Do something on subsequent DragUpdated events
-			}
-
-			return EventPropagation.Stop;
-		}
-
-		public EventPropagation DragPerform(Event evt, List<ISelectable> selection, IDropTarget dropTarget)
-		{
-			// TODO: Do something on DragPerform event (this is where the actual drop takes place)
-// 			foreach (var item in dragSelection)
-// 			{
-//				...
-// 			}
-
-			m_DragStarted = false;
-
-			return EventPropagation.Stop;
-		}
-
-		public EventPropagation DragExited()
-		{
-			// TODO: Do something when current drag is cancelled
-
-			m_DragStarted = false;
-
-			return EventPropagation.Stop;
-		}
 	}
 
-	class VFXContextUI : GraphElement
-	{
+	class VFXContextUI : GraphElement, IDropTarget
+    {
 		// TODO: Unused except for debugging
 		const string RectColorProperty = "rect-color";
 
@@ -124,6 +74,8 @@ namespace UnityEditor.VFX.UI
 		VisualContainer m_FlowOutputConnectorContainer;
 		VisualContainer m_NodeContainer;
 		BlockContainer m_BlockContainer;
+
+        VisualElement m_DragDisplay;
 
 		protected GraphViewTypeFactory typeFactory { get; set; }
 
@@ -137,17 +89,21 @@ namespace UnityEditor.VFX.UI
 			{
 				name = "FlowInputs",
 				pickingMode = PickingMode.Ignore,
-				classList = new ClassList("FlowContainer","Input")
 			};
+            m_FlowInputConnectorContainer.ClearClassList();
+            m_FlowInputConnectorContainer.AddToClassList("FlowContainer");
+            m_FlowInputConnectorContainer.AddToClassList("Input");
 
 			m_FlowOutputConnectorContainer = new VisualContainer()
 			{
 				name = "FlowOutputs",
-				pickingMode = PickingMode.Ignore,
-				classList = new ClassList("FlowContainer","Output")
+				pickingMode = PickingMode.Ignore
 			};
+            m_FlowOutputConnectorContainer.ClearClassList();
+            m_FlowOutputConnectorContainer.AddToClassList("FlowContainer");
+            m_FlowOutputConnectorContainer.AddToClassList("Output");
 
-			m_NodeContainer = new VisualContainer()
+            m_NodeContainer = new VisualContainer()
 			{
 				name = "NodeContents"
 			};
@@ -197,8 +153,12 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(VFXDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
 
-            classList = new ClassList("VFXContext");
-		}
+            ClearClassList();
+            AddToClassList("VFXContext");
+
+            m_DragDisplay = new VisualElement();
+            m_DragDisplay.AddToClassList("dragdisplay");
+        }
 
 		public EventPropagation SelectAll()
 		{
@@ -211,7 +171,131 @@ namespace UnityEditor.VFX.UI
 			return EventPropagation.Stop;
 		}
 
-		public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
+
+        public bool CanDrop(IEnumerable<VFXBlockUI> blocks,VFXBlockUI target)
+        {
+            bool accept = true;
+            foreach (var block in blocks)
+            {
+                if( block == target )
+                {
+                    accept = false;
+                    break;
+                }
+                if (!GetPresenter<VFXContextPresenter>().model.AcceptChild(block.GetPresenter<VFXBlockPresenter>().Model))
+                {
+                    accept = false;
+                    break;
+                }
+            }
+            return accept;
+        }
+
+        public void DraggingBlocks( IEnumerable<VFXBlockUI> blocks,VFXBlockUI target, bool after)
+        {
+            DragFinished();
+            if( ! CanDrop(blocks,target) )
+            {
+                return;
+            }
+
+            Vector2 position;
+            if (target != null)
+            {
+                position = target.position.position;
+                if (after)
+                {
+                    position.y += target.position.height;
+                }
+            }
+            else
+            {
+                if( after)
+                {
+                    position.y = m_BlockContainer.position.height;
+                }
+                else
+                {
+                    position.y = 0;
+                }
+            }
+            m_DragDisplay.positionTop = position.y;
+
+            if( m_DragDisplay.parent == null)
+            {
+                m_BlockContainer.AddChild(m_DragDisplay);
+            }
+        }
+
+        public void DragFinished()
+        {
+            if (m_DragDisplay.parent != null)
+                m_BlockContainer.RemoveChild(m_DragDisplay);
+        }
+
+
+        bool m_DragStarted;
+
+
+
+        public bool CanAcceptDrop(List<ISelectable> selection)
+        {
+            IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
+
+            return CanDrop(blocksUI,null);
+        }
+
+        EventPropagation IDropTarget.DragUpdated(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        {
+            IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
+
+            DraggingBlocks(blocksUI, null, true);
+            if (!m_DragStarted)
+            {
+                // TODO: Do something on first DragUpdated event (initiate drag)
+                m_DragStarted = true;
+                AddToClassList("dropping");
+            }
+            else
+            {
+                // TODO: Do something on subsequent DragUpdated events
+            }
+
+            return EventPropagation.Stop;
+        }
+
+        EventPropagation IDropTarget.DragPerform(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        {
+            DragFinished();
+            IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
+            if (!CanDrop(blocksUI, null))
+                return EventPropagation.Stop;
+
+            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
+
+            foreach(var blockui in blocksUI)
+            {
+                VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();   
+                presenter.AddBlock(-1,blockPres.Model);
+            }
+
+            m_DragStarted = false;
+            RemoveFromClassList("dropping");
+
+            return EventPropagation.Stop;
+        }
+
+        EventPropagation IDropTarget.DragExited()
+        {
+            // TODO: Do something when current drag is canceled
+            DragFinished();
+            m_DragStarted = false;
+
+            return EventPropagation.Stop;
+        }
+
+
+        public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
 		{
 			var clearBlockSelection = false;
 			var gView = this.GetFirstAncestorOfType<GraphView>();
@@ -239,11 +323,11 @@ namespace UnityEditor.VFX.UI
 
 		public override void SetPosition(Rect newPos)
 		{
-			if (classList.Contains("vertical"))
-			{
+			//if (classList.Contains("vertical"))
+			/*{
 				base.SetPosition(newPos);
 			}
-			else
+			else*/
 			{
 				positionType = PositionType.Absolute;
 				positionLeft = newPos.x;
@@ -284,7 +368,13 @@ namespace UnityEditor.VFX.UI
 
             // recreate the children list based on the presenter list to keep the order.
 
-            var blocksUIs = m_BlockContainer.children.OfType<VFXBlockUI>().ToDictionary(t=>t.GetPresenter<VFXBlockPresenter>(),t=>t);
+            var blocksUIs = new Dictionary<VFXBlockPresenter, VFXBlockUI>();
+            for(int i = 0; i < m_BlockContainer.childrenCount; ++i)
+            {
+                var child = m_BlockContainer.GetChildAt(i) as VFXBlockUI;
+                if(child != null)
+                    blocksUIs.Add( child.GetPresenter<VFXBlockPresenter>(),child);
+            }
 
             foreach(var kv in blocksUIs)
             {
@@ -346,7 +436,9 @@ namespace UnityEditor.VFX.UI
 
             VFXContextType contextType = presenter.context.contextType;
 
-			RemoveFromClassList("init", "update", "output");
+            RemoveFromClassList("init");
+            RemoveFromClassList("update");
+            RemoveFromClassList("output");
 
 			switch (contextType)
 			{
@@ -358,22 +450,55 @@ namespace UnityEditor.VFX.UI
 
             presenter.context.position = presenter.position.position;
 
-			m_FlowInputConnectorContainer.ClearChildren();
-			m_FlowOutputConnectorContainer.ClearChildren();
 
-			foreach (var inanchorpresenter in presenter.inputAnchors)
+            HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
+
+            foreach (var inanchorpresenter in presenter.inputAnchors)
+            {
+                var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == inanchorpresenter);
+                if (existing == null)
+                {
+                    var anchor = VFXFlowAnchor.Create<VFXFlowEdgePresenter>(inanchorpresenter);
+                    m_FlowInputConnectorContainer.AddChild(anchor);
+                    newInAnchors.Add(anchor);
+                }
+                else
+                {
+                    newInAnchors.Add(existing);
+                }
+            }
+
+            foreach(var nonLongerExistingAnchor in m_FlowInputConnectorContainer.Where(t=>!newInAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
+            {
+                m_FlowInputConnectorContainer.RemoveChild(nonLongerExistingAnchor);
+            }
+
+
+
+            HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
+
+            foreach (var outanchorpresenter in presenter.outputAnchors)
 			{
-				var edge = VFXFlowAnchor.Create<VFXFlowEdgePresenter>(inanchorpresenter);
-				m_FlowInputConnectorContainer.AddChild(edge);
-			}
+                var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == outanchorpresenter);
+                if (existing == null)
+                {
+                    var anchor = VFXFlowAnchor.Create<VFXFlowEdgePresenter>(outanchorpresenter);
+                    m_FlowOutputConnectorContainer.AddChild(anchor);
+                    newOutAnchors.Add(anchor);
+                }
+                else
+                {
+                    newOutAnchors.Add(existing);
+                }
+            }
 
-			foreach (var outanchorpresenter in presenter.outputAnchors)
-			{
-				var edge = VFXFlowAnchor.Create<VFXFlowEdgePresenter>(outanchorpresenter);
-				m_FlowOutputConnectorContainer.AddChild(edge);
-			}
+            foreach (var nonLongerExistingAnchor in m_FlowOutputConnectorContainer.Where(t => !newOutAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
+            {
+                m_FlowOutputConnectorContainer.RemoveChild(nonLongerExistingAnchor);
+            }
 
-			RefreshContext();
+
+            RefreshContext();
 
 
             if (m_PopupManipulator != null)
@@ -395,16 +520,16 @@ namespace UnityEditor.VFX.UI
 			base.DoRepaint(painter);
 		}
 
-		// TODO: Remove, unused except for debugging
-		// Declare new USS rect-color and use it
-		public override void OnStylesResolved(VisualElementStyles elementStyles)
-		{
-			base.OnStylesResolved(elementStyles);
-			elementStyles.ApplyCustomProperty(RectColorProperty, ref m_RectColor);
+        // TODO: Remove, unused except for debugging
+        // Declare new USS rect-color and use it
+        public override void OnStylesResolved(ICustomStyles styles)
+        {
+            base.OnStylesResolved(styles);
+            styles.ApplyCustomProperty(RectColorProperty, ref m_RectColor);
 		}
 
 		// TODO: Remove, unused except for debugging
-		StyleProperty<Color> m_RectColor;
-		Color rectColor { get { return m_RectColor.GetOrDefault(Color.magenta); } }
+		Style<Color> m_RectColor;
+		Color rectColor { get { return m_RectColor.GetSpecifiedValueOrDefault(Color.magenta); } }
 	}
 }

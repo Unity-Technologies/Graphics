@@ -1,5 +1,5 @@
 using RMGUI.GraphView;
-using UnityEngine.RMGUI.StyleSheets;
+using UnityEngine.Experimental.RMGUI.StyleSheets;
 using UnityEngine;
 
 namespace UnityEditor.VFX.UI
@@ -11,14 +11,14 @@ namespace UnityEditor.VFX.UI
         const string IMPaddingProperty = "im-padding";
 
 
-        StyleProperty<Texture2D> m_SelectedFieldBackground;
-        StyleProperty<int> m_IMBorder;
-        StyleProperty<int> m_IMPadding;
+        Style<Texture2D> m_SelectedFieldBackground;
+        Style<int> m_IMBorder;
+        Style<int> m_IMPadding;
         public Texture2D selectedFieldBackground
         {
             get
             {
-                return m_SelectedFieldBackground.GetOrDefault(null);
+                return m_SelectedFieldBackground.GetSpecifiedValueOrDefault(null);
             }
         }
 
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_IMBorder.GetOrDefault(0);
+                return m_IMBorder.GetSpecifiedValueOrDefault(0);
             }
         }
 
@@ -34,15 +34,17 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_IMPadding.GetOrDefault(0);
+                return m_IMPadding.GetSpecifiedValueOrDefault(0);
             }
         }
-        public override void OnStylesResolved(VisualElementStyles elementStyles)
+
+        public override void OnStylesResolved(ICustomStyles styles)
         {
-            base.OnStylesResolved(elementStyles);
-            elementStyles.ApplyCustomProperty(SelectedFieldBackgroundProperty, ref m_SelectedFieldBackground);
-            elementStyles.ApplyCustomProperty(IMBorderProperty, ref m_IMBorder);
-            elementStyles.ApplyCustomProperty(IMPaddingProperty, ref m_IMPadding);
+            base.OnStylesResolved(styles);
+
+            styles.ApplyCustomProperty(SelectedFieldBackgroundProperty, ref m_SelectedFieldBackground);
+            styles.ApplyCustomProperty(IMBorderProperty, ref m_IMBorder);
+            styles.ApplyCustomProperty(IMPaddingProperty, ref m_IMPadding);
 
             if (m_GUIStyles != null)
             {

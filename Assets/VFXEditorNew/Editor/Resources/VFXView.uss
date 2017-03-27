@@ -352,3 +352,13 @@ VFXDataEdge.typeanimationcurve
 {
 	border-color : #84e4e7;
 }
+
+.dragdisplay
+{
+	position-type:absolute;
+	position-left:0;
+	position-right: 0;
+	height:4;
+	margin-top:-2;
+	background-color: rgb(210, 152, 0);
+}

@@ -7,7 +7,7 @@ using UnityEngine.Graphing;
 namespace UnityEditor.VFX
 {
     [Serializable]
-    abstract class VFXModel : ISerializationCallbackReceiver
+    abstract class VFXModel : ScriptableObject, ISerializationCallbackReceiver
     {
         public enum InvalidationCause
         {
@@ -29,6 +29,43 @@ namespace UnityEditor.VFX
         protected VFXModel()
         {
             m_Id = Guid.NewGuid();
+        }
+
+        public void OnEnable()
+        {
+            if (m_Children == null)
+                m_Children = new List<VFXModel>();
+            else
+            {
+                int nbRemoved = m_Children.RemoveAll(c => c == null);// Remove bad references if any
+                if (nbRemoved > 0)
+                    Debug.Log(String.Format("Remove {0} child(ren) that couldnt be deserialized from {1} of type {2}",nbRemoved,name,GetType()));
+            }
+        }
+
+        public virtual void CollectDependencies(HashSet<UnityEngine.Object> objs)
+        {
+            foreach (var child in children)
+            {
+                objs.Add(child);
+                child.CollectDependencies(objs);
+            }
+        }
+
+        public virtual T Clone<T>() where T : VFXModel
+        {
+            T clone = (T)Instantiate(this);
+
+            clone.m_Children.Clear();
+            foreach (var child in children)
+            {
+                var cloneChild = child.Clone<VFXModel>();
+                clone.m_Children.Add(cloneChild);
+                cloneChild.m_Parent = clone;
+            }
+
+            clone.m_Parent = null;
+            return clone;
         }
 
         protected virtual void OnInvalidate(VFXModel model,InvalidationCause cause)
@@ -58,6 +95,8 @@ namespace UnityEditor.VFX
 
                 realIndex = index == -1 ? m_Children.Count : index; // Recompute as the child may have been removed
 
+                //AssetDatabase.AddObjectToAsset(model, this);
+
                 m_Children.Insert(realIndex, model);
                 model.m_Parent = this;
                 model.OnAdded();
@@ -75,6 +114,8 @@ namespace UnityEditor.VFX
             model.OnRemoved();
             m_Children.Remove(model);
             model.m_Parent = null;
+
+            //AssetDatabase.AddObjectToAsset(model, (UnityEngine.Object)null);
             
             if (notify)
                 Invalidate(InvalidationCause.kStructureChanged);     
@@ -174,32 +215,19 @@ namespace UnityEditor.VFX
 
         public virtual void OnBeforeSerialize()
         {
-            m_SerializableId = m_Id.ToString();
-            m_SerializableChildren = SerializationHelper.Serialize<VFXModel>(m_Children);
         }
 
         public virtual void OnAfterDeserialize()
         {
-            if (!String.IsNullOrEmpty(m_SerializableId))
-                m_Id = new Guid(m_SerializableId);
-            else
-                m_Id = Guid.NewGuid();
-            m_Children = SerializationHelper.Deserialize<VFXModel>(m_SerializableChildren, null);
-            foreach (var child in m_Children)
-                child.m_Parent = this;
-            m_SerializableChildren = null; // No need to keep it
         }
       
-        private Guid m_Id;
+        private Guid m_Id; // TODO Not used
 
         [SerializeField]
-        private string m_SerializableId;
-
         protected VFXModel m_Parent = null;
-        protected List<VFXModel> m_Children = new List<VFXModel>();
 
         [SerializeField]
-        private List<SerializationHelper.JSONSerializedElement> m_SerializableChildren = null;
+        protected List<VFXModel> m_Children;
 
         [SerializeField]
         private Vector2 m_UIPosition;
