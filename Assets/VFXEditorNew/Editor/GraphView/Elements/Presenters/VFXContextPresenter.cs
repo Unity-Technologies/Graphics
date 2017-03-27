@@ -46,6 +46,7 @@ namespace UnityEditor.VFX.UI
         protected void OnDisable()
         {
             UnregisterAnchors();
+            model.onInvalidateDelegate -= OnModelInvalidate; // Is is the right place ?       
         }
 
         private void UnregisterAnchors()
@@ -86,21 +87,25 @@ namespace UnityEditor.VFX.UI
                 ViewPresenter.RegisterFlowAnchorPresenter(outAnchor);
             }
 
+            model.onInvalidateDelegate += OnModelInvalidate;
             SyncPresenters();
+        }
+
+        private void OnModelInvalidate(VFXModel model,VFXModel.InvalidationCause cause)
+        {
+            if (model == this.model && cause == VFXModel.InvalidationCause.kStructureChanged)
+                SyncPresenters();
         }
 
         public void AddBlock(int index,VFXBlock block)
         {
             context.AddChild(block, index);
-            SyncPresenters();
         }
 
         public void RemoveBlock(VFXBlock block)
         {
             context.RemoveChild(block);
-            SyncPresenters();
         }
-
 
         static int s_Counter = 1;
 

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.RMGUI;
-using UnityEngine.Experimental.RMGUI;
 using UnityEngine.Experimental.RMGUI.StyleSheets;
 using System.Reflection;
 using UnityEngine.Experimental.RMGUI.StyleEnums;
@@ -130,7 +129,8 @@ namespace UnityEditor.VFX.UI
         {
             Vector2 pos = this.GlobalToBound(evt.mousePosition);
 
-            context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > position.width / 2);
+            context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > position.height / 2);
+            
             return EventPropagation.Stop;
         }
         EventPropagation IDropTarget.DragPerform(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.UI
 
             if (context.CanDrop(draggedBlocksUI,this))
             {
-                contextPresenter.BlocksDropped(blockPresenter, pos.y > position.width / 2, draggedBlocks);
+                contextPresenter.BlocksDropped(blockPresenter, pos.y > position.height / 2, draggedBlocks);
             }
             else
             {
