@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
         {
 
         }
-
+        /*
         protected override void DrawEdge(IStylePainter painter)
 		{
 			var edgePresenter = GetPresenter<EdgePresenter>();
@@ -41,6 +41,6 @@ namespace UnityEditor.VFX.UI
 			Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 15f);
 
 		}
-
+        */
     }
 }
