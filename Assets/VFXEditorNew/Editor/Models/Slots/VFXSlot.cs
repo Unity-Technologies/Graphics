@@ -32,7 +32,6 @@ namespace UnityEditor.VFX
             SetInExpression(expr,true,notify);
         }
 
-
         public ReadOnlyCollection<VFXSlot> LinkedSlots
         {
             get
@@ -207,6 +206,86 @@ namespace UnityEditor.VFX
             PropagateToChildren(func);
         }
 
+        protected IVFXSlotContainer GetOwner()
+        {
+            var parent = GetParent();
+            if (parent != null)
+                return parent.GetOwner();
+            else
+                return m_Owner;
+        }
+
+        private static void RecomputeExpressionTree(VFXSlot slot,bool notify = true)
+        {
+            // Start from the top most parent
+            var masterSlot = slot.GetTopMostParent();
+
+            List<VFXSlot> startSlots = new List<VFXSlot>();
+
+            // First set the linked expression in case of output nodes (For input linked expression is set explicitly)
+            if (masterSlot.direction == Direction.kOutput)
+                masterSlot.PropagateToChildren( s => {
+                    s.m_LinkedInExpression = s.HasLink() ? s.refSlot.m_OutExpression : s.m_DefaultExpression;
+            });
+
+            // Collect linked expression
+            masterSlot.PropagateToChildren( s => {
+                if (s.m_LinkedInExpression != s.m_DefaultExpression) 
+                    startSlots.Add(s); 
+            });
+
+            bool earlyOut = true;
+
+            // build expression trees by propagating from start slots
+            foreach (var startSlot in startSlots)
+            {
+                if (!startSlot.CanConvertFrom(startSlot.m_LinkedInExpression))
+                    throw new ArgumentException("Cannot convert expression");
+
+                var newExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression);
+                if (newExpression == startSlot.m_InExpression) // already correct, early out
+                    continue;
+
+                earlyOut = false;
+                startSlot.m_InExpression = newExpression;
+                startSlot.PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(s.children.Select(c => c.m_InExpression).ToArray()));
+
+                startSlot.PropagateToChildren(s => {
+                    var exp = s.ExpressionToChildren(s.m_InExpression);
+                    for (int i = 0; i < s.GetNbChildren(); ++i)
+                        s.GetChild(i).m_InExpression = exp != null ? exp[i] : s.refSlot.GetChild(i).expression;
+                });
+            }
+
+            if (earlyOut)
+                return;
+
+            List<VFXSlot> toPropagate = new List<VFXSlot>();
+
+            // Finally derive output expressions
+            if (masterSlot.SetOutExpression(masterSlot.m_InExpression))
+                toPropagate.Add(masterSlot);
+            masterSlot.PropagateToChildren(s => {
+                var exp = s.ExpressionToChildren(s.m_OutExpression);
+                for (int i = 0; i < s.GetNbChildren(); ++i)
+                {
+                    var child = s.GetChild(i);
+                    if (child.SetOutExpression(exp != null ? exp[i] : child.m_InExpression))
+                        toPropagate.Add(child);
+                }
+            });  
+ 
+            // Set expression to be up to date
+            masterSlot.PropagateToChildren( s => s.m_ExpressionUpToDate = true );   
+
+            if (notify && masterSlot.m_Owner != null)
+                masterSlot.m_Owner.Invalidate(InvalidationCause.kStructureChanged);
+
+            var dirtyMasterSlots = new HashSet<VFXSlot>(toPropagate.Select(s => s.GetTopMostParent()));
+            foreach (var dirtySlot in dirtyMasterSlots)
+                RecomputeExpressionTree(dirtySlot,notify);
+        }
+
         private void SetInExpression(VFXExpression expression, bool propagateDown = true, bool notify = true)
         {
             if (!CanConvertFrom(expression))
@@ -238,15 +317,25 @@ namespace UnityEditor.VFX
             // Then find top most slot and propagate back to children
             var topParent = GetTopMostParent();
 
-            topParent.m_OutExpression = topParent.m_InExpression;
+            HashSet<VFXSlot> modifiedLinks = new HashSet<VFXSlot>();
+
+            topParent.SetOutExpression(topParent.m_InExpression);
             topParent.PropagateToChildren(s => {
                 var exp = s.ExpressionToChildren(s.m_OutExpression);
                 if (exp != null)
+                {
                     for (int i = 0; i < s.GetNbChildren(); ++i)
-                        s.GetChild(i).SetOutExpression(exp[i]);
+                        if (s.GetChild(i).SetOutExpression(exp[i]))
+                            foreach (var slot in s.GetChild(i).LinkedSlots)
+                                modifiedLinks.Add(slot);
+                }
                 else
+                {
                     for (int i = 0; i < s.GetNbChildren(); ++i)
-                        s.GetChild(i).SetOutExpression(s.GetChild(i).m_InExpression);
+                        if (s.GetChild(i).SetOutExpression(s.GetChild(i).m_InExpression))
+                            foreach (var slot in s.GetChild(i).LinkedSlots)
+                                modifiedLinks.Add(slot);
+                }
             });
 
             // Finally notify owner
@@ -272,6 +361,9 @@ namespace UnityEditor.VFX
                     var toRemove = LinkedSlots.Where(s => !s.CanConvertFrom(expr)); // Break links that are no more valid
                     foreach (var slot in toRemove) 
                         Unlink(slot);
+
+                    foreach (var slot in LinkedSlots)
+                        SetInExpression(m_OutExpression, true, true);
                 }
             }
             return true;
@@ -307,6 +399,10 @@ namespace UnityEditor.VFX
 
                     //if (notify)
                         PropagateToOwner(o => o.Invalidate(VFXModel.InvalidationCause.kConnectionChanged));
+                }
+                else
+                {
+                    // TODO
                 }
             }
         }
@@ -352,8 +448,12 @@ namespace UnityEditor.VFX
         }*/
 
         private VFXExpression m_DefaultExpression;
+        private VFXExpression m_LinkedInExpression;
         private VFXExpression m_InExpression;
         private VFXExpression m_OutExpression;
+        private bool m_ExpressionUpToDate = false;
+
+        private VFXSlot m_MasterSlot;
 
         [NonSerialized]
         public IVFXSlotContainer m_Owner; // Don't set that directly! Only called by SlotContainer!
