@@ -6,7 +6,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorExplodeFloatN : VFXOperator
     {
-        public class Properties
+        public class InputProperties
         {
            public FloatN x = 0.0f;
         }

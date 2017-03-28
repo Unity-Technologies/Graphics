@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
         public override string name                         { get { return "Test"; } }
         public override VFXContextType compatibleContexts   { get { return VFXContextType.kAll; } }
 
-        public class Properties
+        public class InputProperties
         {
             public float aFloat = 123.456f;
             public Vector2 aVector2 = Vector2.left;

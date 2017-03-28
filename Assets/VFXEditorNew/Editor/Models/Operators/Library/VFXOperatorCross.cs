@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorCross : VFXOperator
     {
-        public class Properties
+        public class InputProperties
         {
             public Vector3 left = Vector3.right;
             public Vector3 right = Vector3.up;

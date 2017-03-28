@@ -5,7 +5,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorLerp : VFXOperatorFloatUnified
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN x = new FloatN(new[] { 0.0f });
             public FloatN y = new FloatN(new[] { 1.0f });

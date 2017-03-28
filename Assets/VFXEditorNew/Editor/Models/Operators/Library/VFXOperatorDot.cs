@@ -6,7 +6,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorDot : VFXOperatorFloatUnified
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN right = Vector3.zero;
             public FloatN left = Vector3.zero;

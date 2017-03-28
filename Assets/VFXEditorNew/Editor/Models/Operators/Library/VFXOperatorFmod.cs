@@ -5,7 +5,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorFmod : VFXOperatorFloatUnified
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN right = new FloatN(new[] { 1.0f });
             public FloatN left = new FloatN(new[] { 1.0f });
