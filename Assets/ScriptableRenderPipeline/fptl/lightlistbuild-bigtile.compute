@@ -136,13 +136,14 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 
 	if(t==0) lightOffs = 0;
 	GroupMemoryBarrierWithGroupSync();
-	for(int i=t; i<iNrCoarseLights; i+=NR_THREADS) if(lightsListLDS[i]<g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
+	int i;
+	for(i=t; i<iNrCoarseLights; i+=NR_THREADS) if((int)lightsListLDS[i]<g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
 	GroupMemoryBarrierWithGroupSync();
 	iNrCoarseLights = lightOffs;
 
 	int offs = tileIDX.y*nrBigTilesX + tileIDX.x;
 
-	for(int i=t; i<(iNrCoarseLights+1); i+=NR_THREADS)
+	for(i=t; i<(iNrCoarseLights+1); i+=NR_THREADS)
 		g_vLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*offs + i] = i==0 ? iNrCoarseLights : lightsListLDS[i-1];
 }
 
@@ -198,7 +199,7 @@ void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, u
 
 	int i=iSwizzle + (2*(iSection&0x2));	// offset by 4 at section 2
 	vP0 = GetTileVertex(uint2(viTilLL.x, viTilUR.y), uint2(viTilUR.x, viTilLL.y), i, fTileFarPlane);
-	vE0 = iSection==0 ? vP0 : (((iSwizzle&0x2)==0 ? 1.0f : (-1.0f))*((iSwizzle&0x1)==(iSwizzle>>1) ? float3(1,0,0) : float3(0,1,0)));
+	vE0 = iSection == 0 ? vP0 : (((iSwizzle & 0x2) == 0 ? 1.0f : (-1.0f)) * ((int)(iSwizzle & 0x1) == (iSwizzle >> 1) ? float3(1, 0, 0) : float3(0, 1, 0)));
 }
 
 void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR)
@@ -210,7 +211,7 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 	for(int l=0; l<iNrCoarseLights; l++)
 	{
 		const uint idxCoarse = lightsListLDS[l];
-    
+
 		bool canEnter = idxCoarse<(uint) g_iNrVisibLights;
 		if(canEnter) canEnter = g_vLightData[idxCoarse].lightType!=SPHERE_LIGHT;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		[branch]if(canEnter)
@@ -219,7 +220,7 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 	
 			const float3 boxX = lgtDat.boxAxisX.xyz;
 			const float3 boxY = lgtDat.boxAxisY.xyz;
-			const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip axis (so it points away from the light direction for a spot-light)
+			const float3 boxZ = -lgtDat.boxAxisZ.xyz;	// flip axis (so it points away from the light direction for a spot-light)
 			const float3 center = lgtDat.center.xyz;
 			const float2 scaleXY = lgtDat.scaleXY;
 

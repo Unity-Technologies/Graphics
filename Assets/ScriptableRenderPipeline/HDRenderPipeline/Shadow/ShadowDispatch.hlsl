@@ -27,14 +27,14 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 // by hardcoding the resources used and calling the shadow sampling routines that take an explicit texture and sampler.
 // It is the responsibility of the author to make sure that ShadowContext.hlsl binds the correct texture to the right slot,
 // and that on the C# side the shadowContext bindDelegate binds the correct resource to the correct texture id.
-//#define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
+#define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 #define SHADOW_USE_SEPARATE_ALGOS 0
 float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
 {
 
-	Texture2DArray tex = shadowContext.tex2DArray[2];
-	SamplerComparisonState compSamp = shadowContext.compSamplers[1];
+	Texture2DArray tex = shadowContext.tex2DArray[3];
+	SamplerComparisonState compSamp = shadowContext.compSamplers[0];
 
 #if SHADOW_USE_SEPARATE_ALGOS != 0
 	// example for choosing different algos for point and spot lights

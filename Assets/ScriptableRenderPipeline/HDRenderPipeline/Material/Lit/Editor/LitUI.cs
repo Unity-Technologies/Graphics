@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -59,6 +60,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
             public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
+
+            public static GUIContent normalMapSpaceWarning = new GUIContent("Object space normal can't be use with triplanar mapping.");            
         }
 
         public enum UVBaseMapping
@@ -108,8 +111,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kTexWorldScale = "_TexWorldScale";
         protected MaterialProperty UVMappingMask = null;
         protected const string kUVMappingMask = "_UVMappingMask";
-        protected MaterialProperty UVMappingPlanar = null;
-        protected const string kUVMappingPlanar = "_UVMappingPlanar";
 
         protected MaterialProperty baseColor = null;
         protected const string kBaseColor = "_BaseColor";
@@ -159,8 +160,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty detailSmoothnessScale = null;
         protected const string kDetailSmoothnessScale = "_DetailSmoothnessScale";
 
-        protected MaterialProperty subsurfaceProfile    = null;
-        protected const string     kSubsurfaceProfile   = "_SubsurfaceProfile";
+        protected SubsurfaceScatteringProfile subsurfaceProfile = null;
+        protected MaterialProperty subsurfaceProfileID  = null;
+        protected const string     kSubsurfaceProfileID = "_SubsurfaceProfile";
         protected MaterialProperty subsurfaceRadius     = null;
         protected const string     kSubsurfaceRadius    = "_SubsurfaceRadius";
         protected MaterialProperty subsurfaceRadiusMap  = null;
@@ -184,7 +186,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UVBase = FindProperty(kUVBase, props);
             TexWorldScale = FindProperty(kTexWorldScale, props);
             UVMappingMask = FindProperty(kUVMappingMask, props);
-            UVMappingPlanar = FindProperty(kUVMappingPlanar, props);  
 
             baseColor = FindProperty(kBaseColor, props);
             baseColorMap = FindProperty(kBaseColorMap, props);
@@ -213,7 +214,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             detailSmoothnessScale = FindProperty(kDetailSmoothnessScale, props);
 
             // Sub surface
-            subsurfaceProfile = FindProperty(kSubsurfaceProfile, props);
+            subsurfaceProfileID = FindProperty(kSubsurfaceProfileID, props);
             subsurfaceRadius = FindProperty(kSubsurfaceRadius, props);
             subsurfaceRadiusMap = FindProperty(kSubsurfaceRadiusMap, props);
             thickness = FindProperty(kThickness, props);
@@ -228,7 +229,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void ShaderSSSInputGUI()
         {
-            m_MaterialEditor.ShaderProperty(subsurfaceProfile, Styles.subsurfaceProfileText);
+            if (subsurfaceProfile == null)
+            {
+                int profileID = (int)subsurfaceProfileID.floatValue;
+
+                HDRenderPipelineInstance hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+
+                if (profileID >= 0 && profileID < hdPipeline.sssSettings.profiles.Length)
+                {
+                    // This is a valid profile ID.
+                    subsurfaceProfile = hdPipeline.sssSettings.profiles[profileID];
+                }
+                else
+                {
+                    subsurfaceProfile = SubsurfaceScatteringProfile.defaultProfile;
+                }
+
+                // Refresh the ID of the profile.
+                hdPipeline.sssSettings.OnValidate();
+            }
+
+            // Extract the profile ID.
+            subsurfaceProfile = EditorGUILayout.ObjectField(Styles.subsurfaceProfileText, subsurfaceProfile, subsurfaceProfile.GetType(), false, null) as SubsurfaceScatteringProfile;
+            subsurfaceProfileID.floatValue = subsurfaceProfile.settingsIndex;
+
             m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);
             m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceRadiusMapText, subsurfaceRadiusMap);
             m_MaterialEditor.ShaderProperty(thickness, Styles.thicknessText);
@@ -263,6 +287,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(horizonFade, Styles.horizonFadeText);
 
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
+
+            // Triplanar only work with tangent space normal
+            if ((NormalMapSpace)normalMapSpace.floatValue == NormalMapSpace.ObjectSpace && ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
+            {
+                EditorGUILayout.HelpBox(Styles.normalMapSpaceWarning.text, MessageType.Error);
+            }            
+
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap);
@@ -289,8 +320,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GUILayout.Label("    " + Styles.textureControlText, EditorStyles.label);
             m_MaterialEditor.ShaderProperty(UVBase, Styles.UVBaseMappingText);
             // UVSet0 is always set, planar and triplanar will override it.
-            UVMappingMask.colorValue = new Color(1.0f, 0.0f, 0.0f, 0.0f); // This is override in the shader anyway but just in case.
-            UVMappingPlanar.floatValue = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) ? 1.0f : 0.0f;
+            UVMappingMask.colorValue = new Color(1.0f, 0.0f, 0.0f, 0.0f); // This is override in the shader anyway but just in case.            
             if (((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale, Styles.texWorldScaleText);
@@ -318,7 +348,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GUILayout.Label("       " + Styles.UVDetailMappingText.text + ": Triplanar");
             }
 
-            // IF planar/triplanar is not chose, setup the UVSet chosen
+            // Setup the UVSet for detail, if planar/triplanar is use for base, it will override the mapping of detail (See shader code)
             float X, Y, Z, W;
             X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
             Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
@@ -364,6 +394,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
+            SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);

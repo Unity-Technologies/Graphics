@@ -27,12 +27,17 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 			
-float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
+void Frag(  PackedVaryingsToPS packedInput
+            , out float4 outColor : SV_Target
+            #ifdef _DEPTHOFFSET_ON
+            , out float outputDepth : SV_Depth
+            #endif
+            )
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.unPositionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
+    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw, uint2(0, 0));
     UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
@@ -56,6 +61,10 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 	if (!needLinearToSRGB)
 		result = SRGBToLinear(max(0, result));
 
-	return float4(result, 0.0);
+#ifdef _DEPTHOFFSET_ON
+    outputDepth = posInput.depthRaw;
+#endif
+
+    outColor = float4(result, 1.0);
 }
 

@@ -27,10 +27,18 @@
 #define MAX_NR_BIGTILE_LIGHTS_PLUSONE (512)
 #define VIEWPORT_SCALE_Z (1)
 #define USE_LEFTHAND_CAMERASPACE (1)
+#define TILE_SIZE_FPTL (16)
+#define TILE_SIZE_CLUSTERED (32)
 #define IS_CIRCULAR_SPOT_SHAPE (1)
 #define HAS_COOKIE_TEXTURE (2)
 #define IS_BOX_PROJECTED (4)
 #define HAS_SHADOW (8)
+#define FEATURE_FLAG_PUNCTUAL_LIGHT (1)
+#define FEATURE_FLAG_AREA_LIGHT (2)
+#define FEATURE_FLAG_DIRECTIONAL_LIGHT (4)
+#define FEATURE_FLAG_ENV_LIGHT (8)
+#define FEATURE_FLAG_SKY_LIGHT (16)
+#define NUM_FEATURE_VARIANTS (8)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.TilePass.SFiniteLightBound
 // PackingRules = Exact
@@ -57,7 +65,7 @@ struct LightVolumeData
 	float3 lightAxisZ;
 	float cotan;
 	float3 boxInnerDist;
-	float unused;
+	uint featureFlags;
 	float3 boxInvRange;
 	float unused2;
 };
@@ -129,9 +137,9 @@ float3 GetBoxInnerDist(LightVolumeData value)
 {
 	return value.boxInnerDist;
 }
-float GetUnused(LightVolumeData value)
+uint GetFeatureFlags(LightVolumeData value)
 {
-	return value.unused;
+	return value.featureFlags;
 }
 float3 GetBoxInvRange(LightVolumeData value)
 {

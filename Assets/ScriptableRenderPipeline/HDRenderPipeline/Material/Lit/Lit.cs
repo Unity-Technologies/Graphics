@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float   subsurfaceRadius;
             public float   thickness;
             public int     subsurfaceProfile;
-            public bool    enableTransmission;
+            public bool    enableTransmission; // Read from the SSS profile
             public Vector3 transmittance;
 
             // Clearcoat

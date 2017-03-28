@@ -82,7 +82,6 @@ Shader "HDRenderPipeline/LitTessellation"
         [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVMappingPlanar("_UVMappingPlanar", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
         [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2, Specular Color, 3)] _MaterialID("MaterialId", Int) = 0
@@ -110,6 +109,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
         _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
         [ToggleOff] _TessellationObjectScale("Tessellation object scale", Float) = 0.0
+        [ToggleOff] _TessellationTilingScale("Tessellation tiling height scale", Float) = 1.0
          // TODO: Handle culling mode for backface culling
     }
 
@@ -117,6 +117,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
     #pragma target 5.0
     #pragma only_renderers d3d11 ps4// TEMP: until we go futher in dev
+    // #pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -130,13 +131,14 @@ Shader "HDRenderPipeline/LitTessellation"
     // Default is _TESSELLATION_PHONG
     #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _TESSELLATION_DISPLACEMENT_PHONG
     #pragma shader_feature _TESSELLATION_OBJECT_SCALE
+    #pragma shader_feature _TESSELLATION_TILING_SCALE
 
-    #pragma shader_feature _MAPPING_TRIPLANAR
+    #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
-    #pragma shader_feature _NORMALMAP  
+    #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
     #pragma shader_feature _SPECULAROCCLUSIONMAP
     #pragma shader_feature _EMISSIVE_COLOR_MAP
@@ -151,6 +153,8 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
     #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+    // enable dithering LOD crossfade
+    #pragma multi_compile _ LOD_FADE_CROSSFADE
     // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
     //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON
 
@@ -160,23 +164,25 @@ Shader "HDRenderPipeline/LitTessellation"
 
     #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
     #define TESSELLATION_ON
+    // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+    #define SURFACE_GRADIENT
 
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "ShaderLibrary/common.hlsl"
-    #include "ShaderLibrary/tessellation.hlsl"
-    #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-    #include "HDRenderPipeline/ShaderVariables.hlsl"
-    #include "HDRenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "HDRenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    #include "../../../ShaderLibrary/common.hlsl"
+    #include "../../../ShaderLibrary/tessellation.hlsl"
+    #include "../../ShaderConfig.cs.hlsl"
+    #include "../../ShaderVariables.hlsl"
+    #include "../../ShaderPass/FragInputs.hlsl"
+    #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    #include "HDRenderPipeline/Material/Lit/LitProperties.hlsl"
+    #include "../../Material/Lit/LitProperties.hlsl"
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
@@ -238,8 +244,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
             #define LIGHTING_DEBUG
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "../../Debug/DebugLighting.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
@@ -281,7 +287,7 @@ Shader "HDRenderPipeline/LitTessellation"
             HLSLPROGRAM
 
             // Lightmap memo
-            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
+            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             // No tessellation for Meta pass
@@ -355,6 +361,8 @@ Shader "HDRenderPipeline/LitTessellation"
             HLSLPROGRAM
 
             // TODO: Tesselation can't work with velocity for now...
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../Material/Material.hlsl"
@@ -433,8 +441,8 @@ Shader "HDRenderPipeline/LitTessellation"
             #define LIGHTING_DEBUG
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../Lighting/Forward.hlsl"
-            #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "../../Debug/DebugLighting.hlsl"
 
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS

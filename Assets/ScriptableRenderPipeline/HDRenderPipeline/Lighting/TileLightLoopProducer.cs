@@ -25,29 +25,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable]
         public class TileSettings
         {
-            public bool enableDrawLightBoundsDebug;
-            public bool disableTileAndCluster; // For debug / test
-            public bool disableDeferredShadingInCompute;
+            public bool enableTileAndCluster; // For debug / test
             public bool enableSplitLightEvaluation;
             public bool enableComputeLightEvaluation;
+            public bool enableComputeFeatureVariants;
 
             // clustered light list specific buffers and data begin
-            public int debugViewTilesFlags;
             public bool enableClustered;
-            public bool disableFptlWhenClustered; // still useful on opaques. Should be false by default to force tile on opaque.
+            public bool enableFptlForOpaqueWhenClustered; // still useful on opaques. Should be true by default to force tile on opaque.
             public bool enableBigTilePrepass;
+
+            [Range(0.0f, 1.0f)]
+            public float diffuseGlobalDimmer = 1.0f;
+            [Range(0.0f, 1.0f)]
+            public float specularGlobalDimmer = 1.0f;
+
+            public enum TileDebug : int { None = 0, Punctual = 1, Area = 2, AreaAndPunctual = 3, Environment = 4, EnvironmentAndPunctual = 5, EnvironmentAndArea = 6, EnvironmentAndAreaAndPunctual = 7, FeatureVariants = 8 };
+            public TileDebug tileDebugByCategory;
 
             public static TileSettings defaultSettings = new TileSettings
             {
-                enableDrawLightBoundsDebug = false,
-                disableTileAndCluster = false,
-                disableDeferredShadingInCompute = true,
+                enableTileAndCluster = true,
                 enableSplitLightEvaluation = true,
                 enableComputeLightEvaluation = false,
+                enableComputeFeatureVariants = false,
 
-                debugViewTilesFlags = 0,
+                tileDebugByCategory = TileDebug.None,
                 enableClustered = true,
-                disableFptlWhenClustered = false,
+                enableFptlForOpaqueWhenClustered = true,
                 enableBigTilePrepass = true,
             };
         }

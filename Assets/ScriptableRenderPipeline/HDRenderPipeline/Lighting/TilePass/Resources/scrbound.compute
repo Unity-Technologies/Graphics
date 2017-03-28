@@ -3,16 +3,14 @@
 
 #pragma kernel ScreenBoundsAABB
 
-#include "ShaderLibrary/common.hlsl"
+#include "../../../../ShaderLibrary/common.hlsl"
 #include "../TilePass.cs.hlsl"
 
 uniform int g_iNrVisibLights;
 uniform float4x4 g_mInvProjection;
 uniform float4x4 g_mProjection;
 
-
 StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
-
 
 #define NR_THREADS			64
 
