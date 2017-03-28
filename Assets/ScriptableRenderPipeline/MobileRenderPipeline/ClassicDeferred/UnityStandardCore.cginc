@@ -334,7 +334,7 @@ inline half4 VertexGIForward(VertexInput v, float3 posWorld, half3 normalWorld)
 
 struct VertexOutputForwardBase
 {
-	float4 pos							: SV_POSITION;
+	UNITY_POSITION(pos);
 	float4 tex							: TEXCOORD0;
 	half3 eyeVec 						: TEXCOORD1;
 	half4 tangentToWorldAndPackedData[3]	: TEXCOORD2;	// [3x3:tangentToWorld | 1x3:viewDirForParallax or worldPos]
@@ -433,7 +433,7 @@ half4 fragForwardBase (VertexOutputForwardBase i) : SV_Target	// backward compat
 
 struct VertexOutputForwardAdd
 {
-	float4 pos							: SV_POSITION;
+	UNITY_POSITION(pos);
 	float4 tex							: TEXCOORD0;
 	half3 eyeVec 						: TEXCOORD1;
 	half4 tangentToWorldAndLightDir[3]	: TEXCOORD2;	// [3x3:tangentToWorld | 1x3:lightDir]
@@ -518,7 +518,7 @@ half4 fragForwardAdd (VertexOutputForwardAdd i) : SV_Target		// backward compati
 
 struct VertexOutputDeferred
 {
-	float4 pos							: SV_POSITION;
+	UNITY_POSITION(pos);
 	float4 tex							: TEXCOORD0;
 	half3 eyeVec 						: TEXCOORD1;
 	half4 tangentToWorldAndPackedData[3]: TEXCOORD2;	// [3x3:tangentToWorld | 1x3:viewDirForParallax or worldPos]

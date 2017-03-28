@@ -561,6 +561,13 @@
 #define SV_POSITION POSITION
 #endif
 
+// Declare position that is also available for read in fragment shader
+#if defined(SHADER_API_D3D9) && defined(SHADER_STAGE_FRAGMENT) && SHADER_TARGET >= 30
+#define UNITY_POSITION(pos) float4 pos : VPOS
+#else
+// On D3D reading screen space coordinates from fragment shader requires SM3.0
+#define UNITY_POSITION(pos) float4 pos : SV_POSITION
+#endif
 
 #if defined(SHADER_API_D3D9) || defined(SHADER_API_D3D11) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_PSP2) || defined(SHADER_API_PSSL)
 #define UNITY_ATTEN_CHANNEL r
