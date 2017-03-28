@@ -18,13 +18,14 @@ namespace UnityEditor.VFX.UI
 
         protected VFXFlowAnchor(VFXFlowAnchorPresenter presenter) : base(presenter)
         {
-            switch(presenter.direction)
+            AddToClassList("EdgeConnector");
+            switch (presenter.direction)
             {
                 case Direction.Input:
-                    AddToClassList("InputEdgeConnector");
+                    AddToClassList("Input");
                     break;
                 case Direction.Output:
-                    AddToClassList("OutputEdgeConnector");
+                    AddToClassList("Output");
                     break;
             }
         }
@@ -33,6 +34,13 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
             m_ConnectorText.text = "";
+
+            VFXFlowAnchorPresenter presenter = GetPresenter<VFXFlowAnchorPresenter>();
+
+            if (presenter.connected)
+                AddToClassList("connected");
+            else
+                RemoveFromClassList("connected");
         }
 
     }

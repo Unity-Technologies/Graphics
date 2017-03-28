@@ -69,13 +69,20 @@ namespace UnityEditor.VFX.UI
 		// TODO: Unused except for debugging
 		const string RectColorProperty = "rect-color";
 
-		VisualElement m_Title;
-		VisualContainer m_FlowInputConnectorContainer;
-		VisualContainer m_FlowOutputConnectorContainer;
-		VisualContainer m_NodeContainer;
-		BlockContainer m_BlockContainer;
+        VisualContainer     m_Header;
+        VisualElement       m_HeaderIcon;
+		VisualElement       m_HeaderTitle;
 
-        VisualElement m_DragDisplay;
+        VisualContainer     m_Footer;
+        VisualElement       m_FooterIcon;
+        VisualElement       m_FooterTitle;
+
+		VisualContainer     m_FlowInputConnectorContainer;
+		VisualContainer     m_FlowOutputConnectorContainer;
+		VisualContainer     m_NodeContainer;
+		BlockContainer      m_BlockContainer;
+
+        VisualElement       m_DragDisplay;
 
 		protected GraphViewTypeFactory typeFactory { get; set; }
 
@@ -105,7 +112,8 @@ namespace UnityEditor.VFX.UI
 
             m_NodeContainer = new VisualContainer()
 			{
-				name = "NodeContents"
+				name = "NodeContents",
+                clipChildren = false
 			};
             m_NodeContainer.clipChildren = false;
 
@@ -117,13 +125,25 @@ namespace UnityEditor.VFX.UI
 					{Event.KeyboardEvent("delete"), DeleteSelection},
 				}));
 
-			AddChild(m_FlowInputConnectorContainer);
 			AddChild(m_NodeContainer);
-			AddChild(m_FlowOutputConnectorContainer);
-			m_Title = new VisualElement() { name = "Title" ,text = "Title" };
-			m_NodeContainer.AddChild(m_Title);
 
-			m_BlockContainer = new BlockContainer()
+            m_Header = new VisualContainer() {
+                name = "Header",
+                clipChildren = false
+            };
+            m_Header.AddToClassList("Extremity");
+            m_HeaderTitle = new VisualElement() { name = "HeaderTitle" ,text = "Title" };
+            m_HeaderTitle.AddToClassList("title");
+            m_HeaderIcon = new VisualElement() { name="HeaderIcon"};
+            m_HeaderIcon.AddToClassList("icon");
+            m_Header.AddChild(m_HeaderIcon);
+            m_Header.AddChild(m_HeaderTitle);
+
+            m_Header.AddChild(m_FlowInputConnectorContainer);
+
+            m_NodeContainer.AddChild(m_Header);
+
+            m_BlockContainer = new BlockContainer()
 			{
 				pickingMode = PickingMode.Ignore
 			};
@@ -131,6 +151,23 @@ namespace UnityEditor.VFX.UI
 			m_BlockContainer.AddManipulator(new ClickSelector());
 
 			m_NodeContainer.AddChild(m_BlockContainer);
+
+
+            m_Footer = new VisualContainer() {
+                name = "Footer",
+                clipChildren = false
+            };
+            m_FooterTitle = new VisualElement() { name = "FooterTitle", text = "footer" };
+            m_FooterTitle.AddToClassList("title");
+            m_FooterIcon = new VisualElement() { name = "FooterIcon"};
+            m_FooterIcon.AddToClassList("icon");
+            m_Footer.AddChild(m_FooterIcon);
+            m_Footer.AddChild(m_FooterTitle);
+            m_Footer.AddToClassList("Extremity");
+
+            m_Footer.AddChild(m_FlowOutputConnectorContainer);
+
+            m_NodeContainer.AddChild(m_Footer);
             /*
 			m_NodeContainer.AddManipulator(new ContextualMenu((evt, customData) =>
 			{
@@ -148,7 +185,7 @@ namespace UnityEditor.VFX.UI
 				return EventPropagation.Continue;
 			}));
             */
-			typeFactory = new GraphViewTypeFactory();
+            typeFactory = new GraphViewTypeFactory();
 			typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
             typeFactory[typeof(VFXDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
@@ -432,7 +469,7 @@ namespace UnityEditor.VFX.UI
 				return;
 
 			// Recreate label with good name // Dirty
-            m_Title.text = presenter.context.name;
+            m_HeaderTitle.text = presenter.context.name;
 
             VFXContextType contextType = presenter.context.contextType;
 

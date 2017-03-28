@@ -6,7 +6,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXOperatorLength : VFXOperatorFloatUnified
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN input = Vector3.one;
         }

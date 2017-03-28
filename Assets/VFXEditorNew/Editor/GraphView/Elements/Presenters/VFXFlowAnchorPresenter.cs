@@ -15,6 +15,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Owner = owner;
             anchorType = typeof(int); // We dont care about that atm!
+            orientation = Orientation.Vertical;
         }
 
 		public override void Connect(EdgePresenter edgePresenter)
@@ -43,6 +44,10 @@ namespace UnityEditor.VFX.UI
 
     class VFXFlowInputAnchorPresenter : VFXFlowAnchorPresenter
     {
+        public VFXFlowInputAnchorPresenter()
+        {
+        }
+
         public override Direction direction
         {
             get
@@ -54,6 +59,10 @@ namespace UnityEditor.VFX.UI
 
     class VFXFlowOutputAnchorPresenter : VFXFlowAnchorPresenter
     {
+        public VFXFlowOutputAnchorPresenter()
+        {
+        }
+
         public override Direction direction
         {
             get

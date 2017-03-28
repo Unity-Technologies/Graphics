@@ -1,29 +1,54 @@
 .FlowContainer{
 	flex-direction: row;
-	justify-content: space-between;
+	justify-content: center;
 	padding-left: 40;
 	padding-right: 20;
+	position-type:Absolute;
+	position-left:0;
+	position-right:0;
+	height:16;
+}
+.FlowContainer.Input{
+	position-top:-8;
 }
 .FlowContainer.Output{
-	margin-top:0;
+	position-bottom:-8;
 }
 
-VFXFlowAnchor.InputEdgeConnector {
-	background-image:resource("VFX/LayoutFlow_In");
-}
-
-VFXFlowAnchor.OutputEdgeConnector {
-	background-image:resource("VFX/LayoutFlow_Out");
+VFXFlowAnchor.EdgeConnector {
+	margin-left:-6;
+	width:12;
+	height:12;
+	border-color: #333333;
+	border-width:1;
+	border-radius:6;
+	background-color:#000;
 }
 
 VFXFlowAnchor #connector{
-	width: 32;
-	height: 16;
+	position-type:absolute;
+	position-left:2;
+	position-right:2;
+	position-top:2;
+	position-bottom:2;
+}
+
+VFXFlowAnchor.connected #connector
+{
+	border-radius:4;
+	background-color:#EEE;
+	border-color: #EEE;
+	
 }
 
 VFXFlowAnchor #connector.anchorHighlight{
 	border-color: #F0F;
-	border-width: 4;
+	border-width: 2;
+}
+
+VFXFlowEdge
+{
+	edge-width:5;
 }
 
 VFXContextUI {
@@ -37,22 +62,52 @@ VFXContextUI {
 VFXContextUI #NodeContents
 {
 	width:368;
-	border-color: rgb(100, 100, 100);
+	border-color: rgb(51, 51, 51);
 	border-radius:6;
 	border-width: 2;
+	padding-top : 20;
+	padding-bottom : 20;
 }
 VFXContextUI.selected #NodeContents
 {
 	border-color: rgb(210, 152, 0);
 }
 
-VFXContextUI #NodeContents > Label{
-	text-alignment:upper-center;
+VFXContextUI .Extremity
+{
+	flex-direction:row;
+	margin-left: 20;
+	margin-right:20;
+	padding-top:10;
+	padding-bottom:10;
+	justify-content:center;
+	background-color: #333333;
+}
 
-	text-color:#8FC1DF;
+VFXContextUI	.title
+{
+	text-alignment:middle-center;
 
-	font-size:16;
-	background-color: #383838;
+	text-color:#C4C4C4;
+	font-size:14;
+	font-style: bold;
+}
+
+VFXContextUI #HeaderIcon
+{
+	background-image:resource("VFX/Execution");
+}
+
+VFXContextUI #FooterIcon
+{
+	background-image:resource("VFX/Execution");
+}
+
+VFXContextUI .icon
+{
+	background-image:resource("VFX/Execution");
+	width:16;
+	height:16;
 }
 
 VFXContextUI > * >#Title {
@@ -74,10 +129,10 @@ VFXContextUI BlockContainer {
 
 	font-size:12;
 	margin-top: 0;
-	margin-left: 32;
-	margin-bottom: 32;
+	margin-left: 20;
+	margin-bottom: 0;
 	-border-radius:4;
-	margin-right: 32;
+	margin-right: 20;
 }
 
 
