@@ -20,8 +20,8 @@ MonoBehaviour:
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
     directionalLightNearPlaneOffset: 5
   m_TextureSettings:
-    spotCookieSize: 128
-    pointCookieSize: 512
+    spotCookieSize: 512
+    pointCookieSize: 128
     reflectionCubemapSize: 128
   deferredShader: {fileID: 4800000, guid: 1c102a89f3460254a8c413dbdcd63a2a, type: 3}
   deferredReflectionShader: {fileID: 4800000, guid: 3899e06d641c2cb4cbff794df0da536b,

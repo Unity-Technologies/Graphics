@@ -2,13 +2,14 @@ using NUnit.Framework;
 using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
-
 {
-	class StandardToHDLitMaterialUpgrader : MaterialUpgrader
+    class StandardToHDLitMaterialUpgrader : MaterialUpgrader
     {
-        public StandardToHDLitMaterialUpgrader()
+        public StandardToHDLitMaterialUpgrader() : this("Standard", "HDRenderPipeline/Lit", LitGUI.SetupMaterialKeywordsAndPass) { }
+
+        public StandardToHDLitMaterialUpgrader(string sourceShaderName, string destShaderName, MaterialFinalizer finalizer)
         {
-            RenameShader("Standard", "HDRenderPipeline/LitLegacySupport");
+            RenameShader(sourceShaderName, destShaderName, finalizer);
 
             RenameTexture("_MainTex", "_BaseColorMap");
             RenameColor("_Color", "_BaseColor");
@@ -17,6 +18,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RenameFloat("_BumpScale", "_NormalScale");
             RenameColor("_EmissionColor", "_EmissiveColor");
             RenameFloat("_DetailNormalMapScale", "_DetailNormalScale");
+            RenameFloat("_Cutoff", "_AlphaCutoff");
+            RenameKeywordToFloat("_ALPHATEST_ON", "_AlphaCutoffEnable", 1f, 0f);
 
             // the HD renderloop packs detail albedo and detail normals into a single texture.
             // mapping the detail normal map, if any, to the detail map, should do the right thing if
@@ -42,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [Test]
         public void UpgradeMaterial()
         {
-            var newShader = Shader.Find("HDRenderPipeline/LitLegacySupport");
+            var newShader = Shader.Find("HDRenderPipeline/Lit");
             var mat = new Material(Shader.Find("Standard"));
             var albedo = new Texture2D(1, 1);
             var normals = new Texture2D(1, 1);
@@ -53,14 +56,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             mat.color = color;
             mat.SetTextureScale("_MainTex", baseScale);
 
-
-            MaterialUpgrader.Upgrade(mat, new StandardToHDLitMaterialUpgrader(), MaterialUpgrader.UpgradeFlags.CleanupNonUpgradedProperties);
+            MaterialUpgrader.Upgrade(mat, this, MaterialUpgrader.UpgradeFlags.CleanupNonUpgradedProperties);
 
             Assert.AreEqual(newShader, mat.shader);
             Assert.AreEqual(albedo, mat.GetTexture("_BaseColorMap"));
             Assert.AreEqual(color, mat.GetColor("_BaseColor"));
             Assert.AreEqual(baseScale, mat.GetTextureScale("_BaseColorMap"));
             Assert.AreEqual(normals, mat.GetTexture("_NormalMap"));
+            Assert.IsTrue(mat.IsKeywordEnabled("_NORMALMAP"));
         }
     }
 }

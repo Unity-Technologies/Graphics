@@ -874,7 +874,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 base.PostUpdate( frameId, cb, rendertargetSlice, lights );
                 return;
             }
-            base.PostUpdate( frameId, cb, rendertargetSlice, lights );
 
             uint cnt = m_EntryCache.Count();
             uint i = 0;
@@ -954,6 +953,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cb.DispatchCompute( m_MomentBlurCS, currentKernel, ((int) r.width) / k_MomentBlurThreadsPerWorkgroup, (int) r.height / k_MomentBlurThreadsPerWorkgroup, 1 );
                 i++;
             }
+           base.PostUpdate( frameId, cb, rendertargetSlice, lights );
         }
     }
 // -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1093,7 +1093,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float area = vl.screenRect.width * vl.screenRect.height;
                 long val = ShadowUtils.Asint( area );
                 val <<= 32;
-                val |= (long) vlidx;
+                val |= (long)(uint)vlidx;
                 m_TmpSortKeys.AddUnchecked( val );
             }
             m_TmpSortKeys.Sort();

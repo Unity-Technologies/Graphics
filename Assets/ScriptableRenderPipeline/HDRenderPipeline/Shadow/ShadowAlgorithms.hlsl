@@ -164,7 +164,7 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, 
 //
 //	Directional shadows (cascaded shadow map)
 //
-uint EvalShadow_GetSplitSphereIndexForDirshadows( float3 positionWS, float4 dirShadowSplitSpheres[4] )
+int EvalShadow_GetSplitSphereIndexForDirshadows( float3 positionWS, float4 dirShadowSplitSpheres[4] )
 {
 	float3 fromCenter0 = positionWS.xyz - dirShadowSplitSpheres[0].xyz;
 	float3 fromCenter1 = positionWS.xyz - dirShadowSplitSpheres[1].xyz;
@@ -178,10 +178,13 @@ uint EvalShadow_GetSplitSphereIndexForDirshadows( float3 positionWS, float4 dirS
 	dirShadowSplitSphereSqRadii.z = dirShadowSplitSpheres[2].w;
 	dirShadowSplitSphereSqRadii.w = dirShadowSplitSpheres[3].w;
 
+	if( distances2.w > dirShadowSplitSphereSqRadii.w )
+		return -1;
+
 	float4 weights = float4( distances2 < dirShadowSplitSphereSqRadii );
 	weights.yzw = saturate( weights.yzw - weights.xyz );
 
-	return uint( 4.0 - dot( weights, float4(4.0, 3.0, 2.0, 1.0 ) ) );
+	return int( 4.0 - dot( weights, float4(4.0, 3.0, 2.0, 1.0 ) ) );
 }
 
 uint EvalShadow_LoadSplitSpheres( ShadowContext shadowContext, int index, out float4 splitSpheres[4] )
@@ -200,7 +203,10 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, 
 	// load the right shadow data for the current face
 	float4 dirShadowSplitSpheres[4];
 	uint payloadOffset = EvalShadow_LoadSplitSpheres( shadowContext, index, dirShadowSplitSpheres );
-	uint shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres );
+	int shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres );
+	if( shadowSplitIndex < 0 )
+		return 1.0;
+
 	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
 	// normal based bias
 	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp, sd.normalBias );

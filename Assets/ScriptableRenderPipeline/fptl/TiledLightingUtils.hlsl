@@ -22,8 +22,11 @@ StructuredBuffer<SFiniteLightData> g_vLightData;
 StructuredBuffer<uint> g_vLightListGlobal;		// don't support Buffer yet in unity
 
 
-void GetCountAndStartOpaque(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth, uint model)
+void GetCountAndStartOpaque(out uint uStart, out uint uNrLights, uint2 pixCoord, float linDepth, uint model)
 {
+	uint tileSize = 16;
+	uint nrTilesX = ((uint) (g_widthRT+(tileSize-1)))/tileSize; uint nrTilesY = ((uint) (g_heightRT+(tileSize-1)))/tileSize;
+	uint2 tileIDX = pixCoord / tileSize;
     const int tileOffs = (tileIDX.y+model*nrTilesY)*nrTilesX+tileIDX.x;
 
     uNrLights = g_vLightListGlobal[ 16*tileOffs + 0]&0xffff;
@@ -38,9 +41,9 @@ uint FetchIndexOpaque(const uint tileOffs, const uint l)
 
 #ifdef OPAQUES_ONLY
 
-void GetCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth, uint model)
+void GetCountAndStart(out uint uStart, out uint uNrLights, uint2 pixCoord, float linDepth, uint model)
 {
-    GetCountAndStartOpaque(uStart, uNrLights, tileIDX, nrTilesX, nrTilesY, linDepth, model);
+    GetCountAndStartOpaque(uStart, uNrLights, pixCoord, linDepth, model);
 }
 
 uint FetchIndex(const uint tileOffs, const uint l)
@@ -56,14 +59,18 @@ StructuredBuffer<uint> g_vLayeredOffsetsBuffer;			// don't support Buffer yet in
 StructuredBuffer<float> g_logBaseBuffer;				// don't support Buffer yet in unity
 
 
-void GetCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth, uint model)
+void GetCountAndStart(out uint uStart, out uint uNrLights, uint2 pixCoord, float linDepth, uint model)
 {
     if(g_isOpaquesOnlyEnabled)
     {
-        GetCountAndStartOpaque(uStart, uNrLights, tileIDX, nrTilesX, nrTilesY, linDepth, model);
+        GetCountAndStartOpaque(uStart, uNrLights, pixCoord, linDepth, model);
     }
     else
     {
+		uint nrTilesX = ((uint) (g_widthRT+(TILE_SIZE_CLUSTERED-1))) / ((uint) TILE_SIZE_CLUSTERED);
+		uint nrTilesY = ((uint) (g_heightRT+(TILE_SIZE_CLUSTERED-1))) / ((uint) TILE_SIZE_CLUSTERED);
+		uint2 tileIDX = pixCoord / ((uint) TILE_SIZE_CLUSTERED);
+
         float logBase = g_fClustBase;
         if(g_isLogBaseBufferEnabled)
             logBase = g_logBaseBuffer[tileIDX.y*nrTilesX + tileIDX.x];

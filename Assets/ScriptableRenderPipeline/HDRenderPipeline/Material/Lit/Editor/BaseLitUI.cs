@@ -36,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Strength of Phong tessellation shape (lerp factor)");
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
             public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Tessellation displacement will take into account the object scale - Only work with uniform positive scale");
+            public static GUIContent tessellationTilingScaleText = new GUIContent("Enable tiling scale", "Tessellation displacement will take into account the tiling scale - Only work with uniform positive scale");
         }
 
         public enum TessellationMode
@@ -82,6 +83,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
         protected MaterialProperty tessellationObjectScale = null;
         protected const string kTessellationObjectScale = "_TessellationObjectScale";
+        protected MaterialProperty tessellationTilingScale = null;
+        protected const string kTessellationTilingScale = "_TessellationTilingScale";
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
@@ -108,6 +111,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tessellationShapeFactor = FindProperty(kTessellationShapeFactor, props, false);
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon, props, false);
             tessellationObjectScale = FindProperty(kTessellationObjectScale, props, false);
+            tessellationTilingScale = FindProperty(kTessellationTilingScale, props, false);
         }
 
         void TessellationModePopup()
@@ -177,6 +181,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, StylesBaseLit.tessellationBackFaceCullEpsilonText);
                 }
                 m_MaterialEditor.ShaderProperty(tessellationObjectScale, StylesBaseLit.tessellationObjectScaleText);
+                m_MaterialEditor.ShaderProperty(tessellationTilingScale, StylesBaseLit.tessellationTilingScaleText);
                 EditorGUI.indentLevel--;
             }
         }
@@ -249,8 +254,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     material.EnableKeyword("_TESSELLATION_DISPLACEMENT_PHONG");
                 }
 
-                bool tessellationObjectScaleEnable = material.GetFloat(kTessellationObjectScale) == 1.0;
+                bool tessellationObjectScaleEnable = material.GetFloat(kTessellationObjectScale) > 0.0;
                 SetKeyword(material, "_TESSELLATION_OBJECT_SCALE", tessellationObjectScaleEnable);
+
+                bool tessellationTilingScaleEnable = material.GetFloat(kTessellationTilingScale) > 0.0;
+                SetKeyword(material, "_TESSELLATION_TILING_SCALE", tessellationTilingScaleEnable);
             }
         }
 

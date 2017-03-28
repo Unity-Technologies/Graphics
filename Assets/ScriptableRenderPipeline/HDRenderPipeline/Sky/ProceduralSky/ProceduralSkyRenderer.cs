@@ -175,11 +175,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var cmd = new CommandBuffer { name = "" };
 
-            if (!renderForCubemap)
-            {
-                cmd.SetGlobalTexture("_CameraDepthTexture", builtinParams.depthBuffer);
-            }
-
             cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_ProceduralSkyMaterial, 0, 0, properties);
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();

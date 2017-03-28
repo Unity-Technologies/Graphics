@@ -48,6 +48,7 @@
 #define VARYINGS_NEED_POSITION_WS
 
 #if REQUIRE_TANGENT_TO_WORLD
+#define VARYINGS_NEED_POSITION_WS // Required to get view vector
 #define VARYINGS_NEED_TANGENT_TO_WORLD
 #endif
 

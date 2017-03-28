@@ -1,7 +1,7 @@
 // Precomputes data for IntegrateLD(). See that function for a detailed description.
 
-#include "ShaderLibrary/Common.hlsl"
-#include "ShaderLibrary/ImageBasedLighting.hlsl"
+#include "../../../ShaderLibrary/Common.hlsl"
+#include "../../../ShaderLibrary/ImageBasedLighting.hlsl"
 
 #define MAX_IBL_SAMPLE_CNT 89
 

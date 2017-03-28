@@ -36,9 +36,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool displayOpaqueObjects = true;
         public bool displayTransparentObjects = true;
         public bool enableDistortion = true;
+        public bool enableSSS = true;
     }
 
-    public enum ShadowDebugMode
+    public enum ShadowMapDebugMode
     {
         None,
         VisualizeAtlas,
@@ -50,14 +51,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         None,
         DiffuseLighting,
-        SpecularLighting
+        SpecularLighting,
+        VisualizeCascade
     }
 
     [Serializable]
     public class LightingDebugSettings
     {
         public bool                 enableShadows = true;
-        public ShadowDebugMode      shadowDebugMode = ShadowDebugMode.None;
+        public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         public uint                 shadowMapIndex = 0;
 
         public LightingDebugMode    lightingDebugMode = LightingDebugMode.None;
@@ -65,9 +67,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                overrideSmoothnessValue = 0.5f;
         public Color                debugLightingAlbedo = new Color(0.5f, 0.5f, 0.5f);
 
+        public bool                 displaySkyReflection = false;
+        public float                skyReflectionMipmap = 0.0f;
+
         public void OnValidate()
         {
             overrideSmoothnessValue = Mathf.Clamp(overrideSmoothnessValue, 0.0f, 1.0f);
+            skyReflectionMipmap = Mathf.Clamp(skyReflectionMipmap, 0.0f, 1.0f);
         }
     }
 }
