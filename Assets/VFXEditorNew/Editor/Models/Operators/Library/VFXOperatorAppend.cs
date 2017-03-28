@@ -21,27 +21,16 @@ namespace UnityEditor.VFX
         {
             if (cause != InvalidationCause.kUIChanged)
             {
-                var newInputSlots = new List<VFXSlot>();
-                var size = 0;
-                foreach (var slot in inputSlots)
+                var emptySlot = inputSlots.Where(s => s.expression == null).ToArray();
+                foreach (var slot in emptySlot)
                 {
-                    var expression = slot.expression;
-                    if (expression != null)
-                    {
-                        size += VFXExpression.TypeToSize(expression.ValueType);
-                        newInputSlots.Add(slot);
-                    }
+                    RemoveSlot(slot, false);
                 }
 
+                var size = inputSlots.Sum(s => VFXExpression.TypeToSize(s.expression.ValueType));
                 if (inputSlots.All(s => s.HasLink()) && size < 4)
                 {
-                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput),false);
-                }
-
-                var uselessSlot = newInputSlots.Except(inputSlots).ToArray();
-                foreach (var deprecatedSlot in uselessSlot)
-                {
-                    RemoveSlot(deprecatedSlot,false);
+                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput), false);
                 }
             }
 
