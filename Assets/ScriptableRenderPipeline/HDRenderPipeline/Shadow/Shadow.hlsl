@@ -26,19 +26,18 @@
 #include "ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
 #include "ShadowTexFetch.hlsl"	// Resource sampling definitions (don't modify)
 
-#define SHADOWCONTEXT_DECLARE( _Tex2DArraySlots, _TexCubeArraySlots, _SamplerCompSlots, _SamplerSlots )	\
-																										\
-	struct ShadowContext																				\
-	{																									\
-		StructuredBuffer<ShadowData>	shadowDatas;													\
-		StructuredBuffer<int4>			payloads;														\
-		Texture2DArray					tex2DArray[_Tex2DArraySlots];									\
-		TextureCubeArray				texCubeArray[_TexCubeArraySlots];								\
-		SamplerComparisonState			compSamplers[_SamplerCompSlots];								\
-		SamplerState					samplers[_SamplerSlots];										\
-	};																									\
-																										\
+// Declares a shadow context struct with members and sampling code based on whether _...Slots > 0
+#define SHADOWCONTEXT_DECLARE( _Tex2DArraySlots, _TexCubeArraySlots, _SamplerCompSlots, _SamplerSlots )				\
+																													\
+	struct ShadowContext																							\
+	{																												\
+		StructuredBuffer<ShadowData>	shadowDatas;																\
+		StructuredBuffer<int4>			payloads;																	\
+		SHADOWCONTEXT_DECLARE_TEXTURES( _Tex2DArraySlots, _TexCubeArraySlots, _SamplerCompSlots, _SamplerSlots )	\
+	};																												\
+																													\
 	SHADOW_DEFINE_SAMPLING_FUNCS( _Tex2DArraySlots, _TexCubeArraySlots, _SamplerCompSlots, _SamplerSlots )
+
 
 // Shadow context definition and initialization, i.e. resource binding (project header, must be kept in sync with C# runtime)
 #include "ShadowContext.hlsl"
