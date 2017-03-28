@@ -19,9 +19,9 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             #pragma multi_compile _ ATMOSPHERICS_DEBUG
             #pragma multi_compile _ PERFORM_SKY_OCCLUSION_TEST
 
-            #include "ShaderLibrary/Color.hlsl"
-            #include "ShaderLibrary/Common.hlsl"
-            #include "ShaderLibrary/CommonLighting.hlsl"
+            #include "../../../../ShaderLibrary/Color.hlsl"
+            #include "../../../../ShaderLibrary/Common.hlsl"
+            #include "../../../../ShaderLibrary/CommonLighting.hlsl"
 
             TEXTURECUBE(_Cubemap);
             SAMPLERCUBE(sampler_Cubemap);

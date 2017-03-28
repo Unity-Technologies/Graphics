@@ -37,11 +37,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "ShaderLibrary/Common.hlsl"
-            #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-            #include "HDRenderPipeline/ShaderVariables.hlsl"
+            #include "../../../../ShaderLibrary/Common.hlsl"
+            #include "../../../ShaderConfig.cs.hlsl"
+            #include "../../../ShaderVariables.hlsl"
             #define UNITY_MATERIAL_LIT // Need to be defined before including Material.hlsl
-            #include "HDRenderPipeline/Material/Material.hlsl"
+            #include "../../../Material/Material.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
@@ -86,8 +86,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(0, 0));
 
                 float2 gBufferData  = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
-                int    profileID    = int(gBufferData.y * N_PROFILES);
-                float  distScale    = gBufferData.x * 0.01;
+                int    profileID    = N_PROFILES * gBufferData.y;
+                // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
+                float  distScale    = (1.0 / 300.0) * gBufferData.x;
                 float  invDistScale = rcp(distScale);
 
                 // Reconstruct the view-space position.
