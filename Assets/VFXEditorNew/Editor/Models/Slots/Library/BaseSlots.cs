@@ -137,6 +137,15 @@ namespace UnityEditor.VFX
 
             return expression;
         }
+
+        protected override VFXValue DefaultExpression()
+        {
+            if (m_Value == null)
+                return null;
+
+            var floatN = (FloatN)m_Value;
+            return (VFXValue)floatN;
+        }
     }
 
     [VFXInfo(type = typeof(int))]

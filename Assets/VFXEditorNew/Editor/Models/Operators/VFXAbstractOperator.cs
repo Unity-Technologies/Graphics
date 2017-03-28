@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
             return new Vector4(value.x, value.y, value.z, value.w);
         }
 
-        public static implicit operator VFXExpression(FloatN value)
+        public static implicit operator VFXValue(FloatN value)
         {
             switch (value.realSize)
             {

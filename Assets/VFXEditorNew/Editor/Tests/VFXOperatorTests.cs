@@ -65,23 +65,27 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ChangeTypeInCascade()
         {
-            var one = new VFXOperatorFloatOne();
+            var one = ScriptableObject.CreateInstance<VFXOperatorFloatOne>();
 
-            var vec2_One = new VFXOperatorAppendVector();
+            var vec2_One = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
             vec2_One.inputSlots[0].Link(one.outputSlots[0]);
             vec2_One.inputSlots[1].Link(one.outputSlots[0]);
+            Assert.AreEqual(vec2_One.outputSlots[0].expression.ValueType, VFXValueType.kFloat2);
 
-            var vec3_One = new VFXOperatorAppendVector();
+            var vec3_One = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
             vec3_One.inputSlots[0].Link(vec2_One.outputSlots[0]);
             vec3_One.inputSlots[1].Link(one.outputSlots[0]);
+            Assert.AreEqual(vec3_One.outputSlots[0].expression.ValueType, VFXValueType.kFloat3);
 
-            var cos = new VFXOperatorCos();
+            var cos = ScriptableObject.CreateInstance<VFXOperatorCos>();
             cos.inputSlots[0].Link(vec2_One.outputSlots[0]);
+            Assert.AreEqual(cos.outputSlots[0].expression.ValueType, VFXValueType.kFloat2);
 
-            var sin = new VFXOperatorSin();
+            var sin = ScriptableObject.CreateInstance<VFXOperatorSin>();
             sin.inputSlots[0].Link(cos.outputSlots[0]);
+            Assert.AreEqual(sin.outputSlots[0].expression.ValueType, VFXValueType.kFloat2);
 
-            var abs = new VFXOperatorAbs();
+            var abs = ScriptableObject.CreateInstance<VFXOperatorAbs>();
             abs.inputSlots[0].Link(sin.outputSlots[0]);
             Assert.AreEqual(abs.outputSlots[0].expression.ValueType, VFXValueType.kFloat2);
 
@@ -93,16 +97,15 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void AutoDisconnectInvalid()
         {
-            var one = new VFXOperatorFloatOne();
+            var one = ScriptableObject.CreateInstance<VFXOperatorFloatOne>();
 
-            var append = new VFXOperatorAppendVector();
+            var append = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
             append.inputSlots[0].Link(one.outputSlots[0]);
             append.inputSlots[1].Link(one.outputSlots[0]);
             append.inputSlots[2].Link(one.outputSlots[0]);
 
-            var cross = new VFXOperatorCross();
+            var cross = ScriptableObject.CreateInstance<VFXOperatorCross>();
             cross.inputSlots[0].Link(append.outputSlots[0]);
-
             Assert.AreEqual(true, cross.inputSlots[0].HasLink());
 
             append.inputSlots[2].UnlinkAll();
