@@ -89,7 +89,7 @@ namespace UnityEditor.Experimental.Rendering
                 dstMaterial.SetFloat(t.property, srcMaterial.IsKeywordEnabled(t.keyword) ? t.setVal : t.unsetVal);
         }
 
-        public void RenameShader(string oldName, string newName, MaterialFinalizer finalizer)
+        public void RenameShader(string oldName, string newName, MaterialFinalizer finalizer = null)
         {
             m_OldShader = oldName;
             m_NewShader = newName;
