@@ -113,7 +113,7 @@ namespace UnityEditor.VFX
             {
                 while(outputSlots.Count > 0)
                 {
-                    RemoveSlot(outputSlots.Last());
+                    RemoveSlot(outputSlots.Last(), false);
                 }
 
                 for (int iSlot = 0; iSlot < outputExpressionArray.Length; ++iSlot)

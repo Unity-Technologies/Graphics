@@ -36,22 +36,22 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CascadedMulOperator()
         {
-            var one = new VFXOperatorFloatOne();
-            var two = new VFXOperatorAdd();
+            var one = ScriptableObject.CreateInstance<VFXOperatorFloatOne>();
+            var two = ScriptableObject.CreateInstance<VFXOperatorAdd>();
 
             two.inputSlots[0].Link(one.outputSlots[0]);
             two.inputSlots[1].Link(one.outputSlots[0]);
 
-            var vec2_Two = new VFXOperatorAppendVector();
+            var vec2_Two = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
             vec2_Two.inputSlots[0].Link(two.outputSlots[0]);
             vec2_Two.inputSlots[1].Link(two.outputSlots[0]);
 
-            var vec3_Two = new VFXOperatorAppendVector();
+            var vec3_Two = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
             vec3_Two.inputSlots[0].Link(two.outputSlots[0]);
             vec3_Two.inputSlots[1].Link(two.outputSlots[0]);
             vec3_Two.inputSlots[2].Link(two.outputSlots[0]);
 
-            var mul = new VFXOperatorMul();
+            var mul = ScriptableObject.CreateInstance<VFXOperatorMul>();
             mul.inputSlots[0].Link(vec2_Two.outputSlots[0]);
             mul.inputSlots[1].Link(vec3_Two.outputSlots[0]);
 
