@@ -142,6 +142,7 @@ namespace UnityEditor.VFX
 
                 foreach (var slot in slotToRemove)
                 {
+                    slot.UnlinkAll(false);
                     RemoveSlot(slot, false);
                 }
             }
