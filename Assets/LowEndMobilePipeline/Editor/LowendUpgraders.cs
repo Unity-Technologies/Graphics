@@ -239,7 +239,6 @@ namespace UnityEditor.Experimental.Rendering.LowendMobile
         public StandardUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, "ScriptableRenderPipeline/LowEndMobile/NonPBR");
-            RenameFloat("_Glossiness", "_Shininess");
         }
     }
 
