@@ -404,6 +404,19 @@ namespace UnityEditor.VFX.UI
             return m_GraphAsset;
         }
 
+        public void Clear()
+        {
+            m_Elements.Clear();
+            ClearTempElements();
+
+            m_FlowAnchorPresenters.Clear();
+            m_DataInputAnchorPresenters.Clear();
+            m_DataInputAnchorPresenters.Clear();
+
+            m_SyncedContexts.Clear();
+            m_SyncedModels.Clear();
+        }
+
         public void SetGraphAsset(VFXGraphAsset graph, bool force)
 		{
             if (m_GraphAsset != graph || force)
@@ -412,8 +425,7 @@ namespace UnityEditor.VFX.UI
                 /*if (m_GraphAsset != null && !EditorUtility.IsPersistent(m_GraphAsset))
                     DestroyImmediate(m_GraphAsset);*/
 
-                m_Elements.Clear();
-				m_FlowAnchorPresenters.Clear();
+                Clear();
                
                 if (m_GraphAsset != null)
                     m_GraphAsset.root.onInvalidateDelegate -= SyncPresentersFromModel;

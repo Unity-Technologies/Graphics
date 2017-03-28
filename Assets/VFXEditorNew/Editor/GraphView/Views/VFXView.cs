@@ -77,6 +77,7 @@ namespace UnityEditor.VFX.UI
 					{Event.KeyboardEvent("#tab"), FramePrev},
 					{Event.KeyboardEvent("tab"), FrameNext},
                     {Event.KeyboardEvent("c"), CloneContexts}, // TEST
+                    {Event.KeyboardEvent("#r"), Resync},
 				}));
 
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
@@ -133,6 +134,13 @@ namespace UnityEditor.VFX.UI
                 context.position = context.position + new Vector2(50, 50);
                 GetPresenter<VFXViewPresenter>().GetGraphAsset().root.AddChild(system);
             }
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation Resync()
+        {
+            var presenter = GetPresenter<VFXViewPresenter>();
+            presenter.SetGraphAsset(presenter.GetGraphAsset(), true);
             return EventPropagation.Stop;
         }
     }
