@@ -485,6 +485,20 @@ namespace UnityEditor.VFX.UI
 				default: throw new Exception();
 			}
 
+
+            if( presenter.context.outputType == VFXDataType.kNone)
+            {
+                if( m_Footer.parent != null)
+                    m_NodeContainer.RemoveChild(m_Footer);
+            }
+            else
+            {
+                if( m_Footer.parent == null)
+                    m_NodeContainer.AddChild(m_Footer);
+                m_FooterTitle.text = presenter.context.outputType.ToString().Substring(1);
+            }
+
+
             presenter.context.position = presenter.position.position;
 
 
