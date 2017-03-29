@@ -23,6 +23,7 @@ namespace UnityEditor.VFX
         void RemoveSlot(VFXSlot slot, bool notify = true);
 
         void Invalidate(VFXModel.InvalidationCause cause);
+        void UpdateOutputs();
     }
 
     class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
@@ -97,6 +98,8 @@ namespace UnityEditor.VFX
                 m_OutputSlots = new List<VFXSlot>();
                 InitProperties(GetOutputPropertiesTypeName(), out m_OutputProperties, out m_OutputValues, VFXSlot.Direction.kOutput);
             }
+
+            UpdateOutputs();
         }
 
         public override void CollectDependencies(HashSet<Object> children)
@@ -212,6 +215,12 @@ namespace UnityEditor.VFX
         protected override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             base.Invalidate(model, cause);
+        }
+
+        public virtual void UpdateOutputs()
+        {
+            foreach (var slot in m_InputSlots)
+                slot.Initialize();
         }
 
         //[SerializeField]
