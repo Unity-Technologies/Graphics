@@ -113,8 +113,8 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(typeof(FloatN), add.inputSlots[0].property.type);
             Assert.AreEqual(typeof(FloatN), add.inputSlots[1].property.type);
             Assert.AreEqual(typeof(float), add.outputSlots[0].property.type);
-            Assert.AreNotEqual(null, add.outputSlots[0].expression);
-            Assert.AreNotEqual(null, add.outputSlots[0].expression as VFXExpressionAdd);
+            Assert.IsNotNull(add.outputSlots[0].expression);
+            Assert.IsNotNull(add.outputSlots[0].expression as VFXExpressionAdd);
         }
 
         private void CheckIsolatedOperatorAbs(VFXOperatorAbs add)
@@ -123,8 +123,8 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, add.inputSlots.Count);
             Assert.AreEqual(typeof(FloatN), add.inputSlots[0].property.type);
             Assert.AreEqual(typeof(float), add.outputSlots[0].property.type);
-            Assert.AreNotEqual(null, add.outputSlots[0].expression);
-            Assert.AreNotEqual(null, add.outputSlots[0].expression as VFXExpressionAbs);
+            Assert.IsNotNull(add.outputSlots[0].expression);
+            Assert.IsNotNull(add.outputSlots[0].expression as VFXExpressionAbs);
         }
 
         private void CheckConnectedAbs(VFXOperatorAbs abs)

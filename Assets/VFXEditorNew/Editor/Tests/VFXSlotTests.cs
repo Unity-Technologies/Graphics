@@ -99,21 +99,32 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, output1.GetNbLinks());
         }
 
+        private void CheckVectorSlotCreation(Type type, VFXSlot.Direction direction, int expectionChildrenNb)
+        {
+            VFXSlot slot = VFXSlot.Create(new VFXProperty(type, "test"), direction);
+
+            Assert.IsNotNull(slot);
+            Assert.AreEqual(expectionChildrenNb, slot.GetNbChildren());
+            Assert.IsInstanceOf<VFXExpressionCombine>(slot.expression);
+
+            foreach (var child in slot.children)
+            {
+                Assert.IsNotNull(child);
+                Assert.AreEqual(0, child.GetNbChildren());
+                Assert.IsInstanceOf<VFXExpressionExtractComponent>(child.expression);
+            }
+        }
+
         [Test]
         public void Create()
         {
-            VFXSlot float4Slot = VFXSlot.Create(new VFXProperty(typeof(Vector4),"test"),VFXSlot.Direction.kInput);
+            CheckVectorSlotCreation(typeof(Vector2), VFXSlot.Direction.kInput, 2);
+            CheckVectorSlotCreation(typeof(Vector3), VFXSlot.Direction.kInput, 3);
+            CheckVectorSlotCreation(typeof(Vector4), VFXSlot.Direction.kInput, 4);
 
-            Assert.IsNotNull(float4Slot);
-            Assert.AreEqual(4, float4Slot.GetNbChildren());
-            Assert.IsInstanceOf<VFXExpressionCombine>(float4Slot.expression);
-
-            foreach (var child in float4Slot.children)
-            {
-                Assert.IsNotNull(child);
-                Assert.AreEqual(0,child.GetNbChildren());
-                Assert.IsInstanceOf<VFXValueFloat>(child.expression);
-            }
+            CheckVectorSlotCreation(typeof(Vector2), VFXSlot.Direction.kOutput, 2);
+            CheckVectorSlotCreation(typeof(Vector3), VFXSlot.Direction.kOutput, 3);
+            CheckVectorSlotCreation(typeof(Vector4), VFXSlot.Direction.kOutput, 4);
         }
 
         [Test]

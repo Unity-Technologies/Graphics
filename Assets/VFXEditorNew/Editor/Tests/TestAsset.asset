@@ -28,8 +28,8 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_InputSlots:
-  - {fileID: 114289302002678916}
-  - {fileID: 114410408423402166}
+  - {fileID: 0}
+  - {fileID: 0}
   m_OutputSlots:
   - {fileID: 114193109963037842}
   m_SerializableSettings:
