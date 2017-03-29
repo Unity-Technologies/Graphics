@@ -37,9 +37,9 @@ namespace UnityEditor.VFX
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
-            if (settings != null)
+            if (m_SettingsBuffer != null)
             {
-                m_SerializableSettings = SerializationHelper.Serialize(settings);
+                m_SerializableSettings = SerializationHelper.Serialize(m_SettingsBuffer);
             }
             else
             {
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX
             base.OnAfterDeserialize();
             if (!m_SerializableSettings.Empty)
             {
-                settings = SerializationHelper.Deserialize<object>(m_SerializableSettings, null);
+                m_SettingsBuffer = SerializationHelper.Deserialize<object>(m_SerializableSettings, null);
             }
             m_SerializableSettings.Clear();
         }
