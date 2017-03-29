@@ -86,7 +86,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(0, 0));
 
                 float2 gBufferData  = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
-                int    profileID    = N_PROFILES * gBufferData.y;
+                int    profileID    = (N_PROFILES - 1) * gBufferData.y;
                 // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
                 float  distScale    = (1.0 / 300.0) * gBufferData.x;
                 float  invDistScale = rcp(distScale);

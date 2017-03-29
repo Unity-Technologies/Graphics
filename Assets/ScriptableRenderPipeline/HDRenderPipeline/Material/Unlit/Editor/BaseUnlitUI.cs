@@ -69,7 +69,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // It will allow to display our common parameters + setup keyword correctly for them
         protected abstract void FindMaterialProperties(MaterialProperty[] props);
         protected abstract void SetupMaterialKeywordsAndPassInternal(Material material);
-        protected abstract void MaterialPropertiesGUI();
+        protected abstract void MaterialPropertiesGUI(Material material);
         // This function will said if emissive is use or not regarding enlighten/PVR
         protected abstract bool ShouldEmissionBeEnabled(Material material);
 
@@ -295,7 +295,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
 
                 EditorGUILayout.Space();
-                MaterialPropertiesGUI();
+                MaterialPropertiesGUI(material);
 
                 DoEmissionArea(material);
                 m_MaterialEditor.EnableInstancingField();

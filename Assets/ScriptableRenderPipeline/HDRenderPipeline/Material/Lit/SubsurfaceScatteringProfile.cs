@@ -29,27 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField] [HideInInspector]
         Vector4        m_HalfRcpWeightedVariances;
 
-        private static SubsurfaceScatteringProfile s_DefaultProfile = null; // Singleton
-
         // --- Public Methods ---
-
-        public static SubsurfaceScatteringProfile defaultProfile
-        {
-            get
-            {
-                if (s_DefaultProfile == null)
-                {
-#if UNITY_EDITOR
-                    s_DefaultProfile = CreateInstance<SubsurfaceScatteringProfile>();
-                    AssetDatabase.CreateAsset(s_DefaultProfile, "Assets/ScriptableRenderPipeline/HDRenderPipeline/Default SSS Profile.asset");
-                    AssetDatabase.SaveAssets();
-#else
-                    throw new UnassignedReferenceException("SubsurfaceScatteringProfile.defaultProfile can not be null.");
-#endif
-                }
-                return s_DefaultProfile;
-            }
-        }
 
         public SubsurfaceScatteringProfile()
         {
@@ -58,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lerpWeight         = 0.5f;
             enableTransmission = false;
             thicknessRemap     = new Vector2(0, 1);
-            settingsIndex      = 0;
+            settingsIndex      = SubsurfaceScatteringSettings.neutralProfileID; // Updated by SubsurfaceScatteringSettings.OnValidate() once assigned 
 
             UpdateKernelAndVarianceData();
         }
@@ -215,24 +195,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public enum TexturingMode : int { PreScatter = 0, PostScatter = 1, PreAndPostScatter = 2, MaxValue = 2 };
 
-        public const int maxNumProfiles = 8;
+        public const int maxNumProfiles   = 8;
+        public const int neutralProfileID = 7;
 
         public int                           numProfiles;
         public TexturingMode                 texturingMode;
         public int                           transmissionFlags;
         public SubsurfaceScatteringProfile[] profiles;
-        public float[]                       thicknessRemaps;
-        public Vector4[]                     halfRcpVariancesAndLerpWeights;
-        public Vector4[]                     halfRcpWeightedVariances;
-        public Vector4[]                     filterKernels;
+        // Below is the cache filled during OnValidate().
+        [NonSerialized] public float[]       thicknessRemaps;
+        [NonSerialized] public Vector4[]     halfRcpVariancesAndLerpWeights;
+        [NonSerialized] public Vector4[]     halfRcpWeightedVariances;
+        [NonSerialized] public Vector4[]     filterKernels;
 
         // --- Public Methods ---
 
         public SubsurfaceScatteringSettings()
         {
             numProfiles                    = 1;
+            profiles                       = new SubsurfaceScatteringProfile[numProfiles];
+            profiles[0]                    = null;
             texturingMode                  = TexturingMode.PreScatter;
-            profiles                       = null;
             thicknessRemaps                = null;
             halfRcpVariancesAndLerpWeights = null;
             halfRcpWeightedVariances       = null;
@@ -241,13 +224,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnValidate()
         {
-            if (profiles == null)
-            {
-                // It will be called during the initialization of the HDRenderPipeline.
-                CreateProfiles();
-            }
-
-            numProfiles = Math.Max(1, Math.Min(profiles.Length, maxNumProfiles));
+            // Reserve one slot for the neutral profile.
+            numProfiles = Math.Min(profiles.Length, maxNumProfiles - 1);
 
             if (profiles.Length != numProfiles)
             {
@@ -256,14 +234,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < numProfiles; i++)
             {
-                if (profiles[i] == null)
+                if (profiles[i] != null)
                 {
-                    // No invalid/empty assets allowed!
-                    profiles[i] = SubsurfaceScatteringProfile.defaultProfile;
+                    // Assign the profile IDs.
+                    profiles[i].settingsIndex = i;
                 }
-
-                // Assign profile IDs.
-                profiles[i].settingsIndex = i;
             }
 
             texturingMode = (TexturingMode)Math.Max(0, Math.Min((int)texturingMode, (int)TexturingMode.MaxValue));
@@ -293,6 +268,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < numProfiles; i++)
             {
+                // Skip unassigned profiles.
+                if (profiles[i] == null) continue;
+
                 transmissionFlags |= (profiles[i].enableTransmission ? 1 : 0) << i;
 
                 c.r = Mathf.Clamp(profiles[i].stdDev1.r, 0.05f, 2.0f);
@@ -320,6 +298,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Use the updated data to fill the cache.
             for (int i = 0; i < numProfiles; i++)
             {
+                // Skip unassigned profiles.
+                if (profiles[i] == null) continue;
+
                 thicknessRemaps[2 * i]                      = profiles[i].thicknessRemap.x;
                 thicknessRemaps[2 * i + 1]                  = profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x;
                 halfRcpVariancesAndLerpWeights[2 * i]       = profiles[i].halfRcpVariances[0];
@@ -333,18 +314,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     filterKernels[n * i + j] = profiles[i].filterKernel[j];
                 }
             }
-        }
 
-        // --- Private Methods ---
-
-        // Limitation of Unity - cannot create assets in the constructor.
-        public void CreateProfiles()
-        {
-            profiles = new SubsurfaceScatteringProfile[numProfiles];
-
-            for (int i = 0; i < numProfiles; i++)
+            // Fill the neutral profile.
             {
-                profiles[i] = SubsurfaceScatteringProfile.defaultProfile;
+                int i = neutralProfileID;
+
+                halfRcpWeightedVariances[i] = Vector4.one;
+
+                for (int j = 0, n = SubsurfaceScatteringProfile.numSamples; j < n; j++)
+                {
+                    filterKernels[n * i + j]   = Vector4.one;
+                    filterKernels[n * i + j].w = 0.0f;
+                }
             }
         }
     }

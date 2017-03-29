@@ -38,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
         }
 
-        protected override void MaterialPropertiesGUI()
+        protected override void MaterialPropertiesGUI(Material material)
         {
             GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
 
