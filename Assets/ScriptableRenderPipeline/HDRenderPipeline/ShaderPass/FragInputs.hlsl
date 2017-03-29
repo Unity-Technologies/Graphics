@@ -38,8 +38,9 @@ FragInputs InitializeFragInputs()
     ZERO_INITIALIZE(FragInputs, output);
 
     // Init to some default value to make the computer quiet (else it output "divide by zero" warning even if value is not used).
-    output.worldToTangent[0] = float3(0.0, 0.0, 1.0);
-    output.worldToTangent[2] = float3(0.0, 0.0, 1.0);
+    output.worldToTangent[0] = float3(1, 0, 0);
+    output.worldToTangent[1] = float3(0, 1, 0);
+    output.worldToTangent[2] = float3(0, 0, 1);
 
     return output;
 }
