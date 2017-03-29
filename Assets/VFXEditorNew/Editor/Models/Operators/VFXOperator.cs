@@ -45,6 +45,10 @@ namespace UnityEditor.VFX
             {
                 m_SerializableSettings.Clear();
             }
+            else
+            {
+                m_SerializableSettings = SerializationHelper.nullElement;
+            }
         }
 
         public override void OnAfterDeserialize()
