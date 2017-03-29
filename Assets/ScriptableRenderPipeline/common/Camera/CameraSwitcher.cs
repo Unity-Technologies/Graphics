@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     m_MessageTimer = 0.0f;
 
-                    if(m_CurrentCamera == m_OriginalCamera)
+                    if (m_CurrentCamera == m_OriginalCamera)
                     {
                         m_OriginalCameraPosition = m_OriginalCamera.transform.position;
                         m_OriginalCameraRotation = m_OriginalCamera.transform.rotation;
@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering
 
                     m_CurrentCamera = GetNextCamera();
 
-                    if(m_CurrentCamera != null)
+                    if (m_CurrentCamera != null)
                     {
                         // If we witch back to the original camera, put back the transform in it.
                         if (m_CurrentCamera == m_OriginalCamera)

@@ -106,7 +106,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     output.objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
     output.objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
     #endif
-    // TODO: deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)  
+    // TODO: deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
     // TODO: TEMP: Velocity has a flow as it doens't have normal. This need to be fix. In the mean time, generate fix normal so compiler doesn't complain - When fix, think to also enable ATTRIBUTES_NEED_NORMAL in LitVelocityPass.hlsl
     #if SHADERPASS == SHADERPASS_VELOCITY
     output.normalWS = float3(0.0, 0.0, 1.0);

@@ -66,7 +66,7 @@ struct StandardData
     float3 diffuseColor;
     float3 normalWorld;
     float smoothness;
-	float3 emission;
+    float3 emission;
 };
 
 struct LocalDataBRDF
@@ -88,7 +88,7 @@ StandardData UnityStandardDataFromGbufferAux(float4 gbuffer0, float4 gbuffer1, f
     data.smoothness = gbuffer1.a;
     data.diffuseColor = gbuffer0.xyz; data.specularColor = gbuffer1.xyz;
     float ao = gbuffer0.a;
-	data.emission = gbuffer3.xyz;
+    data.emission = gbuffer3.xyz;
 
     return data;
 }
@@ -115,7 +115,7 @@ half4 frag (v2f i) : SV_Target
     float4 gbuffer0 = _CameraGBufferTexture0.Load( uint3(pixCoord.xy, 0) );
     float4 gbuffer1 = _CameraGBufferTexture1.Load( uint3(pixCoord.xy, 0) );
     float4 gbuffer2 = _CameraGBufferTexture2.Load( uint3(pixCoord.xy, 0) );
-	float4 gbuffer3 = _CameraGBufferTexture3.Load( uint3(pixCoord.xy, 0) );
+    float4 gbuffer3 = _CameraGBufferTexture3.Load( uint3(pixCoord.xy, 0) );
 
     StandardData data = UnityStandardDataFromGbufferAux(gbuffer0, gbuffer1, gbuffer2, gbuffer3);
 

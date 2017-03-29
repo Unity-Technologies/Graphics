@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void RemoveMaterialKeywords(Material material)
         {
             string[] keywordsToRemove = material.shaderKeywords;
-            foreach (var keyword in keywordsToRemove) 
+            foreach (var keyword in keywordsToRemove)
             {
                 material.DisableKeyword(keyword);
             }
@@ -71,7 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         RemoveMaterialKeywords(mat);
                         UnlitGUI.SetupMaterialKeywordsAndPass(mat);
                         EditorUtility.SetDirty(mat);
-                    }                    
+                    }
                 }
             }
             finally

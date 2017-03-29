@@ -85,8 +85,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             struct Outputs
             {
             #ifdef OUTPUT_SPLIT_LIGHTING
-            	float4 specularLighting : SV_Target0;
-            	float3 diffuseLighting  : SV_Target1;
+                float4 specularLighting : SV_Target0;
+                float3 diffuseLighting  : SV_Target1;
             #else
                 float4 combinedLighting : SV_Target0;
             #endif
@@ -95,7 +95,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-			    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 

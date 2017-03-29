@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                if(s_Instance == null)
+                if (s_Instance == null)
                     s_Instance = new SceneSettingsManager();
 
                 return s_Instance;
@@ -22,12 +22,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnEnable()
         {
-
         }
 
         void OnDisable()
         {
-
         }
 
         public SceneSettings GetCurrentSceneSetting()
@@ -62,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void ApplySettings(SceneSettings settings)
         {
-            if(settings)
+            if (settings)
             {
                 if (settings.commonSettings != null)
                     CommonSettingsSingleton.overrideSettings = settings.commonSettings;
@@ -76,6 +74,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SkySettingsSingleton.overrideSettings = null;
             }
         }
-
     }
 }

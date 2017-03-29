@@ -223,10 +223,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var noiseTex = m_BlueNoiseTextures[m_DitheringTexIndex];
             m_FinalPassMaterial.SetTexture(Uniforms._DitheringTex, noiseTex);
             m_FinalPassMaterial.SetVector(Uniforms._DitheringCoords, new Vector4(
-                (float)camera.pixelWidth / (float)noiseTex.width,
-                (float)camera.pixelHeight / (float)noiseTex.height,
-                Random.value, Random.value
-            ));
+                    (float)camera.pixelWidth / (float)noiseTex.width,
+                    (float)camera.pixelHeight / (float)noiseTex.height,
+                    Random.value, Random.value
+                    ));
         }
 
         void DoColorGrading()

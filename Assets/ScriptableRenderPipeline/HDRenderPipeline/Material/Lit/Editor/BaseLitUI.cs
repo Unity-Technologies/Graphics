@@ -218,7 +218,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 switch (materialID)
                 {
-                   case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS:
+                    case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS:
                         stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.SSS;
                         break;
                     case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitStandard:
