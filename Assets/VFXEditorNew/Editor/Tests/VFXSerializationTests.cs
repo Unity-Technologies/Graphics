@@ -69,7 +69,7 @@ namespace UnityEditor.VFX.Test
             var block2 = ScriptableObject.CreateInstance<VFXOutputBlockTest>();
 
             // Add some operator
-            VFXOperator add = new VFXOperatorAdd();
+            VFXOperator add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
 
             system0[0].AddChild(block0);
             system0[1].AddChild(block1);
@@ -105,5 +105,118 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(2).GetChild(0));
             Assert.IsNotNull((VFXOperatorAdd)asset.root[2]);
         }
+
+        private void CheckIsolatedOperatorAdd(VFXOperatorAdd add)
+        {
+            Assert.AreEqual(1, add.outputSlots.Count);
+            Assert.AreEqual(2, add.inputSlots.Count);
+            Assert.AreEqual(typeof(FloatN), add.inputSlots[0].property.type);
+            Assert.AreEqual(typeof(FloatN), add.inputSlots[1].property.type);
+            Assert.AreEqual(typeof(float), add.outputSlots[0].property.type);
+            Assert.AreNotEqual(null, add.outputSlots[0].expression);
+            Assert.AreNotEqual(null, add.outputSlots[0].expression as VFXExpressionAdd);
+        }
+
+        private void CheckIsolatedOperatorAbs(VFXOperatorAbs add)
+        {
+            Assert.AreEqual(1, add.outputSlots.Count);
+            Assert.AreEqual(1, add.inputSlots.Count);
+            Assert.AreEqual(typeof(FloatN), add.inputSlots[0].property.type);
+            Assert.AreEqual(typeof(float), add.outputSlots[0].property.type);
+            Assert.AreNotEqual(null, add.outputSlots[0].expression);
+            Assert.AreNotEqual(null, add.outputSlots[0].expression as VFXExpressionAbs);
+        }
+
+        private void CheckConnectedAbs(VFXOperatorAbs abs)
+        {
+            Assert.IsTrue(abs.inputSlots[0].HasLink());
+            Assert.AreEqual(1, abs.inputSlots[0].LinkedSlots.Count);
+            Assert.IsTrue(abs.inputSlots[0].expression is VFXExpressionAdd);
+        }
+
+        private void InnerSerializeBasicOperators(bool spawnAbs, bool linkAbs, string suffixname)
+        {
+            var kTempAssetPathA = string.Format("{0}/Temp_{1}_A.asset", kTestAssetDir, suffixname);
+            var kTempAssetPathB = string.Format("{0}/Temp_{1}_B.asset", kTestAssetDir, suffixname);
+            AssetDatabase.DeleteAsset(kTempAssetPathA);
+            AssetDatabase.DeleteAsset(kTempAssetPathB);
+
+            int hashCodeAdd = 0; //check reference are different between load & reload
+            {
+                var asset = ScriptableObject.CreateInstance<VFXGraphAsset>();
+
+                var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
+                asset.root.AddChild(add);
+                hashCodeAdd = add.GetHashCode();
+                CheckIsolatedOperatorAdd(add);
+
+                if (spawnAbs)
+                {
+                    var abs = ScriptableObject.CreateInstance<VFXOperatorAbs>();
+                    abs.position = new Vector2(64.0f, 64.0f);
+                    asset.root.AddChild(abs);
+                    CheckIsolatedOperatorAbs(abs);
+                    if (linkAbs)
+                    {
+                        abs.inputSlots[0].Link(add.outputSlots[0]);
+                        CheckConnectedAbs(abs);
+                    }
+                }
+
+                AssetDatabase.CreateAsset(asset, kTempAssetPathA);
+                asset.UpdateSubAssets();
+
+                AssetDatabase.SaveAssets();
+                AssetDatabase.CopyAsset(kTempAssetPathA, kTempAssetPathB);
+                AssetDatabase.RemoveObject(asset);
+            }
+
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+            EditorUtility.UnloadUnusedAssetsImmediate();
+
+            {
+                VFXGraphAsset asset = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(kTempAssetPathB);
+                Assert.AreEqual(spawnAbs ? 2 : 1, asset.root.GetNbChildren());
+                Assert.IsNotNull((VFXOperatorAdd)asset.root[0]);
+                var add = (VFXOperatorAdd)asset.root[0];
+                Assert.AreNotEqual(hashCodeAdd, add.GetHashCode());
+                CheckIsolatedOperatorAdd(add);
+
+                if (spawnAbs)
+                {
+                    Assert.IsNotNull((VFXOperatorAbs)asset.root[1]);
+                    var abs = (VFXOperatorAbs)asset.root[1];
+                    CheckIsolatedOperatorAbs(abs);
+                    Assert.AreEqual(abs.position.x, 64.0f);
+                    Assert.AreEqual(abs.position.y, 64.0f);
+                    if (linkAbs)
+                    {
+                        CheckConnectedAbs(abs);
+                    }
+                }
+            }
+
+            AssetDatabase.DeleteAsset(kTempAssetPathA);
+            AssetDatabase.DeleteAsset(kTempAssetPathB);
+        }
+
+        [Test]
+        public void SerializeOneOperator()
+        {
+            InnerSerializeBasicOperators(false, false, "One");
+        }
+
+        [Test]
+        public void SerializeTwoOperators()
+        {
+            InnerSerializeBasicOperators(true, false, "Two");
+        }
+
+        [Test]
+        public void SerializeTwoOperatorsLink()
+        {
+            InnerSerializeBasicOperators(true, true, "TwoLinked");
+        }
+
     }
 }

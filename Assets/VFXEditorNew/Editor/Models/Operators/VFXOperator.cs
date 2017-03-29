@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kParamChanged);
         }
 
-        protected System.Type GetPropertiesSettings()
+        protected Type GetPropertiesSettings()
         {
             return GetType().GetNestedType("Settings");
         }
