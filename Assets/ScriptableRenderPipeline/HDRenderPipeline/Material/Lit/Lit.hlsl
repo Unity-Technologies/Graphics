@@ -49,7 +49,8 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 // SSS parameters
 #define SSS_N_PROFILES 8
 #define SSS_UNIT_CONVERSION (1.0 / 300.0)                  // From meters to 1/3 centimeters
-uint   _TransmissionFlags;                                 // One bit per profile; 1 = enabled
+uint   _TransmissionFlags;                                 // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
+uint   _TexturingModeFlags;                                // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 float  _ThicknessRemaps[SSS_N_PROFILES][2];                // Remap: 0 = start, 1 = end - start
 float4 _HalfRcpVariancesAndLerpWeights[SSS_N_PROFILES][2]; // 2x Gaussians per color channel, A is the the associated interpolation weight
 
@@ -112,13 +113,11 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 
 void ConfigureTexturingForSSS(inout BSDFData bsdfData)
 {
-#ifdef SSS_PRE_SCATTER_TEXTURING
-    bsdfData.diffuseColor = bsdfData.diffuseColor;
-#elif SSS_POST_SCATTER_TEXTURING
-    bsdfData.diffuseColor = float3(1, 1, 1);
-#else // combine pre-scatter and post-scatter texturing
-    bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
-#endif
+    bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, bsdfData.subsurfaceProfile);
+
+    // It's either post-scatter, or pre- and post-scatter texturing.
+    bsdfData.diffuseColor = performPostScatterTexturing ? float3(1, 1, 1)
+                                                        : sqrt(bsdfData.diffuseColor);
 }
 
 // Evaluates transmittance for a linear combination of two normalized 2D Gaussians.
@@ -177,7 +176,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * surfaceData.subsurfaceRadius;
         bsdfData.thickness         = SSS_UNIT_CONVERSION * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
                                                             _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * surfaceData.thickness);
-        bsdfData.enableTransmission = (1 << bsdfData.subsurfaceProfile) & _TransmissionFlags;
+        bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, bsdfData.subsurfaceProfile);
         if (bsdfData.enableTransmission)
         {
             bsdfData.transmittance = ComputeTransmittance(_HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].xyz,
@@ -375,7 +374,7 @@ void DecodeFromGBuffer(
         bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * inGBuffer2.r;
         bsdfData.thickness         = SSS_UNIT_CONVERSION * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
                                                             _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * inGBuffer2.g);
-        bsdfData.enableTransmission = (1 << bsdfData.subsurfaceProfile) & _TransmissionFlags;
+        bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, bsdfData.subsurfaceProfile);
         if (bsdfData.enableTransmission)
         {
             bsdfData.transmittance = ComputeTransmittance(_HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].xyz,
