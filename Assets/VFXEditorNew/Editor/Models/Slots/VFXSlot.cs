@@ -55,7 +55,7 @@ namespace UnityEditor.VFX
             } 
         }
 
-        public IVFXSlotContainer owner { get { return m_Owner; } }
+        public IVFXSlotContainer owner { get { return m_Owner as IVFXSlotContainer; } }
 
         public VFXSlot GetTopMostParent()
         {
@@ -66,12 +66,6 @@ namespace UnityEditor.VFX
         }
 
         protected VFXSlot() {} // For serialization only
-        
-        // TODO Remove that. Slot must be created via the static create method in order to correctly build the slot tree
-        private VFXSlot(Direction direction)
-        {
-            m_Direction = direction;
-        }
 
         // Create and return a slot hierarchy from a property info
         public static VFXSlot Create(VFXProperty property, Direction direction, object value = null)
@@ -175,8 +169,8 @@ namespace UnityEditor.VFX
 
         protected void PropagateToOwner(Action<IVFXSlotContainer> func)
         {
-            if (m_Owner != null)
-                func(m_Owner);
+            if (owner != null)
+                func(owner);
             else
             {
                 var parent = GetParent();
@@ -434,6 +428,42 @@ namespace UnityEditor.VFX
             return expression;
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            if (m_LinkedSlots == null)
+            {
+                m_LinkedSlots = new List<VFXSlot>();
+            }
+            InitExpression();
+        }
+
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+            if (m_Value != null)
+            {
+                m_SerializableValue = SerializationHelper.Serialize(m_Value);
+            }
+        }
+
+         public override void OnAfterDeserialize()
+         {
+             base.OnAfterDeserialize();
+            if (!m_SerializableValue.Equals(SerializationHelper.nullElement))
+            {
+                try
+                {
+                    m_Value = SerializationHelper.Deserialize<object>(m_SerializableValue, null);
+                }
+                catch(Exception)
+                {
+                    //TODOPAUL
+                }
+            }
+            m_SerializableValue = SerializationHelper.nullElement;
+        }
+
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
         protected virtual VFXExpression ExpressionFromChildren(VFXExpression[] exp) { return null; }
 
@@ -441,17 +471,6 @@ namespace UnityEditor.VFX
         {
             return null; 
         }
-
-        public override void OnBeforeSerialize()
-        {
-            base.OnBeforeSerialize();
-            m_LinkedSlotRefs = m_LinkedSlots.Select(slot => slot.id.ToString()).ToList();
-        }
-
-       /* public virtual void OnAfterDeserialize()
-        {
-            base.OnBeforeSerialize();
-        }*/
 
         private VFXExpression m_DefaultExpression;
         private VFXExpression m_LinkedInExpression;
@@ -461,19 +480,22 @@ namespace UnityEditor.VFX
 
         private VFXSlot m_MasterSlot;
 
-        [NonSerialized]
-        public IVFXSlotContainer m_Owner; // Don't set that directly! Only called by SlotContainer!
+        [SerializeField]
+        public VFXModel m_Owner;
 
         [SerializeField]
         private VFXProperty m_Property;
 
-        protected object m_Value;
-
         [SerializeField]
         private Direction m_Direction;
 
-        private List<VFXSlot> m_LinkedSlots = new List<VFXSlot>();
         [SerializeField]
-        private List<string> m_LinkedSlotRefs;
+        private List<VFXSlot> m_LinkedSlots;
+
+        [SerializeField]
+        private SerializationHelper.JSONSerializedElement m_SerializableValue;
+
+        [NonSerialized]
+        protected object m_Value;
     }
 }

@@ -9,25 +9,41 @@ namespace UnityEditor.VFX
     [Serializable]
     struct VFXProperty
     {
-        public System.Type type;
+        private Type m_type;
+        public Type type
+        {
+            get
+            {
+                if (m_type == null)
+                {
+                    m_type = Type.GetType(typeName);
+                }
+                return m_type;
+            }
+        }
         public string name;
+        [SerializeField]
+        private string typeName;
 
         public VFXProperty(Type type, string name)
         {
-            this.type = type;
             this.name = name;
+            typeName = type.AssemblyQualifiedName;
+            m_type = null;
         }
 
         public IEnumerable<VFXProperty> SubProperties()
         {
             if (IsExpandable())
             {
-                FieldInfo[] infos = type.GetFields(BindingFlags.Public|BindingFlags.Instance);
+                FieldInfo[] infos = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
                 return infos.Where(info => info.FieldType != typeof(CoordinateSpace)) // TODO filter out Coordinate space is tmp. Should be changed
                     .Select(info => new VFXProperty(info.FieldType, info.Name));
             }
             else
+            {
                 return Enumerable.Empty<VFXProperty>();
+            }
         }
 
         public bool IsExpandable()

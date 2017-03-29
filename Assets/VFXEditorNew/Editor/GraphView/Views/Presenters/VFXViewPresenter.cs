@@ -365,15 +365,6 @@ namespace UnityEditor.VFX.UI
             m_GraphAsset.root.AddChild(model);
         }
 
-		private void RecreateFlowEdges()
-		{
-			m_Elements.RemoveAll(element => element is VFXFlowEdgePresenter);
-
-			foreach (var model in m_GraphAsset.root.GetChildren())
-				if (model is VFXSystem)
-					CreateFlowEdges((VFXSystem)model);
-		}
-
 		private void CreateFlowEdges(VFXSystem system)
 		{
 		    if (elements.Count() == 0)
@@ -508,6 +499,8 @@ namespace UnityEditor.VFX.UI
                 newPresenter.Init(model,this);
                 AddElement(presenter);
             }
+
+            RecreateOperatorEdges(); //TODOPAUL : Filter this call
         }
 
         private void RemovePresentersFromModel(VFXModel model,Dictionary<VFXModel,IVFXPresenter> syncedModels)

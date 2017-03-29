@@ -32,7 +32,6 @@ namespace UnityEditor.VFX
             return GetType().GetNestedType("Settings");
         }
 
-        private object m_PropertyBuffer;
         private object m_SettingsBuffer;
 
         [SerializeField]
@@ -45,6 +44,10 @@ namespace UnityEditor.VFX
             {
                 m_SerializableSettings = SerializationHelper.Serialize(settings);
             }
+            else
+            {
+                m_SerializableSettings = SerializationHelper.nullElement;
+            }
         }
 
         public override void OnAfterDeserialize()
@@ -52,7 +55,14 @@ namespace UnityEditor.VFX
             base.OnAfterDeserialize();
             if (!m_SerializableSettings.Equals(SerializationHelper.nullElement))
             {
-                settings = SerializationHelper.Deserialize<object>(m_SerializableSettings, null);
+                try
+                {
+                    settings = SerializationHelper.Deserialize<object>(m_SerializableSettings, null);
+                }
+                catch(Exception)
+                {
+                    //TODOPAUL
+                }
             }
             m_SerializableSettings = SerializationHelper.nullElement;
         }
