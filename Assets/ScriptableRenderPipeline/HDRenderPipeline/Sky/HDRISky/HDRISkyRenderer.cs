@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Utilities.Destroy(m_SkyHDRIMaterial);
         }
-        
+
         public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
         {
             if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)

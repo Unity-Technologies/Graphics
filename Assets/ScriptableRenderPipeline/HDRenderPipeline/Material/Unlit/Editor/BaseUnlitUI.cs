@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             surfaceType = FindProperty(kSurfaceType, props);
             alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props);
             alphaCutoff = FindProperty(kAlphaCutoff, props);
-            doubleSidedEnable = FindProperty(kDoubleSidedEnable, props);            
+            doubleSidedEnable = FindProperty(kDoubleSidedEnable, props);
             blendMode = FindProperty(kBlendMode, props);
             distortionEnable = FindProperty(kDistortionEnable, props);
             distortionOnly = FindProperty(kDistortionOnly, props);

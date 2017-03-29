@@ -34,11 +34,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnValidate()
         {
             // If the setting is already the one currently used we need to tell the manager to reapply it.
-            if(SceneSettingsManager.instance.GetCurrentSceneSetting())
+            if (SceneSettingsManager.instance.GetCurrentSceneSetting())
             {
                 SceneSettingsManager.instance.UpdateCurrentSceneSetting();
             }
         }
-
     }
 }

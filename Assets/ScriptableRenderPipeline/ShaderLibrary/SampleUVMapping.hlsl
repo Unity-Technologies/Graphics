@@ -10,7 +10,7 @@
 struct UVMapping
 {
     int mappingType;
-    float2 uv;  // Current uv or planar uv    
+    float2 uv;  // Current uv or planar uv
 
     // Triplanar specific
     float2 uvZY;

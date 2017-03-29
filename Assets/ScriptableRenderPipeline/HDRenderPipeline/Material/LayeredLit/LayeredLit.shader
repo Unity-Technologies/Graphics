@@ -163,7 +163,7 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
         [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
-        
+
         [ToggleOff]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
         [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
         _TexWorldScaleBlendMask("Tiling", Float) = 1.0
@@ -223,7 +223,7 @@ Shader "HDRenderPipeline/LayeredLit"
         _TexWorldScale1("Tiling", Float) = 1.0
         _TexWorldScale2("Tiling", Float) = 1.0
         _TexWorldScale3("Tiling", Float) = 1.0
-        
+
         [Enum(UV0, 0, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0 // no UV1/2/3 for main layer (matching Lit.shader and for PPDisplacement restriction)
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase1("UV Set for base1", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase2("UV Set for base2", Float) = 0
@@ -232,7 +232,7 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _UVMappingMask0("_UVMappingMask0", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask1("_UVMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask2("_UVMappingMask2", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)     
+        [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail0("UV Set for detail0", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail1("UV Set for detail1", Float) = 0
@@ -302,7 +302,7 @@ Shader "HDRenderPipeline/LayeredLit"
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
     // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
-    //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON 
+    //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -320,7 +320,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #include "../../ShaderConfig.cs.hlsl"
     #include "../../ShaderVariables.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
-    #include "../../ShaderPass/ShaderPass.cs.hlsl"    
+    #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -402,8 +402,8 @@ Shader "HDRenderPipeline/LayeredLit"
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
             #include "../../Debug/DebugLighting.hlsl"
-            #include "../../Material/Material.hlsl"            
-            #include "../Lit/ShaderPass/LitSharePass.hlsl"    
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -421,7 +421,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
 
-            #include "../../Material/Material.hlsl"            
+            #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
@@ -441,11 +441,11 @@ Shader "HDRenderPipeline/LayeredLit"
             HLSLPROGRAM
 
             // Lightmap memo
-            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
+            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #include "../../Material/Material.hlsl"            
+            #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitMetaPass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
@@ -465,7 +465,7 @@ Shader "HDRenderPipeline/LayeredLit"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_VELOCITY
-            #include "../../Material/Material.hlsl"                     
+            #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
@@ -480,13 +480,13 @@ Shader "HDRenderPipeline/LayeredLit"
 
             Cull[_CullMode]
 
-            ZWrite On 
+            ZWrite On
             ZTest LEqual
 
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "../../Material/Material.hlsl"            
+            #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
@@ -501,12 +501,12 @@ Shader "HDRenderPipeline/LayeredLit"
 
             Cull[_CullMode]
 
-            ZWrite On 
+            ZWrite On
 
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "../../Material/Material.hlsl"            
+            #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
@@ -527,7 +527,7 @@ Shader "HDRenderPipeline/LayeredLit"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_DISTORTION
-            #include "../../Material/Material.hlsl"                     
+            #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDistortionPass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
@@ -551,7 +551,7 @@ Shader "HDRenderPipeline/LayeredLit"
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
 
-            #include "../../Lighting/Lighting.hlsl"            
+            #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
@@ -578,7 +578,7 @@ Shader "HDRenderPipeline/LayeredLit"
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
 
-            #include "../../Lighting/Lighting.hlsl"            
+            #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"

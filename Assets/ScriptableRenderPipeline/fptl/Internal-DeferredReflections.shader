@@ -130,8 +130,8 @@ half4 frag (v2f i) : SV_Target
     float3 c = ExecuteReflectionList(numReflectionsProcessed, pixCoord, vP, data.normalWorld, Vworld, data.smoothness);
 
     #if ENABLE_DEBUG
-    	c = OverlayHeatMap(pixCoord & 15, numReflectionsProcessed, c);
-	#endif
+        c = OverlayHeatMap(pixCoord & 15, numReflectionsProcessed, c);
+    #endif
 
     return float4(c,1.0);
 }

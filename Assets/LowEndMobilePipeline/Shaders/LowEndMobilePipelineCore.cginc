@@ -3,10 +3,10 @@
 #define MAX_LIGHTS 8
 
 #define INITIALIZE_LIGHT(light, lightIndex) \
-							light.pos = globalLightPos[lightIndex]; \
-							light.color = globalLightColor[lightIndex]; \
-							light.atten = globalLightAtten[lightIndex]; \
-							light.spotDir = globalLightSpotDir[lightIndex]
+                            light.pos = globalLightPos[lightIndex]; \
+                            light.color = globalLightColor[lightIndex]; \
+                            light.atten = globalLightAtten[lightIndex]; \
+                            light.spotDir = globalLightSpotDir[lightIndex]
 
 struct LightInput
 {
@@ -207,19 +207,19 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
 
 inline half ComputeShadowAttenuation(v2f i)
 {
-	half4 shadowCoord;
+    half4 shadowCoord;
  #ifndef _SHADOW_CASCADES
- 	shadowCoord = i.shadowCoord;
+    shadowCoord = i.shadowCoord;
  #else
-	int cascadeIndex = ComputeCascadeIndex(i.posWS);
-	if (cascadeIndex < 4)
-   		shadowCoord = mul(_WorldToShadow[cascadeIndex], half4(i.posWS, 1.0));
-	else
-		return 1.0;
+    int cascadeIndex = ComputeCascadeIndex(i.posWS);
+    if (cascadeIndex < 4)
+        shadowCoord = mul(_WorldToShadow[cascadeIndex], half4(i.posWS, 1.0));
+    else
+        return 1.0;
 #endif
 
     shadowCoord.xyz /= shadowCoord.w;
-	shadowCoord.z = saturate(shadowCoord.z);
+    shadowCoord.z = saturate(shadowCoord.z);
 
 #ifdef SOFT_SHADOWS
     return ShadowPCF(shadowCoord.xyz);

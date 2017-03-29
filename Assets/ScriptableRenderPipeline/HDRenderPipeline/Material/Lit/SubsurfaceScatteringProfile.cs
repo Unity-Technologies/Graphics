@@ -1,6 +1,6 @@
 using System;
 #if UNITY_EDITOR
-    using UnityEditor;
+using UnityEditor;
 #endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             texturingMode      = TexturingMode.PreAndPostScatter;
             enableTransmission = false;
             thicknessRemap     = new Vector2(0, 1);
-            settingsIndex      = SubsurfaceScatteringSettings.neutralProfileID; // Updated by SubsurfaceScatteringSettings.OnValidate() once assigned 
+            settingsIndex      = SubsurfaceScatteringSettings.neutralProfileID; // Updated by SubsurfaceScatteringSettings.OnValidate() once assigned
 
             UpdateKernelAndVarianceData();
         }
@@ -340,7 +340,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0,
                 ScriptableObject.CreateInstance<DoCreateSubsurfaceScatteringProfile>(),
-                    "New SSS Profile.asset", icon, null);
+                "New SSS Profile.asset", icon, null);
         }
 
         public static SubsurfaceScatteringProfile CreateSssProfileAtPath(string path)
@@ -362,7 +362,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [CustomEditor(typeof(SubsurfaceScatteringProfile))]
-    public class SubsurfaceScatteringProfileEditor : Editor {
+    public class SubsurfaceScatteringProfileEditor : Editor
+    {
         private class Styles
         {
             public readonly GUIContent   sssProfilePreview0       = new GUIContent("Profile preview");
@@ -374,8 +375,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent   sssProfileStdDev2        = new GUIContent("Standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
             public readonly GUIContent   sssProfileLerpWeight     = new GUIContent("Filter interpolation", "Controls linear interpolation between the two Gaussian filters.");
             public readonly GUIContent   sssTexturingMode         = new GUIContent("Texturing mode", "Specifies when the diffuse texture should be applied.");
-            public readonly GUIContent[] sssTexturingModeOptions  = new GUIContent[2] { new GUIContent("Pre- and post-scatter", "Texturing is performed during both the lighting and the SSS passes. Slightly blurs the diffuse texture. Choose this mode if your diffuse texture contains little to no SSS lighting."),
-                                                                                        new GUIContent("Post-scatter", "Texturing is performed only during the SSS pass. Effectively preserves the sharpness of the diffuse texture. Choose this mode if your diffuse texture already contains SSS lighting (e.g. a photo of skin).") };
+            public readonly GUIContent[] sssTexturingModeOptions  = new GUIContent[2]
+            {
+                new GUIContent("Pre- and post-scatter", "Texturing is performed during both the lighting and the SSS passes. Slightly blurs the diffuse texture. Choose this mode if your diffuse texture contains little to no SSS lighting."),
+                new GUIContent("Post-scatter", "Texturing is performed only during the SSS pass. Effectively preserves the sharpness of the diffuse texture. Choose this mode if your diffuse texture already contains SSS lighting (e.g. a photo of skin).")
+            };
             public readonly GUIContent   sssProfileTransmission   = new GUIContent("Enable transmission", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
             public readonly GUIContent   sssProfileThicknessRemap = new GUIContent("Thickness remap", "Remaps the thickness parameter from [0, 1] to the desired range.");
 
@@ -421,10 +425,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_TransmittanceMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
 
             m_ProfileImage          = new RenderTexture(256, 256, 0, RenderTextureFormat.DefaultHDR);
-            m_TransmittanceImage    = new RenderTexture( 16, 256, 0, RenderTextureFormat.DefaultHDR);
+            m_TransmittanceImage    = new RenderTexture(16, 256, 0, RenderTextureFormat.DefaultHDR);
         }
 
-        public override void OnInspectorGUI() {
+        public override void OnInspectorGUI()
+        {
             serializedObject.Update();
 
             EditorGUI.BeginChangeCheck();

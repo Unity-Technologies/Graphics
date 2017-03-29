@@ -370,7 +370,7 @@ namespace UnityEngine.Experimental.Rendering
                         var settings = new DrawShadowsSettings(cullResults, lightIndex);
                         var shadowResolution = shadowSlices[shadowSliceIndex].shadowResolution;
                         bool needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, s, shadowSliceCount, splitRatio,
-                            shadowResolution, m_Settings.directionalLightNearPlaneOffset, out view, out proj, out settings.splitData);
+                                shadowResolution, m_Settings.directionalLightNearPlaneOffset, out view, out proj, out settings.splitData);
 
                         packedShadows.directionalShadowSplitSphereSqr[s] = settings.splitData.cullingSphere;
                         packedShadows.directionalShadowSplitSphereSqr[s].w *= packedShadows.directionalShadowSplitSphereSqr[s].w;
@@ -424,7 +424,7 @@ namespace UnityEngine.Experimental.Rendering
             //commandBuffer.ClearRenderTarget (true, true, Color.green);
             commandBuffer.SetGlobalVector("g_vLightDirWs", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z));
             commandBuffer.SetViewProjectionMatrices(view, proj);
-            //	commandBuffer.SetGlobalDepthBias (1.0F, 1.0F);
+            //  commandBuffer.SetGlobalDepthBias (1.0F, 1.0F);
             loop.ExecuteCommandBuffer(commandBuffer);
             commandBuffer.Dispose();
 

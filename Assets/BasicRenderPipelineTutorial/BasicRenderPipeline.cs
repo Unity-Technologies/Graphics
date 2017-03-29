@@ -119,12 +119,12 @@ public static class BasicRendering
                 lightPositions[i] = new Vector4(pos.x, pos.y, pos.z, 1);
             }
             // attenuation set in a way where distance attenuation can be computed:
-            //	float lengthSq = dot(toLight, toLight);
-            //	float atten = 1.0 / (1.0 + lengthSq * LightAtten[i].z);
+            //  float lengthSq = dot(toLight, toLight);
+            //  float atten = 1.0 / (1.0 + lengthSq * LightAtten[i].z);
             // and spot cone attenuation:
-            //	float rho = max (0, dot(normalize(toLight), SpotDirection[i].xyz));
-            //	float spotAtt = (rho - LightAtten[i].x) * LightAtten[i].y;
-            //	spotAtt = saturate(spotAtt);
+            //  float rho = max (0, dot(normalize(toLight), SpotDirection[i].xyz));
+            //  float spotAtt = (rho - LightAtten[i].x) * LightAtten[i].y;
+            //  spotAtt = saturate(spotAtt);
             // and the above works for all light types, i.e. spot light code works out
             // to correct math for point & directional lights as well.
 
