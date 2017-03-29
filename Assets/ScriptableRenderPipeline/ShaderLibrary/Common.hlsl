@@ -98,6 +98,11 @@ uint BitFieldExtract(uint data, uint size, uint offset)
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
 
+bool IsBitSet(uint number, uint bitPos)
+{
+    return ((number >> bitPos) & 1) != 0;
+}
+
 #ifndef INTRINSIC_CLAMP
 // TODO: should we force all clamp to be intrinsic by default ?
 // Some platform have one instruction clamp
