@@ -23,7 +23,12 @@ namespace UnityEditor.VFX
         public VFXExpression expression 
         { 
             set { SetInExpression(value); }
-            get { return m_OutExpression; }
+            get 
+            { 
+                if (!m_ExpressionUpToDate)
+                    RecomputeExpressionTree(false);
+                return m_OutExpression; 
+            }
         }
 
         // Explicit setter to be able to not notify
@@ -215,18 +220,22 @@ namespace UnityEditor.VFX
                 return m_Owner;
         }
 
-        private static void RecomputeExpressionTree(VFXSlot slot,bool notify = true)
+        private void RecomputeExpressionTree(bool notify = true)
         {
             // Start from the top most parent
-            var masterSlot = slot.GetTopMostParent();
+            var masterSlot = GetTopMostParent();
 
             List<VFXSlot> startSlots = new List<VFXSlot>();
 
-            // First set the linked expression in case of output nodes (For input linked expression is set explicitly)
-            if (masterSlot.direction == Direction.kOutput)
+            // First set the linked expression in case of input nodes (For output linked expression is set explicitly)
+            if (masterSlot.direction == Direction.kInput)
                 masterSlot.PropagateToChildren( s => {
                     s.m_LinkedInExpression = s.HasLink() ? s.refSlot.m_OutExpression : s.m_DefaultExpression;
-            });
+                });
+            else
+            {
+
+            }
 
             // Collect linked expression
             masterSlot.PropagateToChildren( s => {
@@ -271,7 +280,7 @@ namespace UnityEditor.VFX
                 {
                     var child = s.GetChild(i);
                     if (child.SetOutExpression(exp != null ? exp[i] : child.m_InExpression))
-                        toPropagate.Add(child);
+                        toPropagate.AddRange(child.LinkedSlots);
                 }
             });  
  
@@ -283,7 +292,7 @@ namespace UnityEditor.VFX
 
             var dirtyMasterSlots = new HashSet<VFXSlot>(toPropagate.Select(s => s.GetTopMostParent()));
             foreach (var dirtySlot in dirtyMasterSlots)
-                RecomputeExpressionTree(dirtySlot,notify);
+                dirtySlot.RecomputeExpressionTree(notify);
         }
 
         private void SetInExpression(VFXExpression expression, bool propagateDown = true, bool notify = true)
