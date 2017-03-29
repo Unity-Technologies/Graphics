@@ -455,25 +455,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Broadcast SSS parameters to all shaders.
-            Shader.SetGlobalInt("_TransmissionFlags", sssParameters.transmissionFlags);
+            Shader.SetGlobalInt("_TransmissionFlags",   sssParameters.transmissionFlags);
+            Shader.SetGlobalInt("_TexturingModeFlags",  sssParameters.texturingModeFlags);
             cmd.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
             cmd.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
-
-            switch (sssParameters.texturingMode)
-            {
-                case SubsurfaceScatteringSettings.TexturingMode.PreScatter:
-                    cmd.EnableShaderKeyword("SSS_PRE_SCATTER_TEXTURING");
-                    cmd.DisableShaderKeyword("SSS_POST_SCATTER_TEXTURING");
-                    break;
-                case SubsurfaceScatteringSettings.TexturingMode.PostScatter:
-                    cmd.DisableShaderKeyword("SSS_PRE_SCATTER_TEXTURING");
-                    cmd.EnableShaderKeyword("SSS_POST_SCATTER_TEXTURING");
-                    break;
-                case SubsurfaceScatteringSettings.TexturingMode.PreAndPostScatter:
-                    cmd.DisableShaderKeyword("SSS_PRE_SCATTER_TEXTURING");
-                    cmd.DisableShaderKeyword("SSS_POST_SCATTER_TEXTURING");
-                    break;
-            }
 
             if (globalDebugSettings.renderingDebugSettings.enableSSS)
             {

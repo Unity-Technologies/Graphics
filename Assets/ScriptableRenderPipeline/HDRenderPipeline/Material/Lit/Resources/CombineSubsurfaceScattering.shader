@@ -154,17 +154,12 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     totalWeight     += sampleWeight;
                 }
 
-            #ifdef SSS_PRE_SCATTER_TEXTURING
-                float3 diffuseContrib = float3(1, 1, 1);
-            #elif SSS_POST_SCATTER_TEXTURING
-                float3 diffuseColor   = DecodeGBuffer0(LOAD_TEXTURE2D(_GBufferTexture0, posInput.unPositionSS)).rgb;
-                float3 diffuseContrib = diffuseColor;
-            #else // combine pre-scatter and post-scatter texturing
-                float3 diffuseColor   = DecodeGBuffer0(LOAD_TEXTURE2D(_GBufferTexture0, posInput.unPositionSS)).rgb;
-                float3 diffuseContrib = sqrt(diffuseColor);
-            #endif
-
             #ifdef FILTER_HORIZONTAL_AND_COMBINE
+                bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, profileID);
+
+                // It's either post-scatter, or pre- and post-scatter texturing.
+                float3 diffuseContrib = performPostScatterTexturing ? bsdfData.diffuseColor
+                                                                    : sqrt(bsdfData.diffuseColor);
                 return float4(diffuseContrib * totalIrradiance / totalWeight, 1.0);
             #else
                 return float4(totalIrradiance / totalWeight, 1.0);
