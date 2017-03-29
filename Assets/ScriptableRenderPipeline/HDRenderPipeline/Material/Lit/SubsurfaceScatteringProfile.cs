@@ -200,8 +200,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int                           numProfiles;
         public SubsurfaceScatteringProfile[] profiles;
         // Below is the cache filled during OnValidate().
-        [NonSerialized] public int           texturingModeFlags; // 0 = PreAndPostScatter, 1 = PostScatter
-        [NonSerialized] public int           transmissionFlags;  // 0 = inf. thick, 1 = supports transmission
+        [NonSerialized] public int           texturingModeFlags; // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+        [NonSerialized] public int           transmissionFlags;  // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
         [NonSerialized] public float[]       thicknessRemaps;
         [NonSerialized] public Vector4[]     halfRcpVariancesAndLerpWeights;
         [NonSerialized] public Vector4[]     halfRcpWeightedVariances;
