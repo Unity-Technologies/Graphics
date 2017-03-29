@@ -227,31 +227,53 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
         }
 
-        protected void ShaderSSSInputGUI()
+        protected void ShaderSSSInputGUI(Material material)
         {
+            HDRenderPipelineInstance hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+
             if (subsurfaceProfile == null)
             {
+                // Attempt to load the profile from the SSS Settings.
                 int profileID = (int)subsurfaceProfileID.floatValue;
 
-                HDRenderPipelineInstance hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
-
-                if (profileID >= 0 && profileID < hdPipeline.sssSettings.profiles.Length)
+                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length &&
+                    hdPipeline.sssSettings.profiles[profileID] != null)
                 {
                     // This is a valid profile ID.
                     subsurfaceProfile = hdPipeline.sssSettings.profiles[profileID];
+
+                    // Refresh the ID of the profile.
+                    hdPipeline.sssSettings.OnValidate();
+                }
+            }
+
+            subsurfaceProfile = EditorGUILayout.ObjectField(Styles.subsurfaceProfileText, subsurfaceProfile, typeof(SubsurfaceScatteringProfile), false) as SubsurfaceScatteringProfile;
+
+            bool validProfile = false;
+
+            // Set the profile ID.
+            if (subsurfaceProfile != null)
+            {
+                // Load the profile from the GUI field.
+                int profileID = subsurfaceProfile.settingsIndex;
+                
+                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length)
+                {
+                    validProfile = true;
+                    material.SetInt("_SubsurfaceProfile", profileID);
                 }
                 else
                 {
-                    subsurfaceProfile = SubsurfaceScatteringProfile.defaultProfile;
+                    subsurfaceProfile = null;
+                    Debug.LogError("The SSS Profile assigned to the material has an invalid index. First, add the Profile to the SSS Settings, and then reassign it to the material.");
                 }
-
-                // Refresh the ID of the profile.
-                hdPipeline.sssSettings.OnValidate();
             }
 
-            // Extract the profile ID.
-            subsurfaceProfile = EditorGUILayout.ObjectField(Styles.subsurfaceProfileText, subsurfaceProfile, subsurfaceProfile.GetType(), false, null) as SubsurfaceScatteringProfile;
-            subsurfaceProfileID.floatValue = subsurfaceProfile.settingsIndex;
+            if (!validProfile)
+            {
+                // Disable SSS for this object.
+                material.SetInt("_SubsurfaceProfile", SubsurfaceScatteringSettings.neutralProfileID);
+            }
 
             m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);
             m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceRadiusMapText, subsurfaceRadiusMap);
@@ -266,7 +288,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
         }
 
-        protected override void MaterialPropertiesGUI()
+        protected override void MaterialPropertiesGUI(Material material)
         {
             bool useEmissiveMask = (EmissiveColorMode)emissiveColorMode.floatValue == EmissiveColorMode.UseEmissiveMask;
 
@@ -313,7 +335,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             else if ((MaterialIDType)materialID.floatValue == MaterialIDType.SubsurfaceScattering)
             {
-                ShaderSSSInputGUI();
+                ShaderSSSInputGUI(material);
             }
 
             EditorGUILayout.Space();
