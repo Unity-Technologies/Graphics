@@ -74,14 +74,14 @@ namespace UnityEditor.VFX
         }
 
         // Create and return a slot hierarchy from a property info
-        public static VFXSlot Create(VFXProperty property, Direction direction)
+        public static VFXSlot Create(VFXProperty property, Direction direction, object value = null)
         {
-            var slot = CreateSub(property, direction); // First create slot tree
+            var slot = CreateSub(property, direction, value); // First create slot tree
             slot.InitExpression(); // Initialize expressions
             return slot;
         }
      
-        private static VFXSlot CreateSub(VFXProperty property, Direction direction)
+        private static VFXSlot CreateSub(VFXProperty property, Direction direction, object value)
         {
             var desc = VFXLibrary.GetSlot(property.type);
             if (desc != null)
@@ -89,11 +89,11 @@ namespace UnityEditor.VFX
                 var slot = desc.CreateInstance();
                 slot.m_Direction = direction;
                 slot.m_Property = property;
-                //slot.m_Value = System.Activator.CreateInstance(slot.m_Property.type);
+                slot.m_Value = value;
 
                 foreach (var subInfo in property.SubProperties())
                 {
-                    var subSlot = CreateSub(subInfo, direction);
+                    var subSlot = CreateSub(subInfo, direction, null /* TODOPAUL : sub operation ? */);
                     if (subSlot != null)
                         subSlot.Attach(slot,false);
                 }
@@ -109,9 +109,6 @@ namespace UnityEditor.VFX
             if (GetNbChildren() == 0)
             {
                 m_DefaultExpression = DefaultExpression();
-                //TODOPAUL : be able to create VFXExpression from FloatN reference value
-                //if (m_DefaultExpression == null)
-                //    throw new NotImplementedException("Default expression must return a VFXValue for slot of type: " + this.ToString());
             }
             else
             {
@@ -326,8 +323,6 @@ namespace UnityEditor.VFX
             // Then find top most slot and propagate back to children
             var topParent = GetTopMostParent();
 
-            HashSet<VFXSlot> modifiedLinks = new HashSet<VFXSlot>();
-
             topParent.SetOutExpression(topParent.m_InExpression);
             topParent.PropagateToChildren(s => {
                 var exp = s.ExpressionToChildren(s.m_OutExpression);
@@ -374,6 +369,8 @@ namespace UnityEditor.VFX
                     foreach (var slot in LinkedSlots)
                         SetInExpression(m_OutExpression, true, true);
                 }
+
+
             }
             return true;
         }
@@ -470,7 +467,7 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXProperty m_Property;
 
-        private object m_Value;
+        protected object m_Value;
 
         [SerializeField]
         private Direction m_Direction;

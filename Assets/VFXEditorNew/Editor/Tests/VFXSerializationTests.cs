@@ -43,7 +43,6 @@ namespace UnityEditor.VFX.Test
             Object.DestroyImmediate(assetDst);
         }
 
-        // TODOPAUL fix this test for operator
         [Test]
         public void LoadAssetFromPath()
         {

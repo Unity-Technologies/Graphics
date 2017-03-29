@@ -84,6 +84,24 @@ namespace UnityEditor.VFX
         {
             return inputSlots.Select(o => o.expression).Where(e => e != null);
         }
+
+        private static void CopyLink(VFXSlot from, VFXSlot to)
+        {
+            for (int iLink = 0; iLink < from.LinkedSlots.Count; ++iLink)
+            {
+                var slot = from.LinkedSlots[iLink];
+                to.Link(slot);
+            }
+
+            var fromChild = from.children.ToArray();
+            var toChild = to.children.ToArray();
+            fromChild = fromChild.Take(toChild.Length).ToArray();
+            toChild = toChild.Take(fromChild.Length).ToArray();
+            for (int iChild = 0; iChild < toChild.Length; ++iChild)
+            {
+                CopyLink(fromChild[iChild], toChild[iChild]);
+            }
+        }
     
         protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> outputExpression)
         {
@@ -111,15 +129,21 @@ namespace UnityEditor.VFX
 
             if (bOuputputLayoutChanged)
             {
-                while(outputSlots.Count > 0)
-                {
-                    RemoveSlot(outputSlots.Last(), false);
-                }
-
+                var slotToRemove = outputSlots.ToArray();
                 for (int iSlot = 0; iSlot < outputExpressionArray.Length; ++iSlot)
                 {
                     var expression = outputExpressionArray[iSlot];
                     AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.ValueType), "o"), VFXSlot.Direction.kOutput), false);
+                    if (iSlot < slotToRemove.Length)
+                    {
+                        CopyLink(slotToRemove[iSlot], outputSlots.Last());
+                    }
+                }
+
+                foreach (var slot in slotToRemove)
+                {
+                    slot.UnlinkAll(false);
+                    RemoveSlot(slot, false);
                 }
             }
 

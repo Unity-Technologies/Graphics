@@ -5,7 +5,6 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Test
 {
-    /*TODOPAUL : Fix me
     [TestFixture]
     public class VFXSlotTests
     {
@@ -17,8 +16,8 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void Link()
         {
-            VFXSlot input = new VFXSlot(VFXSlot.Direction.kInput);
-            VFXSlot output = new VFXSlot(VFXSlot.Direction.kOutput);
+            VFXSlot input = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kInput);
+            VFXSlot output = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kOutput);
 
             input.Link(output);
 
@@ -31,8 +30,8 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void Unlink()
         {
-            VFXSlot input = new VFXSlot(VFXSlot.Direction.kInput);
-            VFXSlot output = new VFXSlot(VFXSlot.Direction.kOutput);
+            VFXSlot input = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kInput);
+            VFXSlot output = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kOutput);
 
             input.Link(output);
             input.Unlink(output);
@@ -46,10 +45,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void Link_Multiple()
         {
-            VFXSlot input0 = new VFXSlot(VFXSlot.Direction.kInput);
-            VFXSlot input1 = new VFXSlot(VFXSlot.Direction.kInput);
-            VFXSlot output0 = new VFXSlot(VFXSlot.Direction.kOutput);
-            VFXSlot output1 = new VFXSlot(VFXSlot.Direction.kOutput);
+            VFXSlot input0 = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kInput);
+            VFXSlot input1 = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kInput);
+            VFXSlot output0 = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kOutput);
+            VFXSlot output1 = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kOutput);
 
             output0.Link(input0);
             output0.Link(input1);
@@ -71,9 +70,9 @@ namespace UnityEditor.VFX.Test
         {
             const int NB_INPUTS = 10;
 
-            VFXSlot output = new VFXSlot(VFXSlot.Direction.kOutput);
+            VFXSlot output = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kOutput);
             for (int i = 0; i < NB_INPUTS; ++i)
-                output.Link(new VFXSlot(VFXSlot.Direction.kInput));
+                output.Link(VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kInput));
 
             Assert.AreEqual(NB_INPUTS, output.GetNbLinks());
 
@@ -85,11 +84,11 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void Link_Fail()
         {
-            VFXSlot input0 = new VFXSlot(VFXSlot.Direction.kInput);
-            VFXSlot input1 = new VFXSlot(VFXSlot.Direction.kInput);
+            VFXSlot input0 = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kInput);
+            VFXSlot input1 = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kInput);
 
-            VFXSlot output0 = new VFXSlot(VFXSlot.Direction.kInput);
-            VFXSlot output1 = new VFXSlot(VFXSlot.Direction.kInput);
+            VFXSlot output0 = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kInput);
+            VFXSlot output1 = VFXSlot.Create(new VFXProperty(typeof(float), "test"), VFXSlot.Direction.kInput);
 
             input0.Link(input1);
             output0.Link(output1);
@@ -138,5 +137,4 @@ namespace UnityEditor.VFX.Test
             Assert.AreNotEqual(floatSlot.expression, sphereSlot.GetChild(1).expression);
         }
     }
-    */
 }
