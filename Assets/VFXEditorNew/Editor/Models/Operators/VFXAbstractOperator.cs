@@ -90,6 +90,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
+        [SerializeField]
         private float[] m_Components;
     }
 

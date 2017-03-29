@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Graphing;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -84,8 +85,27 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
-            InitProperties(GetInputPropertiesTypeName(), out m_InputProperties, out m_InputValues, VFXSlot.Direction.kInput);
-            InitProperties(GetOutputPropertiesTypeName(), out m_OutputProperties, out m_OutputValues, VFXSlot.Direction.kOutput);
+
+            if (m_InputValues == null)
+            {
+                m_InputSlots = new List<VFXSlot>();
+                InitProperties(GetInputPropertiesTypeName(), out m_InputProperties, out m_InputValues, VFXSlot.Direction.kInput);
+            }
+
+            if (m_OutputSlots == null)
+            {
+                m_OutputSlots = new List<VFXSlot>();
+                InitProperties(GetOutputPropertiesTypeName(), out m_OutputProperties, out m_OutputValues, VFXSlot.Direction.kOutput);
+            }
+        }
+
+        public override void CollectDependencies(HashSet<Object> children)
+        {
+            base.CollectDependencies(children);
+            foreach (var slot in m_InputSlots.Concat(m_OutputSlots))
+            {
+                children.Add(slot);
+            }
         }
 
         static private VFXExpression GetExpressionFromObject(object value)
@@ -132,7 +152,7 @@ namespace UnityEditor.VFX
 
                 for (int i = 0; i < fields.Length; ++i)
                 {
-                    properties[i] = new VFXProperty() { type = fields[i].FieldType, name = fields[i].Name };
+                    properties[i] = new VFXProperty(fields[i].FieldType, fields[i].Name);
                     values[i] = fields[i].GetValue(defaultBuffer);
                 }
 
@@ -189,59 +209,18 @@ namespace UnityEditor.VFX
             return m_InputValues;
         }
 
-        public override void OnBeforeSerialize()
-        {
-            base.OnBeforeSerialize();
-
-            m_SerializableInputSlots = SerializationHelper.Serialize<VFXSlot>(m_InputSlots);
-            m_SerializableOutputSlots = SerializationHelper.Serialize<VFXSlot>(m_OutputSlots);
-        }
-
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-           
-            m_InputSlots = SerializationHelper.Deserialize<VFXSlot>(m_SerializableInputSlots, null);
-            m_OutputSlots = SerializationHelper.Deserialize<VFXSlot>(m_SerializableOutputSlots, null);
-            
-            foreach (var slot in m_InputSlots)
-                slot.m_Owner = this;
-            foreach (var slot in m_OutputSlots)
-                slot.m_Owner = this;
-            
-            m_SerializableInputSlots = null;
-            m_SerializableOutputSlots = null;
-        }
-
         protected override void Invalidate(VFXModel model, InvalidationCause cause)
         {
-            /*
-             * Will be the job of expression
-            var allConnectedChildModel = outputSlots.SelectMany(o => o.children.Select(c => c.owner)).Distinct().ToArray();
-            if (cause == InvalidationCause.kParamChanged)
-            {
-                foreach (var slot in inputSlots)
-                {
-                    if (slot.parent != null && !slot.CanConnect(slot.parent, slot.parentSlotID))
-                    {
-                        slot.Disconnect();
-                    }
-                }
-            }*/
-
             base.Invalidate(model, cause);
-
         }
 
         //[SerializeField]
         HashSet<string> m_expandedPaths = new HashSet<string>();
 
-        private List<VFXSlot> m_InputSlots = new List<VFXSlot>();
         [SerializeField]
-        private List<SerializationHelper.JSONSerializedElement> m_SerializableInputSlots = null;
+        List<VFXSlot> m_InputSlots;
 
-        private List<VFXSlot> m_OutputSlots = new List<VFXSlot>();
         [SerializeField]
-        private List<SerializationHelper.JSONSerializedElement> m_SerializableOutputSlots = null;
+        List<VFXSlot> m_OutputSlots;
     }
 }
