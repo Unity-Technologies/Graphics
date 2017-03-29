@@ -32,6 +32,15 @@ namespace UnityEditor.VFX
             m_type = null;
         }
 
+        public override bool Equals(object obj)
+        {
+            if (!(obj is VFXProperty))
+                return false;
+
+            VFXProperty other = (VFXProperty)obj;
+            return name == other.name && typeName == other.typeName;
+        }
+
         public IEnumerable<VFXProperty> SubProperties()
         {
             if (IsExpandable())

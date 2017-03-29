@@ -115,6 +115,36 @@ namespace UnityEditor.VFX
             throw new ArgumentException(string.Format("Unexpected GetOperationCodeContent call with {0}", GetType().FullName));
         }
 
+        public override bool Equals(object obj)
+        {
+            var other = obj as VFXExpression;
+            if (other == null)
+                return false;
+
+            if (Operation != other.Operation)
+                return false;
+
+            //if (GetHashCode() != obj.GetHashCode())
+            //    return false;
+
+            // TODO Not really optimized for an equal function!
+            var thisParents = Parents;
+            var otherParents = other.Parents;
+
+            if (thisParents == null && otherParents == null)
+                return true;
+            if (thisParents == null || otherParents == null)
+                return false;
+            if (thisParents.Length != otherParents.Length)
+                return false;
+
+            for (int i = 0; i < thisParents.Length; ++i)
+                if (!thisParents[i].Equals(otherParents[i]))
+                    return false;
+
+            return true;
+        }
+
         public override int GetHashCode()
         {
             int hash = GetType().GetHashCode();

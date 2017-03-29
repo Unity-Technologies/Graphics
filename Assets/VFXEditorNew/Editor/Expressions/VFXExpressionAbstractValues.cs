@@ -23,6 +23,7 @@ namespace UnityEditor.VFX
             return this;
         }
 
+        public override bool Equals(object obj) { return ReferenceEquals(this, obj); }
         sealed public override int GetHashCode()
         {
             return RuntimeHelpers.GetHashCode(this);
