@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -7,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValueFloat(0.0f, false);
+            return new VFXValueFloat(UnityEngine.Random.value, false);
         }
     }
 }
