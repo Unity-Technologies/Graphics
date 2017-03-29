@@ -14,8 +14,8 @@ namespace UnityEditor.VFX.Test
         private readonly static string kTestAssetName = "TestAsset";
         private readonly static string kTestAssetPath = kTestAssetDir + "/" + kTestAssetName + ".asset";
 
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
+        [OneTimeSetUpAttribute]
+        public void OneTimeSetUpAttribute()
         {
             string[] guids = AssetDatabase.FindAssets(kTestAssetName, new string[] { kTestAssetDir });
 
