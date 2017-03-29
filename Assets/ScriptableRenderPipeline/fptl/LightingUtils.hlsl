@@ -64,15 +64,15 @@ bool SampleDebugFont(int2 pixCoord, uint digit)
 #define _ 0
 #define x 1
     uint fontData[9][2] = {
-        { PACK_BITS25(_,_,x,_,_,		_,_,x,_,_,		_,x,x,x,_,		x,x,x,x,x,		_,_,_,x,_),	PACK_BITS25(x,x,x,x,x,		_,x,x,x,_,		x,x,x,x,x,		_,x,x,x,_,		_,x,x,x,_) },
-        { PACK_BITS25(_,x,_,x,_,		_,x,x,_,_,		x,_,_,_,x,		_,_,_,_,x,		_,_,_,x,_),	PACK_BITS25(x,_,_,_,_,		x,_,_,_,x,		_,_,_,_,x,		x,_,_,_,x,		x,_,_,_,x) },
-        { PACK_BITS25(x,_,_,_,x,		x,_,x,_,_,		x,_,_,_,x,		_,_,_,x,_,		_,_,x,x,_),	PACK_BITS25(x,_,_,_,_,		x,_,_,_,_,		_,_,_,x,_,		x,_,_,_,x,		x,_,_,_,x) },
-        { PACK_BITS25(x,_,_,_,x,		_,_,x,_,_,		_,_,_,_,x,		_,_,x,_,_,		_,x,_,x,_),	PACK_BITS25(x,_,x,x,_,		x,_,_,_,_,		_,_,_,x,_,		x,_,_,_,x,		x,_,_,_,x) },
-        { PACK_BITS25(x,_,_,_,x,		_,_,x,_,_,		_,_,_,x,_,		_,x,x,x,_,		_,x,_,x,_),	PACK_BITS25(x,x,_,_,x,		x,x,x,x,_,		_,_,x,_,_,		_,x,x,x,_,		_,x,x,x,x) },
-        { PACK_BITS25(x,_,_,_,x,		_,_,x,_,_,		_,_,x,_,_,		_,_,_,_,x,		x,_,_,x,_),	PACK_BITS25(_,_,_,_,x,		x,_,_,_,x,		_,_,x,_,_,		x,_,_,_,x,		_,_,_,_,x) },
-        { PACK_BITS25(x,_,_,_,x,		_,_,x,_,_,		_,x,_,_,_,		_,_,_,_,x,		x,x,x,x,x),	PACK_BITS25(_,_,_,_,x,		x,_,_,_,x,		_,x,_,_,_,		x,_,_,_,x,		_,_,_,_,x) },
-        { PACK_BITS25(_,x,_,x,_,		_,_,x,_,_,		x,_,_,_,_,		x,_,_,_,x,		_,_,_,x,_),	PACK_BITS25(x,_,_,_,x,		x,_,_,_,x,		_,x,_,_,_,		x,_,_,_,x,		x,_,_,_,x) },
-		{ PACK_BITS25(_,_,x,_,_,		x,x,x,x,x,		x,x,x,x,x,		_,x,x,x,_,		_,_,_,x,_),	PACK_BITS25(_,x,x,x,_,		_,x,x,x,_,		_,x,_,_,_,		_,x,x,x,_,		_,x,x,x,_) }
+        { PACK_BITS25(_,_,x,_,_,        _,_,x,_,_,      _,x,x,x,_,      x,x,x,x,x,      _,_,_,x,_), PACK_BITS25(x,x,x,x,x,      _,x,x,x,_,      x,x,x,x,x,      _,x,x,x,_,      _,x,x,x,_) },
+        { PACK_BITS25(_,x,_,x,_,        _,x,x,_,_,      x,_,_,_,x,      _,_,_,_,x,      _,_,_,x,_), PACK_BITS25(x,_,_,_,_,      x,_,_,_,x,      _,_,_,_,x,      x,_,_,_,x,      x,_,_,_,x) },
+        { PACK_BITS25(x,_,_,_,x,        x,_,x,_,_,      x,_,_,_,x,      _,_,_,x,_,      _,_,x,x,_), PACK_BITS25(x,_,_,_,_,      x,_,_,_,_,      _,_,_,x,_,      x,_,_,_,x,      x,_,_,_,x) },
+        { PACK_BITS25(x,_,_,_,x,        _,_,x,_,_,      _,_,_,_,x,      _,_,x,_,_,      _,x,_,x,_), PACK_BITS25(x,_,x,x,_,      x,_,_,_,_,      _,_,_,x,_,      x,_,_,_,x,      x,_,_,_,x) },
+        { PACK_BITS25(x,_,_,_,x,        _,_,x,_,_,      _,_,_,x,_,      _,x,x,x,_,      _,x,_,x,_), PACK_BITS25(x,x,_,_,x,      x,x,x,x,_,      _,_,x,_,_,      _,x,x,x,_,      _,x,x,x,x) },
+        { PACK_BITS25(x,_,_,_,x,        _,_,x,_,_,      _,_,x,_,_,      _,_,_,_,x,      x,_,_,x,_), PACK_BITS25(_,_,_,_,x,      x,_,_,_,x,      _,_,x,_,_,      x,_,_,_,x,      _,_,_,_,x) },
+        { PACK_BITS25(x,_,_,_,x,        _,_,x,_,_,      _,x,_,_,_,      _,_,_,_,x,      x,x,x,x,x), PACK_BITS25(_,_,_,_,x,      x,_,_,_,x,      _,x,_,_,_,      x,_,_,_,x,      _,_,_,_,x) },
+        { PACK_BITS25(_,x,_,x,_,        _,_,x,_,_,      x,_,_,_,_,      x,_,_,_,x,      _,_,_,x,_), PACK_BITS25(x,_,_,_,x,      x,_,_,_,x,      _,x,_,_,_,      x,_,_,_,x,      x,_,_,_,x) },
+        { PACK_BITS25(_,_,x,_,_,        x,x,x,x,x,      x,x,x,x,x,      _,x,x,x,_,      _,_,_,x,_), PACK_BITS25(_,x,x,x,_,      _,x,x,x,_,      _,x,_,_,_,      _,x,x,x,_,      _,x,x,x,_) }
     };
 #undef _
 #undef x
@@ -126,9 +126,9 @@ float3 OverlayHeatMap(uint2 pixCoord, uint numLights, float3 c)
     float3 color = lerp(c, pow(col.xyz, 2.2), 0.3*col.w);
     if(numLights > 0)
     {
-        if (SampleDebugFontNumber(coord, numLights))		// Shadow
+        if (SampleDebugFontNumber(coord, numLights))        // Shadow
             color = 0.0f;
-        if (SampleDebugFontNumber(coord + 1, numLights))	// Text
+        if (SampleDebugFontNumber(coord + 1, numLights))    // Text
             color = 1.0f;
     }
     return color;

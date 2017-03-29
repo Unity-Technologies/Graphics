@@ -40,7 +40,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #include "../../../../ShaderLibrary/Common.hlsl"
             #include "../../../ShaderConfig.cs.hlsl"
             #include "../../../ShaderVariables.hlsl"
-            #define UNITY_MATERIAL_LIT // Need to be defined before including Material.hlsl
+            #define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl
             #include "../../../Material/Material.hlsl"
 
             //-------------------------------------------------------------------------------------
@@ -53,12 +53,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             float4 _FilterKernels[N_PROFILES][N_SAMPLES]; // RGB = weights, A = radial distance
             float4 _HalfRcpWeightedVariances[N_PROFILES]; // RGB for chromatic, A for achromatic
 
-        #ifndef SSS_PRE_SCATTER_TEXTURING
-            TEXTURE2D(_GBufferTexture0);    // RGB = baseColor, A = spec. occlusion
-        #endif
-
-            TEXTURE2D(_GBufferTexture2);    // R = SSS radius, G = SSS thickness, A = SSS profile
-            TEXTURE2D(_IrradianceSource);   // RGB = irradiance on the back side of the object
+            TEXTURE2D(_IrradianceSource);                 // RGB = irradiance on the back side of the object
+            DECLARE_GBUFFER_TEXTURE(_GBufferTexture);     // Contains the albedo and SSS parameters
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -85,11 +81,15 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             {
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(0, 0));
 
-                float2 gBufferData  = LOAD_TEXTURE2D(_GBufferTexture2, posInput.unPositionSS).ra;
-                int    profileID    = N_PROFILES * gBufferData.y;
-                // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
-                float  distScale    = (1.0 / 300.0) * gBufferData.x;
-                float  invDistScale = rcp(distScale);
+                float3 unused;
+
+                BSDFData bsdfData;
+                FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
+                DECODE_FROM_GBUFFER(gbuffer, bsdfData, unused);
+
+                int   profileID    = bsdfData.subsurfaceProfile;
+                float distScale    = bsdfData.subsurfaceRadius;
+                float invDistScale = rcp(distScale);
 
                 // Reconstruct the view-space position.
                 float  rawDepth    = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r;
@@ -154,17 +154,12 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     totalWeight     += sampleWeight;
                 }
 
-            #ifdef SSS_PRE_SCATTER_TEXTURING
-                float3 diffuseContrib = float3(1, 1, 1);
-            #elif SSS_POST_SCATTER_TEXTURING
-                float3 diffuseColor   = DecodeGBuffer0(LOAD_TEXTURE2D(_GBufferTexture0, posInput.unPositionSS)).rgb;
-                float3 diffuseContrib = diffuseColor;
-            #else // combine pre-scatter and post-scatter texturing
-                float3 diffuseColor   = DecodeGBuffer0(LOAD_TEXTURE2D(_GBufferTexture0, posInput.unPositionSS)).rgb;
-                float3 diffuseContrib = sqrt(diffuseColor);
-            #endif
-
             #ifdef FILTER_HORIZONTAL_AND_COMBINE
+                bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, profileID);
+
+                // It's either post-scatter, or pre- and post-scatter texturing.
+                float3 diffuseContrib = performPostScatterTexturing ? bsdfData.diffuseColor
+                                                                    : sqrt(bsdfData.diffuseColor);
                 return float4(diffuseContrib * totalIrradiance / totalWeight, 1.0);
             #else
                 return float4(totalIrradiance / totalWeight, 1.0);

@@ -3,20 +3,20 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
     float2 uvBase = ADD_IDX(_UVMappingMask).x * texCoord0 +
-                    ADD_IDX(_UVMappingMask).y * texCoord1 + 
+                    ADD_IDX(_UVMappingMask).y * texCoord1 +
                     ADD_IDX(_UVMappingMask).z * texCoord2 +
                     ADD_IDX(_UVMappingMask).w * texCoord3;
 
     // Only used with layered, allow to have additional tiling
     uvBase *= additionalTiling.xx;
-                    
+
 
     float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * texCoord0 +
                         ADD_IDX(_UVDetailsMappingMask).y * texCoord1 +
                         ADD_IDX(_UVDetailsMappingMask).z * texCoord2 +
                         ADD_IDX(_UVDetailsMappingMask).w * texCoord3;
-						
-	uvDetails *= additionalTiling.xx;
+
+    uvDetails *= additionalTiling.xx;
 
     // If base is planar/triplanar then detail map is forced to be planar/triplanar
     ADD_IDX(layerTexCoord.details).mappingType = ADD_IDX(layerTexCoord.base).mappingType = mappingType;
@@ -32,7 +32,7 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
     float2 uvXY;
     float2 uvZY;
     GetTriplanarCoordinate(positionWS * worldScale, uvXZ, uvXY, uvZY);
- 
+
     // Planar is just XZ of triplanar
     if (mappingType == UV_MAPPING_PLANAR)
     {
@@ -45,7 +45,7 @@ void ADD_IDX(ComputeLayerTexCoord)( float2 texCoord0, float2 texCoord1, float2 t
 
     ADD_IDX(layerTexCoord.base).uvXZ = TRANSFORM_TEX(uvXZ, ADD_IDX(_BaseColorMap));
     ADD_IDX(layerTexCoord.base).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap));
-    ADD_IDX(layerTexCoord.base).uvZY = TRANSFORM_TEX(uvZY, ADD_IDX(_BaseColorMap));        
+    ADD_IDX(layerTexCoord.base).uvZY = TRANSFORM_TEX(uvZY, ADD_IDX(_BaseColorMap));
 
     ADD_IDX(layerTexCoord.details).uvXZ = TRANSFORM_TEX(uvXZ, ADD_IDX(_DetailMap));
     ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_DetailMap));
@@ -89,7 +89,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
     else
     {
         normalTS = SAMPLE_UVMAPPING_NORMALMAP(ADD_IDX(_NormalMap), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base), ADD_IDX(_NormalScale));
-    }            
+    }
     #else // Object space
     // to be able to combine object space normal with detail map or to apply a "scale" we transform it to tangent space (object space normal composition is complex operation).
     // then later we will re-transform it to world space.
@@ -122,7 +122,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
         normalTS.xy *= ADD_IDX(_NormalScale); // Scale in tangent space
         normalTS = (normalTS);
-        #endif        
+        #endif
     }
     #endif
 
@@ -241,13 +241,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.subsurfaceProfile = _SubsurfaceProfile;
 #ifdef _SUBSURFACE_RADIUS_MAP
-	surfaceData.subsurfaceRadius = SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r * _SubsurfaceRadius;
+    surfaceData.subsurfaceRadius = SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r * _SubsurfaceRadius;
 #else
     surfaceData.subsurfaceRadius = _SubsurfaceRadius;
 #endif
 
 #ifdef _THICKNESS_MAP
-	surfaceData.thickness = SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
+    surfaceData.thickness = SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
 #else
     surfaceData.thickness = _Thickness;
 #endif
@@ -280,4 +280,3 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     return alpha;
 }
-
