@@ -220,27 +220,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RebuildSkyMeshes(float nearPlane, float farPlane)
         {
-            if(m_CubemapFaceMesh[0] == null)
+            if (m_CubemapFaceMesh[0] == null)
             {
                 Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, nearPlane, farPlane);
 
-                Vector3[] lookAtList = {
-                            new Vector3(1.0f, 0.0f, 0.0f),
-                            new Vector3(-1.0f, 0.0f, 0.0f),
-                            new Vector3(0.0f, 1.0f, 0.0f),
-                            new Vector3(0.0f, -1.0f, 0.0f),
-                            new Vector3(0.0f, 0.0f, 1.0f),
-                            new Vector3(0.0f, 0.0f, -1.0f),
-                        };
+                Vector3[] lookAtList =
+                {
+                    new Vector3(1.0f, 0.0f, 0.0f),
+                    new Vector3(-1.0f, 0.0f, 0.0f),
+                    new Vector3(0.0f, 1.0f, 0.0f),
+                    new Vector3(0.0f, -1.0f, 0.0f),
+                    new Vector3(0.0f, 0.0f, 1.0f),
+                    new Vector3(0.0f, 0.0f, -1.0f),
+                };
 
-                Vector3[] UpVectorList = {
-                            new Vector3(0.0f, 1.0f, 0.0f),
-                            new Vector3(0.0f, 1.0f, 0.0f),
-                            new Vector3(0.0f, 0.0f, -1.0f),
-                            new Vector3(0.0f, 0.0f, 1.0f),
-                            new Vector3(0.0f, 1.0f, 0.0f),
-                            new Vector3(0.0f, 1.0f, 0.0f),
-                        };
+                Vector3[] UpVectorList =
+                {
+                    new Vector3(0.0f, 1.0f, 0.0f),
+                    new Vector3(0.0f, 1.0f, 0.0f),
+                    new Vector3(0.0f, 0.0f, -1.0f),
+                    new Vector3(0.0f, 0.0f, 1.0f),
+                    new Vector3(0.0f, 1.0f, 0.0f),
+                    new Vector3(0.0f, 1.0f, 0.0f),
+                };
 
                 for (int i = 0; i < 6; ++i)
                 {
@@ -286,7 +288,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Utilities.Destroy(m_SkyboxMarginalRowCdfRT);
             Utilities.Destroy(m_SkyboxConditionalCdfRT);
 
-            if(m_Renderer != null)
+            if (m_Renderer != null)
                 m_Renderer.Cleanup();
         }
 

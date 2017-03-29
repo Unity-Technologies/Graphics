@@ -81,7 +81,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
         // put abs here to silent a warning, no cost, no impact as color is assume to be positive.
         res.rgb = Clamp(pow(abs(lightTransportData.diffuseColor), saturate(unity_OneOverOutputBoost)), 0, unity_MaxOutputValue);
     }
-    
+
     if (unity_MetaFragmentControl.y)
     {
         // TODO: THIS LIMIT MUST BE REMOVE, IT IS NOT HDR, change when RGB9e5 is here.

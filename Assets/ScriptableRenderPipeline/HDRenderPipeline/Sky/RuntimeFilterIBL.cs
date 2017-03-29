@@ -63,8 +63,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         void FilterCubemapCommon(ScriptableRenderContext context,
-                                 Texture source, RenderTexture target, int mipCount,
-                                 Mesh[] cubemapFaceMesh)
+            Texture source, RenderTexture target, int mipCount,
+            Mesh[] cubemapFaceMesh)
         {
             // Solid angle associated with a texel of the cubemap.
             float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
@@ -93,8 +93,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Filters MIP map levels (other than 0) with GGX using BRDF importance sampling.
         public void FilterCubemap(ScriptableRenderContext context,
-                                  Texture source, RenderTexture target, int mipCount,
-                                  Mesh[] cubemapFaceMesh)
+            Texture source, RenderTexture target, int mipCount,
+            Mesh[] cubemapFaceMesh)
         {
             m_GgxConvolveMaterial.DisableKeyword("USE_MIS");
 
@@ -103,9 +103,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Filters MIP map levels (other than 0) with GGX using multiple importance sampling.
         public void FilterCubemapMIS(ScriptableRenderContext context,
-                                     Texture source, RenderTexture target, int mipCount,
-                                     RenderTexture conditionalCdf, RenderTexture marginalRowCdf,
-                                     Mesh[] cubemapFaceMesh)
+            Texture source, RenderTexture target, int mipCount,
+            RenderTexture conditionalCdf, RenderTexture marginalRowCdf,
+            Mesh[] cubemapFaceMesh)
         {
             // Bind the input cubemap.
             m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "envMap", source);

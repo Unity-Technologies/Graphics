@@ -1,13 +1,12 @@
 namespace UnityEngine.Experimental.Rendering
 {
-    public enum LightArchetype {Punctual, Rectangle, Line};
+    public enum LightArchetype { Punctual, Rectangle, Line };
 
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
     [RequireComponent(typeof(Light))]
     public class AdditionalLightData : MonoBehaviour
     {
-
         public const int DefaultShadowResolution = 512;
 
         public int shadowResolution = DefaultShadowResolution;

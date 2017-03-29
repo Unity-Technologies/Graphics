@@ -6,7 +6,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
     // If there is no lightmap, it assume lightprobe
 #if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
 
-// TODO: Confirm with Ionut but it seems that UNITY_LIGHT_PROBE_PROXY_VOLUME is always define for high end and 
+// TODO: Confirm with Ionut but it seems that UNITY_LIGHT_PROBE_PROXY_VOLUME is always define for high end and
 // unity_ProbeVolumeParams always bind.
     if (unity_ProbeVolumeParams.x == 0.0)
     {
@@ -36,7 +36,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
         scale._m00_m11_m22_m33 = float4(unity_ProbeVolumeSizeInv.xyz, 1.0);
 
         WorldToTexture = mul(mul(scale, translation), WorldToTexture);
-    
+
         return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionWS, normalWS, WorldToTexture, unity_ProbeVolumeParams.z);
     }
 
@@ -93,7 +93,7 @@ void ApplyDoubleSidedFlipOrMirror(inout FragInputs input)
     // To get a flipped normal with the tangent space, we must flip bitangent (because it is construct from the normal) and normal
     // To get a mirror normal with the tangent space, we only need to flip the normal and not the tangent
     float2 flipSign = input.isFrontFace ? float2(1.0, 1.0) : _DoubleSidedConstants.yz; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
-    input.worldToTangent[1] = flipSign.x * input.worldToTangent[1]; // bitangent    
+    input.worldToTangent[1] = flipSign.x * input.worldToTangent[1]; // bitangent
     input.worldToTangent[2] = flipSign.y * input.worldToTangent[2]; // normal
 
     #ifdef SURFACE_GRADIENT

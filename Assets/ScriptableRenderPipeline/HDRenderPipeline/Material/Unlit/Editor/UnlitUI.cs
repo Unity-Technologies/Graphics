@@ -67,5 +67,4 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
         }
     }
-
 } // namespace UnityEditor

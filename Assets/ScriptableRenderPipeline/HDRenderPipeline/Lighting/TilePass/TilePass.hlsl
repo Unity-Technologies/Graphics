@@ -1,4 +1,4 @@
-﻿#if defined (LIGHTLOOP_TILE_DIRECT) || defined(LIGHTLOOP_TILE_ALL)
+#if defined (LIGHTLOOP_TILE_DIRECT) || defined(LIGHTLOOP_TILE_ALL)
 #define PROCESS_DIRECTIONAL_LIGHT
 #define PROCESS_PUNCTUAL_LIGHT
 #define PROCESS_AREA_LIGHT
@@ -14,7 +14,7 @@
 uint _NumTileFtplX;
 uint _NumTileFtplY;
 
-StructuredBuffer<uint> g_vLightListGlobal;		// don't support Buffer yet in unity
+StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
 
 #ifdef USE_FPTL_LIGHTLIST
 #define TILE_SIZE TILE_SIZE_FPTL
@@ -35,7 +35,7 @@ float g_fClustScale;
 float g_fClustBase;
 float g_fNearPlane;
 float g_fFarPlane;
-int g_iLog2NumClusters;	// We need to always define these to keep constant buffer layouts compatible
+int g_iLog2NumClusters; // We need to always define these to keep constant buffer layouts compatible
 
 uint g_isLogBaseBufferEnabled;
 uint _UseTileLightList;
@@ -44,8 +44,8 @@ uint _UseTileLightList;
 //#ifdef USE_CLUSTERED_LIGHTLIST
 uint _NumTileClusteredX;
 uint _NumTileClusteredY;
-StructuredBuffer<uint> g_vLayeredOffsetsBuffer;		// don't support Buffer yet in unity
-StructuredBuffer<float> g_logBaseBuffer;			// don't support Buffer yet in unity
+StructuredBuffer<uint> g_vLayeredOffsetsBuffer;     // don't support Buffer yet in unity
+StructuredBuffer<float> g_logBaseBuffer;            // don't support Buffer yet in unity
 //#endif
 
 StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
@@ -86,7 +86,7 @@ uint _AreaLightCount;
 uint _EnvLightCount;
 float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
 
-int  _EnvLightSkyEnabled;         // TODO: make it a bool	
+int  _EnvLightSkyEnabled;         // TODO: make it a bool
 CBUFFER_END
 
 struct LightLoopContext
@@ -94,7 +94,7 @@ struct LightLoopContext
     int sampleShadow;
     int sampleReflection;
 #ifdef SHADOWS_USE_SHADOWCTXT
-	ShadowContext shadowContext;
+    ShadowContext shadowContext;
 #endif
 };
 
@@ -265,4 +265,3 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, sampler_SkyTexture, texCoord, lod);
     }
 }
-

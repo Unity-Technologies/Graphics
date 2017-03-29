@@ -8,22 +8,22 @@
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, int shadowDataIndex, float3 L )
 {
-	Texture2DArray tex = shadowContext.tex2DArray[0];
-	SamplerComparisonState compSamp = shadowContext.compSamplers[0];
+    Texture2DArray tex = shadowContext.tex2DArray[0];
+    SamplerComparisonState compSamp = shadowContext.compSamplers[0];
 
-	return EvalShadow_CascadedDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
+    return EvalShadow_CascadedDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
 
-	//return EvalShadow_CascadedMomentum( shadowContext, positionWS, shadowDataIndex, L );
+    //return EvalShadow_CascadedMomentum( shadowContext, positionWS, shadowDataIndex, L );
 }
 
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, int shadowDataIndex, float3 L, float2 unPositionSS )
 {
-	Texture2DArray tex = shadowContext.tex2DArray[0];
-	SamplerComparisonState compSamp = shadowContext.compSamplers[0];
+    Texture2DArray tex = shadowContext.tex2DArray[0];
+    SamplerComparisonState compSamp = shadowContext.compSamplers[0];
 
-	return EvalShadow_CascadedDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
+    return EvalShadow_CascadedDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
 
-	//return EvalShadow_CascadedMomentum( shadowContext, positionWS, shadowDataIndex, L );
+    //return EvalShadow_CascadedMomentum( shadowContext, positionWS, shadowDataIndex, L );
 }
 #endif
 
@@ -37,16 +37,16 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, int shadowDataIndex, float3 L )
 {
-	Texture2DArray tex = shadowContext.tex2DArray[1];
-	SamplerComparisonState compSamp = shadowContext.compSamplers[1];
+    Texture2DArray tex = shadowContext.tex2DArray[1];
+    SamplerComparisonState compSamp = shadowContext.compSamplers[1];
 
-	return EvalShadow_PunctualDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
+    return EvalShadow_PunctualDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
 }
 float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, int shadowDataIndex, float3 L, float2 unPositionSS )
 {
-	Texture2DArray tex = shadowContext.tex2DArray[1];
-	SamplerComparisonState compSamp = shadowContext.compSamplers[1];
-	
-	return EvalShadow_PunctualDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
+    Texture2DArray tex = shadowContext.tex2DArray[1];
+    SamplerComparisonState compSamp = shadowContext.compSamplers[1];
+
+    return EvalShadow_PunctualDepth( shadowContext, tex, compSamp, positionWS, shadowDataIndex, L );
 }
 #endif

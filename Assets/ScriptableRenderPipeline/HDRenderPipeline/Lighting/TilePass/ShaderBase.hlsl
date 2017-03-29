@@ -3,41 +3,41 @@
 
 // can't use UNITY_REVERSED_Z since it's not enabled in compute shaders
 #if !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLCORE)
-	#define REVERSE_ZBUF
+    #define REVERSE_ZBUF
 #endif
 
 #ifdef SHADER_API_PSSL
 
 #ifndef Texture2DMS
-	#define Texture2DMS		MS_Texture2D
+    #define Texture2DMS     MS_Texture2D
 #endif
 
 #ifndef SampleCmpLevelZero
-	#define SampleCmpLevelZero				SampleCmpLOD0
+    #define SampleCmpLevelZero              SampleCmpLOD0
 #endif
 
 #ifndef firstbithigh
-	#define firstbithigh		FirstSetBit_Hi
+    #define firstbithigh        FirstSetBit_Hi
 #endif
 
 #endif
 
 float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
 {
-	float zdpth = LOAD_TEXTURE2D(depthTexture, pixCoord.xy).x;
+    float zdpth = LOAD_TEXTURE2D(depthTexture, pixCoord.xy).x;
 #ifdef REVERSE_ZBUF
-	zdpth = 1.0 - zdpth;
+    zdpth = 1.0 - zdpth;
 #endif
-	return zdpth;
+    return zdpth;
 }
 
 float FetchDepthMSAA(Texture2DMS<float> depthTexture, uint2 pixCoord, uint sampleIdx)
 {
-	float zdpth = LOAD_TEXTURE2D_MSAA(depthTexture, pixCoord.xy, sampleIdx).x;
+    float zdpth = LOAD_TEXTURE2D_MSAA(depthTexture, pixCoord.xy, sampleIdx).x;
 #ifdef REVERSE_ZBUF
     zdpth = 1.0 - zdpth;
 #endif
-	return zdpth;
+    return zdpth;
 }
 
 #endif
