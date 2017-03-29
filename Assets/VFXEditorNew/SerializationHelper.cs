@@ -37,13 +37,20 @@ namespace UnityEngine.Graphing
 
             [SerializeField]
             public string JSONnodeData;
-        }
 
-        public static JSONSerializedElement nullElement
-        {
-            get
+            public bool Empty
             {
-                return new JSONSerializedElement();
+                get
+                {
+                    return string.IsNullOrEmpty(typeInfo.assemblyName)
+                    && string.IsNullOrEmpty(typeInfo.fullName)
+                    && string.IsNullOrEmpty(JSONnodeData);
+                }
+            }
+
+            public void Clear()
+            {
+                typeInfo.assemblyName = typeInfo.fullName = JSONnodeData = "";
             }
         }
 

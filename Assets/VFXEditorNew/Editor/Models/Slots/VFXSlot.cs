@@ -350,19 +350,12 @@ namespace UnityEditor.VFX
 
          public override void OnAfterDeserialize()
          {
-             base.OnAfterDeserialize();
-            if (!m_SerializableValue.Equals(SerializationHelper.nullElement))
+            base.OnAfterDeserialize();
+            if (!m_SerializableValue.Empty)
             {
-                try
-                {
-                    m_Value = SerializationHelper.Deserialize<object>(m_SerializableValue, null);
-                }
-                catch(Exception)
-                {
-                    //TODOPAUL
-                }
+                m_Value = SerializationHelper.Deserialize<object>(m_SerializableValue, null);
             }
-            m_SerializableValue = SerializationHelper.nullElement;
+            m_SerializableValue.Clear();
         }
 
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }

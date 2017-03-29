@@ -1,11 +1,8 @@
 using System;
 using System.Linq;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
-using UnityEditor.Experimental;
 using UnityEngine;
 using UnityEngine.Graphing;
-
 
 namespace UnityEditor.VFX
 {
@@ -46,25 +43,18 @@ namespace UnityEditor.VFX
             }
             else
             {
-                m_SerializableSettings = SerializationHelper.nullElement;
+                m_SerializableSettings.Clear();
             }
         }
 
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
-            if (!m_SerializableSettings.Equals(SerializationHelper.nullElement))
+            if (!m_SerializableSettings.Empty)
             {
-                try
-                {
-                    settings = SerializationHelper.Deserialize<object>(m_SerializableSettings, null);
-                }
-                catch(Exception)
-                {
-                    //TODOPAUL
-                }
+                settings = SerializationHelper.Deserialize<object>(m_SerializableSettings, null);
             }
-            m_SerializableSettings = SerializationHelper.nullElement;
+            m_SerializableSettings.Clear();
         }
 
         public object settings
