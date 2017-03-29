@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
             var settingsType = GetPropertiesSettings();
-            if (settingsType != null && settings != null)
+            if (settingsType != null && m_SettingsBuffer == null)
             {
                 m_SettingsBuffer = System.Activator.CreateInstance(settingsType);
             }

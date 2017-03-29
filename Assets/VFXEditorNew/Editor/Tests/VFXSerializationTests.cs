@@ -165,7 +165,6 @@ namespace UnityEditor.VFX.Test
             }
             AssetDatabase.DeleteAsset(kTempAssetPathA);
             AssetDatabase.DeleteAsset(kTempAssetPathB);
-
         }
 
         private void WriteBasicOperators(VFXGraphAsset asset, bool spawnAbs, bool linkAbs)
