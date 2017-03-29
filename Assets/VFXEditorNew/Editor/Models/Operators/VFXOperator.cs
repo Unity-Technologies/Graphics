@@ -214,12 +214,16 @@ namespace UnityEditor.VFX
             {
                 m_SerializableSettings = SerializationHelper.Serialize(settings);
             }
+            else
+            {
+                m_SerializableSettings = SerializationHelper.nullElement;
+            }
         }
 
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
-            if (!m_SerializableSettings.Equals(SerializationHelper.nullElement))
+            if (!string.IsNullOrEmpty(m_SerializableSettings.JSONnodeData))
             {
                 settings = SerializationHelper.Deserialize<object>(m_SerializableSettings, null);
             }

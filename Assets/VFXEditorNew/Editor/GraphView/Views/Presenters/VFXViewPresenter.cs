@@ -481,9 +481,9 @@ namespace UnityEditor.VFX.UI
                 newPresenter = presenter as IVFXPresenter;
             }
 
-            syncedModels[model] = newPresenter;
             if (newPresenter != null)
             {
+                syncedModels[model] = newPresenter;
                 var presenter = (GraphElementPresenter)newPresenter;
                 newPresenter.Init(model,this);
                 AddElement(presenter);
