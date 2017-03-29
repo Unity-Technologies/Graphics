@@ -435,7 +435,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 // returns the index of the first element greater or equal to 'needle'.
 uint BinarySearchRow(uint j, float needle, TEXTURE2D(haystack), uint n)
 {
-	uint  i = n - 1;
+    uint  i = n - 1;
     float v = LOAD_TEXTURE2D(haystack, uint2(i, j)).r;
 
     if (needle < v)

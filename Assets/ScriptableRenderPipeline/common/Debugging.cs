@@ -4,9 +4,8 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    public class Debugging : MonoBehaviour 
+    public class Debugging : MonoBehaviour
     {
-
         private static bool m_DebugControlEnabled = false;
         public static bool debugControlEnabled { get { return m_DebugControlEnabled;  } }
 
@@ -32,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering
         static public bool CheckRequiredInputButtonMapping(string[] values)
         {
             bool inputsOk = true;
-            foreach(string value in values)
+            foreach (string value in values)
             {
                 try
                 {
@@ -74,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void Update()
         {
-            if(m_Valid)
+            if (m_Valid)
             {
                 m_DebugControlEnabledMsgTimer += Time.deltaTime;
 
@@ -118,10 +117,10 @@ namespace UnityEngine.Experimental.Rendering
 
         void OnGUI()
         {
-            using(new GUILayout.HorizontalScope())
+            using (new GUILayout.HorizontalScope())
             {
                 GUILayout.Space(10.0f);
-                using(new GUILayout.VerticalScope())
+                using (new GUILayout.VerticalScope())
                 {
                     GUILayout.Space(10.0f);
                     for (int i = 0; i < m_DebugMessages.Count; ++i)

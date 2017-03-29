@@ -33,15 +33,14 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
-	SurfaceData surfaceData;
-	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
-	
-	// Not lit here (but emissive is allowed)
+    SurfaceData surfaceData;
+    BuiltinData builtinData;
+    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
-		
-	// TODO: we must not access bsdfData here, it break the genericity of the code!
+    // Not lit here (but emissive is allowed)
+
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+
+    // TODO: we must not access bsdfData here, it break the genericity of the code!
     return float4(bsdfData.color + builtinData.emissiveColor, builtinData.opacity);
 }
-
