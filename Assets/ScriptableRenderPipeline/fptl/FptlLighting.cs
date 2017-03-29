@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             if (m_Owner != null)
                 m_Owner.Cleanup();
         }
-        
+
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             base.Render(renderContext, cameras);
@@ -41,6 +41,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/ScriptableRenderPipeline/fptl/FPTLRenderPipeline.asset");
             //AssetDatabase.CreateAsset(instance, "Assets/ScriptableRenderPipeline/fptl/FPTLRenderPipeline.asset");
         }
+
 #endif
         protected override IRenderPipeline InternalCreatePipeline()
         {
@@ -95,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         public bool enableBigTilePrepass = true;
         public bool enableDrawLightBoundsDebug = false;
         public bool enableDrawTileDebug = false;
-		public bool enableReflectionProbeDebug = false;
+        public bool enableReflectionProbeDebug = false;
         public bool enableComputeLightEvaluation = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
         const bool k_UseAsyncCompute = true;        // should not use on mobile
@@ -163,8 +164,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             if (enableClustered)
             {
-				if (s_GlobalLightListAtomic != null)
-                	s_GlobalLightListAtomic.Release();
+                if (s_GlobalLightListAtomic != null)
+                    s_GlobalLightListAtomic.Release();
             }
 
             ClearComputeBuffers();
@@ -237,7 +238,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 s_GlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
-            if(enableBigTilePrepass)
+            if (enableBigTilePrepass)
             {
                 s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
                 buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
@@ -276,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             m_shadowBufferID = Shader.PropertyToID("g_tShadowBuffer");
         }
-        
+
         static void SetupGBuffer(int width, int height, CommandBuffer cmd)
         {
             var format10 = RenderTextureFormat.ARGB32;
@@ -286,7 +287,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             //@TODO: cleanup, right now only because we want to use unmodified Standard shader that encodes emission differently based on HDR or not,
             // so we make it think we always render in HDR
-            cmd.EnableShaderKeyword ("UNITY_HDR_ON");
+            cmd.EnableShaderKeyword("UNITY_HDR_ON");
 
             //@TODO: GetGraphicsCaps().buggyMRTSRGBWriteFlag
             cmd.GetTemporaryRT(s_GBufferAlbedo, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
@@ -296,7 +297,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.GetTemporaryRT(s_GBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
             cmd.GetTemporaryRT(s_CameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
             cmd.GetTemporaryRT(s_CameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default, 1, true); // rtv/uav
-            
+
             var colorMRTs = new RenderTargetIdentifier[4] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission };
             cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(s_GBufferZ));
             cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
@@ -332,7 +333,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             bool useFptl = opaquesOnly && usingFptl;     // requires depth pre-pass for forward opaques!
 
             bool haveTiledSolution = opaquesOnly || enableClustered;
-            cmd.EnableShaderKeyword(haveTiledSolution ? "TILED_FORWARD" : "REGULAR_FORWARD" );
+            cmd.EnableShaderKeyword(haveTiledSolution ? "TILED_FORWARD" : "REGULAR_FORWARD");
             cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
             cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
 
@@ -377,7 +378,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 return !disableFptl;
             }
         }
-        
+
         static void CopyDepthAfterGBuffer(ScriptableRenderContext loop)
         {
             var cmd = new CommandBuffer { name = "Copy depth" };
@@ -393,17 +394,23 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
             m_DeferredReflectionMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-			if (enableDrawTileDebug) {
-				m_DeferredMaterial.EnableKeyword ("ENABLE_DEBUG");
-			} else {
-				m_DeferredMaterial.DisableKeyword ("ENABLE_DEBUG");
-			}
+            if (enableDrawTileDebug)
+            {
+                m_DeferredMaterial.EnableKeyword("ENABLE_DEBUG");
+            }
+            else
+            {
+                m_DeferredMaterial.DisableKeyword("ENABLE_DEBUG");
+            }
 
-			if (enableReflectionProbeDebug) {
-				m_DeferredReflectionMaterial.EnableKeyword ("ENABLE_DEBUG");
-			} else {
-				m_DeferredReflectionMaterial.DisableKeyword ("ENABLE_DEBUG");
-			}
+            if (enableReflectionProbeDebug)
+            {
+                m_DeferredReflectionMaterial.EnableKeyword("ENABLE_DEBUG");
+            }
+            else
+            {
+                m_DeferredReflectionMaterial.DisableKeyword("ENABLE_DEBUG");
+            }
 
             cmd.SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
@@ -558,8 +565,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         static Matrix4x4 GetFlipMatrix()
         {
             Matrix4x4 flip = Matrix4x4.identity;
-            bool isLeftHand = ((int) LightDefinitions.USE_LEFTHAND_CAMERASPACE)!=0;
-            if(isLeftHand) flip.SetColumn(2, new Vector4(0.0f, 0.0f, -1.0f, 0.0f));
+            bool isLeftHand = ((int)LightDefinitions.USE_LEFTHAND_CAMERASPACE) != 0;
+            if (isLeftHand) flip.SetColumn(2, new Vector4(0.0f, 0.0f, -1.0f, 0.0f));
             return flip;
         }
 
@@ -721,30 +728,30 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             var numModels = (int)LightDefinitions.NR_LIGHT_MODELS;
             var numVolTypes = (int)LightDefinitions.MAX_TYPES;
-            var numEntries = new int[numModels,numVolTypes];
-            var offsets = new int[numModels,numVolTypes];
-            var numEntries2nd = new int[numModels,numVolTypes];
+            var numEntries = new int[numModels, numVolTypes];
+            var offsets = new int[numModels, numVolTypes];
+            var numEntries2nd = new int[numModels, numVolTypes];
 
             // first pass. Figure out how much we have of each and establish offsets
             foreach (var cl in inputs.visibleLights)
             {
-                var volType = cl.lightType==LightType.Spot ? LightDefinitions.SPOT_LIGHT : (cl.lightType==LightType.Point ? LightDefinitions.SPHERE_LIGHT : -1);
-                if(volType>=0) ++numEntries[LightDefinitions.DIRECT_LIGHT,volType];
+                var volType = cl.lightType == LightType.Spot ? LightDefinitions.SPOT_LIGHT : (cl.lightType == LightType.Point ? LightDefinitions.SPHERE_LIGHT : -1);
+                if (volType >= 0) ++numEntries[LightDefinitions.DIRECT_LIGHT, volType];
             }
 
             foreach (var rl in probes)
             {
                 var volType = LightDefinitions.BOX_LIGHT;       // always a box for now
-                if(rl.texture!=null) ++numEntries[LightDefinitions.REFLECTION_LIGHT,volType];
+                if (rl.texture != null) ++numEntries[LightDefinitions.REFLECTION_LIGHT, volType];
             }
 
             // add decals here too similar to the above
 
             // establish offsets
-            for(var m=0; m<numModels; m++)
+            for (var m = 0; m < numModels; m++)
             {
-                offsets[m,0] = m==0 ? 0 : (numEntries[m-1,numVolTypes-1] + offsets[m-1,numVolTypes-1]);
-                for(var v=1; v<numVolTypes; v++) offsets[m,v] = numEntries[m,v-1]+offsets[m,v-1];
+                offsets[m, 0] = m == 0 ? 0 : (numEntries[m - 1, numVolTypes - 1] + offsets[m - 1, numVolTypes - 1]);
+                for (var v = 1; v < numVolTypes; v++) offsets[m, v] = numEntries[m, v - 1] + offsets[m, v - 1];
             }
 
 
@@ -756,7 +763,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             var lightData = new SFiniteLightData[numVolumes];
             var boundData = new SFiniteLightBound[numVolumes];
             var worldToView = WorldToCamera(camera);
-            bool isNegDeterminant = Vector3.Dot(worldToView.GetColumn(0), Vector3.Cross(worldToView.GetColumn(1), worldToView.GetColumn(2)))<0.0f;      // 3x3 Determinant.
+            bool isNegDeterminant = Vector3.Dot(worldToView.GetColumn(0), Vector3.Cross(worldToView.GetColumn(1), worldToView.GetColumn(2))) < 0.0f;      // 3x3 Determinant.
 
             uint shadowLightIndex = 0;
             foreach (var cl in inputs.visibleLights)
@@ -862,7 +869,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     light.flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
 
                     int i = LightDefinitions.DIRECT_LIGHT, j = LightDefinitions.SPOT_LIGHT;
-                    idxOut = numEntries2nd[i,j] + offsets[i,j]; ++numEntries2nd[i,j];
+                    idxOut = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                 }
                 else if (cl.lightType == LightType.Point)
                 {
@@ -897,7 +904,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     light.flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
 
                     int i = LightDefinitions.DIRECT_LIGHT, j = LightDefinitions.SPHERE_LIGHT;
-                    idxOut = numEntries2nd[i,j] + offsets[i,j]; ++numEntries2nd[i,j];
+                    idxOut = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                 }
                 else
                 {
@@ -911,7 +918,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     lightData[idxOut] = light;
                 }
             }
-            var numLightsOut = offsets[LightDefinitions.DIRECT_LIGHT, numVolTypes-1] + numEntries[LightDefinitions.DIRECT_LIGHT, numVolTypes-1];
+            var numLightsOut = offsets[LightDefinitions.DIRECT_LIGHT, numVolTypes - 1] + numEntries[LightDefinitions.DIRECT_LIGHT, numVolTypes - 1];
 
             // probe.m_BlendDistance
             // Vector3f extents = 0.5*Abs(probe.m_BoxSize);
@@ -992,16 +999,16 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
 
                 int i = LightDefinitions.REFLECTION_LIGHT, j = LightDefinitions.BOX_LIGHT;
-                idxOut = numEntries2nd[i,j] + offsets[i,j]; ++numEntries2nd[i,j];
+                idxOut = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                 boundData[idxOut] = bndData;
                 lightData[idxOut] = lgtData;
             }
 
-            var numProbesOut = offsets[LightDefinitions.REFLECTION_LIGHT, numVolTypes-1] + numEntries[LightDefinitions.REFLECTION_LIGHT, numVolTypes-1];
-            for(var m=0; m<numModels; m++)
+            var numProbesOut = offsets[LightDefinitions.REFLECTION_LIGHT, numVolTypes - 1] + numEntries[LightDefinitions.REFLECTION_LIGHT, numVolTypes - 1];
+            for (var m = 0; m < numModels; m++)
             {
-                for(var v=0; v<numVolTypes; v++)
-                    Debug.Assert(numEntries[m,v]==numEntries2nd[m, v], "count mismatch on second pass!");
+                for (var v = 0; v < numVolTypes; v++)
+                    Debug.Assert(numEntries[m, v] == numEntries2nd[m, v], "count mismatch on second pass!");
             }
 
             s_ConvexBoundsBuffer.SetData(boundData);
@@ -1010,7 +1017,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             return numLightsOut + numProbesOut;
         }
-        
+
         public void Render(ScriptableRenderContext renderContext, IEnumerable<Camera> cameras)
         {
             foreach (var camera in cameras)
@@ -1044,7 +1051,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             ResizeIfNecessary(w, h);
 
             // do anything we need to do upon a new frame.
-            NewFrame ();
+            NewFrame();
 
 #pragma warning disable 162 // warning CS0162: Unreachable code detected
             if (!k_UseAsyncCompute) RenderShadowMaps(cullResults, loop);
@@ -1073,7 +1080,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             // render shadow maps (for mobile shadow map rendering should happen before we render g-buffer).
             // on GCN it needs to be after to leverage async compute since we need the depth-buffer for optimal light list building.
-            if(k_UseAsyncCompute) 
+            if (k_UseAsyncCompute)
             {
                 RenderShadowMaps(cullResults, loop);
                 loop.SetupCameraProperties(camera);
@@ -1093,11 +1100,11 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             m_SkyboxHelper.Draw(loop, camera);
 
             // transparencies atm. requires clustered until we get traditional forward
-            if(enableClustered) RenderForward(cullResults, camera, loop, false);
+            if (enableClustered) RenderForward(cullResults, camera, loop, false);
 
             // debug views.
             if (enableDrawLightBoundsDebug) DrawLightBoundsDebug(loop, cullResults.visibleLights.Length);
-            
+
             // present frame buffer.
             FinalPass(loop);
 
@@ -1110,7 +1117,6 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 cmd.Dispose();
             }
             loop.Submit();
-
         }
 
         void DrawLightBoundsDebug(ScriptableRenderContext loop, int numLights)
@@ -1134,13 +1140,13 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         {
             ShadowOutput shadows;
             m_ShadowPass.Render(loop, cullResults, out shadows);
-            UpdateShadowConstants (cullResults.visibleLights, ref shadows);
+            UpdateShadowConstants(cullResults.visibleLights, ref shadows);
         }
 
         void ResizeIfNecessary(int curWidth, int curHeight)
         {
             if (curWidth != s_WidthOnRecord || curHeight != s_HeightOnRecord || s_LightList == null ||
-                (s_BigTileLightList==null && enableBigTilePrepass) || (s_PerVoxelLightLists==null && enableClustered) )
+                (s_BigTileLightList == null && enableBigTilePrepass) || (s_PerVoxelLightLists == null && enableClustered))
             {
                 if (s_WidthOnRecord > 0 && s_HeightOnRecord > 0)
                     ReleaseResolutionDependentBuffers();
@@ -1170,9 +1176,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     s_PerTileLogBaseTweak.Release();
             }
 
-            if(enableBigTilePrepass)
+            if (enableBigTilePrepass)
             {
-                if(s_BigTileLightList!=null) s_BigTileLightList.Release();
+                if (s_BigTileLightList != null) s_BigTileLightList.Release();
             }
         }
 
@@ -1194,8 +1200,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             if (enableClustered)
             {
                 var tileSizeClust = LightDefinitions.TILE_SIZE_CLUSTERED;
-                var nrTilesClustX = (width + (tileSizeClust-1)) / tileSizeClust;
-                var nrTilesClustY = (height + (tileSizeClust-1)) / tileSizeClust;
+                var nrTilesClustX = (width + (tileSizeClust - 1)) / tileSizeClust;
+                var nrTilesClustY = (height + (tileSizeClust - 1)) / tileSizeClust;
                 var nrTilesClust = nrTilesClustX * nrTilesClustY;
 
                 s_PerVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * (1 << k_Log2NumClusters) * nrTilesClust, sizeof(uint));
@@ -1207,7 +1213,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 }
             }
 
-            if(enableBigTilePrepass)
+            if (enableBigTilePrepass)
             {
                 var nrBigTilesX = (width + 63) / 64;
                 var nrBigTilesY = (height + 63) / 64;
@@ -1256,8 +1262,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
 
             var tileSizeClust = LightDefinitions.TILE_SIZE_CLUSTERED;
-            var nrTilesClustX = (camera.pixelWidth + (tileSizeClust-1)) / tileSizeClust;
-            var nrTilesClustY = (camera.pixelHeight + (tileSizeClust-1)) / tileSizeClust;
+            var nrTilesClustX = (camera.pixelWidth + (tileSizeClust - 1)) / tileSizeClust;
+            var nrTilesClustY = (camera.pixelHeight + (tileSizeClust - 1)) / tileSizeClust;
 
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, nrTilesClustX, nrTilesClustY, 1);
         }
@@ -1293,7 +1299,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
 
             // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
-            if(enableBigTilePrepass)
+            if (enableBigTilePrepass)
             {
                 cmd.SetComputeIntParams(buildPerBigTileLightListShader, "g_viDimensions", new int[2] { w, h });
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, "g_iNrVisibLights", numLights);
@@ -1305,7 +1311,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, 1);
             }
 
-            if( usingFptl )       // optimized for opaques only
+            if (usingFptl)        // optimized for opaques only
             {
                 cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
                 cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", numLights);
@@ -1313,7 +1319,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
                 cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(s_CameraDepthTexture));
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vLightList", s_LightList);
-                if(enableBigTilePrepass) cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
+                if (enableBigTilePrepass) cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
                 cmd.DispatchCompute(buildPerTileLightListShader, s_GenListPerTileKernel, numTilesX, numTilesY, 1);
             }
 
@@ -1350,7 +1356,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             cmd.SetGlobalFloat("_reflRootHdrDecodeMult", defdecode.x);
             cmd.SetGlobalFloat("_reflRootHdrDecodeExp", defdecode.y);
 
-            if(enableBigTilePrepass)
+            if (enableBigTilePrepass)
                 cmd.SetGlobalBuffer("g_vBigTileLightList", s_BigTileLightList);
 
             if (enableClustered)
@@ -1414,6 +1420,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             }
 #pragma warning restore 162
         }
+
         private float PerceptualRoughnessToPhongPower(float perceptualRoughness)
         {
             return PerceptualRoughnessToBlinnPhongPower(perceptualRoughness) * 0.25f;
@@ -1459,14 +1466,13 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             return val;
         }
 
-
         private Texture2D GenerateRoughnessTexture()
         {
             const int width = 256;
             const int height = 64;
 
             Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false, true);   //TODO: no alpha16 support?
-            Color[] pixels = new Color[height*width];
+            Color[] pixels = new Color[height * width];
 
             for (int y = 0; y < height; y++)
             {
@@ -1534,7 +1540,5 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             texture.Apply();
             return texture;
         }
-
-
     }
 }

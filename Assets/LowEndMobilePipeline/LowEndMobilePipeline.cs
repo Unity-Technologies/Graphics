@@ -139,6 +139,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                     break;
             }
         }
+
         private void GetMaxSupportedLights(int lightsCount, out int pixelLightsCount, out int vertexLightsCount)
         {
             pixelLightsCount = Mathf.Min(lightsCount, m_Asset.MaxSupportedPixelLights);
@@ -167,20 +168,20 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
                 m_LightColors[i] = currLight.finalColor;
 
-                float rangeSq = currLight.range*currLight.range;
-                float quadAtten = (currLight.lightType == LightType.Directional) ? 0.0f : 25.0f/rangeSq;
+                float rangeSq = currLight.range * currLight.range;
+                float quadAtten = (currLight.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;
 
                 if (currLight.lightType == LightType.Spot)
                 {
                     Vector4 dir = currLight.localToWorld.GetColumn(2);
                     m_LightSpotDirections[i] = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
 
-                    float spotAngle = Mathf.Deg2Rad*currLight.spotAngle;
-                    float cosOuterAngle = Mathf.Cos(spotAngle*0.5f);
-                    float cosInneAngle = Mathf.Cos(spotAngle*0.25f);
+                    float spotAngle = Mathf.Deg2Rad * currLight.spotAngle;
+                    float cosOuterAngle = Mathf.Cos(spotAngle * 0.5f);
+                    float cosInneAngle = Mathf.Cos(spotAngle * 0.25f);
                     float angleRange = cosInneAngle - cosOuterAngle;
                     m_LightAttenuations[i] = new Vector4(cosOuterAngle,
-                        Mathf.Approximately(angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
+                            Mathf.Approximately(angleRange, 0.0f) ? 1.0f : angleRange, quadAtten, rangeSq);
                 }
                 else
                 {
@@ -247,8 +248,8 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 for (int cascadeIdx = 0; cascadeIdx < m_ShadowCasterCascadesCount; ++cascadeIdx)
                 {
                     needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(m_ShadowLightIndex,
-                    cascadeIdx, m_ShadowCasterCascadesCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj,
-                        out settings.splitData);
+                            cascadeIdx, m_ShadowCasterCascadesCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj,
+                            out settings.splitData);
 
                     m_DirectionalShadowSplitDistances[cascadeIdx] = settings.splitData.cullingSphere;
                     m_DirectionalShadowSplitDistances[cascadeIdx].w *= settings.splitData.cullingSphere.w;
@@ -272,8 +273,8 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
         private void SetupShadowSliceTransform(int cascadeIndex, int shadowResolution, Matrix4x4 proj, Matrix4x4 view)
         {
             // Assumes MAX_CASCADES = 4
-            m_ShadowSlices[cascadeIndex].atlasX = (cascadeIndex%2)*shadowResolution;
-            m_ShadowSlices[cascadeIndex].atlasY = (cascadeIndex/2)*shadowResolution;
+            m_ShadowSlices[cascadeIndex].atlasX = (cascadeIndex % 2) * shadowResolution;
+            m_ShadowSlices[cascadeIndex].atlasY = (cascadeIndex / 2) * shadowResolution;
             m_ShadowSlices[cascadeIndex].shadowResolution = shadowResolution;
             m_ShadowSlices[cascadeIndex].shadowTransform = Matrix4x4.identity;
 
@@ -291,14 +292,14 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 matScaleBias.m22 = -0.5f;
 
             var matTile = Matrix4x4.identity;
-            matTile.m00 = (float) m_ShadowSlices[cascadeIndex].shadowResolution/
-                          (float) m_ShadowSettings.shadowAtlasWidth;
-            matTile.m11 = (float) m_ShadowSlices[cascadeIndex].shadowResolution/
-                          (float) m_ShadowSettings.shadowAtlasHeight;
-            matTile.m03 = (float) m_ShadowSlices[cascadeIndex].atlasX/(float) m_ShadowSettings.shadowAtlasWidth;
-            matTile.m13 = (float) m_ShadowSlices[cascadeIndex].atlasY/(float) m_ShadowSettings.shadowAtlasHeight;
+            matTile.m00 = (float)m_ShadowSlices[cascadeIndex].shadowResolution /
+                (float)m_ShadowSettings.shadowAtlasWidth;
+            matTile.m11 = (float)m_ShadowSlices[cascadeIndex].shadowResolution /
+                (float)m_ShadowSettings.shadowAtlasHeight;
+            matTile.m03 = (float)m_ShadowSlices[cascadeIndex].atlasX / (float)m_ShadowSettings.shadowAtlasWidth;
+            matTile.m13 = (float)m_ShadowSlices[cascadeIndex].atlasY / (float)m_ShadowSettings.shadowAtlasHeight;
 
-            m_ShadowSlices[cascadeIndex].shadowTransform = matTile*matScaleBias*proj*view;
+            m_ShadowSlices[cascadeIndex].shadowTransform = matTile * matScaleBias * proj * view;
         }
 
         private void RenderShadowSlice(ref ScriptableRenderContext context, Vector3 lightDir, int cascadeIndex,
@@ -306,7 +307,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
         {
             var buffer = new CommandBuffer() {name = "Prepare Shadowmap Slice"};
             buffer.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY,
-                m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
+                    m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
             buffer.SetViewProjectionMatrices(view, proj);
             buffer.SetGlobalVector("_WorldLightDirAndBias",
                 new Vector4(-lightDir.x, -lightDir.y, -lightDir.z, m_Asset.ShadowBias));
@@ -328,11 +329,11 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 return 0;
             }
 
-            int currentTileCount = atlasWidth/resolution*atlasHeight/resolution;
+            int currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
             while (currentTileCount < tileCount)
             {
                 resolution = resolution >> 1;
-                currentTileCount = atlasWidth/resolution*atlasHeight/resolution;
+                currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
             }
             return resolution;
         }
@@ -347,13 +348,13 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 shadowMatrices[i] = (cascadeCount >= i) ? m_ShadowSlices[i].shadowTransform : Matrix4x4.identity;
 
             // TODO: shadow resolution per cascade in case cascades endup being supported.
-            float invShadowResolution = 1.0f/shadowResolution;
+            float invShadowResolution = 1.0f / shadowResolution;
             float[] pcfKernel =
             {
-                -0.5f*invShadowResolution, 0.5f*invShadowResolution,
-                0.5f*invShadowResolution, 0.5f*invShadowResolution,
-                -0.5f*invShadowResolution, -0.5f*invShadowResolution,
-                0.5f*invShadowResolution, -0.5f*invShadowResolution
+                -0.5f * invShadowResolution, 0.5f * invShadowResolution,
+                0.5f * invShadowResolution, 0.5f * invShadowResolution,
+                -0.5f * invShadowResolution, -0.5f * invShadowResolution,
+                0.5f * invShadowResolution, -0.5f * invShadowResolution
             };
 
             var setupShadow = new CommandBuffer() {name = "SetupShadowShaderConstants"};
@@ -373,7 +374,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
             if (m_ShadowCasterCascadesCount == 1)
                 cmd.DisableShaderKeyword("_SHADOW_CASCADES");
-           	else
+            else
                 cmd.EnableShaderKeyword("_SHADOW_CASCADES");
 
             ShadowType shadowType = (m_ShadowLightIndex != -1) ? m_Asset.CurrShadowType : ShadowType.NO_SHADOW;
@@ -461,12 +462,12 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
         // TODO: Move to a better sorting solution, e.g, prioritize lights per object.
         public int Compare(VisibleLight lhs, VisibleLight rhs)
         {
-            int lhsLightTypePriority = m_LightTypePriority[(int) lhs.lightType];
-            int rhsLightTypePriority = m_LightTypePriority[(int) rhs.lightType];
+            int lhsLightTypePriority = m_LightTypePriority[(int)lhs.lightType];
+            int rhsLightTypePriority = m_LightTypePriority[(int)rhs.lightType];
             if (lhsLightTypePriority != rhsLightTypePriority)
                 return rhsLightTypePriority - lhsLightTypePriority;
 
-            return (int) (rhs.light.intensity - lhs.light.intensity);
+            return (int)(rhs.light.intensity - lhs.light.intensity);
         }
     }
 }

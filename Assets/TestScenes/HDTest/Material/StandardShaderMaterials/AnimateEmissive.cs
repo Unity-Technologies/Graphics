@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AnimateEmissive : MonoBehaviour {
-
+public class AnimateEmissive : MonoBehaviour
+{
     public GameObject m_CurrentGameObject = null;
 
     public float m_Period = 3.0f;
@@ -12,24 +12,26 @@ public class AnimateEmissive : MonoBehaviour {
 
     private float m_Timer = 0.0f;
     private int m_Index = 0;
-    
 
-	// Use this for initialization
-	void Start () {
+
+    // Use this for initialization
+    void Start()
+    {
         m_Timer = 0.0f;
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
         if (m_CurrentGameObject != null)
         {
             m_Timer += Time.deltaTime;
-            if(m_Timer > m_Period)
+            if (m_Timer > m_Period)
             {
                 m_Timer = 0.0f;
 
                 Renderer renderer = m_CurrentGameObject.GetComponent<Renderer>();
-                if(renderer != null)
+                if (renderer != null)
                 {
                     Color color = m_Index == 0 ? m_Color0 : m_Color1;
                     float intensity = 1.0f;
@@ -51,5 +53,5 @@ public class AnimateEmissive : MonoBehaviour {
                 }
             }
         }
-	}
+    }
 }

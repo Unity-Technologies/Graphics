@@ -98,6 +98,11 @@ uint BitFieldExtract(uint data, uint size, uint offset)
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
 
+bool IsBitSet(uint number, uint bitPos)
+{
+    return ((number >> bitPos) & 1) != 0;
+}
+
 #ifndef INTRINSIC_CLAMP
 // TODO: should we force all clamp to be intrinsic by default ?
 // Some platform have one instruction clamp
@@ -458,7 +463,7 @@ struct PositionInputs
 // This allow to easily share code.
 // If a compute shader call this function unPositionSS is an integer usually calculate like: uint2 unPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
 // else it is current unormalized screen coordinate like return by SV_Position
-PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize, uint2 unTileCoord)	// Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
+PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize, uint2 unTileCoord)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
 {
     PositionInputs posInput;
     ZERO_INITIALIZE(PositionInputs, posInput);

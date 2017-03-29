@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Experimental.Rendering.LowendMobile
+namespace UnityEngine.Experimental.Rendering.LowendMobile
 {
     public enum ShadowCascades
     {
@@ -33,6 +33,7 @@
             UnityEditor.AssetDatabase.CreateAsset(instance,
                 "Assets/LowEndMobilePipeline/LowEndMobilePipelineAsset.asset");
         }
+
 #endif
 
         protected override IRenderPipeline InternalCreatePipeline()
@@ -100,8 +101,8 @@
 
         public int ShadowAtlasResolution
         {
-            get { return (int) m_ShadowAtlasResolution; }
-            private set { m_ShadowAtlasResolution = (ShadowResolution) value; }
+            get { return (int)m_ShadowAtlasResolution; }
+            private set { m_ShadowAtlasResolution = (ShadowResolution)value; }
         }
 
         public float ShadowNearOffset
@@ -124,8 +125,8 @@
 
         public int CascadeCount
         {
-            get { return (int) m_ShadowCascades; }
-            private set { m_ShadowCascades = (ShadowCascades) value; }
+            get { return (int)m_ShadowCascades; }
+            private set { m_ShadowCascades = (ShadowCascades)value; }
         }
 
         public float Cascade2Split

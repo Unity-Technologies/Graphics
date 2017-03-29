@@ -47,9 +47,9 @@ StructuredBuffer<DirectionalLight> g_dirLightData;
 
 #define DECLARE_SHADOWMAP( tex ) Texture2D tex; SamplerComparisonState sampler##tex
 #ifdef REVERSE_ZBUF
-	#define SAMPLE_SHADOW( tex, coord ) tex.SampleCmpLevelZero( sampler##tex, (coord).xy, (coord).z )
+    #define SAMPLE_SHADOW( tex, coord ) tex.SampleCmpLevelZero( sampler##tex, (coord).xy, (coord).z )
 #else
-	#define SAMPLE_SHADOW( tex, coord ) tex.SampleCmpLevelZero( sampler##tex, (coord).xy, 1.0-(coord).z )
+    #define SAMPLE_SHADOW( tex, coord ) tex.SampleCmpLevelZero( sampler##tex, (coord).xy, 1.0-(coord).z )
 #endif
 
 DECLARE_SHADOWMAP(g_tShadowBuffer);
@@ -176,9 +176,9 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
     }
 
     uint l=0;
-	// don't need the outer loop since the lights are sorted by volume type
+    // don't need the outer loop since the lights are sorted by volume type
     //while(l<numLights)
-	if(numLights>0)
+    if(numLights>0)
     {
         uint uIndex = l<numLights ? FetchIndex(start, l) : 0;
         uint uLgtType = l<numLights ? g_vLightData[uIndex].lightType : 0;

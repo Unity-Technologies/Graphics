@@ -117,10 +117,10 @@ namespace UnityEngine.Experimental.Rendering
                 var world = Matrix4x4.TRS(camera.transform.position, Quaternion.identity, new Vector3(dist, dist, dist));
 
                 var skyboxProj = SkyboxHelper.GetProjectionMatrix(camera);
-                cmd.SetViewProjectionMatrices (camera.worldToCameraMatrix, skyboxProj);
+                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, skyboxProj);
                 cmd.DrawMesh(mesh, world, mat);
 
-                cmd.SetViewProjectionMatrices (camera.worldToCameraMatrix, camera.projectionMatrix);
+                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
 
             loop.ExecuteCommandBuffer(cmd);

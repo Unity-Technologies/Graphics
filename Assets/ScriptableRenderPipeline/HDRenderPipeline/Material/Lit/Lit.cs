@@ -193,9 +193,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Both GGX and Disney Diffuse BRDFs have zero values in columns 1, 3, 5, 7.
                     // Column 8 contains only ones.
                     pixels[i] = new Color((float)LUTTransformInv[i, 0],
-                                          (float)LUTTransformInv[i, 2],
-                                          (float)LUTTransformInv[i, 4],
-                                          (float)LUTTransformInv[i, 6]);
+                            (float)LUTTransformInv[i, 2],
+                            (float)LUTTransformInv[i, 4],
+                            (float)LUTTransformInv[i, 6]);
                 }
 
                 tex.SetPixels(pixels, arrayElement);
@@ -203,8 +203,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Special-case function for 'm_LtcMultiGGXFresnelDisneyDiffuse'.
             void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format,   float[] LtcGGXMagnitudeData,
-                                                                                        float[] LtcGGXFresnelData,
-                                                                                        float[] LtcDisneyDiffuseMagnitudeData)
+                float[] LtcGGXFresnelData,
+                float[] LtcDisneyDiffuseMagnitudeData)
             {
                 const int count = k_LtcLUTResolution * k_LtcLUTResolution;
                 Color[] pixels = new Color[count];
@@ -214,7 +214,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // We store the result of the subtraction as a run-time optimization.
                     // See the footnote 2 of "LTC Fresnel Approximation" by Stephen Hill.
                     pixels[i] = new Color(LtcGGXMagnitudeData[i] - LtcGGXFresnelData[i],
-                                          LtcGGXFresnelData[i], LtcDisneyDiffuseMagnitudeData[i], 1);
+                            LtcGGXFresnelData[i], LtcDisneyDiffuseMagnitudeData[i], 1);
                 }
 
                 tex.SetPixels(pixels, arrayElement);

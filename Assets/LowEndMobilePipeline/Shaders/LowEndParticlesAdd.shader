@@ -1,4 +1,4 @@
-﻿Shader "ScriptableRenderPipeline/LowEndMobile/Particles/Additive"
+Shader "ScriptableRenderPipeline/LowEndMobile/Particles/Additive"
 {
     Properties
     {

@@ -29,52 +29,52 @@
 // PackingRules = Exact
 struct SFiniteLightData
 {
-	float penumbra;
-	int flags;
-	uint lightType;
-	uint lightModel;
-	float3 lightPos;
-	float lightIntensity;
-	float3 lightAxisX;
-	float recipRange;
-	float3 lightAxisY;
-	float radiusSq;
-	float3 lightAxisZ;
-	float cotan;
-	float3 color;
-	int sliceIndex;
-	float3 boxInnerDist;
-	float decodeExp;
-	float3 boxInvRange;
-	uint shadowLightIndex;
-	float3 localCubeCapturePoint;
-	float probeBlendDistance;
+    float penumbra;
+    int flags;
+    uint lightType;
+    uint lightModel;
+    float3 lightPos;
+    float lightIntensity;
+    float3 lightAxisX;
+    float recipRange;
+    float3 lightAxisY;
+    float radiusSq;
+    float3 lightAxisZ;
+    float cotan;
+    float3 color;
+    int sliceIndex;
+    float3 boxInnerDist;
+    float decodeExp;
+    float3 boxInvRange;
+    uint shadowLightIndex;
+    float3 localCubeCapturePoint;
+    float probeBlendDistance;
 };
 
 // Generated from SFiniteLightBound
 // PackingRules = Exact
 struct SFiniteLightBound
 {
-	float3 boxAxisX;
-	float3 boxAxisY;
-	float3 boxAxisZ;
-	float3 center;
-	float2 scaleXY;
-	float radius;
+    float3 boxAxisX;
+    float3 boxAxisY;
+    float3 boxAxisZ;
+    float3 center;
+    float2 scaleXY;
+    float radius;
 };
 
 // Generated from DirectionalLight
 // PackingRules = Exact
 struct DirectionalLight
 {
-	float3 color;
-	float intensity;
-	float3 lightAxisX;
-	uint shadowLightIndex;
-	float3 lightAxisY;
-	float pad0;
-	float3 lightAxisZ;
-	float pad1;
+    float3 color;
+    float intensity;
+    float3 lightAxisX;
+    uint shadowLightIndex;
+    float3 lightAxisY;
+    float pad0;
+    float3 lightAxisZ;
+    float pad1;
 };
 
 //
@@ -82,83 +82,83 @@ struct DirectionalLight
 //
 float GetPenumbra(SFiniteLightData value)
 {
-	return value.penumbra;
+    return value.penumbra;
 }
 int GetFlags(SFiniteLightData value)
 {
-	return value.flags;
+    return value.flags;
 }
 uint GetLightType(SFiniteLightData value)
 {
-	return value.lightType;
+    return value.lightType;
 }
 uint GetLightModel(SFiniteLightData value)
 {
-	return value.lightModel;
+    return value.lightModel;
 }
 float3 GetLightPos(SFiniteLightData value)
 {
-	return value.lightPos;
+    return value.lightPos;
 }
 float GetLightIntensity(SFiniteLightData value)
 {
-	return value.lightIntensity;
+    return value.lightIntensity;
 }
 float3 GetLightAxisX(SFiniteLightData value)
 {
-	return value.lightAxisX;
+    return value.lightAxisX;
 }
 float GetRecipRange(SFiniteLightData value)
 {
-	return value.recipRange;
+    return value.recipRange;
 }
 float3 GetLightAxisY(SFiniteLightData value)
 {
-	return value.lightAxisY;
+    return value.lightAxisY;
 }
 float GetRadiusSq(SFiniteLightData value)
 {
-	return value.radiusSq;
+    return value.radiusSq;
 }
 float3 GetLightAxisZ(SFiniteLightData value)
 {
-	return value.lightAxisZ;
+    return value.lightAxisZ;
 }
 float GetCotan(SFiniteLightData value)
 {
-	return value.cotan;
+    return value.cotan;
 }
 float3 GetColor(SFiniteLightData value)
 {
-	return value.color;
+    return value.color;
 }
 int GetSliceIndex(SFiniteLightData value)
 {
-	return value.sliceIndex;
+    return value.sliceIndex;
 }
 float3 GetBoxInnerDist(SFiniteLightData value)
 {
-	return value.boxInnerDist;
+    return value.boxInnerDist;
 }
 float GetDecodeExp(SFiniteLightData value)
 {
-	return value.decodeExp;
+    return value.decodeExp;
 }
 float3 GetBoxInvRange(SFiniteLightData value)
 {
-	return value.boxInvRange;
+    return value.boxInvRange;
 }
 uint GetShadowLightIndex(SFiniteLightData value)
 {
-	return value.shadowLightIndex;
+    return value.shadowLightIndex;
 }
 float3 GetLocalCubeCapturePoint(SFiniteLightData value)
 {
-	return value.localCubeCapturePoint;
+    return value.localCubeCapturePoint;
 }
 float GetProbeBlendDistance(SFiniteLightData value)
 {
-	return value.probeBlendDistance;
+    return value.probeBlendDistance;
 }
 
 //
@@ -166,27 +166,27 @@ float GetProbeBlendDistance(SFiniteLightData value)
 //
 float3 GetBoxAxisX(SFiniteLightBound value)
 {
-	return value.boxAxisX;
+    return value.boxAxisX;
 }
 float3 GetBoxAxisY(SFiniteLightBound value)
 {
-	return value.boxAxisY;
+    return value.boxAxisY;
 }
 float3 GetBoxAxisZ(SFiniteLightBound value)
 {
-	return value.boxAxisZ;
+    return value.boxAxisZ;
 }
 float3 GetCenter(SFiniteLightBound value)
 {
-	return value.center;
+    return value.center;
 }
 float2 GetScaleXY(SFiniteLightBound value)
 {
-	return value.scaleXY;
+    return value.scaleXY;
 }
 float GetRadius(SFiniteLightBound value)
 {
-	return value.radius;
+    return value.radius;
 }
 
 //
@@ -194,35 +194,35 @@ float GetRadius(SFiniteLightBound value)
 //
 float3 GetColor(DirectionalLight value)
 {
-	return value.color;
+    return value.color;
 }
 float GetIntensity(DirectionalLight value)
 {
-	return value.intensity;
+    return value.intensity;
 }
 float3 GetLightAxisX(DirectionalLight value)
 {
-	return value.lightAxisX;
+    return value.lightAxisX;
 }
 uint GetShadowLightIndex(DirectionalLight value)
 {
-	return value.shadowLightIndex;
+    return value.shadowLightIndex;
 }
 float3 GetLightAxisY(DirectionalLight value)
 {
-	return value.lightAxisY;
+    return value.lightAxisY;
 }
 float GetPad0(DirectionalLight value)
 {
-	return value.pad0;
+    return value.pad0;
 }
 float3 GetLightAxisZ(DirectionalLight value)
 {
-	return value.lightAxisZ;
+    return value.lightAxisZ;
 }
 float GetPad1(DirectionalLight value)
 {
-	return value.pad1;
+    return value.pad1;
 }
 
 
