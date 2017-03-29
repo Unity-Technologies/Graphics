@@ -1,15 +1,19 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LowendMobile
 {
-    public class LowEndMobilePipeline : RenderPipeline
+    public class LowEndMobilePipeline : RenderPipeline, IComparer<VisibleLight>
     {
         private readonly LowEndMobilePipelineAsset m_Asset;
 
         private static readonly int kMaxCascades = 4;
         private static readonly int kMaxLights = 8;
+        private static readonly int kMaxVertexLights = 4;
+        private int m_ShadowLightIndex = -1;
         private int m_ShadowCasterCascadesCount = kMaxCascades;
+        private readonly int[] m_LightTypePriority = new int[4] {2, 1, 2, 0}; // Spot and Point lights have max priority
         private int m_ShadowMapProperty;
         private RenderTargetIdentifier m_ShadowMapRTID;
         private int m_DepthBufferBits = 24;
@@ -49,20 +53,33 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 cullingParameters.shadowDistance = m_ShadowSettings.maxShadowDistance;
                 CullResults cull = CullResults.Cull(ref cullingParameters, context);
 
-                // Render Shadow Map
-                bool shadowsRendered = RenderShadows(cull, context);
+                VisibleLight[] visibleLights = cull.visibleLights;
 
-                // Draw Opaques with support to one directional shadow cascade
-                // Setup camera matrices
+                int pixelLightsCount, vertexLightsCount;
+                GetMaxSupportedLights(visibleLights.Length, out pixelLightsCount, out vertexLightsCount);
+
+                // TODO: handle shader keywords when no lights are present
+                SortLights(ref visibleLights, pixelLightsCount);
+
+                // TODO: Add remaining lights to SH
+
+                // Render Shadow Map
+                bool shadowsRendered = false;
+                if (m_ShadowLightIndex > -1)
+                    shadowsRendered = RenderShadows(cull, visibleLights[m_ShadowLightIndex], context);
+
+                // Setup camera matrices and RT
                 context.SetupCameraProperties(camera);
 
+                // Clear RenderTarget to avoid tile initialization on mobile GPUs
+                // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
                 var cmd = new CommandBuffer() { name = "Clear" };
-                cmd.ClearRenderTarget(true, true, Color.black);
+                cmd.ClearRenderTarget(true, true, camera.backgroundColor);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
 
                 // Setup light and shadow shader constants
-                SetupLightShaderVariables(cull.visibleLights, context);
+                SetupLightShaderVariables(visibleLights, pixelLightsCount, vertexLightsCount, context);
                 if (shadowsRendered)
                     SetupShadowShaderVariables(context, m_ShadowCasterCascadesCount);
 
@@ -79,6 +96,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
                 context.DrawRenderers(ref settings);
 
+                // Release temporary RT
                 var discardRT = new CommandBuffer();
                 discardRT.ReleaseTemporaryRT(m_ShadowMapProperty);
                 context.ExecuteCommandBuffer(discardRT);
@@ -121,17 +139,17 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                     break;
             }
         }
-
-        private void SetupLightShaderVariables(VisibleLight[] lights, ScriptableRenderContext context)
+        private void GetMaxSupportedLights(int lightsCount, out int pixelLightsCount, out int vertexLightsCount)
         {
+            pixelLightsCount = Mathf.Min(lightsCount, m_Asset.MaxSupportedPixelLights);
+            vertexLightsCount = (m_Asset.SupportsVertexLight) ? Mathf.Min(lightsCount - pixelLightsCount, kMaxVertexLights) : 0;
+        }
+
+        private void SetupLightShaderVariables(VisibleLight[] lights, int pixelLightCount, int vertexLightCount, ScriptableRenderContext context)
+        {
+            int totalLightCount = pixelLightCount + vertexLightCount;
             if (lights.Length <= 0)
                 return;
-
-            int pixelLightCount = Mathf.Min(lights.Length, m_Asset.MaxSupportedPixelLights);
-            int vertexLightCount = (m_Asset.SupportsVertexLight)
-                ? Mathf.Min(lights.Length - pixelLightCount, kMaxLights)
-                : 0;
-            int totalLightCount = Mathf.Min(pixelLightCount + vertexLightCount, kMaxLights);
 
             for (int i = 0; i < totalLightCount; ++i)
             {
@@ -182,35 +200,17 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             cmd.Dispose();
         }
 
-        private bool RenderShadows(CullResults cullResults, ScriptableRenderContext context)
+        private bool RenderShadows(CullResults cullResults, VisibleLight shadowLight, ScriptableRenderContext context)
         {
             m_ShadowCasterCascadesCount = m_ShadowSettings.directionalLightCascadeCount;
 
-            VisibleLight[] lights = cullResults.visibleLights;
-            int lightCount = lights.Length;
+            if (shadowLight.lightType == LightType.Spot)
+                m_ShadowCasterCascadesCount = 1;
 
-            int shadowResolution = 0;
-            int lightIndex = -1;
-            for (int i = 0; i < lightCount; ++i)
-            {
-                LightType type = lights[i].lightType;
-                if (lights[i].light.shadows != LightShadows.None && (type == LightType.Directional || type == LightType.Spot))
-                {
-                    lightIndex = i;
-                    if (lights[i].lightType == LightType.Spot)
-                        m_ShadowCasterCascadesCount = 1;
-
-                    shadowResolution = GetMaxTileResolutionInAtlas(m_ShadowSettings.shadowAtlasWidth,
-                        m_ShadowSettings.shadowAtlasHeight, m_ShadowCasterCascadesCount);
-                    break;
-                }
-            }
-
-            if (lightIndex < 0)
-                return false;
+            int shadowResolution = GetMaxTileResolutionInAtlas(m_ShadowSettings.shadowAtlasWidth, m_ShadowSettings.shadowAtlasHeight, m_ShadowCasterCascadesCount);
 
             Bounds bounds;
-            if (!cullResults.GetShadowCasterBounds(lightIndex, out bounds))
+            if (!cullResults.GetShadowCasterBounds(m_ShadowLightIndex, out bounds))
                 return false;
 
             var setRenderTargetCommandBuffer = new CommandBuffer();
@@ -225,44 +225,45 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
             float shadowNearPlane = m_Asset.ShadowNearOffset;
             Vector3 splitRatio = m_ShadowSettings.directionalLightCascades;
-            Vector3 lightDir = Vector3.Normalize(lights[lightIndex].light.transform.forward);
+            Vector3 lightDir = Vector3.Normalize(shadowLight.light.transform.forward);
 
             Matrix4x4 view, proj;
-            var settings = new DrawShadowsSettings(cullResults, lightIndex);
+            var settings = new DrawShadowsSettings(cullResults, m_ShadowLightIndex);
             bool needRendering = false;
 
-            if (lights[lightIndex].lightType == LightType.Spot)
+            if (shadowLight.lightType == LightType.Spot)
             {
-                needRendering = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(lightIndex, out view, out proj,
+                needRendering = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(m_ShadowLightIndex, out view, out proj,
                         out settings.splitData);
 
-                if (needRendering)
-                {
-                    SetupShadowSliceTransform(0, shadowResolution, proj, view);
-                    RenderShadowSlice(ref context, lightDir, 0, proj, view, settings);
-                }
+                if (!needRendering)
+                    return false;
+
+                SetupShadowSliceTransform(0, shadowResolution, proj, view);
+                RenderShadowSlice(ref context, lightDir, 0, proj, view, settings);
             }
-            else if (lights[lightIndex].lightType == LightType.Directional)
+            else if (shadowLight.lightType == LightType.Directional)
             {
                 for (int cascadeIdx = 0; cascadeIdx < m_ShadowCasterCascadesCount; ++cascadeIdx)
                 {
-                    needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex,
+                    needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(m_ShadowLightIndex,
                     cascadeIdx, m_ShadowCasterCascadesCount, splitRatio, shadowResolution, shadowNearPlane, out view, out proj,
                         out settings.splitData);
 
                     m_DirectionalShadowSplitDistances[cascadeIdx] = settings.splitData.cullingSphere;
                     m_DirectionalShadowSplitDistances[cascadeIdx].w *= settings.splitData.cullingSphere.w;
 
-                    if (needRendering)
-                    {
-                        SetupShadowSliceTransform(cascadeIdx, shadowResolution, proj, view);
-                        RenderShadowSlice(ref context, lightDir, cascadeIdx, proj, view, settings);
-                    }
+                    if (!needRendering)
+                        return false;
+
+                    SetupShadowSliceTransform(cascadeIdx, shadowResolution, proj, view);
+                    RenderShadowSlice(ref context, lightDir, cascadeIdx, proj, view, settings);
                 }
             }
             else
             {
                 Debug.LogWarning("Only spot and directional shadow casters are supported in lowend mobile pipeline");
+                return false;
             }
 
             return true;
@@ -375,7 +376,8 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
            	else
                 cmd.EnableShaderKeyword("_SHADOW_CASCADES");
 
-            switch (m_Asset.CurrShadowType)
+            ShadowType shadowType = (m_ShadowLightIndex != -1) ? m_Asset.CurrShadowType : ShadowType.NO_SHADOW;
+            switch (shadowType)
             {
                 case ShadowType.NO_SHADOW:
                     cmd.DisableShaderKeyword("HARD_SHADOWS");
@@ -392,6 +394,79 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                     cmd.EnableShaderKeyword("SOFT_SHADOWS");
                     break;
             }
+        }
+
+        // Finds main light and main shadow casters and places them in the beginning of array.
+        // Sort the remaining array based on custom IComparer criteria.
+        private void SortLights(ref VisibleLight[] lights, int pixelLightsCount)
+        {
+            m_ShadowLightIndex = -1;
+            if (lights.Length == 0)
+                return;
+
+            bool shadowsSupported = m_Asset.CurrShadowType != ShadowType.NO_SHADOW && pixelLightsCount > 0;
+            int mainLightIndex = -1;
+
+            for (int i = 0; i < lights.Length; ++i)
+            {
+                VisibleLight currLight = lights[i];
+                if (currLight.lightType == LightType.Directional)
+                    if (mainLightIndex == -1 || currLight.light.intensity > lights[mainLightIndex].light.intensity)
+                        mainLightIndex = i;
+
+                if (shadowsSupported && (currLight.light.shadows != LightShadows.None) && IsSupportedShadowType(currLight.lightType))
+                    // Prefer directional shadows, if not sort by intensity
+                    if (m_ShadowLightIndex == -1 || currLight.lightType > lights[m_ShadowLightIndex].lightType)
+                        m_ShadowLightIndex = i;
+            }
+
+            // If supports a single directional light only, main light is main shadow light.
+            if (pixelLightsCount == 1 && m_ShadowLightIndex > -1)
+                mainLightIndex = m_ShadowLightIndex;
+
+            int startIndex = 0;
+            if (mainLightIndex > -1)
+            {
+                SwapLights(ref lights, 0, mainLightIndex);
+                startIndex++;
+            }
+
+            if (mainLightIndex != m_ShadowLightIndex && m_ShadowLightIndex > 0)
+            {
+                SwapLights(ref lights, 1, m_ShadowLightIndex);
+                m_ShadowLightIndex = 1;
+                startIndex++;
+            }
+
+            Array.Sort(lights, startIndex, lights.Length - startIndex, this);
+        }
+
+        private bool IsSupportedShadowType(LightType type)
+        {
+            return (type == LightType.Directional || type == LightType.Spot);
+        }
+
+        private void SwapLights(ref VisibleLight[] lights, int lhsIndex, int rhsIndex)
+        {
+            if (lhsIndex == rhsIndex)
+                return;
+
+            VisibleLight temp = lights[lhsIndex];
+            lights[lhsIndex] = lights[rhsIndex];
+            lights[rhsIndex] = temp;
+        }
+
+        // Prioritizes Spot and Point lights by intensity. If any directional light, it will be the main
+        // light and will not be considered in the computation.
+        // TODO: Move to a better sorting solution, e.g, prioritize lights per object.
+        public int Compare(VisibleLight lhs, VisibleLight rhs)
+        {
+            int lhsLightTypePriority = m_LightTypePriority[(int) lhs.lightType];
+            int rhsLightTypePriority = m_LightTypePriority[(int) rhs.lightType];
+            if (lhsLightTypePriority != rhsLightTypePriority)
+                return rhsLightTypePriority - lhsLightTypePriority;
+
+            return (int) (rhs.light.intensity - lhs.light.intensity);
         }
     }
 }
