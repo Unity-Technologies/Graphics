@@ -134,34 +134,19 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(abs.inputSlots[0].expression is VFXExpressionAdd);
         }
 
-        private void InnerSerializeBasicOperators(bool spawnAbs, bool linkAbs, string suffixname)
+        private void InnerSaveAndReloadTest(string suffixname, Action<VFXGraphAsset> write, Action<VFXGraphAsset> read)
         {
             var kTempAssetPathA = string.Format("{0}/Temp_{1}_A.asset", kTestAssetDir, suffixname);
             var kTempAssetPathB = string.Format("{0}/Temp_{1}_B.asset", kTestAssetDir, suffixname);
             AssetDatabase.DeleteAsset(kTempAssetPathA);
             AssetDatabase.DeleteAsset(kTempAssetPathB);
 
-            int hashCodeAdd = 0; //check reference are different between load & reload
+            int hashCodeAsset = 0; //check reference are different between load & reload
             {
                 var asset = ScriptableObject.CreateInstance<VFXGraphAsset>();
+                hashCodeAsset = asset.GetHashCode();
 
-                var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
-                asset.root.AddChild(add);
-                hashCodeAdd = add.GetHashCode();
-                CheckIsolatedOperatorAdd(add);
-
-                if (spawnAbs)
-                {
-                    var abs = ScriptableObject.CreateInstance<VFXOperatorAbs>();
-                    abs.position = new Vector2(64.0f, 64.0f);
-                    asset.root.AddChild(abs);
-                    CheckIsolatedOperatorAbs(abs);
-                    if (linkAbs)
-                    {
-                        abs.inputSlots[0].Link(add.outputSlots[0]);
-                        CheckConnectedAbs(abs);
-                    }
-                }
+                write(asset);
 
                 AssetDatabase.CreateAsset(asset, kTempAssetPathA);
                 asset.UpdateSubAssets();
@@ -170,53 +155,111 @@ namespace UnityEditor.VFX.Test
                 AssetDatabase.CopyAsset(kTempAssetPathA, kTempAssetPathB);
                 AssetDatabase.RemoveObject(asset);
             }
-
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
             EditorUtility.UnloadUnusedAssetsImmediate();
-
             {
                 VFXGraphAsset asset = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(kTempAssetPathB);
-                Assert.AreEqual(spawnAbs ? 2 : 1, asset.root.GetNbChildren());
-                Assert.IsNotNull((VFXOperatorAdd)asset.root[0]);
-                var add = (VFXOperatorAdd)asset.root[0];
-                Assert.AreNotEqual(hashCodeAdd, add.GetHashCode());
-                CheckIsolatedOperatorAdd(add);
+                Assert.AreNotEqual(hashCodeAsset, asset.GetHashCode());
 
-                if (spawnAbs)
-                {
-                    Assert.IsNotNull((VFXOperatorAbs)asset.root[1]);
-                    var abs = (VFXOperatorAbs)asset.root[1];
-                    CheckIsolatedOperatorAbs(abs);
-                    Assert.AreEqual(abs.position.x, 64.0f);
-                    Assert.AreEqual(abs.position.y, 64.0f);
-                    if (linkAbs)
-                    {
-                        CheckConnectedAbs(abs);
-                    }
-                }
+                read(asset);
             }
-
             AssetDatabase.DeleteAsset(kTempAssetPathA);
             AssetDatabase.DeleteAsset(kTempAssetPathB);
+
+        }
+
+        private void WriteBasicOperators(VFXGraphAsset asset, bool spawnAbs, bool linkAbs)
+        {
+            var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
+            asset.root.AddChild(add);
+
+            CheckIsolatedOperatorAdd(add);
+
+            if (spawnAbs)
+            {
+                var abs = ScriptableObject.CreateInstance<VFXOperatorAbs>();
+                abs.position = new Vector2(64.0f, 64.0f);
+                asset.root.AddChild(abs);
+                CheckIsolatedOperatorAbs(abs);
+                if (linkAbs)
+                {
+                    abs.inputSlots[0].Link(add.outputSlots[0]);
+                    CheckConnectedAbs(abs);
+                }
+            }
+        }
+
+        private void ReadBasicOperators(VFXGraphAsset asset, bool spawnAbs, bool linkAbs)
+        {
+            Assert.AreEqual(spawnAbs ? 2 : 1, asset.root.GetNbChildren());
+            Assert.IsNotNull((VFXOperatorAdd)asset.root[0]);
+            var add = (VFXOperatorAdd)asset.root[0];
+            CheckIsolatedOperatorAdd(add);
+
+            if (spawnAbs)
+            {
+                Assert.IsNotNull((VFXOperatorAbs)asset.root[1]);
+                var abs = (VFXOperatorAbs)asset.root[1];
+                CheckIsolatedOperatorAbs(abs);
+                Assert.AreEqual(abs.position.x, 64.0f);
+                Assert.AreEqual(abs.position.y, 64.0f);
+                if (linkAbs)
+                {
+                    CheckConnectedAbs(abs);
+                }
+            }
+        }
+
+        private void BasicOperatorTest(string suffix, bool spawnAbs, bool linkAbs)
+        {
+            InnerSaveAndReloadTest( suffix,
+                                    (a) => WriteBasicOperators(a, spawnAbs, linkAbs),
+                                    (a) => ReadBasicOperators(a, spawnAbs, linkAbs));
         }
 
         [Test]
         public void SerializeOneOperator()
         {
-            InnerSerializeBasicOperators(false, false, "One");
+            BasicOperatorTest("One", false, false);
         }
 
         [Test]
         public void SerializeTwoOperators()
         {
-            InnerSerializeBasicOperators(true, false, "Two");
+            BasicOperatorTest("Two", true, false);
         }
 
         [Test]
         public void SerializeTwoOperatorsLink()
         {
-            InnerSerializeBasicOperators(true, true, "TwoLinked");
+            BasicOperatorTest("TwoLinked", true, true);
         }
 
+        [Test]
+        public void SerializeOperatorMaskWithState()
+        {
+            string expectedValue = "xyx";
+            Action<VFXGraphAsset> write = delegate (VFXGraphAsset asset)
+            {
+                var mask = ScriptableObject.CreateInstance<VFXOperatorComponentMask>();
+                mask.settings = new VFXOperatorComponentMask.Settings()
+                {
+                    mask = expectedValue
+                };
+                asset.root.AddChild(mask);
+                Assert.AreEqual(expectedValue, (mask.settings as VFXOperatorComponentMask.Settings).mask);
+            };
+
+            Action<VFXGraphAsset> read = delegate (VFXGraphAsset asset)
+            {
+                Assert.AreEqual(1, asset.root.GetNbChildren());
+                Assert.IsInstanceOf(typeof(VFXOperatorComponentMask), asset.root[0]);
+                var mask = asset.root[0] as VFXOperatorComponentMask;
+                Assert.IsInstanceOf(typeof(VFXOperatorComponentMask.Settings), mask.settings);
+                Assert.AreEqual(expectedValue, (mask.settings as VFXOperatorComponentMask.Settings).mask);
+            };
+
+            InnerSaveAndReloadTest("Mask", write, read);
+        }
     }
 }
