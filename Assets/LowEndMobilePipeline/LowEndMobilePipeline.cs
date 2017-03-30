@@ -372,28 +372,16 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             else
                 cmd.DisableShaderKeyword("_VERTEX_LIGHTS");
 
-            if (m_ShadowCasterCascadesCount == 1)
-                cmd.DisableShaderKeyword("_SHADOW_CASCADES");
-            else
-                cmd.EnableShaderKeyword("_SHADOW_CASCADES");
+            string[] shadowKeywords = new string[] { "_HARD_SHADOWS", "_SOFT_SHADOWS", "_HARD_SHADOWS_CASCADES", "_SOFT_SHADOWS_CASCADES" };
+            for (int i = 0; i < shadowKeywords.Length; ++i)
+                cmd.DisableShaderKeyword(shadowKeywords[i]);
 
-            ShadowType shadowType = (m_ShadowLightIndex != -1) ? m_Asset.CurrShadowType : ShadowType.NO_SHADOW;
-            switch (shadowType)
+            if (m_ShadowLightIndex != -1 || m_Asset.CurrShadowType != ShadowType.NO_SHADOW)
             {
-                case ShadowType.NO_SHADOW:
-                    cmd.DisableShaderKeyword("HARD_SHADOWS");
-                    cmd.DisableShaderKeyword("SOFT_SHADOWS");
-                    break;
-
-                case ShadowType.HARD_SHADOWS:
-                    cmd.EnableShaderKeyword("HARD_SHADOWS");
-                    cmd.DisableShaderKeyword("SOFT_SHADOWS");
-                    break;
-
-                case ShadowType.SOFT_SHADOWS:
-                    cmd.DisableShaderKeyword("HARD_SHADOWS");
-                    cmd.EnableShaderKeyword("SOFT_SHADOWS");
-                    break;
+                int keywordIndex = (int)m_Asset.CurrShadowType - 1;
+                if (m_Asset.CascadeCount > 1)
+                    keywordIndex += 2;
+                cmd.EnableShaderKeyword(shadowKeywords[keywordIndex]);
             }
         }
 
