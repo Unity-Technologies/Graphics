@@ -16,18 +16,32 @@ namespace UnityEditor.VFX
             kOutput,
         }
 
-        public Direction direction { get { return m_Direction; } }
-        public VFXProperty property { get { return m_Property; } }
-        public override string name { get { return m_Property.name; } }
+        public Direction direction      { get { return m_Direction; } }
+        public VFXProperty property     { get { return m_Property; } }
+        public override string name     { get { return m_Property.name; } }
+
+        public object value 
+        { 
+            get { return m_Value; }
+            set
+            {
+                if (m_Value != value)
+                {
+                    m_Value = value;
+                    owner.Invalidate(InvalidationCause.kParamChanged);
+                    // TODO Update default expression values
+                }
+            }       
+        }    
 
         public VFXExpression expression 
         {
-            set { SetExpression(value); }
             get 
             {
                 InitializeExpressionTreeIfNeeded();
                 return m_OutExpression; 
             }
+            set { SetExpression(value); }
         }
 
         // Explicit setter to be able to not notify
@@ -94,7 +108,7 @@ namespace UnityEditor.VFX
 
                 foreach (var subInfo in property.SubProperties())
                 {
-                    var subSlot = CreateSub(subInfo, direction, null /* TODOPAUL : sub operation ? */);
+                    var subSlot = CreateSub(subInfo, direction, null);
                     if (subSlot != null)
                         subSlot.Attach(slot,false);
                 }
@@ -148,6 +162,15 @@ namespace UnityEditor.VFX
         protected override void OnRemoved()
         {
             base.OnRemoved();
+        }
+
+        public override T Clone<T>()
+        {
+            var clone = base.Clone<T>();
+            var cloneSlot = clone as VFXSlot;
+
+            cloneSlot.m_LinkedSlots.Clear();
+            return clone;
         }
     
         public int GetNbLinks() { return m_LinkedSlots.Count; }
@@ -395,9 +418,9 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        private void NotifyOwner()
+        private void NotifyOwner(InvalidationCause cause)
         {
-            PropagateToOwner(o => o.Invalidate(VFXModel.InvalidationCause.kConnectionChanged));
+            PropagateToOwner(o => o.Invalidate(cause));
         }
 
         private bool SetOutExpression(VFXExpression expr)
@@ -509,6 +532,7 @@ namespace UnityEditor.VFX
         private VFXExpression m_OutExpression; // output expression that can be fetched
         private bool m_Initialize = false;
 
+        // TODO currently not used
         [Serializable]
         private class MasterData : ISerializationCallbackReceiver
         {
