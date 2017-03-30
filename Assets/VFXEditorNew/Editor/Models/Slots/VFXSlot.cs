@@ -530,6 +530,8 @@ namespace UnityEditor.VFX
         private VFXExpression m_CachedLinkedInExpression; // Cached footprint of latest recompute tree
         private VFXExpression m_InExpression; // correctly converted expression
         private VFXExpression m_OutExpression; // output expression that can be fetched
+
+        [NonSerialized] // This must not survive domain reload !
         private bool m_Initialize = false;
 
         // TODO currently not used

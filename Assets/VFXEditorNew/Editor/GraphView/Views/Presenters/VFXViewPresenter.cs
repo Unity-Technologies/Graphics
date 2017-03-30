@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UI
             if (m_DataInputAnchorPresenters == null)
                 m_DataInputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
 
-            SetGraphAsset(m_GraphAsset != null ? m_GraphAsset : CreateInstance<VFXGraphAsset>(), false);
+            SetGraphAsset(m_GraphAsset != null ? m_GraphAsset : CreateInstance<VFXGraphAsset>(), true);
 		}
 
 		public VFXView View
@@ -417,6 +417,7 @@ namespace UnityEditor.VFX.UI
                     DestroyImmediate(m_GraphAsset);*/
 
                 Clear();
+                Debug.Log(string.Format("SET GRAPH ASSET new:{0} old:{1} force:{2}", graph, m_GraphAsset, force));
                
                 if (m_GraphAsset != null)
                     m_GraphAsset.root.onInvalidateDelegate -= SyncPresentersFromModel;
@@ -464,9 +465,14 @@ namespace UnityEditor.VFX.UI
                         // TODO Temp We recreate flow edges
                         if (model is VFXSystem)
                             CreateFlowEdges((VFXSystem)model);
+                        else
+                            RecreateOperatorEdges(); //TODOPAUL : Filter this call
 
                         break;
                     }
+                case VFXModel.InvalidationCause.kConnectionChanged:
+                    RecreateOperatorEdges(); //TODOPAUL : Filter this call
+                    break;
             }
 
             Debug.Log("Invalidate Model: " + model + " Cause: " + cause + " nbElements:" + m_Elements.Count);
@@ -492,15 +498,13 @@ namespace UnityEditor.VFX.UI
                 newPresenter = presenter as IVFXPresenter;
             }
 
+            syncedModels[model] = newPresenter;
             if (newPresenter != null)
             {
-                syncedModels[model] = newPresenter;
                 var presenter = (GraphElementPresenter)newPresenter;
                 newPresenter.Init(model,this);
                 AddElement(presenter);
             }
-
-            RecreateOperatorEdges(); //TODOPAUL : Filter this call
         }
 
         private void RemovePresentersFromModel(VFXModel model,Dictionary<VFXModel,IVFXPresenter> syncedModels)

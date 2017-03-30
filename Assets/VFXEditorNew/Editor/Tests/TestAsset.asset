@@ -111,7 +111,15 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
-  m_Owner: {fileID: 114621041695513892}
+  m_MasterSlot: {fileID: 0}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_SerializedValue:
+      typeInfo:
+        fullName: 
+        assemblyName: 
+      JSONnodeData: 
+  m_Owner: {fileID: 0}
   m_Property:
     name: o
     typeName: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
@@ -153,6 +161,14 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_MasterSlot: {fileID: 0}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_SerializedValue:
+      typeInfo:
+        fullName: 
+        assemblyName: 
+      JSONnodeData: 
   m_Owner: {fileID: 114621041695513892}
   m_Property:
     name: right
@@ -214,8 +230,7 @@ MonoBehaviour:
   m_InputSlots:
   - {fileID: 114511413703960404}
   - {fileID: 114632218966125962}
-  m_OutputSlots:
-  - {fileID: 114504964498985116}
+  m_OutputSlots: []
   m_SerializableSettings:
     typeInfo:
       fullName: 
@@ -236,6 +251,14 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_MasterSlot: {fileID: 0}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_SerializedValue:
+      typeInfo:
+        fullName: 
+        assemblyName: 
+      JSONnodeData: 
   m_Owner: {fileID: 114621041695513892}
   m_Property:
     name: left
