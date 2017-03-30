@@ -268,8 +268,14 @@ namespace UnityEditor.VFX
                 if (toUnlink.direction == Direction.kOutput)
                     throw new InvalidOperationException("Set an invalid input expression to output slot");
 
+                Debug.Log(string.Format("Invalid connection when recomputing expression for slot {0}", DebugName));
                 toUnlink.UnlinkAll();
             }
+        }
+
+        public string DebugName
+        {
+            get { return string.Format("{0} {1}",GetType().Name,id); }
         }
 
         // Return slot to unlink in case of issue
@@ -314,7 +320,7 @@ namespace UnityEditor.VFX
             if (!needsRecompute) // We dont need to recompute, tree is already up to date
                 return null;
 
-            Debug.Log("RECOMPUTE EXPRESSION TREE FOR " + GetType().Name + " " + id);
+            Debug.Log("RECOMPUTE EXPRESSION TREE FOR " + DebugName);
 
             List<VFXSlot> startSlots = new List<VFXSlot>();
             List<VFXSlot> toUnlink = new List<VFXSlot>();
@@ -397,8 +403,11 @@ namespace UnityEditor.VFX
                 if (direction == Direction.kOutput)
                 {
                     var toRemove = LinkedSlots.Where(s => !s.CanConvertFrom(expr)); // Break links that are no more valid
-                    foreach (var slot in toRemove) 
+                    foreach (var slot in toRemove)
+                    {
+                        Debug.Log(string.Format("Invalid link between {0} and {1} - Break it!", DebugName, slot.DebugName));
                         Unlink(slot);
+                    }
                 }
             }
             return true;
