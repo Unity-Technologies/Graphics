@@ -9,22 +9,15 @@ namespace UnityEditor.VFX.UI
     class VFXNodePresenter : NodePresenter, IVFXPresenter
     {
         private VFXViewPresenter m_View;
-        public virtual VFXModel model { get { return m_Node; } }
+        public VFXModel model { get { return m_Node; } }
 
         [SerializeField]
         private VFXSlotContainerModel<VFXModel, VFXModel> m_Node;
         public VFXSlotContainerModel<VFXModel, VFXModel> node { get { return m_Node; } }
 
-        private NodeAnchorPresenter CreateAnchorPresenter(VFXSlot slot, Direction direction)
+        protected virtual NodeAnchorPresenter CreateAnchorPresenter(VFXSlot slot, Direction direction)
         {
             var inAnchor = CreateInstance<VFXNodeAnchorPresenter>();
-            var expression = slot.expression;
-            inAnchor.anchorType = expression == null ? typeof(float) : VFXExpression.TypeToType(expression.ValueType);
-            if (expression == null)
-            {
-                inAnchor.name = "Empty";
-            }
-
             inAnchor.Init(this, slot.id, direction);
             return inAnchor;
         }

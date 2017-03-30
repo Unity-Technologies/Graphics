@@ -23,6 +23,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        protected override NodeAnchorPresenter CreateAnchorPresenter(VFXSlot slot, Direction direction)
+        {
+            var anchor = base.CreateAnchorPresenter(slot, direction);
+            var expression = slot.expression;
+            anchor.anchorType = expression == null ? typeof(float) : VFXExpression.TypeToType(expression.ValueType);
+            if (expression == null)
+            {
+                anchor.name = "Empty";
+            }
+            return anchor;
+        }
+
         protected override void Reset()
         {
             if (Operator != null)

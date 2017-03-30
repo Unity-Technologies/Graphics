@@ -56,6 +56,5 @@ namespace UnityEditor.VFX
                 Invalidate(InvalidationCause.kStructureChanged);
             }
         }
-
     }
 }
