@@ -275,7 +275,6 @@ namespace UnityEditor.VFX
         // Return slot to unlink in case of issue
         private VFXSlot TryRecomputeExpressionTree(bool propagate = false,bool notify = true)
         {
-            Debug.Log("RECOMPUTE EXPRESSION TREE FOR " + GetType().Name +" " + id);
             // Start from the top most parent
             var masterSlot = GetTopMostParent();
 
@@ -314,6 +313,8 @@ namespace UnityEditor.VFX
 
             if (!needsRecompute) // We dont need to recompute, tree is already up to date
                 return null;
+
+            Debug.Log("RECOMPUTE EXPRESSION TREE FOR " + GetType().Name + " " + id);
 
             List<VFXSlot> startSlots = new List<VFXSlot>();
             List<VFXSlot> toUnlink = new List<VFXSlot>();

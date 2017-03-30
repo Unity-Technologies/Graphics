@@ -68,11 +68,15 @@ namespace UnityEditor.VFX
         private void OnModelInvalidate(VFXModel model,VFXModel.InvalidationCause cause)
         {
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
+            {
+                Debug.Log("UPDATE SUB ASSETS");
                 if (UpdateSubAssets())
                 {
                     //AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
                 }
+            }
 
+            Debug.Log("ASSET DIRTY " + cause);
             EditorUtility.SetDirty(this);
         }
 
