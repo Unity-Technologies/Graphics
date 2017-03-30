@@ -368,7 +368,8 @@ void DecodeFromGBuffer(
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = baseColor;
-        bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
+        // TODO take from subsurfaceProfile
+        bsdfData.fresnel0 = 0.04; /* 0.028 ? */
         bsdfData.subsurfaceProfile = (SSS_N_PROFILES - 1) * inGBuffer2.a;
         // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
         bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * inGBuffer2.r;
