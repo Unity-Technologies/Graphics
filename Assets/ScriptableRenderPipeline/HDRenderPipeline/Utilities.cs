@@ -92,6 +92,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.Dispose();
         }
 
+        public static void ClearCubemap(ScriptableRenderContext renderContext, RenderTargetIdentifier buffer, Color clearColor)
+        {
+            var cmd = new CommandBuffer();
+            cmd.name = "";
+
+            for(int i = 0 ; i < 6 ; ++i)
+            {
+                SetRenderTarget(renderContext, buffer, ClearFlag.ClearColor, Color.black, 0, (CubemapFace)i);
+            }
+
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
+
         // Miscellanous
         public static Material CreateEngineMaterial(string shaderPath)
         {
