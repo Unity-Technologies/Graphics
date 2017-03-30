@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.UI
                     outputAnchors.Clear();
                     inputAnchors.AddRange(node.inputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)));
                     outputAnchors.AddRange(node.outputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)));
-                    m_View.RecreateOperatorEdges();
+                    m_View.RecreateNodeEdges();
                 }
             }
             else

@@ -68,11 +68,11 @@ namespace UnityEditor.VFX.UI
 			}
 		}
 
-        public void RecreateOperatorEdges()
+        public void RecreateNodeEdges()
         {
             m_Elements.RemoveAll(e => e is VFXNodeEdgePresenter);
 
-            var operatorPresenters = m_Elements.OfType<VFXOperatorPresenter>().Cast<VFXOperatorPresenter>().ToArray();
+            var operatorPresenters = m_Elements.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>().ToArray();
             foreach (var operatorPresenter in operatorPresenters)
             {
                 var modelOperator = operatorPresenter.node;
@@ -122,7 +122,7 @@ namespace UnityEditor.VFX.UI
                 var slotInput = toAnchor.sourceNode.node.inputSlots.First(s => s.id == toAnchor.slotID);
                 var slotOuput = fromAnchor.sourceNode.node.outputSlots.First(s => s.id == fromAnchor.slotID);
                 slotInput.Link(slotOuput);
-                RecreateOperatorEdges();
+                RecreateNodeEdges();
             }
             else
             {
@@ -149,16 +149,16 @@ namespace UnityEditor.VFX.UI
 				m_GraphAsset.root.RemoveChild(context.GetParent());
 				context.Detach();
 			}
-            else if (element is VFXOperatorPresenter)
+            else if (element is VFXNodePresenter)
             {
-                var operatorPresenter = element as VFXOperatorPresenter;
+                var operatorPresenter = element as VFXNodePresenter;
                 var allSlots = operatorPresenter.node.inputSlots.Concat(operatorPresenter.node.outputSlots).ToArray();
                 foreach (var slot in allSlots)
                 {
                     slot.UnlinkAll();
                 }
                 m_GraphAsset.root.RemoveChild(operatorPresenter.node);
-                RecreateOperatorEdges();
+                RecreateNodeEdges();
             }
 			else if (element is VFXFlowEdgePresenter)
 			{
@@ -178,7 +178,7 @@ namespace UnityEditor.VFX.UI
                 if (slot != null)
                 {
                     slot.UnlinkAll();
-                    RecreateOperatorEdges();
+                    RecreateNodeEdges();
                 }
             }
             else
@@ -508,7 +508,7 @@ namespace UnityEditor.VFX.UI
                 AddElement(presenter);
             }
 
-            RecreateOperatorEdges(); //TODOPAUL : Filter this call
+            RecreateNodeEdges(); //TODOPAUL : Filter this call
         }
 
         private void RemovePresentersFromModel(VFXModel model,Dictionary<VFXModel,IVFXPresenter> syncedModels)

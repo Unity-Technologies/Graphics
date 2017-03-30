@@ -15,6 +15,16 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
+            Invalidate(InvalidationCause.kStructureChanged);
+        }
+
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.OnInvalidate(model, cause);
+            if (m_Type != null && outputSlots.Count == 0)
+            {
+                AddSlot(VFXSlot.Create(new VFXProperty(m_Type, "o"), VFXSlot.Direction.kOutput));
+            }
         }
 
         [SerializeField]
@@ -43,6 +53,7 @@ namespace UnityEditor.VFX
             {
                 Debug.AssertFormat(m_Type == null, "Type should be only set once");
                 m_Type = value;
+                Invalidate(InvalidationCause.kStructureChanged);
             }
         }
 
