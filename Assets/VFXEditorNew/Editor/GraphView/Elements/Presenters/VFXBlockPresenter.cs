@@ -141,8 +141,8 @@ namespace UnityEditor.VFX.UI
 			}
 
 			buffers[index] = stack[0];
-
-			m_Model.Invalidate(VFXModel.InvalidationCause.kParamChanged);
+            m_Model.GetInputSlot(index).value = stack[0];
+			//m_Model.Invalidate(VFXModel.InvalidationCause.kParamChanged); 
 
 
 			foreach (var anchorPresenter in m_Anchors.Values)

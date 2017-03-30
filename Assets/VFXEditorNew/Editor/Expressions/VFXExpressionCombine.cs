@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionCombine(VFXExpression[] parents)
+        public VFXExpressionCombine(params VFXExpression[] parents)
         {
             if (parents.Length <= 1 || parents.Length > 4 || parents.Any(o => !IsFloatValueType(o.ValueType)))
             {

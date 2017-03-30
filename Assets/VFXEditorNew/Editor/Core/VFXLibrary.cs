@@ -18,6 +18,7 @@ namespace UnityEditor.VFX
 
         public bool register = true;
         public string category = "";
+        public Type type = null; // Used by slots to map types to slot
 
         public static VFXInfoAttribute Get(Object obj)
         {
@@ -39,7 +40,8 @@ namespace UnityEditor.VFX
         }
 
         public string name { get { return m_Template.name; } }
-        public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template); }}
+        public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template); } }
+        public Type modelType { get { return m_Template.GetType(); } }
 
         public bool AcceptParent(VFXModel parent, int index = -1)
         {
@@ -57,9 +59,17 @@ namespace UnityEditor.VFX
 
     static class VFXLibrary
     {
-        public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts() { LoadIfNeeded(); return m_ContextDescs; }
-        public static IEnumerable<VFXModelDescriptor<VFXBlock>> GetBlocks()     { LoadIfNeeded(); return m_BlockDescs; }
-        public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators() { LoadIfNeeded(); return m_OperatorDescs; }
+        public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts()     { LoadIfNeeded(); return m_ContextDescs; }
+        public static IEnumerable<VFXModelDescriptor<VFXBlock>> GetBlocks()         { LoadIfNeeded(); return m_BlockDescs; }
+        public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators()   { LoadIfNeeded(); return m_OperatorDescs; }
+        public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots()           { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
+        public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)         
+        { 
+            LoadSlotsIfNeeded(); 
+            VFXModelDescriptor<VFXSlot> desc;
+            m_SlotDescs.TryGetValue(type,out desc);
+            return desc;
+        }
 
         public static void LoadIfNeeded()
         {
@@ -77,10 +87,34 @@ namespace UnityEditor.VFX
         {
             lock(m_Lock)
             {
-                m_Loaded = true;
+                LoadSlotsIfNeeded();
                 m_ContextDescs = LoadModels<VFXContext>();
                 m_BlockDescs = LoadModels<VFXBlock>();
                 m_OperatorDescs = LoadModels<VFXOperator>();
+                
+                m_Loaded = true;
+
+                // Debug
+                Debug.Log("ALL REGISTERED SLOTS:");
+                foreach (var slot in m_SlotDescs)
+                {
+                    Debug.Log(slot.Key + " -> " + slot.Value.modelType);
+                }
+            }
+        }
+
+        private static void LoadSlotsIfNeeded()
+        {
+            if (m_SlotLoaded)
+                return;
+
+            lock (m_Lock)
+            {
+                if (!m_SlotLoaded)
+                {
+                    m_SlotDescs = LoadSlots();
+                    m_SlotLoaded = true;
+                }
             }
         }
 
@@ -97,12 +131,37 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("Error while loading model from type " + modelType + ": " + e.Message);
-                    m_Loaded = false;
+                    Debug.LogError("Error while loading model from type " + modelType + ": " + e);
                 }
             }
 
             return modelDescs.OrderBy(o => o.name).ToList();
+        }
+
+        private static Dictionary<Type, VFXModelDescriptor<VFXSlot>> LoadSlots()
+        {
+            var slotTypes = FindConcreteSubclasses<VFXSlot>();
+            var dictionary = new Dictionary<Type, VFXModelDescriptor<VFXSlot>>();
+            foreach (var slotType in slotTypes)
+            {
+                try
+                {
+                    Type boundType = VFXInfoAttribute.Get(slotType).type; // Not null as it was filtered before
+                    if (boundType != null)
+                    {
+                        if (dictionary.ContainsKey(boundType))
+                            throw new Exception(boundType + " was already bound to a slot type");
+
+                        VFXSlot instance = (VFXSlot)ScriptableObject.CreateInstance(slotType);
+                        dictionary[boundType] = new VFXModelDescriptor<VFXSlot>(instance);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("Error while loading slot from type " + slotType + ": " + e);
+                }
+            }
+            return dictionary;
         }
 
         private static IEnumerable<Type> FindConcreteSubclasses<T>()
@@ -131,8 +190,10 @@ namespace UnityEditor.VFX
         private static volatile List<VFXModelDescriptor<VFXContext>> m_ContextDescs;
         private static volatile List<VFXModelDescriptor<VFXOperator>> m_OperatorDescs;
         private static volatile List<VFXModelDescriptor<VFXBlock>> m_BlockDescs;
+        private static volatile Dictionary<Type,VFXModelDescriptor<VFXSlot>> m_SlotDescs;
 
         private static Object m_Lock = new Object();
         private static volatile bool m_Loaded = false;
+        private static volatile bool m_SlotLoaded = false;
     }
 }

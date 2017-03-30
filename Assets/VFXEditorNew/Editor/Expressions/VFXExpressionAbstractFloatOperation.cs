@@ -13,13 +13,7 @@ namespace UnityEditor.VFX
             m_Parents = new VFXExpression[] { };
             m_AdditionnalParameters = new int[] { };
         }
-        public static bool IsFloatValueType(VFXValueType valueType)
-        {
-            return valueType == VFXValueType.kFloat
-                    || valueType == VFXValueType.kFloat2
-                    || valueType == VFXValueType.kFloat3
-                    || valueType == VFXValueType.kFloat4;
-        }
+
         static private float[] ToFloatArray(float input) { return new float[] { input }; }
         static private float[] ToFloatArray(Vector2 input) { return new float[] { input.x, input.y }; }
         static private float[] ToFloatArray(Vector3 input) { return new float[] { input.x, input.y, input.z }; }

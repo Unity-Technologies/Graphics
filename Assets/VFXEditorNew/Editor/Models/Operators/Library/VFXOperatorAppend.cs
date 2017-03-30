@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     {
         override public string name { get { return "AppendVector"; } }
 
-        public class Properties
+        public class InputProperties
         {
             public FloatN a = 0.0f;
             public FloatN b = 0.0f;
@@ -19,33 +19,38 @@ namespace UnityEditor.VFX
 
         sealed protected override void OnOperatorInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if (cause == InvalidationCause.kParamChanged)
+            if (cause != InvalidationCause.kUIChanged)
             {
-                var newInputSlots = new List<VFXMitoSlotInput>();
-                var size = 0;
-                foreach (var slot in InputSlots)
+                var emptySlot = inputSlots.Where(s => s.expression == null).ToArray();
+                foreach (var slot in emptySlot)
                 {
-                    var expression = slot.expression;
-                    if (expression != null)
-                    {
-                        size += VFXExpression.TypeToSize(expression.ValueType);
-                        newInputSlots.Add(slot);
-                    }
+                    RemoveSlot(slot, false);
                 }
 
-                if (newInputSlots.All(s => s.parent != null) && size < 4)
+                var size = inputSlots.Sum(s => VFXExpression.TypeToSize(s.expression.ValueType));
+                if (inputSlots.All(s => s.HasLink()) && size < 4)
                 {
-                    newInputSlots.Add(new VFXMitoSlotInput(new FloatN()));
+                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput), false);
                 }
-                InputSlots = newInputSlots.ToArray();
             }
+
             base.OnOperatorInvalidate(model, cause);
         }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var allComponent = inputExpression.SelectMany(e => VFXOperatorUtility.ExtractComponents(e));
-            return new[] { new VFXExpressionCombine(allComponent.Take(4).ToArray()) };
+            var allComponent = inputExpression.SelectMany(e => VFXOperatorUtility.ExtractComponents(e))
+                                                .Take(4)
+                                                .ToArray();
+            if (allComponent.Length == 0)
+            {
+                return new VFXExpression[] { };
+            }
+            else if (allComponent.Length == 1)
+            {
+                return allComponent;
+            }
+            return new[] { new VFXExpressionCombine(allComponent) };
         }
     }
 }

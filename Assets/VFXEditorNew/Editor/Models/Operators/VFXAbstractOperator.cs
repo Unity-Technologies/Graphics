@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
             return new Vector4(value.x, value.y, value.z, value.w);
         }
 
-        public static implicit operator VFXExpression(FloatN value)
+        public static implicit operator VFXValue(FloatN value)
         {
             switch (value.realSize)
             {
@@ -90,6 +90,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
+        [SerializeField]
         private float[] m_Components;
     }
 
@@ -99,12 +100,17 @@ namespace UnityEditor.VFX
 
         protected VFXOperatorFloatUnified()
         {
-            if (InputSlots.Any(o => !(o.defaultValue is FloatN) || ((FloatN)o.defaultValue).realSize == 0))
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            if (inputSlots.Any(s => s.property.type != typeof(FloatN)))
             {
-                throw new Exception(string.Format("VFXOperatorFloatUnified except only FloatN with size > 0 as input : {0}", GetType()));
+                throw new Exception(string.Format("VFXOperatorFloatUnified except only FloatN as input : {0}", GetType()));
             }
 
-            var propertyType = GetPropertiesType();
+            var propertyType = GetType().GetNestedType(GetInputPropertiesTypeName());
             if (propertyType != null)
             {
                 var fields = propertyType.GetFields().Where(o => o.IsStatic && o.Name == "FallbackValue");
@@ -126,7 +132,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorUnaryFloatOperation : VFXOperatorFloatUnified
     {
-        public class Properties
+        public class InputProperties
         {
             public FloatN input = new FloatN(new[] { 0.0f });
         }
@@ -136,26 +142,33 @@ namespace UnityEditor.VFX
     {
         sealed protected override void OnOperatorInvalidate(VFXModel model,InvalidationCause cause)
         {
-            if (cause == InvalidationCause.kParamChanged)
+            if (cause != InvalidationCause.kUIChanged)
             {
-                var newInputSlots = InputSlots.ToList();
-
                 //Remove useless unplugged slot (ensuring there is at least 2 slots)
-                for (int slotIndex = newInputSlots.Count - 1; slotIndex >= 0 && newInputSlots.Count > 2; --slotIndex)
+                var currentSlots = inputSlots.ToList();
+                var uselessSlots = new Stack<VFXSlot>(currentSlots.Where((s, i) => i >= 2 && !s.HasLink()));
+                foreach (var slot in uselessSlots)
                 {
-                    var currentSlot = newInputSlots[slotIndex];
-                    if (currentSlot.expression == null)
+                    currentSlots.Remove(slot);
+                }
+
+                if (currentSlots.All(s => s.HasLink()))
+                {
+                    if (uselessSlots.Count == 0)
                     {
-                        newInputSlots.RemoveAt(slotIndex);
+                        AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput),false);
+                    }
+                    else
+                    {
+                        uselessSlots.Pop();
                     }
                 }
 
-                if (newInputSlots.All(s => s.parent != null))
+                //Update deprecated Slot
+                foreach (var slot in uselessSlots)
                 {
-                    //Add new available slot element
-                    newInputSlots.Add(new VFXMitoSlotInput(new FloatN()));
+                    RemoveSlot(slot,false);
                 }
-                InputSlots = newInputSlots.ToArray();
 
                 var inputExpression = GetInputExpressions();
                 //Process aggregate two by two element until result
@@ -174,7 +187,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorBinaryFloatOperationOne : VFXOperatorBinaryFloatCascadableOperation
     {
-        public class Properties
+        public class InputProperties
         {
             static public float FallbackValue = 1.0f;
             public FloatN right = FallbackValue;
@@ -184,11 +197,13 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorBinaryFloatOperationZero : VFXOperatorBinaryFloatCascadableOperation
     {
-        public class Properties
+        public class InputProperties
         {
             static public float FallbackValue = 0.0f;
             public FloatN right = FallbackValue;
             public FloatN left = FallbackValue;
         }
+
+
     }
 }

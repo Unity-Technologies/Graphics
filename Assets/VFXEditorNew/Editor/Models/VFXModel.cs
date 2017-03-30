@@ -11,14 +11,21 @@ namespace UnityEditor.VFX
     {
         public enum InvalidationCause
         {
-            kStructureChanged,  // Model structure (hierarchy) has changed
-            kParamChanged,      // Some parameter values have changed
-            kDataChanged,       // Data layout have changed
-            kUIChanged,         // UI stuff has changed
+            kStructureChanged,      // Model structure (hierarchy) has changed
+            kParamChanged,          // Some parameter values have changed
+            kParamPropagated,       // Some parameter values have change and was propagated from the parents
+            kConnectionChanged,     // Connection have changed
+            kConnectionPropagated,  // No direct change to the model but a change in connection was propagated from the parents
+            kUIChanged,             // UI stuff has changed
         }
 
         public virtual string name  { get { return string.Empty; } }
         public Guid id              { get { return m_Id; } }
+
+        public string DebugName
+        {
+            get { return string.Format("{0} {1}", GetType().Name, id); }
+        }
 
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 
@@ -29,7 +36,7 @@ namespace UnityEditor.VFX
             m_Id = Guid.NewGuid();
         }
 
-        public void OnEnable()
+        public virtual void OnEnable()
         {
             if (m_Children == null)
                 m_Children = new List<VFXModel>();
@@ -76,7 +83,10 @@ namespace UnityEditor.VFX
         protected virtual void OnAdded() {}
         protected virtual void OnRemoved() {}
 
-        public abstract bool AcceptChild(VFXModel model, int index = -1);
+        public virtual bool AcceptChild(VFXModel model, int index = -1)
+        {
+            return false;
+        }
 
         public void AddChild(VFXModel model, int index = -1, bool notify = true)
         {
@@ -129,9 +139,6 @@ namespace UnityEditor.VFX
 
         public void Attach(VFXModel parent, bool notify = true)
         {
-            if (parent == null)
-                throw new ArgumentNullException();
-
             parent.AddChild(this, -1, notify);
         }
 
@@ -204,7 +211,7 @@ namespace UnityEditor.VFX
             Invalidate(this,cause);
         }
 
-        private void Invalidate(VFXModel model,InvalidationCause cause)
+        protected virtual void Invalidate(VFXModel model,InvalidationCause cause)
         {
             OnInvalidate(model,cause);
             if (m_Parent != null)
