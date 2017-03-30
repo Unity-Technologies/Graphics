@@ -75,7 +75,7 @@ namespace UnityEditor.VFX
                         }
                     }
                     m_SettingsBuffer = value;
-                    Invalidate(InvalidationCause.kParamChanged);
+                    Invalidate(InvalidationCause.kStructureChanged);
                 }
             }
         }

@@ -87,7 +87,7 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
-            if (m_InputValues == null)
+            if (m_InputSlots == null)
             {
                 m_InputSlots = new List<VFXSlot>();
                 InitProperties(GetInputPropertiesTypeName(), out m_InputProperties, out m_InputValues, VFXSlot.Direction.kInput);
