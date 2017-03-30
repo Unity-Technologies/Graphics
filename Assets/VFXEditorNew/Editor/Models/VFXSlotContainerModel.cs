@@ -102,12 +102,13 @@ namespace UnityEditor.VFX
             UpdateOutputs();
         }
 
-        public override void CollectDependencies(HashSet<Object> children)
+        public override void CollectDependencies(HashSet<Object> objs)
         {
-            base.CollectDependencies(children);
+            base.CollectDependencies(objs);
             foreach (var slot in m_InputSlots.Concat(m_OutputSlots))
             {
-                children.Add(slot);
+                objs.Add(slot);
+                slot.CollectDependencies(objs);
             }
         }
 
