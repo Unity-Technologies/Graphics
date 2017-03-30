@@ -138,6 +138,17 @@ namespace UnityEditor.VFX
         {
             // do nothing for slots
         }
+
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+
+        }
+
+        protected override void OnRemoved()
+        {
+            base.OnRemoved();
+        }
     
         public int GetNbLinks() { return m_LinkedSlots.Count; }
         public bool HasLink() { return GetNbLinks() != 0; }
@@ -268,14 +279,9 @@ namespace UnityEditor.VFX
                 if (toUnlink.direction == Direction.kOutput)
                     throw new InvalidOperationException("Set an invalid input expression to output slot");
 
-                Debug.Log(string.Format("Invalid connection when recomputing expression for slot {0}", DebugName));
+                Debug.Log(string.Format("Invalid connection when recomputing expression for slot {0}", toUnlink.DebugName));
                 toUnlink.UnlinkAll();
             }
-        }
-
-        public string DebugName
-        {
-            get { return string.Format("{0} {1}",GetType().Name,id); }
         }
 
         // Return slot to unlink in case of issue
@@ -495,6 +501,7 @@ namespace UnityEditor.VFX
             return null; 
         }
 
+        // Expression cache
         private VFXExpression m_DefaultExpression; // The default expression
         private VFXExpression m_LinkedInExpression; // The current linked expression to the slot
         private VFXExpression m_CachedLinkedInExpression; // Cached footprint of latest recompute tree
@@ -502,7 +509,33 @@ namespace UnityEditor.VFX
         private VFXExpression m_OutExpression; // output expression that can be fetched
         private bool m_Initialize = false;
 
+        [Serializable]
+        private class MasterData : ISerializationCallbackReceiver
+        {
+            public VFXModel m_Owner;
+            [NonSerialized]
+            public object m_Value;
+            [SerializeField]
+            public SerializationHelper.JSONSerializedElement m_SerializedValue;
+
+            public virtual void OnBeforeSerialize()
+            {
+                if (m_Value != null)
+                    m_SerializedValue = SerializationHelper.Serialize(m_Value);
+                else
+                    m_SerializedValue.Clear();
+            }
+
+            public virtual void OnAfterDeserialize()
+            {
+                m_Value = !m_SerializedValue.Empty ? SerializationHelper.Deserialize<object>(m_SerializedValue, null) : null;
+            }
+        }
+
+        [SerializeField]
         private VFXSlot m_MasterSlot;
+        [SerializeField]
+        private MasterData m_MasterData;
 
         [SerializeField]
         public VFXModel m_Owner;

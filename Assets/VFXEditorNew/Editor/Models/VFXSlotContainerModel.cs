@@ -112,6 +112,31 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual T Clone<T>() where T : VFXModel
+        {
+            var clone = base.Clone<T>();
+            var cloneContainer = clone as VFXSlotContainerModel<ParentType, ChildrenType>;
+
+            cloneContainer.m_InputSlots.Clear();
+            cloneContainer.m_OutputSlots.Clear();
+
+            foreach (var input in inputSlots)
+            {
+                var cloneSlot = input.Clone<VFXSlot>();
+                cloneContainer.m_InputSlots.Add(cloneSlot);
+                cloneSlot.m_Owner = cloneContainer;
+            }
+
+            foreach (var output in outputSlots)
+            {
+                var cloneSlot = output.Clone<VFXSlot>();
+                cloneContainer.m_OutputSlots.Add(cloneSlot);
+                cloneSlot.m_Owner = cloneContainer;
+            }
+
+            return clone;
+        }
+        
         static private VFXExpression GetExpressionFromObject(object value)
         {
             if (value is float)
