@@ -48,13 +48,26 @@ namespace UnityEditor.VFX
             return parent.AcceptChild(m_Template, index);
         }
 
-        public T CreateInstance()
+        virtual public T CreateInstance()
         {
-            //return (T)System.Activator.CreateInstance(m_Template.GetType());
             return (T)ScriptableObject.CreateInstance(m_Template.GetType());
         }
 
-        private T m_Template;
+        protected T m_Template;
+    }
+
+    class VFXModelDescriptorParameters : VFXModelDescriptor<VFXParameter>
+    {
+        public VFXModelDescriptorParameters(VFXParameter template):base(template)
+        {
+        }
+
+        public override VFXParameter CreateInstance()
+        {
+            var instance = base.CreateInstance();
+            instance.type = m_Template.type;
+            return instance;
+        }
     }
 
     static class VFXLibrary
@@ -63,7 +76,9 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXBlock>> GetBlocks()         { LoadIfNeeded(); return m_BlockDescs; }
         public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators()   { LoadIfNeeded(); return m_OperatorDescs; }
         public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots()           { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
-        public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)         
+        public static IEnumerable<VFXModelDescriptorParameters> GetParameters()     { LoadIfNeeded(); return m_ParametersDescs; }
+
+        public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)
         { 
             LoadSlotsIfNeeded(); 
             VFXModelDescriptor<VFXSlot> desc;
@@ -91,7 +106,15 @@ namespace UnityEditor.VFX
                 m_ContextDescs = LoadModels<VFXContext>();
                 m_BlockDescs = LoadModels<VFXBlock>();
                 m_OperatorDescs = LoadModels<VFXOperator>();
-                
+
+                m_ParametersDescs = m_SlotDescs.Select(s =>
+                {
+                    var param = ScriptableObject.CreateInstance<VFXParameter>();
+                    param.type = s.Key;
+                    var desc = new VFXModelDescriptorParameters(param);
+                    return desc;
+                }).ToList();
+
                 m_Loaded = true;
 
                 // Debug
@@ -190,6 +213,7 @@ namespace UnityEditor.VFX
         private static volatile List<VFXModelDescriptor<VFXContext>> m_ContextDescs;
         private static volatile List<VFXModelDescriptor<VFXOperator>> m_OperatorDescs;
         private static volatile List<VFXModelDescriptor<VFXBlock>> m_BlockDescs;
+        private static volatile List<VFXModelDescriptorParameters> m_ParametersDescs;
         private static volatile Dictionary<Type,VFXModelDescriptor<VFXSlot>> m_SlotDescs;
 
         private static Object m_Lock = new Object();

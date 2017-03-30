@@ -48,11 +48,11 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
             var presenter = GetPresenter<VFXOperatorPresenter>();
-            if (presenter == null || presenter.Operator == null)
+            if (presenter == null || presenter.node == null)
                 return;
 
-            presenter.Operator.position = presenter.position.position;
-            presenter.Operator.collapsed = !presenter.expanded;
+            presenter.node.position = presenter.position.position;
+            presenter.node.collapsed = !presenter.expanded;
             presenter.Operator.settings = presenter.settings;
 
             if (presenter.settings == null)
