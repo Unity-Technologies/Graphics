@@ -62,11 +62,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (settings)
             {
-                if (settings.commonSettings != null)
-                    CommonSettingsSingleton.overrideSettings = settings.commonSettings;
-
-                if (settings.skySettings != null)
-                    SkySettingsSingleton.overrideSettings = settings.skySettings;
+                CommonSettingsSingleton.overrideSettings = settings.commonSettings;
+                SkySettingsSingleton.overrideSettings = settings.skySettings;
             }
             else
             {
