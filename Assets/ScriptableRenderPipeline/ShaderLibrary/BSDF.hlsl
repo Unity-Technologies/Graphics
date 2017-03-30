@@ -226,5 +226,23 @@ float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float perceptualRough
     return INV_PI * DisneyDiffuseNoPI(NdotV, NdotL, LdotH, perceptualRoughness);
 }
 
+// Ref: Diffuse Lighting for GGX + Smith Microsurfaces, p. 113.
+float3 DiffuseGGXNoPI(float3 albedo, float NdotV, float NdotL, float NdotH, float LdotV, float roughness)
+{
+    float facing    = 0.5 + 0.5 * LdotV;
+    float rough     = facing * (0.9 - 0.4 * facing) * ((0.5 + NdotH) / NdotH);
+    float transmitL = 1 - F_Schlick(0, 1, NdotL);
+    float transmitV = 1 - F_Schlick(0, 1, NdotV);
+    float smooth    = transmitL * transmitV * 1.05;   // Normalize F_t over the hemisphere
+    float single    = lerp(smooth, rough, roughness); // Rescaled by PI
+    float multi     = roughness * (0.1159 * PI);      // Rescaled by PI
+
+    return single + albedo * multi;
+}
+
+float3 DiffuseGGX(float3 albedo, float NdotV, float NdotL, float NdotH, float LdotV, float roughness)
+{
+    return INV_PI * DiffuseGGXNoPI(albedo, NdotV, NdotL, NdotH, LdotV, roughness);
+}
 
 #endif // UNITY_BSDF_INCLUDED
