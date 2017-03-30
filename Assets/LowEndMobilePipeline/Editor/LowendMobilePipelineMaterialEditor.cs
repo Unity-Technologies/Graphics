@@ -186,11 +186,7 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
         EditorGUI.BeginChangeCheck();
         source = EditorGUILayout.Popup(Styles.specularSourceLabel, source, Styles.specSourceNames);
         if (EditorGUI.EndChangeCheck())
-        {
             specularSourceProp.floatValue = source;
-            if (source == (int)SpecularSource.BaseTexture)
-                glossinessSourceProp.floatValue = (float)GlossinessSource.BaseAlpha;
-        }
 
         SpecularSource specSource = (SpecularSource)specularSourceProp.floatValue;
         if (specSource != SpecularSource.NoSpecular)

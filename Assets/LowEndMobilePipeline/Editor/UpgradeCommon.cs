@@ -10,7 +10,6 @@ namespace UnityEditor.Experimental.Rendering.LowendMobile
     public enum SpecularSource
     {
         SpecularTextureAndColor,
-        BaseTexture,
         NoSpecular
     }
 
