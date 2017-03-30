@@ -668,7 +668,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float NdotL    = saturate(dot(bsdfData.normalWS, L));
     float NdotV    = preLightData.NdotV;
     float LdotV    = dot(L, V);
-    float invLenLV = rsqrt(2 + 2 * LdotV);    // rcp(length(L + V))
+    float invLenLV = rsqrt(abs(2 + 2 * LdotV));    // invLenLV = rcp(length(L + V))
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV + invLenLV * LdotV);
 
@@ -680,7 +680,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     // Maybe always using aniso maybe a win ?
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
-        float3 H = normalize(V + L);
+        float3 H = (L + V) * invLenLV;
         // For anisotropy we must not saturate these values
         float TdotH = dot(bsdfData.tangentWS, H);
         float TdotL = dot(bsdfData.tangentWS, L);
