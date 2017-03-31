@@ -170,7 +170,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = surfaceData.baseColor;
-        bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
+        // TODO take from subsurfaceProfile
+        bsdfData.fresnel0 = 0.04; /* 0.028 ? */
         bsdfData.subsurfaceProfile = surfaceData.subsurfaceProfile;
         // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
         bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * surfaceData.subsurfaceRadius;
