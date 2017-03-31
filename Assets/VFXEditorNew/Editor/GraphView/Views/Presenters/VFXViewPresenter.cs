@@ -474,12 +474,12 @@ namespace UnityEditor.VFX.UI
                         if (model is VFXSystem)
                             CreateFlowEdges((VFXSystem)model);
                         else
-                            RecreateOperatorEdges(); //TODOPAUL : Filter this call
+                            RecreateNodeEdges();
 
                         break;
                     }
                 case VFXModel.InvalidationCause.kConnectionChanged:
-                    RecreateOperatorEdges(); //TODOPAUL : Filter this call
+                    RecreateNodeEdges();
                     break;
             }
 
