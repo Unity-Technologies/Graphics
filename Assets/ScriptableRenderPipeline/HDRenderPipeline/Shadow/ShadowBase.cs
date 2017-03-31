@@ -39,8 +39,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public enum ShadowPrecision // 1 bits
     {
-        Low,
-        High
+        High,
+        Low
     }
 
     [GenerateHLSL]
@@ -263,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if( e.variantDels[(int)shadowVariant].low != null && e.variantDels[(int)shadowVariant].high != null )
             {
-                GUIContent[] precDescs   = new GUIContent[] { new GUIContent( "Low" ), new GUIContent( "High" ) };
+                GUIContent[] precDescs   = new GUIContent[] { new GUIContent( "High" ), new GUIContent( "Low" ) };
                 int[]        precOptions = new int[] { 0, 1 };
                 shadowPrecision = (ShadowPrecision)UnityEditor.EditorGUILayout.IntPopup((int)shadowPrecision, precDescs, precOptions, GUILayout.MaxWidth(65));
             }
@@ -272,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using( new UnityEditor.EditorGUI.DisabledScope() )
                 {
                     GUIContent[] precDescs   = new GUIContent[] { new GUIContent( e.variantDels[(int)shadowVariant].low == null ? "High" : "Low" ) };
-                    int[]        precOptions = new int[] { e.variantDels[(int)shadowVariant].low == null ? 1 : 0 };
+                    int[]        precOptions = new int[] { e.variantDels[(int)shadowVariant].low == null ? 0 : 1 };
                     UnityEditor.EditorGUILayout.IntPopup(precOptions[0], precDescs, precOptions, GUILayout.MaxWidth(65));
                     shadowPrecision = (ShadowPrecision) precOptions[0];
                 }
