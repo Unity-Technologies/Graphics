@@ -15,5 +15,14 @@ namespace UnityEditor.VFX.UI
             anchor.name = slot.property.type.Name;
             return anchor;
         }
+
+        protected override void Reset()
+        {
+            base.Reset();
+            if (node != null)
+            {
+                title = node.outputSlots[0].property.type.Name;
+            }
+        }
     }
 }

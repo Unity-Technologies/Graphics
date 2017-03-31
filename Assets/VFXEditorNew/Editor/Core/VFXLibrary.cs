@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
             m_Template = template;
         }
 
-        public string name { get { return m_Template.name; } }
+        virtual public string name { get { return m_Template.name; } }
         public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template); } }
         public Type modelType { get { return m_Template.GetType(); } }
 
@@ -58,14 +58,25 @@ namespace UnityEditor.VFX
 
     class VFXModelDescriptorParameters : VFXModelDescriptor<VFXParameter>
     {
-        public VFXModelDescriptorParameters(VFXParameter template):base(template)
+        private string m_name;
+        override public string name
         {
+            get
+            {
+                return m_name;
+            }
+        }
+
+        public VFXModelDescriptorParameters(Type type):base(ScriptableObject.CreateInstance<VFXParameter>())
+        {
+            m_Template.Init(type);
+            m_name = type.Name;
         }
 
         public override VFXParameter CreateInstance()
         {
             var instance = base.CreateInstance();
-            instance.type = m_Template.type;
+            instance.Init(m_Template.outputSlots[0].property.type);
             return instance;
         }
     }
@@ -110,8 +121,7 @@ namespace UnityEditor.VFX
                 m_ParametersDescs = m_SlotDescs.Select(s =>
                 {
                     var param = ScriptableObject.CreateInstance<VFXParameter>();
-                    param.type = s.Key;
-                    var desc = new VFXModelDescriptorParameters(param);
+                    var desc = new VFXModelDescriptorParameters(s.Key);
                     return desc;
                 }).ToList();
 

@@ -57,7 +57,7 @@ namespace UnityEditor.VFX.UI
                 {
                     modelDescriptor = o,
                     category = "Parameter/",
-                    name = o.CreateInstance().type.Name
+                    name = o.name
                 };
             });
 
