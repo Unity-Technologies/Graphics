@@ -729,6 +729,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 BaseMaterialPropertiesGUI();
                 EditorGUILayout.Space();
+
+                VertexAnimationPropertiesGUI();
+                EditorGUILayout.Space();
             }
             if (EditorGUI.EndChangeCheck())
             {
