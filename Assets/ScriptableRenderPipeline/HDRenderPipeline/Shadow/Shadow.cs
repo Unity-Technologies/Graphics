@@ -286,7 +286,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     sd.worldToShadow = vp.transpose; // apparently we need to transpose matrices that are sent to HLSL
                     sd.scaleOffset   = new Vector4( ce.current.viewport.width * m_WidthRcp, ce.current.viewport.height * m_HeightRcp, ce.current.viewport.x, ce.current.viewport.y );
-                    sd.texelSizeRcp  = new Vector2( m_WidthRcp, m_HeightRcp );
+                    sd.texelSizeRcp  = new Vector4( m_WidthRcp, m_HeightRcp, 1.0f / ce.current.viewport.width, 1.0f / ce.current.viewport.height );
                     sd.PackShadowmapId( m_TexSlot, m_SampSlot, ce.current.slice );
                     sd.PackShadowType( sr.shadowType, sanitizedAlgo );
                     sd.payloadOffset = originalPayloadCount;
@@ -1126,6 +1126,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     case LightType.Point        : add = --m_MaxShadows[(int)GPUShadowType.Point        , 0] >= 0; shadowType = GPUShadowType.Point      ; facecount = 6; break;
                     case LightType.Spot         : add = --m_MaxShadows[(int)GPUShadowType.Spot         , 0] >= 0; shadowType = GPUShadowType.Spot       ; facecount = 1; break;
                 }
+                
+                if( add )
+                {
+                    // TODO: do the shadow distance logic here
+                }
 
                 if( add )
                 {
@@ -1166,7 +1171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ShadowUtils.MapLightType( ald.archetype, vl.lightType, out sd.lightType, out shadowtype );
                 // current bias value range is way too large, so scale by 0.01 for now until we've decided  whether to actually keep this value or not.
                 sd.bias = 0.01f * (SystemInfo.usesReversedZBuffer ? l.shadowBias : -l.shadowBias);
-                sd.normalBias = l.shadowNormalBias;
+                sd.normalBias = 100.0f * l.shadowNormalBias;
                 
                 shadowIndices.AddUnchecked( (int) shadowDatas.Count() );
 

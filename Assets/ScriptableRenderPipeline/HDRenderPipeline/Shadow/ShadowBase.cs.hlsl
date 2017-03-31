@@ -1,4 +1,4 @@
-﻿//
+//
 // This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Shadow/ShadowBase.cs.  Please don't edit by hand.
 //
 
@@ -32,7 +32,7 @@ struct ShadowData
 {
 	float4x4 worldToShadow;
 	float4 scaleOffset;
-	float2 texelSizeRcp;
+	float4 texelSizeRcp;
 	uint id;
 	uint shadowType;
 	uint payloadOffset;
@@ -52,7 +52,7 @@ float4 GetScaleOffset(ShadowData value)
 {
 	return value.scaleOffset;
 }
-float2 GetTexelSizeRcp(ShadowData value)
+float4 GetTexelSizeRcp(ShadowData value)
 {
 	return value.texelSizeRcp;
 }

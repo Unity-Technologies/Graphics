@@ -29,7 +29,7 @@ float SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffs
 //
 //					9 tap adaptive PCF sampling
 //
-float SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint payloadOffset, float2 texelSizeRcp, float3 tcs, float bias, uint slice, uint texIdx, uint sampIdx )
+float SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint payloadOffset, float4 texelSizeRcp, float3 tcs, float bias, uint slice, uint texIdx, uint sampIdx )
 {
 	float2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	float  depthBias  = params.x;
@@ -72,7 +72,7 @@ float SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint pa
 	return flSum;
 }
 
-float SampleShadow_PCF_9tap_Adaptive(ShadowContext shadowContext, inout uint payloadOffset, float2 texelSizeRcp, float3 tcs, float bias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+float SampleShadow_PCF_9tap_Adaptive(ShadowContext shadowContext, inout uint payloadOffset, float4 texelSizeRcp, float3 tcs, float bias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	float2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	float  depthBias  = params.x;

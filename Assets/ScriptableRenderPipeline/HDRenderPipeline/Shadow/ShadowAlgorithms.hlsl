@@ -6,7 +6,7 @@
 // If the light hits the surface perpendicularly there will be no offset.
 float3 EvalShadow_NormalBias( float3 normalWS, float NoL, float2 texelSize, float normalBias )
 {
-	return 2.0 * max( texelSize.x, texelSize.y ) * normalBias * (1.0 - NoL) * normalWS;
+	return max( texelSize.x, texelSize.y ) * normalBias * (1.0 - NoL) * normalWS;
 }
 
 // function called by spot, point and directional eval routines to calculate shadow coordinates
@@ -34,6 +34,8 @@ float EvalShadow_PointDepth( ShadowContext shadowContext, float3 positionWS, flo
 	GetCubeFaceID( L, faceIndex );
 	ShadowData sd = shadowContext.shadowDatas[index + 1 + faceIndex];
 	uint payloadOffset = GetPayloadOffset( sd );
+	// normal based bias
+	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );
 	// get shadowmap texcoords
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
 	// get the algorithm
@@ -54,6 +56,8 @@ float EvalShadow_PointDepth( ShadowContext shadowContext, float3 positionWS, flo
 		GetCubeFaceID( L, faceIndex );																																					\
 		ShadowData sd = shadowContext.shadowDatas[index + 1 + faceIndex];																												\
 		uint payloadOffset = GetPayloadOffset( sd );																																	\
+		/* normal based bias */																																							\
+		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );																\
 		/* get shadowmap texcoords */																																					\
 		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );																														\
 		/* sample the texture */																																						\
@@ -73,6 +77,8 @@ float EvalShadow_SpotDepth( ShadowContext shadowContext, float3 positionWS, floa
 	// load the right shadow data for the current face
 	ShadowData sd = shadowContext.shadowDatas[index];
 	uint payloadOffset = GetPayloadOffset( sd );
+	// normal based bias
+	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );
 	// get shadowmap texcoords
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
 	// get the algorithm
@@ -91,6 +97,8 @@ float EvalShadow_SpotDepth( ShadowContext shadowContext, float3 positionWS, floa
 		/* load the right shadow data for the current face */																														\
 		ShadowData sd = shadowContext.shadowDatas[index];																															\
 		uint payloadOffset = GetPayloadOffset( sd );																																\
+		/* normal based bias */																																						\
+		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );															\
 		/* get shadowmap texcoords */																																				\
 		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );																													\
 		/* sample the texture */																																					\
@@ -122,6 +130,8 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, 
 
 	ShadowData sd = shadowContext.shadowDatas[index + faceIndex];
 	uint payloadOffset = GetPayloadOffset( sd );
+	// normal based bias
+	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );
 	// get shadowmap texcoords
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
 	// sample the texture according to the given algorithm
@@ -150,6 +160,8 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, 
 																																														\
 		ShadowData sd = shadowContext.shadowDatas[index + faceIndex];																													\
 		uint payloadOffset = GetPayloadOffset( sd );																																	\
+		/* normal based bias */																																							\
+		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );																\
 		/* get shadowmap texcoords */																																					\
 		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );																														\
 		/* sample the texture */																																						\
@@ -209,7 +221,7 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, 
 
 	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
 	// normal based bias
-	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp, sd.normalBias );
+	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );
 	// get shadowmap texcoords
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
 
@@ -233,7 +245,7 @@ float EvalShadow_CascadedDepth( ShadowContext shadowContext, float3 positionWS, 
 		uint shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows( positionWS, dirShadowSplitSpheres );																		\
 		ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];																										\
 		/* normal based bias */																																							\
-		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp, sd.normalBias );																\
+		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );																\
 		/* get shadowmap texcoords */																																					\
 		float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );																														\
 		/* sample the texture */																																						\
