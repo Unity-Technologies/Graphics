@@ -218,7 +218,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static float Asfloat( int val )  { return System.BitConverter.ToSingle( System.BitConverter.GetBytes( val ), 0 ); }
         public static int Asint( float val )    { return System.BitConverter.ToInt32( System.BitConverter.GetBytes( val ), 0 ); }
         public static uint Asuint( float val )  { return System.BitConverter.ToUInt32( System.BitConverter.GetBytes( val ), 0 ); }
-
-
     }
 } // end of namespace UnityEngine.Experimental.ScriptableRenderLoop

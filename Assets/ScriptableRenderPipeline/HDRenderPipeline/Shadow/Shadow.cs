@@ -826,7 +826,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari, out prec );
             CheckDataIntegrity( algo, vari, prec, ref shadowData );
 
-            switch( ShadowUtils.ExtractAlgorithm( sr.shadowAlgorithm ) )
+            switch( algo )
             {
             case ShadowAlgorithm.VSM:
                 {
@@ -1106,6 +1106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // at this point the array is sorted in order of some importance determined by the prioritize function
             requestsGranted.Reserve( shadowRequests.Count() );
             totalRequestCount = 0;
+            Vector3 campos = new Vector3( camera.transform.position.x, camera.transform.position.y, camera.transform.position.z );
 
             ShadowmapBase.ShadowRequest sreq = new ShadowmapBase.ShadowRequest();
             uint totalSlots = ResetMaxShadows();
@@ -1116,20 +1117,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int requestIdx        = shadowRequests[i];
                 VisibleLight vl       = lights[requestIdx];
-                bool add              = false;
                 int facecount         = 0;
                 GPUShadowType shadowType = GPUShadowType.Point;
 
-                switch( vl.lightType )
-                {
-                    case LightType.Directional  : add = --m_MaxShadows[(int)GPUShadowType.Directional  , 0] >= 0; shadowType = GPUShadowType.Directional; facecount = m_ShadowSettings.directionalLightCascadeCount; break;
-                    case LightType.Point        : add = --m_MaxShadows[(int)GPUShadowType.Point        , 0] >= 0; shadowType = GPUShadowType.Point      ; facecount = 6; break;
-                    case LightType.Spot         : add = --m_MaxShadows[(int)GPUShadowType.Spot         , 0] >= 0; shadowType = GPUShadowType.Spot       ; facecount = 1; break;
-                }
-                
+                AdditionalLightData ald = vl.light.GetComponent<AdditionalLightData>();
+                Vector3 lpos            = new Vector3( vl.localToWorld.GetColumn( 3 ).x, vl.localToWorld.GetColumn( 3 ).y, vl.localToWorld.GetColumn( 3 ).z );
+                float   distToCam       = (campos - lpos).magnitude;
+                bool    add             = distToCam < ald.shadowFadeDistance;
+
                 if( add )
                 {
-                    // TODO: do the shadow distance logic here
+                    switch( vl.lightType )
+                    {
+                        case LightType.Directional  : add = --m_MaxShadows[(int)GPUShadowType.Directional  , 0] >= 0; shadowType = GPUShadowType.Directional; facecount = m_ShadowSettings.directionalLightCascadeCount; break;
+                        case LightType.Point        : add = --m_MaxShadows[(int)GPUShadowType.Point        , 0] >= 0; shadowType = GPUShadowType.Point      ; facecount = 6; break;
+                        case LightType.Spot         : add = --m_MaxShadows[(int)GPUShadowType.Spot         , 0] >= 0; shadowType = GPUShadowType.Spot       ; facecount = 1; break;
+                    }
                 }
 
                 if( add )
@@ -1140,7 +1143,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     sreq.shadowType = shadowType;
 
                     int sa, sv, sp;
-                    vl.light.GetComponent<AdditionalLightData>().GetShadowAlgorithm( out sa, out sv, out sp );
+                    ald.GetShadowAlgorithm( out sa, out sv, out sp );
                     sreq.shadowAlgorithm = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv, (ShadowPrecision) sp );
                     totalRequestCount += (uint) facecount;
                     requestsGranted.AddUnchecked( sreq );
