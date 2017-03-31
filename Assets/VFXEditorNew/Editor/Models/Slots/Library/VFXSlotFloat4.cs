@@ -6,6 +6,11 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(Vector4))]
     class VFXSlotFloat4 : VFXSlot
     {
+        protected override VFXValue DefaultExpression()
+        {
+            return VFXValueFloat4.Default;
+        }
+
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {
             return new VFXExpressionCombine(

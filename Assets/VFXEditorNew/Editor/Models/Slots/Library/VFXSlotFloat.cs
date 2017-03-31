@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValueFloat(UnityEngine.Random.value, false);
+            return new VFXValueFloat(UnityEngine.Random.value, false); //TODOPAUL : Clean temp
         }
     }
 }

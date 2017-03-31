@@ -41,17 +41,17 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static VFXExpression FindAndCreateFirstConcreteType()
+        private static VFXValue FindAndCreateFirstConcreteType()
         {
             var firstConcreteType = typeof(VFXValue<T>)
                                     .Assembly
                                     .GetTypes()
                                     .Where(t => t.IsSubclassOf(typeof(VFXValue<T>)) && !t.IsAbstract)
                                     .First();
-            return CreateNewInstance(firstConcreteType);
+            return CreateNewInstance(firstConcreteType) as VFXValue;
         }
-        private static readonly VFXExpression s_Default = FindAndCreateFirstConcreteType();
-        public static VFXExpression Default { get { return s_Default; } }
+        private static readonly VFXValue s_Default = FindAndCreateFirstConcreteType();
+        public static VFXValue Default { get { return s_Default; } }
 
         public T GetContent()
         {
