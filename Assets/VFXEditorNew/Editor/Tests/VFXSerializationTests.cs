@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -259,6 +260,31 @@ namespace UnityEditor.VFX.Test
             };
 
             InnerSaveAndReloadTest("Mask", write, read);
+        }
+
+        [Test]
+        public void SerializeOperatorAndParameter()
+        {
+            Action<VFXGraphAsset> write = delegate (VFXGraphAsset asset)
+            {
+                var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
+                var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
+                asset.root.AddChild(add);
+                asset.root.AddChild(parameter);
+                add.inputSlots[0].Link(parameter.outputSlots[0]);
+
+                Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].expression.ValueType);
+            };
+
+            Action<VFXGraphAsset> read = delegate (VFXGraphAsset asset)
+            {
+                var add = asset.root[0] as VFXOperatorAdd;
+                var parameter = asset.root[1] as VFXParameter;
+                Assert.AreNotEqual(null, parameter);
+                Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].expression.ValueType);
+            };
+
+            InnerSaveAndReloadTest("Parameter", write, read);
         }
     }
 }
