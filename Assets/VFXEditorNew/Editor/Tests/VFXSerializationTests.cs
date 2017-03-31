@@ -263,6 +263,26 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void SerializeParameter()
+        {
+            Action<VFXGraphAsset> write = delegate (VFXGraphAsset asset)
+            {
+                var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
+                asset.root.AddChild(parameter);
+                Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].expression.ValueType);
+            };
+
+            Action<VFXGraphAsset> read = delegate (VFXGraphAsset asset)
+            {
+                var parameter = asset.root[0] as VFXParameter;
+                Assert.AreNotEqual(null, parameter);
+                Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].expression.ValueType);
+            };
+
+            InnerSaveAndReloadTest("Parameter", write, read);
+        }
+
+        [Test]
         public void SerializeOperatorAndParameter()
         {
             Action<VFXGraphAsset> write = delegate (VFXGraphAsset asset)
@@ -284,7 +304,7 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].expression.ValueType);
             };
 
-            InnerSaveAndReloadTest("Parameter", write, read);
+            InnerSaveAndReloadTest("ParameterAndOperator", write, read);
         }
     }
 }
