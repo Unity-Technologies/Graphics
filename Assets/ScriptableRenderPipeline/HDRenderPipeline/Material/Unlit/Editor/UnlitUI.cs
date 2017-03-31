@@ -48,6 +48,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
         }
 
+        protected override void VertexAnimationPropertiesGUI()
+        {
+
+        }
+
         protected override bool ShouldEmissionBeEnabled(Material mat)
         {
             return mat.GetFloat(kEmissiveIntensity) > 0.0f;
