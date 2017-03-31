@@ -288,7 +288,7 @@ namespace UnityEditor.VFX
                 }
         }
 
-        private void InitializeExpressionTreeIfNeeded()
+        public void InitializeExpressionTreeIfNeeded()
         {
             if (!m_Initialize)
                 RecomputeExpressionTree(false, false);
