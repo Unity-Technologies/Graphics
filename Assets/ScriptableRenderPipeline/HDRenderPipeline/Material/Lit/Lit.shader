@@ -38,6 +38,13 @@ Shader "HDRenderPipeline/Lit"
         _Thickness("Thickness", Range(0.004, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
 
+        // Wind
+        [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
+        _InitialBend("Initial Bend", float) = 1.0
+        _Stiffness("Stiffness", float) = 1.0
+        _Drag("Drag", float) = 1.0
+        _ShiverDrag("Shiver Drag", float) = 0.2
+
         //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
         //_CoatCoverageMap("CoatCoverageMapMap", 2D) = "white" {}
 
@@ -133,6 +140,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
     #pragma shader_feature _THICKNESS_MAP
     #pragma shader_feature _SUBSURFACE_SCATTERING
+    #pragma shader_feature _VERTEX_WIND
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -155,6 +163,7 @@ Shader "HDRenderPipeline/Lit"
     //-------------------------------------------------------------------------------------
 
     #include "../../../ShaderLibrary/common.hlsl"
+    #include "../../../ShaderLibrary/Wind.hlsl"
     #include "../../ShaderConfig.cs.hlsl"
     #include "../../ShaderVariables.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
