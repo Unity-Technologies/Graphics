@@ -6,11 +6,11 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXOperatorAnchorPresenter : NodeAnchorPresenter
+    class VFXNodeAnchorPresenter : NodeAnchorPresenter
     {
-        public void Init(VFXOperatorPresenter source, Guid slotId, Direction direction)
+        public void Init(VFXNodePresenter source, Guid slotId, Direction direction)
         {
-            m_SourceOperator = source;
+            m_SourceNode = source;
             m_Direction = direction;
             m_SlotID = slotId;
         }
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
         public override void Connect(EdgePresenter edgePresenter) {}
         public override void Disconnect(EdgePresenter edgePresenter) {}
 
-        private VFXOperatorPresenter m_SourceOperator;
+        private VFXNodePresenter m_SourceNode;
         private Direction m_Direction;
         private Guid m_SlotID;
 
@@ -31,11 +31,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXOperatorPresenter sourceOperator
+        public VFXNodePresenter sourceNode
         {
             get
             {
-                return m_SourceOperator;
+                return m_SourceNode;
             }
         }
 

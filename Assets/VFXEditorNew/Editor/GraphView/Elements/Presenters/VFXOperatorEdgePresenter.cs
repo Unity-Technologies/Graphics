@@ -6,7 +6,8 @@ using RMGUI.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXOperatorEdgePresenter: EdgePresenter
+    //TODOPAUL : Rename file
+    public class VFXNodeEdgePresenter: EdgePresenter
     {
 
     }

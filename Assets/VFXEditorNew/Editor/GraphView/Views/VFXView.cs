@@ -51,7 +51,18 @@ namespace UnityEditor.VFX.UI
                 };
             });
 
-            return descriptorsContext.Concat(descriptorsOperator);
+            var descriptorParameter = VFXLibrary.GetParameters().Select(o =>
+            {
+                return new Descriptor()
+                {
+                    modelDescriptor = o,
+                    category = "Parameter/",
+                    name = o.name
+                };
+            });
+
+            return descriptorsContext   .Concat(descriptorsOperator)
+                                        .Concat(descriptorParameter);
         }
     }
 
@@ -96,10 +107,18 @@ namespace UnityEditor.VFX.UI
                 {
                     AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
                 }
+                else if (d.modelDescriptor is VFXModelDescriptorParameters)
+                {
+                    AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
+                }
+                else
+                {
+                    Debug.LogError("Add unknown presenter");
+                }
             }), null));
-            
-            typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
 
+            typeFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
+            typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
             typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
             typeFactory[typeof(VFXFlowEdgePresenter)] = typeof(VFXFlowEdge);
             typeFactory[typeof(VFXDataEdgePresenter)] = typeof(VFXDataEdge);
@@ -122,6 +141,11 @@ namespace UnityEditor.VFX.UI
         void AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
             GetPresenter<VFXViewPresenter>().AddVFXOperator(pos, desc);
+        }
+
+        void AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
+        {
+            GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
         }
 
         public EventPropagation CloneModels() // TEST clean that
