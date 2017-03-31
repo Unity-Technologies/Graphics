@@ -90,16 +90,16 @@ namespace UnityEditor.VFX
             if (m_InputSlots == null)
             {
                 m_InputSlots = new List<VFXSlot>();
-                InitProperties(GetInputPropertiesTypeName(), out m_InputProperties, out m_InputValues, VFXSlot.Direction.kInput);
+                InitSlotsFromProperties(GetInputPropertiesTypeName(), VFXSlot.Direction.kInput);
             }
 
             if (m_OutputSlots == null)
             {
                 m_OutputSlots = new List<VFXSlot>();
-                InitProperties(GetOutputPropertiesTypeName(), out m_OutputProperties, out m_OutputValues, VFXSlot.Direction.kOutput);
+                InitSlotsFromProperties(GetOutputPropertiesTypeName(), VFXSlot.Direction.kOutput);
             }
 
-            UpdateOutputs();
+            //UpdateOutputs();
         }
 
         public override void CollectDependencies(HashSet<Object> objs)
@@ -112,6 +112,31 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override T Clone<T>()
+        {
+            var clone = base.Clone<T>();
+            var cloneContainer = clone as VFXSlotContainerModel<ParentType, ChildrenType>;
+
+            cloneContainer.m_InputSlots.Clear();
+            cloneContainer.m_OutputSlots.Clear();
+
+            foreach (var input in inputSlots)
+            {
+                var cloneSlot = input.Clone<VFXSlot>();
+                cloneContainer.m_InputSlots.Add(cloneSlot);
+                cloneSlot.m_Owner = cloneContainer;
+            }
+
+            foreach (var output in outputSlots)
+            {
+                var cloneSlot = output.Clone<VFXSlot>();
+                cloneContainer.m_OutputSlots.Add(cloneSlot);
+                cloneSlot.m_Owner = cloneContainer;
+            }
+
+            return clone;
+        }
+        
         static private VFXExpression GetExpressionFromObject(object value)
         {
             if (value is float)
@@ -141,7 +166,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        private void InitProperties(string className, out VFXProperty[] properties, out object[] values,VFXSlot.Direction direction)
+        private void InitSlotsFromProperties(string className,VFXSlot.Direction direction)
         {
             System.Type type = GetType().GetNestedType(className);
 
@@ -149,8 +174,8 @@ namespace UnityEditor.VFX
             {
                 var fields = type.GetFields().Where(f => !f.IsStatic).ToArray();
 
-                properties = new VFXProperty[fields.Length];
-                values = new object[fields.Length];
+                var properties = new VFXProperty[fields.Length];
+                var values = new object[fields.Length];
 
                 var defaultBuffer = System.Activator.CreateInstance(type);
 
@@ -172,22 +197,16 @@ namespace UnityEditor.VFX
                     }
                 }
             }
-            else
-            {
-                properties = new VFXProperty[0];
-                values = new object[0];
-            }
         }
-
-        protected VFXProperty[] m_InputProperties;
-        protected object[] m_InputValues;
-
-        protected VFXProperty[] m_OutputProperties;
-        protected object[] m_OutputValues;
 
         public VFXProperty[] GetProperties()
         {
-            return m_InputProperties;
+            return m_InputSlots.Select(s => s.property).ToArray(); // TODO Change that
+        }
+
+        public object[] GetCurrentPropertiesValues()
+        {
+            return m_InputSlots.Select(s => s.value).ToArray(); // TODO Change that
         }
 
         public void ExpandPath(string fieldPath)
@@ -207,12 +226,6 @@ namespace UnityEditor.VFX
             return m_expandedPaths.Contains(fieldPath);
         }
 
-
-        public object[] GetCurrentPropertiesValues()
-        {
-            return m_InputValues;
-        }
-
         protected override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             base.Invalidate(model, cause);
@@ -220,8 +233,8 @@ namespace UnityEditor.VFX
 
         public virtual void UpdateOutputs()
         {
-            foreach (var slot in m_InputSlots)
-                slot.Initialize();
+            //foreach (var slot in m_InputSlots)
+            //    slot.Initialize();
         }
 
         //[SerializeField]

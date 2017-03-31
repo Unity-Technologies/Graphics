@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
 					{Event.KeyboardEvent("delete"), DeleteSelection},
 					{Event.KeyboardEvent("#tab"), FramePrev},
 					{Event.KeyboardEvent("tab"), FrameNext},
-                    {Event.KeyboardEvent("c"), CloneContexts}, // TEST
+                    {Event.KeyboardEvent("c"), CloneModels}, // TEST
                     {Event.KeyboardEvent("#r"), Resync},
 				}));
 
@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.UI
             GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
         }
 
-        public EventPropagation CloneContexts() // TEST clean that
+        public EventPropagation CloneModels() // TEST clean that
         {
             var contexts = selection.OfType<VFXContextUI>().Select(p => p.GetPresenter<VFXContextPresenter>().context.Clone<VFXContext>());
             foreach (var context in contexts)
@@ -157,6 +157,13 @@ namespace UnityEditor.VFX.UI
                 system.AddChild(context);
                 context.position = context.position + new Vector2(50, 50);
                 GetPresenter<VFXViewPresenter>().GetGraphAsset().root.AddChild(system);
+            }
+
+            var operators = selection.OfType<VFXOperatorUI>().Select(p => p.GetPresenter<VFXOperatorPresenter>().Operator.Clone<VFXOperator>());
+            foreach (var op in operators)
+            {
+                op.position = op.position + new Vector2(50, 50);
+                GetPresenter<VFXViewPresenter>().GetGraphAsset().root.AddChild(op);
             }
             return EventPropagation.Stop;
         }

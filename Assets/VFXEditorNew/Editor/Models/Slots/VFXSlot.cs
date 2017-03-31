@@ -16,18 +16,32 @@ namespace UnityEditor.VFX
             kOutput,
         }
 
-        public Direction direction { get { return m_Direction; } }
-        public VFXProperty property { get { return m_Property; } }
-        public override string name { get { return m_Property.name; } }
+        public Direction direction      { get { return m_Direction; } }
+        public VFXProperty property     { get { return m_Property; } }
+        public override string name     { get { return m_Property.name; } }
+
+        public object value 
+        { 
+            get { return m_Value; }
+            set
+            {
+                if (m_Value != value)
+                {
+                    m_Value = value;
+                    owner.Invalidate(InvalidationCause.kParamChanged);
+                    // TODO Update default expression values
+                }
+            }       
+        }    
 
         public VFXExpression expression 
         {
-            set { SetExpression(value); }
             get 
             {
                 InitializeExpressionTreeIfNeeded();
                 return m_OutExpression; 
             }
+            set { SetExpression(value); }
         }
 
         // Explicit setter to be able to not notify
@@ -94,7 +108,7 @@ namespace UnityEditor.VFX
 
                 foreach (var subInfo in property.SubProperties())
                 {
-                    var subSlot = CreateSub(subInfo, direction, null /* TODOPAUL : sub operation ? */);
+                    var subSlot = CreateSub(subInfo, direction, null);
                     if (subSlot != null)
                         subSlot.Attach(slot,false);
                 }
@@ -137,6 +151,26 @@ namespace UnityEditor.VFX
         protected override void Invalidate(VFXModel model,InvalidationCause cause)
         {
             // do nothing for slots
+        }
+
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+
+        }
+
+        protected override void OnRemoved()
+        {
+            base.OnRemoved();
+        }
+
+        public override T Clone<T>()
+        {
+            var clone = base.Clone<T>();
+            var cloneSlot = clone as VFXSlot;
+
+            cloneSlot.m_LinkedSlots.Clear();
+            return clone;
         }
     
         public int GetNbLinks() { return m_LinkedSlots.Count; }
@@ -268,6 +302,7 @@ namespace UnityEditor.VFX
                 if (toUnlink.direction == Direction.kOutput)
                     throw new InvalidOperationException("Set an invalid input expression to output slot");
 
+                Debug.Log(string.Format("Invalid connection when recomputing expression for slot {0}", toUnlink.DebugName));
                 toUnlink.UnlinkAll();
             }
         }
@@ -314,7 +349,7 @@ namespace UnityEditor.VFX
             if (!needsRecompute) // We dont need to recompute, tree is already up to date
                 return null;
 
-            Debug.Log("RECOMPUTE EXPRESSION TREE FOR " + GetType().Name + " " + id);
+            Debug.Log("RECOMPUTE EXPRESSION TREE FOR " + DebugName);
 
             List<VFXSlot> startSlots = new List<VFXSlot>();
             List<VFXSlot> toUnlink = new List<VFXSlot>();
@@ -383,9 +418,9 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        private void NotifyOwner()
+        private void NotifyOwner(InvalidationCause cause)
         {
-            PropagateToOwner(o => o.Invalidate(VFXModel.InvalidationCause.kConnectionChanged));
+            PropagateToOwner(o => o.Invalidate(cause));
         }
 
         private bool SetOutExpression(VFXExpression expr)
@@ -397,8 +432,11 @@ namespace UnityEditor.VFX
                 if (direction == Direction.kOutput)
                 {
                     var toRemove = LinkedSlots.Where(s => !s.CanConvertFrom(expr)); // Break links that are no more valid
-                    foreach (var slot in toRemove) 
+                    foreach (var slot in toRemove)
+                    {
+                        Debug.Log(string.Format("Invalid link between {0} and {1} - Break it!", DebugName, slot.DebugName));
                         Unlink(slot);
+                    }
                 }
             }
             return true;
@@ -486,14 +524,44 @@ namespace UnityEditor.VFX
             return null; 
         }
 
+        // Expression cache
         private VFXExpression m_DefaultExpression; // The default expression
         private VFXExpression m_LinkedInExpression; // The current linked expression to the slot
         private VFXExpression m_CachedLinkedInExpression; // Cached footprint of latest recompute tree
         private VFXExpression m_InExpression; // correctly converted expression
         private VFXExpression m_OutExpression; // output expression that can be fetched
+
+        [NonSerialized] // This must not survive domain reload !
         private bool m_Initialize = false;
 
+        // TODO currently not used
+        [Serializable]
+        private class MasterData : ISerializationCallbackReceiver
+        {
+            public VFXModel m_Owner;
+            [NonSerialized]
+            public object m_Value;
+            [SerializeField]
+            public SerializationHelper.JSONSerializedElement m_SerializedValue;
+
+            public virtual void OnBeforeSerialize()
+            {
+                if (m_Value != null)
+                    m_SerializedValue = SerializationHelper.Serialize(m_Value);
+                else
+                    m_SerializedValue.Clear();
+            }
+
+            public virtual void OnAfterDeserialize()
+            {
+                m_Value = !m_SerializedValue.Empty ? SerializationHelper.Deserialize<object>(m_SerializedValue, null) : null;
+            }
+        }
+
+        [SerializeField]
         private VFXSlot m_MasterSlot;
+        [SerializeField]
+        private MasterData m_MasterData;
 
         [SerializeField]
         public VFXModel m_Owner;
