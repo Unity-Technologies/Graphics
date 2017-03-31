@@ -172,6 +172,13 @@ Shader "HDRenderPipeline/LayeredLit"
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
+        // Wind
+        [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
+        _InitialBend("Initial Bend", float) = 1.0
+        _Stiffness("Stiffness", float) = 1.0
+        _Drag("Drag", float) = 1.0
+        _ShiverDrag("Shiver Drag", float) = 0.2
+
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
@@ -295,6 +302,7 @@ Shader "HDRenderPipeline/LayeredLit"
     #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
+    #pragma shader_feature _VERTEX_WIND
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -317,6 +325,7 @@ Shader "HDRenderPipeline/LayeredLit"
     //-------------------------------------------------------------------------------------
 
     #include "../../../ShaderLibrary/common.hlsl"
+    #include "../../../ShaderLibrary/Wind.hlsl"
     #include "../../ShaderConfig.cs.hlsl"
     #include "../../ShaderVariables.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
