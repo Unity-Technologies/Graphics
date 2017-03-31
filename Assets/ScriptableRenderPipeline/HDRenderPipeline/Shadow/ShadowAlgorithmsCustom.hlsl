@@ -11,7 +11,7 @@ float EvalShadow_CascadedMoment( ShadowContext shadowContext, float3 positionWS,
 
 	ShadowData sd = shadowContext.shadowDatas[shadowDataIndex + 1 + shadowSplitIndex];
 	// normal based bias
-	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp, sd.normalBias );
+	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );
 	// get shadowmap texcoords
 	float3 posTC = EvalShadow_GetTexcoords( sd, positionWS );
 
