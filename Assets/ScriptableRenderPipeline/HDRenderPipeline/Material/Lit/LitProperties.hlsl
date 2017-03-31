@@ -25,6 +25,12 @@ float _EmissiveIntensity;
 // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
 float3 _EmissionColor;
 
+// Wind
+float _InitialBend; 
+float _Stiffness;
+float _Drag;
+float _ShiverDrag;
+
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables
