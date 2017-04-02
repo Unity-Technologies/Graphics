@@ -89,6 +89,7 @@ namespace UnityEditor.VFX.UI
 					{Event.KeyboardEvent("tab"), FrameNext},
                     {Event.KeyboardEvent("c"), CloneModels}, // TEST
                     {Event.KeyboardEvent("#r"), Resync},
+                    {Event.KeyboardEvent("#d"), OutputToDot},
 				}));
 
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
@@ -172,6 +173,12 @@ namespace UnityEditor.VFX.UI
         {
             var presenter = GetPresenter<VFXViewPresenter>();
             presenter.SetGraphAsset(presenter.GetGraphAsset(), true);
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation OutputToDot()
+        {
+            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraphAsset().root);
             return EventPropagation.Stop;
         }
     }
