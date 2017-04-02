@@ -46,7 +46,7 @@ namespace UnityEditor.VFX.UI
             {
                 position = new Rect(model.position.x, model.position.y, position.width, position.height);
                 expanded = !model.collapsed;
-                title = node.name;
+                title = node.name + " " + node.m_OnEnabledCount;
 
                 var newinputAnchors = node.inputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)).ToArray();
                 var newoutputAnchors = node.outputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)).ToArray();

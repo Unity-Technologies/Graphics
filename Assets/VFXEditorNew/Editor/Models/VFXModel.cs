@@ -22,6 +22,9 @@ namespace UnityEditor.VFX
         public virtual string name  { get { return string.Empty; } }
         public Guid id              { get { return m_Id; } }
 
+        private static int s_DebugOnEnableCounter = 0;
+        public int m_OnEnabledCount = 0;
+
         public string DebugName
         {
             get { return string.Format("{0} {1}", GetType().Name, id); }
@@ -38,6 +41,7 @@ namespace UnityEditor.VFX
 
         public virtual void OnEnable()
         {
+            m_OnEnabledCount = ++s_DebugOnEnableCounter;
             if (m_Children == null)
                 m_Children = new List<VFXModel>();
             else

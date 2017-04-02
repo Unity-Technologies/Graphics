@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
             base.Reset();
             if (node != null)
             {
-                title = node.outputSlots[0].property.type.Name;
+                title = node.outputSlots[0].property.type.Name + " " + node.m_OnEnabledCount;
             }
         }
     }
