@@ -1,4 +1,4 @@
-﻿Shader "ScriptableRenderPipeline/LowEndMobile/Particles/Multiply"
+Shader "ScriptableRenderPipeline/LowEndMobile/Particles/Multiply"
 {
     Properties
     {
@@ -65,4 +65,3 @@
         }
     }
 }
-

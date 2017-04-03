@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.LowendMobile
 {
@@ -11,34 +11,34 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             public static GUIContent shadowLabel = new GUIContent("Shadows");
 
             public static GUIContent maxPixelLights = new GUIContent("Max per-pixel lights supported",
-                "Amount of dynamic lights processed in fragment shader. More than 1 per-pixel light is not recommended.");
+                    "Amount of dynamic lights processed in fragment shader. More than 1 per-pixel light is not recommended.");
 
             public static GUIContent enableVertexLightLabel = new GUIContent("Enable Vertex Light",
-                "Enable up to 4 per-vertex dynamic lights.");
+                    "Enable up to 4 per-vertex dynamic lights.");
 
             public static GUIContent enableLightmap = new GUIContent("Enable Lightmap",
-                "Only non-directional lightmaps are supported");
+                    "Only non-directional lightmaps are supported");
 
             public static GUIContent enableAmbientProbe = new GUIContent("Enable Ambient Probe",
-                "Uses light probes as ambient light source for non-lightmapped objects.");
+                    "Uses light probes as ambient light source for non-lightmapped objects.");
 
             public static GUIContent shadowType = new GUIContent("Shadow Type",
-                "Single directional shadow supported. SOFT_SHADOWS applies shadow filtering.");
+                    "Single directional shadow supported. SOFT_SHADOWS applies shadow filtering.");
 
             public static GUIContent shadowNearPlaneOffset = new GUIContent("Shadow Near Plane Offset",
-                "Offset shadow near plane to account for large triangles being distorted by pancaking");
+                    "Offset shadow near plane to account for large triangles being distorted by pancaking");
 
             public static GUIContent shadowDistante = new GUIContent("Shadow Distance", "Max shadow drawing distance");
             public static GUIContent shadowBias = new GUIContent("Shadow Bias");
 
             public static GUIContent shadowAtlasResolution = new GUIContent("Shadow Map Resolution",
-                "Resolution of shadow map texture. If cascades are enabled all cascades will be packed into this texture resolution.");
+                    "Resolution of shadow map texture. If cascades are enabled all cascades will be packed into this texture resolution.");
 
             public static GUIContent shadowCascades = new GUIContent("Shadow Cascades",
-                "Number of cascades for directional shadows");
+                    "Number of cascades for directional shadows");
 
             public static GUIContent shadowCascadeSplit = new GUIContent("Shadow Cascade Split",
-                "Percentages to split shadow volume");
+                    "Percentages to split shadow volume");
         }
 
         private SerializedProperty m_MaxPixelLights;
@@ -95,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             EditorGUILayout.PropertyField(m_ShadowDistanceProp, Styles.shadowDistante);
             EditorGUILayout.PropertyField(m_ShadowCascadesProp, Styles.shadowCascades);
 
-            ShadowCascades cascades = (ShadowCascades) m_ShadowCascadesProp.intValue;
+            ShadowCascades cascades = (ShadowCascades)m_ShadowCascadesProp.intValue;
             if (cascades == ShadowCascades.FOUR_CASCADES)
             {
                 EditorGUILayout.PropertyField(m_ShadowCascade4SplitProp, Styles.shadowCascadeSplit);

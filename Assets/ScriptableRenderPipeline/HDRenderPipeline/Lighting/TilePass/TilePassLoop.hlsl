@@ -241,7 +241,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
         }
     }
-    
+
 
     if(featureFlags & FEATURE_FLAG_ENV_LIGHT)
     {
@@ -259,7 +259,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
         }
     }
-    
+
 
     diffuseLighting += iblDiffuseLighting;
     specularLighting += iblSpecularLighting;

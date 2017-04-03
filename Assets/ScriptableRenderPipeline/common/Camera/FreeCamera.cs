@@ -22,10 +22,10 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_Valid = Debugging.CheckRequiredInputAxisMapping(m_RequiredInputAxes);
         }
-        
+
         void Update()
         {
-            if(m_Valid)
+            if (m_Valid)
             {
                 float inputRotateAxisX = 0.0f;
                 float inputRotateAxisY = 0.0f;

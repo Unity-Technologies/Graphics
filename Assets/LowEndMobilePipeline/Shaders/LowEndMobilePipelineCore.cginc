@@ -3,10 +3,18 @@
 #define MAX_LIGHTS 8
 
 #define INITIALIZE_LIGHT(light, lightIndex) \
-							light.pos = globalLightPos[lightIndex]; \
-							light.color = globalLightColor[lightIndex]; \
-							light.atten = globalLightAtten[lightIndex]; \
-							light.spotDir = globalLightSpotDir[lightIndex]
+                            light.pos = globalLightPos[lightIndex]; \
+                            light.color = globalLightColor[lightIndex]; \
+                            light.atten = globalLightAtten[lightIndex]; \
+                            light.spotDir = globalLightSpotDir[lightIndex]
+
+#if defined(_HARD_SHADOWS) || defined(_SOFT_SHADOWS) || defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
+#define _SHADOWS
+#endif
+
+#if defined(_HARD_SHADOWS_CASCADES) || defined(_SOFT_SHADOWS_CASCADES)
+#define _SHADOW_CASCADES
+#endif
 
 struct LightInput
 {
@@ -76,25 +84,15 @@ inline void NormalMap(v2f i, out half3 normal)
 #endif
 }
 
-inline void SpecularGloss(half3 diffuse, half alpha, out half4 specularGloss)
+inline void SpecularGloss(half2 uv, half3 diffuse, half alpha, out half4 specularGloss)
 {
-#ifdef _SHARED_SPECULAR_DIFFUSE
-    specularGloss.rgb = diffuse;
-    specularGloss.a = alpha;
-#elif defined(_SHARED_SPECULAR_DIFFUSE)
-#if _GLOSSINESS_FROM_BASE_ALPHA
-    specularGloss.rgb = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
-    specularGloss.a = alpha;
-#else
-    specularGloss = tex2D(_SpecGlossMap, i.uv01.xy) * _SpecColor;
-#endif
-#else
-#if _GLOSSINESS_FROM_BASE_ALPHA
-    specularGloss.rgb = _SpecColor;
+#ifdef _SPECGLOSSMAP
+    specularGloss = tex2D(_SpecGlossMap, uv) * _SpecColor;
+#elif defined(_SPECGLOSSMAP_BASE_ALPHA)
+    specularGloss = tex2D(_SpecGlossMap, uv) * _SpecColor;
     specularGloss.a = alpha;
 #else
     specularGloss = _SpecColor;
-#endif
 #endif
 }
 
@@ -110,7 +108,7 @@ inline void Emission(v2f i, out half3 emission)
 inline void Indirect(v2f i, half3 diffuse, half3 normal, half glossiness, out half3 indirect)
 {
 #ifdef LIGHTMAP_ON
-    indirect = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) * diffuse;
+    indirect = (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
 #else
     indirect = i.fogCoord.yzw * diffuse;
 #endif
@@ -207,21 +205,22 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
 
 inline half ComputeShadowAttenuation(v2f i)
 {
-	half4 shadowCoord;
- #ifndef _SHADOW_CASCADES
- 	shadowCoord = i.shadowCoord;
- #else
-	int cascadeIndex = ComputeCascadeIndex(i.posWS);
-	if (cascadeIndex < 4)
-   		shadowCoord = mul(_WorldToShadow[cascadeIndex], half4(i.posWS, 1.0));
-	else
-		return 1.0;
+#ifndef _SHADOW_CASCADES
+    half4 shadowCoord;
+    shadowCoord = i.shadowCoord;
+#else
+    half4 shadowCoord;
+    int cascadeIndex = ComputeCascadeIndex(i.posWS);
+    if (cascadeIndex < 4)
+        shadowCoord = mul(_WorldToShadow[cascadeIndex], half4(i.posWS, 1.0));
+    else
+        return 1.0;
 #endif
 
     shadowCoord.xyz /= shadowCoord.w;
-	shadowCoord.z = saturate(shadowCoord.z);
+    shadowCoord.z = saturate(shadowCoord.z);
 
-#ifdef SOFT_SHADOWS
+#if defined(_SOFT_SHADOWS) || defined(_SOFT_SHADOWS_CASCADES)
     return ShadowPCF(shadowCoord.xyz);
 #else
     return ShadowAttenuation(shadowCoord.xyz);

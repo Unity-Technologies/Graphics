@@ -20,7 +20,7 @@ public class RenderLoopTestFixtureInstance : RenderPipeline
     private static TestDelegate s_Callback;
 
     private static RenderLoopTestFixture m_Instance;
-    
+
     public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
         base.Render(renderContext, cameras);

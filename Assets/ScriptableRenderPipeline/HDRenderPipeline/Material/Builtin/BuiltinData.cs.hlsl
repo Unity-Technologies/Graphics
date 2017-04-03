@@ -26,22 +26,22 @@
 // PackingRules = Exact
 struct BuiltinData
 {
-	float opacity;
-	float3 bakeDiffuseLighting;
-	float3 emissiveColor;
-	float emissiveIntensity;
-	float2 velocity;
-	float2 distortion;
-	float distortionBlur;
-	float depthOffset;
+    float opacity;
+    float3 bakeDiffuseLighting;
+    float3 emissiveColor;
+    float emissiveIntensity;
+    float2 velocity;
+    float2 distortion;
+    float distortionBlur;
+    float depthOffset;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Builtin.LighTransportData
 // PackingRules = Exact
 struct LighTransportData
 {
-	float3 diffuseColor;
-	float3 emissiveColor;
+    float3 diffuseColor;
+    float3 emissiveColor;
 };
 
 

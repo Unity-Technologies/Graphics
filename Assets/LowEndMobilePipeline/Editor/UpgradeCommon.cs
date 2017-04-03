@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.Experimental.Rendering.LowendMobile
+namespace UnityEditor.Experimental.Rendering.LowendMobile
 {
     public enum UpgradeBlendMode
     {
@@ -10,7 +10,6 @@
     public enum SpecularSource
     {
         SpecularTextureAndColor,
-        BaseTexture,
         NoSpecular
     }
 

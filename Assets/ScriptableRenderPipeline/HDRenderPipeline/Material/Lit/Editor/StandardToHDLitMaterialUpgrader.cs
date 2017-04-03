@@ -5,7 +5,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class StandardToHDLitMaterialUpgrader : MaterialUpgrader
     {
-        public StandardToHDLitMaterialUpgrader() : this("Standard", "HDRenderPipeline/Lit", LitGUI.SetupMaterialKeywordsAndPass) { }
+        public StandardToHDLitMaterialUpgrader() : this("Standard", "HDRenderPipeline/Lit", LitGUI.SetupMaterialKeywordsAndPass) {}
 
         public StandardToHDLitMaterialUpgrader(string sourceShaderName, string destShaderName, MaterialFinalizer finalizer)
         {
@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // there is no detail albedo.
             RenameTexture("_DetailNormalMap", "_DetailMap");
 
-            // Metallic uses [Gamma] attribute in standard shader but not in Lit. 
+            // Metallic uses [Gamma] attribute in standard shader but not in Lit.
             // @Seb: Should we convert?
             RenameFloat("_Metallic", "_Metallic");
 
@@ -38,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void Convert(Material srcMaterial, Material dstMaterial)
         {
             base.Convert(srcMaterial, dstMaterial);
-            //@TODO: Find a good way of setting up keywords etc from properties. 
+            //@TODO: Find a good way of setting up keywords etc from properties.
             // Code should be shared with material UI code.
         }
 
@@ -67,4 +67,3 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
     }
 }
-

@@ -61,13 +61,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
 
-            public static GUIContent normalMapSpaceWarning = new GUIContent("Object space normal can't be use with triplanar mapping.");            
+            public static GUIContent normalMapSpaceWarning = new GUIContent("Object space normal can't be use with triplanar mapping.");
         }
 
         public enum UVBaseMapping
         {
             UV0,
-            Planar, 
+            Planar,
             Triplanar
         }
 
@@ -206,7 +206,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Details
             UVDetail = FindProperty(kUVDetail, props);
-            UVDetailsMappingMask = FindProperty(kUVDetailsMappingMask, props);    
+            UVDetailsMappingMask = FindProperty(kUVDetailsMappingMask, props);
             detailMap = FindProperty(kDetailMap, props);
             detailMask = FindProperty(kDetailMask, props);
             detailAlbedoScale = FindProperty(kDetailAlbedoScale, props);
@@ -256,7 +256,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Load the profile from the GUI field.
                 int profileID = subsurfaceProfile.settingsIndex;
-                
+
                 if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length)
                 {
                     validProfile = true;
@@ -314,12 +314,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if ((NormalMapSpace)normalMapSpace.floatValue == NormalMapSpace.ObjectSpace && ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
             {
                 EditorGUILayout.HelpBox(Styles.normalMapSpaceWarning.text, MessageType.Error);
-            }            
+            }
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap);
-            if(!heightMap.hasMixedValue && heightMap.textureValue != null)
+            if (!heightMap.hasMixedValue && heightMap.textureValue != null)
             {
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(heightAmplitude, Styles.heightMapAmplitudeText);
@@ -342,7 +342,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GUILayout.Label("    " + Styles.textureControlText, EditorStyles.label);
             m_MaterialEditor.ShaderProperty(UVBase, Styles.UVBaseMappingText);
             // UVSet0 is always set, planar and triplanar will override it.
-            UVMappingMask.colorValue = new Color(1.0f, 0.0f, 0.0f, 0.0f); // This is override in the shader anyway but just in case.            
+            UVMappingMask.colorValue = new Color(1.0f, 0.0f, 0.0f, 0.0f); // This is override in the shader anyway but just in case.
             if (((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
             {
                 m_MaterialEditor.ShaderProperty(TexWorldScale, Styles.texWorldScaleText);
@@ -354,8 +354,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMaskText, detailMask);
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap);
-            
-            EditorGUI.indentLevel++;            
+
+            EditorGUI.indentLevel++;
             // When Planar or Triplanar is enable the UVDetail use the same mode, so we disable the choice on UVDetail
             if ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.UV0)
             {
@@ -393,7 +393,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             }
 
-            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);             
+            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
 
             // The parent Base.ShaderPropertiesGUI will call DoEmissionArea
         }
@@ -420,15 +420,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
-			
+
             SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
-			SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
-			SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap));
-			SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-			SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
-			SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
-			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
-			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
+            SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
+            SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap));
+            SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+            SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
+            SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
+            SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
+            SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
             SetKeyword(material, "_SUBSURFACE_RADIUS_MAP", material.GetTexture(kSubsurfaceRadiusMap));
             SetKeyword(material, "_THICKNESS_MAP", material.GetTexture(kThicknessMap));
 
@@ -450,6 +450,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.DisableKeyword("_REQUIRE_UV2");
                 material.DisableKeyword("_REQUIRE_UV3");
             }
-         }
+        }
     }
 } // namespace UnityEditor
