@@ -61,13 +61,13 @@ void UnpackShadowmapId( uint shadowmapId, out float slice )
 
 void UnpackShadowType( uint packedShadowType, out uint shadowType, out uint shadowAlgorithm )
 {
-	shadowType		= packedShadowType >> 9;
+	shadowType		= packedShadowType >> 10;
 	shadowAlgorithm = packedShadowType & 0x1ff;
 }
 
 void UnpackShadowType( uint packedShadowType, out uint shadowType )
 {
-	shadowType = packedShadowType >> 9;
+	shadowType = packedShadowType >> 10;
 }
 
 
