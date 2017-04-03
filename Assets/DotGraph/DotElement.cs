@@ -10,13 +10,13 @@ namespace UnityEditor.Dot
         {
             get
             {
-                if (attributes.ContainsKey("label"))
-                    return attributes["label"];
+                if (attributes.ContainsKey(DotAttribute.Label))
+                    return attributes[DotAttribute.Label];
                 return string.Empty;
             }
             set
             {
-                attributes["label"] = value;
+                attributes[DotAttribute.Label] = value;
             }
         }
 

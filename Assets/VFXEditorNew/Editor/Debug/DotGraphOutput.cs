@@ -19,18 +19,33 @@ namespace UnityEditor.VFX
             var objs = new HashSet<UnityEngine.Object>();
             graph.CollectDependencies(objs);
 
-            var startExpressions = new HashSet<VFXExpression>(objs.OfType<VFXSlot>()
+            var startExpressions = new Dictionary<VFXExpression,VFXSlot>(objs.OfType<VFXSlot>()
                 .Where(s => s.owner != null && s.direction == VFXSlot.Direction.kOutput) // only master output slots
-                .Select(s => s.expression));
+                .ToDictionary(s => s.expression));
             var expressions = new HashSet<VFXExpression>();
 
-            foreach (var exp in startExpressions)
+            foreach (var exp in startExpressions.Keys)
                 CollectExpressions(exp, expressions);
 
             var expressionsToDot = new Dictionary<VFXExpression, DotNode>();
             foreach (var exp in expressions)
             {
-                var dotNode = new DotNode(exp.GetType().Name);
+                string name = exp.GetType().Name;
+                string valueStr = GetExpressionValue(exp);
+                if (!string.IsNullOrEmpty(valueStr))
+                    name += string.Format(" ({0})", valueStr);
+                if (startExpressions.ContainsKey(exp))
+                    name += string.Format(" ({0})", startExpressions[exp].m_Owner.GetType().Name);
+
+                var dotNode = new DotNode(name);
+
+                dotNode.attributes[DotAttribute.Shape] = DotShape.Box;
+                if (startExpressions.ContainsKey(exp)) // it's an output from slot
+                {
+                    dotNode.attributes[DotAttribute.Style] = DotStyle.Filled;
+                    dotNode.attributes[DotAttribute.Color] = DotColor.Green;
+                }
+
                 expressionsToDot[exp] = dotNode;
             }
 
@@ -42,12 +57,23 @@ namespace UnityEditor.VFX
                 {
                     var dotEdge = new DotEdge(expressionsToDot[parents[i]], exp.Value);
                     if (parents.Length > 1)
-                        dotEdge.attributes["headlabel"] = i.ToString();
+                        dotEdge.attributes[DotAttribute.HeadLabel] = i.ToString();
                     dotGraph.AddElement(dotEdge);
                 }
             }
 
             dotGraph.OutputToDotFile("d:\\expGraph.dot");
+        }
+
+        private static string GetExpressionValue(VFXExpression exp)
+        {
+            // TODO We should have a way in VFXValue to retrieve an object representing the value
+            if (exp is VFXValueFloat) return ((VFXValueFloat)exp).GetContent<float>().ToString();
+            if (exp is VFXValueFloat2) return ((VFXValueFloat2)exp).GetContent<Vector2>().ToString();
+            if (exp is VFXValueFloat3) return ((VFXValueFloat3)exp).GetContent<Vector3>().ToString();
+            if (exp is VFXValueFloat4) return ((VFXValueFloat4)exp).GetContent<Vector4>().ToString();
+
+            return string.Empty;
         }
 
         private static void CollectExpressions(VFXExpression exp,HashSet<VFXExpression> expressions)
