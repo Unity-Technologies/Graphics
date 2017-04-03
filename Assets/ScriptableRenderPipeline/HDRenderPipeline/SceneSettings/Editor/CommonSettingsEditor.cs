@@ -66,9 +66,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowNearPlaneOffset = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
 
             m_SkyRendererTypes = Assembly.GetAssembly(typeof(SkyRenderer))
-                                            .GetTypes()
-                                            .Where(t => t.IsSubclassOf(typeof(SkyRenderer)) && !t.IsGenericType)
-                                            .ToList();
+                .GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(SkyRenderer)) && !t.IsGenericType)
+                .ToList();
 
             // Prepare the list of available SkyRenderers for the IntPopup
             m_SkyRendererTypeNames.Clear();
@@ -128,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = m_ShadowCascadeCount.hasMultipleDifferentValues;
             int newCascadeCount = EditorGUILayout.IntPopup(styles.shadowsDirectionalLightCascadeCount, m_ShadowCascadeCount.intValue, styles.shadowsCascadeCounts, styles.shadowsCascadeCountValues);
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
                 m_ShadowCascadeCount.intValue = newCascadeCount;
             }
@@ -148,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             EditorGUI.indentLevel--;
 
-            EditorGUILayout.PropertyField(m_ShadowNearPlaneOffset, styles.nearPlaneOffset);            
+            EditorGUILayout.PropertyField(m_ShadowNearPlaneOffset, styles.nearPlaneOffset);
 
             EditorGUI.indentLevel--;
         }

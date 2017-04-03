@@ -748,7 +748,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
 #ifdef SHADOWS_USE_SHADOWCTXT
-		float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
         float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #endif
@@ -797,9 +797,9 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
             // TODO: factor out the biased position?
             float3 biasedPositionWS = positionWS + bsdfData.normalWS * bsdfData.thickness;
 #ifdef SHADOWS_USE_SHADOWCTXT
-			float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+            float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
-			float shadow = GetDirectionalShadowAttenuation(lightLoopContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+            float shadow = GetDirectionalShadowAttenuation(lightLoopContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #endif
 
             illuminance *= shadow;
@@ -858,9 +858,9 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
 #ifdef SHADOWS_USE_SHADOWCTXT
-		float shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+        float shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
-		float shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+        float shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
 #endif
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 
@@ -916,9 +916,9 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
             float3 biasedPositionWS = positionWS + bsdfData.normalWS * bsdfData.thickness;
             float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
 #ifdef SHADOWS_USE_SHADOWCTXT
-			float shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+            float shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
-			float shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, biasedPositionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+            float shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, biasedPositionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
 #endif
             shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 
@@ -1181,7 +1181,7 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 #ifdef LIT_DISPLAY_REFERENCE_AREA
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           diffuseLighting, specularLighting);
-#else    
+#else
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
 
@@ -1416,7 +1416,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     weight = float2(0.0, 1.0);
 
 #else
-    // TODO: factor this code in common, so other material authoring don't require to rewrite everything, 
+    // TODO: factor this code in common, so other material authoring don't require to rewrite everything,
     // also think about how such a loop can handle 2 cubemap at the same time as old unity. Macro can allow to do that
     // but we need to have UNITY_SAMPLE_ENV_LOD replace by a true function instead that is define by the lighting arcitecture.
     // Also not sure how to deal with 2 intersection....

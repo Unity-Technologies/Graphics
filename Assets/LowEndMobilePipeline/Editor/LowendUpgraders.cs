@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.LowendMobile
@@ -110,7 +110,6 @@ namespace UnityEditor.Experimental.Rendering.LowendMobile
             UpdateMaterialSpecularSource(material);
             UpdateMaterialReflectionSource(material);
             SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
-            SetKeyword(material, "_SPECGLOSSMAP", material.GetTexture("_SpecGlossMap"));
             SetKeyword(material, "_CUBEMAP_REFLECTION", material.GetTexture("_Cube"));
             SetKeyword(material, "_EMISSION_MAP", material.GetTexture("_EmissionMap"));
         }
@@ -157,34 +156,32 @@ namespace UnityEditor.Experimental.Rendering.LowendMobile
             SpecularSource specSource = (SpecularSource)material.GetFloat("_SpecSource");
             if (specSource == SpecularSource.NoSpecular)
             {
-                SetKeyword(material, "_SHARED_SPECULAR_DIFFUSE", false);
-                SetKeyword(material, "_SPECULAR_MAP", false);
-                SetKeyword(material, "_SPECULAR_COLOR", false);
-            }
-            else if (specSource == SpecularSource.BaseTexture)
-            {
-                SetKeyword(material, "_SHARED_SPECULAR_DIFFUSE", true);
-                SetKeyword(material, "_SPECULAR_MAP", false);
+                SetKeyword(material, "_SPECGLOSSMAP", false);
+                SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
                 SetKeyword(material, "_SPECULAR_COLOR", false);
             }
             else if (specSource == SpecularSource.SpecularTextureAndColor && material.GetTexture("_SpecGlossMap"))
             {
-                SetKeyword(material, "_SHARED_SPECULAR_DIFFUSE", false);
-                SetKeyword(material, "_SPECULAR_MAP", true);
+                GlossinessSource glossSource = (GlossinessSource)material.GetFloat("_GlossinessSource");
+                if (glossSource == GlossinessSource.BaseAlpha)
+                {
+                    SetKeyword(material, "_SPECGLOSSMAP", false);
+                    SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", true);
+                }
+                else
+                {
+                    SetKeyword(material, "_SPECGLOSSMAP", true);
+                    SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
+                }
+
                 SetKeyword(material, "_SPECULAR_COLOR", false);
             }
             else
             {
-                SetKeyword(material, "_SHARED_SPECULAR_DIFFUSE", false);
-                SetKeyword(material, "_SPECULAR_MAP", false);
+                SetKeyword(material, "_SPECGLOSSMAP", false);
+                SetKeyword(material, "_SPECGLOSSMAP_BASE_ALPHA", false);
                 SetKeyword(material, "_SPECULAR_COLOR", true);
             }
-
-            GlossinessSource glossSource = (GlossinessSource)material.GetFloat("_GlossinessSource");
-            if (glossSource == GlossinessSource.BaseAlpha)
-                SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", true);
-            else
-                SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", false);
         }
 
         private static void UpdateMaterialReflectionSource(Material material)

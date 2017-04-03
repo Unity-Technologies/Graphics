@@ -21,10 +21,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Enumerate properties in order to compute the hash more quickly later on.
             m_Properties = GetType()
-                            .GetFields(BindingFlags.Public | BindingFlags.Instance)
-                            .ToArray();
+                .GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .ToArray();
         }
-        
+
         public int GetHash()
         {
             unchecked

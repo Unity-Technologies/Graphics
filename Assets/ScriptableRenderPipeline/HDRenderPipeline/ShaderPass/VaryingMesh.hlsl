@@ -1,23 +1,23 @@
 struct AttributesMesh
 {
     float3 positionOS   : POSITION;
-#ifdef ATTRIBUTES_NEED_NORMAL	
+#ifdef ATTRIBUTES_NEED_NORMAL
     float3 normalOS     : NORMAL;
 #endif
 #ifdef ATTRIBUTES_NEED_TANGENT
     float4 tangentOS    : TANGENT; // Store sign in w
 #endif
-#ifdef ATTRIBUTES_NEED_TEXCOORD0	
+#ifdef ATTRIBUTES_NEED_TEXCOORD0
     float2 uv0          : TEXCOORD0;
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD1
-    float2 uv1		    : TEXCOORD1;
+    float2 uv1          : TEXCOORD1;
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD2
-    float2 uv2		    : TEXCOORD2;
+    float2 uv2          : TEXCOORD2;
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD3
-    float2 uv3		    : TEXCOORD3;
+    float2 uv3          : TEXCOORD3;
 #endif
 #ifdef ATTRIBUTES_NEED_COLOR
     float4 color        : COLOR;
@@ -48,7 +48,7 @@ struct VaryingsMeshToPS
 #ifdef VARYINGS_NEED_TEXCOORD3
     float2 texCoord3;
 #endif
-#ifdef VARYINGS_NEED_COLOR   
+#ifdef VARYINGS_NEED_COLOR
     float4 color;
 #endif
 };
@@ -104,7 +104,7 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
     output.interpolators2 = input.tangentWS;
 #endif
 
-#ifdef VARYINGS_NEED_TEXCOORD0 
+#ifdef VARYINGS_NEED_TEXCOORD0
     output.interpolators3.xy = input.texCoord0;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD1
@@ -144,7 +144,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     float3 normalWS = renormFactor * input.interpolators1;
 
     // no normalizes is mandatory for tangentWS
- 
+
     // bitangent on the fly option in xnormal to reduce vertex shader outputs.
     float3x3 worldToTangent = CreateWorldToTangent(normalWS, tangentWS.xyz, tangentWS.w);
     output.worldToTangent[0] = worldToTangent[0];
@@ -166,7 +166,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
 #endif // VARYINGS_NEED_TANGENT_TO_WORLD
 
-#ifdef VARYINGS_NEED_TEXCOORD0 
+#ifdef VARYINGS_NEED_TEXCOORD0
     output.texCoord0 = input.interpolators3.xy;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD1
@@ -223,7 +223,7 @@ struct VaryingsMeshToDS
 #ifdef VARYINGS_DS_NEED_TANGENT
     float4 tangentWS;
 #endif
-#ifdef VARYINGS_DS_NEED_TEXCOORD0 
+#ifdef VARYINGS_DS_NEED_TEXCOORD0
     float2 texCoord0;
 #endif
 #ifdef VARYINGS_DS_NEED_TEXCOORD1
@@ -284,7 +284,7 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
 #ifdef VARYINGS_DS_NEED_TANGENT
     output.interpolators2 = input.tangentWS;
 #endif
-#ifdef VARYINGS_DS_NEED_TEXCOORD0 
+#ifdef VARYINGS_DS_NEED_TEXCOORD0
     output.interpolators3.xy = input.texCoord0;
 #endif
 #ifdef VARYINGS_DS_NEED_TEXCOORD1
@@ -315,7 +315,7 @@ VaryingsMeshToDS UnpackVaryingsMeshToDS(PackedVaryingsMeshToDS input)
 #ifdef VARYINGS_DS_NEED_TANGENT
     output.tangentWS = input.interpolators2;
 #endif
-#ifdef VARYINGS_DS_NEED_TEXCOORD0 
+#ifdef VARYINGS_DS_NEED_TEXCOORD0
     output.texCoord0 = input.interpolators3.xy;
 #endif
 #ifdef VARYINGS_DS_NEED_TEXCOORD1
@@ -346,19 +346,19 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
     // This will interpolate the sign but should be ok in practice as we may expect a triangle to have same sign (? TO CHECK)
     TESSELLATION_INTERPOLATE_BARY(tangentWS, baryCoords);
 #endif
-#ifdef VARYINGS_DS_NEED_TEXCOORD0 
+#ifdef VARYINGS_DS_NEED_TEXCOORD0
     TESSELLATION_INTERPOLATE_BARY(texCoord0, baryCoords);
 #endif
 #ifdef VARYINGS_DS_NEED_TEXCOORD1
     TESSELLATION_INTERPOLATE_BARY(texCoord1, baryCoords);
 #endif
-#ifdef VARYINGS_DS_NEED_TEXCOORD2 
+#ifdef VARYINGS_DS_NEED_TEXCOORD2
     TESSELLATION_INTERPOLATE_BARY(texCoord2, baryCoords);
 #endif
-#ifdef VARYINGS_DS_NEED_TEXCOORD3 
+#ifdef VARYINGS_DS_NEED_TEXCOORD3
     TESSELLATION_INTERPOLATE_BARY(texCoord3, baryCoords);
 #endif
-#ifdef VARYINGS_DS_NEED_COLOR 
+#ifdef VARYINGS_DS_NEED_COLOR
     TESSELLATION_INTERPOLATE_BARY(color, baryCoords);
 #endif
 

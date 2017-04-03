@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void Convert(Material srcMaterial, Material dstMaterial)
         {
             base.Convert(srcMaterial, dstMaterial);
-            //@TODO: Find a good way of setting up keywords etc from properties. 
+            //@TODO: Find a good way of setting up keywords etc from properties.
             // Code should be shared with material UI code.
         }
 
@@ -66,4 +66,3 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
     }
 }
-

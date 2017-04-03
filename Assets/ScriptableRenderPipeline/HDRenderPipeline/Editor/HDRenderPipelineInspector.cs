@@ -181,7 +181,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!attr.needParamDefines)
             {
-                return ;
+                return;
             }
 
             var fields = type.GetFields();
@@ -252,7 +252,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-
         private void MaterialDebugSettingsUI(HDRenderPipeline renderContext)
         {
             m_ShowMaterialDebug.boolValue = EditorGUILayout.Foldout(m_ShowMaterialDebug.boolValue, styles.materialDebugLabel);
@@ -269,12 +268,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // +1 for the zero case
                 var num = 1 + varyingNames.Length
-                          + gbufferNames.Length
-                          + typeof(Builtin.BuiltinData).GetFields().Length * 2 // BuildtinData are duplicated for each material
-                          + typeof(Lit.SurfaceData).GetFields().Length
-                          + typeof(Lit.BSDFData).GetFields().Length
-                          + typeof(Unlit.SurfaceData).GetFields().Length
-                          + typeof(Unlit.BSDFData).GetFields().Length;
+                    + gbufferNames.Length
+                    + typeof(Builtin.BuiltinData).GetFields().Length * 2       // BuildtinData are duplicated for each material
+                    + typeof(Lit.SurfaceData).GetFields().Length
+                    + typeof(Lit.BSDFData).GetFields().Length
+                    + typeof(Unlit.SurfaceData).GetFields().Length
+                    + typeof(Unlit.BSDFData).GetFields().Length;
 
                 styles.debugViewMaterialStrings = new GUIContent[num];
                 styles.debugViewMaterialValues = new int[num];

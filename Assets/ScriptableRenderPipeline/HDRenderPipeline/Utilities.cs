@@ -92,6 +92,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.Dispose();
         }
 
+        public static void ClearCubemap(ScriptableRenderContext renderContext, RenderTargetIdentifier buffer, Color clearColor)
+        {
+            var cmd = new CommandBuffer();
+            cmd.name = "";
+
+            for(int i = 0 ; i < 6 ; ++i)
+            {
+                SetRenderTarget(renderContext, buffer, ClearFlag.ClearColor, Color.black, 0, (CubemapFace)i);
+            }
+
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
+
         // Miscellanous
         public static Material CreateEngineMaterial(string shaderPath)
         {
@@ -226,11 +240,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
             Vector4 invProjectionParam = new Vector4(gpuProj.m20 / (gpuProj.m00 * gpuProj.m23),
-                                                     gpuProj.m21 / (gpuProj.m11 * gpuProj.m23),
-                                                     -1.0f / gpuProj.m23,
-                                                     (-gpuProj.m22
-                                                     + gpuProj.m20 * gpuProj.m02 / gpuProj.m00
-                                                     + gpuProj.m21 * gpuProj.m12 / gpuProj.m11) / gpuProj.m23); 
+                    gpuProj.m21 / (gpuProj.m11 * gpuProj.m23),
+                    -1.0f / gpuProj.m23,
+                    (-gpuProj.m22
+                     + gpuProj.m20 * gpuProj.m02 / gpuProj.m00
+                     + gpuProj.m21 * gpuProj.m12 / gpuProj.m11) / gpuProj.m23);
 
             hdCamera.viewProjectionMatrix    = gpuVP;
             hdCamera.invViewProjectionMatrix = gpuVP.inverse;
@@ -296,7 +310,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void SelectKeyword(Material material, string keyword1, string keyword2, bool enableFirst)
         {
-            material.EnableKeyword (enableFirst ? keyword1 : keyword2);
+            material.EnableKeyword(enableFirst ? keyword1 : keyword2);
             material.DisableKeyword(enableFirst ? keyword2 : keyword1);
         }
 
@@ -327,8 +341,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
-                                          RenderTargetIdentifier colorBuffer,
-                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
+            RenderTargetIdentifier colorBuffer,
+            MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer);
@@ -337,8 +351,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
-                                          RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
-                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
+            RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
+            MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
@@ -347,8 +361,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
-                                          RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
-                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
+            RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
+            MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             SetupMaterialHDCamera(camera, material);
             commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
@@ -358,8 +372,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
         // Important: the first RenderTarget must be created with 0 depth bits!
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
-                                          RenderTargetIdentifier[] colorBuffers,
-                                          MaterialPropertyBlock properties = null, int shaderPassID = 0)
+            RenderTargetIdentifier[] colorBuffers,
+            MaterialPropertyBlock properties = null, int shaderPassID = 0)
         {
             // It is currently not possible to have MRT without also setting a depth target.
             // To work around this deficiency of the CommandBuffer.SetRenderTarget() API,

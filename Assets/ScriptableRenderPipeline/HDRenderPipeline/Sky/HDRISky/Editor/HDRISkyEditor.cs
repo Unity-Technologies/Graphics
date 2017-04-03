@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         private class Styles
         {
-            public readonly GUIContent skyHDRI = new GUIContent("HDRI","Cubemap used to render the sky.");
+            public readonly GUIContent skyHDRI = new GUIContent("HDRI", "Cubemap used to render the sky.");
             public readonly GUIContent skyResolution = new GUIContent("Resolution", "Resolution of the environment lighting generated from the sky.");
             public readonly GUIContent skyExposure = new GUIContent("Exposure", "Exposure of the sky in EV.");
             public readonly GUIContent skyRotation = new GUIContent("Rotation", "Rotation of the sky.");
@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_SkyRotation, styles.skyRotation);
 
             EditorGUILayout.PropertyField(m_EnvUpdateMode, styles.environmentUpdateMode);
-            if(!m_EnvUpdateMode.hasMultipleDifferentValues && m_EnvUpdateMode.intValue == (int)EnvironementUpdateMode.Realtime)
+            if (!m_EnvUpdateMode.hasMultipleDifferentValues && m_EnvUpdateMode.intValue == (int)EnvironementUpdateMode.Realtime)
             {
                 EditorGUILayout.PropertyField(m_EnvUpdatePeriod, styles.environmentUpdatePeriod);
             }

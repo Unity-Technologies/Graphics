@@ -44,11 +44,11 @@ void Frag(PackedVaryingsToPS packedInput,
 
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
-	PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-	uint featureFlags = 0xFFFFFFFF;
-	float3 diffuseLighting;
-	float3 specularLighting;
+    uint featureFlags = 0xFFFFFFFF;
+    float3 diffuseLighting;
+    float3 specularLighting;
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
@@ -58,4 +58,3 @@ void Frag(PackedVaryingsToPS packedInput,
     outputDepth = posInput.depthRaw;
 #endif
 }
-

@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (!Graphics.ConvertTexture(texture, 0, m_Cache, sliceIndex))
                 {
                     Debug.LogErrorFormat(texture, "Unable to convert texture \"{0}\" to match renderloop settings ({1}x{2} {3})",
-                      texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
+                        texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
                 }
             }
             else
@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public override void TransferToSlice(int sliceIndex, Texture texture)
         {
-            if(!TextureCache.supportsCubemapArrayTextures)
+            if (!TextureCache.supportsCubemapArrayTextures)
                 TransferToPanoCache(sliceIndex, texture);
             else
             {
@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering
                     if (failed)
                     {
                         Debug.LogErrorFormat(texture, "Unable to convert texture \"{0}\" to match renderloop settings ({1}x{2} {3})",
-                          texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
+                            texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
                     }
                 }
                 else
@@ -112,20 +112,20 @@ namespace UnityEngine.Experimental.Rendering
 
         public override Texture GetTexCache()
         {
-            return !TextureCache.supportsCubemapArrayTextures ? (Texture) m_CacheNoCubeArray : m_Cache;
+            return !TextureCache.supportsCubemapArrayTextures ? (Texture)m_CacheNoCubeArray : m_Cache;
         }
 
         public bool AllocTextureArray(int numCubeMaps, int width, TextureFormat format, bool isMipMapped)
         {
             var res = AllocTextureArray(numCubeMaps);
             m_NumMipLevels = GetNumMips(width, width);      // will calculate same way whether we have cube array or not
-        
-            if(!TextureCache.supportsCubemapArrayTextures)
-            {
-                if(!m_CubeBlitMaterial) m_CubeBlitMaterial = new Material(Shader.Find("Hidden/CubeToPano"));
 
-                int panoWidthTop = 4*width;
-                int panoHeightTop = 2*width;
+            if (!TextureCache.supportsCubemapArrayTextures)
+            {
+                if (!m_CubeBlitMaterial) m_CubeBlitMaterial = new Material(Shader.Find("Hidden/CubeToPano"));
+
+                int panoWidthTop = 4 * width;
+                int panoHeightTop = 2 * width;
 
                 // create panorama 2D array. Hardcoding the render target for now. No convenient way atm to
                 // map from TextureFormat to RenderTextureFormat and don't want to deal with sRGB issues for now.
@@ -140,12 +140,12 @@ namespace UnityEngine.Experimental.Rendering
 
                 m_NumPanoMipLevels = isMipMapped ? GetNumMips(panoWidthTop, panoHeightTop) : 1;
                 m_StagingRTs = new RenderTexture[m_NumPanoMipLevels];
-                for(int m=0; m<m_NumPanoMipLevels; m++)
+                for (int m = 0; m < m_NumPanoMipLevels; m++)
                 {
-                    m_StagingRTs[m] = new RenderTexture(Mathf.Max(1,panoWidthTop>>m), Mathf.Max(1,panoHeightTop>>m), 0, RenderTextureFormat.ARGBHalf);
+                    m_StagingRTs[m] = new RenderTexture(Mathf.Max(1, panoWidthTop >> m), Mathf.Max(1, panoHeightTop >> m), 0, RenderTextureFormat.ARGBHalf);
                 }
 
-                if(m_CubeBlitMaterial)
+                if (m_CubeBlitMaterial)
                 {
                     m_CubeMipLevelPropName = Shader.PropertyToID("_cubeMipLvl");
                     m_cubeSrcTexPropName = Shader.PropertyToID("_srcCubeTexture");
@@ -170,12 +170,12 @@ namespace UnityEngine.Experimental.Rendering
             if (m_CacheNoCubeArray)
             {
                 Texture.DestroyImmediate(m_CacheNoCubeArray);
-                for(int m=0; m<m_NumPanoMipLevels; m++)
+                for (int m = 0; m < m_NumPanoMipLevels; m++)
                 {
                     m_StagingRTs[m].Release();
                 }
-                m_StagingRTs=null;
-                if(m_CubeBlitMaterial) Material.DestroyImmediate(m_CubeBlitMaterial);
+                m_StagingRTs = null;
+                if (m_CubeBlitMaterial) Material.DestroyImmediate(m_CubeBlitMaterial);
             }
             if (m_Cache)
                 Texture.DestroyImmediate(m_Cache);
@@ -184,14 +184,14 @@ namespace UnityEngine.Experimental.Rendering
         private void TransferToPanoCache(int sliceIndex, Texture texture)
         {
             m_CubeBlitMaterial.SetTexture(m_cubeSrcTexPropName, texture);
-            for(int m=0; m<m_NumPanoMipLevels; m++)
+            for (int m = 0; m < m_NumPanoMipLevels; m++)
             {
-                m_CubeBlitMaterial.SetInt(m_CubeMipLevelPropName, Mathf.Min(m_NumMipLevels-1,m) );
+                m_CubeBlitMaterial.SetInt(m_CubeMipLevelPropName, Mathf.Min(m_NumMipLevels - 1, m));
                 Graphics.SetRenderTarget(m_StagingRTs[m]);
                 Graphics.Blit(null, m_CubeBlitMaterial, 0);
             }
 
-            for(int m=0; m<m_NumPanoMipLevels; m++)
+            for (int m = 0; m < m_NumPanoMipLevels; m++)
                 Graphics.CopyTexture(m_StagingRTs[m], 0, 0, m_CacheNoCubeArray, sliceIndex, m);
         }
     }

@@ -9,7 +9,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        _Shininess("Shininess", Range(0.01, 1.0)) = 1.0 
+        _Shininess("Shininess", Range(0.01, 1.0)) = 1.0
         _GlossMapScale("Smoothness Factor", Range(0.0, 1.0)) = 1.0
 
         _Glossiness("Glossiness", Range(0.0, 1.0)) = 0.5
@@ -69,19 +69,16 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
-            #pragma shader_feature _ _SHARED_SPECULAR_DIFFUSE _SPECGLOSSMAP _SPECULAR_COLOR
-            #pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
+            #pragma shader_feature _ _SPECGLOSSMAP _SPECGLOSSMAP_BASE_ALPHA _SPECULAR_COLOR
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _EMISSION_MAP
             #pragma shader_feature _CUBEMAP_REFLECTION
 
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ HARD_SHADOWS SOFT_SHADOWS
-            #pragma multi_compile _ _SHADOW_CASCADES
+            #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile_fog
             #pragma only_renderers d3d9 d3d11 d3d11_9x glcore gles gles3 metal
-            #pragma enable_d3d11_debug_symbols
 
             #include "UnityCG.cginc"
             #include "UnityStandardBRDF.cginc"
@@ -129,9 +126,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 o.shadowCoord = mul(_WorldToShadow[0], float4(o.posWS, 1.0));
 #endif
 
-#ifndef LIGHTMAP_ON
                 o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
-#endif
 
                 UNITY_TRANSFER_FOG(o, o.hpos);
                 return o;
@@ -153,7 +148,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 NormalMap(i, normal);
 
                 half4 specularGloss;
-                SpecularGloss(diffuse, alpha, specularGloss);
+                SpecularGloss(i.uv01.xy, diffuse, alpha, specularGloss);
 
                 // Indirect Light Contribution
                 half3 indirect;
@@ -170,9 +165,9 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 half3 viewDir = i.viewDir.xyz;
 
                 half3 directColor = EvaluateOneLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir);
-                #if defined(HARD_SHADOWS) || defined(SOFT_SHADOWS)
+#ifdef _SHADOWS
                 directColor *= ComputeShadowAttenuation(i);
-                #endif
+#endif
 
                 // Compute direct contribution from additional lights.
                 for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)

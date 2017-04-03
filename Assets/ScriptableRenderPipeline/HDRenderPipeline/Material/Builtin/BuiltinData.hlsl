@@ -107,7 +107,7 @@ void GetLighTransportDataDebug(uint paramId, LighTransportData lightTransportDat
         // TODO: Need a tonemap ?
         result = lightTransportData.emissiveColor;
         break;
-    }    
+    }
 }
 
 #endif // UNITY_BUILTIN_DATA_INCLUDED
