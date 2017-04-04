@@ -10,6 +10,39 @@ namespace UnityEditor.VFX
     {
         protected VFXParameter()
         {
+            m_exposedName = "exposedName";
+            m_exposed = false;
+        }
+
+        [SerializeField]
+        private string m_exposedName;
+        [SerializeField]
+        private bool m_exposed;
+
+        public string exposedName
+        {
+            get { return m_exposedName; }
+            set
+            {
+                if (m_exposedName != value)
+                {
+                    m_exposedName = value;
+                    Invalidate(InvalidationCause.kParamChanged);
+                }
+            }
+        }
+
+        public bool exposed
+        {
+            get { return m_exposed; }
+            set
+            {
+                if (m_exposed != value)
+                {
+                    m_exposed = value;
+                    Invalidate(InvalidationCause.kParamChanged);
+                }
+            }
         }
 
         public void Init(Type _type)

@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
     {
         private Button m_Settings; //place holder for inner operator settings
 
-        public void RandomizeSettings()
+        private void RandomizeSettings()
         {
             var presenter = GetPresenter<VFXOperatorPresenter>();
             if (presenter.settings != null)

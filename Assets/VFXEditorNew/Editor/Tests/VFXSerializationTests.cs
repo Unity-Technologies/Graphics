@@ -265,9 +265,12 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeParameter()
         {
+            var name = "unity";
             Action<VFXGraphAsset> write = delegate (VFXGraphAsset asset)
             {
                 var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
+                parameter.exposed = true;
+                parameter.exposedName = name;
                 asset.root.AddChild(parameter);
                 Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].expression.ValueType);
             };
@@ -276,6 +279,8 @@ namespace UnityEditor.VFX.Test
             {
                 var parameter = asset.root[0] as VFXParameter;
                 Assert.AreNotEqual(null, parameter);
+                Assert.AreEqual(true, parameter.exposed);
+                Assert.AreEqual(parameter.exposedName, name);
                 Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].expression.ValueType);
             };
 
