@@ -14,6 +14,15 @@
 #define MATERIALID_LIT_ANISO (4)
 
 //
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialFeatureFlags:  static fields
+//
+#define FEATURE_FLAG_MATERIAL_LIT_STANDARD (4096)
+#define FEATURE_FLAG_MATERIAL_LIT_SSS (8192)
+#define FEATURE_FLAG_MATERIAL_LIT_CLEAR_COAT (16384)
+#define FEATURE_FLAG_MATERIAL_LIT_SPECULAR (32768)
+#define FEATURE_FLAG_MATERIAL_LIT_ANISO (65536)
+
+//
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit.SurfaceData:  static fields
 //
 #define DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR (1000)
