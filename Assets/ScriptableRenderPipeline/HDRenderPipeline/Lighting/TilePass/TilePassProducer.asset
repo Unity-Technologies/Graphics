@@ -21,5 +21,5 @@ MonoBehaviour:
     enableBigTilePrepass: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
-    tileDebugByCategory: 8
+    tileDebugByCategory: 0
   m_PassResources: {fileID: 11400000, guid: 7f2998544b2ac3848822b80ec3e6c446, type: 2}
