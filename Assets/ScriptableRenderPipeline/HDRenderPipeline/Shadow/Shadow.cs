@@ -18,7 +18,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class ShadowAtlas : ShadowmapBase, IDisposable
     {
         public const uint k_MaxCascadesInShader = 4;
-
         protected readonly RenderTexture              m_Shadowmap;
         protected readonly RenderTargetIdentifier     m_ShadowmapId;
         protected readonly int                        m_TempDepthId;
@@ -104,6 +103,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ShadowAtlas( ref AtlasInit init ) : base( ref init.baseInit )
         {
             m_Shadowmap             = new RenderTexture( (int) m_Width, (int) m_Height, (int) m_ShadowmapBits, m_ShadowmapFormat, RenderTextureReadWrite.Linear );
+            m_Shadowmap.hideFlags   = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
             m_Shadowmap.dimension   = TextureDimension.Tex2DArray;
             m_Shadowmap.volumeDepth = (int) m_Slices;
             m_ShadowmapId           = new RenderTargetIdentifier( m_Shadowmap );
@@ -172,7 +172,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Dispose()
         {
-            // TODO: clean up resources if necessary
+            if( m_Shadowmap != null )
+                m_Shadowmap.Release();
         }
 
         override public bool Reserve( FrameId frameId, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, VisibleLight[] lights )
