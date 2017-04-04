@@ -309,21 +309,22 @@ float4 DecodeGBuffer0(GBufferType0 encodedGBuffer0)
 }
 
 void DecodeFromGBuffer(
-                        #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
-                        GBufferType0 inGBufferU0,
-                        GBufferType1 inGBufferU1,
-                        #else
-                        GBufferType0 inGBuffer0,
-                        GBufferType1 inGBuffer1,
-                        GBufferType2 inGBuffer2,
-                        GBufferType3 inGBuffer3,
-                        #endif
-                        out BSDFData bsdfData,
-                        out float3 bakeDiffuseLighting)
+#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+    GBufferType0 inGBufferU0,
+    GBufferType1 inGBufferU1,
+#else
+    GBufferType0 inGBuffer0,
+    GBufferType1 inGBuffer1,
+    GBufferType2 inGBuffer2,
+    GBufferType3 inGBuffer3,
+#endif
+    uint featureFlags,
+    out BSDFData bsdfData,
+    out float3 bakeDiffuseLighting)
 {
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
-    #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
     float4 inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3;
 
     inGBuffer0 = DecodeGBuffer0(inGBufferU0);
@@ -339,7 +340,7 @@ void DecodeFromGBuffer(
     uint packedGBuffer3 = inGBufferU1.z | inGBufferU1.w << 16;
     inGBuffer3.xyz = UnpackR11G11B10f(packedGBuffer1);
     inGBuffer3.w = 0.0;
-    #endif
+#endif
 
     float3 baseColor = inGBuffer0.rgb;
     bsdfData.specularOcclusion = inGBuffer0.a;
@@ -347,9 +348,26 @@ void DecodeFromGBuffer(
     bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r * 2.0 - 1.0, inGBuffer1.g * 2.0 - 1.0));
     bsdfData.perceptualRoughness = inGBuffer1.b;
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-    bsdfData.materialId = UnpackMaterialId(inGBuffer1.a);
 
-    if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
+    int supportsStandard = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_STANDARD | FEATURE_FLAG_MATERIAL_LIT_ANISO)) != 0;
+    int supportsSSS = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_SSS)) != 0;
+    int supportsClearCoat = (featureFlags & (MATERIALID_LIT_CLEAR_COAT)) != 0;
+    int supportsSpecular = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_SPECULAR)) != 0;
+
+    if(supportsStandard + supportsSSS + supportsClearCoat + supportsSpecular > 1)
+    {
+        bsdfData.materialId = UnpackMaterialId(inGBuffer1.a);   // only fetch materialid if it is not statically known from feature flags
+    }
+    else
+    {
+        // materialid is statically known. this allows the compiler to eliminate a lot of code.
+        if(supportsStandard) bsdfData.materialId = MATERIALID_LIT_STANDARD;
+        else if(supportsSSS) bsdfData.materialId = MATERIALID_LIT_SSS;
+        else if(supportsClearCoat) bsdfData.materialId = MATERIALID_LIT_CLEAR_COAT;
+        else bsdfData.materialId = MATERIALID_LIT_SPECULAR;
+    }
+
+    if (supportsStandard && bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
         float metallic = inGBuffer2.a;
         // TODO extract spec
@@ -364,9 +382,12 @@ void DecodeFromGBuffer(
         ConvertAnisotropyToRoughness(bsdfData.roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
         bsdfData.anisotropy = anisotropy;
 
-        bsdfData.materialId = anisotropy > 0 ? MATERIALID_LIT_ANISO : bsdfData.materialId;
+        if ((featureFlags & FEATURE_FLAG_MATERIAL_LIT_ANISO) && (featureFlags & FEATURE_FLAG_MATERIAL_LIT_STANDARD) == 0 || anisotropy > 0)
+        {
+            bsdfData.materialId = MATERIALID_LIT_ANISO;
+        }
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
+    else if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = baseColor;
         // TODO take from subsurfaceProfile
@@ -386,7 +407,7 @@ void DecodeFromGBuffer(
                                                           bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
+    else if (supportsClearCoat && bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
         float metallic = inGBuffer2.a;
         // TODO extract spec
@@ -397,7 +418,7 @@ void DecodeFromGBuffer(
         bsdfData.coatNormalWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
         bsdfData.coatRoughness = inGBuffer2.b;
     }
-    else if (bsdfData.materialId == MATERIALID_LIT_SPECULAR)
+    else if (supportsSpecular && bsdfData.materialId == MATERIALID_LIT_SPECULAR)
     {
         bsdfData.diffuseColor = baseColor;
         bsdfData.fresnel0 = inGBuffer2.rgb;
@@ -410,6 +431,60 @@ void DecodeFromGBuffer(
 #endif
     ApplyDebugToBSDFData(bsdfData);
 }
+
+uint MaterialFeatureFlagsFromGBuffer(
+#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+    GBufferType0 inGBufferU0,
+    GBufferType1 inGBufferU1
+#else
+    GBufferType0 inGBuffer0,
+    GBufferType1 inGBuffer1,
+    GBufferType2 inGBuffer2,
+    GBufferType3 inGBuffer3
+#endif
+)
+{
+#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+    float4 inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3;
+
+    inGBuffer0 = DecodeGBuffer0(inGBufferU0);
+
+    uint packedGBuffer1 = inGBufferU0.z | inGBufferU0.w << 16;
+    inGBuffer1 = UnpackR10G10B10A2(packedGBuffer1);
+
+    inGBuffer2.x = UnpackUIntToFloat(inGBufferU1.x, 8, 0);
+    inGBuffer2.y = UnpackUIntToFloat(inGBufferU1.x, 8, 8);
+    inGBuffer2.z = UnpackUIntToFloat(inGBufferU1.y, 8, 0);
+    inGBuffer2.w = UnpackUIntToFloat(inGBufferU1.y, 8, 8);
+
+    uint packedGBuffer3 = inGBufferU1.z | inGBufferU1.w << 16;
+    inGBuffer3.xyz = UnpackR11G11B10f(packedGBuffer1);
+    inGBuffer3.w = 0.0;
+#endif
+
+    int materialId = UnpackMaterialId(inGBuffer1.a);
+    float anisotropy = inGBuffer2.b;
+
+    uint featureFlags = 0;
+    if (materialId == MATERIALID_LIT_STANDARD)
+    {
+        featureFlags |= (anisotropy > 0) ? FEATURE_FLAG_MATERIAL_LIT_ANISO : FEATURE_FLAG_MATERIAL_LIT_STANDARD;
+    }
+    else if (materialId == MATERIALID_LIT_SSS)
+    {
+        featureFlags |= FEATURE_FLAG_MATERIAL_LIT_SSS;
+    }
+    else if (materialId == MATERIALID_LIT_CLEAR_COAT)
+    {
+        featureFlags |= FEATURE_FLAG_MATERIAL_LIT_CLEAR_COAT;
+    }
+    else if (materialId == MATERIALID_LIT_SPECULAR)
+    {
+        featureFlags |= FEATURE_FLAG_MATERIAL_LIT_SPECULAR;
+    }
+    return featureFlags;
+}
+
 
 //-----------------------------------------------------------------------------
 // Debug method (use to display values)

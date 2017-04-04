@@ -85,7 +85,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 BSDFData bsdfData;
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
-                DECODE_FROM_GBUFFER(gbuffer, bsdfData, unused);
+                DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
 
                 int   profileID    = bsdfData.subsurfaceProfile;
                 float distScale    = bsdfData.subsurfaceRadius;
