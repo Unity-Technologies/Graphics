@@ -155,7 +155,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
 #ifdef PROCESS_DIRECTIONAL_LIGHT
-    if(featureFlags & FEATURE_FLAG_DIRECTIONAL_LIGHT)
+    if(featureFlags & FEATURE_FLAG_LIGHT_DIRECTIONAL)
     {
         for(i = 0; i < _DirectionalLightCount; ++i)
         {
@@ -171,7 +171,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 #endif
 
 #ifdef PROCESS_PUNCTUAL_LIGHT
-    if(featureFlags & FEATURE_FLAG_PUNCTUAL_LIGHT)
+    if(featureFlags & FEATURE_FLAG_LIGHT_PUNCTUAL)
     {
         // TODO: Convert the for loop below to a while on each type as we know we are sorted!
         uint punctualLightStart;
@@ -192,7 +192,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 #endif
 
 #ifdef PROCESS_AREA_LIGHT
-    if(featureFlags & FEATURE_FLAG_AREA_LIGHT)
+    if(featureFlags & FEATURE_FLAG_LIGHT_AREA)
     {
         // TODO: Convert the for loop below to a while on each type as we know we are sorted!
         uint areaLightStart;
@@ -227,7 +227,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
 
     // Only apply sky IBL if the sky texture is available.
-    if(featureFlags & FEATURE_FLAG_SKY_LIGHT)
+    if(featureFlags & FEATURE_FLAG_LIGHT_SKY)
     {
         if(_EnvLightSkyEnabled)
         {
@@ -243,7 +243,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     }
 
 
-    if(featureFlags & FEATURE_FLAG_ENV_LIGHT)
+    if(featureFlags & FEATURE_FLAG_LIGHT_ENV)
     {
         uint envLightStart;
         uint envLightCount;
