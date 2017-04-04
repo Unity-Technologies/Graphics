@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.SceneManagement;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using System.IO;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -107,6 +108,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
+            }
+        }
+
+        [MenuItem("HDRenderPipeline/Export Sky to Image")]
+        static void ExportSkyToImage()
+        {
+            HDRenderPipelineInstance renderpipelineInstance = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+            if(renderpipelineInstance == null)
+            {
+                Debug.LogError("HDRenderPipeline is not instantiated.");
+                return;
+            }
+
+            Texture2D result = renderpipelineInstance.ExportSkyToTexture();
+            if(result == null)
+            {
+                Debug.LogError("Cannot export sky to an image, Sky is not setup properly.");
+                return;
+            }
+
+            // Encode texture into PNG
+            byte[] bytes = null;
+            bytes = result.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
+            Object.DestroyImmediate(result);
+
+            string assetPath = EditorUtility.SaveFilePanel("Export Sky", "Assets", "SkyExport", "exr");
+            if (!string.IsNullOrEmpty(assetPath))
+            {
+                File.WriteAllBytes(assetPath, bytes);
+                AssetDatabase.Refresh();
             }
         }
     }
