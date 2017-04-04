@@ -839,6 +839,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.RenderSky(hdCamera, m_LightLoop == null ? null : m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, renderContext);
         }
 
+        public Texture2D ExportSkyToTexture()
+        {
+            return m_SkyManager.ExportSkyToImage();
+        }
+
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
         {
             // TODO: Currently we can't render opaque object forward when deferred is enabled

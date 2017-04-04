@@ -434,5 +434,52 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
+
+        public Texture2D ExportSkyToImage()
+        {
+            if(m_Renderer != null && m_Renderer.IsSkyValid())
+            {
+                int resolution = (int)m_SkySettings.resolution;
+
+                RenderTexture tempRT = new RenderTexture(resolution * 6, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                tempRT.dimension = TextureDimension.Tex2D;
+                tempRT.useMipMap = false;
+                tempRT.autoGenerateMips = false;
+                tempRT.filterMode = FilterMode.Trilinear;
+                tempRT.Create();
+
+                Texture2D temp = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false);
+                Texture2D result = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false);
+
+                // Note: We need to invert in Y the cubemap faces because the current sky cubemap is inverted (because it's a RT)
+                // So to invert it again so that it's a proper cubemap image we need to do it in several steps because ReadPixels does not have scale parameters:
+                // - Convert the cubemap into a 2D texture
+                // - Blit and invert it to a temporary target.
+                // - Read this target again into the result texture.
+                int offset = 0;
+                for (int i = 0; i < 6; ++i)
+                {
+                    Graphics.SetRenderTarget(m_SkyboxCubemapRT, 0, (CubemapFace)i);
+                    temp.ReadPixels(new Rect(0, 0, resolution, resolution), offset, 0);
+                    temp.Apply();
+                    offset += resolution;
+                }
+
+                Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
+
+                result.ReadPixels(new Rect(0, 0, resolution * 6, resolution), 0, 0);
+                result.Apply();
+
+                Graphics.SetRenderTarget(null);
+                Object.DestroyImmediate(temp);
+                Object.DestroyImmediate(tempRT);
+
+                return result;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }
