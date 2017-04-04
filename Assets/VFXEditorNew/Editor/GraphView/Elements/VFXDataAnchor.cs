@@ -154,8 +154,8 @@ namespace UnityEditor.VFX.UI
 
                 if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
                 {
-                    Rect r = GUILayoutUtility.GetLastRect();
-                    m_Container.height = r.yMax;
+                    /*  Rect r = GUILayoutUtility.GetLastRect();
+                    m_Container.height = r.yMax;*/
                 }
             }
             catch(System.Exception e)
