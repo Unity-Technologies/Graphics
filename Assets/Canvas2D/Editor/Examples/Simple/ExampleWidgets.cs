@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace UnityEditor.Experimental.Graph.Examples
 {
@@ -151,7 +152,7 @@ namespace UnityEditor.Experimental.Graph.Examples
     class WWWImageBox : SimpleBox
     {
         Texture2D m_WWWTexture = new Texture2D(4, 4, TextureFormat.DXT1, false);
-        WWW www = null;
+        UnityWebRequest www = null;
         private float timeToNextPicture = 0.0f;
 
         public WWWImageBox(Vector2 position, float size)
@@ -165,7 +166,7 @@ namespace UnityEditor.Experimental.Graph.Examples
         {
             if (www != null && www.isDone)
             {
-                www.LoadImageIntoTexture(m_WWWTexture);
+                m_WWWTexture.LoadImage(www.downloadHandler.data);
                 www = null;
                 timeToNextPicture = 3.0f;
             }
@@ -174,7 +175,7 @@ namespace UnityEditor.Experimental.Graph.Examples
             if (timeToNextPicture < 0.0f)
             {
                 timeToNextPicture = 99999.0f;
-                www = new WWW("http://lorempixel.com/200/200");
+                www = new UnityWebRequest("http://lorempixel.com/200/200");
             }
 
             base.Render(parentRect, canvas);

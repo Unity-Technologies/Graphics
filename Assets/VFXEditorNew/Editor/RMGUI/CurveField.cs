@@ -1,11 +1,11 @@
 using UnityEngine;
-using UnityEngine.Experimental.RMGUI;
-using UnityEditor.Experimental.RMGUI;
-using UnityEngine.Experimental.RMGUI.StyleEnums;
+using UnityEngine.Experimental.UIElements;
+using UnityEditor.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditorInternal;
 
 
-namespace UnityEditor.VFX.RMGUI
+namespace UnityEditor.VFX.UIElements
 {
 
     class CurveField : ValueControl<AnimationCurve>

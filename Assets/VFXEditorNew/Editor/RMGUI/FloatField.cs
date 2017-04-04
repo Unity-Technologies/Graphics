@@ -1,9 +1,9 @@
 using UnityEngine;
-using UnityEngine.Experimental.RMGUI;
-using UnityEngine.Experimental.RMGUI.StyleEnums;
-using UnityEditor.Experimental.RMGUI;
+using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEditor.Experimental.UIElements;
 
-namespace UnityEditor.VFX.RMGUI
+namespace UnityEditor.VFX.UIElements
 {
     abstract class ValueControl<T> : VisualContainer
     {
