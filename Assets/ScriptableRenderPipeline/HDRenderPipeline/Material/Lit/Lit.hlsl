@@ -170,7 +170,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = surfaceData.baseColor;
-        bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
+        // TODO take from subsurfaceProfile
+        bsdfData.fresnel0 = 0.04; /* 0.028 ? */
         bsdfData.subsurfaceProfile = surfaceData.subsurfaceProfile;
         // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
         bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * surfaceData.subsurfaceRadius;
@@ -389,20 +390,21 @@ void DecodeFromGBuffer(
     else if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = baseColor;
-        bsdfData.fresnel0 = 0.028; // TODO take from subsurfaceProfile
-        bsdfData.subsurfaceProfile = SSS_N_PROFILES * inGBuffer2.a;
+        // TODO take from subsurfaceProfile
+        bsdfData.fresnel0 = 0.04; /* 0.028 ? */
+        bsdfData.subsurfaceProfile = (SSS_N_PROFILES - 1) * inGBuffer2.a;
         // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
-        bsdfData.subsurfaceRadius = SSS_UNIT_CONVERSION * inGBuffer2.r;
-        bsdfData.thickness = SSS_UNIT_CONVERSION * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
-            _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * inGBuffer2.g);
-        bsdfData.enableTransmission = (1 << bsdfData.subsurfaceProfile) & _TransmissionFlags;
+        bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * inGBuffer2.r;
+        bsdfData.thickness         = SSS_UNIT_CONVERSION * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
+                                                            _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * inGBuffer2.g);
+        bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, bsdfData.subsurfaceProfile);
         if (bsdfData.enableTransmission)
         {
             bsdfData.transmittance = ComputeTransmittance(_HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].xyz,
-                _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].w,
-                _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].xyz,
-                _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].w,
-                bsdfData.thickness, bsdfData.subsurfaceRadius);
+                                                          _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].w,
+                                                          _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].xyz,
+                                                          _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].w,
+                                                          bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
     }
     else if (supportsClearCoat && bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
@@ -740,10 +742,13 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
-    float3 H = normalize(V + L);
-    float LdotH = saturate(dot(L, H));
-    float NdotH = saturate(dot(bsdfData.normalWS, H));
-    float NdotL = saturate(dot(bsdfData.normalWS, L));
+    float NdotL    = saturate(dot(bsdfData.normalWS, L));
+    float NdotV    = preLightData.NdotV;
+    float LdotV    = dot(L, V);
+    float invLenLV = rsqrt(abs(2 + 2 * LdotV));    // invLenLV = rcp(length(L + V))
+    float NdotH    = saturate((NdotL + NdotV) * invLenLV);
+    float LdotH    = saturate(invLenLV + invLenLV * LdotV);
+
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
     float Vis;
@@ -752,6 +757,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     // Maybe always using aniso maybe a win ?
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
+        float3 H = (L + V) * invLenLV;
         // For anisotropy we must not saturate these values
         float TdotH = dot(bsdfData.tangentWS, H);
         float TdotL = dot(bsdfData.tangentWS, L);
@@ -762,11 +768,11 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         bsdfData.roughnessB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessB);
 
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
+        Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, NdotV, TdotL, BdotL, NdotL,
                                             bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXLambdaV);
         #else
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
-        Vis = V_SmithJointGGXAniso( preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
+        Vis = V_SmithJointGGXAniso( preLightData.TdotV, preLightData.BdotV, NdotV, TdotL, BdotL, NdotL,
                                     bsdfData.roughnessT, bsdfData.roughnessB);
         #endif
 
@@ -777,18 +783,22 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         bsdfData.roughness = ClampRoughnessForAnalyticalLights(bsdfData.roughness);
 
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
+        Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
         #else
-        Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness);
+        Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness);
         #endif
         D = D_GGX(NdotH, bsdfData.roughness);
     }
     specularLighting = F * (Vis * D);
-    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-    float diffuseTerm = Lambert();
-    #else
-    float diffuseTerm = DisneyDiffuse(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
-    #endif
+
+#ifdef LIT_DIFFUSE_LAMBERT_BRDF
+    float  diffuseTerm = Lambert();
+#elif LIT_DIFFUSE_GGX_BRDF
+    float3 diffuseTerm = DiffuseGGX(bsdfData.diffuseColor, NdotV, NdotL, NdotH, LdotV, bsdfData.perceptualRoughness);
+#else
+    float  diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+#endif
+
     diffuseLighting = bsdfData.diffuseColor * diffuseTerm;
 }
 
