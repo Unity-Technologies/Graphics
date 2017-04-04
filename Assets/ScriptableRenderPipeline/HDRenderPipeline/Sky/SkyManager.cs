@@ -51,6 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTexture           m_SkyboxConditionalCdfRT = null;
 
         Material                m_StandardSkyboxMaterial = null; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
+        Material                m_BlitCubemapMaterial = null;
 
         IBLFilterGGX            m_iblFilterGgx = null;
 
@@ -275,7 +276,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_iblFilterGgx = new IBLFilterGGX();
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
-            m_StandardSkyboxMaterial   = Utilities.CreateEngineMaterial("Skybox/Cubemap");
+            m_StandardSkyboxMaterial = Utilities.CreateEngineMaterial("Skybox/Cubemap");
+
+            m_BlitCubemapMaterial = Utilities.CreateEngineMaterial("Hidden/BlitCubemap");
 
             m_CurrentUpdateTime = 0.0f;
         }
@@ -310,6 +313,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetRenderTarget(builtinParams.renderContext, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
                 m_Renderer.RenderSky(builtinParams, skySettings, true);
             }
+        }
+
+        private void BlitCubemap(ScriptableRenderContext renderContext, Cubemap source, RenderTexture dest)
+        {
+
+            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+
+            for (int i = 0; i < 6; ++i)
+            {
+                Utilities.SetRenderTarget(renderContext, dest, ClearFlag.ClearNone, 0, (CubemapFace)i);
+                var cmd = new CommandBuffer { name = "" };
+                propertyBlock.SetTexture("_MainTex", source);
+                propertyBlock.SetFloat("_faceIndex", (float)i);
+                cmd.DrawProcedural(Matrix4x4.identity, m_BlitCubemapMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
+
         }
 
         private void RenderCubemapGGXConvolution(ScriptableRenderContext renderContext, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
@@ -387,8 +408,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         )
                     {
                         // Render sky into a cubemap - doesn't happen every frame, can be controlled
-                        RenderSkyToCubemap(m_BuiltinParameters, skySettings, m_SkyboxCubemapRT);
                         // Note that m_SkyboxCubemapRT is created with auto-generate mipmap, it mean that here we have also our mipmap correctly box filtered for importance sampling.
+                        if(m_SkySettings.lightingOverride == null)
+                            RenderSkyToCubemap(m_BuiltinParameters, skySettings, m_SkyboxCubemapRT);
+                        // In case the user overrides the lighting, we already have a cubemap ready but we need to blit it anyway for potential resize and so that we can generate proper mipmaps for enlighten.
+                        else
+                            BlitCubemap(renderContext, m_SkySettings.lightingOverride, m_SkyboxCubemapRT);
 
                         // Convolve downsampled cubemap
                         RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skySettings, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
