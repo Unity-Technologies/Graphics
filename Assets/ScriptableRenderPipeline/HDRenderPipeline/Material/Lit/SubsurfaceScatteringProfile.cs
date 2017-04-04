@@ -220,6 +220,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             halfRcpVariancesAndLerpWeights = null;
             halfRcpWeightedVariances       = null;
             filterKernels                  = null;
+
+            OnValidate(); // Perform initialization
         }
 
         public void OnValidate()
