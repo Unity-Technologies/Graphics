@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
 
             var startExpressions = new Dictionary<VFXExpression,VFXSlot>(objs.OfType<VFXSlot>()
                 .Where(s => s.owner != null && s.direction == VFXSlot.Direction.kOutput) // only master output slots
-                .ToDictionary(s => s.expression));
+                .ToDictionary(s => s.GetExpression()));
             var expressions = new HashSet<VFXExpression>();
 
             foreach (var exp in startExpressions.Keys)

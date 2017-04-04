@@ -23,7 +23,7 @@ namespace UnityEditor.VFX
 
             if (outputSlots.Count == 0)
             {
-                Debug.Log("UPDATE OUTPUTS !!!!!!! ?!");
+                Debug.Log("UPDATE OUTPUTS in OnEnable !!!!!!! ?!");
                 UpdateOutputs();
             }
             //Invalidate(InvalidationCause.kParamChanged);
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX
 
         virtual protected IEnumerable<VFXExpression> GetInputExpressions()
         {
-            return inputSlots.Select(o => o.expression).Where(e => e != null);
+            return inputSlots.Select(o => o.GetExpression()).Where(e => e != null);
         }
 
         private static void CopyLink(VFXSlot from, VFXSlot to)
@@ -111,6 +111,7 @@ namespace UnityEditor.VFX
         protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> outputExpression)
         {
             var outputExpressionArray = outputExpression.ToArray();
+            Debug.Log("********************* " + +outputExpressionArray.Length + " " + outputSlots.Count);
 
             //Check change
             bool bOuputputLayoutChanged = false;
@@ -135,6 +136,7 @@ namespace UnityEditor.VFX
             if (bOuputputLayoutChanged)
             {
                 var slotToRemove = outputSlots.ToArray();
+
                 for (int iSlot = 0; iSlot < outputExpressionArray.Length; ++iSlot)
                 {
                     var expression = outputExpressionArray[iSlot];
@@ -147,15 +149,15 @@ namespace UnityEditor.VFX
 
                 foreach (var slot in slotToRemove)
                 {
-                    slot.UnlinkAll(false);
                     RemoveSlot(slot, false);
+                    slot.UnlinkAll(false);          
                 }
             }
 
             //Apply
             for (int iSlot = 0; iSlot < outputExpressionArray.Length; ++iSlot)
             {
-                GetOutputSlot(iSlot).SetExpression(outputExpressionArray[iSlot],false); // don't notify
+                GetOutputSlot(iSlot).SetExpression(outputExpressionArray[iSlot]);
             }
         }
 

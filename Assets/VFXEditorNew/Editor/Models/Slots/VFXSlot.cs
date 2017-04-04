@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
 
         protected VFXSlot()
         {
-            Debug.Log(m_ExpressionTreeUpToDate);
+          //  Debug.Log(m_ExpressionTreeUpToDate);
         }
 
         public object value 
@@ -39,21 +39,16 @@ namespace UnityEditor.VFX
             }       
         }    
 
-        public VFXExpression expression 
+        public VFXExpression GetExpression()
         {
-            get 
-            {
-                //InitializeExpressionTreeIfNeeded();
-                if (!m_ExpressionTreeUpToDate)
-                    RecomputeExpressionTree2();
+            if (!m_ExpressionTreeUpToDate)
+                RecomputeExpressionTree2();
 
-                return m_OutExpression; 
-            }
-            set { SetExpression(value); }
+            return m_OutExpression; 
         }
 
         // Explicit setter to be able to not notify
-        public void SetExpression(VFXExpression expr, bool notify = true)
+        public void SetExpression(VFXExpression expr)
         {
             //if (direction == Direction.kInput)
             //    throw new InvalidOperationException("Explicit SetExpression can only be called on output slots");
@@ -61,9 +56,14 @@ namespace UnityEditor.VFX
             if (!expr.Equals(m_LinkedInExpression))
             {
                 //InitializeExpressionTreeIfNeeded();
+                
+                PropagateToTree(s => s.m_LinkedInExpression = DefaultExpr);
                 m_LinkedInExpression = expr;
+
                 //RecomputeExpressionTree(true,notify);
-                RecomputeExpressionTree2();
+                //RecomputeExpressionTree2();
+
+                InvalidateExpressionTree();
             }
         }
 
@@ -161,7 +161,7 @@ namespace UnityEditor.VFX
         private void ResetExpression()
         {
             if (GetNbChildren() == 0)
-                SetExpression(m_DefaultExpression,false);
+                SetExpression(m_DefaultExpression);
             else
             {
                 foreach (var child in children)
@@ -217,8 +217,11 @@ namespace UnityEditor.VFX
             else
                 InnerLink(other, this, notify);
 
-            Invalidate(InvalidationCause.kConnectionChanged);
-            other.Invalidate(InvalidationCause.kConnectionChanged);
+            if (notify)
+            {
+                Invalidate(InvalidationCause.kConnectionChanged);
+                other.Invalidate(InvalidationCause.kConnectionChanged);
+            }
 
             return true;
         }
@@ -232,8 +235,11 @@ namespace UnityEditor.VFX
                 else
                     InnerUnlink(other, this, notify);
 
-                Invalidate(InvalidationCause.kConnectionChanged);
-                other.Invalidate(InvalidationCause.kConnectionChanged);
+                if (notify)
+                {
+                    Invalidate(InvalidationCause.kConnectionChanged);
+                    other.Invalidate(InvalidationCause.kConnectionChanged);
+                }
             }
         }
 
@@ -335,12 +341,15 @@ namespace UnityEditor.VFX
             }
         }*/
 
+        private bool m_InsideRecomputeExpressionTree = false;
+
         private void RecomputeExpressionTree2()
         {
-            Debug.Log("RecomputeExpressionTree2 !!!!!!! ?!");
-
             // Start from the top most parent
             var masterSlot = GetTopMostParent();
+            if (masterSlot.m_InsideRecomputeExpressionTree)
+                Debug.Log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> REENTRANT RECOMPUTATION <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+            masterSlot.m_InsideRecomputeExpressionTree = true;
 
             // init default expression if needed
             if (masterSlot.m_DefaultExpression == null)
@@ -350,12 +359,14 @@ namespace UnityEditor.VFX
             masterSlot.PropagateToChildren(s => s.m_ExpressionTreeUpToDate = false );
 
             if (direction == Direction.kInput) // For input slots, linked expression are directly taken from linked slots
-                masterSlot.PropagateToChildren(s => s.m_LinkedInExpression = s.HasLink() ? s.refSlot.expression : s.DefaultExpr); // this will trigger recomputation of linked expressions if needed
+                masterSlot.PropagateToChildren(s => s.m_LinkedInExpression = s.HasLink() ? s.refSlot.GetExpression() : s.DefaultExpr); // this will trigger recomputation of linked expressions if needed
             else
             {
                 var owner = GetOwner();
                 if (owner != null)
                     owner.UpdateOutputs();
+                else
+                    ResetExpression();
             }
 
             // TODO Early out here ? I guess not needed
@@ -371,6 +382,8 @@ namespace UnityEditor.VFX
             //
             //if (!needsRecompute) // We dont need to recompute, tree is already up to date
             //    return null;
+
+            Debug.Log("--------------------------------------- RECOMPUTE SLOT - " + GetSlotStr() + GetStackStr());
 
             List<VFXSlot> startSlots = new List<VFXSlot>();
             masterSlot.PropagateToChildren( s => {
@@ -403,7 +416,7 @@ namespace UnityEditor.VFX
                     {
                         var exp = s.ExpressionToChildren(s.m_InExpression);
                         for (int i = 0; i < s.GetNbChildren(); ++i)
-                            s.GetChild(i).m_InExpression = exp != null ? exp[i] : s.refSlot.GetChild(i).expression; // Not sure about that
+                            s.GetChild(i).m_InExpression = exp != null ? exp[i] : s.refSlot.GetChild(i).m_OutExpression; // Not sure about that
                     });
                 }
             }
@@ -418,6 +431,8 @@ namespace UnityEditor.VFX
 
             foreach (var slot in toInvalidate)
                 slot.InvalidateExpressionTree();
+
+            masterSlot.m_InsideRecomputeExpressionTree = false;
         }
 
         private void SetOutExpression2(VFXExpression exp,HashSet<VFXSlot> toInvalidate)
@@ -435,9 +450,29 @@ namespace UnityEditor.VFX
                     toInvalidate.UnionWith(LinkedSlots);
             }
 
+            Debug.Log("--------------------------------------- SLOT UP TO DATE - " + GetSlotStr() + GetStackStr());
             m_ExpressionTreeUpToDate = true;
-            Debug.Log("EXPRESSION TREE UP TO DATE !!!!!!!:!");
-            Debug.Log(System.Environment.StackTrace.ToString());
+           // Debug.Log("EXPRESSION TREE UP TO DATE !!!!!!!:!");
+           // Debug.Log(System.Environment.StackTrace.ToString());
+        }
+
+        private string GetOwnerType()
+        {
+            var owner = GetOwner();
+            if (owner != null)
+                return owner.GetType().Name;
+            else
+                return "No Owner";
+        }
+
+        private string GetSlotStr()
+        {
+            return GetType().Name + " " + direction + " " + GetOwnerType();
+        }
+
+        private static string GetStackStr()
+        {
+            return "\n" + System.Environment.StackTrace.ToString();
         }
 
         private void InvalidateExpressionTree()
@@ -448,6 +483,7 @@ namespace UnityEditor.VFX
                 if (s.m_ExpressionTreeUpToDate)
                 {
                     s.m_ExpressionTreeUpToDate = false;
+                    Debug.Log("--------------------------------------- INVALIDATE SLOT - " + s.GetSlotStr() + GetStackStr());
                     if (s.direction == Direction.kOutput)
                         foreach (var linkedSlot in LinkedSlots)
                             linkedSlot.InvalidateExpressionTree();
@@ -546,7 +582,7 @@ namespace UnityEditor.VFX
         //            {
         //                var exp = s.ExpressionToChildren(s.m_InExpression);
         //                for (int i = 0; i < s.GetNbChildren(); ++i)
-        //                    s.GetChild(i).m_InExpression = exp != null ? exp[i] : s.refSlot.GetChild(i).expression;
+        //                    s.GetChild(i).m_InExpression = exp != null ? exp[i] : s.refSlot.GetChild(i).GetExpression();
         //            });
         //        }
         //    }
@@ -612,10 +648,12 @@ namespace UnityEditor.VFX
         }
 
         private static void InnerLink(VFXSlot output,VFXSlot input,bool notify = false)
-        {
+        {     
             input.UnlinkAll(false); // First disconnect any other linked slot
             input.PropagateToTree(s => s.UnlinkAll(false)); // Unlink other links in tree
-            
+
+            Debug.Log("--------------------------------------- LINK " + output.GetSlotStr() + " TO " + input.GetSlotStr() + GetStackStr());
+
             input.m_LinkedSlots.Add(output);
             output.m_LinkedSlots.Add(input);
 
@@ -627,6 +665,7 @@ namespace UnityEditor.VFX
 
         private static void InnerUnlink(VFXSlot output, VFXSlot input, bool notify = false)
         {
+            Debug.Log("--------------------------------------- UNLINK " + output.GetSlotStr() + " TO " + input.GetSlotStr() + GetStackStr());
             output.m_LinkedSlots.Remove(input);
             if (input.m_LinkedSlots.Remove(output))
             {
