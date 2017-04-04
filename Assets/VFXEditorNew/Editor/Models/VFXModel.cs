@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
 
         public virtual void OnEnable()
         {
-            m_OnEnabledCount = ++s_DebugOnEnableCounter;
+            //m_OnEnabledCount = ++s_DebugOnEnableCounter;
             if (m_Children == null)
                 m_Children = new List<VFXModel>();
             else

@@ -21,7 +21,12 @@ namespace UnityEditor.VFX
                 m_SettingsBuffer = System.Activator.CreateInstance(settingsType);
             }
 
-            Invalidate(InvalidationCause.kParamChanged);
+            if (outputSlots.Count == 0)
+            {
+                Debug.Log("UPDATE OUTPUTS !!!!!!! ?!");
+                UpdateOutputs();
+            }
+            //Invalidate(InvalidationCause.kParamChanged);
         }
 
         protected Type GetPropertiesSettings()
@@ -159,17 +164,20 @@ namespace UnityEditor.VFX
         virtual protected void OnOperatorInvalidate(VFXModel mode, InvalidationCause cause)
         {
             if (cause != InvalidationCause.kUIChanged)
-            {
-                var inputExpressions = GetInputExpressions();
-                var ouputExpressions = BuildExpression(inputExpressions.ToArray());
-                SetOuputSlotFromExpression(ouputExpressions);
-            }
+                UpdateOutputs();
         }
 
         sealed override protected void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
             OnOperatorInvalidate(model, cause);
             base.OnInvalidate(model, cause);
+        }
+
+        public override void UpdateOutputs()
+        {
+            var inputExpressions = GetInputExpressions();
+            var ouputExpressions = BuildExpression(inputExpressions.ToArray());
+            SetOuputSlotFromExpression(ouputExpressions);
         }
     }
 }

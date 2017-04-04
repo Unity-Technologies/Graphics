@@ -99,10 +99,10 @@ namespace UnityEditor.VFX
                 InitSlotsFromProperties(GetOutputPropertiesTypeName(), VFXSlot.Direction.kOutput);
             }
 
-            foreach (var slot in m_InputSlots.Concat(m_OutputSlots))
+            /*foreach (var slot in m_InputSlots.Concat(m_OutputSlots))
             {
                 slot.InitializeExpressionTreeIfNeeded();
-            }
+            }*/
         }
 
         public override void CollectDependencies(HashSet<Object> objs)

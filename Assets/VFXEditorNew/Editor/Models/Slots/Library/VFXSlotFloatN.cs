@@ -10,6 +10,11 @@ namespace UnityEditor.VFX
             return expression == null || VFXExpression.IsFloatValueType(expression.ValueType);
         }
 
+        protected override bool CanConvertFrom(Type type)
+        {
+            return true;
+        }
+
         protected virtual VFXExpression ConvertExpression(VFXExpression expression)
         {
             /* if (expression == null)

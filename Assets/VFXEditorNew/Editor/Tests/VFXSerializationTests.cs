@@ -153,6 +153,9 @@ namespace UnityEditor.VFX.Test
                 asset.UpdateSubAssets();
 
                 AssetDatabase.SaveAssets();
+
+                asset = null;
+                EditorUtility.UnloadUnusedAssetsImmediate();
                 AssetDatabase.CopyAsset(kTempAssetPathA, kTempAssetPathB);
                 AssetDatabase.RemoveObject(asset);
             }

@@ -109,7 +109,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(true, cross.inputSlots[0].HasLink());
 
             append.inputSlots[2].UnlinkAll();
-            Assert.AreEqual(false, cross.inputSlots[0].HasLink());
+            Assert.IsFalse(cross.inputSlots[0].HasLink());
         }
     }
 }
