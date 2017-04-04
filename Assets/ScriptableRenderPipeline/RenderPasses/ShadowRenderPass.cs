@@ -1,3 +1,4 @@
+#define SHADOWS_OLD // can't disable this until fptl has moved over as well
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
     }
-
+#if SHADOWS_OLD
     public struct InputShadowLightData
     {
         public int          lightIndex;
@@ -432,4 +433,5 @@ namespace UnityEngine.Experimental.Rendering
             loop.DrawShadows(ref settings);
         }
     }
+#endif
 }

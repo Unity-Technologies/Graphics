@@ -1,12 +1,11 @@
-﻿#define SHADOWS_ENABLED
-#define SHADOWS_FIXSHADOWIDX
+﻿//#define SHADOWS_OLD
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-#if SHADOWS_ENABLED
+#if !SHADOWS_OLD
     using ShadowExp;
 
     class ShadowSetup : IDisposable
@@ -47,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var varianceInit3 = varianceInit;
             varianceInit3.baseInit.shadowmapFormat = ShadowVariance.GetFormat( true, false, true );
 
-        m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowVariance( ref varianceInit ), new ShadowExp.ShadowVariance( ref varianceInit2 ), new ShadowExp.ShadowVariance( ref varianceInit3 ), new ShadowExp.ShadowAtlas( ref atlasInit ) };
+            m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowVariance( ref varianceInit ), new ShadowExp.ShadowVariance( ref varianceInit2 ), new ShadowExp.ShadowVariance( ref varianceInit3 ), new ShadowExp.ShadowAtlas( ref atlasInit ) };
 
             ShadowContext.SyncDel syncer = (ShadowContext sc) =>
                 {
@@ -343,7 +342,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Material m_SingleDeferredMaterialSRT   = null;
             Material m_SingleDeferredMaterialMRT   = null;
 
-#if (SHADOWS_ENABLED)
+#if !SHADOWS_OLD
             // shadow related stuff
             FrameId                 m_FrameId;
             ShadowSetup             m_ShadowSetup; // doesn't actually have to reside here, it would be enough to pass the IShadowManager in from the outside
@@ -546,14 +545,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
 #endif
 
-#if (SHADOWS_ENABLED)
+#if !SHADOWS_OLD
                 InitShadowSystem(ShadowSettings.Default);
 #endif
             }
 
             public override void Cleanup()
             {
+#if !SHADOWS_OLD
                 DeinitShadowSystem();
+#endif
 #if UNITY_EDITOR
                 UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
 #endif
@@ -696,7 +697,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
             }
-
+#if SHADOWS_OLD
             // Return number of added shadow
             public int GetShadows(VisibleLight light, int lightIndex, ref ShadowOutput shadowOutput, ShadowSettings shadowSettings)
             {
@@ -714,8 +715,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 return shadowOutput.GetShadowSliceCountLightIndex(lightIndex);
             }
+#endif
 
+#if SHADOWS_OLD
             public bool GetDirectionalLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int directionalShadowcount)
+#else
+            public bool GetDirectionalLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex)
+#endif
             {
                 var directionalLightData = new DirectionalLightData();
 
@@ -744,7 +750,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     directionalLightData.tileCookie = (light.light.cookie.wrapMode == TextureWrapMode.Repeat);
                     directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
                 }
-
+#if SHADOWS_OLD
                 bool hasDirectionalShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
                 bool hasDirectionalNotReachMaxLimit = directionalShadowcount == 0; // Only one cascade shadow allowed
 
@@ -768,7 +774,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_lightList.directionalShadowSplitSphereSqr[s] = shadowOutput.directionalShadowSplitSphereSqr[s];
                     }
                 }
-
+#else
+                // fix up shadow information
+                int shadowIdx;
+                if (m_ShadowIndices.TryGetValue(lightIndex, out shadowIdx))
+                {
+                    directionalLightData.shadowIndex = shadowIdx;
+                    m_CurrentSunLight = light.light;
+                }
+                m_CurrentSunLight = m_CurrentSunLight == null ? light.light : m_CurrentSunLight;
+#endif
                 m_lightList.directionalLights.Add(directionalLightData);
 
                 return true;
@@ -781,7 +796,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return 1.0f - Mathf.Clamp01((distanceToCamera - distanceFadeNear) / (fadeDistance - distanceFadeNear));
             }
 
+#if SHADOWS_OLD
             public bool GetLightData(ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int shadowCount)
+#else
+            public bool GetLightData(ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex)
+#endif
             {
                 var lightData = new LightData();
 
@@ -846,10 +865,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             break;
                     }
                 }
-
                 float shadowDistanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalData.shadowFadeDistance);
                 lightData.shadowDimmer = additionalData.shadowDimmer * shadowDistanceFade;
 
+#if SHADOWS_OLD
                 // Setup shadow data arrays
                 // In case lightData.shadowDimmer == 0.0 we need to avoid rendering the shadow map... see how it can be done with the culling (and more specifically, how can we do that BEFORE sending for shadows)
                 bool hasShadows = lightData.shadowDimmer > 0.0f && light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
@@ -862,7 +881,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightData.shadowIndex = m_lightList.shadows.Count;
                     shadowCount += GetShadows(light, lightIndex, ref shadowOutput, shadowSettings);
                 }
-
+#else
+                // fix up shadow information
+                int shadowIdx;
+                if (m_ShadowIndices.TryGetValue(lightIndex, out shadowIdx))
+                {
+                    lightData.shadowIndex = shadowIdx;
+                }
+#endif
                 if (additionalData.archetype != LightArchetype.Punctual)
                 {
                     lightData.twoSided = additionalData.isDoubleSided;
@@ -1133,15 +1159,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_lightList.bounds.Add(bound);
                 m_lightList.lightVolumes.Add(lightVolumeData);
             }
-
+#if SHADOWS_OLD
             public override void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
+#else
+            public override int GetCurrentShadowCount()
+            {
+                return m_ShadowRequests.Count;
+            }
+
+            public override void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera)
+#endif
             {
                 m_lightList.Clear();
 
                 if (cullResults.visibleLights.Length == 0 && cullResults.visibleReflectionProbes.Length == 0)
                     return;
 
-#if (SHADOWS_ENABLED)
+#if !SHADOWS_OLD
                 // 0. deal with shadows
                 {
                     m_FrameId.frameCount++;
@@ -1151,7 +1185,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int lcnt = cullResults.visibleLights.Length;
                     for( int i = 0; i < lcnt; ++i )
                     {
-                        if( cullResults.visibleLights[i].light.shadows != LightShadows.None )
+                        VisibleLight vl = cullResults.visibleLights[i];
+                        if( vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalLightData>().shadowDimmer > 0.0f )
                             m_ShadowRequests.Add( i );
                     }
                     // pass this list to a routine that assigns shadows based on some heuristic
@@ -1266,13 +1301,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-#if (SHADOWS_ENABLED)
+#if SHADOWS_OLD
+                    // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 6 bit (0x3F) lightVolume, 16 bit index
+                    sortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 16 | (uint)lightIndex;
+#else
                     uint shadow = m_ShadowIndices.ContainsKey( lightIndex  ) ? 1u : 0;
                     // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
                     sortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | shadow << 16 | (uint)lightIndex;
-#else
-                    // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 6 bit (0x3F) lightVolume, 16 bit index
-                    sortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 16 | (uint)lightIndex;
 #endif
                 }
 
@@ -1286,8 +1321,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // will be use...)
                 // The lightLoop is in charge, not the shadow pass.
                 // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
+#if SHADOWS_OLD
                 int directionalShadowcount = 0;
                 int shadowCount = 0;
+#endif
+                m_CurrentSunLight = null;
 
                 // 2. Go thought all lights, convert them to GPU format.
                 // Create simultaneously data for culling (LigthVolumeData and rendering)
@@ -1299,10 +1337,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     uint sortKey = sortKeys[sortIndex];
                     LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
                     GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
-#if (SHADOWS_ENABLED)
-                    LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
-#else
+#if SHADOWS_OLD
                     LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0x3F);
+#else
+                    LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
 #endif
                     int lightIndex = (int)(sortKey & 0xFFFF);
 
@@ -1312,24 +1350,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Directional rendering side, it is separated as it is always visible so no volume to handle here
                     if (gpuLightType == GPULightType.Directional)
                     {
+#if SHADOWS_OLD
                         if (GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref directionalShadowcount))
-                            directionalLightcount++;
-
-#if (SHADOWS_ENABLED && SHADOWS_FIXSHADOWIDX)
-                        // fix up shadow information
-                        int shadowIdxDir;
-                        if( m_ShadowIndices.TryGetValue( lightIndex, out shadowIdxDir ) )
-                        {
-                            var lightData = m_lightList.directionalLights[m_lightList.directionalLights.Count-1];
-                            lightData.shadowIndex = shadowIdxDir;
-                            m_lightList.directionalLights[m_lightList.directionalLights.Count-1] = lightData;
-                        }
+#else
+                        if (GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex))
 #endif
+                            directionalLightcount++;
                         continue;
                     }
-
-                    // Spot, point, rect, line light - Rendering side
+#if SHADOWS_OLD
                     if(GetLightData(shadowSettings, camera, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref shadowCount))
+#else
+                    if(GetLightData(shadowSettings, camera, gpuLightType, light, additionalData, lightIndex))
+#endif
                     {
                         if (lightCategory == LightCategory.Punctual)
                             punctualLightcount++;
@@ -1340,17 +1373,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Then culling side. Must be call in this order as we pass the created Light data to the function
                         GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], worldToView);
                     }
-
-#if (SHADOWS_ENABLED && SHADOWS_FIXSHADOWIDX)
-                    // fix up shadow information
-                    int shadowIdx;
-                    if( m_ShadowIndices.TryGetValue( lightIndex, out shadowIdx ) )
-                    {
-                        var lightData = m_lightList.lights[m_lightList.lights.Count-1];
-                        lightData.shadowIndex = shadowIdx;
-                        m_lightList.lights[m_lightList.lights.Count-1] = lightData;
-                    }
-#endif
                 }
 
                 // Sanity check
@@ -1661,7 +1683,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             private void BindGlobalParams(CommandBuffer cmd, ComputeShader computeShader, int kernelIndex, Camera camera, ScriptableRenderContext loop)
             {
-#if (SHADOWS_ENABLED)
+#if !SHADOWS_OLD
                 m_ShadowMgr.BindResources(loop);
 #endif
                 SetGlobalBuffer("g_vLightListGlobal", !usingFptl ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
@@ -1711,7 +1733,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var cmd = new CommandBuffer { name = "Push Global Parameters" };
 
-#if (SHADOWS_ENABLED)
+#if !SHADOWS_OLD
                 // Shadows
                 m_ShadowMgr.SyncData();
 #endif
@@ -1734,7 +1756,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public override void RenderShadows( ScriptableRenderContext renderContext, CullResults cullResults )
             {
-#if (SHADOWS_ENABLED)
+#if !SHADOWS_OLD
                 // kick off the shadow jobs here
                 m_ShadowMgr.RenderShadows( m_FrameId, renderContext, cullResults, cullResults.visibleLights );
 #endif
