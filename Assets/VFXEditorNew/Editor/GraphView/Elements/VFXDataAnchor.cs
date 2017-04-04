@@ -1,7 +1,7 @@
-using RMGUI.GraphView;
-using UnityEngine.Experimental.RMGUI.StyleSheets;
+using UIElements.GraphView;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
-using UnityEngine.Experimental.RMGUI;
+using UnityEngine.Experimental.UIElements;
 using System.Collections.Generic;
 using Type = System.Type;
 
@@ -154,8 +154,8 @@ namespace UnityEditor.VFX.UI
 
                 if (Event.current.type != EventType.Layout && Event.current.type != EventType.Used)
                 {
-                    Rect r = GUILayoutUtility.GetLastRect();
-                    m_Container.height = r.yMax;
+                    /*  Rect r = GUILayoutUtility.GetLastRect();
+                    m_Container.height = r.yMax;*/
                 }
             }
             catch(System.Exception e)

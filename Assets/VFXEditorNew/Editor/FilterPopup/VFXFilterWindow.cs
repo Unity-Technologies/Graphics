@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
@@ -302,7 +303,10 @@ namespace UnityEditor.VFX.UI
 
             // Search
             if (!(activeParent.WantsFocus))
+            {
                 EditorGUI.FocusTextInControl("ComponentSearch");
+                Focus();
+            }
             Rect searchRect = GUILayoutUtility.GetRect(10, 20);
             searchRect.x += 8;
             searchRect.width -= 16;
@@ -404,6 +408,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+
         }
 
         const string kSearchHeader = "Search";
