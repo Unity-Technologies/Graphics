@@ -416,7 +416,7 @@ namespace UnityEditor.VFX
                     {
                         var exp = s.ExpressionToChildren(s.m_InExpression);
                         for (int i = 0; i < s.GetNbChildren(); ++i)
-                            s.GetChild(i).m_InExpression = exp != null ? exp[i] : s.refSlot.GetChild(i).m_OutExpression; // Not sure about that
+                            s.GetChild(i).m_InExpression = exp != null ? exp[i] : s.refSlot.GetChild(i).GetExpression(); // Not sure about that
                     });
                 }
             }
@@ -703,10 +703,13 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
+
             if (m_LinkedSlots == null)
-            {
                 m_LinkedSlots = new List<VFXSlot>();
-            }
+
+            int nbRemoved = m_LinkedSlots.RemoveAll(c => c == null);// Remove bad references if any
+            if (nbRemoved > 0)
+                Debug.Log(String.Format("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
 
             m_ExpressionTreeUpToDate = false;
         }
