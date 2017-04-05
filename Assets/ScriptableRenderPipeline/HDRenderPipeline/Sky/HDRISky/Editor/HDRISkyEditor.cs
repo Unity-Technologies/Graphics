@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent skyMultiplier = new GUIContent("Multiplier", "Intensity multiplier for the sky.");
             public readonly GUIContent environmentUpdateMode = new GUIContent("Environment Update Mode", "Specify how the environment lighting should be updated.");
             public readonly GUIContent environmentUpdatePeriod = new GUIContent("Environment Update Period", "If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).");
+            public readonly GUIContent lightingOverride = new GUIContent("Lighting Override", "If a lighting override cubemap is provided, this cubemap will be used to compute lighting instead of the result from the visible sky.");
         }
 
         private static Styles s_Styles = null;
@@ -39,6 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private SerializedProperty m_SkyRotation;
         private SerializedProperty m_EnvUpdateMode;
         private SerializedProperty m_EnvUpdatePeriod;
+        private SerializedProperty m_LightingOverride;
 
         void OnEnable()
         {
@@ -49,6 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyRotation = serializedObject.FindProperty("rotation");
             m_EnvUpdateMode = serializedObject.FindProperty("updateMode");
             m_EnvUpdatePeriod = serializedObject.FindProperty("updatePeriod");
+            m_LightingOverride = serializedObject.FindProperty("lightingOverride");
         }
 
         public override void OnInspectorGUI()
@@ -66,6 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 EditorGUILayout.PropertyField(m_EnvUpdatePeriod, styles.environmentUpdatePeriod);
             }
+            EditorGUILayout.PropertyField(m_LightingOverride, styles.lightingOverride);
 
             serializedObject.ApplyModifiedProperties();
         }
