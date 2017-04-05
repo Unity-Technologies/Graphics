@@ -57,7 +57,7 @@ namespace UnityEditor.VFX
             {
                 //InitializeExpressionTreeIfNeeded();
                 
-                PropagateToTree(s => s.m_LinkedInExpression = DefaultExpr);
+                PropagateToTree(s => s.m_LinkedInExpression = s.DefaultExpr);
                 m_LinkedInExpression = expr;
 
                 //RecomputeExpressionTree(true,notify);
@@ -347,6 +347,9 @@ namespace UnityEditor.VFX
         {
             // Start from the top most parent
             var masterSlot = GetTopMostParent();
+
+            Debug.Log("--------------------------------------- ENTER SLOT RECOMPUTATION - " + GetSlotStr() + GetStackStr());
+
             if (masterSlot.m_InsideRecomputeExpressionTree)
                 Debug.Log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> REENTRANT RECOMPUTATION <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
             masterSlot.m_InsideRecomputeExpressionTree = true;

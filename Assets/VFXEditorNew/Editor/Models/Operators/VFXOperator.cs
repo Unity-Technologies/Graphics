@@ -107,10 +107,12 @@ namespace UnityEditor.VFX
                 CopyLink(fromChild[iChild], toChild[iChild]);
             }
         }
-    
-        protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> outputExpression)
+
+        private Queue<VFXExpression[]> outputExpressionQueue = new Queue<VFXExpression[]>();
+
+        private void DequeueOutputSlotFromExpression()
         {
-            var outputExpressionArray = outputExpression.ToArray();
+            var outputExpressionArray = outputExpressionQueue.First();
             Debug.Log("********************* " + +outputExpressionArray.Length + " " + outputSlots.Count);
 
             //Check change
@@ -140,7 +142,7 @@ namespace UnityEditor.VFX
                 for (int iSlot = 0; iSlot < outputExpressionArray.Length; ++iSlot)
                 {
                     var expression = outputExpressionArray[iSlot];
-                    AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.ValueType), "o"), VFXSlot.Direction.kOutput), false);
+                    AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(expression.ValueType), "o"), VFXSlot.Direction.kOutput));
                     if (iSlot < slotToRemove.Length)
                     {
                         CopyLink(slotToRemove[iSlot], outputSlots.Last());
@@ -149,8 +151,8 @@ namespace UnityEditor.VFX
 
                 foreach (var slot in slotToRemove)
                 {
-                    RemoveSlot(slot, false);
-                    slot.UnlinkAll(false);          
+                    RemoveSlot(slot);
+                    slot.UnlinkAll(false);
                 }
             }
 
@@ -159,13 +161,28 @@ namespace UnityEditor.VFX
             {
                 GetOutputSlot(iSlot).SetExpression(outputExpressionArray[iSlot]);
             }
+
+            outputExpressionQueue.Dequeue();
+        }
+
+        protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> outputExpression)
+        {
+            var outputExpressionArray = outputExpression.ToArray();
+            outputExpressionQueue.Enqueue(outputExpressionArray);
+            
+            if (outputExpressionQueue.Count > 1)
+                return;
+            
+            // Dequeue
+            while (outputExpressionQueue.Count > 0)
+                DequeueOutputSlotFromExpression();
         }
 
         protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
         virtual protected void OnOperatorInvalidate(VFXModel mode, InvalidationCause cause)
         {
-            if (cause != InvalidationCause.kUIChanged)
+            if (cause == InvalidationCause.kConnectionChanged)
                 UpdateOutputs();
         }
 
@@ -177,6 +194,7 @@ namespace UnityEditor.VFX
 
         public override void UpdateOutputs()
         {
+            Debug.Log("------------------------------- UPDATE OUTPUTS FOR " + GetType().Name + "\n" +System.Environment.StackTrace.ToString());
             var inputExpressions = GetInputExpressions();
             var ouputExpressions = BuildExpression(inputExpressions.ToArray());
             SetOuputSlotFromExpression(ouputExpressions);

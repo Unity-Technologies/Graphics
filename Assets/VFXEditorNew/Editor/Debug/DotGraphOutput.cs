@@ -27,6 +27,8 @@ namespace UnityEditor.VFX
             foreach (var exp in startExpressions.Keys)
                 CollectExpressions(exp, expressions);
 
+            DotGraph dotGraph = new DotGraph();
+
             var expressionsToDot = new Dictionary<VFXExpression, DotNode>();
             foreach (var exp in expressions)
             {
@@ -47,9 +49,9 @@ namespace UnityEditor.VFX
                 }
 
                 expressionsToDot[exp] = dotNode;
+                dotGraph.AddElement(dotNode);
             }
-
-            DotGraph dotGraph = new DotGraph();
+          
             foreach (var exp in expressionsToDot)
             {
                 var parents = exp.Key.Parents;
