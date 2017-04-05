@@ -181,5 +181,29 @@ namespace UnityEditor.VFX.UI
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraphAsset().root);
             return EventPropagation.Stop;
         }
+
+        public override IEnumerable<Node> GetAllNodes()
+        {
+            foreach (var node in base.GetAllNodes())
+            {
+                yield return node;
+            }
+
+            foreach (var layer in GetAllLayers())
+            {
+                foreach (var element in layer)
+                {
+                    if( element is VFXContextUI)
+                    {
+                        var context = element as VFXContextUI;
+
+                        foreach( var block in context.GetAllBlocks())
+                        {
+                            yield return block;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

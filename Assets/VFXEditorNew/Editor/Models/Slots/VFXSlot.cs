@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Graphing;
+using System.Reflection;
 
 namespace UnityEditor.VFX
 {
@@ -502,18 +503,43 @@ namespace UnityEditor.VFX
             base.OnBeforeSerialize();
             if (m_Value != null)
             {
-                m_SerializableValue = SerializationHelper.Serialize(m_Value);
+                //m_SerializableValue = SerializationHelper.Serialize(m_Value);
+                m_SerializedValue = VFXSerializer.Save(m_Value);
+                m_SerializedValueAssembly = m_Value.GetType().Assembly.FullName;
+                m_SerializedValueType = m_Value.GetType().FullName;
             }
         }
 
          public override void OnAfterDeserialize()
          {
             base.OnAfterDeserialize();
-            if (!m_SerializableValue.Empty)
+            //if (!m_SerializableValue.Empty)
+            if( ! string.IsNullOrEmpty( m_SerializedValue ))
             {
-                m_Value = SerializationHelper.Deserialize<object>(m_SerializableValue, null);
+                //m_Value = SerializationHelper.Deserialize<object>(m_SerializableValue, null);
+
+                var assembly = Assembly.Load(m_SerializedValueAssembly);
+                if( assembly == null)
+                {
+                    Debug.LogError("Can't load assembly "+m_SerializedValueAssembly+" for type" + m_SerializedValueType);
+                    return;
+                }
+
+                System.Type type = assembly.GetType(m_SerializedValueType);
+                if( type == null)
+                {
+                    Debug.LogError("Can't find type "+m_SerializedValueType+" in assembly" + m_SerializedValueAssembly);
+                    return;
+                }
+
+
+                m_Value = VFXSerializer.Load(type, m_SerializedValue);
+
+
+
+                m_Value = VFXSerializer.Load(m_Value.GetType(), m_SerializedValue);
             }
-            m_SerializableValue.Clear();
+            //m_SerializableValue.Clear();
         }
 
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
@@ -575,8 +601,17 @@ namespace UnityEditor.VFX
         [SerializeField]
         private List<VFXSlot> m_LinkedSlots;
 
+        //[SerializeField]
+        //private SerializationHelper.JSONSerializedElement m_SerializableValue;
+
         [SerializeField]
-        private SerializationHelper.JSONSerializedElement m_SerializableValue;
+        private string m_SerializedValue;
+
+        [SerializeField]
+        private string m_SerializedValueType;
+
+        [SerializeField]
+        private string m_SerializedValueAssembly;
 
         [NonSerialized]
         protected object m_Value;
