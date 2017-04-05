@@ -80,7 +80,7 @@ namespace UnityEditor.VFX
                         }
                     }
                     m_SettingsBuffer = value;
-                    Invalidate(InvalidationCause.kStructureChanged);
+                    UpdateOutputs(); // TODOPAUL: (Julien) This should be handled in a more generic way: Handle settings change via virtual dispatch as behaviour depends on operator
                 }
             }
         }
@@ -180,15 +180,15 @@ namespace UnityEditor.VFX
 
         protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
-        virtual protected void OnOperatorInvalidate(VFXModel mode, InvalidationCause cause)
+        virtual protected void OnInputConnectionsChanged()
         {
-            if (cause == InvalidationCause.kConnectionChanged)
-                UpdateOutputs();
+            UpdateOutputs();
         }
 
         sealed override protected void OnInvalidate(VFXModel model,InvalidationCause cause)
         {
-            OnOperatorInvalidate(model, cause);
+            if (cause == InvalidationCause.kConnectionChanged) // Connection changed is only triggered for
+                OnInputConnectionsChanged();
             base.OnInvalidate(model, cause);
         }
 

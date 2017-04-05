@@ -140,38 +140,35 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorBinaryFloatCascadableOperation : VFXOperatorFloatUnified
     {
-        sealed protected override void OnOperatorInvalidate(VFXModel model,InvalidationCause cause)
+        sealed protected override void OnInputConnectionsChanged()
         {
-            if (cause == InvalidationCause.kConnectionChanged)
+            //Remove useless unplugged slot (ensuring there is at least 2 slots)
+            var currentSlots = inputSlots.ToList();
+            var uselessSlots = new Stack<VFXSlot>(currentSlots.Where((s, i) => i >= 2 && !s.HasLink()));
+            foreach (var slot in uselessSlots)
             {
-                //Remove useless unplugged slot (ensuring there is at least 2 slots)
-                var currentSlots = inputSlots.ToList();
-                var uselessSlots = new Stack<VFXSlot>(currentSlots.Where((s, i) => i >= 2 && !s.HasLink()));
-                foreach (var slot in uselessSlots)
-                {
-                    currentSlots.Remove(slot);
-                }
+                currentSlots.Remove(slot);
+            }
 
-                if (currentSlots.All(s => s.HasLink()))
+            if (currentSlots.All(s => s.HasLink()))
+            {
+                if (uselessSlots.Count == 0)
                 {
-                    if (uselessSlots.Count == 0)
-                    {
-                        AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
-                    }
-                    else
-                    {
-                        uselessSlots.Pop();
-                    }
+                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
                 }
-
-                //Update deprecated Slot
-                foreach (var slot in uselessSlots)
+                else
                 {
-                    RemoveSlot(slot);
+                    uselessSlots.Pop();
                 }
+            }
 
-                UpdateOutputs();  
-            }                  
+            //Update deprecated Slot
+            foreach (var slot in uselessSlots)
+            {
+                RemoveSlot(slot);
+            }
+
+            UpdateOutputs();                   
         }
 
         public override void UpdateOutputs()
