@@ -19,23 +19,27 @@ namespace UnityEditor.VFX
 
         sealed protected override void OnOperatorInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if (cause != InvalidationCause.kUIChanged)
-            {
-                var emptySlot = inputSlots.Where(s => s.GetExpression() == null).ToArray();
-                foreach (var slot in emptySlot)
-                {
-                    RemoveSlot(slot, false);
-                }
-
-                var size = inputSlots.Sum(s => VFXExpression.TypeToSize(s.GetExpression().ValueType));
-                if (inputSlots.All(s => s.HasLink()) && size < 4)
-                {
-                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput), false);
-                }
-            }
+            if (cause != InvalidationCause.kConnectionChanged)
+               UpdateOutputs();
 
             base.OnOperatorInvalidate(model, cause);
         }
+		
+		public override void UpdateOutputs()
+		{
+			var emptySlot = inputSlots.Where(s => s.GetExpression() == null).ToArray();
+            foreach (var slot in emptySlot)
+            {
+                RemoveSlot(slot, false);
+            }
+
+            var size = inputSlots.Sum(s => VFXExpression.TypeToSize(s.GetExpression().ValueType));
+            if (inputSlots.All(s => s.HasLink()) && size < 4)
+            {
+                AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput), false);
+            }
+			
+		}
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
