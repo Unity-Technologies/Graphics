@@ -481,6 +481,11 @@ PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize, uint2
     return posInput;
 }
 
+PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
+{
+    return GetPositionInput(unPositionSS, invScreenSize, uint2(0, 0));
+}
+
 // From forward
 // depthRaw and depthVS come directly form .zw of SV_Position
 void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout PositionInputs posInput)

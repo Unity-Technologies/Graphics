@@ -124,6 +124,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [GenerateHLSL]
+        public class LightFeatureFlags
+        {
+            public static uint FEATURE_FLAG_LIGHT_PUNCTUAL = 1 << 0;
+            public static uint FEATURE_FLAG_LIGHT_AREA = 1 << 1;
+            public static uint FEATURE_FLAG_LIGHT_DIRECTIONAL = 1 << 2;
+            public static uint FEATURE_FLAG_LIGHT_ENV = 1 << 3;
+            public static uint FEATURE_FLAG_LIGHT_SKY = 1 << 4;
+        }
+
+        [GenerateHLSL]
         public class LightDefinitions
         {
             public static int MAX_NR_LIGHTS_PER_CAMERA = 1024;
@@ -142,15 +152,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static int IS_BOX_PROJECTED = 4;
             public static int HAS_SHADOW = 8;
 
-            // feature flags
-            public static uint FEATURE_FLAG_PUNCTUAL_LIGHT = 1 << 0;
-            public static uint FEATURE_FLAG_AREA_LIGHT = 1 << 1;
-            public static uint FEATURE_FLAG_DIRECTIONAL_LIGHT = 1 << 2;
-            public static uint FEATURE_FLAG_ENV_LIGHT = 1 << 3;
-            public static uint FEATURE_FLAG_SKY_LIGHT = 1 << 4;
-
             // feature variants
-            public static int NUM_FEATURE_VARIANTS = 8;
+            public static int NUM_FEATURE_VARIANTS = 16;
         }
 
         [GenerateHLSL]
@@ -379,7 +382,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             bool GetFeatureVariantsEnabled()
             {
-                return m_PassSettings.enableComputeLightEvaluation && m_PassSettings.enableComputeFeatureVariants;
+                return m_PassSettings.enableComputeLightEvaluation && m_PassSettings.enableComputeFeatureVariants && !(m_PassSettings.enableClustered && !m_PassSettings.enableFptlForOpaqueWhenClustered);
             }
 
             TileLightLoopProducer.TileSettings m_PassSettings;
@@ -935,7 +938,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightPos = worldToView.MultiplyPoint(lightPos);
                     lightVolumeData.radiusSq = range * range;
                     lightVolumeData.cotan = cota;
-                    lightVolumeData.featureFlags = LightDefinitions.FEATURE_FLAG_PUNCTUAL_LIGHT;
+                    lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_PUNCTUAL;
                 }
                 else if (gpuLightType == GPULightType.Point)
                 {
@@ -960,7 +963,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightAxisZ = vz;
                     lightVolumeData.lightPos = bound.center;
                     lightVolumeData.radiusSq = range * range;
-                    lightVolumeData.featureFlags = LightDefinitions.FEATURE_FLAG_PUNCTUAL_LIGHT;
+                    lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_PUNCTUAL;
                 }
                 else if (gpuLightType == GPULightType.Rectangle)
                 {
@@ -991,7 +994,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightAxisZ = zAxisVS;
                     lightVolumeData.boxInnerDist = dimensions;
                     lightVolumeData.boxInvRange.Set(1e5f, 1e5f, 1e5f);
-                    lightVolumeData.featureFlags = LightDefinitions.FEATURE_FLAG_AREA_LIGHT;
+                    lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_AREA;
                 }
                 else if (gpuLightType == GPULightType.Line)
                 {
@@ -1016,7 +1019,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightAxisZ = zAxisVS;
                     lightVolumeData.boxInnerDist = new Vector3(lightData.size.x * 0.5f, 0.01f, 0.01f);
                     lightVolumeData.boxInvRange.Set(1.0f / radius, 1.0f / radius, 1.0f / radius);
-                    lightVolumeData.featureFlags = LightDefinitions.FEATURE_FLAG_AREA_LIGHT;
+                    lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_AREA;
                 }
                 else
                 {
@@ -1109,7 +1112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 lightVolumeData.lightCategory = (uint)LightCategory.Env;
                 lightVolumeData.lightVolume = (uint)lightVolumeType;
-                lightVolumeData.featureFlags = LightDefinitions.FEATURE_FLAG_ENV_LIGHT;
+                lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_ENV;
 
                 lightVolumeData.lightPos = Cw;
                 lightVolumeData.lightAxisX = vx;
@@ -1469,6 +1472,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var invProjscr = projscr.inverse;
 
                 var cmd = new CommandBuffer() { name = "" };
+                cmd.SetRenderTarget(new RenderTargetIdentifier((Texture)null));
 
                 // generate screen-space AABBs (used for both fptl and clustered).
                 if (m_lightCount != 0)
@@ -1530,16 +1534,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (m_PassSettings.enableBigTilePrepass)
                         cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
 
+
+                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "_GBufferTexture0", Shader.PropertyToID("_GBufferTexture0"));
+                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "_GBufferTexture1", Shader.PropertyToID("_GBufferTexture1"));
+                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "_GBufferTexture2", Shader.PropertyToID("_GBufferTexture2"));
+                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "_GBufferTexture3", Shader.PropertyToID("_GBufferTexture3"));
+
                     if (enableFeatureVariants)
                     {
                         uint baseFeatureFlags = 0;
                         if (m_lightList.directionalLights.Count > 0)
                         {
-                            baseFeatureFlags |= LightDefinitions.FEATURE_FLAG_DIRECTIONAL_LIGHT;
+                            baseFeatureFlags |= LightFeatureFlags.FEATURE_FLAG_LIGHT_DIRECTIONAL;
                         }
                         if (Shader.GetGlobalInt("_EnvLightSkyEnabled") != 0)
                         {
-                            baseFeatureFlags |= LightDefinitions.FEATURE_FLAG_SKY_LIGHT;
+                            baseFeatureFlags |= LightFeatureFlags.FEATURE_FLAG_LIGHT_SKY;
                         }
                         cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
                         cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_TileList", s_TileList);
@@ -1825,7 +1835,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture1", Shader.PropertyToID("_GBufferTexture1"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture2", Shader.PropertyToID("_GBufferTexture2"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture3", Shader.PropertyToID("_GBufferTexture3"));
-                                //cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture4", Shader.PropertyToID("_GBufferTexture4"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "g_tShadowBuffer", Shader.PropertyToID("g_tShadowBuffer"));
 
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcData", Shader.GetGlobalTexture(Shader.PropertyToID("_LtcData")));
