@@ -490,7 +490,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     offset += resolution;
                 }
 
-                Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
+                // Flip texture.
+                // Temporarily disabled until proper API reaches trunk
+                //Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
+                Graphics.Blit(temp, tempRT);
 
                 result.ReadPixels(new Rect(0, 0, resolution * 6, resolution), 0, 0);
                 result.Apply();
