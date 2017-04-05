@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RMGUI.GraphView;
+using UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.RMGUI;
-using UnityEngine.Experimental.RMGUI.StyleEnums;
-using UnityEngine.Experimental.RMGUI.StyleSheets;
+using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
@@ -460,6 +460,19 @@ namespace UnityEditor.VFX.UI
 			}*/
 		}
 
+        Texture2D GetIconForVFXType(VFXDataType type)
+        {
+            switch(type)
+            {
+                case VFXDataType.kNone:
+                    return Resources.Load<Texture2D>("VFX/Execution");
+                    break;
+                case VFXDataType.kParticle:
+                    return EditorGUIUtility.LoadIcon("Particle Effect");
+            }
+            return null;
+        }
+
 		public override void OnDataChanged()
 		{
 			base.OnDataChanged();
@@ -469,7 +482,8 @@ namespace UnityEditor.VFX.UI
 				return;
 
 			// Recreate label with good name // Dirty
-            m_HeaderTitle.text = presenter.context.name;
+            m_HeaderTitle.text = string.Format("{0} {1}", presenter.context.name, presenter.context.inputType.ToString().Substring(1));
+            m_HeaderIcon.backgroundImage = GetIconForVFXType(presenter.context.inputType);
 
             VFXContextType contextType = presenter.context.contextType;
 
@@ -496,6 +510,7 @@ namespace UnityEditor.VFX.UI
                 if( m_Footer.parent == null)
                     m_NodeContainer.AddChild(m_Footer);
                 m_FooterTitle.text = presenter.context.outputType.ToString().Substring(1);
+                m_FooterIcon.backgroundImage = GetIconForVFXType(presenter.context.outputType);
             }
 
 

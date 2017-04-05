@@ -23,6 +23,8 @@ namespace UnityEditor.VFX
             return this;
         }
 
+        abstract public VFXValue CopyExpression(bool isConst);
+
         public override bool Equals(object obj) { return ReferenceEquals(this, obj); }
         sealed public override int GetHashCode()
         {
@@ -39,6 +41,22 @@ namespace UnityEditor.VFX
             {
                 m_Flags |= Flags.Constant;
             }
+        }
+
+        sealed public override VFXValue CopyExpression(bool isConst)
+        {
+            var copy = FindAndCreateFirstConcreteType() as VFXValue<T>;
+            copy.m_Content = m_Content;
+            copy.m_Flags = m_Flags;
+            if (isConst)
+            {
+                copy.m_Flags |= Flags.Constant;
+            }
+            else
+            {
+                copy.m_Flags &= ~Flags.Constant;
+            }
+            return copy;
         }
 
         private static VFXValue FindAndCreateFirstConcreteType()

@@ -1,8 +1,8 @@
 using UnityEngine;
-using UnityEngine.Experimental.RMGUI;
+using UnityEngine.Experimental.UIElements;
 using UnityEditor;
 
-namespace UnityEditor.VFX.RMGUI
+namespace UnityEditor.VFX.UIElements
 {
     interface INumericPolicy<T>
     {
