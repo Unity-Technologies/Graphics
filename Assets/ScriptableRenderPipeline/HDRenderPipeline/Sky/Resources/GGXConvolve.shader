@@ -44,7 +44,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
             TEXTURECUBE(_MainTex);
             SAMPLERCUBE(sampler_MainTex);
 
-            TEXTURE2D(_GgxIblSamples);
+            TEXTURE2D_FLOAT(_GgxIblSamples);
 
             #ifdef USE_MIS
                 TEXTURE2D(_MarginalRowDensities);
