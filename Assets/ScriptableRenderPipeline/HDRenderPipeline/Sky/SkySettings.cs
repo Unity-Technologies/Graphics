@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SkyResolution            resolution = SkyResolution.SkyResolution256;
         public EnvironementUpdateMode   updateMode = EnvironementUpdateMode.OnChanged;
         public float                    updatePeriod = 0.0f;
+        public Cubemap                  lightingOverride = null;
 
         private FieldInfo[] m_Properties;
 

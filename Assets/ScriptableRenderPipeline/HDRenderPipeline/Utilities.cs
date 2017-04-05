@@ -332,7 +332,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDRenderPipeline renderContext = GraphicsSettings.renderPipelineAsset as HDRenderPipeline;
             if (renderContext == null)
             {
-                Debug.LogWarning("SkyParameters component can only be used with HDRenderPipeline custom RenderPipeline.");
+                Debug.LogWarning("HDRenderPipeline is not instantiated.");
                 return null;
             }
 

@@ -14,6 +14,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LitAniso = 4 // Should be the last as it is not setup by the users but generated based on anisotropy property
         };
 
+        [GenerateHLSL]
+        public class MaterialFeatureFlags
+        {
+            public static uint FEATURE_FLAG_MATERIAL_LIT_STANDARD = 1 << 12;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_SSS = 1 << 13;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_CLEAR_COAT = 1 << 14;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_SPECULAR = 1 << 15;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_ANISO = 1 << 16;
+        }
+
         //-----------------------------------------------------------------------------
         // SurfaceData
         //-----------------------------------------------------------------------------
