@@ -306,10 +306,17 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
     {
         case 1: sampleCount = 21; break;
         case 2: sampleCount = 34; break;
+#ifdef SHADER_API_MOBILE
+        case 3: sampleCount = 34; break;
+        case 4: sampleCount = 34; break;
+        case 5: sampleCount = 34; break;
+        case 6: sampleCount = 34; break; // UNITY_SPECCUBE_LOD_STEPS
+#else
         case 3: sampleCount = 55; break;
         case 4: sampleCount = 89; break;
         case 5: sampleCount = 89; break;
         case 6: sampleCount = 89; break; // UNITY_SPECCUBE_LOD_STEPS
+#endif
     }
 
     return sampleCount;
