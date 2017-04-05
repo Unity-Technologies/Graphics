@@ -124,7 +124,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Texture2D result = renderpipelineInstance.ExportSkyToTexture();
             if(result == null)
             {
-                Debug.LogError("Cannot export sky to an image, Sky is not setup properly.");
                 return;
             }
 
