@@ -51,6 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTexture           m_SkyboxConditionalCdfRT = null;
 
         Material                m_StandardSkyboxMaterial = null; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
+        Material                m_BlitCubemapMaterial = null;
 
         IBLFilterGGX            m_iblFilterGgx = null;
 
@@ -275,7 +276,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_iblFilterGgx = new IBLFilterGGX();
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
-            m_StandardSkyboxMaterial   = Utilities.CreateEngineMaterial("Skybox/Cubemap");
+            m_StandardSkyboxMaterial = Utilities.CreateEngineMaterial("Skybox/Cubemap");
+
+            m_BlitCubemapMaterial = Utilities.CreateEngineMaterial("Hidden/BlitCubemap");
 
             m_CurrentUpdateTime = 0.0f;
         }
@@ -310,6 +313,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetRenderTarget(builtinParams.renderContext, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
                 m_Renderer.RenderSky(builtinParams, skySettings, true);
             }
+        }
+
+        private void BlitCubemap(ScriptableRenderContext renderContext, Cubemap source, RenderTexture dest)
+        {
+
+            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+
+            for (int i = 0; i < 6; ++i)
+            {
+                Utilities.SetRenderTarget(renderContext, dest, ClearFlag.ClearNone, 0, (CubemapFace)i);
+                var cmd = new CommandBuffer { name = "" };
+                propertyBlock.SetTexture("_MainTex", source);
+                propertyBlock.SetFloat("_faceIndex", (float)i);
+                cmd.DrawProcedural(Matrix4x4.identity, m_BlitCubemapMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
+
         }
 
         private void RenderCubemapGGXConvolution(ScriptableRenderContext renderContext, BuiltinSkyParameters builtinParams, SkySettings skyParams, Texture input, RenderTexture target)
@@ -387,8 +408,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         )
                     {
                         // Render sky into a cubemap - doesn't happen every frame, can be controlled
-                        RenderSkyToCubemap(m_BuiltinParameters, skySettings, m_SkyboxCubemapRT);
                         // Note that m_SkyboxCubemapRT is created with auto-generate mipmap, it mean that here we have also our mipmap correctly box filtered for importance sampling.
+                        if(m_SkySettings.lightingOverride == null)
+                            RenderSkyToCubemap(m_BuiltinParameters, skySettings, m_SkyboxCubemapRT);
+                        // In case the user overrides the lighting, we already have a cubemap ready but we need to blit it anyway for potential resize and so that we can generate proper mipmaps for enlighten.
+                        else
+                            BlitCubemap(renderContext, m_SkySettings.lightingOverride, m_SkyboxCubemapRT);
 
                         // Convolve downsampled cubemap
                         RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skySettings, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
@@ -433,6 +458,61 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_Renderer.RenderSky(m_BuiltinParameters, skySettings, false);
                 }
             }
+        }
+
+        public Texture2D ExportSkyToTexture()
+        {
+            if(m_Renderer == null)
+            {
+                Debug.LogError("Cannot export sky to a texture, no SkyRenderer is setup.");
+                return null;
+            }
+
+            if(m_SkySettings == null)
+            {
+                Debug.LogError("Cannot export sky to a texture, no Sky settings are setup.");
+                return null;
+            }
+
+            int resolution = (int)m_SkySettings.resolution;
+
+            RenderTexture tempRT = new RenderTexture(resolution * 6, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            tempRT.dimension = TextureDimension.Tex2D;
+            tempRT.useMipMap = false;
+            tempRT.autoGenerateMips = false;
+            tempRT.filterMode = FilterMode.Trilinear;
+            tempRT.Create();
+
+            Texture2D temp = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false);
+            Texture2D result = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false);
+
+            // Note: We need to invert in Y the cubemap faces because the current sky cubemap is inverted (because it's a RT)
+            // So to invert it again so that it's a proper cubemap image we need to do it in several steps because ReadPixels does not have scale parameters:
+            // - Convert the cubemap into a 2D texture
+            // - Blit and invert it to a temporary target.
+            // - Read this target again into the result texture.
+            int offset = 0;
+            for (int i = 0; i < 6; ++i)
+            {
+                Graphics.SetRenderTarget(m_SkyboxCubemapRT, 0, (CubemapFace)i);
+                temp.ReadPixels(new Rect(0, 0, resolution, resolution), offset, 0);
+                temp.Apply();
+                offset += resolution;
+            }
+
+            // Flip texture.
+            // Temporarily disabled until proper API reaches trunk
+            //Graphics.Blit(temp, tempRT, new Vector2(1.0f, -1.0f), new Vector2(0.0f, 0.0f));
+            Graphics.Blit(temp, tempRT);
+
+            result.ReadPixels(new Rect(0, 0, resolution * 6, resolution), 0, 0);
+            result.Apply();
+
+            Graphics.SetRenderTarget(null);
+            Object.DestroyImmediate(temp);
+            Object.DestroyImmediate(tempRT);
+
+            return result;
         }
     }
 }
