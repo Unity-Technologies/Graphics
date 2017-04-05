@@ -387,6 +387,9 @@ namespace UnityEngine.Experimental.Rendering
                         var settings = new DrawShadowsSettings(cullResults, lightIndex);
                         bool needRendering = cullResults.ComputePointShadowMatricesAndCullingPrimitives(lightIndex, (CubemapFace)s, 2.0f, out view, out proj, out settings.splitData);
 
+                        // The view matrix for point lights flips primitives. We fix it here (by making it left-handed).
+                        view.SetRow(1, -view.GetRow(1));
+
                         SetupShadowSplitMatrices(ref shadowSlices[shadowSliceIndex], proj, view);
                         if (needRendering)
                             RenderShadowSplit(ref shadowSlices[shadowSliceIndex], lightDirection, proj, view, ref loop, settings);
