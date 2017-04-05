@@ -358,7 +358,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
 
-                if (m_useMIS)
+                if (m_useMIS && m_iblFilterGgx.SupportMIS)
                 {
                     m_iblFilterGgx.FilterCubemapMIS(renderContext, input, target, mipCount, m_SkyboxConditionalCdfRT, m_SkyboxMarginalRowCdfRT, m_CubemapFaceMesh);
                 }

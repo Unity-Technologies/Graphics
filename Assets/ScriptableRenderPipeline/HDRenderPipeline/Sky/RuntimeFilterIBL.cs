@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class IBLFilterGGX
     {
         RenderTexture m_GgxIblSampleData              = null;
-        const int     k_GgxIblMaxSampleCount          = 89;   // Width
+        int           k_GgxIblMaxSampleCount          = TextureCache.isMobileBuildTarget ? 34 : 89;   // Width
         const int     k_GgxIblMipCountMinusOne        = 6;    // Height (UNITY_SPECCUBE_LOD_STEPS)
 
         ComputeShader m_ComputeGgxIblSampleDataCS     = null;
@@ -19,9 +19,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Material      m_GgxConvolveMaterial           = null; // Convolves a cubemap with GGX
 
+        bool          m_SupportMIS = !TextureCache.isMobileBuildTarget;
+
         public bool IsInitialized()
         {
             return m_GgxIblSampleData != null;
+        }
+
+        public bool SupportMIS
+        {
+            get { return m_SupportMIS; }
         }
 
         public void Initialize(ScriptableRenderContext context)
@@ -32,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ComputeGgxIblSampleDataKernel = m_ComputeGgxIblSampleDataCS.FindKernel("ComputeGgxIblSampleData");
             }
 
-            if (!m_BuildProbabilityTablesCS)
+            if (!m_BuildProbabilityTablesCS && SupportMIS)
             {
                 m_BuildProbabilityTablesCS   = Resources.Load<ComputeShader>("BuildProbabilityTables");
                 m_ConditionalDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeConditionalDensities");
