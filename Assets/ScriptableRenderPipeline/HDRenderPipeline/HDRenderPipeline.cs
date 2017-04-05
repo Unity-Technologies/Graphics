@@ -841,7 +841,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Texture2D ExportSkyToTexture()
         {
-            return m_SkyManager.ExportSkyToImage();
+            return m_SkyManager.ExportSkyToTexture();
         }
 
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
