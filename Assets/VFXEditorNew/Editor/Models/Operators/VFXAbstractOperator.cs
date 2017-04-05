@@ -143,37 +143,39 @@ namespace UnityEditor.VFX
         sealed protected override void OnOperatorInvalidate(VFXModel model,InvalidationCause cause)
         {
             if (cause == InvalidationCause.kConnectionChanged)
-                UpdateOutputs();           
+            {
+                //Remove useless unplugged slot (ensuring there is at least 2 slots)
+                var currentSlots = inputSlots.ToList();
+                var uselessSlots = new Stack<VFXSlot>(currentSlots.Where((s, i) => i >= 2 && !s.HasLink()));
+                foreach (var slot in uselessSlots)
+                {
+                    currentSlots.Remove(slot);
+                }
+
+                if (currentSlots.All(s => s.HasLink()))
+                {
+                    if (uselessSlots.Count == 0)
+                    {
+                        AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
+                    }
+                    else
+                    {
+                        uselessSlots.Pop();
+                    }
+                }
+
+                //Update deprecated Slot
+                foreach (var slot in uselessSlots)
+                {
+                    RemoveSlot(slot);
+                }
+
+                UpdateOutputs();  
+            }                  
         }
 
         public override void UpdateOutputs()
         {
-            //Remove useless unplugged slot (ensuring there is at least 2 slots)
-            var currentSlots = inputSlots.ToList();
-            var uselessSlots = new Stack<VFXSlot>(currentSlots.Where((s, i) => i >= 2 && !s.HasLink()));
-            foreach (var slot in uselessSlots)
-            {
-                currentSlots.Remove(slot);
-            }
-
-            if (currentSlots.All(s => s.HasLink()))
-            {
-                if (uselessSlots.Count == 0)
-                {
-                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
-                }
-                else
-                {
-                    uselessSlots.Pop();
-                }
-            }
-
-            //Update deprecated Slot
-            foreach (var slot in uselessSlots)
-            {
-                RemoveSlot(slot);
-            }
-
             var inputExpression = GetInputExpressions();
             //Process aggregate two by two element until result
             var outputExpression = new Stack<VFXExpression>(inputExpression.Reverse());
@@ -185,9 +187,7 @@ namespace UnityEditor.VFX
                 outputExpression.Push(compose);
             }
             SetOuputSlotFromExpression(outputExpression);
-        }
-
-        
+        }      
     }
 
     abstract class VFXOperatorBinaryFloatOperationOne : VFXOperatorBinaryFloatCascadableOperation
@@ -208,7 +208,5 @@ namespace UnityEditor.VFX
             public FloatN right = FallbackValue;
             public FloatN left = FallbackValue;
         }
-
-
     }
 }
