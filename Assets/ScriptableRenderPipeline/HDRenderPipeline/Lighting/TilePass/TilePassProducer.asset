@@ -14,7 +14,7 @@ MonoBehaviour:
   m_TileSettings:
     enableTileAndCluster: 1
     enableSplitLightEvaluation: 1
-    enableComputeLightEvaluation: 1
+    enableComputeLightEvaluation: 0
     enableComputeFeatureVariants: 1
     enableClustered: 1
     enableFptlForOpaqueWhenClustered: 1
