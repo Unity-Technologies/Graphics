@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -12,7 +13,10 @@ namespace UnityEditor.VFX
 
         protected override bool CanConvertFrom(Type type)
         {
-            return true;
+            return type == typeof(float) 
+                || type == typeof(Vector2)
+                || type == typeof(Vector3)
+                || type == typeof(Vector4);
         }
 
         protected virtual VFXExpression ConvertExpression(VFXExpression expression)

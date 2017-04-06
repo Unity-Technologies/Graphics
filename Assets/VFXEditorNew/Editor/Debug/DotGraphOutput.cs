@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
             graph.CollectDependencies(objs);
 
             var startExpressions = new Dictionary<VFXExpression,VFXSlot>(objs.OfType<VFXSlot>()
-                .Where(s => s.owner != null && s.direction == VFXSlot.Direction.kOutput) // only master output slots
+                .Where(s => s.owner != null && s.direction == VFXSlot.Direction.kOutput && s.GetExpression() != null) // only master output slots with valid expression
                 .ToDictionary(s => s.GetExpression()));
             var expressions = new HashSet<VFXExpression>();
 
