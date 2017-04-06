@@ -45,6 +45,7 @@ namespace UnityEditor.VFX.UI
             {typeof(Texture3D),typeof(VFXObjectPropertyIM<Texture3D>) },
             {typeof(Mesh),typeof(VFXObjectPropertyIM<Mesh>) },
             {typeof(int),typeof(VFXIntPropertyIM) },
+            {typeof(Gradient),typeof(VFXGradientPropertyIM) },
             {typeof(AnimationCurve),typeof(VFXAnimationCurvePropertyIM) }
         };
         public static VFXPropertyIM Create(Type type)
@@ -280,6 +281,17 @@ namespace UnityEditor.VFX.UI
             value = EditorGUILayout.CurveField(value);
             GUILayout.EndHorizontal();
 
+            return value;
+        }
+    }
+    class VFXGradientPropertyIM : VFXPropertyIM<Gradient>
+    {
+        public override Gradient OnParameterGUI(VFXDataAnchorPresenter presenter, Gradient value, VFXDataAnchor.GUIStyles styles)
+        {
+            GUILayout.BeginHorizontal();
+            Label(presenter, styles);
+            value = EditorGUILayout.GradientField(value);
+            GUILayout.EndHorizontal();
             return value;
         }
     }

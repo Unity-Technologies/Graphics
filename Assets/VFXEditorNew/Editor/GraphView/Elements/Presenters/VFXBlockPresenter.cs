@@ -229,7 +229,7 @@ namespace UnityEditor.VFX.UI
 
         bool IsTypeExpandable(System.Type type)
         {
-            return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && ! type.IsEnum;
+            return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && ! type.IsEnum && type != typeof(Gradient);
         }
 
 

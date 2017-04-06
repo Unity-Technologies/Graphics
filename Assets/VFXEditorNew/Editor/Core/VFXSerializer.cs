@@ -126,6 +126,27 @@ namespace UnityEditor.VFX
 
         }
 
+        [System.Serializable]
+        class GradientWrapper
+        {
+            [System.Serializable]
+            public struct ColorKey
+            {
+                public Color color;
+                public float time;
+            }
+            [System.Serializable]
+            public struct AlphaKey
+            {
+                public float alpha;
+                public float time;
+            }
+            public ColorKey[] colorKeys;
+            public AlphaKey[] alphaKeys;
+
+            public GradientMode gradientMode;
+        }
+
         public static TypedSerializedData SaveWithType(object obj)
         {
             TypedSerializedData data = new TypedSerializedData();
@@ -187,6 +208,26 @@ namespace UnityEditor.VFX
 
                 return JsonUtility.ToJson(sac);
             }
+            else if( obj is Gradient)
+            {
+                GradientWrapper gw = new GradientWrapper();
+                Gradient gradient = obj as Gradient;
+
+                gw.gradientMode = gradient.mode;
+                gw.colorKeys = new GradientWrapper.ColorKey[gradient.colorKeys.Length];
+                for(int i = 0; i < gradient.colorKeys.Length; ++i)
+                {
+                    gw.colorKeys[i].color = gradient.colorKeys[i].color;
+                    gw.colorKeys[i].time = gradient.colorKeys[i].time;
+                }
+                gw.alphaKeys = new GradientWrapper.AlphaKey[gradient.alphaKeys.Length];
+                for(int i = 0; i < gradient.alphaKeys.Length; ++i)
+                {
+                    gw.alphaKeys[i].alpha = gradient.alphaKeys[i].alpha;
+                    gw.alphaKeys[i].time = gradient.alphaKeys[i].time;
+                }
+                return JsonUtility.ToJson(gw);
+            }
             else
             {
                 return EditorJsonUtility.ToJson(obj);
@@ -201,11 +242,6 @@ namespace UnityEditor.VFX
             }
             else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
             {
-                /* var identifier = JsonUtility.FromJson<FavoriteIdentifier>(text);
-
-                 int instanceID = InspectorFavoritesManager.GetInstanceIDFromFavoriteIdentifier(identifier);
-
-                 return EditorUtility.InstanceIDToObject(instanceID);*/
                 object obj = new ObjectWrapper();
                 EditorJsonUtility.FromJsonOverwrite(text, obj);
 
@@ -236,6 +272,32 @@ namespace UnityEditor.VFX
                 }
 
                 return curve;
+            }
+            else if( type.IsAssignableFrom(typeof(Gradient)))
+            {
+                GradientWrapper gw = new GradientWrapper();
+                Gradient gradient = new Gradient();
+
+                JsonUtility.FromJsonOverwrite(text, gw);
+
+                gradient.mode = gw.gradientMode;
+                GradientColorKey[] colorKeys = new GradientColorKey[gw.colorKeys.Length];
+
+                for (int i = 0; i < gw.colorKeys.Length; ++i)
+                {
+                    colorKeys[i].color = gw.colorKeys[i].color;
+                    colorKeys[i].time = gw.colorKeys[i].time;
+                }
+                
+
+                GradientAlphaKey[] alphaKeys = new GradientAlphaKey[gw.alphaKeys.Length];
+                for (int i = 0; i < gw.alphaKeys.Length; ++i)
+                {
+                    alphaKeys[i].alpha = gw.alphaKeys[i].alpha;
+                    alphaKeys[i].time = gw.alphaKeys[i].time;
+                }
+                gradient.SetKeys(colorKeys, alphaKeys);
+                return gradient;
             }
             else
             {

@@ -12,6 +12,7 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             public float aFloat = 123.456f;
+            public Gradient aGradient = new Gradient();
             public Vector2 aVector2 = Vector2.left;
             public Vector3 aVector3 = Vector3.forward;
             public Vector4 aVector4 = Vector4.one;

@@ -122,7 +122,7 @@ namespace UnityEditor.VFX.UI
             // update the GUISTyle from the element style defined in USS
 
 
-            try
+            //try
             {
                bool different = false;
 
@@ -158,10 +158,10 @@ namespace UnityEditor.VFX.UI
                     m_Container.height = r.yMax;*/
                 }
             }
-            catch(System.Exception e)
+            /*catch(System.Exception e)
             {
                 Debug.LogError(e.Message);
-            }
+            }*/
         }
 
         public override void OnDataChanged()
