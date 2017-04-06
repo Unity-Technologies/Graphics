@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
 
         public static implicit operator Type(SerializableType value)
         {
-            return value.m_Type;
+            return value != null ? value.m_Type : null;
         }
 
         private SerializableType() { }
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
 
         public virtual void OnBeforeSerialize()
         {
-            m_SerializableType = m_Type.AssemblyQualifiedName;
+            m_SerializableType = m_Type != null ? m_Type.AssemblyQualifiedName : string.Empty;
         }
 
         public virtual void OnAfterDeserialize()
@@ -63,7 +63,7 @@ namespace UnityEditor.VFX
             return VFXSerializer.Load(m_Type, m_SerializableObject);
         }
 
-        public object Get<T>()
+        public T Get<T>()
         {
             return (T)Get();
         }
@@ -176,15 +176,15 @@ namespace UnityEditor.VFX
 
         public static string Save(object obj)
         {
+            if (obj == null)
+                return string.Empty;
+
             if (obj.GetType().IsPrimitive)
             {
                 return obj.ToString();
             }
             else if (obj is UnityEngine.Object) //type is a unity object
             {
-                //var identifier = InspectorFavoritesManager.GetFavoriteIdentifierFromInstanceID((obj as Object).GetInstanceID());
-                //return JsonUtility.ToJson(identifier); //TODO use code from favorites
-
                 ObjectWrapper wrapper = new ObjectWrapper { obj = obj as UnityEngine.Object };
                 return EditorJsonUtility.ToJson(wrapper);
             }
@@ -236,6 +236,9 @@ namespace UnityEditor.VFX
 
         public static object Load(System.Type type, string text)
         {
+            if (type == null)
+                return null;
+
             if (type.IsPrimitive)
             {
                 return Convert.ChangeType(text, type);
