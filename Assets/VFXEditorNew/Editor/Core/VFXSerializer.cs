@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
             return value.m_Type;
         }
 
-        private SerializableType() {}
+        private SerializableType() { }
         public SerializableType(Type type)
         {
             m_Type = type;
@@ -46,14 +46,14 @@ namespace UnityEditor.VFX
     [Serializable]
     public class VFXSerializableObject
     {
-        private VFXSerializableObject() {}
+        private VFXSerializableObject() { }
 
-        public VFXSerializableObject(Type type,object obj) : this(type)
+        public VFXSerializableObject(Type type, object obj) : this(type)
         {
             Set(obj);
         }
 
-        public VFXSerializableObject(Type type) 
+        public VFXSerializableObject(Type type)
         {
             m_Type = type;
         }
@@ -75,7 +75,7 @@ namespace UnityEditor.VFX
             else
             {
                 if (!((Type)m_Type).IsAssignableFrom(obj.GetType()))
-                    throw new ArgumentException(string.Format("Cannot assing an object of type {0} to VFXSerializedObject of type {1}",obj.GetType(),(Type)m_Type));
+                    throw new ArgumentException(string.Format("Cannot assing an object of type {0} to VFXSerializedObject of type {1}", obj.GetType(), (Type)m_Type));
                 m_SerializableObject = VFXSerializer.Save(obj);
             }
         }
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX
         [SerializeField]
         private SerializableType m_Type;
 
-       // [NonSerialized]
+        // [NonSerialized]
         //private object m_Object;
         [SerializeField]
         private string m_SerializableObject;
@@ -105,6 +105,25 @@ namespace UnityEditor.VFX
         private struct ObjectWrapper
         {
             public UnityEngine.Object obj;
+        }
+
+
+        [System.Serializable]
+        class AnimCurveWrapper
+        {
+            [System.Serializable]
+            public struct Keyframe
+            {
+                public float time;
+                public float value;
+                public float inTangent;
+                public float outTangent;
+                public int tangentMode;
+            }
+            public Keyframe[] frames;
+            public WrapMode preWrapMode;
+            public WrapMode postWrapMode;
+
         }
 
         public static TypedSerializedData SaveWithType(object obj)
@@ -133,45 +152,29 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        [System.Serializable]
-        struct SerializedAnimCurve
-        {
-            [System.Serializable]
-            public struct Keyframe
-            {
-                public float time;
-                public float value;
-                public float inTangent;
-                public float outTangent;
-                public int tangentMode;
-            }
-            public Keyframe[] frames;
-            public WrapMode preWrapMode;
-            public WrapMode postWrapMode;
-
-        }
-
 
         public static string Save(object obj)
         {
-            if( obj.GetType().IsPrimitive)
+            if (obj.GetType().IsPrimitive)
             {
                 return obj.ToString();
             }
-            else if(obj is UnityEngine.Object ) //type is a unity object
+            else if (obj is UnityEngine.Object) //type is a unity object
             {
-                var identifier = InspectorFavoritesManager.GetFavoriteIdentifierFromInstanceID((obj as Object).GetInstanceID());
+                //var identifier = InspectorFavoritesManager.GetFavoriteIdentifierFromInstanceID((obj as Object).GetInstanceID());
+                //return JsonUtility.ToJson(identifier); //TODO use code from favorites
 
-                return JsonUtility.ToJson(identifier); //TODO use code from favorites
+                ObjectWrapper wrapper = new ObjectWrapper { obj = obj as UnityEngine.Object };
+                return EditorJsonUtility.ToJson(wrapper);
             }
-            else if( obj is AnimationCurve)
+            else if (obj is AnimationCurve)
             {
-                SerializedAnimCurve sac = new SerializedAnimCurve();
+                AnimCurveWrapper sac = new AnimCurveWrapper();
                 AnimationCurve curve = obj as AnimationCurve;
-                
 
-                sac.frames = new SerializedAnimCurve.Keyframe[curve.keys.Length];
-                for(int i = 0; i < curve.keys.Length; ++i)
+
+                sac.frames = new AnimCurveWrapper.Keyframe[curve.keys.Length];
+                for (int i = 0; i < curve.keys.Length; ++i)
                 {
                     sac.frames[i].time = curve.keys[i].time;
                     sac.frames[i].value = curve.keys[i].value;
@@ -190,55 +193,54 @@ namespace UnityEditor.VFX
             }
         }
 
-       /* public static void LoadOverwrite(object dst, string text)
+        public static object Load(System.Type type, string text)
         {
-
-        }*/
-
-        public static object Load(System.Type type,string text)
-        {
-            if( type.IsPrimitive)
+            if (type.IsPrimitive)
             {
                 return Convert.ChangeType(text, type);
             }
-            else if( typeof(UnityEngine.Object).IsAssignableFrom(type) )
+            else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
             {
-               /* var identifier = JsonUtility.FromJson<FavoriteIdentifier>(text);
+                /* var identifier = JsonUtility.FromJson<FavoriteIdentifier>(text);
 
-                int instanceID = InspectorFavoritesManager.GetInstanceIDFromFavoriteIdentifier(identifier);
+                 int instanceID = InspectorFavoritesManager.GetInstanceIDFromFavoriteIdentifier(identifier);
 
-                return EditorUtility.InstanceIDToObject(instanceID);*/
+                 return EditorUtility.InstanceIDToObject(instanceID);*/
                 object obj = new ObjectWrapper();
                 EditorJsonUtility.FromJsonOverwrite(text, obj);
 
                 return ((ObjectWrapper)obj).obj;
             }
-            else if( type.IsAssignableFrom(typeof(AnimationCurve)))
+            else if (type.IsAssignableFrom(typeof(AnimationCurve)))
             {
-                SerializedAnimCurve sac = JsonUtility.FromJson<SerializedAnimCurve>(text);
+                AnimCurveWrapper sac = new AnimCurveWrapper();
+
+                JsonUtility.FromJsonOverwrite(text,sac);
 
                 AnimationCurve curve = new AnimationCurve();
 
-
-                Keyframe[] keys = new UnityEngine.Keyframe[sac.frames.Length];
-                for (int i = 0; i < sac.frames.Length; ++i)
+                if (sac.frames != null)
                 {
-                    keys[i].time = sac.frames[i].time;
-                    keys[i].value = sac.frames[i].value;
-                    keys[i].inTangent = sac.frames[i].inTangent;
-                    keys[i].outTangent = sac.frames[i].outTangent;
-                    keys[i].tangentMode = sac.frames[i].tangentMode;
+                    Keyframe[] keys = new UnityEngine.Keyframe[sac.frames.Length];
+                    for (int i = 0; i < sac.frames.Length; ++i)
+                    {
+                        keys[i].time = sac.frames[i].time;
+                        keys[i].value = sac.frames[i].value;
+                        keys[i].inTangent = sac.frames[i].inTangent;
+                        keys[i].outTangent = sac.frames[i].outTangent;
+                        keys[i].tangentMode = sac.frames[i].tangentMode;
+                    }
+                    curve.keys = keys;
+                    curve.preWrapMode = sac.preWrapMode;
+                    curve.postWrapMode = sac.postWrapMode;
                 }
-                curve.keys = keys;
-                curve.preWrapMode = sac.preWrapMode;
-                curve.postWrapMode = sac.postWrapMode;
 
                 return curve;
             }
             else
             {
                 object obj = Activator.CreateInstance(type);
-                EditorJsonUtility.FromJsonOverwrite(text,obj);
+                EditorJsonUtility.FromJsonOverwrite(text, obj);
                 return obj;
             }
         }
