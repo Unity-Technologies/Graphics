@@ -1,11 +1,9 @@
 #pragma kernel BigTileLightListGen
 
-#include "ShaderLibrary/common.hlsl"
+#include "../../../../ShaderLibrary/common.hlsl"
 #include "../TilePass.cs.hlsl"
 #include "../LightingConvexHullUtils.hlsl"
-#if !defined(SHADER_API_XBOXONE)
 #include "../SortingComputeUtils.hlsl"
-#endif
 
 #define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -118,7 +116,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 		}
 	}
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if /*!defined(SHADER_API_XBOXONE) && */!defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -136,9 +134,9 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	// sort lights
 	SORTLIST(lightsListLDS, iNrCoarseLights, MAX_NR_BIGTILE_LIGHTS_PLUSONE, t, NR_THREADS);
 
-	lightOffs = 0;
+	if(t==0) lightOffs = 0;
 	GroupMemoryBarrierWithGroupSync();
-    int i;
+	int i;
 	for(i=t; i<iNrCoarseLights; i+=NR_THREADS) if((int)lightsListLDS[i]<g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
 	GroupMemoryBarrierWithGroupSync();
 	iNrCoarseLights = lightOffs;
@@ -201,7 +199,7 @@ void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, u
 
 	int i=iSwizzle + (2*(iSection&0x2));	// offset by 4 at section 2
 	vP0 = GetTileVertex(uint2(viTilLL.x, viTilUR.y), uint2(viTilUR.x, viTilLL.y), i, fTileFarPlane);
-    vE0 = iSection == 0 ? vP0 : (((iSwizzle & 0x2) == 0 ? 1.0f : (-1.0f)) * ((int)(iSwizzle & 0x1) == (iSwizzle >> 1) ? float3(1, 0, 0) : float3(0, 1, 0)));
+	vE0 = iSection == 0 ? vP0 : (((iSwizzle & 0x2) == 0 ? 1.0f : (-1.0f)) * ((int)(iSwizzle & 0x1) == (iSwizzle >> 1) ? float3(1, 0, 0) : float3(0, 1, 0)));
 }
 
 void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR)
@@ -214,15 +212,15 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 	{
 		const uint idxCoarse = lightsListLDS[l];
 
-		bool canEnter = idxCoarse<(uint)g_iNrVisibLights;
+		bool canEnter = idxCoarse<(uint) g_iNrVisibLights;
 		if(canEnter) canEnter = _LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
-    [branch]if(canEnter)
+		[branch]if(canEnter)
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
 	
 			const float3 boxX = lgtDat.boxAxisX.xyz;
 			const float3 boxY = lgtDat.boxAxisY.xyz;
-			const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip axis (so it points away from the light direction for a spot-light)
+			const float3 boxZ = -lgtDat.boxAxisZ.xyz;	// flip axis (so it points away from the light direction for a spot-light)
 			const float3 center = lgtDat.center.xyz;
 			const float2 scaleXY = lgtDat.scaleXY;
 

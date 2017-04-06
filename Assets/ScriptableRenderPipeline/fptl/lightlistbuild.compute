@@ -4,16 +4,13 @@
 #pragma kernel TileLightListGen					LIGHTLISTGEN=TileLightListGen
 #pragma kernel TileLightListGen_SrcBigTile		LIGHTLISTGEN=TileLightListGen_SrcBigTile		USE_TWO_PASS_TILED_LIGHTING
 
-
 #include "..\common\ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
-
 #include "LightingConvexHullUtils.hlsl"
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 #include "SortingComputeUtils.hlsl"
 #endif
-
 
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -174,12 +171,14 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	// build coarse list using AABB
 #ifdef USE_TWO_PASS_TILED_LIGHTING
-	int NrBigTilesX = (nrTilesX+3)>>2;
-	const int bigTileIdx = (tileIDX.y>>2)*NrBigTilesX + (tileIDX.x>>2);		// map the idx to 64x64 tiles
+	const uint log2BigTileToTileRatio = firstbithigh(64) - firstbithigh(16);
+
+	int NrBigTilesX = (nrTilesX+((1<<log2BigTileToTileRatio)-1))>>log2BigTileToTileRatio;
+	const int bigTileIdx = (tileIDX.y>>log2BigTileToTileRatio)*NrBigTilesX + (tileIDX.x>>log2BigTileToTileRatio);		// map the idx to 64x64 tiles
 	int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+0];
 	for(int l0=(int) t; l0<(int) nrBigTileLights; l0 += NR_THREADS)
 	{
-		int l = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+l0+1];
+		int l = min(g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+l0+1], g_iNrVisibLights);
 #else
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
@@ -247,17 +246,17 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	// write lights to global buffers
 	int localOffs=0;
 	int offs = tileIDX.y*nrTilesX + tileIDX.x;
-	for(int m=0; m<NR_LIGHT_MODELS; m++)
+
+	for(int category=0; category<NR_LIGHT_MODELS; category++)
 	{
-		int nrLightsFinal = ldsModelListCount[ m ];
+		int nrLightsFinal = ldsModelListCount[category];
 		int nrLightsFinalClamped = nrLightsFinal<MAX_NR_PRUNED_ENTRIES ? nrLightsFinal : MAX_NR_PRUNED_ENTRIES;
-		
 
 		const int nrDWords = ((nrLightsFinalClamped+1)+1)>>1;
 		for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
 		{
-			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[2*l-1+localOffs];
-			uint uHigh = prunedList[2*l+0+localOffs];
+			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[max(0,2 * l - 1 + localOffs)];
+			uint uHigh = prunedList[2 * l + 0 + localOffs];
 
 			g_vLightList[16*offs + l] = (uLow&0xffff) | (uHigh<<16);
 		}
@@ -265,7 +264,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		localOffs += nrLightsFinal;
 		offs += (nrTilesX*nrTilesY);
 	}
-
 }
 
 
@@ -273,10 +271,11 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
 {
-	lightOffsSph = 0;
+	if(threadID==0) lightOffsSph = 0;
 
 	// make a copy of coarseList in prunedList.
-	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
+	int l;
+	for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 		prunedList[l]=coarseList[l];
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
@@ -292,7 +291,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
 	float halfTileSizeAtZDistOne = 8*onePixDiagDist;		// scale by half a tile
 	
-	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
+	for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
 		SFiniteLightBound lightData = g_data[prunedList[l]];
 	

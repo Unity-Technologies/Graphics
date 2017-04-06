@@ -1,27 +1,36 @@
 // The implementation is based on the demo on "fine pruned tiled lighting" published in GPU Pro 7.
 // https://github.com/wolfgangfengel/GPU-Pro-7
 
-#pragma kernel TileLightListGen					LIGHTLISTGEN=TileLightListGen
-#pragma kernel TileLightListGen_SrcBigTile		LIGHTLISTGEN=TileLightListGen_SrcBigTile		USE_TWO_PASS_TILED_LIGHTING
+#pragma kernel TileLightListGen                             LIGHTLISTGEN=TileLightListGen
+#pragma kernel TileLightListGen_SrcBigTile                  LIGHTLISTGEN=TileLightListGen_SrcBigTile                    USE_TWO_PASS_TILED_LIGHTING
+#pragma kernel TileLightListGen_FeatureFlags                LIGHTLISTGEN=TileLightListGen_FeatureFlags                  USE_FEATURE_FLAGS
+#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags     LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags       USE_TWO_PASS_TILED_LIGHTING		USE_FEATURE_FLAGS
 
-#include "ShaderLibrary/common.hlsl"
+#pragma #pragma enable_d3d11_debug_symbols
+
+#include "../../../../ShaderLibrary/common.hlsl"
 #include "../ShaderBase.hlsl"
 #include "../TilePass.cs.hlsl"
 #include "../LightingConvexHullUtils.hlsl"
+
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 #include "../SortingComputeUtils.hlsl"
 #endif
 
+#define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
+#include "../../../Material/Material.hlsl" // This include Material.hlsl
+#include "../FeatureFlags.hlsl"
 
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
-
+#define USE_MATERIAL_FEATURE_FLAGS
 
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
 uniform float4x4 g_mInvScrProjection;
 uniform float4x4 g_mScrProjection;
 uniform int _EnvLightIndexShift;
+
 
 Texture2D g_depth_tex : register( t0 );
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
@@ -56,6 +65,18 @@ groupshared int ldsCategoryListCount[LIGHTCATEGORY_COUNT];		// since LIGHTCATEGO
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 groupshared uint lightOffsSph;
+#endif
+
+
+uniform uint g_BaseFeatureFlags;
+#ifdef USE_FEATURE_FLAGS
+groupshared uint ldsFeatureFlags;
+RWBuffer<uint> g_DispatchIndirectBuffer;
+RWStructuredBuffer<uint> g_TileList;
+
+#ifdef USE_MATERIAL_FEATURE_FLAGS
+DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
+#endif
 #endif
 
 
@@ -103,7 +124,6 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths);
 #endif
 
-
 [numthreads(NR_THREADS, 1, 1)]
 void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
@@ -117,6 +137,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	uint iHeight = g_viDimensions.y;
 	uint nrTilesX = (iWidth+15)/16;
 	uint nrTilesY = (iHeight+15)/16;
+	uint nrTiles = nrTilesX * nrTilesY;	// Precompute?
 
 	// build tile scr boundary
 	const uint uFltMax = 0x7f7fffff;  // FLT_MAX as a uint
@@ -172,12 +193,14 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	// build coarse list using AABB
 #ifdef USE_TWO_PASS_TILED_LIGHTING
-	int NrBigTilesX = (nrTilesX+3)>>2;
-	const int bigTileIdx = (tileIDX.y>>2)*NrBigTilesX + (tileIDX.x>>2);		// map the idx to 64x64 tiles
+	const uint log2BigTileToTileRatio = firstbithigh(64) - firstbithigh(16);
+
+	int NrBigTilesX = (nrTilesX+((1<<log2BigTileToTileRatio)-1))>>log2BigTileToTileRatio;
+	const int bigTileIdx = (tileIDX.y>>log2BigTileToTileRatio)*NrBigTilesX + (tileIDX.x>>log2BigTileToTileRatio);		// map the idx to 64x64 tiles
 	int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+0];
 	for(int l0=(int) t; l0<(int) nrBigTileLights; l0 += NR_THREADS)
 	{
-		int l = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+l0+1];
+		int l = min((int)g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+l0+1], g_iNrVisibLights);
 #else
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
@@ -208,7 +231,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
 #endif
 
-#ifndef FINE_PRUNING_ENABLED	
+#ifndef FINE_PRUNING_ENABLED
 	{
 		if((int)t<iNrCoarseLights) prunedList[t] = coarseList[t];
 		if(t==0) ldsNrLightsFinal=iNrCoarseLights;
@@ -223,6 +246,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	//
 	if(t<LIGHTCATEGORY_COUNT) ldsCategoryListCount[t]=0;
+#ifdef USE_FEATURE_FLAGS
+	if(t==0) ldsFeatureFlags=0;
+#endif
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
@@ -232,9 +258,11 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int nrLightsCombinedList = min(ldsNrLightsFinal,MAX_NR_COARSE_ENTRIES);
 	for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS) 
 	{
-        InterlockedAdd(ldsCategoryListCount[_LightVolumeData[prunedList[i]].lightCategory], 1);
+		InterlockedAdd(ldsCategoryListCount[_LightVolumeData[prunedList[i]].lightCategory], 1);
+#ifdef USE_FEATURE_FLAGS
+		InterlockedOr(ldsFeatureFlags, _LightVolumeData[prunedList[i]].featureFlags);
+#endif
 	}
-
 
 	// sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
@@ -242,26 +270,64 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	//MERGESORTLIST(prunedList, coarseList, nrLightsCombinedList, t, NR_THREADS);
 #endif
 
+#ifdef USE_FEATURE_FLAGS
+#ifdef USE_MATERIAL_FEATURE_FLAGS
+	float2 invScreenSize = float2(1.0f / iWidth, 1.0f / iHeight);
+	uint materialFeatureFlags = 0;
+	{
+		[unroll]
+		for(int i = 0; i < 4; i++)
+		{
+			int idx = i * NR_THREADS + t;
+			uint2 uCrd = min(uint2(viTilLL.x + (idx & 0xf), viTilLL.y + (idx >> 4)), uint2(iWidth - 1, iHeight - 1));
+			if(FetchDepth(g_depth_tex, uCrd) < VIEWPORT_SCALE_Z)		// if not skydome. //TODO: reuse depths from before
+			{
+				PositionInputs posInput = GetPositionInput(uCrd, invScreenSize);
+				FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
+				materialFeatureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(gbuffer);
+			}
+		}
+	}
+	InterlockedOr(ldsFeatureFlags, materialFeatureFlags);	//TODO: driver might optimize this or we might have to do a manual reduction
+	GroupMemoryBarrierWithGroupSync();
+#else
+	uint materialFeatureFlags = 0xFFFFF000;
+#endif
+	
+	if(t == 0)
+	{
+		uint featureFlags = g_BaseFeatureFlags | ldsFeatureFlags;
+		if(ldsZMax < ldsZMin)	// is background pixel
+		{
+			featureFlags &= ~(FEATURE_FLAG_LIGHT_PUNCTUAL | FEATURE_FLAG_LIGHT_AREA | FEATURE_FLAG_LIGHT_DIRECTIONAL | FEATURE_FLAG_LIGHT_ENV | 0xFFFFF);	// list of features that are not enabled on background
+		}
+
+		uint variant = FeatureFlagsToTileVariant(featureFlags);
+		uint offset;
+		InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 1, offset);
+		g_TileList[variant*nrTiles + offset] = (tileIDX.y << 16) + tileIDX.x;
+	}
+#endif
+
 	// write lights to global buffers
 	int localOffs=0;
 	int offs = tileIDX.y*nrTilesX + tileIDX.x;
 
-    // All our cull data are in the same list, but at render time envLights are separated so we need to shit the index
-    // to make it work correctly
-    int shiftIndex[LIGHTCATEGORY_COUNT] = {0, 0, _EnvLightIndexShift}; // 3 for now, will throw an error if we change LIGHTCATEGORY_COUNT
+	// All our cull data are in the same list, but at render time envLights are separated so we need to shit the index
+	// to make it work correctly
+	int shiftIndex[LIGHTCATEGORY_COUNT] = {0, 0, _EnvLightIndexShift}; // 3 for now, will throw an error if we change LIGHTCATEGORY_COUNT
 
 	for(int category=0; category<LIGHTCATEGORY_COUNT; category++)
 	{
 		int nrLightsFinal = ldsCategoryListCount[category];
 		int nrLightsFinalClamped = nrLightsFinal<MAX_NR_PRUNED_ENTRIES ? nrLightsFinal : MAX_NR_PRUNED_ENTRIES;
-		
 
 		const int nrDWords = ((nrLightsFinalClamped+1)+1)>>1;
 		for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
 		{
-            // We remap the prunedList index to the original LightData / EnvLightData indices
-			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[2*l-1+localOffs] - shiftIndex[category];
-            uint uHigh = prunedList[2 * l + 0 + localOffs] - shiftIndex[category];
+			// We remap the prunedList index to the original LightData / EnvLightData indices
+ 			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[max(0,2 * l - 1 + localOffs)] - shiftIndex[category];
+			uint uHigh = prunedList[2 * l + 0 + localOffs] - shiftIndex[category];
 
 			g_vLightList[16*offs + l] = (uLow&0xffff) | (uHigh<<16);
 		}
@@ -276,10 +342,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
 {
-	lightOffsSph = 0;
+	if(threadID==0) lightOffsSph = 0;
 
 	// make a copy of coarseList in prunedList.
-    int l;
+	int l;
 	for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 		prunedList[l]=coarseList[l];
 
@@ -334,14 +400,14 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 	{
 		// fetch light
 		int idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-        uint uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
+		uint uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
 
 		// spot
 		while(l<iNrCoarseLights && uLightVolume==LIGHTVOLUMETYPE_CONE)
 		{
-            LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            // TODO: Change by SebL
-            const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
+			LightVolumeData lightData = _LightVolumeData[idxCoarse];
+			// TODO: Change by SebL
+			const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
 				
 			// serially check 4 pixels
 			uint uVal = 0;
@@ -365,13 +431,13 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
 			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-            uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
+			uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
 		}
 
 		// sphere
 		while(l<iNrCoarseLights && uLightVolume==LIGHTVOLUMETYPE_SPHERE)
 		{
-            LightVolumeData lightData = _LightVolumeData[idxCoarse];
+			LightVolumeData lightData = _LightVolumeData[idxCoarse];
 
 			// serially check 4 pixels
 			uint uVal = 0;
@@ -392,13 +458,13 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
 			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-            uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
+			uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
 		}
 
 		// Box
 		while(l<iNrCoarseLights && uLightVolume==LIGHTVOLUMETYPE_BOX)
 		{
-            LightVolumeData lightData = _LightVolumeData[idxCoarse];
+			LightVolumeData lightData = _LightVolumeData[idxCoarse];
 
 			// serially check 4 pixels
 			uint uVal = 0;

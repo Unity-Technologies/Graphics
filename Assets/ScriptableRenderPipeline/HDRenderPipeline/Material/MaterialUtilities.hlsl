@@ -6,7 +6,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
     // If there is no lightmap, it assume lightprobe
 #if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
 
-// TODO: Confirm with Ionut but it seems that UNITY_LIGHT_PROBE_PROXY_VOLUME is always define for high end and 
+// TODO: Confirm with Ionut but it seems that UNITY_LIGHT_PROBE_PROXY_VOLUME is always define for high end and
 // unity_ProbeVolumeParams always bind.
     if (unity_ProbeVolumeParams.x == 0.0)
     {
@@ -36,7 +36,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
         scale._m00_m11_m22_m33 = float4(unity_ProbeVolumeSizeInv.xyz, 1.0);
 
         WorldToTexture = mul(mul(scale, translation), WorldToTexture);
-    
+
         return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionWS, normalWS, WorldToTexture, unity_ProbeVolumeParams.z);
     }
 
@@ -84,19 +84,37 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 #endif
 }
 
-// This function convert the tangent space normal/tangent to world space and orthonormalize it + apply a correction of the normal if it is not pointing towards the near plane
-void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout float3 normalWS, inout float3 tangentWS, bool twoSided = false)
+// Flipping or mirroring a normal can be done directly on the tangent space. This has the benefit to apply to the whole process either in surface gradient or not.
+// This function will modify FragInputs and this is not propagate outside of GetSurfaceAndBuiltinData(). This is ok as tangent space is not use outside of GetSurfaceAndBuiltinData().
+void ApplyDoubleSidedFlipOrMirror(inout FragInputs input)
 {
-    normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+#ifdef _DOUBLESIDED_ON
+    // _DoubleSidedConstants is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode
+    // To get a flipped normal with the tangent space, we must flip bitangent (because it is construct from the normal) and normal
+    // To get a mirror normal with the tangent space, we only need to flip the normal and not the tangent
+    float2 flipSign = input.isFrontFace ? float2(1.0, 1.0) : _DoubleSidedConstants.yz; // TOCHECK :  GetOddNegativeScale() is not necessary here as it is apply for tangent space creation.
+    input.worldToTangent[1] = flipSign.x * input.worldToTangent[1]; // bitangent
+    input.worldToTangent[2] = flipSign.y * input.worldToTangent[2]; // normal
 
-    // NdotV should not be negative for visible pixels, but it can happen due to the
-    // perspective projection and the normal mapping + decals. In that case, the normal
-    // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
-    // Note: certain applications (e.g. SpeedTree) require to still have negative normal to perform their own two sided lighting
-    // This will  potentially reduce the length of the normal at edges of geometry.
-    GetShiftedNdotV(normalWS, V, twoSided);
+    #ifdef SURFACE_GRADIENT
+    // TOCHECK: seems that we don't need to invert any genBasisTB(), sign cancel. Which is expected as we deal with surface gradient.
+    #endif
+#endif
+}
+
+// This function convert the tangent space normal/tangent to world space and orthonormalize it + apply a correction of the normal if it is not pointing towards the near plane
+void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout float3 normalWS, inout float3 tangentWS, bool wantNegativeNormal = false)
+{
+    #ifdef SURFACE_GRADIENT
+    normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], normalTS);
+    #else
+    normalWS = TransformTangentToWorld(normalTS, input.worldToTangent);
+    #endif
+
+    GetShiftedNdotV(normalWS, V, wantNegativeNormal);
 
     // Orthonormalize the basis vectors using the Gram-Schmidt process.
     // We assume that the length of the surface normal is sufficiently close to 1.
+    // This is use with anisotropic material
     tangentWS = normalize(tangentWS - dot(tangentWS, normalWS));
 }

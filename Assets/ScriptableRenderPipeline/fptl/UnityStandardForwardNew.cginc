@@ -78,7 +78,7 @@ half4 fragNoLight(VertexOutputForwardNew i) : SV_Target
 #endif
     gdata = FragmentSetup(i.tex, -Vworld, vDirForParallax, i.tangentToWorldAndParallax, vPw);       // eyeVec = -Vworld
 
-    return OutputForward (float4(0.0,0.0,0.0,1.0), gdata.alpha);		// figure out some alpha test stuff
+    return OutputForward (float4(0.0,0.0,0.0,1.0), gdata.alpha);        // figure out some alpha test stuff
 }
 
 
@@ -129,22 +129,22 @@ half4 fragForward(VertexOutputForwardNew i) : SV_Target
     uint2 pixCoord = ((uint2) i.pos.xy);
 
     float atten = 1.0;
-	occlusion = Occlusion(i.tex.xy);
+    occlusion = Occlusion(i.tex.xy);
     UnityGI gi = FragmentGI (gdata, occlusion, i.ambientOrLightmapUV, atten, DummyLight(), false);
-	
+
     uint numLightsProcessed = 0, numReflectionsProcessed = 0;
     float3 res = 0;
 
-	// direct light contributions
+    // direct light contributions
     res += ExecuteLightList(numLightsProcessed, pixCoord, vP, vPw, Vworld);
 
-	// specular GI
+    // specular GI
     res += ExecuteReflectionList(numReflectionsProcessed, pixCoord, vP, gdata.normalWorld, Vworld, gdata.smoothness);
 
     // diffuse GI
-	res += UNITY_BRDF_PBS (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, gi.light, gi.indirect).xyz;
+    res += UNITY_BRDF_PBS (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, gi.light, gi.indirect).xyz;
     res += UNITY_BRDF_GI (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, occlusion, gi);
-	
+
     //res = OverlayHeatMap(numLightsProcessed, res);
 
     //UNITY_APPLY_FOG(i.fogCoord, res);

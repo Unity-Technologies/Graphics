@@ -1,4 +1,4 @@
-// There is two kind of lighting architectures. 
+// There is two kind of lighting architectures.
 // Those that are control from inside the "Material".shader with "Pass" concept like forward lighting. Call later forward lighting architecture.
 // Those that are control outside the "Material".shader in a "Lighting".shader like deferred lighting. Call later deferred lighting architecture.
 

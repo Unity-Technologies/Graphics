@@ -186,14 +186,14 @@ float GetHorizonOcclusion(float3 V, float3 normalWS, float3 vertexNormal, float 
 // NdotV should not be negative for visible pixels, but it can happen due to the
 // perspective projection and the normal mapping + decals. In that case, the normal
 // should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
-// Note: certain applications (e.g. SpeedTree) require to still have negative normal to perform their own two sided lighting
-// This will  potentially reduce the length of the normal at edges of geometry.
-float GetShiftedNdotV(inout float3 N, float3 V, bool twoSided)
+// Note: certain applications (e.g. SpeedTree) require to still have negative normal to perform their own two sided lighting, they can use wantNegativeNormal
+// This will potentially reduce the length of the normal at edges of geometry.
+float GetShiftedNdotV(inout float3 N, float3 V, bool wantNegativeNormal)
 {
     float NdotV = dot(N, V);
     float limit = rcp(256.0); // Determined mostly by the quality of the G-buffer normal encoding
 
-    if (!twoSided && NdotV < limit)
+    if (!wantNegativeNormal && NdotV < limit)
     {
         // We do not renormalize the normal because { abs(length(N) - 1.0) < limit }.
         N    += (-NdotV + limit) * V;

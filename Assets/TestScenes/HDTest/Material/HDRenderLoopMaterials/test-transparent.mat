@@ -8,8 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: test-transparent
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DETAIL_MAP_WITH_NORMAL _DISTORTIONDEPTHTEST_OFF
-    _DISTORTIONONLY_OFF _EMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: 3000
@@ -128,6 +127,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SubsurfaceRadiusMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TangentMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -158,7 +161,9 @@ Material:
     - _DistortionEnable: 0
     - _DistortionOnly: 0
     - _DoubleSided: 1
+    - _DoubleSidedEnable: 0
     - _DoubleSidedLigthing: 1
+    - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedMode: 0
     - _DstBlend: 10
     - _EmissiveColorMode: 1
@@ -172,15 +177,15 @@ Material:
     - _HeightCenter: 0.5
     - _HeightMapMode: 0
     - _HeightScale: 1
+    - _HorizonFade: 1
     - _MaterialID: 0
-    - _MaterialId: 0
     - _Metalic: 0
     - _Metallic: 0
-    - _Mettalic: 0
     - _Mode: 0
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _OcclusionStrength: 1
+    - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
     - _Parallax: 0.02
@@ -188,8 +193,10 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 5
+    - _StencilRef: 2
     - _SubSurfaceProfile: 0
-    - _SubSurfaceRadius: 0
+    - _SubsurfaceProfile: 0
+    - _SubsurfaceRadius: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _Thickness: 0
@@ -203,6 +210,7 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 0.397}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffuseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.04, g: 0.04, b: 0.04, a: 1}

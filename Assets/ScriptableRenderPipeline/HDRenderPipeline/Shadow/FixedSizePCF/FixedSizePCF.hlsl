@@ -2,4 +2,3 @@
 // Fixed size Kernel PCF filtering
 // Ref: https://mynameismjp.wordpress.com/2015/02/18/shadow-sample-update/
 // ----------------------------------------------------------------------------
-
