@@ -3,12 +3,61 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using Object = System.Object;
+using UnityEditor;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    class VFXSerializer
+    public static class VFXSerializer
     {
+        [System.Serializable]
+        public struct TypedSerializedData
+        {
+            public string data;
+            public string type;
+            public string assembly;
+
+            public static TypedSerializedData Null = new TypedSerializedData();
+        }
+
+
+        public static TypedSerializedData SaveWithType(object obj)
+        {
+            TypedSerializedData data = new TypedSerializedData();
+            data.data = VFXSerializer.Save(obj);
+            data.assembly = obj.GetType().Assembly.FullName;
+            data.type = obj.GetType().FullName;
+
+            return data;
+        }
+
+        public static object LoadWithType(TypedSerializedData data)
+        {
+            if (!string.IsNullOrEmpty(data.data))
+            {
+                //m_Value = SerializationHelper.Deserialize<object>(m_SerializableValue, null);
+
+                var assembly = Assembly.Load(data.assembly);
+                if (assembly == null)
+                {
+                    Debug.LogError("Can't load assembly " + data.assembly + " for type" + data.type);
+                    return null;
+                }
+
+                System.Type type = assembly.GetType(data.type);
+                if (type == null)
+                {
+                    Debug.LogError("Can't find type " + data.type+ " in assembly" + data.assembly);
+                    return null;
+                }
+
+
+                return VFXSerializer.Load(type, data.data);
+            }
+
+            return null;
+        }
+
 
         public static string Save(object obj)
         {
@@ -18,7 +67,11 @@ namespace UnityEditor.VFX
             }
             else if(obj is UnityEngine.Object ) //type is a unity object
             {
-                return ""; //TODO use code from favorites
+
+                var identifier = InspectorFavoritesManager.GetFavoriteIdentifierFromInstanceID((obj as Object).GetInstanceID());
+
+
+                return JsonUtility.ToJson(identifier); //TODO use code from favorites
             }
             else
             {
@@ -39,7 +92,11 @@ namespace UnityEditor.VFX
             }
             else if( typeof(UnityEngine.Object).IsAssignableFrom(type) )
             {
-                return null;
+                var identifier = JsonUtility.FromJson<FavoriteIdentifier>(text);
+
+                int instanceID = InspectorFavoritesManager.GetInstanceIDFromFavoriteIdentifier(identifier);
+
+                return EditorUtility.InstanceIDToObject(instanceID);
             }
             else
             {

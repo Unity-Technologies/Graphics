@@ -491,6 +491,8 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
+            m_Value = VFXSerializer.LoadWithType(m_SerializedValue);
+
             base.OnEnable();
             if (m_LinkedSlots == null)
             {
@@ -503,43 +505,19 @@ namespace UnityEditor.VFX
             base.OnBeforeSerialize();
             if (m_Value != null)
             {
-                //m_SerializableValue = SerializationHelper.Serialize(m_Value);
-                m_SerializedValue = VFXSerializer.Save(m_Value);
-                m_SerializedValueAssembly = m_Value.GetType().Assembly.FullName;
-                m_SerializedValueType = m_Value.GetType().FullName;
+                m_SerializedValue = VFXSerializer.SaveWithType(m_Value);
+            }
+            else
+            {
+                m_SerializedValue = VFXSerializer.TypedSerializedData.Null;
             }
         }
 
-         public override void OnAfterDeserialize()
-         {
-            base.OnAfterDeserialize();
-            //if (!m_SerializableValue.Empty)
-            if( ! string.IsNullOrEmpty( m_SerializedValue ))
-            {
-                //m_Value = SerializationHelper.Deserialize<object>(m_SerializableValue, null);
+        public override void OnAfterDeserialize()
+        {
+        base.OnAfterDeserialize();
 
-                var assembly = Assembly.Load(m_SerializedValueAssembly);
-                if( assembly == null)
-                {
-                    Debug.LogError("Can't load assembly "+m_SerializedValueAssembly+" for type" + m_SerializedValueType);
-                    return;
-                }
-
-                System.Type type = assembly.GetType(m_SerializedValueType);
-                if( type == null)
-                {
-                    Debug.LogError("Can't find type "+m_SerializedValueType+" in assembly" + m_SerializedValueAssembly);
-                    return;
-                }
-
-
-                m_Value = VFXSerializer.Load(type, m_SerializedValue);
-
-
-
-                m_Value = VFXSerializer.Load(m_Value.GetType(), m_SerializedValue);
-            }
-            //m_SerializableValue.Clear();
+            //transfered to on enable
         }
 
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
@@ -605,13 +583,7 @@ namespace UnityEditor.VFX
         //private SerializationHelper.JSONSerializedElement m_SerializableValue;
 
         [SerializeField]
-        private string m_SerializedValue;
-
-        [SerializeField]
-        private string m_SerializedValueType;
-
-        [SerializeField]
-        private string m_SerializedValueAssembly;
+        private VFXSerializer.TypedSerializedData m_SerializedValue;
 
         [NonSerialized]
         protected object m_Value;
