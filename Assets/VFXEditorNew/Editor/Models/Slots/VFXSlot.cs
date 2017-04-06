@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Graphing;
+using System.Reflection;
 
 namespace UnityEditor.VFX
 {
@@ -705,6 +706,8 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
+            m_Value = VFXSerializer.LoadWithType(m_SerializedValue);
+
             base.OnEnable();
 
             if (m_LinkedSlots == null)
@@ -722,18 +725,19 @@ namespace UnityEditor.VFX
             base.OnBeforeSerialize();
             if (m_Value != null)
             {
-                m_SerializableValue = SerializationHelper.Serialize(m_Value);
+                m_SerializedValue = VFXSerializer.SaveWithType(m_Value);
+            }
+            else
+            {
+                m_SerializedValue = VFXSerializer.TypedSerializedData.Null;
             }
         }
 
-         public override void OnAfterDeserialize()
-         {
-            base.OnAfterDeserialize();
-            if (!m_SerializableValue.Empty)
-            {
-                m_Value = SerializationHelper.Deserialize<object>(m_SerializableValue, null);
-            }
-            m_SerializableValue.Clear();
+        public override void OnAfterDeserialize()
+        {
+        base.OnAfterDeserialize();
+
+            //transfered to on enable
         }
 
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
@@ -795,8 +799,11 @@ namespace UnityEditor.VFX
         [SerializeField]
         private List<VFXSlot> m_LinkedSlots;
 
+        //[SerializeField]
+        //private SerializationHelper.JSONSerializedElement m_SerializableValue;
+
         [SerializeField]
-        private SerializationHelper.JSONSerializedElement m_SerializableValue;
+        private VFXSerializer.TypedSerializedData m_SerializedValue;
 
         [NonSerialized]
         protected object m_Value;

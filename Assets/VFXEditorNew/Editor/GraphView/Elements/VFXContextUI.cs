@@ -597,5 +597,13 @@ namespace UnityEditor.VFX.UI
 		// TODO: Remove, unused except for debugging
 		Style<Color> m_RectColor;
 		Color rectColor { get { return m_RectColor.GetSpecifiedValueOrDefault(Color.magenta); } }
-	}
+
+        public IEnumerable<VFXBlockUI> GetAllBlocks()
+        {
+            foreach( VFXBlockUI block in m_BlockContainer)
+            {
+                yield return block;
+            }
+        }
+    }
 }

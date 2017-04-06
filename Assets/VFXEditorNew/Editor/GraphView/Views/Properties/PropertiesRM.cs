@@ -138,7 +138,8 @@ namespace UnityEditor.VFX.UI
         {}
         public override void SetValue(object obj)
         {
-            m_Value = (T)obj;
+            if( obj != null )
+                m_Value = (T)obj;
             UpdateGUI();
         }
 
