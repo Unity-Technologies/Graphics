@@ -137,14 +137,14 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	if(t==0) lightOffs = 0;
 	GroupMemoryBarrierWithGroupSync();
 	int i;
-	for(i=t; i<iNrCoarseLights; i+=NR_THREADS) if((int)lightsListLDS[i]<g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
+	for(i=t; i<iNrCoarseLights; i+=NR_THREADS) if(lightsListLDS[i]<(uint)g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
 	GroupMemoryBarrierWithGroupSync();
 	iNrCoarseLights = lightOffs;
 
 	int offs = tileIDX.y*nrBigTilesX + tileIDX.x;
 
 	for(i=t; i<(iNrCoarseLights+1); i+=NR_THREADS)
-		g_vLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*offs + i] = i==0 ? iNrCoarseLights : lightsListLDS[i-1];
+		g_vLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*offs + i] = i==0 ? iNrCoarseLights : lightsListLDS[max(i-1, 0)];
 }
 
 
