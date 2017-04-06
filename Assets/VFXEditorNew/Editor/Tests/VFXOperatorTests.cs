@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Test
                 emptySlot.Link(one.outputSlots.First());
             }
 
-            var finalExpr = add.outputSlots.First().expression;
+            var finalExpr = add.outputSlots.First().GetExpression();
 
             var context = new VFXExpression.Context();
             var result = context.Compile(finalExpr);
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.Test
             mul.inputSlots[1].Link(vec3_Two.outputSlots[0]);
 
             var context = new VFXExpression.Context();
-            var result = context.Compile(mul.outputSlots[0].expression);
+            var result = context.Compile(mul.outputSlots[0].GetExpression());
             var final = result.GetContent<Vector3>();
 
             Assert.AreEqual(final, new Vector3(4, 4, 2));
@@ -70,28 +70,28 @@ namespace UnityEditor.VFX.Test
             var vec2_One = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
             vec2_One.inputSlots[0].Link(one.outputSlots[0]);
             vec2_One.inputSlots[1].Link(one.outputSlots[0]);
-            Assert.AreEqual(vec2_One.outputSlots[0].expression.ValueType, VFXValueType.kFloat2);
+            Assert.AreEqual(vec2_One.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
 
             var vec3_One = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
             vec3_One.inputSlots[0].Link(vec2_One.outputSlots[0]);
             vec3_One.inputSlots[1].Link(one.outputSlots[0]);
-            Assert.AreEqual(vec3_One.outputSlots[0].expression.ValueType, VFXValueType.kFloat3);
+            Assert.AreEqual(vec3_One.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat3);
 
             var cos = ScriptableObject.CreateInstance<VFXOperatorCos>();
             cos.inputSlots[0].Link(vec2_One.outputSlots[0]);
-            Assert.AreEqual(cos.outputSlots[0].expression.ValueType, VFXValueType.kFloat2);
+            Assert.AreEqual(cos.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
 
             var sin = ScriptableObject.CreateInstance<VFXOperatorSin>();
             sin.inputSlots[0].Link(cos.outputSlots[0]);
-            Assert.AreEqual(sin.outputSlots[0].expression.ValueType, VFXValueType.kFloat2);
+            Assert.AreEqual(sin.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
 
             var abs = ScriptableObject.CreateInstance<VFXOperatorAbs>();
             abs.inputSlots[0].Link(sin.outputSlots[0]);
-            Assert.AreEqual(abs.outputSlots[0].expression.ValueType, VFXValueType.kFloat2);
+            Assert.AreEqual(abs.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat2);
 
             //Cascaded invalidation should occurs
             cos.inputSlots[0].Link(vec3_One.outputSlots[0]);
-            Assert.AreEqual(abs.outputSlots[0].expression.ValueType, VFXValueType.kFloat3);
+            Assert.AreEqual(abs.outputSlots[0].GetExpression().ValueType, VFXValueType.kFloat3);
         }
 
         [Test]
@@ -109,7 +109,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(true, cross.inputSlots[0].HasLink());
 
             append.inputSlots[2].UnlinkAll();
-            Assert.AreEqual(false, cross.inputSlots[0].HasLink());
+            Assert.IsFalse(cross.inputSlots[0].HasLink());
         }
     }
 }

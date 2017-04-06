@@ -114,8 +114,8 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(typeof(FloatN), add.inputSlots[0].property.type);
             Assert.AreEqual(typeof(FloatN), add.inputSlots[1].property.type);
             Assert.AreEqual(typeof(float), add.outputSlots[0].property.type);
-            Assert.IsNotNull(add.outputSlots[0].expression);
-            Assert.IsNotNull(add.outputSlots[0].expression as VFXExpressionAdd);
+            Assert.IsNotNull(add.outputSlots[0].GetExpression());
+            Assert.IsNotNull(add.outputSlots[0].GetExpression() as VFXExpressionAdd);
         }
 
         private void CheckIsolatedOperatorAbs(VFXOperatorAbs add)
@@ -124,15 +124,15 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, add.inputSlots.Count);
             Assert.AreEqual(typeof(FloatN), add.inputSlots[0].property.type);
             Assert.AreEqual(typeof(float), add.outputSlots[0].property.type);
-            Assert.IsNotNull(add.outputSlots[0].expression);
-            Assert.IsNotNull(add.outputSlots[0].expression as VFXExpressionAbs);
+            Assert.IsNotNull(add.outputSlots[0].GetExpression());
+            Assert.IsNotNull(add.outputSlots[0].GetExpression() as VFXExpressionAbs);
         }
 
         private void CheckConnectedAbs(VFXOperatorAbs abs)
         {
             Assert.IsTrue(abs.inputSlots[0].HasLink());
             Assert.AreEqual(1, abs.inputSlots[0].LinkedSlots.Count);
-            Assert.IsTrue(abs.inputSlots[0].expression is VFXExpressionAdd);
+            Assert.IsTrue(abs.inputSlots[0].GetExpression() is VFXExpressionAdd);
         }
 
         private void InnerSaveAndReloadTest(string suffixname, Action<VFXGraphAsset> write, Action<VFXGraphAsset> read)
@@ -153,6 +153,9 @@ namespace UnityEditor.VFX.Test
                 asset.UpdateSubAssets();
 
                 AssetDatabase.SaveAssets();
+
+                asset = null;
+                EditorUtility.UnloadUnusedAssetsImmediate();
                 AssetDatabase.CopyAsset(kTempAssetPathA, kTempAssetPathB);
                 AssetDatabase.RemoveObject(asset);
             }
@@ -272,7 +275,7 @@ namespace UnityEditor.VFX.Test
                 parameter.exposed = true;
                 parameter.exposedName = name;
                 asset.root.AddChild(parameter);
-                Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].expression.ValueType);
+                Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].GetExpression().ValueType);
             };
 
             Action<VFXGraphAsset> read = delegate (VFXGraphAsset asset)
@@ -281,7 +284,7 @@ namespace UnityEditor.VFX.Test
                 Assert.AreNotEqual(null, parameter);
                 Assert.AreEqual(true, parameter.exposed);
                 Assert.AreEqual(parameter.exposedName, name);
-                Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].expression.ValueType);
+                Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].GetExpression().ValueType);
             };
 
             InnerSaveAndReloadTest("Parameter", write, read);
@@ -298,7 +301,7 @@ namespace UnityEditor.VFX.Test
                 asset.root.AddChild(parameter);
                 add.inputSlots[0].Link(parameter.outputSlots[0]);
 
-                Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].expression.ValueType);
+                Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].GetExpression().ValueType);
             };
 
             Action<VFXGraphAsset> read = delegate (VFXGraphAsset asset)
@@ -306,7 +309,7 @@ namespace UnityEditor.VFX.Test
                 var add = asset.root[0] as VFXOperatorAdd;
                 var parameter = asset.root[1] as VFXParameter;
                 Assert.AreNotEqual(null, parameter);
-                Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].expression.ValueType);
+                Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].GetExpression().ValueType);
             };
 
             InnerSaveAndReloadTest("ParameterAndOperator", write, read);

@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
 
         public virtual void OnEnable()
         {
-            m_OnEnabledCount = ++s_DebugOnEnableCounter;
+            //m_OnEnabledCount = ++s_DebugOnEnableCounter;
             if (m_Children == null)
                 m_Children = new List<VFXModel>();
             else
@@ -123,8 +123,6 @@ namespace UnityEditor.VFX
             model.OnRemoved();
             m_Children.Remove(model);
             model.m_Parent = null;
-
-            //AssetDatabase.AddObjectToAsset(model, (UnityEngine.Object)null);
             
             if (notify)
                 Invalidate(InvalidationCause.kStructureChanged);     

@@ -105,13 +105,13 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsNotNull(slot);
             Assert.AreEqual(expectionChildrenNb, slot.GetNbChildren());
-            Assert.IsInstanceOf<VFXExpressionCombine>(slot.expression);
+            Assert.IsInstanceOf<VFXExpressionCombine>(slot.GetExpression());
 
             foreach (var child in slot.children)
             {
                 Assert.IsNotNull(child);
                 Assert.AreEqual(0, child.GetNbChildren());
-                Assert.IsInstanceOf<VFXExpressionExtractComponent>(child.expression);
+                Assert.IsInstanceOf<VFXExpressionExtractComponent>(child.GetExpression());
             }
         }
 
@@ -136,16 +136,16 @@ namespace UnityEditor.VFX.Test
             sphereSlot.GetChild(0).GetChild(0).Link(floatSlot);
             sphereSlot.GetChild(1).Link(floatSlot);
 
-            var expr = sphereSlot.GetChild(0).GetChild(0).expression;
+            var expr = sphereSlot.GetChild(0).GetChild(0).GetExpression();
             Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
-            Assert.AreEqual(floatSlot.expression, expr.Parents[0].Parents[0]);
-            Assert.AreEqual(floatSlot.expression, sphereSlot.GetChild(1).expression);
+            Assert.AreEqual(floatSlot.GetExpression(), expr.Parents[0].Parents[0]);
+            Assert.AreEqual(floatSlot.GetExpression(), sphereSlot.GetChild(1).GetExpression());
 
             floatSlot.UnlinkAll();
-            expr = sphereSlot.GetChild(0).GetChild(0).expression;
+            expr = sphereSlot.GetChild(0).GetChild(0).GetExpression();
             Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
-            Assert.AreNotEqual(floatSlot.expression, expr.Parents[0].Parents[0]);
-            Assert.AreNotEqual(floatSlot.expression, sphereSlot.GetChild(1).expression);
+            Assert.AreNotEqual(floatSlot.GetExpression(), expr.Parents[0].Parents[0]);
+            Assert.AreNotEqual(floatSlot.GetExpression(), sphereSlot.GetChild(1).GetExpression());
         }
     }
 }

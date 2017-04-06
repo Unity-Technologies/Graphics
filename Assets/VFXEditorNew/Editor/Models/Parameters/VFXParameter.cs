@@ -56,11 +56,5 @@ namespace UnityEditor.VFX
                 throw new InvalidOperationException("Cannot init VFXParameter");
             }
         }
-
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            Invalidate(InvalidationCause.kStructureChanged);
-        }
     }
 }
