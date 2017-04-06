@@ -48,10 +48,10 @@ namespace UnityEditor.VFX
 
         protected override VFXValue DefaultExpression()
         {
-            if (m_Value == null)
+            if (value == null)
                 return null;
 
-            var floatN = (FloatN)m_Value;
+            var floatN = (FloatN)value;
             return (VFXValue)floatN;
         }
     }

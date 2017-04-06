@@ -8,6 +8,88 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+    [Serializable]
+    public class SerializableType : ISerializationCallbackReceiver
+    {
+        public static implicit operator SerializableType(Type value)
+        {
+            return new SerializableType(value);
+        }
+
+        public static implicit operator Type(SerializableType value)
+        {
+            return value.m_Type;
+        }
+
+        private SerializableType() {}
+        public SerializableType(Type type)
+        {
+            m_Type = type;
+        }
+
+        public virtual void OnBeforeSerialize()
+        {
+            m_SerializableType = m_Type.AssemblyQualifiedName;
+        }
+
+        public virtual void OnAfterDeserialize()
+        {
+            m_Type = Type.GetType(m_SerializableType);
+        }
+
+        [NonSerialized]
+        private Type m_Type;
+        [SerializeField]
+        private string m_SerializableType;
+    }
+
+    [Serializable]
+    public class VFXSerializableObject
+    {
+        private VFXSerializableObject() {}
+
+        public VFXSerializableObject(Type type,object obj) : this(type)
+        {
+            Set(obj);
+        }
+
+        public VFXSerializableObject(Type type) 
+        {
+            m_Type = type;
+        }
+
+        public object Get()
+        {
+            return VFXSerializer.Load(m_Type, m_SerializableObject);
+        }
+
+        public object Get<T>()
+        {
+            return (T)Get();
+        }
+
+        public void Set(object obj)
+        {
+            if (obj == null)
+                m_SerializableObject = string.Empty;
+            else
+            {
+                if (!((Type)m_Type).IsAssignableFrom(obj.GetType()))
+                    throw new ArgumentException(string.Format("Cannot assing an object of type {0} to VFXSerializedObject of type {1}",obj.GetType(),(Type)m_Type));
+                m_SerializableObject = VFXSerializer.Save(obj);
+            }
+        }
+
+        [SerializeField]
+        private SerializableType m_Type;
+
+       // [NonSerialized]
+        //private object m_Object;
+        [SerializeField]
+        private string m_SerializableObject;
+    }
+
+
     public static class VFXSerializer
     {
         [System.Serializable]
@@ -15,18 +97,21 @@ namespace UnityEditor.VFX
         {
             public string data;
             public string type;
-            public string assembly;
 
             public static TypedSerializedData Null = new TypedSerializedData();
         }
 
+        [Serializable]
+        private struct ObjectWrapper
+        {
+            public UnityEngine.Object obj;
+        }
 
         public static TypedSerializedData SaveWithType(object obj)
         {
             TypedSerializedData data = new TypedSerializedData();
             data.data = VFXSerializer.Save(obj);
-            data.assembly = obj.GetType().Assembly.FullName;
-            data.type = obj.GetType().FullName;
+            data.type = obj.GetType().AssemblyQualifiedName;
 
             return data;
         }
@@ -35,22 +120,12 @@ namespace UnityEditor.VFX
         {
             if (!string.IsNullOrEmpty(data.data))
             {
-                //m_Value = SerializationHelper.Deserialize<object>(m_SerializableValue, null);
-
-                var assembly = Assembly.Load(data.assembly);
-                if (assembly == null)
-                {
-                    Debug.LogError("Can't load assembly " + data.assembly + " for type" + data.type);
-                    return null;
-                }
-
-                System.Type type = assembly.GetType(data.type);
+                System.Type type = Type.GetType(data.type);
                 if (type == null)
                 {
-                    Debug.LogError("Can't find type " + data.type+ " in assembly" + data.assembly);
+                    Debug.LogError("Can't find type " + data.type);
                     return null;
                 }
-
 
                 return VFXSerializer.Load(type, data.data);
             }
@@ -67,22 +142,22 @@ namespace UnityEditor.VFX
             }
             else if(obj is UnityEngine.Object ) //type is a unity object
             {
+                //var identifier = InspectorFavoritesManager.GetFavoriteIdentifierFromInstanceID((obj as Object).GetInstanceID());
+                //return JsonUtility.ToJson(identifier); //TODO use code from favorites
 
-                var identifier = InspectorFavoritesManager.GetFavoriteIdentifierFromInstanceID((obj as Object).GetInstanceID());
-
-
-                return JsonUtility.ToJson(identifier); //TODO use code from favorites
+                ObjectWrapper wrapper = new ObjectWrapper { obj = obj as UnityEngine.Object };
+                return EditorJsonUtility.ToJson(wrapper);
             }
             else
             {
-
-                /*if( ! obj.GetType().GetCustomAttributes(false).Any(t=>t is SerializableAttribute) )
-                {
-                    Debug.LogError("using non serializable and not UnityEngine.Object class or struct in VFXSerialized: "+obj.GetType().FullName );
-                }*/
-                return JsonUtility.ToJson(obj);
+                return EditorJsonUtility.ToJson(obj);
             }
         }
+
+       /* public static void LoadOverwrite(object dst, string text)
+        {
+
+        }*/
 
         public static object Load(System.Type type,string text)
         {
@@ -92,15 +167,21 @@ namespace UnityEditor.VFX
             }
             else if( typeof(UnityEngine.Object).IsAssignableFrom(type) )
             {
-                var identifier = JsonUtility.FromJson<FavoriteIdentifier>(text);
+               /* var identifier = JsonUtility.FromJson<FavoriteIdentifier>(text);
 
                 int instanceID = InspectorFavoritesManager.GetInstanceIDFromFavoriteIdentifier(identifier);
 
-                return EditorUtility.InstanceIDToObject(instanceID);
+                return EditorUtility.InstanceIDToObject(instanceID);*/
+                object obj = new ObjectWrapper();
+                EditorJsonUtility.FromJsonOverwrite(text, obj);
+
+                return ((ObjectWrapper)obj).obj;
             }
             else
             {
-                return JsonUtility.FromJson(text,type);
+                object obj = Activator.CreateInstance(type);
+                EditorJsonUtility.FromJsonOverwrite(text,obj);
+                return obj;
             }
         }
     }

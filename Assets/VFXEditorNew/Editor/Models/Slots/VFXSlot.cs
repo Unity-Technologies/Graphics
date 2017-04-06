@@ -25,15 +25,11 @@ namespace UnityEditor.VFX
 
         public object value 
         { 
-            get { return m_Value; }
+            get { return m_Value.Get(); }
             set
             {
-                if (m_Value != value)
-                {
-                    m_Value = value;
-                    owner.Invalidate(InvalidationCause.kParamChanged);
-                    // TODO Update default expression values
-                }
+                m_Value.Set(value);
+                owner.Invalidate(InvalidationCause.kParamChanged);
             }       
         }    
 
@@ -108,7 +104,8 @@ namespace UnityEditor.VFX
                 var slot = desc.CreateInstance();
                 slot.m_Direction = direction;
                 slot.m_Property = property;
-                slot.m_Value = value;
+
+                slot.m_Value = new VFXSerializableObject(property.type,value);
 
                 foreach (var subInfo in property.SubProperties())
                 {
@@ -426,8 +423,6 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            m_Value = VFXSerializer.LoadWithType(m_SerializedValue);
-
             base.OnEnable();
 
             if (m_LinkedSlots == null)
@@ -438,25 +433,6 @@ namespace UnityEditor.VFX
                 Debug.Log(String.Format("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
 
             m_ExpressionTreeUpToDate = false;
-        }
-
-        public override void OnBeforeSerialize()
-        {
-            base.OnBeforeSerialize();
-            if (m_Value != null)
-            {
-                m_SerializedValue = VFXSerializer.SaveWithType(m_Value);
-            }
-            else
-            {
-                m_SerializedValue = VFXSerializer.TypedSerializedData.Null;
-            }
-        }
-
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-            //transfered to on enable
         }
 
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
@@ -518,9 +494,6 @@ namespace UnityEditor.VFX
         private List<VFXSlot> m_LinkedSlots;
 
         [SerializeField]
-        private VFXSerializer.TypedSerializedData m_SerializedValue;
-
-        [NonSerialized]
-        protected object m_Value;
+        private VFXSerializableObject m_Value;
     }
 }
