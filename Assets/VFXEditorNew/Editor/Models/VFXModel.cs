@@ -123,8 +123,6 @@ namespace UnityEditor.VFX
             model.OnRemoved();
             m_Children.Remove(model);
             model.m_Parent = null;
-
-            //AssetDatabase.AddObjectToAsset(model, (UnityEngine.Object)null);
             
             if (notify)
                 Invalidate(InvalidationCause.kStructureChanged);     

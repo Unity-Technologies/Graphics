@@ -19,8 +19,8 @@ namespace UnityEditor.VFX
         VFXSlot GetInputSlot(int index);
         VFXSlot GetOutputSlot(int index);
 
-        void AddSlot(VFXSlot slot, bool notify = true);
-        void RemoveSlot(VFXSlot slot, bool notify = true);
+        void AddSlot(VFXSlot slot);
+        void RemoveSlot(VFXSlot slot);
 
         void Invalidate(VFXModel.InvalidationCause cause);
         void UpdateOutputs();
@@ -39,24 +39,23 @@ namespace UnityEditor.VFX
         public virtual VFXSlot GetInputSlot(int index)  { return m_InputSlots[index]; }
         public virtual VFXSlot GetOutputSlot(int index) { return m_OutputSlots[index]; }
 
-        public virtual void AddSlot(VFXSlot slot, bool notify = true)
+        public virtual void AddSlot(VFXSlot slot)
         {
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
 
             if (slot.owner != this)
             {
                 if (slot.owner != null)
-                    slot.owner.RemoveSlot(slot,notify);
+                    slot.owner.RemoveSlot(slot);
 
                 slotList.Add(slot);
                 slot.m_Owner = this;
 
-                if (notify)
-                    Invalidate(InvalidationCause.kStructureChanged);
+                Invalidate(InvalidationCause.kStructureChanged);
             }          
         }
 
-        public virtual void RemoveSlot(VFXSlot slot, bool notify = true)
+        public virtual void RemoveSlot(VFXSlot slot)
         {
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
 
@@ -65,8 +64,7 @@ namespace UnityEditor.VFX
                 slotList.Remove(slot);
                 slot.m_Owner = null;
 
-                if (notify)
-                    Invalidate(InvalidationCause.kStructureChanged);
+                Invalidate(InvalidationCause.kStructureChanged);
             }
         }
 
@@ -203,7 +201,7 @@ namespace UnityEditor.VFX
                     var slot = VFXSlot.Create(property, direction, value);
                     if (slot != null)
                     {
-                        AddSlot(slot,false);
+                        AddSlot(slot);
                     }
                 }
             }

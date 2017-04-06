@@ -22,13 +22,13 @@ namespace UnityEditor.VFX
             var emptySlot = inputSlots.Where(s => s.GetExpression() == null).ToArray();
             foreach (var slot in emptySlot)
             {
-                RemoveSlot(slot, false);
+                RemoveSlot(slot);
             }
 
             var size = inputSlots.Sum(s => VFXExpression.TypeToSize(s.GetExpression().ValueType));
             if (inputSlots.All(s => s.HasLink()) && size < 4)
             {
-                AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput), false);
+                AddSlot(VFXSlot.Create(new VFXProperty(typeof(FloatN), "Empty"), VFXSlot.Direction.kInput));
             }
 
             UpdateOutputs();
