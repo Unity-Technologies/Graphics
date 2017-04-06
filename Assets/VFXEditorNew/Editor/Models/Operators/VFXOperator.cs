@@ -22,11 +22,7 @@ namespace UnityEditor.VFX
             }
 
             if (outputSlots.Count == 0)
-            {
-                Debug.Log("UPDATE OUTPUTS in OnEnable !!!!!!! ?!");
                 UpdateOutputs();
-            }
-            //Invalidate(InvalidationCause.kParamChanged);
         }
 
         protected Type GetPropertiesSettings()
@@ -113,7 +109,6 @@ namespace UnityEditor.VFX
         private void DequeueOutputSlotFromExpression()
         {
             var outputExpressionArray = outputExpressionQueue.First();
-            Debug.Log("********************* " + +outputExpressionArray.Length + " " + outputSlots.Count);
 
             //Check change
             bool bOuputputLayoutChanged = false;
@@ -194,7 +189,6 @@ namespace UnityEditor.VFX
 
         public override void UpdateOutputs()
         {
-            Debug.Log("------------------------------- UPDATE OUTPUTS FOR " + GetType().Name + "\n" +System.Environment.StackTrace.ToString());
             var inputExpressions = GetInputExpressions();
             var ouputExpressions = BuildExpression(inputExpressions.ToArray());
             SetOuputSlotFromExpression(ouputExpressions);
