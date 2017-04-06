@@ -153,19 +153,18 @@ CBUFFER_END
 
 
 CBUFFER_START(UnityLighting)
-	// SH lighting environment
-	float4 unity_SHAr;
-	float4 unity_SHAg;
-	float4 unity_SHAb;
-	float4 unity_SHBr;
-	float4 unity_SHBg;
-	float4 unity_SHBb;
-	float4 unity_SHC;
+    // SH lighting environment
+    float4 unity_SHAr;
+    float4 unity_SHAg;
+    float4 unity_SHAb;
+    float4 unity_SHBr;
+    float4 unity_SHBg;
+    float4 unity_SHBb;
+    float4 unity_SHC;
 CBUFFER_END
 
-// Use the regular depth camera texture sampler for sampling this: sampler_CameraDepthTexture
-TEXTURE2D_FLOAT(_CameraDepthTextureCopy);
-SAMPLER2D(sampler_CameraDepthTextureCopy);
+TEXTURE2D_FLOAT(_MainDepthTexture);
+SAMPLER2D(sampler_MainDepthTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
@@ -189,14 +188,14 @@ TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER3D(samplerunity_ProbeVolumeSH);
 
 CBUFFER_START(UnityProbeVolume)
-	// x = Disabled(0)/Enabled(1)
-	// y = Computation are done in global space(0) or local space(1)
-	// z = Texel size on U texture coordinate
-	float4 unity_ProbeVolumeParams;
+    // x = Disabled(0)/Enabled(1)
+    // y = Computation are done in global space(0) or local space(1)
+    // z = Texel size on U texture coordinate
+    float4 unity_ProbeVolumeParams;
 
-	float4x4 unity_ProbeVolumeWorldToObject;
-	float3 unity_ProbeVolumeSizeInv;
-	float3 unity_ProbeVolumeMin;		
+    float4x4 unity_ProbeVolumeWorldToObject;
+    float3 unity_ProbeVolumeSizeInv;
+    float3 unity_ProbeVolumeMin;
 CBUFFER_END
 
 CBUFFER_START(UnityVelocityPass)
@@ -211,9 +210,11 @@ CBUFFER_END
 // ----------------------------------------------------------------------------
 
 // TODO: move this to constant buffer by Pass
-float4x4 _InvViewProjMatrix;
+float4   _ScreenSize;
 float4x4 _ViewProjMatrix; // Looks like using UNITY_MATRIX_VP in pixel shader doesn't work ??? need to setup my own...
-float4		_ScreenSize;
+float4x4 _InvViewProjMatrix;
+float4x4 _InvProjMatrix;
+float4   _InvProjParam;
 
 float4x4 GetWorldToViewMatrix()
 {
@@ -280,56 +281,87 @@ float4 TransformWorldToHClip(float3 positionWS)
     return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
-float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
+float3 GetCurrentCameraPosition()
+{
+#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_DEPTH_ONLY)
+    return _WorldSpaceCameraPos;
+#else
+    // TEMP: this is rather expensive. Then again, we need '_WorldSpaceCameraPos'
+    // to represent the position of the primary (scene view) camera in order to
+    // have identical tessellation levels for both the scene view and shadow views.
+    // Otherwise, depth comparisons become meaningless!
+    float4x4 trViewMat = transpose(GetWorldToViewMatrix());
+    float3   rotCamPos = trViewMat[3].xyz;
+   return mul((float3x3)trViewMat, -rotCamPos);
+#endif
+}
+
+// Returns the forward direction of the current camera in the world space.
+float3 GetCameraForwardDir()
+{
+    float4x4 viewMat = GetWorldToViewMatrix();
+    return -viewMat[2].xyz;
+}
+
+// Returns 'true' if the current camera performs a perspective projection.
+bool IsPerspectiveCamera()
+{
+#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_DEPTH_ONLY)
+    return (unity_OrthoParams.w == 0);
+#else
+    // TODO: set 'unity_OrthoParams' during the shadow pass.
+    return (GetWorldToHClipMatrix()[3].x != 0 ||
+            GetWorldToHClipMatrix()[3].y != 0 ||
+            GetWorldToHClipMatrix()[3].z != 0 ||
+            GetWorldToHClipMatrix()[3].w != 1);
+#endif
+}
+
+// Computes the world space view direction (pointing towards the camera).
+float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
+{
+    if (IsPerspectiveCamera())
+    {
+        // Perspective
+        float3 V = GetCurrentCameraPosition() - positionWS;
+        return normalize(V);
+    }
+    else
+    {
+        // Orthographic
+        return -GetCameraForwardDir();
+    }
+}
+
+float3x3 CreateWorldToTangent(float3 normal, float3 tangent, float flipSign)
 {
     // For odd-negative scale transforms we need to flip the sign
-    float sgn = tangentSign * GetOddNegativeScale();
+    float sgn = flipSign * GetOddNegativeScale();
     float3 bitangent = cross(normal, tangent) * sgn;
 
     return float3x3(tangent, bitangent, normal);
 }
 
-// Computes world space view direction, from object space position
-float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
+float3 TransformTangentToWorld(float3 dirTS, float3x3 worldToTangent)
 {
-    float3 V = _WorldSpaceCameraPos.xyz - positionWS;
-
-    // Uncomment this once the compiler bug is fixed.
-    // if (unity_OrthoParams.w == 1.0)
-    // {
-    //     float4x4 M = GetWorldToViewMatrix();
-    //     V = M[1].xyz;
-    // }
-
-    return normalize(V);
+    // Use transpose transformation to go from tangent to world as the matrix is orthogonal
+    return mul(dirTS, worldToTangent);
 }
 
-float3 TransformTangentToWorld(float3 dirTS, float3 tangentToWorld[3])
+float3 TransformWorldToTangent(float3 dirWS, float3x3 worldToTangent)
 {
-    // TODO check: do we need to normalize ?
-    return normalize(mul(dirTS, float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz)));
+    return mul(worldToTangent, dirWS);
 }
 
-// Assume TBN is orthonormal.
-float3 TransformWorldToTangent(float3 dirWS, float3 tangentToWorld[3])
+float3 TransformTangentToObject(float3 dirTS, float3x3 worldToTangent)
 {
-    // TODO check: do we need to normalize ?
-    return normalize(mul(float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz), dirWS));
+    // Use transpose transformation to go from tangent to world as the matrix is orthogonal
+    float3 normalWS = mul(dirTS, worldToTangent);
+    return mul((float3x3)unity_WorldToObject, normalWS);
 }
 
-float3 TransformTangentToObject(float3 dirTS, float3 worldToTangent[3])
+float3 TransformObjectToTangent(float3 dirOS, float3x3 worldToTangent)
 {
-    // TODO check: do we need to normalize ?
-    // worldToTangent is orthonormal so inverse <==> transpose
-    float3x3 mWorldToTangent = float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz);
-    float3 normalWS = mul(dirTS, mWorldToTangent);
-    return normalize(mul((float3x3)unity_WorldToObject, normalWS));
-}
-
-// Assume TBN is orthonormal.
-float3 TransformObjectToTangent(float3 dirOS, float3 worldToTangent[3])
-{
-    // TODO check: do we need to normalize ?
-    return normalize(mul(float3x3(worldToTangent[0].xyz, worldToTangent[1].xyz, worldToTangent[2].xyz), mul((float3x3)unity_ObjectToWorld, dirOS)));
+    return mul(worldToTangent, mul((float3x3)unity_ObjectToWorld, dirOS));
 }
 #endif // UNITY_SHADER_VARIABLES_INCLUDED

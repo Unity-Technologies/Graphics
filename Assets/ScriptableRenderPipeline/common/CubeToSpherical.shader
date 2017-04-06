@@ -41,33 +41,33 @@ v2f vert (float4 vertex : POSITION, float2 texcoord : TEXCOORD0)
     return o;
 }
 
-half2 DirectionToSphericalTexCoordinate(half3 dir)		// use this for the lookup
+half2 DirectionToSphericalTexCoordinate(half3 dir)      // use this for the lookup
 {
-	// coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
-	float recipPi = 1.0/3.1415926535897932384626433832795;
-	return half2( 1.0-0.5*recipPi*atan2(dir.x, -dir.z), asin(dir.y)*recipPi+0.5 );
+    // coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
+    float recipPi = 1.0/3.1415926535897932384626433832795;
+    return half2( 1.0-0.5*recipPi*atan2(dir.x, -dir.z), asin(dir.y)*recipPi+0.5 );
 }
 
 half3 SphericalTexCoordinateToDirection(half2 sphTexCoord)
 {
-	float pi = 3.1415926535897932384626433832795;
-	float theta = (1-sphTexCoord.x) * (pi*2);
-	float phi = (sphTexCoord.y-0.5) * pi;
+    float pi = 3.1415926535897932384626433832795;
+    float theta = (1-sphTexCoord.x) * (pi*2);
+    float phi = (sphTexCoord.y-0.5) * pi;
 
-	float csTh, siTh, csPh, siPh;
-	sincos(theta, siTh, csTh);
-	sincos(phi, siPh, csPh);
+    float csTh, siTh, csPh, siPh;
+    sincos(theta, siTh, csTh);
+    sincos(phi, siPh, csPh);
 
-	// theta is 0 at negative Z (backwards). Coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
-	return float3(siTh*csPh, siPh, -csTh*csPh);
+    // theta is 0 at negative Z (backwards). Coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
+    return float3(siTh*csPh, siPh, -csTh*csPh);
 }
 
 half4 frag (v2f i) : SV_Target
 {
     uint2 pixCoord = ((uint2) i.vertex.xy);
 
-	half3 dir = SphericalTexCoordinateToDirection(i.texcoord.xy);
-	half3 res = UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float) _cubeMipLvl).xyz;
+    half3 dir = SphericalTexCoordinateToDirection(i.texcoord.xy);
+    half3 res = UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float) _cubeMipLvl).xyz;
 
     return half4(res,1.0);
 }

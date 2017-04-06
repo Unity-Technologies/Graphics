@@ -1,13 +1,12 @@
 namespace UnityEngine.Experimental.Rendering
 {
-    public enum LightArchetype {Punctual, Rectangle, Line};
+    public enum LightArchetype { Punctual, Rectangle, Line };
 
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
     [RequireComponent(typeof(Light))]
     public class AdditionalLightData : MonoBehaviour
     {
-
         public const int DefaultShadowResolution = 512;
 
         public int shadowResolution = DefaultShadowResolution;
@@ -30,6 +29,12 @@ namespace UnityEngine.Experimental.Rendering
 
         [Range(0.0F, 1.0F)]
         public float shadowDimmer = 1.0f;
+        [Range(0.0F, 1.0F)]
+        public float lightDimmer = 1.0f;
+
+        // Not used for directional lights.
+        public float fadeDistance = 10000.0f;
+        public float shadowFadeDistance = 10000.0f;
 
         public bool affectDiffuse = true;
         public bool affectSpecular = true;

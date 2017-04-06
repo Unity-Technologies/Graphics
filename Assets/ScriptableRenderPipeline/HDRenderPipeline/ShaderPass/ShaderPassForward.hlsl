@@ -34,7 +34,7 @@ void Frag(PackedVaryingsToPS packedInput,
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.unPositionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
+    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw, uint2(input.unPositionSS.xy) / GetTileSize());
     UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
@@ -44,12 +44,13 @@ void Frag(PackedVaryingsToPS packedInput,
 
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
-	PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-	float3 diffuseLighting;
-	float3 specularLighting;
+    uint featureFlags = 0xFFFFFFFF;
+    float3 diffuseLighting;
+    float3 specularLighting;
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
-    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+    LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
     outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
 
@@ -57,4 +58,3 @@ void Frag(PackedVaryingsToPS packedInput,
     outputDepth = posInput.depthRaw;
 #endif
 }
-

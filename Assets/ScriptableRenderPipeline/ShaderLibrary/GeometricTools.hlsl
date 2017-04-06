@@ -34,7 +34,7 @@ float2 BoxRayIntersect(float3 start, float3 dir, float3 boxMin, float3 boxMax)
 float BoxRayIntersectSimple(float3 start, float3 dir, float3 boxMin, float3 boxMax)
 {
     float3 invDir = 1.0 / dir;
-			
+
     // Find the ray intersection with box plane
     float3 rbmin = (boxMin - start) * invDir;
     float3 rbmax = (boxMax - start) * invDir;

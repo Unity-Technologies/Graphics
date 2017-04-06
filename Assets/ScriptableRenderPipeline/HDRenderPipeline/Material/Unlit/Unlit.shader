@@ -27,7 +27,13 @@ Shader "HDRenderPipeline/Unlit"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
-        [Enum(None, 0, DoubleSided, 1)] _DoubleSidedMode("Double sided mode", Float) = 0
+        [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
+
+        // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
+        // value that exist to identify if the GI emission need to be enabled.
+        // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
+        // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
+        _EmissionColor("Color", Color) = (1, 1, 1)
     }
 
     HLSLINCLUDE
@@ -41,7 +47,7 @@ Shader "HDRenderPipeline/Unlit"
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DISTORTION_ON
-    #pragma shader_feature _ _DOUBLESIDED
+    // #pragma shader_feature _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
 
     #pragma shader_feature _EMISSIVE_COLOR_MAP
 
@@ -55,17 +61,17 @@ Shader "HDRenderPipeline/Unlit"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "ShaderLibrary/common.hlsl"
-    #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-    #include "HDRenderPipeline/ShaderVariables.hlsl"
-    #include "HDRenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "HDRenderPipeline/ShaderPass/ShaderPass.cs.hlsl"    
+    #include "../../../ShaderLibrary/common.hlsl"
+    #include "../../ShaderConfig.cs.hlsl"
+    #include "../../ShaderVariables.hlsl"
+    #include "../../ShaderPass/FragInputs.hlsl"
+    #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    #include "HDRenderPipeline/Material/Unlit/UnlitProperties.hlsl"
+    #include "../../Material/Unlit/UnlitProperties.hlsl"
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
@@ -89,7 +95,7 @@ Shader "HDRenderPipeline/Unlit"
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
             #include "../../Material/Material.hlsl"
-            #include "ShaderPass/UnlitSharePass.hlsl"            
+            #include "ShaderPass/UnlitSharePass.hlsl"
             #include "UnlitData.hlsl"
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
@@ -108,13 +114,13 @@ Shader "HDRenderPipeline/Unlit"
             HLSLPROGRAM
 
             // Lightmap memo
-            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
+            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #include "../../Material/Material.hlsl"   
+            #include "../../Material/Material.hlsl"
             #include "ShaderPass/UnlitMetaPass.hlsl"
-            #include "UnlitData.hlsl"                     
+            #include "UnlitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -133,7 +139,7 @@ Shader "HDRenderPipeline/Unlit"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_DISTORTION
-            #include "../../Material/Material.hlsl"                     
+            #include "../../Material/Material.hlsl"
             #include "ShaderPass/UnlitDistortionPass.hlsl"
             #include "UnlitData.hlsl"
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
@@ -161,7 +167,7 @@ Shader "HDRenderPipeline/Unlit"
             ENDHLSL
         }
 
-        // Unlit opaque material need to be render with ForwardOnlyOpaque. Unlike Lit that can be both deferred and forward, 
+        // Unlit opaque material need to be render with ForwardOnlyOpaque. Unlike Lit that can be both deferred and forward,
         // unlit require to be forward only, that's why we need this pass. Unlit transparent will use regular Forward pass
         // (Code is exactly the same as "Forward", it simply allow our system to filter objects correctly)
         Pass
@@ -176,7 +182,7 @@ Shader "HDRenderPipeline/Unlit"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_FORWARD_UNLIT
-            #include "../../Material/Material.hlsl"            
+            #include "../../Material/Material.hlsl"
             #include "ShaderPass/UnlitSharePass.hlsl"
             #include "UnlitData.hlsl"
             #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"

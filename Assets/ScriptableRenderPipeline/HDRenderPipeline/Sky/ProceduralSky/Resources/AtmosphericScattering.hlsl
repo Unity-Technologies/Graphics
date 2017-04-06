@@ -58,10 +58,10 @@ uniform float       _RayleighExtinctionFactor;
 uniform float       _MiePhaseAnisotropy;
 uniform float       _MieExtinctionFactor;
 
-SAMPLER2D(sampler_CameraDepthTexture);
-#define SRL_BilinearSampler sampler_CameraDepthTexture // Used for all textures
+SAMPLER2D(sampler_MainDepthTexture);
+#define SRL_BilinearSampler sampler_MainDepthTexture // Used for all textures
 
-TEXTURE2D_FLOAT(_CameraDepthTexture);
+TEXTURE2D_FLOAT(_MainDepthTexture);
 TEXTURE2D(_OcclusionTexture);
 
 float HenyeyGreensteinPhase(float g, float cosTheta) {
@@ -239,14 +239,14 @@ float VolundSampleScatterOcclusion(float2 pos) {
 #if defined(ATMOSPHERICS_OCCLUSION_EDGE_FIXUP)
     float4 baseUV = float4(uv.x, uv.y, 0.f, 0.f);
 
-    float cDepth = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV, 0.f).r;
+    float cDepth = SAMPLE_TEXTURE2D_LOD(_CMainDepthTexture, SRL_BilinearSampler, baseUV, 0.f).r;
     cDepth = LinearEyeDepth(cDepth, _ZBufferParams);
 
     float4 xDepth;
-    baseUV.xy = uv + _DepthTextureScaledTexelSize.zy; xDepth.x = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
-    baseUV.xy = uv + _DepthTextureScaledTexelSize.xy; xDepth.y = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
-    baseUV.xy = uv + _DepthTextureScaledTexelSize.xw; xDepth.z = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
-    baseUV.xy = uv + _DepthTextureScaledTexelSize.zw; xDepth.w = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
+    baseUV.xy = uv + _DepthTextureScaledTexelSize.zy; xDepth.x = SAMPLE_TEXTURE2D_LOD(_MainDepthTexture, SRL_BilinearSampler, baseUV);
+    baseUV.xy = uv + _DepthTextureScaledTexelSize.xy; xDepth.y = SAMPLE_TEXTURE2D_LOD(_MainDepthTexture, SRL_BilinearSampler, baseUV);
+    baseUV.xy = uv + _DepthTextureScaledTexelSize.xw; xDepth.z = SAMPLE_TEXTURE2D_LOD(_MainDepthTexture, SRL_BilinearSampler, baseUV);
+    baseUV.xy = uv + _DepthTextureScaledTexelSize.zw; xDepth.w = SAMPLE_TEXTURE2D_LOD(_MainDepthTexture, SRL_BilinearSampler, baseUV);
 
     xDepth.x = LinearEyeDepth(xDepth.x, _ZBufferParams);
     xDepth.y = LinearEyeDepth(xDepth.y, _ZBufferParams);

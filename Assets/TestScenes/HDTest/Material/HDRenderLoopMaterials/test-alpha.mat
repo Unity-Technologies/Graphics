@@ -241,8 +241,8 @@ Material:
         name: _MaterialID
       second: 0
     - first:
-        name: _MaterialId
-      second: 0
+        name: _StencilRef
+      second: 1
     - first:
         name: _Metalic
       second: 0
