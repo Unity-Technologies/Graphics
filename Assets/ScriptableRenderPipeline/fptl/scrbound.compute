@@ -450,11 +450,10 @@ void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, ou
 	// hopefully the compiler takes zeros into account
 	// should be the case since the transformation in TransformPlaneToPostSpace()
 	// is done using multiply-adds and not dot product instructions.
-	const float bZero = 0.000000001;
-	float4 planeX0 = TransformPlaneToPostSpace(InvProjection, float4(planeX.x, bZero, planeX.y, bZero));
-	float4 planeX1 = TransformPlaneToPostSpace(InvProjection, float4(planeX.z, bZero, planeX.w, bZero));
-	float4 planeY0 = TransformPlaneToPostSpace(InvProjection, float4(bZero, planeY.x, planeY.y, bZero));
-	float4 planeY1 = TransformPlaneToPostSpace(InvProjection, float4(bZero, planeY.z, planeY.w, bZero));
+	float4 planeX0 = TransformPlaneToPostSpace(InvProjection, float4(planeX.x, 0, planeX.y, 0));
+	float4 planeX1 = TransformPlaneToPostSpace(InvProjection, float4(planeX.z, 0, planeX.w, 0));
+	float4 planeY0 = TransformPlaneToPostSpace(InvProjection, float4(0, planeY.x, planeY.y, 0));
+	float4 planeY1 = TransformPlaneToPostSpace(InvProjection, float4(0, planeY.z, planeY.w, 0));
 
 	
 	// convert planes to the forms (1,0,0,D) and (0,1,0,D)
