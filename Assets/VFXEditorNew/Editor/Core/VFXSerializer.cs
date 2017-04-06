@@ -133,6 +133,24 @@ namespace UnityEditor.VFX
             return null;
         }
 
+        [System.Serializable]
+        struct SerializedAnimCurve
+        {
+            [System.Serializable]
+            public struct Keyframe
+            {
+                public float time;
+                public float value;
+                public float inTangent;
+                public float outTangent;
+                public int tangentMode;
+            }
+            public Keyframe[] frames;
+            public WrapMode preWrapMode;
+            public WrapMode postWrapMode;
+
+        }
+
 
         public static string Save(object obj)
         {
@@ -142,11 +160,29 @@ namespace UnityEditor.VFX
             }
             else if(obj is UnityEngine.Object ) //type is a unity object
             {
-                //var identifier = InspectorFavoritesManager.GetFavoriteIdentifierFromInstanceID((obj as Object).GetInstanceID());
-                //return JsonUtility.ToJson(identifier); //TODO use code from favorites
+                var identifier = InspectorFavoritesManager.GetFavoriteIdentifierFromInstanceID((obj as Object).GetInstanceID());
 
-                ObjectWrapper wrapper = new ObjectWrapper { obj = obj as UnityEngine.Object };
-                return EditorJsonUtility.ToJson(wrapper);
+                return JsonUtility.ToJson(identifier); //TODO use code from favorites
+            }
+            else if( obj is AnimationCurve)
+            {
+                SerializedAnimCurve sac = new SerializedAnimCurve();
+                AnimationCurve curve = obj as AnimationCurve;
+                
+
+                sac.frames = new SerializedAnimCurve.Keyframe[curve.keys.Length];
+                for(int i = 0; i < curve.keys.Length; ++i)
+                {
+                    sac.frames[i].time = curve.keys[i].time;
+                    sac.frames[i].value = curve.keys[i].value;
+                    sac.frames[i].inTangent = curve.keys[i].inTangent;
+                    sac.frames[i].outTangent = curve.keys[i].outTangent;
+                    sac.frames[i].tangentMode = curve.keys[i].tangentMode;
+                }
+                sac.preWrapMode = curve.preWrapMode;
+                sac.postWrapMode = curve.postWrapMode;
+
+                return JsonUtility.ToJson(sac);
             }
             else
             {
@@ -176,6 +212,28 @@ namespace UnityEditor.VFX
                 EditorJsonUtility.FromJsonOverwrite(text, obj);
 
                 return ((ObjectWrapper)obj).obj;
+            }
+            else if( type.IsAssignableFrom(typeof(AnimationCurve)))
+            {
+                SerializedAnimCurve sac = JsonUtility.FromJson<SerializedAnimCurve>(text);
+
+                AnimationCurve curve = new AnimationCurve();
+
+
+                Keyframe[] keys = new UnityEngine.Keyframe[sac.frames.Length];
+                for (int i = 0; i < sac.frames.Length; ++i)
+                {
+                    keys[i].time = sac.frames[i].time;
+                    keys[i].value = sac.frames[i].value;
+                    keys[i].inTangent = sac.frames[i].inTangent;
+                    keys[i].outTangent = sac.frames[i].outTangent;
+                    keys[i].tangentMode = sac.frames[i].tangentMode;
+                }
+                curve.keys = keys;
+                curve.preWrapMode = sac.preWrapMode;
+                curve.postWrapMode = sac.postWrapMode;
+
+                return curve;
             }
             else
             {

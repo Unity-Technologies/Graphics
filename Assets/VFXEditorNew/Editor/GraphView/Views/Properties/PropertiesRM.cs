@@ -486,7 +486,8 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI()
         {
-            m_Button.text = m_Value.space.ToString().Substring(0,1);
+            if(m_Value != null)
+                m_Button.text = m_Value.space.ToString().Substring(0,1);
         }
 
         VisualElement m_Button;
