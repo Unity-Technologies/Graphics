@@ -199,6 +199,8 @@ namespace UnityEditor.VFX.Test
 
             blockPresenter.PropertyValueChanged(vector3yPresenter,7.8f);
 
+            values = newBlock.GetCurrentPropertiesValues();
+
             Assert.AreEqual(values[vector3Index], new Vector3(1.2f, 7.8f, 5.6f));
 
             DestroyTestAsset();
