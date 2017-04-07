@@ -30,6 +30,8 @@ namespace UnityEditor.VFX
         {
             return RuntimeHelpers.GetHashCode(this);
         }
+
+        public abstract void SetContent(object value);
     }
 
     abstract class VFXValue<T> : VFXValue
@@ -75,6 +77,20 @@ namespace UnityEditor.VFX
         {
             return m_Content;
         }
+
+        public override void SetContent(object value)
+        {
+            try
+            {
+                m_Content = (T)value;
+            }
+            catch
+            {
+                Debug.Log(string.Format("Cannot cast from {0} to {1}",value.GetType(),typeof(T)));
+                m_Content = default(T);
+            }      
+        }
+
         protected T m_Content;
 
         private static VFXValueType ToValueType()

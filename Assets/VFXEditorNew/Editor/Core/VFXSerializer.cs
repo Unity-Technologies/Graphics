@@ -241,6 +241,9 @@ namespace UnityEditor.VFX
 
             if (type.IsPrimitive)
             {
+                if (string.IsNullOrEmpty(text))
+                    return Activator.CreateInstance(type);
+
                 return Convert.ChangeType(text, type);
             }
             else if (typeof(UnityEngine.Object).IsAssignableFrom(type))

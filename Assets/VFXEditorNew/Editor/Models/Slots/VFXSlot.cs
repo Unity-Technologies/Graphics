@@ -21,8 +21,6 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
-        protected VFXSlot() {}
-
         public object value 
         { 
             get
@@ -46,7 +44,9 @@ namespace UnityEditor.VFX
                 if (GetParent() == null)
                 {
                     m_Value.Set(value);
-                    owner.Invalidate(InvalidationCause.kParamChanged);
+                    UpdateDefaultExpressionValue();
+                    if (owner != null)
+                        owner.Invalidate(InvalidationCause.kParamChanged);
                 }
                 else
                 {
@@ -121,11 +121,12 @@ namespace UnityEditor.VFX
         // Create and return a slot hierarchy from a property info
         public static VFXSlot Create(VFXProperty property, Direction direction, object value = null)
         {
-            var slot = CreateSub(property, direction, value); // First create slot tree  
+            var slot = CreateSub(property, direction); // First create slot tree
+            slot.value = value; // Then set value
             return slot;
         }
      
-        private static VFXSlot CreateSub(VFXProperty property, Direction direction, object value)
+        private static VFXSlot CreateSub(VFXProperty property, Direction direction)
         {
             var desc = VFXLibrary.GetSlot(property.type);
             if (desc != null)
@@ -133,12 +134,11 @@ namespace UnityEditor.VFX
                 var slot = desc.CreateInstance();
                 slot.m_Direction = direction;
                 slot.m_Property = property;
-
-                slot.m_Value = new VFXSerializableObject(property.type,value);
+                slot.m_Value = new VFXSerializableObject(property.type);
 
                 foreach (var subInfo in property.SubProperties())
                 {
-                    var subSlot = CreateSub(subInfo, direction, null);
+                    var subSlot = CreateSub(subInfo, direction);
                     if (subSlot != null)
                         subSlot.Attach(slot,false);
                 }
@@ -147,6 +147,22 @@ namespace UnityEditor.VFX
             }
 
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}",property.name,property.type));
+        }
+
+        protected VFXSlot() { }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            if (m_LinkedSlots == null)
+                m_LinkedSlots = new List<VFXSlot>();
+
+            int nbRemoved = m_LinkedSlots.RemoveAll(c => c == null);// Remove bad references if any
+            if (nbRemoved > 0)
+                Debug.Log(String.Format("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
+
+            m_ExpressionTreeUpToDate = false;
         }
 
         private void InitDefaultExpression()
@@ -166,6 +182,16 @@ namespace UnityEditor.VFX
 
             if (m_LinkedInExpression == null)
                 m_LinkedInExpression = m_DefaultExpression;
+        }
+
+        private void UpdateDefaultExpressionValue()
+        {
+            GetTopMostParent().PropagateToChildren(s =>
+            {
+                var expr = s.DefaultExpr;
+                if (expr is VFXValue)
+                    ((VFXValue)expr).SetContent(s.value);
+            });
         }
 
         private void ResetExpression()
@@ -448,20 +474,6 @@ namespace UnityEditor.VFX
         protected virtual VFXExpression ConvertExpression(VFXExpression expression)
         {
             return expression;
-        }
-
-        public override void OnEnable()
-        {
-            base.OnEnable();
-
-            if (m_LinkedSlots == null)
-                m_LinkedSlots = new List<VFXSlot>();
-
-            int nbRemoved = m_LinkedSlots.RemoveAll(c => c == null);// Remove bad references if any
-            if (nbRemoved > 0)
-                Debug.Log(String.Format("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
-
-            m_ExpressionTreeUpToDate = false;
         }
 
         protected virtual VFXExpression[] ExpressionToChildren(VFXExpression exp)   { return null; }
