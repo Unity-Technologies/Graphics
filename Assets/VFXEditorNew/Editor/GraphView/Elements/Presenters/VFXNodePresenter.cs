@@ -17,9 +17,18 @@ namespace UnityEditor.VFX.UI
 
         protected virtual NodeAnchorPresenter CreateAnchorPresenter(VFXSlot slot, Direction direction)
         {
-            var inAnchor = CreateInstance<VFXNodeAnchorPresenter>();
-            inAnchor.Init(this, slot.id, direction);
-            return inAnchor;
+            VFXOperatorAnchorPresenter anchor;
+            if (direction == Direction.Input)
+            {
+                anchor = CreateInstance<VFXInputOperatorAnchorPresenter>();
+            }
+            else
+            {
+                anchor = CreateInstance<VFXOutputOperatorAnchorPresenter>();
+            }
+            anchor.Init(model, slot, this, slot.id);
+
+            return anchor;
         }
 
         public static bool SequenceEqual<T1, T2>(IEnumerable<T1> first, IEnumerable<T2> second, Func<T1, T2, bool> comparer)
@@ -53,8 +62,8 @@ namespace UnityEditor.VFX.UI
 
                 Func<NodeAnchorPresenter, NodeAnchorPresenter, bool> fnComparer = delegate (NodeAnchorPresenter x, NodeAnchorPresenter y)
                 {
-                    var X = x as VFXNodeAnchorPresenter;
-                    var Y = y as VFXNodeAnchorPresenter;
+                    var X = x as VFXOperatorAnchorPresenter;
+                    var Y = y as VFXOperatorAnchorPresenter;
                     return X.slotID == Y.slotID
                             && X.name == Y.name
                             && X.anchorType == Y.anchorType;

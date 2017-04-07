@@ -207,7 +207,7 @@ VFXView #VFXBackgroundGrid {
 }
 
 /* Properties */
-VFXDataAnchor
+.VFXDataAnchor
 {
 	im-border : 4;
 	im-padding : 2;
@@ -224,12 +224,18 @@ VFXDataAnchor
 	margin-right:4px;
 }
 
-VFXDataAnchor .propertyrm
+VFXDataAnchor.Output
+{
+margin-right:-12;
+margin-left:4;
+}
+
+.VFXDataAnchor .propertyrm
 {
 	flex:1;
 }
 
-VFXDataAnchor .space
+.VFXDataAnchor .space
 {
 	border-radius:4;
 	border-width:1;
@@ -244,7 +250,7 @@ VFXDataAnchor .space
 	text-alignment: middle-center;
 }
 
-VFXDataAnchor #connector
+.VFXDataAnchor #connector
 {
 	position-type:absolute;
 	margin-top:5;
@@ -259,7 +265,12 @@ VFXDataAnchor #connector
 	height:6;
 	
 }
-VFXDataAnchor  #IMGUI
+.VFXDataAnchor.Output #connector
+{
+	border-color:#212121;
+}
+
+.VFXDataAnchor  #IMGUI
 {
 	flex:2;
 	align-items: stretch;
@@ -268,84 +279,89 @@ VFXDataAnchor  #IMGUI
 	
 }
 
-VFXBlockUI.selected VFXDataAnchor #connector
+VFXBlockUI.selected .VFXDataAnchor #connector
 {
 	border-color:#454545;
 }
 
 
 /*Default*/
-VFXDataAnchor.connected > #connector
+.VFXDataAnchor.connected > #connector
 {
 	border-color:#787878;
 	background-color : #787878;
 }
 
-VFXDataAnchor.connected > #connector.typesingle
+.VFXDataAnchor.connected > #connector.typesingle
 {
 	border-color:#6be6b0;
 	background-color : #6be6b0;
 }
-VFXDataAnchor.connected > #connector.typevector2
+.VFXDataAnchor.connected > #connector.typevector2
 {
 	border-color:#9aef92;
 	background-color : #9aef92;
 }
-VFXDataAnchor.connected > #connector.typevector3
+.VFXDataAnchor.connected > #connector.typevector3
 {
 	border-color:#c9f774;
 	background-color : #c9f774;
 }
-VFXDataAnchor.connected > #connector.typevector4
+.VFXDataAnchor.connected > #connector.typevector4
 {
 	border-color:#effe5c;
 	background-color : #effe5c;
 }
-VFXDataAnchor.connected > #connector.typecolor
+.VFXDataAnchor.connected > #connector.typecolor
 {
 	border-color:#effe5c;
 	background-color : #effe5c;
 }
-VFXDataAnchor.connected > #connector.typeobject
+.VFXDataAnchor.connected > #connector.typeobject
 {
 	border-color:#787878;
 	background-color : #787878;
 }
 
-VFXDataAnchor.connected > #connector.typetexture2d
+.VFXDataAnchor.connected > #connector.typetexture2d
 {
 	border-color : #e681ba;
 	background-color : #e681ba;
 }
-VFXDataAnchor.connected > #connector.typetexture3d
+.VFXDataAnchor.connected > #connector.typetexture3d
 {
 	border-color : #f7add7;
 	background-color : #f7add7;
 }
-VFXDataAnchor.connected > #connector.typeboolean
+.VFXDataAnchor.connected > #connector.typeboolean
 {
 	border-color : #a081e6;
 	background-color : #a081e6;
 }
-VFXDataAnchor.connected > #connector.typeint32
+.VFXDataAnchor.connected > #connector.typeint32
 {
 	border-color : #a081e6;
 	background-color : #a081e6;
 }
-VFXDataAnchor.connected > #connector.typeflipbook
+.VFXDataAnchor.connected > #connector.typeflipbook
 {
 	border-color : #c2a8ff;
 	background-color : #c2a8ff;
 }
-VFXDataAnchor.connected > #connector.typemesh
+.VFXDataAnchor.connected > #connector.typemesh
 {
 	border-color : #7aa3ea;
 	background-color : #7aa3ea;
 }
-VFXDataAnchor.connected > #connector.typeanimationcurve
+.VFXDataAnchor.connected > #connector.typeanimationcurve
 {
 	border-color : #84e4e7;
 	background-color : #84e4e7;
+}
+.VFXDataAnchor.connected > #connector.typegradient
+{
+	border-color:#effe5c;
+	background-color : #effe5c;
 }
 
 
@@ -377,7 +393,7 @@ VFXDataEdge.typecolor
 {
 	border-color : #d1d1d1;
 }
-VFXDataEdge.typecolor
+VFXDataEdge.typegradient
 {
 	border-color : #effe5c;
 }

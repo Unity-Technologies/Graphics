@@ -9,6 +9,64 @@ namespace UnityEditor.VFX.UI
 {
     partial class VFXDataAnchor : NodeAnchor
     {
+
+        protected VFXDataAnchor(VFXDataAnchorPresenter presenter) : base(presenter)
+        {
+            AddToClassList("VFXDataAnchor");
+        }
+
+        public static VFXDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
+        {
+            var anchor = new VFXDataAnchor(presenter)
+            {
+                m_EdgeConnector = new EdgeConnector<TEdgePresenter>()
+            };
+            anchor.presenter = presenter;
+            anchor.AddManipulator(anchor.m_EdgeConnector);
+            return anchor;
+        }
+
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+            m_ConnectorText.text = "";
+
+            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+
+            // reverse because we want the flex to choose the position of the connector
+            presenter.position = position;
+
+            if (presenter.connected)
+                AddToClassList("connected");
+            else
+                RemoveFromClassList("connected");
+
+
+
+
+            // update the css type of the class
+            foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
+                m_ConnectorBox.RemoveFromClassList(cls);
+
+            m_ConnectorBox.AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
+
+            AddToClassList("EdgeConnector");
+            switch (presenter.direction)
+            {
+                case Direction.Input:
+                    AddToClassList("Input");
+                    break;
+                case Direction.Output:
+                    AddToClassList("Output");
+                    break;
+            }
+
+            clipChildren = false;
+        }
+    }
+
+    partial class VFXEditableDataAnchor : VFXDataAnchor
+    {
         VFXPropertyIM   m_PropertyIM;
         IMGUIContainer  m_Container;
         GUIStyles m_GUIStyles = null;
@@ -87,9 +145,9 @@ namespace UnityEditor.VFX.UI
 
 
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
-        public static VFXDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
+        public static VFXEditableDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
         {
-            var anchor = new VFXDataAnchor(presenter) {
+            var anchor = new VFXEditableDataAnchor(presenter) {
                 m_EdgeConnector = new EdgeConnector<TEdgePresenter>()
             };
             anchor.presenter = presenter;
@@ -97,7 +155,7 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        protected VFXDataAnchor(VFXDataAnchorPresenter presenter) : base(presenter)
+        protected VFXEditableDataAnchor(VFXDataAnchorPresenter presenter) : base(presenter)
         {
             clipChildren = false;
 
@@ -110,10 +168,9 @@ namespace UnityEditor.VFX.UI
             {
                 m_GUIStyles = new GUIStyles();
                 m_GUIStyles.baseStyle = new GUIStyle();
-                m_PropertyIM = VFXPropertyIM.Create(presenter.type);
+                m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType);
 
                 m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
-                //m_Container.executionContext = s_ContextCount++;
                 AddChild(m_Container);
             }
         }
@@ -145,7 +202,7 @@ namespace UnityEditor.VFX.UI
                 if (different)
                     m_GUIStyles.Reset();
 
-                bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXDataAnchorPresenter>(), m_GUIStyles);
+                bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXBlockDataAnchorPresenter>(), m_GUIStyles);
 
                 if (changed)
                 {
@@ -167,39 +224,12 @@ namespace UnityEditor.VFX.UI
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-            m_ConnectorText.text = "";
 
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
-
-            if(m_Container != null)
+            VFXBlockDataAnchorPresenter presenter = GetPresenter<VFXBlockDataAnchorPresenter>();
+            if (m_Container != null)
                 m_Container.executionContext = presenter.GetInstanceID();
 
-            // reverse because we want the flex to choose the position of the connector
-            presenter.position = position;
-
-            if (presenter.connected)
-                AddToClassList("connected");
-            else
-                RemoveFromClassList("connected");
-
-            // update the css type of the class
-            foreach( var cls in VFXTypeDefinition.GetTypeCSSClasses())
-                m_ConnectorBox.RemoveFromClassList(cls);
-
-            m_ConnectorBox.AddToClassList(VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType));
-
-            AddToClassList("EdgeConnector");
-            switch (presenter.direction)
-            {
-                case Direction.Input:
-                    AddToClassList("Input");
-                    break;
-                case Direction.Output:
-                    AddToClassList("Output");
-                    break;
-            }
-
-            if(m_PropertyRM != null )
+            if (m_PropertyRM != null)
             {
                 m_PropertyRM.SetValue(presenter.value);
             }

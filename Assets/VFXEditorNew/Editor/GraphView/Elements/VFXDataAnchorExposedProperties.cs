@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
-    partial class VFXDataAnchor : NodeAnchor
+    partial class VFXEditableDataAnchor : VFXDataAnchor
     {
         const string SelectedFieldBackgroundProperty = "selected-field-background";
         const string IMBorderProperty = "im-border";

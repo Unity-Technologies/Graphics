@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
 
         public VisualElement m_Label;
 
-        public PropertyRM(VFXDataAnchorPresenter presenter)
+        public PropertyRM(VFXBlockDataAnchorPresenter presenter)
         {
             m_Presenter = presenter;
 
@@ -33,8 +33,8 @@ namespace UnityEditor.VFX.UI
             if( presenter.expandable)
             {
                 m_IconStates = new Texture2D[]{
-                    Resources.Load<Texture2D>("VFX/" + presenter.type.Name + "_plus"),
-                    Resources.Load<Texture2D>("VFX/" + presenter.type.Name + "_minus")
+                    Resources.Load<Texture2D>("VFX/" + presenter.anchorType.Name + "_plus"),
+                    Resources.Load<Texture2D>("VFX/" + presenter.anchorType.Name + "_minus")
                 };
 
                 if( m_IconStates[0] == null )
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 m_IconStates = new Texture2D[]{
-                    Resources.Load<Texture2D>("VFX/" + presenter.type.Name)
+                    Resources.Load<Texture2D>("VFX/" + presenter.anchorType.Name)
                 };
 
                 if( m_IconStates[0] == null )
@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.UI
         {
             Type propertyType = null;
 
-            Type type = presenter.type;
+            Type type = presenter.anchorType;
 
             while ( type != typeof(object) && type != null )
             {
@@ -119,22 +119,22 @@ namespace UnityEditor.VFX.UI
         {
             if( m_Presenter.expanded )
             {
-                m_Presenter.nodePresenter.RetractPath(m_Presenter.path);
+                m_Presenter.blockPresenter.RetractPath(m_Presenter.path);
             }
             else
             {
-                m_Presenter.nodePresenter.ExpandPath(m_Presenter.path);
+                m_Presenter.blockPresenter.ExpandPath(m_Presenter.path);
             }
         }
 
-        protected VFXDataAnchorPresenter m_Presenter;
+        protected VFXBlockDataAnchorPresenter m_Presenter;
     }
 
 
     abstract class PropertyRM<T> : PropertyRM
     {
 
-        public PropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public PropertyRM(VFXBlockDataAnchorPresenter presenter):base(presenter)
         {}
         public override void SetValue(object obj)
         {
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX.UI
 
     class BoolPropertyRM : PropertyRM<bool>
     {
-        public BoolPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public BoolPropertyRM(VFXBlockDataAnchorPresenter presenter):base(presenter)
         {
             m_Toggle =  new Toggle(OnValueChanged);
             AddChild(m_Toggle);
@@ -179,7 +179,7 @@ namespace UnityEditor.VFX.UI
 
     class FloatPropertyRM : PropertyRM<float>
     {
-        public FloatPropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public FloatPropertyRM(VFXBlockDataAnchorPresenter presenter) : base(presenter)
         {
             m_FloatField = new FloatField(m_Label);
             m_FloatField.onValueChanged = OnValueChanged;
@@ -207,7 +207,7 @@ namespace UnityEditor.VFX.UI
 
     class IntPropertyRM : PropertyRM<int>
     {
-        public IntPropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public IntPropertyRM(VFXBlockDataAnchorPresenter presenter) : base(presenter)
         {
             m_IntField = new IntField(m_Label);
             m_IntField.onValueChanged = OnValueChanged;
@@ -236,7 +236,7 @@ namespace UnityEditor.VFX.UI
 
     class Vector2PropertyRM : PropertyRM<Vector2>
     {
-        public Vector2PropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public Vector2PropertyRM(VFXBlockDataAnchorPresenter presenter):base(presenter)
         {
             VisualContainer fieldContainer = new VisualContainer();
             fieldContainer.AddToClassList("fieldContainer");
@@ -273,7 +273,7 @@ namespace UnityEditor.VFX.UI
     }
     class Vector3PropertyRM : PropertyRM<Vector3>
     {
-        public Vector3PropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public Vector3PropertyRM(VFXBlockDataAnchorPresenter presenter):base(presenter)
         {
             VisualContainer fieldContainer = new VisualContainer();
             fieldContainer.AddToClassList("fieldContainer");
@@ -317,7 +317,7 @@ namespace UnityEditor.VFX.UI
     }
     class Vector4PropertyRM : PropertyRM<Vector4>
     {
-        public Vector4PropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public Vector4PropertyRM(VFXBlockDataAnchorPresenter presenter):base(presenter)
         {
             VisualContainer fieldContainer = new VisualContainer();
             fieldContainer.AddToClassList("fieldContainer");
@@ -370,7 +370,7 @@ namespace UnityEditor.VFX.UI
     }
     class ColorPropertyRM : PropertyRM<Color>
     {
-        public ColorPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public ColorPropertyRM(VFXBlockDataAnchorPresenter presenter):base(presenter)
         {
             VisualContainer mainContainer = new VisualContainer();
 
@@ -445,7 +445,7 @@ namespace UnityEditor.VFX.UI
 
     class CurvePropertyRM : PropertyRM<AnimationCurve>
     {
-        public CurvePropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public CurvePropertyRM(VFXBlockDataAnchorPresenter presenter) : base(presenter)
         {
             m_CurveField = new CurveField(m_Label);
             m_CurveField.onValueChanged = OnValueChanged;
@@ -469,7 +469,7 @@ namespace UnityEditor.VFX.UI
 
     class SpaceablePropertyRM<T> : PropertyRM<T> where T : Spaceable
     {
-        public SpaceablePropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public SpaceablePropertyRM(VFXBlockDataAnchorPresenter presenter):base(presenter)
         {
             m_Button = new VisualElement(){text="L"};
             m_Button.AddManipulator(new Clickable(OnButtonClick));
@@ -495,7 +495,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class Vector3SpacabledPropertyRM<T> : SpaceablePropertyRM<T> where T : Spaceable
     {
-        public Vector3SpacabledPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public Vector3SpacabledPropertyRM(VFXBlockDataAnchorPresenter presenter):base(presenter)
         {
             VisualContainer fieldContainer = new VisualContainer();
             fieldContainer.AddToClassList("fieldContainer");
@@ -527,7 +527,7 @@ namespace UnityEditor.VFX.UI
 
     class VectorPropertyRM : Vector3SpacabledPropertyRM<Vector>
     {
-        public VectorPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public VectorPropertyRM(VFXBlockDataAnchorPresenter presenter):base(presenter)
         {
         }
 
@@ -551,7 +551,7 @@ namespace UnityEditor.VFX.UI
 
     class PositionPropertyRM : Vector3SpacabledPropertyRM<Position>
     {
-        public PositionPropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
+        public PositionPropertyRM(VFXBlockDataAnchorPresenter presenter):base(presenter)
         {
         }
 

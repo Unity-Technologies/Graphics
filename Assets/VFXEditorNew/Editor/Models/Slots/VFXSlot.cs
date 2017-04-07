@@ -21,6 +21,16 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
+        public bool expanded;
+<<<<<<< .mine
+
+
+
+=======
+
+        protected VFXSlot() {}
+
+>>>>>>> .theirs
         public object value 
         { 
             get
@@ -61,6 +71,32 @@ namespace UnityEditor.VFX
                 }
             }       
         }    
+
+        public string path
+        {
+            get
+            {
+                if (GetParent() != null)
+                    return string.Format("{0}.{1}", GetParent().path, name);
+                else
+                    return name;
+            }
+        }
+
+        public int depth
+        {
+            get
+            {
+                if(GetParent()== null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return GetParent().depth + 1;
+                }
+            }
+        }
 
         public VFXExpression GetExpression()
         {

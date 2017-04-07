@@ -125,8 +125,10 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(VFXDataEdgePresenter)] = typeof(VFXDataEdge);
             typeFactory[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
             typeFactory[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
-            typeFactory[typeof(VFXDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(VFXDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(VFXBlockDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(VFXBlockDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(VFXInputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(VFXOutputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
 
             AddStyleSheetPath("PropertyRM");
             AddStyleSheetPath("VFXView");
@@ -182,7 +184,7 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        public IEnumerable<VFXFlowAnchor> GetAllFlowAnchors(bool input,bool output)
+        public IEnumerable<VFXFlowAnchor> GetAllFlowAnchors(bool input, bool output)
         {
             foreach (var layer in GetAllLayers())
             {
@@ -192,10 +194,36 @@ namespace UnityEditor.VFX.UI
                     {
                         var context = element as VFXContextUI;
 
-                        foreach (VFXFlowAnchor anchor in context.GetFlowAnchors(input,output))
+                        foreach (VFXFlowAnchor anchor in context.GetFlowAnchors(input, output))
                         {
                             yield return anchor;
                         }
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<VFXDataAnchor> GetAllDataAnchors(bool input, bool output)
+        {
+            foreach (var layer in GetAllLayers())
+            {
+                foreach (var element in layer)
+                {
+                    if (element is VFXContextUI)
+                    {
+                        var context = element as VFXContextUI;
+
+                        foreach (VFXBlockUI block in context.GetAllBlocks())
+                        {
+                            foreach(VFXDataAnchor anchor in block.GetAnchors(input,output))
+                                yield return anchor;
+                        }
+                    }
+                    else if( element is VFXOperatorUI)
+                    {
+                        var ope = element as VFXOperatorUI;
+                        foreach (VFXDataAnchor anchor in ope.GetAnchors(input, output))
+                            yield return anchor;
                     }
                 }
             }

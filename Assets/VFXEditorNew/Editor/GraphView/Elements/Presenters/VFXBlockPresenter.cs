@@ -18,10 +18,10 @@ namespace UnityEditor.VFX.UI
             // Most initialization will be done in Init
 		}
 
-        VFXDataInputAnchorPresenter AddDataAnchor(PropertyInfo prop)
+        VFXBlockDataInputAnchorPresenter AddDataAnchor(VFXSlot slot)
         {
-            VFXDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXDataInputAnchorPresenter>();
-            anchorPresenter.Init(Model, this, prop);
+            VFXBlockDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXBlockDataInputAnchorPresenter>();
+            anchorPresenter.Init(Model, slot, this);
             ContextPresenter.ViewPresenter.RegisterDataAnchorPresenter(anchorPresenter);
 
             return anchorPresenter;
@@ -45,20 +45,20 @@ namespace UnityEditor.VFX.UI
             {
                 var inputs = inputAnchors;
                 inputs.Clear();
-                Dictionary<string, VFXDataInputAnchorPresenter> newAnchors = new Dictionary<string, VFXDataInputAnchorPresenter>();
+                Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter> newAnchors = new Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter>();
 
-                foreach ( var property in GetProperties())
+                VFXBlock block = model as VFXBlock;
+                foreach ( VFXSlot slot in block.inputSlots)
                 {
-                    var prop = property;
-                    VFXDataInputAnchorPresenter propPresenter = GetPropertyPresenter(ref prop);
+                    VFXBlockDataInputAnchorPresenter propPresenter = GetPropertyPresenter(slot);
 
                     if( propPresenter == null)
                     {
-                        propPresenter = AddDataAnchor(property);
+                        propPresenter = AddDataAnchor(slot);
                     }
-                    newAnchors[property.path] = propPresenter;
+                    newAnchors[slot] = propPresenter;
 
-                    propPresenter.UpdateInfos(ref prop);
+                    propPresenter.UpdateInfos();
                     inputs.Add(propPresenter);
                 }
                 m_Anchors = newAnchors;
@@ -80,11 +80,11 @@ namespace UnityEditor.VFX.UI
             get { return m_ContextPresenter.blockPresenters.FindIndex(t=>t == this); }
         }
 
-        public VFXDataInputAnchorPresenter GetPropertyPresenter(ref PropertyInfo info)
+        public VFXBlockDataInputAnchorPresenter GetPropertyPresenter(VFXSlot slot)
         {
-            VFXDataInputAnchorPresenter result = null;
+            VFXBlockDataInputAnchorPresenter result = null;
 
-            m_Anchors.TryGetValue(info.path, out result);
+            m_Anchors.TryGetValue(slot, out result);
 
             return result;
         }
@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
             public string path { get { return !string.IsNullOrEmpty(parentPath)?parentPath + "." + name : name; } }
         }
 
-		public void PropertyValueChanged(VFXDataAnchorPresenter presenter, object newValue)
+		public void PropertyValueChanged(VFXBlockDataAnchorPresenter presenter, object newValue)
 		{
 			//TODO undo/redo
 
@@ -227,7 +227,7 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        bool IsTypeExpandable(System.Type type)
+        public static bool IsTypeExpandable(System.Type type)
         {
             return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && ! type.IsEnum && type != typeof(Gradient);
         }
@@ -317,7 +317,7 @@ namespace UnityEditor.VFX.UI
         bool m_DirtyHack;//because serialization doesn't work with the below dictionary
 
         [SerializeField]
-        private Dictionary<string, VFXDataInputAnchorPresenter> m_Anchors = new Dictionary<string, VFXDataInputAnchorPresenter>();
+        private Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter> m_Anchors = new Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter>();
 
         [SerializeField]
         private VFXBlock m_Model;

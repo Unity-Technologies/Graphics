@@ -165,22 +165,22 @@ namespace UnityEditor.VFX.Test
 
             Assert.NotNull(blockPresenter);
 
-            Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).name == "aVector3").Count());
+            Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).name == "aVector3").Count());
 
             blockPresenter.ExpandPath("aVector3");
 
-            Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).path == "aVector3.x").Count());
-            Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).path == "aVector3.y").Count());
-            Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).path == "aVector3.z").Count());
+            Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.x").Count());
+            Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.y").Count());
+            Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.z").Count());
 
 
             blockPresenter.RetractPath("aVector3");
 
-            Assert.AreEqual(blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).path == "aVector3.x").Count(), 0);
-            Assert.AreEqual(blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).path == "aVector3.y").Count(), 0);
-            Assert.AreEqual(blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).path == "aVector3.z").Count(), 0);
+            Assert.AreEqual(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.x").Count(), 0);
+            Assert.AreEqual(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.y").Count(), 0);
+            Assert.AreEqual(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.z").Count(), 0);
 
-            var aVector3Presenter = blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).name == "aVector3").First() as VFXDataInputAnchorPresenter;
+            var aVector3Presenter = blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).name == "aVector3").First() as VFXBlockDataInputAnchorPresenter;
 
             blockPresenter.PropertyValueChanged(aVector3Presenter,new Vector3(1.2f, 3.4f, 5.6f));
 
@@ -195,7 +195,7 @@ namespace UnityEditor.VFX.Test
 
             blockPresenter.ExpandPath("aVector3");
 
-            var vector3yPresenter = blockPresenter.allChildren.Where(t => t is VFXDataInputAnchorPresenter && (t as VFXDataInputAnchorPresenter).path == "aVector3.y").First() as VFXDataInputAnchorPresenter;
+            var vector3yPresenter = blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.y").First() as VFXBlockDataInputAnchorPresenter;
 
             blockPresenter.PropertyValueChanged(vector3yPresenter,7.8f);
 

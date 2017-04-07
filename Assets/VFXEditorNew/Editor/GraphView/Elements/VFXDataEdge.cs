@@ -1,5 +1,8 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 using UIElements.GraphView;
+using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
@@ -30,6 +33,12 @@ namespace UnityEditor.VFX.UI
             System.Type type = inputPresenter != null ? inputPresenter.anchorType : outputPresenter.anchorType;
 
             AddToClassList(VFXTypeDefinition.GetTypeCSSClass(type));
+        }
+
+        public override IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
+        {
+            foreach (var anchor in this.GetFirstOfType<VFXView>().GetAllDataAnchors(input, output))
+                yield return anchor;
         }
 
         protected override void DrawEdge(IStylePainter painter)

@@ -37,11 +37,21 @@ namespace UnityEditor.VFX.UI
                 presenter.settings = newSettings;
             }
         }
+        public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
+        {
+            return VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXOperatorAnchorPresenter);
+        }
 
         public VFXOperatorUI()
         {
             m_Settings = new Button(RandomizeSettings);
             inputContainer.AddChild(m_Settings);
+            clipChildren = false;
+            inputContainer.clipChildren = false;
+            mainContainer.clipChildren = false;
+            leftContainer.clipChildren =false;
+            rightContainer.clipChildren = false;
+            outputContainer.clipChildren = false;
         }
 
         public override void OnDataChanged()

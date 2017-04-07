@@ -48,7 +48,7 @@ namespace UnityEditor.VFX.UI
         }
         public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
         {
-            return VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
+            return VFXEditableDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXBlockDataAnchorPresenter);
         }
 
         public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
