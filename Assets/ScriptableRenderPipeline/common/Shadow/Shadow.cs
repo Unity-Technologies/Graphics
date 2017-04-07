@@ -2,7 +2,7 @@ using UnityEngine.Rendering;
 using System;
 
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Experimental.Rendering
 {
     // temporary namespace
     namespace ShadowExp
@@ -398,7 +398,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights )
         {
-            var profilingSample = new Utilities.ProfilingSample("Shadowmap" + m_TexSlot, renderContext);
+            var profilingSample = new HDPipeline.Utilities.ProfilingSample("Shadowmap" + m_TexSlot, renderContext);
 
             if (!string.IsNullOrEmpty( m_ShaderKeyword ) )
             {
@@ -1025,6 +1025,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             AdditionalLightDataEditor.SetRegistry( this );
         }
 
+        public override void UpdateCullingParameters( ref CullingParameters cullingParams )
+        {
+            cullingParams.shadowDistance = Mathf.Min( m_ShadowSettings.maxShadowDistance, cullingParams.shadowDistance );
+        }
+
         public override void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, VisibleLight[] lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices )
         {
             shadowDataIndices = null;
@@ -1172,7 +1177,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 
                 // set light specific values that are not related to the shadowmap
                 GPUShadowType shadowtype;
-                ShadowUtils.MapLightType( ald.archetype, vl.lightType, out sd.lightType, out shadowtype );
+                ShadowUtils.MapLightType( ald.archetype, vl.lightType, out shadowtype );
                 // current bias value range is way too large, so scale by 0.01 for now until we've decided  whether to actually keep this value or not.
                 sd.bias = 0.01f * (SystemInfo.usesReversedZBuffer ? l.shadowBias : -l.shadowBias);
                 sd.normalBias = 100.0f * l.shadowNormalBias;
@@ -1200,7 +1205,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights )
         {
-            using (new Utilities.ProfilingSample("Render Shadows Exp", renderContext))
+            using (new HDPipeline.Utilities.ProfilingSample("Render Shadows Exp", renderContext))
             {
                 foreach( var sm in m_Shadowmaps )
                 {

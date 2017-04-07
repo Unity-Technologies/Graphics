@@ -123,13 +123,13 @@ namespace UnityEngine.Experimental.Rendering
     [UnityEditor.CanEditMultipleObjects]
     public class AdditionalLightDataEditor : UnityEditor.Editor
     {
-        static HDPipeline.ShadowExp.ShadowRegistry m_ShadowRegistry;
+        static ShadowExp.ShadowRegistry m_ShadowRegistry;
 
         UnityEditor.SerializedProperty m_ShadowAlgorithm;
         UnityEditor.SerializedProperty m_ShadowVariant;
         UnityEditor.SerializedProperty m_ShadowData;
         UnityEditor.SerializedProperty m_ShadowDatas;
-        public static void SetRegistry( HDPipeline.ShadowExp.ShadowRegistry registry ) { m_ShadowRegistry = registry; }
+        public static void SetRegistry( ShadowExp.ShadowRegistry registry ) { m_ShadowRegistry = registry; }
 
         void OnEnable()
         {

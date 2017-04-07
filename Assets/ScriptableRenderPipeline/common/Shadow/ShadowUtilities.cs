@@ -1,5 +1,5 @@
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Experimental.Rendering
 {
     public class ShadowUtilsConstants
     {
@@ -171,28 +171,66 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return proj * view;
         }
 
-        public static bool MapLightType( LightArchetype la, LightType lt, out GPULightType gputype, out GPUShadowType shadowtype )
+        public static bool MapLightType( LightArchetype la, LightType lt, out HDPipeline.GPULightType gputype, out GPUShadowType shadowtype )
         {
             switch( la )
             {
             case LightArchetype.Punctual    : return MapLightType( lt, out gputype, out shadowtype );
-            case LightArchetype.Rectangle   : gputype = GPULightType.Rectangle; shadowtype = GPUShadowType.Unknown; return true;
-            case LightArchetype.Line        : gputype = GPULightType.Line; shadowtype = GPUShadowType.Unknown; return true;
-            default                         : gputype = GPULightType.Spot; shadowtype = GPUShadowType.Unknown; return false; // <- probably not what you want
+            case LightArchetype.Rectangle   : gputype = HDPipeline.GPULightType.Rectangle; shadowtype = GPUShadowType.Unknown; return true;
+            case LightArchetype.Line        : gputype = HDPipeline.GPULightType.Line; shadowtype = GPUShadowType.Unknown; return true;
+            default                         : gputype = HDPipeline.GPULightType.Spot; shadowtype = GPUShadowType.Unknown; return false; // <- probably not what you want
             }
 
         }
-        public static bool MapLightType( LightType lt,  out GPULightType gputype, out GPUShadowType shadowtype )
+        public static bool MapLightType( LightType lt,  out HDPipeline.GPULightType gputype, out GPUShadowType shadowtype )
         {
             switch( lt )
             {
-            case LightType.Spot         : gputype = GPULightType.Spot;          shadowtype = GPUShadowType.Spot;        return true;
-            case LightType.Directional  : gputype = GPULightType.Directional;   shadowtype = GPUShadowType.Directional; return true;
-            case LightType.Point        : gputype = GPULightType.Point;         shadowtype = GPUShadowType.Point;       return true;
+            case LightType.Spot         : gputype = HDPipeline.GPULightType.Spot;          shadowtype = GPUShadowType.Spot;        return true;
+            case LightType.Directional  : gputype = HDPipeline.GPULightType.Directional;   shadowtype = GPUShadowType.Directional; return true;
+            case LightType.Point        : gputype = HDPipeline.GPULightType.Point;         shadowtype = GPUShadowType.Point;       return true;
             default:
-            case LightType.Area         : gputype = GPULightType.Rectangle; shadowtype = GPUShadowType.Unknown; return false;   // area lights by themselves can't be mapped to any GPU type
+            case LightType.Area         : gputype = HDPipeline.GPULightType.Rectangle; shadowtype = GPUShadowType.Unknown; return false;   // area lights by themselves can't be mapped to any GPU type
             }
         }
+        public static bool MapLightType(LightArchetype la, LightType lt, out GPUShadowType shadowtype)
+        {
+            switch (la)
+            {
+                case LightArchetype.Punctual:
+                    return MapLightType(lt, out shadowtype);
+                case LightArchetype.Rectangle:
+                    shadowtype = GPUShadowType.Unknown;
+                    return true;
+                case LightArchetype.Line:
+                    shadowtype = GPUShadowType.Unknown;
+                    return true;
+                default:
+                    shadowtype = GPUShadowType.Unknown;
+                    return false; // <- probably not what you want
+            }
+
+        }
+        public static bool MapLightType(LightType lt, out GPUShadowType shadowtype)
+        {
+            switch (lt)
+            {
+                case LightType.Spot:
+                    shadowtype = GPUShadowType.Spot;
+                    return true;
+                case LightType.Directional:
+                    shadowtype = GPUShadowType.Directional;
+                    return true;
+                case LightType.Point:
+                    shadowtype = GPUShadowType.Point;
+                    return true;
+                default:
+                case LightType.Area:
+                    shadowtype = GPUShadowType.Unknown;
+                    return false;   // area lights by themselves can't be mapped to any GPU type
+            }
+        }
+
         public static GPUShadowAlgorithm Pack( ShadowAlgorithm algo, ShadowVariant vari, ShadowPrecision prec )
         {
             int precshift = ShadowExp.ShadowConstants.Bits.k_ShadowVariant + ShadowExp.ShadowConstants.Bits.k_ShadowAlgorithm;

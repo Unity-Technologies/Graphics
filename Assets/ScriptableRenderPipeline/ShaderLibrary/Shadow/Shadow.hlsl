@@ -23,8 +23,8 @@
 // TODO: Remove this once we've moved over to the new system. Also delete the undef at the bottom again.
 #define ShadowData ShadowDataExp
 
-#include "ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
-#include "ShadowTexFetch.hlsl"	// Resource sampling definitions (don't modify)
+#include "../../common/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
+#include "ShadowTexFetch.hlsl"						// Resource sampling definitions (don't modify)
 
 // Declares a shadow context struct with members and sampling code based on whether _...Slots > 0
 #define SHADOWCONTEXT_DECLARE( _Tex2DArraySlots, _TexCubeArraySlots, _SamplerCompSlots, _SamplerSlots )				\
@@ -40,7 +40,10 @@
 
 
 // Shadow context definition and initialization, i.e. resource binding (project header, must be kept in sync with C# runtime)
-#include "ShadowContext.hlsl"
+#define SHADOW_CONTEXT_INCLUDE
+#include "../../ShadowIncludes.inl"
+#undef SHADOW_CONTEXT_INCLUDE
+//#include "ShadowContext.hlsl"
 
 // helper function to extract shadowmap data from the ShadowData struct
 void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx, out float slice )
@@ -106,7 +109,10 @@ float GetDirectionalShadowAttenuationDefault( ShadowContext shadowContext, float
 }
 
 // include project specific shadow dispatcher. If this file is not empty, it MUST define which default shadows it's overriding
-#include "ShadowDispatch.hlsl"
+#define SHADOW_DISPATCH_INCLUDE
+#include "../../ShadowIncludes.inl"
+#undef SHADOW_DISPATCH_INCLUDE
+//#include "ShadowDispatch.hlsl"
 
 // if shadow dispatch is empty we'll fall back to default shadow sampling implementations
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
