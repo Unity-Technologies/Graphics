@@ -25,11 +25,40 @@ namespace UnityEditor.VFX
 
         public object value 
         { 
-            get { return m_Value.Get(); }
+            get
+            {
+                if (GetParent() == null)
+                {
+                    return m_Value.Get();
+                }
+                else
+                {
+                    object parentValue = GetParent().value;
+
+                    Type type = GetParent().property.type;
+                    FieldInfo info = type.GetField(name);
+
+                    return info.GetValue(parentValue);
+                }
+            }
             set
             {
-                m_Value.Set(value);
-                owner.Invalidate(InvalidationCause.kParamChanged);
+                if (GetParent() == null)
+                {
+                    m_Value.Set(value);
+                    owner.Invalidate(InvalidationCause.kParamChanged);
+                }
+                else
+                {
+                    object parentValue = GetParent().value;
+
+                    Type type = GetParent().property.type;
+                    FieldInfo info = type.GetField(name);
+
+                    info.SetValue(parentValue, value);
+
+                    GetParent().value = parentValue;
+                }
             }       
         }    
 
