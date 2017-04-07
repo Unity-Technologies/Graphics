@@ -22,15 +22,9 @@ namespace UnityEditor.VFX
         public override string name     { get { return m_Property.name; } }
 
         public bool expanded;
-<<<<<<< .mine
-
-
-
-=======
 
         protected VFXSlot() {}
 
->>>>>>> .theirs
         public object value 
         { 
             get
@@ -184,8 +178,6 @@ namespace UnityEditor.VFX
 
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}",property.name,property.type));
         }
-
-        protected VFXSlot() { }
 
         public override void OnEnable()
         {
