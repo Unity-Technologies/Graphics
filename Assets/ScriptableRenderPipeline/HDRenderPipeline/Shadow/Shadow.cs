@@ -619,7 +619,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // set light specific values that are not related to the shadowmap
                     GPUShadowType shadowtype;
-                    ShadowUtils.MapLightType(ald.archetype, vl.lightType, out sd.lightType, out shadowtype);
+                    ShadowUtils.MapLightType(vl.lightType, ald, out sd.lightType, out shadowtype);
                     sd.bias = l.shadowBias;
                     sd.quality = 0;
 

@@ -1013,6 +1013,96 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 }
 
 //-----------------------------------------------------------------------------
+// EvaluateBSDF_Projector
+//-----------------------------------------------------------------------------
+
+void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
+                            float3 V, PositionInputs posInput, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                            out float3 diffuseLighting,
+                            out float3 specularLighting)
+{
+    float3 positionWS = posInput.positionWS;
+
+    float3 unL = lightData.positionWS - positionWS;
+    float3 L   = -lightData.forward; // Lights are pointing backward in Unity
+
+    // Project 'unL' onto the light's axes.
+    float distX = dot(unL, lightData.right);
+    float distY = dot(unL, lightData.up);
+
+    // Compute windowing factors using the dimensions of the light's "viewport".
+    float windowX = (abs(distX) <= lightData.size.x) ? 1 : 0;
+    float windowY = (abs(distY) <= lightData.size.y) ? 1 : 0;
+
+    float illuminance = saturate(dot(bsdfData.normalWS, L) * (windowX * windowY));
+
+    diffuseLighting  = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+    float4 cookie    = float4(1.0, 1.0, 1.0, 1.0);
+
+    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+    {
+#ifdef SHADOWS_USE_SHADOWCTXT
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#else
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#endif
+
+        illuminance *= shadow;
+    }
+
+    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
+    {
+        // Project 'unL' onto the light's axes.
+        float2 coord = float2(distX, distY);
+
+        // Compute the texture coordinates in [0, 1]^2.
+        coord = coord / lightData.size + float2(0.5, 0.5);
+
+        cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+
+        illuminance *= cookie.a;
+    }
+
+    [branch] if (illuminance > 0.0)
+    {
+        BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
+
+        diffuseLighting  *= (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
+        specularLighting *= (cookie.rgb * lightData.color) * (illuminance * lightData.specularScale);
+    }
+
+    [branch] if (bsdfData.enableTransmission)
+    {
+        // Reverse the normal.
+        illuminance = saturate(dot(-bsdfData.normalWS, L));
+
+        [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+        {
+            // TODO: factor out the biased position?
+            float3 biasedPositionWS = positionWS + bsdfData.normalWS * bsdfData.thickness;
+#ifdef SHADOWS_USE_SHADOWCTXT
+            float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#else
+            float shadow = GetDirectionalShadowAttenuation(lightLoopContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#endif
+
+            illuminance *= shadow;
+        }
+
+        illuminance *= cookie.a;
+
+        // The difference between the Disney Diffuse and the Lambertian BRDF for transmittance is negligible.
+        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
+        // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
+        float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
+
+        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        diffuseLighting += transmittedLight;
+    }
+}
+
+//-----------------------------------------------------------------------------
 // EvaluateBSDF_Line - Reference
 //-----------------------------------------------------------------------------
 

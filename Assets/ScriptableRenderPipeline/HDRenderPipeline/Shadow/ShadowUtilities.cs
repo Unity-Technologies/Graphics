@@ -57,14 +57,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return proj * view;
         }
 
-        public static bool MapLightType(LightArchetype la, LightType lt, out GPULightType gputype, out GPUShadowType shadowtype)
+        public static bool MapLightType(LightType lt, AdditionalLightData ald, out GPULightType gputype, out GPUShadowType shadowtype)
         {
-            switch (la)
+            shadowtype = GPUShadowType.Unknown; // Default for all non-punctual lights
+
+            switch (ald.archetype)
             {
-                case LightArchetype.Punctual: return MapLightType(lt, out gputype, out shadowtype);
-                case LightArchetype.Rectangle: gputype = GPULightType.Rectangle; shadowtype = GPUShadowType.Unknown; return true;
-                case LightArchetype.Line: gputype = GPULightType.Line; shadowtype = GPUShadowType.Unknown; return true;
-                default: gputype = GPULightType.Spot; shadowtype = GPUShadowType.Unknown; return false;                      // <- probably not what you want
+                case LightArchetype.Punctual:  return MapLightType(lt, out gputype, out shadowtype);
+                case LightArchetype.Area:      gputype = (ald.lightWidth > 0) ? GPULightType.Rectangle : GPULightType.Line; return true;
+                case LightArchetype.Projector: gputype = GPULightType.ProjectorOrtho; return true; // TODO: pyramid
+                default:                       gputype = GPULightType.Spot; return false; // <- probably not what you want
             }
         }
 
