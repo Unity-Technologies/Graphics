@@ -44,24 +44,32 @@ namespace UnityEditor.VFX.UI
             if( model is VFXBlock)
             {
                 var inputs = inputAnchors;
-                inputs.Clear();
+                inputAnchors.Clear();
                 Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter> newAnchors = new Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter>();
 
                 VFXBlock block = model as VFXBlock;
-                foreach ( VFXSlot slot in block.inputSlots)
-                {
-                    VFXBlockDataInputAnchorPresenter propPresenter = GetPropertyPresenter(slot);
-
-                    if( propPresenter == null)
-                    {
-                        propPresenter = AddDataAnchor(slot);
-                    }
-                    newAnchors[slot] = propPresenter;
-
-                    propPresenter.UpdateInfos();
-                    inputs.Add(propPresenter);
-                }
+                UpdateSlots(newAnchors, block.inputSlots);
                 m_Anchors = newAnchors;
+            }
+        }
+
+        void UpdateSlots(Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter> newAnchors , IEnumerable<VFXSlot> slotList)
+        {
+            foreach (VFXSlot slot in slotList)
+            {
+                VFXBlockDataInputAnchorPresenter propPresenter = GetPropertyPresenter(slot);
+
+                if (propPresenter == null)
+                {
+                    propPresenter = AddDataAnchor(slot);
+                }
+                newAnchors[slot] = propPresenter;
+
+                propPresenter.UpdateInfos();
+                inputAnchors.Add(propPresenter);
+
+                if( slot.expanded)
+                    UpdateSlots(newAnchors, slot.children);
             }
         }
 
@@ -105,47 +113,11 @@ namespace UnityEditor.VFX.UI
 
 		public void PropertyValueChanged(VFXBlockDataAnchorPresenter presenter, object newValue)
 		{
-			//TODO undo/redo
+            //TODO undo/redo
 
-			string[] fields = presenter.path.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+            presenter.model.value = newValue;
 
-
-			var properties = m_Model.GetProperties();
-			var buffers = m_Model.GetCurrentPropertiesValues();
-
-
-			int index = System.Array.FindIndex(properties, t => t.name == fields[0]);
-			var buffer = buffers[index];
-
-			List<object> stack = new List<object>();
-
-			stack.Add(buffer);
-
-			for (int i = 1; i < fields.Length; ++i)
-			{
-				object current = stack[i - 1];
-				FieldInfo fi = current.GetType().GetField(fields[i]);
-
-				stack.Add(fi.GetValue(current));
-			}
-			stack[stack.Count - 1] = newValue;
-
-			for (int i = stack.Count - 1; i > 0; --i)
-			{
-				object current = stack[i];
-				object prev = stack[i - 1];
-
-				FieldInfo fi = prev.GetType().GetField(fields[i]);
-
-				fi.SetValue(prev, current);
-			}
-
-			buffers[index] = stack[0];
-            m_Model.GetInputSlot(index).value = stack[0];
-			//m_Model.Invalidate(VFXModel.InvalidationCause.kParamChanged); 
-
-
-			foreach (var anchorPresenter in m_Anchors.Values)
+            foreach (var anchorPresenter in m_Anchors.Values)
 			{
 				// update child and parents.
 				if (anchorPresenter.path.StartsWith(presenter.path) || presenter.path.StartsWith(anchorPresenter.path))
@@ -156,76 +128,21 @@ namespace UnityEditor.VFX.UI
 
 		}
 
-        public void ExpandPath(string fieldPath)
-        {
-            //TODO undo/redo
-            m_Model.ExpandPath(fieldPath);
+        public void ExpandPath(VFXSlot slot)
+        {//TODO undo/redo
+
+            slot.expanded = true;
             
             m_DirtyHack = !m_DirtyHack;
         }
 
-        public void RetractPath(string fieldPath)
-        {
-            //TODO undo/redo
-            m_Model.RetractPath(fieldPath);
+        public void RetractPath(VFXSlot slot)
+        {//TODO undo/redo
+
+            slot.expanded = false;
 
             m_DirtyHack = !m_DirtyHack;
         }
-
-        public IEnumerable<PropertyInfo> GetProperties()
-        {
-            var properties = m_Model.GetProperties();
-            var values = m_Model.GetCurrentPropertiesValues();
-
-            for(int i = 0; i < properties.Count(); ++i)
-            {
-                PropertyInfo info = new PropertyInfo()
-                {
-                    type = properties[i].type,
-                    name = properties[i].name,
-                    value = values[i],
-                    parentPath = "",
-                    expandable = IsTypeExpandable(properties[i].type),
-                    expanded = m_Model.IsPathExpanded(properties[i].name),
-                    depth = 0
-                };
-
-                yield return info;
-
-                if (info.expanded)
-                {
-                    foreach (var subField in GetProperties(info.type, info.value, info.name, 1))
-                    {
-                        yield return subField;
-                    }
-                }
-            }
-        }
-
-        public IEnumerable<PropertyInfo> GetProperties(string fieldPath)
-        {
-            string[] fields = fieldPath.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-
-            var properties = m_Model.GetProperties();
-            var buffers = m_Model.GetCurrentPropertiesValues();
-
-
-            int index = System.Array.FindIndex(properties, t => t.name == fields[0]);
-            var prop = properties[index];
-            var buffer = buffers[index];
-
-            Type current = prop.type;
-            for (int i = 1; i < fields.Length; ++i)
-            {
-                FieldInfo fi = current.GetField(fields[i]);
-
-                current = fi.FieldType;
-                buffer = fi.GetValue(buffer);
-            }
-
-            return GetProperties(current, buffer, fieldPath, fields.Length);
-        }
-
 
         public static bool IsTypeExpandable(System.Type type)
         {

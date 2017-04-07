@@ -207,16 +207,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXProperty[] GetProperties()
-        {
-            return m_InputSlots.Select(s => s.property).ToArray(); // TODO Change that
-        }
-
-        public object[] GetCurrentPropertiesValues()
-        {
-            return m_InputSlots.Select(s => s.value).ToArray(); // TODO Change that
-        }
-
         public void ExpandPath(string fieldPath)
         {
             m_expandedPaths.Add(fieldPath);

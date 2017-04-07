@@ -119,11 +119,11 @@ namespace UnityEditor.VFX.UI
         {
             if( m_Presenter.expanded )
             {
-                m_Presenter.blockPresenter.RetractPath(m_Presenter.path);
+                m_Presenter.blockPresenter.RetractPath(m_Presenter.model);
             }
             else
             {
-                m_Presenter.blockPresenter.ExpandPath(m_Presenter.path);
+                m_Presenter.blockPresenter.ExpandPath(m_Presenter.model);
             }
         }
 

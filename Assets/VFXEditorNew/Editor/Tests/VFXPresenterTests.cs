@@ -167,14 +167,16 @@ namespace UnityEditor.VFX.Test
 
             Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).name == "aVector3").Count());
 
-            blockPresenter.ExpandPath("aVector3");
+            VFXSlot slot = blockPresenter.Model.inputSlots.First(t => t.name == "aVector3");
+
+            blockPresenter.ExpandPath(slot);
 
             Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.x").Count());
             Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.y").Count());
             Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.z").Count());
 
 
-            blockPresenter.RetractPath("aVector3");
+            blockPresenter.RetractPath(slot);
 
             Assert.AreEqual(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.x").Count(), 0);
             Assert.AreEqual(blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.y").Count(), 0);
@@ -184,24 +186,15 @@ namespace UnityEditor.VFX.Test
 
             blockPresenter.PropertyValueChanged(aVector3Presenter,new Vector3(1.2f, 3.4f, 5.6f));
 
+            Assert.AreEqual(slot.value, new Vector3(1.2f, 3.4f, 5.6f));
 
-            var properties = newBlock.GetProperties();
-            var values = newBlock.GetCurrentPropertiesValues();
-
-            int vector3Index = System.Array.FindIndex(properties, t => t.name == "aVector3");
-
-            Assert.AreNotEqual(vector3Index, -1);
-            Assert.AreEqual(values[vector3Index], new Vector3(1.2f, 3.4f, 5.6f));
-
-            blockPresenter.ExpandPath("aVector3");
+            blockPresenter.ExpandPath(slot);
 
             var vector3yPresenter = blockPresenter.allChildren.Where(t => t is VFXBlockDataInputAnchorPresenter && (t as VFXBlockDataInputAnchorPresenter).path == "aVector3.y").First() as VFXBlockDataInputAnchorPresenter;
 
             blockPresenter.PropertyValueChanged(vector3yPresenter,7.8f);
 
-            values = newBlock.GetCurrentPropertiesValues();
-
-            Assert.AreEqual(values[vector3Index], new Vector3(1.2f, 7.8f, 5.6f));
+            Assert.AreEqual(slot.value, new Vector3(1.2f, 7.8f, 5.6f));
 
             DestroyTestAsset();
 

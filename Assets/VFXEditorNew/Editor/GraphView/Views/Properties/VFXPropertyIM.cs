@@ -79,11 +79,11 @@ namespace UnityEditor.VFX.UI
                 {
                     if (!expanded)
                     {
-                        presenter.blockPresenter.ExpandPath(presenter.path);
+                        presenter.blockPresenter.ExpandPath(presenter.model);
                     }
                     else
                     {
-                        presenter.blockPresenter.RetractPath(presenter.path);
+                        presenter.blockPresenter.RetractPath(presenter.model);
                     }
 
                     // remove the change check to avoid property being regarded as modified
