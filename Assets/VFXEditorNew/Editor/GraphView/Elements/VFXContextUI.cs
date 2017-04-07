@@ -608,5 +608,24 @@ namespace UnityEditor.VFX.UI
                 yield return block;
             }
         }
+
+        public IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
+        {
+            return (IEnumerable<NodeAnchor>)GetFlowAnchors(input, output);
+        }
+
+        public IEnumerable<VFXFlowAnchor> GetFlowAnchors(bool input,bool output)
+        {
+            if( input )
+                foreach(VFXFlowAnchor anchor in m_FlowInputConnectorContainer)
+                {
+                    yield return anchor;
+                }
+            if( output)
+                foreach (VFXFlowAnchor anchor in m_FlowOutputConnectorContainer)
+                {
+                    yield return anchor;
+                }
+        }
     }
 }

@@ -182,6 +182,25 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
+        public IEnumerable<VFXFlowAnchor> GetAllFlowAnchors(bool input,bool output)
+        {
+            foreach (var layer in GetAllLayers())
+            {
+                foreach (var element in layer)
+                {
+                    if (element is VFXContextUI)
+                    {
+                        var context = element as VFXContextUI;
+
+                        foreach (VFXFlowAnchor anchor in context.GetFlowAnchors(input,output))
+                        {
+                            yield return anchor;
+                        }
+                    }
+                }
+            }
+        }
+
         public override IEnumerable<Node> GetAllNodes()
         {
             foreach (var node in base.GetAllNodes())
