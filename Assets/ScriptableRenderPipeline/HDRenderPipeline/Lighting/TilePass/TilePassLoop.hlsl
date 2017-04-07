@@ -222,6 +222,28 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     }
 #endif
 
+#ifdef PROCESS_PROJECTOR_LIGHT
+    if(featureFlags & FEATURE_FLAG_LIGHT_PROJECTOR)
+    {
+        // TODO: Convert the for loop below to a while on each type as we know we are sorted!
+        uint projectorLightStart;
+        uint projectorLightCount;
+        GetCountAndStart(posInput, LIGHTCATEGORY_PROJECTOR, projectorLightStart, projectorLightCount);
+        for(i = 0; i < projectorLightCount; ++i)
+        {
+            float3 localDiffuseLighting, localSpecularLighting;
+
+            uint projectorIndex = FetchIndex(projectorLightStart, i);
+
+            EvaluateBSDF_Projector(context, V, posInput, prelightData, _LightDatas[projectorIndex], bsdfData,
+                                   localDiffuseLighting, localSpecularLighting);
+
+            diffuseLighting += localDiffuseLighting;
+            specularLighting += localSpecularLighting;
+        }
+    }
+#endif
+
 #ifdef PROCESS_ENV_LIGHT
     float3 iblDiffuseLighting = float3(0.0, 0.0, 0.0);
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
