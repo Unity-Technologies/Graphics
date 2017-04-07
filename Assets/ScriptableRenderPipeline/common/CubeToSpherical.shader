@@ -41,8 +41,9 @@ v2f vert (float4 vertex : POSITION, float2 texcoord : TEXCOORD0)
     return o;
 }
 
-half2 DirectionToSphericalTexCoordinate(half3 dir)      // use this for the lookup
+half2 DirectionToSphericalTexCoordinate(half3 dir_in)      // use this for the lookup
 {
+    half3 dir = normalize(dir_in);
     // coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
     float recipPi = 1.0/3.1415926535897932384626433832795;
     return half2( 1.0-0.5*recipPi*atan2(dir.x, -dir.z), asin(dir.y)*recipPi+0.5 );
