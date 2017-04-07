@@ -72,23 +72,26 @@ namespace UnityEditor.VFX.UI
         {
             m_Elements.RemoveAll(e => e is VFXNodeEdgePresenter);
 
-            var operatorPresenters = m_Elements.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>().ToArray();
-            foreach (var operatorPresenter in operatorPresenters)
+            var operatorPresenters = m_Elements.OfType<VFXNodePresenter>().Cast<VFXLinkablePresenter>();
+            var blockPresenters = (m_Elements.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>())).Cast<VFXLinkablePresenter>();
+
+            var allLinkables = operatorPresenters.Concat(blockPresenters).ToArray();
+            foreach (var operatorPresenter in allLinkables)
             {
-                var modelOperator = operatorPresenter.node;
+                var modelOperator = operatorPresenter.slotContainer;
                 foreach (var input in modelOperator.inputSlots)
                 {
                     if (input.HasLink())
                     {
                         var edgePresenter = CreateInstance<VFXNodeEdgePresenter>();
 
-                        var operatorPresenterFrom = operatorPresenters.FirstOrDefault(e => e.node == input.refSlot.owner);
-                        var operatorPresenterTo = operatorPresenters.FirstOrDefault(e => e.node == modelOperator);
+                        var operatorPresenterFrom = allLinkables.First(t => input.refSlot.owner == t.slotContainer);
+                        var operatorPresenterTo = allLinkables.First(t => modelOperator == t.slotContainer );
 
                         if (operatorPresenterFrom != null && operatorPresenterTo != null)
                         {
-                            var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXOperatorAnchorPresenter).slotID == input.refSlot.id);
-                            var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXOperatorAnchorPresenter).slotID == input.id);
+                            var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
+                            var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
                             if (anchorFrom != null && anchorTo != null)
                             {
                                 edgePresenter.output = anchorFrom;
@@ -112,11 +115,11 @@ namespace UnityEditor.VFX.UI
 
 				VFXSystem.ConnectContexts(context0, context1, m_GraphAsset.root);
 			}
-            else if (edge is EdgePresenter)
+            else if (edge is VFXDataEdgePresenter)
             {
-                var flowEdge = edge as EdgePresenter;
-                var fromAnchor = flowEdge.output as VFXOperatorAnchorPresenter;
-                var toAnchor = flowEdge.input as VFXOperatorAnchorPresenter;
+                var flowEdge = edge as VFXDataEdgePresenter;
+                var fromAnchor = flowEdge.output as VFXDataAnchorPresenter;
+                var toAnchor = flowEdge.input as VFXDataAnchorPresenter;
 
                 //Update connection
                 var slotInput = toAnchor?toAnchor.model:null;
@@ -279,16 +282,16 @@ namespace UnityEditor.VFX.UI
                     var startAnchorOperatorPresenter = (startAnchorPresenter as VFXOperatorAnchorPresenter);
                     if (startAnchorOperatorPresenter != null) // is is an input from another operator
                     {
+
                         var currentOperator = startAnchorOperatorPresenter.sourceNode.node;
                         var childrenOperators = new HashSet<VFXSlotContainerModel<VFXModel, VFXModel>>();
                         CollectChildOperator(currentOperator, childrenOperators);
                         allOperatorPresenter = allOperatorPresenter.Where(o => !childrenOperators.Contains(o.node));
-                        var toSlot = currentOperator.inputSlots.First(s => s.id == startAnchorOperatorPresenter.slotID);
+                        var toSlot = startAnchorOperatorPresenter.model;
                         allCandidates = allOperatorPresenter.SelectMany(o => o.outputAnchors).Where(o =>
                         {
-                            var candidate = o as VFXOperatorAnchorPresenter;
-                            var fromSlot = candidate.sourceNode.node.outputSlots.First(s => s.id == candidate.slotID);
-                            return toSlot.CanLink(fromSlot);
+                            var candidate = o as VFXDataAnchorPresenter;
+                            return toSlot.CanLink(candidate.model);
                         }).ToList();
                     }
                     else
@@ -306,8 +309,8 @@ namespace UnityEditor.VFX.UI
                     allCandidates = allOperatorPresenter.SelectMany(o => o.inputAnchors).Where(o =>
                     {
                         var candidate = o as VFXOperatorAnchorPresenter;
-                        var toSlot = candidate.sourceNode.node.inputSlots.First(s => s.id == candidate.slotID);
-                        return toSlot.CanLink(currentOperator.outputSlots.First(s => s.id == startAnchorOperatorPresenter.slotID));
+                        var toSlot = candidate.model;
+                        return toSlot.CanLink(startAnchorOperatorPresenter.model);
                     }).ToList();
 
                     // For edge starting with an output, we must add all data anchors from all blocks

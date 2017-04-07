@@ -24,6 +24,7 @@ namespace UnityEditor.VFX
 
         void Invalidate(VFXModel.InvalidationCause cause);
         void UpdateOutputs();
+        
     }
 
     class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer

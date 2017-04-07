@@ -6,13 +6,16 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodePresenter : NodePresenter, IVFXPresenter
+    class VFXNodePresenter : VFXLinkablePresenter, IVFXPresenter
     {
         private VFXViewPresenter m_View;
         public VFXModel model { get { return m_Node; } }
 
         [SerializeField]
         private VFXSlotContainerModel<VFXModel, VFXModel> m_Node;
+
+        public override IVFXSlotContainer slotContainer { get { return m_Node; } }
+
         public VFXSlotContainerModel<VFXModel, VFXModel> node { get { return m_Node; } }
 
         protected virtual NodeAnchorPresenter CreateAnchorPresenter(VFXSlot slot, Direction direction)

@@ -9,9 +9,14 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockPresenter : NodePresenter
+    abstract class VFXLinkablePresenter : NodePresenter
     {
-		protected new void OnEnable()
+        public abstract IVFXSlotContainer slotContainer { get; }
+    }
+    class VFXBlockPresenter : VFXLinkablePresenter
+    {
+        public override IVFXSlotContainer slotContainer { get { return m_Model; } }
+        protected new void OnEnable()
 		{
 			capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Movable;
 
