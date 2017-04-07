@@ -23,6 +23,23 @@ uniform uint g_nNumDirLights;
 #define CUBEMAPFACE_POSITIVE_Z 4
 #define CUBEMAPFACE_NEGATIVE_Z 5
 
+#define SHADOW_FPTL
+#	if defined(SHADER_API_D3D11)
+#		include "../ShaderLibrary/API/D3D11.hlsl"
+#	elif defined(SHADER_API_PSSL)
+#		include "../ShaderLibrary/API/PSSL.hlsl"
+#	elif defined(SHADER_API_XBOXONE)
+#		include "../ShaderLibrary/API/D3D11.hlsl"
+#		include "../ShaderLibrary/API/D3D11_1.hlsl"
+#	elif defined(SHADER_API_METAL)
+#		include "../ShaderLibrary/API/Metal.hlsl"
+#	else
+#		error unsupported shader api
+#	endif
+#	include "../ShaderLibrary/API/Validate.hlsl"
+#	include "../ShaderLibrary/Shadow/Shadow.hlsl"
+#undef SHADOW_FPTL
+
 CBUFFER_START(ShadowLightData)
 
 float4 g_vShadow3x3PCFTerms0;
@@ -44,6 +61,7 @@ UNITY_DECLARE_ABSTRACT_CUBE_ARRAY(_pointCookieTextures);
 
 StructuredBuffer<DirectionalLight> g_dirLightData;
 
+#ifndef SHADOWS_USE_SHADOWCTXT
 
 #define DECLARE_SHADOWMAP( tex ) Texture2D tex; SamplerComparisonState sampler##tex
 #ifdef REVERSE_ZBUF
@@ -144,7 +162,7 @@ float SampleShadow(uint type, float3 vPositionWs, float3 vPositionToLightDirWs, 
     flShadowScalar = ComputeShadow_PCF_3x3_Gaussian(vPositionWs.xyz, g_matWorldToShadow[lightIndex * MAX_SHADOWMAP_PER_LIGHT + shadowSplitIndex]);
     return flShadowScalar;
 }
-
+#endif
 
 float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float3 Vworld)
 {
@@ -153,6 +171,9 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
     ind.diffuse = 0;
     ind.specular = 0;
 
+#ifdef SHADOWS_USE_SHADOWCTXT
+	ShadowContext shadowContext = InitShadowContext();
+#endif
 
     float3 ints = 0;
 
@@ -161,13 +182,22 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
         DirectionalLight lightData = g_dirLightData[i];
         float atten = 1;
 
+#ifdef SHADOWS_USE_SHADOWCTXT
+		int shadowIdx = asint(lightData.shadowLightIndex);
+		[branch]
+		if (shadowIdx >= 0)
+		{
+			float shadow = GetDirectionalShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, 0.0.xxx);
+			atten *= shadow;
+		}
+#else
         [branch]
         if (lightData.shadowLightIndex != 0xffffffff)
         {
             float shadowScalar = SampleShadow(DIRECTIONAL_LIGHT, vPw, 0, lightData.shadowLightIndex);
             atten *= shadowScalar;
         }
-
+#endif
         UnityLight light;
         light.color.xyz = lightData.color.xyz * atten;
         light.dir.xyz = mul((float3x3) g_mViewToWorld, -lightData.lightAxisZ).xyz;
@@ -210,13 +240,22 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
             }
             atten *= angularAtt.w*(fProjVec>0.0);                           // finally apply this to the dist att.
 
+#ifdef SHADOWS_USE_SHADOWCTXT
+			int shadowIdx = asint(lgtDat.shadowLightIndex);
+			[branch]
+			if (shadowIdx >= 0)
+			{
+				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, 0.0.xxx);
+				atten *= shadow;
+			}
+#else
             const bool bHasShadow = (lgtDat.flags&HAS_SHADOW)!=0;
             [branch]if(bHasShadow)
             {
                 float shadowScalar = SampleShadow(SPOT_LIGHT, vPw, 0, lgtDat.shadowLightIndex);
                 atten *= shadowScalar;
             }
-
+#endif
             UnityLight light;
             light.color.xyz = lgtDat.color.xyz*atten*angularAtt.xyz;
             light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;     //unity_CameraToWorld
@@ -251,13 +290,22 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
                 atten *= cookieColor.w;
             }
 
+#ifdef SHADOWS_USE_SHADOWCTXT
+			int shadowIdx = asint(lgtDat.shadowLightIndex);
+			[branch]
+			if (shadowIdx >= 0)
+			{
+				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, vLw);
+				atten *= shadow;
+			}
+#else
             const bool bHasShadow = (lgtDat.flags&HAS_SHADOW)!=0;
             [branch]if(bHasShadow)
             {
                 float shadowScalar = SampleShadow(SPHERE_LIGHT, vPw, vLw, lgtDat.shadowLightIndex);
                 atten *= shadowScalar;
             }
-
+#endif
             UnityLight light;
             light.color.xyz = lgtDat.color.xyz*atten*cookieColor.xyz;
             light.dir.xyz = vLw;

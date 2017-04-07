@@ -1,9 +1,101 @@
+﻿//#define SHADOWS_OLD
 using UnityEngine.Rendering;
 using System;
 using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.Fptl
 {
+#if !SHADOWS_OLD
+    using UnityEngine.Experimental.Rendering.ShadowExp;
+    class ShadowSetup : IDisposable
+    {
+        // shadow related stuff
+        const int k_MaxShadowDataSlots              = 64;
+        const int k_MaxPayloadSlotsPerShadowData    =  4;
+        ShadowmapBase[]         m_Shadowmaps;
+        ShadowManager           m_ShadowMgr;
+        static ComputeBuffer    s_ShadowDataBuffer;
+        static ComputeBuffer    s_ShadowPayloadBuffer;
+
+        public ShadowSetup(ShadowSettings shadowSettings, out IShadowManager shadowManager)
+        {
+            s_ShadowDataBuffer = new ComputeBuffer(k_MaxShadowDataSlots, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowExp.ShadowData)));
+            s_ShadowPayloadBuffer = new ComputeBuffer(k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowExp.ShadowPayload)));
+            ShadowAtlas.AtlasInit atlasInit;
+            atlasInit.baseInit.width                  = (uint)shadowSettings.shadowAtlasWidth;
+            atlasInit.baseInit.height                 = (uint)shadowSettings.shadowAtlasHeight;
+            atlasInit.baseInit.slices                 = 1;
+            atlasInit.baseInit.shadowmapBits          = 32;
+            atlasInit.baseInit.shadowmapFormat        = RenderTextureFormat.Shadowmap;
+            atlasInit.baseInit.samplerState           = SamplerState.Default();
+            atlasInit.baseInit.comparisonSamplerState = ComparisonSamplerState.Default();
+            atlasInit.baseInit.clearColor             = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+            atlasInit.baseInit.maxPayloadCount        = 0;
+            atlasInit.baseInit.shadowSupport          = ShadowmapBase.ShadowSupport.Directional | ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
+            atlasInit.shaderKeyword                   = null;
+            atlasInit.cascadeCount                    = shadowSettings.directionalLightCascadeCount;
+            atlasInit.cascadeRatios                   = shadowSettings.directionalLightCascades;
+
+            m_Shadowmaps = new ShadowmapBase[] { new ShadowExp.ShadowAtlas(ref atlasInit) };
+
+            ShadowContext.SyncDel syncer = (ShadowContext sc) =>
+                {
+                    // update buffers
+                    uint offset, count;
+                    ShadowExp.ShadowData[] sds;
+                    sc.GetShadowDatas(out sds, out offset, out count);
+                    Debug.Assert(offset == 0);
+                    s_ShadowDataBuffer.SetData(sds); // unfortunately we can't pass an offset or count to this function
+                    ShadowPayload[] payloads;
+                    sc.GetPayloads(out payloads, out offset, out count);
+                    Debug.Assert(offset == 0);
+                    s_ShadowPayloadBuffer.SetData(payloads);
+                };
+
+            // binding code. This needs to be in sync with ShadowContext.hlsl
+            ShadowContext.BindDel binder = (ShadowContext sc, CommandBuffer cb) =>
+                {
+                    // bind buffers
+                    cb.SetGlobalBuffer("_ShadowDatasExp", s_ShadowDataBuffer);
+                    cb.SetGlobalBuffer("_ShadowPayloads", s_ShadowPayloadBuffer);
+                    // bind textures
+                    uint offset, count;
+                    RenderTargetIdentifier[] tex;
+                    sc.GetTex2DArrays(out tex, out offset, out count);
+                    cb.SetGlobalTexture("_ShadowmapExp_PCF", tex[0]);
+                    // TODO: Currently samplers are hard coded in ShadowContext.hlsl, so we can't really set them here
+                };
+
+            ShadowContext.CtxtInit scInit;
+            scInit.storage.maxShadowDataSlots        = k_MaxShadowDataSlots;
+            scInit.storage.maxPayloadSlots           = k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData;
+            scInit.storage.maxTex2DArraySlots        = 1;
+            scInit.storage.maxTexCubeArraySlots      = 0;
+            scInit.storage.maxComparisonSamplerSlots = 1;
+            scInit.storage.maxSamplerSlots           = 0;
+            scInit.dataSyncer                        = syncer;
+            scInit.resourceBinder                    = binder;
+
+            m_ShadowMgr = new ShadowExp.ShadowManager(shadowSettings, ref scInit, m_Shadowmaps);
+            shadowManager = m_ShadowMgr;
+        }
+        public void Dispose()
+        {
+            if (m_Shadowmaps != null)
+            {
+                (m_Shadowmaps[0] as ShadowAtlas).Dispose();
+                m_Shadowmaps = null;
+            }
+            m_ShadowMgr = null;
+
+            if( s_ShadowDataBuffer != null )
+                s_ShadowDataBuffer.Release();
+            if( s_ShadowPayloadBuffer != null )
+                s_ShadowPayloadBuffer.Release();
+        }
+    }
+#endif
+
     public class FptlLightingInstance : RenderPipeline
     {
         private readonly FptlLighting m_Owner;
@@ -49,7 +141,31 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
         [SerializeField]
         ShadowSettings m_ShadowSettings = ShadowSettings.Default;
+#if SHADOWS_OLD
         ShadowRenderPass m_ShadowPass;
+#else
+        ShadowSetup      m_ShadowSetup;
+        IShadowManager   m_ShadowMgr;
+        FrameId          m_FrameId;
+
+        List<int>               m_ShadowRequests = new List<int>();
+        Dictionary<int, int>    m_ShadowIndices = new Dictionary<int,int>();
+
+        void InitShadowSystem(ShadowSettings shadowSettings)
+        {
+            m_ShadowSetup = new ShadowSetup(shadowSettings, out m_ShadowMgr);
+        }
+
+        void DeinitShadowSystem()
+        {
+            if (m_ShadowSetup != null)
+            {
+                m_ShadowSetup.Dispose();
+                m_ShadowSetup = null;
+                m_ShadowMgr = null;
+            }
+        }
+#endif
 
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
@@ -95,7 +211,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
         public bool enableBigTilePrepass = true;
         public bool enableDrawLightBoundsDebug = false;
         public bool enableDrawTileDebug = false;
-		public bool enableReflectionProbeDebug = false;
+        public bool enableReflectionProbeDebug = false;
         public bool enableComputeLightEvaluation = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
         const bool k_UseAsyncCompute = true;        // should not use on mobile
@@ -163,11 +279,15 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             if (enableClustered)
             {
-				if (s_GlobalLightListAtomic != null)
-                	s_GlobalLightListAtomic.Release();
+                if (s_GlobalLightListAtomic != null)
+                    s_GlobalLightListAtomic.Release();
             }
 
             ClearComputeBuffers();
+
+#if !SHADOWS_OLD
+            DeinitShadowSystem();
+#endif
         }
 
         void ClearComputeBuffers()
@@ -259,7 +379,11 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             m_MatWorldToShadow = new Matrix4x4[k_MaxLights * k_MaxShadowmapPerLights];
             m_DirShadowSplitSpheres = new Vector4[k_MaxDirectionalSplit];
             m_Shadow3X3PCFTerms = new Vector4[4];
+#if SHADOWS_OLD
             m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
+#else
+            InitShadowSystem(m_ShadowSettings);
+#endif
 
             m_SkyboxHelper = new SkyboxHelper();
             m_SkyboxHelper.CreateMesh();
@@ -393,17 +517,17 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
             m_DeferredReflectionMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-			if (enableDrawTileDebug) {
-				m_DeferredMaterial.EnableKeyword ("ENABLE_DEBUG");
-			} else {
-				m_DeferredMaterial.DisableKeyword ("ENABLE_DEBUG");
-			}
+            if (enableDrawTileDebug) {
+                m_DeferredMaterial.EnableKeyword ("ENABLE_DEBUG");
+            } else {
+                m_DeferredMaterial.DisableKeyword ("ENABLE_DEBUG");
+            }
 
-			if (enableReflectionProbeDebug) {
-				m_DeferredReflectionMaterial.EnableKeyword ("ENABLE_DEBUG");
-			} else {
-				m_DeferredReflectionMaterial.DisableKeyword ("ENABLE_DEBUG");
-			}
+            if (enableReflectionProbeDebug) {
+                m_DeferredReflectionMaterial.EnableKeyword ("ENABLE_DEBUG");
+            } else {
+                m_DeferredReflectionMaterial.DisableKeyword ("ENABLE_DEBUG");
+            }
 
             cmd.SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
@@ -578,7 +702,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             return camera.projectionMatrix * GetFlipMatrix();
         }
 
-        static int UpdateDirectionalLights(Camera camera, IList<VisibleLight> visibleLights)
+        static int UpdateDirectionalLights(Camera camera, IList<VisibleLight> visibleLights, Dictionary<int,int> shadowIndices)
         {
             var dirLightCount = 0;
             var lights = new List<DirectionalLight>();
@@ -605,9 +729,12 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     vx = worldToView.MultiplyVector(vx);
                     vy = worldToView.MultiplyVector(vy);
                     vz = worldToView.MultiplyVector(vz);
-
+#if !SHADOWS_OLD
+                    int shadowIdx;
+                    l.shadowLightIndex = shadowIndices.TryGetValue((int)nLight, out shadowIdx) ? (uint)shadowIdx : 0x80000000;
+#else
                     l.shadowLightIndex = (light.light.shadows != LightShadows.None) ? (uint)nLight : 0xffffffff;
-
+#endif
                     l.lightAxisX = vx;
                     l.lightAxisY = vy;
                     l.lightAxisZ = vz;
@@ -623,7 +750,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
             return dirLightCount;
         }
-
+#if SHADOWS_OLD
         void UpdateShadowConstants(IList<VisibleLight> visibleLights, ref ShadowOutput shadow)
         {
             var nNumLightsIncludingTooMany = 0;
@@ -713,9 +840,40 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             m_Shadow3X3PCFTerms[2] = new Vector4(flTexelEpsilonX, flTexelEpsilonY, 0.0f, 0.0f);
             m_Shadow3X3PCFTerms[3] = new Vector4(-flTexelEpsilonX, -flTexelEpsilonY, 0.0f, 0.0f);
         }
-
+#endif
         int GenerateSourceLightBuffers(Camera camera, CullResults inputs)
         {
+#if !SHADOWS_OLD
+            // 0. deal with shadows
+            {
+                m_FrameId.frameCount++;
+                // get the indices for all lights that want to have shadows
+                m_ShadowRequests.Clear();
+                m_ShadowRequests.Capacity = inputs.visibleLights.Length;
+                int lcnt = inputs.visibleLights.Length;
+                for (int i = 0; i < lcnt; ++i)
+                {
+                    VisibleLight vl = inputs.visibleLights[i];
+                    if (vl.light.shadows != LightShadows.None && vl.light.GetComponent<AdditionalLightData>().shadowDimmer > 0.0f)
+                        m_ShadowRequests.Add(i);
+                }
+                // pass this list to a routine that assigns shadows based on some heuristic
+                uint shadowRequestCount = (uint)m_ShadowRequests.Count;
+                int[] shadowRequests = m_ShadowRequests.ToArray();
+                int[] shadowDataIndices;
+                uint originalRequestCount = shadowRequestCount;
+                m_ShadowMgr.ProcessShadowRequests(m_FrameId, inputs, camera, inputs.visibleLights,
+                    ref shadowRequestCount, shadowRequests, out shadowDataIndices);
+
+                // update the visibleLights with the shadow information
+                m_ShadowIndices.Clear();
+                for (uint i = 0; i < shadowRequestCount; i++)
+                {
+                    m_ShadowIndices.Add(shadowRequests[i], shadowDataIndices[i]);
+                }
+            }
+#endif
+
             var probes = inputs.visibleReflectionProbes;
             //ReflectionProbe[] probes = Object.FindObjectsOfType<ReflectionProbe>();
 
@@ -781,7 +939,12 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 light.color.Set(cl.finalColor.r, cl.finalColor.g, cl.finalColor.b);
                 light.sliceIndex = 0;
                 light.lightModel = (uint)LightDefinitions.DIRECT_LIGHT;
+#if !SHADOWS_OLD
+                int shadowIdx;
+                light.shadowLightIndex = m_ShadowIndices.TryGetValue( (int) shadowLightIndex, out shadowIdx ) ? (uint) shadowIdx : 0x80000000;
+#else
                 light.shadowLightIndex = shadowLightIndex;
+#endif
                 shadowLightIndex++;
 
                 var bHasCookie = cl.light.cookie != null;
@@ -1019,7 +1182,11 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 if (!CullResults.GetCullingParameters(camera, out cullingParams))
                     continue;
 
+#if SHADOWS_OLD
                 m_ShadowPass.UpdateCullingParameters(ref cullingParams);
+#else
+                m_ShadowMgr.UpdateCullingParameters( ref cullingParams );
+#endif
 
                 var cullResults = CullResults.Cull(ref cullingParams, renderContext);
                 ExecuteRenderLoop(camera, cullResults, renderContext);
@@ -1079,8 +1246,14 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 loop.SetupCameraProperties(camera);
             }
 
+#if !SHADOW_OLD
+            m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights );
+            m_ShadowMgr.SyncData();
+            m_ShadowMgr.BindResources( loop );
+#endif
+
             // Push all global params
-            var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);
+            var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights, m_ShadowIndices);
             PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
 
             // do deferred lighting
@@ -1132,9 +1305,11 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
         void RenderShadowMaps(CullResults cullResults, ScriptableRenderContext loop)
         {
+#if SHADOWS_OLD
             ShadowOutput shadows;
             m_ShadowPass.Render(loop, cullResults, out shadows);
             UpdateShadowConstants (cullResults.visibleLights, ref shadows);
+#endif
         }
 
         void ResizeIfNecessary(int curWidth, int curHeight)

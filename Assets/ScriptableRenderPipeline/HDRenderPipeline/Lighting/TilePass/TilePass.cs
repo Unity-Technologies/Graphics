@@ -96,16 +96,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if( m_Shadowmaps != null )
             {
-
                 (m_Shadowmaps[0] as ShadowAtlas).Dispose();
                 (m_Shadowmaps[1] as ShadowAtlas).Dispose();
                 (m_Shadowmaps[2] as ShadowAtlas).Dispose();
+                (m_Shadowmaps[3] as ShadowAtlas).Dispose();
                 m_Shadowmaps = null;
             }
             m_ShadowMgr = null;
 
-            Utilities.SafeRelease( s_ShadowDataBuffer );
-            Utilities.SafeRelease( s_ShadowPayloadBuffer );
+            if (s_ShadowDataBuffer != null)
+                s_ShadowDataBuffer.Release();
+            if (s_ShadowPayloadBuffer != null)
+                s_ShadowPayloadBuffer.Release();
         }
     }
 #endif
@@ -1165,6 +1167,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public override int GetCurrentShadowCount()
             {
                 return m_ShadowRequests.Count;
+            }
+
+            public override void UpdateCullingParameters(ref CullingParameters cullingParams)
+            {
+                m_ShadowMgr.UpdateCullingParameters( ref cullingParams );
             }
 
             public override void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera)

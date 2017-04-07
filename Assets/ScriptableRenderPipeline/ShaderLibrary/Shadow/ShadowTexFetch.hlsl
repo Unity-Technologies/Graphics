@@ -86,9 +86,15 @@
 		}
 #endif // SHADOW_SUPPORTS_DYNAMIC_INDEXING != 0
 
-
 // helper macro to suppress code generation if _cnt is 0
-#define SHADOW_CHECK_0( _macro )
+#define SHADOW_DECLARE_SAMPLING_FUNC_T2DA_COMP( _Tex2DArraySlots  , _SamplerCompSlots )	float4 SampleCompShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, float3 tcs, float slice					);
+#define SHADOW_DECLARE_SAMPLING_FUNC_T2DA_SAMP( _Tex2DArraySlots  , _SamplerSlots )		float4 SampleShadow_T2DA(	  ShadowContext ctxt, uint texIdx, uint sampIdx, float2 tcs, float slice, float lod = 0.0	);
+#define SHADOW_DECLARE_SAMPLING_FUNC_TCA_COMP(  _TexCubeArraySlots, _SamplerCompSlots )	float4 SampleCompShadow_TCA(  ShadowContext ctxt, uint texIdx, uint sampIdx, float4 tcs, float cubeIdx					);
+#define SHADOW_DECLARE_SAMPLING_FUNC_TCA_SAMP(  _TexCubeArraySlots, _SamplerSlots )		float4 SampleShadow_TCA(	  ShadowContext ctxt, uint texIdx, uint sampIdx, float3 tcs, float cubeIdx, float lod = 0.0 );
+
+#define SHADOW_CAT( _left, _right ) _left ## _right
+
+#define SHADOW_CHECK_0( _macro ) 
 #define SHADOW_CHECK_1( _macro ) _macro
 #define SHADOW_CHECK_2( _macro ) _macro
 #define SHADOW_CHECK_3( _macro ) _macro
@@ -98,17 +104,30 @@
 #define SHADOW_CHECK_7( _macro ) _macro
 #define SHADOW_CHECK_8( _macro ) _macro
 #define SHADOW_CHECK_9( _macro ) _macro
-#define SHADOW_CHECK( _cnt, _macro ) MERGE_NAME( SHADOW_CHECK_ , _cnt ) ( _macro )
+#define SHADOW_CHECK( _cnt, _macro ) SHADOW_CAT( SHADOW_CHECK_ , _cnt ) ( _macro )
+
+
+#define SHADOW_CHECK_ALT_0( _macro, _alt ) _alt
+#define SHADOW_CHECK_ALT_1( _macro, _alt ) _macro
+#define SHADOW_CHECK_ALT_2( _macro, _alt ) _macro
+#define SHADOW_CHECK_ALT_3( _macro, _alt ) _macro
+#define SHADOW_CHECK_ALT_4( _macro, _alt ) _macro
+#define SHADOW_CHECK_ALT_5( _macro, _alt ) _macro
+#define SHADOW_CHECK_ALT_6( _macro, _alt ) _macro
+#define SHADOW_CHECK_ALT_7( _macro, _alt ) _macro
+#define SHADOW_CHECK_ALT_8( _macro, _alt ) _macro
+#define SHADOW_CHECK_ALT_9( _macro, _alt ) _macro
+#define SHADOW_CHECK_ALT( _cnt, _macro, _alt ) SHADOW_CAT( SHADOW_CHECK_ALT_ , _cnt ) ( _macro, _alt )
 
 // helper macro to declare texture members for the shadow context.
 #define SHADOWCONTEXT_DECLARE_TEXTURES( _Tex2DArraySlots, _TexCubeArraySlots, _SamplerCompSlots, _SamplerSlots )	\
-	SHADOW_CHECK( _Tex2DArraySlots	, Texture2DArray			tex2DArray[_Tex2DArraySlots];	)					\
-	SHADOW_CHECK( _TexCubeArraySlots, TextureCubeArray			texCubeArray[_Tex2DArraySlots]; )					\
-	SHADOW_CHECK( _SamplerCompSlots	, SamplerComparisonState	compSamplers[_Tex2DArraySlots]; )					\
-	SHADOW_CHECK( _SamplerSlots		, SamplerState				samplers[_Tex2DArraySlots];		)
+	SHADOW_CHECK( _Tex2DArraySlots	, Texture2DArray			tex2DArray[_Tex2DArraySlots];		)				\
+	SHADOW_CHECK( _TexCubeArraySlots, TextureCubeArray			texCubeArray[_TexCubeArraySlots];	)				\
+	SHADOW_CHECK( _SamplerCompSlots	, SamplerComparisonState	compSamplers[_Tex2DArraySlots];		)				\
+	SHADOW_CHECK( _SamplerSlots		, SamplerState				samplers[_Tex2DArraySlots];			)
 // helper macro to declare texture sampling functions for the shadow context.
-#define SHADOW_DEFINE_SAMPLING_FUNCS( _Tex2DArraySlots, _TexCubeArraySlots, _SamplerCompSlots, _SamplerSlots )											\
-	SHADOW_CHECK( _Tex2DArraySlots  , SHADOW_CHECK( _SamplerCompSlots, SHADOW_DEFINE_SAMPLING_FUNC_T2DA_COMP( _Tex2DArraySlots, _SamplerCompSlots ) ) ) \
-	SHADOW_CHECK( _Tex2DArraySlots  , SHADOW_CHECK( _SamplerSlots    , SHADOW_DEFINE_SAMPLING_FUNC_T2DA_SAMP( _Tex2DArraySlots, _SamplerSlots     ) ) ) \
-	SHADOW_CHECK( _TexCubeArraySlots, SHADOW_CHECK( _SamplerCompSlots, SHADOW_DEFINE_SAMPLING_FUNC_TCA_COMP(_TexCubeArraySlots, _SamplerCompSlots ) ) ) \
-	SHADOW_CHECK( _TexCubeArraySlots, SHADOW_CHECK( _SamplerSlots    , SHADOW_DEFINE_SAMPLING_FUNC_TCA_SAMP(_TexCubeArraySlots, _SamplerSlots     ) ) )
+#define SHADOW_DEFINE_SAMPLING_FUNCS( _Tex2DArraySlots, _TexCubeArraySlots, _SamplerCompSlots, _SamplerSlots )	\
+	SHADOW_CHECK( _Tex2DArraySlots  , SHADOW_CHECK_ALT( _SamplerCompSlots, SHADOW_DEFINE_SAMPLING_FUNC_T2DA_COMP( _Tex2DArraySlots, _SamplerCompSlots ), SHADOW_DECLARE_SAMPLING_FUNC_T2DA_COMP( _Tex2DArraySlots, _SamplerCompSlots ) ) )	\
+	SHADOW_CHECK( _Tex2DArraySlots  , SHADOW_CHECK_ALT( _SamplerSlots    , SHADOW_DEFINE_SAMPLING_FUNC_T2DA_SAMP( _Tex2DArraySlots, _SamplerSlots     ), SHADOW_DECLARE_SAMPLING_FUNC_T2DA_SAMP( _Tex2DArraySlots, _SamplerSlots     ) ) )	\
+	SHADOW_CHECK( _TexCubeArraySlots, SHADOW_CHECK_ALT( _SamplerCompSlots, SHADOW_DEFINE_SAMPLING_FUNC_TCA_COMP(_TexCubeArraySlots, _SamplerCompSlots ), SHADOW_DECLARE_SAMPLING_FUNC_TCA_COMP(_TexCubeArraySlots, _SamplerCompSlots ) ) )	\
+	SHADOW_CHECK( _TexCubeArraySlots, SHADOW_CHECK_ALT( _SamplerSlots    , SHADOW_DEFINE_SAMPLING_FUNC_TCA_SAMP(_TexCubeArraySlots, _SamplerSlots     ), SHADOW_DECLARE_SAMPLING_FUNC_TCA_SAMP(_TexCubeArraySlots, _SamplerSlots     ) ) )

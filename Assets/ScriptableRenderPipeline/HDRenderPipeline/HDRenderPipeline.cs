@@ -566,7 +566,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if SHADOWS_OLD
             m_ShadowPass.UpdateCullingParameters(ref cullingParams);
 #else
-            cullingParams.shadowDistance = Mathf.Min( 1000.0f, cullingParams.shadowDistance );
+            m_LightLoop.UpdateCullingParameters( ref cullingParams );
 #endif
             var cullResults = CullResults.Cull(ref cullingParams, renderContext);
 

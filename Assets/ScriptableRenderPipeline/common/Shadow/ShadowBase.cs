@@ -2,8 +2,42 @@ using UnityEngine.Rendering;
 using System;
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Experimental.Rendering
 {
+    [Serializable]
+    public class ShadowSettings
+    {
+        public bool     enabled;
+        public int      shadowAtlasWidth;
+        public int      shadowAtlasHeight;
+
+        public float    maxShadowDistance;
+        public int      directionalLightCascadeCount;
+        public Vector3  directionalLightCascades;
+        public float    directionalLightNearPlaneOffset;
+
+        static ShadowSettings defaultShadowSettings = null;
+
+        public static ShadowSettings Default
+        {
+            get
+            {
+                if (defaultShadowSettings == null)
+                {
+                    defaultShadowSettings = new ShadowSettings();
+                    defaultShadowSettings.enabled = true;
+                    defaultShadowSettings.shadowAtlasHeight = defaultShadowSettings.shadowAtlasWidth = 4096;
+                    defaultShadowSettings.directionalLightCascadeCount = 1;
+                    defaultShadowSettings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
+                    defaultShadowSettings.directionalLightCascadeCount = 4;
+                    defaultShadowSettings.directionalLightNearPlaneOffset = 5;
+                    defaultShadowSettings.maxShadowDistance = 1000.0F;
+                }
+                return defaultShadowSettings;
+            }
+        }
+    }
+
     [GenerateHLSL]
     public enum GPUShadowType
     {
@@ -204,9 +238,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             AdditionalLightData ald = l.GetComponent<AdditionalLightData>();
             Debug.Assert(ald != null, "Light has no valid AdditionalLightData component attached.");
 
-            GPULightType lightType;
             GPUShadowType shadowType;
-            ShadowUtils.MapLightType( ald.archetype, l.type, out lightType, out shadowType );
+            ShadowUtils.MapLightType( ald.archetype, l.type, out shadowType );
 
             // check if this has supported shadows
             if( (int) shadowType >= ShadowConstants.Counts.k_GPUShadowType )
@@ -309,7 +342,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public uint          payloadOffset;  // if this shadow type requires additional data it can be fetched from a global Buffer<uint> at payloadOffset.
 
         // light related params (need to be set via ShadowMgr and derivatives)
-        public GPULightType lightType;      // the light type
         public float        bias;           // bias setting
         public float        normalBias;     // bias based on the normal
 
@@ -668,6 +700,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void SyncData();
         // Binds resources to shader stages just before rendering the lighting pass
         void BindResources( ScriptableRenderContext renderContext );
+        // Fixes up some parameters within the cullResults
+        void UpdateCullingParameters( ref CullingParameters cullingParams );
     }
 
     abstract public class ShadowManagerBase : ShadowRegistry, IShadowManager
@@ -676,6 +710,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public    abstract void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
         public    abstract void SyncData();
         public    abstract void BindResources( ScriptableRenderContext renderContext );
+        public    abstract void UpdateCullingParameters( ref CullingParameters cullingParams );
         // sort the shadow requests in descending priority - may only modify shadowRequests
         protected abstract void PrioritizeShadowCasters( Camera camera, VisibleLight[] lights, uint shadowRequestsCount, int[] shadowRequests );
         // prune the shadow requests - may modify shadowRequests and shadowsCountshadowRequestsCount

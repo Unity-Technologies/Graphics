@@ -24,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public virtual void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput) { }
 #else
         public virtual int GetCurrentShadowCount() { return 0; }
+        public virtual void UpdateCullingParameters( ref CullingParameters cullingParams ) { }
         public virtual void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera) { }
 #endif
         public virtual void RenderShadows( ScriptableRenderContext renderContext, CullResults cullResults ) { }

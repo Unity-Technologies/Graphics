@@ -24,15 +24,36 @@ float3 EvalShadow_GetTexcoords( ShadowData sd, float3 positionWS )
 	return posTC;
 }
 
+int EvalShadow_GetCubeFaceID( float3 dir )
+{
+	// TODO: Use faceID intrinsic on console
+	float3 adir = abs(dir);
+
+	// +Z -Z
+	int faceIndex = dir.z > 0.0 ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
+
+	// +X -X
+	if (adir.x > adir.y && adir.x > adir.z)
+	{
+		faceIndex = dir.x > 0.0 ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
+	}
+	// +Y -Y
+	else if (adir.y > adir.x && adir.y > adir.z)
+	{
+		faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
+	}
+	return faceIndex;
+}
+
+
 //
 //	Point shadows
 //
 float EvalShadow_PointDepth( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int index, float3 L )
 {
 	// load the right shadow data for the current face
-	int faceIndex = 0;
-	GetCubeFaceID( L, faceIndex );
-	ShadowData sd = shadowContext.shadowDatas[index + 1 + faceIndex];
+	int faceIndex = EvalShadow_GetCubeFaceID( L ) + 1;
+	ShadowData sd = shadowContext.shadowDatas[index + faceIndex];
 	uint payloadOffset = GetPayloadOffset( sd );
 	// normal based bias
 	positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );
@@ -52,9 +73,8 @@ float EvalShadow_PointDepth( ShadowContext shadowContext, float3 positionWS, flo
 	float EvalShadow_PointDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, float3 positionWS, float3 normalWS, int index, float3 L )	\
 	{																																													\
 		/* load the right shadow data for the current face */																															\
-		int faceIndex = 0;																																								\
-		GetCubeFaceID( L, faceIndex );																																					\
-		ShadowData sd = shadowContext.shadowDatas[index + 1 + faceIndex];																												\
+		int faceIndex =  EvalShadow_GetCubeFaceID( L ) + 1;																																\
+		ShadowData sd = shadowContext.shadowDatas[index + faceIndex];																													\
 		uint payloadOffset = GetPayloadOffset( sd );																																	\
 		/* normal based bias */																																							\
 		positionWS += EvalShadow_NormalBias( normalWS, saturate( dot( normalWS, L ) ), sd.texelSizeRcp.zw, sd.normalBias );																\
@@ -124,8 +144,7 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, 
 	[branch]
 	if( shadowType == GPUSHADOWTYPE_POINT )
 	{
-		GetCubeFaceID( L, faceIndex );
-		faceIndex++;
+		faceIndex = EvalShadow_GetCubeFaceID( L ) + 1;
 	}
 
 	ShadowData sd = shadowContext.shadowDatas[index + faceIndex];
@@ -140,7 +159,7 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, 
 	UnpackShadowmapId( sd.id, texIdx, sampIdx, slice );
 	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
 	return SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sd.bias, slice, shadowAlgorithm, texIdx, sampIdx );
-}
+	}
 
 #define EvalShadow_PunctualDepth_( _samplerType )																																		\
 	float EvalShadow_PunctualDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, float3 positionWS, float3 normalWS, int index, float3 L )	\
@@ -154,8 +173,7 @@ float EvalShadow_PunctualDepth( ShadowContext shadowContext, float3 positionWS, 
 		[branch]																																										\
 		if( shadowType == GPUSHADOWTYPE_POINT )																																			\
 		{																																												\
-			GetCubeFaceID( L, faceIndex );																																				\
-			faceIndex++;																																								\
+			faceIndex = EvalShadow_GetCubeFaceID( L ) + 1;																																\
 		}																																												\
 																																														\
 		ShadowData sd = shadowContext.shadowDatas[index + faceIndex];																													\
