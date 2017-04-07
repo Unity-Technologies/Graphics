@@ -323,8 +323,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         specularLighting += localSpecularLighting;
     }
 
-    // Area are store with punctual, just offset the index
-    for (i = _PunctualLightCount; i < _AreaLightCount + _PunctualLightCount; ++i)
+    for (; i < _PunctualLightCount + _AreaLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
@@ -338,6 +337,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[i], bsdfData,
                                 localDiffuseLighting, localSpecularLighting);
         }
+
+        diffuseLighting += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
+    }
+
+    for (; i < _PunctualLightCount + _AreaLightCount + _ProjectorLightCount; ++i)
+    {
+        float3 localDiffuseLighting, localSpecularLighting;
+
+        EvaluateBSDF_Projector(  context, V, posInput, prelightData, _LightDatas[i], bsdfData,
+                                 localDiffuseLighting, localSpecularLighting);
 
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;

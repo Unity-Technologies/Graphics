@@ -1,6 +1,6 @@
 namespace UnityEngine.Experimental.Rendering
 {
-    public enum LightArchetype { Punctual, Rectangle, Line };
+    public enum LightArchetype { Punctual, Area, Projector };
 
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
@@ -40,12 +40,12 @@ namespace UnityEngine.Experimental.Rendering
         public bool affectSpecular = true;
 
         public LightArchetype archetype = LightArchetype.Punctual;
-        public bool isDoubleSided = false;
+        public bool isDoubleSided = false; // Rectangular area lights only
 
         [Range(0.0f, 20.0f)]
-        public float areaLightLength = 0.0f;
+        public float lightLength = 0.0f; // Area & projector lights
 
         [Range(0.0f, 20.0f)]
-        public float areaLightWidth = 0.0f;
+        public float lightWidth  = 0.0f; // Area & projector lights
     }
 }

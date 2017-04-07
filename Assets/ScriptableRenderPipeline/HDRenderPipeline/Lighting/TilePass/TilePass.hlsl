@@ -83,6 +83,7 @@ CBUFFER_START(UnityPerLightLoop)
 uint _DirectionalLightCount;
 uint _PunctualLightCount;
 uint _AreaLightCount;
+uint _ProjectorLightCount;
 uint _EnvLightCount;
 float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
 
