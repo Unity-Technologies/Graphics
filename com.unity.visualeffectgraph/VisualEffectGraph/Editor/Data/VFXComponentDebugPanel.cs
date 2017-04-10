@@ -165,7 +165,6 @@ public class VFXComponentDebugPanel
 
                 for(int i = 0; i < m_DebugStatMaxCapacity.Length; i++)
                 {
-                    Vector3 offset = new Vector3(40, 40);
                     Vector3[] points = new Vector3[m_DebugStatAliveHistory[i].Count];
                     for (int j = 0 ; j < m_DebugStatAliveHistory[i].Count; j++)
                     {
@@ -191,7 +190,6 @@ public class VFXComponentDebugPanel
 
 
                 var allsum = m_DebugStatCurrentData.Aggregate((a, b) => new VFXSystemComponentStat { alive = a.alive + b.alive, capacity = a.capacity + b.capacity });
-                var allpercentage = (float)allsum.alive / (float)allsum.capacity;
 
                 using (new GUILayout.HorizontalScope())
                 {

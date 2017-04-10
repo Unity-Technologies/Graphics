@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.UI
             {
                 anchor = CreateInstance<VFXOutputOperatorAnchorPresenter>();
             }
-            anchor.Init(model, slot, this, slot.id);
+            anchor.Init(model, slot, this);
 
             return anchor;
         }
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.UI
                 {
                     var X = x as VFXOperatorAnchorPresenter;
                     var Y = y as VFXOperatorAnchorPresenter;
-                    return X.slotID == Y.slotID
+                    return X.model == Y.model
                             && X.name == Y.name
                             && X.anchorType == Y.anchorType;
                 };

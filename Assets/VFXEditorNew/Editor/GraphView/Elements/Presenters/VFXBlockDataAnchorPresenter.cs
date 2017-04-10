@@ -19,15 +19,27 @@ namespace UnityEditor.VFX.UI
         private VFXSlot m_Model;
         public VFXSlot model { get { return m_Model; } }
 
+
+        private VFXLinkablePresenter m_SourceNode;
+
+        public VFXLinkablePresenter sourceNode
+        {
+            get
+            {
+                return m_SourceNode;
+            }
+        }
+
         public void Dirty()
         {
             m_DirtyHack = !m_DirtyHack;
         }
 
-        public void Init(VFXModel owner,VFXSlot model)
+        public void Init(VFXModel owner,VFXSlot model, VFXLinkablePresenter nodePresenter)
         {
             m_Owner = owner;
             m_Model = model;
+            m_SourceNode = nodePresenter;
         }
         public object value
         {
@@ -58,10 +70,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXBlockDataAnchorPresenter : VFXDataAnchorPresenter
     {
-
-        VFXBlockPresenter m_NodePresenter;
-
-        public bool expandable
+        public override bool expandable
         {
             get { return VFXBlockPresenter.IsTypeExpandable(anchorType); }
         }
@@ -69,9 +78,7 @@ namespace UnityEditor.VFX.UI
 
         public void Init(VFXModel owner, VFXSlot model, VFXBlockPresenter nodePresenter)
         {
-            base.Init(owner, model);
-
-            m_NodePresenter = nodePresenter;
+            base.Init(owner, model, nodePresenter);
 
             anchorType = model.property.type;
             name = model.property.name;
@@ -85,13 +92,13 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlockPresenter blockPresenter
         {
-            get { return m_NodePresenter; }
+            get { return sourceNode as VFXBlockPresenter; }
         }
 
 
         public void SetPropertyValue(object value)
         {
-            m_NodePresenter.PropertyValueChanged(this,value);
+            blockPresenter.PropertyValueChanged(this,value);
         }
 
 		public override void Connect(EdgePresenter edgePresenter)

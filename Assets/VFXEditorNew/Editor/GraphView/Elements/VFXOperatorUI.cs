@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.UI
         }
         public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
         {
-            return VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXOperatorAnchorPresenter);
+            return VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
         }
 
         public VFXOperatorUI()

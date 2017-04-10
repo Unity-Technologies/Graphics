@@ -176,11 +176,10 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXNodeEdgePresenter)
             {
                 var edge = element as VFXNodeEdgePresenter;
-                var to = edge.input as VFXOperatorAnchorPresenter;
+                var to = edge.input as VFXDataAnchorPresenter;
 
                 //Update connection (*wip* : will be a function of VFXOperator)
-                var toOperator = to.sourceNode.node;
-                var slot = toOperator.inputSlots.FirstOrDefault(s => s.id == to.slotID);
+                var slot = to.model;
                 if (slot != null)
                 {
                     slot.UnlinkAll();
@@ -246,23 +245,25 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private static void CollectParentOperator(VFXSlotContainerModel<VFXModel, VFXModel> operatorInput, HashSet<VFXSlotContainerModel<VFXModel, VFXModel>> listParent)
+        private static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> listParent)
         {
             listParent.Add(operatorInput);
             foreach (var input in operatorInput.inputSlots)
             {
                 if (input.HasLink())
                 {
-                    CollectParentOperator(input.refSlot.owner as VFXSlotContainerModel<VFXModel, VFXModel>, listParent);
+                    CollectParentOperator(input.refSlot.owner as IVFXSlotContainer, listParent);
                 }
             }
         }
 
-        private static void CollectChildOperator(VFXSlotContainerModel<VFXModel, VFXModel> operatorInput, HashSet<VFXSlotContainerModel<VFXModel, VFXModel>> hashChildren)
+        private static void CollectChildOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
         {
             hashChildren.Add(operatorInput);
 
-            var children = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(o => o.m_Owner).Cast<VFXSlotContainerModel<VFXModel, VFXModel>>());
+
+            var all = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(o => o.m_Owner)).ToArray();
+            var children = all.Cast<IVFXSlotContainer>();
             foreach (var child in children)
             {
                 CollectChildOperator(child, hashChildren);
@@ -279,12 +280,12 @@ namespace UnityEditor.VFX.UI
 
                 if (startAnchorPresenter.direction == Direction.Input)
                 {
-                    var startAnchorOperatorPresenter = (startAnchorPresenter as VFXOperatorAnchorPresenter);
+                    var startAnchorOperatorPresenter = (startAnchorPresenter as VFXDataAnchorPresenter);
                     if (startAnchorOperatorPresenter != null) // is is an input from another operator
                     {
 
-                        var currentOperator = startAnchorOperatorPresenter.sourceNode.node;
-                        var childrenOperators = new HashSet<VFXSlotContainerModel<VFXModel, VFXModel>>();
+                        var currentOperator = startAnchorOperatorPresenter.sourceNode.slotContainer;
+                        var childrenOperators = new HashSet<IVFXSlotContainer>();
                         CollectChildOperator(currentOperator, childrenOperators);
                         allOperatorPresenter = allOperatorPresenter.Where(o => !childrenOperators.Contains(o.node));
                         var toSlot = startAnchorOperatorPresenter.model;
@@ -301,9 +302,9 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    var startAnchorOperatorPresenter = (startAnchorPresenter as VFXOperatorAnchorPresenter);
-                    var currentOperator = startAnchorOperatorPresenter.sourceNode.node;
-                    var parentOperators = new HashSet<VFXSlotContainerModel<VFXModel, VFXModel>>();
+                    var startAnchorOperatorPresenter = (startAnchorPresenter as VFXDataAnchorPresenter);
+                    var currentOperator = startAnchorOperatorPresenter.sourceNode.slotContainer;
+                    var parentOperators = new HashSet<IVFXSlotContainer>();
                     CollectParentOperator(currentOperator, parentOperators);
                     allOperatorPresenter = allOperatorPresenter.Where(o => !parentOperators.Contains(o.node));
                     allCandidates = allOperatorPresenter.SelectMany(o => o.inputAnchors).Where(o =>
@@ -551,7 +552,7 @@ namespace UnityEditor.VFX.UI
             }
 
             if (presenter != null)
-				m_Elements.RemoveAll(x => (x == presenter)); // We dont call RemoveElement as it modifies the model...
+				m_Elements.RemoveAll(x => (bool)(x == presenter)); // We dont call RemoveElement as it modifies the model...
         }
 
         private void RemoveFlowEdges(IEnumerable<VFXContextPresenter> presenters)

@@ -8,35 +8,16 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXOperatorAnchorPresenter : VFXDataAnchorPresenter
     {
-        public void Init(VFXModel owner, VFXSlot model, VFXNodePresenter source, Guid slotId)
+        public void Init(VFXModel owner, VFXSlot model, VFXNodePresenter source)
         {
-            base.Init(owner, model);
-            m_SourceNode = source;
-            m_SlotID = slotId;
+            base.Init(owner, model,source);
         }
 
         //Ignore m_Connection, this information is store in model
         public override void Connect(EdgePresenter edgePresenter) {}
         public override void Disconnect(EdgePresenter edgePresenter) {}
 
-        private VFXNodePresenter m_SourceNode;
-        private Guid m_SlotID;
 
-        public VFXNodePresenter sourceNode
-        {
-            get
-            {
-                return m_SourceNode;
-            }
-        }
-
-        public Guid slotID
-        {
-            get
-            {
-                return m_SlotID;
-            }
-        }
     }
 
 

@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
                 || type == typeof(Vector4);
         }
 
-        protected virtual VFXExpression ConvertExpression(VFXExpression expression)
+        protected override VFXExpression ConvertExpression(VFXExpression expression)
         {
             /* if (expression == null)
              {

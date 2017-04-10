@@ -120,7 +120,6 @@ namespace UnityEditor.VFX
 
                 m_ParametersDescs = m_SlotDescs.Select(s =>
                 {
-                    var param = ScriptableObject.CreateInstance<VFXParameter>();
                     var desc = new VFXModelDescriptorParameters(s.Key);
                     return desc;
                 }).ToList();

@@ -74,8 +74,6 @@ namespace UnityEditor.VFX.UI
 
         PropertyRM      m_PropertyRM;
 
-        static int s_ContextCount = 1;
-
         public class GUIStyles
         {
             public GUIStyle baseStyle;
@@ -145,7 +143,7 @@ namespace UnityEditor.VFX.UI
 
 
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
-        public static VFXEditableDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
+        public static new VFXEditableDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
         {
             var anchor = new VFXEditableDataAnchor(presenter) {
                 m_EdgeConnector = new EdgeConnector<TEdgePresenter>()
