@@ -388,8 +388,9 @@ float ComputeTextureLOD(float2 uv, float4 texelSize)
 // Texture format sampling
 // ----------------------------------------------------------------------------
 
-float2 DirectionToLatLongCoordinate(float3 dir)
+float2 DirectionToLatLongCoordinate(float3 dir_in)
 {
+    float3 dir = normalize(dir_in);
     // coordinate frame is (-Z, X) meaning negative Z is primary axis and X is secondary axis.
     return float2(1.0 - 0.5 * INV_PI * atan2(dir.x, -dir.z), asin(dir.y) * INV_PI + 0.5);
 }
