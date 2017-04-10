@@ -9,10 +9,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXLinkablePresenter : NodePresenter
-    {
-        public abstract IVFXSlotContainer slotContainer { get; }
-    }
     class VFXBlockPresenter : VFXLinkablePresenter
     {
         public override IVFXSlotContainer slotContainer { get { return m_Model; } }
@@ -81,6 +77,11 @@ namespace UnityEditor.VFX.UI
         public VFXBlock Model
         {
             get { return m_Model; }
+        }
+
+        public override UnityEngine.Object[] GetObjectsToWatch()
+        {
+            return new UnityEngine.Object[] { this, m_Model };
         }
 
         public VFXContextPresenter ContextPresenter

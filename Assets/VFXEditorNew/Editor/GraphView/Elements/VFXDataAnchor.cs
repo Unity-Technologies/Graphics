@@ -22,6 +22,7 @@ namespace UnityEditor.VFX.UI
                 m_EdgeConnector = new EdgeConnector<TEdgePresenter>()
             };
             anchor.presenter = presenter;
+
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
         }

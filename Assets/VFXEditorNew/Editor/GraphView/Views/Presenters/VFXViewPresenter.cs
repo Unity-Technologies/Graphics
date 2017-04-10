@@ -70,6 +70,11 @@ namespace UnityEditor.VFX.UI
 
         public void RecreateNodeEdges()
         {
+            foreach( var edge in m_Elements.OfType<VFXDataEdgePresenter>() )
+            {
+                edge.input = null;
+                edge.output = null;
+            }
             m_Elements.RemoveAll(e => e is VFXDataEdgePresenter);
 
             var operatorPresenters = m_Elements.OfType<VFXNodePresenter>().Cast<VFXLinkablePresenter>();
@@ -125,7 +130,11 @@ namespace UnityEditor.VFX.UI
 				var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner as VFXContext;
 
 				VFXSystem.ConnectContexts(context0, context1, m_GraphAsset.root);
-			}
+
+                // disconnect this edge as it will not be added by add element
+                edge.input = null;
+                edge.output = null;
+            }
             else if (edge is VFXDataEdgePresenter)
             {
                 var flowEdge = edge as VFXDataEdgePresenter;
@@ -140,6 +149,10 @@ namespace UnityEditor.VFX.UI
                     slotInput.Link(slotOuput);
                     RecreateNodeEdges();
                 }
+
+                // disconnect this edge as it will not be added by add element
+                edge.input = null;
+                edge.output = null;
             }
             else
             {

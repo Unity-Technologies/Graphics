@@ -16,7 +16,12 @@ namespace UnityEditor.VFX.UI
         public VFXContext context       { get { return m_Model; } }
         public virtual VFXModel model   { get { return m_Model; } }
 
-		[SerializeField]
+        public override UnityEngine.Object[] GetObjectsToWatch()
+        {
+            return new UnityEngine.Object[] { this, m_Model };
+        }
+
+        [SerializeField]
         private List<VFXBlockPresenter> m_BlockPresenters;
 		public List<VFXBlockPresenter> blockPresenters
  		{

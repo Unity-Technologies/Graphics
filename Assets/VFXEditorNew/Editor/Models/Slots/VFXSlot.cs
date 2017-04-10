@@ -235,8 +235,10 @@ namespace UnityEditor.VFX
 
         protected override void Invalidate(VFXModel model,InvalidationCause cause)
         {
+            base.Invalidate(model, cause);
+            /*
             if (m_Owner != null && direction == Direction.kInput)
-                m_Owner.Invalidate(cause);
+                m_Owner.Invalidate(cause);*/
         }
 
         protected override void OnAdded()
