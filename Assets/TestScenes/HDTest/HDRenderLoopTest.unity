@@ -7168,7 +7168,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1085128921}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.3, y: 0, z: -2.0000005}
+  m_LocalPosition: {x: -0.0514, y: 0.39, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1.0000005}
   m_Children: []
   m_Father: {fileID: 2026378394}
@@ -12542,7 +12542,7 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 2
-  isDoubleSided: 1
+  isDoubleSided: 0
   lightLength: 3
   lightWidth: 2
 --- !u!108 &1879857774
@@ -12602,7 +12602,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1879857772}
   m_LocalRotation: {x: 0.000000059604645, y: 0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.31449968, y: -0.34166676, z: -2.5199997}
+  m_LocalPosition: {x: -0.3023, y: -0.2512, z: -2.904}
   m_LocalScale: {x: 0.05, y: 0.08333334, z: 1}
   m_Children: []
   m_Father: {fileID: 2026378394}
