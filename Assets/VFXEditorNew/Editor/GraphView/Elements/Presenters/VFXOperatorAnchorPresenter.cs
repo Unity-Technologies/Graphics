@@ -13,10 +13,6 @@ namespace UnityEditor.VFX.UI
             base.Init(owner, model,source);
         }
 
-        //Ignore m_Connection, this information is store in model
-        public override void Connect(EdgePresenter edgePresenter) {}
-        public override void Disconnect(EdgePresenter edgePresenter) {}
-
 
     }
 

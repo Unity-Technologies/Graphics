@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
 
         public void RecreateNodeEdges()
         {
-            m_Elements.RemoveAll(e => e is VFXNodeEdgePresenter);
+            m_Elements.RemoveAll(e => e is VFXDataEdgePresenter);
 
             var operatorPresenters = m_Elements.OfType<VFXNodePresenter>().Cast<VFXLinkablePresenter>();
             var blockPresenters = (m_Elements.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>())).Cast<VFXLinkablePresenter>();
@@ -83,10 +83,10 @@ namespace UnityEditor.VFX.UI
                 {
                     if (input.HasLink())
                     {
-                        var edgePresenter = CreateInstance<VFXNodeEdgePresenter>();
+                        var edgePresenter = CreateInstance<VFXDataEdgePresenter>();
 
-                        var operatorPresenterFrom = allLinkables.First(t => input.refSlot.owner == t.slotContainer);
-                        var operatorPresenterTo = allLinkables.First(t => modelOperator == t.slotContainer );
+                        var operatorPresenterFrom = allLinkables.FirstOrDefault(t => input.refSlot.owner == t.slotContainer);
+                        var operatorPresenterTo = allLinkables.FirstOrDefault(t => modelOperator == t.slotContainer );
 
                         if (operatorPresenterFrom != null && operatorPresenterTo != null)
                         {
@@ -158,7 +158,7 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXNodePresenter)
             {
                 var operatorPresenter = element as VFXNodePresenter;
-                var allSlots = operatorPresenter.node.inputSlots.Concat(operatorPresenter.node.outputSlots).ToArray();
+                var allSlots = operatorPresenter.node.inputSlots.Concat(operatorPresenter.node.outputSlots);
                 foreach (var slot in allSlots)
                 {
                     slot.UnlinkAll();
@@ -173,9 +173,9 @@ namespace UnityEditor.VFX.UI
 				if (context != null)
 					VFXSystem.DisconnectContext(context, m_GraphAsset.root);
 			}
-            else if (element is VFXNodeEdgePresenter)
+            else if (element is VFXDataEdgePresenter)
             {
-                var edge = element as VFXNodeEdgePresenter;
+                var edge = element as VFXDataEdgePresenter;
                 var to = edge.input as VFXDataAnchorPresenter;
 
                 //Update connection (*wip* : will be a function of VFXOperator)
@@ -262,7 +262,7 @@ namespace UnityEditor.VFX.UI
             hashChildren.Add(operatorInput);
 
 
-            var all = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(o => o.m_Owner)).ToArray();
+            var all = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(o => o.m_Owner));
             var children = all.Cast<IVFXSlotContainer>();
             foreach (var child in children)
             {

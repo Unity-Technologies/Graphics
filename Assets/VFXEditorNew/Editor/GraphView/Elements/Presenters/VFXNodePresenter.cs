@@ -60,8 +60,8 @@ namespace UnityEditor.VFX.UI
                 expanded = !model.collapsed;
                 title = node.name + " " + node.m_OnEnabledCount;
 
-                var newinputAnchors = node.inputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)).ToArray();
-                var newoutputAnchors = node.outputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)).ToArray();
+                var newinputAnchors = node.inputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input));
+                var newoutputAnchors = node.outputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output));
 
                 Func<NodeAnchorPresenter, NodeAnchorPresenter, bool> fnComparer = delegate (NodeAnchorPresenter x, NodeAnchorPresenter y)
                 {

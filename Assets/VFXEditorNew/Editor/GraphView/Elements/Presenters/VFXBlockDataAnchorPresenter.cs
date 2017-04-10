@@ -100,29 +100,6 @@ namespace UnityEditor.VFX.UI
         {
             blockPresenter.PropertyValueChanged(this,value);
         }
-
-		public override void Connect(EdgePresenter edgePresenter)
-		{
-			if (edgePresenter == null)
-			{
-				throw new ArgumentException("The value passed to VFXDataAnchorPresenter.Connect is null");
-			}
-
-			if (!m_Connections.Contains(edgePresenter))
-			{
-				m_Connections.Add(edgePresenter);
-			}
-		}
-
-        public override void Disconnect(EdgePresenter edgePresenter)
-		{
-			if (edgePresenter == null)
-			{
-				throw new ArgumentException("The value passed to VFXDataAnchorPresenter.Disconnect is null");
-			}
-
-			m_Connections.Remove(edgePresenter);
-		}
     }
 
     class VFXBlockDataInputAnchorPresenter : VFXBlockDataAnchorPresenter
