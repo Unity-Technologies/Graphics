@@ -1189,7 +1189,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Don't display warning for the preview windows
                             if (camera.cameraType != CameraType.Preview)
                             {
-                                Debug.LogWarningFormat("Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
+                                Debug.LogWarningFormat(light.light, "Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
                             }
                             additionalData = DefaultAdditionalLightData;
                         }
