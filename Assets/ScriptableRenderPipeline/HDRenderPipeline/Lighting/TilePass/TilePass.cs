@@ -1038,21 +1038,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Vector3 zAxisVS = worldToView.MultiplyVector(lightData.forward);
 
                     // Projector lights point forwards (along Z). The projection window is aligned with the XY plane.
-                    Vector3 boxDims     = new Vector3(lightData.size.x, lightData.size.y, 1000000.0f);
+                    Vector3 boxDims  = new Vector3(lightData.size.x, lightData.size.y, 1000000.0f);
+                    Vector3 halfDims = 0.5f * boxDims;
 
                     bound.center   = posVS;
-                    bound.boxAxisX = boxDims.x * xAxisVS;                                                   // Should this be halved or not?
-                    bound.boxAxisY = boxDims.y * yAxisVS;                                                   // Should this be halved or not?
-                    bound.boxAxisZ = boxDims.z * zAxisVS;                                                   // Should this be halved or not?
-                    bound.radius   = 0.5f * boxDims.magnitude;                                              // Radius of a circumscribed sphere?
+                    bound.boxAxisX = halfDims.x * xAxisVS;                                                    // Should this be halved or not?
+                    bound.boxAxisY = halfDims.y * yAxisVS;                                                    // Should this be halved or not?
+                    bound.boxAxisZ = halfDims.z * zAxisVS;                                                    // Should this be halved or not?
+                    bound.radius   = halfDims.magnitude;                                                      // Radius of a circumscribed sphere?
                     bound.scaleXY.Set(1.0f, 1.0f);
 
-                    lightVolumeData.lightPos   = posVS;                                                     // Is this the center of the volume?
-                    lightVolumeData.lightAxisX = xAxisVS;
-                    lightVolumeData.lightAxisY = yAxisVS;
-                    lightVolumeData.lightAxisZ = zAxisVS;
-                    lightVolumeData.boxInnerDist = boxDims * 0.5f;                                          // No idea what this is. Document your code
-                    lightVolumeData.boxInvRange.Set(1.0f / boxDims.x, 1.0f / boxDims.y, 1.0f / boxDims.z);  // No idea what this is. Document your code
+                    lightVolumeData.lightPos     = posVS;                                                     // Is this the center of the volume?
+                    lightVolumeData.lightAxisX   = xAxisVS;
+                    lightVolumeData.lightAxisY   = yAxisVS;
+                    lightVolumeData.lightAxisZ   = zAxisVS;
+                    lightVolumeData.boxInnerDist = halfDims;                                                  // No idea what this is. Document your code
+                    lightVolumeData.boxInvRange.Set(1.0f / halfDims.x, 1.0f / halfDims.y, 1.0f / halfDims.z); // No idea what this is. Document your code
                     lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_PROJECTOR;
                 }
                 else

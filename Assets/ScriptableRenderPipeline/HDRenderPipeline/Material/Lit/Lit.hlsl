@@ -1031,8 +1031,8 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     float distY = dot(unL, lightData.up);
 
     // Compute windowing factors using the dimensions of the light's "viewport".
-    float windowX = (abs(distX) <= lightData.size.x) ? 1 : 0;
-    float windowY = (abs(distY) <= lightData.size.y) ? 1 : 0;
+    float windowX = (abs(distX) <= 0.5 * lightData.size.x) ? 1 : 0;
+    float windowY = (abs(distY) <= 0.5 * lightData.size.y) ? 1 : 0;
 
     float illuminance = saturate(dot(bsdfData.normalWS, L) * (windowX * windowY));
 
