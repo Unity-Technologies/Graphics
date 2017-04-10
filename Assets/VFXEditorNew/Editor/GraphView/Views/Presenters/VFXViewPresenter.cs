@@ -78,33 +78,44 @@ namespace UnityEditor.VFX.UI
             var allLinkables = operatorPresenters.Concat(blockPresenters).ToArray();
             foreach (var operatorPresenter in allLinkables)
             {
-                var modelOperator = operatorPresenter.slotContainer;
-                foreach (var input in modelOperator.inputSlots)
+                var slotContainer = operatorPresenter.slotContainer;
+                foreach (var input in slotContainer.inputSlots)
                 {
-                    if (input.HasLink())
-                    {
-                        var edgePresenter = CreateInstance<VFXDataEdgePresenter>();
-
-                        var operatorPresenterFrom = allLinkables.FirstOrDefault(t => input.refSlot.owner == t.slotContainer);
-                        var operatorPresenterTo = allLinkables.FirstOrDefault(t => modelOperator == t.slotContainer );
-
-                        if (operatorPresenterFrom != null && operatorPresenterTo != null)
-                        {
-                            var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
-                            var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
-                            if (anchorFrom != null && anchorTo != null)
-                            {
-                                edgePresenter.output = anchorFrom;
-                                edgePresenter.input = anchorTo;
-                                base.AddElement(edgePresenter);
-                            }
-                        }
-                    }
+                    RecreateInputSlotEdge(allLinkables, slotContainer, input);
                 }
             }
         }
 
-		public override void AddElement(EdgePresenter edge)
+        public void RecreateInputSlotEdge(VFXLinkablePresenter[] allLinkables,IVFXSlotContainer slotContainer,VFXSlot input)
+        {
+            if (input.HasLink())
+            {
+                var edgePresenter = CreateInstance<VFXDataEdgePresenter>();
+
+                var operatorPresenterFrom = allLinkables.FirstOrDefault(t => input.refSlot.owner == t.slotContainer);
+                var operatorPresenterTo = allLinkables.FirstOrDefault(t => slotContainer == t.slotContainer);
+
+                if (operatorPresenterFrom != null && operatorPresenterTo != null)
+                {
+                    var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
+                    var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
+                    if (anchorFrom != null && anchorTo != null)
+                    {
+                        edgePresenter.output = anchorFrom;
+                        edgePresenter.input = anchorTo;
+                        base.AddElement(edgePresenter);
+                    }
+                }
+            }
+
+            foreach(VFXSlot subSlot in input.children)
+            {
+                RecreateInputSlotEdge(allLinkables, slotContainer,subSlot);
+            }
+        }
+
+
+        public override void AddElement(EdgePresenter edge)
 		{
 			if (edge is VFXFlowEdgePresenter)
 			{

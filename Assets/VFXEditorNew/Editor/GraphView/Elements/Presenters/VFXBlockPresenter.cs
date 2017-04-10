@@ -139,6 +139,8 @@ namespace UnityEditor.VFX.UI
             slot.expanded = true;
             
             m_DirtyHack = !m_DirtyHack;
+
+            slot.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         public void RetractPath(VFXSlot slot)
@@ -147,6 +149,8 @@ namespace UnityEditor.VFX.UI
             slot.expanded = false;
 
             m_DirtyHack = !m_DirtyHack;
+
+            slot.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         public static bool IsTypeExpandable(System.Type type)
