@@ -85,8 +85,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             struct Outputs
             {
             #ifdef OUTPUT_SPLIT_LIGHTING
-            	float4 specularLighting : SV_Target0;
-            	float3 diffuseLighting  : SV_Target1;
+                float4 specularLighting : SV_Target0;
+                float3 diffuseLighting  : SV_Target1;
             #else
                 float4 combinedLighting : SV_Target0;
             #endif
@@ -95,7 +95,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-			    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
@@ -107,14 +107,15 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
+                uint featureFlags = 0xFFFFFFFF;
+
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 float3 bakeDiffuseLighting;
-                DECODE_FROM_GBUFFER(gbuffer, bsdfData, bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(gbuffer, featureFlags, bsdfData, bakeDiffuseLighting);
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-                uint featureFlags = 0xFFFFFFFF;
                 float3 diffuseLighting;
                 float3 specularLighting;
                 LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);

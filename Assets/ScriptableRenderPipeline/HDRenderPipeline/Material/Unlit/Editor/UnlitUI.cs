@@ -38,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
         }
 
-        protected override void MaterialPropertiesGUI()
+        protected override void MaterialPropertiesGUI(Material material)
         {
             GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
 
@@ -46,6 +46,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+        }
+
+        protected override void VertexAnimationPropertiesGUI()
+        {
+
         }
 
         protected override bool ShouldEmissionBeEnabled(Material mat)
@@ -67,5 +72,4 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
         }
     }
-
 } // namespace UnityEditor

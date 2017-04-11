@@ -21,6 +21,15 @@
 #define LIGHTCATEGORY_COUNT (3)
 
 //
+// UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightFeatureFlags:  static fields
+//
+#define FEATURE_FLAG_LIGHT_PUNCTUAL (1)
+#define FEATURE_FLAG_LIGHT_AREA (2)
+#define FEATURE_FLAG_LIGHT_DIRECTIONAL (4)
+#define FEATURE_FLAG_LIGHT_ENV (8)
+#define FEATURE_FLAG_LIGHT_SKY (16)
+
+//
 // UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightDefinitions:  static fields
 //
 #define MAX_NR_LIGHTS_PER_CAMERA (1024)
@@ -33,41 +42,36 @@
 #define HAS_COOKIE_TEXTURE (2)
 #define IS_BOX_PROJECTED (4)
 #define HAS_SHADOW (8)
-#define FEATURE_FLAG_PUNCTUAL_LIGHT (1)
-#define FEATURE_FLAG_AREA_LIGHT (2)
-#define FEATURE_FLAG_DIRECTIONAL_LIGHT (4)
-#define FEATURE_FLAG_ENV_LIGHT (8)
-#define FEATURE_FLAG_SKY_LIGHT (16)
-#define NUM_FEATURE_VARIANTS (8)
+#define NUM_FEATURE_VARIANTS (16)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.TilePass.SFiniteLightBound
 // PackingRules = Exact
 struct SFiniteLightBound
 {
-	float3 boxAxisX;
-	float3 boxAxisY;
-	float3 boxAxisZ;
-	float3 center;
-	float2 scaleXY;
-	float radius;
+    float3 boxAxisX;
+    float3 boxAxisY;
+    float3 boxAxisZ;
+    float3 center;
+    float2 scaleXY;
+    float radius;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.TilePass.LightVolumeData
 // PackingRules = Exact
 struct LightVolumeData
 {
-	float3 lightPos;
-	uint lightVolume;
-	float3 lightAxisX;
-	uint lightCategory;
-	float3 lightAxisY;
-	float radiusSq;
-	float3 lightAxisZ;
-	float cotan;
-	float3 boxInnerDist;
-	uint featureFlags;
-	float3 boxInvRange;
-	float unused2;
+    float3 lightPos;
+    uint lightVolume;
+    float3 lightAxisX;
+    uint lightCategory;
+    float3 lightAxisY;
+    float radiusSq;
+    float3 lightAxisZ;
+    float cotan;
+    float3 boxInnerDist;
+    uint featureFlags;
+    float3 boxInvRange;
+    float unused2;
 };
 
 //
@@ -75,27 +79,27 @@ struct LightVolumeData
 //
 float3 GetBoxAxisX(SFiniteLightBound value)
 {
-	return value.boxAxisX;
+    return value.boxAxisX;
 }
 float3 GetBoxAxisY(SFiniteLightBound value)
 {
-	return value.boxAxisY;
+    return value.boxAxisY;
 }
 float3 GetBoxAxisZ(SFiniteLightBound value)
 {
-	return value.boxAxisZ;
+    return value.boxAxisZ;
 }
 float3 GetCenter(SFiniteLightBound value)
 {
-	return value.center;
+    return value.center;
 }
 float2 GetScaleXY(SFiniteLightBound value)
 {
-	return value.scaleXY;
+    return value.scaleXY;
 }
 float GetRadius(SFiniteLightBound value)
 {
-	return value.radius;
+    return value.radius;
 }
 
 //
@@ -103,51 +107,51 @@ float GetRadius(SFiniteLightBound value)
 //
 float3 GetLightPos(LightVolumeData value)
 {
-	return value.lightPos;
+    return value.lightPos;
 }
 uint GetLightVolume(LightVolumeData value)
 {
-	return value.lightVolume;
+    return value.lightVolume;
 }
 float3 GetLightAxisX(LightVolumeData value)
 {
-	return value.lightAxisX;
+    return value.lightAxisX;
 }
 uint GetLightCategory(LightVolumeData value)
 {
-	return value.lightCategory;
+    return value.lightCategory;
 }
 float3 GetLightAxisY(LightVolumeData value)
 {
-	return value.lightAxisY;
+    return value.lightAxisY;
 }
 float GetRadiusSq(LightVolumeData value)
 {
-	return value.radiusSq;
+    return value.radiusSq;
 }
 float3 GetLightAxisZ(LightVolumeData value)
 {
-	return value.lightAxisZ;
+    return value.lightAxisZ;
 }
 float GetCotan(LightVolumeData value)
 {
-	return value.cotan;
+    return value.cotan;
 }
 float3 GetBoxInnerDist(LightVolumeData value)
 {
-	return value.boxInnerDist;
+    return value.boxInnerDist;
 }
 uint GetFeatureFlags(LightVolumeData value)
 {
-	return value.featureFlags;
+    return value.featureFlags;
 }
 float3 GetBoxInvRange(LightVolumeData value)
 {
-	return value.boxInvRange;
+    return value.boxInvRange;
 }
 float GetUnused2(LightVolumeData value)
 {
-	return value.unused2;
+    return value.unused2;
 }
 
 

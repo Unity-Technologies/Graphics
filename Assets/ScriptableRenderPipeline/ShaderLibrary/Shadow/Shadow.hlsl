@@ -1,4 +1,4 @@
-#ifndef SHADOW_HLSL
+﻿#ifndef SHADOW_HLSL
 #define SHADOW_HLSL
 //
 // Shadow master include header.

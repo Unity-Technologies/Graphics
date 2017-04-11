@@ -20,11 +20,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Texture logLut = null;
 
             [Range(-0.10f,  0.1f)] public float neutralBlackIn    = 0.02f;
-            [Range( 1.00f, 20.0f)] public float neutralWhiteIn    = 10f;
+            [Range(1.00f, 20.0f)] public float neutralWhiteIn    = 10f;
             [Range(-0.09f,  0.1f)] public float neutralBlackOut   = 0f;
-            [Range( 1.00f, 19.0f)] public float neutralWhiteOut   = 10f;
-            [Range( 0.10f, 20.0f)] public float neutralWhiteLevel = 5.3f;
-            [Range( 1.00f, 10.0f)] public float neutralWhiteClip  = 10f;
+            [Range(1.00f, 19.0f)] public float neutralWhiteOut   = 10f;
+            [Range(0.10f, 20.0f)] public float neutralWhiteLevel = 5.3f;
+            [Range(1.00f, 10.0f)] public float neutralWhiteClip  = 10f;
         }
 
         [Serializable]
@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float speedDown = 1f;
 
             [Range(-16, -1)] public int logMin = -8;
-            [Range(  1, 16)] public int logMax = 4;
+            [Range(1, 16)] public int logMax = 4;
         }
 
         [Serializable]

@@ -18,14 +18,14 @@
 // PackingRules = Exact
 struct SurfaceData
 {
-	float3 color;
+    float3 color;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Unlit.BSDFData
 // PackingRules = Exact
 struct BSDFData
 {
-	float3 color;
+    float3 color;
 };
 
 

@@ -15,7 +15,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #define LIGHTLOOP_TILE_PASS           
+            #define LIGHTLOOP_TILE_PASS
             #define LIGHTLOOP_TILE_ALL
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
@@ -28,7 +28,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             #include "../../../ShaderLibrary/Common.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
-            // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem), 
+            // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "../../ShaderConfig.cs.hlsl"
@@ -42,7 +42,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             uint _ViewTilesFlags;
             uint _NumTiles;
             float2 _MousePixelCoord;
-            
+
             StructuredBuffer<uint> g_TileList;
             Buffer<uint> g_DispatchIndirectBuffer;
 
@@ -57,7 +57,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             {
                 uint quadIndex = vertexID / 6;
                 uint quadVertex = vertexID - quadIndex * 6;
-                quadVertex = (0x312210 >> (quadVertex<<2)) & 3;	//remap [0,5]->[0,3]
+                quadVertex = (0x312210 >> (quadVertex<<2)) & 3; //remap [0,5]->[0,3]
 
                 uint2 tileSize = GetTileSize();
 
@@ -90,7 +90,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             }
 #endif
 
-            float4 AlphaBlend(float4 c0, float4 c1)	// c1 over c0
+            float4 AlphaBlend(float4 c0, float4 c1) // c1 over c0
             {
                 return float4(lerp(c0.rgb, c1.rgb, c1.a), c0.a + c1.a - c0.a * c1.a);
             }
@@ -124,9 +124,9 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 float4 color = float4(PositivePow(col.xyz, 2.2), 0.3 * col.w);
                 if (n >= 0)
                 {
-                    if (SampleDebugFontNumber(coord, n))		// Shadow
+                    if (SampleDebugFontNumber(coord, n))        // Shadow
                         color = float4(0, 0, 0, 1);
-                    if (SampleDebugFontNumber(coord + 1, n))	// Text
+                    if (SampleDebugFontNumber(coord + 1, n))    // Text
                         color = float4(1, 1, 1, 1);
                 }
                 return color;
@@ -138,7 +138,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 PositionInputs posInput = GetPositionInput(positionCS.xy, _ScreenSize.zw, uint2(positionCS.xy) / GetTileSize());
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
- 
+
                 int2 pixelCoord = posInput.unPositionSS.xy;
                 int2 tileCoord = (float2)pixelCoord / TILE_SIZE;
                 int2 mouseTileCoord = _MousePixelCoord / TILE_SIZE;
@@ -161,7 +161,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
 #else
                 n = Variant;
 #endif
-                
+
                 float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
                 // Tile overlap counter

@@ -29,8 +29,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return false;
 
             return m_ProceduralSkySettings.skyHDRI != null &&
-                   m_ProceduralSkySettings.worldMieColorRamp != null &&
-                   m_ProceduralSkySettings.worldRayleighColorRamp != null;
+                m_ProceduralSkySettings.worldMieColorRamp != null &&
+                m_ProceduralSkySettings.worldRayleighColorRamp != null;
         }
 
         public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
@@ -94,9 +94,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var pixelRect = new Rect(0f, 0f, builtinParams.screenSize.x, builtinParams.screenSize.y);
             var scale = 1.0f; //(float)(int)occlusionDownscale;
             var depthTextureScaledTexelSize = new Vector4(scale / pixelRect.width,
-                                                          scale / pixelRect.height,
-                                                         -scale / pixelRect.width,
-                                                         -scale / pixelRect.height);
+                    scale / pixelRect.height,
+                    -scale / pixelRect.width,
+                    -scale / pixelRect.height);
             properties.SetVector("_DepthTextureScaledTexelSize", depthTextureScaledTexelSize);
 
             /*
@@ -164,7 +164,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         override public void RenderSky(BuiltinSkyParameters builtinParams, SkySettings skyParameters, bool renderForCubemap)
         {
-
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
 
             // Define select preprocessor symbols.
@@ -179,6 +178,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             builtinParams.renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
-
     }
 }

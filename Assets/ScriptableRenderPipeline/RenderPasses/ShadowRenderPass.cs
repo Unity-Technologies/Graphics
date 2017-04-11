@@ -1,5 +1,23 @@
 //#define SHADOWS_OLD
-#if SHADOWS_OLD
+#if !SHADOWS_OLD
+
+using UnityEngine.Rendering;
+using UnityEngine.Profiling;
+using System.Collections.Generic;
+using System;
+
+namespace UnityEngine.Experimental.Rendering
+{
+
+    public struct ShadowSliceData
+    {
+        public Matrix4x4    shadowTransform;
+        public int          atlasX;
+        public int          atlasY;
+        public int          shadowResolution;
+    }
+}
+#else
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using System.Collections.Generic;
@@ -372,7 +390,7 @@ namespace UnityEngine.Experimental.Rendering
                         var settings = new DrawShadowsSettings(cullResults, lightIndex);
                         var shadowResolution = shadowSlices[shadowSliceIndex].shadowResolution;
                         bool needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, s, shadowSliceCount, splitRatio,
-                            shadowResolution, m_Settings.directionalLightNearPlaneOffset, out view, out proj, out settings.splitData);
+                                shadowResolution, m_Settings.directionalLightNearPlaneOffset, out view, out proj, out settings.splitData);
 
                         packedShadows.directionalShadowSplitSphereSqr[s] = settings.splitData.cullingSphere;
                         packedShadows.directionalShadowSplitSphereSqr[s].w *= packedShadows.directionalShadowSplitSphereSqr[s].w;
@@ -388,6 +406,9 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var settings = new DrawShadowsSettings(cullResults, lightIndex);
                         bool needRendering = cullResults.ComputePointShadowMatricesAndCullingPrimitives(lightIndex, (CubemapFace)s, 2.0f, out view, out proj, out settings.splitData);
+
+                        // The view matrix for point lights flips primitives. We fix it here (by making it left-handed).
+                        view.SetRow(1, -view.GetRow(1));
 
                         SetupShadowSplitMatrices(ref shadowSlices[shadowSliceIndex], proj, view);
                         if (needRendering)
@@ -426,7 +447,7 @@ namespace UnityEngine.Experimental.Rendering
             //commandBuffer.ClearRenderTarget (true, true, Color.green);
             commandBuffer.SetGlobalVector("g_vLightDirWs", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z));
             commandBuffer.SetViewProjectionMatrices(view, proj);
-            //	commandBuffer.SetGlobalDepthBias (1.0F, 1.0F);
+            //  commandBuffer.SetGlobalDepthBias (1.0F, 1.0F);
             loop.ExecuteCommandBuffer(commandBuffer);
             commandBuffer.Dispose();
 

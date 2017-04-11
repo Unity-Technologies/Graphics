@@ -29,7 +29,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.unPositionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw, uint2(0, 0));
+    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
     UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
@@ -42,4 +42,3 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     EncodeDistortion(builtinData.distortion, builtinData.distortionBlur, outBuffer);
     return outBuffer;
 }
-

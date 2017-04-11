@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
 
@@ -65,13 +65,6 @@ void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint 
     start = tileOffset;
 }
 
-uint FetchIndexTile(uint tileOffset, uint lightIndex)
-{
-    const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
-    // Light index are store on 16bit
-    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1)] >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
-}
-
 #ifdef USE_FPTL_LIGHTLIST
 
 uint GetTileSize()
@@ -86,7 +79,9 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
 
 uint FetchIndex(uint tileOffset, uint lightIndex)
 {
-    return FetchIndexTile(tileOffset, lightIndex);
+    const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
+    // Light index are store on 16bit
+    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1)] >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
 }
 
 #elif defined(USE_CLUSTERED_LIGHTLIST)
@@ -117,11 +112,6 @@ void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out ui
     lightCount = (dataPair >> 27) & 31;
 }
 
-uint FetchIndexCluster(uint tileOffset, uint lightIndex)
-{
-    return g_vLightListGlobal[tileOffset + lightIndex];
-}
-
 void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
     if (_UseTileLightList)
@@ -132,10 +122,18 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
 
 uint FetchIndex(uint tileOffset, uint lightIndex)
 {
+    uint offset = tileOffset + lightIndex;
+    const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
+
     if (_UseTileLightList)
-        return FetchIndexTile(tileOffset, lightIndex);
-    else
-        return FetchIndexCluster(tileOffset, lightIndex);
+        offset = DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1);
+
+    // Avoid generated HLSL bytecode to always access g_vLightListGlobal with
+    // two different offsets, fixes out of bounds issue
+    uint value = g_vLightListGlobal[offset];
+
+    // Light index are store on 16bit
+    return (_UseTileLightList ? ((value >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff) : value);
 }
 
 #endif
@@ -160,7 +158,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
 #ifdef PROCESS_DIRECTIONAL_LIGHT
-    if(featureFlags & FEATURE_FLAG_DIRECTIONAL_LIGHT)
+    if(featureFlags & FEATURE_FLAG_LIGHT_DIRECTIONAL)
     {
         for(i = 0; i < _DirectionalLightCount; ++i)
         {
@@ -176,7 +174,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 #endif
 
 #ifdef PROCESS_PUNCTUAL_LIGHT
-    if(featureFlags & FEATURE_FLAG_PUNCTUAL_LIGHT)
+    if(featureFlags & FEATURE_FLAG_LIGHT_PUNCTUAL)
     {
         // TODO: Convert the for loop below to a while on each type as we know we are sorted!
         uint punctualLightStart;
@@ -197,7 +195,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 #endif
 
 #ifdef PROCESS_AREA_LIGHT
-    if(featureFlags & FEATURE_FLAG_AREA_LIGHT)
+    if(featureFlags & FEATURE_FLAG_LIGHT_AREA)
     {
         // TODO: Convert the for loop below to a while on each type as we know we are sorted!
         uint areaLightStart;
@@ -232,7 +230,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
 
     // Only apply sky IBL if the sky texture is available.
-    if(featureFlags & FEATURE_FLAG_SKY_LIGHT)
+    if(featureFlags & FEATURE_FLAG_LIGHT_SKY)
     {
         if(_EnvLightSkyEnabled)
         {
@@ -246,9 +244,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
         }
     }
-    
 
-    if(featureFlags & FEATURE_FLAG_ENV_LIGHT)
+
+    if(featureFlags & FEATURE_FLAG_LIGHT_ENV)
     {
         uint envLightStart;
         uint envLightCount;
@@ -264,7 +262,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
         }
     }
-    
+
 
     diffuseLighting += iblDiffuseLighting;
     specularLighting += iblSpecularLighting;
