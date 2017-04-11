@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
             name = model.property.name;
         }
 
-        public void UpdateInfos()
+        public void UpdateInfos(bool expanded)
         {
             anchorType = model.property.type;
         }

@@ -233,9 +233,21 @@ namespace UnityEditor.VFX
             }  
         }
 
+        void InvalidateChildren(VFXModel model, InvalidationCause cause)
+        {
+            foreach (var child in children)
+            {
+                child.OnInvalidate(model, cause);
+                child.InvalidateChildren(model, cause);
+            }
+        }
+
         protected override void Invalidate(VFXModel model,InvalidationCause cause)
         {
             base.Invalidate(model, cause);
+
+            InvalidateChildren(model, cause);
+            
             if (m_Owner != null && direction == Direction.kInput)
                 m_Owner.Invalidate(cause);
         }

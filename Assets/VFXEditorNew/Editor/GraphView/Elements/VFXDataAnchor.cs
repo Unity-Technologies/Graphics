@@ -62,6 +62,17 @@ namespace UnityEditor.VFX.UI
                     break;
             }
 
+            Debug.Log(presenter.path);
+
+            if(presenter.hidden)
+            {
+                AddToClassList("invisible");
+            }
+            else
+            {
+                RemoveFromClassList("invisible");
+            }
+
             clipChildren = false;
         }
     }

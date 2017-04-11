@@ -49,12 +49,12 @@ namespace UnityEditor.VFX.UI
                 Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter> newAnchors = new Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter>();
 
                 VFXBlock block = model as VFXBlock;
-                UpdateSlots(newAnchors, block.inputSlots);
+                UpdateSlots(newAnchors, block.inputSlots,true);
                 m_Anchors = newAnchors;
             }
         }
 
-        void UpdateSlots(Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter> newAnchors , IEnumerable<VFXSlot> slotList)
+        void UpdateSlots(Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter> newAnchors , IEnumerable<VFXSlot> slotList,bool expanded)
         {
             foreach (VFXSlot slot in slotList)
             {
@@ -66,11 +66,10 @@ namespace UnityEditor.VFX.UI
                 }
                 newAnchors[slot] = propPresenter;
 
-                propPresenter.UpdateInfos();
+                propPresenter.UpdateInfos(expanded);
                 inputAnchors.Add(propPresenter);
 
-                if( slot.expanded)
-                    UpdateSlots(newAnchors, slot.children);
+                UpdateSlots(newAnchors, slot.children, expanded && slot.expanded);
             }
         }
 

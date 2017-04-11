@@ -51,6 +51,20 @@ namespace UnityEditor.VFX.UI
 
         void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
+            m_Hidden = false;
+
+
+            VFXSlot parent = m_Model.GetParent();
+            while(parent != null)
+            {
+                if( ! parent.expanded)
+                {
+                    m_Hidden = true;
+                    break;
+                }
+                parent = parent.GetParent();
+            }
+
             Dirty();
         }
 
@@ -78,6 +92,17 @@ namespace UnityEditor.VFX.UI
         public virtual bool expandable
         {
             get { return false; }
+        }
+
+        [SerializeField]
+        private bool m_Hidden;
+
+        public bool hidden
+        {
+            get{
+
+                return m_Hidden;
+            }
         }
     }
 
