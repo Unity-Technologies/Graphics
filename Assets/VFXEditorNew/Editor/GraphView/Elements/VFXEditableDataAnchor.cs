@@ -172,7 +172,7 @@ namespace UnityEditor.VFX.UI
             if (m_PropertyRM != null)
             {
                 m_PropertyRM.enabled = ! presenter.connected;
-                m_PropertyRM.SetValue(presenter.value);
+                m_PropertyRM.Update();
             }
 
             clipChildren = false;

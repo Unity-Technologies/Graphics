@@ -23,6 +23,12 @@ namespace UnityEditor.VFX.UI
 
         public VisualElement m_Label;
 
+        public void Update()
+        {
+            m_Icon.backgroundImage = m_IconStates[m_Presenter.expanded && m_Presenter.expandable ? 1 : 0];
+            SetValue(m_Presenter.value);
+        }
+
         public PropertyRM(VFXDataAnchorPresenter presenter)
         {
             m_Presenter = presenter;
