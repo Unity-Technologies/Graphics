@@ -14,6 +14,15 @@
 #define MATERIALID_LIT_ANISO (4)
 
 //
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialFeatureFlags:  static fields
+//
+#define FEATURE_FLAG_MATERIAL_LIT_STANDARD (4096)
+#define FEATURE_FLAG_MATERIAL_LIT_SSS (8192)
+#define FEATURE_FLAG_MATERIAL_LIT_CLEAR_COAT (16384)
+#define FEATURE_FLAG_MATERIAL_LIT_SPECULAR (32768)
+#define FEATURE_FLAG_MATERIAL_LIT_ANISO (65536)
+
+//
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit.SurfaceData:  static fields
 //
 #define DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR (1000)
@@ -65,47 +74,47 @@
 // PackingRules = Exact
 struct SurfaceData
 {
-	float3 baseColor;
-	float specularOcclusion;
-	float3 normalWS;
-	float perceptualSmoothness;
-	int materialId;
-	float ambientOcclusion;
-	float3 tangentWS;
-	float anisotropy;
-	float metallic;
-	float specular;
-	float subsurfaceRadius;
-	float thickness;
-	int subsurfaceProfile;
-	float3 coatNormalWS;
-	float coatPerceptualSmoothness;
-	float3 specularColor;
+    float3 baseColor;
+    float specularOcclusion;
+    float3 normalWS;
+    float perceptualSmoothness;
+    int materialId;
+    float ambientOcclusion;
+    float3 tangentWS;
+    float anisotropy;
+    float metallic;
+    float specular;
+    float subsurfaceRadius;
+    float thickness;
+    int subsurfaceProfile;
+    float3 coatNormalWS;
+    float coatPerceptualSmoothness;
+    float3 specularColor;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit.BSDFData
 // PackingRules = Exact
 struct BSDFData
 {
-	float3 diffuseColor;
-	float3 fresnel0;
-	float specularOcclusion;
-	float3 normalWS;
-	float perceptualRoughness;
-	float roughness;
-	float materialId;
-	float3 tangentWS;
-	float3 bitangentWS;
-	float roughnessT;
-	float roughnessB;
-	float anisotropy;
-	float subsurfaceRadius;
-	float thickness;
-	int subsurfaceProfile;
-	bool enableTransmission;
-	float3 transmittance;
-	float3 coatNormalWS;
-	float coatRoughness;
+    float3 diffuseColor;
+    float3 fresnel0;
+    float specularOcclusion;
+    float3 normalWS;
+    float perceptualRoughness;
+    float roughness;
+    float materialId;
+    float3 tangentWS;
+    float3 bitangentWS;
+    float roughnessT;
+    float roughnessB;
+    float anisotropy;
+    float subsurfaceRadius;
+    float thickness;
+    int subsurfaceProfile;
+    bool enableTransmission;
+    float3 transmittance;
+    float3 coatNormalWS;
+    float coatRoughness;
 };
 
 

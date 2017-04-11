@@ -370,6 +370,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             File.WriteAllBytes(path, texture.EncodeToEXR(Texture2D.EXRFlags.CompressPIZ));
             AssetDatabase.Refresh();
         }
+
         #endregion
     }
 }

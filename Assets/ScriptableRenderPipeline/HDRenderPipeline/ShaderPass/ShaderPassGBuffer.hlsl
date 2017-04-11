@@ -25,27 +25,27 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif // TESSELLATION_ON
 
 void Frag(  PackedVaryingsToPS packedInput,
-			OUTPUT_GBUFFER(outGBuffer)
+            OUTPUT_GBUFFER(outGBuffer)
             OUTPUT_GBUFFER_VELOCITY(outVelocityBuffer)
             #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : SV_Depth
             #endif
-			)
+            )
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.unPositionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw, uint2(0, 0));
+    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
     UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
-	SurfaceData surfaceData;
-	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
+    SurfaceData surfaceData;
+    BuiltinData builtinData;
+    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
-	PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
 

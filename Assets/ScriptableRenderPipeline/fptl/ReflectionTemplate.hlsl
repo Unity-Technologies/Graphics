@@ -36,26 +36,26 @@ float3 ExecuteReflectionList(uint start, uint numReflProbes, float3 vP, float3 v
 
     float3 ints = 0;
 
-	// root ibl begin
-	{
-		Unity_GlossyEnvironmentData g;
-		g.roughness = percRoughness;
-		g.reflUVW = worldNormalRefl;
+    // root ibl begin
+    {
+        Unity_GlossyEnvironmentData g;
+        g.roughness = percRoughness;
+        g.reflUVW = worldNormalRefl;
 
-		half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(_reflRootCubeTexture), float4(_reflRootHdrDecodeMult, _reflRootHdrDecodeExp, 0.0, 0.0), g);
-		//half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), _reflRootSliceIndex, float4(_reflRootHdrDecodeMult, _reflRootHdrDecodeExp, 0.0, 0.0), g);
+        half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(_reflRootCubeTexture), float4(_reflRootHdrDecodeMult, _reflRootHdrDecodeExp, 0.0, 0.0), g);
+        //half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), _reflRootSliceIndex, float4(_reflRootHdrDecodeMult, _reflRootHdrDecodeExp, 0.0, 0.0), g);
 
-		UnityIndirect ind;
-		ind.diffuse = 0;
-		ind.specular = env0;// * data.occlusion;
-		ints = EvalIndirectSpecular(light, ind);
-	}
-	// root ibl end
+        UnityIndirect ind;
+        ind.diffuse = 0;
+        ind.specular = env0;// * data.occlusion;
+        ints = EvalIndirectSpecular(light, ind);
+    }
+    // root ibl end
 
     uint l=0;
-	// don't need the outer loop since the probes are sorted by volume type (currently one type in fact)
+    // don't need the outer loop since the probes are sorted by volume type (currently one type in fact)
     //while(l<numReflProbes)
-	if(numReflProbes>0)
+    if(numReflProbes>0)
     {
         uint uIndex = l<numReflProbes ? FetchIndex(start, l) : 0;
         uint uLgtType = l<numReflProbes ? g_vLightData[uIndex].lightType : 0;

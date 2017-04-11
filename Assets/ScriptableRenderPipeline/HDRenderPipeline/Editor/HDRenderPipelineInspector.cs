@@ -35,8 +35,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Subsurface Scattering Settings
             public readonly GUIContent[] sssProfiles             = new GUIContent[SubsurfaceScatteringSettings.maxNumProfiles] { new GUIContent("Profile #0"), new GUIContent("Profile #1"), new GUIContent("Profile #2"), new GUIContent("Profile #3"), new GUIContent("Profile #4"), new GUIContent("Profile #5"), new GUIContent("Profile #6"), new GUIContent("Profile #7") };
             public readonly GUIContent   sssNumProfiles          = new GUIContent("Number of profiles");
-            public readonly GUIContent   sssTexturingMode        = new GUIContent("Texturing mode", "Specifies when the diffuse texture should be applied.");
-            public readonly GUIContent[] sssTexturingModeOptions = new GUIContent[3] { new GUIContent("Pre-scatter", "Before the blurring pass. Effectively results in the diffuse texture getting blurred together with the lighting."), new GUIContent("Post-scatter", "After the blurring pass. Effectively preserves the sharpness of the diffuse texture."), new GUIContent("Pre- and post-scatter", "Both before and after the blurring pass.") };
 
             // Tile pass Settings
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
@@ -124,7 +122,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_RenderingUseDepthPrepass = null;
 
         // Subsurface Scattering Settings
-        SerializedProperty m_TexturingMode = null;
         SerializedProperty m_Profiles = null;
         SerializedProperty m_NumProfiles = null;
 
@@ -161,9 +158,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepass);
 
             // Subsurface Scattering Settings
-            m_TexturingMode = FindProperty(x => x.sssSettings.texturingMode);
-            m_Profiles      = FindProperty(x => x.sssSettings.profiles);
-            m_NumProfiles   = m_Profiles.FindPropertyRelative("Array.size");
+            m_Profiles    = FindProperty(x => x.sssSettings.profiles);
+            m_NumProfiles = m_Profiles.FindPropertyRelative("Array.size");
         }
 
         SerializedProperty FindProperty<TValue>(Expression<Func<HDRenderPipeline, TValue>> expr)
@@ -185,7 +181,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!attr.needParamDefines)
             {
-                return ;
+                return;
             }
 
             var fields = type.GetFields();
@@ -256,7 +252,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-
         private void MaterialDebugSettingsUI(HDRenderPipeline renderContext)
         {
             m_ShowMaterialDebug.boolValue = EditorGUILayout.Foldout(m_ShowMaterialDebug.boolValue, styles.materialDebugLabel);
@@ -273,12 +268,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // +1 for the zero case
                 var num = 1 + varyingNames.Length
-                          + gbufferNames.Length
-                          + typeof(Builtin.BuiltinData).GetFields().Length * 2 // BuildtinData are duplicated for each material
-                          + typeof(Lit.SurfaceData).GetFields().Length
-                          + typeof(Lit.BSDFData).GetFields().Length
-                          + typeof(Unlit.SurfaceData).GetFields().Length
-                          + typeof(Unlit.BSDFData).GetFields().Length;
+                    + gbufferNames.Length
+                    + typeof(Builtin.BuiltinData).GetFields().Length * 2       // BuildtinData are duplicated for each material
+                    + typeof(Lit.SurfaceData).GetFields().Length
+                    + typeof(Lit.BSDFData).GetFields().Length
+                    + typeof(Unlit.SurfaceData).GetFields().Length
+                    + typeof(Unlit.BSDFData).GetFields().Length;
 
                 styles.debugViewMaterialStrings = new GUIContent[num];
                 styles.debugViewMaterialValues = new int[num];
@@ -340,7 +335,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
 
             EditorGUILayout.PropertyField(m_NumProfiles, styles.sssNumProfiles);
-            m_TexturingMode.intValue = EditorGUILayout.Popup(styles.sssTexturingMode, m_TexturingMode.intValue, styles.sssTexturingModeOptions, (GUILayoutOption[])null);
 
             for (int i = 0, n = Math.Min(m_Profiles.arraySize, SubsurfaceScatteringSettings.maxNumProfiles); i < n; i++)
             {

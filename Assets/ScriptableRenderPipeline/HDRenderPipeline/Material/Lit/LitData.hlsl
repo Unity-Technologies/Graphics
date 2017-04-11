@@ -70,7 +70,7 @@ struct LayerTexCoord
 
     // Store information that will be share by all UVMapping
     float3 vertexNormalWS; // TODO: store also object normal map for object triplanar
-    float3 triplanarWeights;    
+    float3 triplanarWeights;
 
 #ifdef SURFACE_GRADIENT
     // tangent basis for each UVSet - up to 4 for now
@@ -160,7 +160,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     _UVMappingMask = float4(1.0, 0.0, 0.0, 0.0);
-    ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, 
+    ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3,
                             positionWS, mappingType, _TexWorldScale, layerTexCoord);
 }
 
@@ -457,11 +457,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
-#undef _NORMALMAP_IDX 
-#undef _NORMALMAP_TANGENT_SPACE_IDX 
-#undef _DETAIL_MAP_IDX 
-#undef _MASKMAP_IDX 
-#undef _SPECULAROCCLUSIONMAP_IDX 
+#undef _NORMALMAP_IDX
+#undef _NORMALMAP_TANGENT_SPACE_IDX
+#undef _DETAIL_MAP_IDX
+#undef _MASKMAP_IDX
+#undef _SPECULAROCCLUSIONMAP_IDX
 
 #define LAYER_INDEX 1
 #define ADD_IDX(Name) Name##1
@@ -483,11 +483,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
-#undef _NORMALMAP_IDX 
-#undef _NORMALMAP_TANGENT_SPACE_IDX 
-#undef _DETAIL_MAP_IDX 
-#undef _MASKMAP_IDX 
-#undef _SPECULAROCCLUSIONMAP_IDX 
+#undef _NORMALMAP_IDX
+#undef _NORMALMAP_TANGENT_SPACE_IDX
+#undef _DETAIL_MAP_IDX
+#undef _MASKMAP_IDX
+#undef _SPECULAROCCLUSIONMAP_IDX
 
 #define LAYER_INDEX 2
 #define ADD_IDX(Name) Name##2
@@ -509,11 +509,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
-#undef _NORMALMAP_IDX 
-#undef _NORMALMAP_TANGENT_SPACE_IDX 
-#undef _DETAIL_MAP_IDX 
-#undef _MASKMAP_IDX 
-#undef _SPECULAROCCLUSIONMAP_IDX 
+#undef _NORMALMAP_IDX
+#undef _NORMALMAP_TANGENT_SPACE_IDX
+#undef _DETAIL_MAP_IDX
+#undef _MASKMAP_IDX
+#undef _SPECULAROCCLUSIONMAP_IDX
 
 #define LAYER_INDEX 3
 #define ADD_IDX(Name) Name##3
@@ -535,11 +535,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #include "LitDataInternal.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
-#undef _NORMALMAP_IDX 
-#undef _NORMALMAP_TANGENT_SPACE_IDX 
-#undef _DETAIL_MAP_IDX 
-#undef _MASKMAP_IDX 
-#undef _SPECULAROCCLUSIONMAP_IDX 
+#undef _NORMALMAP_IDX
+#undef _NORMALMAP_TANGENT_SPACE_IDX
+#undef _DETAIL_MAP_IDX
+#undef _MASKMAP_IDX
+#undef _SPECULAROCCLUSIONMAP_IDX
 
 float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
 {
@@ -606,7 +606,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     float4x4 worldTransform = GetObjectToWorldMatrix();
     // assuming uniform scaling, take only the first column
     tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-#endif  
+#endif
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR0)
@@ -628,7 +628,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #elif defined(_LAYER_MAPPING_TRIPLANAR1)
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
-    ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, 
+    ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3,
                             positionWS, mappingType, _TexWorldScale1, layerTexCoord, _LayerTiling1 * tileObjectScale);
 
     mappingType = UV_MAPPING_UVSET;
@@ -637,7 +637,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #elif defined(_LAYER_MAPPING_TRIPLANAR2)
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
-    ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, 
+    ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3,
                             positionWS, mappingType, _TexWorldScale2, layerTexCoord, _LayerTiling2 * tileObjectScale);
 
     mappingType = UV_MAPPING_UVSET;
@@ -646,7 +646,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #elif defined(_LAYER_MAPPING_TRIPLANAR3)
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
-    ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, 
+    ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3,
                             positionWS, mappingType, _TexWorldScale3, layerTexCoord, _LayerTiling3 * tileObjectScale);
 }
 
@@ -672,7 +672,7 @@ void ApplyTessellationTileScale(inout float height0, inout float height1, inout 
     float4x4 worldTransform = GetObjectToWorldMatrix();
     // assuming uniform scaling, take only the first column
     tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-    #endif  
+    #endif
 
     height0 /= _LayerTiling0 * max(_BaseColorMap0_ST.x, _BaseColorMap0_ST.y);
     #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
@@ -720,7 +720,7 @@ void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
 #if _LAYER_COUNT > 2
     masks[2] = inputMasks.g;
 #else
-    masks[2] = 0.0;  
+    masks[2] = 0.0;
 #endif
 #if _LAYER_COUNT > 3
     masks[3] = inputMasks.b;
@@ -745,7 +745,7 @@ void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
 // Caution: Blend mask are Layer 1 R - Layer 2 G - Layer 3 B - Main Layer A
 float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLodSampling = false, float lod = 0)
 {
-    // Caution: 
+    // Caution:
     // Blend mask are Main Layer A - Layer 1 R - Layer 2 G - Layer 3 B
     // Value for main layer is not use for blending itself but for alternate weighting like density.
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
@@ -963,7 +963,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         SetEnabledHeightByLayer(weights[0], weights[1], weights[2], weights[3]);
 
         PerPixelHeightDisplacementParam ppdParam;
-#if defined(_MAIN_LAYER_INFLUENCE_MODE)        
+#if defined(_MAIN_LAYER_INFLUENCE_MODE)
         // For per pixel displacement we need to have normalized height scale to calculate the interesection (required by the algorithm we use)
         // mean that we will normalize by the highest amplitude.
         // We store this normalization factor with the weights as it will be multiply by the readed height.

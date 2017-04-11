@@ -12,15 +12,18 @@
 #include "../ShaderBase.hlsl"
 #include "../TilePass.cs.hlsl"
 #include "../LightingConvexHullUtils.hlsl"
-#include "../FeatureFlags.hlsl"
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 #include "../SortingComputeUtils.hlsl"
 #endif
 
+#define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
+#include "../../../Material/Material.hlsl" // This include Material.hlsl
+#include "../FeatureFlags.hlsl"
+
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
-
+#define USE_MATERIAL_FEATURE_FLAGS
 
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
@@ -70,6 +73,10 @@ uniform uint g_BaseFeatureFlags;
 groupshared uint ldsFeatureFlags;
 RWBuffer<uint> g_DispatchIndirectBuffer;
 RWStructuredBuffer<uint> g_TileList;
+
+#ifdef USE_MATERIAL_FEATURE_FLAGS
+DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
+#endif
 #endif
 
 
@@ -116,7 +123,6 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #ifdef FINE_PRUNING_ENABLED
 void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths);
 #endif
-
 
 [numthreads(NR_THREADS, 1, 1)]
 void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
@@ -187,8 +193,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	// build coarse list using AABB
 #ifdef USE_TWO_PASS_TILED_LIGHTING
-	int NrBigTilesX = (nrTilesX+3)>>2;
-	const int bigTileIdx = (tileIDX.y>>2)*NrBigTilesX + (tileIDX.x>>2);		// map the idx to 64x64 tiles
+	const uint log2BigTileToTileRatio = firstbithigh(64) - firstbithigh(16);
+
+	int NrBigTilesX = (nrTilesX+((1<<log2BigTileToTileRatio)-1))>>log2BigTileToTileRatio;
+	const int bigTileIdx = (tileIDX.y>>log2BigTileToTileRatio)*NrBigTilesX + (tileIDX.x>>log2BigTileToTileRatio);		// map the idx to 64x64 tiles
 	int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*bigTileIdx+0];
 	for(int l0=(int) t; l0<(int) nrBigTileLights; l0 += NR_THREADS)
 	{
@@ -223,7 +231,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
 #endif
 
-#ifndef FINE_PRUNING_ENABLED	
+#ifndef FINE_PRUNING_ENABLED
 	{
 		if((int)t<iNrCoarseLights) prunedList[t] = coarseList[t];
 		if(t==0) ldsNrLightsFinal=iNrCoarseLights;
@@ -263,12 +271,35 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 #ifdef USE_FEATURE_FLAGS
+#ifdef USE_MATERIAL_FEATURE_FLAGS
+	float2 invScreenSize = float2(1.0f / iWidth, 1.0f / iHeight);
+	uint materialFeatureFlags = 0;
+	{
+		[unroll]
+		for(int i = 0; i < 4; i++)
+		{
+			int idx = i * NR_THREADS + t;
+			uint2 uCrd = min(uint2(viTilLL.x + (idx & 0xf), viTilLL.y + (idx >> 4)), uint2(iWidth - 1, iHeight - 1));
+			if(FetchDepth(g_depth_tex, uCrd) < VIEWPORT_SCALE_Z)		// if not skydome. //TODO: reuse depths from before
+			{
+				PositionInputs posInput = GetPositionInput(uCrd, invScreenSize);
+				FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
+				materialFeatureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(gbuffer);
+			}
+		}
+	}
+	InterlockedOr(ldsFeatureFlags, materialFeatureFlags);	//TODO: driver might optimize this or we might have to do a manual reduction
+	GroupMemoryBarrierWithGroupSync();
+#else
+	uint materialFeatureFlags = 0xFFFFF000;
+#endif
+	
 	if(t == 0)
 	{
 		uint featureFlags = g_BaseFeatureFlags | ldsFeatureFlags;
 		if(ldsZMax < ldsZMin)	// is background pixel
 		{
-			featureFlags &= ~(FEATURE_FLAG_PUNCTUAL_LIGHT | FEATURE_FLAG_AREA_LIGHT | FEATURE_FLAG_DIRECTIONAL_LIGHT | FEATURE_FLAG_ENV_LIGHT);	// list of features that are not enabled on background
+			featureFlags &= ~(FEATURE_FLAG_LIGHT_PUNCTUAL | FEATURE_FLAG_LIGHT_AREA | FEATURE_FLAG_LIGHT_DIRECTIONAL | FEATURE_FLAG_LIGHT_ENV | 0xFFFFF);	// list of features that are not enabled on background
 		}
 
 		uint variant = FeatureFlagsToTileVariant(featureFlags);
@@ -295,7 +326,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
 		{
 			// We remap the prunedList index to the original LightData / EnvLightData indices
-			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[2 * l - 1 + localOffs] - shiftIndex[category];
+ 			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[max(0,2 * l - 1 + localOffs)] - shiftIndex[category];
 			uint uHigh = prunedList[2 * l + 0 + localOffs] - shiftIndex[category];
 
 			g_vLightList[16*offs + l] = (uLow&0xffff) | (uHigh<<16);

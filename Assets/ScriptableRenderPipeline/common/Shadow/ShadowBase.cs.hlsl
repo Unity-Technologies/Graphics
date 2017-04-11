@@ -1,4 +1,4 @@
-//
+﻿//
 // This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Shadow/ShadowBase.cs.  Please don't edit by hand.
 //
 
