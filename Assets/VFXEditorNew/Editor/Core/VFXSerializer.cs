@@ -287,21 +287,30 @@ namespace UnityEditor.VFX
                 JsonUtility.FromJsonOverwrite(text, gw);
 
                 gradient.mode = gw.gradientMode;
-                GradientColorKey[] colorKeys = new GradientColorKey[gw.colorKeys.Length];
 
-                for (int i = 0; i < gw.colorKeys.Length; ++i)
+                GradientColorKey[] colorKeys = null;
+                if (gw.colorKeys != null)
                 {
-                    colorKeys[i].color = gw.colorKeys[i].color;
-                    colorKeys[i].time = gw.colorKeys[i].time;
+                    colorKeys = new GradientColorKey[gw.colorKeys.Length];
+                    for (int i = 0; i < gw.colorKeys.Length; ++i)
+                    {
+                        colorKeys[i].color = gw.colorKeys[i].color;
+                        colorKeys[i].time = gw.colorKeys[i].time;
+                    }
                 }
-                
 
-                GradientAlphaKey[] alphaKeys = new GradientAlphaKey[gw.alphaKeys.Length];
-                for (int i = 0; i < gw.alphaKeys.Length; ++i)
+                GradientAlphaKey[] alphaKeys = null;
+
+                if (gw.alphaKeys != null)
                 {
-                    alphaKeys[i].alpha = gw.alphaKeys[i].alpha;
-                    alphaKeys[i].time = gw.alphaKeys[i].time;
+                    alphaKeys = new GradientAlphaKey[gw.alphaKeys.Length];
+                    for (int i = 0; i < gw.alphaKeys.Length; ++i)
+                    {
+                        alphaKeys[i].alpha = gw.alphaKeys[i].alpha;
+                        alphaKeys[i].time = gw.alphaKeys[i].time;
+                    }
                 }
+
                 gradient.SetKeys(colorKeys, alphaKeys);
                 return gradient;
             }
