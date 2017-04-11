@@ -222,6 +222,28 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     }
 #endif
 
+#ifdef PROCESS_PROJECTOR_LIGHT
+    if(featureFlags & FEATURE_FLAG_LIGHT_PROJECTOR)
+    {
+        // TODO: Convert the for loop below to a while on each type as we know we are sorted!
+        uint projectorLightStart;
+        uint projectorLightCount;
+        GetCountAndStart(posInput, LIGHTCATEGORY_PROJECTOR, projectorLightStart, projectorLightCount);
+        for(i = 0; i < projectorLightCount; ++i)
+        {
+            float3 localDiffuseLighting, localSpecularLighting;
+
+            uint projectorIndex = FetchIndex(projectorLightStart, i);
+
+            EvaluateBSDF_Projector(context, V, posInput, prelightData, _LightDatas[projectorIndex], bsdfData,
+                                   localDiffuseLighting, localSpecularLighting);
+
+            diffuseLighting += localDiffuseLighting;
+            specularLighting += localSpecularLighting;
+        }
+    }
+#endif
+
 #ifdef PROCESS_ENV_LIGHT
     float3 iblDiffuseLighting = float3(0.0, 0.0, 0.0);
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
@@ -323,8 +345,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         specularLighting += localSpecularLighting;
     }
 
-    // Area are store with punctual, just offset the index
-    for (i = _PunctualLightCount; i < _AreaLightCount + _PunctualLightCount; ++i)
+    for (; i < _PunctualLightCount + _AreaLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
@@ -338,6 +359,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[i], bsdfData,
                                 localDiffuseLighting, localSpecularLighting);
         }
+
+        diffuseLighting += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
+    }
+
+    for (; i < _PunctualLightCount + _AreaLightCount + _ProjectorLightCount; ++i)
+    {
+        float3 localDiffuseLighting, localSpecularLighting;
+
+        EvaluateBSDF_Projector(  context, V, posInput, prelightData, _LightDatas[i], bsdfData,
+                                 localDiffuseLighting, localSpecularLighting);
 
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;
