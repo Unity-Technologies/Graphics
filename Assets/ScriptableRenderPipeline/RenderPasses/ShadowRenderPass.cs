@@ -1,23 +1,5 @@
 //#define SHADOWS_OLD
-#if !SHADOWS_OLD
-
-using UnityEngine.Rendering;
-using UnityEngine.Profiling;
-using System.Collections.Generic;
-using System;
-
-namespace UnityEngine.Experimental.Rendering
-{
-
-    public struct ShadowSliceData
-    {
-        public Matrix4x4    shadowTransform;
-        public int          atlasX;
-        public int          atlasY;
-        public int          shadowResolution;
-    }
-}
-#else
+#if SHADOWS_OLD
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using System.Collections.Generic;
