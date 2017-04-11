@@ -229,6 +229,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+
+        public virtual IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
+        {
+            foreach (var anchor in GetAllDataAnchors(input, output))
+            {
+                yield return anchor;
+            }
+            foreach (var anchor in GetAllFlowAnchors(input, output))
+            {
+                yield return anchor;
+            }
+        }
+
         public override IEnumerable<Node> GetAllNodes()
         {
             foreach (var node in base.GetAllNodes())
@@ -248,6 +262,8 @@ namespace UnityEditor.VFX.UI
                         {
                             yield return block;
                         }
+
+
                     }
                 }
             }
