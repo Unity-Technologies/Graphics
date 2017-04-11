@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientSkyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
@@ -1188,7 +1188,7 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
-  m_Cookie: {fileID: 2800000, guid: 32c4b9c8ddc1c5d49ac7d10122540447, type: 3}
+  m_Cookie: {fileID: 2800000, guid: a5f5ba3665c610f469d392e02dadb3bd, type: 3}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
   m_RenderMode: 0
@@ -7219,7 +7219,7 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
-  m_Cookie: {fileID: 2800000, guid: 32c4b9c8ddc1c5d49ac7d10122540447, type: 3}
+  m_Cookie: {fileID: 2800000, guid: a5f5ba3665c610f469d392e02dadb3bd, type: 3}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
   m_RenderMode: 0
@@ -12543,7 +12543,7 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 2
   isDoubleSided: 0
-  lightLength: 3
+  lightLength: 2
   lightWidth: 2
 --- !u!108 &1879857774
 Light:
@@ -12556,8 +12556,8 @@ Light:
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 5
-  m_Range: 6
-  m_SpotAngle: 30
+  m_Range: 53.4
+  m_SpotAngle: 64.6
   m_CookieSize: 10
   m_Shadows:
     m_Type: 0
@@ -12567,7 +12567,7 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
-  m_Cookie: {fileID: 2800000, guid: 32c4b9c8ddc1c5d49ac7d10122540447, type: 3}
+  m_Cookie: {fileID: 2800000, guid: a5f5ba3665c610f469d392e02dadb3bd, type: 3}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
   m_RenderMode: 0
@@ -12601,13 +12601,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1879857772}
-  m_LocalRotation: {x: 0.000000059604645, y: 0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.3023, y: -0.2512, z: -2.904}
-  m_LocalScale: {x: 0.05, y: 0.08333334, z: 1}
+  m_LocalRotation: {x: 0.00034031898, y: -0.0000031154561, z: 0.009154134, w: 0.9999581}
+  m_LocalPosition: {x: -0.3824, y: -0.0218, z: -2.733}
+  m_LocalScale: {x: 0, y: 0, z: 1.855337}
   m_Children: []
   m_Father: {fileID: 2026378394}
   m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 90.00001, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0.039, y: 0, z: 1.049}
 --- !u!1 &1883914490
 GameObject:
   m_ObjectHideFlags: 0
@@ -13515,7 +13515,7 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
-  m_Cookie: {fileID: 2800000, guid: 32c4b9c8ddc1c5d49ac7d10122540447, type: 3}
+  m_Cookie: {fileID: 2800000, guid: a5f5ba3665c610f469d392e02dadb3bd, type: 3}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
   m_RenderMode: 0
@@ -13682,7 +13682,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: f03665895dc89b84487310c5216b8458, type: 2}
+  - {fileID: 2100000, guid: 85906790251341e47ab35a0e55892d43, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -13729,7 +13729,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2026378390}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -125, y: -0, z: 36}
+  m_LocalPosition: {x: -122.356, y: 0, z: 35.449}
   m_LocalScale: {x: 20, y: 12, z: 1}
   m_Children:
   - {fileID: 858501139}

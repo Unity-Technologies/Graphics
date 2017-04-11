@@ -890,14 +890,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightVolumeData.lightCategory = (uint)lightCategory;
                 lightVolumeData.lightVolume = (uint)lightVolumeType;
 
-                if (gpuLightType == GPULightType.Spot)
+                if (gpuLightType == GPULightType.Spot || gpuLightType == GPULightType.ProjectorPyramid)
                 {
-                    Vector3 lightDir = lightToWorld.GetColumn(2);   // Z axis in world space
+                    Vector3 lightDir = lightToWorld.GetColumn(2);
 
                     // represents a left hand coordinate system in world space
                     Vector3 vx = lightToWorld.GetColumn(0);     // X axis in world space
                     Vector3 vy = lightToWorld.GetColumn(1);     // Y axis in world space
-                    var vz = lightDir;                      // Z axis in world space
+                    Vector3 vz = lightDir;                      // Z axis in world space
 
                     // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
                     vx = worldToView.MultiplyVector(vx);
@@ -908,9 +908,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     const float degToRad = (float)(pi / 180.0);
 
                     var sa = light.light.spotAngle;
-
                     var cs = Mathf.Cos(0.5f * sa * degToRad);
                     var si = Mathf.Sin(0.5f * sa * degToRad);
+
+                    if (gpuLightType == GPULightType.ProjectorPyramid)
+                    {
+                        Vector3 lightPosToProjWindowCorner = (0.5f * lightData.size.x) * vx + (0.5f * lightData.size.y) * vy + 1.0f * vz;
+                        cs = Vector3.Dot(vz, Vector3.Normalize(lightPosToProjWindowCorner));
+                        si = Mathf.Sqrt(1.0f - cs * cs);
+                    }
 
                     const float FltMax = 3.402823466e+38F;
                     var ta = cs > 0.0f ? (si / cs) : FltMax;
@@ -936,8 +942,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     fAltDx *= range; fAltDy *= range;
 
-                    // Handle case of pyramid with this select
-                    var altDist = Mathf.Sqrt(fAltDy * fAltDy + (gpuLightType == GPULightType.Spot ? 1.0f : 2.0f) * fAltDx * fAltDx);
+                    // Handle case of pyramid with this select (currently unused)
+                    var altDist = Mathf.Sqrt(fAltDy * fAltDy + (true ? 1.0f : 2.0f) * fAltDx * fAltDx);
                     bound.radius = altDist > (0.5f * range) ? altDist : (0.5f * range);       // will always pick fAltDist
                     bound.scaleXY = squeeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
 
@@ -947,7 +953,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightVolumeData.lightPos = worldToView.MultiplyPoint(lightPos);
                     lightVolumeData.radiusSq = range * range;
                     lightVolumeData.cotan = cota;
-                    lightVolumeData.featureFlags = LightFeatureFlags.FEATURE_FLAG_LIGHT_PUNCTUAL;
+                    lightVolumeData.featureFlags = (gpuLightType == GPULightType.Spot) ? LightFeatureFlags.FEATURE_FLAG_LIGHT_PUNCTUAL
+                                                                                       : LightFeatureFlags.FEATURE_FLAG_LIGHT_PROJECTOR;
                 }
                 else if (gpuLightType == GPULightType.Point)
                 {
@@ -1265,7 +1272,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 break;
 
                             default:
-                                continue;
+                                Debug.Assert(false, "TODO: encountered an unknown LightType.");
+                                break;
                         }
                     }
                     else
@@ -1273,22 +1281,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         switch (additionalData.archetype)
                         {
                             case LightArchetype.Area:
-                                if (areaLightCount >= k_MaxAreaLightsOnScreen)
-                                    continue;
-                                lightCategory = LightCategory.Area;
-                                gpuLightType = (additionalData.lightWidth > 0) ? GPULightType.Rectangle : GPULightType.Line;
+                                if (areaLightCount >= k_MaxAreaLightsOnScreen) { continue; }
+                                lightCategory   = LightCategory.Area;
+                                gpuLightType    = (additionalData.lightWidth > 0) ? GPULightType.Rectangle : GPULightType.Line;
                                 lightVolumeType = LightVolumeType.Box;
                                 break;
                             case LightArchetype.Projector:
-                                if (projectorLightCount >= k_MaxProjectorLightsOnScreen)
-                                    continue;
+                                if (projectorLightCount >= k_MaxProjectorLightsOnScreen) { continue; }
                                 lightCategory = LightCategory.Projector;
-                                gpuLightType = GPULightType.ProjectorOrtho; // TODO: pyramid
-                                lightVolumeType = LightVolumeType.Box;
+                                switch (light.lightType)
+                                {
+                                    case LightType.Directional:
+                                        gpuLightType    = GPULightType.ProjectorOrtho;
+                                        lightVolumeType = LightVolumeType.Box;
+                                        break;
+                                    case LightType.Spot:
+                                        gpuLightType    = GPULightType.ProjectorPyramid;
+                                        lightVolumeType = LightVolumeType.Cone;
+                                        break;
+                                    default:
+                                        Debug.Assert(false, "Projectors can only be Spot or Directional lights.");
+                                        break;
+                                }
                                 break;
-
                             default:
-                                continue;
+                                Debug.Assert(false, "TODO: encountered an unknown LightArchetype.");
+                                break;
                         }
                     }
 
