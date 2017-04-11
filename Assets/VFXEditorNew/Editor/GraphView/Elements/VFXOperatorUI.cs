@@ -9,7 +9,7 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXOperatorUI : Node
+    class VFXOperatorUI : VFXNodeUI
     {
         private Button m_Settings; //place holder for inner operator settings
 
@@ -37,21 +37,11 @@ namespace UnityEditor.VFX.UI
                 presenter.settings = newSettings;
             }
         }
-        public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
-        {
-            return VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
-        }
 
         public VFXOperatorUI()
         {
             m_Settings = new Button(RandomizeSettings);
             inputContainer.AddChild(m_Settings);
-            clipChildren = false;
-            inputContainer.clipChildren = false;
-            mainContainer.clipChildren = false;
-            leftContainer.clipChildren =false;
-            rightContainer.clipChildren = false;
-            outputContainer.clipChildren = false;
         }
 
         public override void OnDataChanged()

@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockUI : Node, IDropTarget
+    class VFXBlockUI : VFXNodeUI, IDropTarget
     {
         public GraphViewTypeFactory typeFactory { get; set; }
 
@@ -19,13 +19,7 @@ namespace UnityEditor.VFX.UI
             pickingMode = PickingMode.Position;
 
             AddManipulator(new SelectionDropper(HandleDropEvent));
-            clipChildren = false;
             leftContainer.alignContent = Align.Stretch;
-
-            leftContainer.clipChildren = false;
-            leftContainer.parent.clipChildren = false;
-            inputContainer.clipChildren = false;
-            clipChildren = false;
         }
 
         // This function is a placeholder for common stuff to do before we delegate the action to the drop target

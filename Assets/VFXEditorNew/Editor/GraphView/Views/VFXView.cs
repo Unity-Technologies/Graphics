@@ -219,9 +219,9 @@ namespace UnityEditor.VFX.UI
                                 yield return anchor;
                         }
                     }
-                    else if( element is VFXOperatorUI)
+                    else if( element is VFXNodeUI)
                     {
-                        var ope = element as VFXOperatorUI;
+                        var ope = element as VFXNodeUI;
                         foreach (VFXDataAnchor anchor in ope.GetAnchors(input, output))
                             yield return anchor;
                     }

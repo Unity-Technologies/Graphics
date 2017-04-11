@@ -9,7 +9,23 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterUI : Node
+    class VFXNodeUI : Node
+    {
+        public VFXNodeUI()
+        {
+            clipChildren = false;
+            inputContainer.clipChildren = false;
+            mainContainer.clipChildren = false;
+            leftContainer.clipChildren = false;
+            rightContainer.clipChildren = false;
+            outputContainer.clipChildren = false;
+        }
+        public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
+        {
+            return VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
+        }
+    }
+    class VFXParameterUI : VFXNodeUI
     {
         private Button m_ExposedName;
         private Button m_Exposed;
