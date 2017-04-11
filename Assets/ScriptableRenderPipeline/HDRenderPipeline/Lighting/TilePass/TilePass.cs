@@ -195,8 +195,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public const int k_MaxDirectionalLightsOnScreen = 4;
             public const int k_MaxPunctualLightsOnScreen    = 512;
-            public const int k_MaxAreaLightsOnScreen        = 8;
-            public const int k_MaxProjectorLightsOnScreen   = 16;
+            public const int k_MaxAreaLightsOnScreen        = 64;
+            public const int k_MaxProjectorLightsOnScreen   = 64;
             public const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxProjectorLightsOnScreen;
             public const int k_MaxEnvLightsOnScreen = 64;
             public const int k_MaxShadowOnScreen = 16;
