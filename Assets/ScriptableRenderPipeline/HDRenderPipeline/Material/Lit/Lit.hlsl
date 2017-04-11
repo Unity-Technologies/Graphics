@@ -1023,18 +1023,29 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
 {
     float3 positionWS = posInput.positionWS;
 
-    float3 unL = lightData.positionWS - positionWS;
-    float3 L   = -lightData.forward; // Lights are pointing backward in Unity
+    // Translate and rotate 'positionWS' into the light space.
+    float3 positionLS = mul(positionWS - lightData.positionWS,
+                            transpose(float3x3(lightData.right, lightData.up, lightData.forward)));
 
-    // Project 'unL' onto the light's axes.
-    float distX = dot(unL, lightData.right);
-    float distY = dot(unL, lightData.up);
+    if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID)
+    {
+        // Perform perspective division.
+        positionLS *= rcp(positionLS.z);
+    }
+    else
+    {
+        // For orthographic projection, the Z coordinate plays no role.
+        positionLS.z = 0;
+    }
 
-    // Compute windowing factors using the dimensions of the light's "viewport".
-    float windowX = (abs(distX) <= 0.5 * lightData.size.x) ? 1 : 0;
-    float windowY = (abs(distY) <= 0.5 * lightData.size.y) ? 1 : 0;
+    // Compute the NDC position (in [-1, 1]^2). TODO: precompute the inverse?
+    float2 positionNDC = positionLS.xy * rcp(0.5 * lightData.size);
 
-    float illuminance = saturate(dot(bsdfData.normalWS, L) * (windowX * windowY));
+    // Perform clipping.
+    float clipFactor = ((positionLS.z >= 0) && (abs(positionNDC.x) <= 1 && abs(positionNDC.y) <= 1)) ? 1 : 0;
+
+    float3 L = -lightData.forward; // Lights are pointing backward in Unity
+    float illuminance = saturate(dot(bsdfData.normalWS, L) * clipFactor);
 
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -1053,11 +1064,8 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
 
     [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
     {
-        // Project 'unL' onto the light's axes.
-        float2 coord = float2(distX, distY);
-
         // Compute the texture coordinates in [0, 1]^2.
-        coord = coord / lightData.size + float2(0.5, 0.5);
+        float2 coord = positionNDC * 0.5 + 0.5;
 
         cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
