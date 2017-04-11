@@ -27,6 +27,46 @@ float SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffs
 }
 
 //
+//					3x3 tent PCF sampling (4 taps)
+//
+float SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadOffset, float4 texelSizeRcp, float3 tcs, float bias, uint slice, uint texIdx, uint sampIdx )
+{
+    return 0.5;
+}
+
+float SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOffset, float4 texelSizeRcp, float3 tcs, float bias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+{
+    return 0.5;
+}
+
+//
+//					5x5 tent PCF sampling (9 taps)
+//
+float SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadOffset, float4 texelSizeRcp, float3 tcs, float bias, uint slice, uint texIdx, uint sampIdx )
+{
+    return 0.5;
+}
+
+float SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOffset, float4 texelSizeRcp, float3 tcs, float bias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+{
+    return 0.5;
+}
+
+//
+//					7x7 tent PCF sampling (16 taps)
+//
+float SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadOffset, float4 texelSizeRcp, float3 tcs, float bias, uint slice, uint texIdx, uint sampIdx )
+{
+    return 0.5;
+}
+
+float SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOffset, float4 texelSizeRcp, float3 tcs, float bias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+{
+    return 0.5;
+}
+
+
+//
 //					9 tap adaptive PCF sampling
 //
 float SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint payloadOffset, float4 texelSizeRcp, float3 tcs, float bias, uint slice, uint texIdx, uint sampIdx )
@@ -230,7 +270,7 @@ float SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffs
 	float3 z;
 	float4 b;
 	ShadowMoments_SolveMSM( moments, depth, momentBias, z, b );
-	
+
 	if( useHamburger )
 		return ShadowMoments_SolveDelta3MSM( z, b.xy, lightLeakBias );
 	else
@@ -254,7 +294,7 @@ float SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffs
 	float3 z;
 	float4 b;
 	ShadowMoments_SolveMSM( moments, depth, momentBias, z, b );
-	
+
 	if( useHamburger )
 		return ShadowMoments_SolveDelta3MSM( z, b.xy, lightLeakBias );
 	else
@@ -270,6 +310,9 @@ float SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shad
 	{
 	case GPUSHADOWALGORITHM_PCF_1TAP	: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, depthBias, slice, texIdx, sampIdx );
 	case GPUSHADOWALGORITHM_PCF_9TAP	: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, depthBias, slice, texIdx, sampIdx );
+    case GPUSHADOWALGORITHM_PCF_TENT_3X3: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, depthBias, slice, texIdx, sampIdx );
+    case GPUSHADOWALGORITHM_PCF_TENT_5X5: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, depthBias, slice, texIdx, sampIdx );
+    case GPUSHADOWALGORITHM_PCF_TENT_7X7: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, depthBias, slice, texIdx, sampIdx );
 	case GPUSHADOWALGORITHM_VSM			: return SampleShadow_VSM_1tap(  shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx );
 	case GPUSHADOWALGORITHM_EVSM_2		: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx, false );
 	case GPUSHADOWALGORITHM_EVSM_4		: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx, true );
@@ -286,6 +329,10 @@ float SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shad
 	{
 	case GPUSHADOWALGORITHM_PCF_1TAP	: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, depthBias, slice, tex, compSamp );
 	case GPUSHADOWALGORITHM_PCF_9TAP	: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, depthBias, slice, tex, compSamp );
+    case GPUSHADOWALGORITHM_PCF_TENT_3X3: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, depthBias, slice, tex, compSamp );
+    case GPUSHADOWALGORITHM_PCF_TENT_5X5: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, depthBias, slice, tex, compSamp );
+    case GPUSHADOWALGORITHM_PCF_TENT_7X7: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, depthBias, slice, tex, compSamp );
+
 	default: return 1.0;
 	}
 }

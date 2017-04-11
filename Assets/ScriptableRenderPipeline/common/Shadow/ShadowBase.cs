@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering
         All = Point | Spot | Directional
     };
 
-    
+
     public enum ShadowAlgorithm // 6 bits
     {
         PCF,
@@ -82,6 +82,9 @@ namespace UnityEngine.Experimental.Rendering
     {
         PCF_1tap    = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V0,
         PCF_9tap    = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V1,
+        PCF_tent3x3 = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V2,
+        PCF_tent5x5 = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V3,
+        PCF_tent7x7 = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V4,
         VSM         = ShadowAlgorithm.VSM       << 3,
         EVSM_2      = ShadowAlgorithm.EVSM      << 3 | ShadowVariant.V0,
         EVSM_4      = ShadowAlgorithm.EVSM      << 3 | ShadowVariant.V1,
@@ -242,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
         }
-        
+
         public void Draw( Light l )
         {
             AdditionalLightData ald = l.GetComponent<AdditionalLightData>();
@@ -300,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering
             int          varsAvailable  = e.variantsAvailable;
             int[]        varOptions     = new int[varsAvailable];
             GUIContent[] varDescs       = new GUIContent[varsAvailable];
-            
+
             idx = 0;
             for( int writeIdx = 0; writeIdx < varsAvailable; idx++ )
             {
@@ -349,7 +352,7 @@ namespace UnityEngine.Experimental.Rendering
             else
                 e.variantDels[(int) shadowVariant].high( l, shadowAlgorithm, shadowVariant, shadowPrecision, ref shadowData );
             ald.SetShadowAlgorithm( (int) shadowAlgorithm, (int) shadowVariant, (int) shadowPrecision, (int) packedAlgo, shadowData );
-            
+
             UnityEditor.EditorGUI.indentLevel--;
         }
 
