@@ -29,39 +29,54 @@ namespace UnityEditor.VFX
         { 
             get
             {
-                if (GetParent() == null)
+                try
                 {
-                    return m_Value.Get();
+                    if (GetParent() == null)
+                    {
+                        return m_Value.Get();
+                    }
+                    else
+                    {
+                        object parentValue = GetParent().value;
+
+                        Type type = GetParent().property.type;
+                        FieldInfo info = type.GetField(name);
+
+                        return info.GetValue(parentValue);
+                    }
                 }
-                else
+                catch(Exception e)
                 {
-                    object parentValue = GetParent().value;
-
-                    Type type = GetParent().property.type;
-                    FieldInfo info = type.GetField(name);
-
-                    return info.GetValue(parentValue);
+                    Debug.LogError(string.Format("Exception while getting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace));
                 }
+                return null;
             }
             set
             {
-                if (GetParent() == null)
+                try
                 {
-                    m_Value.Set(value);
-                    UpdateDefaultExpressionValue();
-                    if (owner != null)
-                        owner.Invalidate(InvalidationCause.kParamChanged);
+                    if (GetParent() == null)
+                    {
+                        m_Value.Set(value);
+                        UpdateDefaultExpressionValue();
+                        if (owner != null)
+                            owner.Invalidate(InvalidationCause.kParamChanged);
+                    }
+                    else
+                    {
+                        object parentValue = GetParent().value;
+
+                        Type type = GetParent().property.type;
+                        FieldInfo info = type.GetField(name);
+
+                        info.SetValue(parentValue, value);
+
+                        GetParent().value = parentValue;
+                    }
                 }
-                else
+                catch(Exception e)
                 {
-                    object parentValue = GetParent().value;
-
-                    Type type = GetParent().property.type;
-                    FieldInfo info = type.GetField(name);
-
-                    info.SetValue(parentValue, value);
-
-                    GetParent().value = parentValue;
+                    Debug.LogError(string.Format("Exception while setting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace));
                 }
             }       
         }    
