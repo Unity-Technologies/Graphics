@@ -252,17 +252,6 @@ namespace UnityEditor.VFX
                 m_Owner.Invalidate(cause);
         }
 
-        protected override void OnAdded()
-        {
-            base.OnAdded();
-
-        }
-
-        protected override void OnRemoved()
-        {
-            base.OnRemoved();
-        }
-
         public override T Clone<T>()
         {
             var clone = base.Clone<T>();
@@ -290,9 +279,9 @@ namespace UnityEditor.VFX
                 return false;
 
             if (direction == Direction.kOutput)
-                InnerLink(this, other, notify);
+                InnerLink(this, other);
             else
-                InnerLink(other, this, notify);
+                InnerLink(other, this);
 
             if (notify)
             {
@@ -308,27 +297,15 @@ namespace UnityEditor.VFX
             if (m_LinkedSlots.Contains(other))
             {
                 if (direction == Direction.kOutput)
-                    InnerUnlink(this, other, notify);
+                    InnerUnlink(this, other);
                 else
-                    InnerUnlink(other, this, notify);
+                    InnerUnlink(other, this);
 
                 if (notify)
                 {
                     Invalidate(InvalidationCause.kConnectionChanged);
                     other.Invalidate(InvalidationCause.kConnectionChanged);
                 }
-            }
-        }
-
-        protected void PropagateToOwner(Action<IVFXSlotContainer> func)
-        {
-            if (owner != null)
-                func(owner);
-            else
-            {
-                var parent = GetParent();
-                if (parent != null)
-                    parent.PropagateToOwner(func);
             }
         }
 
@@ -391,27 +368,27 @@ namespace UnityEditor.VFX
             List<VFXSlot> startSlots = new List<VFXSlot>();
             masterSlot.PropagateToChildren( s => {
                 if (s.m_LinkedInExpression != s.DefaultExpr) 
-                    startSlots.Add(s); 
+                    startSlots.Add(s);
+
+                // Initialize in expression to linked (will be overwritten later on for some slots)
+                s.m_InExpression = s.m_LinkedInExpression;
             });
 
-            if (startSlots.Count == 0) // Default expression
-                masterSlot.PropagateToChildren(s => s.m_InExpression = s.DefaultExpr);
-            else
+            // First pass set in expression and propagate to children
+            foreach (var startSlot in startSlots)
             {
-                // build expression trees by propagating from start slots
-                foreach (var startSlot in startSlots)
+                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression); // TODO Handle structural modification;
+                startSlot.PropagateToChildren(s =>
                 {
-                    startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression); // TODO Handle structural modification;
-                    startSlot.PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(s.children.Select(c => c.m_InExpression).ToArray()));
-
-                    startSlot.PropagateToChildren(s =>
-                    {
-                        var exp = s.ExpressionToChildren(s.m_InExpression);
-                        for (int i = 0; i < s.GetNbChildren(); ++i)
-                            s.GetChild(i).m_InExpression = exp != null ? exp[i] : s.refSlot.GetChild(i).GetExpression(); // Not sure about that
-                    });
-                }
+                    var exp = s.ExpressionToChildren(s.m_InExpression);
+                    for (int i = 0; i < s.GetNbChildren(); ++i)
+                        s.GetChild(i).m_InExpression = exp != null ? exp[i] : s.refSlot.GetChild(i).GetExpression(); // Not sure about that
+                });
             }
+
+            // Then propagate to parent
+            foreach (var startSlot in startSlots)
+                startSlot.PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(s.children.Select(c => c.m_InExpression).ToArray()));
 
             var toInvalidate = new HashSet<VFXSlot>();
             masterSlot.SetOutExpression(masterSlot.m_InExpression,toInvalidate);
@@ -484,7 +461,7 @@ namespace UnityEditor.VFX
                 Unlink(slot,notify);
         }
 
-        private static void InnerLink(VFXSlot output,VFXSlot input,bool notify = false)
+        private static void InnerLink(VFXSlot output,VFXSlot input)
         {     
             input.UnlinkAll(false); // First disconnect any other linked slot
             input.PropagateToTree(s => s.UnlinkAll(false)); // Unlink other links in tree
@@ -495,7 +472,7 @@ namespace UnityEditor.VFX
             input.InvalidateExpressionTree();
         }
 
-        private static void InnerUnlink(VFXSlot output, VFXSlot input, bool notify = false)
+        private static void InnerUnlink(VFXSlot output, VFXSlot input)
         {
             output.m_LinkedSlots.Remove(input);
             if (input.m_LinkedSlots.Remove(output))
