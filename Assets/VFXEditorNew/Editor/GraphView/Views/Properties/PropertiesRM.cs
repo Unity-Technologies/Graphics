@@ -159,6 +159,9 @@ namespace UnityEditor.VFX.UI
         {
             m_Toggle =  new Toggle(OnValueChanged);
             AddChild(m_Toggle);
+
+
+            m_Toggle.enabled = enabled;
         }
 
         void OnValueChanged()
@@ -169,6 +172,18 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             m_Toggle.on = m_Value;
+        }
+
+
+        public override bool enabled
+        {
+            set
+            {
+                base.enabled = value;
+
+                if( m_Toggle != null)
+                    m_Toggle.enabled = value;
+            }
         }
 
         Toggle m_Toggle;
@@ -185,6 +200,8 @@ namespace UnityEditor.VFX.UI
             m_FloatField.onValueChanged = OnValueChanged;
 
             AddChild(m_FloatField);
+
+            m_FloatField.enabled = enabled;
         }
 
         public void OnValueChanged()
@@ -203,6 +220,16 @@ namespace UnityEditor.VFX.UI
         }
 
         FloatField m_FloatField;
+
+        public override bool enabled
+        {
+            set
+            {
+                base.enabled = value;
+                if(m_FloatField != null)
+                    m_FloatField.enabled = value;
+            }
+        }
     }
 
     class IntPropertyRM : PropertyRM<int>
@@ -213,6 +240,8 @@ namespace UnityEditor.VFX.UI
             m_IntField.onValueChanged = OnValueChanged;
 
             AddChild(m_IntField);
+
+            m_IntField.enabled = enabled;
         }
 
         public void OnValueChanged()
@@ -231,6 +260,16 @@ namespace UnityEditor.VFX.UI
         }
 
         IntField m_IntField;
+
+        public override bool enabled
+        {
+            set
+            {
+                base.enabled = value;
+                if (m_IntField != null)
+                    m_IntField.enabled = value;
+            }
+        }
     }
 
 
@@ -269,6 +308,18 @@ namespace UnityEditor.VFX.UI
         {
             m_XFloatField.SetValue(m_Value.x);
             m_YFloatField.SetValue(m_Value.y);
+        }
+
+        public override bool enabled
+        {
+            set
+            {
+                base.enabled = value;
+                if (m_XFloatField != null)
+                    m_XFloatField.enabled = value;
+                if (m_YFloatField != null)
+                    m_YFloatField.enabled = value;
+            }
         }
     }
     class Vector3PropertyRM : PropertyRM<Vector3>

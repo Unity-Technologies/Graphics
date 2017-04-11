@@ -14,7 +14,15 @@ namespace UnityEditor.VFX.UI
         {
             EditorGUI.BeginChangeCheck();
 
+            if(presenter.connected)
+            {
+                GUI.enabled = false;
+            }
+
             object result = DoOnGUI(presenter,styles);
+
+            
+            GUI.enabled = true;
 
             if (EditorGUI.EndChangeCheck())
             {
