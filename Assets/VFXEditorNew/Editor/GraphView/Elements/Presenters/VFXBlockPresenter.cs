@@ -116,42 +116,7 @@ namespace UnityEditor.VFX.UI
             public string path { get { return !string.IsNullOrEmpty(parentPath)?parentPath + "." + name : name; } }
         }
 
-		public void PropertyValueChanged(VFXBlockDataAnchorPresenter presenter, object newValue)
-		{
-            //TODO undo/redo
-
-            presenter.model.value = newValue;/*
-
-            foreach (var anchorPresenter in m_Anchors.Values)
-			{
-				// update child and parents.
-				if (anchorPresenter.path.StartsWith(presenter.path) || presenter.path.StartsWith(anchorPresenter.path))
-				{
-					anchorPresenter.Dirty();
-				}
-			}
-            */
-		}
-
-        public void ExpandPath(VFXSlot slot)
-        {//TODO undo/redo
-
-            slot.expanded = true;
-            
-            m_DirtyHack = !m_DirtyHack;
-
-            slot.Invalidate(VFXModel.InvalidationCause.kUIChanged);
-        }
-
-        public void RetractPath(VFXSlot slot)
-        {//TODO undo/redo
-
-            slot.expanded = false;
-
-            m_DirtyHack = !m_DirtyHack;
-
-            slot.Invalidate(VFXModel.InvalidationCause.kUIChanged);
-        }
+        
 
         public static bool IsTypeExpandable(System.Type type)
         {

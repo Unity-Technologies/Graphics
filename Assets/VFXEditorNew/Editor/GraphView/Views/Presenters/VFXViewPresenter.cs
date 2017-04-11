@@ -70,12 +70,12 @@ namespace UnityEditor.VFX.UI
 
         public void RecreateNodeEdges()
         {
-            foreach( var edge in m_Elements.OfType<VFXDataEdgePresenter>() )
+            HashSet<VFXDataEdgePresenter> unusedEdges = new HashSet<VFXDataEdgePresenter>();
+
+            foreach(var e in m_Elements.OfType<VFXDataEdgePresenter>())
             {
-                edge.input = null;
-                edge.output = null;
+                unusedEdges.Add(e);
             }
-            m_Elements.RemoveAll(e => e is VFXDataEdgePresenter);
 
             var operatorPresenters = m_Elements.OfType<VFXNodePresenter>().Cast<VFXLinkablePresenter>();
             var blockPresenters = (m_Elements.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>())).Cast<VFXLinkablePresenter>();
@@ -86,17 +86,23 @@ namespace UnityEditor.VFX.UI
                 var slotContainer = operatorPresenter.slotContainer;
                 foreach (var input in slotContainer.inputSlots)
                 {
-                    RecreateInputSlotEdge(allLinkables, slotContainer, input);
+                    RecreateInputSlotEdge(unusedEdges,allLinkables, slotContainer, input);
                 }
+            }
+
+            foreach(var edge in unusedEdges)
+            {
+                edge.input = null;
+                edge.output = null;
+
+                m_Elements.Remove(edge);
             }
         }
 
-        public void RecreateInputSlotEdge(VFXLinkablePresenter[] allLinkables,IVFXSlotContainer slotContainer,VFXSlot input)
+        public void RecreateInputSlotEdge(HashSet<VFXDataEdgePresenter> unusedEdges,VFXLinkablePresenter[] allLinkables,IVFXSlotContainer slotContainer,VFXSlot input)
         {
             if (input.HasLink())
             {
-                var edgePresenter = CreateInstance<VFXDataEdgePresenter>();
-
                 var operatorPresenterFrom = allLinkables.FirstOrDefault(t => input.refSlot.owner == t.slotContainer);
                 var operatorPresenterTo = allLinkables.FirstOrDefault(t => slotContainer == t.slotContainer);
 
@@ -104,18 +110,31 @@ namespace UnityEditor.VFX.UI
                 {
                     var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
                     var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
-                    if (anchorFrom != null && anchorTo != null)
+
+
+                    var edgePresenter = m_Elements.OfType<VFXDataEdgePresenter>().FirstOrDefault(t => t.input == anchorTo && t.output == anchorFrom);
+
+                    if (edgePresenter != null)
                     {
-                        edgePresenter.output = anchorFrom;
-                        edgePresenter.input = anchorTo;
-                        base.AddElement(edgePresenter);
+                        unusedEdges.Remove(edgePresenter);
+                    }
+                    else
+                    {
+                        edgePresenter = CreateInstance<VFXDataEdgePresenter>();
+
+                        if (anchorFrom != null && anchorTo != null)
+                        {
+                            edgePresenter.output = anchorFrom;
+                            edgePresenter.input = anchorTo;
+                            base.AddElement(edgePresenter);
+                        }
                     }
                 }
             }
 
             foreach(VFXSlot subSlot in input.children)
             {
-                RecreateInputSlotEdge(allLinkables, slotContainer,subSlot);
+                RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer,subSlot);
             }
         }
 
@@ -206,8 +225,7 @@ namespace UnityEditor.VFX.UI
                 var slot = to.model;
                 if (slot != null)
                 {
-                    slot.UnlinkAll();
-                    RecreateNodeEdges();
+                    slot.UnlinkAll(false);
                 }
             }
             else

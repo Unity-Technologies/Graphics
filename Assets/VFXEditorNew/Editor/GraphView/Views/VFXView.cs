@@ -231,7 +231,7 @@ namespace UnityEditor.VFX.UI
 
 
 
-        public virtual IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
+        public override IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
         {
             foreach (var anchor in GetAllDataAnchors(input, output))
             {

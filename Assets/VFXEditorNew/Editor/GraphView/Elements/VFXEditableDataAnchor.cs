@@ -165,7 +165,7 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
 
-            VFXBlockDataAnchorPresenter presenter = GetPresenter<VFXBlockDataAnchorPresenter>();
+            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
             if (m_Container != null)
                 m_Container.executionContext = presenter.GetInstanceID();
 

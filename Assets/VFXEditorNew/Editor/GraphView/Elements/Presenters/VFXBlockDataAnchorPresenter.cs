@@ -31,12 +31,6 @@ namespace UnityEditor.VFX.UI
         {
             get { return sourceNode as VFXBlockPresenter; }
         }
-
-
-        public void SetPropertyValue(object value)
-        {
-            blockPresenter.PropertyValueChanged(this,value);
-        }
     }
 
     class VFXBlockDataInputAnchorPresenter : VFXBlockDataAnchorPresenter
