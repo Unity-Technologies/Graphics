@@ -838,18 +838,24 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         // Project 'unL' onto the light's axes.
         float2 coord = float2(dot(unL, lightData.right), dot(unL, lightData.up));
 
-        // Rescale the texture.
+        // Compute the NDC coordinates (in [-1, 1]^2).
         coord.x *= lightData.invScaleX;
         coord.y *= lightData.invScaleY;
 
-        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-        coord = coord * 0.5 + 0.5;
+        if (lightData.tileCookie || (abs(coord.x) <= 1 && abs(coord.y) <= 1))
+        {
+            // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+            coord = coord * 0.5 + 0.5;
 
-        // Tile the texture if the 'repeat' wrap mode is enabled.
-        if (lightData.tileCookie)
-            coord = frac(coord);
+            // Tile the texture if the 'repeat' wrap mode is enabled.
+            if (lightData.tileCookie) { coord = frac(coord); }
 
-        cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+            cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+        }
+        else
+        {
+            cookie = float4(0, 0, 0, 0);
+        }
 
         illuminance *= cookie.a;
     }
@@ -996,6 +1002,104 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
             float shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, biasedPositionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
 #endif
             shadow = lerp(1.0, shadow, lightData.shadowDimmer);
+
+            illuminance *= shadow;
+        }
+
+        illuminance *= cookie.a;
+
+        // The difference between the Disney Diffuse and the Lambertian BRDF for transmittance is negligible.
+        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
+        // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
+        float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
+
+        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
+        diffuseLighting += transmittedLight;
+    }
+}
+
+//-----------------------------------------------------------------------------
+// EvaluateBSDF_Projector
+//-----------------------------------------------------------------------------
+
+void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
+                            float3 V, PositionInputs posInput, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                            out float3 diffuseLighting,
+                            out float3 specularLighting)
+{
+    float3 positionWS = posInput.positionWS;
+
+    // Translate and rotate 'positionWS' into the light space.
+    float3 positionLS = mul(positionWS - lightData.positionWS,
+                            transpose(float3x3(lightData.right, lightData.up, lightData.forward)));
+
+    if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID)
+    {
+        // Perform perspective division.
+        positionLS *= rcp(positionLS.z);
+    }
+    else
+    {
+        // For orthographic projection, the Z coordinate plays no role.
+        positionLS.z = 0;
+    }
+
+    // Compute the NDC position (in [-1, 1]^2). TODO: precompute the inverse?
+    float2 positionNDC = positionLS.xy * rcp(0.5 * lightData.size);
+
+    // Perform clipping.
+    float clipFactor = ((positionLS.z >= 0) && (abs(positionNDC.x) <= 1 && abs(positionNDC.y) <= 1)) ? 1 : 0;
+
+    float3 L = -lightData.forward; // Lights are pointing backward in Unity
+    float illuminance = saturate(dot(bsdfData.normalWS, L) * clipFactor);
+
+    diffuseLighting  = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+    float4 cookie    = float4(1.0, 1.0, 1.0, 1.0);
+
+    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+    {
+#ifdef SHADOWS_USE_SHADOWCTXT
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#else
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#endif
+
+        illuminance *= shadow;
+    }
+
+    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
+    {
+        // Compute the texture coordinates in [0, 1]^2.
+        float2 coord = positionNDC * 0.5 + 0.5;
+
+        cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+
+        illuminance *= cookie.a;
+    }
+
+    [branch] if (illuminance > 0.0)
+    {
+        BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
+
+        diffuseLighting  *= (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
+        specularLighting *= (cookie.rgb * lightData.color) * (illuminance * lightData.specularScale);
+    }
+
+    [branch] if (bsdfData.enableTransmission)
+    {
+        // Reverse the normal.
+        illuminance = saturate(dot(-bsdfData.normalWS, L));
+
+        [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+        {
+            // TODO: factor out the biased position?
+            float3 biasedPositionWS = positionWS + bsdfData.normalWS * bsdfData.thickness;
+#ifdef SHADOWS_USE_SHADOWCTXT
+            float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#else
+            float shadow = GetDirectionalShadowAttenuation(lightLoopContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+#endif
 
             illuminance *= shadow;
         }
