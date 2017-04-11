@@ -366,7 +366,7 @@ namespace UnityEditor.Experimental.Rendering
             shaderText += "{\n";
             foreach (var shaderFieldInfo in m_PackedFields)
             {
-                shaderText += "\t" + shaderFieldInfo.ToString() + "\n";
+                shaderText += "    " + shaderFieldInfo.ToString() + "\n";
             }
             shaderText += "};\n";
 

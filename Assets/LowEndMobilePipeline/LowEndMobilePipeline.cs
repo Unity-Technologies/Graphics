@@ -4,6 +4,48 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LowendMobile
 {
+    [Serializable]
+    public class ShadowSettings
+    {
+        public bool     enabled;
+        public int      shadowAtlasWidth;
+        public int      shadowAtlasHeight;
+
+        public float    maxShadowDistance;
+        public int      directionalLightCascadeCount;
+        public Vector3  directionalLightCascades;
+        public float    directionalLightNearPlaneOffset;
+
+        static ShadowSettings defaultShadowSettings = null;
+
+        public static ShadowSettings Default
+        {
+            get
+            {
+                if (defaultShadowSettings == null)
+                {
+                    defaultShadowSettings = new ShadowSettings();
+                    defaultShadowSettings.enabled = true;
+                    defaultShadowSettings.shadowAtlasHeight = defaultShadowSettings.shadowAtlasWidth = 4096;
+                    defaultShadowSettings.directionalLightCascadeCount = 1;
+                    defaultShadowSettings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
+                    defaultShadowSettings.directionalLightCascadeCount = 4;
+                    defaultShadowSettings.directionalLightNearPlaneOffset = 5;
+                    defaultShadowSettings.maxShadowDistance = 1000.0F;
+                }
+                return defaultShadowSettings;
+            }
+        }
+    }
+
+    public struct ShadowSliceData
+    {
+        public Matrix4x4    shadowTransform;
+        public int          atlasX;
+        public int          atlasY;
+        public int          shadowResolution;
+    }
+
     public class LowEndMobilePipeline : RenderPipeline, IComparer<VisibleLight>
     {
         private readonly LowEndMobilePipelineAsset m_Asset;

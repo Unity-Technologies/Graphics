@@ -31,8 +31,13 @@ float4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_ARGS(textureName, samplerName)
 // TODO: Handle BC5 format, currently this code is for DXT5nm - After the change, rename this function UnpackNormalmapRGorAG
 // This version is use for the base normal map
 #define ADD_NORMAL_FUNC_SUFFIX(Name) Name
+#if defined(UNITY_NO_DXT5nm)
+#define UNPACK_NORMAL_FUNC UnpackNormalRGB
+#define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGB
+#else
 #define UNPACK_NORMAL_FUNC UnpackNormalAG
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalAG
+#endif
 #include "SampleUVMappingNormalInternal.hlsl"
 #undef ADD_NORMAL_FUNC_SUFFIX
 #undef UNPACK_NORMAL_FUNC
@@ -40,8 +45,13 @@ float4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_ARGS(textureName, samplerName)
 
 // This version is for normalmap with AG encoding only. Mainly use with details map.
 #define ADD_NORMAL_FUNC_SUFFIX(Name) Name##AG
+#if defined(UNITY_NO_DXT5nm)
+#define UNPACK_NORMAL_FUNC UnpackNormalRGB
+#define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGB
+#else
 #define UNPACK_NORMAL_FUNC UnpackNormalAG
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalAG
+#endif
 #include "SampleUVMappingNormalInternal.hlsl"
 #undef ADD_NORMAL_FUNC_SUFFIX
 #undef UNPACK_NORMAL_FUNC
