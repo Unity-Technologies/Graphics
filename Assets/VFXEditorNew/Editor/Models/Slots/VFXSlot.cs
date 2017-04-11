@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
-        public bool expanded;
+        public bool expanded = false;
 
         protected VFXSlot() {}
 

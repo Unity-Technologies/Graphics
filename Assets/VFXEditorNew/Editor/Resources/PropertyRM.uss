@@ -63,6 +63,11 @@
     padding-right:3;
     flex:1;
 }
+.propertyrm .textfield::disabled
+{
+    text-color:#666;
+    border-color:#666;
+}
 
 .propertyrm .fieldContainer  * .textfield:focus
 {

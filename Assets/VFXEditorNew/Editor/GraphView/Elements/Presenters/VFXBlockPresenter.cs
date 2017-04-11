@@ -120,7 +120,7 @@ namespace UnityEditor.VFX.UI
 		{
             //TODO undo/redo
 
-            presenter.model.value = newValue;
+            presenter.model.value = newValue;/*
 
             foreach (var anchorPresenter in m_Anchors.Values)
 			{
@@ -130,7 +130,7 @@ namespace UnityEditor.VFX.UI
 					anchorPresenter.Dirty();
 				}
 			}
-
+            */
 		}
 
         public void ExpandPath(VFXSlot slot)

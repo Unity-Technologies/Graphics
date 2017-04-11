@@ -365,6 +365,20 @@ namespace UnityEditor.VFX.UI
             m_YFloatField.SetValue(m_Value.y);
             m_ZFloatField.SetValue(m_Value.z);
         }
+
+        public override bool enabled
+        {
+            set
+            {
+                base.enabled = value;
+                if (m_XFloatField != null)
+                    m_XFloatField.enabled = value;
+                if (m_YFloatField != null)
+                    m_YFloatField.enabled = value;
+                if (m_ZFloatField != null)
+                    m_ZFloatField.enabled = value;
+            }
+        }
     }
     class Vector4PropertyRM : PropertyRM<Vector4>
     {
@@ -417,6 +431,22 @@ namespace UnityEditor.VFX.UI
             m_YFloatField.SetValue(m_Value.y);
             m_ZFloatField.SetValue(m_Value.z);
             m_WFloatField.SetValue(m_Value.w);
+        }
+
+        public override bool enabled
+        {
+            set
+            {
+                base.enabled = value;
+                if (m_XFloatField != null)
+                    m_XFloatField.enabled = value;
+                if (m_YFloatField != null)
+                    m_YFloatField.enabled = value;
+                if (m_ZFloatField != null)
+                    m_ZFloatField.enabled = value;
+                if (m_WFloatField != null)
+                    m_ZFloatField.enabled = value;
+            }
         }
     }
     class ColorPropertyRM : PropertyRM<Color>
@@ -491,6 +521,24 @@ namespace UnityEditor.VFX.UI
             m_BFloatField.SetValue(m_Value.b);
             m_AFloatField.SetValue(m_Value.a);
         }
+
+        public override bool enabled
+        {
+            set
+            {
+                base.enabled = value;
+                if (m_RFloatField != null)
+                    m_RFloatField.enabled = value;
+                if (m_GFloatField != null)
+                    m_GFloatField.enabled = value;
+                if (m_BFloatField != null)
+                    m_BFloatField.enabled = value;
+                if (m_AFloatField != null)
+                    m_AFloatField.enabled = value;
+                if (m_ColorField != null)
+                    m_ColorField.enabled = value;
+            }
+        }
     }
 
 
@@ -514,6 +562,16 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             m_CurveField.SetValue(m_Value);
+        }
+
+        public override bool enabled
+        {
+            set
+            {
+                base.enabled = value;
+                if (m_CurveField != null)
+                    m_CurveField.enabled = value;
+            }
         }
     }
 
@@ -542,6 +600,16 @@ namespace UnityEditor.VFX.UI
         }
 
         VisualElement m_Button;
+
+        public override bool enabled
+        {
+            set
+            {
+                base.enabled = value;
+                if (m_Button != null)
+                    m_Button.enabled = value;
+            }
+        }
     }
 
     abstract class Vector3SpacabledPropertyRM<T> : SpaceablePropertyRM<T> where T : Spaceable
@@ -573,7 +641,21 @@ namespace UnityEditor.VFX.UI
         protected FloatField m_XFloatField;
         protected FloatField m_YFloatField;
         protected FloatField m_ZFloatField;
-        
+
+        public override bool enabled
+        {
+            set
+            {
+                base.enabled = value;
+                if (m_XFloatField != null)
+                    m_XFloatField.enabled = value;
+                if (m_YFloatField != null)
+                    m_YFloatField.enabled = value;
+                if (m_ZFloatField != null)
+                    m_ZFloatField.enabled = value;
+            }
+        }
+
     }
 
     class VectorPropertyRM : Vector3SpacabledPropertyRM<Vector>
