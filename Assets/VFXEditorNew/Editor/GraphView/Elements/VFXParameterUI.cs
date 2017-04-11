@@ -22,7 +22,14 @@ namespace UnityEditor.VFX.UI
         }
         public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
         {
-            return VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
+            if (presenter.direction == Direction.Input)
+            {
+                return VFXEditableDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
+            }
+            else
+            {
+                return VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
+            }
         }
     }
     class VFXParameterUI : VFXNodeUI

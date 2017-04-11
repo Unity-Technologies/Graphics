@@ -100,6 +100,25 @@ namespace UnityEditor.VFX.UI
                 return m_Hidden;
             }
         }
+
+        public void SetPropertyValue(object value)
+        {
+            model.value = value;
+        }
+
+        public void ExpandPath()
+        {//TODO undo/redo
+
+            model.expanded = true;
+            model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+        }
+
+        public void RetractPath()
+        {//TODO undo/redo
+
+            model.expanded = false;
+            model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+        }
     }
 
 }

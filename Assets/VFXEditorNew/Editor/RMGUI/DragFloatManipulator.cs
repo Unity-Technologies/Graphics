@@ -54,6 +54,11 @@ namespace UnityEditor.VFX.UIElements
         T GetValue(object userData);
 
         void SetValue(T value,object userData);
+
+        bool enabled
+        {
+            get;
+        }
     }
 
     class DragValueManipulator<T> : Manipulator
@@ -71,6 +76,7 @@ namespace UnityEditor.VFX.UIElements
         bool m_Dragging;
         public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)   
 		{
+            if (!m_Listener.enabled) return EventPropagation.Continue ;
             switch( evt.type)
             {
             case EventType.MouseDown:
