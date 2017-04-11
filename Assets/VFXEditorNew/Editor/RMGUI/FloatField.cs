@@ -100,6 +100,11 @@ namespace UnityEditor.VFX.UIElements
                 onValueChanged();
             }
         }
+        /*
+        bool IValueChangeListener<float>.enabled
+        {
+            get { return enabled; }
+        }*/
 
         protected override void ValueToGUI()
         {
