@@ -30,6 +30,7 @@ namespace UnityEditor.Dot
 
     public class DotNode : DotElement
     {
+        public DotNode() {}
         public DotNode(string name)
         {
             Label = name;

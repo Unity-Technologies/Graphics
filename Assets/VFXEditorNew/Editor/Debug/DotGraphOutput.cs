@@ -14,17 +14,47 @@ namespace UnityEditor.VFX
             graph.OutputToDotFile("d:\\testDot.dot");
         }
 
+        private static bool IsHighlightedSlot(VFXSlot slot)
+        {
+            var owner = slot.owner;
+            if (slot.GetExpression() == null)
+                return false;
+
+            if (owner is VFXOperator && slot.direction == VFXSlot.Direction.kOutput) // output to operators
+                return true;
+
+            var topOwner = slot.GetTopMostParent().owner;
+            if (topOwner is VFXBlock && slot.direction == VFXSlot.Direction.kInput && slot.HasLink()) // linked inputs to blocks
+                return true;
+
+            return false;
+        }
+
         public static void DebugExpressionGraph(VFXGraph graph)
         {
             var objs = new HashSet<UnityEngine.Object>();
             graph.CollectDependencies(objs);
 
-            var startExpressions = new Dictionary<VFXExpression,VFXSlot>(objs.OfType<VFXSlot>()
-                .Where(s => s.owner != null && s.direction == VFXSlot.Direction.kOutput && s.GetExpression() != null) // only master output slots with valid expression
-                .ToDictionary(s => s.GetExpression()));
+            var mainSlots = new HashSet<VFXSlot>(objs.OfType<VFXSlot>()
+                .Where(s => IsHighlightedSlot(s))).Select(s => s.GetTopMostParent());
+
+            var mainExpressions = new Dictionary<VFXExpression, List<VFXSlot>>();
+            foreach (var slot in mainSlots)
+            {
+                var expr = slot.GetExpression();
+                if (mainExpressions.ContainsKey(expr))
+                    mainExpressions[expr].Add(slot);
+                else
+                {
+                    var list = new List<VFXSlot>();
+                    list.Add(slot);
+                    mainExpressions[expr] = list;
+                }
+            }
+
             var expressions = new HashSet<VFXExpression>();
 
-            foreach (var exp in startExpressions.Keys)
+            foreach (var exp in mainExpressions.Keys)
                 CollectExpressions(exp, expressions);
 
             DotGraph dotGraph = new DotGraph();
@@ -32,21 +62,31 @@ namespace UnityEditor.VFX
             var expressionsToDot = new Dictionary<VFXExpression, DotNode>();
             foreach (var exp in expressions)
             {
+                var dotNode = new DotNode();
+
                 string name = exp.GetType().Name;
                 string valueStr = GetExpressionValue(exp);
                 if (!string.IsNullOrEmpty(valueStr))
                     name += string.Format(" ({0})", valueStr);
-                if (startExpressions.ContainsKey(exp))
-                    name += string.Format(" ({0})", startExpressions[exp].m_Owner.GetType().Name);
-
-                var dotNode = new DotNode(name);
 
                 dotNode.attributes[DotAttribute.Shape] = DotShape.Box;
-                if (startExpressions.ContainsKey(exp)) // it's an output from slot
+                if (mainExpressions.ContainsKey(exp))
                 {
+                    string allOwnersStr = string.Empty;
+                    bool belongToBlock = false;
+                    foreach (var slot in mainExpressions[exp])
+                    {
+                        allOwnersStr += string.Format("\n{0} - {1}", slot.owner.GetType().Name, slot.property.name);
+                        belongToBlock |= slot.owner is VFXBlock;
+                    }
+
+                    name += string.Format("{0}", allOwnersStr);
+
                     dotNode.attributes[DotAttribute.Style] = DotStyle.Filled;
-                    dotNode.attributes[DotAttribute.Color] = DotColor.Green;
+                    dotNode.attributes[DotAttribute.Color] = belongToBlock ? DotColor.Cyan : DotColor.Green;
                 }
+
+                dotNode.Label = name;
 
                 expressionsToDot[exp] = dotNode;
                 dotGraph.AddElement(dotNode);
