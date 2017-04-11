@@ -253,7 +253,7 @@ namespace UnityEditor.VFX
 
             // TODO this breaks the rule that invalidate propagate upwards only
             // Remove this and handle the downwards propagation in the delegate directly if needed!
-            //InvalidateChildren(model, cause);
+            InvalidateChildren(model, cause);
             
             if (m_Owner != null && direction == Direction.kInput)
                 m_Owner.Invalidate(cause);

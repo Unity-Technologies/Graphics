@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return VFXValueFloat.Default;
+            return new VFXValueFloat(0.0f, false);
         }
     }
 }

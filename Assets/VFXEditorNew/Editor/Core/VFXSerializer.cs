@@ -298,6 +298,8 @@ namespace UnityEditor.VFX
                         colorKeys[i].time = gw.colorKeys[i].time;
                     }
                 }
+                else
+                    colorKeys = new GradientColorKey[0];
 
                 GradientAlphaKey[] alphaKeys = null;
 
@@ -310,6 +312,8 @@ namespace UnityEditor.VFX
                         alphaKeys[i].time = gw.alphaKeys[i].time;
                     }
                 }
+                else
+                    alphaKeys = new GradientAlphaKey[0];
 
                 gradient.SetKeys(colorKeys, alphaKeys);
                 return gradient;
