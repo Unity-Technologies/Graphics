@@ -198,6 +198,8 @@ namespace UnityEditor.VFX
             if (GetNbChildren() == 0)
             {
                 m_DefaultExpression = DefaultExpression();
+                if (m_DefaultExpression is VFXValue)
+                    ((VFXValue)m_DefaultExpression).SetContent(value);
             }
             else
             {
@@ -246,6 +248,8 @@ namespace UnityEditor.VFX
         {
             base.Invalidate(model, cause);
 
+            // TODO this breaks the rule that invalidate propagate upwards only
+            // Remove this and handle the downwards propagation in the delegate directly if needed!
             InvalidateChildren(model, cause);
             
             if (m_Owner != null && direction == Direction.kInput)

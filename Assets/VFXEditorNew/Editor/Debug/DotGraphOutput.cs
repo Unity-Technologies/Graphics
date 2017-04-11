@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
             if (slot.GetExpression() == null)
                 return false;
 
-            if (owner is VFXOperator && slot.direction == VFXSlot.Direction.kOutput) // output to operators
+            if ((owner is VFXOperator || owner is VFXParameter) && slot.direction == VFXSlot.Direction.kOutput) // output to operators
                 return true;
 
             var topOwner = slot.GetTopMostParent().owner;
