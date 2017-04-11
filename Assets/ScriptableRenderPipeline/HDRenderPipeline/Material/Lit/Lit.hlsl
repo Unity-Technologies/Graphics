@@ -838,18 +838,24 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         // Project 'unL' onto the light's axes.
         float2 coord = float2(dot(unL, lightData.right), dot(unL, lightData.up));
 
-        // Rescale the texture.
+        // Compute the NDC coordinates (in [-1, 1]^2).
         coord.x *= lightData.invScaleX;
         coord.y *= lightData.invScaleY;
 
-        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-        coord = coord * 0.5 + 0.5;
+        if (lightData.tileCookie || (abs(coord.x) <= 1 && abs(coord.y) <= 1))
+        {
+            // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+            coord = coord * 0.5 + 0.5;
 
-        // Tile the texture if the 'repeat' wrap mode is enabled.
-        if (lightData.tileCookie)
-            coord = frac(coord);
+            // Tile the texture if the 'repeat' wrap mode is enabled.
+            if (lightData.tileCookie) { coord = frac(coord); }
 
-        cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+            cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+        }
+        else
+        {
+            cookie = float4(0, 0, 0, 0);
+        }
 
         illuminance *= cookie.a;
     }
