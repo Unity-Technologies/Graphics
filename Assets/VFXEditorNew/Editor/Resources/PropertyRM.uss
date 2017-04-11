@@ -54,7 +54,8 @@
     border-width:1;
     border-right:1;
     
-    border-color:#BBB;
+	background-color:#414141;
+    border-color:#333;
     text-alignment:middle-left;
     
     padding-top:1;

@@ -81,7 +81,7 @@ VFXContextUI .Extremity
 	padding-top:10;
 	padding-bottom:10;
 	justify-content:center;
-	background-color: #333333;
+	background-color:#414141;
 }
 
 VFXContextUI	.title
@@ -162,6 +162,7 @@ VFXBlockUI.node.horizontal #pane
 VFXBlockUI.horizontal.node #pane > #left
 {
 	width:-1;
+	background-color: #363636;
 }
 
 VFXBlockUI.node.horizontal #title {
@@ -199,9 +200,9 @@ VFXBlockUI #pane #left VisualContainer#input
 }
 
 VFXView #VFXBackgroundGrid {
-	grid-background-color:#171717;
-	line-color:#202020;
-	thick-line-color:#333;
+	grid-background-color:#141515;
+	line-color:#181818;
+	thick-line-color:#191919;
 	spacing:75.0;
 	thick-lines:5;
 }
