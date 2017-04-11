@@ -30,13 +30,24 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        private static string GetRecursiveName(VFXSlot slot)
+        {
+            string name = slot.property.name;
+            while (slot.GetParent() != null)
+            {
+                slot = slot.GetParent();
+                name = slot.property.name + "." + name;
+            }
+            return name;
+        }
+
         public static void DebugExpressionGraph(VFXGraph graph)
         {
             var objs = new HashSet<UnityEngine.Object>();
             graph.CollectDependencies(objs);
 
             var mainSlots = new HashSet<VFXSlot>(objs.OfType<VFXSlot>()
-                .Where(s => IsHighlightedSlot(s))).Select(s => s.GetTopMostParent());
+                .Where(s => IsHighlightedSlot(s)));//.Select(s => s.GetTopMostParent());
 
             var mainExpressions = new Dictionary<VFXExpression, List<VFXSlot>>();
             foreach (var slot in mainSlots)
@@ -76,8 +87,9 @@ namespace UnityEditor.VFX
                     bool belongToBlock = false;
                     foreach (var slot in mainExpressions[exp])
                     {
-                        allOwnersStr += string.Format("\n{0} - {1}", slot.owner.GetType().Name, slot.property.name);
-                        belongToBlock |= slot.owner is VFXBlock;
+                        var topOwner = slot.GetTopMostParent().owner;
+                        allOwnersStr += string.Format("\n{0} - {1}", topOwner.GetType().Name, GetRecursiveName(slot));
+                        belongToBlock |= topOwner is VFXBlock;
                     }
 
                     name += string.Format("{0}", allOwnersStr);
