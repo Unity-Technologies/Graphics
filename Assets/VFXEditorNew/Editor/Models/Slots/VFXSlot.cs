@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
         {
             if (!expr.Equals(m_LinkedInExpression))
             {
-                PropagateToTree(s => s.m_LinkedInExpression = s.DefaultExpr);
+                PropagateToTree(s => s.m_LinkedInExpression = null);
                 m_LinkedInExpression = expr;
                 InvalidateExpressionTree();
             }
@@ -114,8 +114,8 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (m_DefaultExpression == null)
-                    InitDefaultExpression();
+               // if (m_DefaultExpression == null)
+               //     InitDefaultExpression();
                 return m_DefaultExpression;
             }
         }
@@ -153,6 +153,7 @@ namespace UnityEditor.VFX
         {
             var slot = CreateSub(property, direction); // First create slot tree
             slot.value = value; // Then set value
+            slot.InitDefaultExpression();
             return slot;
         }
      
@@ -210,8 +211,8 @@ namespace UnityEditor.VFX
                 m_DefaultExpression = ExpressionFromChildren(children.Select(c => c.m_DefaultExpression).ToArray());
             }
 
-            if (m_LinkedInExpression == null)
-                m_LinkedInExpression = m_DefaultExpression;
+            /*if (m_LinkedInExpression == null)
+                m_LinkedInExpression = m_DefaultExpression;*/
         }
 
         private void UpdateDefaultExpressionValue()
@@ -351,12 +352,10 @@ namespace UnityEditor.VFX
             // Start from the top most parent
             var masterSlot = GetTopMostParent();
 
-            // init default expression if needed
-            if (masterSlot.m_DefaultExpression == null)
-                masterSlot.InitDefaultExpression();
+            InitDefaultExpression(); // TODO This is a hack that should not be needed!
 
             // Mark all slots in tree as not up to date
-            masterSlot.PropagateToChildren(s => s.m_ExpressionTreeUpToDate = false );
+            masterSlot.PropagateToChildren(s => { s.m_ExpressionTreeUpToDate = false; });
 
             if (direction == Direction.kInput) // For input slots, linked expression are directly taken from linked slots
                 masterSlot.PropagateToChildren(s => s.m_LinkedInExpression = s.HasLink() ? s.refSlot.GetExpression() : s.DefaultExpr); // this will trigger recomputation of linked expressions if needed
@@ -364,9 +363,16 @@ namespace UnityEditor.VFX
             {
                 var owner = GetOwner();
                 if (owner != null)
+                {
                     owner.UpdateOutputs();
+                    masterSlot.PropagateToChildren(s =>
+                    {
+                        if (s.m_LinkedInExpression == null)
+                            s.m_LinkedInExpression = s.DefaultExpr;
+                    });
+                }
                 else
-                    ResetExpression();
+                    masterSlot.PropagateToChildren(s => s.m_LinkedInExpression = s.DefaultExpr);
             }
 
             List<VFXSlot> startSlots = new List<VFXSlot>();
