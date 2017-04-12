@@ -206,11 +206,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 
-#ifdef _SUBSURFACE_SCATTERING
-    surfaceData.materialId = _MaterialID;
-#else
-    surfaceData.materialId = (_MaterialID == MATERIALID_LIT_SSS) ? 0 : _MaterialID;
-#endif
+    surfaceData.materialId = (_EnableSSS || _MaterialID != MATERIALID_LIT_SSS) ? _MaterialID : MATERIALID_LIT_STANDARD;
 
     // TODO: think about using BC5
 #ifdef _TANGENTMAP

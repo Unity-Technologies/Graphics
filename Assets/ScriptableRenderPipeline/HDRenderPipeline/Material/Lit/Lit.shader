@@ -139,7 +139,6 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
     #pragma shader_feature _THICKNESS_MAP
-    #pragma shader_feature _SUBSURFACE_SCATTERING
     #pragma shader_feature _VERTEX_WIND
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
