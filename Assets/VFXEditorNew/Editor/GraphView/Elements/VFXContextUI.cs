@@ -603,7 +603,7 @@ namespace UnityEditor.VFX.UI
 
         public IEnumerable<VFXBlockUI> GetAllBlocks()
         {
-            foreach( VFXBlockUI block in m_BlockContainer)
+            foreach( VFXBlockUI block in m_BlockContainer.OfType<VFXBlockUI>())
             {
                 yield return block;
             }

@@ -100,6 +100,26 @@ namespace UnityEditor.VFX.UI
                 return m_Hidden;
             }
         }
+        public bool editable
+        {
+            get
+            {
+                bool editable = true;
+
+                VFXSlot slot = model;
+                while(slot != null )
+                {
+                    if( slot.LinkedSlots.Count > 0)
+                    {
+                        editable = false;
+                        break;
+                    }
+                    slot = slot.GetParent();
+                }
+
+                return editable;
+            }
+        }
 
         public void SetPropertyValue(object value)
         {

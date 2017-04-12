@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
         {
             EditorGUI.BeginChangeCheck();
 
-            if(presenter.connected)
+            if(!presenter.editable)
             {
                 GUI.enabled = false;
             }
