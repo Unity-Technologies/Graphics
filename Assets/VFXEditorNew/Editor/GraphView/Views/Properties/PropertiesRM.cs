@@ -27,6 +27,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Icon.backgroundImage = m_IconStates[m_Presenter.expanded && m_Presenter.expandable ? 1 : 0];
             SetValue(m_Presenter.value);
+            m_Label.text = m_Presenter.name;
         }
 
         public PropertyRM(VFXDataAnchorPresenter presenter)

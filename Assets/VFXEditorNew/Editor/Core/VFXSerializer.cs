@@ -74,8 +74,18 @@ namespace UnityEditor.VFX
                 m_SerializableObject = string.Empty;
             else
             {
-                if (!((Type)m_Type).IsAssignableFrom(obj.GetType()))
-                    throw new ArgumentException(string.Format("Cannot assing an object of type {0} to VFXSerializedObject of type {1}", obj.GetType(), (Type)m_Type));
+
+                Type type = m_Type;
+                if (!type.IsAssignableFrom(obj.GetType()))
+                    if (type == typeof(FloatN))
+                    {
+                        obj = System.Activator.CreateInstance(typeof(FloatN), obj);
+                    }
+                    else
+                    {
+                        throw new ArgumentException(string.Format("Cannot assing an object of type {0} to VFXSerializedObject of type {1}", obj.GetType(), (Type)m_Type));
+                    }
+
                 m_SerializableObject = VFXSerializer.Save(obj);
             }
         }

@@ -37,6 +37,9 @@ namespace UnityEditor.VFX.UI
             m_Model = model;
             m_SourceNode = nodePresenter;
 
+            anchorType = model.property.type;
+            name = model.property.name;
+
             UpdateHidden();
 
             m_Model.onInvalidateDelegate += OnInvalidate;
