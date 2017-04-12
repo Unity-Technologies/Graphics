@@ -5082,7 +5082,7 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
-  isDoubleSided: 1
+  isDoubleSided: 0
   lightLength: 16
   lightWidth: 2
 --- !u!108 &827169275
@@ -5093,7 +5093,7 @@ Light:
   m_GameObject: {fileID: 827169273}
   m_Enabled: 1
   serializedVersion: 8
-  m_Type: 2
+  m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 12
@@ -10915,7 +10915,7 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
-  isDoubleSided: 1
+  isDoubleSided: 0
   lightLength: 4
   lightWidth: 2
 --- !u!108 &1640077385
@@ -10926,7 +10926,7 @@ Light:
   m_GameObject: {fileID: 1640077383}
   m_Enabled: 1
   serializedVersion: 8
-  m_Type: 2
+  m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 6
