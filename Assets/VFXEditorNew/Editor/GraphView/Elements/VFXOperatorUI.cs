@@ -9,7 +9,7 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXOperatorUI : VFXNodeUI
+    class VFXOperatorUI : VFXNodeUI, IKeyFocusBlocker
     {
         private Button m_Settings; //place holder for inner operator settings
 

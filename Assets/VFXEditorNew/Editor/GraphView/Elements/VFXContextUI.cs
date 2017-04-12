@@ -9,8 +9,8 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-	class BlockContainer : VisualContainer, ISelection
-	{
+	class BlockContainer : VisualContainer, ISelection, IKeyFocusBlocker
+    {
 		// ISelection implementation
 		public List<ISelectable> selection { get; private set; }
 
