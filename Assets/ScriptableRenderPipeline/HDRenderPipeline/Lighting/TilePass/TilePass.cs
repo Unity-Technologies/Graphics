@@ -993,7 +993,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (!lightData.twoSided)
                     {
-                        centerVS -= zAxisVS * radius * 0.5f;
+                        centerVS += zAxisVS * radius * 0.5f;
                         dimensions.z *= 0.5f;
                     }
 
