@@ -172,6 +172,12 @@ VFXBlockUI.node.horizontal #title {
 VFXBlockUI.node.horizontal #title Button
 {
 	min-width:40;
+	height:17;
+}
+
+VFXOperatorUI Button
+{
+	height:17;
 }
 
 VFXBlockUI.node.horizontal #left > #title > Label {

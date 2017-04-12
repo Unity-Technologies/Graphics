@@ -13,6 +13,15 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        public override int layer
+        {
+            get
+            {
+                return -1;
+            }
+        }
+
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
