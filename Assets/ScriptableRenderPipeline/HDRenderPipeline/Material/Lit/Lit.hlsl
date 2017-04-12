@@ -834,10 +834,10 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
     {
-        float3 unL = positionWS - lightData.positionWS;
+        float3 lightToSurface = positionWS - lightData.positionWS;
 
-        // Project 'unL' onto the light's axes.
-        float2 coord = float2(dot(unL, lightData.right), dot(unL, lightData.up));
+        // Project 'lightToSurface' onto the light's axes.
+        float2 coord = float2(dot(lightToSurface, lightData.right), dot(lightToSurface, lightData.up));
 
         // Compute the NDC coordinates (in [-1, 1]^2).
         coord.x *= lightData.invScaleX;
@@ -1189,7 +1189,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     float  len = lightData.size.x;
     float3 T   = lightData.right;
 
-    float3 unL = positionWS - lightData.positionWS;
+    float3 unL = lightData.positionWS - positionWS;
 
     // Pick the major axis of the ellipsoid.
     float3 axis = lightData.right;
@@ -1293,7 +1293,8 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
         float2 u = Hammersley2d(i, sampleCount);
         u = frac(u + randNum);
 
-        float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
+        // Lights in Unity point backward.
+        float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(-lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
 
         switch (lightData.lightType)
         {
@@ -1369,10 +1370,10 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float halfWidth  = lightData.size.x * 0.5;
     float halfHeight = lightData.size.y * 0.5;
 
-    float3 unL = positionWS - lightData.positionWS;
+    float3 unL = lightData.positionWS - positionWS;
 
     // Rotate the light direction into the light space.
-    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
     unL = mul(unL, transpose(lightToWorld));
 
     // Define the dimensions of the attenuation volume.
@@ -1400,10 +1401,10 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     lightData.specularScale *= intensity;
 
     // TODO: store 4 points and save 12 cycles (24x MADs - 12x MOVs).
-    float3 p0 = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
-    float3 p1 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    float3 p2 = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    float3 p3 = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+    float3 p0 = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+    float3 p1 = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+    float3 p2 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+    float3 p3 = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
 
     float4x3 matL = float4x3(p0, p1, p2, p3) - float4x3(positionWS, positionWS, positionWS, positionWS);
 
