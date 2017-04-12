@@ -192,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public class SubsurfaceScatteringSettings
+    public class SubsurfaceScatteringSettings : ISerializationCallbackReceiver
     {
         public const int maxNumProfiles   = 8;
         public const int neutralProfileID = 7;
@@ -221,7 +221,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             halfRcpWeightedVariances       = null;
             filterKernels                  = null;
 
-            OnValidate(); // Perform initialization
+            UpdateCache();
         }
 
         public void OnValidate()
@@ -241,26 +241,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Assign the profile IDs.
                     profiles[i].settingsIndex = i;
                 }
-            }
-
-            if (thicknessRemaps == null || thicknessRemaps.Length != (maxNumProfiles * 2))
-            {
-                thicknessRemaps = new float[maxNumProfiles * 2];
-            }
-
-            if (halfRcpVariancesAndLerpWeights == null || halfRcpVariancesAndLerpWeights.Length != (maxNumProfiles * 2))
-            {
-                halfRcpVariancesAndLerpWeights = new Vector4[maxNumProfiles * 2];
-            }
-
-            if (halfRcpWeightedVariances == null || halfRcpWeightedVariances.Length != maxNumProfiles)
-            {
-                halfRcpWeightedVariances = new Vector4[maxNumProfiles];
-            }
-
-            if (filterKernels == null || filterKernels.Length != (maxNumProfiles * SubsurfaceScatteringProfile.numSamples))
-            {
-                filterKernels = new Vector4[maxNumProfiles * SubsurfaceScatteringProfile.numSamples];
             }
 
             Color c = new Color();
@@ -292,10 +272,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 profiles[i].UpdateKernelAndVarianceData();
             }
 
+            UpdateCache();
+        }
+
+        public void UpdateCache()
+        {
             texturingModeFlags = 0;
             transmissionFlags  = 0;
 
-            // Use the updated data to fill the cache.
+            if (thicknessRemaps == null || thicknessRemaps.Length != (maxNumProfiles * 2))
+            {
+                thicknessRemaps = new float[maxNumProfiles * 2];
+            }
+
+            if (halfRcpVariancesAndLerpWeights == null || halfRcpVariancesAndLerpWeights.Length != (maxNumProfiles * 2))
+            {
+                halfRcpVariancesAndLerpWeights = new Vector4[maxNumProfiles * 2];
+            }
+
+            if (halfRcpWeightedVariances == null || halfRcpWeightedVariances.Length != maxNumProfiles)
+            {
+                halfRcpWeightedVariances = new Vector4[maxNumProfiles];
+            }
+
+            if (filterKernels == null || filterKernels.Length != (maxNumProfiles * SubsurfaceScatteringProfile.numSamples))
+            {
+                filterKernels = new Vector4[maxNumProfiles * SubsurfaceScatteringProfile.numSamples];
+            }
+
             for (int i = 0; i < numProfiles; i++)
             {
                 // Skip unassigned profiles.
@@ -330,6 +334,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     filterKernels[n * i + j].w = 0.0f;
                 }
             }
+        }
+
+        public void OnBeforeSerialize()
+        {
+            // No special action required.
+        }
+
+        public void OnAfterDeserialize()
+        {
+            UpdateCache();
         }
     }
 

@@ -49,6 +49,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 // SSS parameters
 #define SSS_N_PROFILES 8
 #define SSS_UNIT_CONVERSION (1.0 / 300.0)                  // From meters to 1/3 centimeters
+uint   _EnableSSS;                                         // Globally toggles subsurface scattering on/off
 uint   _TransmissionFlags;                                 // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
 uint   _TexturingModeFlags;                                // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 float  _ThicknessRemaps[SSS_N_PROFILES][2];                // Remap: 0 = start, 1 = end - start
