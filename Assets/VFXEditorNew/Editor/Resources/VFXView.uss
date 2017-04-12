@@ -180,6 +180,20 @@ VFXOperatorUI Button
 	height:17;
 }
 
+VFXOperatorUI.node.horizontal
+{
+	width:-1;
+}
+
+VFXOperatorUI.node.horizontal #pane > #left
+{
+	width:250;
+}
+VFXOperatorUI.node.horizontal #right
+{
+	width:50;
+}
+
 VFXBlockUI.node.horizontal #left > #title > Label {
 	text-color: #FFFFFF;
 	font-style: bold;
@@ -199,8 +213,14 @@ VFXBlockUI.node.horizontal #left > #title > Button {
 
 VFXBlockUI #pane #left VisualContainer#input
 {
-	flex:0;
-	flex-grow:1;
+	flex:1;
+	align-items: stretch;
+	padding-bottom:3;
+}
+
+VFXBlockUI #pane #left VisualContainer#output
+{
+	flex:1;
 	align-items: stretch;
 	padding-bottom:3;
 }
@@ -245,12 +265,17 @@ VFXView #VFXBackgroundGrid {
 	border-width:0;
 	background-color:rgba(0,0,0,0);
 }
-
+.node #right > #output {
+	-background-color:rgba(255,0,0,255);
+	position-right:0;
+}
 
 VFXDataAnchor.Output
 {
-margin-right:-12;
-margin-left:4;
+-background-color:rgba(0,0,255,255);
+position-right:0;
+margin-right:0;
+padding-right:0;
 }
 
 .VFXDataAnchor .propertyrm
@@ -291,6 +316,7 @@ margin-left:4;
 .VFXDataAnchor.Output #connector
 {
 	border-color:#212121;
+	position-right:-11;
 }
 
 .VFXDataAnchor  #IMGUI
@@ -299,7 +325,9 @@ margin-left:4;
 	align-items: stretch;
 	margin-left:12;
 	margin-right:4;
+	height:20;
 	
+	-background-color:rgba(255,0,0,255);
 }
 
 VFXBlockUI.selected .VFXDataAnchor #connector

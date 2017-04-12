@@ -51,11 +51,14 @@
 {
     text-color:#BBB;
 
-    border-width:1;
-    border-right:1;
+    border-width:0;
     
-	background-color:#414141;
-    border-color:#333;
+	-background-color:#414141;
+	background-image:resource("textfield");
+	slice-left:3;
+	slice-right:3;
+	slice-top:3;
+	slice-bottom:3;
     text-alignment:middle-left;
     
     padding-top:1;
@@ -67,7 +70,6 @@
 .propertyrm .textfield::disabled
 {
     text-color:#666;
-    border-color:#666;
 }
 
 .propertyrm .fieldContainer  * .textfield:focus
