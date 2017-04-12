@@ -70,6 +70,8 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveFromClassList("invisible");
             }
+            if( presenter.direction == Direction.Output )
+                m_ConnectorText.text = presenter.name;
 
             clipChildren = false;
         }

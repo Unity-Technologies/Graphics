@@ -265,6 +265,7 @@ VFXView #VFXBackgroundGrid {
 	border-width:0;
 	background-color:rgba(0,0,0,0);
 }
+
 .node #right > #output {
 	-background-color:rgba(255,0,0,255);
 	position-right:0;
@@ -276,8 +277,15 @@ VFXDataAnchor.Output
 position-right:0;
 margin-right:0;
 padding-right:0;
+margin-left:0;
 }
 
+VFXDataAnchor.Output #type
+{
+    text-color: rgb(153,153,153);
+    text-alignment:middle-right;
+	flex:1;
+}
 .VFXDataAnchor .propertyrm
 {
 	flex:1;

@@ -17,8 +17,6 @@ namespace UnityEditor.VFX.UI
         {
             base.Init(owner, model, nodePresenter);
 
-            anchorType = model.property.type;
-            name = model.property.name;
         }
 
         public void UpdateInfos(bool expanded)
