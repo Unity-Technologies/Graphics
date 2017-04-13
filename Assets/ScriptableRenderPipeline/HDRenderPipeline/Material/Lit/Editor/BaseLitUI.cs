@@ -44,6 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent windStiffnessText = new GUIContent("Stiffness");
             public static GUIContent windDragText = new GUIContent("Drag");
             public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
+            public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
 
             public static string vertexAnimation = "Vertex Animation";
         }
@@ -76,6 +77,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kWindDrag = "_Drag";
         protected MaterialProperty windShiverDrag = null;
         protected const string kWindShiverDrag = "_ShiverDrag";
+        protected MaterialProperty windShiverDirectionality = null;
+        protected const string kWindShiverDirectionality = "_ShiverDirectionality";
 
         // Per pixel displacement params
         protected MaterialProperty enablePerPixelDisplacement = null;
@@ -140,6 +143,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             windStiffness = FindProperty(kWindStiffness, props);
             windDrag = FindProperty(kWindDrag, props);
             windShiverDrag = FindProperty(kWindShiverDrag, props);
+            windShiverDirectionality = FindProperty(kWindShiverDirectionality, props);
         }
 
         void TessellationModePopup()
@@ -228,6 +232,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(windStiffness, StylesBaseLit.windStiffnessText);
                 m_MaterialEditor.ShaderProperty(windDrag, StylesBaseLit.windDragText);
                 m_MaterialEditor.ShaderProperty(windShiverDrag, StylesBaseLit.windShiverDragText);
+                m_MaterialEditor.ShaderProperty(windShiverDirectionality, StylesBaseLit.windShiverDirectionalityText);
                 EditorGUI.indentLevel--;
             }
 
