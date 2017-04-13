@@ -458,6 +458,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalInt("_TransmissionFlags",   sssParameters.transmissionFlags);
             Shader.SetGlobalInt("_TexturingModeFlags",  sssParameters.texturingModeFlags);
             cmd.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
+            cmd.SetGlobalVectorArray("_TintColors",     sssParameters.tintColors);
             cmd.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
 
             renderContext.ExecuteCommandBuffer(cmd);

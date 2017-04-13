@@ -52,6 +52,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 uint   _EnableSSS;                                         // Globally toggles subsurface scattering on/off
 uint   _TransmissionFlags;                                 // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
 uint   _TexturingModeFlags;                                // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+float4 _TintColors[SSS_N_PROFILES];                        // For transmission; alpha is unused
 float  _ThicknessRemaps[SSS_N_PROFILES][2];                // Remap: 0 = start, 1 = end - start
 float4 _HalfRcpVariancesAndLerpWeights[SSS_N_PROFILES][2]; // 2x Gaussians per color channel, A is the the associated interpolation weight
 
@@ -126,7 +127,7 @@ void ConfigureTexturingForSSS(inout BSDFData bsdfData)
 // Ref: Real-Time Realistic Skin Translucency (2010), equation 9 (modified).
 float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
                             float3 halfRcpVariance2, float lerpWeight2,
-                            float thickness, float radiusScale)
+                            float3 tintColor, float thickness, float radiusScale)
 {
 
     // Thickness and SSS radius are decoupled for artists.
@@ -137,8 +138,10 @@ float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
     float t2 = thickness * thickness;
 
     // TODO: 6 exponentials is kind of expensive... Should we use a LUT instead?
-    // lerp(exp(-t2 * halfRcpVariance1), exp(-t2 * halfRcpVariance2), lerpWeight2)
-    return exp(-t2 * halfRcpVariance1) * lerpWeight1 + exp(-t2 * halfRcpVariance2) * lerpWeight2;
+    // T = lerp(exp(-t2 * halfRcpVariance1), exp(-t2 * halfRcpVariance2), lerpWeight2)
+    float3 transmittance = exp(-t2 * halfRcpVariance1) * lerpWeight1
+                         + exp(-t2 * halfRcpVariance2) * lerpWeight2;
+    return transmittance * tintColor;
 }
 
 //-----------------------------------------------------------------------------
@@ -185,7 +188,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
                                                           _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].w,
                                                           _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].xyz,
                                                           _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].w,
-                                                          bsdfData.thickness, bsdfData.subsurfaceRadius);
+                                                          _TintColors[bsdfData.subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
@@ -405,7 +408,7 @@ void DecodeFromGBuffer(
                                                           _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].w,
                                                           _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].xyz,
                                                           _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].w,
-                                                          bsdfData.thickness, bsdfData.subsurfaceRadius);
+                                                          _TintColors[bsdfData.subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
     }
     else if (supportsClearCoat && bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
