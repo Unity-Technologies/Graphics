@@ -30,6 +30,7 @@ float _InitialBend;
 float _Stiffness;
 float _Drag;
 float _ShiverDrag;
+float _ShiverDirectionality;
 
 #ifndef LAYERED_LIT_SHADER
 
