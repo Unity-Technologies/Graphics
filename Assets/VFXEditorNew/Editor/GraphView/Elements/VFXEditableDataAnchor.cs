@@ -171,7 +171,7 @@ namespace UnityEditor.VFX.UI
 
             if (m_PropertyRM != null)
             {
-                m_PropertyRM.enabled = presenter.editable;
+                m_PropertyRM.enabled = presenter.editable && ! presenter.hidden;
                 m_PropertyRM.Update();
             }
 

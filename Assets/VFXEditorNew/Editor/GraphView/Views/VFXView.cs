@@ -85,8 +85,8 @@ namespace UnityEditor.VFX.UI
 					{Event.KeyboardEvent("f"), FrameSelection},
 					{Event.KeyboardEvent("o"), FrameOrigin},
 					{Event.KeyboardEvent("delete"), DeleteSelection},
-					{Event.KeyboardEvent("#tab"), FramePrev},
-					{Event.KeyboardEvent("tab"), FrameNext},
+//					{Event.KeyboardEvent("#tab"), FramePrev},
+//					{Event.KeyboardEvent("tab"), FrameNext},
                     {Event.KeyboardEvent("c"), CloneModels}, // TEST
                     {Event.KeyboardEvent("#r"), Resync},
                     {Event.KeyboardEvent("#d"), OutputToDot},
