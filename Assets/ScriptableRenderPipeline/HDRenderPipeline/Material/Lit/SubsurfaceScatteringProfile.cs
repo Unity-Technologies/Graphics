@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float         lerpWeight;
         public TexturingMode texturingMode;
         public bool          enableTransmission;
+        public Color         tintColor;
         public Vector2       thicknessRemap;
         [HideInInspector]
         public int           settingsIndex;
@@ -38,6 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lerpWeight         = 0.5f;
             texturingMode      = TexturingMode.PreAndPostScatter;
             enableTransmission = false;
+            tintColor          = Color.white;
             thicknessRemap     = new Vector2(0, 1);
             settingsIndex      = SubsurfaceScatteringSettings.neutralProfileID; // Updated by SubsurfaceScatteringSettings.OnValidate() once assigned
 
@@ -206,6 +208,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Below is the cache filled during OnValidate().
         [NonSerialized] public int           texturingModeFlags; // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
         [NonSerialized] public int           transmissionFlags;  // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
+        [NonSerialized] public Vector4[]     tintColors;         // For transmission; alpha is unused
         [NonSerialized] public float[]       thicknessRemaps;
         [NonSerialized] public Vector4[]     halfRcpVariancesAndLerpWeights;
         [NonSerialized] public Vector4[]     halfRcpWeightedVariances;
@@ -220,6 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             profiles[0]                    = null;
             texturingModeFlags             = 0;
             transmissionFlags              = 0;
+            tintColors                     = null;
             thicknessRemaps                = null;
             halfRcpVariancesAndLerpWeights = null;
             halfRcpWeightedVariances       = null;
@@ -270,6 +274,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 profiles[i].lerpWeight = Mathf.Clamp01(profiles[i].lerpWeight);
 
+                profiles[i].tintColor.r = Mathf.Clamp01(profiles[i].tintColor.r);
+                profiles[i].tintColor.g = Mathf.Clamp01(profiles[i].tintColor.g);
+                profiles[i].tintColor.b = Mathf.Clamp01(profiles[i].tintColor.b);
+                profiles[i].tintColor.a = 1.0f;
+
                 profiles[i].thicknessRemap.x = Mathf.Clamp(profiles[i].thicknessRemap.x, 0, profiles[i].thicknessRemap.y);
                 profiles[i].thicknessRemap.y = Mathf.Max(profiles[i].thicknessRemap.x, profiles[i].thicknessRemap.y);
 
@@ -283,6 +292,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             texturingModeFlags = 0;
             transmissionFlags  = 0;
+
+            if (tintColors == null || tintColors.Length != maxNumProfiles)
+            {
+                tintColors = new Vector4[maxNumProfiles];
+            }
 
             if (thicknessRemaps == null || thicknessRemaps.Length != (maxNumProfiles * 2))
             {
@@ -312,6 +326,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 texturingModeFlags |= ((int)profiles[i].texturingMode) << i;
                 transmissionFlags  |= (profiles[i].enableTransmission ? 1 : 0) << i;
 
+                tintColors[i]                               = profiles[i].tintColor;
                 thicknessRemaps[2 * i]                      = profiles[i].thicknessRemap.x;
                 thicknessRemaps[2 * i + 1]                  = profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x;
                 halfRcpVariancesAndLerpWeights[2 * i]       = profiles[i].halfRcpVariances[0];
@@ -401,6 +416,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 new GUIContent("Post-scatter", "Texturing is performed only during the SSS pass. Effectively preserves the sharpness of the diffuse texture. Choose this mode if your diffuse texture already contains SSS lighting (e.g. a photo of skin).")
             };
             public readonly GUIContent   sssProfileTransmission    = new GUIContent("Enable Transmission", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
+            public readonly GUIContent   sssProfileTintColor       = new GUIContent("Transmission Tint Color", "Tints transmitted light.");
             public readonly GUIContent   sssProfileMinMaxThickness = new GUIContent("Min-Max Thickness", "Shows the values of the thickness remap below.");
             public readonly GUIContent   sssProfileThicknessRemap  = new GUIContent("Thickness Remap", "Remaps the thickness parameter from [0, 1] to the desired range.");
 
@@ -430,7 +446,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private RenderTexture      m_ProfileImage, m_TransmittanceImage;
         private Material           m_ProfileMaterial, m_TransmittanceMaterial;
-        private SerializedProperty m_StdDev1, m_StdDev2, m_LerpWeight,
+        private SerializedProperty m_StdDev1, m_StdDev2, m_LerpWeight, m_TintColor,
                                    m_TexturingMode, m_Transmission, m_ThicknessRemap;
 
         void OnEnable()
@@ -440,6 +456,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LerpWeight     = serializedObject.FindProperty("lerpWeight");
             m_TexturingMode  = serializedObject.FindProperty("texturingMode");
             m_Transmission   = serializedObject.FindProperty("enableTransmission");
+            m_TintColor      = serializedObject.FindProperty("tintColor");
             m_ThicknessRemap = serializedObject.FindProperty("thicknessRemap");
 
             m_ProfileMaterial       = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawGaussianProfile");
@@ -460,7 +477,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(m_LerpWeight,   styles.sssProfileLerpWeight);
                 m_TexturingMode.intValue = EditorGUILayout.Popup(styles.sssTexturingMode, m_TexturingMode.intValue, styles.sssTexturingModeOptions);
                 EditorGUILayout.PropertyField(m_Transmission, styles.sssProfileTransmission);
-
+                EditorGUILayout.PropertyField(m_TintColor,    styles.sssProfileTintColor);
 
                 EditorGUILayout.PropertyField(m_ThicknessRemap, styles.sssProfileMinMaxThickness);
                 Vector2 thicknessRemap = m_ThicknessRemap.vector2Value;
@@ -490,6 +507,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_TransmittanceMaterial.SetColor("_StdDev2",         m_StdDev2.colorValue);
             m_TransmittanceMaterial.SetFloat("_LerpWeight",      m_LerpWeight.floatValue);
             m_TransmittanceMaterial.SetVector("_ThicknessRemap", m_ThicknessRemap.vector2Value);
+            m_TransmittanceMaterial.SetVector("_TintColor",      m_TintColor.colorValue);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImage, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
 
             serializedObject.ApplyModifiedProperties();
