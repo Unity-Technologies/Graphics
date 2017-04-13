@@ -481,7 +481,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 EditorGUILayout.PropertyField(m_ThicknessRemap, styles.sssProfileMinMaxThickness);
                 Vector2 thicknessRemap = m_ThicknessRemap.vector2Value;
-                EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0, 100);
+                EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0, 10);
                 m_ThicknessRemap.vector2Value = thicknessRemap;
 
                 EditorGUILayout.Space();
