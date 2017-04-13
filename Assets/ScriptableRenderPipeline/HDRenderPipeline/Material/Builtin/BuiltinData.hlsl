@@ -10,7 +10,7 @@
 
 //TODO: return this original relative path include after fixing a bug in Unity side
 //#include "BuiltinData.cs.hlsl"
-#include "HDRenderPipeline/Material/Builtin/BuiltinData.cs.hlsl"
+#include "../../Material/Builtin/BuiltinData.cs.hlsl"
 
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions
@@ -107,7 +107,7 @@ void GetLighTransportDataDebug(uint paramId, LighTransportData lightTransportDat
         // TODO: Need a tonemap ?
         result = lightTransportData.emissiveColor;
         break;
-    }    
+    }
 }
 
 #endif // UNITY_BUILTIN_DATA_INCLUDED

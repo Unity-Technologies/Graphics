@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SkyResolution            resolution = SkyResolution.SkyResolution256;
         public EnvironementUpdateMode   updateMode = EnvironementUpdateMode.OnChanged;
         public float                    updatePeriod = 0.0f;
+        public Cubemap                  lightingOverride = null;
 
         private FieldInfo[] m_Properties;
 
@@ -21,10 +22,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Enumerate properties in order to compute the hash more quickly later on.
             m_Properties = GetType()
-                            .GetFields(BindingFlags.Public | BindingFlags.Instance)
-                            .ToArray();
+                .GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .ToArray();
         }
-        
+
         public int GetHash()
         {
             unchecked

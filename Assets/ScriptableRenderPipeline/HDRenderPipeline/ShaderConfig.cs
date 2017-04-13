@@ -22,12 +22,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // const variable produce warning like this one: warning CS0162: Unreachable code detected
         // If we want to avoid them we can add #pragma warning disable 162, however doing that make the debugger shift his line count when debugging which is really annoying
-        // so here we decalare two kind of variable, one const that can be use in enum init and one static so the compiler doesn't complain. It mean that the conditional code will stay 
+        // so here we decalare two kind of variable, one const that can be use in enum init and one static so the compiler doesn't complain. It mean that the conditional code will stay
         // but it is usually small, so we are fine with it (until someone at microsoft fix the debuggger).
         public const int k_VelocityInGbuffer = (int)ShaderOptions.VelocityInGBuffer;
         public static int s_VelocityInGbuffer = (int)ShaderOptions.VelocityInGBuffer;
 
-        public const int k_PackgbufferInU16 = (int)ShaderOptions.PackGBufferInU16;        
+        public const int k_PackgbufferInU16 = (int)ShaderOptions.PackGBufferInU16;
         public static int s_PackgbufferInU16 = (int)ShaderOptions.PackGBufferInU16;
     }
 }

@@ -6,14 +6,14 @@
 #pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile		LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile		ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED		USE_TWO_PASS_TILED_LIGHTING
 #pragma kernel ClearAtomic
 
-#include "ShaderLibrary/common.hlsl"
+#include "../../../../ShaderLibrary/common.hlsl"
 #include "../ShaderBase.hlsl"
 #include "../TilePass.cs.hlsl"
 #include "../LightingConvexHullUtils.hlsl"
+
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 #include "../SortingComputeUtils.hlsl"
 #endif
-
 
 //#define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -233,9 +233,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	dpt_ma = asfloat(ldsZMax);
 #endif
 
-	float3 vTileLL = float3(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight, 0.0);
-	float3 vTileUR = float3(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight, 1.0);
-	
+	float2 vTileLL = float2(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight);
+	float2 vTileUR = float2(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight);
 
 	// build coarse list using AABB
 #ifdef USE_TWO_PASS_TILED_LIGHTING
@@ -251,10 +250,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
 #endif
-		const float3 vMi = g_vBoundsBuffer[l];
-		const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights];
+		const float2 vMi = g_vBoundsBuffer[l].xy;
+		const float2 vMa = g_vBoundsBuffer[l+g_iNrVisibLights].xy;
 
-		if( all(vMa.xy>vTileLL.xy) && all(vMi.xy<vTileUR.xy))
+		if( all(vMa>vTileLL) && all(vMi<vTileUR))
 		{
 			unsigned int uInc = 1;
 			unsigned int uIndex;
@@ -300,7 +299,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	{
 		for(int l=(int) t; l<((iNrCoarseLights+1)>>1); l += NR_THREADS)
 		{
-			const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights)];
+			const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights-1)];
 			const unsigned int clustIdxMi0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0].z), suggestedBase));
 			const unsigned int clustIdxMa0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0+g_iNrVisibLights].z), suggestedBase));
 			const unsigned int clustIdxMi1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1].z), suggestedBase));
@@ -335,9 +334,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		InterlockedAdd(g_LayeredSingleIdxBuffer[0], (uint) iSpaceAvail, start);		// alloc list memory
 	}
 
-    // All our cull data are in the same list, but at render time envLights are separated so we need to shit the index
-    // to make it work correctly
-    int shiftIndex[LIGHTCATEGORY_COUNT] = {0, 0, _EnvLightIndexShift}; // 3 for now, will throw an error if we change LIGHTCATEGORY_COUNT
+	// All our cull data are in the same list, but at render time envLights are separated so we need to shit the index
+	// to make it work correctly
+	int shiftIndex[LIGHTCATEGORY_COUNT] = {0, 0, _EnvLightIndexShift}; // 3 for now, will throw an error if we change LIGHTCATEGORY_COUNT
 
 	int categoryListCount[LIGHTCATEGORY_COUNT]={0,0,0};		// direct light count and reflection lights
 	uint offs = start;
@@ -354,8 +353,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		{
 			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase) )
 			{
-                uint lightCategory = _LightVolumeData[coarseList[l]].lightCategory;
-                ++categoryListCount[lightCategory];
+				uint lightCategory = _LightVolumeData[coarseList[l]].lightCategory;
+				++categoryListCount[lightCategory];
 				g_vLayeredLightList[offs++] = coarseList[l] - shiftIndex[lightCategory];			// reflection lights will be last since we sorted
 			}
 		}
@@ -431,7 +430,10 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	{
 		int offs = 0;
 		for(int l=0; l<iNrCoarseLights; l++)
-		{	if(coarseList[l]!=0xffffffff) coarseList[offs++] = coarseList[l]; }
+		{
+			if(coarseList[l]!=0xffffffff)
+				coarseList[offs++] = coarseList[l];
+		}
 		lightOffsSph = offs;
 	}
 
@@ -488,7 +490,7 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 		GroupMemoryBarrierWithGroupSync();
 #endif
 		const int idxCoarse = coarseList[l];
-        [branch]if (_LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+		[branch]if (_LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
 	

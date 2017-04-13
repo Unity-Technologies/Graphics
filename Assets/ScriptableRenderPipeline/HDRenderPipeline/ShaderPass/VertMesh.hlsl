@@ -97,8 +97,30 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 {
     VaryingsMeshType output;
 
+    float3 positionWS = TransformObjectToWorld(input.positionOS);
+    float3 normalWS = float3(0.0, 0.0, 0.0);
+    float4 tangentWS = float4(0.0, 0.0, 0.0, 0.0);
+    float4 vertexColor = float4(0.0, 0.0, 0.0, 0.0);
+
+#if (defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(TESSELLATION_ON)) && (SHADERPASS != SHADERPASS_VELOCITY)
+    normalWS = TransformObjectToWorldNormal(input.normalOS);
+#endif
+
+#if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
+    tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+#endif
+
+#if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
+    vertexColor = input.color;
+#endif
+
+#if _VERTEX_WIND
+    float3 rootWP = mul(GetObjectToWorldMatrix(), float4(0, 0, 0, 1)).xyz;
+    ApplyWind(positionWS, normalWS, rootWP, _Drag, _Stiffness, _ShiverDrag, _InitialBend, vertexColor.a, _Time);
+#endif
+
 #ifdef TESSELLATION_ON
-    output.positionWS = TransformObjectToWorld(input.positionOS);
+    output.positionWS = positionWS;
     #ifdef _TESSELLATION_OBJECT_SCALE
     // Extract scaling from world transform
     float4x4 worldTransform = GetObjectToWorldMatrix();
@@ -106,26 +128,26 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     output.objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
     output.objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
     #endif
-    // TODO: deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)  
+    // TODO: deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
     // TODO: TEMP: Velocity has a flow as it doens't have normal. This need to be fix. In the mean time, generate fix normal so compiler doesn't complain - When fix, think to also enable ATTRIBUTES_NEED_NORMAL in LitVelocityPass.hlsl
     #if SHADERPASS == SHADERPASS_VELOCITY
     output.normalWS = float3(0.0, 0.0, 1.0);
     #else
-    output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+    output.normalWS = normalWS;
     #endif
     #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
-    output.tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+    output.tangentWS = tangentWS;
     #endif
 #else
-    float3 positionWS = TransformObjectToWorld(input.positionOS);
+
     // TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
     #ifdef VARYINGS_NEED_POSITION_WS
     output.positionWS = positionWS;
     #endif
     output.positionCS = TransformWorldToHClip(positionWS);
     #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    output.normalWS = TransformObjectToWorldNormal(input.normalOS);
-    output.tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+    output.normalWS = normalWS;
+    output.tangentWS = tangentWS;
     #endif
 #endif
 
@@ -142,7 +164,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     output.texCoord3 = input.uv3;
 #endif
 #if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
-    output.color = input.color;
+    output.color = vertexColor;
 #endif
 
     return output;

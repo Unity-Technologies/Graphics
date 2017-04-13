@@ -14,15 +14,15 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "ShaderLibrary/Common.hlsl"
-            #include "ShaderLibrary/Color.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
+            #include "../../../ShaderLibrary/Color.hlsl"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-            #include "HDRenderPipeline/ShaderVariables.hlsl"
-            #include "HDRenderPipeline/Debug/DebugViewMaterial.cs.hlsl"    
-            #include "HDRenderPipeline/Material/Material.hlsl"
+            #include "../../ShaderConfig.cs.hlsl"
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Debug/DebugViewMaterial.cs.hlsl"
+            #include "../../Material/Material.hlsl"
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
@@ -50,7 +50,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             float4 Frag(Varyings input) : SV_Target
             {
-				// input.positionCS is SV_Position
+                // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
@@ -58,7 +58,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 float3 bakeDiffuseLighting;
-                DECODE_FROM_GBUFFER(gbuffer, bsdfData, bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, bakeDiffuseLighting);
 
                 // Init to not expected value
                 float3 result = float3(-666.0, 0.0, 0.0);

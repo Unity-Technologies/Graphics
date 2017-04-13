@@ -186,9 +186,9 @@ void SampleRectangle(   float2 u,
                         float4x4 localToWorld,
                         float width,
                         float height,
-                        out float	lightPdf,
-                        out float3	P,
-                        out float3	Ns)
+                        out float   lightPdf,
+                        out float3  P,
+                        out float3  Ns)
 {
     // Random point at rectangle surface
     P = float3((u.x - 0.5) * width, (u.y - 0.5) * height, 0);

@@ -80,8 +80,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SubsurfaceScatteringSettings sssSettings = new SubsurfaceScatteringSettings();
 
         [SerializeField]
-        ShadowSettings                      m_ShadowSettings = ShadowSettings.Default;
-        [SerializeField] TextureSettings    m_TextureSettings = TextureSettings.Default;
+        ShadowSettings               m_ShadowSettings  = ShadowSettings.Default;
+        [SerializeField]
+        TextureSettings              m_TextureSettings = TextureSettings.Default;
 
         public ShadowSettings shadowSettings                { get { return m_ShadowSettings; } }
         public TextureSettings textureSettings              { get { return m_TextureSettings; } set { m_TextureSettings = value; } }
@@ -93,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public CommonSettings.Settings commonSettingsToUse
         {
             get
-        {
+            {
                 if (CommonSettingsSingleton.overrideSettings)
                     return CommonSettingsSingleton.overrideSettings.settings;
 
@@ -117,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_SkySettings;
             }
         }
-        
+
         public void ApplyDebugSettings()
         {
             m_ShadowSettings.enabled = globalDebugSettings.lightingDebugSettings.enableShadows;
@@ -127,7 +128,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 debugSmoothness = new Vector4(lightDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
             Shader.SetGlobalVector("_DebugLightModeAndAlbedo", debugModeAndAlbedo);
             Shader.SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
-
         }
 
         public void UpdateCommonSettings()
@@ -187,8 +187,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             for (int index = 0; index < gbufferCount; index++)
             {
-            /* RTs[index] = */
-            cmd.GetTemporaryRT(IDs[index], width, height, 0, FilterMode.Point, formats[index], sRGBWrites[index]);
+                /* RTs[index] = */
+                cmd.GetTemporaryRT(IDs[index], width, height, 0, FilterMode.Point, formats[index], sRGBWrites[index]);
             }
         }
 
@@ -233,11 +233,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Various set of material use in render loop
         readonly Material m_FilterSubsurfaceScattering;
         readonly Material m_FilterAndCombineSubsurfaceScattering;
-        
+
         private Material m_DebugDisplayShadowMap;
         private Material m_DebugViewMaterialGBuffer;
         private Material m_DebugDisplayLatlong;
-        
+
         // Various buffer
         readonly int m_CameraColorBuffer;
         readonly int m_CameraSubsurfaceBuffer;
@@ -275,6 +275,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_Owner.globalDebugSettings; }
         }
 
+        public SubsurfaceScatteringSettings sssSettings
+        {
+            get { return m_Owner.sssSettings; }
+        }
         public HDRenderPipelineInstance(HDRenderPipeline owner)
         {
             m_Owner = owner;
@@ -327,7 +331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (owner.lightLoopProducer)
                 m_LightLoop = owner.lightLoopProducer.CreateLightLoop();
 
-            if(m_LightLoop != null)
+            if (m_LightLoop != null)
                 m_LightLoop.Build(owner.textureSettings);
 
             m_SkyManager.Build();
@@ -373,7 +377,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_CameraDepthStencilBuffer.Release();
             }
-            
+
             m_CameraDepthStencilBuffer = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 24, RenderTextureFormat.Depth);
             m_CameraDepthStencilBuffer.filterMode = FilterMode.Point;
             m_CameraDepthStencilBuffer.Create();
@@ -389,7 +393,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CameraDepthStencilBufferCopy.filterMode = FilterMode.Point;
                 m_CameraDepthStencilBufferCopy.Create();
                 m_CameraDepthStencilBufferCopyRT = new RenderTargetIdentifier(m_CameraDepthStencilBufferCopy);
-            }            
+            }
         }
 
         void Resize(Camera camera)
@@ -450,25 +454,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Broadcast SSS parameters to all shaders.
-            Shader.SetGlobalInt("_TransmissionFlags", sssParameters.transmissionFlags);
+            Shader.SetGlobalInt("_TransmissionFlags",   sssParameters.transmissionFlags);
+            Shader.SetGlobalInt("_TexturingModeFlags",  sssParameters.texturingModeFlags);
             cmd.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
             cmd.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
-
-            switch (sssParameters.texturingMode)
-            {
-                case SubsurfaceScatteringSettings.TexturingMode.PreScatter:
-                    cmd.EnableShaderKeyword("SSS_PRE_SCATTER_TEXTURING");
-                    cmd.DisableShaderKeyword("SSS_POST_SCATTER_TEXTURING");
-                    break;
-                case SubsurfaceScatteringSettings.TexturingMode.PostScatter:
-                    cmd.DisableShaderKeyword("SSS_PRE_SCATTER_TEXTURING");
-                    cmd.EnableShaderKeyword("SSS_POST_SCATTER_TEXTURING");
-                    break;
-                case SubsurfaceScatteringSettings.TexturingMode.PreAndPostScatter:
-                    cmd.DisableShaderKeyword("SSS_PRE_SCATTER_TEXTURING");
-                    cmd.DisableShaderKeyword("SSS_POST_SCATTER_TEXTURING");
-                    break;
-            }
 
             if (globalDebugSettings.renderingDebugSettings.enableSSS)
             {
@@ -481,9 +470,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
-
-            if (m_LightLoop != null)
-                m_LightLoop.PushGlobalParams(hdCamera.camera, renderContext);
         }
 
         bool NeedDepthBufferCopy()
@@ -581,7 +567,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // If full forward rendering, we did not do any rendering yet, so don't need to copy the buffer.
             // If Deferred then the depth buffer is full (regular GBuffer + ForwardOnly depth prepass are done so we can copy it safely.
-            if(!m_Owner.renderingSettings.useForwardRenderingOnly)
+            if (!m_Owner.renderingSettings.useForwardRenderingOnly)
             {
                 CopyDepthBufferIfNeeded(renderContext);
             }
@@ -632,7 +618,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // If full forward rendering, we did just rendered everything, so we can copy the depth buffer
                 // If Deferred nothing needs copying anymore.
-                if(m_Owner.renderingSettings.useForwardRenderingOnly)
+                if (m_Owner.renderingSettings.useForwardRenderingOnly)
                 {
                     CopyDepthBufferIfNeeded(renderContext);
                 }
@@ -727,7 +713,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Owner.renderingSettings.ShouldUseForwardRenderingOnly())
             {
-                return ;
+                return;
             }
 
             using (new Utilities.ProfilingSample("GBuffer Pass", renderContext))
@@ -800,7 +786,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Owner.renderingSettings.ShouldUseForwardRenderingOnly() || m_LightLoop == null)
             {
-                return ;
+                return;
             }
 
             RenderTargetIdentifier[] colorRTs = { m_CameraColorBufferRT, m_CameraSubsurfaceBufferRT };
@@ -830,14 +816,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FilterSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
             Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera,
-                                     m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
+                m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
 
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
             m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
             m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
             Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera,
-                                     m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
+                m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -851,6 +837,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void RenderSky(HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
             m_SkyManager.RenderSky(hdCamera, m_LightLoop == null ? null : m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, renderContext);
+        }
+
+        public Texture2D ExportSkyToTexture()
+        {
+            return m_SkyManager.ExportSkyToTexture();
         }
 
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
@@ -902,7 +893,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // If opaque velocity have been render during GBuffer no need to render it here
                 if ((ShaderConfig.s_VelocityInGbuffer == 1) || m_Owner.renderingSettings.ShouldUseForwardRenderingOnly())
-                    return ;
+                    return;
 
                 int w = camera.pixelWidth;
                 int h = camera.pixelHeight;
@@ -920,7 +911,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void RenderDistortion(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext)
         {
             if (!globalDebugSettings.renderingDebugSettings.enableDistortion)
-                return ;
+                return;
 
             using (new Utilities.ProfilingSample("Distortion Pass", renderContext))
             {
@@ -946,7 +937,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // All of this is temporary, sub-optimal and quickly hacked together but is necessary
                 // for artists to do lighting work until the fully-featured framework is ready
 
-                var localPostProcess = camera.GetComponent<PostProcessing>();
+                var localPostProcess = camera.GetComponent<PostProcessingSRP>();
 
                 bool localActive = localPostProcess != null && localPostProcess.enabled;
 
@@ -1003,9 +994,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         ShadowSliceData sliceData = m_ShadowsResult.shadowSlices[shadowLight.shadowSliceIndex + slice];
 
                         Vector4 texcoordScaleBias = new Vector4((float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasWidth,
-                                                                (float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasHeight,
-                                                                (float)sliceData.atlasX / m_Owner.shadowSettings.shadowAtlasWidth,
-                                                                (float)sliceData.atlasY / m_Owner.shadowSettings.shadowAtlasHeight);
+                                (float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasHeight,
+                                (float)sliceData.atlasX / m_Owner.shadowSettings.shadowAtlasWidth,
+                                (float)sliceData.atlasY / m_Owner.shadowSettings.shadowAtlasHeight);
 
                         propertyBlock.SetVector("_TextureScaleBias", texcoordScaleBias);
 
@@ -1026,7 +1017,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if(lightingDebug.displaySkyReflection)
+            if (lightingDebug.displaySkyReflection)
             {
                 Texture skyReflection = m_SkyManager.skyReflection;
                 propertyBlock.SetTexture("_InputCubemap", skyReflection);

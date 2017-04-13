@@ -15,8 +15,8 @@ MonoBehaviour:
     type: 2}
   globalDebugSettings:
     debugOverlayRatio: 0.33
-    displayMaterialDebug: 0
-    displayRenderingDebug: 0
+    displayMaterialDebug: 1
+    displayRenderingDebug: 1
     displayLightingDebug: 0
     materialDebugSettings:
       debugViewMaterial: 0
@@ -28,6 +28,8 @@ MonoBehaviour:
       overrideSmoothness: 0
       overrideSmoothnessValue: 0.5
       debugLightingAlbedo: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+      displaySkyReflection: 0
+      skyReflectionMipmap: 0
     renderingDebugSettings:
       displayOpaqueObjects: 1
       displayTransparentObjects: 1
@@ -37,126 +39,10 @@ MonoBehaviour:
     useForwardRenderingOnly: 0
     useDepthPrepass: 0
   sssSettings:
-    numProfiles: 1
+    numProfiles: 0
+    texturingMode: 0
     transmissionFlags: 0
-    profiles:
-    - stdDev1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
-      stdDev2: {r: 0.6, g: 0.6, b: 0.6, a: 0}
-      lerpWeight: 0.5
-      enableTransmission: 0
-      thicknessRemap: {x: 0, y: 3}
-      m_FilterKernel:
-      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.6594821}
-      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.3561445}
-      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.16454786}
-      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.000000048879357}
-      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.16454786}
-      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.35614443}
-      - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.659482}
-      m_HalfRcpVariances:
-      - {x: 5.5555553, y: 5.5555553, z: 5.5555553}
-      - {x: 1.3888888, y: 1.3888888, z: 1.3888888}
-      m_HalfRcpWeightedVariances: {x: 2.4691355, y: 2.4691355, z: 2.4691355, w: 2.4691355}
-    thicknessRemaps:
-    - 0
-    - 3
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    halfRcpVariancesAndLerpWeights:
-    - {x: 5.5555553, y: 5.5555553, z: 5.5555553, w: 0.5}
-    - {x: 1.3888888, y: 1.3888888, z: 1.3888888, w: 0.5}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    halfRcpWeightedVariances:
-    - {x: 2.4691355, y: 2.4691355, z: 2.4691355, w: 2.4691355}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    filterKernels:
-    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.6594821}
-    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.3561445}
-    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.16454786}
-    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: -0.000000048879357}
-    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.16454786}
-    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.35614443}
-    - {x: 0.14285715, y: 0.14285715, z: 0.14285715, w: 0.659482}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
-    - {x: 0, y: 0, z: 0, w: 0}
+    profiles: []
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096

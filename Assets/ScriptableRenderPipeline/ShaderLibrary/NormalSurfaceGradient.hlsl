@@ -11,12 +11,12 @@ void SurfaceGradientGenBasisTB(float3 nrmVertexNormal, float3 sigmaX, float3 sig
     // invC0 represents (dXds, dYds); but we don't divide by determinant (scale by sign instead)
     float2 invC0 = sign_det * float2(dSTdy.y, -dSTdx.y);
     vT = sigmaX * invC0.x + sigmaY * invC0.y;
-    if (abs(det) > 0.0) 
+    if (abs(det) > 0.0)
         vT = normalize(vT);
     vB = (sign_det * flipSign) * cross(nrmVertexNormal, vT);
 }
 
-// surface gradient from an on the fly TBN (deriv obtained using tspaceNormalToDerivative()) or from conventional vertex level TBN (mikktspace compliant and deriv obtained using tspaceNormalToDerivative()) 
+// surface gradient from an on the fly TBN (deriv obtained using tspaceNormalToDerivative()) or from conventional vertex level TBN (mikktspace compliant and deriv obtained using tspaceNormalToDerivative())
 float3 SurfaceGradientFromTBN(float2 deriv, float3 vT, float3 vB)
 {
     return deriv.x * vT + deriv.y * vB;

@@ -1,21 +1,21 @@
-﻿Shader "Hidden/HDRenderPipeline/LutGen"
+Shader "Hidden/HDRenderPipeline/LutGen"
 {
     HLSLINCLUDE
 
         #pragma target 4.5
-        #include "ShaderLibrary/Common.hlsl"
-        #include "HDRenderPipeline/ShaderVariables.hlsl"
+        #include "../../../ShaderLibrary/Common.hlsl"
+        #include "../../ShaderVariables.hlsl"
         #include "ColorGrading.hlsl"
 
         float4 _LutParams;
 
-        struct Attributes 
+        struct Attributes
         {
             float3 vertex : POSITION;
             float2 texcoord : TEXCOORD0;
         };
 
-        struct Varyings 
+        struct Varyings
         {
             float4 vertex : SV_POSITION;
             float2 texcoord : TEXCOORD0;

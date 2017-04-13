@@ -54,17 +54,17 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "ShaderLibrary/Common.hlsl"
-            #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
+            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "../../Debug/DebugLighting.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-            #include "HDRenderPipeline/ShaderVariables.hlsl"
-            #include "HDRenderPipeline/Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "../../ShaderConfig.cs.hlsl"
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
 
             //-------------------------------------------------------------------------------------
             // variable declaration
@@ -85,8 +85,8 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             struct Outputs
             {
             #ifdef OUTPUT_SPLIT_LIGHTING
-            	float4 specularLighting : SV_Target0;
-            	float3 diffuseLighting  : SV_Target1;
+                float4 specularLighting : SV_Target0;
+                float3 diffuseLighting  : SV_Target1;
             #else
                 float4 combinedLighting : SV_Target0;
             #endif
@@ -95,28 +95,30 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-			    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
             Outputs Frag(Varyings input)
             {
                 // input.positionCS is SV_Position
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(input.positionCS.xy) / GetTileSize());
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
+                uint featureFlags = 0xFFFFFFFF;
+
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 float3 bakeDiffuseLighting;
-                DECODE_FROM_GBUFFER(gbuffer, bsdfData, bakeDiffuseLighting);
+                DECODE_FROM_GBUFFER(gbuffer, featureFlags, bsdfData, bakeDiffuseLighting);
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 float3 diffuseLighting;
                 float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, featureFlags, diffuseLighting, specularLighting);
 
                 Outputs outputs;
             #ifdef OUTPUT_SPLIT_LIGHTING

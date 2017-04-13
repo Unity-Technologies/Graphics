@@ -37,6 +37,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "If -1.0 back face culling is enabled for tessellation, higher number mean more aggressive culling and better performance");
             public static GUIContent tessellationObjectScaleText = new GUIContent("Enable object scale", "Tessellation displacement will take into account the object scale - Only work with uniform positive scale");
             public static GUIContent tessellationTilingScaleText = new GUIContent("Enable tiling scale", "Tessellation displacement will take into account the tiling scale - Only work with uniform positive scale");
+
+            // Wind
+            public static GUIContent windText = new GUIContent("Enable Wind");
+            public static GUIContent windInitialBendText = new GUIContent("Initial Bend");
+            public static GUIContent windStiffnessText = new GUIContent("Stiffness");
+            public static GUIContent windDragText = new GUIContent("Drag");
+            public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
+
+            public static string vertexAnimation = "Vertex Animation";
         }
 
         public enum TessellationMode
@@ -55,6 +64,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Material ID
         protected MaterialProperty materialID = null;
         protected const string kMaterialID = "_MaterialID";
+
+        // Wind
+        protected MaterialProperty windEnable = null;
+        protected const string kWindEnabled = "_EnableWind";
+        protected MaterialProperty windInitialBend = null;
+        protected const string kWindInitialBend = "_InitialBend";
+        protected MaterialProperty windStiffness = null;
+        protected const string kWindStiffness = "_Stiffness";
+        protected MaterialProperty windDrag = null;
+        protected const string kWindDrag = "_Drag";
+        protected MaterialProperty windShiverDrag = null;
+        protected const string kWindShiverDrag = "_ShiverDrag";
 
         // Per pixel displacement params
         protected MaterialProperty enablePerPixelDisplacement = null;
@@ -112,6 +133,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon, props, false);
             tessellationObjectScale = FindProperty(kTessellationObjectScale, props, false);
             tessellationTilingScale = FindProperty(kTessellationTilingScale, props, false);
+
+            // Wind
+            windEnable = FindProperty(kWindEnabled, props);
+            windInitialBend = FindProperty(kWindInitialBend, props);
+            windStiffness = FindProperty(kWindStiffness, props);
+            windDrag = FindProperty(kWindDrag, props);
+            windShiverDrag = FindProperty(kWindShiverDrag, props);
         }
 
         void TessellationModePopup()
@@ -186,6 +214,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        protected override void VertexAnimationPropertiesGUI()
+        {
+            GUILayout.Label(StylesBaseLit.vertexAnimation, EditorStyles.boldLabel);
+
+            EditorGUI.indentLevel++;
+
+            m_MaterialEditor.ShaderProperty(windEnable, StylesBaseLit.windText);
+            if (!windEnable.hasMixedValue && windEnable.floatValue > 0.0f)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(windInitialBend, StylesBaseLit.windInitialBendText);
+                m_MaterialEditor.ShaderProperty(windStiffness, StylesBaseLit.windStiffnessText);
+                m_MaterialEditor.ShaderProperty(windDrag, StylesBaseLit.windDragText);
+                m_MaterialEditor.ShaderProperty(windShiverDrag, StylesBaseLit.windShiverDragText);
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUI.indentLevel--;
+        }
+
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if ocde change
         static public void SetupBaseLitKeywords(Material material)
         {
@@ -218,7 +266,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 switch (materialID)
                 {
-                   case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS:
+                    case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS:
                         stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.SSS;
                         break;
                     case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitStandard:
@@ -260,6 +308,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool tessellationTilingScaleEnable = material.GetFloat(kTessellationTilingScale) > 0.0;
                 SetKeyword(material, "_TESSELLATION_TILING_SCALE", tessellationTilingScaleEnable);
             }
+
+            bool windEnabled = material.GetFloat(kWindEnabled) > 0.0f;
+            SetKeyword(material, "_VERTEX_WIND", windEnabled);
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

@@ -1,9 +1,13 @@
 // Precomputes data for IntegrateLD(). See that function for a detailed description.
 
-#include "ShaderLibrary/Common.hlsl"
-#include "ShaderLibrary/ImageBasedLighting.hlsl"
+#include "../../../ShaderLibrary/Common.hlsl"
+#include "../../../ShaderLibrary/ImageBasedLighting.hlsl"
 
+#ifdef SHADER_API_MOBILE
+#define MAX_IBL_SAMPLE_CNT 34
+#else
 #define MAX_IBL_SAMPLE_CNT 89
+#endif
 
 RWTexture2D<float4> output; // [MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS]
 
