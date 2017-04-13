@@ -222,10 +222,13 @@ namespace UnityEditor.VFX.UI
                 var to = edge.input as VFXDataAnchorPresenter;
 
                 //Update connection (*wip* : will be a function of VFXOperator)
-                var slot = to.model;
-                if (slot != null)
+                if (to != null)
                 {
-                    slot.UnlinkAll(false);
+                    var slot = to.model;
+                    if (slot != null)
+                    {
+                        slot.UnlinkAll(false);
+                    }
                 }
             }
             else
