@@ -386,24 +386,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         private class Styles
         {
-            public readonly GUIContent   sssProfilePreview0       = new GUIContent("Profile preview");
-            public readonly GUIContent   sssProfilePreview1       = new GUIContent("Shows the fraction of light scattered from the source as radius increases to 1.");
-            public readonly GUIContent   sssProfilePreview2       = new GUIContent("Note that the intensity of the region in the center may be clamped.");
-            public readonly GUIContent   sssTransmittancePreview0 = new GUIContent("Transmittance preview");
-            public readonly GUIContent   sssTransmittancePreview1 = new GUIContent("Shows the fraction of light passing through the object as thickness increases to 1.");
-            public readonly GUIContent   sssProfileStdDev1        = new GUIContent("Standard deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
-            public readonly GUIContent   sssProfileStdDev2        = new GUIContent("Standard deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
-            public readonly GUIContent   sssProfileLerpWeight     = new GUIContent("Filter interpolation", "Controls linear interpolation between the two Gaussian filters.");
-            public readonly GUIContent   sssTexturingMode         = new GUIContent("Texturing mode", "Specifies when the diffuse texture should be applied.");
-            public readonly GUIContent[] sssTexturingModeOptions  = new GUIContent[2]
+            public readonly GUIContent   sssProfilePreview0        = new GUIContent("Profile Preview");
+            public readonly GUIContent   sssProfilePreview1        = new GUIContent("Shows the fraction of light scattered from the source as radius increases to 1.");
+            public readonly GUIContent   sssProfilePreview2        = new GUIContent("Note that the intensity of the region in the center may be clamped.");
+            public readonly GUIContent   sssTransmittancePreview0  = new GUIContent("Transmittance Preview");
+            public readonly GUIContent   sssTransmittancePreview1  = new GUIContent("Shows the fraction of light passing through the object as thickness increases to 1.");
+            public readonly GUIContent   sssProfileStdDev1         = new GUIContent("Standard Deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
+            public readonly GUIContent   sssProfileStdDev2         = new GUIContent("Standard Deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
+            public readonly GUIContent   sssProfileLerpWeight      = new GUIContent("Filter Interpolation", "Controls linear interpolation between the two Gaussian filters.");
+            public readonly GUIContent   sssTexturingMode          = new GUIContent("Texturing Mode", "Specifies when the diffuse texture should be applied.");
+            public readonly GUIContent[] sssTexturingModeOptions   = new GUIContent[2]
             {
                 new GUIContent("Pre- and post-scatter", "Texturing is performed during both the lighting and the SSS passes. Slightly blurs the diffuse texture. Choose this mode if your diffuse texture contains little to no SSS lighting."),
                 new GUIContent("Post-scatter", "Texturing is performed only during the SSS pass. Effectively preserves the sharpness of the diffuse texture. Choose this mode if your diffuse texture already contains SSS lighting (e.g. a photo of skin).")
             };
-            public readonly GUIContent   sssProfileTransmission   = new GUIContent("Enable transmission", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
-            public readonly GUIContent   sssProfileThicknessRemap = new GUIContent("Thickness remap", "Remaps the thickness parameter from [0, 1] to the desired range.");
+            public readonly GUIContent   sssProfileTransmission    = new GUIContent("Enable Transmission", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
+            public readonly GUIContent   sssProfileMinMaxThickness = new GUIContent("Min-Max Thickness", "Shows the values of the thickness remap below.");
+            public readonly GUIContent   sssProfileThicknessRemap  = new GUIContent("Thickness Remap", "Remaps the thickness parameter from [0, 1] to the desired range.");
 
-            public readonly GUIStyle     centeredMiniBoldLabel    = new GUIStyle(GUI.skin.label);
+            public readonly GUIStyle     centeredMiniBoldLabel     = new GUIStyle(GUI.skin.label);
 
             public Styles()
             {
@@ -460,10 +461,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TexturingMode.intValue = EditorGUILayout.Popup(styles.sssTexturingMode, m_TexturingMode.intValue, styles.sssTexturingModeOptions);
                 EditorGUILayout.PropertyField(m_Transmission, styles.sssProfileTransmission);
 
+
+                EditorGUILayout.PropertyField(m_ThicknessRemap, styles.sssProfileMinMaxThickness);
                 Vector2 thicknessRemap = m_ThicknessRemap.vector2Value;
-                EditorGUILayout.LabelField("Min thickness: ", thicknessRemap.x.ToString());
-                EditorGUILayout.LabelField("Max thickness: ", thicknessRemap.y.ToString());
-                EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0, 1000);
+                EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0, 100);
                 m_ThicknessRemap.vector2Value = thicknessRemap;
 
                 EditorGUILayout.Space();
