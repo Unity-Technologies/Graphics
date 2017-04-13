@@ -44,6 +44,7 @@ Shader "HDRenderPipeline/Lit"
         _Stiffness("Stiffness", float) = 1.0
         _Drag("Drag", float) = 1.0
         _ShiverDrag("Shiver Drag", float) = 0.2
+        _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
 
         //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
         //_CoatCoverageMap("CoatCoverageMapMap", 2D) = "white" {}

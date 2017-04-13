@@ -31,6 +31,7 @@ struct WindData
     float3 Direction;
     float Strength;
     float3 ShiverStrength;
+    float3 ShiverDirection;
 };
 
 
@@ -85,15 +86,25 @@ WindData GetAnalyticalWind(float3 WorldPosition, float3 PivotPosition, float dra
     float shiver = length(shiverNoise);
 
     result.Direction = dir;
+    result.ShiverDirection = shiverNoise;
     result.Strength = flex;
-    result.ShiverStrength = shiver;
+    result.ShiverStrength = shiver + shiver * gust;
 
     return result;
 }
 
 
 
-void ApplyWind(inout float3 worldPos, inout float3 worldNormal, float3 rootWP, float stiffness, float drag, float shiverDrag, float initialBend, float shiverMask, float4 time)
+void ApplyWind( inout float3    worldPos, 
+                inout float3    worldNormal,
+                float3          rootWP,
+                float           stiffness,
+                float           drag,
+                float           shiverDrag,
+                float           shiverDirectionality,
+                float           initialBend,
+                float           shiverMask,
+                float4          time)
 {
     WindData wind = GetAnalyticalWind(worldPos, rootWP, drag, shiverDrag, initialBend, time);
 
@@ -103,7 +114,9 @@ void ApplyWind(inout float3 worldPos, inout float3 worldNormal, float3 rootWP, f
         float3 rotAxis = cross(float3(0, 1, 0), wind.Direction);
 
         worldPos = Rotate(rootWP, worldPos, rotAxis, (wind.Strength) * 0.001 * att);
-        worldPos += wind.ShiverStrength * worldNormal * shiverMask;
+        
+        float3 shiverDirection = normalize(lerp(worldNormal, normalize(wind.Direction + wind.ShiverDirection), shiverDirectionality));
+        worldPos += wind.ShiverStrength * shiverDirection * shiverMask;
     }
 
 }
