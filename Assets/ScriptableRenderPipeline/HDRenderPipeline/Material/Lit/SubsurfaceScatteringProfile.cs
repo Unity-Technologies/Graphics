@@ -463,7 +463,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Vector2 thicknessRemap = m_ThicknessRemap.vector2Value;
                 EditorGUILayout.LabelField("Min thickness: ", thicknessRemap.x.ToString());
                 EditorGUILayout.LabelField("Max thickness: ", thicknessRemap.y.ToString());
-                EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0, 10);
+                EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0, 1000);
                 m_ThicknessRemap.vector2Value = thicknessRemap;
 
                 EditorGUILayout.Space();
