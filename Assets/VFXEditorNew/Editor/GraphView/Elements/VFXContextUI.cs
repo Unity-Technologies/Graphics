@@ -73,6 +73,8 @@ namespace UnityEditor.VFX.UI
         VisualElement       m_HeaderIcon;
 		VisualElement       m_HeaderTitle;
 
+        VisualElement       m_HeaderSpace;
+
         VisualContainer     m_Footer;
         VisualElement       m_FooterIcon;
         VisualElement       m_FooterTitle;
@@ -141,6 +143,13 @@ namespace UnityEditor.VFX.UI
 
             m_Header.AddChild(m_FlowInputConnectorContainer);
 
+            m_HeaderSpace = new VisualElement();
+            m_HeaderSpace.name = "HeaderSpace";
+            m_HeaderSpace.text = CoordinateSpace.Global.ToString();
+            m_HeaderSpace.AddManipulator(new Clickable(OnSpace));
+
+            m_Header.AddChild(m_HeaderSpace);
+
             m_NodeContainer.AddChild(m_Header);
 
             m_BlockContainer = new BlockContainer()
@@ -195,6 +204,15 @@ namespace UnityEditor.VFX.UI
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
+        }
+
+        void OnSpace()
+        {
+            int result = (int)System.Enum.Parse(typeof(CoordinateSpace),m_HeaderSpace.text);
+
+            result = (result + 1) % (int)(CoordinateSpace.SpaceCount);
+
+            m_HeaderSpace.text = ((CoordinateSpace)result).ToString();
         }
 
 		public EventPropagation SelectAll()

@@ -104,6 +104,22 @@ VFXContextUI #HeaderIcon
 	background-image:resource("VFX/Execution");
 }
 
+VFXContextUI #HeaderSpace
+{
+	border-width:1;
+	border-radius:4;
+	padding-left:4;
+	padding-right:4;
+	padding-bottom:2;
+	padding-top:2;
+	border-color: rgb(153,153,153);
+	text-color: rgb(153,153,153);
+	text-alignment: middle-center;
+	position-type:absolute;
+	position-right:5;
+	position-top:10;
+}
+
 VFXContextUI #FooterIcon
 {
 	background-image:resource("VFX/Execution");
