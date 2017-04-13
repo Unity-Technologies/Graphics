@@ -134,14 +134,56 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 // TODO: ask Morten if there is a better way to do this.
                 float3 totalWeight = sampleWeight;
 
-                [unroll]
-                for (int i = 1; i < N_SAMPLES; i++)
+                uint i;  // Sample index
+
+                [unroll] // Gather samples from the center to the left (up).
+                for (i = 1; i <= N_SAMPLES / 2; i++)
                 {
                     samplePosition = posInput.unPositionSS + rotatedDirection * _FilterKernels[profileID][i].a;
                     sampleWeight   = _FilterKernels[profileID][i].rgb;
 
                     rawDepth         = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
                     sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
+
+                    if (any(sampleIrradiance) == false)
+                    {
+                        // The irradiance is 0. There could be two reasons for this.
+                        // Most likely, the surface fragment does not have an SSS material.
+                        // Alternatively, the surface fragment could be completely shadowed.
+                        // Our blur is energy-preserving, so 'sampleWeight' should be 0.
+                        // We can save some bandwidth by terminating the loop early.
+                        break;
+                    }
+
+                    // Apply bilateral weighting.
+                    // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
+                    // Ref #2: Separable SSS, Supplementary Materials, Section E.
+                    float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
+                    float zDistance   = invDistScale * sampleDepth - (invDistScale * centerPosVS.z);
+                    sampleWeight     *= exp(-zDistance * zDistance * halfRcpVariance);
+
+                    totalIrradiance += sampleWeight * sampleIrradiance;
+                    totalWeight     += sampleWeight;
+                }
+
+                [unroll] // Gather samples from the center to the right (down).
+                for (; i < N_SAMPLES; i++)
+                {
+                    samplePosition = posInput.unPositionSS + rotatedDirection * _FilterKernels[profileID][i].a;
+                    sampleWeight   = _FilterKernels[profileID][i].rgb;
+
+                    rawDepth         = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
+                    sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
+
+                    if (any(sampleIrradiance) == false)
+                    {
+                        // The irradiance is 0. There could be two reasons for this.
+                        // Most likely, the surface fragment does not have an SSS material.
+                        // Alternatively, the surface fragment could be completely shadowed.
+                        // Our blur is energy-preserving, so 'sampleWeight' should be 0.
+                        // We can save some bandwidth by terminating the loop early.
+                        break;
+                    }
 
                     // Apply bilateral weighting.
                     // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.

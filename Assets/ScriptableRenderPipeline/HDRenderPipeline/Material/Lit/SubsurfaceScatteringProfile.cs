@@ -92,10 +92,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Vector3 weightSum = new Vector3(0, 0, 0);
 
+            float rcpNumSamples = 1.0f / numSamples;
+
             // Importance sample the linear combination of two Gaussians.
             for (uint i = 0; i < numSamples; i++)
             {
-                float u   = (i + 0.5f) / numSamples;
+                float u = (i <= numSamples / 2) ? 0.5f - i * rcpNumSamples    // The center and to the left
+                                                : (i + 0.5f) * rcpNumSamples; // From the center to the right
+
                 float pos = GaussianCombinationCdfInverse(u, maxStdDev1, maxStdDev2, lerpWeight);
                 float pdf = GaussianCombination(pos, maxStdDev1, maxStdDev2, lerpWeight);
 
