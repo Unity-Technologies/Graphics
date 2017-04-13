@@ -236,16 +236,15 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.specular = 0.04;
 
     surfaceData.subsurfaceProfile = _SubsurfaceProfile;
+    surfaceData.subsurfaceRadius  = _SubsurfaceRadius;
+    surfaceData.thickness         = _Thickness;
+
 #ifdef _SUBSURFACE_RADIUS_MAP
-    surfaceData.subsurfaceRadius = SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r * _SubsurfaceRadius;
-#else
-    surfaceData.subsurfaceRadius = _SubsurfaceRadius;
+    surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r;
 #endif
 
 #ifdef _THICKNESS_MAP
-    surfaceData.thickness = SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
-#else
-    surfaceData.thickness = _Thickness;
+    surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
 #endif
 
     surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
