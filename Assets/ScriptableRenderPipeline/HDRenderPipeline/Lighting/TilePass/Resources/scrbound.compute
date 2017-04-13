@@ -3,16 +3,14 @@
 
 #pragma kernel ScreenBoundsAABB
 
-#include "ShaderLibrary/common.hlsl"
+#include "../../../../ShaderLibrary/common.hlsl"
 #include "../TilePass.cs.hlsl"
 
 uniform int g_iNrVisibLights;
 uniform float4x4 g_mInvProjection;
 uniform float4x4 g_mProjection;
 
-
 StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
-
 
 #define NR_THREADS			64
 
@@ -409,14 +407,15 @@ float4 TransformPlaneToPostSpace(float4x4 InvProjection, float4 plane)
 	return mul(plane, InvProjection);
 }
 
-float4 EvalPlanePair(float2 posXY_in, float r)
+float4 EvalPlanePair(out bool validPlanes, float2 posXY_in, float r)
 {
 	// rotate by 90 degrees to avoid potential division by zero
 	bool bMustFlip = abs(posXY_in.y)<abs(posXY_in.x);
 	float2 posXY = bMustFlip ? float2(-posXY_in.y, posXY_in.x) : posXY_in;
 
 	float fLenSQ = dot(posXY, posXY);
-	float D = posXY.y * sqrt(fLenSQ - r*r);
+	float diffSq = fLenSQ - r*r;
+	float D = posXY.y * sqrt(max(0.0, diffSq));
 
 	float4 res;
 	res.x = (-r*posXY.x - D) / fLenSQ;
@@ -427,13 +426,16 @@ float4 EvalPlanePair(float2 posXY_in, float r)
 	// rotate back by 90 degrees
 	res = bMustFlip ? float4(res.y, -res.x, res.w, -res.z) : res;
 
+	validPlanes = diffSq>0.0;
+
 	return res;
 }
 
 void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, out float2 vMax, float4x4 InvProjection, float3 pos_view_space, float r)
 {
-	float4 planeX = EvalPlanePair(float2(pos_view_space.x, pos_view_space.z), r);
-	float4 planeY = EvalPlanePair(float2(pos_view_space.y, pos_view_space.z), r);
+	bool validX, validY;
+	float4 planeX = EvalPlanePair(validX, float2(pos_view_space.x, pos_view_space.z), r);
+	float4 planeY = EvalPlanePair(validY, float2(pos_view_space.y, pos_view_space.z), r);
 
 
 #if USE_LEFTHAND_CAMERASPACE
@@ -441,8 +443,8 @@ void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, ou
 	planeY = planeY.zwxy;
 #endif
 
-	bIsMinValid = bool2(planeX.z<0, planeY.z<0);
-	bIsMaxValid = bool2((-planeX.x)<0, (-planeY.x)<0);
+	bIsMinValid = bool2(planeX.z<0, planeY.z<0) && bool2(validX,validY);
+	bIsMaxValid = bool2((-planeX.x)<0, (-planeY.x)<0) && bool2(validX,validY);
 
 	// hopefully the compiler takes zeros into account
 	// should be the case since the transformation in TransformPlaneToPostSpace()

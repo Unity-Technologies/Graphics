@@ -15,44 +15,87 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #define LIGHTLOOP_TILE_PASS           
+            #define LIGHTLOOP_TILE_PASS
             #define LIGHTLOOP_TILE_ALL
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+            #pragma multi_compile SHOW_LIGHT_CATEGORIES SHOW_FEATURE_VARIANTS
 
             //-------------------------------------------------------------------------------------
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "ShaderLibrary/Common.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
-            // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem), 
+            // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-            #include "HDRenderPipeline/ShaderVariables.hlsl"
-            #include "HDRenderPipeline/Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "../../ShaderConfig.cs.hlsl"
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
 
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
 
             uint _ViewTilesFlags;
+            uint _NumTiles;
             float2 _MousePixelCoord;
 
+            StructuredBuffer<uint> g_TileList;
+            Buffer<uint> g_DispatchIndirectBuffer;
 
-            float4 Vert(float3 positionOS : POSITION): SV_POSITION
+            struct VSOut
             {
-                return TransformWorldToHClip(TransformObjectToWorld(positionOS));
-            }
+                float4 Pos : SV_POSITION;
+                int Variant : TEXCOORD0;
+            };
 
-            float4 AlphaBlend(float4 c0, float4 c1)	// c1 over c0
+#if SHOW_FEATURE_VARIANTS
+            VSOut Vert(uint vertexID : SV_VertexID)
+            {
+                uint quadIndex = vertexID / 6;
+                uint quadVertex = vertexID - quadIndex * 6;
+                quadVertex = (0x312210 >> (quadVertex<<2)) & 3; //remap [0,5]->[0,3]
+
+                uint2 tileSize = GetTileSize();
+
+                uint variant = 0;
+                while (quadIndex >= g_DispatchIndirectBuffer[variant * 3 + 0] && variant < NUM_FEATURE_VARIANTS)
+                {
+                    quadIndex -= g_DispatchIndirectBuffer[variant * 3 + 0];
+                    variant++;
+                }
+
+                uint tileIndex = g_TileList[variant * _NumTiles + quadIndex];
+                uint2 tileCoord = uint2(tileIndex & 0xFFFF, tileIndex >> 16);
+                uint2 pixelCoord = (tileCoord + uint2((quadVertex+1) & 1, (quadVertex >> 1) & 1)) * tileSize;
+
+                float2 clipCoord = (pixelCoord / _ScreenParams.xy) * 2.0 - 1.0;
+                clipCoord.y *= -1;
+
+                VSOut Out;
+                Out.Pos = float4(clipCoord, 0, 1.0);
+                Out.Variant = variant;
+                return Out;
+            }
+#else
+            VSOut Vert(float3 positionOS : POSITION)
+            {
+                VSOut Out;
+                Out.Pos = TransformWorldToHClip(TransformObjectToWorld(positionOS));
+                Out.Variant = 0;
+                return Out;
+            }
+#endif
+
+            float4 AlphaBlend(float4 c0, float4 c1) // c1 over c0
             {
                 return float4(lerp(c0.rgb, c1.rgb, c1.a), c0.a + c1.a - c0.a * c1.a);
             }
 
-            float4 OverlayHeatMap(uint2 pixCoord, uint numLights)
+            float4 OverlayHeatMap(uint2 pixCoord, uint n)
             {
                 const float4 kRadarColors[12] =
                 {
@@ -72,36 +115,37 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
 
                 float maxNrLightsPerTile = 31; // TODO: setup a constant for that
 
-                int colorIndex = numLights == 0 ? 0 : (1 + (int)floor(10 * (log2((float)numLights) / log2(maxNrLightsPerTile))));
+                int colorIndex = n == 0 ? 0 : (1 + (int)floor(10 * (log2((float)n) / log2(maxNrLightsPerTile))));
                 colorIndex = colorIndex < 0 ? 0 : colorIndex;
                 float4 col = colorIndex > 11 ? float4(1.0, 1.0, 1.0, 1.0) : kRadarColors[colorIndex];
 
                 int2 coord = pixCoord - int2(1, 1);
 
                 float4 color = float4(PositivePow(col.xyz, 2.2), 0.3 * col.w);
-                if (numLights > 0)
+                if (n >= 0)
                 {
-                    if (SampleDebugFontNumber(coord, numLights))		// Shadow
+                    if (SampleDebugFontNumber(coord, n))        // Shadow
                         color = float4(0, 0, 0, 1);
-                    if (SampleDebugFontNumber(coord + 1, numLights))	// Text
+                    if (SampleDebugFontNumber(coord + 1, n))    // Text
                         color = float4(1, 1, 1, 1);
                 }
                 return color;
             }
 
-            float4 Frag(float4 positionCS : SV_POSITION) : SV_Target
+            float4 Frag(float4 positionCS : SV_POSITION, int Variant : TEXCOORD0) : SV_Target
             {
                 // positionCS is SV_Position
-                PositionInputs posInput = GetPositionInput(positionCS.xy, _ScreenSize.zw);
+                PositionInputs posInput = GetPositionInput(positionCS.xy, _ScreenSize.zw, uint2(positionCS.xy) / GetTileSize());
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
- 
+
                 int2 pixelCoord = posInput.unPositionSS.xy;
                 int2 tileCoord = (float2)pixelCoord / TILE_SIZE;
                 int2 mouseTileCoord = _MousePixelCoord / TILE_SIZE;
                 int2 offsetInTile = pixelCoord - tileCoord * TILE_SIZE;
 
                 int n = 0;
+#ifdef SHOW_LIGHT_CATEGORIES
                 for (int category = 0; category < LIGHTCATEGORY_COUNT; category++)
                 {
                     uint mask = 1u << category;
@@ -113,16 +157,21 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                         n += count;
                     }
                 }
-                
+                if(n == 0) n = -1;
+#else
+                n = Variant;
+#endif
+
                 float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
-				// Tile overlap counter
-                if (n > 0)
+                // Tile overlap counter
+                if (n >= 0)
                 {
                     result = OverlayHeatMap(int2(posInput.unPositionSS.xy) & (TILE_SIZE - 1), n);
                 }
 
-				// Highlight selected tile
+#ifdef SHOW_LIGHT_CATEGORIES
+                // Highlight selected tile
                 if (all(mouseTileCoord == tileCoord))
                 {
                     bool border = any(offsetInTile == 0 || offsetInTile == TILE_SIZE - 1);
@@ -134,7 +183,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 int maxLights = 32;
                 if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
-                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw);
+                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw, uint2(0,0));
                     float depthMouse = LOAD_TEXTURE2D(_MainDepthTexture, mousePosInput.unPositionSS).x;
                     UpdatePositionInput(depthMouse, _InvViewProjMatrix, _ViewProjMatrix, mousePosInput);
 
@@ -167,6 +216,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
 
                     result = AlphaBlend(result, result2);
                 }
+#endif
 
                 return result;
             }

@@ -42,4 +42,3 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     EncodeDistortion(builtinData.distortion, builtinData.distortionBlur, outBuffer);
     return outBuffer;
 }
-

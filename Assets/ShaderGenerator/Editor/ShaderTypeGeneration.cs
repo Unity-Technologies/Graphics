@@ -352,7 +352,6 @@ namespace UnityEditor.Experimental.Rendering
                     mergedFields.Add(current);
                     current = e.Current.Clone() as ShaderFieldInfo;
                 }
-
             }
             return mergedFields;
         }
@@ -493,7 +492,7 @@ namespace UnityEditor.Experimental.Rendering
                         EmitPrimitiveType(PrimitiveType.Int, 1, field.Name, "", m_ShaderFields);
                     else if (field.FieldType == typeof(uint))
                         EmitPrimitiveType(PrimitiveType.UInt, 1, field.Name, "", m_ShaderFields);
-                        else if (field.FieldType == typeof(bool))
+                    else if (field.FieldType == typeof(bool))
                         EmitPrimitiveType(PrimitiveType.Bool, 1, field.Name, "", m_ShaderFields);
                     else
                     {

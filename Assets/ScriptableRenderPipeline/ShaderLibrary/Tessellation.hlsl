@@ -46,7 +46,7 @@ float2 GetScreenSpacePosition(float3 positionWS, float4x4 viewProjectionMatrix, 
 
 // Compute both screen and distance based adaptation - return factor between 0 and 1
 float3 GetScreenSpaceTessFactor(float3 p0, float3 p1, float3 p2, float4x4 viewProjectionMatrix, float4 screenParams, float triangleSize)
-{    
+{
     // Get screen space adaptive scale factor
     float2 edgeScreenPosition0 = GetScreenSpacePosition(p0, viewProjectionMatrix, screenParams);
     float2 edgeScreenPosition1 = GetScreenSpacePosition(p1, viewProjectionMatrix, screenParams);
@@ -110,15 +110,15 @@ bool WorldViewFrustumCull(float3 p0, float3 p1, float3 p2, float cullEps, float4
     planeTest.x =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0 : 0.0) +
                     ((DistanceFromPlane(p1, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0 : 0.0) +
                     ((DistanceFromPlane(p2, cameraWorldClipPlanes[0]) > -cullEps) ? 1.0 : 0.0);
-    // right                                   
+    // right
     planeTest.y =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0 : 0.0) +
                     ((DistanceFromPlane(p1, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0 : 0.0) +
                     ((DistanceFromPlane(p2, cameraWorldClipPlanes[1]) > -cullEps) ? 1.0 : 0.0);
-    // top                                     
+    // top
     planeTest.z =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0 : 0.0) +
                     ((DistanceFromPlane(p1, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0 : 0.0) +
                     ((DistanceFromPlane(p2, cameraWorldClipPlanes[2]) > -cullEps) ? 1.0 : 0.0);
-    // bottom                                  
+    // bottom
     planeTest.w =   ((DistanceFromPlane(p0, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0 : 0.0) +
                     ((DistanceFromPlane(p1, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0 : 0.0) +
                     ((DistanceFromPlane(p2, cameraWorldClipPlanes[3]) > -cullEps) ? 1.0 : 0.0);

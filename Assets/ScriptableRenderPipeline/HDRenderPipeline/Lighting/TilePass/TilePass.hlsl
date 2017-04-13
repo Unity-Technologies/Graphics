@@ -14,7 +14,7 @@
 uint _NumTileFtplX;
 uint _NumTileFtplY;
 
-StructuredBuffer<uint> g_vLightListGlobal;		// don't support Buffer yet in unity
+StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
 
 #ifdef USE_FPTL_LIGHTLIST
 #define TILE_SIZE TILE_SIZE_FPTL
@@ -35,7 +35,7 @@ float g_fClustScale;
 float g_fClustBase;
 float g_fNearPlane;
 float g_fFarPlane;
-int g_iLog2NumClusters;	// We need to always define these to keep constant buffer layouts compatible
+int g_iLog2NumClusters; // We need to always define these to keep constant buffer layouts compatible
 
 uint g_isLogBaseBufferEnabled;
 uint _UseTileLightList;
@@ -44,14 +44,14 @@ uint _UseTileLightList;
 //#ifdef USE_CLUSTERED_LIGHTLIST
 uint _NumTileClusteredX;
 uint _NumTileClusteredY;
-StructuredBuffer<uint> g_vLayeredOffsetsBuffer;		// don't support Buffer yet in unity
-StructuredBuffer<float> g_logBaseBuffer;			// don't support Buffer yet in unity
+StructuredBuffer<uint> g_vLayeredOffsetsBuffer;     // don't support Buffer yet in unity
+StructuredBuffer<float> g_logBaseBuffer;            // don't support Buffer yet in unity
 //#endif
 
-StructuredBuffer<DirectionalLightData>  _DirectionalLightDatas;
-StructuredBuffer<LightData>             _LightDatas;
-StructuredBuffer<EnvLightData>          _EnvLightDatas;
-StructuredBuffer<ShadowData>            _ShadowDatas;
+StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
+StructuredBuffer<LightData>            _LightDatas;
+StructuredBuffer<EnvLightData>         _EnvLightDatas;
+StructuredBuffer<ShadowData>           _ShadowDatas;
 
 // Use texture atlas for shadow map
 //TEXTURE2D(_ShadowAtlas);
@@ -69,22 +69,12 @@ TEXTURE2D_ARRAY(_CookieTextures);
 SAMPLER2D(sampler_CookieTextures);
 
 // Used by point lights
-#ifdef UNITY_NO_CUBEMAP_ARRAY
-TEXTURE2D_ARRAY(_CookieCubeTextures);
-SAMPLER2D(sampler_CookieCubeTextures);
-#else
-TEXTURECUBE_ARRAY(_CookieCubeTextures);
-SAMPLERCUBE(sampler_CookieCubeTextures);
-#endif
+TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
+SAMPLERCUBE_ABSTRACT(sampler_CookieCubeTextures);
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
-#ifdef UNITY_NO_CUBEMAP_ARRAY
-TEXTURE2D_ARRAY(_EnvTextures);
-SAMPLER2D(sampler_EnvTextures);
-#else
-TEXTURECUBE_ARRAY(_EnvTextures);
-SAMPLERCUBE(sampler_EnvTextures);
-#endif
+TEXTURECUBE_ARRAY_ABSTRACT(_EnvTextures);
+SAMPLERCUBE_ABSTRACT(sampler_EnvTextures);
 
 TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
@@ -96,7 +86,7 @@ uint _AreaLightCount;
 uint _EnvLightCount;
 float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
 
-int  _EnvLightSkyEnabled;         // TODO: make it a bool	
+int  _EnvLightSkyEnabled;         // TODO: make it a bool
 CBUFFER_END
 
 struct LightLoopContext
@@ -104,7 +94,7 @@ struct LightLoopContext
     int sampleShadow;
     int sampleReflection;
 #ifdef SHADOWS_USE_SHADOWCTXT
-	ShadowContext shadowContext;
+    ShadowContext shadowContext;
 #endif
 };
 
@@ -241,11 +231,7 @@ float4 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index
 // Returns the color in the RGB components, and the transparency (lack of occlusion) in A.
 float4 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
 {
-    #ifdef UNITY_NO_CUBEMAP_ARRAY
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieCubeTextures, sampler_CookieCubeTextures, DirectionToLatLongCoordinate(coord), index, 0);
-    #else
-    return SAMPLE_TEXTURECUBE_ARRAY_LOD(_CookieCubeTextures, sampler_CookieCubeTextures, coord, index, 0);
-    #endif
+    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, sampler_CookieCubeTextures, coord, index, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -272,15 +258,10 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
-        #ifdef UNITY_NO_CUBEMAP_ARRAY
-        return SAMPLE_TEXTURE2D_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, DirectionToLatLongCoordinate(texCoord), index, lod);
-        #else
-        return SAMPLE_TEXTURECUBE_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, texCoord, index, lod);
-        #endif
+        return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvTextures, sampler_EnvTextures, texCoord, index, lod);
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
         return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, sampler_SkyTexture, texCoord, lod);
     }
 }
-

@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             new GradientColorKey(new Color(0.5f, 0.6f, 0.8f), 1f) },
                     new[] { new GradientAlphaKey(1f, 0f),
                             new GradientAlphaKey(1f, 1f) }
-                );
+                    );
             }
 
             if (worldMieColorRamp == null)
@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             new GradientColorKey(new Color(1f, 0.9f, 8.0f), 1f) },
                     new[] { new GradientAlphaKey(1f, 0f),
                             new GradientAlphaKey(1f, 1f) }
-                );
+                    );
             }
         }
 

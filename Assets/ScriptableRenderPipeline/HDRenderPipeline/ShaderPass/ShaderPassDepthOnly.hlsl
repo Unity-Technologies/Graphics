@@ -49,4 +49,3 @@ void Frag(  PackedVaryingsToPS packedInput,
     outputDepth = posInput.depthRaw;
 #endif
 }
-

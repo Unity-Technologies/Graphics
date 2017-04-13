@@ -38,6 +38,13 @@ Shader "HDRenderPipeline/LitTessellation"
         _Thickness("Thickness", Range(0.004, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
 
+        // Wind
+        [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
+        _InitialBend("Initial Bend", float) = 1.0
+        _Stiffness("Stiffness", float) = 1.0
+        _Drag("Drag", float) = 1.0
+        _ShiverDrag("Shiver Drag", float) = 0.2
+
         //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
         //_CoatCoverageMap("CoatCoverageMapMap", 2D) = "white" {}
 
@@ -64,7 +71,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 1
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilBits.Standard
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -138,7 +145,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
-    #pragma shader_feature _NORMALMAP  
+    #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
     #pragma shader_feature _SPECULAROCCLUSIONMAP
     #pragma shader_feature _EMISSIVE_COLOR_MAP
@@ -149,10 +156,13 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
     #pragma shader_feature _THICKNESS_MAP
     #pragma shader_feature _SUBSURFACE_SCATTERING
+    #pragma shader_feature _VERTEX_WIND
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
     #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+    // enable dithering LOD crossfade
+    #pragma multi_compile _ LOD_FADE_CROSSFADE
     // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
     //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON
 
@@ -169,18 +179,19 @@ Shader "HDRenderPipeline/LitTessellation"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "ShaderLibrary/common.hlsl"
-    #include "ShaderLibrary/tessellation.hlsl"
-    #include "HDRenderPipeline/ShaderConfig.cs.hlsl"
-    #include "HDRenderPipeline/ShaderVariables.hlsl"
-    #include "HDRenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "HDRenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    #include "../../../ShaderLibrary/common.hlsl"
+    #include "../../../ShaderLibrary/Wind.hlsl"
+    #include "../../../ShaderLibrary/tessellation.hlsl"
+    #include "../../ShaderConfig.cs.hlsl"
+    #include "../../ShaderVariables.hlsl"
+    #include "../../ShaderPass/FragInputs.hlsl"
+    #include "../../ShaderPass/ShaderPass.cs.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    #include "HDRenderPipeline/Material/Lit/LitProperties.hlsl"
+    #include "../../Material/Lit/LitProperties.hlsl"
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
@@ -242,8 +253,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
             #define LIGHTING_DEBUG
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "../../Debug/DebugLighting.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
@@ -285,7 +296,7 @@ Shader "HDRenderPipeline/LitTessellation"
             HLSLPROGRAM
 
             // Lightmap memo
-            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
+            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             // No tessellation for Meta pass
@@ -359,6 +370,8 @@ Shader "HDRenderPipeline/LitTessellation"
             HLSLPROGRAM
 
             // TODO: Tesselation can't work with velocity for now...
+            #pragma hull Hull
+            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "../../Material/Material.hlsl"
@@ -437,8 +450,8 @@ Shader "HDRenderPipeline/LitTessellation"
             #define LIGHTING_DEBUG
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../Lighting/Forward.hlsl"
-            #include "HDRenderPipeline/Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "HDRenderPipeline/Debug/DebugLighting.hlsl"
+            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
+            #include "../../Debug/DebugLighting.hlsl"
 
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS

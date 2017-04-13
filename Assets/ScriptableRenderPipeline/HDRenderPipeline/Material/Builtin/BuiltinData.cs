@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public static RenderTextureFormat GetDistortionBufferFormat()
             {
                 // TODO: // This format need to be additive blendable and include distortionBlur, blend mode different for alpha value
-                return RenderTextureFormat.ARGBHalf; 
+                return RenderTextureFormat.ARGBHalf;
             }
 
             public static RenderTextureReadWrite GetDistortionBufferReadWrite()

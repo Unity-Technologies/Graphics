@@ -14,24 +14,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public virtual bool NeedResize() { return false;  }
 
-        public virtual void AllocResolutionDependentBuffers(int width, int height) { }
+        public virtual void AllocResolutionDependentBuffers(int width, int height) {}
 
         public virtual void ReleaseResolutionDependentBuffers() {}
 
         public virtual void NewFrame() {}
 
-        public virtual void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput) { }
-        public virtual void RenderShadows( ScriptableRenderContext renderContext, CullResults cullResults ) { }
-        
-        // TODO: this should not be part of the interface but for now make something working
-        public virtual void BuildGPULightLists(Camera camera, ScriptableRenderContext loop, RenderTargetIdentifier cameraDepthBufferRT) { }
+        public virtual void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput) {}
+        public virtual void RenderShadows(ScriptableRenderContext renderContext, CullResults cullResults) {}
 
-        public virtual void PushGlobalParams(Camera camera, ScriptableRenderContext loop) {}
+        // TODO: this should not be part of the interface but for now make something working
+        public virtual void BuildGPULightLists(Camera camera, ScriptableRenderContext loop, RenderTargetIdentifier cameraDepthBufferRT) {}
 
         public virtual void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
-                                                   LightingDebugSettings lightDebugParameters,
-                                                   RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
-                                                   bool outputSplitLightingForSSS, bool enableSSS) {}
+            LightingDebugSettings lightDebugParameters,
+            RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
+            bool outputSplitLightingForSSS, bool enableSSS) {}
 
         public virtual void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque) {}
 
