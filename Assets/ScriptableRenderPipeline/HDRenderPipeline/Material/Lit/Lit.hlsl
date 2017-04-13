@@ -48,7 +48,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 
 // SSS parameters
 #define SSS_N_PROFILES 8
-#define SSS_UNIT_CONVERSION (1.0 / 300.0)                  // From meters to 1/3 centimeters
+#define SSS_UNIT_CONVERSION (1.0 / 300.0)                  // From 1/3 centimeters to meters
 uint   _EnableSSS;                                         // Globally toggles subsurface scattering on/off
 uint   _TransmissionFlags;                                 // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
 uint   _TexturingModeFlags;                                // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
@@ -877,7 +877,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
         {
             // TODO: factor out the biased position?
-            float3 biasedPositionWS = positionWS + bsdfData.normalWS * bsdfData.thickness;
+            float3 biasedPositionWS = positionWS - bsdfData.normalWS * bsdfData.thickness;
 #ifdef SHADOWS_USE_SHADOWCTXT
             float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
@@ -995,7 +995,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
         {
             // TODO: factor out the common biased position?
-            float3 biasedPositionWS = positionWS + bsdfData.normalWS * bsdfData.thickness;
+            float3 biasedPositionWS = positionWS - bsdfData.normalWS * bsdfData.thickness;
             float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
 #ifdef SHADOWS_USE_SHADOWCTXT
             float shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
@@ -1090,12 +1090,13 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Reverse the normal.
-        illuminance = saturate(dot(-bsdfData.normalWS, L));
+        illuminance = saturate(dot(-bsdfData.normalWS, L) * clipFactor);
 
+        // TODO: these shadows do not work yet!
         [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
         {
             // TODO: factor out the biased position?
-            float3 biasedPositionWS = positionWS + bsdfData.normalWS * bsdfData.thickness;
+            float3 biasedPositionWS = positionWS - bsdfData.normalWS * bsdfData.thickness;
 #ifdef SHADOWS_USE_SHADOWCTXT
             float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
