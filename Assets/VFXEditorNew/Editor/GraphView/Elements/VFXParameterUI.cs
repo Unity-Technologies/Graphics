@@ -34,20 +34,16 @@ namespace UnityEditor.VFX.UI
     }
     class VFXParameterUI : VFXNodeUI
     {
-        private Button m_ExposedName;
-        private Button m_Exposed;
+        private TextField m_ExposedName;
+        private Toggle m_Exposed;
 
-        private void RandomizeName()
+        public void OnNameChanged()
         {
             var presenter = GetPresenter<VFXParameterPresenter>();
-            string letter = "abcdefghijklmnopqrstuvwxyz";
-            string randName = "rand_";
-            for (int i=0;i<8;++i)
-            {
-                randName += letter[UnityEngine.Random.Range(0, letter.Length)];
-            }
-            presenter.exposedName = randName;
+
+            presenter.exposedName = m_ExposedName.text;
         }
+
 
         private void ToggleExposed()
         {
@@ -57,11 +53,33 @@ namespace UnityEditor.VFX.UI
 
         public VFXParameterUI()
         {
-            m_Exposed = new Button(ToggleExposed);
-            m_ExposedName = new Button(RandomizeName);
+            m_Exposed = new Toggle(ToggleExposed);
+            m_ExposedName = new TextField();
 
-            inputContainer.AddChild(m_Exposed);
-            inputContainer.AddChild(m_ExposedName);
+            m_ExposedName.onTextChanged += OnNameChanged;
+            m_ExposedName.AddToClassList("value");
+
+            VisualElement exposedLabel = new VisualElement();
+            exposedLabel.text = "exposed";
+            exposedLabel.AddToClassList("label");
+            VisualElement exposedNameLabel = new VisualElement();
+            exposedNameLabel.text = "name";
+            exposedNameLabel.AddToClassList("label");
+
+            VisualContainer exposedContainer = new VisualContainer();
+            VisualContainer exposedNameContainer = new VisualContainer();
+
+            exposedContainer.AddChild(exposedLabel);
+            exposedContainer.AddChild(m_Exposed);
+
+            exposedContainer.name = "exposedContainer";
+            exposedNameContainer.name = "exposedNameContainer";
+
+            exposedNameContainer.AddChild(exposedNameLabel);
+            exposedNameContainer.AddChild(m_ExposedName);
+
+            inputContainer.AddChild(exposedNameContainer);
+            inputContainer.AddChild(exposedContainer);
         }
 
         public override void OnDataChanged()
@@ -79,7 +97,7 @@ namespace UnityEditor.VFX.UI
             m_ExposedName.height = 24.0f;
             m_Exposed.height = 24.0f;
             m_ExposedName.text = presenter.exposedName == null ? "" : presenter.exposedName;
-            m_Exposed.text = presenter.exposed ? "Exposed" : "Not Exposed";
+            m_Exposed.on = presenter.exposed;
        }
     }
 }

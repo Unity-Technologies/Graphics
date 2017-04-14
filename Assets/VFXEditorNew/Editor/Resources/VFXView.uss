@@ -516,3 +516,29 @@ VFXDataEdge.typeanimationcurve
 	margin-top:-2;
 	background-color: rgb(210, 152, 0);
 }
+
+VFXParameterUI #exposedContainer
+{
+	flex-direction:row;
+}
+
+VFXParameterUI #exposedNameContainer
+{
+	flex-direction:row;
+}
+
+VFXParameterUI Button
+{
+height:17;
+}
+
+
+VFXParameterUI .value
+{
+	flex:1;
+}
+VFXParameterUI .label
+{
+	text-color:#c4c4c4;
+	width : 80;
+}
