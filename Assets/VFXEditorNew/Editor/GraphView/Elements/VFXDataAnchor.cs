@@ -4,11 +4,13 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using System.Collections.Generic;
 using Type = System.Type;
+using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXDataAnchor : NodeAnchor
+    class VFXDataAnchor : NodeAnchor, IEdgeConnectorListener
     {
+
 
         protected VFXDataAnchor(VFXDataAnchorPresenter presenter) : base(presenter)
         {
@@ -17,10 +19,8 @@ namespace UnityEditor.VFX.UI
 
         public static VFXDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
         {
-            var anchor = new VFXDataAnchor(presenter)
-            {
-                m_EdgeConnector = new EdgeConnector<TEdgePresenter>()
-            };
+            var anchor = new VFXDataAnchor(presenter);
+            anchor.m_EdgeConnector = new EdgeConnector<TEdgePresenter>(anchor);
             anchor.presenter = presenter;
 
             anchor.AddManipulator(anchor.m_EdgeConnector);
@@ -75,6 +75,29 @@ namespace UnityEditor.VFX.UI
 
             clipChildren = false;
         }
+
+        void IEdgeConnectorListener.OnDropOutsideAnchor(EdgePresenter edge, Vector2 position)
+        {
+            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+            if( presenter.direction == Direction.Input)
+            {
+                VFXSlot inputSlot = presenter.model;
+
+
+                VFXView view = this.GetFirstAncestorOfType<VFXView>();
+                VFXViewPresenter viewPresenter = view.GetPresenter<VFXViewPresenter>();
+
+                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.Name);
+                if (parameterDesc != null)
+                {
+                    VFXParameter parameter = viewPresenter.AddVFXParameter(position, parameterDesc);
+
+                    inputSlot.Link(parameter.outputSlots[0]);
+                }
+            }
+        }
+
     }
+
     
 }

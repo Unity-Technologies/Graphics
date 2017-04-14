@@ -51,8 +51,15 @@ namespace UnityEditor.VFX.UI
             presenter.exposed = !presenter.exposed;
         }
 
+        public VisualElement m_IconContainer;
+
+
         public VFXParameterUI()
         {
+            m_IconContainer = new VisualElement();
+            m_IconContainer.name = "IconContainer";
+            titleContainer.InsertChild(0, m_IconContainer);
+
             m_Exposed = new Toggle(ToggleExposed);
             m_ExposedName = new TextField();
 
@@ -98,6 +105,11 @@ namespace UnityEditor.VFX.UI
             m_Exposed.height = 24.0f;
             m_ExposedName.text = presenter.exposedName == null ? "" : presenter.exposedName;
             m_Exposed.on = presenter.exposed;
-       }
+
+            m_IconContainer.backgroundImage = Resources.Load<Texture2D>("VFX/" + presenter.outputAnchors[0].anchorType.Name);
+
+            if(m_IconContainer.backgroundImage == null )
+                m_IconContainer.backgroundImage = Resources.Load<Texture2D>("VFX/Default"); 
+}
     }
 }

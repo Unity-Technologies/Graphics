@@ -384,6 +384,16 @@ VFXBlockUI.selected .VFXDataAnchor #connector
 	border-color:#c9f774;
 	background-color : #c9f774;
 }
+.VFXDataAnchor.connected > #connector.typevector
+{
+	border-color:#c9f774;
+	background-color : #c9f774;
+}
+.VFXDataAnchor.connected > #connector.typeposition
+{
+	border-color:#c9f774;
+	background-color : #c9f774;
+}
 .VFXDataAnchor.connected > #connector.typevector4
 {
 	border-color:#effe5c;
@@ -459,6 +469,14 @@ VFXDataEdge.typevector2
 	border-color : #9aef92;
 }
 VFXDataEdge.typevector3
+{
+	border-color : #c9f774;
+}
+VFXDataEdge.typevector
+{
+	border-color : #c9f774;
+}
+VFXDataEdge.typeposition
 {
 	border-color : #c9f774;
 }
@@ -541,4 +559,12 @@ VFXParameterUI .label
 {
 	text-color:#c4c4c4;
 	width : 80;
+}
+
+VFXParameterUI #IconContainer
+{
+	margin-left : 4;
+	margin-top: 4;
+	width:16;
+	height:16;
 }

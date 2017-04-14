@@ -87,9 +87,9 @@ namespace UnityEditor.VFX.UI
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static new VFXEditableDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
         {
-            var anchor = new VFXEditableDataAnchor(presenter) {
-                m_EdgeConnector = new EdgeConnector<TEdgePresenter>()
-            };
+            var anchor = new VFXEditableDataAnchor(presenter);
+
+            anchor.m_EdgeConnector = new EdgeConnector<TEdgePresenter>(anchor);
             anchor.presenter = presenter;
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;

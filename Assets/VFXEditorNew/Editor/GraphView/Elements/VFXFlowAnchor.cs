@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.UI
         public static VFXFlowAnchor Create<TEdgePresenter>(VFXFlowAnchorPresenter presenter) where TEdgePresenter : VFXFlowEdgePresenter
         {
             var anchor = new VFXFlowAnchor(presenter) {
-                m_EdgeConnector = new EdgeConnector<TEdgePresenter>()
+                m_EdgeConnector = new EdgeConnector<TEdgePresenter>(null)
             };
             anchor.AddManipulator(anchor.m_EdgeConnector);
             anchor.presenter = presenter;
