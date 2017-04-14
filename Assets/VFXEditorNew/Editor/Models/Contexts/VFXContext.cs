@@ -65,7 +65,25 @@ namespace UnityEditor.VFX
         // Not serialized nor exposed
         private VFXContextType m_ContextType;
         private VFXDataType m_InputType;
-        private VFXDataType m_OutputType; 
+        private VFXDataType m_OutputType;
+
+
+        [SerializeField]
+        private CoordinateSpace m_Space;
+
+        public CoordinateSpace space
+        {
+            get
+            {
+                return m_Space;
+            }
+            set
+            {
+                m_Space = value;
+                Invalidate(InvalidationCause.kStructureChanged);
+            }
+        }
+
     }
 
     // TODO Do that later!

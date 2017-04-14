@@ -205,9 +205,11 @@ VFXOperatorUI.node.horizontal #pane > #left
 {
 	width:250;
 }
-VFXOperatorUI.node.horizontal #right
+VFXOperatorUI.node.horizontal #pane > #right
 {
 	width:50;
+	padding-left:2;
+	padding-right:2;
 }
 
 VFXBlockUI.node.horizontal #left > #title > Label {

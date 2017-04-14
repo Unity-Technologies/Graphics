@@ -208,11 +208,12 @@ namespace UnityEditor.VFX.UI
 
         void OnSpace()
         {
+            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
             int result = (int)System.Enum.Parse(typeof(CoordinateSpace),m_HeaderSpace.text);
 
-            result = (result + 1) % (int)(CoordinateSpace.SpaceCount);
+            presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (int)(CoordinateSpace.SpaceCount));
 
-            m_HeaderSpace.text = ((CoordinateSpace)result).ToString();
+            
         }
 
 		public EventPropagation SelectAll()
@@ -512,7 +513,9 @@ namespace UnityEditor.VFX.UI
             RemoveFromClassList("update");
             RemoveFromClassList("output");
 
-			switch (contextType)
+            m_HeaderSpace.text = (presenter.context.space).ToString();
+
+            switch (contextType)
 			{
 				case VFXContextType.kInit: AddToClassList("init"); break;
 				case VFXContextType.kUpdate: AddToClassList("update"); break;
