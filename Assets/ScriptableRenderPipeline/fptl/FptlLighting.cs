@@ -918,7 +918,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                     lightData[idxOut] = light;
                 }
             }
-            var numLightsOut = offsets[LightDefinitions.DIRECT_LIGHT, numVolTypes - 1] + numEntries[LightDefinitions.DIRECT_LIGHT, numVolTypes - 1];
+            int numLightsOut = 0;
+            for(int v=0; v<numVolTypes; v++) numLightsOut += numEntries[LightDefinitions.DIRECT_LIGHT, v];
 
             // probe.m_BlendDistance
             // Vector3f extents = 0.5*Abs(probe.m_BoxSize);
@@ -1004,7 +1005,9 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 lightData[idxOut] = lgtData;
             }
 
-            var numProbesOut = offsets[LightDefinitions.REFLECTION_LIGHT, numVolTypes - 1] + numEntries[LightDefinitions.REFLECTION_LIGHT, numVolTypes - 1];
+            int numProbesOut = 0;
+            for(int v=0; v<numVolTypes; v++) numProbesOut += numEntries[LightDefinitions.REFLECTION_LIGHT, v];
+
             for (var m = 0; m < numModels; m++)
             {
                 for (var v = 0; v < numVolTypes; v++)
