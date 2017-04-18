@@ -3,13 +3,25 @@
 
 float IntegrateEdge(float3 v1, float3 v2)
 {
-    float cosTheta = dot(v1, v2);
-    // Clamp to avoid artifacts. This particular constant gives the best results.
-    cosTheta    = Clamp(cosTheta, -0.9999, 0.9999);
-    float theta = FastACos(cosTheta);
-    float res = cross(v1, v2).z * theta * rsqrt(1.0 - cosTheta * cosTheta); // optimization from * 1 / sin(theta)
+    float cosTheta  = dot(v1, v2);
+    float V1xV2dotN = cross(v1, v2).z;
+#if 0
+    return V1xV2dotN * rsqrt(1.0 - cosTheta * cosTheta) * acos(cosTheta);
+#else
+    // Approximate: { y = rsqrt(1.0 - cosTheta * cosTheta) * acos(cosTheta) } on [0, 1].
+    // Fit: HornerForm[MiniMaxApproximation[ArcCos[x]/Sqrt[1 - x^2], {x, {0, 1 - $MachineEpsilon}, 6, 0}][[2, 1]]].
+    // Maximum relative error: 2.6855360216340534 * 10^-6. Intensities up to 1000 are artifact-free.
+    float x = abs(cosTheta);
+    float y = 1.5707921083647782 + x * (-0.9995697178013095 + x * (0.778026455830408 + x * (-0.6173111361273548 + x * (0.4202724111150622 + x * (-0.19452783598217288 + x * 0.04232040013661036)))));
 
-    return res;
+    if (cosTheta < 0)
+    {
+        // Undo range reduction.
+        y = PI * rsqrt(saturate(1 - cosTheta * cosTheta)) - y;
+    }
+
+    return V1xV2dotN * y;
+#endif
 }
 
 // Baum's equation
