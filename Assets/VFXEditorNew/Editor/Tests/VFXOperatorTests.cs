@@ -113,6 +113,20 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void Append()
+        {
+            var one = ScriptableObject.CreateInstance<VFXOperatorFloatOne>();
+            var append = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
+            append.inputSlots[0].Link(one.outputSlots[0]);
+            append.inputSlots[1].Link(one.outputSlots[0]);
+            append.inputSlots[2].Link(one.outputSlots[0]);
+            append.inputSlots[3].Link(one.outputSlots[0]);
+
+            var expression = append.outputSlots[0].GetExpression();
+            Assert.AreEqual(VFXValueType.kFloat4, expression.ValueType);
+        }
+
+        [Test]
         public void ComponentMaskAndAppend()
         {
             var componentMask = ScriptableObject.CreateInstance<VFXOperatorComponentMask>();

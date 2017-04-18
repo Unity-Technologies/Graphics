@@ -60,8 +60,14 @@ namespace UnityEditor.VFX.UI
                 expanded = !model.collapsed;
                 title = node.name + " " + node.m_OnEnabledCount;
 
-                var newinputAnchors = node.inputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input));
-                var newoutputAnchors = node.outputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output));
+                //TODOPAUL : Avoid this hotfix
+                foreach (var slot in node.outputSlots.ToArray())
+                {
+                    slot.GetExpression();
+                }
+
+                var newinputAnchors = node.inputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)).ToArray();
+                var newoutputAnchors = node.outputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)).ToArray();
 
                 Func<NodeAnchorPresenter, NodeAnchorPresenter, bool> fnComparer = delegate (NodeAnchorPresenter x, NodeAnchorPresenter y)
                 {
@@ -77,8 +83,8 @@ namespace UnityEditor.VFX.UI
                 {
                     inputAnchors.Clear();
                     outputAnchors.Clear();
-                    inputAnchors.AddRange(node.inputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)));
-                    outputAnchors.AddRange(node.outputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)));
+                    inputAnchors.AddRange(newinputAnchors);
+                    outputAnchors.AddRange(newoutputAnchors);
                     m_View.RecreateNodeEdges();
                 }
             }
