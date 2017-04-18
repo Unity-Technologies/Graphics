@@ -106,10 +106,29 @@ namespace UnityEditor.VFX.Test
 
             var cross = ScriptableObject.CreateInstance<VFXOperatorCross>();
             cross.inputSlots[0].Link(append.outputSlots[0]);
-            Assert.AreEqual(true, cross.inputSlots[0].HasLink());
+            Assert.IsTrue(cross.inputSlots[0].HasLink());
 
             append.inputSlots[2].UnlinkAll();
             Assert.IsFalse(cross.inputSlots[0].HasLink());
+        }
+
+        [Test]
+        public void ComponentMaskAndAppend()
+        {
+            var componentMask = ScriptableObject.CreateInstance<VFXOperatorComponentMask>();
+            componentMask.settings = new VFXOperatorComponentMask.Settings() { mask = "xy" };
+            var expression = componentMask.outputSlots[0].GetExpression();
+            Assert.AreEqual(VFXValueType.kFloat2, expression.ValueType);
+
+            var append = ScriptableObject.CreateInstance<VFXOperatorAppendVector>();
+            append.inputSlots[0].Link(componentMask.outputSlots[0]);
+            append.inputSlots[1].Link(componentMask.outputSlots[0]);
+            expression = append.outputSlots[0].GetExpression();
+            Assert.AreEqual(VFXValueType.kFloat4, expression.ValueType);
+
+            componentMask.settings = new VFXOperatorComponentMask.Settings() { mask = "x" };
+            expression = append.outputSlots[0].GetExpression();
+            Assert.AreEqual(VFXValueType.kFloat2, expression.ValueType);
         }
     }
 }

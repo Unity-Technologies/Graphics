@@ -88,10 +88,10 @@ namespace UnityEditor.VFX
 
         private static void CopyLink(VFXSlot from, VFXSlot to)
         {
-            for (int iLink = 0; iLink < from.LinkedSlots.Count; ++iLink)
+            var linkedSlots = from.LinkedSlots.ToArray();
+            for (int iLink = 0; iLink < linkedSlots.Length; ++iLink)
             {
-                var slot = from.LinkedSlots[iLink];
-                to.Link(slot);
+                to.Link(linkedSlots[iLink]);
             }
 
             var fromChild = from.children.ToArray();
