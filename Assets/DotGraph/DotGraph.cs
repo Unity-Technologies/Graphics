@@ -58,6 +58,7 @@ namespace UnityEditor.Dot
 
         public void OutputToDotFile(string path)
         {
+            (new FileInfo(path)).Directory.Create();
             File.WriteAllText(path,GenerateDotString());
         }
 

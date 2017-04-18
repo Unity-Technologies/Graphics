@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Dot;
 using UnityEngine;
+using System.Diagnostics;
 
 namespace UnityEditor.VFX
 {
@@ -116,7 +117,22 @@ namespace UnityEditor.VFX
                 }
             }
 
-            dotGraph.OutputToDotFile("d:\\expGraph.dot");
+            var basePath = Application.dataPath;
+            basePath = basePath.Replace("/Assets", "");
+            basePath = basePath.Replace("/", "\\");
+
+            var outputfile = basePath + "\\GraphViz\\output\\expGraph.dot";
+            dotGraph.OutputToDotFile(outputfile);
+
+            var proc = new Process();
+            proc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            proc.StartInfo.CreateNoWindow = true;
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.FileName = "C:\\Windows\\system32\\cmd.exe";
+            var path = basePath + "\\GraphViz\\Postbuild.bat";
+            proc.StartInfo.Arguments = "/c" + path + " \"" + outputfile + "\"";
+            proc.EnableRaisingEvents = true;
+            proc.Start();
         }
 
         private static string GetExpressionValue(VFXExpression exp)
