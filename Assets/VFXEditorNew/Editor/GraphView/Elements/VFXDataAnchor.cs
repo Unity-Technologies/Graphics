@@ -76,6 +76,15 @@ namespace UnityEditor.VFX.UI
             clipChildren = false;
         }
 
+        public override Vector3 GetGlobalCenter()
+        {
+            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+
+            var center = m_ConnectorBox.position.position + new Vector2(presenter.direction == Direction.Input ? 1 : m_ConnectorBox.position.width -1, m_ConnectorBox.position.height * 0.5f -0.5f);
+            center = m_ConnectorBox.transform.MultiplyPoint3x4(center);
+            return this.LocalToGlobal(center);
+        }
+
         void IEdgeConnectorListener.OnDropOutsideAnchor(EdgePresenter edge, Vector2 position)
         {
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
