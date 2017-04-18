@@ -876,20 +876,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     {
         // Reverse the normal.
         illuminance = saturate(dot(-bsdfData.normalWS, L));
-
-        [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
-        {
-            // TODO: factor out the biased position?
-            float3 biasedPositionWS = positionWS - bsdfData.normalWS * bsdfData.thickness;
-#ifdef SHADOWS_USE_SHADOWCTXT
-            float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
-#else
-            float shadow = GetDirectionalShadowAttenuation(lightLoopContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
-#endif
-
-            illuminance *= shadow;
-        }
-
+        // Apply the cookie. Do not apply shadows.
         illuminance *= cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmittance is negligible.
@@ -994,22 +981,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         // Reverse the normal.
         illuminance = saturate(dot(-bsdfData.normalWS, L)) * attenuation;
-
-        [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
-        {
-            // TODO: factor out the common biased position?
-            float3 biasedPositionWS = positionWS - bsdfData.normalWS * bsdfData.thickness;
-            float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-#ifdef SHADOWS_USE_SHADOWCTXT
-            float shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
-#else
-            float shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, biasedPositionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
-#endif
-            shadow = lerp(1.0, shadow, lightData.shadowDimmer);
-
-            illuminance *= shadow;
-        }
-
+        // Apply the cookie. Do not apply shadows.
         illuminance *= cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmittance is negligible.
@@ -1094,21 +1066,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     {
         // Reverse the normal.
         illuminance = saturate(dot(-bsdfData.normalWS, L) * clipFactor);
-
-        // TODO: these shadows do not work yet!
-        [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
-        {
-            // TODO: factor out the biased position?
-            float3 biasedPositionWS = positionWS - bsdfData.normalWS * bsdfData.thickness;
-#ifdef SHADOWS_USE_SHADOWCTXT
-            float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
-#else
-            float shadow = GetDirectionalShadowAttenuation(lightLoopContext, biasedPositionWS, lightData.shadowIndex, L, posInput.unPositionSS);
-#endif
-
-            illuminance *= shadow;
-        }
-
+        // Apply the cookie. Do not apply shadows.
         illuminance *= cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmittance is negligible.
