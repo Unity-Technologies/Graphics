@@ -84,6 +84,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	public Mesh m_PointLightMesh;
 	public Mesh m_SpotLightMesh;
 	public Mesh m_QuadMesh;
+	public Mesh m_BoxMesh;
 
 	public Shader finalPassShader;
 	public Shader deferredShader;
@@ -98,9 +99,11 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	private static int s_GBufferZ;
 	private static int s_CameraTarget;
 	private static int s_CameraDepthTexture;
+	//private static int s_CameraReflectionsTexture;
 
 	private static int m_quadLightingPassNdx;
 	private static int m_FiniteLightingPassNdx;
+	private static int m_ReflectionsPassNdx;
 
 	private Material m_DeferredMaterial;
 	private Material m_DeferredReflectionMaterial;
@@ -136,9 +139,11 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		m_BlitMaterial = new Material (finalPassShader) { hideFlags = HideFlags.HideAndDontSave };
 		m_DeferredMaterial = new Material (deferredShader) { hideFlags = HideFlags.HideAndDontSave };
 		m_DeferredReflectionMaterial = new Material (deferredReflectionShader) { hideFlags = HideFlags.HideAndDontSave };
+		//m_DeferredReflectionMaterial.SetTexture("_CameraReflectionsTexture", s_CameraReflectionsTexture);
 
 		m_quadLightingPassNdx = m_DeferredMaterial.FindPass ("DIRECTIONALLIGHT");
 		m_FiniteLightingPassNdx = m_DeferredMaterial.FindPass ("FINITELIGHT");
+		m_ReflectionsPassNdx = m_DeferredMaterial.FindPass ("DEFERRED_REFLECTIONS");
 
 		//shadows
 		m_MatWorldToShadow = new Matrix4x4[k_MaxLights * k_MaxShadowmapPerLights];
@@ -190,6 +195,73 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 		// present frame buffer.
 		FinalPass(loop);
+	}
+
+	static Matrix4x4 GetFlipMatrix()
+	{
+		Matrix4x4 flip = Matrix4x4.identity;
+		bool isLeftHand = ((int)LightDefinitions.USE_LEFTHAND_CAMERASPACE) != 0;
+		if (isLeftHand) flip.SetColumn(2, new Vector4(0.0f, 0.0f, -1.0f, 0.0f));
+		return flip;
+	}
+
+	static Matrix4x4 WorldToCamera(Camera camera)
+	{
+		return GetFlipMatrix() * camera.worldToCameraMatrix;
+	}
+
+	void RenderReflections(Camera camera, CommandBuffer cmd, CullResults cullResults, ScriptableRenderContext loop)
+	{
+		var probes = cullResults.visibleReflectionProbes;
+
+		var worldToView = camera.worldToCameraMatrix; //WorldToCamera(camera);
+
+		foreach (var rl in probes)
+		{
+			var volType = LightDefinitions.BOX_LIGHT;
+			var cubemap = rl.texture;
+
+			// always a box for now
+			if (cubemap == null)
+				continue;
+
+			var bnds = rl.bounds;
+			var boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
+			var blendDistance = rl.blendDistance;
+			var mat = rl.localToWorld;
+
+//			var boxProj = (rl.boxProjection != 0);
+//			var decodeVals = rl.hdr;
+
+			// C is reflection volume center in world space (NOT same as cube map capture point)
+//			var e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
+			//Vector3 C = bnds.center;        // P + boxOffset;
+			var C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
+
+//			var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
+//
+//			Vector3 vx = mat.GetColumn(0);
+//			Vector3 vy = mat.GetColumn(1);
+//			Vector3 vz = mat.GetColumn(2);
+//
+//			// transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+//			vx = worldToView.MultiplyVector(vx);
+//			vy = worldToView.MultiplyVector(vy);
+//			vz = worldToView.MultiplyVector(vz);
+
+			var Cw = worldToView.MultiplyPoint(C);
+
+			var props = new MaterialPropertyBlock ();
+			props.SetVector ("_LightPos",Cw);
+
+			//props.SetFloat ("_LightAsQuad", renderAsQuad ? 1 : 0);
+			//props.SetVector ("_LightDir", new Vector4(lightDir.x, lightDir.y, lightDir.z, 0.0f));
+			//props.SetVector ("_LightColor", light.finalColor);
+			//props.SetMatrix ("_WorldToLight", lightToWorld.inverse);
+
+			cmd.DrawMesh (m_BoxMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsPassNdx, props);
+
+		}
 	}
 
 	void RenderShadowMaps(CullResults cullResults, ScriptableRenderContext loop)
@@ -377,6 +449,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		{
 			RenderLightGeometry (camera, light, cmd, loop);
 		}
+
+		RenderReflections(camera, cmd, inputs, loop);
 
 		loop.ExecuteCommandBuffer (cmd);
 		cmd.Dispose ();
