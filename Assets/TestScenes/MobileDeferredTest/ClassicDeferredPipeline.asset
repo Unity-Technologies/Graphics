@@ -13,15 +13,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ShadowSettings:
     enabled: 1
-    shadowAtlasWidth: 4096
-    shadowAtlasHeight: 4096
-    maxShadowDistance: 600
-    directionalLightCascadeCount: 4
-    directionalLightCascades: {x: 0, y: 0.05, z: 0.1}
+    shadowAtlasWidth: 2048
+    shadowAtlasHeight: 2048
+    maxShadowDistance: 50
+    directionalLightCascadeCount: 1
+    directionalLightCascades: {x: 0.15, y: 0.1, z: 0.8}
     directionalLightNearPlaneOffset: 5
   m_PointLightMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   m_SpotLightMesh: {fileID: 4300000, guid: 93e85ba57f65145538a8ac97bd005d40, type: 3}
   m_QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  m_BoxMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   finalPassShader: {fileID: 4800000, guid: 5590f54ad211f594da4e687b698f2258, type: 3}
   deferredShader: {fileID: 4800000, guid: eeee2c879e4754d958204f0816f646c7, type: 3}
   deferredReflectionShader: {fileID: 4800000, guid: eabc0a21ba0ff47268d9a58c92b8b40b,

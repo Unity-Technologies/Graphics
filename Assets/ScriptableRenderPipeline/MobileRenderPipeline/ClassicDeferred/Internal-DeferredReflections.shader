@@ -7,11 +7,13 @@ SubShader {
 
 // Calculates reflection contribution from a single probe (rendered as cubes) or default reflection (rendered as full screen quad)
 Pass {
+	Name "DEFERRED_REFLECTIONS"
+
     ZWrite Off
     ZTest LEqual
     Blend [_SrcBlend] [_DstBlend]
 CGPROGRAM
-#pragma target 3.0
+#pragma target 4.5
 #pragma vertex vert_deferred
 #pragma fragment frag
 
@@ -22,9 +24,11 @@ CGPROGRAM
 #include "UnityStandardBRDF.cginc"
 #include "UnityPBSLighting.cginc"
 
+#ifndef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
 sampler2D _CameraGBufferTexture0;
 sampler2D _CameraGBufferTexture1;
 sampler2D _CameraGBufferTexture2;
+#endif
 
 half3 distanceFromAABB(half3 p, half3 aabbMin, half3 aabbMax)
 {
@@ -32,25 +36,44 @@ half3 distanceFromAABB(half3 p, half3 aabbMin, half3 aabbMax)
 }
 
 
-half4 frag (unity_v2f_deferred i) : SV_Target
+#ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
+void frag (unity_v2f_deferred i,
+	in half4 outGBuffer0 : SV_Target0,
+	in half4 outGBuffer1 : SV_Target1,
+	in half4 outGBuffer2 : SV_Target2,
+	out half4 outEmission : SV_Target3, 
+	in float outLinearDepth : SV_Target4)
+#else
+half4 frag (unity_v2f_deferred i) : SV_TARGET
+#endif
 {
     // Stripped from UnityDeferredCalculateLightParams, refactor into function ?
     i.ray = i.ray * (_ProjectionParams.z / i.ray.z);
     float2 uv = i.uv.xy / i.uv.w;
 
     // read depth and reconstruct world position
-    float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
+	#ifndef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
+		float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
+	#else
+		float depth = outLinearDepth;
+	#endif
+
     depth = Linear01Depth (depth);
     float4 viewPos = float4(i.ray * depth,1);
     float3 worldPos = mul (unity_CameraToWorld, viewPos).xyz;
 
-    half4 gbuffer0 = tex2D (_CameraGBufferTexture0, uv);
-    half4 gbuffer1 = tex2D (_CameraGBufferTexture1, uv);
-    half4 gbuffer2 = tex2D (_CameraGBufferTexture2, uv);
+#ifndef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
+	// unpack Gbuffer
+	half4 gbuffer0 = tex2D (_CameraGBufferTexture0, uv);
+	half4 gbuffer1 = tex2D (_CameraGBufferTexture1, uv);
+	half4 gbuffer2 = tex2D (_CameraGBufferTexture2, uv);
+#endif
     UnityStandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
 
     float3 eyeVec = normalize(worldPos - _WorldSpaceCameraPos);
     half oneMinusReflectivity = 1 - SpecularStrength(data.specularColor);
+
+// ---
 
     half3 worldNormalRefl = reflect(eyeVec, data.normalWorld);
 
@@ -76,11 +99,13 @@ half4 frag (unity_v2f_deferred i) : SV_Target
     light.color = half3(0, 0, 0);
     light.dir = half3(0, 1, 0);
 
+// --- 
     UnityIndirect ind;
     ind.diffuse = 0;
     ind.specular = env0;
 
     half3 rgb = UNITY_BRDF_PBS (0, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, -eyeVec, light, ind).rgb;
+// ---
 
     // Calculate falloff value, so reflections on the edges of the probe would gradually blend to previous reflection.
     // Also this ensures that pixels not located in the reflection probe AABB won't
@@ -102,7 +127,7 @@ Pass
     Blend [_SrcBlend] [_DstBlend]
 
     CGPROGRAM
-        #pragma target 3.0
+        #pragma target 4.5
         #pragma vertex vert
         #pragma fragment frag
         #pragma multi_compile ___ UNITY_HDR_ON
@@ -126,6 +151,8 @@ Pass
 
         half4 frag (v2f i) : SV_Target
         {
+        	return half4(1.0, 0.0, 0.0, 1.0);
+
             half4 c = tex2D (_CameraReflectionsTexture, i.uv);
             #ifdef UNITY_HDR_ON
             return float4(c.rgb, 0.0f);
