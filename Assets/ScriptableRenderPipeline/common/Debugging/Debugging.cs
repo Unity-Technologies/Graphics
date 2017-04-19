@@ -73,46 +73,46 @@ namespace UnityEngine.Experimental.Rendering
 
         void Update()
         {
-            if (m_Valid)
-            {
-                m_DebugControlEnabledMsgTimer += Time.deltaTime;
+            //if (m_Valid)
+            //{
+            //    m_DebugControlEnabledMsgTimer += Time.deltaTime;
 
-                bool enableDebug = Input.GetButton(kEnableDebugBtn1) && Input.GetButton(kEnableDebugBtn2) || Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Backspace);
+            //    bool enableDebug = Input.GetButton(kEnableDebugBtn1) && Input.GetButton(kEnableDebugBtn2) || Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Backspace);
 
-                if (m_CanReceiveInput && enableDebug)
-                {
-                    m_DebugControlEnabled = !m_DebugControlEnabled;
-                    m_DebugControlEnabledMsgTimer = 0.0f;
-                    m_CanReceiveInput = false;
-                    m_DebugKeyUp1 = false;
-                    m_DebugKeyUp2 = false;
-                }
+            //    if (m_CanReceiveInput && enableDebug)
+            //    {
+            //        m_DebugControlEnabled = !m_DebugControlEnabled;
+            //        m_DebugControlEnabledMsgTimer = 0.0f;
+            //        m_CanReceiveInput = false;
+            //        m_DebugKeyUp1 = false;
+            //        m_DebugKeyUp2 = false;
+            //    }
 
-                if (Input.GetButtonUp(kEnableDebugBtn1))
-                {
-                    m_DebugKeyUp1 = true;
-                }
-                if (Input.GetButtonUp(kEnableDebugBtn2))
-                {
-                    m_DebugKeyUp2 = true;
-                }
+            //    if (Input.GetButtonUp(kEnableDebugBtn1))
+            //    {
+            //        m_DebugKeyUp1 = true;
+            //    }
+            //    if (Input.GetButtonUp(kEnableDebugBtn2))
+            //    {
+            //        m_DebugKeyUp2 = true;
+            //    }
 
-                // For keyboard you want to be able to keep ctrl pressed.
-                if (Input.GetKeyUp(KeyCode.Backspace))
-                {
-                    m_DebugKeyUp1 = m_DebugKeyUp2 = true;
-                }
+            //    // For keyboard you want to be able to keep ctrl pressed.
+            //    if (Input.GetKeyUp(KeyCode.Backspace))
+            //    {
+            //        m_DebugKeyUp1 = m_DebugKeyUp2 = true;
+            //    }
 
-                m_CanReceiveInput = m_DebugKeyUp1 && m_DebugKeyUp2;
+            //    m_CanReceiveInput = m_DebugKeyUp1 && m_DebugKeyUp2;
 
-                if (m_DebugControlEnabledMsgTimer < m_DebugControlEnabledMsgTime)
-                {
-                    if (m_DebugControlEnabled)
-                        PushDebugMessage("Debug Controls Enabled");
-                    else
-                        PushDebugMessage("Debug Controls Disabled");
-                }
-            }
+            //    if (m_DebugControlEnabledMsgTimer < m_DebugControlEnabledMsgTime)
+            //    {
+            //        if (m_DebugControlEnabled)
+            //            PushDebugMessage("Debug Controls Enabled");
+            //        else
+            //            PushDebugMessage("Debug Controls Disabled");
+            //    }
+            //}
         }
 
         void OnGUI()
