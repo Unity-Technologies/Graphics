@@ -33,16 +33,6 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXSerializableObject m_SettingsBuffer;
 
-        public override void OnBeforeSerialize()
-        {
-            base.OnBeforeSerialize();
-        }
-
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-        }
-
         public object settings
         {
             get
