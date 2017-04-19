@@ -76,25 +76,80 @@ namespace UnityEditor.VFX.UI
             clipChildren = false;
         }
 
+        public override Vector3 GetGlobalCenter()
+        {
+            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+
+            var center = m_ConnectorBox.position.position + new Vector2(presenter.direction == Direction.Input ? 1 : m_ConnectorBox.position.width -1, m_ConnectorBox.position.height * 0.5f -0.5f);
+            center = m_ConnectorBox.transform.MultiplyPoint3x4(center);
+            return this.LocalToGlobal(center);
+        }
+
         void IEdgeConnectorListener.OnDropOutsideAnchor(EdgePresenter edge, Vector2 position)
         {
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
-            if( presenter.direction == Direction.Input)
+
+            VFXSlot startSlot = presenter.model;
+
+
+            VFXView view = this.GetFirstAncestorOfType<VFXView>();
+            VFXViewPresenter viewPresenter = view.GetPresenter<VFXViewPresenter>();
+
+
+            Node endNode = null;
+            foreach( var node in view.GetAllNodes())
             {
-                VFXSlot inputSlot = presenter.model;
+                if( node.localBound.Contains(position))
+                {
+                    endNode = node;
+                }
+            }
 
+            if (endNode != null)
+            {
+                VFXLinkablePresenter nodePresenter = endNode.GetPresenter<VFXLinkablePresenter>();
 
-                VFXView view = this.GetFirstAncestorOfType<VFXView>();
-                VFXViewPresenter viewPresenter = view.GetPresenter<VFXViewPresenter>();
+                if (nodePresenter != null)
+                {
+                    IVFXSlotContainer slotContainer = nodePresenter.slotContainer;
+                    if (presenter.direction == Direction.Input)
+                    {
+                        foreach (var outputSlot in slotContainer.outputSlots)
+                        {
+                            if (startSlot.CanLink(outputSlot))
+                            {
+                                startSlot.Link(outputSlot);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var inputSlot in slotContainer.inputSlots)
+                        {
+                            if (inputSlot.CanLink(startSlot))
+                            {
+                                inputSlot.Link(startSlot);
+                                break;
+                            }
+
+                        }
+                    }
+                }
+            }
+            else if (presenter.direction == Direction.Input)
+            {
 
                 VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.Name);
                 if (parameterDesc != null)
                 {
                     VFXParameter parameter = viewPresenter.AddVFXParameter(position, parameterDesc);
 
-                    inputSlot.Link(parameter.outputSlots[0]);
+                    startSlot.Link(parameter.outputSlots[0]);
                 }
             }
+
+
         }
 
     }

@@ -201,6 +201,14 @@ VFXOperatorUI.node.horizontal
 	width:-1;
 }
 
+VFXOperatorUI.node.horizontal #pane
+{
+border-top:2;
+border-bottom:2;
+border-left:2;
+border-right:2;
+}
+
 VFXOperatorUI.node.horizontal #pane > #left
 {
 	width:250;
@@ -212,6 +220,15 @@ VFXOperatorUI.node.horizontal #pane > #right
 	padding-right:2;
 }
 
+.node.horizontal.selected
+{
+	border-color:#FFFFFF;
+}
+
+VFXBlockUI.node
+{
+	border-color:#363636;
+}
 VFXBlockUI.node.horizontal #left > #title > Label {
 	text-color: #FFFFFF;
 	font-style: bold;
@@ -266,7 +283,7 @@ VFXView #VFXBackgroundGrid {
 	font-size:11;
 	padding-bottom:0;
 	min-height:17;
-	margin-left:-12px;
+	margin-left:-15;
 	margin-bottom:1;
 	margin-right:4px;
 }
@@ -328,21 +345,22 @@ VFXDataAnchor.Output #type
 {
 	position-type:absolute;
 	margin-top:5;
-	padding-top:5;
+	padding-top:0;
 	margin-left:0;
-	margin-right:-6;
-	background-color: #171717;
-	border-color:#383838;
-	border-width:1;
-	border-radius: 3;
-	width:6;
-	height:6;
-	
+	-margin-right:-6;
+	-background-color: #171717;
+	-border-color:#383838;
+	-border-width:1;
+	background-image:resource("VFX/connectors/unconnected-input");
+	border-radius:0;
+	width:10;
+	height:10;
 }
 .VFXDataAnchor.Output #connector
 {
 	border-color:#212121;
-	position-right:-11;
+	position-right:-9;
+	background-image:resource("VFX/connectors/unconnected-output");
 }
 
 .VFXDataAnchor  #IMGUI
@@ -356,11 +374,6 @@ VFXDataAnchor.Output #type
 	-background-color:rgba(255,0,0,255);
 }
 
-VFXBlockUI.selected .VFXDataAnchor #connector
-{
-	border-color:#454545;
-}
-
 
 /*Default*/
 .VFXDataAnchor.connected > #connector
@@ -369,86 +382,318 @@ VFXBlockUI.selected .VFXDataAnchor #connector
 	background-color : #787878;
 }
 
+.VFXDataAnchor.connected > #connector
+{
+	background-image: resource("VFX/connectors/default-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector
+{
+	background-image: resource("VFX/connectors/default-output");
+}
+
+
+/* Single (float) */
+
 .VFXDataAnchor.connected > #connector.typesingle
 {
-	border-color:#6be6b0;
-	background-color : #6be6b0;
+	background-image: resource("VFX/connectors/float-input");
 }
+
+.VFXDataAnchor.connected.Output > #connector.typesingle
+{
+	background-image: resource("VFX/connectors/float-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typesingle
+{
+	background-image: resource("VFX/connectors/float-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typesingle
+{
+	background-image: resource("VFX/connectors/float-output-selected");
+}
+
+/* Vector2 */
+
 .VFXDataAnchor.connected > #connector.typevector2
 {
-	border-color:#9aef92;
-	background-color : #9aef92;
+	background-image: resource("VFX/connectors/vector2-input");
 }
+
+.VFXDataAnchor.connected.Output > #connector.typevector2
+{
+	background-image: resource("VFX/connectors/vector2-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typevector2
+{
+	background-image: resource("VFX/connectors/vector2-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typevector2
+{
+	background-image: resource("VFX/connectors/vector2-output-selected");
+}
+
+/* Vector3 Vector Point */
+
 .VFXDataAnchor.connected > #connector.typevector3
 {
-	border-color:#c9f774;
-	background-color : #c9f774;
+	background-image: resource("VFX/connectors/vector3-input");
 }
+
+.VFXDataAnchor.connected.Output > #connector.typevector3
+{
+	background-image: resource("VFX/connectors/vector3-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typevector3
+{
+	background-image: resource("VFX/connectors/vector3-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typevector3
+{
+	background-image: resource("VFX/connectors/vector3-output-selected");
+}
+
+.VFXDataAnchor.connected > #connector.typepoint
+{
+	background-image: resource("VFX/connectors/vector3-input");
+}
+
+.VFXDataAnchor.connected.Output > #connector.typepoint
+{
+	background-image: resource("VFX/connectors/vector3-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typepoint
+{
+	background-image: resource("VFX/connectors/vector3-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typepoint
+{
+	background-image: resource("VFX/connectors/vector3-output-selected");
+}
+
 .VFXDataAnchor.connected > #connector.typevector
 {
-	border-color:#c9f774;
-	background-color : #c9f774;
+	background-image: resource("VFX/connectors/vector3-input");
 }
-.VFXDataAnchor.connected > #connector.typeposition
+
+.VFXDataAnchor.connected.Output > #connector.typevector
 {
-	border-color:#c9f774;
-	background-color : #c9f774;
+	background-image: resource("VFX/connectors/vector3-output");
 }
+
+.node.selected .VFXDataAnchor.connected > #connector.typevector
+{
+	background-image: resource("VFX/connectors/vector3-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typevector
+{
+	background-image: resource("VFX/connectors/vector3-output-selected");
+}
+
+/* vector4 Color */
+
 .VFXDataAnchor.connected > #connector.typevector4
 {
-	border-color:#effe5c;
-	background-color : #effe5c;
+	background-image: resource("VFX/connectors/vector4-input");
 }
+
+.VFXDataAnchor.connected.Output > #connector.typevector4
+{
+	background-image: resource("VFX/connectors/vector4-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typevector4
+{
+	background-image: resource("VFX/connectors/vector4-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typevector4
+{
+	background-image: resource("VFX/connectors/vector4-output-selected");
+}
+
 .VFXDataAnchor.connected > #connector.typecolor
 {
-	border-color:#effe5c;
-	background-color : #effe5c;
+	background-image: resource("VFX/connectors/vector4-input");
 }
-.VFXDataAnchor.connected > #connector.typeobject
+
+.VFXDataAnchor.connected.Output > #connector.typecolor
 {
-	border-color:#787878;
-	background-color : #787878;
+	background-image: resource("VFX/connectors/vector4-output");
 }
+
+.node.selected .VFXDataAnchor.connected > #connector.typecolor
+{
+	background-image: resource("VFX/connectors/vector4-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typecolor
+{
+	background-image: resource("VFX/connectors/vector4-output-selected");
+}
+/* texture2d */
 
 .VFXDataAnchor.connected > #connector.typetexture2d
 {
-	border-color : #e681ba;
-	background-color : #e681ba;
+	background-image: resource("VFX/connectors/texture2d-input");
 }
+
+.VFXDataAnchor.connected.Output > #connector.typetexture2d
+{
+	background-image: resource("VFX/connectors/texture2d-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typetexture2d
+{
+	background-image: resource("VFX/connectors/texture2d-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typetexture2d
+{
+	background-image: resource("VFX/connectors/texture2d-output-selected");
+}
+
+
+/* texture3d */
+
 .VFXDataAnchor.connected > #connector.typetexture3d
 {
-	border-color : #f7add7;
-	background-color : #f7add7;
+	background-image: resource("VFX/connectors/texture3d-input");
 }
+
+.VFXDataAnchor.connected.Output > #connector.typetexture3d
+{
+	background-image: resource("VFX/connectors/texture3d-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typetexture3d
+{
+	background-image: resource("VFX/connectors/texture3d-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typetexture3d
+{
+	background-image: resource("VFX/connectors/texture3d-output-selected");
+}
+
+/* boolean */
+
 .VFXDataAnchor.connected > #connector.typeboolean
 {
-	border-color : #a081e6;
-	background-color : #a081e6;
+	background-image: resource("VFX/connectors/int-input");
 }
+
+.VFXDataAnchor.connected.Output > #connector.typeboolean
+{
+	background-image: resource("VFX/connectors/int-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typeboolean
+{
+	background-image: resource("VFX/connectors/int-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typeboolean
+{
+	background-image: resource("VFX/connectors/int-output-selected");
+}
+
+
+/* int32 */
+
 .VFXDataAnchor.connected > #connector.typeint32
 {
-	border-color : #a081e6;
-	background-color : #a081e6;
+	background-image: resource("VFX/connectors/int-input");
 }
+
+.VFXDataAnchor.connected.Output > #connector.typeint32
+{
+	background-image: resource("VFX/connectors/int-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typeint32
+{
+	background-image: resource("VFX/connectors/int-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typeint32
+{
+	background-image: resource("VFX/connectors/int-output-selected");
+}
+
+/* flipbook */
+
 .VFXDataAnchor.connected > #connector.typeflipbook
 {
-	border-color : #c2a8ff;
-	background-color : #c2a8ff;
+	background-image: resource("VFX/connectors/int-input");
 }
+
+.VFXDataAnchor.connected.Output > #connector.typeflipbook
+{
+	background-image: resource("VFX/connectors/int-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typeflipbook
+{
+	background-image: resource("VFX/connectors/int-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typeflipbook
+{
+	background-image: resource("VFX/connectors/int-output-selected");
+}
+
+/* mesh */
+
 .VFXDataAnchor.connected > #connector.typemesh
 {
-	border-color : #7aa3ea;
-	background-color : #7aa3ea;
+	background-image: resource("VFX/connectors/mesh-input");
 }
+
+.VFXDataAnchor.connected.Output > #connector.typemesh
+{
+	background-image: resource("VFX/connectors/mesh-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typemesh
+{
+	background-image: resource("VFX/connectors/mesh-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typemesh
+{
+	background-image: resource("VFX/connectors/mesh-output-selected");
+}
+
+/* animationcurve */
+
 .VFXDataAnchor.connected > #connector.typeanimationcurve
 {
-	border-color : #84e4e7;
-	background-color : #84e4e7;
+	background-image: resource("VFX/connectors/curve-input");
 }
-.VFXDataAnchor.connected > #connector.typegradient
+
+.VFXDataAnchor.connected.Output > #connector.typeanimationcurve
 {
-	border-color:#effe5c;
-	background-color : #effe5c;
+	background-image: resource("VFX/connectors/curve-output");
+}
+
+.node.selected .VFXDataAnchor.connected > #connector.typeanimationcurve
+{
+	background-image: resource("VFX/connectors/curve-input-selected");
+}
+
+.node.selected .VFXDataAnchor.connected.Output > #connector.typeanimationcurve
+{
+	background-image: resource("VFX/connectors/curve-output-selected");
 }
 
 
@@ -486,7 +731,7 @@ VFXDataEdge.typevector4
 }
 VFXDataEdge.typecolor
 {
-	border-color : #d1d1d1;
+	border-color : #effe5c;
 }
 VFXDataEdge.typegradient
 {
@@ -523,6 +768,17 @@ VFXDataEdge.typemesh
 VFXDataEdge.typeanimationcurve
 {
 	border-color : #84e4e7;
+}
+
+
+.node.selected .VFXDataAnchor #connector
+{
+	background-image:resource("VFX/connectors/unconnected-input-selected");
+}
+
+.node.selected .VFXDataAnchor.Output #connector
+{
+	background-image:resource("VFX/connectors/unconnected-output-selected");
 }
 
 .dragdisplay
