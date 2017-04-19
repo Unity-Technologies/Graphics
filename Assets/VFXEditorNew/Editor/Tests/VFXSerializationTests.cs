@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.Test
                 VFXGraphAsset asset = ScriptableObject.CreateInstance<VFXGraphAsset>();
                 InitAsset(asset);
                 AssetDatabase.CreateAsset(asset,kTestAssetPath);
-				asset.UpdateSubAssets();
+                asset.UpdateSubAssets();
             }
         }
 
@@ -314,5 +314,53 @@ namespace UnityEditor.VFX.Test
 
             InnerSaveAndReloadTest("ParameterAndOperator", write, read);
         }
+
+        [Test]
+        public void SerializeBuiltInParameter()
+        {
+            Action<VFXGraphAsset> write = delegate (VFXGraphAsset asset)
+            {
+                var builtIn = VFXLibrary.GetBuiltInParameter().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
+                asset.root.AddChild(builtIn);
+                Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().Operation);
+            };
+
+            Action<VFXGraphAsset> read = delegate (VFXGraphAsset asset)
+            {
+                var builtIn = asset.root[0] as VFXBuiltInParameter;
+                Assert.AreNotEqual(null, builtIn);
+                Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().Operation);
+            };
+            InnerSaveAndReloadTest("BuiltInParameter", write, read);
+        }
+
+        [Test]
+        public void SerializeOperatorAndBuiltInParameter()
+        {
+            Action<VFXGraphAsset> write = delegate (VFXGraphAsset asset)
+            {
+                var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
+                var builtIn = VFXLibrary.GetBuiltInParameter().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
+                asset.root.AddChild(builtIn);
+                asset.root.AddChild(add);
+                add.inputSlots[0].Link(builtIn.outputSlots[0]);
+
+                Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().Operation);
+                Assert.IsTrue(add.inputSlots[0].HasLink());
+            };
+
+            Action<VFXGraphAsset> read = delegate (VFXGraphAsset asset)
+            {
+                var builtIn = asset.root[0] as VFXBuiltInParameter;
+                var add = asset.root[1] as VFXOperatorAdd;
+
+                Assert.AreNotEqual(null, builtIn);
+                Assert.AreNotEqual(null, add);
+                Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().Operation);
+                Assert.IsTrue(add.inputSlots[0].HasLink());
+            };
+            InnerSaveAndReloadTest("BuiltInParameter", write, read);
+        }
+
     }
 }
