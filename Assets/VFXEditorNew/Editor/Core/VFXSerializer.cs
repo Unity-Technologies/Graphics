@@ -93,8 +93,6 @@ namespace UnityEditor.VFX
         [SerializeField]
         private SerializableType m_Type;
 
-        // [NonSerialized]
-        //private object m_Object;
         [SerializeField]
         private string m_SerializableObject;
     }

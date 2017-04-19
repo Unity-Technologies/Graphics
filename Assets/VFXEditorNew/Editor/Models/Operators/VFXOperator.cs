@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
             var settingsType = GetPropertiesSettings();
             if (settingsType != null && m_SettingsBuffer == null)
             {
-                m_SettingsBuffer = System.Activator.CreateInstance(settingsType);
+                m_SettingsBuffer = new VFXSerializableObject(settingsType);
             }
 
             if (outputSlots.Count == 0)
@@ -30,52 +30,30 @@ namespace UnityEditor.VFX
             return GetType().GetNestedType("Settings");
         }
 
-        private object m_SettingsBuffer;
-
         [SerializeField]
-        private SerializationHelper.JSONSerializedElement m_SerializableSettings;
+        private VFXSerializableObject m_SettingsBuffer;
 
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
-            if (m_SettingsBuffer != null)
-            {
-                m_SerializableSettings = SerializationHelper.Serialize(m_SettingsBuffer);
-            }
-            else
-            {
-                m_SerializableSettings.Clear();
-            }
         }
 
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();
-            if (!m_SerializableSettings.Empty)
-            {
-                m_SettingsBuffer = SerializationHelper.Deserialize<object>(m_SerializableSettings, null);
-            }
-            m_SerializableSettings.Clear();
         }
 
         public object settings
         {
             get
             {
-                return m_SettingsBuffer;
+                return m_SettingsBuffer == null ? null : m_SettingsBuffer.Get();
             }
             set
             {
-                if (m_SettingsBuffer != value)
+                if (m_SettingsBuffer != null)
                 {
-                    if (m_SettingsBuffer != null && value != null)
-                    {
-                        if (value.GetType() != m_SettingsBuffer.GetType())
-                        {
-                            throw new Exception(string.Format("Settings is assigned with invalid type, expected : {0} given : {1}", m_SettingsBuffer.GetType(), value.GetType()));
-                        }
-                    }
-                    m_SettingsBuffer = value;
+                    m_SettingsBuffer.Set(value);
                     UpdateOutputs(); // TODOPAUL: (Julien) This should be handled in a more generic way: Handle settings change via virtual dispatch as behaviour depends on operator
                 }
             }

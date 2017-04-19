@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
                 expanded = !model.collapsed;
                 title = node.name + " " + node.m_OnEnabledCount;
 
-                //TODOPAUL : Avoid this hotfix
+                //TODOPAUL : Avoid this hotfix (case with Append operator : outputSlots change when GetExpression is called from CreateAnchorPresenter)
                 foreach (var slot in node.outputSlots.ToArray())
                 {
                     slot.GetExpression();
