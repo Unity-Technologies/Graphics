@@ -80,15 +80,30 @@ namespace UnityEditor.VFX
 
         public override void SetContent(object value)
         {
-            try
+            m_Content = default(T);
+            if (value != null)
             {
-                m_Content = (T)value;
+                var fromType = value.GetType();
+                var toType = typeof(T);
+
+                if (fromType == toType || toType.IsAssignableFrom(fromType))
+                {
+                    m_Content = (T)Convert.ChangeType(value, toType);
+                }
+                else
+                {
+                    var implicitMethod = fromType   .GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                                                    .FirstOrDefault(m => m.Name == "op_Implicit" && m.ReturnType == toType);
+                    if (implicitMethod != null)
+                    {
+                        m_Content = (T)implicitMethod.Invoke(null, new object[] { value });
+                    }
+                    else
+                    {
+                        Debug.LogErrorFormat("Cannot cast from {0} to {1}", fromType, toType);
+                    }
+                }
             }
-            catch
-            {
-                Debug.Log(string.Format("Cannot cast from {0} to {1}",value.GetType(),typeof(T)));
-                m_Content = default(T);
-            }      
         }
 
         protected T m_Content;

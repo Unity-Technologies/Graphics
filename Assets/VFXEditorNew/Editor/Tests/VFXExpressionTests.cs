@@ -47,6 +47,20 @@ namespace UnityEditor.VFX.Test
             function = string.Format("{0}\n{{\n{1}\n}}\n", fnHeader, fnContent);
             call = string.Format("{0} {1} = {2}({3});", VFXExpression.TypeToCode(expression.ValueType), temp_GetUniqueName(expression), fnName, temp_AggregateWithComa(expression.Parents.Select(o => temp_GetUniqueName(o))));
         }
+
+        [Test]
+        public void ProcessStoreValue()
+        {
+            var a = 123.0f;
+            var b = 789.0f;
+
+            var valueFloat = new VFXValueFloat(0.0f, true);
+            valueFloat.SetContent(a);
+            Assert.AreEqual(a, valueFloat.GetContent<float>());
+
+            valueFloat.SetContent(new FloatN(b));
+            Assert.AreEqual(b, valueFloat.GetContent<float>());
+        }
         
         [Test]
         public void ProcessExpressionBasic()
