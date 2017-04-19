@@ -23,6 +23,7 @@ namespace UnityEditor.VFX
             public Vector aVector = new Vector { space = CoordinateSpace.Local, vector = Vector3.one };
             public Position aPosition = new Position { space = CoordinateSpace.Local, position = Vector3.forward };
             public int anInt;
+            public uint anUint;
             public FlipBook aFlipBook;
             public bool aBool;
             public AnimationCurve curve = new AnimationCurve(new Keyframe[] { new Keyframe(0,0),new Keyframe(1,1)});

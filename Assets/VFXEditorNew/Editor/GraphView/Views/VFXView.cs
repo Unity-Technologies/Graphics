@@ -61,8 +61,19 @@ namespace UnityEditor.VFX.UI
                 };
             });
 
+            var descriptorBuiltInParameter = VFXLibrary.GetBuiltInParameter().Select(o =>
+            {
+                return new Descriptor()
+                {
+                    modelDescriptor = o,
+                    category = "BuiltIn/",
+                    name = o.name
+                };
+            });
+
             return descriptorsContext   .Concat(descriptorsOperator)
-                                        .Concat(descriptorParameter);
+                                        .Concat(descriptorParameter)
+                                        .Concat(descriptorBuiltInParameter);
         }
     }
 
@@ -74,29 +85,27 @@ namespace UnityEditor.VFX.UI
             forceNotififcationOnAdd = true;
             SetupZoom(new Vector3(0.125f,0.125f,1),new Vector3(8,8,1));
 
-			AddManipulator(new ContentDragger());
-			AddManipulator(new RectangleSelector());
-			AddManipulator(new SelectionDragger());
-			AddManipulator(new ClickSelector());
-			AddManipulator(new ShortcutHandler(
-				new Dictionary<Event, ShortcutDelegate>
-				{
-					{Event.KeyboardEvent("a"), FrameAll},
-					{Event.KeyboardEvent("f"), FrameSelection},
-					{Event.KeyboardEvent("o"), FrameOrigin},
-					{Event.KeyboardEvent("delete"), DeleteSelection},
+            AddManipulator(new ContentDragger());
+            AddManipulator(new RectangleSelector());
+            AddManipulator(new SelectionDragger());
+            AddManipulator(new ClickSelector());
+            AddManipulator(new ShortcutHandler(
+                new Dictionary<Event, ShortcutDelegate>
+                {
+                    {Event.KeyboardEvent("a"), FrameAll},
+                    {Event.KeyboardEvent("f"), FrameSelection},
+                    {Event.KeyboardEvent("o"), FrameOrigin},
+                    {Event.KeyboardEvent("delete"), DeleteSelection},
 //					{Event.KeyboardEvent("#tab"), FramePrev},
 //					{Event.KeyboardEvent("tab"), FrameNext},
                     {Event.KeyboardEvent("c"), CloneModels}, // TEST
                     {Event.KeyboardEvent("#r"), Resync},
                     {Event.KeyboardEvent("#d"), OutputToDot},
-				}));
+                }));
 
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
             InsertChild(0, bg);
 
-
-            
             AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) =>
             {
                 Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
@@ -112,12 +121,17 @@ namespace UnityEditor.VFX.UI
                 {
                     AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
                 }
+                else if (d.modelDescriptor is VFXModelDescriptorBuiltInParameters)
+                {
+                    AddVFXBuiltInParameter(tPos, d.modelDescriptor as VFXModelDescriptorBuiltInParameters);
+                }
                 else
                 {
-                    Debug.LogError("Add unknown presenter");
+                    Debug.LogErrorFormat("Add unknown presenter : {0}", d.modelDescriptor.GetType());
                 }
             }), null));
 
+            typeFactory[typeof(VFXBuiltInParameterPresenter)] = typeof(VFXBuiltInParameterUI);
             typeFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
             typeFactory[typeof(VFXContextPresenter)] = typeof(VFXContextUI);
@@ -149,6 +163,11 @@ namespace UnityEditor.VFX.UI
         void AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
         {
             GetPresenter<VFXViewPresenter>().AddVFXParameter(pos, desc);
+        }
+
+        void AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
+        {
+            GetPresenter<VFXViewPresenter>().AddVFXBuiltInParameter(pos, desc);
         }
 
         public EventPropagation CloneModels() // TEST clean that

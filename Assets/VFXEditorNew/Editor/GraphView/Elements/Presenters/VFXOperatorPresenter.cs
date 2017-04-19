@@ -40,6 +40,7 @@ namespace UnityEditor.VFX.UI
             if (Operator != null)
             {
                 settings = Operator.settings;
+                title = node.name + " " + node.m_OnEnabledCount;
             }
             base.Reset();
         }

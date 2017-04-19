@@ -132,27 +132,19 @@ namespace UnityEditor.VFX.UI
                                 inputSlot.Link(startSlot);
                                 break;
                             }
-
                         }
                     }
                 }
             }
             else if (presenter.direction == Direction.Input)
             {
-
                 VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.Name);
                 if (parameterDesc != null)
                 {
                     VFXParameter parameter = viewPresenter.AddVFXParameter(position, parameterDesc);
-
                     startSlot.Link(parameter.outputSlots[0]);
                 }
             }
-
-
         }
-
     }
-
-    
 }

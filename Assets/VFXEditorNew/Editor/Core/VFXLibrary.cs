@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using Object = System.Object;
 
@@ -59,7 +58,7 @@ namespace UnityEditor.VFX
     class VFXModelDescriptorParameters : VFXModelDescriptor<VFXParameter>
     {
         private string m_name;
-        override public string name
+        public override string name
         {
             get
             {
@@ -81,6 +80,31 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXModelDescriptorBuiltInParameters : VFXModelDescriptor<VFXBuiltInParameter>
+    {
+        private string m_name = string.Empty;
+        public override string name
+        {
+            get
+            {
+                return m_name;
+            }
+        }
+
+        public VFXModelDescriptorBuiltInParameters(VFXExpressionOp op):base(ScriptableObject.CreateInstance<VFXBuiltInParameter>())
+        {
+            m_name = op.ToString();
+            m_Template.Init(op);
+        }
+
+        public override VFXBuiltInParameter CreateInstance()
+        {
+            var instance = base.CreateInstance();
+            instance.Init(m_Template.outputSlots[0].GetExpression().Operation);
+            return instance;
+        }
+    }
+
     static class VFXLibrary
     {
         public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts()     { LoadIfNeeded(); return m_ContextDescs; }
@@ -88,6 +112,7 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators()   { LoadIfNeeded(); return m_OperatorDescs; }
         public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots()           { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
         public static IEnumerable<VFXModelDescriptorParameters> GetParameters()     { LoadIfNeeded(); return m_ParametersDescs; }
+        public static IEnumerable<VFXModelDescriptorBuiltInParameters> GetBuiltInParameter() { LoadIfNeeded(); return m_BuiltInParametersDescs; }
 
         public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)
         { 
@@ -121,6 +146,12 @@ namespace UnityEditor.VFX
                 m_ParametersDescs = m_SlotDescs.Select(s =>
                 {
                     var desc = new VFXModelDescriptorParameters(s.Key);
+                    return desc;
+                }).ToList();
+
+                m_BuiltInParametersDescs = VFXBuiltInExpression.All.Select(e =>
+                {
+                    var desc = new VFXModelDescriptorBuiltInParameters(e);
                     return desc;
                 }).ToList();
 
@@ -223,6 +254,7 @@ namespace UnityEditor.VFX
         private static volatile List<VFXModelDescriptor<VFXOperator>> m_OperatorDescs;
         private static volatile List<VFXModelDescriptor<VFXBlock>> m_BlockDescs;
         private static volatile List<VFXModelDescriptorParameters> m_ParametersDescs;
+        private static volatile List<VFXModelDescriptorBuiltInParameters> m_BuiltInParametersDescs;
         private static volatile Dictionary<Type,VFXModelDescriptor<VFXSlot>> m_SlotDescs;
 
         private static Object m_Lock = new Object();

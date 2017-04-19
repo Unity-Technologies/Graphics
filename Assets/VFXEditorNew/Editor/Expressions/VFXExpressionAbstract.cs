@@ -63,7 +63,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat3: return "float3";
                 case VFXValueType.kFloat4: return "float4";
             }
-            throw new NotImplementedException();
+            throw new NotImplementedException(type.ToString());
         }
 
         public static Type TypeToType(VFXValueType type)
@@ -75,6 +75,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat3: return typeof(Vector3);
                 case VFXValueType.kFloat4: return typeof(Vector4);
                 case VFXValueType.kCurve: return typeof(AnimationCurve);
+                case VFXValueType.kUint: return typeof(uint);
             }
             throw new NotImplementedException(type.ToString());
         }

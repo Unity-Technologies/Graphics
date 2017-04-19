@@ -38,6 +38,7 @@ namespace UnityEditor.VFX.UI
         {
             m_PresenterFactory[typeof(VFXContext)] = typeof(VFXContextPresenter);
             m_PresenterFactory[typeof(VFXOperator)] = typeof(VFXOperatorPresenter);
+            m_PresenterFactory[typeof(VFXBuiltInParameter)] = typeof(VFXBuiltInParameterPresenter);
             m_PresenterFactory[typeof(VFXParameter)] = typeof(VFXParameterPresenter);
         }
 
@@ -431,12 +432,18 @@ namespace UnityEditor.VFX.UI
             m_GraphAsset.root.AddChild(model);
         }
 
+        public void AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
+        {
+            var model = desc.CreateInstance();
+            model.position = pos;
+            m_GraphAsset.root.AddChild(model);
+        }
+
         public VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
         {
             var model = desc.CreateInstance();
             model.position = pos;
             m_GraphAsset.root.AddChild(model);
-
             return model;
         }
 

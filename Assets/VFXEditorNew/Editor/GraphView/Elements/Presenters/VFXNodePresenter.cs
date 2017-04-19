@@ -58,7 +58,6 @@ namespace UnityEditor.VFX.UI
             {
                 position = new Rect(model.position.x, model.position.y, position.width, position.height);
                 expanded = !model.collapsed;
-                title = node.name + " " + node.m_OnEnabledCount;
 
                 //TODOPAUL : Avoid this hotfix (case with Append operator : outputSlots change when GetExpression is called from CreateAnchorPresenter)
                 foreach (var slot in node.outputSlots.ToArray())
