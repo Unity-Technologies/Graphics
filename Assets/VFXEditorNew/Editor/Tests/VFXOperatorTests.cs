@@ -144,5 +144,41 @@ namespace UnityEditor.VFX.Test
             expression = append.outputSlots[0].GetExpression();
             Assert.AreEqual(VFXValueType.kFloat2, expression.ValueType);
         }
+
+        [Test]
+        public void ReferenceOfAttributeEquality()
+        {
+            foreach (var attribute in VFXAttributeExpression.All)
+            {
+                var desc = VFXLibrary.GetAttributeParameters().First(p => p.name == attribute);
+                var a = desc.CreateInstance();
+                var b = desc.CreateInstance();
+                Assert.IsNotNull(a);
+                Assert.IsNotNull(b);
+                Assert.AreNotEqual(a, b);
+
+                var reference = VFXAttributeExpression.Find(attribute);
+                Assert.IsTrue(ReferenceEquals(reference, a.outputSlots[0].GetExpression()));
+                Assert.IsTrue(ReferenceEquals(reference, b.outputSlots[0].GetExpression()));
+            }
+        }
+
+        [Test]
+        public void ReferenceOfBuiltInEquality()
+        {
+            foreach (var operation in VFXBuiltInExpression.All)
+            {
+                var desc = VFXLibrary.GetBuiltInParameters().First(p => p.name == operation.ToString());
+                var a = desc.CreateInstance();
+                var b = desc.CreateInstance();
+                Assert.IsNotNull(a);
+                Assert.IsNotNull(b);
+                Assert.AreNotEqual(a, b);
+
+                var reference = VFXBuiltInExpression.Find(operation);
+                Assert.IsTrue(ReferenceEquals(reference, a.outputSlots[0].GetExpression()));
+                Assert.IsTrue(ReferenceEquals(reference, b.outputSlots[0].GetExpression()));
+            }
+        }
     }
 }
