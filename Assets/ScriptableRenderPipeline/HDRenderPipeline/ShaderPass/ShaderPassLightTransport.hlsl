@@ -67,7 +67,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
-    LighTransportData lightTransportData = GetLightTransportData(surfaceData, builtinData, bsdfData);
+    LightTransportData lightTransportData = GetLightTransportData(surfaceData, builtinData, bsdfData);
 
     // This shader is call two time. Once for getting emissiveColor, the other time to get diffuseColor
     // We use unity_MetaFragmentControl to make the distinction.

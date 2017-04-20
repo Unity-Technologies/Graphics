@@ -496,116 +496,20 @@ uint MaterialFeatureFlagsFromGBuffer(
 
 void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout bool needLinearToSRGB)
 {
+    GetGeneratedSurfaceDataDebug(paramId, surfaceData, result, needLinearToSRGB);
+
     switch (paramId)
     {
-        case DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR:
-            result = surfaceData.baseColor; needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_OCCLUSION:
-            result = surfaceData.specularOcclusion.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_NORMAL_WS:
-            result = surfaceData.normalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_PERCEPTUAL_SMOOTHNESS:
-            result = surfaceData.perceptualSmoothness.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_ID:
-            result = GetIndexColor(surfaceData.materialId);
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_AMBIENT_OCCLUSION:
-            result = surfaceData.ambientOcclusion.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_TANGENT_WS:
-            result = surfaceData.tangentWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY:
-            result = surfaceData.anisotropy.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_METALLIC:
-            result = surfaceData.metallic.xxx;
-            break;
         // TODO: Remap here!
         case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR:
             result = surfaceData.specular.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_RADIUS:
-            result = surfaceData.subsurfaceRadius.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_THICKNESS:
-            result = surfaceData.thickness.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_PROFILE:
-            result = GetIndexColor(surfaceData.subsurfaceProfile);
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_COAT_NORMAL_WS:
-            result = surfaceData.coatNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_COAT_PERCEPTUAL_SMOOTHNESS:
-            result = surfaceData.coatPerceptualSmoothness.xxx;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR:
-            result = surfaceData.specularColor; needLinearToSRGB = true;
             break;
     }
 }
 
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
-    switch (paramId)
-    {
-        case DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR:
-            result = bsdfData.diffuseColor; needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_FRESNEL0:
-            result = bsdfData.fresnel0;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_SPECULAR_OCCLUSION:
-            result = bsdfData.specularOcclusion.xxx;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_NORMAL_WS:
-            result = bsdfData.normalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_PERCEPTUAL_ROUGHNESS:
-            result = bsdfData.perceptualRoughness.xxx;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS:
-            result = bsdfData.roughness.xxx;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_ID:
-            result = GetIndexColor(bsdfData.materialId);
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_TANGENT_WS:
-            result = bsdfData.tangentWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS:
-            result = bsdfData.bitangentWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T:
-            result = bsdfData.roughnessT.xxx;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B:
-            result = bsdfData.roughnessB.xxx;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY:
-            result = bsdfData.anisotropy.xxx;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_RADIUS:
-            result = bsdfData.subsurfaceRadius.xxx;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_THICKNESS:
-            result = bsdfData.thickness.xxx;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE:
-            result = GetIndexColor(bsdfData.subsurfaceProfile);
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS:
-            result = bsdfData.coatNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS:
-            result = bsdfData.coatRoughness.xxx;
-            break;
-    }
+    GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
 }
 
 //-----------------------------------------------------------------------------
@@ -717,9 +621,9 @@ float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData,
 // light transport functions
 //-----------------------------------------------------------------------------
 
-LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
+LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
-    LighTransportData lightTransportData;
+    LightTransportData lightTransportData;
 
     // diffuseColor for lightmapping should basically be diffuse color.
     // But rough metals (black diffuse) still scatter quite a lot of light around, so

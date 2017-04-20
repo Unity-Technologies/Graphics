@@ -179,7 +179,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Get attribute to get the start number of the value for the enum
             var attr = attributes[0] as GenerateHLSL;
 
-            if (!attr.needParamDefines)
+            if (!attr.needParamDebug)
             {
                 return;
             }

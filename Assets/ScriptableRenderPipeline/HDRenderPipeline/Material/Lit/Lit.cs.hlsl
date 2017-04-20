@@ -102,7 +102,7 @@ struct BSDFData
     float3 normalWS;
     float perceptualRoughness;
     float roughness;
-    float materialId;
+    int materialId;
     float3 tangentWS;
     float3 bitangentWS;
     float roughnessT;
@@ -116,6 +116,134 @@ struct BSDFData
     float3 coatNormalWS;
     float coatRoughness;
 };
+
+//
+// Debug functions
+//
+void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR:
+            result = surfacedata.baseColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_OCCLUSION:
+            result = surfacedata.specularOcclusion.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_NORMAL_WS:
+            result = surfacedata.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_PERCEPTUAL_SMOOTHNESS:
+            result = surfacedata.perceptualSmoothness.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_ID:
+            result = GetIndexColor(surfacedata.materialId);
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_AMBIENT_OCCLUSION:
+            result = surfacedata.ambientOcclusion.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_TANGENT_WS:
+            result = surfacedata.tangentWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY:
+            result = surfacedata.anisotropy.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_METALLIC:
+            result = surfacedata.metallic.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR:
+            result = surfacedata.specular.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_RADIUS:
+            result = surfacedata.subsurfaceRadius.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_THICKNESS:
+            result = surfacedata.thickness.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_PROFILE:
+            result = GetIndexColor(surfacedata.subsurfaceProfile);
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_COAT_NORMAL_WS:
+            result = surfacedata.coatNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_COAT_PERCEPTUAL_SMOOTHNESS:
+            result = surfacedata.coatPerceptualSmoothness.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR:
+            result = surfacedata.specularColor;
+            needLinearToSRGB = true;
+            break;
+    }
+}
+
+//
+// Debug functions
+//
+void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR:
+            result = bsdfdata.diffuseColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_FRESNEL0:
+            result = bsdfdata.fresnel0;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_SPECULAR_OCCLUSION:
+            result = bsdfdata.specularOcclusion.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_NORMAL_WS:
+            result = bsdfdata.normalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_PERCEPTUAL_ROUGHNESS:
+            result = bsdfdata.perceptualRoughness.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS:
+            result = bsdfdata.roughness.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_ID:
+            result = GetIndexColor(bsdfdata.materialId);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_TANGENT_WS:
+            result = bsdfdata.tangentWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS:
+            result = bsdfdata.bitangentWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T:
+            result = bsdfdata.roughnessT.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B:
+            result = bsdfdata.roughnessB.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY:
+            result = bsdfdata.anisotropy.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_RADIUS:
+            result = bsdfdata.subsurfaceRadius.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_THICKNESS:
+            result = bsdfdata.thickness.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE:
+            result = GetIndexColor(bsdfdata.subsurfaceProfile);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION:
+            result = (bsdfdata.enableTransmission) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE:
+            result = bsdfdata.transmittance;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS:
+            result = bsdfdata.coatNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS:
+            result = bsdfdata.coatRoughness.xxx;
+            break;
+    }
+}
 
 
 #endif
