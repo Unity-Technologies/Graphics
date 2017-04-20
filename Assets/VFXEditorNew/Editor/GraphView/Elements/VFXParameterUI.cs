@@ -37,6 +37,10 @@ namespace UnityEditor.VFX.UI
     {
     }
 
+    class VFXAttributeParameterUI : VFXNodeUI
+    {
+    }
+
     class VFXParameterUI : VFXNodeUI
     {
         private TextField m_ExposedName;

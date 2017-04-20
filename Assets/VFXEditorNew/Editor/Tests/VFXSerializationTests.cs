@@ -320,7 +320,7 @@ namespace UnityEditor.VFX.Test
         {
             Action<VFXGraphAsset> write = delegate (VFXGraphAsset asset)
             {
-                var builtIn = VFXLibrary.GetBuiltInParameter().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
+                var builtIn = VFXLibrary.GetBuiltInParameters().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
                 asset.root.AddChild(builtIn);
                 Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().Operation);
             };
@@ -340,7 +340,7 @@ namespace UnityEditor.VFX.Test
             Action<VFXGraphAsset> write = delegate (VFXGraphAsset asset)
             {
                 var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
-                var builtIn = VFXLibrary.GetBuiltInParameter().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
+                var builtIn = VFXLibrary.GetBuiltInParameters().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
                 asset.root.AddChild(builtIn);
                 asset.root.AddChild(add);
                 add.inputSlots[0].Link(builtIn.outputSlots[0]);

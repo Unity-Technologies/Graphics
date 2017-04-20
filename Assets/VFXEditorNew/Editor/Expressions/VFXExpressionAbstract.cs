@@ -81,7 +81,7 @@ namespace UnityEditor.VFX
         }
 
 
-        //Helper using reflection to recreate a concrete type from an abstract class (usefull with reduce behavior)
+        //Helper using reflection to recreate a concrete type from an abstract class (useful with reduce behavior)
         protected static VFXExpression CreateNewInstance(Type expressionType)
         {
             var allconstructors = expressionType.GetConstructors().ToArray();
@@ -104,14 +104,12 @@ namespace UnityEditor.VFX
             return CreateNewInstance(GetType());
         }
 
-        protected static VFXExpression[] CollectStaticReadOnlyExpression()
+        protected static T[] CollectStaticReadOnlyExpression<T>(Type expressionType) where T : VFXExpression
         {
-            var type = typeof(VFXBuiltInExpression);
-            var members = type.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
-                                .Where(m => m.IsInitOnly && m.FieldType == typeof(VFXExpression))
-                                .ToArray();
-
-            var expressions = members.Select(m => m.GetValue(null) as VFXExpression).ToArray();
+            var members = expressionType.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
+                                        .Where(m => m.IsInitOnly && m.FieldType == typeof(T))
+                                        .ToArray();
+            var expressions = members.Select(m => m.GetValue(null) as T).ToArray();
             return expressions;
         }
 

@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.UI
                 };
             });
 
-            var descriptorBuiltInParameter = VFXLibrary.GetBuiltInParameter().Select(o =>
+            var descriptorBuiltInParameter = VFXLibrary.GetBuiltInParameters().Select(o =>
             {
                 return new Descriptor()
                 {
@@ -71,9 +71,20 @@ namespace UnityEditor.VFX.UI
                 };
             });
 
+            var descriptorAttributeParameter = VFXLibrary.GetAttributeParameters().Select(o =>
+            {
+                return new Descriptor()
+                {
+                    modelDescriptor = o,
+                    category = "Attribute/",
+                    name = o.name
+                };
+            });
+
             return descriptorsContext   .Concat(descriptorsOperator)
                                         .Concat(descriptorParameter)
-                                        .Concat(descriptorBuiltInParameter);
+                                        .Concat(descriptorBuiltInParameter)
+                                        .Concat(descriptorAttributeParameter);
         }
     }
 
@@ -125,12 +136,17 @@ namespace UnityEditor.VFX.UI
                 {
                     AddVFXBuiltInParameter(tPos, d.modelDescriptor as VFXModelDescriptorBuiltInParameters);
                 }
+                else if (d.modelDescriptor is VFXModelDescriptorAttributeParameters)
+                {
+                    AddVFXAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorAttributeParameters);
+                }
                 else
                 {
                     Debug.LogErrorFormat("Add unknown presenter : {0}", d.modelDescriptor.GetType());
                 }
             }), null));
 
+            typeFactory[typeof(VFXAttributeParameterPresenter)] = typeof(VFXAttributeParameterUI);
             typeFactory[typeof(VFXBuiltInParameterPresenter)] = typeof(VFXBuiltInParameterUI);
             typeFactory[typeof(VFXParameterPresenter)] = typeof(VFXParameterUI);
             typeFactory[typeof(VFXOperatorPresenter)] = typeof(VFXOperatorUI);
@@ -168,6 +184,11 @@ namespace UnityEditor.VFX.UI
         void AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
         {
             GetPresenter<VFXViewPresenter>().AddVFXBuiltInParameter(pos, desc);
+        }
+
+        void AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorAttributeParameters desc)
+        {
+            GetPresenter<VFXViewPresenter>().AddVFXAttributeParameter(pos, desc);
         }
 
         public EventPropagation CloneModels() // TEST clean that

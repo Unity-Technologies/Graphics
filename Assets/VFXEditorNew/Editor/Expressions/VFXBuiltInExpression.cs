@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
         private static readonly VFXExpression DeltaTime = new VFXBuiltInExpression(VFXExpressionOp.kVFXDeltaTimeOp, VFXValueType.kFloat);
         private static readonly VFXExpression SystemSeed = new VFXBuiltInExpression(VFXExpressionOp.kVFXSystemSeedOp, VFXValueType.kUint);
 
-        private static readonly VFXExpression[] AllExpressions = CollectStaticReadOnlyExpression();
+        private static readonly VFXExpression[] AllExpressions = CollectStaticReadOnlyExpression<VFXExpression>(typeof(VFXBuiltInExpression));
         public static readonly VFXExpressionOp[] All = AllExpressions.Select(e => e.Operation).ToArray();
         
         public static VFXExpression Find(VFXExpressionOp op)
@@ -28,6 +28,7 @@ namespace UnityEditor.VFX
 
         private VFXBuiltInExpression(VFXExpressionOp op, VFXValueType valueType)
         {
+            m_Flags = Flags.ValidOnCPU | Flags.ValidOnGPU;
             m_Operation = op;
             m_ValueType = valueType;
         }
