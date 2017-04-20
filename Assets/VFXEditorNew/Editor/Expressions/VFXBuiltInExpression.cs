@@ -9,7 +9,8 @@ namespace UnityEditor.VFX
         private static readonly VFXExpression TotalTime = new VFXBuiltInExpression(VFXExpressionOp.kVFXTotalTimeOp, VFXValueType.kFloat);
         private static readonly VFXExpression DeltaTime = new VFXBuiltInExpression(VFXExpressionOp.kVFXDeltaTimeOp, VFXValueType.kFloat);
         private static readonly VFXExpression SystemSeed = new VFXBuiltInExpression(VFXExpressionOp.kVFXSystemSeedOp, VFXValueType.kUint);
-        private static readonly VFXExpression[] AllExpressions = new VFXExpression[] { TotalTime, DeltaTime, SystemSeed };
+
+        private static readonly VFXExpression[] AllExpressions = CollectStaticReadOnlyExpression();
         public static readonly VFXExpressionOp[] All = AllExpressions.Select(e => e.Operation).ToArray();
         
         public static VFXExpression Find(VFXExpressionOp op)

@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
 
 
         //Helper using reflection to recreate a concrete type from an abstract class (usefull with reduce behavior)
-        static protected VFXExpression CreateNewInstance(Type expressionType)
+        protected static VFXExpression CreateNewInstance(Type expressionType)
         {
             var allconstructors = expressionType.GetConstructors().ToArray();
             if (allconstructors.Length == 0)
@@ -102,6 +102,17 @@ namespace UnityEditor.VFX
         protected VFXExpression CreateNewInstance()
         {
             return CreateNewInstance(GetType());
+        }
+
+        protected static VFXExpression[] CollectStaticReadOnlyExpression()
+        {
+            var type = typeof(VFXBuiltInExpression);
+            var members = type.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
+                                .Where(m => m.IsInitOnly && m.FieldType == typeof(VFXExpression))
+                                .ToArray();
+
+            var expressions = members.Select(m => m.GetValue(null) as VFXExpression).ToArray();
+            return expressions;
         }
 
         // Reduce the expression within a given context
