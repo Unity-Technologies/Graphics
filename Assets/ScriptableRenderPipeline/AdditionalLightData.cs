@@ -85,7 +85,6 @@ namespace UnityEngine.Experimental.Rendering
             }
             shadowDatas[idx].format = format;
             shadowDatas[idx].data   = data != null ? data : new int[0];
-            UnityEditor.EditorUtility.SetDirty( this );
         }
         // Load a specific shadow data. Returns null if requested data is not present.
         public int[] GetShadowData( int shadowDataFormat )
@@ -137,7 +136,6 @@ namespace UnityEngine.Experimental.Rendering
             m_ShadowData      = serializedObject.FindProperty( "shadowData" );
             m_ShadowDatas     = serializedObject.FindProperty( "shadowDatas" );
         }
-
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -152,13 +150,13 @@ namespace UnityEngine.Experimental.Rendering
             UnityEditor.EditorGUI.BeginChangeCheck();
             m_ShadowRegistry.Draw( ald.gameObject.GetComponent<Light>() );
             serializedObject.Update();
-            serializedObject.ApplyModifiedProperties();
             if( UnityEditor.EditorGUI.EndChangeCheck() )
             {
-                //UnityEditor.EditorUtility.SetDirty( ald ); // <- doesn't work for some reason
+                UnityEditor.EditorUtility.SetDirty( ald );
                 UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
                 UnityEditor.SceneView.RepaintAll();
             }
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }
