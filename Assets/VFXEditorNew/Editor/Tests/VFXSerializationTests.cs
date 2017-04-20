@@ -362,5 +362,33 @@ namespace UnityEditor.VFX.Test
             InnerSaveAndReloadTest("BuiltInParameter", write, read);
         }
 
+
+        [Test]
+        public void SerializeAttributeParameter()
+        {
+            var testAttribute = "size";
+            Action<VFXAttributeParameter> test = delegate (VFXAttributeParameter parameter)
+            {
+                Assert.AreEqual(VFXExpressionOp.kVFXNoneOp, parameter.outputSlots[0].GetExpression().Operation);
+                Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].GetExpression().ValueType);
+                Assert.IsInstanceOf(typeof(VFXAttributeExpression), parameter.outputSlots[0].GetExpression());
+                Assert.AreEqual(testAttribute, (parameter.outputSlots[0].GetExpression() as VFXAttributeExpression).attributeName);
+            };
+
+            Action<VFXGraphAsset> write = delegate (VFXGraphAsset asset)
+            {
+                var size = VFXLibrary.GetAttributeParameters().First(o => o.name == testAttribute).CreateInstance();
+                asset.root.AddChild(size);
+                test(size);
+            };
+
+            Action<VFXGraphAsset> read = delegate (VFXGraphAsset asset)
+            {
+                var size = asset.root[0] as VFXAttributeParameter;
+                Assert.AreNotEqual(null, size);
+                test(size);
+            };
+            InnerSaveAndReloadTest("AttributeParameter", write, read);
+        }
     }
 }

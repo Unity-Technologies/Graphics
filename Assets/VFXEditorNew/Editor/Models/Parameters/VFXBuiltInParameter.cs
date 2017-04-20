@@ -32,13 +32,12 @@ namespace UnityEditor.VFX
 
         public void Init(VFXExpressionOp op)
         {
-            while (outputSlots.Count > 0)
-            {
-                RemoveSlot(outputSlots[0]);
-            }
             m_expressionOp = op;
             var exp = VFXBuiltInExpression.Find(m_expressionOp);
-            AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(exp.ValueType), "o"), VFXSlot.Direction.kOutput));
+            if (outputSlots.Count == 0)
+            {
+                AddSlot(VFXSlot.Create(new VFXProperty(VFXExpression.TypeToType(exp.ValueType), "o"), VFXSlot.Direction.kOutput));
+            }
             outputSlots[0].SetExpression(exp);
         }
     }
