@@ -142,6 +142,16 @@ namespace UnityEngine.Experimental.Rendering
             public Dels[]   variantDels;
         }
 
+        struct Override
+        {
+            public bool             enabled;
+            public ShadowAlgorithm  algorithm;
+            public ShadowVariant    variant;
+            public ShadowPrecision  precision;
+        }
+
+        Override[] m_GlobalOverrides = new Override[(int)GPUShadowType.MAX];
+
         Dictionary<ShadowAlgorithm, Entry>[] m_Entries = new Dictionary<ShadowAlgorithm, Entry>[ShadowConstants.Counts.k_GPUShadowType]
                                                         {   new Dictionary<ShadowAlgorithm, Entry>(),
                                                             new Dictionary<ShadowAlgorithm, Entry>(),
@@ -248,12 +258,21 @@ namespace UnityEngine.Experimental.Rendering
             int shadowAlgorithm;
             int shadowVariant;
             int shadowPrecision;
-            ald.GetShadowAlgorithm( out shadowAlgorithm, out shadowVariant, out shadowPrecision );
+            bool globalOverride = m_GlobalOverrides[(int)shadowType].enabled;
 
-            DrawWidgets( l, shadowType, (ShadowAlgorithm) shadowAlgorithm, (ShadowVariant) shadowVariant, (ShadowPrecision) shadowPrecision );
+            if( globalOverride )
+            {
+                shadowAlgorithm = (int) m_GlobalOverrides[(int)shadowType].algorithm;
+                shadowVariant   = (int) m_GlobalOverrides[(int)shadowType].variant;
+                shadowPrecision = (int) m_GlobalOverrides[(int)shadowType].precision;
+            }
+            else
+                ald.GetShadowAlgorithm( out shadowAlgorithm, out shadowVariant, out shadowPrecision );
+
+            DrawWidgets( l, shadowType, (ShadowAlgorithm) shadowAlgorithm, (ShadowVariant) shadowVariant, (ShadowPrecision) shadowPrecision, globalOverride );
         }
 
-        void DrawWidgets(  Light l, GPUShadowType shadowType, ShadowAlgorithm shadowAlgorithm, ShadowVariant shadowVariant, ShadowPrecision shadowPrecision )
+        void DrawWidgets(  Light l, GPUShadowType shadowType, ShadowAlgorithm shadowAlgorithm, ShadowVariant shadowVariant, ShadowPrecision shadowPrecision, bool globalOverride )
         {
             var          dict           = m_Entries[(int)shadowType];
             int[]        algoOptions    = new int[dict.Count];
@@ -267,10 +286,13 @@ namespace UnityEngine.Experimental.Rendering
                 idx++;
             }
 
-            UnityEditor.EditorGUI.BeginChangeCheck();
-            shadowAlgorithm = (ShadowAlgorithm) UnityEditor.EditorGUILayout.IntPopup( new GUIContent( "Shadow Algorithm" ), (int) shadowAlgorithm, algoDescs, algoOptions );
-            if( UnityEditor.EditorGUI.EndChangeCheck() )
-                shadowVariant = 0;
+            using (new UnityEditor.EditorGUI.DisabledGroupScope(globalOverride))
+            {
+                UnityEditor.EditorGUI.BeginChangeCheck();
+                shadowAlgorithm = (ShadowAlgorithm) UnityEditor.EditorGUILayout.IntPopup( new GUIContent( "Shadow Algorithm" ), (int) shadowAlgorithm, algoDescs, algoOptions );
+                if( UnityEditor.EditorGUI.EndChangeCheck() )
+                    shadowVariant = 0;
+            }
 
             UnityEditor.EditorGUI.indentLevel++;
             Entry e = dict[shadowAlgorithm];
@@ -292,22 +314,25 @@ namespace UnityEngine.Experimental.Rendering
 
             UnityEditor.EditorGUILayout.BeginHorizontal();
 
-            shadowVariant = (ShadowVariant) UnityEditor.EditorGUILayout.IntPopup( new GUIContent( "Variant + Precision" ), (int) shadowVariant, varDescs, varOptions );
+            using( new UnityEditor.EditorGUI.DisabledGroupScope( globalOverride ) )
+            {
+                shadowVariant = (ShadowVariant) UnityEditor.EditorGUILayout.IntPopup( new GUIContent( "Variant + Precision" ), (int) shadowVariant, varDescs, varOptions );
 
-            if( e.variantDels[(int)shadowVariant].low != null && e.variantDels[(int)shadowVariant].high != null )
-            {
-                GUIContent[] precDescs   = new GUIContent[] { new GUIContent( "High" ), new GUIContent( "Low" ) };
-                int[]        precOptions = new int[] { 0, 1 };
-                shadowPrecision = (ShadowPrecision)UnityEditor.EditorGUILayout.IntPopup((int)shadowPrecision, precDescs, precOptions, GUILayout.MaxWidth(65));
-            }
-            else
-            {
-                using( new UnityEditor.EditorGUI.DisabledScope() )
+                if( e.variantDels[(int)shadowVariant].low != null && e.variantDels[(int)shadowVariant].high != null )
                 {
-                    GUIContent[] precDescs   = new GUIContent[] { new GUIContent( e.variantDels[(int)shadowVariant].low == null ? "High" : "Low" ) };
-                    int[]        precOptions = new int[] { e.variantDels[(int)shadowVariant].low == null ? 0 : 1 };
-                    UnityEditor.EditorGUILayout.IntPopup(precOptions[0], precDescs, precOptions, GUILayout.MaxWidth(65));
-                    shadowPrecision = (ShadowPrecision) precOptions[0];
+                    GUIContent[] precDescs   = new GUIContent[] { new GUIContent( "High" ), new GUIContent( "Low" ) };
+                    int[]        precOptions = new int[] { 0, 1 };
+                    shadowPrecision = (ShadowPrecision)UnityEditor.EditorGUILayout.IntPopup((int)shadowPrecision, precDescs, precOptions, GUILayout.MaxWidth(65));
+                }
+                else
+                {
+                    using( new UnityEditor.EditorGUI.DisabledScope() )
+                    {
+                        GUIContent[] precDescs   = new GUIContent[] { new GUIContent( e.variantDels[(int)shadowVariant].low == null ? "High" : "Low" ) };
+                        int[]        precOptions = new int[] { e.variantDels[(int)shadowVariant].low == null ? 0 : 1 };
+                        UnityEditor.EditorGUILayout.IntPopup(precOptions[0], precDescs, precOptions, GUILayout.MaxWidth(65));
+                        shadowPrecision = (ShadowPrecision) precOptions[0];
+                    }
                 }
             }
 
@@ -326,6 +351,18 @@ namespace UnityEngine.Experimental.Rendering
             ald.SetShadowAlgorithm( (int) shadowAlgorithm, (int) shadowVariant, (int) shadowPrecision, (int) packedAlgo, shadowData );
             
             UnityEditor.EditorGUI.indentLevel--;
+        }
+
+        public void SetGlobalShadowOverride( GPUShadowType shadowType, ShadowAlgorithm shadowAlgorithm, ShadowVariant shadowVariant, ShadowPrecision shadowPrecision, bool enable )
+        {
+            m_GlobalOverrides[(int)shadowType].enabled   = enable;
+            m_GlobalOverrides[(int)shadowType].algorithm = shadowAlgorithm;
+            m_GlobalOverrides[(int)shadowType].variant   = shadowVariant;
+            m_GlobalOverrides[(int)shadowType].precision = shadowPrecision;
+        }
+        void SetGlobalOverrideEnabled( GPUShadowType shadowType, bool enabled )
+        {
+            m_GlobalOverrides[(int)shadowType].enabled = enabled;
         }
     }
 

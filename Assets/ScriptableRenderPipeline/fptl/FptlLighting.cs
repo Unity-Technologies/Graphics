@@ -77,6 +77,10 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             scInit.resourceBinder                    = binder;
 
             m_ShadowMgr = new ShadowExp.ShadowManager(shadowSettings, ref scInit, m_Shadowmaps);
+            // set global overrides - these need to match the override specified in ShadowDispatch.hlsl
+            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, true );
+            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, true );
+            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, true );
             shadowManager = m_ShadowMgr;
         }
         public void Dispose()
