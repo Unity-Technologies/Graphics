@@ -186,7 +186,7 @@ void SampleShadow_ComputeSamples_Tent_5x5(float4 shadowMapTexture_TexelSize, flo
 	fetchesWeights[8] = fetchesWeightsU.z * fetchesWeightsV.z;
 }
 
-// 5x5 Tent filter (45 degree sloped triangles in U and V)
+// 7x7 Tent filter (45 degree sloped triangles in U and V)
 void SampleShadow_ComputeSamples_Tent_7x7(float4 shadowMapTexture_TexelSize, float2 coord, out float fetchesWeights[16], out float2 fetchesUV[16])
 {
 	// tent base is 7x7 base thus covering from 49 to 64 texels, thus we need 16 bilinear PCF fetches
@@ -290,15 +290,15 @@ float SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payload
 	// add the depth bias
 	coord.z += depthBias;
 
-	half shadow = 1;
+	half shadow = 0;
 	float fetchesWeights[4];
 	float2 fetchesUV[4];
 
 	SampleShadow_ComputeSamples_Tent_3x3(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
-	shadow  = fetchesWeights[0] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[0].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[1] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[1].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[2] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[2].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[3] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[3].xy, coord.z ), slice ).x;
+	for (int i = 0; i < 4; i++)
+	{
+		shadow += fetchesWeights[i] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[i].xy,  coord.z ), slice ).x;
+	}
 	return shadow;
 }
 
@@ -314,15 +314,15 @@ float SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadO
 	// add the depth bias
 	coord.z += depthBias;
 
-	half shadow = 1;
+	half shadow = 0;
 	float fetchesWeights[4];
 	float2 fetchesUV[4];
 
 	SampleShadow_ComputeSamples_Tent_3x3(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
-	shadow  = fetchesWeights[0] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[0].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[1] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[1].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[2] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[2].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[3] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[3].xy, coord.z ), slice ).x;
+	for (int i = 0; i < 4; i++)
+	{
+		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[i].xy,  coord.z ), slice ).x;
+	}
 	return shadow;
 }
 
@@ -341,20 +341,15 @@ float SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payload
 	// add the depth bias
 	coord.z += depthBias;
 
-	half shadow = 1;
+	half shadow = 0;
 	float fetchesWeights[9];
 	float2 fetchesUV[9];
 
 	SampleShadow_ComputeSamples_Tent_5x5(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
-	shadow  = fetchesWeights[0] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[0].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[1] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[1].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[2] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[2].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[3] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[3].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[4] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[4].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[5] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[5].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[6] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[6].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[7] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[7].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[8] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[8].xy, coord.z ), slice ).x;
+	for (int i = 0; i < 9; i++)
+	{
+		shadow += fetchesWeights[i] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[i].xy,  coord.z ), slice ).x;
+	}
 	return shadow;
 }
 
@@ -364,26 +359,21 @@ float SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadO
 	float  depthBias  = params.x;
 	payloadOffset++;
 
-	// TODO move this to shadow data to avoid the rcp?
+	// TODO move this to shadow data to avoid the rcp
 	float4 shadowMapTexture_TexelSize = float4(texelSizeRcp.xy, rcp(texelSizeRcp.xy));
 
 	// add the depth bias
 	coord.z += depthBias;
 
-	half shadow = 1;
+	half shadow = 0;
 	float fetchesWeights[9];
 	float2 fetchesUV[9];
 
 	SampleShadow_ComputeSamples_Tent_5x5(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
-	shadow  = fetchesWeights[0] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[0].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[1] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[1].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[2] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[2].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[3] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[3].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[4] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[4].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[5] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[5].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[6] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[6].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[7] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[7].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[8] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[8].xy, coord.z ), slice ).x;
+	for (int i = 0; i < 9; i++)
+	{
+		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[i].xy,  coord.z ), slice ).x;
+	}
 	return shadow;
 }
 
@@ -396,33 +386,21 @@ float SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payload
 	float  depthBias  = params.x;
 	payloadOffset++;
 
-	// TODO move this to shadow data to avoid the rcp?
+	// TODO move this to shadow data to avoid the rcp
 	float4 shadowMapTexture_TexelSize = float4(texelSizeRcp.xy, rcp(texelSizeRcp.xy));
 
 	// add the depth bias
 	coord.z += depthBias;
 
-	half shadow = 1;
+	half shadow = 0;
 	float fetchesWeights[16];
 	float2 fetchesUV[16];
 
 	SampleShadow_ComputeSamples_Tent_7x7(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
-	shadow  = fetchesWeights[0]  * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[0].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[1]  * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[1].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[2]  * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[2].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[3]  * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[3].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[4]  * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[4].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[5]  * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[5].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[6]  * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[6].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[7]  * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[7].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[8]  * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[8].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[9]  * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[9].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[10] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[10].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[11] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[11].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[12] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[12].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[13] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[13].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[14] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[14].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[15] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[15].xy, coord.z ), slice ).x;
+	for (int i = 0; i < 16; i++)
+	{
+		shadow += fetchesWeights[i] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, float3( fetchesUV[i].xy,  coord.z ), slice ).x;
+	}
 	return shadow;
 }
 
@@ -432,33 +410,21 @@ float SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadO
 	float  depthBias  = params.x;
 	payloadOffset++;
 
-	// TODO move this to shadow data to avoid the rcp?
+	// TODO move this to shadow data to avoid the rcp
 	float4 shadowMapTexture_TexelSize = float4(texelSizeRcp.xy, rcp(texelSizeRcp.xy));
 
 	// add the depth bias
 	coord.z += depthBias;
 
-	half shadow = 1;
+	half shadow = 0;
 	float fetchesWeights[16];
 	float2 fetchesUV[16];
 
 	SampleShadow_ComputeSamples_Tent_7x7(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
-	shadow  = fetchesWeights[0]  * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[0].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[1]  * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[1].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[2]  * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[2].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[3]  * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[3].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[4]  * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[4].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[5]  * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[5].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[6]  * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[6].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[7]  * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[7].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[8]  * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[8].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[9]  * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[9].xy,  coord.z ), slice ).x;
-	shadow += fetchesWeights[10] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[10].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[11] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[11].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[12] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[12].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[13] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[13].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[14] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[14].xy, coord.z ), slice ).x;
-	shadow += fetchesWeights[15] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[15].xy, coord.z ), slice ).x;
+	for (int i = 0; i < 16; i++)
+	{
+		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, float3( fetchesUV[i].xy,  coord.z ), slice ).x;
+	}
 	return shadow;
 }
 
