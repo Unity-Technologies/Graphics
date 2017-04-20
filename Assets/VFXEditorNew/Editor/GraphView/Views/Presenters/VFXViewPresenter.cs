@@ -203,11 +203,17 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXNodePresenter)
             {
                 var operatorPresenter = element as VFXNodePresenter;
-                var allSlots = operatorPresenter.node.inputSlots.Concat(operatorPresenter.node.outputSlots);
-                foreach (var slot in allSlots)
+                VFXSlot slotToClean = null;
+                do
                 {
-                    slot.UnlinkAll();
-                }
+                    slotToClean = operatorPresenter.node.inputSlots.Concat(operatorPresenter.node.outputSlots)
+                                    .FirstOrDefault(o => o.HasLink());
+                    if (slotToClean)
+                    {
+                        slotToClean.UnlinkAll();
+                    }
+                } while (slotToClean != null);
+
                 m_GraphAsset.root.RemoveChild(operatorPresenter.node);
                 RecreateNodeEdges();
             }
