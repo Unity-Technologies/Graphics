@@ -205,5 +205,53 @@ namespace UnityEditor.VFX.Test
             DestroyTestAsset();
 
         }
+
+        [Test]
+        public void CascadedOperatorAdd()
+        {
+            CreateTestAsset();
+
+            Func<IVFXSlotContainer, VFXNodePresenter> fnFindPresenter = delegate (IVFXSlotContainer slotContainer)
+            {
+                var allPresenter = m_ViewPresenter.allChildren.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>();
+                return allPresenter.FirstOrDefault(o => o.slotContainer == slotContainer);
+            };
+
+            var vector2Desc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name == "Vector2");
+            var vector2 = m_ViewPresenter.AddVFXParameter(new Vector2(-100, -100), vector2Desc);
+
+            var addDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Add");
+            var add = m_ViewPresenter.AddVFXOperator(new Vector2(100, 100), addDesc);
+
+            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Abs");
+            var abs = m_ViewPresenter.AddVFXOperator(new Vector2(100, 100), absDesc);
+
+            var absPresenter = fnFindPresenter(abs);
+            var addPresenter = fnFindPresenter(add);
+            var edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+
+            edgePresenter.input = addPresenter.outputAnchors[0];
+            edgePresenter.output = absPresenter.inputAnchors[0];
+            m_ViewPresenter.AddElement(edgePresenter);
+            Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().ValueType);
+
+            var vector2Presenter = fnFindPresenter(vector2);
+            for (int i=0; i<4; ++i)
+            {
+                edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+                edgePresenter.input = vector2Presenter.outputAnchors[0];
+                edgePresenter.output = addPresenter.inputAnchors[i];
+                m_ViewPresenter.AddElement(edgePresenter);
+            }
+
+            Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].GetExpression().ValueType);
+            Assert.AreEqual(VFXValueType.kFloat2, abs.outputSlots[0].GetExpression().ValueType);
+
+            m_ViewPresenter.RemoveElement(addPresenter);
+            Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().ValueType);
+
+            DestroyTestAsset();
+        }
+
     }
 }
