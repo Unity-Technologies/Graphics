@@ -183,8 +183,16 @@ namespace UnityEditor.VFX.Test
                 object newInstance = null;
                 Assert.DoesNotThrow(() => { newInstance = newInstanceHelper.Invoke(null, new Type[] { expressionType }); },
                                             "ProcessExpressionTestConcreteExpression fails with : " + expressionType.FullName);
-                Assert.AreNotEqual(newInstance, null);
-                Assert.AreEqual(newInstance.GetType(), expressionType);
+
+                if (expressionType.GetConstructors().Any())
+                {
+                    Assert.AreNotEqual(newInstance, null);
+                    Assert.AreEqual(newInstance.GetType(), expressionType);
+                }
+                else
+                {
+                    Assert.AreEqual(newInstance, null);
+                }
             }
         }
 

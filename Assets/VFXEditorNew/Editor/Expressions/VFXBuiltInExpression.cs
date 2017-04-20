@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    class VFXBuiltInExpression : VFXExpression
+    sealed class VFXBuiltInExpression : VFXExpression
     {
         private static readonly VFXExpression TotalTime = new VFXBuiltInExpression(VFXExpressionOp.kVFXTotalTimeOp, VFXValueType.kFloat);
         private static readonly VFXExpression DeltaTime = new VFXBuiltInExpression(VFXExpressionOp.kVFXDeltaTimeOp, VFXValueType.kFloat);
@@ -25,13 +25,13 @@ namespace UnityEditor.VFX
         private VFXExpressionOp m_Operation;
         private VFXValueType m_ValueType;
 
-        protected VFXBuiltInExpression(VFXExpressionOp op, VFXValueType valueType)
+        private VFXBuiltInExpression(VFXExpressionOp op, VFXValueType valueType)
         {
             m_Operation = op;
             m_ValueType = valueType;
         }
 
-        public override VFXExpressionOp Operation
+        public sealed override VFXExpressionOp Operation
         {
             get
             {
@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType ValueType
+        public sealed override VFXValueType ValueType
         {
             get
             {
@@ -47,12 +47,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             return this;
         }
 
-        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
             return this;
         }

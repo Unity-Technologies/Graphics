@@ -84,7 +84,11 @@ namespace UnityEditor.VFX
         //Helper using reflection to recreate a concrete type from an abstract class (usefull with reduce behavior)
         static protected VFXExpression CreateNewInstance(Type expressionType)
         {
-            var constructor = expressionType.GetConstructors()
+            var allconstructors = expressionType.GetConstructors().ToArray();
+            if (allconstructors.Length == 0)
+                return null; //Only static readonly expression allowed, constructors are private (attribute or builtIn)
+
+            var constructor =   allconstructors
                                 .OrderBy(o => o.GetParameters().Count()) //promote simplest (or default) constructors
                                 .First();
             var param = constructor.GetParameters().Select(o =>
