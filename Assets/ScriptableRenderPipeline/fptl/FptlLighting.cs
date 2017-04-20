@@ -251,7 +251,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             m_CubeReflTexArray = new TextureCacheCubemap();
             m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-            m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredCompressedTextureFormat, true);
+            m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
 
             //m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
             //m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());

@@ -413,7 +413,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CubeCookieTexArray = new TextureCacheCubemap();
                 m_CubeCookieTexArray.AllocTextureArray(4, textureSettings.pointCookieSize, TextureFormat.RGBA32, true);
                 m_CubeReflTexArray = new TextureCacheCubemap();
-                m_CubeReflTexArray.AllocTextureArray(32, textureSettings.reflectionCubemapSize, TextureCache.GetPreferredCompressedTextureFormat, true);
+                m_CubeReflTexArray.AllocTextureArray(32, textureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
 
                 s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
