@@ -142,6 +142,8 @@ namespace UnityEditor.VFX
             if (exp is VFXValueFloat2) return ((VFXValueFloat2)exp).GetContent<Vector2>().ToString();
             if (exp is VFXValueFloat3) return ((VFXValueFloat3)exp).GetContent<Vector3>().ToString();
             if (exp is VFXValueFloat4) return ((VFXValueFloat4)exp).GetContent<Vector4>().ToString();
+            if (exp is VFXBuiltInExpression) return ((VFXBuiltInExpression)exp).Operation.ToString();
+            if (exp is VFXAttributeExpression) return ((VFXAttributeExpression)exp).attributeName;
 
             return string.Empty;
         }
