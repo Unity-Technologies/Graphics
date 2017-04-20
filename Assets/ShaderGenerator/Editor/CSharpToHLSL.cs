@@ -141,7 +141,16 @@ namespace UnityEditor.Experimental.Rendering
                         }
                     }
 
+                    foreach (var gen in it.Value)
+                    {
+                        if (gen.hasStatics && gen.hasFields && gen.needParamDebug)
+                        {
+                            writer.Write(gen.EmitFunctions() + "\n");
+                        }
+                    }                    
+
                     writer.Write("\n#endif\n");
+
                 }
             }
         }

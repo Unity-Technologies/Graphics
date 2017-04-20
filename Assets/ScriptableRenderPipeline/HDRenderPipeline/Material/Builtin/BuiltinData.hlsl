@@ -8,9 +8,7 @@
 // Note: These parameters can be store in GBuffer if the writer wants
 //-----------------------------------------------------------------------------
 
-//TODO: return this original relative path include after fixing a bug in Unity side
-//#include "BuiltinData.cs.hlsl"
-#include "../../Material/Builtin/BuiltinData.cs.hlsl"
+#include "BuiltinData.cs.hlsl"
 
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions
@@ -64,11 +62,10 @@ void DecodeDistortion(float4 inBuffer, out float2 distortion, out float2 distort
 
 void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 result, inout bool needLinearToSRGB)
 {
+    GetGeneratedBuiltinDataDebug(paramId, builtinData, result, needLinearToSRGB);
+
     switch (paramId)
     {
-    case DEBUGVIEW_BUILTIN_BUILTINDATA_OPACITY:
-        result = builtinData.opacity.xxx;
-        break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING:
         // TODO: require a remap
         // TODO: we should not gamma correct, but easier to debug for now without correct high range value
@@ -78,32 +75,19 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
         // emissiveColor is premultiply by emissive intensity
         result = (builtinData.emissiveColor / builtinData.emissiveIntensity); needLinearToSRGB = true;
         break;
-    case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_INTENSITY:
-        result = builtinData.emissiveIntensity.xxx;
-        break;
-    case DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY:
-        result = float3(builtinData.velocity, 0.0);
-        break;
-    case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION:
-        result = float3(builtinData.distortion, 0.0);
-        break;
-    case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR:
-        result = builtinData.distortionBlur.xxx;
-        break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET:
         result = builtinData.depthOffset.xxx * 10.0; // * 10 assuming 1 unity unity is 1m
         break;
     }
 }
 
-void GetLighTransportDataDebug(uint paramId, LighTransportData lightTransportData, inout float3 result, inout bool needLinearToSRGB)
+void GetLightTransportDataDebug(uint paramId, LightTransportData lightTransportData, inout float3 result, inout bool needLinearToSRGB)
 {
+    GetGeneratedLightTransportDataDebug(paramId, lightTransportData, result, needLinearToSRGB);
+
     switch (paramId)
     {
-    case DEBUGVIEW_BUILTIN_LIGHTRANSPORTDATA_DIFFUSE_COLOR:
-        result = lightTransportData.diffuseColor; needLinearToSRGB = true;
-        break;
-    case DEBUGVIEW_BUILTIN_LIGHTRANSPORTDATA_EMISSIVE_COLOR:
+    case DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_EMISSIVE_COLOR:
         // TODO: Need a tonemap ?
         result = lightTransportData.emissiveColor;
         break;
