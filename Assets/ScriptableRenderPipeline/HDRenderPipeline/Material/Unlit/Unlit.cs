@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1100)]
         public struct SurfaceData
         {
-            [SurfaceDataAttributes("Color")]
+            [SurfaceDataAttributes("Color", false, true)]
             public Vector3 color;
         };
 
@@ -28,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1130)]
         public struct BSDFData
         {
+            [SurfaceDataAttributes("", false, true)]
             public Vector3 color;
         };
     }
