@@ -32,6 +32,10 @@ border-left:2;
 border-right:2;
 }
 
+.node.horizontal #left > #title > Label {
+	text-color: #c4c4c4;
+}
+
 VFXOperatorUI.node.horizontal #pane > #left
 {
 	width:250;
