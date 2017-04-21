@@ -234,8 +234,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
         Pass
         {
-            Name "GBufferDisplayDebug"  // Name is not used
-            Tags{ "LightMode" = "GBufferDisplayDebug" } // This will be only for opaque object based on the RenderQueue index
+            Name "GBufferDebugDisplay"  // Name is not used
+            Tags{ "LightMode" = "GBufferDebugDisplay" } // This will be only for opaque object based on the RenderQueue index
 
             Cull [_CullMode]
 

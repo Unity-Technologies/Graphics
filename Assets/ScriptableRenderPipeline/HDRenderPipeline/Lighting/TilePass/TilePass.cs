@@ -331,6 +331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Material m_DeferredIndirectMaterialSRT = null;
             Material m_DeferredIndirectMaterialMRT = null;
             Material m_DeferredAllMaterialSRT      = null;
+            Material m_DeferredViewMaterial        = null; // Only use for DisplayDebug view material
             Material m_DeferredAllMaterialMRT      = null;
 
             Material m_DebugViewTilesMaterial      = null;
@@ -507,6 +508,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DeferredAllMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredAllMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
+                m_DeferredViewMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
+                Utilities.SelectKeyword(m_DeferredViewMaterial, tileKeywords, 2);
+                m_DeferredViewMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredViewMaterial.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
+                m_DeferredViewMaterial.EnableKeyword("DEBUG_DISPLAY");
+                m_DeferredViewMaterial.SetInt("_StencilRef", 0);
+                m_DeferredViewMaterial.SetInt("_StencilCmp", 4 /* LEqual */);
+                m_DeferredViewMaterial.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+                m_DeferredViewMaterial.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+
                 m_DeferredAllMaterialMRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
                 Utilities.SelectKeyword(m_DeferredAllMaterialMRT, tileKeywords, 2);
                 m_DeferredAllMaterialMRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
@@ -590,6 +601,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.Destroy(m_DeferredIndirectMaterialSRT);
                 Utilities.Destroy(m_DeferredIndirectMaterialMRT);
                 Utilities.Destroy(m_DeferredAllMaterialSRT);
+                Utilities.Destroy(m_DeferredViewMaterial);
                 Utilities.Destroy(m_DeferredAllMaterialMRT);
 
                 Utilities.Destroy(m_DebugViewTilesMaterial);
@@ -1840,6 +1852,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var camera = hdCamera.camera;
 
                     SetupDebugDisplayMode(debugDisplaySettings.IsDebugDisplayEnable());
+
+                    // If we visualize material properties we do only one pass with a specific blend mode
+                    if (debugDisplaySettings.debugDisplayMode == DebugDisplayMode.ViewMaterial)
+                    {
+                        Utilities.SelectKeyword(m_DeferredViewMaterial, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred); // Not used, but setup it to avoid corruption just in case
+                        Utilities.DrawFullScreen(cmd, m_DeferredViewMaterial, hdCamera, colorBuffers, depthStencilBuffer);
+
+                        SetGlobalPropertyRedirect(null, 0, null);
+
+                        renderContext.ExecuteCommandBuffer(cmd);
+                        cmd.Dispose();
+
+                        return;
+                    }
 
                     if (!m_PassSettings.enableTileAndCluster)
                     {
