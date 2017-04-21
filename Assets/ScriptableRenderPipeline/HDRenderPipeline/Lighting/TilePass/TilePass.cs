@@ -83,18 +83,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             scInit.storage.maxShadowDataSlots        = k_MaxShadowDataSlots;
             scInit.storage.maxPayloadSlots           = k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData;
             scInit.storage.maxTex2DArraySlots        = 4;
-            scInit.storage.maxTexCubeArraySlots      = 2;
-            scInit.storage.maxComparisonSamplerSlots = 2;
-            scInit.storage.maxSamplerSlots           = 2;
+            scInit.storage.maxTexCubeArraySlots      = 0;
+            scInit.storage.maxComparisonSamplerSlots = 1;
+            scInit.storage.maxSamplerSlots           = 4;
             scInit.dataSyncer                        = syncer;
             scInit.resourceBinder                    = binder;
 
             m_ShadowMgr = new ShadowExp.ShadowManager(shadowSettings, ref scInit, m_Shadowmaps);
             // set global overrides - these need to match the override specified in ShadowDispatch.hlsl
-            bool useGlobalOverrides = false;
-            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, useGlobalOverrides );
-            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, useGlobalOverrides );
-            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, useGlobalOverrides );
+            bool useGlobalOverrides = true;
+            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
+            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
+            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
             shadowManager = m_ShadowMgr;
         }
 
