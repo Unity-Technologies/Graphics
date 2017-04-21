@@ -4,18 +4,16 @@
 
 void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout float3 diffuseLighting, inout float3 specularLighting)
 {
-#ifdef LIGHTING_DEBUG
-    int lightDebugMode = (int)_DebugLightModeAndAlbedo.x;
-
-    if (lightDebugMode == LIGHTINGDEBUGMODE_DIFFUSE_LIGHTING)
+#ifdef DEBUG_DISPLAY
+    if (_DebugDisplayMode == DEBUGDISPLAYMODE_DIFFUSE_LIGHTING)
     {
-        specularLighting = float3(0.0, 0.0, 0.0);
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
-    else if (lightDebugMode == LIGHTINGDEBUGMODE_SPECULAR_LIGHTING)
+    else if (_DebugDisplayMode == DEBUGDISPLAYMODE_SPECULAR_LIGHTING)
     {
-        diffuseLighting = float3(0.0, 0.0, 0.0);
+        diffuseLighting = float3(0.0, 0.0, 0.0); // Disable diffuse lighting
     }
-    else if (lightDebugMode == LIGHTINGDEBUGMODE_VISUALIZE_CASCADE)
+    else if (_DebugDisplayMode == DEBUGDISPLAYMODE_VISUALIZE_CASCADE)
     {
         specularLighting = float3(0.0, 0.0, 0.0);
 

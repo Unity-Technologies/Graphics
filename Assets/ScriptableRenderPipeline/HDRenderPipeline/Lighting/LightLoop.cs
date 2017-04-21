@@ -26,10 +26,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO: this should not be part of the interface but for now make something working
         public virtual void BuildGPULightLists(Camera camera, ScriptableRenderContext loop, RenderTargetIdentifier cameraDepthBufferRT) {}
 
-        public virtual void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
-            LightingDebugSettings lightDebugParameters,
-            RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
-            bool outputSplitLightingForSSS, bool enableSSS) {}
+        public virtual void RenderDeferredLighting( HDCamera hdCamera, ScriptableRenderContext renderContext,
+                                                    DebugDisplaySettings debugDisplaySettings,
+                                                    RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
+                                                    bool outputSplitLightingForSSS) { }
 
         public virtual void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque) {}
 

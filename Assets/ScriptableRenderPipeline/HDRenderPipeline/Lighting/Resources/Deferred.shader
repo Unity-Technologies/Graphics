@@ -44,19 +44,14 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
 
-         // #ifdef OUTPUT_SPLIT_LIGHTING
-            #pragma shader_feature _ SSS_PRE_SCATTER_TEXTURING SSS_POST_SCATTER_TEXTURING
-         // #endif
-
-            #pragma multi_compile _ LIGHTING_DEBUG
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             //-------------------------------------------------------------------------------------
             // Include
             //-------------------------------------------------------------------------------------
 
             #include "../../../ShaderLibrary/Common.hlsl"
-            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "../../Debug/DebugLighting.hlsl"
+            #include "../../Debug/DebugDisplay.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
@@ -127,6 +122,58 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             #else
                 outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
             #endif
+
+            #ifdef DEBUG_DISPLAY
+                if (_DebugDisplayMode == DEBUGDISPLAYMODE_VIEW_MATERIAL)
+                {
+                    // Init to not expected value
+                    float3 result = float3(-666.0, 0.0, 0.0);
+                    bool needLinearToSRGB = false;
+
+                    if (_DebugViewMaterial == DEBUGVIEWGBUFFER_DEPTH)
+                    {
+                        float linearDepth = frac(posInput.depthVS * 0.1);
+                        result = linearDepth.xxx;
+                    }
+                    // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo
+                    else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
+                    {
+                        // TODO: require a remap
+                        // TODO: we should not gamma correct, but easier to debug for now without correct high range value
+                        result = bakeDiffuseLighting; needLinearToSRGB = true;
+                    }
+
+                    GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
+
+                    float4 value;
+
+                    // If we haven't touch result, we don't blend it. This allow to have the GBuffer debug pass working with the regular forward debug pass.
+                    // The forward debug pass will write its value and then the deferred will overwrite only touched texels.
+                    if (result.x == -666.0)
+                    {
+                        value = float4(0.0, 0.0, 0.0, 0.0);
+                    }
+                    else
+                    {
+                        // TEMP!
+                        // For now, the final blit in the backbuffer performs an sRGB write
+                        // So in the meantime we apply the inverse transform to linear data to compensate.
+                        if (!needLinearToSRGB)
+                            result = SRGBToLinear(max(0, result));
+
+                        value = float4(result, 1.0);
+                    }
+
+                    // Note: When DEBUG_DISPLAY is on for DEBUGDISPLAYMODE_VIEW_MATERIAL there is no OUTPUT_SPLIT_LIGHTING
+                #ifdef OUTPUT_SPLIT_LIGHTING
+                    outputs.specularLighting = value;
+                    outputs.diffuseLighting  = float4(0.0, 0.0, 0.0, 0.0);
+                #else
+                    outputs.combinedLighting = value;
+                #endif
+                }
+            #endif // DEBUG_DISPLAY
+
                 return outputs;
             }
 
