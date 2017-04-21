@@ -17,7 +17,7 @@ MonoBehaviour:
     debugOverlayRatio: 0.33
     displayMaterialDebug: 1
     displayRenderingDebug: 1
-    displayLightingDebug: 0
+    displayLightingDebug: 1
     materialDebugSettings:
       debugViewMaterial: 0
     lightingDebugSettings:
@@ -40,17 +40,15 @@ MonoBehaviour:
     useDepthPrepass: 0
   sssSettings:
     numProfiles: 0
-    texturingMode: 0
-    transmissionFlags: 0
     profiles: []
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
-    maxShadowDistance: 1000
+    maxShadowDistance: 800
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
-    directionalLightNearPlaneOffset: 5
+    directionalLightNearPlaneOffset: 10
   m_TextureSettings:
     spotCookieSize: 128
     pointCookieSize: 512

@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 catch
                 {
-                    Debug.LogWarning(string.Format("Required input button mapping missing: {0}.", value));
+                    Debug.LogError(string.Format("Required input button mapping missing: {0}.", value));
                     inputsOk = false;
                 }
             }

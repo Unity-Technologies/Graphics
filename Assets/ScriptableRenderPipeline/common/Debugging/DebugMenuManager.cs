@@ -7,16 +7,33 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [ExecuteInEditMode]
-    public class DebugMenuManager : MonoBehaviour
+    public class DebugMenuManager
     {
+        static private DebugMenuManager s_Instance = null;
+
+        static public DebugMenuManager instance
+        {
+            get
+            {
+                if (s_Instance == null)
+                {
+                    s_Instance = new DebugMenuManager();
+                }
+
+                return s_Instance;
+            }
+        }
+
+        DebugMenuManager()
+        {
+            LookUpDebugMenuClasses();
+            m_DebugMenuUI = new DebugMenuUI(this);
+        }
+
         bool            m_Enabled = false;
         int             m_ActiveMenuIndex = 0;
         List<DebugMenu> m_DebugMenus = new List<DebugMenu>();
-
-        // UI
-        GameObject      m_Root = null;
-        GameObject[]    m_MenuRoots = null;
+        DebugMenuUI     m_DebugMenuUI = null;
 
         public bool isEnabled       { get { return m_Enabled; } }
         public int activeMenuIndex  { get { return m_ActiveMenuIndex; } set { m_ActiveMenuIndex = value; } }
@@ -32,6 +49,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void LookUpDebugMenuClasses()
         {
+            // Prepare all debug menus
             var types = Assembly.GetAssembly(typeof(DebugMenu)).GetTypes()
                 .Where(t => t.IsSubclassOf(typeof(DebugMenu)));
 
@@ -43,131 +61,65 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void OnEnable()
+        public void PreviousDebugMenu()
         {
-            LookUpDebugMenuClasses();
-        }
-
-        void Update()
-        {
-            DebugActionManager.instance.Update();
-
-            if(DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.EnableDebugMenu))
-            {
-                ToggleMenu();
-            }
-
-            if(DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.PreviousDebugMenu))
-            {
-                PreviousDebugMenu();
-            }
-            if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.NextDebugMenu))
-            {
-                NextDebugMenu();
-            }
-        }
-
-        void PreviousDebugMenu()
-        {
-            m_MenuRoots[m_ActiveMenuIndex].SetActive(false);
+            m_DebugMenus[m_ActiveMenuIndex].SetSelected(false);
             m_ActiveMenuIndex = m_ActiveMenuIndex - 1;
             if (m_ActiveMenuIndex == -1)
                 m_ActiveMenuIndex = m_DebugMenus.Count - 1;
-            m_MenuRoots[m_ActiveMenuIndex].SetActive(true);
+
+            m_DebugMenus[m_ActiveMenuIndex].SetSelected(true);
         }
 
-        void NextDebugMenu()
+        public void NextDebugMenu()
         {
-            m_MenuRoots[m_ActiveMenuIndex].SetActive(false);
+            m_DebugMenus[m_ActiveMenuIndex].SetSelected(false);
             m_ActiveMenuIndex = (m_ActiveMenuIndex + 1) % m_DebugMenus.Count;
-            m_MenuRoots[m_ActiveMenuIndex].SetActive(true);
+            m_DebugMenus[m_ActiveMenuIndex].SetSelected(true);
         }
 
-        void ToggleMenu()
+        public void ToggleMenu()
         {
             m_Enabled = !m_Enabled;
-            if(!m_Enabled)
-            {
-                CleanUpGUI();
-            }
-            else
-            {
-                BuildGUI();
-            }
+            m_DebugMenuUI.Toggle();
+            if(m_Enabled)
+                m_DebugMenus[m_ActiveMenuIndex].SetSelected(true);
         }
 
-        void CleanUpGUI()
+        public void OnValidate()
         {
-            Object.Destroy(m_Root);
+            m_DebugMenus[m_ActiveMenuIndex].OnValidate();
         }
 
-        void BuildGUI()
+        public void OnMoveHorizontal(float value)
         {
-            float kBorderSize = 5.0f;
-            m_Root = new GameObject("DebugMenu Root");
-            Canvas canvas = m_Root.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            UI.CanvasScaler canvasScaler = m_Root.AddComponent<UI.CanvasScaler>();
-            canvasScaler.uiScaleMode = UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvasScaler.referenceResolution = new Vector2(800.0f, 600.0f);
+            m_DebugMenus[m_ActiveMenuIndex].OnMoveHorizontal(value);
+        }
 
-            RectTransform canvasRT = canvas.GetComponent<RectTransform>();
-            //canvasRT.localScale = Vector3.one;
-            float width = canvasRT.rect.width;
-            float height = canvasRT.rect.height;
+        public void OnMoveVertical(float value)
+        {
+            m_DebugMenus[m_ActiveMenuIndex].OnMoveVertical(value);
+        }
 
-            GameObject go = new GameObject("Background");
-            go.AddComponent<CanvasRenderer>();
-            var image = go.AddComponent<UI.Image>();
-            go.transform.SetParent(m_Root.transform, false);
-            image.rectTransform.pivot = new Vector2(0.0f, 0.0f);
-            image.rectTransform.localPosition = Vector3.zero;
-            image.rectTransform.localScale = Vector3.one;
-            image.rectTransform.anchorMin = new Vector2(0.0f, 0.0f);
-            image.rectTransform.anchorMax = new Vector2(1.0f, 1.0f);
-            image.rectTransform.anchoredPosition = new Vector2(kBorderSize, kBorderSize);
-            image.rectTransform.sizeDelta = new Vector2(-(kBorderSize * 2.0f), -(kBorderSize * 2.0f));
-            image.color = new Color(0.5f, 0.5f, 0.5f, 0.4f);
-
-            GameObject  goVL = new GameObject("DebugMenu VLayout");
-            goVL.transform.SetParent(go.transform, false);
-            UI.VerticalLayoutGroup menuVL = goVL.AddComponent<UI.VerticalLayoutGroup>();
-            RectTransform menuVLRectTransform = goVL.GetComponent<RectTransform>();
-            menuVLRectTransform.pivot = new Vector2(0.0f, 0.0f);
-            menuVLRectTransform.localPosition = Vector3.zero;
-            menuVLRectTransform.localScale = Vector3.one;
-            menuVLRectTransform.anchorMin = new Vector2(0.0f, 0.0f);
-            menuVLRectTransform.anchorMax = new Vector2(1.0f, 1.0f);
-            menuVLRectTransform.anchoredPosition = new Vector2(kBorderSize, kBorderSize);
-            menuVLRectTransform.sizeDelta = new Vector2(-(kBorderSize * 2.0f), -(kBorderSize * 2.0f));
-            menuVL.spacing = 5.0f;
-            menuVL.childControlWidth = true;
-            menuVL.childControlHeight = true;
-            menuVL.childForceExpandWidth = true;
-            menuVL.childForceExpandHeight = false;
-
-            DebugMenuUI.CreateTextDebugElement("DebugMenuTitle", "Debug Menu", 14, TextAnchor.MiddleCenter, goVL);
-
-            int menuCount = m_DebugMenus.Count;
-            m_MenuRoots = new GameObject[menuCount];
-            for (int i = 0; i < menuCount; ++i)
+        T GetDebugMenu<T>() where T:DebugMenu
+        {
+            Type debugMenuType = typeof(T);
+            foreach(DebugMenu menu in m_DebugMenus)
             {
-                m_MenuRoots[i] = m_DebugMenus[i].BuildGUI(goVL);
-
-                //m_MenuRoots[i] = new GameObject(string.Format("{0}", m_DebugMenus[i].name));
-                //m_MenuRoots[i].transform.parent = m_Root.transform;
-                //m_MenuRoots[i].transform.localPosition = Vector3.zero;
-
-                //GameObject title = new GameObject(string.Format("{0} Title", m_DebugMenus[i].name));
-                //title.transform.parent = m_MenuRoots[i].transform;
-                //title.transform.transform.localPosition = Vector3.zero;
-                //UI.Text titleText = title.AddComponent<UI.Text>();
-                //titleText.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
-                //titleText.text = m_DebugMenus[i].name;
+                if (menu is T)
+                    return menu as T;
             }
 
-            m_MenuRoots[activeMenuIndex].SetActive(true);
+            return null;
+        }
+
+        public void AddDebugItem<DebugMenuType, ItemType>(string name, Func<object> getter, Action<object> setter) where DebugMenuType : DebugMenu
+        {
+            DebugMenuType debugMenu = GetDebugMenu<DebugMenuType>();
+            if (debugMenu != null)
+            {
+                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter);
+            }
         }
     }
-
 }

@@ -22,7 +22,10 @@ namespace UnityEngine.Experimental.Rendering
         private static string   kEnableDebugBtn2 = "Enable Debug Button 2";
         private static string   kDebugPreviousBtn = "Debug Previous";
         private static string   kDebugNextBtn = "Debug Next";
-        private string[]        m_RequiredInputButtons = { kEnableDebugBtn1, kEnableDebugBtn2, kDebugPreviousBtn, kDebugNextBtn };
+        private static string   kValidateBtn = "Fire1";
+        private static string   kDPadVertical = "D-Pad Vertical";
+        private static string   kDPadHorizontal = "D-Pad Horizontal";
+        private string[]        m_RequiredInputButtons = { kEnableDebugBtn1, kEnableDebugBtn2, kDebugPreviousBtn, kDebugNextBtn, kValidateBtn, kDPadVertical, kDPadHorizontal };
 
 
         public enum DebugAction
@@ -30,6 +33,9 @@ namespace UnityEngine.Experimental.Rendering
             EnableDebugMenu,
             PreviousDebugMenu,
             NextDebugMenu,
+            Validate,
+            MoveVertical,
+            MoveHorizontal,
             DebugActionCount
         }
 
@@ -42,6 +48,7 @@ namespace UnityEngine.Experimental.Rendering
         class DebugActionDesc
         {
             public List<string[]>           buttonTriggerList = new List<string[]>();
+            public string                   axisTrigger = "";
             public List<KeyCode[]>          keyTriggerList = new List<KeyCode[]>();
             public DebugActionRepeatMode    repeatMode = DebugActionRepeatMode.Never;
             public float                    repeatDelay = 0.0f;            
@@ -52,24 +59,26 @@ namespace UnityEngine.Experimental.Rendering
             enum DebugActionKeyType
             {
                 Button,
+                Axis,
                 Key
             }
 
             DebugActionKeyType  m_Type;
             string[]            m_PressedButtons;
+            string              m_PressedAxis = "";
             KeyCode[]           m_PressedKeys;
             bool[]              m_TriggerPressedUp = null;
             float               m_Timer;
             bool                m_RunningAction = false;
-            bool                m_Actiontriggered = false;
+            float                m_ActionState = 0.0f;
 
             public bool runningAction { get { return m_RunningAction; } }
-            public bool actionTriggered { get { return m_Actiontriggered; } }
+            public float actionState { get { return m_ActionState; } }
             public float timer{ get { return m_Timer; } }
 
-            private void Trigger(int triggerCount)
+            private void Trigger(int triggerCount, float state)
             {
-                m_Actiontriggered = true;
+                m_ActionState = state;
                 m_RunningAction = true;
                 m_Timer = 0.0f;
 
@@ -78,18 +87,27 @@ namespace UnityEngine.Experimental.Rendering
                     m_TriggerPressedUp[i] = false;
             }
 
-            public void Trigger(string[] buttons)
+            public void TriggerWithButton(string[] buttons, float state)
             {
                 m_Type = DebugActionKeyType.Button;
                 m_PressedButtons = buttons;
-                Trigger(buttons.Length);
+                m_PressedAxis = "";
+                Trigger(buttons.Length, state);
             }
 
-            public void Trigger(KeyCode[] keys)
+            public void TriggerWithAxis(string axis, float state)
+            {
+                m_Type = DebugActionKeyType.Axis;
+                m_PressedAxis = axis;
+                Trigger(1, state);
+            }
+
+            public void TriggerWithKey(KeyCode[] keys, float state)
             {
                 m_Type = DebugActionKeyType.Key;
                 m_PressedKeys = keys;
-                Trigger(keys.Length);
+                m_PressedAxis = "";
+                Trigger(keys.Length, state);
             }
 
             private void Reset()
@@ -102,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering
             public void Update(DebugActionDesc desc)
             {
                 // Always reset this so that the action can only be caught once until repeat/reset
-                m_Actiontriggered = false;
+                m_ActionState = 0.0f;
 
                 if (m_TriggerPressedUp != null)
                 {
@@ -112,6 +130,8 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         if (m_Type == DebugActionKeyType.Button)
                             m_TriggerPressedUp[i] |= Input.GetButtonUp(m_PressedButtons[i]);
+                        else if(m_Type == DebugActionKeyType.Axis)
+                            m_TriggerPressedUp[i] |= (Input.GetAxis(m_PressedAxis) == 0.0f);
                         else
                             m_TriggerPressedUp[i] |= Input.GetKeyUp(m_PressedKeys[i]);
                     }
@@ -143,7 +163,6 @@ namespace UnityEngine.Experimental.Rendering
             enableDebugMenu.buttonTriggerList.Add(new[] { kEnableDebugBtn1, kEnableDebugBtn2 });
             enableDebugMenu.keyTriggerList.Add(new[] { KeyCode.LeftControl, KeyCode.Backspace });
             enableDebugMenu.repeatMode = DebugActionRepeatMode.Never;
-
             AddAction(DebugAction.EnableDebugMenu, enableDebugMenu);
 
             DebugActionDesc nextDebugMenu = new DebugActionDesc();
@@ -155,6 +174,15 @@ namespace UnityEngine.Experimental.Rendering
             previousDebugMenu.buttonTriggerList.Add(new[] { kDebugPreviousBtn });
             previousDebugMenu.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.PreviousDebugMenu, previousDebugMenu);
+
+            DebugActionDesc validate = new DebugActionDesc();
+            validate.buttonTriggerList.Add(new[] { kValidateBtn });
+            validate.repeatMode = DebugActionRepeatMode.Delay;
+            validate.repeatDelay = 0.25f;
+            AddAction(DebugAction.Validate, validate);
+            
+            AddAction(DebugAction.MoveVertical, new DebugActionDesc { axisTrigger = kDPadVertical, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.2f } );
+            AddAction(DebugAction.MoveHorizontal, new DebugActionDesc { axisTrigger = kDPadHorizontal, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.2f } );
         }
 
         void AddAction(DebugAction action, DebugActionDesc desc)
@@ -186,8 +214,18 @@ namespace UnityEngine.Experimental.Rendering
 
                     if (allButtonPressed)
                     {
-                        state.Trigger(buttons);
+                        state.TriggerWithButton(buttons, 1.0f);
                         break;
+                    }
+                }
+
+                // Check axis triggers
+                if(desc.axisTrigger != "")
+                {
+                    float axisValue = Input.GetAxis(desc.axisTrigger);
+                    if(axisValue != 0.0f)
+                    {
+                        state.TriggerWithAxis(desc.axisTrigger, axisValue);
                     }
                 }
 
@@ -205,7 +243,7 @@ namespace UnityEngine.Experimental.Rendering
 
                     if (allKeyPressed)
                     {
-                        state.Trigger(keys);
+                        state.TriggerWithKey(keys, 1.0f);
                         break;
                     }
                 }
@@ -235,9 +273,9 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public bool GetAction(DebugAction action)
+        public float GetAction(DebugAction action)
         {
-            return m_DebugActionStates[(int)action].actionTriggered;
+            return m_DebugActionStates[(int)action].actionState;
         }
     }
 }
