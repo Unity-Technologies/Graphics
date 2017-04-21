@@ -13,7 +13,7 @@ Pass {
 	Name "FINITELIGHT"
 
 	ZWrite Off
-	Blend One One
+	Blend One One, One Zero
 
 CGPROGRAM
 #pragma target 3.0
@@ -63,7 +63,7 @@ Pass {
 	ZWrite Off
 	ZTest Always
 	Cull Off
-	Blend One One
+	Blend One One, One Zero
 
 CGPROGRAM
 #pragma target 3.0

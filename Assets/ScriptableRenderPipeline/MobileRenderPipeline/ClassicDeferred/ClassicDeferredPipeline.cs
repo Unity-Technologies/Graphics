@@ -229,57 +229,15 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		// Plane eyePlane;
 		// eyePlane.SetNormalAndPosition(viewDir, m_Context->m_CurCameraPos);
 
-		// backfacesRasterStateDesc.cullMode = kCullFront;
-		// backfacesDepthStateDesc.depthWrite = false;
-		// backfacesDepthStateDesc.depthFunc = kFuncGreater;
-		// defaultReflDepthStateDesc.depthWrite = false;
-		// defaultReflDepthStateDesc.depthFunc = kFuncAlways;
-		//     device.SetStencilState(devStDisabled, 0);
-
-		// draw the base probe
-		{ 
-			var props = new MaterialPropertyBlock ();
-			props.SetFloat ("_LightAsQuad", 1.0f);
-
-			m_DeferredReflectionMaterial.SetInt("_SrcBlend", (int)BlendMode.One);
-			m_DeferredReflectionMaterial.SetInt("_DstBlend", (int)BlendMode.Zero);
-
-			// base reflection probe
-			var topCube = ReflectionProbe.defaultTexture;
-			var defdecode = ReflectionProbe.defaultTextureHDRDecodeValues;
-			cmd.SetGlobalTexture ("unity_SpecCube0", topCube);
-			cmd.SetGlobalVector ("unity_SpecCube0_HDR", defdecode);
-	
-//			AABB infAABB(Vector3f::zero, Vector3f::infinityVec);
-//			Vector4f infMin(infAABB.CalculateMin(), 1.0f);
-//			Vector4f infMax(infAABB.CalculateMax(), 1.0f);
-//			cmd.SetGlobalVector("unity_SpecCube0_BoxMin", infMin);
-//			cmd.SetGlobalVector("unity_SpecCube0_BoxMax", infMax);
-
-			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition", new Vector4 (0.0f, 0.0f, 0.0f, 0.0f));
-			cmd.SetGlobalVector ("unity_SpecCube1_ProbePosition", new Vector4 (0.0f, 0.0f, 0.0f, 1.0f));
-
-			// skip sky
-//			GfxStencilState stencil;
-//			stencil.stencilEnable = true;
-//			stencil.stencilFuncFront = stencil.stencilFuncBack = kFuncEqual;
-//			stencil.readMask = kStencilMaskSomething;
-//			int stencilRef = kStencilMaskSomething;
-//			const DeviceStencilState* devStCheck = device.CreateStencilState(stencil);
-//			device.SetStencilState(devStCheck, stencilRef);
-
-			// LoadFullScreenOrthoMatrix(0.0f, camera.GetProjectionFar(), device);
-
-			// screenspace
-			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsFullScreenPassNdx, props);
-		}
-
 		// TODO: need this? --> Set the ambient probe into the SH constants otherwise
 		// SetSHConstants(builtins, m_LightprobeContext.ambientProbe);
 
 		// render all probes
-		foreach (var rl in probes)
+		//foreach (var rl in probes)
+		int numProbes = probes.Length;
+		for (int i = numProbes-1; i >= 0; i--)
 		{
+			var rl = probes [i];
 			var cubemap = rl.texture;
 
 			// always a box for now
@@ -318,9 +276,35 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			cmd.SetGlobalVector ("unity_SpecCube0_BoxMin", rl.bounds.min);
 			cmd.SetGlobalVector ("unity_SpecCube0_BoxMax", rl.bounds.max);
 			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition", probePosition1);
-			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition1", new Vector4(0, 0, 0, blendDistance));
+			cmd.SetGlobalVector ("unity_SpecCube1_ProbePosition", new Vector4(0, 0, 0, blendDistance));
 
 			cmd.DrawMesh (m_BoxMesh, mat, m_DeferredReflectionMaterial, 0, m_ReflectionsPassNdx, props);
+		}
+
+		// draw the base probe
+		{ 
+			var props = new MaterialPropertyBlock ();
+			props.SetFloat ("_LightAsQuad", 1.0f);
+
+			m_DeferredReflectionMaterial.SetInt("_SrcBlend", (int)BlendMode.One);
+			m_DeferredReflectionMaterial.SetInt("_DstBlend", (int)BlendMode.Zero);
+
+			// base reflection probe
+			var topCube = ReflectionProbe.defaultTexture;
+			var defdecode = ReflectionProbe.defaultTextureHDRDecodeValues;
+			cmd.SetGlobalTexture ("unity_SpecCube0", topCube);
+			cmd.SetGlobalVector ("unity_SpecCube0_HDR", defdecode);
+
+			float max = float.PositiveInfinity;
+			float min = float.NegativeInfinity;
+			cmd.SetGlobalVector("unity_SpecCube0_BoxMin", new Vector4(min, min, min, 1));
+			cmd.SetGlobalVector("unity_SpecCube0_BoxMax", new Vector4(max, max, max, 1));
+
+			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition", new Vector4 (0.0f, 0.0f, 0.0f, 0.0f));
+			cmd.SetGlobalVector ("unity_SpecCube1_ProbePosition", new Vector4 (0.0f, 0.0f, 0.0f, 1.0f));
+
+			// screenspace
+			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsFullScreenPassNdx, props);
 		}
 	}
 
@@ -507,18 +491,20 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	void RenderLighting (Camera camera, CullResults inputs, ScriptableRenderContext loop)
 	{
-		{
-			var cmd = new CommandBuffer { name = "Reflections" };
-
-			// setup offscreen render target for reflections
-			cmd.GetTemporaryRT (s_CameraReflectionsTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Linear);
-			cmd.SetRenderTarget (new RenderTargetIdentifier (s_CameraReflectionsTexture), new RenderTargetIdentifier (s_GBufferZ));
-
-			RenderReflections (camera, cmd, inputs, loop);
-
-			loop.ExecuteCommandBuffer (cmd);
-			cmd.Dispose ();
-		}
+//		{
+//			var cmd = new CommandBuffer { name = "Reflections" };
+//
+//			// setup offscreen render target for reflections
+//			cmd.GetTemporaryRT (s_CameraReflectionsTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Linear);
+//			cmd.SetRenderTarget (new RenderTargetIdentifier (s_CameraReflectionsTexture), new RenderTargetIdentifier (s_GBufferZ));
+//
+//			cmd.ClearRenderTarget (false, true, new Color(0, 0, 0, 1));
+//
+//			RenderReflections (camera, cmd, inputs, loop);
+//
+//			loop.ExecuteCommandBuffer (cmd);
+//			cmd.Dispose ();
+//		}
 
 		{
 			var cmd = new CommandBuffer { name = "Lighting" };
@@ -532,7 +518,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 				RenderLightGeometry (camera, light, cmd, loop);
 			}
 
-			RenderApplyReflections (camera, cmd, inputs, loop);
+			// TODO: UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. Should preclear emission alpha after gbuffer pass in case this ever changes
+			RenderReflections (camera, cmd, inputs, loop);
 
 			loop.ExecuteCommandBuffer (cmd);
 			cmd.Dispose ();
