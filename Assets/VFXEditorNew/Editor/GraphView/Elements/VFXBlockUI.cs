@@ -96,15 +96,6 @@ namespace UnityEditor.VFX.UI
             if (presenter == null)
                 return;
 
-            if (presenter.selected)
-            {
-                AddToClassList("selected");
-            }
-            else
-            {
-                RemoveFromClassList("selected");
-            }
-
             SetPosition(presenter.position);
             presenter.Model.collapsed = !presenter.expanded;
         }
