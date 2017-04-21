@@ -28,7 +28,7 @@ VFXView #VFXBackgroundGrid {
 	min-height:17;
 	margin-left:-15;
 	margin-bottom:1;
-	margin-right:4px;
+	margin-right:6;
 }
 
 .VFXDataAnchor.invisible

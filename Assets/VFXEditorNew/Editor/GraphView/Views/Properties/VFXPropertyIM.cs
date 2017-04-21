@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.UI
         protected abstract object DoOnGUI(VFXBlockDataAnchorPresenter presenter, VFXEditableDataAnchor.GUIStyles styles);
 
 
-        public const float kLabelWidth = 80;
+        public const float kLabelWidth = 100;
 
 
 
