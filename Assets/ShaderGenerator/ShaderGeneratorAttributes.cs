@@ -13,14 +13,14 @@ namespace UnityEngine.Experimental.Rendering
     {
         public PackingRules packingRules;
         public bool needAccessors; // Whether or not to generate the accessors
-        public bool needParamDefines; // Wheter or not to generate define for each parameters of the struc
+        public bool needParamDebug; // // Whether or not to generate define for each field of the struct + debug function (use in HDRenderPipeline)
         public int paramDefinesStart; // Start of the generated define
 
-        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needParamDefines = false, int paramDefinesStart = 1)
+        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needParamDebug = false, int paramDefinesStart = 1)
         {
             packingRules = rules;
             this.needAccessors = needAccessors;
-            this.needParamDefines = needParamDefines;
+            this.needParamDebug = needParamDebug;
             this.paramDefinesStart = paramDefinesStart;
         }
     }
@@ -29,10 +29,14 @@ namespace UnityEngine.Experimental.Rendering
     public class SurfaceDataAttributes : System.Attribute
     {
         public string displayName;
+        public bool isDirection;
+        public bool sRGBDisplay;
 
-        public SurfaceDataAttributes(string displayName = "")
+        public SurfaceDataAttributes(string displayName = "", bool isDirection = false, bool sRGBDisplay = false)
         {
             this.displayName = displayName;
+            this.isDirection = isDirection;
+            this.sRGBDisplay = sRGBDisplay;
         }
     }
 }

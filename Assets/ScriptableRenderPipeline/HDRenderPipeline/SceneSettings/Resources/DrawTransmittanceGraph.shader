@@ -6,6 +6,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
         [HideInInspector] _StdDev2("", Color) = (0, 0, 0)
         [HideInInspector] _LerpWeight("", Float) = 0
         [HideInInspector] _ThicknessScale("", Float) = 0
+        [HideInInspector] _TintColor("", Color) = (0, 0, 0)
     }
 
     SubShader
@@ -36,7 +37,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _StdDev1, _StdDev2, _ThicknessRemap;
+            float4 _StdDev1, _StdDev2, _ThicknessRemap, _TintColor;
             float _LerpWeight; // See 'SubsurfaceScatteringParameters'
 
             //-------------------------------------------------------------------------------------
@@ -75,7 +76,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
                 float3 transmittance = lerp(exp(-t2 * 0.5 * rcp(var1)),
                                             exp(-t2 * 0.5 * rcp(var2)), _LerpWeight);
 
-                return float4(transmittance, 1);
+                return float4(transmittance * _TintColor.rgb, 1);
             }
             ENDHLSL
         }

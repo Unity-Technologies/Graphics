@@ -460,19 +460,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Broadcast SSS parameters to all shaders.
+            Shader.SetGlobalInt("_EnableSSS", globalDebugSettings.renderingDebugSettings.enableSSS ? 1 : 0);
             Shader.SetGlobalInt("_TransmissionFlags",   sssParameters.transmissionFlags);
             Shader.SetGlobalInt("_TexturingModeFlags",  sssParameters.texturingModeFlags);
             cmd.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
+            cmd.SetGlobalVectorArray("_TintColors",     sssParameters.tintColors);
             cmd.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
-
-            if (globalDebugSettings.renderingDebugSettings.enableSSS)
-            {
-                cmd.EnableShaderKeyword("_SUBSURFACE_SCATTERING");
-            }
-            else
-            {
-                cmd.DisableShaderKeyword("_SUBSURFACE_SCATTERING");
-            }
 
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();

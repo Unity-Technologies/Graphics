@@ -32,12 +32,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1000)]
         public struct SurfaceData
         {
-            [SurfaceDataAttributes("Base Color")]
+            [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
             [SurfaceDataAttributes("Specular Occlusion")]
             public float specularOcclusion;
 
-            [SurfaceDataAttributes("Normal")]
+            [SurfaceDataAttributes("Normal", true)]
             public Vector3 normalWS;
             [SurfaceDataAttributes("Smoothness")]
             public float perceptualSmoothness;
@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // MaterialId dependent attribute
 
             // standard
-            [SurfaceDataAttributes("Tangent")]
+            [SurfaceDataAttributes("Tangent", true)]
             public Vector3 tangentWS;
             [SurfaceDataAttributes("Anisotropy")]
             public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction)
@@ -68,13 +68,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int subsurfaceProfile;
 
             // Clearcoat
-            [SurfaceDataAttributes("Coat Normal")]
+            [SurfaceDataAttributes("Coat Normal", true)]
             public Vector3 coatNormalWS;
             [SurfaceDataAttributes("Coat Smoothness")]
             public float coatPerceptualSmoothness;
 
             // SpecColor
-            [SurfaceDataAttributes("Specular Color")]
+            [SurfaceDataAttributes("Specular Color", false, true)]
             public Vector3 specularColor;
         };
 
@@ -85,21 +85,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1030)]
         public struct BSDFData
         {
+            [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
 
             public Vector3 fresnel0;
 
             public float specularOcclusion;
 
+            [SurfaceDataAttributes("", true)]
             public Vector3 normalWS;
             public float perceptualRoughness;
             public float roughness;
-            public float materialId;
+            public int materialId;
 
             // MaterialId dependent attribute
 
             // standard
+            [SurfaceDataAttributes("", true)]
             public Vector3 tangentWS;
+            [SurfaceDataAttributes("", true)]
             public Vector3 bitangentWS;
             public float roughnessT;
             public float roughnessB;
@@ -115,6 +119,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 transmittance;
 
             // Clearcoat
+            [SurfaceDataAttributes("", true)]
             public Vector3 coatNormalWS;
             public float coatRoughness;
 

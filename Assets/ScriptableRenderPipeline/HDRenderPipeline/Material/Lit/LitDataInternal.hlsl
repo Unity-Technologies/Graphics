@@ -206,11 +206,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 
-#ifdef _SUBSURFACE_SCATTERING
-    surfaceData.materialId = _MaterialID;
-#else
-    surfaceData.materialId = (_MaterialID == MATERIALID_LIT_SSS) ? 0 : _MaterialID;
-#endif
+    surfaceData.materialId = (_EnableSSS || _MaterialID != MATERIALID_LIT_SSS) ? _MaterialID : MATERIALID_LIT_STANDARD;
 
     // TODO: think about using BC5
 #ifdef _TANGENTMAP
@@ -240,16 +236,15 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.specular = 0.04;
 
     surfaceData.subsurfaceProfile = _SubsurfaceProfile;
+    surfaceData.subsurfaceRadius  = _SubsurfaceRadius;
+    surfaceData.thickness         = _Thickness;
+
 #ifdef _SUBSURFACE_RADIUS_MAP
-    surfaceData.subsurfaceRadius = SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r * _SubsurfaceRadius;
-#else
-    surfaceData.subsurfaceRadius = _SubsurfaceRadius;
+    surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r;
 #endif
 
 #ifdef _THICKNESS_MAP
-    surfaceData.thickness = SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
-#else
-    surfaceData.thickness = _Thickness;
+    surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
 #endif
 
     surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);

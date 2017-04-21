@@ -1112,7 +1112,7 @@ namespace UnityEngine.Experimental.Rendering
                 float area = vl.screenRect.width * vl.screenRect.height;
                 long val = ShadowUtils.Asint( area );
                 val <<= 32;
-                val |= (long)(uint)vlidx;
+                val |= (uint)vlidx;
                 m_TmpSortKeys.AddUnchecked( val );
             }
             m_TmpSortKeys.Sort();
