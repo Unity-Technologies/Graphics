@@ -20,9 +20,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader clearDispatchIndirectShader = null;
         public ComputeShader shadeOpaqueShader = null;
 
-        // Various set of material use in render loop
-        public Shader m_DebugViewMaterialGBuffer;
-
         // For image based lighting
         public Shader m_InitPreFGD;
     }
