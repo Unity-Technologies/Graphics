@@ -59,6 +59,7 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
 #ifdef DEBUG_DISPLAY
+    if (_DebugDisplayMode == DEBUGDISPLAYMODE_VIEW_MATERIAL)
     {
         float3 result = float3(1.0, 0.0, 1.0);
         bool needLinearToSRGB = false;

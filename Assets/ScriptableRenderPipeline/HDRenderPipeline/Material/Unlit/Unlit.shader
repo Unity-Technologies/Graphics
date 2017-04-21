@@ -162,6 +162,7 @@ Shader "HDRenderPipeline/Unlit"
 
             #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/UnlitSharePass.hlsl"
             #include "UnlitData.hlsl"
@@ -205,6 +206,7 @@ Shader "HDRenderPipeline/Unlit"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/UnlitSharePass.hlsl"
             #include "UnlitData.hlsl"

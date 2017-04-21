@@ -434,6 +434,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_GBUFFER
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
@@ -607,6 +608,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Lighting/Forward.hlsl"
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
