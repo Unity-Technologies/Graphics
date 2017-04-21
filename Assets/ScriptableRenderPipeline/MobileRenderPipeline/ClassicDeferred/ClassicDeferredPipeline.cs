@@ -99,11 +99,12 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	private static int s_GBufferZ;
 	private static int s_CameraTarget;
 	private static int s_CameraDepthTexture;
-	//private static int s_CameraReflectionsTexture;
+	private static int s_CameraReflectionsTexture;
 
 	private static int m_quadLightingPassNdx;
 	private static int m_FiniteLightingPassNdx;
 	private static int m_ReflectionsPassNdx;
+	private static int m_ReflectionsApplyPassNdx;
 
 	private Material m_DeferredMaterial;
 	private Material m_DeferredReflectionMaterial;
@@ -139,12 +140,14 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		m_BlitMaterial = new Material (finalPassShader) { hideFlags = HideFlags.HideAndDontSave };
 		m_DeferredMaterial = new Material (deferredShader) { hideFlags = HideFlags.HideAndDontSave };
 		m_DeferredReflectionMaterial = new Material (deferredReflectionShader) { hideFlags = HideFlags.HideAndDontSave };
-		//m_DeferredReflectionMaterial.SetTexture("_CameraReflectionsTexture", s_CameraReflectionsTexture);
-
+	
 		m_quadLightingPassNdx = m_DeferredMaterial.FindPass ("DIRECTIONALLIGHT");
 		m_FiniteLightingPassNdx = m_DeferredMaterial.FindPass ("FINITELIGHT");
-		m_ReflectionsPassNdx = m_DeferredMaterial.FindPass ("DEFERRED_REFLECTIONS");
+		m_ReflectionsPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_REFLECTIONS");
+		m_ReflectionsApplyPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_APPLY_REFLECTIONS");
 
+		s_CameraReflectionsTexture = Shader.PropertyToID ("_CameraReflectionsTexture");
+			
 		//shadows
 		m_MatWorldToShadow = new Matrix4x4[k_MaxLights * k_MaxShadowmapPerLights];
 		m_DirShadowSplitSpheres = new Vector4[k_MaxDirectionalSplit];
@@ -213,12 +216,66 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	void RenderReflections(Camera camera, CommandBuffer cmd, CullResults cullResults, ScriptableRenderContext loop)
 	{
 		var probes = cullResults.visibleReflectionProbes;
-
 		var worldToView = camera.worldToCameraMatrix; //WorldToCamera(camera);
 
+		// set global state
+		// TODO: need these?
+		// built in loop sets: rt->FilterMode(filterNearest), black clearcolor/clear, backfaceMode(Off),
+		// const float nearDistanceFudged = camera.GetProjectionNear() * 1.001f;
+		// const float farDistanceFudged = camera.GetProjectionFar() * 0.999f;
+		// const Vector3f viewDir = -NormalizeSafe(camera.GetCameraToWorldMatrix().GetAxisZ());
+		// Plane eyePlane;
+		// eyePlane.SetNormalAndPosition(viewDir, m_Context->m_CurCameraPos);
+		// backfacesRasterStateDesc.cullMode = kCullFront;
+		// backfacesDepthStateDesc.depthWrite = false;
+		// backfacesDepthStateDesc.depthFunc = kFuncGreater;
+		// defaultReflDepthStateDesc.depthWrite = false;
+		// defaultReflDepthStateDesc.depthFunc = kFuncAlways;
+		//     device.SetStencilState(devStDisabled, 0);
+
+		// draw the base probe
+		{ 
+			var props = new MaterialPropertyBlock ();
+			props.SetFloat ("_LightAsQuad", 1.0f);
+			props.SetFloat ("_SrcBlend", 1.0f);
+			props.SetFloat ("_DstBlend", 0.0f);
+
+			// base reflection probe
+			var topCube = ReflectionProbe.defaultTexture;
+			var defdecode = ReflectionProbe.defaultTextureHDRDecodeValues;
+			cmd.SetGlobalTexture ("unity_SpecCube0", topCube);
+			cmd.SetGlobalVector ("unity_SpecCube0_HDR", defdecode);
+	
+//			AABB infAABB(Vector3f::zero, Vector3f::infinityVec);
+//			Vector4f infMin(infAABB.CalculateMin(), 1.0f);
+//			Vector4f infMax(infAABB.CalculateMax(), 1.0f);
+//			cmd.SetGlobalVector("unity_SpecCube0_BoxMin", infMin);
+//			cmd.SetGlobalVector("unity_SpecCube0_BoxMax", infMax);
+
+			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition", new Vector4 (0.0f, 0.0f, 0.0f, 0.0f));
+			cmd.SetGlobalVector ("unity_SpecCube1_ProbePosition", new Vector4 (0.0f, 0.0f, 0.0f, 1.0f));
+
+			// skip sky
+//			GfxStencilState stencil;
+//			stencil.stencilEnable = true;
+//			stencil.stencilFuncFront = stencil.stencilFuncBack = kFuncEqual;
+//			stencil.readMask = kStencilMaskSomething;
+//			int stencilRef = kStencilMaskSomething;
+//			const DeviceStencilState* devStCheck = device.CreateStencilState(stencil);
+//			device.SetStencilState(devStCheck, stencilRef);
+
+			// LoadFullScreenOrthoMatrix(0.0f, camera.GetProjectionFar(), device);
+
+			// screenspace
+			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsPassNdx, props);
+		}
+
+		// TODO: need this? --> Set the ambient probe into the SH constants otherwise
+		// SetSHConstants(builtins, m_LightprobeContext.ambientProbe);
+
+		// render all probes
 		foreach (var rl in probes)
 		{
-			var volType = LightDefinitions.BOX_LIGHT;
 			var cubemap = rl.texture;
 
 			// always a box for now
@@ -227,41 +284,46 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 			var bnds = rl.bounds;
 			var boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
-			var blendDistance = rl.blendDistance;
+			// var blendDistance = rl.blendDistance;
 			var mat = rl.localToWorld;
 
-//			var boxProj = (rl.boxProjection != 0);
-//			var decodeVals = rl.hdr;
+			//var boxProj = (rl.boxProjection != 0);
+			//var decodeVals = rl.hdr;
 
 			// C is reflection volume center in world space (NOT same as cube map capture point)
-//			var e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
-			//Vector3 C = bnds.center;        // P + boxOffset;
+			// var e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
+			// Vector3 C = bnds.center;        // P + boxOffset;
+
 			var C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
-
-//			var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
-//
-//			Vector3 vx = mat.GetColumn(0);
-//			Vector3 vy = mat.GetColumn(1);
-//			Vector3 vz = mat.GetColumn(2);
-//
-//			// transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-//			vx = worldToView.MultiplyVector(vx);
-//			vy = worldToView.MultiplyVector(vy);
-//			vz = worldToView.MultiplyVector(vz);
-
 			var Cw = worldToView.MultiplyPoint(C);
 
+			//Debug.Log (String.Format("Reflection probe bounds: {0}", bnds.ToString()));
+			//Debug.Log (String.Format("Reflection probe center: {0}", boxOffset.ToString()));
+
+			bool renderAsQuad = false;
+		
 			var props = new MaterialPropertyBlock ();
-			props.SetVector ("_LightPos",Cw);
+			props.SetFloat ("_LightAsQuad", renderAsQuad ? 1 : 0);
 
-			//props.SetFloat ("_LightAsQuad", renderAsQuad ? 1 : 0);
-			//props.SetVector ("_LightDir", new Vector4(lightDir.x, lightDir.y, lightDir.z, 0.0f));
-			//props.SetVector ("_LightColor", light.finalColor);
-			//props.SetMatrix ("_WorldToLight", lightToWorld.inverse);
+			cmd.SetGlobalTexture("unity_SpecCube0", cubemap);
+			cmd.SetGlobalVector("unity_SpecCube0_HDR", rl.probe.textureHDRDecodeValues);
+			cmd.SetGlobalVector ("unity_SpecCube0_BoxMin", rl.bounds.min);
+			cmd.SetGlobalVector ("unity_SpecCube0_BoxMax", rl.bounds.max);
+			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition", Cw);
 
-			cmd.DrawMesh (m_BoxMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsPassNdx, props);
+			cmd.DrawMesh (m_BoxMesh, mat, m_DeferredReflectionMaterial, 0, m_ReflectionsPassNdx, props);
 
 		}
+
+	}
+
+	void RenderApplyReflections(Camera camera, CommandBuffer cmd, CullResults cullResults, ScriptableRenderContext loop)
+	{
+		// draw offscreen accumulation buffer onto emission buffer
+		var props = new MaterialPropertyBlock ();
+//		props.SetFloat ("_LightAsQuad", 1);
+		cmd.SetGlobalTexture ("_CameraReflectionsTexture", s_CameraReflectionsTexture);
+		cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsApplyPassNdx, props);
 	}
 
 	void RenderShadowMaps(CullResults cullResults, ScriptableRenderContext loop)
@@ -438,22 +500,36 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	void RenderLighting (Camera camera, CullResults inputs, ScriptableRenderContext loop)
 	{
-		var cmd = new CommandBuffer { name = "Lighting" };
-
-		// IF PLATFORM_MAC -- cannot use framebuffer fetch
-		#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-			cmd.SetRenderTarget (new RenderTargetIdentifier(s_GBufferEmission), new RenderTargetIdentifier (s_GBufferZ));
-		#endif
-
-		foreach (var light in inputs.visibleLights)
 		{
-			RenderLightGeometry (camera, light, cmd, loop);
+			var cmd = new CommandBuffer { name = "Reflections" };
+
+			// setup offscreen render target for reflections
+			cmd.GetTemporaryRT (s_CameraReflectionsTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Linear);
+			cmd.SetRenderTarget (new RenderTargetIdentifier (s_CameraReflectionsTexture), new RenderTargetIdentifier (s_GBufferZ));
+
+			RenderReflections (camera, cmd, inputs, loop);
+
+			loop.ExecuteCommandBuffer (cmd);
+			cmd.Dispose ();
 		}
 
-		RenderReflections(camera, cmd, inputs, loop);
+		{
+			var cmd = new CommandBuffer { name = "Lighting" };
 
-		loop.ExecuteCommandBuffer (cmd);
-		cmd.Dispose ();
+			// IF PLATFORM_MAC -- cannot use framebuffer fetch
+			#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+			cmd.SetRenderTarget (new RenderTargetIdentifier (s_GBufferEmission), new RenderTargetIdentifier (s_GBufferZ));
+			#endif
+
+			foreach (var light in inputs.visibleLights) {
+				RenderLightGeometry (camera, light, cmd, loop);
+			}
+
+			RenderApplyReflections (camera, cmd, inputs, loop);
+
+			loop.ExecuteCommandBuffer (cmd);
+			cmd.Dispose ();
+		}
 	}
 
 	void RenderLightGeometry (Camera camera, VisibleLight light, CommandBuffer cmd, ScriptableRenderContext loop)
@@ -548,7 +624,6 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			if (cookie != null)
 				cmd.EnableShaderKeyword ("DIRECTIONAL_COOKIE");
 		
-
 			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredMaterial, 0, m_quadLightingPassNdx, props);
 		}
 	}
