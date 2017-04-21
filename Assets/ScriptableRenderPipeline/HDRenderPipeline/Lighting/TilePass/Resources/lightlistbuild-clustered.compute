@@ -336,9 +336,12 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	// All our cull data are in the same list, but at render time envLights are separated so we need to shit the index
 	// to make it work correctly
-	int shiftIndex[LIGHTCATEGORY_COUNT] = {0, 0, _EnvLightIndexShift}; // 3 for now, will throw an error if we change LIGHTCATEGORY_COUNT
+	int shiftIndex[LIGHTCATEGORY_COUNT];
+	ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
+	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _EnvLightIndexShift;
 
-	int categoryListCount[LIGHTCATEGORY_COUNT]={0,0,0};		// direct light count and reflection lights
+	int categoryListCount[LIGHTCATEGORY_COUNT]; // direct light count and reflection lights
+	ZERO_INITIALIZE_ARRAY(int, categoryListCount, LIGHTCATEGORY_COUNT);
 	uint offs = start;
 	for(int ll=0; ll<iNrCoarseLights; ll+=4)
 	{

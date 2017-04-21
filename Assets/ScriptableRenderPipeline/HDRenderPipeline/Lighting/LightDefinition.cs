@@ -51,9 +51,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int cookieIndex;
 
         public GPULightType lightType;
-        // Area Light specific
-        public Vector2 size; // x = cot(outerHalfAngle) for spot lights
-        public bool twoSided;
+        
+        public Vector2 size;  // Used by area, projector and spot lights; x = cot(outerHalfAngle) for spot lights
+        public bool twoSided; // Used by rectangular area lights only
     };
 
     [GenerateHLSL]

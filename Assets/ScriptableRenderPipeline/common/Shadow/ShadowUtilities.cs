@@ -171,17 +171,6 @@ namespace UnityEngine.Experimental.Rendering
             return proj * view;
         }
 
-        public static bool MapLightType( LightArchetype la, LightType lt, out HDPipeline.GPULightType gputype, out GPUShadowType shadowtype )
-        {
-            switch( la )
-            {
-            case LightArchetype.Punctual    : return MapLightType( lt, out gputype, out shadowtype );
-            case LightArchetype.Rectangle   : gputype = HDPipeline.GPULightType.Rectangle; shadowtype = GPUShadowType.Unknown; return true;
-            case LightArchetype.Line        : gputype = HDPipeline.GPULightType.Line; shadowtype = GPUShadowType.Unknown; return true;
-            default                         : gputype = HDPipeline.GPULightType.Spot; shadowtype = GPUShadowType.Unknown; return false; // <- probably not what you want
-            }
-
-        }
         public static bool MapLightType( LightType lt,  out HDPipeline.GPULightType gputype, out GPUShadowType shadowtype )
         {
             switch( lt )
@@ -199,10 +188,10 @@ namespace UnityEngine.Experimental.Rendering
             {
                 case LightArchetype.Punctual:
                     return MapLightType(lt, out shadowtype);
-                case LightArchetype.Rectangle:
+                case LightArchetype.Area:
                     shadowtype = GPUShadowType.Unknown;
                     return true;
-                case LightArchetype.Line:
+                case LightArchetype.Projector:
                     shadowtype = GPUShadowType.Unknown;
                     return true;
                 default:

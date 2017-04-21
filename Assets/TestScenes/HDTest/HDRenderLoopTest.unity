@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientSkyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
@@ -483,8 +483,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &113580756
 Light:
   m_ObjectHideFlags: 0
@@ -517,6 +517,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -1150,8 +1164,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 1
-  areaLightLength: 4
-  areaLightWidth: 2
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &192903506
 Light:
   m_ObjectHideFlags: 0
@@ -1174,7 +1188,7 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
-  m_Cookie: {fileID: 2800000, guid: 32c4b9c8ddc1c5d49ac7d10122540447, type: 3}
+  m_Cookie: {fileID: 2800000, guid: a5f5ba3665c610f469d392e02dadb3bd, type: 3}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
   m_RenderMode: 0
@@ -1184,6 +1198,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -1269,8 +1297,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &269387786
 Light:
   m_ObjectHideFlags: 0
@@ -1303,6 +1331,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -2191,8 +2233,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &476925264
 Light:
   m_ObjectHideFlags: 0
@@ -2225,6 +2267,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -2630,8 +2686,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &563884888
 Light:
   m_ObjectHideFlags: 0
@@ -2664,6 +2720,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -2719,8 +2789,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &580932149
 Light:
   m_ObjectHideFlags: 0
@@ -2753,6 +2823,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -2836,6 +2920,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -2874,8 +2972,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!1 &607757506
 GameObject:
   m_ObjectHideFlags: 0
@@ -3524,8 +3622,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &682868819
 Light:
   m_ObjectHideFlags: 0
@@ -3558,6 +3656,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -3790,10 +3902,10 @@ MonoBehaviour:
   shadowFadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 2
+  archetype: 1
   isDoubleSided: 1
-  areaLightLength: 16
-  areaLightWidth: 0
+  lightLength: 16
+  lightWidth: 0
 --- !u!108 &710116622
 Light:
   m_ObjectHideFlags: 0
@@ -3826,6 +3938,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -3912,6 +4038,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -3937,8 +4077,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!1 &736659727
 GameObject:
   m_ObjectHideFlags: 0
@@ -4763,6 +4903,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -4801,8 +4955,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!1 &818701168
 GameObject:
   m_ObjectHideFlags: 0
@@ -4928,9 +5082,9 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
-  isDoubleSided: 1
-  areaLightLength: 16
-  areaLightWidth: 2
+  isDoubleSided: 0
+  lightLength: 16
+  lightWidth: 2
 --- !u!108 &827169275
 Light:
   m_ObjectHideFlags: 0
@@ -4939,7 +5093,7 @@ Light:
   m_GameObject: {fileID: 827169273}
   m_Enabled: 1
   serializedVersion: 8
-  m_Type: 2
+  m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 12
@@ -4963,6 +5117,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -5357,8 +5525,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 1
-  areaLightLength: 4
-  areaLightWidth: 2
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &858501141
 Light:
   m_ObjectHideFlags: 0
@@ -5391,6 +5559,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -5483,6 +5665,109 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 891124079}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &903116309
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 903116310}
+  - component: {fileID: 903116312}
+  - component: {fileID: 903116311}
+  m_Layer: 0
+  m_Name: Projector Light (Pyramid/Projective)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &903116310
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 903116309}
+  m_LocalRotation: {x: -0.08715578, y: 0, z: 0, w: 0.9961947}
+  m_LocalPosition: {x: -0.3008, y: 0.212, z: -1.5}
+  m_LocalScale: {x: 1, y: 1, z: 0}
+  m_Children: []
+  m_Father: {fileID: 2026378394}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: -10, y: 0, z: 0}
+--- !u!114 &903116311
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 903116309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowResolution: 512
+  m_innerSpotPercent: 0
+  shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
+  affectDiffuse: 1
+  affectSpecular: 1
+  archetype: 2
+  isDoubleSided: 0
+  lightLength: 4
+  lightWidth: 2
+--- !u!108 &903116312
+Light:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 903116309}
+  m_Enabled: 1
+  serializedVersion: 8
+  m_Type: 0
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 5
+  m_Range: 53.4
+  m_SpotAngle: 64.6
+  m_CookieSize: 10
+  m_Shadows:
+    m_Type: 0
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+  m_Cookie: {fileID: 2800000, guid: a5f5ba3665c610f469d392e02dadb3bd, type: 3}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_Lightmapping: 4
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
 --- !u!1 &912798235
 GameObject:
   m_ObjectHideFlags: 0
@@ -5855,8 +6140,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &970745599
 Light:
   m_ObjectHideFlags: 0
@@ -5889,6 +6174,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -6062,8 +6361,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &990293191
 Light:
   m_ObjectHideFlags: 0
@@ -6096,6 +6395,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -6347,8 +6660,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1013563954
 Light:
   m_ObjectHideFlags: 0
@@ -6381,6 +6694,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -6751,8 +7078,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1063426086
 Light:
   m_ObjectHideFlags: 0
@@ -6785,6 +7112,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -6930,7 +7271,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1085128921}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.3, y: 0, z: -2.0000005}
+  m_LocalPosition: {x: -0.2138, y: -0.052, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1.0000005}
   m_Children: []
   m_Father: {fileID: 2026378394}
@@ -6957,8 +7298,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 1
-  areaLightLength: 4
-  areaLightWidth: 2
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1085128924
 Light:
   m_ObjectHideFlags: 0
@@ -6981,7 +7322,7 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
-  m_Cookie: {fileID: 2800000, guid: 32c4b9c8ddc1c5d49ac7d10122540447, type: 3}
+  m_Cookie: {fileID: 2800000, guid: a5f5ba3665c610f469d392e02dadb3bd, type: 3}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
   m_RenderMode: 0
@@ -6991,6 +7332,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -7306,8 +7661,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1148469246
 Light:
   m_ObjectHideFlags: 0
@@ -7340,6 +7695,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -7395,8 +7764,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1161056799
 Light:
   m_ObjectHideFlags: 0
@@ -7429,6 +7798,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -7746,6 +8129,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -7784,8 +8181,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!1 &1226270484
 GameObject:
   m_ObjectHideFlags: 0
@@ -7950,8 +8347,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1235762390
 Light:
   m_ObjectHideFlags: 0
@@ -7984,6 +8381,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -8410,8 +8821,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1308071701
 Light:
   m_ObjectHideFlags: 0
@@ -8444,6 +8855,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -8499,8 +8924,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1309651670
 Light:
   m_ObjectHideFlags: 0
@@ -8533,6 +8958,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -8894,8 +9333,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1352160402
 Light:
   m_ObjectHideFlags: 0
@@ -8928,6 +9367,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -9951,8 +10404,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1555751258
 Light:
   m_ObjectHideFlags: 0
@@ -9985,6 +10438,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -10040,8 +10507,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1559142270
 Light:
   m_ObjectHideFlags: 0
@@ -10074,6 +10541,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -10434,9 +10915,9 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
-  isDoubleSided: 1
-  areaLightLength: 4
-  areaLightWidth: 2
+  isDoubleSided: 0
+  lightLength: 4
+  lightWidth: 2
 --- !u!108 &1640077385
 Light:
   m_ObjectHideFlags: 0
@@ -10445,7 +10926,7 @@ Light:
   m_GameObject: {fileID: 1640077383}
   m_Enabled: 1
   serializedVersion: 8
-  m_Type: 2
+  m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 6
@@ -10469,6 +10950,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -12054,6 +12549,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -12092,13 +12601,116 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!4 &1860830036 stripped
 Transform:
   m_PrefabParentObject: {fileID: 4000010760374938, guid: 1faa212e4ad88f04a81c5ed019001de5,
     type: 2}
   m_PrefabInternal: {fileID: 1889215922}
+--- !u!1 &1879857772
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1879857775}
+  - component: {fileID: 1879857774}
+  - component: {fileID: 1879857773}
+  m_Layer: 0
+  m_Name: Projector Light (Box/Orthographic)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1879857773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1879857772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowResolution: 512
+  m_innerSpotPercent: 0
+  shadowDimmer: 1
+  lightDimmer: 1
+  fadeDistance: 10000
+  shadowFadeDistance: 10000
+  affectDiffuse: 1
+  affectSpecular: 1
+  archetype: 2
+  isDoubleSided: 0
+  lightLength: 4
+  lightWidth: 2
+--- !u!108 &1879857774
+Light:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1879857772}
+  m_Enabled: 1
+  serializedVersion: 8
+  m_Type: 1
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 5
+  m_Range: 53.4
+  m_SpotAngle: 64.6
+  m_CookieSize: 10
+  m_Shadows:
+    m_Type: 0
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+  m_Cookie: {fileID: 2800000, guid: a5f5ba3665c610f469d392e02dadb3bd, type: 3}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_Lightmapping: 4
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
+--- !u!4 &1879857775
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1879857772}
+  m_LocalRotation: {x: -0.13052624, y: 0, z: 0, w: 0.9914449}
+  m_LocalPosition: {x: -0.3778, y: -0.2864, z: -1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 2026378394}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: -15, y: 0, z: 0}
 --- !u!1 &1883914490
 GameObject:
   m_ObjectHideFlags: 0
@@ -12600,8 +13212,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1945509647
 Light:
   m_ObjectHideFlags: 0
@@ -12634,6 +13246,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -12777,8 +13403,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 0
-  areaLightLength: 0
-  areaLightWidth: 0
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &1988224188
 Light:
   m_ObjectHideFlags: 0
@@ -12811,6 +13437,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -12954,8 +13594,8 @@ MonoBehaviour:
   affectSpecular: 1
   archetype: 0
   isDoubleSided: 1
-  areaLightLength: 4
-  areaLightWidth: 2
+  lightLength: 0
+  lightWidth: 0
 --- !u!108 &2015022936
 Light:
   m_ObjectHideFlags: 0
@@ -12978,7 +13618,7 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
-  m_Cookie: {fileID: 2800000, guid: 32c4b9c8ddc1c5d49ac7d10122540447, type: 3}
+  m_Cookie: {fileID: 2800000, guid: a5f5ba3665c610f469d392e02dadb3bd, type: 3}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
   m_RenderMode: 0
@@ -12988,6 +13628,20 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
+  m_FalloffTable:
+    m_Table[0]: 0
+    m_Table[1]: 0
+    m_Table[2]: 0
+    m_Table[3]: 0
+    m_Table[4]: 0
+    m_Table[5]: 0
+    m_Table[6]: 0
+    m_Table[7]: 0
+    m_Table[8]: 0
+    m_Table[9]: 0
+    m_Table[10]: 0
+    m_Table[11]: 0
+    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -13131,7 +13785,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: f03665895dc89b84487310c5216b8458, type: 2}
+  - {fileID: 2100000, guid: 9d65ced14251eb743ba9702a6f3c2ce8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -13177,8 +13831,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2026378390}
-  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -125, y: -0, z: 36}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -122.356, y: 0, z: 35.449}
   m_LocalScale: {x: 20, y: 12, z: 1}
   m_Children:
   - {fileID: 858501139}
@@ -13186,9 +13840,11 @@ Transform:
   - {fileID: 2015022934}
   - {fileID: 1085128922}
   - {fileID: 1279943773}
+  - {fileID: 1879857775}
+  - {fileID: 903116310}
   m_Father: {fileID: 0}
   m_RootOrder: 9
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &2028486192
 GameObject:
   m_ObjectHideFlags: 0
