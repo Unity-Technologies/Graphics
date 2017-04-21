@@ -102,13 +102,8 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
             var presenter = GetPresenter<VFXParameterPresenter>();
-            if (presenter == null || presenter.parameter == null)
+            if (presenter == null)
                 return;
-
-            presenter.node.position = presenter.position.position;
-            presenter.node.collapsed = !presenter.expanded;
-            presenter.parameter.exposed = presenter.exposed;
-            presenter.parameter.exposedName = presenter.exposedName;
 
             m_ExposedName.height = 24.0f;
             m_Exposed.height = 24.0f;

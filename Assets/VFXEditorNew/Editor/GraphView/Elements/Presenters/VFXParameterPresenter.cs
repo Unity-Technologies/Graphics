@@ -10,10 +10,34 @@ namespace UnityEditor.VFX.UI
         [SerializeField]
         private bool m_exposed;
 
-        public string exposedName { get { return m_exposedName; } set { m_exposedName = value; } }
-        public bool exposed { get { return m_exposed; } set { m_exposed = value;  } }
+        public string exposedName
+        {
+            get { return m_exposedName; }
+            set
+            {
+                m_exposedName = value;
+                if (parameter.exposedName != m_exposedName)
+                {
+                    Undo.RecordObject(parameter, "Exposed Name");
+                    parameter.exposedName = m_exposedName;
+                }
+            }
+        }
+        public bool exposed
+        {
+            get { return m_exposed; }
+            set
+            {
+                m_exposed = value;
+                if (parameter.exposed != m_exposed)
+                {
+                    Undo.RecordObject(parameter, "Exposed");
+                    parameter.exposed = m_exposed;
+                }
+            }
+        }
 
-        public VFXParameter parameter { get { return node as VFXParameter; } }
+        private VFXParameter parameter { get { return node as VFXParameter; } }
 
         protected override NodeAnchorPresenter CreateAnchorPresenter(VFXSlot slot, Direction direction)
         {
