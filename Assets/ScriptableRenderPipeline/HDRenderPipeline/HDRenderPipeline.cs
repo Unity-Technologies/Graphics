@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalInt("_DebugDisplayMode", (int)debugDisplaySettings.debugDisplayMode);
             Shader.SetGlobalInt("_DebugViewMaterial", (int)debugDisplaySettings.materialDebugSettings.debugViewMaterial);
             Shader.SetGlobalVector("_DebugLightingAlbedo", debugAlbedo);
-            Shader.SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);            
+            Shader.SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
         }
 
         public void UpdateCommonSettings()
@@ -238,6 +238,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly Material m_FilterAndCombineSubsurfaceScattering;
 
         private Material m_DebugDisplayShadowMap;
+        private Material m_DebugViewMaterialGBuffer;
         private Material m_DebugDisplayLatlong;
 
         // Various buffer
@@ -343,6 +344,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void InitializeDebugMaterials()
         {
             m_DebugDisplayShadowMap = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayShadowMap");
+            m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
             m_DebugDisplayLatlong = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayLatlong");
         }
 
@@ -356,6 +358,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LitRenderLoop.Cleanup();
 
             Utilities.Destroy(m_DebugDisplayShadowMap);
+            Utilities.Destroy(m_DebugViewMaterialGBuffer);
+            Utilities.Destroy(m_DebugDisplayLatlong);
 
             m_SkyManager.Cleanup();
 
@@ -747,8 +751,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Render GBuffer opaque
             if (!m_Owner.renderingSettings.ShouldUseForwardRenderingOnly())
             {
-                RenderTargetIdentifier[] colorRTs = { m_CameraColorBufferRT, m_CameraSubsurfaceBufferRT };
-                m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, debugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), false);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewMaterialGBuffer);
+
+                // m_gbufferManager.BindBuffers(m_DebugViewMaterialGBuffer);
+                // TODO: Bind depth textures
+                var cmd = new CommandBuffer { name = "DebugViewMaterialGBuffer" };
+                cmd.Blit(null, m_CameraColorBufferRT, m_DebugViewMaterialGBuffer, 0);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
             }
 
             // Render forward transparent
@@ -842,7 +852,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (m_LightLoop != null)
                     m_LightLoop.RenderForward(camera, renderContext, renderOpaque);
-                
+
                 if (renderOpaque)
                 {
                     RenderOpaqueRenderList(cullResults, camera, renderContext, passName, Utilities.kRendererConfigurationBakedLighting);
