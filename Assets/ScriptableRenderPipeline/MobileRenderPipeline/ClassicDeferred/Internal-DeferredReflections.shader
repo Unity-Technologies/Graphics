@@ -11,10 +11,10 @@ Pass {
 
     ZWrite Off
     ZTest LEqual
-    Blend [_SrcBlend] [_DstBlend]
+    Blend One Zero
 CGPROGRAM
 #pragma target 4.5
-#pragma vertex vert_deferred
+#pragma vertex filip_vert_deferred
 #pragma fragment frag
 
 #include "UnityCG.cginc"
@@ -30,11 +30,34 @@ sampler2D _CameraGBufferTexture1;
 sampler2D _CameraGBufferTexture2;
 #endif
 
+unity_v2f_deferred filip_vert_deferred (float4 vertex : POSITION, float3 normal : NORMAL)
+{
+    bool lightAsQuad = _LightAsQuad!=0.0;
+
+    unity_v2f_deferred o;
+
+    // scaling quasd by two becuase built-in unity quad ranges from -0.5 to 0.5
+    o.pos = lightAsQuad ? float4(2.0*vertex.xy, 0.5, 1.0) : UnityObjectToClipPos(vertex);
+    o.uv = ComputeScreenPos(o.pos);
+
+    // normal contains a ray pointing from the camera to one of near plane's
+    // corners in camera space when we are drawing a full screen quad.
+    // Otherwise, when rendering 3D shapes, use the ray calculated here.
+    if (lightAsQuad){
+    	float2 rayXY = mul(unity_CameraInvProjection, float4(o.pos.x, -o.pos.y, -1, 1)).xy;
+        o.ray = float3(rayXY, 1.0);
+    }
+    else
+    {
+    	o.ray = UnityObjectToViewPos(vertex) * float3(-1,-1,1);
+    }
+    return o;
+}
+
 half3 distanceFromAABB(half3 p, half3 aabbMin, half3 aabbMax)
 {
     return max(max(p - aabbMax, aabbMin - p), half3(0.0, 0.0, 0.0));
 }
-
 
 #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
 void frag (unity_v2f_deferred i,
@@ -47,6 +70,8 @@ void frag (unity_v2f_deferred i,
 half4 frag (unity_v2f_deferred i) : SV_TARGET
 #endif
 {
+	//return half4(1.0, 0.0, 0.0, 1.0);
+
     // Stripped from UnityDeferredCalculateLightParams, refactor into function ?
     i.ray = i.ray * (_ProjectionParams.z / i.ray.z);
     float2 uv = i.uv.xy / i.uv.w;
@@ -122,13 +147,15 @@ ENDCG
 // Adds reflection buffer to the lighting buffer
 Pass
 {
+	Name "DEFERRED_APPLY_REFLECTIONS"
+
     ZWrite Off
     ZTest Always
-    Blend [_SrcBlend] [_DstBlend]
+    Blend One One
 
     CGPROGRAM
         #pragma target 4.5
-        #pragma vertex vert
+        #pragma vertex refl_apply_vert_deferred
         #pragma fragment frag
         #pragma multi_compile ___ UNITY_HDR_ON
 
@@ -141,18 +168,18 @@ Pass
             float4 pos : SV_POSITION;
         };
 
-        v2f vert (float4 vertex : POSITION)
-        {
-            v2f o;
-            o.pos = UnityObjectToClipPos(vertex);
-            o.uv = ComputeScreenPos (o.pos).xy;
-            return o;
-        }
+        v2f refl_apply_vert_deferred (float4 vertex : POSITION, float3 normal : NORMAL)
+		{
+		    // scaling quasd by two becuase built-in unity quad ranges from -0.5 to 0.5
+		  	v2f o;
+		    o.pos = float4(2.0*vertex.xy, 0.5, 1.0);
+		    o.uv = ComputeScreenPos(o.pos);
+
+		    return o;
+		}
 
         half4 frag (v2f i) : SV_Target
         {
-        	return half4(1.0, 0.0, 0.0, 1.0);
-
             half4 c = tex2D (_CameraReflectionsTexture, i.uv);
             #ifdef UNITY_HDR_ON
             return float4(c.rgb, 0.0f);
