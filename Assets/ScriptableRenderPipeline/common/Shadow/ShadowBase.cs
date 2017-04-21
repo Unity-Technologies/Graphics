@@ -80,17 +80,17 @@ namespace UnityEngine.Experimental.Rendering
     [GenerateHLSL]
     public enum GPUShadowAlgorithm // 9 bits
     {
-        PCF_1tap    = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V0,
-        PCF_9tap    = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V1,
-        PCF_tent3x3 = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V2,
-        PCF_tent5x5 = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V3,
-        PCF_tent7x7 = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V4,
-        VSM         = ShadowAlgorithm.VSM       << 3,
-        EVSM_2      = ShadowAlgorithm.EVSM      << 3 | ShadowVariant.V0,
-        EVSM_4      = ShadowAlgorithm.EVSM      << 3 | ShadowVariant.V1,
-        MSM_Ham     = ShadowAlgorithm.MSM       << 3 | ShadowVariant.V0,
-        MSM_Haus    = ShadowAlgorithm.MSM       << 3 | ShadowVariant.V1,
-        Custom      = ShadowAlgorithm.Custom    << 3
+        PCF_1tap        = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V0,
+        PCF_9tap        = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V1,
+        PCF_tent_3x3    = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V2,
+        PCF_tent_5x5    = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V3,
+        PCF_tent_7x7    = ShadowAlgorithm.PCF       << 3 | ShadowVariant.V4,
+        VSM             = ShadowAlgorithm.VSM       << 3,
+        EVSM_2          = ShadowAlgorithm.EVSM      << 3 | ShadowVariant.V0,
+        EVSM_4          = ShadowAlgorithm.EVSM      << 3 | ShadowVariant.V1,
+        MSM_Ham         = ShadowAlgorithm.MSM       << 3 | ShadowVariant.V0,
+        MSM_Haus        = ShadowAlgorithm.MSM       << 3 | ShadowVariant.V1,
+        Custom          = ShadowAlgorithm.Custom    << 3
     }
 
     namespace ShadowExp // temporary namespace until everything can be merged into the HDPipeline
