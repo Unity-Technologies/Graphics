@@ -147,7 +147,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
                     float4 value;
 
-                    // f we haven't touch result, we don't blend it. This allow to have the GBuffer debug pass working with the regular forward debug pass.
+                    // If we haven't touch result, we don't blend it. This allow to have the GBuffer debug pass working with the regular forward debug pass.
                     // The forward debug pass will write its value and then the deferred will overwrite only touched texels.
                     if (result.x == -666.0)
                     {
@@ -167,7 +167,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                     // Note: When DEBUG_DISPLAY is on for DEBUGDISPLAYMODE_VIEW_MATERIAL there is no OUTPUT_SPLIT_LIGHTING
                 #ifdef OUTPUT_SPLIT_LIGHTING
                     outputs.specularLighting = value;
-                    outputs.diffuseLighting  = float4(0.0, 0.0, 0.0, 0.0); // Not used
+                    outputs.diffuseLighting  = float4(0.0, 0.0, 0.0, 0.0);
                 #else
                     outputs.combinedLighting = value;
                 #endif
