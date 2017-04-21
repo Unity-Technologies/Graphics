@@ -105,6 +105,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	private static int m_FiniteLightingPassNdx;
 	private static int m_ReflectionsPassNdx;
 	private static int m_ReflectionsApplyPassNdx;
+	private static int m_ReflectionsFullScreenPassNdx;
 
 	private Material m_DeferredMaterial;
 	private Material m_DeferredReflectionMaterial;
@@ -144,6 +145,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		m_quadLightingPassNdx = m_DeferredMaterial.FindPass ("DIRECTIONALLIGHT");
 		m_FiniteLightingPassNdx = m_DeferredMaterial.FindPass ("FINITELIGHT");
 		m_ReflectionsPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_REFLECTIONS");
+		m_ReflectionsFullScreenPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_FULLSCREEN_REFLECTIONS");
 		m_ReflectionsApplyPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_APPLY_REFLECTIONS");
 
 		s_CameraReflectionsTexture = Shader.PropertyToID ("_CameraReflectionsTexture");
@@ -226,6 +228,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		// const Vector3f viewDir = -NormalizeSafe(camera.GetCameraToWorldMatrix().GetAxisZ());
 		// Plane eyePlane;
 		// eyePlane.SetNormalAndPosition(viewDir, m_Context->m_CurCameraPos);
+
 		// backfacesRasterStateDesc.cullMode = kCullFront;
 		// backfacesDepthStateDesc.depthWrite = false;
 		// backfacesDepthStateDesc.depthFunc = kFuncGreater;
@@ -237,8 +240,9 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		{ 
 			var props = new MaterialPropertyBlock ();
 			props.SetFloat ("_LightAsQuad", 1.0f);
-			props.SetFloat ("_SrcBlend", 1.0f);
-			props.SetFloat ("_DstBlend", 0.0f);
+
+			m_DeferredReflectionMaterial.SetInt("_SrcBlend", (int)BlendMode.One);
+			m_DeferredReflectionMaterial.SetInt("_DstBlend", (int)BlendMode.Zero);
 
 			// base reflection probe
 			var topCube = ReflectionProbe.defaultTexture;
@@ -267,7 +271,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			// LoadFullScreenOrthoMatrix(0.0f, camera.GetProjectionFar(), device);
 
 			// screenspace
-			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsPassNdx, props);
+			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsFullScreenPassNdx, props);
 		}
 
 		// TODO: need this? --> Set the ambient probe into the SH constants otherwise
@@ -284,37 +288,40 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 			var bnds = rl.bounds;
 			var boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
-			// var blendDistance = rl.blendDistance;
+			var blendDistance = rl.blendDistance;
 			var mat = rl.localToWorld;
+		
+			var boxProj = (rl.boxProjection != 0);
+			var probePosition = mat.GetColumn (3); // translation vector
 
-			//var boxProj = (rl.boxProjection != 0);
-			//var decodeVals = rl.hdr;
+			var probePosition1 = new Vector4 (probePosition [0], probePosition [1], probePosition [2], boxProj ? 1f : 0f);
 
 			// C is reflection volume center in world space (NOT same as cube map capture point)
-			// var e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
-			// Vector3 C = bnds.center;        // P + boxOffset;
+			var e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
+			var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
 
-			var C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
-			var Cw = worldToView.MultiplyPoint(C);
-
-			//Debug.Log (String.Format("Reflection probe bounds: {0}", bnds.ToString()));
-			//Debug.Log (String.Format("Reflection probe center: {0}", boxOffset.ToString()));
-
+			Matrix4x4 scaled = Matrix4x4.Scale (combinedExtent * 2.0f);
+			mat = mat * Matrix4x4.Translate (boxOffset) * scaled;
+					
+			// TODO: renderAsQuad
 			bool renderAsQuad = false;
-		
+
 			var props = new MaterialPropertyBlock ();
 			props.SetFloat ("_LightAsQuad", renderAsQuad ? 1 : 0);
+
+			// FIXME: why dont setting blend properties work here?
+			m_DeferredReflectionMaterial.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+			m_DeferredReflectionMaterial.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
 
 			cmd.SetGlobalTexture("unity_SpecCube0", cubemap);
 			cmd.SetGlobalVector("unity_SpecCube0_HDR", rl.probe.textureHDRDecodeValues);
 			cmd.SetGlobalVector ("unity_SpecCube0_BoxMin", rl.bounds.min);
 			cmd.SetGlobalVector ("unity_SpecCube0_BoxMax", rl.bounds.max);
-			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition", Cw);
+			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition", probePosition1);
+			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition1", new Vector4(0, 0, 0, blendDistance));
 
 			cmd.DrawMesh (m_BoxMesh, mat, m_DeferredReflectionMaterial, 0, m_ReflectionsPassNdx, props);
-
 		}
-
 	}
 
 	void RenderApplyReflections(Camera camera, CommandBuffer cmd, CullResults cullResults, ScriptableRenderContext loop)
