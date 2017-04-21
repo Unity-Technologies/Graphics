@@ -1,9 +1,18 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Debug/DebugViewMaterial.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Debug/DebugDisplay.cs.  Please don't edit by hand.
 //
 
-#ifndef DEBUGVIEWMATERIAL_CS_HLSL
-#define DEBUGVIEWMATERIAL_CS_HLSL
+#ifndef DEBUGDISPLAY_CS_HLSL
+#define DEBUGDISPLAY_CS_HLSL
+//
+// UnityEngine.Experimental.Rendering.HDPipeline.DebugDisplayMode:  static fields
+//
+#define DEBUGDISPLAYMODE_NONE (0)
+#define DEBUGDISPLAYMODE_VIEW_MATERIAL (1)
+#define DEBUGDISPLAYMODE_DIFFUSE_LIGHTING (2)
+#define DEBUGDISPLAYMODE_SPECULAR_LIGHTING (3)
+#define DEBUGDISPLAYMODE_VISUALIZE_CASCADE (4)
+
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewVarying:  static fields
 //
