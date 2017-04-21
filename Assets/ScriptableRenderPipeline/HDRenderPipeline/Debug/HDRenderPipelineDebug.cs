@@ -17,6 +17,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
         public RenderingDebugSettings renderingDebugSettings = new RenderingDebugSettings();
 
+        public void RegisterDebug()
+        {
+            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, bool>("Enable Shadows", () => lightingDebugSettings.enableShadows, (value) => lightingDebugSettings.enableShadows = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, bool>("Display Sky Reflection", () => lightingDebugSettings.displaySkyReflection, (value) => lightingDebugSettings.displaySkyReflection = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, float>("Sky Reflection Mipmap", () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value);
+        }
+
         public void OnValidate()
         {
             lightingDebugSettings.OnValidate();

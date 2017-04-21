@@ -145,6 +145,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             globalDebugSettings.OnValidate();
             sssSettings.OnValidate();
         }
+
+        void OnEnable()
+        {
+            globalDebugSettings.RegisterDebug();
+        }
     }
 
     [Serializable]

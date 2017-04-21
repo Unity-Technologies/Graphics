@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void OnEnable()
         {
-            m_DebugMenu = FindObjectOfType<DebugMenuManager>();
+            m_DebugMenu = DebugMenuManager.instance;
         }
 
         void OnGUI()
