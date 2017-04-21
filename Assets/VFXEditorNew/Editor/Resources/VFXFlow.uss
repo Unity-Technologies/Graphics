@@ -19,31 +19,27 @@ VFXFlowAnchor.EdgeConnector {
 	margin-left:-6;
 	width:12;
 	height:12;
-	border-color: #333333;
-	border-width:1;
-	border-radius:6;
-	background-color:#000;
+	-border-color: #333333;
+	-border-width:1;
+	-border-radius:6;
+	-background-color:#000;
+	background-image:resource("VFX/flow-anchor");
 }
 
 VFXFlowAnchor #connector{
 	position-type:absolute;
-	position-left:2;
-	position-right:2;
-	position-top:2;
-	position-bottom:2;
+	position-left:0;
+	position-right:0;
+	position-top:0;
+	position-bottom:0;
 }
 
 VFXFlowAnchor.connected #connector
 {
-	border-radius:4;
-	background-color:#EEE;
-	border-color: #EEE;
-	
 }
 
 VFXFlowAnchor #connector.anchorHighlight{
-	border-color: #F0F;
-	border-width: 2;
+	background-image:resource("VFX/flow-anchor-highlight");
 }
 
 VFXFlowEdge

@@ -84,10 +84,13 @@ namespace UnityEditor.VFX.UI
 
             if(presenter.hidden)
             {
+                m_ConnectorBox.visible = false;
                 AddToClassList("invisible");
             }
             else
             {
+
+                m_ConnectorBox.visible = true;
                 RemoveFromClassList("invisible");
             }
             if( presenter.direction == Direction.Output )

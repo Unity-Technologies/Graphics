@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: ab56c3c755b29fa4db953c2773cc2a9b
-timeCreated: 1492004267
+timeCreated: 1492788997
 licenseType: Pro
 TextureImporter:
   fileIDToRecycleName: {}
@@ -96,6 +96,14 @@ TextureImporter:
     allowsAlphaSplitting: 0
     overridden: 0
   - buildTarget: WebGL
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  - buildTarget: XboxOne
     maxTextureSize: 2048
     textureFormat: -1
     textureCompression: 1
