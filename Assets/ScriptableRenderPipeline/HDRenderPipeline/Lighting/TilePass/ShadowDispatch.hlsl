@@ -11,14 +11,14 @@
 // and that on the C# side the shadowContext bindDelegate binds the correct resource to the correct texture id.
 
 
-//#define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL	// enables hardcoded resources and algorithm for directional lights
-//#define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL		// enables hardcoded resources and algorithm for punctual lights
+#define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL	// enables hardcoded resources and algorithm for directional lights
+#define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL		// enables hardcoded resources and algorithm for punctual lights
 //#define SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS	// enables separate resources and algorithms for spot and point lights
 
 // directional
-#define SHADOW_DISPATCH_DIR_TEX 0
+#define SHADOW_DISPATCH_DIR_TEX 3
 #define SHADOW_DISPATCH_DIR_SMP 0
-#define SHADOW_DISPATCH_DIR_ALG GPUSHADOWALGORITHM_MSM_HAUS
+#define SHADOW_DISPATCH_DIR_ALG GPUSHADOWALGORITHM_PCF_TENT_7X7
 // point
 #define SHADOW_DISPATCH_POINT_TEX 3
 #define SHADOW_DISPATCH_POINT_SMP 0
@@ -30,17 +30,17 @@
 //punctual
 #define SHADOW_DISPATCH_PUNC_TEX 3
 #define SHADOW_DISPATCH_PUNC_SMP 0
-#define SHADOW_DISPATCH_PUNC_ALG GPUSHADOWALGORITHM_PCF_1TAP
+#define SHADOW_DISPATCH_PUNC_ALG GPUSHADOWALGORITHM_PCF_TENT_7X7
 
 // example of overriding directional lights
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L )
 {
-	Texture2DArray	tex  = shadowContext.tex2DArray[SHADOW_DISPATCH_DIR_TEX];
-	SamplerState	samp = shadowContext.samplers[SHADOW_DISPATCH_DIR_SMP];
-	uint			algo = SHADOW_DISPATCH_DIR_ALG;
+	Texture2DArray	        tex      = shadowContext.tex2DArray[SHADOW_DISPATCH_DIR_TEX];
+	SamplerComparisonState	compSamp = shadowContext.compSamplers[SHADOW_DISPATCH_DIR_SMP];
+	uint			        algo     = SHADOW_DISPATCH_DIR_ALG;
 
-	return EvalShadow_CascadedDepth( shadowContext, algo, tex, samp, positionWS, normalWS, shadowDataIndex, L );
+	return EvalShadow_CascadedDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 }
 
 float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float2 unPositionSS )
