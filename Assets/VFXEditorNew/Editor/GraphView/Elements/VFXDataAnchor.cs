@@ -2,6 +2,7 @@ using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 using System.Collections.Generic;
 using Type = System.Type;
 using System.Linq;
@@ -10,11 +11,30 @@ namespace UnityEditor.VFX.UI
 {
     class VFXDataAnchor : NodeAnchor, IEdgeConnectorListener
     {
-
+        VisualElement m_ConnectorHighlight;
 
         protected VFXDataAnchor(VFXDataAnchorPresenter presenter) : base(presenter)
         {
             AddToClassList("VFXDataAnchor");
+
+            m_ConnectorHighlight = new VisualElement()
+            {
+                positionType = PositionType.Absolute,
+                positionTop = 0,
+                positionLeft = 0,
+                positionBottom = 0,
+                positionRight = 0,
+                pickingMode = PickingMode.Ignore
+            };
+
+            VisualContainer connector = m_ConnectorBox as VisualContainer;
+
+            connector.AddChild(m_ConnectorHighlight);
+        }
+
+        protected override VisualElement CreateConnector()
+        {
+            return new VisualContainer();
         }
 
         public static VFXDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter

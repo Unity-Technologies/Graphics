@@ -1,0 +1,94 @@
+VFXOperatorUI Button
+{
+	height:17;
+}
+
+VFXParameterUI Button
+{
+height:17;
+}
+
+VFXOperatorUI.node.horizontal
+{
+	width:-1;
+}
+VFXParameterUI.node.horizontal
+{
+	width:-1;
+}
+
+VFXOperatorUI.node.horizontal #pane
+{
+border-top:2;
+border-bottom:2;
+border-left:2;
+border-right:2;
+}
+VFXParameterUI.node.horizontal #pane
+{
+border-top:2;
+border-bottom:2;
+border-left:2;
+border-right:2;
+}
+
+VFXOperatorUI.node.horizontal #pane > #left
+{
+	width:250;
+}
+VFXParameterUI.node.horizontal #pane > #left
+{
+	width:250;
+}
+
+VFXOperatorUI.node.horizontal #pane > #right
+{
+	width:50;
+	padding-left:2;
+	padding-right:2;
+}
+VFXParameterUI.node.horizontal #pane > #right
+{
+	width:100;
+	padding-left:2;
+	padding-right:2;
+}
+
+.node.horizontal.selected
+{
+	border-color:#FFFFFF;
+}
+
+.node #right > #output {
+	-background-color:rgba(255,0,0,255);
+	position-right:0;
+}
+
+VFXParameterUI #exposedContainer
+{
+	flex-direction:row;
+}
+
+VFXParameterUI #exposedNameContainer
+{
+	flex-direction:row;
+}
+
+
+VFXParameterUI .value
+{
+	flex:1;
+}
+VFXParameterUI .label
+{
+	text-color:#c4c4c4;
+	width : 80;
+}
+
+VFXParameterUI #IconContainer
+{
+	margin-left : 4;
+	margin-top: 4;
+	width:16;
+	height:16;
+}

@@ -1,0 +1,52 @@
+.FlowContainer{
+	flex-direction: row;
+	justify-content: center;
+	padding-left: 40;
+	padding-right: 20;
+	position-type:Absolute;
+	position-left:0;
+	position-right:0;
+	height:16;
+}
+.FlowContainer.Input{
+	position-top:-8;
+}
+.FlowContainer.Output{
+	position-bottom:-8;
+}
+
+VFXFlowAnchor.EdgeConnector {
+	margin-left:-6;
+	width:12;
+	height:12;
+	border-color: #333333;
+	border-width:1;
+	border-radius:6;
+	background-color:#000;
+}
+
+VFXFlowAnchor #connector{
+	position-type:absolute;
+	position-left:2;
+	position-right:2;
+	position-top:2;
+	position-bottom:2;
+}
+
+VFXFlowAnchor.connected #connector
+{
+	border-radius:4;
+	background-color:#EEE;
+	border-color: #EEE;
+	
+}
+
+VFXFlowAnchor #connector.anchorHighlight{
+	border-color: #F0F;
+	border-width: 2;
+}
+
+VFXFlowEdge
+{
+	edge-width:5;
+}
