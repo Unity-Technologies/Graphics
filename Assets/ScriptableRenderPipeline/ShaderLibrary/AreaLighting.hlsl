@@ -24,10 +24,84 @@ float IntegrateEdge(float3 v1, float3 v2)
 #endif
 }
 
+// #define SPHERE_APPROX
+
 // Baum's equation
 // Expects non-normalized vertex positions
-float PolygonRadiance(float4x3 L, bool twoSided)
+float PolygonIrradiance(float4x3 L, bool twoSided)
 {
+#ifdef SPHERE_APPROX
+    for (int i = 0; i < 4; i++)
+    {
+        L[i] = normalize(L[i]);
+    }
+
+    float3 F = float3(0, 0, 0);
+
+    for (int edge = 0; edge < 4; edge++)
+    {
+        float3 v1 = L[edge];
+        float3 v2 = L[(edge + 1) % 4];
+
+        float  V1oV2 = dot(v1, v2);
+        float3 V1xV2 = cross(v1, v2);
+
+        F += V1xV2 * (rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2));
+    }
+
+    F *= INV_TWO_PI;
+
+    float f = length(F);
+
+    float sinSqSigma = f;
+    float sinSigma   = sqrt(sinSqSigma);
+    float cosOmega   = F.z / f;
+    float cosSigma   = sqrt(1 - sinSigma * sinSigma);
+    float sinOmega   = sqrt(1 - cosOmega * cosOmega);
+    float sinGamma   = cosSigma / sinOmega;
+    float cosSqGamma = 1 - sinGamma * sinGamma;
+    float cosGamma   = sqrt(cosSqGamma);
+
+    float sigma = asin(sinSigma);
+    float omega = acos(cosOmega);
+    float gamma = asin(sinGamma);
+
+    [branch]
+    if (omega < 0 || omega >= HALF_PI + sigma)
+    {
+        // Full horizon occlusion (case #4).
+        return 0;
+    }
+
+    float e = sinSqSigma * cosOmega;
+
+    float irradiance;
+
+    [branch]
+    if (omega < HALF_PI - sigma)
+    {
+        // No horizon occlusion (case #1).
+        irradiance = e;
+    }
+    else
+    {
+        float g = -2 * sinOmega * cosSigma * cosGamma + HALF_PI - gamma + sinGamma * cosGamma;
+        float h = cosOmega * (cosGamma * sqrt(sinSqSigma - cosSqGamma) + sinSqSigma * asin(cosGamma / sinSigma));
+
+        if (omega < HALF_PI)
+        {
+            // Partial horizon occlusion (case #2).
+            irradiance = e + INV_PI * g - (INV_PI * h);
+        }
+        else
+        {
+            // Partial horizon occlusion (case #3).
+            irradiance = INV_PI * g + (INV_PI * h);
+        }
+    }
+
+    return max(irradiance, 0.0);
+#else
     // 1. ClipQuadToHorizon
 
     // detect clipping config
@@ -175,6 +249,7 @@ float PolygonRadiance(float4x3 L, bool twoSided)
     sum = twoSided ? abs(sum) : max(sum, 0.0);
 
     return isfinite(sum) ? sum : 0.0;
+#endif
 }
 
 // For polygonal lights.
@@ -191,8 +266,8 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
     invM = mul(transpose(basis), invM);
     L = mul(L, invM);
 
-    // Polygon radiance in transformed configuration - specular
-    return PolygonRadiance(L, twoSided);
+    // Polygon irradiance in the transformed configuration
+    return PolygonIrradiance(L, twoSided);
 }
 
 float LineFpo(float tLDDL, float lrcpD, float rcpD)
