@@ -42,6 +42,7 @@ namespace UnityEngine.Experimental.Rendering
     public class DebugMenu
     {
         public string name { get { return m_Name; } }
+        public int itemCount { get { return m_Items.Count; } }
 
         protected string m_Name = "Unknown Debug Menu";
 
@@ -49,6 +50,13 @@ namespace UnityEngine.Experimental.Rendering
         private List<DebugMenuItem> m_Items = new List<DebugMenuItem>();
         private List<DebugMenuItemUI> m_ItemsUI = new List<DebugMenuItemUI>();
         private int m_SelectedItem = -1;
+
+        public DebugMenuItem GetDebugMenuItem(int index)
+        {
+            if (index >= m_Items.Count || index < 0)
+                return null;
+            return m_Items[index];
+        }
 
         // TODO: Move this to UI classes
         public GameObject BuildGUI(GameObject parent)
@@ -72,7 +80,6 @@ namespace UnityEngine.Experimental.Rendering
             menuVLRectTransform.anchorMax = new Vector2(1.0f, 1.0f);
 
             DebugMenuUI.CreateTextDebugElement(string.Format("{0} Title", m_Name), m_Name, 14, TextAnchor.MiddleLeft, m_Root);
-
             
             m_ItemsUI.Clear();
             foreach(DebugMenuItem menuItem in m_Items)
