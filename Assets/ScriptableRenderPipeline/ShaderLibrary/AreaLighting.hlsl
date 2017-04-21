@@ -1,33 +1,41 @@
 #ifndef UNITY_AREA_LIGHTING_INCLUDED
 #define UNITY_AREA_LIGHTING_INCLUDED
 
-float IntegrateEdge(float3 v1, float3 v2)
+// #define SPHERE_APPROX
+
+// Not normalized by the factor of 1/TWO_PI.
+float3 ComputeEdgeFactor(float3 V1, float3 V2)
 {
-    float cosTheta  = dot(v1, v2);
-    float V1xV2dotN = cross(v1, v2).z;
+    float  V1oV2 = dot(V1, V2);
+    float3 V1xV2 = cross(V1, V2);
 #if 0
-    return V1xV2dotN * rsqrt(1.0 - cosTheta * cosTheta) * acos(cosTheta);
+    return V1xV2 * (rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2));
 #else
-    // Approximate: { y = rsqrt(1.0 - cosTheta * cosTheta) * acos(cosTheta) } on [0, 1].
+    // Approximate: { y = rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2) } on [0, 1].
     // Fit: HornerForm[MiniMaxApproximation[ArcCos[x]/Sqrt[1 - x^2], {x, {0, 1 - $MachineEpsilon}, 6, 0}][[2, 1]]].
     // Maximum relative error: 2.6855360216340534 * 10^-6. Intensities up to 1000 are artifact-free.
-    float x = abs(cosTheta);
+    float x = abs(V1oV2);
     float y = 1.5707921083647782 + x * (-0.9995697178013095 + x * (0.778026455830408 + x * (-0.6173111361273548 + x * (0.4202724111150622 + x * (-0.19452783598217288 + x * 0.04232040013661036)))));
 
-    if (cosTheta < 0)
+    if (V1oV2 < 0)
     {
         // Undo range reduction.
-        y = PI * rsqrt(saturate(1 - cosTheta * cosTheta)) - y;
+        y = PI * rsqrt(saturate(1 - V1oV2 * V1oV2)) - y;
     }
 
-    return V1xV2dotN * y;
+    return V1xV2 * y;
 #endif
 }
 
-// #define SPHERE_APPROX
+// Not normalized by the factor of 1/TWO_PI.
+// Ref: Improving radiosity solutions through the use of analytically determined form-factors.
+float IntegrateEdge(float3 V1, float3 V2)
+{
+    // 'V1' and 'V2' are represented in a coordinate system with N = (0, 0, 1).
+    return ComputeEdgeFactor(V1, V2).z;
+}
 
-// Baum's equation
-// Expects non-normalized vertex positions
+// Expects non-normalized vertex positions.
 float PolygonIrradiance(float4x3 L, bool twoSided)
 {
 #ifdef SPHERE_APPROX
@@ -40,16 +48,11 @@ float PolygonIrradiance(float4x3 L, bool twoSided)
 
     for (int edge = 0; edge < 4; edge++)
     {
-        float3 v1 = L[edge];
-        float3 v2 = L[(edge + 1) % 4];
+        float3 V1 = L[edge];
+        float3 V2 = L[(edge + 1) % 4];
 
-        float  V1oV2 = dot(v1, v2);
-        float3 V1xV2 = cross(v1, v2);
-
-        F += V1xV2 * (rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2));
+        F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
     }
-
-    F *= INV_TWO_PI;
 
     float f = length(F);
 
