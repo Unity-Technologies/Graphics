@@ -93,9 +93,6 @@ namespace UnityEngine.Experimental.Rendering
         Custom          = ShadowAlgorithm.Custom    << 3
     }
 
-    namespace ShadowExp // temporary namespace until everything can be merged into the HDPipeline
-    {
-
     // Central location for storing various shadow constants and bitmasks. These can be used to pack enums into ints, for example.
     // These are all guaranteed to be positive, but C# doesn't like uints, so they're all ints.
     public static class ShadowConstants
@@ -408,11 +405,13 @@ namespace UnityEngine.Experimental.Rendering
     // -------------- Begin temporary structs that need to be replaced at some point ---------------
     public struct SamplerState
     {
+#pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
         FilterMode      filterMode;
         TextureWrapMode wrapMode;
         uint            anisotropy;
+#pragma warning restore 414
 
-        public static SamplerState Default()
+            public static SamplerState Default()
         {
             SamplerState defaultState;
             defaultState.filterMode = FilterMode.Bilinear;
@@ -433,11 +432,13 @@ namespace UnityEngine.Experimental.Rendering
 
     public struct ComparisonSamplerState
     {
+#pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
         FilterMode      filterMode;
         TextureWrapMode wrapMode;
         uint            anisotropy;
+#pragma warning restore 414
 
-        public static ComparisonSamplerState Default()
+            public static ComparisonSamplerState Default()
         {
             ComparisonSamplerState defaultState;
             defaultState.filterMode = FilterMode.Bilinear;
@@ -758,6 +759,4 @@ namespace UnityEngine.Experimental.Rendering
         // allocate the shadow requests in the shadow map, only is called if shadowsCount > 0 - may modify shadowRequests and shadowsCount
         protected abstract void AllocateShadows( FrameId frameId, VisibleLight[] lights, uint totalGranted, ref VectorArray<ShadowmapBase.ShadowRequest> grantedRequests, ref VectorArray<int> shadowIndices, ref VectorArray<ShadowData> shadowmapDatas, ref VectorArray<ShadowPayload> shadowmapPayload );
     }
-
-    } // end of namespace ShadowExp
 } // end of namespace UnityEngine.Experimental.ScriptableRenderLoop

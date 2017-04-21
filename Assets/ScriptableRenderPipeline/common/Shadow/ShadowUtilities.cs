@@ -222,13 +222,13 @@ namespace UnityEngine.Experimental.Rendering
 
         public static GPUShadowAlgorithm Pack( ShadowAlgorithm algo, ShadowVariant vari, ShadowPrecision prec )
         {
-            int precshift = ShadowExp.ShadowConstants.Bits.k_ShadowVariant + ShadowExp.ShadowConstants.Bits.k_ShadowAlgorithm;
-            int algoshift = ShadowExp.ShadowConstants.Bits.k_ShadowVariant;
+            int precshift = ShadowConstants.Bits.k_ShadowVariant + ShadowConstants.Bits.k_ShadowAlgorithm;
+            int algoshift = ShadowConstants.Bits.k_ShadowVariant;
             return (GPUShadowAlgorithm) ( (int) prec << precshift | ((int) algo << algoshift) | (int)vari);
         }
-        public static ShadowAlgorithm ExtractAlgorithm( GPUShadowAlgorithm gpuAlgo ) { return (ShadowAlgorithm) ( ShadowExp.ShadowConstants.Masks.k_ShadowAlgorithm & ((int)gpuAlgo >> ShadowExp.ShadowConstants.Bits.k_ShadowVariant) ); }
-        public static ShadowVariant   ExtractVariant(   GPUShadowAlgorithm gpuAlgo ) { return (ShadowVariant  ) ( ShadowExp.ShadowConstants.Masks.k_ShadowVariant   & (int)gpuAlgo                                                     ); }
-        public static ShadowPrecision ExtractPrecision( GPUShadowAlgorithm gpuAlgo ) { return (ShadowPrecision) ( ShadowExp.ShadowConstants.Masks.k_ShadowPrecision & ((int)gpuAlgo >> (ShadowExp.ShadowConstants.Bits.k_ShadowVariant + ShadowExp.ShadowConstants.Bits.k_ShadowAlgorithm)) ); }
+        public static ShadowAlgorithm ExtractAlgorithm( GPUShadowAlgorithm gpuAlgo ) { return (ShadowAlgorithm) ( ShadowConstants.Masks.k_ShadowAlgorithm & ((int)gpuAlgo >> ShadowConstants.Bits.k_ShadowVariant) ); }
+        public static ShadowVariant   ExtractVariant(   GPUShadowAlgorithm gpuAlgo ) { return (ShadowVariant  ) ( ShadowConstants.Masks.k_ShadowVariant   & (int)gpuAlgo                                                     ); }
+        public static ShadowPrecision ExtractPrecision( GPUShadowAlgorithm gpuAlgo ) { return (ShadowPrecision) ( ShadowConstants.Masks.k_ShadowPrecision & ((int)gpuAlgo >> (ShadowConstants.Bits.k_ShadowVariant + ShadowConstants.Bits.k_ShadowAlgorithm)) ); }
         public static void Unpack( GPUShadowAlgorithm gpuAlgo, out ShadowAlgorithm algo, out ShadowVariant vari, out ShadowPrecision prec )
         {
             algo = ExtractAlgorithm( gpuAlgo );

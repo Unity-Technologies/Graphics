@@ -1,4 +1,3 @@
-//#define SHADOWS_OLD
 using UnityEngine.Rendering;
 using System;
 using System.Linq;
@@ -263,13 +262,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_CurrentWidth;
         int m_CurrentHeight;
 
-#if SHADOWS_OLD
-        ShadowRenderPass m_ShadowPass;
-        ShadowOutput m_ShadowsResult = new ShadowOutput();
-        public int GetCurrentShadowCount() { return m_ShadowsResult.shadowLights == null ? 0 : m_ShadowsResult.shadowLights.Length; }
-#else
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
-#endif
 
         readonly SkyManager m_SkyManager = new SkyManager();
         private readonly BaseLightLoop m_LightLoop;
@@ -304,10 +297,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FilterAndCombineSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.One);
 
             InitializeDebugMaterials();
-
-#if SHADOWS_OLD
-            m_ShadowPass = new ShadowRenderPass(owner.shadowSettings);
-#endif
 
             // Init Gbuffer description
             m_gbufferManager.gbufferCount = m_LitRenderLoop.GetMaterialGBufferCount();
@@ -540,11 +529,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!CullResults.GetCullingParameters(camera, out cullingParams))
                 return;
 
-#if SHADOWS_OLD
-            m_ShadowPass.UpdateCullingParameters(ref cullingParams);
-#else
             m_LightLoop.UpdateCullingParameters( ref cullingParams );
-#endif
+
             var cullResults = CullResults.Cull(ref cullingParams, renderContext);
 
             Resize(camera);
@@ -580,23 +566,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-#if SHADOWS_OLD
-                using (new Utilities.ProfilingSample("Shadow Pass", renderContext))
-                {
-                    m_ShadowPass.Render(renderContext, cullResults, out m_ShadowsResult);
-                }
-
-                renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
-#endif
                 if (m_LightLoop != null)
                 {
                     using (new Utilities.ProfilingSample("Build Light list", renderContext))
                     {
-#if SHADOWS_OLD
-                        m_LightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera, ref m_ShadowsResult);
-#else
                         m_LightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera);
-#endif
                         m_LightLoop.RenderShadows(renderContext, cullResults);
                         renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
                         m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT); // TODO: Use async compute here to run light culling during shadow
@@ -994,8 +968,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                 {
-                    uint visualizeShadowIndex = Math.Min(lightingDebug.shadowMapIndex, (uint)(GetCurrentShadowCount() - 1));
 #if SHADOWS_OLD
+                    uint visualizeShadowIndex = Math.Min(lightingDebug.shadowMapIndex, (uint)(GetCurrentShadowCount() - 1));
                     ShadowLight shadowLight = m_ShadowsResult.shadowLights[visualizeShadowIndex];
                     for (int slice = 0; slice < shadowLight.shadowSliceCount; ++slice)
                     {
@@ -1039,15 +1013,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.ExecuteCommandBuffer(debugCB);
         }
 
-#if SHADOWS_OLD
-        // Function to prepare light structure for GPU lighting
-        void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
-        {
-            // build per tile light lists
-            if (m_LightLoop != null)
-                m_LightLoop.PrepareLightsForGPU(shadowSettings, cullResults, camera, ref shadowOutput);
-        }
-#endif
         void InitAndClearBuffer(Camera camera, ScriptableRenderContext renderContext)
         {
             using (new Utilities.ProfilingSample("InitAndClearBuffer", renderContext))

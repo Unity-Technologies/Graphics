@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-
-namespace UnityEngine.Experimental.Rendering
+﻿namespace UnityEngine.Experimental.Rendering
 {
     public enum LightArchetype { Punctual, Area, Projector };
 
@@ -121,13 +118,16 @@ namespace UnityEngine.Experimental.Rendering
     [UnityEditor.CanEditMultipleObjects]
     public class AdditionalLightDataEditor : UnityEditor.Editor
     {
-        static ShadowExp.ShadowRegistry m_ShadowRegistry;
+        static ShadowRegistry m_ShadowRegistry;
 
+#pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
         UnityEditor.SerializedProperty m_ShadowAlgorithm;
         UnityEditor.SerializedProperty m_ShadowVariant;
         UnityEditor.SerializedProperty m_ShadowData;
         UnityEditor.SerializedProperty m_ShadowDatas;
-        public static void SetRegistry( ShadowExp.ShadowRegistry registry ) { m_ShadowRegistry = registry; }
+#pragma warning restore 414
+
+        public static void SetRegistry( ShadowRegistry registry ) { m_ShadowRegistry = registry; }
 
         void OnEnable()
         {
