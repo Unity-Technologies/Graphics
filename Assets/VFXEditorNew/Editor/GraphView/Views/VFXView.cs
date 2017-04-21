@@ -114,6 +114,8 @@ namespace UnityEditor.VFX.UI
                     {Event.KeyboardEvent("#d"), OutputToDot},
                 }));
 
+            Undo.undoRedoPerformed += () => Resync();
+
             var bg = new GridBackground() { name = "VFXBackgroundGrid" };
             InsertChild(0, bg);
 

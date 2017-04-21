@@ -253,5 +253,42 @@ namespace UnityEditor.VFX.Test
             DestroyTestAsset();
         }
 
+        [Test]
+        public void UndoRedoOperatorSettings()
+        {
+            CreateTestAsset();
+
+            Func<IVFXSlotContainer, VFXNodePresenter> fnFindPresenter = delegate (IVFXSlotContainer slotContainer)
+            {
+                var allPresenter = m_ViewPresenter.allChildren.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>();
+                return allPresenter.FirstOrDefault(o => o.slotContainer == slotContainer);
+            };
+
+            var componentMaskDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "ComponentMask");
+            var componentMask = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), componentMaskDesc);
+            var componentMaskPresenter = fnFindPresenter(componentMask) as VFXOperatorPresenter;
+
+            var maskList = new string[] { "xy", "yww", "xw", "z" };
+            for (int i=0; i<maskList.Length; ++i)
+            {
+                Undo.IncrementCurrentGroup();
+                componentMaskPresenter.settings = new VFXOperatorComponentMask.Settings() { mask = maskList[i] };
+                Assert.AreEqual(maskList[i], (componentMaskPresenter.settings as VFXOperatorComponentMask.Settings).mask);
+            }
+
+            for (int i=maskList.Length-1; i > 0; --i)
+            {
+                Undo.PerformUndo();
+                Assert.AreEqual(maskList[i-1], (componentMaskPresenter.settings as VFXOperatorComponentMask.Settings).mask);
+            }
+
+            var final = "xyzw";
+            //Can cause infinite loop if value is wrongly tested
+            componentMaskPresenter.settings = new VFXOperatorComponentMask.Settings() { mask = final };
+            Assert.AreEqual(final, (componentMaskPresenter.settings as VFXOperatorComponentMask.Settings).mask);
+
+            DestroyTestAsset();
+        }
+
     }
 }

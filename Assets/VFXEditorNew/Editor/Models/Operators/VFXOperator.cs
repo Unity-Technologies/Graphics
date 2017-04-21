@@ -43,8 +43,10 @@ namespace UnityEditor.VFX
             {
                 if (m_SettingsBuffer != null)
                 {
-                    m_SettingsBuffer.Set(value);
-                    UpdateOutputs(); // TODOPAUL: (Julien) This should be handled in a more generic way: Handle settings change via virtual dispatch as behaviour depends on operator
+                    if (m_SettingsBuffer.Set(value))
+                    {
+                        UpdateOutputs(); // TODOPAUL: (Julien) This should be handled in a more generic way: Handle settings change via virtual dispatch as behaviour depends on operator
+                    }
                 }
             }
         }
@@ -131,6 +133,32 @@ namespace UnityEditor.VFX
         protected void SetOuputSlotFromExpression(IEnumerable<VFXExpression> outputExpression)
         {
             var outputExpressionArray = outputExpression.ToArray();
+            if (outputExpressionQueue.Count > 0)
+            {
+                //TODOPAUL : Is it an hotfix ?
+                var current = outputExpressionQueue.First();
+                if (current.Length == outputExpressionArray.Length)
+                {
+                    bool sequenceEqual = true;
+                    for (int i = 0; i < current.Length; ++i)
+                    {
+                        var left = current[i];
+                        var right = outputExpressionArray[i];
+                        if (!left.Equals(right))
+                        {
+                            sequenceEqual = false;
+                            break;
+                        }
+                    }
+
+                    if (sequenceEqual)
+                    {
+                        //Adding twice the same outputExpressionArray (can happen due to a call to GetExpression from Reset in presenter)
+                        return;
+                    }
+                }
+            }
+
             outputExpressionQueue.Enqueue(outputExpressionArray);
             
             if (outputExpressionQueue.Count > 1)

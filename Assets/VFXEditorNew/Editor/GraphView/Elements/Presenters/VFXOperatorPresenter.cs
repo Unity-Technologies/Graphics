@@ -13,9 +13,21 @@ namespace UnityEditor.VFX.UI
 
         [SerializeField]
         private object m_settings;
-        public object settings { get { return m_settings; } set { m_settings = value; m_dirtyHack++; } }
+        public object settings
+        {
+            get
+            {
+                return Operator.settings;
+            }
+            set
+            {
+                Undo.RecordObject(Operator, "Settings");
+                Operator.settings = value;
+                m_dirtyHack++;
+            }
+        }
 
-        public VFXOperator Operator
+        private VFXOperator Operator
         {
             get
             {
@@ -39,7 +51,6 @@ namespace UnityEditor.VFX.UI
         {
             if (Operator != null)
             {
-                settings = Operator.settings;
                 title = node.name + " " + node.m_OnEnabledCount;
             }
             base.Reset();

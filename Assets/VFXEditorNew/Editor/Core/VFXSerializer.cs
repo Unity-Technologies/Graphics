@@ -68,15 +68,14 @@ namespace UnityEditor.VFX
             return (T)Get();
         }
 
-        public void Set(object obj)
+        public bool Set(object obj)
         {
-            if (obj == null)
-                m_SerializableObject = string.Empty;
-            else
+            var newValue = string.Empty;
+            if (obj != null)
             {
-
                 Type type = m_Type;
                 if (!type.IsAssignableFrom(obj.GetType()))
+                {
                     if (type == typeof(FloatN))
                     {
                         obj = System.Activator.CreateInstance(typeof(FloatN), obj);
@@ -85,9 +84,16 @@ namespace UnityEditor.VFX
                     {
                         throw new ArgumentException(string.Format("Cannot assing an object of type {0} to VFXSerializedObject of type {1}", obj.GetType(), (Type)m_Type));
                     }
-
-                m_SerializableObject = VFXSerializer.Save(obj);
+                }
+                newValue = VFXSerializer.Save(obj);
             }
+            
+            if (m_SerializableObject != newValue)
+            {
+                m_SerializableObject = newValue;
+                return true;
+            }
+            return false;
         }
 
         [SerializeField]

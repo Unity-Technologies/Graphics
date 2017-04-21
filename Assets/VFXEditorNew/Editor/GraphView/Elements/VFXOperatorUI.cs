@@ -53,7 +53,6 @@ namespace UnityEditor.VFX.UI
 
             presenter.node.position = presenter.position.position;
             presenter.node.collapsed = !presenter.expanded;
-            presenter.Operator.settings = presenter.settings;
 
             if (presenter.settings == null)
             {

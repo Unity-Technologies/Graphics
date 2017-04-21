@@ -130,15 +130,15 @@ namespace UnityEditor.VFX.UI
         }
 
         public void ExpandPath()
-        {//TODO undo/redo
-
+        {
+            Undo.RecordObject(model, "Expand path");
             model.expanded = true;
             model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         public void RetractPath()
-        {//TODO undo/redo
-
+        {
+            Undo.RecordObject(model, "Retract path");
             model.expanded = false;
             model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
