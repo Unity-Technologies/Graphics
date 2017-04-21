@@ -54,12 +54,11 @@ float PolygonIrradiance(float4x3 L, bool twoSided)
         F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
     }
 
-    float f = length(F);
-
-    float sinSqSigma = f;
+    float f2         = dot(F, F);
+    float sinSqSigma = sqrt(f2);
     float sinSigma   = sqrt(sinSqSigma);
-    float cosOmega   = F.z / f;
-    float cosSigma   = sqrt(1 - sinSigma * sinSigma);
+    float cosOmega   = F.z * rsqrt(f2);
+    float cosSigma   = sqrt(1 - sinSqSigma);
     float sinOmega   = sqrt(1 - cosOmega * cosOmega);
     float sinGamma   = cosSigma / sinOmega;
     float cosSqGamma = 1 - sinGamma * sinGamma;
