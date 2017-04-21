@@ -12,7 +12,7 @@ Pass {
 	Name "DEFERRED_REFLECTIONS"
 
     ZWrite Off
-    Blend SrcAlpha OneMinusSrcAlpha
+    Blend DstAlpha One, DstAlpha Zero
 
 CGPROGRAM
 #pragma target 4.5
@@ -140,7 +140,8 @@ half4 frag (unity_v2f_deferred i) : SV_TARGET
     half3 distance = distanceFromAABB(worldPos, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
     half falloff = saturate(1.0 - length(distance)/blendDistance);
 
-    return half4(rgb, falloff);
+    // UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. TODO: Should preclear emission alpha after gbuffer pass in case this ever changes
+    return half4(rgb*falloff, 1-falloff);
 }
 
 ENDCG
@@ -153,7 +154,8 @@ Pass {
     ZWrite Off
     Cull Off
     ZTest Always
-    Blend SrcAlpha OneMinusSrcAlpha
+    Blend DstAlpha One, DstAlpha Zero
+
 CGPROGRAM
 #pragma target 4.5
 #pragma vertex filip_vert_deferred
@@ -212,8 +214,6 @@ void frag (unity_v2f_deferred i,
 half4 frag (unity_v2f_deferred i) : SV_TARGET
 #endif
 {
-	//return half4(1.0, 0.0, 0.0, 1.0);
-
     // Stripped from UnityDeferredCalculateLightParams, refactor into function ?
     i.ray = i.ray * (_ProjectionParams.z / i.ray.z);
     float2 uv = i.uv.xy / i.uv.w;
@@ -280,7 +280,10 @@ half4 frag (unity_v2f_deferred i) : SV_TARGET
     half3 distance = distanceFromAABB(worldPos, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
     half falloff = saturate(1.0 - length(distance)/blendDistance);
 
-    return half4(rgb, 1.0); //falloff);
+    // UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. TODO: Should preclear emission alpha after gbuffer pass in case this ever changes
+    //return half4(rgb, 1);
+    return half4(rgb*falloff, 1-falloff);
+
 }
 
 ENDCG
