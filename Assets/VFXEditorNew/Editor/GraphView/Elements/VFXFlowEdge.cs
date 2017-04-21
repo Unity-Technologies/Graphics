@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return -1;
+                return 1;
             }
         }
 

@@ -41,7 +41,7 @@ VFXBlockUI.node
 	border-color:#363636;
 }
 VFXBlockUI.node.horizontal #left > #title > Label {
-	text-color: #FFFFFF;
+	text-color: #c4c4c4;
 	font-style: bold;
 	text-alignment: middle-left;
 	flex: 1;
