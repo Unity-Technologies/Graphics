@@ -1,11 +1,11 @@
-﻿//
-// This file was automatically generated from Assets/ScriptableRenderPipeline/HDRenderPipeline/Shadow/ShadowBase.cs.  Please don't edit by hand.
+//
+// This file was automatically generated from Assets/ScriptableRenderPipeline/common/Shadow/ShadowBase.cs.  Please don't edit by hand.
 //
 
 #ifndef SHADOWBASE_CS_HLSL
 #define SHADOWBASE_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.GPUShadowType:  static fields
+// UnityEngine.Experimental.Rendering.GPUShadowType:  static fields
 //
 #define GPUSHADOWTYPE_POINT (0)
 #define GPUSHADOWTYPE_SPOT (1)
@@ -15,7 +15,7 @@
 #define GPUSHADOWTYPE_ALL (3)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.GPUShadowAlgorithm:  static fields
+// UnityEngine.Experimental.Rendering.GPUShadowAlgorithm:  static fields
 //
 #define GPUSHADOWALGORITHM_PCF_1TAP (0)
 #define GPUSHADOWALGORITHM_PCF_9TAP (1)
@@ -29,22 +29,22 @@
 #define GPUSHADOWALGORITHM_MSM_HAUS (25)
 #define GPUSHADOWALGORITHM_CUSTOM (256)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.ShadowExp.ShadowData
+// Generated from UnityEngine.Experimental.Rendering.ShadowData
 // PackingRules = Exact
 struct ShadowData
 {
-	float4x4 worldToShadow;
-	float4 scaleOffset;
-	float4 texelSizeRcp;
-	uint id;
-	uint shadowType;
-	uint payloadOffset;
-	float bias;
-	float normalBias;
+    float4x4 worldToShadow;
+    float4 scaleOffset;
+    float4 texelSizeRcp;
+    uint id;
+    uint shadowType;
+    uint payloadOffset;
+    float bias;
+    float normalBias;
 };
 
 //
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.ShadowExp.ShadowData
+// Accessors for UnityEngine.Experimental.Rendering.ShadowData
 //
 float4x4 GetWorldToShadow(ShadowData value)
 {

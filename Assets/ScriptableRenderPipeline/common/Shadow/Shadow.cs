@@ -4,10 +4,6 @@ using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    // temporary namespace
-    namespace ShadowExp
-    {
-
     using ShadowRequestVector = VectorArray<ShadowmapBase.ShadowRequest>;
     using ShadowDataVector    = VectorArray<ShadowData>;
     using ShadowPayloadVector = VectorArray<ShadowPayload>;
@@ -1257,6 +1253,4 @@ namespace UnityEngine.Experimental.Rendering
             return total > 0 ? (uint) total : 0;
         }
     }
-
-    } // end of temporary namespace ShadowExp
 } // end of namespace UnityEngine.Experimental.ScriptableRenderLoop

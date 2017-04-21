@@ -15,13 +15,7 @@
 //
 
 
-#define SHADOWS_USE_SHADOWCTXT
-
-#ifdef  SHADOWS_USE_SHADOWCTXT
 #define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0 // only on >= sm 5.1
-
-// TODO: Remove this once we've moved over to the new system. Also delete the undef at the bottom again.
-#define ShadowData ShadowDataExp
 
 #include "../../common/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
 #include "ShadowTexFetch.hlsl"						// Resource sampling definitions (don't modify)
@@ -135,9 +129,5 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 	return GetDirectionalShadowAttenuationDefault( shadowContext, positionWS, normalWS, shadowDataIndex, L, unPositionSS );
 }
 #endif
-
-#undef ShadowData // TODO: Remove this once we've moved over to the new system. Also delete the define at the top again.
-
-#endif // SHADOWS_USE_SHADOWCTXT
 
 #endif // SHADOW_HLSL
