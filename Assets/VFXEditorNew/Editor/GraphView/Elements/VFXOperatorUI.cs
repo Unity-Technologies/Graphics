@@ -51,9 +51,7 @@ namespace UnityEditor.VFX.UI
             if (presenter == null || presenter.node == null)
                 return;
 
-            presenter.node.position = presenter.position.position;
             presenter.node.collapsed = !presenter.expanded;
-
             if (presenter.settings == null)
             {
                 m_Settings.visible = false;
