@@ -33,6 +33,26 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override bool expanded
+        {
+            //TODOPAUL : Share this behavior with contextPresenter
+            get
+            {
+                return base.expanded;
+            }
+
+            set
+            {
+                base.expanded = value;
+                var newCollapsed = !expanded;
+                if (newCollapsed != node.collapsed)
+                {
+                    Undo.RecordObject(node, "Collapse");
+                    node.collapsed = newCollapsed;
+                }
+            }
+        }
+
         public override IVFXSlotContainer slotContainer { get { return m_Node; } }
 
         public VFXSlotContainerModel<VFXModel, VFXModel> node { get { return m_Node; } }
