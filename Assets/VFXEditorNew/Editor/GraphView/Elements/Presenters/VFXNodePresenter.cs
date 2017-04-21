@@ -14,6 +14,25 @@ namespace UnityEditor.VFX.UI
         [SerializeField]
         private VFXSlotContainerModel<VFXModel, VFXModel> m_Node;
 
+        public override Rect position
+        {
+            get
+            {
+                return base.position;
+            }
+
+            set
+            {
+                base.position = value;
+                var newPos = base.position.position;
+                if (node.position != newPos)
+                {
+                    Undo.RecordObject(node, "Position");
+                    node.position = base.position.position;
+                }
+            }
+        }
+
         public override IVFXSlotContainer slotContainer { get { return m_Node; } }
 
         public VFXSlotContainerModel<VFXModel, VFXModel> node { get { return m_Node; } }
