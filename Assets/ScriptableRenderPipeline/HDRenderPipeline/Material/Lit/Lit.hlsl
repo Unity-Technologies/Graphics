@@ -93,23 +93,23 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
 
 void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 {
-#ifdef LIGHTING_DEBUG
-    int lightDebugMode = (int)_DebugLightModeAndAlbedo.x;
-    float3 lightDebugAlbedo = _DebugLightModeAndAlbedo.yzw;
-    bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0f;
-    float overrideSmoothnessValue = _DebugLightingSmoothness.y;
-
-    if (overrideSmoothness)
+#ifdef DEBUG_DISPLAY
+    if (_DebugDisplayMode == DEBUGDISPLAYMODE_SPECULAR_LIGHTING)
     {
-        bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(overrideSmoothnessValue);
-        bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+        bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
+        float overrideSmoothnessValue = _DebugLightingSmoothness.y;
+
+        if (overrideSmoothness)
+        {
+            bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(overrideSmoothnessValue);
+            bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+        }
     }
 
-    if (lightDebugMode == LIGHTINGDEBUGMODE_DIFFUSE_LIGHTING)
+    if (_DebugDisplayMode == DEBUGDISPLAYMODE_DIFFUSE_LIGHTING)
     {
-        bsdfData.diffuseColor = lightDebugAlbedo;
+        bsdfData.diffuseColor = _DebugLightingAlbedo.xyz;
     }
-
 #endif
 }
 
