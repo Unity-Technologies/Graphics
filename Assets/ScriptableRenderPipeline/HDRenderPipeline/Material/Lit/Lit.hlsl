@@ -1286,8 +1286,7 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
         float3 L = normalize(unL);
 
         // Cosine of the angle between the light direction and the normal of the light's surface.
-        float cosLNs = dot(-L, Ns);
-        cosLNs = lightData.twoSided ? abs(cosLNs) : saturate(cosLNs);
+        float cosLNs = saturate(dot(-L, Ns));
 
         // We calculate area reference light with the area integral rather than the solid angle one.
         float illuminance = cosLNs * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
@@ -1377,11 +1376,9 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     // Evaluate the diffuse part.
     {
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
-                               k_identity3x3);
+        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, k_identity3x3);
     #else
-        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
-                               preLightData.ltcXformDisneyDiffuse);
+        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, preLightData.ltcXformDisneyDiffuse);
     #endif
 
         if (ltcValue == 0.0)
@@ -1405,8 +1402,7 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
         float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
                            + (float3)preLightData.ltcGGXFresnelMagnitude;
 
-        ltcValue  = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
-                                preLightData.ltcXformGGX);
+        ltcValue  = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, preLightData.ltcXformGGX);
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }

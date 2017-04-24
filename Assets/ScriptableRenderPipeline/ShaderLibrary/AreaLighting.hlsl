@@ -86,13 +86,13 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
         }
     }
 
-    return irradiance;
+    return max(irradiance, 0.0);
 }
 
 // Expects non-normalized vertex positions.
-float PolygonIrradiance(float4x3 L, bool twoSided)
+float PolygonIrradiance(float4x3 L)
 {
-#ifdef SPHERE_APPROX
+#ifdef SPHERE_LIGHT_APPROXIMATION
     for (int i = 0; i < 4; i++)
     {
         L[i] = normalize(L[i]);
@@ -111,9 +111,8 @@ float PolygonIrradiance(float4x3 L, bool twoSided)
     float f2         = saturate(dot(F, F));
     float sinSqSigma = sqrt(f2);
     float cosOmega   = F.z * rsqrt(f2);
-    float irradiance = DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
 
-    return twoSided ? abs(irradiance) : max(irradiance, 0.0);
+    return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
 #else
     // 1. ClipQuadToHorizon
 
@@ -259,14 +258,14 @@ float PolygonIrradiance(float4x3 L, bool twoSided)
 
     sum *= INV_TWO_PI; // Normalization
 
-    sum = twoSided ? abs(sum) : max(sum, 0.0);
+    sum = max(sum, 0.0);
 
     return isfinite(sum) ? sum : 0.0;
 #endif
 }
 
 // For polygonal lights.
-float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, float3x3 invM)
+float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, float3x3 invM)
 {
     // Construct a view-dependent orthonormal basis around N.
     // TODO: it could be stored in PreLightData, since all LTC lights compute it more than once.
@@ -280,7 +279,7 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
     L = mul(L, invM);
 
     // Polygon irradiance in the transformed configuration
-    return PolygonIrradiance(L, twoSided);
+    return PolygonIrradiance(L);
 }
 
 float LineFpo(float tLDDL, float lrcpD, float rcpD)
