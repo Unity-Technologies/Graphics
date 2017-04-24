@@ -286,6 +286,11 @@ namespace UnityEngine.Experimental.Rendering
 
         public int FetchSlice(Texture texture)
         {
+            var sliceIndex = -1;
+
+            if (texture == null)
+                return sliceIndex;
+
             var texId = (uint)texture.GetInstanceID();
 
             //assert(TexID!=g_InvalidTexID);
@@ -293,7 +298,6 @@ namespace UnityEngine.Experimental.Rendering
 
             var bSwapSlice = false;
             var bFoundAvailOrExistingSlice = false;
-            var sliceIndex = -1;
 
             // search for existing copy
             if (m_LocatorInSliceArray.ContainsKey(texId))
