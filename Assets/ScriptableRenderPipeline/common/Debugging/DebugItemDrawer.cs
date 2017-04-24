@@ -36,6 +36,27 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        void DrawIntItem()
+        {
+            EditorGUI.BeginChangeCheck();
+            int value = EditorGUILayout.IntField(m_MenuItem.name, (int)m_MenuItem.GetValue());
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_MenuItem.SetValue(value);
+            }
+        }
+
+        void DrawUIntItem()
+        {
+            EditorGUI.BeginChangeCheck();
+            int value = EditorGUILayout.IntField(m_MenuItem.name, (int)(uint)m_MenuItem.GetValue());
+            if (EditorGUI.EndChangeCheck())
+            {
+                value = System.Math.Max(0, value);
+                m_MenuItem.SetValue((uint)value);
+            }
+        }
+
         void DrawFloatItem()
         {
             EditorGUI.BeginChangeCheck();
@@ -51,6 +72,14 @@ namespace UnityEngine.Experimental.Rendering
             if (m_MenuItem.GetItemType() == typeof(bool))
             {
                 DrawBoolItem();
+            }
+            else if (m_MenuItem.GetItemType() == typeof(int))
+            {
+                DrawIntItem();
+            }
+            else if(m_MenuItem.GetItemType() == typeof(uint))
+            {
+                DrawUIntItem();
             }
             else if (m_MenuItem.GetItemType() == typeof(float))
             {

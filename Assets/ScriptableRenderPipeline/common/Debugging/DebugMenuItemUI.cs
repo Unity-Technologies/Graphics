@@ -193,4 +193,135 @@ namespace UnityEngine.Experimental.Rendering
             UpdateText();            
         }
     }
+
+    // Everything is done with int. We don't really care about values > 2b for debugging.
+    public class DebugMenuIntegerItemUI : DebugMenuSimpleItemUI
+    {
+        bool m_SelectIncrementMode = false;
+        int m_CurrentIncrementIndex = 0;
+
+        public DebugMenuIntegerItemUI(GameObject parent, DebugMenuItem menuItem)
+            : base(parent, menuItem)
+        {
+        }
+
+        protected void UpdateText(int value)
+        {
+            bool isNegative = value < 0f;
+            // Easier to format the string without caring about the '-' sign. We add it back at the end
+            value = System.Math.Abs(value);
+
+            string finalValue = string.Format("{0}", value);
+
+            // Add leading zeros until we reach where the current order is being edited.
+            if(m_CurrentIncrementIndex > 0)
+            {
+                int incrementValue = (int)System.Math.Pow(10, m_CurrentIncrementIndex);
+                if(incrementValue > value)
+                {
+                    int compareValue = System.Math.Max(value, 1);
+                    while (incrementValue > compareValue)
+                    {
+                        finalValue = finalValue.Insert(0, "0");
+                        compareValue *= 10;
+                    }
+                }
+            }
+
+            // When selecting which decimal/order you want to edit, we show brackets around the figure to show the user.
+            if(m_SelectIncrementMode)
+            {
+                int bracketIndex = finalValue.Length - 1 - m_CurrentIncrementIndex;
+
+                finalValue = finalValue.Insert(bracketIndex, "[");
+                finalValue = finalValue.Insert(bracketIndex + 2, "]");
+            }
+
+            if(isNegative)
+                finalValue = finalValue.Insert(0, "-");
+
+            m_Value.GetComponent<UI.Text>().text = finalValue;
+        }
+
+        protected virtual int GetIntegerValue()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        protected virtual void SetIntegerValue(int value)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void OnValidate()
+        {
+            m_SelectIncrementMode = !m_SelectIncrementMode;
+            UpdateText(GetIntegerValue());
+        }
+
+        public override void OnIncrement()
+        {
+            if (!m_SelectIncrementMode)
+            {
+                SetIntegerValue(GetIntegerValue() + (int)Mathf.Pow(10.0f, (float)m_CurrentIncrementIndex));
+            }
+            else
+            {
+                m_CurrentIncrementIndex -= 1; // *= 0.1 (10^m_CurrentIncrementIndex)
+                m_CurrentIncrementIndex = System.Math.Max(0, m_CurrentIncrementIndex);
+            }
+            UpdateText(GetIntegerValue());
+        }
+
+        public override void OnDecrement()
+        {
+            if (!m_SelectIncrementMode)
+            {
+                SetIntegerValue(GetIntegerValue() - (int)Mathf.Pow(10.0f, (float)m_CurrentIncrementIndex));
+            }
+            else
+            {
+                m_CurrentIncrementIndex += 1; // *= 10 (10^m_CurrentIncrementIndex)
+                m_CurrentIncrementIndex = System.Math.Max(0, m_CurrentIncrementIndex);
+            }
+            UpdateText(GetIntegerValue());
+        }
+    }
+    public class DebugMenuIntItemUI : DebugMenuIntegerItemUI
+    {
+        public DebugMenuIntItemUI(GameObject parent, DebugMenuItem menuItem)
+            : base(parent, menuItem)
+        {
+            UpdateText((int)m_MenuItem.GetValue());
+        }
+
+        protected override int GetIntegerValue()
+        {
+            return (int)m_MenuItem.GetValue();
+        }
+
+        protected override void SetIntegerValue(int value)
+        {
+            m_MenuItem.SetValue(value);
+        }
+    }
+
+    public class DebugMenuUIntItemUI : DebugMenuIntegerItemUI
+    {
+        public DebugMenuUIntItemUI(GameObject parent, DebugMenuItem menuItem)
+            : base(parent, menuItem)
+        {
+            UpdateText((int)(uint)m_MenuItem.GetValue());
+        }
+
+        protected override int GetIntegerValue()
+        {
+            return (int)(uint)m_MenuItem.GetValue();
+        }
+
+        protected override void SetIntegerValue(int value)
+        {
+            m_MenuItem.SetValue((uint)System.Math.Max(0, value));
+        }
+    }
 }
