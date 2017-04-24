@@ -1329,15 +1329,22 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
 
-    // TODO: This could be precomputed.
-    float halfWidth  = lightData.size.x * 0.5;
-    float halfHeight = lightData.size.y * 0.5;
-
     float3 unL = lightData.positionWS - positionWS;
+
+    [branch]
+    if (dot(lightData.forward, unL) >= 0)
+    {
+        // The light is back-facing.
+        return;
+    }
 
     // Rotate the light direction into the light space.
     float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
     unL = mul(unL, transpose(lightToWorld));
+
+    // TODO: This could be precomputed.
+    float halfWidth  = lightData.size.x * 0.5;
+    float halfHeight = lightData.size.y * 0.5;
 
     // Define the dimensions of the attenuation volume.
     // TODO: This could be precomputed.
