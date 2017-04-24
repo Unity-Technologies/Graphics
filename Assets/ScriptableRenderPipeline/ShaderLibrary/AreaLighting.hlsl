@@ -1,7 +1,7 @@
 #ifndef UNITY_AREA_LIGHTING_INCLUDED
 #define UNITY_AREA_LIGHTING_INCLUDED
 
-// #define SPHERE_APPROX
+#define SPHERE_LIGHT_APPROXIMATION
 
 // Not normalized by the factor of 1/TWO_PI.
 float3 ComputeEdgeFactor(float3 V1, float3 V2)
@@ -45,9 +45,10 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     float cosSqSigma = saturate(1 - sinSqSigma);
     float sinSqGamma = saturate(cosSqSigma / sinSqOmega);
     float cosSqGamma = saturate(1 - sinSqGamma);
-    float sinSigma   = sqrt(sinSqSigma);
-    float sinGamma   = sqrt(sinSqGamma);
-    float cosGamma   = sqrt(cosSqGamma);
+
+    float sinSigma = sqrt(sinSqSigma);
+    float sinGamma = sqrt(sinSqGamma);
+    float cosGamma = sqrt(cosSqGamma);
 
     float sigma = asin(sinSigma);
     float omega = acos(cosOmega);
