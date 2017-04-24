@@ -89,7 +89,11 @@ namespace UnityEngine.Experimental.Rendering
             float       ValScale;
 
             public ValRange( string name, float valMin, float valDef, float valMax, float valScale ) { Name = new GUIContent( name ); ValMin = valMin; ValDef = valDef; ValMax = valMax; ValScale = valScale; }
+#if UNITY_EDITOR
             public void Slider( ref int currentVal ) { currentVal = ShadowUtils.Asint( ValScale * UnityEditor.EditorGUILayout.Slider( Name, ShadowUtils.Asfloat( currentVal ) / ValScale, ValMin, ValMax ) ); }
+#else
+            public void Slider( ref int currentVal ) {}
+#endif
             public int Default() { return ShadowUtils.Asint( ValScale * ValDef ); }
         }
         readonly ValRange m_DefPCF_DepthBias = new ValRange( "Depth Bias", 0.0f, 0.05f, 1.0f, 000.1f );
@@ -668,9 +672,11 @@ namespace UnityEngine.Experimental.Rendering
 
         private void BlurSlider( ref int currentVal )
         {
+#if UNITY_EDITOR
             currentVal = k_BlurKernelMinSize + currentVal * 2;
             currentVal = (int) Math.Round( UnityEditor.EditorGUILayout.Slider( "Blur Size", currentVal, k_BlurKernelMinSize, k_BlurKernelMaxSize ) );
             currentVal = (currentVal - k_BlurKernelMinSize) / 2;
+#endif
         }
 
         override protected void Register( GPUShadowType type, ShadowRegistry registry )
@@ -1030,8 +1036,10 @@ namespace UnityEngine.Experimental.Rendering
             m_MaxShadows[(int)GPUShadowType.Spot       ,0] = m_MaxShadows[(int)GPUShadowType.Spot         ,1] = 8;
             m_MaxShadows[(int)GPUShadowType.Directional,0] = m_MaxShadows[(int)GPUShadowType.Directional  ,1] = 2;
 
+#if UNITY_EDITOR
             // and register itself
             AdditionalLightDataEditor.SetRegistry( this );
+#endif
         }
 
         public override void UpdateCullingParameters( ref CullingParameters cullingParams )

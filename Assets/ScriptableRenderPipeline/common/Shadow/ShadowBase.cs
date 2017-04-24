@@ -274,6 +274,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void DrawWidgets(  Light l, GPUShadowType shadowType, ShadowAlgorithm shadowAlgorithm, ShadowVariant shadowVariant, ShadowPrecision shadowPrecision, bool globalOverride )
         {
+#if UNITY_EDITOR
             var          dict           = m_Entries[(int)shadowType];
             int[]        algoOptions    = new int[dict.Count];
             GUIContent[] algoDescs      = new GUIContent[dict.Count];
@@ -351,6 +352,7 @@ namespace UnityEngine.Experimental.Rendering
             ald.SetShadowAlgorithm( (int) shadowAlgorithm, (int) shadowVariant, (int) shadowPrecision, (int) packedAlgo, shadowData );
 
             UnityEditor.EditorGUI.indentLevel--;
+#endif
         }
 
         public void SetGlobalShadowOverride( GPUShadowType shadowType, ShadowAlgorithm shadowAlgorithm, ShadowVariant shadowVariant, ShadowPrecision shadowPrecision, bool enable )
