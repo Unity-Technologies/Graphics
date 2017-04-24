@@ -20,7 +20,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RegisterDebug()
         {
             DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, bool>("Enable Shadows", () => lightingDebugSettings.enableShadows, (value) => lightingDebugSettings.enableShadows = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, int>("Shadow Map Index", () => lightingDebugSettings.shadowMapIndex, (value) => lightingDebugSettings.shadowMapIndex = (uint)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, ShadowMapDebugMode>("Shadow Debug Mode", () => lightingDebugSettings.shadowDebugMode, (value) => lightingDebugSettings.shadowDebugMode = (ShadowMapDebugMode)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, uint>("Shadow Map Index", () => lightingDebugSettings.shadowMapIndex, (value) => lightingDebugSettings.shadowMapIndex = (uint)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, LightingDebugMode>("Lighting Debug Mode", () => lightingDebugSettings.lightingDebugMode, (value) => lightingDebugSettings.lightingDebugMode = (LightingDebugMode)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, bool>("Override Smoothness", () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, float>("Override Smoothness Value", () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, new DebugItemDrawFloatMinMax(0.0f, 1.0f));
             DebugMenuManager.instance.AddDebugItem<bool>("Lighting", "Display Sky Reflection", () => lightingDebugSettings.displaySkyReflection, (value) => lightingDebugSettings.displaySkyReflection = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, float>("Sky Reflection Mipmap", () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value, new DebugItemDrawFloatMinMax(0.0f, 1.0f));
 
