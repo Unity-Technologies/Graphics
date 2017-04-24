@@ -50,8 +50,10 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
 // SSS parameters
-#define SSS_N_PROFILES 8
+#define SSS_N_PROFILES      8
 #define SSS_UNIT_CONVERSION (1.0 / 300.0)                  // From 1/3 centimeters to meters
+#define SSS_LOW_THICKNESS   0.005                          // 5 mm
+
 uint   _EnableSSS;                                         // Globally toggles subsurface scattering on/off
 uint   _TransmissionFlags;                                 // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
 uint   _TexturingModeFlags;                                // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
@@ -729,15 +731,15 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
     float4 cookie    = float4(1.0, 1.0, 1.0, 1.0);
+    float  shadow    = 1;
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
 #ifdef SHADOWS_USE_SHADOWCTXT
-        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+        shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
-        float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+        shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #endif
-
         illuminance *= shadow;
     }
 
@@ -781,11 +783,11 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Reverse the normal.
-        illuminance = saturate(dot(-bsdfData.normalWS, L));
-        // Apply the cookie. Do not apply shadows.
-        illuminance *= cookie.a;
+        illuminance  = saturate(dot(-bsdfData.normalWS, L));
+        shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
+        illuminance *= shadow * cookie.a;
 
-        // The difference between the Disney Diffuse and the Lambertian BRDF for transmittance is negligible.
+        // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
         float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
         float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
@@ -822,6 +824,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
     float4 cookie    = float4(1.0, 1.0, 1.0, 1.0);
+    float  shadow    = 1;
 
     // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
@@ -836,9 +839,9 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
 #ifdef SHADOWS_USE_SHADOWCTXT
-        float shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
-        float shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext, lightData.lightType, positionWS + offset, lightData.shadowIndex, L, posInput.unPositionSS);
 #endif
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 
@@ -886,11 +889,11 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Reverse the normal.
-        illuminance = saturate(dot(-bsdfData.normalWS, L)) * attenuation;
-        // Apply the cookie. Do not apply shadows.
-        illuminance *= cookie.a;
+        illuminance  = saturate(dot(-bsdfData.normalWS, L)) * attenuation;
+        shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
+        illuminance *= shadow * cookie.a;
 
-        // The difference between the Disney Diffuse and the Lambertian BRDF for transmittance is negligible.
+        // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
         float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
         float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
@@ -938,15 +941,15 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
     float4 cookie    = float4(1.0, 1.0, 1.0, 1.0);
+    float shadow = 1;
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
 #ifdef SHADOWS_USE_SHADOWCTXT
-        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+        shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #else
-        float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
+        shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
 #endif
-
         illuminance *= shadow;
     }
 
@@ -971,11 +974,11 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Reverse the normal.
-        illuminance = saturate(dot(-bsdfData.normalWS, L) * clipFactor);
-        // Apply the cookie. Do not apply shadows.
-        illuminance *= cookie.a;
+        illuminance  = saturate(dot(-bsdfData.normalWS, L) * clipFactor);
+        shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
+        illuminance *= shadow * cookie.a;
 
-        // The difference between the Disney Diffuse and the Lambertian BRDF for transmittance is negligible.
+        // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
         float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
         float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
