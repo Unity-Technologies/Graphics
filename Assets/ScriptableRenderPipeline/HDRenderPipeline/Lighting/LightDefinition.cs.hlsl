@@ -50,9 +50,9 @@ struct LightData
     int shadowIndex;
     int IESIndex;
     int cookieIndex;
-    int lightType;
     float2 size;
-    bool twoSided;
+    int lightType;
+    float unused;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.DirectionalLightData
@@ -164,17 +164,17 @@ int GetCookieIndex(LightData value)
 {
 	return value.cookieIndex;
 }
-int GetLightType(LightData value)
-{
-	return value.lightType;
-}
 float2 GetSize(LightData value)
 {
 	return value.size;
 }
-bool GetTwoSided(LightData value)
+int GetLightType(LightData value)
 {
-	return value.twoSided;
+	return value.lightType;
+}
+float GetUnused(LightData value)
+{
+	return value.unused;
 }
 
 //
