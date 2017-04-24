@@ -13,6 +13,11 @@ namespace UnityEngine.Experimental.Rendering
     {
         protected DebugMenuItem m_MenuItem = null;
 
+        // Label for simple GUI items
+        GUIContent m_Label;
+        List<GUIContent> m_EnumStrings = null;
+        List<int> m_EnumValues = null;
+
         public DebugItemDrawer()
         {
         }
@@ -20,16 +25,56 @@ namespace UnityEngine.Experimental.Rendering
         public void SetDebugItem(DebugMenuItem item)
         {
             m_MenuItem = item;
+
+            m_Label = new GUIContent(m_MenuItem.name);
+            Type itemType = m_MenuItem.GetItemType();
+            if(itemType.BaseType == typeof(System.Enum))
+            {
+                Array arr = Enum.GetValues(itemType);
+                m_EnumStrings = new List<GUIContent>(arr.Length);
+                m_EnumValues = new List<int>(arr.Length);
+
+                foreach(var value in arr)
+                {
+                    m_EnumStrings.Add(new GUIContent(value.ToString()));
+                    m_EnumValues.Add((int)value);
+                }
+            }
         }
 
         public virtual void ClampValues(Func<object> getter, Action<object> setter) {}
-        public virtual void BuildGUI() {}
+        public virtual DebugMenuItemUI BuildGUI(GameObject parent, DebugMenuItem menuItem)
+        {
+            DebugMenuItemUI newItemUI = null;
+            if (menuItem.GetItemType() == typeof(bool))
+            {
+                newItemUI = new DebugMenuBoolItemUI(parent, menuItem, m_Label.text);
+            }
+            else if (menuItem.GetItemType() == typeof(int))
+            {
+                newItemUI = new DebugMenuIntItemUI(parent, menuItem, m_Label.text);
+            }
+            else if (menuItem.GetItemType() == typeof(uint))
+            {
+                newItemUI = new DebugMenuUIntItemUI(parent, menuItem, m_Label.text);
+            }
+            else if (menuItem.GetItemType() == typeof(float))
+            {
+                newItemUI = new DebugMenuFloatItemUI(parent, menuItem, m_Label.text);
+            }
+            else if (m_MenuItem.GetItemType().BaseType == typeof(System.Enum))
+            {
+                newItemUI = new DebugMenuEnumItemUI(parent, menuItem, m_Label.text, m_EnumStrings, m_EnumValues);
+            }
+
+            return newItemUI;
+        }
 
 #if UNITY_EDITOR
         void DrawBoolItem()
         {
             EditorGUI.BeginChangeCheck();
-            bool value = EditorGUILayout.Toggle(m_MenuItem.name, (bool)m_MenuItem.GetValue());
+            bool value = EditorGUILayout.Toggle(m_Label, (bool)m_MenuItem.GetValue());
             if (EditorGUI.EndChangeCheck())
             {
                 m_MenuItem.SetValue(value);
@@ -39,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering
         void DrawIntItem()
         {
             EditorGUI.BeginChangeCheck();
-            int value = EditorGUILayout.IntField(m_MenuItem.name, (int)m_MenuItem.GetValue());
+            int value = EditorGUILayout.IntField(m_Label, (int)m_MenuItem.GetValue());
             if (EditorGUI.EndChangeCheck())
             {
                 m_MenuItem.SetValue(value);
@@ -49,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering
         void DrawUIntItem()
         {
             EditorGUI.BeginChangeCheck();
-            int value = EditorGUILayout.IntField(m_MenuItem.name, (int)(uint)m_MenuItem.GetValue());
+            int value = EditorGUILayout.IntField(m_Label, (int)(uint)m_MenuItem.GetValue());
             if (EditorGUI.EndChangeCheck())
             {
                 value = System.Math.Max(0, value);
@@ -60,7 +105,17 @@ namespace UnityEngine.Experimental.Rendering
         void DrawFloatItem()
         {
             EditorGUI.BeginChangeCheck();
-            float value = EditorGUILayout.FloatField(m_MenuItem.name, (float)m_MenuItem.GetValue());
+            float value = EditorGUILayout.FloatField(m_Label, (float)m_MenuItem.GetValue());
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_MenuItem.SetValue(value);
+            }
+        }
+
+        void DrawEnumItem()
+        {
+            EditorGUI.BeginChangeCheck();
+            int value = EditorGUILayout.IntPopup(m_Label, (int)m_MenuItem.GetValue(), m_EnumStrings.ToArray(), m_EnumValues.ToArray());
             if (EditorGUI.EndChangeCheck())
             {
                 m_MenuItem.SetValue(value);
@@ -84,6 +139,10 @@ namespace UnityEngine.Experimental.Rendering
             else if (m_MenuItem.GetItemType() == typeof(float))
             {
                 DrawFloatItem();
+            }
+            else if (m_MenuItem.GetItemType().BaseType == typeof(System.Enum))
+            {
+                DrawEnumItem();
             }
         }
 #endif

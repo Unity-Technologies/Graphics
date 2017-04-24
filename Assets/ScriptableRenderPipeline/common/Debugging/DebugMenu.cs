@@ -93,25 +93,8 @@ namespace UnityEngine.Experimental.Rendering
             m_ItemsUI.Clear();
             foreach(DebugMenuItem menuItem in m_Items)
             {
-                DebugMenuItemUI newItemUI = null;
-                if(menuItem.GetItemType() == typeof(bool))
-                {
-                    newItemUI = new DebugMenuBoolItemUI(m_Root, menuItem);
-                }
-                else if (menuItem.GetItemType() == typeof(int))
-                {
-                    newItemUI = new DebugMenuIntItemUI(m_Root, menuItem);
-                }
-                else if (menuItem.GetItemType() == typeof(uint))
-                {
-                    newItemUI = new DebugMenuUIntItemUI(m_Root, menuItem);
-                }
-                else if(menuItem.GetItemType() == typeof(float))
-                {
-                    newItemUI = new DebugMenuFloatItemUI(m_Root, menuItem);
-                }
-
-                m_ItemsUI.Add(newItemUI);
+                DebugItemDrawer drawer = menuItem.drawer; // Should never be null, we have at least the default drawer
+                m_ItemsUI.Add(drawer.BuildGUI(m_Root, menuItem));
             }
 
             m_Root.SetActive(false);
