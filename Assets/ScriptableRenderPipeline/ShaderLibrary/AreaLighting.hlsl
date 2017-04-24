@@ -41,11 +41,12 @@ float IntegrateEdge(float3 V1, float3 V2)
 // Ref: Area Light Sources for Real-Time Graphics (1996).
 float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
+    float sinSqOmega = saturate(1 - cosOmega * cosOmega);
+    float cosSqSigma = saturate(1 - sinSqSigma);
+    float sinSqGamma = saturate(cosSqSigma / sinSqOmega);
+    float cosSqGamma = saturate(1 - sinSqGamma);
     float sinSigma   = sqrt(sinSqSigma);
-    float cosSigma   = sqrt(1 - sinSqSigma);
-    float sinOmega   = sqrt(1 - cosOmega * cosOmega);
-    float sinGamma   = saturate(cosSigma / sinOmega);
-    float cosSqGamma = 1 - sinGamma * sinGamma;
+    float sinGamma   = sqrt(sinSqGamma);
     float cosGamma   = sqrt(cosSqGamma);
 
     float sigma = asin(sinSigma);
@@ -71,8 +72,8 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     }
     else
     {
-        float g = -2 * sinOmega * cosSigma * cosGamma + HALF_PI - gamma + sinGamma * cosGamma;
-        float h = cosOmega * (cosGamma * sqrt(saturate(sinSqSigma - cosSqGamma)) + sinSqSigma * asin(cosGamma / sinSigma));
+        float g = (-2 * sqrt(sinSqOmega * cosSqSigma) + sinGamma) * cosGamma + (HALF_PI - gamma);
+        float h = cosOmega * (cosGamma * sqrt(saturate(sinSqSigma - cosSqGamma)) + sinSqSigma * asin(saturate(cosGamma / sinSigma)));
 
         if (omega < HALF_PI)
         {
@@ -110,7 +111,7 @@ float PolygonIrradiance(float4x3 L)
 
     float f2         = saturate(dot(F, F));
     float sinSqSigma = sqrt(f2);
-    float cosOmega   = F.z * rsqrt(f2);
+    float cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
 
     return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
 #else
