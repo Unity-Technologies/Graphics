@@ -254,6 +254,129 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void UndoRedoAddOperator()
+        {
+            CreateTestAsset();
+            Func<VFXNodePresenter[]> fnAllOperatorPresenter = delegate ()
+            {
+                var allPresenter = m_ViewPresenter.allChildren.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>();
+                return allPresenter.OfType<VFXOperatorPresenter>().ToArray();
+            };
+
+            Action fnResync = delegate ()
+            {
+                //Force Resync (in test suite, Undo.undoRedoPerformed isn't triggered)
+                m_ViewPresenter.SetGraphAsset(m_ViewPresenter.GetGraphAsset(), true);
+            };
+
+            Action fnTestShouldExist = delegate ()
+            {
+                var allOperatorPresenter = fnAllOperatorPresenter();
+                Assert.AreEqual(1, allOperatorPresenter.Length);
+                Assert.IsInstanceOf(typeof(VFXOperatorAbs), allOperatorPresenter[0].model);
+            };
+
+            Action fnTestShouldNotExist = delegate ()
+            {
+                var allOperatorPresenter = fnAllOperatorPresenter();
+                Assert.AreEqual(0, allOperatorPresenter.Length);
+            };
+
+            Undo.IncrementCurrentGroup();
+            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Abs");
+            var abs = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), absDesc);
+
+            fnTestShouldExist();
+            Undo.PerformUndo(); fnResync();
+            fnTestShouldNotExist();
+            Undo.PerformRedo(); fnResync();
+            fnTestShouldExist();
+
+            Undo.IncrementCurrentGroup();
+            m_ViewPresenter.RemoveElement(fnAllOperatorPresenter()[0]);
+            fnTestShouldNotExist();
+            Undo.PerformUndo(); fnResync();
+            fnTestShouldExist();
+            Undo.PerformRedo(); fnResync();
+            fnTestShouldNotExist();
+
+            DestroyTestAsset();
+        }
+
+        [Test]
+        public void UndoRedoOperatorLink()
+        {
+            Action fnResync = delegate ()
+            {
+                //Force Resync (in test suite, Undo.undoRedoPerformed isn't triggered)
+                m_ViewPresenter.SetGraphAsset(m_ViewPresenter.GetGraphAsset(), true);
+            };
+
+            Func<Type, VFXNodePresenter> fnFindPresenter = delegate (Type type)
+            {
+                var allPresenter = m_ViewPresenter.allChildren.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>();
+                return allPresenter.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
+            };
+
+            CreateTestAsset();
+
+            var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Abs");
+            var appendDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "AppendVector");
+            var crossDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cross");
+
+            var abs = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), absDesc);
+            var append = m_ViewPresenter.AddVFXOperator(new Vector2(1, 1), appendDesc);
+            var cross = m_ViewPresenter.AddVFXOperator(new Vector2(2, 2), crossDesc);
+
+            var absPresenter = fnFindPresenter(typeof(VFXOperatorAbs));
+            var appendPresenter = fnFindPresenter(typeof(VFXOperatorAppendVector));
+            var crossPresenter = fnFindPresenter(typeof(VFXOperatorCross));
+
+            for (int i = 0; i < 3; ++i)
+            {
+                var edgePresenter = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+                edgePresenter.input = absPresenter.outputAnchors[0];
+                edgePresenter.output = appendPresenter.inputAnchors[i];
+                m_ViewPresenter.AddElement(edgePresenter);
+            }
+
+            var edgePresenterCross = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenterCross.input = appendPresenter.outputAnchors[0];
+            edgePresenterCross.output = crossPresenter.inputAnchors[0];
+            m_ViewPresenter.AddElement(edgePresenterCross);
+
+            Func<int> fnCountEdge = delegate ()
+            {
+                return m_ViewPresenter.allChildren.OfType<VFXDataEdgePresenter>().Count();
+            };
+
+            Undo.IncrementCurrentGroup();
+            Assert.AreEqual(4, fnCountEdge());
+
+            //Find last edge in append node
+            var referenceAnchor = appendPresenter.inputAnchors[2];
+            var edgeToDelete = m_ViewPresenter.allChildren.OfType<VFXDataEdgePresenter>()
+                .Cast<VFXDataEdgePresenter>()
+                .FirstOrDefault(e =>
+                {
+                    return e.input == referenceAnchor;
+                });
+            Assert.NotNull(edgeToDelete);
+
+            m_ViewPresenter.RemoveElement(edgeToDelete);
+            Assert.AreEqual(2, fnCountEdge()); //cross should be implicitly disconnected ...
+            Undo.PerformUndo(); fnResync();
+            Assert.AreEqual(4, fnCountEdge()); //... and restored !
+            Undo.PerformRedo(); fnResync();
+            Assert.AreEqual(2, fnCountEdge());
+
+            m_ViewPresenter.RemoveElement(absPresenter);
+            Assert.AreEqual(0, fnCountEdge());
+
+            DestroyTestAsset();
+        }
+
+        [Test]
         public void UndoRedoOperatorSettings()
         {
             CreateTestAsset();

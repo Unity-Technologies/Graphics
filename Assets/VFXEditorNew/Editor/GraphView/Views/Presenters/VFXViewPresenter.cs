@@ -5,6 +5,7 @@ using UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
+using Object = UnityEngine.Object;
 namespace UnityEditor.VFX.UI
 {
     [Serializable]
@@ -70,10 +71,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void RecreateNodeEdges()
+        public void RecreateNodeEdges(bool recordUndoRedo)
         {
             HashSet<VFXDataEdgePresenter> unusedEdges = new HashSet<VFXDataEdgePresenter>();
-
             foreach(var e in m_Elements.OfType<VFXDataEdgePresenter>())
             {
                 unusedEdges.Add(e);
@@ -88,20 +88,23 @@ namespace UnityEditor.VFX.UI
                 var slotContainer = operatorPresenter.slotContainer;
                 foreach (var input in slotContainer.inputSlots)
                 {
-                    RecreateInputSlotEdge(unusedEdges,allLinkables, slotContainer, input);
+                    RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, input, recordUndoRedo);
                 }
             }
 
             foreach(var edge in unusedEdges)
             {
+                if (recordUndoRedo)
+                {
+                    RecordEdgePresenter(edge, RecordEvent.Remove);
+                }
                 edge.input = null;
                 edge.output = null;
-
                 m_Elements.Remove(edge);
             }
         }
 
-        public void RecreateInputSlotEdge(HashSet<VFXDataEdgePresenter> unusedEdges,VFXLinkablePresenter[] allLinkables,IVFXSlotContainer slotContainer,VFXSlot input)
+        public void RecreateInputSlotEdge(HashSet<VFXDataEdgePresenter> unusedEdges,VFXLinkablePresenter[] allLinkables, IVFXSlotContainer slotContainer, VFXSlot input, bool recordUndoRedo)
         {
             if (input.HasLink())
             {
@@ -112,7 +115,6 @@ namespace UnityEditor.VFX.UI
                 {
                     var anchorFrom = operatorPresenterFrom.outputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input.refSlot);
                     var anchorTo = operatorPresenterTo.inputAnchors.FirstOrDefault(o => (o as VFXDataAnchorPresenter).model == input);
-
 
                     var edgePresenter = m_Elements.OfType<VFXDataEdgePresenter>().FirstOrDefault(t => t.input == anchorTo && t.output == anchorFrom);
 
@@ -128,6 +130,10 @@ namespace UnityEditor.VFX.UI
                         {
                             edgePresenter.output = anchorFrom;
                             edgePresenter.input = anchorTo;
+                            if (recordUndoRedo)
+                            {
+                                RecordEdgePresenter(edgePresenter, RecordEvent.Add);
+                            }
                             base.AddElement(edgePresenter);
                         }
                     }
@@ -136,10 +142,27 @@ namespace UnityEditor.VFX.UI
 
             foreach(VFXSlot subSlot in input.children)
             {
-                RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer,subSlot);
+                RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer,subSlot, recordUndoRedo);
             }
         }
 
+        private enum RecordEvent
+        {
+            Add,
+            Remove
+        }
+
+        static private void RecordEdgePresenter(VFXDataEdgePresenter flowEdge, RecordEvent e)
+        {
+            var fromAnchor = flowEdge.output as VFXDataAnchorPresenter;
+            var toAnchor = flowEdge.input as VFXDataAnchorPresenter;
+            Undo.RecordObjects(new Object[] { fromAnchor.model, toAnchor.model, fromAnchor.Owner, toAnchor.Owner }, e == RecordEvent.Add ? "Add Edge" : "Remove Edge");
+        }
+
+        private void RecordModel(string modelName, RecordEvent e)
+        {
+            Undo.RecordObject(m_GraphAsset.root, string.Format("{0} {1}", e == RecordEvent.Add ? "Add" : "Remove", modelName));
+        }
 
         public override void AddElement(EdgePresenter edge)
         {
@@ -159,6 +182,7 @@ namespace UnityEditor.VFX.UI
             else if (edge is VFXDataEdgePresenter)
             {
                 var flowEdge = edge as VFXDataEdgePresenter;
+                RecordEdgePresenter(flowEdge, RecordEvent.Add);
                 var fromAnchor = flowEdge.output as VFXDataAnchorPresenter;
                 var toAnchor = flowEdge.input as VFXDataAnchorPresenter;
 
@@ -167,8 +191,9 @@ namespace UnityEditor.VFX.UI
                 var slotOuput = fromAnchor ? fromAnchor.model:null;
                 if (slotInput && slotOuput)
                 {
+                    //Save concerned object
                     slotInput.Link(slotOuput);
-                    RecreateNodeEdges();
+                    RecreateNodeEdges(true);
                 }
 
                 // disconnect this edge as it will not be added by add element
@@ -203,6 +228,7 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXNodePresenter)
             {
                 var operatorPresenter = element as VFXNodePresenter;
+                RecordModel(operatorPresenter.model.name, RecordEvent.Remove);
                 VFXSlot slotToClean = null;
                 do
                 {
@@ -215,7 +241,8 @@ namespace UnityEditor.VFX.UI
                 } while (slotToClean != null);
 
                 m_GraphAsset.root.RemoveChild(operatorPresenter.node);
-                RecreateNodeEdges();
+                Undo.DestroyObjectImmediate(operatorPresenter.node);
+                RecreateNodeEdges(true);
             }
             else if (element is VFXFlowEdgePresenter)
             {
@@ -228,7 +255,9 @@ namespace UnityEditor.VFX.UI
             {
                 var edge = element as VFXDataEdgePresenter;
                 var to = edge.input as VFXDataAnchorPresenter;
+                var from = edge.output as VFXDataAnchorPresenter;
 
+                RecordEdgePresenter(edge, RecordEvent.Remove);
                 if (to != null)
                 {
                     var slot = to.model;
@@ -426,39 +455,43 @@ namespace UnityEditor.VFX.UI
             // needs to create a temp system to hold the context
             var system = ScriptableObject.CreateInstance<VFXSystem>();
             system.AddChild(newContext);
-
             m_GraphAsset.root.AddChild(system);
 
             return newContext;
         }
 
+        private void AddVFXModel(Vector2 pos, VFXModel model)
+        {
+            model.position = pos;
+            RecordModel(model.name, RecordEvent.Add);
+            m_GraphAsset.root.AddChild(model);
+        }
+
         public VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
         {
             var model = desc.CreateInstance();
-            model.position = pos;
-            m_GraphAsset.root.AddChild(model);
+            AddVFXModel(pos, model);
             return model;
         }
 
-        public void AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
+        public VFXBuiltInParameter AddVFXBuiltInParameter(Vector2 pos, VFXModelDescriptorBuiltInParameters desc)
         {
             var model = desc.CreateInstance();
-            model.position = pos;
-            m_GraphAsset.root.AddChild(model);
+            AddVFXModel(pos, model);
+            return model;
         }
 
-        public void AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorAttributeParameters desc)
+        public VFXAttributeParameter AddVFXAttributeParameter(Vector2 pos, VFXModelDescriptorAttributeParameters desc)
         {
             var model = desc.CreateInstance();
-            model.position = pos;
-            m_GraphAsset.root.AddChild(model);
+            AddVFXModel(pos, model);
+            return model;
         }
 
         public VFXParameter AddVFXParameter(Vector2 pos, VFXModelDescriptorParameters desc)
         {
             var model = desc.CreateInstance();
-            model.position = pos;
-            m_GraphAsset.root.AddChild(model);
+            AddVFXModel(pos, model);
             return model;
         }
 
@@ -563,12 +596,12 @@ namespace UnityEditor.VFX.UI
                         if (model is VFXSystem)
                             CreateFlowEdges((VFXSystem)model);
                         else
-                            RecreateNodeEdges();
+                            RecreateNodeEdges(false);
 
                         break;
                     }
                 case VFXModel.InvalidationCause.kConnectionChanged:
-                    RecreateNodeEdges();
+                    RecreateNodeEdges(false);
                     break;
             }
 
@@ -602,7 +635,7 @@ namespace UnityEditor.VFX.UI
                 newPresenter.Init(model,this);
                 AddElement(presenter);
             }
-            RecreateNodeEdges(); //TODOPAUL : Filter this call
+            RecreateNodeEdges(false);
         }
 
         private void RemovePresentersFromModel(VFXModel model,Dictionary<VFXModel,IVFXPresenter> syncedModels)

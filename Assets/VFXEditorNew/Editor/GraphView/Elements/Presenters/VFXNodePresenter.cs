@@ -123,7 +123,7 @@ namespace UnityEditor.VFX.UI
                     outputAnchors.Clear();
                     inputAnchors.AddRange(newinputAnchors);
                     outputAnchors.AddRange(newoutputAnchors);
-                    m_View.RecreateNodeEdges();
+                    m_View.RecreateNodeEdges(true);
                 }
             }
             else

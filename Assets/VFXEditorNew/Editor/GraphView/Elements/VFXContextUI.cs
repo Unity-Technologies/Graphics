@@ -9,69 +9,69 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-	class BlockContainer : VisualContainer, ISelection, IKeyFocusBlocker
+    class BlockContainer : VisualContainer, ISelection, IKeyFocusBlocker
     {
-		// ISelection implementation
-		public List<ISelectable> selection { get; private set; }
+        // ISelection implementation
+        public List<ISelectable> selection { get; private set; }
 
 
-		public BlockContainer()
-		{
-			selection = new List<ISelectable>();
+        public BlockContainer()
+        {
+            selection = new List<ISelectable>();
             clipChildren = false;
-		}
+        }
 
-		public EventPropagation SelectAll()
-		{
-			ClearSelection();
+        public EventPropagation SelectAll()
+        {
+            ClearSelection();
 
             for(int i = 0; i < childrenCount; ++i)
-			{
+            {
                 var child = GetChildAt(0) as VFXBlockUI;
                 if( child != null)
-				    AddToSelection(child);
-			}
+                    AddToSelection(child);
+            }
 
-			return EventPropagation.Stop;
-		}
+            return EventPropagation.Stop;
+        }
 
-		// functions to ISelection extensions
-		public virtual void AddToSelection(ISelectable selectable)
-		{
-			var block = selectable as VFXBlockUI;
-			if (block != null && block.presenter != null)
-				block.presenter.selected = true;
-			selection.Add(selectable);
-		}
+        // functions to ISelection extensions
+        public virtual void AddToSelection(ISelectable selectable)
+        {
+            var block = selectable as VFXBlockUI;
+            if (block != null && block.presenter != null)
+                block.presenter.selected = true;
+            selection.Add(selectable);
+        }
 
-		public virtual void RemoveFromSelection(ISelectable selectable)
-		{
-			var block = selectable as VFXBlockUI;
-			if (block != null && block.presenter != null)
-				block.presenter.selected = false;
-			selection.Remove(selectable);
-		}
+        public virtual void RemoveFromSelection(ISelectable selectable)
+        {
+            var block = selectable as VFXBlockUI;
+            if (block != null && block.presenter != null)
+                block.presenter.selected = false;
+            selection.Remove(selectable);
+        }
 
-		public virtual void ClearSelection()
-		{
-			foreach (var block in selection.OfType<VFXBlockUI>())
-			{
-				if (block.presenter != null)
-					block.presenter.selected = false;
-			}
+        public virtual void ClearSelection()
+        {
+            foreach (var block in selection.OfType<VFXBlockUI>())
+            {
+                if (block.presenter != null)
+                    block.presenter.selected = false;
+            }
 
-			selection.Clear();
-		}
-	}
+            selection.Clear();
+        }
+    }
 
-	class VFXContextUI : GraphElement, IDropTarget
+    class VFXContextUI : GraphElement, IDropTarget
     {
-		// TODO: Unused except for debugging
-		const string RectColorProperty = "rect-color";
+        // TODO: Unused except for debugging
+        const string RectColorProperty = "rect-color";
 
         VisualContainer     m_Header;
         VisualElement       m_HeaderIcon;
-		VisualElement       m_HeaderTitle;
+        VisualElement       m_HeaderTitle;
 
         VisualElement       m_HeaderSpace;
 
@@ -79,55 +79,55 @@ namespace UnityEditor.VFX.UI
         VisualElement       m_FooterIcon;
         VisualElement       m_FooterTitle;
 
-		VisualContainer     m_FlowInputConnectorContainer;
-		VisualContainer     m_FlowOutputConnectorContainer;
-		VisualContainer     m_NodeContainer;
-		BlockContainer      m_BlockContainer;
+        VisualContainer     m_FlowInputConnectorContainer;
+        VisualContainer     m_FlowOutputConnectorContainer;
+        VisualContainer     m_NodeContainer;
+        BlockContainer      m_BlockContainer;
 
         VisualElement       m_DragDisplay;
 
-		protected GraphViewTypeFactory typeFactory { get; set; }
+        protected GraphViewTypeFactory typeFactory { get; set; }
 
-		public VFXContextUI()
+        public VFXContextUI()
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
-			phaseInterest = EventPhase.BubbleUp;
+            phaseInterest = EventPhase.BubbleUp;
 
-			m_FlowInputConnectorContainer = new VisualContainer()
-			{
-				name = "FlowInputs",
-				pickingMode = PickingMode.Ignore,
-			};
+            m_FlowInputConnectorContainer = new VisualContainer()
+            {
+                name = "FlowInputs",
+                pickingMode = PickingMode.Ignore,
+            };
             m_FlowInputConnectorContainer.ClearClassList();
             m_FlowInputConnectorContainer.AddToClassList("FlowContainer");
             m_FlowInputConnectorContainer.AddToClassList("Input");
 
-			m_FlowOutputConnectorContainer = new VisualContainer()
-			{
-				name = "FlowOutputs",
-				pickingMode = PickingMode.Ignore
-			};
+            m_FlowOutputConnectorContainer = new VisualContainer()
+            {
+                name = "FlowOutputs",
+                pickingMode = PickingMode.Ignore
+            };
             m_FlowOutputConnectorContainer.ClearClassList();
             m_FlowOutputConnectorContainer.AddToClassList("FlowContainer");
             m_FlowOutputConnectorContainer.AddToClassList("Output");
 
             m_NodeContainer = new VisualContainer()
-			{
-				name = "NodeContents",
+            {
+                name = "NodeContents",
                 clipChildren = false
-			};
+            };
             m_NodeContainer.clipChildren = false;
 
             AddManipulator(new ShortcutHandler(
-				new Dictionary<Event, ShortcutDelegate>
-				{
-					{Event.KeyboardEvent("#a"), SelectAll},
-					{Event.KeyboardEvent("#n"), ClearSelection},
-					{Event.KeyboardEvent("delete"), DeleteSelection},
-				}));
+                new Dictionary<Event, ShortcutDelegate>
+                {
+                    {Event.KeyboardEvent("#a"), SelectAll},
+                    {Event.KeyboardEvent("#n"), ClearSelection},
+                    {Event.KeyboardEvent("delete"), DeleteSelection},
+                }));
 
-			AddChild(m_NodeContainer);
+            AddChild(m_NodeContainer);
 
             m_Header = new VisualContainer() {
                 name = "Header",
@@ -153,13 +153,13 @@ namespace UnityEditor.VFX.UI
             m_NodeContainer.AddChild(m_Header);
 
             m_BlockContainer = new BlockContainer()
-			{
-				pickingMode = PickingMode.Ignore
-			};
+            {
+                pickingMode = PickingMode.Ignore
+            };
 
-			m_BlockContainer.AddManipulator(new ClickSelector());
+            m_BlockContainer.AddManipulator(new ClickSelector());
 
-			m_NodeContainer.AddChild(m_BlockContainer);
+            m_NodeContainer.AddChild(m_BlockContainer);
 
 
             m_Footer = new VisualContainer() {
@@ -178,24 +178,24 @@ namespace UnityEditor.VFX.UI
 
             m_NodeContainer.AddChild(m_Footer);
             /*
-			m_NodeContainer.AddManipulator(new ContextualMenu((evt, customData) =>
-			{
-				var menu = new GenericMenu();
+            m_NodeContainer.AddManipulator(new ContextualMenu((evt, customData) =>
+            {
+                var menu = new GenericMenu();
 
-				// Needs to have the model here to filter compatible node blocks
-				var contextType = GetPresenter<VFXContextPresenter>().Model.ContextType;
-				foreach (var desc in VFXLibrary.GetBlocks())
-					if ((desc.CompatibleContexts & contextType) != 0)
-						menu.AddItem(new GUIContent(desc.Name), false,
-									 contentView => AddBlock(-1, desc),
-									 this);
+                // Needs to have the model here to filter compatible node blocks
+                var contextType = GetPresenter<VFXContextPresenter>().Model.ContextType;
+                foreach (var desc in VFXLibrary.GetBlocks())
+                    if ((desc.CompatibleContexts & contextType) != 0)
+                        menu.AddItem(new GUIContent(desc.Name), false,
+                                     contentView => AddBlock(-1, desc),
+                                     this);
 
-				menu.ShowAsContext();
-				return EventPropagation.Continue;
-			}));
+                menu.ShowAsContext();
+                return EventPropagation.Continue;
+            }));
             */
             typeFactory = new GraphViewTypeFactory();
-			typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
+            typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
             typeFactory[typeof(VFXBlockDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXBlockDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
 
@@ -216,16 +216,16 @@ namespace UnityEditor.VFX.UI
             
         }
 
-		public EventPropagation SelectAll()
-		{
-			return m_BlockContainer.SelectAll();
-		}
+        public EventPropagation SelectAll()
+        {
+            return m_BlockContainer.SelectAll();
+        }
 
-		public EventPropagation ClearSelection()
-		{
-			m_BlockContainer.ClearSelection();
-			return EventPropagation.Stop;
-		}
+        public EventPropagation ClearSelection()
+        {
+            m_BlockContainer.ClearSelection();
+            return EventPropagation.Stop;
+        }
 
 
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks,VFXBlockUI target)
@@ -352,74 +352,74 @@ namespace UnityEditor.VFX.UI
 
 
         public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
-		{
-			var clearBlockSelection = false;
-			var gView = this.GetFirstAncestorOfType<GraphView>();
-			if (gView != null && gView.selection.Contains(this) && !evt.control)
-				clearBlockSelection = true;
+        {
+            var clearBlockSelection = false;
+            var gView = this.GetFirstAncestorOfType<GraphView>();
+            if (gView != null && gView.selection.Contains(this) && !evt.control)
+                clearBlockSelection = true;
 
-			var result = base.Select(selectionContainer, evt);
+            var result = base.Select(selectionContainer, evt);
 
-			if (clearBlockSelection)
-				m_BlockContainer.ClearSelection();
+            if (clearBlockSelection)
+                m_BlockContainer.ClearSelection();
 
-			return result;
-		}
+            return result;
+        }
 
-		public EventPropagation DeleteSelection()
-		{
-			var elementsToRemove = m_BlockContainer.selection.OfType<VFXBlockUI>().ToList();
-			foreach (var block in elementsToRemove)
-			{
-				RemoveBlock(block as VFXBlockUI);
-			}
+        public EventPropagation DeleteSelection()
+        {
+            var elementsToRemove = m_BlockContainer.selection.OfType<VFXBlockUI>().ToList();
+            foreach (var block in elementsToRemove)
+            {
+                RemoveBlock(block as VFXBlockUI);
+            }
 
-			return (elementsToRemove.Count > 0) ? EventPropagation.Stop : EventPropagation.Continue;
-		}
+            return (elementsToRemove.Count > 0) ? EventPropagation.Stop : EventPropagation.Continue;
+        }
 
-		public override void SetPosition(Rect newPos)
-		{
-			//if (classList.Contains("vertical"))
-			/*{
-				base.SetPosition(newPos);
-			}
-			else*/
-			{
-				positionType = PositionType.Absolute;
-				positionLeft = newPos.x;
-				positionTop = newPos.y;
-			}
-		}
+        public override void SetPosition(Rect newPos)
+        {
+            //if (classList.Contains("vertical"))
+            /*{
+                base.SetPosition(newPos);
+            }
+            else*/
+            {
+                positionType = PositionType.Absolute;
+                positionLeft = newPos.x;
+                positionTop = newPos.y;
+            }
+        }
 
-		public void RemoveBlock(VFXBlockUI block)
-		{
-			if (block == null)
-				return;
+        public void RemoveBlock(VFXBlockUI block)
+        {
+            if (block == null)
+                return;
 
-			VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
-			contextPresenter.RemoveBlock(block.GetPresenter<VFXBlockPresenter>().Model);
-		}
+            VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
+            contextPresenter.RemoveBlock(block.GetPresenter<VFXBlockPresenter>().Model);
+        }
 
-		private void InstantiateBlock(VFXBlockPresenter blockPresenter)
-		{
-			// call factory
-			GraphElement newElem = typeFactory.Create(blockPresenter);
+        private void InstantiateBlock(VFXBlockPresenter blockPresenter)
+        {
+            // call factory
+            GraphElement newElem = typeFactory.Create(blockPresenter);
 
-			if (newElem == null)
-			{
-				return;
-			}
+            if (newElem == null)
+            {
+                return;
+            }
 
-			newElem.SetPosition(blockPresenter.position);
-			newElem.presenter = blockPresenter;
-			m_BlockContainer.AddChild(newElem);
+            newElem.SetPosition(blockPresenter.position);
+            newElem.presenter = blockPresenter;
+            m_BlockContainer.AddChild(newElem);
 
-			newElem.presenter.selected = blockPresenter.selected;
-		}
+            newElem.presenter.selected = blockPresenter.selected;
+        }
 
-		public void RefreshContext()
-		{
-			VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
+        public void RefreshContext()
+        {
+            VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
             var blockPresenters = contextPresenter.blockPresenters;
 
             // recreate the children list based on the presenter list to keep the order.
@@ -453,31 +453,31 @@ namespace UnityEditor.VFX.UI
             
 
             // Does not guarantee correct ordering
-			/*var blocks = m_BlockContainer.children.OfType<VFXBlockUI>().ToList();
+            /*var blocks = m_BlockContainer.children.OfType<VFXBlockUI>().ToList();
 
-			// Process removals
-			foreach (var c in blocks)
-			{
-				// been removed?
-				var nb = c as VFXBlockUI;
-				var block = contextPresenter.blockPresenters.OfType<VFXBlockPresenter>().FirstOrDefault(a => a == nb.GetPresenter<VFXBlockPresenter>());
-				if (block == null)
-				{
-					m_BlockContainer.RemoveFromSelection(nb);
-					m_BlockContainer.RemoveChild(nb);
-				}
-			}
+            // Process removals
+            foreach (var c in blocks)
+            {
+                // been removed?
+                var nb = c as VFXBlockUI;
+                var block = contextPresenter.blockPresenters.OfType<VFXBlockPresenter>().FirstOrDefault(a => a == nb.GetPresenter<VFXBlockPresenter>());
+                if (block == null)
+                {
+                    m_BlockContainer.RemoveFromSelection(nb);
+                    m_BlockContainer.RemoveChild(nb);
+                }
+            }
 
-			// Process additions
-			foreach (var blockPresenter in contextPresenter.blockPresenters)
-			{
+            // Process additions
+            foreach (var blockPresenter in contextPresenter.blockPresenters)
+            {
                 var block = blocks.OfType<VFXBlockUI>().FirstOrDefault(a => a.GetPresenter<VFXBlockPresenter>() == blockPresenter);
-				if (block == null)
-				{
+                if (block == null)
+                {
                     InstantiateBlock(blockPresenter);
-				}
-			}*/
-		}
+                }
+            }*/
+        }
 
         Texture2D GetIconForVFXType(VFXDataType type)
         {
@@ -492,13 +492,13 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-		public override void OnDataChanged()
-		{
-			base.OnDataChanged();
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
 
-			VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-			if (presenter == null || presenter.context == null)
-				return;
+            VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
+            if (presenter == null || presenter.context == null)
+                return;
 
             // Recreate label with good name // Dirty
             if (presenter.context.inputType != VFXDataType.kNone)
@@ -516,12 +516,12 @@ namespace UnityEditor.VFX.UI
             m_HeaderSpace.text = (presenter.context.space).ToString();
 
             switch (contextType)
-			{
-				case VFXContextType.kInit: AddToClassList("init"); break;
-				case VFXContextType.kUpdate: AddToClassList("update"); break;
-				case VFXContextType.kOutput: AddToClassList("output"); break;
-				default: throw new Exception();
-			}
+            {
+                case VFXContextType.kInit: AddToClassList("init"); break;
+                case VFXContextType.kUpdate: AddToClassList("update"); break;
+                case VFXContextType.kOutput: AddToClassList("output"); break;
+                default: throw new Exception();
+            }
 
 
             if( presenter.context.outputType == VFXDataType.kNone)
@@ -536,10 +536,6 @@ namespace UnityEditor.VFX.UI
                 m_FooterTitle.text = presenter.context.outputType.ToString().Substring(1);
                 m_FooterIcon.backgroundImage = GetIconForVFXType(presenter.context.outputType);
             }
-
-
-            presenter.context.position = presenter.position.position;
-
 
             HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
 
@@ -568,7 +564,7 @@ namespace UnityEditor.VFX.UI
             HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
 
             foreach (var outanchorpresenter in presenter.outputAnchors)
-			{
+            {
                 var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == outanchorpresenter);
                 if (existing == null)
                 {
@@ -606,9 +602,9 @@ namespace UnityEditor.VFX.UI
         FilterPopup m_PopupManipulator;
 
         public override void DoRepaint(IStylePainter painter)
-		{
-			base.DoRepaint(painter);
-		}
+        {
+            base.DoRepaint(painter);
+        }
 
         // TODO: Remove, unused except for debugging
         // Declare new USS rect-color and use it
@@ -616,11 +612,11 @@ namespace UnityEditor.VFX.UI
         {
             base.OnStylesResolved(styles);
             styles.ApplyCustomProperty(RectColorProperty, ref m_RectColor);
-		}
+        }
 
-		// TODO: Remove, unused except for debugging
-		Style<Color> m_RectColor;
-		Color rectColor { get { return m_RectColor.GetSpecifiedValueOrDefault(Color.magenta); } }
+        // TODO: Remove, unused except for debugging
+        Style<Color> m_RectColor;
+        Color rectColor { get { return m_RectColor.GetSpecifiedValueOrDefault(Color.magenta); } }
 
         public IEnumerable<VFXBlockUI> GetAllBlocks()
         {
