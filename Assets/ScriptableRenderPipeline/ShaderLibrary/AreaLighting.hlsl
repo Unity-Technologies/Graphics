@@ -79,12 +79,12 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
         if (omega < HALF_PI)
         {
             // Partial horizon occlusion (case #2).
-            irradiance = e + INV_PI * g - (INV_PI * h);
+            irradiance = e + INV_PI * (g - h);
         }
         else
         {
             // Partial horizon occlusion (case #3).
-            irradiance = INV_PI * g + (INV_PI * h);
+            irradiance = INV_PI * (g + h);
         }
     }
 
