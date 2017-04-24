@@ -482,7 +482,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &113580756
@@ -781,7 +780,7 @@ Transform:
   - {fileID: 744696322}
   - {fileID: 1854618466}
   m_Father: {fileID: 0}
-  m_RootOrder: 12
+  m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &146321727
 GameObject:
@@ -1163,7 +1162,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 1
   lightLength: 0
   lightWidth: 0
 --- !u!108 &192903506
@@ -1296,7 +1294,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &269387786
@@ -1522,7 +1519,7 @@ Transform:
   - {fileID: 951305960}
   - {fileID: 1945509645}
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &336015812
 GameObject:
@@ -2150,7 +2147,7 @@ Transform:
   - {fileID: 1782606104}
   - {fileID: 113580754}
   m_Father: {fileID: 0}
-  m_RootOrder: 11
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &473569563
 GameObject:
@@ -2232,7 +2229,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &476925264
@@ -2685,7 +2681,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &563884888
@@ -2788,7 +2783,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &580932149
@@ -2871,109 +2865,6 @@ Transform:
   m_Father: {fileID: 1672515617}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &605581069
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 605581071}
-  - component: {fileID: 605581070}
-  - component: {fileID: 605581072}
-  m_Layer: 0
-  m_Name: Sun (directional light)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &605581070
-Light:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 605581069}
-  m_Enabled: 1
-  serializedVersion: 8
-  m_Type: 1
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.25
-  m_Range: 10
-  m_SpotAngle: 30
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_Lightmapping: 4
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_FalloffTable:
-    m_Table[0]: 0
-    m_Table[1]: 0
-    m_Table[2]: 0
-    m_Table[3]: 0
-    m_Table[4]: 0
-    m_Table[5]: 0
-    m_Table[6]: 0
-    m_Table[7]: 0
-    m_Table[8]: 0
-    m_Table[9]: 0
-    m_Table[10]: 0
-    m_Table[11]: 0
-    m_Table[12]: 0
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
---- !u!4 &605581071
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 605581069}
-  m_LocalRotation: {x: -0.17348704, y: 0.60067445, z: -0.42523393, w: -0.65442234}
-  m_LocalPosition: {x: -8.45, y: 5.17, z: -9.01}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 132.44499, y: 108.862, z: -148.94499}
---- !u!114 &605581072
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 605581069}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  m_innerSpotPercent: 0
-  shadowDimmer: 1
-  lightDimmer: 1
-  fadeDistance: 10000
-  shadowFadeDistance: 10000
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 0
-  isDoubleSided: 0
-  lightLength: 0
-  lightWidth: 0
 --- !u!1 &607757506
 GameObject:
   m_ObjectHideFlags: 0
@@ -3257,7 +3148,7 @@ Transform:
   - {fileID: 2082383796}
   - {fileID: 733865594}
   m_Father: {fileID: 0}
-  m_RootOrder: 16
+  m_RootOrder: 15
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &653798720
 Prefab:
@@ -3621,7 +3512,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &682868819
@@ -3903,7 +3793,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
-  isDoubleSided: 1
   lightLength: 16
   lightWidth: 0
 --- !u!108 &710116622
@@ -3974,7 +3863,7 @@ Transform:
   - {fileID: 393109613}
   - {fileID: 1126074680}
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &733865593
 GameObject:
@@ -4076,7 +3965,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!1 &736659727
@@ -4954,7 +4842,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!1 &818701168
@@ -5082,7 +4969,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
-  isDoubleSided: 0
   lightLength: 16
   lightWidth: 2
 --- !u!108 &827169275
@@ -5153,7 +5039,7 @@ Transform:
   - {fileID: 146321728}
   - {fileID: 291640077}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &831940004
 GameObject:
@@ -5442,7 +5328,7 @@ Transform:
   - {fileID: 682868817}
   - {fileID: 1148469244}
   m_Father: {fileID: 0}
-  m_RootOrder: 14
+  m_RootOrder: 13
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &851265586
 GameObject:
@@ -5524,7 +5410,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 1
   lightLength: 0
   lightWidth: 0
 --- !u!108 &858501141
@@ -5715,7 +5600,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 2
-  isDoubleSided: 0
   lightLength: 4
   lightWidth: 2
 --- !u!108 &903116312
@@ -5971,7 +5855,7 @@ Transform:
   - {fileID: 1035518233}
   - {fileID: 559905038}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &951305959
 GameObject:
@@ -6087,7 +5971,7 @@ Transform:
   - {fileID: 2145183178}
   - {fileID: 659590037}
   m_Father: {fileID: 0}
-  m_RootOrder: 18
+  m_RootOrder: 17
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &970745596
 GameObject:
@@ -6139,7 +6023,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &970745599
@@ -6360,7 +6243,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &990293191
@@ -6659,7 +6541,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1013563954
@@ -7077,7 +6958,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1063426086
@@ -7245,7 +7125,7 @@ Transform:
   m_Children:
   - {fileID: 835886986}
   m_Father: {fileID: 0}
-  m_RootOrder: 17
+  m_RootOrder: 16
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1085128921
 GameObject:
@@ -7297,7 +7177,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 1
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1085128924
@@ -7464,7 +7343,7 @@ Transform:
   - {fileID: 1689074024}
   - {fileID: 1688996234}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1126074679
 GameObject:
@@ -7660,7 +7539,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1148469246
@@ -7763,7 +7641,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1161056799
@@ -8180,7 +8057,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!1 &1226270484
@@ -8212,7 +8088,7 @@ Transform:
   - {fileID: 831940005}
   - {fileID: 1235762388}
   m_Father: {fileID: 0}
-  m_RootOrder: 13
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1227501373
 GameObject:
@@ -8346,7 +8222,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1235762390
@@ -8428,7 +8303,7 @@ Transform:
   - {fileID: 1586689953}
   - {fileID: 1062558346}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1258713065
 GameObject:
@@ -8820,7 +8695,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1308071701
@@ -8923,7 +8797,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1309651670
@@ -9332,7 +9205,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1352160402
@@ -9996,7 +9868,7 @@ Transform:
   - {fileID: 1988224186}
   - {fileID: 1555751256}
   m_Father: {fileID: 0}
-  m_RootOrder: 19
+  m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1484421573
 GameObject:
@@ -10351,7 +10223,7 @@ Transform:
   - {fileID: 1175446864}
   - {fileID: 1860830036}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1555751255
 GameObject:
@@ -10403,7 +10275,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1555751258
@@ -10506,7 +10377,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1559142270
@@ -10876,7 +10746,7 @@ Transform:
   - {fileID: 1063426084}
   - {fileID: 476925262}
   m_Father: {fileID: 0}
-  m_RootOrder: 20
+  m_RootOrder: 19
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1640077383
 GameObject:
@@ -10915,7 +10785,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 1
-  isDoubleSided: 0
   lightLength: 4
   lightWidth: 2
 --- !u!108 &1640077385
@@ -10926,10 +10795,10 @@ Light:
   m_GameObject: {fileID: 1640077383}
   m_Enabled: 1
   serializedVersion: 8
-  m_Type: 1
+  m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 6
+  m_Range: 7
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
@@ -10974,15 +10843,15 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1640077383}
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -100, y: 2, z: 36}
+  m_LocalRotation: {x: 0.7071068, y: 0.70710677, z: 0, w: 0}
+  m_LocalPosition: {x: -100.981606, y: 1.9999996, z: 36.257446}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 1690686862}
   - {fileID: 1731870435}
+  - {fileID: 1690686862}
   m_Father: {fileID: 0}
-  m_RootOrder: 7
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 90.00001}
 --- !u!1 &1667969571
 GameObject:
   m_ObjectHideFlags: 0
@@ -11343,7 +11212,7 @@ Transform:
   m_LocalScale: {x: 4, y: 2, z: 1}
   m_Children: []
   m_Father: {fileID: 1640077386}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1690686863
 MeshRenderer:
@@ -11422,13 +11291,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1731870434}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 2}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: -0, z: 2}
   m_LocalScale: {x: 20, y: 12, z: 1}
   m_Children: []
   m_Father: {fileID: 1640077386}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!23 &1731870436
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11945,7 +11814,7 @@ Transform:
   - {fileID: 993426561}
   - {fileID: 1559142268}
   m_Father: {fileID: 0}
-  m_RootOrder: 15
+  m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1808459746
 GameObject:
@@ -12600,7 +12469,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!4 &1860830036 stripped
@@ -12645,7 +12513,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 2
-  isDoubleSided: 0
   lightLength: 4
   lightWidth: 2
 --- !u!108 &1879857774
@@ -13211,7 +13078,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1945509647
@@ -13402,7 +13268,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 0
   lightLength: 0
   lightWidth: 0
 --- !u!108 &1988224188
@@ -13593,7 +13458,6 @@ MonoBehaviour:
   affectDiffuse: 1
   affectSpecular: 1
   archetype: 0
-  isDoubleSided: 1
   lightLength: 0
   lightWidth: 0
 --- !u!108 &2015022936
@@ -13843,7 +13707,7 @@ Transform:
   - {fileID: 1879857775}
   - {fileID: 903116310}
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &2028486192
 GameObject:
