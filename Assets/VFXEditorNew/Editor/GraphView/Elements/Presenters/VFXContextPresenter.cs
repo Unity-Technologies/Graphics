@@ -21,26 +21,41 @@ namespace UnityEditor.VFX.UI
             return new UnityEngine.Object[] { this, m_Model };
         }
 
+        public override Rect position
+        {
+            get
+            {
+                return base.position;
+            }
+
+            set
+            {
+                base.position = value;
+                Undo.RecordObject(model, "Position");
+                model.position = position.position;
+            }
+        }
+
         [SerializeField]
         private List<VFXBlockPresenter> m_BlockPresenters;
-		public List<VFXBlockPresenter> blockPresenters
- 		{
- 			get { return m_BlockPresenters ?? (m_BlockPresenters = new List<VFXBlockPresenter>()); }
- 		}
+        public List<VFXBlockPresenter> blockPresenters
+        {
+            get { return m_BlockPresenters ?? (m_BlockPresenters = new List<VFXBlockPresenter>()); }
+        }
 
-		[SerializeField]
-		protected List<VFXFlowAnchorPresenter> m_InputAnchors;
-		public List<VFXFlowAnchorPresenter> inputAnchors
- 		{
- 			get { return m_InputAnchors ?? (m_InputAnchors = new List<VFXFlowAnchorPresenter>()); }
- 		}
+        [SerializeField]
+        protected List<VFXFlowAnchorPresenter> m_InputAnchors;
+        public List<VFXFlowAnchorPresenter> inputAnchors
+        {
+            get { return m_InputAnchors ?? (m_InputAnchors = new List<VFXFlowAnchorPresenter>()); }
+        }
 
-		[SerializeField]
-		protected List<VFXFlowAnchorPresenter> m_OutputAnchors;
-		public List<VFXFlowAnchorPresenter> outputAnchors
-		{
-			get { return m_OutputAnchors ?? (m_OutputAnchors = new List<VFXFlowAnchorPresenter>()); }
-		}
+        [SerializeField]
+        protected List<VFXFlowAnchorPresenter> m_OutputAnchors;
+        public List<VFXFlowAnchorPresenter> outputAnchors
+        {
+            get { return m_OutputAnchors ?? (m_OutputAnchors = new List<VFXFlowAnchorPresenter>()); }
+        }
 
         protected new void OnEnable()
         {
