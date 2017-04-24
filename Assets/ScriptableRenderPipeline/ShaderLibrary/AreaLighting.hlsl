@@ -38,9 +38,9 @@ float IntegrateEdge(float3 V1, float3 V2)
 // 'sinSqSigma' is the sine^2 of the half of the opening angle of the sphere as seen from the shaded point.
 // 'cosOmega' is the cosine of the angle between the normal and the direction to the center of the light.
 // N.b.: this function accounts for horizon clipping.
-// Ref: Area Light Sources for Real-Time Graphics (1996).
 float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
+#if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
     float sinSqOmega = saturate(1 - cosOmega * cosOmega);
     float cosSqSigma = saturate(1 - sinSqSigma);
     float sinSqGamma = saturate(cosSqSigma / sinSqOmega);
@@ -87,7 +87,23 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
             irradiance = INV_PI * (g + h);
         }
     }
+#else // Ref: Moving Frostbite to Physically Based Rendering, page 43 (2015).
+    float sinOmega = sqrt(saturate(1 - cosOmega * cosOmega));
 
+    float irradiance;
+
+    if (cosOmega * cosOmega > sinSqSigma)
+    {
+        irradiance = sinSqSigma * saturate(cosOmega);
+    }
+    else
+    {
+        float x = sqrt(1 / sinSqSigma - 1);
+        float y = -x * (cosOmega / sinOmega);
+        float z = sinOmega * sqrt(1 - y * y);
+        irradiance = INV_PI * ((cosOmega * acos(y) - x * z) * sinSqSigma + atan(z / x));
+    }
+#endif
     return max(irradiance, 0);
 }
 
