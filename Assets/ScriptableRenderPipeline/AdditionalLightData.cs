@@ -98,11 +98,13 @@
             shadowDataFormat = shadowData.format;
             return shadowData.data;
         }
+#if UNITY_EDITOR
         public void CompactShadowData()
         {
             shadowDatas = new ShadowData[0];
             UnityEditor.EditorUtility.SetDirty(this);
         }
+#endif
         private int FindShadowData( int shadowDataFormat )
         {
             for( int i = 0; i < shadowDatas.Length; ++i )
@@ -114,6 +116,7 @@
         }
     }
 
+#if UNITY_EDITOR
     [UnityEditor.CustomEditor(typeof(AdditionalLightData))]
     [UnityEditor.CanEditMultipleObjects]
     public class AdditionalLightDataEditor : UnityEditor.Editor
@@ -159,4 +162,5 @@
             serializedObject.ApplyModifiedProperties();
         }
     }
+#endif
 }
