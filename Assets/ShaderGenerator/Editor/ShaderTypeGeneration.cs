@@ -143,6 +143,24 @@ namespace UnityEditor.Experimental.Rendering
             public Accessor accessor;
         };
 
+        class DebugFieldInfo
+        {
+            public DebugFieldInfo(string defineName, string fieldName, Type fieldType, bool isDirection, bool isSRGB)
+            {
+                this.defineName = defineName;
+                this.fieldName = fieldName;
+                this.fieldType = fieldType;
+                this.isDirection = isDirection;
+                this.isSRGB = isSRGB;
+            }
+
+            public string defineName;
+            public string fieldName;
+            public Type fieldType;
+            public bool isDirection;
+            public bool isSRGB;            
+        }
+
         void Error(string error)
         {
             if (errors == null)
@@ -423,13 +441,93 @@ namespace UnityEditor.Experimental.Rendering
             return shaderText;
         }
 
+        public string EmitFunctions()
+        {
+            string shaderText = string.Empty;
+
+            // In case users ask for debug functions
+            if (!attr.needParamDebug)
+                return shaderText;
+
+            // Specific to HDRenderPipeline            
+            string lowerStructName = type.Name.ToLower();
+
+            shaderText += "//\n";
+            shaderText += "// Debug functions\n";
+            shaderText += "//\n";
+
+            shaderText += "void GetGenerated" + type.Name + "Debug(uint paramId, " + type.Name + " " + lowerStructName + ", inout float3 result, inout bool needLinearToSRGB)\n";
+            shaderText += "{\n";
+            shaderText += "    switch (paramId)\n";
+            shaderText += "    {\n";
+
+            foreach (var debugField in m_DebugFields)
+            {
+                shaderText += "        case " + debugField.defineName + ":\n";
+                if (debugField.fieldType == typeof(float))
+                {
+                    if (debugField.isDirection)
+                    {
+                        shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + ".xxx * 0.5 + 0.5;\n";
+                    }
+                    else 
+                    {
+                        shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + ".xxx;\n";
+                    }
+                }
+                else if (debugField.fieldType == typeof(Vector2))
+                {
+                    shaderText += "            result = float3(" + lowerStructName + "." + debugField.fieldName + ", 0.0);\n";
+                }
+                else if (debugField.fieldType == typeof(Vector3))
+                {
+                    if (debugField.isDirection)
+                    {
+                        shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + " * 0.5 + 0.5;\n";
+                    }
+                    else 
+                    {
+                        shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + ";\n";
+                    }                    
+                }
+                else if (debugField.fieldType == typeof(Vector4))
+                {
+                    shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + ".xyz;\n";
+                }
+                else if (debugField.fieldType == typeof(bool))
+                {
+                    shaderText += "            result = (" + lowerStructName + "." + debugField.fieldName + ") ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);\n";
+                }
+                else if (debugField.fieldType == typeof(uint) || debugField.fieldType == typeof(int))
+                {
+                    shaderText += "            result = GetIndexColor(" + lowerStructName + "." + debugField.fieldName + ");\n";
+                }
+                else // This case left is suppose to be a complex structure. Either we don't support it or it is an enum. Consider it is an enum with GetIndexColor, user can override it if he want.
+                {
+                    shaderText += "            result = GetIndexColor(" + lowerStructName + "." + debugField.fieldName + ");\n";       
+                }
+                
+                if (debugField.isSRGB)
+                {
+                    shaderText += "            needLinearToSRGB = true;\n";
+                }
+
+                shaderText += "            break;\n";
+            }
+
+            shaderText += "    }\n";
+            shaderText += "}\n";            
+
+            return shaderText;
+        }
+
         public string Emit()
         {
             return EmitDefines() + EmitTypeDecl() + EmitAccessors();
         }
 
-        // This function is a helper to follow unity convertion
-        // when converting fooBar ro FOO_BAR
+        // This function is a helper to follow unity convention
+        // when converting fooBar to FOO_BAR
         string InsertUnderscore(string name)
         {
             for (int i = 1; i < name.Length; i++)
@@ -450,6 +548,7 @@ namespace UnityEditor.Experimental.Rendering
 
             FieldInfo[] fields = type.GetFields();
             m_ShaderFields = new List<ShaderFieldInfo>();
+            m_DebugFields = new List<DebugFieldInfo>();
 
             if (type.IsEnum)
             {
@@ -477,11 +576,25 @@ namespace UnityEditor.Experimental.Rendering
                     continue;
                 }
 
-                if (attr.needParamDefines)
+                if (attr.needParamDebug)
                 {
                     string subNamespace = type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1);
                     string name = InsertUnderscore(field.Name);
-                    m_Statics[("DEBUGVIEW_" + subNamespace + "_" + type.Name + "_" + name).ToUpper()] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
+                    string defineName = ("DEBUGVIEW_" + subNamespace + "_" + type.Name + "_" + name).ToUpper();
+                    m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
+
+                    bool isDirection = false;
+                    bool sRGBDisplay = false;
+
+                    // Check if the display name have been override by the users
+                    if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
+                    {
+                        var propertyAttr = (SurfaceDataAttributes[])field.GetCustomAttributes(typeof(SurfaceDataAttributes), false);
+                        isDirection = propertyAttr[0].isDirection;
+                        sRGBDisplay = propertyAttr[0].sRGBDisplay;
+                    }
+
+                    m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, field.FieldType, isDirection, sRGBDisplay));
                 }
 
                 if (field.FieldType.IsPrimitive)
@@ -548,6 +661,10 @@ namespace UnityEditor.Experimental.Rendering
         {
             get { return attr.needAccessors; }
         }
+        public bool needParamDebug
+        {
+            get { return attr.needParamDebug; }
+        }
 
         public Type type;
         public GenerateHLSL attr;
@@ -557,5 +674,6 @@ namespace UnityEditor.Experimental.Rendering
         Dictionary<string, string> m_Statics;
         List<ShaderFieldInfo> m_ShaderFields;
         List<ShaderFieldInfo> m_PackedFields;
+        List<DebugFieldInfo> m_DebugFields;
     }
 }

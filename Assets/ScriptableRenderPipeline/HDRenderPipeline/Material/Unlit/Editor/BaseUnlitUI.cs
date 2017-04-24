@@ -81,9 +81,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             alphaCutoff = FindProperty(kAlphaCutoff, props);
             doubleSidedEnable = FindProperty(kDoubleSidedEnable, props);
             blendMode = FindProperty(kBlendMode, props);
-            distortionEnable = FindProperty(kDistortionEnable, props);
-            distortionOnly = FindProperty(kDistortionOnly, props);
-            distortionDepthTest = FindProperty(kDistortionDepthTest, props);
+            distortionEnable = FindProperty(kDistortionEnable, props, false);
+            distortionOnly = FindProperty(kDistortionOnly, props, false);
+            distortionDepthTest = FindProperty(kDistortionDepthTest, props, false);
         }
 
         void SurfaceTypePopup()
@@ -126,12 +126,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
             {
                 BlendModePopup();
-                m_MaterialEditor.ShaderProperty(distortionEnable, StylesBaseUnlit.distortionEnableText);
 
-                if (distortionEnable.floatValue == 1.0f)
+                if (distortionEnable != null)
                 {
-                    m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
-                    m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
+                    m_MaterialEditor.ShaderProperty(distortionEnable, StylesBaseUnlit.distortionEnableText);
+
+                    if (distortionEnable.floatValue == 1.0f)
+                    {
+                        m_MaterialEditor.ShaderProperty(distortionOnly, StylesBaseUnlit.distortionOnlyText);
+                        m_MaterialEditor.ShaderProperty(distortionDepthTest, StylesBaseUnlit.distortionDepthTestText);
+                    }
                 }
             }
             m_MaterialEditor.ShaderProperty(alphaCutoffEnable, StylesBaseUnlit.alphaCutoffEnableText);
@@ -214,27 +218,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
             SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
-            bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f;
-            if (distortionEnable)
+            if (material.HasProperty(kDistortionEnable))
             {
-                material.SetShaderPassEnabled("DistortionVectors", true);
-            }
-            else
-            {
-                material.SetShaderPassEnabled("DistortionVectors", false);
-            }
+                bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f;
+                if (distortionEnable)
+                {
+                    material.SetShaderPassEnabled("DistortionVectors", true);
+                }
+                else
+                {
+                    material.SetShaderPassEnabled("DistortionVectors", false);
+                }
 
-            bool distortionDepthTest = material.GetFloat(kDistortionDepthTest) > 0.0f;
-            if (distortionDepthTest)
-            {
-                material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.LessEqual);
-            }
-            else
-            {
-                material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
-            }
+                bool distortionDepthTest = material.GetFloat(kDistortionDepthTest) > 0.0f;
+                if (distortionDepthTest)
+                {
+                    material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+                }
+                else
+                {
+                    material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+                }
 
-            SetKeyword(material, "_DISTORTION_ON", distortionEnable);
+                SetKeyword(material, "_DISTORTION_ON", distortionEnable);
+            }
 
             // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect
             // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
@@ -244,29 +251,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static public void SetupBaseUnlitMaterialPass(Material material)
         {
-            bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f;
-            bool distortionOnly = material.GetFloat(kDistortionOnly) > 0.0f;
+            if (material.HasProperty(kDistortionEnable))
+            {
+                bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f;
+                bool distortionOnly = material.GetFloat(kDistortionOnly) > 0.0f;
 
-            if (distortionEnable && distortionOnly)
-            {
-                // Disable all passes except debug material
-                material.SetShaderPassEnabled("GBuffer", false);
-                material.SetShaderPassEnabled("DebugViewMaterial", true);
-                material.SetShaderPassEnabled("Meta", false);
-                material.SetShaderPassEnabled("ShadowCaster", false);
-                material.SetShaderPassEnabled("DepthOnly", false);
-                material.SetShaderPassEnabled("MotionVectors", false);
-                material.SetShaderPassEnabled("Forward", false);
-            }
-            else
-            {
-                material.SetShaderPassEnabled("GBuffer", true);
-                material.SetShaderPassEnabled("DebugViewMaterial", true);
-                material.SetShaderPassEnabled("Meta", true);
-                material.SetShaderPassEnabled("ShadowCaster", true);
-                material.SetShaderPassEnabled("DepthOnly", true);
-                material.SetShaderPassEnabled("MotionVectors", true);
-                material.SetShaderPassEnabled("Forward", true);
+                if (distortionEnable && distortionOnly)
+                {
+                    // Disable all passes except debug material
+                    material.SetShaderPassEnabled("GBuffer", false);
+                    material.SetShaderPassEnabled("DebugViewMaterial", true);
+                    material.SetShaderPassEnabled("Meta", false);
+                    material.SetShaderPassEnabled("ShadowCaster", false);
+                    material.SetShaderPassEnabled("DepthOnly", false);
+                    material.SetShaderPassEnabled("MotionVectors", false);
+                    material.SetShaderPassEnabled("Forward", false);
+                }
+                else
+                {
+                    material.SetShaderPassEnabled("GBuffer", true);
+                    material.SetShaderPassEnabled("DebugViewMaterial", true);
+                    material.SetShaderPassEnabled("Meta", true);
+                    material.SetShaderPassEnabled("ShadowCaster", true);
+                    material.SetShaderPassEnabled("DepthOnly", true);
+                    material.SetShaderPassEnabled("MotionVectors", true);
+                    material.SetShaderPassEnabled("Forward", true);
+                }
             }
         }
 
@@ -296,7 +306,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
 
                 VertexAnimationPropertiesGUI();
-                
+
                 EditorGUILayout.Space();
                 MaterialPropertiesGUI(material);
 
