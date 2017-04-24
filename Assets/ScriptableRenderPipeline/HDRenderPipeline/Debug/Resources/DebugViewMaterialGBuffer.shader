@@ -21,12 +21,11 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "../../ShaderConfig.cs.hlsl"
             #include "../../ShaderVariables.hlsl"
-            #include "../../Debug/DebugViewMaterial.cs.hlsl"
+            #define DEBUG_DISPLAY
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
-
-            int         _DebugViewMaterial;
 
             struct Attributes
             {

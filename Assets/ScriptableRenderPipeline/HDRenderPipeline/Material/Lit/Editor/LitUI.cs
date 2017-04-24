@@ -40,7 +40,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Details
             public static string detailText = "Inputs Detail";
-            public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
             public static GUIContent UVDetailMappingText = new GUIContent("Detail UV mapping", "");
             public static GUIContent detailMapNormalText = new GUIContent("Detail Map A(R) Ny(G) S(B) Nx(A)", "Detail Map");
             public static GUIContent detailMaskText = new GUIContent("Detail Mask (G)", "Mask for detailMap");

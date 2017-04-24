@@ -15,7 +15,7 @@ float   WIND_SETTINGS_GustWorldScale;
 float AttenuateTrunk(float x, float s)
 {
     float r = (x / s);
-    return pow(r,1/s);
+    return PositivePow(r,1/s);
 }
 
 
@@ -71,10 +71,10 @@ WindData GetAnalyticalWind(float3 WorldPosition, float3 PivotPosition, float dra
         gust = pow(gust, 2) * WIND_SETTINGS_GustScale;
     }
 
-    float3 trunkNoise = 
+    float3 trunkNoise =
         (
-                (normalizedDir * WIND_SETTINGS_WorldDirectionAndSpeed.w) 
-                + (gust * normalizedDir * WIND_SETTINGS_GustSpeed) 
+                (normalizedDir * WIND_SETTINGS_WorldDirectionAndSpeed.w)
+                + (gust * normalizedDir * WIND_SETTINGS_GustSpeed)
                 + (trunk * WIND_SETTINGS_Turbulence)
         ) * drag;
 
@@ -95,7 +95,7 @@ WindData GetAnalyticalWind(float3 WorldPosition, float3 PivotPosition, float dra
 
 
 
-void ApplyWind( inout float3    worldPos, 
+void ApplyWind( inout float3    worldPos,
                 inout float3    worldNormal,
                 float3          rootWP,
                 float           stiffness,
@@ -114,7 +114,7 @@ void ApplyWind( inout float3    worldPos,
         float3 rotAxis = cross(float3(0, 1, 0), wind.Direction);
 
         worldPos = Rotate(rootWP, worldPos, rotAxis, (wind.Strength) * 0.001 * att);
-        
+
         float3 shiverDirection = normalize(lerp(worldNormal, normalize(wind.Direction + wind.ShiverDirection), shiverDirectionality));
         worldPos += wind.ShiverStrength * shiverDirection * shiverMask;
     }

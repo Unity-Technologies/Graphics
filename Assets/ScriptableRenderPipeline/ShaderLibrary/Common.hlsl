@@ -19,7 +19,7 @@
 // Example: unL for unormalized light vector
 
 // use capital letter for regular vector, vector are always pointing outward the current pixel position (ready for lighting equation)
-// capital letter mean the vector is normalize, unless we put un in front of it.
+// capital letter mean the vector is normalize, unless we put 'un' in front of it.
 // V: View vector  (no eye vector)
 // L: Light vector
 // N: Normal vector
@@ -270,8 +270,6 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 #define FLT_MIN     1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
 
-#define MERGE_NAME(X, Y) X##Y
-
 float DegToRad(float deg)
 {
     return deg * PI / 180.0;
@@ -324,7 +322,7 @@ float FastATan(float x)
     return (x < 0.0) ? -t0 : t0;
 }
 
-// Same smoothstep except it assume 0, 1 interval for x
+// Same as smoothstep except it assume 0, 1 interval for x
 float smoothstep01(float x)
 {
     return x * x * (3.0 - (2.0 * x));
@@ -388,9 +386,9 @@ float ComputeTextureLOD(float2 uv, float4 texelSize)
 // Texture format sampling
 // ----------------------------------------------------------------------------
 
-float2 DirectionToLatLongCoordinate(float3 dir_in)
+float2 DirectionToLatLongCoordinate(float3 unDir)
 {
-    float3 dir = normalize(dir_in);
+    float3 dir = normalize(unDir);
     // coordinate frame is (-Z, X) meaning negative Z is primary axis and X is secondary axis.
     return float2(1.0 - 0.5 * INV_PI * atan2(dir.x, -dir.z), asin(dir.y) * INV_PI + 0.5);
 }
@@ -543,6 +541,10 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewP
     posInput.depthVS  = positionCS.w;
     posInput.depthRaw = positionCS.z / positionCS.w;
 }
+
+// ----------------------------------------------------------------------------
+// Misc utilities
+// ----------------------------------------------------------------------------
 
 // Generates a triangle in homogeneous clip space, s.t.
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).

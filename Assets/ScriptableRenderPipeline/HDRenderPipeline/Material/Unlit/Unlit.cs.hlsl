@@ -28,5 +28,33 @@ struct BSDFData
     float3 color;
 };
 
+//
+// Debug functions
+//
+void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_UNLIT_SURFACEDATA_COLOR:
+            result = surfacedata.color;
+            needLinearToSRGB = true;
+            break;
+    }
+}
+
+//
+// Debug functions
+//
+void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_UNLIT_BSDFDATA_COLOR:
+            result = bsdfdata.color;
+            needLinearToSRGB = true;
+            break;
+    }
+}
+
 
 #endif
