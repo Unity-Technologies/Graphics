@@ -35,32 +35,16 @@ float IntegrateEdge(float3 V1, float3 V2)
     return ComputeEdgeFactor(V1, V2).z;
 }
 
-// Expects non-normalized vertex positions.
-float PolygonIrradiance(float4x3 L, bool twoSided)
+// 'sinSqSigma' is the sine^2 of the half of the opening angle of the sphere as seen from the shaded point.
+// 'cosOmega' is the cosine of the angle between the normal and the direction to the center of the light.
+// N.b.: this function accounts for horizon clipping.
+// Ref: Area Light Sources for Real-Time Graphics (1996).
+float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
-#ifdef SPHERE_APPROX
-    for (int i = 0; i < 4; i++)
-    {
-        L[i] = normalize(L[i]);
-    }
-
-    float3 F = float3(0, 0, 0);
-
-    for (int edge = 0; edge < 4; edge++)
-    {
-        float3 V1 = L[edge];
-        float3 V2 = L[(edge + 1) % 4];
-
-        F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
-    }
-
-    float f2         = dot(F, F);
-    float sinSqSigma = sqrt(f2);
     float sinSigma   = sqrt(sinSqSigma);
-    float cosOmega   = F.z * rsqrt(f2);
     float cosSigma   = sqrt(1 - sinSqSigma);
     float sinOmega   = sqrt(1 - cosOmega * cosOmega);
-    float sinGamma   = cosSigma / sinOmega;
+    float sinGamma   = saturate(cosSigma / sinOmega);
     float cosSqGamma = 1 - sinGamma * sinGamma;
     float cosGamma   = sqrt(cosSqGamma);
 
@@ -88,7 +72,7 @@ float PolygonIrradiance(float4x3 L, bool twoSided)
     else
     {
         float g = -2 * sinOmega * cosSigma * cosGamma + HALF_PI - gamma + sinGamma * cosGamma;
-        float h = cosOmega * (cosGamma * sqrt(sinSqSigma - cosSqGamma) + sinSqSigma * asin(cosGamma / sinSigma));
+        float h = cosOmega * (cosGamma * sqrt(saturate(sinSqSigma - cosSqGamma)) + sinSqSigma * asin(cosGamma / sinSigma));
 
         if (omega < HALF_PI)
         {
@@ -102,7 +86,34 @@ float PolygonIrradiance(float4x3 L, bool twoSided)
         }
     }
 
-    return max(irradiance, 0.0);
+    return irradiance;
+}
+
+// Expects non-normalized vertex positions.
+float PolygonIrradiance(float4x3 L, bool twoSided)
+{
+#ifdef SPHERE_APPROX
+    for (int i = 0; i < 4; i++)
+    {
+        L[i] = normalize(L[i]);
+    }
+
+    float3 F = float3(0, 0, 0);
+
+    for (int edge = 0; edge < 4; edge++)
+    {
+        float3 V1 = L[edge];
+        float3 V2 = L[(edge + 1) % 4];
+
+        F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
+    }
+
+    float f2         = saturate(dot(F, F));
+    float sinSqSigma = sqrt(f2);
+    float cosOmega   = F.z * rsqrt(f2);
+    float irradiance = DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
+
+    return twoSided ? abs(irradiance) : max(irradiance, 0.0);
 #else
     // 1. ClipQuadToHorizon
 
