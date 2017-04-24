@@ -104,6 +104,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	private static int m_quadLightingPassNdx;
 	private static int m_FiniteLightingPassNdx;
 	private static int m_ReflectionsPassNdx;
+	private static int m_ReflectionsFrontCullPassNdx;
 	private static int m_ReflectionsApplyPassNdx;
 	private static int m_ReflectionsFullScreenPassNdx;
 
@@ -144,8 +145,11 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	
 		m_quadLightingPassNdx = m_DeferredMaterial.FindPass ("DIRECTIONALLIGHT");
 		m_FiniteLightingPassNdx = m_DeferredMaterial.FindPass ("FINITELIGHT");
+
 		m_ReflectionsPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_REFLECTIONS");
+		m_ReflectionsFrontCullPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED__CULLFRONT_REFLECTIONS");
 		m_ReflectionsFullScreenPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_FULLSCREEN_REFLECTIONS");
+
 		m_ReflectionsApplyPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_APPLY_REFLECTIONS");
 
 		s_CameraReflectionsTexture = Shader.PropertyToID ("_CameraReflectionsTexture");
@@ -220,14 +224,13 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		var probes = cullResults.visibleReflectionProbes;
 		var worldToView = camera.worldToCameraMatrix; //WorldToCamera(camera);
 
-		// set global state
-		// TODO: need these?
-		// built in loop sets: rt->FilterMode(filterNearest), black clearcolor/clear, backfaceMode(Off),
-		// const float nearDistanceFudged = camera.GetProjectionNear() * 1.001f;
-		// const float farDistanceFudged = camera.GetProjectionFar() * 0.999f;
-		// const Vector3f viewDir = -NormalizeSafe(camera.GetCameraToWorldMatrix().GetAxisZ());
-		// Plane eyePlane;
-		// eyePlane.SetNormalAndPosition(viewDir, m_Context->m_CurCameraPos);
+		float nearDistanceFudged = camera.nearClipPlane * 1.001f;
+		float farDistanceFudged = camera.farClipPlane * 0.999f;
+		var viewDir = camera.cameraToWorldMatrix.GetColumn(2);
+		var viewDirNormalized = -1 * Vector3.Normalize(new Vector3 (viewDir.x, viewDir.y, viewDir.z));
+
+		Plane eyePlane = new Plane ();
+		eyePlane.SetNormalAndPosition(viewDirNormalized, camera.transform.position);
 
 		// TODO: need this? --> Set the ambient probe into the SH constants otherwise
 		// SetSHConstants(builtins, m_LightprobeContext.ambientProbe);
@@ -261,11 +264,17 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			Matrix4x4 scaled = Matrix4x4.Scale (combinedExtent * 2.0f);
 			mat = mat * Matrix4x4.Translate (boxOffset) * scaled;
 					
-			// TODO: renderAsQuad
-			bool renderAsQuad = false;
+			var probeRadius = combinedExtent.magnitude;
+			var viewDistance = eyePlane.GetDistanceToPoint(boxOffset);
+			bool intersectsNear = viewDistance - probeRadius <= nearDistanceFudged;
+			bool intersectsFar = viewDistance + probeRadius >= farDistanceFudged;
+			bool renderAsQuad = (intersectsNear && intersectsFar);
 
 			var props = new MaterialPropertyBlock ();
 			props.SetFloat ("_LightAsQuad", renderAsQuad ? 1 : 0);
+
+			var min = rl.bounds.min;
+			var max = rl.bounds.max;
 
 			// FIXME: why dont setting blend properties work here?
 			m_DeferredReflectionMaterial.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
@@ -273,12 +282,16 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 			cmd.SetGlobalTexture("unity_SpecCube0", cubemap);
 			cmd.SetGlobalVector("unity_SpecCube0_HDR", rl.probe.textureHDRDecodeValues);
-			cmd.SetGlobalVector ("unity_SpecCube0_BoxMin", rl.bounds.min);
-			cmd.SetGlobalVector ("unity_SpecCube0_BoxMax", rl.bounds.max);
+			cmd.SetGlobalVector ("unity_SpecCube0_BoxMin", min);
+			cmd.SetGlobalVector ("unity_SpecCube0_BoxMax", max);
 			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition", probePosition1);
 			cmd.SetGlobalVector ("unity_SpecCube1_ProbePosition", new Vector4(0, 0, 0, blendDistance));
 
-			cmd.DrawMesh (m_BoxMesh, mat, m_DeferredReflectionMaterial, 0, m_ReflectionsPassNdx, props);
+			if (renderAsQuad) {
+				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsFullScreenPassNdx, props);
+			} else {
+				cmd.DrawMesh (m_BoxMesh, mat, m_DeferredReflectionMaterial, 0, (intersectsNear ? m_ReflectionsFrontCullPassNdx : m_ReflectionsPassNdx), props);
+			}
 		}
 
 		// draw the base probe
@@ -303,7 +316,6 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition", new Vector4 (0.0f, 0.0f, 0.0f, 0.0f));
 			cmd.SetGlobalVector ("unity_SpecCube1_ProbePosition", new Vector4 (0.0f, 0.0f, 0.0f, 1.0f));
 
-			// screenspace
 			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsFullScreenPassNdx, props);
 		}
 	}

@@ -275,6 +275,8 @@ half4 CalculateLight (unity_v2f_deferred i)
 	ind.diffuse = 0;
 	ind.specular = 0;
 
+	// UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. 
+
     half4 res = UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, -eyeVec, light, ind);
 
 	return res;
