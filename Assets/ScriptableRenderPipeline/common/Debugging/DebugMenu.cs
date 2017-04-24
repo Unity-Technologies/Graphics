@@ -7,15 +7,17 @@ namespace UnityEngine.Experimental.Rendering
 {
     public class DebugMenuItem
     {
-        public Type type { get { return m_Type; } }
-        public string name { get { return m_Name; } }
+        public Type             type    { get { return m_Type; } }
+        public string           name    { get { return m_Name; } }
+        public DebugItemDrawer  drawer  { get { return m_Drawer; } }
 
-        public DebugMenuItem(string name, Type type, Func<object> getter, Action<object> setter)
+        public DebugMenuItem(string name, Type type, Func<object> getter, Action<object> setter, DebugItemDrawer drawer = null)
         {
             m_Type = type;
             m_Setter = setter;
             m_Getter = getter;
             m_Name = name;
+            m_Drawer = drawer;
         }
 
         public Type GetItemType()
@@ -26,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering
         public void SetValue(object value)
         {
             m_Setter(value);
+            m_Drawer.ClampValues(m_Getter, m_Setter);
         }
 
         public object GetValue()
@@ -37,6 +40,7 @@ namespace UnityEngine.Experimental.Rendering
         Action<object>  m_Setter;
         Type            m_Type;
         string          m_Name;
+        DebugItemDrawer m_Drawer = null;
     }
 
     public class DebugMenu
@@ -173,9 +177,12 @@ namespace UnityEngine.Experimental.Rendering
                 m_ItemsUI[m_SelectedItem].OnValidate();
         }
 
-        public void AddDebugMenuItem<ItemType>(string name, Func<object> getter, Action<object> setter)
+        public void AddDebugMenuItem<ItemType>(string name, Func<object> getter, Action<object> setter, DebugItemDrawer drawer = null)
         {
-            DebugMenuItem newItem = new DebugMenuItem(name, typeof(ItemType), getter, setter);
+            if (drawer == null)
+                drawer = new DebugItemDrawer();
+            DebugMenuItem newItem = new DebugMenuItem(name, typeof(ItemType), getter, setter, drawer);
+            drawer.SetDebugItem(newItem);
             m_Items.Add(newItem);
         }
     }

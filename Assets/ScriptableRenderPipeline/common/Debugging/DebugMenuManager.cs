@@ -113,12 +113,12 @@ namespace UnityEngine.Experimental.Rendering
             return null;
         }
 
-        public void AddDebugItem<DebugMenuType, ItemType>(string name, Func<object> getter, Action<object> setter) where DebugMenuType : DebugMenu
+        public void AddDebugItem<DebugMenuType, ItemType>(string name, Func<object> getter, Action<object> setter, DebugItemDrawer drawer = null) where DebugMenuType : DebugMenu
         {
             DebugMenuType debugMenu = GetDebugMenu<DebugMenuType>();
             if (debugMenu != null)
             {
-                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter);
+                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, drawer);
             }
         }
     }

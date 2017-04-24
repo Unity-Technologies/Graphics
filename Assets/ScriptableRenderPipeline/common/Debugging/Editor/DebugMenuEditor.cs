@@ -27,38 +27,6 @@ namespace UnityEngine.Experimental.Rendering
             m_DebugMenu = DebugMenuManager.instance;
         }
 
-        void DrawBoolItem(DebugMenuItem item)
-        {
-            EditorGUI.BeginChangeCheck();
-            bool value = EditorGUILayout.Toggle(item.name, (bool)item.GetValue());
-            if(EditorGUI.EndChangeCheck())
-            {
-                item.SetValue(value);
-            }
-        }
-
-        void DrawFloatItem(DebugMenuItem item)
-        {
-            EditorGUI.BeginChangeCheck();
-            float value = EditorGUILayout.FloatField(item.name, (float)item.GetValue());
-            if (EditorGUI.EndChangeCheck())
-            {
-                item.SetValue(value);
-            }
-        }
-
-        void OnMenuItemGUI(DebugMenuItem item)
-        {
-            if(item.GetItemType() == typeof(bool))
-            {
-                DrawBoolItem(item);
-            }
-            else if(item.GetItemType() == typeof(float))
-            {
-                DrawFloatItem(item);
-            }
-        }
-
         void OnGUI()
         {
             if (m_DebugMenu == null)
@@ -91,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering
                 DebugMenu activeMenu = m_DebugMenu.GetDebugMenu(m_DebugMenu.activeMenuIndex);
                 for (int i = 0; i < activeMenu.itemCount; ++i)
                 {
-                    OnMenuItemGUI(activeMenu.GetDebugMenuItem(i));
+                    activeMenu.GetDebugMenuItem(i).drawer.OnEditorGUI();
                 }
             }
         }
