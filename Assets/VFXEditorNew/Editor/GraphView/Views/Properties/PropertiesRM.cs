@@ -65,9 +65,23 @@ namespace UnityEditor.VFX.UI
 
             m_Icon.backgroundImage = m_IconStates[0];
 
-            m_Icon.marginLeft = presenter.depth * VFXPropertyIM.depthOffset;
 
             m_Label = new VisualElement(){name="label",text=presenter.name};
+            if (presenter.depth != 0)
+            {
+                for(int i = 0; i < presenter.depth; ++i)
+                {
+                    VisualElement line = new VisualElement()
+                    {
+                        width = 1,
+                        name = "line",
+                        marginLeft= 0.5f * VFXPropertyIM.depthOffset,
+                        marginRight=VFXPropertyIM.depthOffset * 0.5f
+                    };
+                    AddChild(line);
+                }
+            }
+            //m_Label.marginLeft = presenter.depth * VFXPropertyIM.depthOffset;
             AddChild(m_Label);
 
             AddToClassList("propertyrm");

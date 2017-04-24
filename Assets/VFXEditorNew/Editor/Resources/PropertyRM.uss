@@ -43,11 +43,15 @@
 	margin-right:12px;
     min-width:64;
 }
-
+.propertyrm > FloatField
+{
+	margin-bottom:1;
+}
 
 .propertyrm .fieldContainer > *
 {
     flex:1;
+	margin-bottom:1;
 }
 .propertyrm .textfield
 {
@@ -68,6 +72,11 @@
     padding-left:3;
     padding-right:3;
     flex:1;
+}
+
+#line
+{
+	background-color:#999;
 }
 .propertyrm .textfield::disabled
 {
