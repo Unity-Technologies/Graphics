@@ -113,9 +113,36 @@ namespace UnityEngine.Experimental.Rendering
             return null;
         }
 
+        DebugMenu GetDebugMenu(string name)
+        {
+            foreach(DebugMenu menu in m_DebugMenus)
+            {
+                if (menu.name == name)
+                    return menu;
+            }
+
+            return null;
+        }
+
         public void AddDebugItem<DebugMenuType, ItemType>(string name, Func<object> getter, Action<object> setter, DebugItemDrawer drawer = null) where DebugMenuType : DebugMenu
         {
             DebugMenuType debugMenu = GetDebugMenu<DebugMenuType>();
+            if (debugMenu != null)
+            {
+                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, drawer);
+            }
+        }
+
+        public void AddDebugItem<ItemType>(string debugMenuName, string name, Func<object> getter, Action<object> setter, DebugItemDrawer drawer = null)
+        {
+            DebugMenu debugMenu = GetDebugMenu(debugMenuName);
+            // If the menu does not exist, create a generic one. This way, users don't have to explicitely create a new DebugMenu class if they don't need any particular overriding of default behavior.
+            if(debugMenu == null)
+            {
+                debugMenu = new DebugMenu(debugMenuName);
+                m_DebugMenus.Add(debugMenu);
+            }
+
             if (debugMenu != null)
             {
                 debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, drawer);

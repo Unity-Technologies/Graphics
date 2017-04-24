@@ -55,6 +55,11 @@ namespace UnityEngine.Experimental.Rendering
         private List<DebugMenuItemUI> m_ItemsUI = new List<DebugMenuItemUI>();
         private int m_SelectedItem = -1;
 
+        public DebugMenu(string name)
+        {
+            m_Name = name;
+        }
+
         public DebugMenuItem GetDebugMenuItem(int index)
         {
             if (index >= m_Items.Count || index < 0)
@@ -92,6 +97,14 @@ namespace UnityEngine.Experimental.Rendering
                 if(menuItem.GetItemType() == typeof(bool))
                 {
                     newItemUI = new DebugMenuBoolItemUI(m_Root, menuItem);
+                }
+                else if (menuItem.GetItemType() == typeof(int))
+                {
+                    newItemUI = new DebugMenuIntItemUI(m_Root, menuItem);
+                }
+                else if (menuItem.GetItemType() == typeof(uint))
+                {
+                    newItemUI = new DebugMenuUIntItemUI(m_Root, menuItem);
                 }
                 else if(menuItem.GetItemType() == typeof(float))
                 {
@@ -191,26 +204,8 @@ namespace UnityEngine.Experimental.Rendering
         : DebugMenu
     {
         public LightingDebugMenu()
+            : base("Lighting")
         {
-            m_Name = "Lighting";
-        }
-    }
-
-    public class RenderingDebugMenu
-        : DebugMenu
-    {
-        public RenderingDebugMenu()
-        {
-            m_Name = "Rendering";
-        }
-    }
-
-    public class PwetteDebugMenu
-        : DebugMenu
-    {
-        public PwetteDebugMenu()
-        {
-            m_Name = "Pwette";
         }
     }
 }
