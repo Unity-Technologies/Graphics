@@ -784,6 +784,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     {
         // Reverse the normal.
         illuminance  = saturate(dot(-bsdfData.normalWS, L));
+        // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
@@ -890,6 +891,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         // Reverse the normal.
         illuminance  = saturate(dot(-bsdfData.normalWS, L)) * attenuation;
+        // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
@@ -975,6 +977,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     {
         // Reverse the normal.
         illuminance  = saturate(dot(-bsdfData.normalWS, L) * clipFactor);
+        // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
