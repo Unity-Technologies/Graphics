@@ -54,12 +54,11 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     float omega = acos(cosOmega);
     float gamma = asin(sinGamma);
 
-    [branch]
-    if (omega < 0 || omega >= HALF_PI + sigma)
-    {
-        // Full horizon occlusion (case #4).
-        return 0;
-    }
+    // if (omega < 0 || omega >= HALF_PI + sigma)
+    // {
+    //     // Full horizon occlusion (case #4). It should be handled outside of this function.
+    //     return 0;
+    // }
 
     float e = sinSqSigma * cosOmega;
 
@@ -90,6 +89,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 #else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015).
     float irradiance;
 
+    [branch]
     if (cosOmega * cosOmega > sinSqSigma)
     {
         irradiance = sinSqSigma * saturate(cosOmega);
