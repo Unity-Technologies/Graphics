@@ -636,9 +636,8 @@ namespace UnityEditor.VFX.UI
     {
         public SpaceablePropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
         {
-            m_Button = new VisualElement(){text="L"};
+            m_Button = new VisualElement(){name="spacebutton"};
             m_Button.AddManipulator(new Clickable(OnButtonClick));
-            m_Button.AddToClassList("button");
             AddChild(m_Button);
             AddToClassList("spaceablepropertyrm");
         }
@@ -651,8 +650,16 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI()
         {
+            foreach(string name in System.Enum.GetNames(typeof(CoordinateSpace)))
+            {
+                m_Button.RemoveFromClassList("space"+name);
+            }
+    
             if(m_Value != null)
-                m_Button.text = m_Value.space.ToString().Substring(0,1);
+            {
+                m_Button.AddToClassList("space"+m_Value.space.ToString());
+            }   
+
         }
 
         VisualElement m_Button;

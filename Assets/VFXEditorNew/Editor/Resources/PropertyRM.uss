@@ -1,6 +1,6 @@
 .propertyrm
 {
-    margin-left:12px;
+    margin-left:12;
     flex-direction: row;
 }
 
@@ -11,25 +11,11 @@
     height:16;
 }
 
-.propertyrm .button
+.propertyrm #spacebutton
 {
     -flex:1;
-    border-width:1;
-    border-radius:4;
-
-    border-color: rgb(153,153,153);
-    text-color: rgb(153,153,153);
-    text-alignment: middle-center;
-    margin-top:2;
-    margin-bottom:2;
-    margin-right:2;
-    margin-left:2;
-    padding-top:1;
-    padding-bottom:1;
-    padding-left:3;
-    padding-right:3;
-	margin-right:8
-    width:14;
+    width:16;
+	height:16;
 }
 
 .propertyrm #label
@@ -43,6 +29,20 @@
 	margin-right:12px;
     min-width:64;
 }
+
+.spaceCamera
+{
+	background-image:resource("vfx/spacecamera");
+}
+.spaceLocal
+{
+	background-image:resource("vfx/spacelocal");
+}
+.spaceGlobal
+{
+	background-image:resource("vfx/spaceglobal");
+}
+
 .propertyrm > FloatField
 {
 	margin-bottom:1;
@@ -52,6 +52,7 @@
 {
     flex:1;
 	margin-bottom:1;
+	margin-left:6;
 }
 .propertyrm .textfield
 {
@@ -92,6 +93,7 @@
     text-color:#888;
     width:12;
     padding-left:2;
+    text-alignment:middle-center;
 }
 .propertyrm .fieldContainer
 {
