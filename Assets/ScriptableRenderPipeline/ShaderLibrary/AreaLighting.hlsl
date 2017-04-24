@@ -1,21 +1,137 @@
 #ifndef UNITY_AREA_LIGHTING_INCLUDED
 #define UNITY_AREA_LIGHTING_INCLUDED
 
-float IntegrateEdge(float3 v1, float3 v2)
-{
-    float cosTheta = dot(v1, v2);
-    // Clamp to avoid artifacts. This particular constant gives the best results.
-    cosTheta    = Clamp(cosTheta, -0.9999, 0.9999);
-    float theta = FastACos(cosTheta);
-    float res = cross(v1, v2).z * theta * rsqrt(1.0 - cosTheta * cosTheta); // optimization from * 1 / sin(theta)
+#define SPHERE_LIGHT_APPROXIMATION
 
-    return res;
+// Not normalized by the factor of 1/TWO_PI.
+float3 ComputeEdgeFactor(float3 V1, float3 V2)
+{
+    float  V1oV2 = dot(V1, V2);
+    float3 V1xV2 = cross(V1, V2);
+#if 0
+    return V1xV2 * (rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2));
+#else
+    // Approximate: { y = rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2) } on [0, 1].
+    // Fit: HornerForm[MiniMaxApproximation[ArcCos[x]/Sqrt[1 - x^2], {x, {0, 1 - $MachineEpsilon}, 6, 0}][[2, 1]]].
+    // Maximum relative error: 2.6855360216340534 * 10^-6. Intensities up to 1000 are artifact-free.
+    float x = abs(V1oV2);
+    float y = 1.5707921083647782 + x * (-0.9995697178013095 + x * (0.778026455830408 + x * (-0.6173111361273548 + x * (0.4202724111150622 + x * (-0.19452783598217288 + x * 0.04232040013661036)))));
+
+    if (V1oV2 < 0)
+    {
+        // Undo range reduction.
+        y = PI * rsqrt(saturate(1 - V1oV2 * V1oV2)) - y;
+    }
+
+    return V1xV2 * y;
+#endif
 }
 
-// Baum's equation
-// Expects non-normalized vertex positions
-float PolygonRadiance(float4x3 L, bool twoSided)
+// Not normalized by the factor of 1/TWO_PI.
+// Ref: Improving radiosity solutions through the use of analytically determined form-factors.
+float IntegrateEdge(float3 V1, float3 V2)
 {
+    // 'V1' and 'V2' are represented in a coordinate system with N = (0, 0, 1).
+    return ComputeEdgeFactor(V1, V2).z;
+}
+
+// 'sinSqSigma' is the sine^2 of the half of the opening angle of the sphere as seen from the shaded point.
+// 'cosOmega' is the cosine of the angle between the normal and the direction to the center of the light.
+// N.b.: this function accounts for horizon clipping.
+float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
+{
+    float sinSqOmega = saturate(1 - cosOmega * cosOmega);
+#if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
+    float cosSqSigma = saturate(1 - sinSqSigma);
+    float sinSqGamma = saturate(cosSqSigma / sinSqOmega);
+    float cosSqGamma = saturate(1 - sinSqGamma);
+
+    float sinSigma = sqrt(sinSqSigma);
+    float sinGamma = sqrt(sinSqGamma);
+    float cosGamma = sqrt(cosSqGamma);
+
+    float sigma = asin(sinSigma);
+    float omega = acos(cosOmega);
+    float gamma = asin(sinGamma);
+
+    [branch]
+    if (omega < 0 || omega >= HALF_PI + sigma)
+    {
+        // Full horizon occlusion (case #4).
+        return 0;
+    }
+
+    float e = sinSqSigma * cosOmega;
+
+    float irradiance;
+
+    [branch]
+    if (omega < HALF_PI - sigma)
+    {
+        // No horizon occlusion (case #1).
+        irradiance = e;
+    }
+    else
+    {
+        float g = (-2 * sqrt(sinSqOmega * cosSqSigma) + sinGamma) * cosGamma + (HALF_PI - gamma);
+        float h = cosOmega * (cosGamma * sqrt(saturate(sinSqSigma - cosSqGamma)) + sinSqSigma * asin(saturate(cosGamma / sinSigma)));
+
+        if (omega < HALF_PI)
+        {
+            // Partial horizon occlusion (case #2).
+            irradiance = e + INV_PI * (g - h);
+        }
+        else
+        {
+            // Partial horizon occlusion (case #3).
+            irradiance = INV_PI * (g + h);
+        }
+    }
+#else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015).
+    float irradiance;
+
+    if (cosOmega * cosOmega > sinSqSigma)
+    {
+        irradiance = sinSqSigma * saturate(cosOmega);
+    }
+    else
+    {
+        float a = 1 / sinSqSigma - 1;
+        float w = rsqrt(a);
+        float x = sqrt(a);
+        float y = -x * cosOmega * rsqrt(sinSqOmega);
+        float z = sqrt(sinSqOmega * (1 - y * y));
+        irradiance = INV_PI * ((cosOmega * acos(y) - x * z) * sinSqSigma + atan(z * w));
+    }
+#endif
+    return max(irradiance, 0);
+}
+
+// Expects non-normalized vertex positions.
+float PolygonIrradiance(float4x3 L)
+{
+#ifdef SPHERE_LIGHT_APPROXIMATION
+    for (int i = 0; i < 4; i++)
+    {
+        L[i] = normalize(L[i]);
+    }
+
+    float3 F = float3(0, 0, 0);
+
+    for (int edge = 0; edge < 4; edge++)
+    {
+        float3 V1 = L[edge];
+        float3 V2 = L[(edge + 1) % 4];
+
+        F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
+    }
+
+    float f2         = saturate(dot(F, F));
+    float sinSqSigma = sqrt(f2);
+    float cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
+
+    return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
+#else
     // 1. ClipQuadToHorizon
 
     // detect clipping config
@@ -160,13 +276,14 @@ float PolygonRadiance(float4x3 L, bool twoSided)
 
     sum *= INV_TWO_PI; // Normalization
 
-    sum = twoSided ? abs(sum) : max(sum, 0.0);
+    sum = max(sum, 0.0);
 
     return isfinite(sum) ? sum : 0.0;
+#endif
 }
 
 // For polygonal lights.
-float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, float3x3 invM)
+float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, float3x3 invM)
 {
     // Construct a view-dependent orthonormal basis around N.
     // TODO: it could be stored in PreLightData, since all LTC lights compute it more than once.
@@ -179,8 +296,8 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
     invM = mul(transpose(basis), invM);
     L = mul(L, invM);
 
-    // Polygon radiance in transformed configuration - specular
-    return PolygonRadiance(L, twoSided);
+    // Polygon irradiance in the transformed configuration
+    return PolygonIrradiance(L);
 }
 
 float LineFpo(float tLDDL, float lrcpD, float rcpD)

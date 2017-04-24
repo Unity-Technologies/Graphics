@@ -866,7 +866,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (additionalData.archetype != LightArchetype.Punctual)
                 {
-                    lightData.twoSided = additionalData.isDoubleSided;
                     lightData.size = new Vector2(additionalData.lightLength, additionalData.lightWidth);
                 }
 
@@ -991,11 +990,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     Vector3 dimensions = new Vector3(lightData.size.x * 0.5f + radius, lightData.size.y * 0.5f + radius, radius);
 
-                    if (!lightData.twoSided)
-                    {
-                        centerVS += zAxisVS * radius * 0.5f;
-                        dimensions.z *= 0.5f;
-                    }
+                    dimensions.z *= 0.5f;
+                    centerVS += zAxisVS * radius * 0.5f;
 
                     bound.center = centerVS;
                     bound.boxAxisX = dimensions.x * xAxisVS;

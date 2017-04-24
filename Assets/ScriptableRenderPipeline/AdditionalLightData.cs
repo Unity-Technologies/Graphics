@@ -40,7 +40,6 @@ namespace UnityEngine.Experimental.Rendering
         public bool affectSpecular = true;
 
         public LightArchetype archetype = LightArchetype.Punctual;
-        public bool isDoubleSided = false; // Rectangular area lights only
 
         [Range(0.0f, 20.0f)]
         public float lightLength = 0.0f; // Area & projector lights
