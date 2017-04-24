@@ -401,7 +401,7 @@ void DecodeFromGBuffer(
         bsdfData.diffuseColor = baseColor;
         // TODO take from subsurfaceProfile
         bsdfData.fresnel0 = 0.04; /* 0.028 ? */
-        bsdfData.subsurfaceProfile = (SSS_N_PROFILES - 1) * inGBuffer2.a + 0.1; // Need to bias for integers to round trip through the G-buffer
+        bsdfData.subsurfaceProfile = (SSS_N_PROFILES - 0.9) * inGBuffer2.a; // Need to bias for integers to round trip through the G-buffer
         // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
         bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * inGBuffer2.r + 0.0001;
         bsdfData.thickness         = SSS_UNIT_CONVERSION * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
