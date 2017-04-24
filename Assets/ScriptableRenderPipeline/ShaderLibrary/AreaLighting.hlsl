@@ -40,8 +40,8 @@ float IntegrateEdge(float3 V1, float3 V2)
 // N.b.: this function accounts for horizon clipping.
 float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
-#if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
     float sinSqOmega = saturate(1 - cosOmega * cosOmega);
+#if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
     float cosSqSigma = saturate(1 - sinSqSigma);
     float sinSqGamma = saturate(cosSqSigma / sinSqOmega);
     float cosSqGamma = saturate(1 - sinSqGamma);
@@ -87,9 +87,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
             irradiance = INV_PI * (g + h);
         }
     }
-#else // Ref: Moving Frostbite to Physically Based Rendering, page 43 (2015).
-    float sinOmega = sqrt(saturate(1 - cosOmega * cosOmega));
-
+#else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015).
     float irradiance;
 
     if (cosOmega * cosOmega > sinSqSigma)
@@ -98,10 +96,12 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     }
     else
     {
-        float x = sqrt(1 / sinSqSigma - 1);
-        float y = -x * (cosOmega / sinOmega);
-        float z = sinOmega * sqrt(1 - y * y);
-        irradiance = INV_PI * ((cosOmega * acos(y) - x * z) * sinSqSigma + atan(z / x));
+        float a = 1 / sinSqSigma - 1;
+        float w = rsqrt(a);
+        float x = sqrt(a);
+        float y = -x * cosOmega * rsqrt(sinSqOmega);
+        float z = sqrt(sinSqOmega * (1 - y * y));
+        irradiance = INV_PI * ((cosOmega * acos(y) - x * z) * sinSqSigma + atan(z * w));
     }
 #endif
     return max(irradiance, 0);
