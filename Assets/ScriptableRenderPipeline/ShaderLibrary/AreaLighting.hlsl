@@ -88,7 +88,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
         }
     }
 
-    return max(irradiance, 0.0);
+    return max(irradiance, 0);
 }
 
 // Expects non-normalized vertex positions.
