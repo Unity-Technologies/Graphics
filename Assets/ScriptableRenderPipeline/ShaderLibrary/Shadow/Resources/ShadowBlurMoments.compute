@@ -192,7 +192,8 @@ void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : S
 	// first pass blurs horizontally
 	ldsIdx = groupThreadId.xy + int2( blurBorder, 0 );
 	moment_t hblurredMoment = 0.0, hblurredMoment2 = 0.0;
-	for( int blurOffset = -blurBorder; blurOffset <= blurBorder; blurOffset++ )
+	int blurOffset;
+	for( blurOffset = -blurBorder; blurOffset <= blurBorder; blurOffset++ )
 	{
 		hblurredMoment += moments[ldsIdx.y][ldsIdx.x + blurOffset] * blurWeights[abs( blurOffset )];
 	}
