@@ -52,7 +52,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 // SSS parameters
 #define SSS_N_PROFILES      8
 #define SSS_UNIT_CONVERSION (1.0 / 300.0)                  // From 1/3 centimeters to meters
-#define SSS_LOW_THICKNESS   0.005                          // 5 mm
+#define SSS_LOW_THICKNESS   0.002                          // 2 mm
 
 uint   _EnableSSS;                                         // Globally toggles subsurface scattering on/off
 uint   _TransmissionFlags;                                 // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
@@ -401,7 +401,7 @@ void DecodeFromGBuffer(
         bsdfData.diffuseColor = baseColor;
         // TODO take from subsurfaceProfile
         bsdfData.fresnel0 = 0.04; /* 0.028 ? */
-        bsdfData.subsurfaceProfile = (SSS_N_PROFILES - 1) * inGBuffer2.a + 0.1; // Need to bias for integers to round trip through the G-buffer
+        bsdfData.subsurfaceProfile = (SSS_N_PROFILES - 0.9) * inGBuffer2.a; // Need to bias for integers to round trip through the G-buffer
         // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
         bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * inGBuffer2.r + 0.0001;
         bsdfData.thickness         = SSS_UNIT_CONVERSION * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
@@ -733,7 +733,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     float4 cookie    = float4(1.0, 1.0, 1.0, 1.0);
     float  shadow    = 1;
 
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.shadowIndex >= 0)
     {
 #ifdef SHADOWS_USE_SHADOWCTXT
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
@@ -743,7 +743,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         illuminance *= shadow;
     }
 
-    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.cookieIndex >= 0)
     {
         float3 lightToSurface = positionWS - lightData.positionWS;
 
@@ -784,6 +784,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     {
         // Reverse the normal.
         illuminance  = saturate(dot(-bsdfData.normalWS, L));
+        // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
@@ -835,7 +836,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     //    illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
     //}
 
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.shadowIndex >= 0)
     {
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
 #ifdef SHADOWS_USE_SHADOWCTXT
@@ -848,7 +849,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         illuminance *= shadow;
     }
 
-    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.cookieIndex >= 0)
     {
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
 
@@ -890,6 +891,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         // Reverse the normal.
         illuminance  = saturate(dot(-bsdfData.normalWS, L)) * attenuation;
+        // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
@@ -943,7 +945,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     float4 cookie    = float4(1.0, 1.0, 1.0, 1.0);
     float shadow = 1;
 
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.shadowIndex >= 0)
     {
 #ifdef SHADOWS_USE_SHADOWCTXT
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
@@ -953,7 +955,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
         illuminance *= shadow;
     }
 
-    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.cookieIndex >= 0)
     {
         // Compute the texture coordinates in [0, 1]^2.
         float2 coord = positionNDC * 0.5 + 0.5;
@@ -975,6 +977,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     {
         // Reverse the normal.
         illuminance  = saturate(dot(-bsdfData.normalWS, L) * clipFactor);
+        // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
         illuminance *= shadow * cookie.a;
 

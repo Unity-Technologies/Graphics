@@ -40,8 +40,10 @@ float IntegrateEdge(float3 V1, float3 V2)
 // N.b.: this function accounts for horizon clipping.
 float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
-    float sinSqOmega = saturate(1 - cosOmega * cosOmega);
+    float irradiance;
+
 #if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
+    float sinSqOmega = saturate(1 - cosOmega * cosOmega);
     float cosSqSigma = saturate(1 - sinSqSigma);
     float sinSqGamma = saturate(cosSqSigma / sinSqOmega);
     float cosSqGamma = saturate(1 - sinSqGamma);
@@ -54,7 +56,6 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     float omega = acos(cosOmega);
     float gamma = asin(sinGamma);
 
-    [branch]
     if (omega < 0 || omega >= HALF_PI + sigma)
     {
         // Full horizon occlusion (case #4).
@@ -62,8 +63,6 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     }
 
     float e = sinSqSigma * cosOmega;
-
-    float irradiance;
 
     [branch]
     if (omega < HALF_PI - sigma)
@@ -88,20 +87,22 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
         }
     }
 #else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015).
-    float irradiance;
+    float cosSqOmega = cosOmega * cosOmega;
 
-    if (cosOmega * cosOmega > sinSqSigma)
+    [branch]
+    if (cosSqOmega > sinSqSigma)
     {
         irradiance = sinSqSigma * saturate(cosOmega);
     }
     else
     {
-        float a = 1 / sinSqSigma - 1;
-        float w = rsqrt(a);
-        float x = sqrt(a);
-        float y = -x * cosOmega * rsqrt(sinSqOmega);
-        float z = sqrt(sinSqOmega * (1 - y * y));
-        irradiance = INV_PI * ((cosOmega * acos(y) - x * z) * sinSqSigma + atan(z * w));
+        float cotanOmega = cosOmega * rsqrt(1 - cosSqOmega);
+
+        float x = rcp(sinSqSigma) - 1;
+        float y = -cotanOmega * sqrt(x);
+        float z = sqrt(1 - cosSqOmega * rcp(sinSqSigma));
+
+        irradiance = INV_PI * ((cosOmega * acos(y) - z * sqrt(x)) * sinSqSigma + atan(z * rsqrt(x)));
     }
 #endif
     return max(irradiance, 0);
