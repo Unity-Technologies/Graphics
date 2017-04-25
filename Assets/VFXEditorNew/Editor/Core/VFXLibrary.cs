@@ -209,7 +209,7 @@ namespace UnityEditor.VFX
 
         private static List<VFXModelDescriptor<T>> LoadModels<T>() where T : VFXModel
         {
-            var modelTypes = FindConcreteSubclasses<T>();
+            var modelTypes = FindConcreteSubclasses(typeof(T),typeof(VFXInfoAttribute));
             var modelDescs = new List<VFXModelDescriptor<T>>();
             foreach (var modelType in modelTypes)
             {
@@ -229,7 +229,8 @@ namespace UnityEditor.VFX
 
         private static Dictionary<Type, VFXModelDescriptor<VFXSlot>> LoadSlots()
         {
-            var slotTypes = FindConcreteSubclasses<VFXSlot>();
+            // First find concrete slots
+            var slotTypes = FindConcreteSubclasses(typeof(VFXSlot),typeof(VFXInfoAttribute));
             var dictionary = new Dictionary<Type, VFXModelDescriptor<VFXSlot>>();
             foreach (var slotType in slotTypes)
             {
@@ -250,10 +251,22 @@ namespace UnityEditor.VFX
                     Debug.LogError("Error while loading slot from type " + slotType + ": " + e);
                 }
             }
+
+            // Then find types that needs a generic slot
+            var vfxTypes = FindConcreteSubclasses(null,typeof(VFXTypeAttribute));
+            foreach (var type in vfxTypes)
+            {
+                if (!dictionary.ContainsKey(type)) // If a slot was not already explicitly declared
+                {
+                    VFXSlot instance = ScriptableObject.CreateInstance<VFXSlot>();
+                    dictionary[type] = new VFXModelDescriptor<VFXSlot>(instance);
+                }
+            }
+
             return dictionary;
         }
 
-        private static IEnumerable<Type> FindConcreteSubclasses<T>()
+        private static IEnumerable<Type> FindConcreteSubclasses(Type objectType = null,Type attributeType = null)
         {
             List<Type> types = new List<Type>();
             foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -270,10 +283,10 @@ namespace UnityEditor.VFX
                 }
                 if (assemblyTypes != null)
                     foreach (var assemblyType in assemblyTypes)
-                        if (assemblyType.IsSubclassOf(typeof(T)) && !assemblyType.IsAbstract)
+                        if ((objectType == null || assemblyType.IsSubclassOf(objectType)) && !assemblyType.IsAbstract)
                             types.Add(assemblyType);
             }
-            return types.Where(type => type.GetCustomAttributes(typeof(VFXInfoAttribute), false).Length == 1);
+            return types.Where(type => attributeType == null || type.GetCustomAttributes(attributeType, false).Length == 1);
         }
 
         private static volatile List<VFXModelDescriptor<VFXContext>> m_ContextDescs;

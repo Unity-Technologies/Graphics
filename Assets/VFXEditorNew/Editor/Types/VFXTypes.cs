@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    public class VFXTypeAttribute : Attribute
+    {}
+
     enum CoordinateSpace
     {
         Local,
@@ -18,6 +21,7 @@ namespace UnityEditor.VFX
         CoordinateSpace space { get; set; }
     }
 
+    [VFXType]
     struct Sphere : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
@@ -27,6 +31,7 @@ namespace UnityEditor.VFX
         public float radius;
     }
 
+    [VFXType]
     struct OrientedBox : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
@@ -36,6 +41,8 @@ namespace UnityEditor.VFX
         public Vector2 angles;
         public Vector2 size;
     }
+
+    [VFXType]
     struct AABox : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
@@ -45,6 +52,7 @@ namespace UnityEditor.VFX
         public Vector2 size;
     }
 
+    [VFXType]
     struct Plane : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
@@ -54,6 +62,7 @@ namespace UnityEditor.VFX
         public Vector3 normal;
     }
 
+    [VFXType]
     struct Cylinder : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
@@ -65,6 +74,7 @@ namespace UnityEditor.VFX
         public float    height;
     }
 
+    [VFXType]
     struct Transform : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
@@ -74,6 +84,8 @@ namespace UnityEditor.VFX
         public Vector3 angles;
         public Vector3 scale;
     }
+
+    [VFXType]
     struct Position : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
@@ -81,6 +93,8 @@ namespace UnityEditor.VFX
         public CoordinateSpace space;
         public Vector3 position;
     }
+
+    [VFXType]
     struct Vector : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
@@ -89,6 +103,7 @@ namespace UnityEditor.VFX
         public Vector3 vector;
     }
 
+    [VFXType]
     struct FlipBook
     {
         public int x;
