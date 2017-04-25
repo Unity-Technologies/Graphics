@@ -126,6 +126,7 @@ namespace UnityEditor.VFX.UI
 
         public void SetPropertyValue(object value)
         {
+            Undo.RecordObject(model, "Change Value");
             model.value = value;
         }
 
