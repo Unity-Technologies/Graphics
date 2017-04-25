@@ -550,14 +550,11 @@ namespace UnityEditor.VFX.UI
                
                 if (m_GraphAsset != null)
                     m_GraphAsset.root.onInvalidateDelegate -= SyncPresentersFromModel;
-                
-                m_GraphAsset = graph;
 
-                if (m_GraphAsset != null)
-                {
-                    m_GraphAsset.root.onInvalidateDelegate += SyncPresentersFromModel;
-                    SyncPresentersFromModel(m_GraphAsset.root,VFXModel.InvalidationCause.kStructureChanged); // First call to trigger a sync
-                }
+                m_GraphAsset = graph == null ? CreateInstance<VFXGraphAsset>() : graph;
+
+                m_GraphAsset.root.onInvalidateDelegate += SyncPresentersFromModel;
+                SyncPresentersFromModel(m_GraphAsset.root,VFXModel.InvalidationCause.kStructureChanged); // First call to trigger a sync
 
                 // Doesn't work for some reason
                 //View.FrameAll();
