@@ -524,15 +524,18 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 // Precomputed lighting data to send to the various lighting functions
 struct PreLightData
 {
+    // General
     float NdotV;
+
+    // GGX iso
     float ggxLambdaV;
 
-    // Aniso
+    // GGX Aniso
     float TdotV;
     float BdotV;
-
     float anisoGGXLambdaV;
 
+    // IBL
     float3 iblDirWS;    // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
     float  iblMipLevel;
 
@@ -551,39 +554,38 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 {
     PreLightData preLightData;
 
-    // We have handle the case of NdotV being negative in GetData() function with GetShiftedNdotV.
-    // So we don't need to saturate or take the abs here.
-    // In case a material use negative normal for double sided lighting like speedtree this will be handle in the GetData() code too.
-    preLightData.NdotV = dot(bsdfData.normalWS, V);
+    // General
+    float3 iblNormalWS = bsdfData.normalWS;
+    // GetShiftedNdotV return a positive NdotV
+    // In case a material use negative normal for double sided lighting like Speedtree  they need to do a new calculation
+    preLightData.NdotV = GetShiftedNdotV(iblNormalWS, V); // Handle artificat for specular lighting
 
+    // GGX iso
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
 
-    float  iblNdotV    = preLightData.NdotV;
-    float3 iblNormalWS = bsdfData.normalWS;
-
-    // Check if we precompute anisotropy too
+    // GGX aniso
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
         preLightData.BdotV = dot(bsdfData.bitangentWS, V);
         preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
         // Tangent = highlight stretch (anisotropy) direction. Bitangent = grain (brush) direction.
-        iblNormalWS = GetAnisotropicModifiedNormal(bsdfData.bitangentWS, bsdfData.normalWS, V, bsdfData.anisotropy);
+        iblNormalWS = GetAnisotropicModifiedNormal(bsdfData.bitangentWS, iblNormalWS, V, bsdfData.anisotropy);
 
-        // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NDotV) and use iblNormalWS
+        // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
     }
 
-    GetPreIntegratedFGD(iblNdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
+    // IBL
+    GetPreIntegratedFGD(preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
 
     // We need to take into account the modified normal for faking anisotropic here.
     float3 iblR = reflect(-V, iblNormalWS);
     preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness, preLightData.NdotV);
-
     preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
 
-    // Area light specific
+    // Area light
     // UVs for sampling the LUTs
     float theta = FastACos(preLightData.NdotV);
     float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
@@ -657,9 +659,10 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     float NdotL    = saturate(dot(bsdfData.normalWS, L));
     float NdotV    = preLightData.NdotV;
     float LdotV    = dot(L, V);
-    float invLenLV = rsqrt(abs(2 + 2 * LdotV));    // invLenLV = rcp(length(L + V))
+    // GCN Optimization: reference PBR Diffuse Lighting for GGX + Smith Microsurfaces
+    float invLenLV = rsqrt(abs(2.0 * LdotV + 2.0));    // invLenLV = rcp(length(L + V))
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
-    float LdotH    = saturate(invLenLV + invLenLV * LdotV);
+    float LdotH    = saturate(invLenLV * LdotV + invLenLV);
 
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 

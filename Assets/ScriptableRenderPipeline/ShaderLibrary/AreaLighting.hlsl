@@ -119,7 +119,7 @@ float PolygonIrradiance(float4x3 L)
 
     float3 F = float3(0, 0, 0);
 
-    for (int edge = 0; edge < 4; edge++)
+    for (uint edge = 0; edge < 4; edge++)
     {
         float3 V1 = L[edge];
         float3 V2 = L[(edge + 1) % 4];
