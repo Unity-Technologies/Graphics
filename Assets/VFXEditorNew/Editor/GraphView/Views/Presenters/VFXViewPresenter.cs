@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void RecreateNodeEdges(bool recordUndoRedo)
+        public void RecreateNodeEdges()
         {
             HashSet<VFXDataEdgePresenter> unusedEdges = new HashSet<VFXDataEdgePresenter>();
             foreach(var e in m_Elements.OfType<VFXDataEdgePresenter>())
@@ -88,23 +88,19 @@ namespace UnityEditor.VFX.UI
                 var slotContainer = operatorPresenter.slotContainer;
                 foreach (var input in slotContainer.inputSlots)
                 {
-                    RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, input, recordUndoRedo);
+                    RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, input);
                 }
             }
 
             foreach(var edge in unusedEdges)
             {
-                if (recordUndoRedo)
-                {
-                    RecordEdgePresenter(edge, RecordEvent.Remove);
-                }
                 edge.input = null;
                 edge.output = null;
                 m_Elements.Remove(edge);
             }
         }
 
-        public void RecreateInputSlotEdge(HashSet<VFXDataEdgePresenter> unusedEdges,VFXLinkablePresenter[] allLinkables, IVFXSlotContainer slotContainer, VFXSlot input, bool recordUndoRedo)
+        public void RecreateInputSlotEdge(HashSet<VFXDataEdgePresenter> unusedEdges,VFXLinkablePresenter[] allLinkables, IVFXSlotContainer slotContainer, VFXSlot input)
         {
             if (input.HasLink())
             {
@@ -130,10 +126,6 @@ namespace UnityEditor.VFX.UI
                         {
                             edgePresenter.output = anchorFrom;
                             edgePresenter.input = anchorTo;
-                            if (recordUndoRedo)
-                            {
-                                RecordEdgePresenter(edgePresenter, RecordEvent.Add);
-                            }
                             base.AddElement(edgePresenter);
                         }
                     }
@@ -142,7 +134,7 @@ namespace UnityEditor.VFX.UI
 
             foreach(VFXSlot subSlot in input.children)
             {
-                RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer,subSlot, recordUndoRedo);
+                RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, subSlot);
             }
         }
 
@@ -152,11 +144,19 @@ namespace UnityEditor.VFX.UI
             Remove
         }
 
-        static private void RecordEdgePresenter(VFXDataEdgePresenter flowEdge, RecordEvent e)
+        private void RecordEdgePresenter(VFXDataEdgePresenter flowEdge, RecordEvent e)
         {
             var fromAnchor = flowEdge.output as VFXDataAnchorPresenter;
             var toAnchor = flowEdge.input as VFXDataAnchorPresenter;
-            Undo.RecordObjects(new Object[] { fromAnchor.model, toAnchor.model, fromAnchor.Owner, toAnchor.Owner }, e == RecordEvent.Add ? "Add Edge" : "Remove Edge");
+            var from = fromAnchor.Owner as IVFXSlotContainer;
+            var to = toAnchor.Owner as IVFXSlotContainer;
+            var children = new HashSet<IVFXSlotContainer>();
+            CollectChildOperator(from, children);
+            CollectChildOperator(to, children);
+
+            var allOperator = children.OfType<Object>().ToArray();
+            var allSlot = children.SelectMany(c => c.outputSlots.Concat(c.inputSlots)).OfType<Object>().ToArray();
+            Undo.RecordObjects(allOperator.Concat(allSlot).ToArray(), e == RecordEvent.Add ? "Add Edge" : "Remove Edge");
         }
 
         private void RecordModel(string modelName, RecordEvent e)
@@ -193,7 +193,7 @@ namespace UnityEditor.VFX.UI
                 {
                     //Save concerned object
                     slotInput.Link(slotOuput);
-                    RecreateNodeEdges(true);
+                    RecreateNodeEdges();
                 }
 
                 // disconnect this edge as it will not be added by add element
@@ -242,7 +242,7 @@ namespace UnityEditor.VFX.UI
 
                 m_GraphAsset.root.RemoveChild(operatorPresenter.node);
                 Undo.DestroyObjectImmediate(operatorPresenter.node);
-                RecreateNodeEdges(true);
+                RecreateNodeEdges();
             }
             else if (element is VFXFlowEdgePresenter)
             {
@@ -341,7 +341,6 @@ namespace UnityEditor.VFX.UI
         private static void CollectChildOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
         {
             hashChildren.Add(operatorInput);
-
 
             var all = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(o => o.m_Owner));
             var children = all.Cast<IVFXSlotContainer>();
@@ -596,12 +595,12 @@ namespace UnityEditor.VFX.UI
                         if (model is VFXSystem)
                             CreateFlowEdges((VFXSystem)model);
                         else
-                            RecreateNodeEdges(false);
+                            RecreateNodeEdges();
 
                         break;
                     }
                 case VFXModel.InvalidationCause.kConnectionChanged:
-                    RecreateNodeEdges(false);
+                    RecreateNodeEdges();
                     break;
             }
 
@@ -635,7 +634,7 @@ namespace UnityEditor.VFX.UI
                 newPresenter.Init(model,this);
                 AddElement(presenter);
             }
-            RecreateNodeEdges(false);
+            RecreateNodeEdges();
         }
 
         private void RemovePresentersFromModel(VFXModel model,Dictionary<VFXModel,IVFXPresenter> syncedModels)
@@ -653,7 +652,7 @@ namespace UnityEditor.VFX.UI
             }
 
             if (presenter != null)
-                m_Elements.RemoveAll(x => (bool)(x == presenter)); // We dont call RemoveElement as it modifies the model...
+                m_Elements.RemoveAll(x => x as IVFXPresenter == presenter); // We don't call RemoveElement as it modifies the model...
         }
 
         private void RemoveFlowEdges(IEnumerable<VFXContextPresenter> presenters)

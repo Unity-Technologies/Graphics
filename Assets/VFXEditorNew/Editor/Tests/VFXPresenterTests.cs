@@ -304,7 +304,55 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void UndoRedoOperatorLink()
+        public void UndoRedoOperatorLinkSimple()
+        {
+            Action fnResync = delegate ()
+            {
+                //Force Resync (in test suite, Undo.undoRedoPerformed isn't triggered)
+                m_ViewPresenter.SetGraphAsset(m_ViewPresenter.GetGraphAsset(), true);
+            };
+
+            CreateTestAsset();
+
+            Func<Type, VFXNodePresenter> fnFindPresenter = delegate (Type type)
+            {
+                var allPresenter = m_ViewPresenter.allChildren.OfType<VFXNodePresenter>().Cast<VFXNodePresenter>();
+                return allPresenter.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
+            };
+
+            var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cos");
+            var sinDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sin");
+            Undo.IncrementCurrentGroup();
+            var cos = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), cosDesc);
+            Undo.IncrementCurrentGroup();
+            var sin = m_ViewPresenter.AddVFXOperator(new Vector2(1, 1), sinDesc);
+            var cosPresenter = fnFindPresenter(typeof(VFXOperatorCos));
+            var sinPresenter = fnFindPresenter(typeof(VFXOperatorSin));
+
+            Func<int> fnCountEdge = delegate ()
+            {
+                return m_ViewPresenter.allChildren.OfType<VFXDataEdgePresenter>().Count();
+            };
+
+            Undo.IncrementCurrentGroup();
+            Assert.AreEqual(0, fnCountEdge());
+
+            var edgePresenterSin = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenterSin.input = cosPresenter.outputAnchors[0];
+            edgePresenterSin.output = sinPresenter.inputAnchors[0];
+            m_ViewPresenter.AddElement(edgePresenterSin);
+            Assert.AreEqual(1, fnCountEdge());
+
+            Undo.PerformUndo(); fnResync();
+            Assert.AreEqual(0, fnCountEdge());
+            Assert.NotNull(fnFindPresenter(typeof(VFXOperatorCos)));
+            Assert.NotNull(fnFindPresenter(typeof(VFXOperatorSin)));
+
+            DestroyTestAsset();
+        }
+
+        [Test]
+        public void UndoRedoOperatorLinkAdvanced()
         {
             Action fnResync = delegate ()
             {
@@ -323,10 +371,14 @@ namespace UnityEditor.VFX.Test
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Abs");
             var appendDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "AppendVector");
             var crossDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cross");
+            var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cos");
+            var sinDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sin");
 
             var abs = m_ViewPresenter.AddVFXOperator(new Vector2(0, 0), absDesc);
             var append = m_ViewPresenter.AddVFXOperator(new Vector2(1, 1), appendDesc);
             var cross = m_ViewPresenter.AddVFXOperator(new Vector2(2, 2), crossDesc);
+            var cos = m_ViewPresenter.AddVFXOperator(new Vector2(3, 3), cosDesc);
+            var sin = m_ViewPresenter.AddVFXOperator(new Vector2(4, 4), sinDesc);
 
             var absPresenter = fnFindPresenter(typeof(VFXOperatorAbs));
             var appendPresenter = fnFindPresenter(typeof(VFXOperatorAppendVector));
@@ -352,10 +404,12 @@ namespace UnityEditor.VFX.Test
 
             Undo.IncrementCurrentGroup();
             Assert.AreEqual(4, fnCountEdge());
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
 
             //Find last edge in append node
             var referenceAnchor = appendPresenter.inputAnchors[2];
-            var edgeToDelete = m_ViewPresenter.allChildren.OfType<VFXDataEdgePresenter>()
+            var edgeToDelete = m_ViewPresenter.allChildren
+                .OfType<VFXDataEdgePresenter>()
                 .Cast<VFXDataEdgePresenter>()
                 .FirstOrDefault(e =>
                 {
@@ -365,12 +419,36 @@ namespace UnityEditor.VFX.Test
 
             m_ViewPresenter.RemoveElement(edgeToDelete);
             Assert.AreEqual(2, fnCountEdge()); //cross should be implicitly disconnected ...
+            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
             Undo.PerformUndo(); fnResync();
             Assert.AreEqual(4, fnCountEdge()); //... and restored !
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
             Undo.PerformRedo(); fnResync();
             Assert.AreEqual(2, fnCountEdge());
+            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
 
-            m_ViewPresenter.RemoveElement(absPresenter);
+            //Improve test connecting cos & sin => then try delete append node
+            var cosPresenter = fnFindPresenter(typeof(VFXOperatorCos));
+            var sinPresenter = fnFindPresenter(typeof(VFXOperatorSin));
+
+            Undo.PerformUndo(); fnResync();
+            Undo.IncrementCurrentGroup();
+            Assert.AreEqual(4, fnCountEdge());
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
+
+            var edgePresenterCos = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenterCos.input = appendPresenter.outputAnchors[0];
+            edgePresenterCos.output = cosPresenter.inputAnchors[0];
+            m_ViewPresenter.AddElement(edgePresenterCos);
+            Assert.AreEqual(5, fnCountEdge());
+
+            var edgePresenterSin = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
+            edgePresenterSin.input = appendPresenter.outputAnchors[0];
+            edgePresenterSin.output = sinPresenter.inputAnchors[0];
+            m_ViewPresenter.AddElement(edgePresenterSin);
+            Assert.AreEqual(6, fnCountEdge());
+
+            m_ViewPresenter.RemoveElement(appendPresenter);
             Assert.AreEqual(0, fnCountEdge());
 
             DestroyTestAsset();
