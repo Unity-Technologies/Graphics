@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18328291, g: 0.2289299, b: 0.30645376, a: 1}
+  m_IndirectSpecularColor: {r: 0.1797753, g: 0.22508909, b: 0.30660287, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -708,6 +708,7 @@ GameObject:
   m_Component:
   - component: {fileID: 267028025}
   - component: {fileID: 267028024}
+  - component: {fileID: 267028026}
   m_Layer: 0
   m_Name: Sun
   m_TagString: Untagged
@@ -725,7 +726,7 @@ Light:
   serializedVersion: 8
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 2
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_CookieSize: 10
@@ -734,9 +735,9 @@ Light:
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
+    m_Bias: 0.176
+    m_NormalBias: 0.59
+    m_NearPlane: 0.28
   m_Cookie: {fileID: 0}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
@@ -771,13 +772,31 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 267028023}
-  m_LocalRotation: {x: 0.6843819, y: 0.4697298, z: -0.55498856, w: 0.054433767}
-  m_LocalPosition: {x: 31.1, y: 78.5, z: -54.3}
+  m_LocalRotation: {x: 0.434125, y: 0.75677305, z: -0.29959124, w: 0.3861026}
+  m_LocalPosition: {x: 28.4, y: 80.7, z: -52.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 36.577003, y: -118.08401, z: -226.50099}
+  m_LocalEulerAnglesHint: {x: 52.062004, y: -211.83199, z: -316.176}
+--- !u!114 &267028026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 267028023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86fb67de2496b4335bc8326f24b35f39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eyePosition: {fileID: 95697987}
+  daytimeSkyColor: {r: 1, g: 0.9568628, b: 0.83921576, a: 1}
+  nighttimeSkyColor: {r: 0.04, g: 0.19, b: 0.27, a: 1}
+  radius: 10
+  daySeconds: 2400
+  speed: 0.02
+  blend: 0.75
 --- !u!1 &287655541
 GameObject:
   m_ObjectHideFlags: 0
@@ -947,7 +966,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 480371293}
   m_LocalRotation: {x: 0.5, y: 0.5, z: -0.5, w: 0.5}
-  m_LocalPosition: {x: 60, y: 27.9, z: -52}
+  m_LocalPosition: {x: 61.8, y: 27.9, z: -52}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1436098192}
@@ -965,7 +984,7 @@ Light:
   m_Color: {r: 0.81858146, g: 0.021896647, b: 0.99264705, a: 1}
   m_Intensity: 30
   m_Range: 500
-  m_SpotAngle: 82
+  m_SpotAngle: 83.4
   m_CookieSize: 10
   m_Shadows:
     m_Type: 1
@@ -1277,7 +1296,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 696494501}
   m_LocalRotation: {x: 0.02170083, y: 0.0053889398, z: -0.00011697372, w: 0.99975}
-  m_LocalPosition: {x: -43, y: 73.1, z: 55.7}
+  m_LocalPosition: {x: -49.9, y: 80.5, z: 56.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 797301775}
@@ -1297,7 +1316,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 10, y: 10, z: 500}
+  m_BoxSize: {x: 15, y: 10, z: 1000}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -1729,13 +1748,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 923295470}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -30.6, y: 63.8, z: -88.4}
-  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
+  m_LocalPosition: {x: -37.03, y: 69.1, z: -88.1}
+  m_LocalScale: {x: 10, y: 13, z: 10}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 10
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!1 &945195326
 GameObject:
   m_ObjectHideFlags: 0
@@ -3543,7 +3562,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1879588685}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 39.8, y: 6.005382, z: -49}
+  m_LocalPosition: {x: 39.8, y: 5.3, z: -49}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_Children: []
   m_Father: {fileID: 0}
