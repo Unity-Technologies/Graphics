@@ -7,17 +7,20 @@ namespace UnityEngine.Experimental.Rendering
 {
     public class DebugMenuItem
     {
-        public Type             type    { get { return m_Type; } }
-        public string           name    { get { return m_Name; } }
-        public DebugItemDrawer  drawer  { get { return m_Drawer; } }
+        public Type             type            { get { return m_Type; } }
+        public string           name            { get { return m_Name; } }
+        public DebugItemDrawer  drawer          { get { return m_Drawer; } }
+        public bool             dynamicDisplay  { get { return m_DynamicDisplay; } }
+        public bool             readOnly        { get { return m_Setter == null; } }
 
-        public DebugMenuItem(string name, Type type, Func<object> getter, Action<object> setter, DebugItemDrawer drawer = null)
+        public DebugMenuItem(string name, Type type, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemDrawer drawer = null)
         {
             m_Type = type;
             m_Setter = setter;
             m_Getter = getter;
             m_Name = name;
             m_Drawer = drawer;
+            m_DynamicDisplay = dynamicDisplay;
         }
 
         public Type GetItemType()
@@ -27,8 +30,12 @@ namespace UnityEngine.Experimental.Rendering
 
         public void SetValue(object value)
         {
-            m_Setter(value);
-            m_Drawer.ClampValues(m_Getter, m_Setter);
+            // Setter can be null for readonly items
+            if(m_Setter != null)
+            {
+                m_Setter(value);
+                m_Drawer.ClampValues(m_Getter, m_Setter);
+            }
         }
 
         public object GetValue()
@@ -41,6 +48,7 @@ namespace UnityEngine.Experimental.Rendering
         Type            m_Type;
         string          m_Name;
         DebugItemDrawer m_Drawer = null;
+        bool            m_DynamicDisplay = false;
     }
 
     public class DebugMenu
@@ -54,6 +62,7 @@ namespace UnityEngine.Experimental.Rendering
         private List<DebugMenuItem> m_Items = new List<DebugMenuItem>();
         private List<DebugMenuItemUI> m_ItemsUI = new List<DebugMenuItemUI>();
         private int m_SelectedItem = -1;
+        private bool m_AllItemsReadOnly = true;
 
         public DebugMenu(string name)
         {
@@ -104,6 +113,9 @@ namespace UnityEngine.Experimental.Rendering
 
         void SetSelectedItem(int index)
         {
+            if (m_AllItemsReadOnly)
+                return;
+
             if(m_SelectedItem != -1)
             {
                 m_ItemsUI[m_SelectedItem].SetSelected(false);
@@ -120,37 +132,51 @@ namespace UnityEngine.Experimental.Rendering
             {
                 if (m_SelectedItem == -1)
                 {
-                    if(m_Items.Count != 0)
-                        SetSelectedItem(0);
+                    NextItem();
                 }
                 else
                     SetSelectedItem(m_SelectedItem);
             }
         }
 
+        int NextItemIndex(int current)
+        {
+            return (current + 1) % m_Items.Count;
+        }
+
         void NextItem()
         {
-            if(m_Items.Count != 0)
+            if(m_Items.Count != 0 && !m_AllItemsReadOnly)
             {
-                int newSelected = (m_SelectedItem + 1) % m_Items.Count;
+                int newSelected = NextItemIndex(m_SelectedItem);
+                while(m_Items[newSelected].readOnly) // There should always be at least one item that is not readonly because m_AllItemsReadOnly is false.
+                    newSelected = NextItemIndex(newSelected);
                 SetSelectedItem(newSelected);
             }
         }
 
+        int PreviousItemIndex(int current)
+        {
+            int newSelected = current - 1;
+            if (newSelected == -1)
+                newSelected = m_Items.Count - 1;
+            return newSelected;
+        }
+
         void PreviousItem()
         {
-            if(m_Items.Count != 0)
+            if(m_Items.Count != 0 && !m_AllItemsReadOnly)
             {
-                int newSelected = m_SelectedItem - 1;
-                if (newSelected == -1)
-                    newSelected = m_Items.Count - 1;
+                int newSelected = PreviousItemIndex(m_SelectedItem);
+                while (m_Items[newSelected].readOnly) // There should always be at least one item that is not readonly because m_AllItemsReadOnly is false.
+                    newSelected = PreviousItemIndex(newSelected);
                 SetSelectedItem(newSelected);
             }
         }
 
         public void OnMoveHorizontal(float value)
         {
-            if(m_SelectedItem != -1)
+            if(m_SelectedItem != -1 && !m_Items[m_SelectedItem].readOnly)
             {
                 if (value > 0.0f)
                     m_ItemsUI[m_SelectedItem].OnIncrement();
@@ -169,17 +195,31 @@ namespace UnityEngine.Experimental.Rendering
 
         public void OnValidate()
         {
-            if (m_SelectedItem != -1)
+            if (m_SelectedItem != -1 && !m_Items[m_SelectedItem].readOnly)
                 m_ItemsUI[m_SelectedItem].OnValidate();
         }
 
-        public void AddDebugMenuItem<ItemType>(string name, Func<object> getter, Action<object> setter, DebugItemDrawer drawer = null)
+        public void AddDebugMenuItem<ItemType>(string name, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemDrawer drawer = null)
         {
             if (drawer == null)
                 drawer = new DebugItemDrawer();
-            DebugMenuItem newItem = new DebugMenuItem(name, typeof(ItemType), getter, setter, drawer);
+            DebugMenuItem newItem = new DebugMenuItem(name, typeof(ItemType), getter, setter, dynamicDisplay, drawer);
             drawer.SetDebugItem(newItem);
             m_Items.Add(newItem);
+            m_AllItemsReadOnly = m_AllItemsReadOnly && newItem.readOnly;
+        }
+
+        public void Update()
+        {
+            // Can happen if the debug menu has been disabled (all UI is destroyed). We can't test DebugMenuManager directly though because of the persistant debug menu (which is always displayed no matter what)
+            if (m_Root == null)
+                return;
+
+            foreach(var itemUI in m_ItemsUI)
+            {
+                if(itemUI.dynamicDisplay)
+                    itemUI.Update();
+            }
         }
     }
 

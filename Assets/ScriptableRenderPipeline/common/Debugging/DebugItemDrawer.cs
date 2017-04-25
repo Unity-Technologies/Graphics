@@ -77,42 +77,74 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
         void DrawBoolItem()
         {
-            EditorGUI.BeginChangeCheck();
-            bool value = EditorGUILayout.Toggle(m_Label, (bool)m_MenuItem.GetValue());
-            if (EditorGUI.EndChangeCheck())
+            bool value = (bool)m_MenuItem.GetValue();
+            if (m_MenuItem.readOnly)
             {
-                m_MenuItem.SetValue(value);
+                EditorGUILayout.LabelField(m_Label, new GUIContent(value.ToString()));
+            }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                value = EditorGUILayout.Toggle(m_Label, value);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_MenuItem.SetValue(value);
+                }
             }
         }
 
         void DrawIntItem()
         {
-            EditorGUI.BeginChangeCheck();
-            int value = EditorGUILayout.IntField(m_Label, (int)m_MenuItem.GetValue());
-            if (EditorGUI.EndChangeCheck())
+            int value = (int)m_MenuItem.GetValue();
+            if (m_MenuItem.readOnly)
             {
-                m_MenuItem.SetValue(value);
+                EditorGUILayout.LabelField(m_Label, new GUIContent(value.ToString()));
+            }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                value = EditorGUILayout.IntField(m_Label, value);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_MenuItem.SetValue(value);
+                }
             }
         }
 
         void DrawUIntItem()
         {
-            EditorGUI.BeginChangeCheck();
-            int value = EditorGUILayout.IntField(m_Label, (int)(uint)m_MenuItem.GetValue());
-            if (EditorGUI.EndChangeCheck())
+            int value = (int)(uint)m_MenuItem.GetValue();
+            if (m_MenuItem.readOnly)
             {
-                value = System.Math.Max(0, value);
-                m_MenuItem.SetValue((uint)value);
+                EditorGUILayout.LabelField(m_Label, new GUIContent(value.ToString()));
+            }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                value = EditorGUILayout.IntField(m_Label, value);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    value = System.Math.Max(0, value);
+                    m_MenuItem.SetValue((uint)value);
+                }
             }
         }
 
         void DrawFloatItem()
         {
-            EditorGUI.BeginChangeCheck();
-            float value = EditorGUILayout.FloatField(m_Label, (float)m_MenuItem.GetValue());
-            if (EditorGUI.EndChangeCheck())
+            float value = (float)m_MenuItem.GetValue();
+            if(m_MenuItem.readOnly)
             {
-                m_MenuItem.SetValue(value);
+                EditorGUILayout.LabelField(m_Label, new GUIContent(value.ToString()));
+            }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                value = EditorGUILayout.FloatField(m_Label, value);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_MenuItem.SetValue(value);
+                }
             }
         }
 

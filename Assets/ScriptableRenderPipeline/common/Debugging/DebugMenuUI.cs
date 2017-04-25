@@ -14,7 +14,6 @@ namespace UnityEngine.Experimental.Rendering
         GameObject          m_Root = null;
         GameObject[]        m_MenuRoots = null;
         bool                m_Enabled = false;
-        int                 m_ActiveMenuIndex = 0;
         DebugMenuManager    m_DebugMenuManager = null;
 
         public DebugMenuUI(DebugMenuManager manager)

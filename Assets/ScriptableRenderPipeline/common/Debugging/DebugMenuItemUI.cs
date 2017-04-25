@@ -9,6 +9,8 @@ namespace UnityEngine.Experimental.Rendering
         protected GameObject m_Root = null;
         protected DebugMenuItem m_MenuItem = null;
 
+        public bool dynamicDisplay { get { return m_MenuItem.dynamicDisplay; } }
+
         protected DebugMenuItemUI(DebugMenuItem menuItem)
         {
             m_MenuItem = menuItem;
@@ -18,6 +20,7 @@ namespace UnityEngine.Experimental.Rendering
         public abstract void OnValidate();
         public abstract void OnIncrement();
         public abstract void OnDecrement();
+        public abstract void Update();
     }
 
     public class DebugMenuSimpleItemUI : DebugMenuItemUI
@@ -56,6 +59,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             throw new System.NotImplementedException();
         }
+
+        public override void Update()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 
     public class DebugMenuBoolItemUI : DebugMenuSimpleItemUI
@@ -63,10 +71,10 @@ namespace UnityEngine.Experimental.Rendering
         public DebugMenuBoolItemUI(GameObject parent, DebugMenuItem menuItem, string name)
             : base(parent, menuItem, name)
         {
-            UpdateText();
+            Update();
         }
 
-        private void UpdateText()
+        public override void Update()
         {
             m_Value.GetComponent<UI.Text>().text = (bool)m_MenuItem.GetValue() ? "True" : "False";
         }
@@ -75,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering
         public override void OnValidate()
         {
             m_MenuItem.SetValue(!(bool)m_MenuItem.GetValue());
-            UpdateText();
+            Update();
         }
 
         public override void OnIncrement()
@@ -97,10 +105,10 @@ namespace UnityEngine.Experimental.Rendering
         public DebugMenuFloatItemUI(GameObject parent, DebugMenuItem menuItem, string name)
             : base(parent, menuItem, name)
         {
-            UpdateText();
+            Update();
         }
 
-        private void UpdateText()
+        public override void Update()
         {
             float currentValue = (float)m_MenuItem.GetValue();
             bool isNegative = currentValue < 0.0f;
@@ -161,7 +169,7 @@ namespace UnityEngine.Experimental.Rendering
         public override void OnValidate()
         {
             m_SelectIncrementMode = !m_SelectIncrementMode;
-            UpdateText();
+            Update();
         }
 
         public override void OnIncrement()
@@ -175,7 +183,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_CurrentIncrementIndex -= 1; // * 0.1 (10^m_CurrentIncrementIndex)
                 m_CurrentIncrementIndex = System.Math.Max(-5, m_CurrentIncrementIndex);
             }
-            UpdateText();
+            Update();
         }
 
         public override void OnDecrement()
@@ -188,7 +196,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 m_CurrentIncrementIndex += 1; // * 10 (10^m_CurrentIncrementIndex)
             }
-            UpdateText();            
+            Update();            
         }
     }
 
@@ -251,10 +259,15 @@ namespace UnityEngine.Experimental.Rendering
             throw new System.NotImplementedException();
         }
 
+        public override void Update()
+        {
+            UpdateText(GetIntegerValue());
+        }
+
         public override void OnValidate()
         {
             m_SelectIncrementMode = !m_SelectIncrementMode;
-            UpdateText(GetIntegerValue());
+            Update();
         }
 
         public override void OnIncrement()
@@ -268,7 +281,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_CurrentIncrementIndex -= 1; // *= 0.1 (10^m_CurrentIncrementIndex)
                 m_CurrentIncrementIndex = System.Math.Max(0, m_CurrentIncrementIndex);
             }
-            UpdateText(GetIntegerValue());
+            Update();
         }
 
         public override void OnDecrement()
@@ -282,7 +295,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_CurrentIncrementIndex += 1; // *= 10 (10^m_CurrentIncrementIndex)
                 m_CurrentIncrementIndex = System.Math.Max(0, m_CurrentIncrementIndex);
             }
-            UpdateText(GetIntegerValue());
+            Update();
         }
     }
     public class DebugMenuIntItemUI : DebugMenuIntegerItemUI
@@ -336,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering
             m_ValueNames = valueNames;
             m_CurrentValueIndex = FindIndexForValue((int)m_MenuItem.GetValue());
 
-            UpdateText();
+            Update();
         }
 
         private int FindIndexForValue(int value)
@@ -350,7 +363,7 @@ namespace UnityEngine.Experimental.Rendering
             return -1;
         }
 
-        private void UpdateText()
+        public override void Update()
         {
             if(m_CurrentValueIndex != -1)
             {
@@ -367,7 +380,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_CurrentValueIndex = (m_CurrentValueIndex + 1) % m_Values.Count;
             m_MenuItem.SetValue(m_CurrentValueIndex);
-            UpdateText();
+            Update();
         }
 
         public override void OnDecrement()
@@ -377,7 +390,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_CurrentValueIndex = m_Values.Count - 1;
 
             m_MenuItem.SetValue(m_CurrentValueIndex);
-            UpdateText();
+            Update();
         }
     }
 
@@ -412,7 +425,7 @@ namespace UnityEngine.Experimental.Rendering
             Update();
         }
 
-        void Update()
+        public override void Update()
         {
             Color currentValue = (Color)m_MenuItem.GetValue();
             UI.Image image = m_ColorRect.GetComponent<UI.Image>();
