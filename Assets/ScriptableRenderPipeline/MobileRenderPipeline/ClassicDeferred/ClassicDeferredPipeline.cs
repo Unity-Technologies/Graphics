@@ -99,17 +99,18 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	private static int s_GBufferZ;
 	private static int s_CameraTarget;
 	private static int s_CameraDepthTexture;
-	private static int s_CameraReflectionsTexture;
+	//private static int s_CameraReflectionsTexture;
 
 	private static int m_quadLightingPassNdx;
 	private static int m_FiniteLightingPassNdx;
-	private static int m_ReflectionsPassNdx;
-	private static int m_ReflectionsFrontCullPassNdx;
-	private static int m_ReflectionsApplyPassNdx;
-	private static int m_ReflectionsFullScreenPassNdx;
 
 	private Material m_DeferredMaterial;
-	private Material m_DeferredReflectionMaterial;
+
+	private Material m_ReflectionMaterial;
+	private Material m_ReflectionNearClipMaterial;
+	private Material m_ReflectionNearAndFarClipMaterial;
+
+
 	private Material m_BlitMaterial;
 
 	public Texture m_DefaultSpotCookie;
@@ -123,8 +124,9 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	{
 		if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
 		if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
-		if (m_DeferredReflectionMaterial) DestroyImmediate (m_DeferredReflectionMaterial);
-
+		if (m_ReflectionMaterial) DestroyImmediate (m_ReflectionMaterial);
+		if (m_ReflectionNearClipMaterial) DestroyImmediate (m_ReflectionNearClipMaterial);
+		if (m_ReflectionNearAndFarClipMaterial) DestroyImmediate (m_ReflectionNearAndFarClipMaterial);
 	}
 
 	public void Build()
@@ -140,19 +142,36 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		s_CameraTarget = Shader.PropertyToID ("_CameraTarget");
 
 		m_BlitMaterial = new Material (finalPassShader) { hideFlags = HideFlags.HideAndDontSave };
+
 		m_DeferredMaterial = new Material (deferredShader) { hideFlags = HideFlags.HideAndDontSave };
-		m_DeferredReflectionMaterial = new Material (deferredReflectionShader) { hideFlags = HideFlags.HideAndDontSave };
-	
 		m_quadLightingPassNdx = m_DeferredMaterial.FindPass ("DIRECTIONALLIGHT");
 		m_FiniteLightingPassNdx = m_DeferredMaterial.FindPass ("FINITELIGHT");
 
-		m_ReflectionsPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_REFLECTIONS");
-		m_ReflectionsFrontCullPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED__CULLFRONT_REFLECTIONS");
-		m_ReflectionsFullScreenPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_FULLSCREEN_REFLECTIONS");
+		m_ReflectionMaterial = new Material (deferredReflectionShader) { hideFlags = HideFlags.HideAndDontSave };
+		m_ReflectionMaterial.SetInt("_SrcBlend", (int)BlendMode.DstAlpha);
+		m_ReflectionMaterial.SetInt("_DstBlend", (int)BlendMode.One);
+		m_ReflectionMaterial.SetInt("_SrcABlend", (int)BlendMode.DstAlpha);
+		m_ReflectionMaterial.SetInt("_DstABlend", (int)BlendMode.Zero);
+		m_ReflectionMaterial.SetInt("_CullMode", (int)CullMode.Back);
+		m_ReflectionMaterial.SetInt("_CompareFunc", (int)CompareFunction.LessEqual);
 
-		m_ReflectionsApplyPassNdx = m_DeferredReflectionMaterial.FindPass ("DEFERRED_APPLY_REFLECTIONS");
+		m_ReflectionNearClipMaterial = new Material (deferredReflectionShader) { hideFlags = HideFlags.HideAndDontSave };
+		m_ReflectionNearClipMaterial.SetInt("_SrcBlend", (int)BlendMode.DstAlpha);
+		m_ReflectionNearClipMaterial.SetInt("_DstBlend", (int)BlendMode.One);
+		m_ReflectionNearClipMaterial.SetInt("_SrcABlend", (int)BlendMode.DstAlpha);
+		m_ReflectionNearClipMaterial.SetInt("_DstABlend", (int)BlendMode.Zero);
+		m_ReflectionNearClipMaterial.SetInt("_CullMode", (int)CullMode.Front);
+		m_ReflectionNearClipMaterial.SetInt("_CompareFunc", (int)CompareFunction.GreaterEqual);
 
-		s_CameraReflectionsTexture = Shader.PropertyToID ("_CameraReflectionsTexture");
+		m_ReflectionNearAndFarClipMaterial = new Material (deferredReflectionShader) { hideFlags = HideFlags.HideAndDontSave };
+		m_ReflectionNearAndFarClipMaterial.SetInt("_SrcBlend", (int)BlendMode.DstAlpha);
+		m_ReflectionNearAndFarClipMaterial.SetInt("_DstBlend", (int)BlendMode.One);
+		m_ReflectionNearAndFarClipMaterial.SetInt("_SrcABlend", (int)BlendMode.DstAlpha);
+		m_ReflectionNearAndFarClipMaterial.SetInt("_DstABlend", (int)BlendMode.Zero);
+		m_ReflectionNearAndFarClipMaterial.SetInt("_CullMode", (int)CullMode.Off);
+		m_ReflectionNearAndFarClipMaterial.SetInt("_CompareFunc", (int)CompareFunction.Always);
+
+		//s_CameraReflectionsTexture = Shader.PropertyToID ("_CameraReflectionsTexture");
 			
 		//shadows
 		m_MatWorldToShadow = new Matrix4x4[k_MaxLights * k_MaxShadowmapPerLights];
@@ -235,8 +254,11 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		// TODO: need this? --> Set the ambient probe into the SH constants otherwise
 		// SetSHConstants(builtins, m_LightprobeContext.ambientProbe);
 
-		// render all probes
-		//foreach (var rl in probes)
+		// render all probes in reverse order so they are blended into the existing emission buffer with the correct blend settings as follows:
+		// emisNew = emis + Lerp( Lerp( Lerp(base,probe0,1-t0), probe1, 1-t1 ), probe2, 1-t2)....
+		// DST_COL = DST_COL + DST_ALPHA * SRC_COLOR
+		// DST_ALPHA = DST_ALPHA * SRC_ALPHA
+
 		int numProbes = probes.Length;
 		for (int i = numProbes-1; i >= 0; i--)
 		{
@@ -276,10 +298,6 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			var min = rl.bounds.min;
 			var max = rl.bounds.max;
 
-			// FIXME: why dont setting blend properties work here?
-			m_DeferredReflectionMaterial.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
-			m_DeferredReflectionMaterial.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
-
 			cmd.SetGlobalTexture("unity_SpecCube0", cubemap);
 			cmd.SetGlobalVector("unity_SpecCube0_HDR", rl.probe.textureHDRDecodeValues);
 			cmd.SetGlobalVector ("unity_SpecCube0_BoxMin", min);
@@ -288,9 +306,11 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			cmd.SetGlobalVector ("unity_SpecCube1_ProbePosition", new Vector4(0, 0, 0, blendDistance));
 
 			if (renderAsQuad) {
-				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsFullScreenPassNdx, props);
-			} else {
-				cmd.DrawMesh (m_BoxMesh, mat, m_DeferredReflectionMaterial, 0, (intersectsNear ? m_ReflectionsFrontCullPassNdx : m_ReflectionsPassNdx), props);
+				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_ReflectionNearAndFarClipMaterial, 0, 0, props);
+			} else if (intersectsNear) {
+				cmd.DrawMesh (m_BoxMesh, mat, m_ReflectionNearClipMaterial, 0, 0, props);
+			} else{
+				cmd.DrawMesh (m_BoxMesh, mat, m_ReflectionMaterial, 0, 0, props);
 			}
 		}
 
@@ -298,9 +318,6 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		{ 
 			var props = new MaterialPropertyBlock ();
 			props.SetFloat ("_LightAsQuad", 1.0f);
-
-			m_DeferredReflectionMaterial.SetInt("_SrcBlend", (int)BlendMode.One);
-			m_DeferredReflectionMaterial.SetInt("_DstBlend", (int)BlendMode.Zero);
 
 			// base reflection probe
 			var topCube = ReflectionProbe.defaultTexture;
@@ -316,18 +333,18 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			cmd.SetGlobalVector ("unity_SpecCube0_ProbePosition", new Vector4 (0.0f, 0.0f, 0.0f, 0.0f));
 			cmd.SetGlobalVector ("unity_SpecCube1_ProbePosition", new Vector4 (0.0f, 0.0f, 0.0f, 1.0f));
 
-			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsFullScreenPassNdx, props);
+			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_ReflectionNearAndFarClipMaterial, 0, 0, props);
 		}
 	}
 
-	void RenderApplyReflections(Camera camera, CommandBuffer cmd, CullResults cullResults, ScriptableRenderContext loop)
-	{
-		// draw offscreen accumulation buffer onto emission buffer
-		var props = new MaterialPropertyBlock ();
-//		props.SetFloat ("_LightAsQuad", 1);
-		cmd.SetGlobalTexture ("_CameraReflectionsTexture", s_CameraReflectionsTexture);
-		cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsApplyPassNdx, props);
-	}
+//	void RenderApplyReflections(Camera camera, CommandBuffer cmd, CullResults cullResults, ScriptableRenderContext loop)
+//	{
+//		// draw offscreen accumulation buffer onto emission buffer
+//		var props = new MaterialPropertyBlock ();
+////		props.SetFloat ("_LightAsQuad", 1);
+//		cmd.SetGlobalTexture ("_CameraReflectionsTexture", s_CameraReflectionsTexture);
+//		cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsApplyPassNdx, props);
+//	}
 
 	void RenderShadowMaps(CullResults cullResults, ScriptableRenderContext loop)
 	{
