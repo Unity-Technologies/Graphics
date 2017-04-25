@@ -96,13 +96,17 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     }
     else
     {
-        float cotanOmega = cosOmega * rsqrt(1 - cosSqOmega);
+        float cotSqSigma = rcp(sinSqSigma) - 1;
+        float tanSqSigma = rcp(cotSqSigma);
+        float sinSqOmega = 1 - cosSqOmega;
 
-        float x = rcp(sinSqSigma) - 1;
-        float y = -cotanOmega * sqrt(x);
-        float z = sqrt(1 - cosSqOmega * rcp(sinSqSigma));
+        float x = sinSqOmega * tanSqSigma;
+        float y = -cosOmega * rsqrt(x);
 
-        irradiance = INV_PI * ((cosOmega * acos(y) - z * sqrt(x)) * sinSqSigma + atan(z * rsqrt(x)));
+        float b = sqrt(sinSqOmega * tanSqSigma - cosSqOmega);
+        float a = b * cotSqSigma;
+
+        irradiance = INV_PI * ((cosOmega * acos(y) - a) * sinSqSigma + atan(b));
     }
 #endif
     return max(irradiance, 0);
