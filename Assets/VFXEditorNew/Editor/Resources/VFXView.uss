@@ -27,7 +27,7 @@ VFXView #VFXBackgroundGrid {
 	padding-bottom:0;
 	min-height:17;
 	margin-left:-15;
-	margin-bottom:1;
+	margin-bottom:0;
 	margin-right:6;
 }
 

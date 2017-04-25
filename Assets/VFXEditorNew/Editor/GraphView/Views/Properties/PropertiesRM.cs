@@ -65,9 +65,23 @@ namespace UnityEditor.VFX.UI
 
             m_Icon.backgroundImage = m_IconStates[0];
 
-            m_Icon.marginLeft = presenter.depth * VFXPropertyIM.depthOffset;
 
             m_Label = new VisualElement(){name="label",text=presenter.name};
+            if (presenter.depth != 0)
+            {
+                for(int i = 0; i < presenter.depth; ++i)
+                {
+                    VisualElement line = new VisualElement()
+                    {
+                        width = 1,
+                        name = "line",
+                        marginLeft= 0.5f * VFXPropertyIM.depthOffset,
+                        marginRight=VFXPropertyIM.depthOffset * 0.5f
+                    };
+                    AddChild(line);
+                }
+            }
+            //m_Label.marginLeft = presenter.depth * VFXPropertyIM.depthOffset;
             AddChild(m_Label);
 
             AddToClassList("propertyrm");
@@ -622,9 +636,8 @@ namespace UnityEditor.VFX.UI
     {
         public SpaceablePropertyRM(VFXDataAnchorPresenter presenter):base(presenter)
         {
-            m_Button = new VisualElement(){text="L"};
+            m_Button = new VisualElement(){name="spacebutton"};
             m_Button.AddManipulator(new Clickable(OnButtonClick));
-            m_Button.AddToClassList("button");
             AddChild(m_Button);
             AddToClassList("spaceablepropertyrm");
         }
@@ -637,8 +650,16 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI()
         {
+            foreach(string name in System.Enum.GetNames(typeof(CoordinateSpace)))
+            {
+                m_Button.RemoveFromClassList("space"+name);
+            }
+    
             if(m_Value != null)
-                m_Button.text = m_Value.space.ToString().Substring(0,1);
+            {
+                m_Button.AddToClassList("space"+m_Value.space.ToString());
+            }   
+
         }
 
         VisualElement m_Button;
