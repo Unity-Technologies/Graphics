@@ -485,7 +485,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void CopyDepthBufferIfNeeded(ScriptableRenderContext renderContext)
         {
-            var cmd = new CommandBuffer();
+            var cmd = new CommandBuffer() { name = NeedDepthBufferCopy() ? "Copy DepthBuffer" : "Set DepthBuffer"};
+            
             if (NeedDepthBufferCopy())
             {
                 using (new Utilities.ProfilingSample("Copy depth-stencil buffer", renderContext))

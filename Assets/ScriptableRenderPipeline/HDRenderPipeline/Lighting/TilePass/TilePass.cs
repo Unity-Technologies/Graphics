@@ -1828,7 +1828,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 #endif
 
-                using (new Utilities.ProfilingSample(m_PassSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass", renderContext))
+                using (new Utilities.ProfilingSample((m_PassSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass") + (outputSplitLightingForSSS ? " MRT" : ""), renderContext))
                 {
                     var cmd = new CommandBuffer();
                     cmd.name = bUseClusteredForDeferred ? "Clustered pass" : "Tiled pass";
