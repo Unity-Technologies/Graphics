@@ -28,30 +28,24 @@ float4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_ARGS(textureName, samplerName)
 
 // Nested multiple includes of the file to handle all variations of normal map (AG, RG or RGB)
 
-// TODO: Handle BC5 format, currently this code is for DXT5nm - After the change, rename this function UnpackNormalmapRGorAG
-// This version is use for the base normal map
+// This version is use for the base normal map (BC5 or DXT5nm)
 #define ADD_NORMAL_FUNC_SUFFIX(Name) Name
 #if defined(UNITY_NO_DXT5nm)
 #define UNPACK_NORMAL_FUNC UnpackNormalRGB
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGB
 #else
-#define UNPACK_NORMAL_FUNC UnpackNormalAG
-#define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalAG
+#define UNPACK_NORMAL_FUNC UnpackNormalmapRGorAG
+#define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGorAG
 #endif
 #include "SampleUVMappingNormalInternal.hlsl"
 #undef ADD_NORMAL_FUNC_SUFFIX
 #undef UNPACK_NORMAL_FUNC
 #undef UNPACK_DERIVATIVE_FUNC
 
-// This version is for normalmap with AG encoding only. Mainly use with details map.
+// This version is for normalmap with AG encoding only. Use with details map encoded with others properties (like smoothness).
 #define ADD_NORMAL_FUNC_SUFFIX(Name) Name##AG
-#if defined(UNITY_NO_DXT5nm)
-#define UNPACK_NORMAL_FUNC UnpackNormalRGB
-#define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGB
-#else
 #define UNPACK_NORMAL_FUNC UnpackNormalAG
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalAG
-#endif
 #include "SampleUVMappingNormalInternal.hlsl"
 #undef ADD_NORMAL_FUNC_SUFFIX
 #undef UNPACK_NORMAL_FUNC
