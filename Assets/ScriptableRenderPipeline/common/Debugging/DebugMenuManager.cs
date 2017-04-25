@@ -103,7 +103,6 @@ namespace UnityEngine.Experimental.Rendering
 
         T GetDebugMenu<T>() where T:DebugMenu
         {
-            Type debugMenuType = typeof(T);
             foreach(DebugMenu menu in m_DebugMenus)
             {
                 if (menu is T)
@@ -124,16 +123,22 @@ namespace UnityEngine.Experimental.Rendering
             return null;
         }
 
-        public void AddDebugItem<DebugMenuType, ItemType>(string name, Func<object> getter, Action<object> setter, DebugItemDrawer drawer = null) where DebugMenuType : DebugMenu
+        public void Update()
+        {
+            if (m_ActiveMenuIndex != -1)
+                m_DebugMenus[m_ActiveMenuIndex].Update();
+        }
+
+        public void AddDebugItem<DebugMenuType, ItemType>(string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemDrawer drawer = null) where DebugMenuType : DebugMenu
         {
             DebugMenuType debugMenu = GetDebugMenu<DebugMenuType>();
             if (debugMenu != null)
             {
-                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, drawer);
+                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, dynamicDisplay, drawer);
             }
         }
 
-        public void AddDebugItem<ItemType>(string debugMenuName, string name, Func<object> getter, Action<object> setter, DebugItemDrawer drawer = null)
+        public void AddDebugItem<ItemType>(string debugMenuName, string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemDrawer drawer = null)
         {
             DebugMenu debugMenu = GetDebugMenu(debugMenuName);
             // If the menu does not exist, create a generic one. This way, users don't have to explicitely create a new DebugMenu class if they don't need any particular overriding of default behavior.
@@ -145,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering
 
             if (debugMenu != null)
             {
-                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, drawer);
+                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, dynamicDisplay, drawer);
             }
         }
     }

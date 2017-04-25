@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void Update()
         {
+            DebugMenuManager.instance.Update();
             DebugActionManager.instance.Update();
 
             if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.EnableDebugMenu) != 0.0f)
