@@ -366,6 +366,11 @@ namespace UnityEditor.VFX.Test
                 return allPresenter.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
             };
 
+            Func<int> fnCountEdge = delegate ()
+            {
+                return m_ViewPresenter.allChildren.OfType<VFXDataEdgePresenter>().Count();
+            };
+
             CreateTestAsset();
 
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Abs");
@@ -397,11 +402,6 @@ namespace UnityEditor.VFX.Test
             edgePresenterCross.output = crossPresenter.inputAnchors[0];
             m_ViewPresenter.AddElement(edgePresenterCross);
 
-            Func<int> fnCountEdge = delegate ()
-            {
-                return m_ViewPresenter.allChildren.OfType<VFXDataEdgePresenter>().Count();
-            };
-
             Undo.IncrementCurrentGroup();
             Assert.AreEqual(4, fnCountEdge());
             Assert.IsInstanceOf(typeof(VFXSlotFloat3), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
@@ -420,35 +420,33 @@ namespace UnityEditor.VFX.Test
             m_ViewPresenter.RemoveElement(edgeToDelete);
             Assert.AreEqual(2, fnCountEdge()); //cross should be implicitly disconnected ...
             Assert.IsInstanceOf(typeof(VFXSlotFloat2), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
+
             Undo.PerformUndo(); fnResync();
             Assert.AreEqual(4, fnCountEdge()); //... and restored !
-            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindPresenter(typeof(VFXOperatorAppendVector)).outputAnchors[0] as VFXDataAnchorPresenter).model);
             Undo.PerformRedo(); fnResync();
             Assert.AreEqual(2, fnCountEdge());
-            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (fnFindPresenter(typeof(VFXOperatorAppendVector)).outputAnchors[0] as VFXDataAnchorPresenter).model);
 
-            //Improve test connecting cos & sin => then try delete append node
-            var cosPresenter = fnFindPresenter(typeof(VFXOperatorCos));
-            var sinPresenter = fnFindPresenter(typeof(VFXOperatorSin));
-
+            //Improve test connecting cos & sin => then try delete append 
             Undo.PerformUndo(); fnResync();
             Undo.IncrementCurrentGroup();
             Assert.AreEqual(4, fnCountEdge());
-            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (appendPresenter.outputAnchors[0] as VFXDataAnchorPresenter).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindPresenter(typeof(VFXOperatorAppendVector)).outputAnchors[0] as VFXDataAnchorPresenter).model);
 
             var edgePresenterCos = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterCos.input = appendPresenter.outputAnchors[0];
-            edgePresenterCos.output = cosPresenter.inputAnchors[0];
+            edgePresenterCos.input = fnFindPresenter(typeof(VFXOperatorAppendVector)).outputAnchors[0];
+            edgePresenterCos.output = fnFindPresenter(typeof(VFXOperatorCos)).inputAnchors[0];
             m_ViewPresenter.AddElement(edgePresenterCos);
             Assert.AreEqual(5, fnCountEdge());
 
             var edgePresenterSin = ScriptableObject.CreateInstance<VFXDataEdgePresenter>();
-            edgePresenterSin.input = appendPresenter.outputAnchors[0];
-            edgePresenterSin.output = sinPresenter.inputAnchors[0];
+            edgePresenterSin.input = fnFindPresenter(typeof(VFXOperatorAppendVector)).outputAnchors[0];
+            edgePresenterSin.output = fnFindPresenter(typeof(VFXOperatorSin)).inputAnchors[0];
             m_ViewPresenter.AddElement(edgePresenterSin);
             Assert.AreEqual(6, fnCountEdge());
 
-            m_ViewPresenter.RemoveElement(appendPresenter);
+            m_ViewPresenter.RemoveElement(fnFindPresenter(typeof(VFXOperatorAppendVector)));
             Assert.AreEqual(0, fnCountEdge());
 
             DestroyTestAsset();
