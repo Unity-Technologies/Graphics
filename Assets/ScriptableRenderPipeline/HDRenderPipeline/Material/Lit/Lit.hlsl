@@ -733,7 +733,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     float4 cookie    = float4(1.0, 1.0, 1.0, 1.0);
     float  shadow    = 1;
 
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.shadowIndex >= 0)
     {
 #ifdef SHADOWS_USE_SHADOWCTXT
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
@@ -743,7 +743,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         illuminance *= shadow;
     }
 
-    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.cookieIndex >= 0)
     {
         float3 lightToSurface = positionWS - lightData.positionWS;
 
@@ -836,7 +836,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     //    illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
     //}
 
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.shadowIndex >= 0)
     {
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
 #ifdef SHADOWS_USE_SHADOWCTXT
@@ -849,7 +849,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         illuminance *= shadow;
     }
 
-    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.cookieIndex >= 0)
     {
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
 
@@ -945,7 +945,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     float4 cookie    = float4(1.0, 1.0, 1.0, 1.0);
     float shadow = 1;
 
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.shadowIndex >= 0)
     {
 #ifdef SHADOWS_USE_SHADOWCTXT
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, lightData.shadowIndex, L, posInput.unPositionSS);
@@ -955,7 +955,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
         illuminance *= shadow;
     }
 
-    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
+    [branch] if (lightData.cookieIndex >= 0)
     {
         // Compute the texture coordinates in [0, 1]^2.
         float2 coord = positionNDC * 0.5 + 0.5;
