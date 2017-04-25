@@ -9,6 +9,11 @@ namespace UnityEngine.Experimental.Rendering
         protected GameObject m_Root = null;
         protected DebugMenuItem m_MenuItem = null;
 
+        protected DebugMenuItemUI(DebugMenuItem menuItem)
+        {
+            m_MenuItem = menuItem;
+        }
+
         public abstract void SetSelected(bool value);
         public abstract void OnValidate();
         public abstract void OnIncrement();
@@ -21,21 +26,14 @@ namespace UnityEngine.Experimental.Rendering
         protected GameObject m_Value = null;
 
         protected DebugMenuSimpleItemUI(GameObject parent, DebugMenuItem menuItem, string name)
+            : base(menuItem)
         {
-            m_MenuItem = menuItem;
 
-            m_Root = new GameObject();
-            m_Root.transform.SetParent(parent.transform, false);
-            UI.HorizontalLayoutGroup horizontalLayout = m_Root.AddComponent<UI.HorizontalLayoutGroup>();
-            horizontalLayout.childControlHeight = true;
-            horizontalLayout.childControlWidth = true;
-            horizontalLayout.childForceExpandHeight = false;
-            horizontalLayout.childForceExpandWidth = false;
-
-            m_Name = DebugMenuUI.CreateTextDebugElement(m_MenuItem.name, name, 10, TextAnchor.MiddleLeft, m_Root);
+            m_Root = DebugMenuUI.CreateHorizontalLayoutGroup("", true, true, false, false, parent);
+            m_Name = DebugMenuUI.CreateTextElement(m_MenuItem.name, name, 10, TextAnchor.MiddleLeft, m_Root);
             var layoutElem = m_Name.AddComponent<UI.LayoutElement>();
             layoutElem.minWidth = DebugMenuUI.kDebugItemNameWidth;
-            m_Value = DebugMenuUI.CreateTextDebugElement(string.Format("{0} value", name), "", 10, TextAnchor.MiddleLeft, m_Root);
+            m_Value = DebugMenuUI.CreateTextElement(string.Format("{0} value", name), "", 10, TextAnchor.MiddleLeft, m_Root);
         }
 
         public override void SetSelected(bool value)
@@ -380,6 +378,63 @@ namespace UnityEngine.Experimental.Rendering
 
             m_MenuItem.SetValue(m_CurrentValueIndex);
             UpdateText();
+        }
+    }
+
+    public class DebugMenuColorItemUI : DebugMenuItemUI
+    {
+        protected GameObject m_Name = null;
+        protected GameObject m_ColorRect = null;
+
+        public DebugMenuColorItemUI(GameObject parent, DebugMenuItem menuItem, string name)
+            : base(menuItem)
+        {
+            m_MenuItem = menuItem;
+
+            m_Root = DebugMenuUI.CreateHorizontalLayoutGroup(name, true, true, false, false, parent);
+
+            m_Name = DebugMenuUI.CreateTextElement(m_MenuItem.name, name, 10, TextAnchor.MiddleLeft, m_Root);
+            var layoutElemName = m_Name.AddComponent<UI.LayoutElement>();
+            layoutElemName.minWidth = DebugMenuUI.kDebugItemNameWidth;
+
+            // Force layout because we need the right height for the color rect element afterward.
+            UI.LayoutRebuilder.ForceRebuildLayoutImmediate(m_Root.GetComponent<RectTransform>());
+            RectTransform nameRect = m_Name.GetComponent<RectTransform>();
+
+            m_ColorRect = new GameObject();
+            m_ColorRect.transform.SetParent(m_Root.transform, false);
+            m_ColorRect.AddComponent<UI.Image>();
+            UI.LayoutElement layoutElem = m_ColorRect.AddComponent<UI.LayoutElement>();
+            // We need to set min width/height because without an image, the size would be zero.
+            layoutElem.minHeight = nameRect.rect.height;
+            layoutElem.minWidth = 40.0f;
+
+            Update();
+        }
+
+        void Update()
+        {
+            Color currentValue = (Color)m_MenuItem.GetValue();
+            UI.Image image = m_ColorRect.GetComponent<UI.Image>();
+            image.color = currentValue;
+        }
+
+        public override void SetSelected(bool value)
+        {
+            m_Name.GetComponent<UI.Text>().color = value ? DebugMenuUI.kColorSelected : DebugMenuUI.kColorUnSelected;
+        }
+
+        // TODO: Edit mode!
+        public override void OnValidate()
+        {
+        }
+
+        public override void OnIncrement()
+        {
+        }
+
+        public override void OnDecrement()
+        {
         }
     }
 }

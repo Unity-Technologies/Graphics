@@ -22,9 +22,9 @@ namespace UnityEngine.Experimental.Rendering
         private static string   kEnableDebugBtn2 = "Enable Debug Button 2";
         private static string   kDebugPreviousBtn = "Debug Previous";
         private static string   kDebugNextBtn = "Debug Next";
-        private static string   kValidateBtn = "Fire1";
-        private static string   kDPadVertical = "D-Pad Vertical";
-        private static string   kDPadHorizontal = "D-Pad Horizontal";
+        private static string   kValidateBtn = "Debug Validate";
+        private static string   kDPadVertical = "Debug Vertical";
+        private static string   kDPadHorizontal = "Debug Horizontal";
         private string[]        m_RequiredInputButtons = { kEnableDebugBtn1, kEnableDebugBtn2, kDebugPreviousBtn, kDebugNextBtn, kValidateBtn, kDPadVertical, kDPadHorizontal };
 
 
