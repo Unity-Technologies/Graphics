@@ -69,13 +69,8 @@ float3 UnpackNormalAG(float4 packedNormal, float scale = 1.0)
 float3 UnpackNormalmapRGorAG(float4 packedNormal, float scale = 1.0)
 {
     // This do the trick
-    packedNormal.x *= packedNormal.w;
-
-    float3 normal;
-    normal.xy = packedNormal.xy * 2.0 - 1.0;
-    normal.xy *= scale;
-    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
-    return normal;
+    packedNormal.w *= packedNormal.x;
+    return UnpackNormalAG(packedNormal, scale);
 }
 
 //-----------------------------------------------------------------------------
