@@ -13,12 +13,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ShadowSettings:
     enabled: 1
-    shadowAtlasWidth: 2048
-    shadowAtlasHeight: 2048
-    maxShadowDistance: 50
-    directionalLightCascadeCount: 1
-    directionalLightCascades: {x: 0.15, y: 0.1, z: 0.8}
-    directionalLightNearPlaneOffset: 5
+    shadowAtlasWidth: 1024
+    shadowAtlasHeight: 1024
+    maxShadowDistance: 1000
+    directionalLightCascadeCount: 3
+    directionalLightCascades: {x: 0.2, y: 0.15, z: 0.8}
+    directionalLightNearPlaneOffset: 1
   m_PointLightMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   m_SpotLightMesh: {fileID: 4300000, guid: 93e85ba57f65145538a8ac97bd005d40, type: 3}
   m_QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
