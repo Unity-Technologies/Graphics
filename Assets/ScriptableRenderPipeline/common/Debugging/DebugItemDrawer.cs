@@ -62,6 +62,10 @@ namespace UnityEngine.Experimental.Rendering
             {
                 newItemUI = new DebugMenuFloatItemUI(parent, menuItem, m_Label.text);
             }
+            else if (menuItem.GetItemType() == typeof(Color))
+            {
+                newItemUI = new DebugMenuColorItemUI(parent, menuItem, m_Label.text);
+            }
             else if (m_MenuItem.GetItemType().BaseType == typeof(System.Enum))
             {
                 newItemUI = new DebugMenuEnumItemUI(parent, menuItem, m_Label.text, m_EnumStrings, m_EnumValues);
@@ -112,6 +116,16 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        void DrawColorItem()
+        {
+            EditorGUI.BeginChangeCheck();
+            Color value = EditorGUILayout.ColorField(m_Label, (Color)m_MenuItem.GetValue());
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_MenuItem.SetValue(value);
+            }
+        }
+
         void DrawEnumItem()
         {
             EditorGUI.BeginChangeCheck();
@@ -139,6 +153,10 @@ namespace UnityEngine.Experimental.Rendering
             else if (m_MenuItem.GetItemType() == typeof(float))
             {
                 DrawFloatItem();
+            }
+            else if (m_MenuItem.GetItemType() == typeof(Color))
+            {
+                DrawColorItem();
             }
             else if (m_MenuItem.GetItemType().BaseType == typeof(System.Enum))
             {

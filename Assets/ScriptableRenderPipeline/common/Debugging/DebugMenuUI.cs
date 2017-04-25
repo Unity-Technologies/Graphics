@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         public static Color kColorSelected = new Color(1.0f, 1.0f, 1.0f, 1.0f);
         public static Color kColorUnSelected = new Color(0.25f, 0.25f, 0.25f, 1.0f);
+        public static Color kBackgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.4f);
         public static float kDebugItemNameWidth = 150.0f;
 
         GameObject          m_Root = null;
@@ -65,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering
             image.rectTransform.anchorMax = new Vector2(1.0f, 1.0f);
             image.rectTransform.anchoredPosition = new Vector2(kBorderSize, kBorderSize);
             image.rectTransform.sizeDelta = new Vector2(-(kBorderSize * 2.0f), -(kBorderSize * 2.0f));
-            image.color = new Color(0.5f, 0.5f, 0.5f, 0.4f);
+            image.color = kBackgroundColor;
 
             GameObject  goVL = new GameObject("DebugMenu VLayout");
             goVL.transform.SetParent(go.transform, false);
@@ -84,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering
             menuVL.childForceExpandWidth = true;
             menuVL.childForceExpandHeight = false;
 
-            DebugMenuUI.CreateTextDebugElement("DebugMenuTitle", "Debug Menu", 14, TextAnchor.MiddleCenter, goVL);
+            DebugMenuUI.CreateTextElement("DebugMenuTitle", "Debug Menu", 14, TextAnchor.MiddleCenter, goVL);
 
             int menuCount = m_DebugMenuManager.menuCount;
             m_MenuRoots = new GameObject[menuCount];
@@ -94,7 +95,33 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static GameObject CreateTextDebugElement(string elementName, string text, int size = 14, TextAnchor alignment = TextAnchor.MiddleLeft, GameObject parent = null)
+        public static GameObject CreateVerticalLayoutGroup(string name, bool controlWidth, bool controlHeight, bool forceExpandWidth, bool forceExpandHeight, GameObject parent = null )
+        {
+            GameObject go = new GameObject(name);
+            go.transform.SetParent(parent.transform, false);
+            UI.VerticalLayoutGroup horizontalLayout = go.AddComponent<UI.VerticalLayoutGroup>();
+            horizontalLayout.childControlHeight = controlHeight;
+            horizontalLayout.childControlWidth = controlWidth;
+            horizontalLayout.childForceExpandHeight = forceExpandHeight;
+            horizontalLayout.childForceExpandWidth = forceExpandWidth;
+
+            return go;
+        }
+
+        public static GameObject CreateHorizontalLayoutGroup(string name, bool controlWidth, bool controlHeight, bool forceExpandWidth, bool forceExpandHeight, GameObject parent = null)
+        {
+            GameObject go = new GameObject(name);
+            go.transform.SetParent(parent.transform, false);
+            UI.HorizontalLayoutGroup horizontalLayout = go.AddComponent<UI.HorizontalLayoutGroup>();
+            horizontalLayout.childControlHeight = controlHeight;
+            horizontalLayout.childControlWidth = controlWidth;
+            horizontalLayout.childForceExpandHeight = forceExpandHeight;
+            horizontalLayout.childForceExpandWidth = forceExpandWidth;
+
+            return go;
+        }
+
+        public static GameObject CreateTextElement(string elementName, string text, int size = 14, TextAnchor alignment = TextAnchor.MiddleLeft, GameObject parent = null)
         {
             GameObject goText = new GameObject(elementName);
             goText.transform.SetParent(parent.transform, false);
