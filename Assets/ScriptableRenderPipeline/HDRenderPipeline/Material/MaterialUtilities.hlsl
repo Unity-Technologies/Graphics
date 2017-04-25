@@ -103,15 +103,13 @@ void ApplyDoubleSidedFlipOrMirror(inout FragInputs input)
 }
 
 // This function convert the tangent space normal/tangent to world space and orthonormalize it + apply a correction of the normal if it is not pointing towards the near plane
-void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout float3 normalWS, inout float3 tangentWS, bool wantNegativeNormal = false)
+void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout float3 normalWS, inout float3 tangentWS)
 {
     #ifdef SURFACE_GRADIENT
     normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], normalTS);
     #else
     normalWS = TransformTangentToWorld(normalTS, input.worldToTangent);
     #endif
-
-    GetShiftedNdotV(normalWS, V, wantNegativeNormal);
 
     // Orthonormalize the basis vectors using the Gram-Schmidt process.
     // We assume that the length of the surface normal is sufficiently close to 1.
