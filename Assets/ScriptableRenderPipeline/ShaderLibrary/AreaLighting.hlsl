@@ -90,7 +90,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     float cosSqOmega = cosOmega * cosOmega;
 
     [branch]
-    if (cosSqOmega > sinSqSigma)
+    if (cosSqOmega >= sinSqSigma)
     {
         irradiance = sinSqSigma * saturate(cosOmega);
     }
