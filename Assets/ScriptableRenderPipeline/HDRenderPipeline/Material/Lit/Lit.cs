@@ -9,8 +9,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             LitStandard = 0,
             LitSSS = 1,
-            LitClearCoat = 2,
-            LitSpecular = 3,
+            LitSpecular = 2,
+            LitUnused = 3,
             LitAniso = 4 // Should be the last as it is not setup by the users but generated based on anisotropy property
         };
 
@@ -19,9 +19,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public static uint FEATURE_FLAG_MATERIAL_LIT_STANDARD = 1 << 12;
             public static uint FEATURE_FLAG_MATERIAL_LIT_SSS = 1 << 13;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_CLEAR_COAT = 1 << 14;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_SPECULAR = 1 << 15;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_ANISO = 1 << 16;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_SPECULAR = 1 << 14;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_ANISO = 1 << 15;
         }
 
         //-----------------------------------------------------------------------------
@@ -67,12 +66,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Subsurface Profile")]
             public int subsurfaceProfile;
 
-            // Clearcoat
-            [SurfaceDataAttributes("Coat Normal", true)]
-            public Vector3 coatNormalWS;
-            [SurfaceDataAttributes("Coat Smoothness")]
-            public float coatPerceptualSmoothness;
-
             // SpecColor
             [SurfaceDataAttributes("Specular Color", false, true)]
             public Vector3 specularColor;
@@ -117,11 +110,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int     subsurfaceProfile;
             public bool    enableTransmission; // Read from the SSS profile
             public Vector3 transmittance;
-
-            // Clearcoat
-            [SurfaceDataAttributes("", true)]
-            public Vector3 coatNormalWS;
-            public float coatRoughness;
 
             // SpecColor
             // fold into fresnel0

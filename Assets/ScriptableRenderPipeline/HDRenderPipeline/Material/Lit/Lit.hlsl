@@ -118,13 +118,14 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
+// We modify diffuseColor here so it affect all the lighting + GI (lightprobe / lightmap) (Need to be done also in GBuffer pass) + transmittance.
+// DiffuseColor will be use during lighting pass. The other contribution will be apply in subsurfacescattering convolution.
 void ConfigureTexturingForSSS(inout BSDFData bsdfData)
 {
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, bsdfData.subsurfaceProfile);
 
     // It's either post-scatter, or pre- and post-scatter texturing.
-    bsdfData.diffuseColor = performPostScatterTexturing ? float3(1, 1, 1)
-                                                        : sqrt(bsdfData.diffuseColor);
+    bsdfData.diffuseColor = performPostScatterTexturing ? float3(1.0, 1.0, 1.0) : sqrt(bsdfData.diffuseColor);
 }
 
 // Evaluates transmittance for a linear combination of two normalized 2D Gaussians.
@@ -195,13 +196,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
                                                           _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].w,
                                                           _TintColors[bsdfData.subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
-    }
-    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
-    {
-        bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metallic);
-        bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metallic);
-        bsdfData.coatNormalWS = surfaceData.coatNormalWS;
-        bsdfData.coatRoughness = PerceptualSmoothnessToRoughness(surfaceData.coatPerceptualSmoothness);
+
+        ConfigureTexturingForSSS(bsdfData);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SPECULAR)
     {
@@ -209,9 +205,6 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.fresnel0 = surfaceData.specularColor;
     }
 
-#ifdef OUTPUT_SPLIT_LIGHTING
-    ConfigureTexturingForSSS(bsdfData);
-#endif
     ApplyDebugToBSDFData(bsdfData);
 
     return bsdfData;
@@ -262,13 +255,6 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
         outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subsurfaceProfile * rcp(SSS_N_PROFILES - 1));
-    }
-    else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
-    {
-        // Encode coat normal on 16bit with oct compression
-        float2 octCoatNormalWS = PackNormalOctEncode(surfaceData.coatNormalWS);
-        // TODO: store metal and specular together, specular should be an enum (fixed value)
-        outGBuffer2 = float4(octCoatNormalWS * 0.5 + 0.5, PerceptualSmoothnessToRoughness(surfaceData.coatPerceptualSmoothness), surfaceData.metallic);
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
     {
@@ -360,10 +346,9 @@ void DecodeFromGBuffer(
 
     int supportsStandard = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_STANDARD | FEATURE_FLAG_MATERIAL_LIT_ANISO)) != 0;
     int supportsSSS = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_SSS)) != 0;
-    int supportsClearCoat = (featureFlags & (MATERIALID_LIT_CLEAR_COAT)) != 0;
     int supportsSpecular = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_SPECULAR)) != 0;
 
-    if(supportsStandard + supportsSSS + supportsClearCoat + supportsSpecular > 1)
+    if(supportsStandard + supportsSSS + supportsSpecular > 1)
     {
         bsdfData.materialId = UnpackMaterialId(inGBuffer1.a);   // only fetch materialid if it is not statically known from feature flags
     }
@@ -372,7 +357,6 @@ void DecodeFromGBuffer(
         // materialid is statically known. this allows the compiler to eliminate a lot of code.
         if(supportsStandard) bsdfData.materialId = MATERIALID_LIT_STANDARD;
         else if(supportsSSS) bsdfData.materialId = MATERIALID_LIT_SSS;
-        else if(supportsClearCoat) bsdfData.materialId = MATERIALID_LIT_CLEAR_COAT;
         else bsdfData.materialId = MATERIALID_LIT_SPECULAR;
     }
 
@@ -399,6 +383,7 @@ void DecodeFromGBuffer(
     else if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = baseColor;
+
         // TODO take from subsurfaceProfile
         bsdfData.fresnel0 = 0.04; /* 0.028 ? */
         bsdfData.subsurfaceProfile = (SSS_N_PROFILES - 0.9) * inGBuffer2.a; // Need to bias for integers to round trip through the G-buffer
@@ -415,17 +400,8 @@ void DecodeFromGBuffer(
                                                           _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].w,
                                                           _TintColors[bsdfData.subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
         }
-    }
-    else if (supportsClearCoat && bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
-    {
-        float metallic = inGBuffer2.a;
-        // TODO extract spec
-        float specular = 0.04;
 
-        bsdfData.diffuseColor = baseColor * (1.0 - metallic);
-        bsdfData.fresnel0 = lerp(float3(specular, specular, specular), baseColor, metallic);
-        bsdfData.coatNormalWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
-        bsdfData.coatRoughness = inGBuffer2.b;
+        ConfigureTexturingForSSS(bsdfData);
     }
     else if (supportsSpecular && bsdfData.materialId == MATERIALID_LIT_SPECULAR)
     {
@@ -435,9 +411,6 @@ void DecodeFromGBuffer(
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 
-#ifdef OUTPUT_SPLIT_LIGHTING
-    ConfigureTexturingForSSS(bsdfData);
-#endif
     ApplyDebugToBSDFData(bsdfData);
 }
 
@@ -482,10 +455,6 @@ uint MaterialFeatureFlagsFromGBuffer(
     else if (materialId == MATERIALID_LIT_SSS)
     {
         featureFlags |= FEATURE_FLAG_MATERIAL_LIT_SSS;
-    }
-    else if (materialId == MATERIALID_LIT_CLEAR_COAT)
-    {
-        featureFlags |= FEATURE_FLAG_MATERIAL_LIT_CLEAR_COAT;
     }
     else if (materialId == MATERIALID_LIT_SPECULAR)
     {
