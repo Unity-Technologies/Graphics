@@ -151,7 +151,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnEnable()
         {
-            globalDebugSettings.RegisterDebug();
+            debugDisplaySettings.RegisterDebug();
         }
     }
 

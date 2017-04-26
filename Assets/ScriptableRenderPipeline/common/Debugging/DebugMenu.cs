@@ -129,8 +129,6 @@ namespace UnityEngine.Experimental.Rendering
             menuVLRectTransform.anchorMin = new Vector2(0.0f, 0.0f);
             menuVLRectTransform.anchorMax = new Vector2(1.0f, 1.0f);
 
-            DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_Name), m_Name, 14, TextAnchor.MiddleLeft, m_Root);
-
             RebuildGUI();
 
             m_Root.SetActive(false);
@@ -140,6 +138,9 @@ namespace UnityEngine.Experimental.Rendering
         private void RebuildGUI()
         {
             m_Root.transform.DetachChildren();
+
+            DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_Name), m_Name, 14, TextAnchor.MiddleLeft, m_Root);
+
             m_ItemsUI.Clear();
             foreach (DebugMenuItem menuItem in m_Items)
             {
