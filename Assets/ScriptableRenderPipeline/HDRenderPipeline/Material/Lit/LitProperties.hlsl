@@ -1,3 +1,5 @@
+CBUFFER_START(_PerMaterial)
+
 // shared constant between lit and layered lit
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
@@ -26,7 +28,7 @@ float _EmissiveIntensity;
 float3 _EmissionColor;
 
 // Wind
-float _InitialBend; 
+float _InitialBend;
 float _Stiffness;
 float _Drag;
 float _ShiverDrag;
@@ -192,3 +194,5 @@ float _TessellationBackFaceCullEpsilon;
 float _TessellationObjectScale;
 float _TessellationTilingScale;
 #endif
+
+CBUFFER_END

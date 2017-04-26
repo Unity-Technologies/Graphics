@@ -1,21 +1,39 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [GenerateHLSL]
+    public enum DebugDisplayMode
+    {
+        None,
+        ViewMaterial,
+        DiffuseLighting,
+        SpecularLighting,
+        VisualizeCascade
+    }
+
     [Serializable]
-    public class GlobalDebugSettings
+    public class DebugDisplaySettings
     {
         public float debugOverlayRatio = 0.33f;
         public bool displayMaterialDebug = false;
         public bool displayRenderingDebug = false;
         public bool displayLightingDebug = false;
 
+        public DebugDisplayMode debugDisplayMode = DebugDisplayMode.None;
+
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
         public RenderingDebugSettings renderingDebugSettings = new RenderingDebugSettings();
+
+        public bool IsDebugDisplayEnable()
+        {
+            return debugDisplayMode != DebugDisplayMode.None;
+        }
+        
 
         public void RegisterDebug()
         {
@@ -44,6 +62,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
+    namespace Attributes
+    {
+        // 0 is reserved!
+        [GenerateHLSL]
+        public enum DebugViewVarying
+        {
+            Texcoord0 = 1,
+            Texcoord1,
+            Texcoord2,
+            Texcoord3,
+            VertexTangentWS,
+            VertexBitangentWS,
+            VertexNormalWS,
+            VertexColor,
+            VertexColorAlpha,
+            // caution if you add something here, it must start below
+        };
+
+        // Number must be contiguous
+        [GenerateHLSL]
+        public enum DebugViewGbuffer
+        {
+            Depth = DebugViewVarying.VertexColorAlpha + 1,
+            BakeDiffuseLightingWithAlbedoPlusEmissive,
+        }
+    }
 
     [Serializable]
     public class MaterialDebugSettings
@@ -67,15 +111,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VisualizeShadowMap
     }
 
-    [GenerateHLSL]
-    public enum LightingDebugMode
-    {
-        None,
-        DiffuseLighting,
-        SpecularLighting,
-        VisualizeCascade
-    }
-
     [Serializable]
     public class LightingDebugSettings
     {
@@ -83,7 +118,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         public uint                 shadowMapIndex = 0;
 
-        public LightingDebugMode    lightingDebugMode = LightingDebugMode.None;
         public bool                 overrideSmoothness = false;
         public float                overrideSmoothnessValue = 0.5f;
         public Color                debugLightingAlbedo = new Color(0.5f, 0.5f, 0.5f);

@@ -42,39 +42,39 @@ struct ShadowData
 //
 float4x4 GetWorldToShadow(ShadowData value)
 {
-    return value.worldToShadow;
+	return value.worldToShadow;
 }
 float4 GetScaleOffset(ShadowData value)
 {
-    return value.scaleOffset;
+	return value.scaleOffset;
 }
 float2 GetTexelSizeRcp(ShadowData value)
 {
-    return value.texelSizeRcp;
+	return value.texelSizeRcp;
 }
 uint GetId(ShadowData value)
 {
-    return value.id;
+	return value.id;
 }
 int GetShadowType(ShadowData value)
 {
-    return value.shadowType;
+	return value.shadowType;
 }
 uint GetPayloadOffset(ShadowData value)
 {
-    return value.payloadOffset;
+	return value.payloadOffset;
 }
 int GetLightType(ShadowData value)
 {
-    return value.lightType;
+	return value.lightType;
 }
 float GetBias(ShadowData value)
 {
-    return value.bias;
+	return value.bias;
 }
 float GetQuality(ShadowData value)
 {
-    return value.quality;
+	return value.quality;
 }
 
 
