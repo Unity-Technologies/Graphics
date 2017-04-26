@@ -9,8 +9,8 @@
 //
 #define MATERIALID_LIT_STANDARD (0)
 #define MATERIALID_LIT_SSS (1)
-#define MATERIALID_LIT_CLEAR_COAT (2)
-#define MATERIALID_LIT_SPECULAR (3)
+#define MATERIALID_LIT_SPECULAR (2)
+#define MATERIALID_LIT_UNUSED (3)
 #define MATERIALID_LIT_ANISO (4)
 
 //
@@ -18,9 +18,8 @@
 //
 #define FEATURE_FLAG_MATERIAL_LIT_STANDARD (4096)
 #define FEATURE_FLAG_MATERIAL_LIT_SSS (8192)
-#define FEATURE_FLAG_MATERIAL_LIT_CLEAR_COAT (16384)
-#define FEATURE_FLAG_MATERIAL_LIT_SPECULAR (32768)
-#define FEATURE_FLAG_MATERIAL_LIT_ANISO (65536)
+#define FEATURE_FLAG_MATERIAL_LIT_SPECULAR (16384)
+#define FEATURE_FLAG_MATERIAL_LIT_ANISO (32768)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit.SurfaceData:  static fields
@@ -38,9 +37,7 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_RADIUS (1010)
 #define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS (1011)
 #define DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_PROFILE (1012)
-#define DEBUGVIEW_LIT_SURFACEDATA_COAT_NORMAL_WS (1013)
-#define DEBUGVIEW_LIT_SURFACEDATA_COAT_PERCEPTUAL_SMOOTHNESS (1014)
-#define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1015)
+#define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1013)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit.BSDFData:  static fields
@@ -62,8 +59,6 @@
 #define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE (1044)
 #define DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION (1045)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1046)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1047)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1048)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit.GBufferMaterial:  static fields
@@ -87,8 +82,6 @@ struct SurfaceData
     float subsurfaceRadius;
     float thickness;
     int subsurfaceProfile;
-    float3 coatNormalWS;
-    float coatPerceptualSmoothness;
     float3 specularColor;
 };
 
@@ -113,8 +106,6 @@ struct BSDFData
     int subsurfaceProfile;
     bool enableTransmission;
     float3 transmittance;
-    float3 coatNormalWS;
-    float coatRoughness;
 };
 
 //
@@ -163,12 +154,6 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACE_PROFILE:
             result = GetIndexColor(surfacedata.subsurfaceProfile);
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_COAT_NORMAL_WS:
-            result = surfacedata.coatNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_SURFACEDATA_COAT_PERCEPTUAL_SMOOTHNESS:
-            result = surfacedata.coatPerceptualSmoothness.xxx;
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR:
             result = surfacedata.specularColor;
@@ -235,12 +220,6 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE:
             result = bsdfdata.transmittance;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS:
-            result = bsdfdata.coatNormalWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS:
-            result = bsdfdata.coatRoughness.xxx;
             break;
     }
 }

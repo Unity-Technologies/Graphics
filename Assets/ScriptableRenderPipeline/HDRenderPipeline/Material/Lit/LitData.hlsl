@@ -1254,8 +1254,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.subsurfaceRadius = 1.0;
     surfaceData.thickness = 0.0;
     surfaceData.subsurfaceProfile = 0;
-    surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
-    surfaceData.coatPerceptualSmoothness = 1.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
