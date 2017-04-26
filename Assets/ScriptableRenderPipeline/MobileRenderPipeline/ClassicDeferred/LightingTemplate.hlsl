@@ -239,7 +239,7 @@ void OnChipDeferredCalculateLightParams (
 		float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 		
 		// atten *= UnityDeferredComputeShadow (tolight, fadeDist, uv);
-		// atten *= SampleShadow(POINT_LIGHT, wpos, 0, 0);
+		atten *= SampleShadow(SPHERE_LIGHT, wpos, lightDir, 0);
 
 		#if defined (POINT_COOKIE)
 		atten *= texCUBEbias(_LightTexture0, float4(mul(unity_WorldToLight, half4(wpos,1)).xyz, -8)).w;
@@ -304,7 +304,7 @@ unity_v2f_deferred onchip_vert_deferred (float4 vertex : POSITION, float3 normal
 
     unity_v2f_deferred o;
 
-    // scaling quad by two becuase built-in unity quad ranges from -0.5 to 0.5
+    // scaling quad by two becuase built-in unity quad.fbx ranges from -0.5 to 0.5
     o.pos = lightAsQuad ? float4(2.0*vertex.xy, 0.5, 1.0) : UnityObjectToClipPos(vertex);
     o.uv = ComputeScreenPos(o.pos);
 
