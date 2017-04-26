@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), S(A)", "Mask map");
 
             public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
-            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (DXT5) - Need to implement BC5");
+            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
             public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
             public static GUIContent horizonFadeText = new GUIContent("Horizon Fade (Spec occlusion)", "horizon fade is use to control specular occlusion");
 
@@ -40,7 +40,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Details
             public static string detailText = "Inputs Detail";
-            public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
             public static GUIContent UVDetailMappingText = new GUIContent("Detail UV mapping", "");
             public static GUIContent detailMapNormalText = new GUIContent("Detail Map A(R) Ny(G) S(B) Nx(A)", "Detail Map");
             public static GUIContent detailMaskText = new GUIContent("Detail Mask (G)", "Mask for detailMap");

@@ -270,8 +270,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             static int s_ClearDispatchIndirectKernel;
             static int s_shadeOpaqueDirectClusteredKernel;
             static int s_shadeOpaqueDirectFptlKernel;
-            static int s_shadeOpaqueDirectClusteredDebugLightingKernel;
-            static int s_shadeOpaqueDirectFptlDebugLightingKernel;
+            static int s_shadeOpaqueDirectClusteredDebugDisplayKernel;
+            static int s_shadeOpaqueDirectFptlDebugDisplayKernel;
             static int[] s_shadeOpaqueIndirectClusteredKernels = new int[LightDefinitions.NUM_FEATURE_VARIANTS];
             static int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.NUM_FEATURE_VARIANTS];
 
@@ -413,7 +413,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CubeCookieTexArray = new TextureCacheCubemap();
                 m_CubeCookieTexArray.AllocTextureArray(4, textureSettings.pointCookieSize, TextureFormat.RGBA32, true);
                 m_CubeReflTexArray = new TextureCacheCubemap();
-                m_CubeReflTexArray.AllocTextureArray(32, textureSettings.reflectionCubemapSize, TextureCache.GetPreferredCompressedTextureFormat, true);
+                m_CubeReflTexArray.AllocTextureArray(32, textureSettings.reflectionCubemapSize, TextureCache.GetPreferredHdrCompressedTextureFormat, true);
 
                 s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -448,8 +448,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 s_shadeOpaqueDirectClusteredKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Clustered");
                 s_shadeOpaqueDirectFptlKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Fptl");
-                s_shadeOpaqueDirectClusteredDebugLightingKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Clustered_DebugLighting");
-                s_shadeOpaqueDirectFptlDebugLightingKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Fptl_DebugLighting");
+                s_shadeOpaqueDirectClusteredDebugDisplayKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Clustered_DebugDisplay");
+                s_shadeOpaqueDirectFptlDebugDisplayKernel = shadeOpaqueShader.FindKernel("ShadeOpaque_Direct_Fptl_DebugDisplay");
 
                 for (int variant = 0; variant < LightDefinitions.NUM_FEATURE_VARIANTS; variant++)
                 {
@@ -866,7 +866,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (additionalData.archetype != LightArchetype.Punctual)
                 {
-                    lightData.twoSided = additionalData.isDoubleSided;
                     lightData.size = new Vector2(additionalData.lightLength, additionalData.lightWidth);
                 }
 
@@ -991,11 +990,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     Vector3 dimensions = new Vector3(lightData.size.x * 0.5f + radius, lightData.size.y * 0.5f + radius, radius);
 
-                    if (!lightData.twoSided)
-                    {
-                        centerVS += zAxisVS * radius * 0.5f;
-                        dimensions.z *= 0.5f;
-                    }
+                    dimensions.z *= 0.5f;
+                    centerVS += zAxisVS * radius * 0.5f;
 
                     bound.center = centerVS;
                     bound.boxAxisX = dimensions.x * xAxisVS;
@@ -1804,22 +1800,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
             }
 
-            private void SetupRenderingForDebug(LightingDebugSettings lightDebugSettings)
+            private void SetupDebugDisplayMode(bool debugDisplayEnable)
             {
-                Utilities.SetKeyword(m_DeferredDirectMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredDirectMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredIndirectMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredIndirectMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredAllMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_DeferredAllMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_SingleDeferredMaterialSRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
-                Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "LIGHTING_DEBUG", lightDebugSettings.lightingDebugMode != LightingDebugMode.None);
+                Utilities.SetKeyword(m_DeferredDirectMaterialSRT, "DEBUG_DISPLAY", debugDisplayEnable);
+                Utilities.SetKeyword(m_DeferredDirectMaterialMRT, "DEBUG_DISPLAY", debugDisplayEnable);
+                Utilities.SetKeyword(m_DeferredIndirectMaterialSRT, "DEBUG_DISPLAY", debugDisplayEnable);
+                Utilities.SetKeyword(m_DeferredIndirectMaterialMRT, "DEBUG_DISPLAY", debugDisplayEnable);
+                Utilities.SetKeyword(m_DeferredAllMaterialSRT, "DEBUG_DISPLAY", debugDisplayEnable);
+                Utilities.SetKeyword(m_DeferredAllMaterialMRT, "DEBUG_DISPLAY", debugDisplayEnable);
+                Utilities.SetKeyword(m_SingleDeferredMaterialSRT, "DEBUG_DISPLAY", debugDisplayEnable);
+                Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "DEBUG_DISPLAY", debugDisplayEnable);
             }
 
             public override void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
-                LightingDebugSettings lightDebugSettings,
-                RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
-                bool outputSplitLightingForSSS, bool enableSSS)
+                                                        DebugDisplaySettings debugDisplaySettings,
+                                                        RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
+                                                        bool outputSplitLightingForSSS)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
@@ -1832,15 +1828,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 #endif
 
-                using (new Utilities.ProfilingSample(m_PassSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass", renderContext))
+                using (new Utilities.ProfilingSample((m_PassSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass") + (outputSplitLightingForSSS ? " MRT" : ""), renderContext))
                 {
                     var cmd = new CommandBuffer();
                     cmd.name = bUseClusteredForDeferred ? "Clustered pass" : "Tiled pass";
 
                     var camera = hdCamera.camera;
 
-                    // Must be done after setting up the compute shader above.
-                    SetupRenderingForDebug(lightDebugSettings);
+                    SetupDebugDisplayMode(debugDisplaySettings.IsDebugDisplayEnable());
 
                     if (!m_PassSettings.enableTileAndCluster)
                     {
@@ -1853,7 +1848,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)(enableSSS ? StencilBits.Standard : StencilBits.SSS));
+                            // Note: in the enum StencilBits, Standard is before SSS and the stencil is setup to greater equal. So the code below is draw all stencil bit except SSS
+                            m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.Standard : StencilBits.SSS));
                             Utilities.DrawFullScreen(cmd, m_SingleDeferredMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
                         }
                     }
@@ -1867,7 +1863,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (m_PassSettings.enableComputeLightEvaluation)
                         {
-                            bool enableFeatureVariants = GetFeatureVariantsEnabled() && lightDebugSettings.lightingDebugMode == LightingDebugMode.None;
+                            bool enableFeatureVariants = GetFeatureVariantsEnabled() && !debugDisplaySettings.IsDebugDisplayEnable();
 
                             int numVariants = 1;
                             if (enableFeatureVariants)
@@ -1883,15 +1879,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 }
                                 else
                                 {
-                                    if (lightDebugSettings.lightingDebugMode == LightingDebugMode.None)
-                                        kernel = usingFptl ? s_shadeOpaqueDirectFptlKernel : s_shadeOpaqueDirectClusteredKernel;
+                                    if (debugDisplaySettings.IsDebugDisplayEnable())
+                                    {
+                                        kernel = usingFptl ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectClusteredDebugDisplayKernel;
+                                    }
                                     else
-                                        kernel = usingFptl ? s_shadeOpaqueDirectFptlDebugLightingKernel : s_shadeOpaqueDirectClusteredDebugLightingKernel;
+                                    {
+                                        kernel = usingFptl ? s_shadeOpaqueDirectFptlKernel : s_shadeOpaqueDirectClusteredKernel;
+                                    }
                                 }
 
                                 // Pass global parameters to compute shader
                                 // TODO: get rid of this by making global parameters visible to compute shaders
                                 PushGlobalParams(camera, renderContext, shadeOpaqueShader, kernel);
+
+                                // TODO: Update value like in ApplyDebugDisplaySettings() call. Sadly it is high likely that this will not be keep in sync. we really need to get rid of this by making global parameters visible to compute shaders
+                                cmd.SetComputeIntParam(shadeOpaqueShader, "_DebugDisplayMode", Shader.GetGlobalInt("_DebugDisplayMode"));
+                                cmd.SetComputeIntParam(shadeOpaqueShader, "_DebugViewMaterial", Shader.GetGlobalInt("_DebugViewMaterial"));
+                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_DebugLightingAlbedo", Shader.GetGlobalVector("_DebugLightingAlbedo"));
+                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_DebugLightingSmoothness", Shader.GetGlobalVector("_DebugLightingSmoothness"));
 
                                 cmd.SetComputeBufferParam(shadeOpaqueShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
 
@@ -1973,11 +1979,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 }
                                 else
                                 {
-                                    m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)(enableSSS ? StencilBits.Standard : StencilBits.SSS));
+                                    // Note: in the enum StencilBits, Standard is before SSS and the stencil is setup to greater equal. So the code below is draw all stencil bit except SSS
+                                    m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.Standard : StencilBits.SSS));
                                     Utilities.SelectKeyword(m_DeferredDirectMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredDirectMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
 
-                                    m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)(enableSSS ? StencilBits.Standard : StencilBits.SSS));
+                                    m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.Standard : StencilBits.SSS));
                                     Utilities.SelectKeyword(m_DeferredIndirectMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredIndirectMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
                                 }
@@ -1991,7 +1998,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 }
                                 else
                                 {
-                                    m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)(enableSSS ? StencilBits.Standard : StencilBits.SSS));
+                                    // Note: in the enum StencilBits, Standard is before SSS and the stencil is setup to greater equal. So the code below is draw all stencil bit except SSS
+                                    m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.Standard : StencilBits.SSS));
                                     Utilities.SelectKeyword(m_DeferredAllMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
                                 }

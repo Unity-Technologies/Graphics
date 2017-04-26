@@ -150,6 +150,17 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     float zDistance   = invDistScale * sampleDepth - (invDistScale * centerPosVS.z);
                     sampleWeight     *= exp(-zDistance * zDistance * halfRcpVariance);
 
+                    if (any(sampleIrradiance) == false)
+                    {
+                        // The irradiance is 0. This could happen for 2 reasons.
+                        // Most likely, the surface fragment does not have an SSS material.
+                        // Alternatively, the surface fragment could be completely shadowed.
+                        // Our blur is energy-preserving, so 'sampleWeight' should be set to 0.
+                        // We do not terminate the loop since we want to gather the contribution
+                        // of the remaining samples (e.g. in case of hair covering skin).
+                        continue;
+                    }
+
                     totalIrradiance += sampleWeight * sampleIrradiance;
                     totalWeight     += sampleWeight;
                 }

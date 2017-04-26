@@ -33,9 +33,9 @@ Shader "HDRenderPipeline/Lit"
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
         _SubsurfaceProfile("Subsurface Profile", Int) = 0
-        _SubsurfaceRadius("Subsurface Radius", Range(0.004, 1.0)) = 1.0
+        _SubsurfaceRadius("Subsurface Radius", Range(0.0, 1.0)) = 1.0
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
-        _Thickness("Thickness", Range(0.004, 1.0)) = 1.0
+        _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
 
         // Wind
@@ -213,8 +213,8 @@ Shader "HDRenderPipeline/Lit"
 
         Pass
         {
-            Name "GBufferDebugLighting"  // Name is not used
-            Tags{ "LightMode" = "GBufferDebugLighting" } // This will be only for opaque object based on the RenderQueue index
+            Name "GBufferDebugDisplay"  // Name is not used
+            Tags{ "LightMode" = "GBufferDebugDisplay" } // This will be only for opaque object based on the RenderQueue index
 
             Cull [_CullMode]
 
@@ -227,32 +227,13 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #define LIGHTING_DEBUG
+            #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "../../Debug/DebugLighting.hlsl"
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Debug"
-            Tags { "LightMode" = "DebugViewMaterial" }
-
-            Cull[_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/LitSharePass.hlsl"
-            #include "LitData.hlsl"
-            #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
             ENDHLSL
         }
@@ -389,8 +370,8 @@ Shader "HDRenderPipeline/Lit"
 
         Pass
         {
-            Name "ForwardDebugLighting" // Name is not used
-            Tags{ "LightMode" = "ForwardDebugLighting" } // This will be only for transparent object based on the RenderQueue index
+            Name "ForwardDisplayDebug" // Name is not used
+            Tags{ "LightMode" = "ForwardDisplayDebug" } // This will be only for transparent object based on the RenderQueue index
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
@@ -398,12 +379,10 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
-            #define LIGHTING_DEBUG
+            #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Lighting/Forward.hlsl"
-            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "../../Debug/DebugLighting.hlsl"
-
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
 
