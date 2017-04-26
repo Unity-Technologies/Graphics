@@ -106,7 +106,8 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
         float a = cosOmega * acos(x) - z;                       // y*ArcCos[-y*Sqrt[(1/x-1)/(1-y^2)]]-Sqrt[(1-y^2)*((1-x)/x)-y^2]*(1/x-1)
         float b = atan(y);                                      // ArcTan[Sqrt[(1-y^2)*((1-x)/x)-y^2]]
 
-        return saturate(INV_PI * (a * sinSqSigma + b));         // (a/Pi)*x+(b/Pi)
+        // Replacing max() with saturate() results in a 12 cycle SGPR forwarding stall on PS4.
+        return max(INV_PI * (a * sinSqSigma + b), 0);           // (a/Pi)*x+(b/Pi)
     }
 #endif
 }
