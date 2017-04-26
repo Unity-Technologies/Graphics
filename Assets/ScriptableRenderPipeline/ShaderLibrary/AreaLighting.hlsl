@@ -90,7 +90,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     float cosSqOmega = cosOmega * cosOmega;
 
     [branch]
-    if (cosSqOmega >= sinSqSigma)
+    if (cosSqOmega > sinSqSigma)
     {
         irradiance = sinSqSigma * saturate(cosOmega);
     }
@@ -103,10 +103,10 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
         float x = sinSqOmega * tanSqSigma;
         float y = -cosOmega * rsqrt(x);
 
-        float b = sqrt(sinSqOmega * tanSqSigma - cosSqOmega);
-        float a = b * cotSqSigma;
+        float a = sqrt(sinSqOmega * tanSqSigma - cosSqOmega);
+        float b = a * cotSqSigma;
 
-        irradiance = INV_PI * ((cosOmega * acos(y) - a) * sinSqSigma + atan(b));
+        irradiance = INV_PI * ((cosOmega * acos(y) - b) * sinSqSigma + atan(a));
     }
 #endif
     return max(irradiance, 0);
@@ -131,8 +131,9 @@ float PolygonIrradiance(float4x3 L)
         F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
     }
 
+    // Clamp invalid values (visual artifacts otherwise).
     float f2         = saturate(dot(F, F));
-    float sinSqSigma = sqrt(f2);
+    float sinSqSigma = min(sqrt(f2), 0.999);
     float cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
 
     return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
