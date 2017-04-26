@@ -27,12 +27,14 @@ namespace UnityEngine.Experimental.Rendering
         DebugMenuManager()
         {
             LookUpDebugMenuClasses();
+            m_PersistentDebugMenu = new DebugMenu("Persistent");
             m_DebugMenuUI = new DebugMenuUI(this);
         }
 
         bool            m_Enabled = false;
         int             m_ActiveMenuIndex = 0;
         List<DebugMenu> m_DebugMenus = new List<DebugMenu>();
+        DebugMenu       m_PersistentDebugMenu = null;
         DebugMenuUI     m_DebugMenuUI = null;
 
         public bool isEnabled       { get { return m_Enabled; } }
@@ -45,6 +47,11 @@ namespace UnityEngine.Experimental.Rendering
                 return m_DebugMenus[index];
             else
                 return null;
+        }
+
+        public DebugMenu GetPersistentDebugMenu()
+        {
+            return m_PersistentDebugMenu;
         }
 
         void LookUpDebugMenuClasses()
@@ -81,14 +88,42 @@ namespace UnityEngine.Experimental.Rendering
         public void ToggleMenu()
         {
             m_Enabled = !m_Enabled;
+
+            m_DebugMenuUI.BuildGUI();
             m_DebugMenuUI.Toggle();
-            if(m_Enabled)
-                m_DebugMenus[m_ActiveMenuIndex].SetSelected(true);
+            m_DebugMenus[m_ActiveMenuIndex].SetSelected(m_Enabled);
         }
 
         public void OnValidate()
         {
             m_DebugMenus[m_ActiveMenuIndex].OnValidate();
+        }
+
+        public void OnMakePersistent()
+        {
+            DebugMenuItem selectedItem = m_DebugMenus[m_ActiveMenuIndex].GetSelectedDebugMenuItem();
+            if(selectedItem != null && selectedItem.readOnly)
+            {
+                if(m_PersistentDebugMenu.HasItem(selectedItem))
+                {
+                    m_PersistentDebugMenu.RemoveDebugItem(selectedItem);
+                }
+                else
+                {
+                    m_PersistentDebugMenu.AddDebugItem(selectedItem);
+                }
+            }
+
+            if(m_PersistentDebugMenu.itemCount == 0)
+            {
+                m_PersistentDebugMenu.SetSelected(false);
+                m_DebugMenuUI.EnablePersistentView(false); // Temp, should just need the above. Wait for background UI to be moved to menu itself
+            }
+            else
+            {
+                m_PersistentDebugMenu.SetSelected(true);
+                m_DebugMenuUI.EnablePersistentView(true);
+            }
         }
 
         public void OnMoveHorizontal(float value)
@@ -127,6 +162,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_ActiveMenuIndex != -1)
                 m_DebugMenus[m_ActiveMenuIndex].Update();
+
+            m_PersistentDebugMenu.Update();
         }
 
         public void AddDebugItem<DebugMenuType, ItemType>(string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemDrawer drawer = null) where DebugMenuType : DebugMenu
