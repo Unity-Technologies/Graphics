@@ -95,16 +95,16 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     else
     {
         float cotSqSigma = rcp(sinSqSigma) - 1;                 // 1/x-1
-        float tanSqSigma = rcp(cotSqSigma);                     // (1-x)/x
+        float tanSqSigma = rcp(cotSqSigma);                     // x/(1-x)
         float sinSqOmega = 1 - cosSqOmega;                      // 1-y^2
 
-        float w = sinSqOmega * tanSqSigma;                      // (1-y^2)*((1-x)/x)
+        float w = sinSqOmega * tanSqSigma;                      // (1-y^2)*(x/(1-x))
         float x = -cosOmega * rsqrt(w);                         // -y*Sqrt[(1/x-1)/(1-y^2)]
-        float y = sqrt(sinSqOmega * tanSqSigma - cosSqOmega);   // Sqrt[(1-y^2)*((1-x)/x)-y^2]
-        float z = y * cotSqSigma;                               // Sqrt[(1-y^2)*((1-x)/x)-y^2]*(1/x-1)
+        float y = sqrt(sinSqOmega * tanSqSigma - cosSqOmega);   // Sqrt[(1-y^2)*(x/(1-x))-y^2]
+        float z = y * cotSqSigma;                               // Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
 
-        float a = cosOmega * acos(x) - z;                       // y*ArcCos[-y*Sqrt[(1/x-1)/(1-y^2)]]-Sqrt[(1-y^2)*((1-x)/x)-y^2]*(1/x-1)
-        float b = atan(y);                                      // ArcTan[Sqrt[(1-y^2)*((1-x)/x)-y^2]]
+        float a = cosOmega * acos(x) - z;                       // y*ArcCos[-y*Sqrt[(1/x-1)/(1-y^2)]]-Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
+        float b = atan(y);                                      // ArcTan[Sqrt[(1-y^2)*(x/(1-x))-y^2]]
 
         // Replacing max() with saturate() results in a 12 cycle SGPR forwarding stall on PS4.
         return max(INV_PI * (a * sinSqSigma + b), 0);           // (a/Pi)*x+(b/Pi)
