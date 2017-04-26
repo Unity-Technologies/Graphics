@@ -35,6 +35,11 @@ namespace UnityEngine.Experimental.Rendering
                     DebugMenuManager.instance.OnValidate();
                 }
 
+                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.Persistent) != 0.0f)
+                {
+                    DebugMenuManager.instance.OnMakePersistent();
+                }
+
                 float moveHorizontal = DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.MoveHorizontal);
                 if (moveHorizontal != 0.0f)
                 {

@@ -62,7 +62,6 @@ namespace UnityEngine.Experimental.Rendering
         private List<DebugMenuItem> m_Items = new List<DebugMenuItem>();
         private List<DebugMenuItemUI> m_ItemsUI = new List<DebugMenuItemUI>();
         private int m_SelectedItem = -1;
-        private bool m_AllItemsReadOnly = true;
 
         public DebugMenu(string name)
         {
@@ -74,6 +73,39 @@ namespace UnityEngine.Experimental.Rendering
             if (index >= m_Items.Count || index < 0)
                 return null;
             return m_Items[index];
+        }
+
+        public DebugMenuItem GetSelectedDebugMenuItem()
+        {
+            if(m_SelectedItem != -1)
+            {
+                return m_Items[m_SelectedItem];
+            }
+
+            return null;
+        }
+
+        public bool HasItem(DebugMenuItem debugItem)
+        {
+            foreach(var item in m_Items)
+            {
+                if (debugItem == item)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public void RemoveDebugItem(DebugMenuItem debugItem)
+        {
+            m_Items.Remove(debugItem);
+            RebuildGUI();
+        }
+
+        public void AddDebugItem(DebugMenuItem debugItem)
+        {
+            m_Items.Add(debugItem);
+            RebuildGUI();
         }
 
         // TODO: Move this to UI classes
@@ -98,24 +130,27 @@ namespace UnityEngine.Experimental.Rendering
             menuVLRectTransform.anchorMax = new Vector2(1.0f, 1.0f);
 
             DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_Name), m_Name, 14, TextAnchor.MiddleLeft, m_Root);
-            
-            m_ItemsUI.Clear();
-            foreach(DebugMenuItem menuItem in m_Items)
-            {
-                DebugItemDrawer drawer = menuItem.drawer; // Should never be null, we have at least the default drawer
-                m_ItemsUI.Add(drawer.BuildGUI(m_Root, menuItem));
-            }
+
+            RebuildGUI();
 
             m_Root.SetActive(false);
             return m_Root;
         }
 
+        private void RebuildGUI()
+        {
+            m_Root.transform.DetachChildren();
+            m_ItemsUI.Clear();
+            foreach (DebugMenuItem menuItem in m_Items)
+            {
+                DebugItemDrawer drawer = menuItem.drawer; // Should never be null, we have at least the default drawer
+                m_ItemsUI.Add(drawer.BuildGUI(m_Root, menuItem));
+            }
+        }
+
 
         void SetSelectedItem(int index)
         {
-            if (m_AllItemsReadOnly)
-                return;
-
             if(m_SelectedItem != -1)
             {
                 m_ItemsUI[m_SelectedItem].SetSelected(false);
@@ -146,11 +181,9 @@ namespace UnityEngine.Experimental.Rendering
 
         void NextItem()
         {
-            if(m_Items.Count != 0 && !m_AllItemsReadOnly)
+            if(m_Items.Count != 0)
             {
-                int newSelected = NextItemIndex(m_SelectedItem);
-                while(m_Items[newSelected].readOnly) // There should always be at least one item that is not readonly because m_AllItemsReadOnly is false.
-                    newSelected = NextItemIndex(newSelected);
+                int newSelected = (m_SelectedItem + 1) % m_Items.Count;
                 SetSelectedItem(newSelected);
             }
         }
@@ -165,11 +198,11 @@ namespace UnityEngine.Experimental.Rendering
 
         void PreviousItem()
         {
-            if(m_Items.Count != 0 && !m_AllItemsReadOnly)
+            if(m_Items.Count != 0)
             {
-                int newSelected = PreviousItemIndex(m_SelectedItem);
-                while (m_Items[newSelected].readOnly) // There should always be at least one item that is not readonly because m_AllItemsReadOnly is false.
-                    newSelected = PreviousItemIndex(newSelected);
+                int newSelected = m_SelectedItem - 1;
+                if (newSelected == -1)
+                    newSelected = m_Items.Count - 1;
                 SetSelectedItem(newSelected);
             }
         }
@@ -206,7 +239,6 @@ namespace UnityEngine.Experimental.Rendering
             DebugMenuItem newItem = new DebugMenuItem(name, typeof(ItemType), getter, setter, dynamicDisplay, drawer);
             drawer.SetDebugItem(newItem);
             m_Items.Add(newItem);
-            m_AllItemsReadOnly = m_AllItemsReadOnly && newItem.readOnly;
         }
 
         public void Update()

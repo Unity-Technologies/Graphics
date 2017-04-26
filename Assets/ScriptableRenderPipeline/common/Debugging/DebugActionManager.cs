@@ -23,9 +23,10 @@ namespace UnityEngine.Experimental.Rendering
         private static string   kDebugPreviousBtn = "Debug Previous";
         private static string   kDebugNextBtn = "Debug Next";
         private static string   kValidateBtn = "Debug Validate";
+        private static string   kPersistentBtn = "Debug Persistent";
         private static string   kDPadVertical = "Debug Vertical";
         private static string   kDPadHorizontal = "Debug Horizontal";
-        private string[]        m_RequiredInputButtons = { kEnableDebugBtn1, kEnableDebugBtn2, kDebugPreviousBtn, kDebugNextBtn, kValidateBtn, kDPadVertical, kDPadHorizontal };
+        private string[]        m_RequiredInputButtons = { kEnableDebugBtn1, kEnableDebugBtn2, kDebugPreviousBtn, kDebugNextBtn, kValidateBtn, kPersistentBtn, kDPadVertical, kDPadHorizontal };
 
 
         public enum DebugAction
@@ -34,6 +35,7 @@ namespace UnityEngine.Experimental.Rendering
             PreviousDebugMenu,
             NextDebugMenu,
             Validate,
+            Persistent,
             MoveVertical,
             MoveHorizontal,
             DebugActionCount
@@ -180,6 +182,11 @@ namespace UnityEngine.Experimental.Rendering
             validate.repeatMode = DebugActionRepeatMode.Delay;
             validate.repeatDelay = 0.25f;
             AddAction(DebugAction.Validate, validate);
+
+            DebugActionDesc persistent = new DebugActionDesc();
+            persistent.buttonTriggerList.Add(new[] { kPersistentBtn });
+            persistent.repeatMode = DebugActionRepeatMode.Never;
+            AddAction(DebugAction.Persistent, persistent);
             
             AddAction(DebugAction.MoveVertical, new DebugActionDesc { axisTrigger = kDPadVertical, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.2f } );
             AddAction(DebugAction.MoveHorizontal, new DebugActionDesc { axisTrigger = kDPadHorizontal, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.2f } );
