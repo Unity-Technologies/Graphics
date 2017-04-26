@@ -201,7 +201,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class SubsurfaceScatteringSettings : ISerializationCallbackReceiver
     {
         public const int maxNumProfiles   = 8;
-        public const int neutralProfileID = 7;
+        public const int neutralProfileID = maxNumProfiles - 1;
 
         public int                           numProfiles;
         public SubsurfaceScatteringProfile[] profiles;

@@ -284,7 +284,7 @@ namespace UnityEngine.Experimental.Rendering
         private static uint g_MaxFrameCount = unchecked((uint)(-1));
         private static uint g_InvalidTexID = (uint)0;
 
-        public int FetchSlice(Texture texture)
+        public int FetchSlice(Texture texture, bool forceReinject=false)
         {
             var sliceIndex = -1;
 
@@ -296,22 +296,20 @@ namespace UnityEngine.Experimental.Rendering
             //assert(TexID!=g_InvalidTexID);
             if (texId == g_InvalidTexID) return 0;
 
-            var bSwapSlice = false;
+            var bSwapSlice = forceReinject;
             var bFoundAvailOrExistingSlice = false;
 
             // search for existing copy
             if (m_LocatorInSliceArray.ContainsKey(texId))
             {
-                if (m_TextureCacheVersion != s_GlobalTextureCacheVersion)
+                sliceIndex = m_LocatorInSliceArray[texId];
+                bFoundAvailOrExistingSlice = true;
+
+                if(m_TextureCacheVersion!=s_GlobalTextureCacheVersion)
                 {
-                    m_LocatorInSliceArray.Remove(texId);
                     m_TextureCacheVersion++;
                     Debug.Assert(m_TextureCacheVersion <= s_GlobalTextureCacheVersion);
-                }
-                else
-                {
-                    sliceIndex = m_LocatorInSliceArray[texId];
-                    bFoundAvailOrExistingSlice = true;
+                    bSwapSlice = true;  // force a reinject.
                 }
                 //assert(m_SliceArray[sliceIndex].TexID==TexID);
             }
