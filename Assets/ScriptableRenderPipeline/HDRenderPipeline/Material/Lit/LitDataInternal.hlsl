@@ -241,13 +241,14 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r;
 #endif
 
-#ifdef _THICKNESS_MAP
+#ifdef _THICKNESSMAP
     surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
 #endif
 
-    surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
-    surfaceData.coatPerceptualSmoothness = 1.0;
-    surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+    surfaceData.specularColor = _SpecularColor.rgb;
+#ifdef _SPECULARCOLORMAP
+    surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
+#endif
 
 #else // #if !defined(LAYERED_LIT_SHADER)
 
@@ -265,8 +266,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.thickness = 0.0;
     surfaceData.subsurfaceProfile = 0;
 
-    surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
-    surfaceData.coatPerceptualSmoothness = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
 #endif // #if !defined(LAYERED_LIT_SHADER)
