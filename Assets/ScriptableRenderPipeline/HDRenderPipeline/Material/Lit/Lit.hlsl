@@ -787,6 +787,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
         // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        const float w = 0.15;
         float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
@@ -896,6 +897,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
         // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        const float w = 0.15;
         float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
         illuminance *= attenuation;
 
@@ -985,6 +987,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
         // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        const float w = 0.15;
         float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
         illuminance *= clipFactor;
 
