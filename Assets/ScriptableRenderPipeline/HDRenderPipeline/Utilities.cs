@@ -22,7 +22,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         None      = 0,
         SSS       = 0 + Lit.MaterialId.LitSSS,       // 1
         Standard  = 2 + Lit.MaterialId.LitStandard,  // 2
-        ClearCoat = 1 + Lit.MaterialId.LitClearCoat, // 3
         All       = 255 // 0xff
     }
 
