@@ -785,8 +785,11 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal.
-        illuminance  = saturate(dot(-bsdfData.normalWS, L));
+        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
+        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        const float w = 0.15;
+        float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
+
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
         illuminance *= shadow * cookie.a;
@@ -892,8 +895,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal.
-        illuminance  = saturate(dot(-bsdfData.normalWS, L)) * attenuation;
+        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
+        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        const float w = 0.15;
+        float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
+        illuminance *= attenuation;
+
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
         illuminance *= shadow * cookie.a;
@@ -978,8 +985,12 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal.
-        illuminance  = saturate(dot(-bsdfData.normalWS, L) * clipFactor);
+        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
+        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        const float w = 0.15;
+        float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
+        illuminance *= clipFactor;
+
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
         illuminance *= shadow * cookie.a;
