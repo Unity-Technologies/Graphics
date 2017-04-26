@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 if (needRepaint)
-                    SceneView.RepaintAll();
+                    UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
         }
     }
