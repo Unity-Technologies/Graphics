@@ -86,6 +86,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	public Mesh m_QuadMesh;
 	public Mesh m_BoxMesh;
 
+	public Texture m_DefaultSpotCookie;
+
 	public Shader finalPassShader;
 	public Shader deferredShader;
 	public Shader deferredReflectionShader;
@@ -95,25 +97,19 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	private static int s_GBufferNormal;
 	private static int s_GBufferEmission;
 	private static int s_GBufferRedF32;
-
 	private static int s_GBufferZ;
+
 	private static int s_CameraTarget;
 	private static int s_CameraDepthTexture;
-	//private static int s_CameraReflectionsTexture;
 
-	private static int m_quadLightingPassNdx;
-	private static int m_FiniteLightingPassNdx;
-
-	private Material m_DeferredMaterial;
+	private Material m_DirectionalDeferredLightingMaterial;
+	private Material m_FiniteDeferredLightingMaterial;
 
 	private Material m_ReflectionMaterial;
 	private Material m_ReflectionNearClipMaterial;
 	private Material m_ReflectionNearAndFarClipMaterial;
 
-
 	private Material m_BlitMaterial;
-
-	public Texture m_DefaultSpotCookie;
 
 	private void OnValidate()
 	{
@@ -123,7 +119,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	public void Cleanup()
 	{
 		if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
-		if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
+		if (m_DirectionalDeferredLightingMaterial) DestroyImmediate(m_DirectionalDeferredLightingMaterial);
+		if (m_FiniteDeferredLightingMaterial) DestroyImmediate(m_FiniteDeferredLightingMaterial);
 		if (m_ReflectionMaterial) DestroyImmediate (m_ReflectionMaterial);
 		if (m_ReflectionNearClipMaterial) DestroyImmediate (m_ReflectionNearClipMaterial);
 		if (m_ReflectionNearAndFarClipMaterial) DestroyImmediate (m_ReflectionNearAndFarClipMaterial);
@@ -143,9 +140,21 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 		m_BlitMaterial = new Material (finalPassShader) { hideFlags = HideFlags.HideAndDontSave };
 
-		m_DeferredMaterial = new Material (deferredShader) { hideFlags = HideFlags.HideAndDontSave };
-		m_quadLightingPassNdx = m_DeferredMaterial.FindPass ("DIRECTIONALLIGHT");
-		m_FiniteLightingPassNdx = m_DeferredMaterial.FindPass ("FINITELIGHT");
+		m_DirectionalDeferredLightingMaterial = new Material (deferredShader) { hideFlags = HideFlags.HideAndDontSave };
+		m_DirectionalDeferredLightingMaterial.SetInt("_SrcBlend", (int)BlendMode.One);
+		m_DirectionalDeferredLightingMaterial.SetInt("_DstBlend", (int)BlendMode.One);
+		m_DirectionalDeferredLightingMaterial.SetInt("_SrcABlend", (int)BlendMode.One);
+		m_DirectionalDeferredLightingMaterial.SetInt("_DstABlend", (int)BlendMode.Zero);
+		m_DirectionalDeferredLightingMaterial.SetInt("_CullMode", (int)CullMode.Off);
+		m_DirectionalDeferredLightingMaterial.SetInt("_CompareFunc", (int)CompareFunction.Always);
+
+		m_FiniteDeferredLightingMaterial = new Material (deferredShader) { hideFlags = HideFlags.HideAndDontSave };
+		m_FiniteDeferredLightingMaterial.SetInt("_SrcBlend", (int)BlendMode.One);
+		m_FiniteDeferredLightingMaterial.SetInt("_DstBlend", (int)BlendMode.One);
+		m_FiniteDeferredLightingMaterial.SetInt("_SrcABlend", (int)BlendMode.One);
+		m_FiniteDeferredLightingMaterial.SetInt("_DstABlend", (int)BlendMode.Zero);
+		m_FiniteDeferredLightingMaterial.SetInt("_CullMode", (int)CullMode.Back);
+		m_FiniteDeferredLightingMaterial.SetInt("_CompareFunc", (int)CompareFunction.LessEqual);
 
 		m_ReflectionMaterial = new Material (deferredReflectionShader) { hideFlags = HideFlags.HideAndDontSave };
 		m_ReflectionMaterial.SetInt("_SrcBlend", (int)BlendMode.DstAlpha);
@@ -170,9 +179,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		m_ReflectionNearAndFarClipMaterial.SetInt("_DstABlend", (int)BlendMode.Zero);
 		m_ReflectionNearAndFarClipMaterial.SetInt("_CullMode", (int)CullMode.Off);
 		m_ReflectionNearAndFarClipMaterial.SetInt("_CompareFunc", (int)CompareFunction.Always);
-
-		//s_CameraReflectionsTexture = Shader.PropertyToID ("_CameraReflectionsTexture");
-			
+					
 		//shadows
 		m_MatWorldToShadow = new Matrix4x4[k_MaxLights * k_MaxShadowmapPerLights];
 		m_DirShadowSplitSpheres = new Vector4[k_MaxDirectionalSplit];
@@ -276,7 +283,6 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		
 			var boxProj = (rl.boxProjection != 0);
 			var probePosition = mat.GetColumn (3); // translation vector
-
 			var probePosition1 = new Vector4 (probePosition [0], probePosition [1], probePosition [2], boxProj ? 1f : 0f);
 
 			// C is reflection volume center in world space (NOT same as cube map capture point)
@@ -336,15 +342,6 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_ReflectionNearAndFarClipMaterial, 0, 0, props);
 		}
 	}
-
-//	void RenderApplyReflections(Camera camera, CommandBuffer cmd, CullResults cullResults, ScriptableRenderContext loop)
-//	{
-//		// draw offscreen accumulation buffer onto emission buffer
-//		var props = new MaterialPropertyBlock ();
-////		props.SetFloat ("_LightAsQuad", 1);
-//		cmd.SetGlobalTexture ("_CameraReflectionsTexture", s_CameraReflectionsTexture);
-//		cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredReflectionMaterial, 0, m_ReflectionsApplyPassNdx, props);
-//	}
 
 	void RenderShadowMaps(CullResults cullResults, ScriptableRenderContext loop)
 	{
@@ -520,39 +517,22 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	void RenderLighting (Camera camera, CullResults inputs, ScriptableRenderContext loop)
 	{
-//		{
-//			var cmd = new CommandBuffer { name = "Reflections" };
-//
-//			// setup offscreen render target for reflections
-//			cmd.GetTemporaryRT (s_CameraReflectionsTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Linear);
-//			cmd.SetRenderTarget (new RenderTargetIdentifier (s_CameraReflectionsTexture), new RenderTargetIdentifier (s_GBufferZ));
-//
-//			cmd.ClearRenderTarget (false, true, new Color(0, 0, 0, 1));
-//
-//			RenderReflections (camera, cmd, inputs, loop);
-//
-//			loop.ExecuteCommandBuffer (cmd);
-//			cmd.Dispose ();
-//		}
+		var cmd = new CommandBuffer { name = "Lighting" };
 
-		{
-			var cmd = new CommandBuffer { name = "Lighting" };
+		// IF PLATFORM_MAC -- cannot use framebuffer fetch
+		#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+		cmd.SetRenderTarget (new RenderTargetIdentifier (s_GBufferEmission), new RenderTargetIdentifier (s_GBufferZ));
+		#endif
 
-			// IF PLATFORM_MAC -- cannot use framebuffer fetch
-			#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-			cmd.SetRenderTarget (new RenderTargetIdentifier (s_GBufferEmission), new RenderTargetIdentifier (s_GBufferZ));
-			#endif
-
-			foreach (var light in inputs.visibleLights) {
-				RenderLightGeometry (camera, light, cmd, loop);
-			}
-
-			// TODO: UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. Should preclear emission alpha after gbuffer pass in case this ever changes
-			RenderReflections (camera, cmd, inputs, loop);
-
-			loop.ExecuteCommandBuffer (cmd);
-			cmd.Dispose ();
+		foreach (var light in inputs.visibleLights) {
+			RenderLightGeometry (camera, light, cmd, loop);
 		}
+
+		// TODO: UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. Should preclear emission alpha after gbuffer pass in case this ever changes
+		RenderReflections (camera, cmd, inputs, loop);
+
+		loop.ExecuteCommandBuffer (cmd);
+		cmd.Dispose ();
 	}
 
 	void RenderLightGeometry (Camera camera, VisibleLight light, CommandBuffer cmd, ScriptableRenderContext loop)
@@ -603,9 +583,9 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 				cmd.EnableShaderKeyword ("POINT_COOKIE");
 
 			if (renderAsQuad) {
-				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredMaterial, 0, m_quadLightingPassNdx, props);
+				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
 			} else {
-				cmd.DrawMesh (m_PointLightMesh, matrix, m_DeferredMaterial, 0, m_FiniteLightingPassNdx, props);
+				cmd.DrawMesh (m_PointLightMesh, matrix, m_FiniteDeferredLightingMaterial, 0, 0, props);
 			}
 
 		} else if ((light.lightType == LightType.Spot)) {
@@ -630,9 +610,9 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 				cmd.SetGlobalTexture ("_LightTexture0", m_DefaultSpotCookie);
 			
 			if (renderAsQuad) {
-				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredMaterial, 0, m_quadLightingPassNdx, props);
+				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
 			} else {
-				cmd.DrawMesh (m_SpotLightMesh, lightToWorld, m_DeferredMaterial, 0, m_FiniteLightingPassNdx, props);
+				cmd.DrawMesh (m_SpotLightMesh, lightToWorld, m_FiniteDeferredLightingMaterial, 0, 0, props);
 			}
 				
 		} else {
@@ -647,7 +627,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			if (cookie != null)
 				cmd.EnableShaderKeyword ("DIRECTIONAL_COOKIE");
 		
-			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DeferredMaterial, 0, m_quadLightingPassNdx, props);
+			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
 		}
 	}
 

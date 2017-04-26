@@ -157,7 +157,35 @@ float SampleShadow(uint type, float3 vPositionWs, float3 vPositionToLightDirWs, 
 
 // --------------------------------------------------------
 // Common lighting data calculation (direction, attenuation, ...)
-void MyDeferredCalculateLightParams (
+
+void OnChipDeferredFragSetup (
+	inout unity_v2f_deferred i,
+	out float2 outUV,
+	out float4 outVPos,
+	out float3 outWPos,
+	float depth
+	)
+{
+	i.ray = i.ray * (_ProjectionParams.z / i.ray.z);
+	float2 uv = i.uv.xy / i.uv.w;
+
+	// read depth and reconstruct world position
+	// if we have framebuffer fetch, its expected depth was passed in the parameter from the framebuffer so no need to fetch
+	#ifndef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
+		depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
+	#endif
+
+	depth = Linear01Depth (depth);
+
+	float4 vpos = float4(i.ray * depth,1);
+	float3 wpos = mul (unity_CameraToWorld, vpos).xyz;
+
+	outUV = uv;
+	outVPos = vpos;
+	outWPos = wpos;
+}
+
+void OnChipDeferredCalculateLightParams (
 	unity_v2f_deferred i,
 	out float3 outWorldPos,
 	out float2 outUV,
@@ -167,20 +195,12 @@ void MyDeferredCalculateLightParams (
 	float depth
 	)
 {
-	i.ray = i.ray * (_ProjectionParams.z / i.ray.z);
-	float2 uv = i.uv.xy / i.uv.w;
+	float4 vpos;
+	float3 wpos;
+	float2 uv; 
+	OnChipDeferredFragSetup(i, uv, vpos, wpos, depth); 
 
-	// read depth and reconstruct world position
-	#ifndef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-		depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-	#else
-	//	depth = SAMPLE_DEPTH_TEXTURE(_CameraGBufferZ, uv);
-	#endif
-
-	depth = Linear01Depth (depth);
-	float4 vpos = float4(i.ray * depth,1);
-	float3 wpos = mul (unity_CameraToWorld, vpos).xyz;
-
+	// needed? old shadow code is commented out, we switched to new shadow code .. aka sampleShadow()
 	float fadeDist = UnityComputeShadowFadeDistance(wpos, vpos.z);
 
 	// spot light case
@@ -195,19 +215,15 @@ void MyDeferredCalculateLightParams (
 		float att = dot(tolight, tolight) * _LightPos.w;
 		atten *= tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
-		atten *= SampleShadow(SPOT_LIGHT, wpos, 0, 0);
-
 		//atten *= UnityDeferredComputeShadow (wpos, fadeDist, uv);
+		atten *= SampleShadow(SPOT_LIGHT, wpos, 0, 0);
 	
 	// directional light case		
 	#elif defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
 		half3 lightDir = -_LightDir.xyz;
 		float atten = 1.0;
 
-		//half UnityDeferredComputeShadow(float3 vec, float fadeDist, float2 uv)
 		//atten *= UnityDeferredComputeShadow (wpos, fadeDist, uv);
-
-		//SampleShadow(uint type, float3 vPositionWs, float3 vPositionToLightDirWs, uint lightIndex)
 		atten *= SampleShadow(DIRECTIONAL_LIGHT, wpos, 0, 0);
 
 		#if defined (DIRECTIONAL_COOKIE)
@@ -223,7 +239,8 @@ void MyDeferredCalculateLightParams (
 		float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 		
 		// atten *= UnityDeferredComputeShadow (tolight, fadeDist, uv);
-		
+		// atten *= SampleShadow(POINT_LIGHT, wpos, 0, 0);
+
 		#if defined (POINT_COOKIE)
 		atten *= texCUBEbias(_LightTexture0, float4(mul(unity_WorldToLight, half4(wpos,1)).xyz, -8)).w;
 		#endif //POINT_COOKIE	
@@ -252,9 +269,9 @@ half4 CalculateLight (unity_v2f_deferred i)
 	UNITY_INITIALIZE_OUTPUT(UnityLight, light);
 
 #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-	MyDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, vpDepth);
+	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, vpDepth);
 #else
-	MyDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, 0.0);
+	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, 0.0);
 #endif
 
 	light.color = _LightColor.rgb * atten;
@@ -276,10 +293,34 @@ half4 CalculateLight (unity_v2f_deferred i)
 	ind.specular = 0;
 
 	// UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. 
-
     half4 res = UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, -eyeVec, light, ind);
 
 	return res;
 }
+
+unity_v2f_deferred onchip_vert_deferred (float4 vertex : POSITION, float3 normal : NORMAL)
+{
+    bool lightAsQuad = _LightAsQuad!=0.0;
+
+    unity_v2f_deferred o;
+
+    // scaling quad by two becuase built-in unity quad ranges from -0.5 to 0.5
+    o.pos = lightAsQuad ? float4(2.0*vertex.xy, 0.5, 1.0) : UnityObjectToClipPos(vertex);
+    o.uv = ComputeScreenPos(o.pos);
+
+    // normal contains a ray pointing from the camera to one of near plane's
+    // corners in camera space when we are drawing a full screen quad.
+    // Otherwise, when rendering 3D shapes, use the ray calculated here.
+    if (lightAsQuad){
+    	float2 rayXY = mul(unity_CameraInvProjection, float4(o.pos.x, -o.pos.y, -1, 1)).xy;
+        o.ray = float3(rayXY, 1.0);
+    }
+    else
+    {
+    	o.ray = UnityObjectToViewPos(vertex) * float3(-1,-1,1);
+    }
+    return o;
+}
+
 
 #endif
