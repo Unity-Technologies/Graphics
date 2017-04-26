@@ -78,8 +78,15 @@ namespace UnityEditor.Experimental.Rendering
 			Assert.IsNotNull(testSetup, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
 			Assert.IsNotNull(testSetup.cameraToUse, "No configured camera in <SetupSceneForRenderPipelineTest>");
             
+			var rtDesc = new RenderTextureDescriptor (
+				             testSetup.width, 
+				             testSetup.height, 
+				             testSetup.hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32,
+				             24);
+			rtDesc.sRGB = PlayerSettings.colorSpace == ColorSpace.Linear;
+
 			// render the scene
-			var tempTarget = RenderTexture.GetTemporary (testSetup.width, testSetup.height, 24);
+			var tempTarget = RenderTexture.GetTemporary (rtDesc);
 			var oldTarget = testSetup.cameraToUse.targetTexture;
 			testSetup.cameraToUse.targetTexture = tempTarget;
 			testSetup.cameraToUse.Render ();
