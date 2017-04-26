@@ -47,6 +47,33 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
+
+        public enum IconType
+        {
+            plus,
+            minus,
+            simple
+        }
+
+        public static Texture2D GetTypeIcon(Type type,IconType iconType)
+        {
+            string suffix = "";
+            switch( iconType)
+            {
+                case IconType.plus:
+                    suffix = "_plus";
+                    break;
+                case IconType.minus:
+                    suffix = "_minus";
+                    break;
+            }
+
+            Texture2D result = Resources.Load<Texture2D>("VFX/" + type.Name + suffix);
+            if (result == null)
+                return Resources.Load<Texture2D>("VFX/Default"+suffix);
+            return result;
+        }
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
@@ -164,7 +191,7 @@ namespace UnityEditor.VFX.UI
                 VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.Name);
                 if (parameterDesc != null)
                 {
-                    VFXParameter parameter = viewPresenter.AddVFXParameter(position, parameterDesc);
+                    VFXParameter parameter = viewPresenter.AddVFXParameter(position - new Vector2(360,0), parameterDesc);
                     startSlot.Link(parameter.outputSlots[0]);
                 }
             }

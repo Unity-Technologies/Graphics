@@ -14,6 +14,7 @@ namespace UnityEditor.VFX
             kStructureChanged,      // Model structure (hierarchy) has changed
             kParamChanged,          // Some parameter values have changed
             kParamPropagated,       // Some parameter values have change and was propagated from the parents
+            kParamExpanded,         // Some parameter values have beed expanded or retracted
             kConnectionChanged,     // Connection have changed
             kConnectionPropagated,  // No direct change to the model but a change in connection was propagated from the parents
             kUIChanged,             // UI stuff has changed
