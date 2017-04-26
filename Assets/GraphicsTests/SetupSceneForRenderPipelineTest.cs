@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering
 		private RenderPipelineAsset m_OriginalAsset;
 		public RenderPipelineAsset renderPipeline;
 		public Camera cameraToUse;
+		public bool hdr = false;
 
 		public int width = 1280;
 		public int height = 720;
