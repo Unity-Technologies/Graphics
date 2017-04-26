@@ -6,6 +6,7 @@ namespace UnityEditor.Experimental.Rendering
         static void GenerateShaderIncludes()
         {
             CSharpToHLSL.GenerateAll();
+            UnityEditor.AssetDatabase.Refresh();
         }
     }
 }
