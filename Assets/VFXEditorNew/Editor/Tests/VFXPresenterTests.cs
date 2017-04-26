@@ -489,5 +489,136 @@ namespace UnityEditor.VFX.Test
             DestroyTestAsset();
         }
 
+        [Test]
+        public void UndoRedoAddBlockContext()
+        {
+            CreateTestAsset();
+
+            var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
+            var blockDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(VFXAllType));
+
+            var contextUpdate = m_ViewPresenter.AddVFXContext(Vector2.one, contextUpdateDesc);
+            var contextPresenter  = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().FirstOrDefault() as VFXContextPresenter;
+
+            //Creation
+            Undo.IncrementCurrentGroup();
+            contextPresenter.AddBlock(0, blockDesc.CreateInstance());
+            Assert.AreEqual(1, contextPresenter.context.children.Count());
+            Undo.PerformUndo();
+            Assert.AreEqual(0, contextPresenter.context.children.Count());
+
+            //Deletion
+            var block = blockDesc.CreateInstance();
+            contextPresenter.AddBlock(0, block);
+            Assert.AreEqual(1, contextPresenter.context.children.Count());
+            Undo.IncrementCurrentGroup();
+            contextPresenter.RemoveBlock(block);
+            Assert.AreEqual(0, contextPresenter.context.children.Count());
+
+            Undo.PerformUndo();
+            Assert.AreEqual(1, contextPresenter.context.children.Count());
+            Assert.IsInstanceOf(typeof(VFXAllType), contextPresenter.context.children.First());
+
+            DestroyTestAsset();
+        }
+
+        [Test]
+        public void UndoRedoContext()
+        {
+            CreateTestAsset();
+
+            Func<VFXContextPresenter> fnFirstContextPresenter = delegate ()
+            {
+                return m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().FirstOrDefault() as VFXContextPresenter;
+            };
+
+            Action fnResync = delegate ()
+            {
+                //Force Resync (in test suite, Undo.undoRedoPerformed isn't triggered)
+                m_ViewPresenter.SetGraphAsset(m_ViewPresenter.GetGraphAsset(), true);
+            };
+
+            var contextDesc = VFXLibrary.GetContexts().FirstOrDefault();
+            Undo.IncrementCurrentGroup();
+            m_ViewPresenter.AddVFXContext(Vector2.zero, contextDesc);
+
+            Assert.NotNull(fnFirstContextPresenter());
+            Undo.PerformUndo(); fnResync();
+            Assert.Null(fnFirstContextPresenter());
+
+            Undo.IncrementCurrentGroup();
+            m_ViewPresenter.AddVFXContext(Vector2.zero, contextDesc);
+            Assert.NotNull(fnFirstContextPresenter());
+            m_ViewPresenter.RemoveElement(fnFirstContextPresenter());
+            Assert.Null(fnFirstContextPresenter());
+
+            Undo.PerformUndo(); fnResync();
+            Assert.NotNull(fnFirstContextPresenter());
+
+            DestroyTestAsset();
+        }
+
+        [Test]
+        public void UndoRedoContextLink()
+        {
+            CreateTestAsset();
+
+            Func<VFXContextPresenter[]> fnContextPresenter = delegate ()
+            {
+                return m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().Cast<VFXContextPresenter>().ToArray();
+            };
+
+            Func<VFXContextPresenter> fnInitializePresenter = delegate ()
+            {
+                var presenter = fnContextPresenter();
+                return presenter.FirstOrDefault(o => o.model.name.Contains("Init"));
+            };
+
+            Func<VFXContextPresenter> fnUpdatePresenter = delegate ()
+            {
+                var presenter = fnContextPresenter();
+                return presenter.FirstOrDefault(o => o.model.name.Contains("Update"));
+            };
+
+            Func<int> fnFlowEdgeCount = delegate ()
+            {
+                return m_ViewPresenter.allChildren.OfType<VFXFlowEdgePresenter>().Count();
+            };
+
+            var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Init"));
+            var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
+
+            var contextInitialize = m_ViewPresenter.AddVFXContext(new Vector2(1, 1), contextInitializeDesc);
+            var contextUpdate = m_ViewPresenter.AddVFXContext(new Vector2(2, 2), contextUpdateDesc);
+
+            //Creation
+            var flowEdge = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
+            flowEdge.input = fnUpdatePresenter().inputAnchors.FirstOrDefault();
+            flowEdge.output = fnInitializePresenter().outputAnchors.FirstOrDefault();
+
+            Undo.IncrementCurrentGroup();
+            m_ViewPresenter.AddElement(flowEdge);
+            Assert.AreEqual(1, fnFlowEdgeCount());
+
+            Undo.PerformUndo();
+            Assert.AreEqual(0, fnFlowEdgeCount());
+
+            //Deletion
+            flowEdge = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
+            flowEdge.input = fnUpdatePresenter().outputAnchors.FirstOrDefault();
+            flowEdge.output = fnInitializePresenter().inputAnchors.FirstOrDefault();
+            m_ViewPresenter.AddElement(flowEdge);
+            Assert.AreEqual(1, fnFlowEdgeCount());
+
+            Undo.IncrementCurrentGroup();
+            m_ViewPresenter.RemoveElement(m_ViewPresenter.allChildren.OfType<VFXFlowEdgePresenter>().FirstOrDefault());
+            Assert.AreEqual(0, fnFlowEdgeCount());
+
+            Undo.PerformUndo();
+            Assert.AreEqual(1, fnFlowEdgeCount());
+
+            DestroyTestAsset();
+        }
+
     }
 }

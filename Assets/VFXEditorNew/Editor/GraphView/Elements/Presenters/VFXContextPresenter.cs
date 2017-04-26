@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
         protected void OnDisable()
         {
             UnregisterAnchors();
-            model.onInvalidateDelegate -= OnModelInvalidate; // Is is the right place ?       
+            model.onInvalidateDelegate -= OnModelInvalidate; // Is is the right place ?
         }
 
         private void UnregisterAnchors()
@@ -119,12 +119,15 @@ namespace UnityEditor.VFX.UI
 
         public void AddBlock(int index,VFXBlock block)
         {
+            Undo.RecordObject(model, "Add Block");
             context.AddChild(block, index);
         }
 
         public void RemoveBlock(VFXBlock block)
         {
+            Undo.RecordObject(model, "Remove Block");
             context.RemoveChild(block);
+            Undo.DestroyObjectImmediate(block);
         }
 
         static int s_Counter = 1;
