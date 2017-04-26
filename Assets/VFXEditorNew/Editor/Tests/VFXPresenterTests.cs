@@ -544,7 +544,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.NotNull(fnFirstContextPresenter());
             Undo.PerformUndo(); fnResync();
-            Assert.Null(fnFirstContextPresenter());
+            Assert.Null(fnFirstContextPresenter(), "Fail Undo Create");
 
             Undo.IncrementCurrentGroup();
             m_ViewPresenter.AddVFXContext(Vector2.zero, contextDesc);
@@ -553,7 +553,7 @@ namespace UnityEditor.VFX.Test
             Assert.Null(fnFirstContextPresenter());
 
             Undo.PerformUndo(); fnResync();
-            Assert.NotNull(fnFirstContextPresenter());
+            Assert.NotNull(fnFirstContextPresenter(), "Fail Undo Delete");
 
             DestroyTestAsset();
         }
@@ -601,7 +601,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, fnFlowEdgeCount());
 
             Undo.PerformUndo();
-            Assert.AreEqual(0, fnFlowEdgeCount());
+            Assert.AreEqual(0, fnFlowEdgeCount(), "Fail undo Create");
 
             //Deletion
             flowEdge = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
@@ -615,7 +615,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, fnFlowEdgeCount());
 
             Undo.PerformUndo();
-            Assert.AreEqual(1, fnFlowEdgeCount());
+            Assert.AreEqual(1, fnFlowEdgeCount(), "Fail undo Delete");
 
             DestroyTestAsset();
         }
