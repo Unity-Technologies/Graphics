@@ -85,7 +85,10 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
 
 uint GetTileSize()
 {
-    return TILE_SIZE_CLUSTERED;
+    if (_UseTileLightList)
+        return TILE_SIZE_FPTL;
+    else
+        return TILE_SIZE_CLUSTERED;
 }
 
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
