@@ -144,8 +144,8 @@ float PolygonIrradiance(float4x3 L)
         // We use a numerical fit for the above found with Mathematica.
         float x = sinSqSigma;
         float y = cosOmega;
-        float z = x * (1 + y) * saturate(0.370404036340287 * x + 0.5151639656054547 * (1 - 0.7648559657303381 * x) * y);
-        float l = x * (0.5 + 0.5 * y);  // Bilinear approximation
+        float z = (x + x * y) * saturate(0.370404036340287 * x + 0.5151639656054547 * (1 - 0.7648559657303381 * x) * y);
+        float l = (x + x * y) * 0.5;    // Bilinear approximation
 
         float s = (sqrt(2) * x - 1);
         float t = (s * s) * (y * y);    // Compute the quadratic falloff from (0.707, 0)
