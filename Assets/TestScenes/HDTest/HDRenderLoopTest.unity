@@ -13362,8 +13362,8 @@ GameObject:
   - component: {fileID: 1828470162}
   - component: {fileID: 1828470161}
   - component: {fileID: 1828470160}
-  - component: {fileID: 1828470165}
   - component: {fileID: 1828470166}
+  - component: {fileID: 1828470165}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -13422,7 +13422,7 @@ Camera:
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
-  m_AllowMSAA: 1
+  m_AllowMSAA: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
@@ -13449,9 +13449,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 1828470159}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92bb16b4ee20841929b24d6bd771738d, type: 3}
+  m_Script: {fileID: 11500000, guid: 948f4100a11a5c24981795d21301da5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  volumeTrigger: {fileID: 1828470164}
+  volumeLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  antialiasingMode: 0
+  temporalAntialiasing:
+    jitterSpread: 0.75
+    sharpen: 0.25
+    stationaryBlending: 0.95
+    motionBlending: 0.85
+  showDebugUI: 0
+  debugView:
+    monitor: 1
 --- !u!114 &1828470166
 MonoBehaviour:
   m_ObjectHideFlags: 0
