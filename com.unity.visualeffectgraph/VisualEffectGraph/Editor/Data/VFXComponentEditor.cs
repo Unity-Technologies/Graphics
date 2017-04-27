@@ -117,6 +117,8 @@ public class VFXComponentEditor : Editor
 
     SerializedProperty m_VFXAsset;
     SerializedProperty m_RandomSeed;
+    SerializedProperty m_VFXPropertySheet;
+    bool m_useNewSerializedField = false;
 
     private Contents m_Contents;
     private Styles m_Styles;
@@ -139,7 +141,8 @@ public class VFXComponentEditor : Editor
     {
         m_RandomSeed = serializedObject.FindProperty("m_Seed");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
-        m_DebugPanel = new VFXComponentDebugPanel((VFXComponent)target);
+        m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
+
         InitSlots();
     }
 
@@ -315,8 +318,7 @@ public class VFXComponentEditor : Editor
         
         var component = (VFXComponent)target;
 
-        // ASSET CONTROL
-
+        //Asset
         GUILayout.Label(m_Contents.HeaderMain, m_Styles.InspectorHeader);
 
         using (new GUILayout.HorizontalScope())
@@ -329,6 +331,7 @@ public class VFXComponentEditor : Editor
             }
         }
 
+        //Seed
         using (new GUILayout.HorizontalScope())
         {
             EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
@@ -340,54 +343,101 @@ public class VFXComponentEditor : Editor
             }
         }
 
-        // Update parameters
-        bool valueDirty = false;
-        foreach (var exposed in m_ExposedData)
-            foreach (var valueBinder in exposed.valueBinders)
-                valueDirty |= valueBinder.Update();
-
+        //Field
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
-        foreach (var exposed in m_ExposedData)
+        m_useNewSerializedField = EditorGUILayout.ToggleLeft("Enable new inspector (WIP)", m_useNewSerializedField);
+        if (!m_useNewSerializedField)
         {
-            using (new GUILayout.HorizontalScope())
+            bool valueDirty = false;
+            foreach (var exposed in m_ExposedData)
+                foreach (var valueBinder in exposed.valueBinders)
+                    valueDirty |= valueBinder.Update();
+
+
+            foreach (var exposed in m_ExposedData)
             {
-                CanSetOverride = true;
-                bool showWidget = GUILayout.Toggle(exposed.widget != null, m_Contents.ToggleWidget, m_Styles.ToggleGizmo , GUILayout.Width(10));
-                if (showWidget && exposed.widget == null)
-                    exposed.widget = exposed.slot.Semantics.CreateUIWidget(exposed.slot, component.transform);
-                else if (!showWidget && exposed.widget != null)
-                    exposed.widget = null;
-
-                using (new GUILayout.VerticalScope())
+                using (new GUILayout.HorizontalScope())
                 {
-                    int l = EditorGUI.indentLevel;
-                    EditorGUI.indentLevel = 0;
-                    exposed.slot.Semantics.OnInspectorGUI(exposed.slot);
-                    EditorGUI.indentLevel = l;
-                }
-                CanSetOverride = false;
+                    CanSetOverride = true;
+                    bool showWidget = GUILayout.Toggle(exposed.widget != null, m_Contents.ToggleWidget, m_Styles.ToggleGizmo, GUILayout.Width(10));
+                    if (showWidget && exposed.widget == null)
+                        exposed.widget = exposed.slot.Semantics.CreateUIWidget(exposed.slot, component.transform);
+                    else if (!showWidget && exposed.widget != null)
+                        exposed.widget = null;
 
-                if (GUILayout.Button(m_Contents.ResetOverrides, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
-                {
-                    foreach (var valueBinder in exposed.valueBinders)
-                        component.ResetOverride(valueBinder.Name);
+                    using (new GUILayout.VerticalScope())
+                    {
+                        int l = EditorGUI.indentLevel;
+                        EditorGUI.indentLevel = 0;
+                        exposed.slot.Semantics.OnInspectorGUI(exposed.slot);
+                        EditorGUI.indentLevel = l;
+                    }
+                    CanSetOverride = false;
+
+                    if (GUILayout.Button(m_Contents.ResetOverrides, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                    {
+                        foreach (var valueBinder in exposed.valueBinders)
+                            component.ResetOverride(valueBinder.Name);
+                    }
                 }
             }
-        }
 
-        if (valueDirty && !Application.isPlaying)
-        {
-            // TODO Do that better ?
-            EditorSceneManager.MarkSceneDirty(component.gameObject.scene);
-            //serializedObject.SetIsDifferentCacheDirty();
+            if (valueDirty && !Application.isPlaying)
+            {
+                // TODO Do that better ?
+                EditorSceneManager.MarkSceneDirty(component.gameObject.scene);
+                //serializedObject.SetIsDifferentCacheDirty();
+                serializedObject.Update();
+            }
+
+            if (serializedObject.ApplyModifiedProperties())
+            {
+                InitSlots();
+            }
             serializedObject.Update();
         }
-
-        if(serializedObject.ApplyModifiedProperties())
+        else
         {
-            InitSlots();
+            EditorGUI.BeginChangeCheck();
+            var fields = new string[] { "m_Float", "m_Vector2f", "m_Vector3f", "m_Vector4f", "m_Texture" };
+            foreach (var field in fields)
+            {
+                var vfxField = m_VFXPropertySheet.FindPropertyRelative(field + ".m_Array");
+                if (vfxField != null)
+                {
+                    for (int i = 0; i < vfxField.arraySize; ++i)
+                    {
+                        var property = vfxField.GetArrayElementAtIndex(i);
+                        var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                        var overriddenProperty = property.FindPropertyRelative("m_Overridden");
+                        var valueProperty = property.FindPropertyRelative("m_Value");
+                        Color previousColor = GUI.color;
+                        var animated = AnimationMode.IsPropertyAnimated(target, valueProperty.propertyPath);
+                        if (animated)
+                        {
+                            GUI.color = AnimationMode.animatedPropertyColor;
+                        }
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            overriddenProperty.boolValue = EditorGUILayout.ToggleLeft(new GUIContent(nameProperty), overriddenProperty.boolValue);
+                            EditorGUI.BeginDisabledGroup(!overriddenProperty.boolValue);
+                            EditorGUILayout.PropertyField(valueProperty, new GUIContent(""));
+                            EditorGUI.EndDisabledGroup();
+                        }
+                        if (animated)
+                        {
+                            GUI.color = previousColor;
+                        }
+                    }
+                }
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
+            serializedObject.Update();
         }
-        serializedObject.Update();
     }
 
     private void SetPlayRate(object rate)

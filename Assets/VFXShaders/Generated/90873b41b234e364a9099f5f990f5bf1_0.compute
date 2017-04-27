@@ -1,0 +1,156 @@
+#pragma kernel CSVFXInit
+#pragma kernel CSVFXUpdate
+
+#include "HLSLSupport.cginc"
+#include "../VFXCommon.cginc"
+
+#define NB_THREADS_PER_GROUP 256
+
+CBUFFER_START(initUniforms)
+	float3 initUniform0_kVFXCombine3fOp;
+	float initUniform3_kVFXValueOp;
+	
+	float3 initUniform1_kVFXCombine3fOp;
+	float initUniform4_kVFXValueOp;
+	
+	float3 initUniform2_kVFXCombine3fOp;
+	float initUniform5_kVFXValueOp;
+	
+	float initUniform6_kVFXValueOp;
+	uint initUniform7_kVFXSystemSeedOp;
+	uint nbSpawned;
+	uint spawnIndex;
+	
+CBUFFER_END
+
+CBUFFER_START(updateUniforms)
+	float updateUniform0_kVFXDeltaTimeOp;
+	uint nbMax;
+	uint2 updateUniforms_PADDING_0;
+
+CBUFFER_END
+
+struct Attribute0
+{
+	float3 position;
+	float age;
+};
+
+struct Attribute1
+{
+	float3 velocity;
+	uint _PADDING_0;
+};
+
+struct Attribute2
+{
+	float lifetime;
+};
+
+struct Attribute3
+{
+	float2 size;
+};
+
+RWStructuredBuffer<Attribute0> attribBuffer0;
+RWStructuredBuffer<Attribute1> attribBuffer1;
+StructuredBuffer<Attribute1> attribBuffer1_RO;
+RWStructuredBuffer<Attribute2> attribBuffer2;
+StructuredBuffer<Attribute2> attribBuffer2_RO;
+RWStructuredBuffer<Attribute3> attribBuffer3;
+
+RWStructuredBuffer<int> flags;
+ConsumeStructuredBuffer<uint> deadListIn;
+AppendStructuredBuffer<uint> deadListOut;
+Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
+
+
+void VFXBlockSetPositionPoint( inout float3 position,float3 pos)
+{
+	position = pos;
+}
+
+void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
+{
+	velocity += Velocity;
+}
+
+void VFXBlockVelocityRandomVector( inout float3 velocity,float3 Divergence,inout uint seed)
+{
+	velocity += (RAND3 * 2 - 1) * Divergence;
+}
+
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
+{
+	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
+}
+
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,inout uint seed)
+{
+	float s = lerp(MinSize,MaxSize,RAND);
+	size = float2(s,s);
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < min(nbSpawned,deadListCount[0]))
+	{
+		uint index = deadListIn.Consume();
+		
+		Attribute0 attrib0 = (Attribute0)0;
+		Attribute1 attrib1 = (Attribute1)0;
+		Attribute2 attrib2 = (Attribute2)0;
+		Attribute3 attrib3 = (Attribute3)0;
+		
+		uint local_seed = (uint)0;
+		
+		
+		local_seed = WangHash((id.x + spawnIndex) ^ initUniform7_kVFXSystemSeedOp);
+		VFXBlockSetPositionPoint( attrib0.position,initUniform0_kVFXCombine3fOp);
+		VFXBlockVelocityConstant( attrib1.velocity,initUniform1_kVFXCombine3fOp);
+		VFXBlockVelocityRandomVector( attrib1.velocity,initUniform2_kVFXCombine3fOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,local_seed);
+		VFXBlockSizeRandomSquare( attrib3.size,initUniform5_kVFXValueOp,initUniform6_kVFXValueOp,local_seed);
+		
+		attribBuffer0[index] = attrib0;
+		attribBuffer1[index] = attrib1;
+		attribBuffer2[index] = attrib2;
+		attribBuffer3[index] = attrib3;
+		
+		flags[index] = 1;
+	}
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < nbMax && flags[id.x] == 1)
+	{
+		uint index = id.x;
+		bool kill = false;
+		
+		Attribute0 attrib0 = attribBuffer0[index];
+		Attribute1 attrib1 = attribBuffer1_RO[index];
+		Attribute2 attrib2 = attribBuffer2_RO[index];
+		
+		
+		
+		attrib0.position += attrib1.velocity * updateUniform0_kVFXDeltaTimeOp;
+		
+		attrib0.age += updateUniform0_kVFXDeltaTimeOp;
+		if (attrib0.age >= attrib2.lifetime)
+			kill = true;
+		
+		if (kill)
+		{
+			flags[index] = 0;
+			deadListOut.Append(index);
+		}
+		else
+		{
+			attribBuffer0[index] = attrib0;
+		}
+	}
+}
+
