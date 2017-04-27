@@ -555,6 +555,13 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public override bool CanTransform() { return true; }
+
+        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace)
+        {
+            return new VFXExpressionOptPlane(
+                new VFXExpressionTransformPosition(slot.GetChild(0).ValueRef,targetSpace),
+                new VFXExpressionTransformDirection(slot.GetChild(1).ValueRef,targetSpace));
+        }
     }
 
     public partial class VFXCylinderType : VFXPropertyTypeSemantics

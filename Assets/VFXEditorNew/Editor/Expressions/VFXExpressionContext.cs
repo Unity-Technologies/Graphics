@@ -49,10 +49,10 @@ namespace UnityEditor.VFX
                 if (Option != ReductionOption.CPUEvaluation && Option != ReductionOption.ConstantFolding)
                     return false;
 
-                if (!exp.Is(Flags.ValidOnCPU))
+                if (!exp.Is(Flags.ValidOnCPU) || exp.Is(Flags.PerElement))
                     return false;
 
-                Flags parentFlag = Flags.ValidOnCPU;
+                Flags parentFlag = Flags.ValidOnCPU | Flags.Value;
                 if (Option == ReductionOption.ConstantFolding)
                     parentFlag |= Flags.Constant;
 
