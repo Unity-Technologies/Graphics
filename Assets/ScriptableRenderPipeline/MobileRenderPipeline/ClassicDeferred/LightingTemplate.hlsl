@@ -185,6 +185,8 @@ void OnChipDeferredFragSetup (
 	outWPos = wpos;
 }
 
+static half4 debugLighting;
+
 void OnChipDeferredCalculateLightParams (
 	unity_v2f_deferred i,
 	out float3 outWorldPos,
@@ -212,6 +214,15 @@ void OnChipDeferredCalculateLightParams (
 		// negative bias because http://aras-p.info/blog/2010/01/07/screenspace-vs-mip-mapping/
 		float atten = tex2Dbias (_LightTexture0, float4(uvCookie.xy / uvCookie.w, 0, -8)).w;
 		atten *= uvCookie.w < 0;
+
+		// debug code to set a programmatic cookie
+		//float d0 = 0.65;
+		//float2 d1 = 2*(uvCookie.xy / uvCookie.w)-1;
+		//debugLighting = half4(d1, 0.0, 1.0);
+		//debugLighting = half4(frac(wpos), 1.0);
+        //float angularAtt = smoothstep(0.0, 1.0-d0, 1.0-length(d1));
+        //atten *= angularAtt;
+
 		float att = dot(tolight, tolight) * _LightPos.w;
 		atten *= tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
@@ -268,6 +279,8 @@ half4 CalculateLight (unity_v2f_deferred i)
 	UnityLight light;
 	UNITY_INITIALIZE_OUTPUT(UnityLight, light);
 
+	//debugLighting = half4(0.0, 0.0, 0.0, 0.0);
+
 #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
 	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, vpDepth);
 #else
@@ -294,6 +307,8 @@ half4 CalculateLight (unity_v2f_deferred i)
 
 	// UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. 
     half4 res = UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, -eyeVec, light, ind);
+
+    //return debugLighting;
 
 	return res;
 }

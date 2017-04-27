@@ -82,7 +82,11 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	private int m_shadowBufferID;
 
 	public Mesh m_PointLightMesh;
+	public float PointLightMeshScaleFactor = 2.0f;
+
 	public Mesh m_SpotLightMesh;
+	public float SpotLightMeshScaleFactor = 1.0f;
+
 	public Mesh m_QuadMesh;
 	public Mesh m_BoxMesh;
 
@@ -538,6 +542,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 	void RenderLightGeometry (Camera camera, VisibleLight light, CommandBuffer cmd, ScriptableRenderContext loop)
 	{
 		bool renderAsQuad = (light.flags & VisibleLightFlags.IntersectsNearPlane)!=0 || (light.flags & VisibleLightFlags.IntersectsFarPlane)!=0 || (light.lightType == LightType.Directional);
+			
 		Vector3 lightPos = light.localToWorld.GetColumn (3); //position
 		Vector3 lightDir = light.localToWorld.GetColumn (2); //z axis
 		float range = light.range;
@@ -576,8 +581,10 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			cmd.SetGlobalTexture ("_LightTexture0", cookie);
 
 		if ((light.lightType == LightType.Point)) {
-			
-			var matrix = Matrix4x4.TRS (lightPos, Quaternion.identity, new Vector3 (range*2, range*2, range*2));
+
+			// scalingFactor corrosoponds to the scale factor setting (and wether file scale is used) of mesh in Unity mesh inspector. 
+			// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here. 
+			var matrix = Matrix4x4.TRS (lightPos, Quaternion.identity, new Vector3 (range*PointLightMeshScaleFactor, range*PointLightMeshScaleFactor, range*PointLightMeshScaleFactor));
 
 			if (cookie!=null)
 				cmd.EnableShaderKeyword ("POINT_COOKIE");
@@ -596,19 +603,20 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (-.5f, -.5f, 1.0f));
 			Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
 			Matrix4x4 temp3 = PerspectiveCotanMatrix (chsa, 0.0f, range);
-			var LightMatrix0 = temp2 * temp3 * temp1 * worldToLight;
+			var LightMatrix0 = temp2 * temp1 * temp3 * worldToLight;
 			props.SetMatrix ("_LightMatrix0", LightMatrix0);
 
 			// Setup Spot Rendering mesh matrix
 			float sideLength = range / chsa;
 
-			// builtin pyramid model range is -.1 to .1 so scale by 10
-			lightToWorld = lightToWorld * Matrix4x4.Scale (new Vector3(sideLength*10, sideLength*10, range*10));
+			// scalingFactor corrosoponds to the scale factor setting (and wether file scale is used) of mesh in Unity mesh inspector. 
+			// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here. 
+			lightToWorld = lightToWorld * Matrix4x4.Scale (new Vector3(sideLength*SpotLightMeshScaleFactor, sideLength*SpotLightMeshScaleFactor, range*SpotLightMeshScaleFactor));
 
 			//set default cookie for spot light if there wasnt one added to the light manually
 			if (cookie == null)
 				cmd.SetGlobalTexture ("_LightTexture0", m_DefaultSpotCookie);
-			
+
 			if (renderAsQuad) {
 				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
 			} else {
@@ -646,8 +654,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	float GetCotanHalfSpotAngle (float spotAngle)
 	{
-		const float pi = 3.1415926535897932384626433832795f;
-		const float degToRad = (float)(pi / 180.0);
+		const float degToRad = (float)(Mathf.PI / 180.0);
 		var cs = Mathf.Cos(0.5f * spotAngle * degToRad);
 		var ss = Mathf.Sin(0.5f * spotAngle * degToRad);
 		return cs / ss; //cothalfspotangle
