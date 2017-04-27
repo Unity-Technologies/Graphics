@@ -19,6 +19,8 @@ namespace UnityEditor.VFX
             m_ValueType = VFXValueType.kFloat;
         }
 
+        public int Channel { get { return m_AdditionnalParameters[1]; } }
+
         static private float GetChannel(Vector2 input, int iChannel)
         {
             switch (iChannel)
@@ -58,16 +60,26 @@ namespace UnityEditor.VFX
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             float readValue = 0.0f;
-            var iChannel = m_AdditionnalParameters[1];
             var parent = reducedParents[0];
             switch (reducedParents[0].ValueType)
             {
                 case VFXValueType.kFloat: readValue = parent.GetContent<float>(); break;
-                case VFXValueType.kFloat2: readValue = GetChannel(parent.GetContent<Vector2>(), iChannel); break;
-                case VFXValueType.kFloat3: readValue = GetChannel(parent.GetContent<Vector3>(), iChannel); break;
-                case VFXValueType.kFloat4: readValue = GetChannel(parent.GetContent<Vector4>(), iChannel); break;
+                case VFXValueType.kFloat2: readValue = GetChannel(parent.GetContent<Vector2>(), Channel); break;
+                case VFXValueType.kFloat3: readValue = GetChannel(parent.GetContent<Vector3>(), Channel); break;
+                case VFXValueType.kFloat4: readValue = GetChannel(parent.GetContent<Vector4>(), Channel); break;
             }
             return new VFXValueFloat(readValue, true);
+        }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var parent = reducedParents[0];
+            if (parent is VFXExpressionCombine)
+                return parent.Parents[Channel];
+            else if (parent.ValueType == VFXValueType.kFloat && Channel == 0)
+                return parent;
+            else
+                return base.Reduce(reducedParents);
         }
 
         sealed public override string GetOperationCodeContent()

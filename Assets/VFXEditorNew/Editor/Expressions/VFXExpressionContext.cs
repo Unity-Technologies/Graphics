@@ -10,11 +10,16 @@ namespace UnityEditor.VFX
         {
             public enum ReductionOption
             {
-                CPUEvaluation = 0,
-                ConstantFolding = 1,
+                CPUEvaluation =     1 << 0,
+                ConstantFolding =   1 << 1,
             }
 
-            public ReductionOption Option { get { return ReductionOption.ConstantFolding; } }
+            public ReductionOption Option { get { return m_ReductionOption; } }
+
+            public Context(ReductionOption reductionOption = ReductionOption.CPUEvaluation)
+            {
+                m_ReductionOption = reductionOption;
+            }
 
             public void RegisterExpression(VFXExpression expression)
             {
@@ -27,13 +32,40 @@ namespace UnityEditor.VFX
                 m_EndExpressions.Remove(expression);
             }
 
+            public void Compile()
+            {
+                foreach (var exp in m_EndExpressions)
+                    Compile(exp);
+            }
+
+            public void Recompile()
+            {
+                Invalidate();
+                Compile();
+            }
+
+            private bool ShouldEvaluate(VFXExpression exp,VFXExpression[] reducedParents)
+            {
+                if (Option != ReductionOption.CPUEvaluation && Option != ReductionOption.ConstantFolding)
+                    return false;
+
+                if (!exp.Is(Flags.ValidOnCPU))
+                    return false;
+
+                Flags parentFlag = Flags.ValidOnCPU;
+                if (Option == ReductionOption.ConstantFolding)
+                    parentFlag |= Flags.Constant;
+
+                return reducedParents.All(e => e.Is(parentFlag));
+            }
+
             public VFXExpression Compile(VFXExpression expression)
             {
                 VFXExpression reduced;
                 if (!m_ReducedCache.TryGetValue(expression, out reduced))
                 {
                     var parents = expression.Parents.Select(e => Compile(e)).ToArray();
-                    if (Option == ReductionOption.ConstantFolding && parents.All(e => e.Is(Flags.Constant | Flags.ValidOnCPU)))
+                    if (ShouldEvaluate(expression, parents))
                     {
                         reduced = expression.Evaluate(parents);
                     }
@@ -47,13 +79,27 @@ namespace UnityEditor.VFX
                 return reduced;
             }
 
+            public void Invalidate()
+            {
+                m_ReducedCache.Clear();
+            }
+
             public void Invalidate(VFXExpression expression)
             {
                 m_ReducedCache.Remove(expression);
             }
 
+            public VFXExpression GetReduced(VFXExpression expression)
+            {
+                VFXExpression reduced;
+                m_ReducedCache.TryGetValue(expression,out reduced);
+                return reduced != null ? reduced : expression;
+            }
+
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
             private HashSet<VFXExpression> m_EndExpressions = new HashSet<VFXExpression>();
+
+            private ReductionOption m_ReductionOption;
         }
     }
 }

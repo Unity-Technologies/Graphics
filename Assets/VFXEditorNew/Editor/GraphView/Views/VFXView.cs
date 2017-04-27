@@ -112,6 +112,7 @@ namespace UnityEditor.VFX.UI
                     {Event.KeyboardEvent("c"), CloneModels}, // TEST
                     {Event.KeyboardEvent("#r"), Resync},
                     {Event.KeyboardEvent("#d"), OutputToDot},
+                    {Event.KeyboardEvent("^#d"), OutputToDotReduced},
                 }));
 
             Undo.undoRedoPerformed += () => Resync();
@@ -222,7 +223,13 @@ namespace UnityEditor.VFX.UI
 
         public EventPropagation OutputToDot()
         {
-            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraphAsset().root);
+            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraphAsset().root, false);
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation OutputToDotReduced()
+        {
+            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraphAsset().root, true);
             return EventPropagation.Stop;
         }
 
