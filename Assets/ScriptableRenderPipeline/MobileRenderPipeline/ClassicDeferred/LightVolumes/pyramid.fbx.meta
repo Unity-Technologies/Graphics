@@ -3,7 +3,7 @@ guid: 93e85ba57f65145538a8ac97bd005d40
 timeCreated: 1490056799
 licenseType: Pro
 ModelImporter:
-  serializedVersion: 19
+  serializedVersion: 20
   fileIDToRecycleName:
     100000: //RootNode
     400000: //RootNode
@@ -41,7 +41,10 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    importVisibility: 0
     importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
@@ -52,11 +55,12 @@ ModelImporter:
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
-    useFileScale: 1
+    useFileScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
+    normalCalculationMode: 0
   importAnimation: 1
   copyAvatar: 0
   humanDescription:
