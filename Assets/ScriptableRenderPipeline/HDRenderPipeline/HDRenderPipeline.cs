@@ -933,23 +933,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new Utilities.ProfilingSample("Final", renderContext))
             {
-                // All of this is temporary, sub-optimal and quickly hacked together but is necessary
-                // for artists to do lighting work until the fully-featured framework is ready
-
-                var localPostProcess = camera.GetComponent<PostProcessingSRP>();
-
-                bool localActive = localPostProcess != null && localPostProcess.enabled;
-
-                if (!localActive)
-                {
-                    var cmd = new CommandBuffer { name = "" };
-                    cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
-                    renderContext.ExecuteCommandBuffer(cmd);
-                    cmd.Dispose();
-                    return;
-                }
-
-                localPostProcess.Render(camera, renderContext, m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
+                var cmd = new CommandBuffer { name = "" };
+                cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
             }
         }
 
