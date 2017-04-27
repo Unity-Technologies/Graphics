@@ -40,7 +40,7 @@ float IntegrateEdge(float3 V1, float3 V2)
 // N.b.: this function accounts for horizon clipping.
 float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
-#if   0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
+#if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
     float sinSqOmega = saturate(1 - cosOmega * cosOmega);
     float cosSqSigma = saturate(1 - sinSqSigma);
     float sinSqGamma = saturate(cosSqSigma / sinSqOmega);
@@ -84,7 +84,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
             return saturate(INV_PI * (g + h));
         }
     }
-#elif 1 // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015, optimized).
+#else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015, optimized).
     float cosSqOmega = cosOmega * cosOmega;                     // y^2
 
     [branch]
@@ -109,13 +109,6 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
         // Replacing max() with saturate() results in a 12 cycle SGPR forwarding stall on PS4.
         return max(INV_PI * (a * sinSqSigma + b), 0);           // (a/Pi)*x+(b/Pi)
     }
-#else
-    // We use a numerical fit for the above found using Mathematica. WIP.
-    float x = sinSqSigma;
-    float y = cosOmega;
-
-    // The cheapest version, a bit too bright and doesn't perform well if the light is below the horizon.
-    return saturate(x * (0.5 * y + 0.5));
 #endif
 }
 
@@ -143,7 +136,20 @@ float PolygonIrradiance(float4x3 L)
     float sinSqSigma = min(sqrt(f2), 0.999);
     float cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
 
-    return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
+    #if 1
+        return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
+    #else
+        // We use a numerical fit for the above found with Mathematica.
+        float x = sinSqSigma;
+        float y = cosOmega;
+        float z = x * (1 + y) * saturate(0.370404036340287 * x + 0.5151639656054547 * (1 - 0.7648559657303381 * x) * y);
+        float l = x * (0.5 + 0.5 * y);  // Bilinear approximation
+
+        float s = (sqrt(2) * x - 1);
+        float t = (s * s) * (y * y);    // Compute the quadratic falloff from (0.707, 0)
+
+        return lerp(z, l, t);           // Perform feathering of 'z' to avoid a sharp transition
+    #endif
 #else
     // 1. ClipQuadToHorizon
 
