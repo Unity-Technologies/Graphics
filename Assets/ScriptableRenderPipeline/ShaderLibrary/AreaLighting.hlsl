@@ -40,7 +40,7 @@ float IntegrateEdge(float3 V1, float3 V2)
 // N.b.: this function accounts for horizon clipping.
 float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
-#if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
+#if   0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
     float sinSqOmega = saturate(1 - cosOmega * cosOmega);
     float cosSqSigma = saturate(1 - sinSqSigma);
     float sinSqGamma = saturate(cosSqSigma / sinSqOmega);
@@ -84,13 +84,13 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
             return saturate(INV_PI * (g + h));
         }
     }
-#else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015, optimized).
+#elif 1 // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015, optimized).
     float cosSqOmega = cosOmega * cosOmega;                     // y^2
 
     [branch]
     if (cosSqOmega > sinSqSigma)                                // (y^2)>x
     {
-        return sinSqSigma * saturate(cosOmega);                 // x*Clip[y,0,1]
+        return sinSqSigma * saturate(cosOmega);                 // x*Clip[y,{0,1}]
     }
     else
     {
@@ -109,6 +109,13 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
         // Replacing max() with saturate() results in a 12 cycle SGPR forwarding stall on PS4.
         return max(INV_PI * (a * sinSqSigma + b), 0);           // (a/Pi)*x+(b/Pi)
     }
+#else
+    // We use a numerical fit for the above found using Mathematica. WIP.
+    float x = sinSqSigma;
+    float y = cosOmega;
+
+    // The cheapest version, a bit too bright and doesn't perform well if the light is below the horizon.
+    return saturate(x * (0.5 * y + 0.5));
 #endif
 }
 
