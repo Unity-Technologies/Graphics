@@ -1,6 +1,7 @@
 using UnityEngine.Rendering;
 using System;
 using System.Linq;
+using UnityEngine.Experimental.PostProcessing;
 using UnityEngine.Experimental.Rendering.HDPipeline.TilePass;
 
 #if UNITY_EDITOR
@@ -266,6 +267,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private RenderTargetIdentifier m_CameraDepthStencilBufferRT;
         private RenderTargetIdentifier m_CameraDepthStencilBufferCopyRT;
 
+        // Post-processing context (recycled on every frame to avoid GC alloc)
+        readonly PostProcessRenderContext m_PostProcessContext;
+
         // Detect when windows size is changing
         int m_CurrentWidth;
         int m_CurrentHeight;
@@ -344,6 +348,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.Build();
             m_SkyManager.skySettings = owner.skySettingsToUse;
+
+            m_PostProcessContext = new PostProcessRenderContext();
         }
 
         void InitializeDebugMaterials()
@@ -931,10 +937,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void FinalPass(Camera camera, ScriptableRenderContext renderContext)
         {
-            using (new Utilities.ProfilingSample("Final", renderContext))
+            using (new Utilities.ProfilingSample("Final Pass", renderContext))
             {
+                var postProcessLayer = camera.GetComponent<PostProcessLayer>();
                 var cmd = new CommandBuffer { name = "" };
-                cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
+
+                if (postProcessLayer != null && postProcessLayer.enabled)
+                {
+                    cmd.SetGlobalTexture("_CameraDepthTexture", GetDepthTexture());
+
+                    var context = m_PostProcessContext;
+                    context.Reset();
+                    context.source = m_CameraColorBufferRT;
+                    context.destination = BuiltinRenderTextureType.CameraTarget;
+                    context.command = cmd;
+                    context.camera = camera;
+                    context.sourceFormat = RenderTextureFormat.ARGBHalf; // ?
+                    context.flip = true;
+
+                    postProcessLayer.Render(context);
+                }
+                else
+                {
+                    cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
+                }
+
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
