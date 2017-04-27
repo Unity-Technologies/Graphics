@@ -49,16 +49,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent skyParams = new GUIContent("Sky Settings");
 
             // Debug Display Settings
-            public readonly GUIContent debugDisplayMode = new GUIContent("Debug Display Mode");
             public readonly GUIContent debugging = new GUIContent("Debugging");
             public readonly GUIContent debugOverlayRatio = new GUIContent("Overlay Ratio");
 
             // Material debug
             public readonly GUIContent materialDebugLabel = new GUIContent("Material Debug");
             public readonly GUIContent debugViewMaterial = new GUIContent("DebugView Material", "Display various properties of Materials.");
-            public bool isDebugViewMaterialInit = false;
-            public GUIContent[] debugViewMaterialStrings = null;
-            public int[] debugViewMaterialValues = null;
+            public readonly GUIContent debugViewEngine = new GUIContent("DebugView Engine", "Display various properties of Materials.");
+            public readonly GUIContent debugViewMaterialVarying = new GUIContent("DebugView Attributes", "Display varying input of Materials.");
+            public readonly GUIContent debugViewMaterialGBuffer = new GUIContent("DebugView GBuffer", "Display GBuffer properties.");
 
             // Rendering Debug
             public readonly GUIContent renderingDebugSettings = new GUIContent("Rendering Debug");
@@ -70,6 +69,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Lighting Debug
             public readonly GUIContent lightingDebugSettings = new GUIContent("Lighting Debug");
             public readonly GUIContent shadowDebugEnable = new GUIContent("Enable Shadows");
+            public readonly GUIContent lightingVisualizationMode = new GUIContent("Lighting Debug Mode");
+            public readonly GUIContent[] debugViewLightingStrings = { new GUIContent("None"), new GUIContent("Diffuse Lighting"), new GUIContent("Specular Lighting"), new GUIContent("Visualize Cascades") };
+            public readonly int[] debugViewLightingValues = { (int)DebugLightingMode.None, (int)DebugLightingMode.DiffuseLighting, (int)DebugLightingMode.SpecularLighting, (int)DebugLightingMode.VisualizeCascade };
             public readonly GUIContent shadowDebugVisualizationMode = new GUIContent("Shadow Maps Debug Mode");
             public readonly GUIContent shadowDebugVisualizeShadowIndex = new GUIContent("Visualize Shadow Index");            
             public readonly GUIContent lightingDebugOverrideSmoothness = new GUIContent("Override Smoothness");
@@ -92,14 +94,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Display Debug
-        SerializedProperty m_DebugDisplayMode = null;
         SerializedProperty m_ShowMaterialDebug = null;
         SerializedProperty m_ShowLightingDebug = null;
         SerializedProperty m_ShowRenderingDebug = null;
         SerializedProperty m_DebugOverlayRatio = null;
-
-        // Material Debug
-        SerializedProperty m_MaterialDebugMode = null;
 
         // Rendering Debug
         SerializedProperty m_DisplayOpaqueObjects = null;
@@ -128,14 +126,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void InitializeProperties()
         {
             // DebugDisplay debug
-            m_DebugDisplayMode = FindProperty(x => x.debugDisplaySettings.debugDisplayMode);
             m_DebugOverlayRatio = FindProperty(x => x.debugDisplaySettings.debugOverlayRatio);
             m_ShowLightingDebug = FindProperty(x => x.debugDisplaySettings.displayLightingDebug);
             m_ShowRenderingDebug = FindProperty(x => x.debugDisplaySettings.displayRenderingDebug);
             m_ShowMaterialDebug = FindProperty(x => x.debugDisplaySettings.displayMaterialDebug);
-
-            // Material debug
-            m_MaterialDebugMode = FindProperty(x => x.debugDisplaySettings.materialDebugSettings.debugViewMaterial);
 
             // Rendering debug
             m_DisplayOpaqueObjects = FindProperty(x => x.debugDisplaySettings.renderingDebugSettings.displayOpaqueObjects);
@@ -168,64 +162,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return serializedObject.FindProperty(path);
         }
 
-        string GetSubNameSpaceName(Type type)
-        {
-            return type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1) + "/";
-        }
-
-        void FillWithProperties(Type type, GUIContent[] debugViewMaterialStrings, int[] debugViewMaterialValues, bool isBSDFData, string strSubNameSpace, ref int index)
-        {
-            var attributes = type.GetCustomAttributes(true);
-            // Get attribute to get the start number of the value for the enum
-            var attr = attributes[0] as GenerateHLSL;
-
-            if (!attr.needParamDebug)
-            {
-                return;
-            }
-
-            var fields = type.GetFields();
-
-            var localIndex = 0;
-            foreach (var field in fields)
-            {
-                var fieldName = field.Name;
-
-                // Check if the display name have been override by the users
-                if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
-                {
-                    var propertyAttr = (SurfaceDataAttributes[])field.GetCustomAttributes(typeof(SurfaceDataAttributes), false);
-                    if (propertyAttr[0].displayName != "")
-                    {
-                        fieldName = propertyAttr[0].displayName;
-                    }
-                }
-
-                fieldName = (isBSDFData ? "Engine/" : "") + strSubNameSpace + fieldName;
-
-                debugViewMaterialStrings[index] = new GUIContent(fieldName);
-                debugViewMaterialValues[index] = attr.paramDefinesStart + (int)localIndex;
-                index++;
-                localIndex++;
-            }
-        }
-
-        void FillWithPropertiesEnum(Type type, GUIContent[] debugViewMaterialStrings, int[] debugViewMaterialValues, string prefix, bool isBSDFData, ref int index)
-        {
-            var names = Enum.GetNames(type);
-
-            var localIndex = 0;
-            foreach (var value in Enum.GetValues(type))
-            {
-                var valueName = (isBSDFData ? "Engine/" : "" + prefix) + names[localIndex];
-
-                debugViewMaterialStrings[index] = new GUIContent(valueName);
-                debugViewMaterialValues[index] = (int)value;
-                index++;
-                localIndex++;
-            }
-        }
-
         static void HackSetDirty(RenderPipelineAsset asset)
         {
             EditorUtility.SetDirty(asset);
@@ -240,19 +176,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Debug Display settings
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_DebugDisplayMode, styles.debugDisplayMode);
             m_DebugOverlayRatio.floatValue = EditorGUILayout.Slider(styles.debugOverlayRatio, m_DebugOverlayRatio.floatValue, 0.1f, 1.0f);
             EditorGUILayout.Space();
 
             RenderingDebugSettingsUI(renderContext);
-            if ((DebugDisplayMode)m_DebugDisplayMode.intValue == DebugDisplayMode.ViewMaterial)
-            {
-                MaterialDebugSettingsUI(renderContext);
-            }
-            else
-            {
-                LightingDebugSettingsUI(renderContext, renderpipelineInstance);
-            }            
+            MaterialDebugSettingsUI(renderContext);
+            LightingDebugSettingsUI(renderContext, renderpipelineInstance);
 
             EditorGUILayout.Space();
 
@@ -261,54 +190,50 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void MaterialDebugSettingsUI(HDRenderPipeline renderContext)
         {
+            HDRenderPipeline hdPipe = target as HDRenderPipeline;
+
             m_ShowMaterialDebug.boolValue = EditorGUILayout.Foldout(m_ShowMaterialDebug.boolValue, styles.materialDebugLabel);
             if (!m_ShowMaterialDebug.boolValue)
                 return;
 
             EditorGUI.indentLevel++;
+
+            bool dirty = false;
             EditorGUI.BeginChangeCheck();
-
-            if (!styles.isDebugViewMaterialInit)
-            {
-                var varyingNames = Enum.GetNames(typeof(Attributes.DebugViewVarying));
-                var gbufferNames = Enum.GetNames(typeof(Attributes.DebugViewGbuffer));
-
-                var num = varyingNames.Length
-                    + gbufferNames.Length
-                    + typeof(Builtin.BuiltinData).GetFields().Length * 2       // BuildtinData are duplicated for each material
-                    + typeof(Lit.SurfaceData).GetFields().Length
-                    + typeof(Lit.BSDFData).GetFields().Length
-                    + typeof(Unlit.SurfaceData).GetFields().Length
-                    + typeof(Unlit.BSDFData).GetFields().Length;
-
-                styles.debugViewMaterialStrings = new GUIContent[num];
-                styles.debugViewMaterialValues = new int[num];
-
-                var index = 0;
-
-                // 0 is a reserved number and should not be used (allow to track error)
-                FillWithPropertiesEnum(typeof(Attributes.DebugViewVarying), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, GetSubNameSpaceName(typeof(Attributes.DebugViewVarying)), false, ref index);
-                FillWithProperties(typeof(Builtin.BuiltinData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, GetSubNameSpaceName(typeof(Lit.SurfaceData)), ref index);
-                FillWithProperties(typeof(Lit.SurfaceData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, GetSubNameSpaceName(typeof(Lit.SurfaceData)), ref index);
-                FillWithProperties(typeof(Builtin.BuiltinData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, GetSubNameSpaceName(typeof(Unlit.SurfaceData)), ref index);
-                FillWithProperties(typeof(Unlit.SurfaceData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, GetSubNameSpaceName(typeof(Unlit.SurfaceData)), ref index);
-
-                // Engine
-                FillWithPropertiesEnum(typeof(Attributes.DebugViewGbuffer), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, "", true, ref index);
-                FillWithProperties(typeof(Lit.BSDFData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, true, "", ref index);
-                FillWithProperties(typeof(Unlit.BSDFData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, true, "", ref index);
-
-                styles.isDebugViewMaterialInit = true;
-            }
-
-            EditorGUI.showMixedValue = m_MaterialDebugMode.hasMultipleDifferentValues;
-            m_MaterialDebugMode.intValue = EditorGUILayout.IntPopup(styles.debugViewMaterial, m_MaterialDebugMode.intValue, styles.debugViewMaterialStrings, styles.debugViewMaterialValues);
-            EditorGUI.showMixedValue = false;
-
+            int value = EditorGUILayout.IntPopup(styles.debugViewMaterial, hdPipe.debugDisplaySettings.materialDebugSettings.debugViewMaterial, DebugDisplaySettings.debugViewMaterialStrings, DebugDisplaySettings.debugViewMaterialValues);
             if (EditorGUI.EndChangeCheck())
             {
-                HackSetDirty(renderContext); // Repaint
+                hdPipe.debugDisplaySettings.SetDebugViewMaterial(value);
+                dirty = true;
             }
+
+            EditorGUI.BeginChangeCheck();
+            value = EditorGUILayout.IntPopup(styles.debugViewEngine, hdPipe.debugDisplaySettings.materialDebugSettings.debugViewEngine, DebugDisplaySettings.debugViewEngineStrings, DebugDisplaySettings.debugViewEngineValues);
+            if (EditorGUI.EndChangeCheck())
+            {
+                hdPipe.debugDisplaySettings.SetDebugViewEngine(value);
+                dirty = true;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            value = EditorGUILayout.IntPopup(styles.debugViewMaterialVarying, (int)hdPipe.debugDisplaySettings.materialDebugSettings.debugViewVarying, DebugDisplaySettings.debugViewMaterialVaryingStrings, DebugDisplaySettings.debugViewMaterialVaryingValues);
+            if (EditorGUI.EndChangeCheck())
+            {
+                hdPipe.debugDisplaySettings.SetDebugViewVarying((Attributes.DebugViewVarying)value);
+                dirty = true;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            value = EditorGUILayout.IntPopup(styles.debugViewMaterialGBuffer, (int)hdPipe.debugDisplaySettings.materialDebugSettings.debugViewGBuffer, DebugDisplaySettings.debugViewMaterialGBufferStrings, DebugDisplaySettings.debugViewMaterialGBufferValues);
+            if (EditorGUI.EndChangeCheck())
+            {
+                hdPipe.debugDisplaySettings.SetDebugViewGBuffer(value);
+                dirty = true;
+            }
+
+            if(dirty)
+                HackSetDirty(renderContext); // Repaint
+
             EditorGUI.indentLevel--;
         }
 
@@ -353,8 +278,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_ShowLightingDebug.boolValue)
                 return;
 
-            EditorGUI.BeginChangeCheck();
+            HDRenderPipeline hdPipe = target as HDRenderPipeline;
 
+            bool dirty = false;
+            EditorGUI.BeginChangeCheck();
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_DebugShadowEnabled, styles.shadowDebugEnable);
             EditorGUILayout.PropertyField(m_ShadowDebugMode, styles.shadowDebugVisualizationMode);
@@ -365,28 +292,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     EditorGUILayout.IntSlider(m_ShadowDebugShadowMapIndex, 0, renderpipelineInstance.GetCurrentShadowCount() - 1, styles.shadowDebugVisualizeShadowIndex);
                 }
             }
-
-            if (!m_DebugDisplayMode.hasMultipleDifferentValues)
+            if (EditorGUI.EndChangeCheck())
             {
-                if ((DebugDisplayMode)m_DebugDisplayMode.intValue == DebugDisplayMode.DiffuseLighting)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_LightingDebugAlbedo, styles.lightingDebugAlbedo);
-                    EditorGUI.indentLevel--;
-                }
+                dirty = true;
+            }
 
-                if ((DebugDisplayMode)m_DebugDisplayMode.intValue == DebugDisplayMode.SpecularLighting)
+            EditorGUI.BeginChangeCheck();
+            int value = EditorGUILayout.IntPopup(styles.lightingVisualizationMode, (int)hdPipe.debugDisplaySettings.lightingDebugSettings.debugLightingMode, styles.debugViewLightingStrings, styles.debugViewLightingValues);
+            if (EditorGUI.EndChangeCheck())
+            {
+                hdPipe.debugDisplaySettings.SetDebugLightingMode((DebugLightingMode)value);
+                dirty = true;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            if (hdPipe.debugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.DiffuseLighting)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_LightingDebugAlbedo, styles.lightingDebugAlbedo);
+                EditorGUI.indentLevel--;
+            }
+
+            if (hdPipe.debugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.SpecularLighting)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_LightingDebugOverrideSmoothness, styles.lightingDebugOverrideSmoothness);
+                if (!m_LightingDebugOverrideSmoothness.hasMultipleDifferentValues && m_LightingDebugOverrideSmoothness.boolValue == true)
                 {
                     EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_LightingDebugOverrideSmoothness, styles.lightingDebugOverrideSmoothness);
-                    if (!m_LightingDebugOverrideSmoothness.hasMultipleDifferentValues && m_LightingDebugOverrideSmoothness.boolValue == true)
-                    {
-                        EditorGUI.indentLevel++;
-                        EditorGUILayout.PropertyField(m_LightingDebugOverrideSmoothnessValue, styles.lightingDebugOverrideSmoothnessValue);
-                        EditorGUI.indentLevel--;
-                    }
+                    EditorGUILayout.PropertyField(m_LightingDebugOverrideSmoothnessValue, styles.lightingDebugOverrideSmoothnessValue);
                     EditorGUI.indentLevel--;
                 }
+                EditorGUI.indentLevel--;
             }
 
             EditorGUILayout.PropertyField(m_LightingDebugDisplaySkyReflection, styles.lightingDisplaySkyReflection);
@@ -401,8 +338,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                HackSetDirty(renderContext);
+                dirty = true;
             }
+
+            if(dirty)
+                HackSetDirty(renderContext);
         }
 
         private void SettingsUI(HDRenderPipeline renderContext)

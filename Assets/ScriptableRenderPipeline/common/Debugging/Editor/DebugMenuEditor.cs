@@ -57,10 +57,14 @@ namespace UnityEngine.Experimental.Rendering
             using(new EditorGUILayout.VerticalScope())
             {
                 DebugMenu activeMenu = m_DebugMenu.GetDebugMenu(m_DebugMenu.activeMenuIndex);
+                bool needRepaint = false;
                 for (int i = 0; i < activeMenu.itemCount; ++i)
                 {
-                    activeMenu.GetDebugMenuItem(i).drawer.OnEditorGUI();
+                    needRepaint = needRepaint || activeMenu.GetDebugMenuItem(i).drawer.OnEditorGUI();
                 }
+
+                if (needRepaint)
+                    UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
         }
     }
