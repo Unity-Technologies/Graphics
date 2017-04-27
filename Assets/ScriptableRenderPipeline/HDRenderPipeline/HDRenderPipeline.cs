@@ -300,11 +300,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraFilteringBufferRT           = new RenderTargetIdentifier(m_CameraFilteringBuffer);
 
             m_FilterSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
-            m_FilterSubsurfaceScattering.DisableKeyword("FILTER_HORIZONTAL_AND_COMBINE");
+            m_FilterSubsurfaceScattering.DisableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_FilterSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.Zero);
 
             m_FilterAndCombineSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
-            m_FilterAndCombineSubsurfaceScattering.EnableKeyword("FILTER_HORIZONTAL_AND_COMBINE");
+            m_FilterAndCombineSubsurfaceScattering.EnableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_FilterAndCombineSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.One);
 
             InitializeDebugMaterials();
