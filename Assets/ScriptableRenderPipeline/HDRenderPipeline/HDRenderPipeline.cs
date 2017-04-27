@@ -656,7 +656,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
                     RenderDistortion(cullResults, camera, renderContext);
 
-                    FinalPass(camera, renderContext);
+                    RenderPostProcesses(camera, renderContext);
                 }
             }
 
@@ -935,9 +935,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void FinalPass(Camera camera, ScriptableRenderContext renderContext)
+        void RenderPostProcesses(Camera camera, ScriptableRenderContext renderContext)
         {
-            using (new Utilities.ProfilingSample("Final Pass", renderContext))
+            using (new Utilities.ProfilingSample("Post-processing", renderContext))
             {
                 var postProcessLayer = camera.GetComponent<PostProcessLayer>();
                 var cmd = new CommandBuffer { name = "" };
