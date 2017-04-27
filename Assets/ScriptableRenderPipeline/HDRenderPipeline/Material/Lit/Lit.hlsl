@@ -175,11 +175,13 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
                                                         _TintColors[subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
     }
 
+    #ifndef SSS_FILTER_HORIZONTAL_AND_COMBINE // When doing the SSS comine pass, we must not apply the modification of diffuse color
     // Handle post-scatter, or pre- and post-scatter texturing.
     // We modify diffuseColor here so it affect all the lighting + GI (lightprobe / lightmap) (Need to be done also in GBuffer pass) + transmittance
     // diffuseColor will be solely use during lighting pass. The other contribution will be apply in subsurfacescattering convolution.    
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
     bsdfData.diffuseColor = performPostScatterTexturing ? float3(1.0, 1.0, 1.0) : sqrt(bsdfData.diffuseColor);
+    #endif
 }
 
 //-----------------------------------------------------------------------------
