@@ -161,6 +161,19 @@ namespace UnityEditor.VFX
                 return GetParent().GetTopMostParent();
         }
 
+        public void SetOwner(VFXModel owner)
+        {
+            if (m_Owner != null)
+                (m_Owner as IVFXSlotContainer).RemoveSlot(this);
+
+            m_Owner = owner;
+
+            foreach(VFXSlot child in children)
+            {
+                child.SetOwner(owner);
+            }
+        }
+
         // Create and return a slot hierarchy from a property info
         public static VFXSlot Create(VFXProperty property, Direction direction, object value = null)
         {
@@ -183,7 +196,9 @@ namespace UnityEditor.VFX
                 {
                     var subSlot = CreateSub(subInfo, direction);
                     if (subSlot != null)
+                    {
                         subSlot.Attach(slot,false);
+                    }
                 }
 
                 return slot;
@@ -550,7 +565,7 @@ namespace UnityEditor.VFX
         private MasterData m_MasterData;
 
         [SerializeField]
-        public VFXModel m_Owner;
+        VFXModel m_Owner;
 
         [SerializeField]
         private VFXProperty m_Property;

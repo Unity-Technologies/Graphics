@@ -46,12 +46,8 @@ namespace UnityEditor.VFX
 
             if (slot.owner != this as IVFXSlotContainer)
             {
-                if (slot.owner != null)
-                    slot.owner.RemoveSlot(slot);
-
                 slotList.Add(slot);
-                slot.m_Owner = this;
-
+                slot.SetOwner(this);
                 Invalidate(InvalidationCause.kStructureChanged);
             }
         }
@@ -63,7 +59,7 @@ namespace UnityEditor.VFX
             if (slot.owner == this as IVFXSlotContainer)
             {
                 slotList.Remove(slot);
-                slot.m_Owner = null;
+                slot.SetOwner(null);
 
                 Invalidate(InvalidationCause.kStructureChanged);
             }
@@ -133,14 +129,14 @@ namespace UnityEditor.VFX
             {
                 var cloneSlot = input.Clone<VFXSlot>();
                 cloneContainer.m_InputSlots.Add(cloneSlot);
-                cloneSlot.m_Owner = cloneContainer;
+                cloneSlot.SetOwner(cloneContainer);
             }
 
             foreach (var output in outputSlots)
             {
                 var cloneSlot = output.Clone<VFXSlot>();
                 cloneContainer.m_OutputSlots.Add(cloneSlot);
-                cloneSlot.m_Owner = cloneContainer;
+                cloneSlot.SetOwner(cloneContainer);
             }
 
             return clone;
