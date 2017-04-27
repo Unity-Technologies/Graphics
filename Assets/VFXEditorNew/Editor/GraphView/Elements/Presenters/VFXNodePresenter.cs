@@ -91,6 +91,21 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
+        void CreateAllAnchorPresenter(IEnumerable<VFXSlot> slots,Direction direction,List<NodeAnchorPresenter> results)
+        {
+            foreach(VFXSlot slot in slots)
+            {
+                NodeAnchorPresenter pres = CreateAnchorPresenter(slot, direction);
+
+                results.Add(pres);
+
+                if( slot.expanded )
+                {
+                    CreateAllAnchorPresenter(slot.children, direction, results);
+                }
+            }
+        }
+
         virtual protected void Reset()
         {
             if (m_Node != null)
@@ -104,8 +119,12 @@ namespace UnityEditor.VFX.UI
                     slot.GetExpression();
                 }
 
-                var newinputAnchors = node.inputSlots.Select(s => CreateAnchorPresenter(s, Direction.Input)).ToArray();
-                var newoutputAnchors = node.outputSlots.Select(s => CreateAnchorPresenter(s, Direction.Output)).ToArray();
+                List<NodeAnchorPresenter> newinputAnchors = new List<NodeAnchorPresenter>();
+                CreateAllAnchorPresenter(node.inputSlots,Direction.Input,newinputAnchors);
+
+
+                List<NodeAnchorPresenter> newoutputAnchors = new List<NodeAnchorPresenter>();
+                CreateAllAnchorPresenter(node.outputSlots,Direction.Output,newoutputAnchors);
 
                 Func<NodeAnchorPresenter, NodeAnchorPresenter, bool> fnComparer = delegate (NodeAnchorPresenter x, NodeAnchorPresenter y)
                 {

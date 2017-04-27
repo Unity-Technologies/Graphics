@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
 
         private VFXAttributeExpression(string name, VFXValueType type)
         {
-            m_Flags = Flags.ValidOnGPU;
+            m_Flags = Flags.PerElement;
             m_AttributeName = name;
             m_ValueType = type;
         }

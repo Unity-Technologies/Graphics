@@ -47,13 +47,13 @@ VFXParameterUI.node.horizontal #pane > #left
 
 VFXOperatorUI.node.horizontal #pane > #right
 {
-	width:50;
+	width:70;
 	padding-left:2;
 	padding-right:2;
 }
 VFXParameterUI.node.horizontal #pane > #right
 {
-	width:100;
+	width:70;
 	padding-left:2;
 	padding-right:2;
 }

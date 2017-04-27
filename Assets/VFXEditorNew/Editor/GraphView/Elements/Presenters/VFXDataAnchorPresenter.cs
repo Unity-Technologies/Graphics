@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool expandable
         {
-            get { return false; }
+            get { return VFXBlockPresenter.IsTypeExpandable(anchorType); }
         }
 
         [SerializeField]
@@ -134,14 +134,14 @@ namespace UnityEditor.VFX.UI
         {
             Undo.RecordObject(model, "Expand path");
             model.expanded = true;
-            model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+            model.Invalidate(VFXModel.InvalidationCause.kParamExpanded);
         }
 
         public void RetractPath()
         {
             Undo.RecordObject(model, "Retract path");
             model.expanded = false;
-            model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+            model.Invalidate(VFXModel.InvalidationCause.kParamExpanded);
         }
     }
 

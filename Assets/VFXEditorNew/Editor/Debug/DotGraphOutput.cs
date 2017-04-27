@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
             return name;
         }
 
-        public static void DebugExpressionGraph(VFXGraph graph)
+        public static void DebugExpressionGraph(VFXGraph graph,bool reduce = false)
         {
             var objs = new HashSet<UnityEngine.Object>();
             graph.CollectDependencies(objs);
@@ -64,6 +64,33 @@ namespace UnityEditor.VFX
                 }
             }
 
+            if (reduce)
+            {
+                var exprContext = new VFXExpression.Context();
+                foreach (var exp in mainExpressions.Keys)
+                    exprContext.RegisterExpression(exp);
+                exprContext.Compile();
+
+                var reducedExpressions = new Dictionary<VFXExpression, List<VFXSlot>>();
+                foreach (var kvp in mainExpressions)
+                {
+                    var exp = kvp.Key;
+                    var slots = kvp.Value;
+
+                    var reduced = exprContext.GetReduced(exp);
+                    if (reducedExpressions.ContainsKey(reduced))
+                        reducedExpressions[reduced].AddRange(slots);
+                    else
+                    {
+                        var list = new List<VFXSlot>();
+                        list.AddRange(slots);
+                        reducedExpressions[reduced] = list;
+                    }
+                }
+
+                mainExpressions = reducedExpressions;
+            }
+
             var expressions = new HashSet<VFXExpression>();
 
             foreach (var exp in mainExpressions.Keys)
@@ -77,6 +104,7 @@ namespace UnityEditor.VFX
                 var dotNode = new DotNode();
 
                 string name = exp.GetType().Name;
+                name += " " + exp.ValueType.ToString();
                 string valueStr = GetExpressionValue(exp);
                 if (!string.IsNullOrEmpty(valueStr))
                     name += string.Format(" ({0})", valueStr);

@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                return VFXDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
+                return VFXOutputDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
             }
         }
     }

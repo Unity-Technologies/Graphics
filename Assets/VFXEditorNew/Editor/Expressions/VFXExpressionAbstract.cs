@@ -32,6 +32,7 @@ namespace UnityEditor.VFX
             Constant =      1 << 1, // Expression is a constant, it can be folded
             ValidOnGPU =    1 << 2, // Expression can be evaluated on GPU
             ValidOnCPU =    1 << 3, // Expression can be evaluated on CPU
+            PerElement =    1 << 4, // Expression is per element
         }
 
         public static bool IsFloatValueType(VFXValueType valueType)
@@ -117,8 +118,7 @@ namespace UnityEditor.VFX
         protected abstract VFXExpression Reduce(VFXExpression[] reducedParents);
         protected abstract VFXExpression Evaluate(VFXExpression[] constParents);
 
-        // Returns dependencies
-        public bool Is(Flags flag) { return (m_Flags & flag) == flag; }
+        public bool Is(Flags flag)  { return (m_Flags & flag) == flag; }
         public abstract VFXValueType ValueType { get; }
         public abstract VFXExpressionOp Operation { get; }
         public virtual VFXExpression[] Parents { get { return new VFXExpression[] { }; } }

@@ -210,7 +210,7 @@ namespace UnityEditor.VFX
         }
         sealed protected override float ProcessBinaryOperation(float left, float right)
         {
-            return Mathf.Max(left, right);
+            return Mathf.Pow(left, right);
         }
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {

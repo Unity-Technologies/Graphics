@@ -16,6 +16,7 @@ VFXView #VFXBackgroundGrid {
 /* Properties */
 .VFXDataAnchor
 {
+	-background-color:rgba(0,0,255,255);
 	im-border : 4;
 	im-padding : 2;
 	selected-field-background :resource("VFX/SelectedField");
@@ -49,13 +50,14 @@ VFXView #VFXBackgroundGrid {
 	position-right:0;
 }
 
-VFXDataAnchor.Output
+.VFXDataAnchor.Output
 {
--background-color:rgba(0,0,255,255);
-position-right:0;
-margin-right:0;
-padding-right:0;
-margin-left:0;
+	-background-color:rgba(0,0,255,255);
+	position-right:0;
+	margin-right:10;
+	padding-right:0;
+	margin-left:0;
+	margin-right:-9;
 }
 
 VFXDataAnchor.Output #type
@@ -102,7 +104,8 @@ VFXDataAnchor.Output #type
 .VFXDataAnchor.Output #connector
 {
 	border-color:#212121;
-	position-right:-9;
+	position-right:0;
+	margin-top:2;
 	background-image:resource("VFX/connectors/unconnected-output");
 }
 
@@ -126,6 +129,17 @@ VFXDataAnchor.Output #type
 	-background-color:rgba(255,0,0,255);
 }
 
+VFXOutputDataAnchor #icon
+{
+	width:16;
+	height:16;
+	margin-right:10;
+}
+VFXOutputDataAnchor #type
+{
+	flex:1;
+	text-color:#c4c4c4;
+}
 
 /*Default*/
 .VFXDataAnchor.connected > #connector

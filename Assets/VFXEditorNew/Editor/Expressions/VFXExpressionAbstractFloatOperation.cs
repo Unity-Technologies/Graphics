@@ -47,11 +47,13 @@ namespace UnityEditor.VFX
         sealed public override VFXExpression[] Parents { get { return m_Parents; } }
         sealed public override int[] AdditionnalParameters { get { return m_AdditionnalParameters; } }
 
-        sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
             var newExpression = (VFXExpressionFloatOperation)CreateNewInstance();
             newExpression.m_AdditionnalParameters = m_AdditionnalParameters.Select(o => o).ToArray();
             newExpression.m_Parents = reducedParents;
+            newExpression.m_Operation = m_Operation;
+            newExpression.m_ValueType = m_ValueType;
             return newExpression;
         }
 

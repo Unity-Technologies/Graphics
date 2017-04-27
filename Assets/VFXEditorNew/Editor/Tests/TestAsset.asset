@@ -29,6 +29,7 @@ MonoBehaviour:
   - {fileID: 114931804099076120}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_Space: 0
 --- !u!114 &114138983806570592
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46,6 +47,7 @@ MonoBehaviour:
   - {fileID: 114201637120217498}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_Space: 0
 --- !u!114 &114165376337480876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,6 +64,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  expanded: 0
   m_MasterSlot: {fileID: 0}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -77,11 +80,10 @@ MonoBehaviour:
       Culture=neutral, PublicKeyToken=null
   m_Direction: 0
   m_LinkedSlots: []
-  m_SerializableValue:
-    typeInfo:
-      fullName: UnityEditor.VFX.FloatN
-      assemblyName: Assembly-CSharp-Editor-testable
-    JSONnodeData: '{"m_Components":[0.0]}'
+  m_Value:
+    m_Type:
+      m_SerializableType: 
+    m_SerializableObject: 
 --- !u!114 &114201637120217498
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119,41 +121,6 @@ MonoBehaviour:
   - {fileID: 114814933689467956}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
---- !u!114 &114435910858180082
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_OnEnabledCount: 0
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  m_MasterSlot: {fileID: 0}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_SerializedValue:
-      typeInfo:
-        fullName: 
-        assemblyName: 
-      JSONnodeData: 
-  m_Owner: {fileID: 114814933689467956}
-  m_Property:
-    name: o
-    typeName: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
-  m_Direction: 1
-  m_LinkedSlots: []
-  m_SerializableValue:
-    typeInfo:
-      fullName: 
-      assemblyName: 
-    JSONnodeData: 
 --- !u!114 &114449087730115864
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -206,6 +173,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  expanded: 0
   m_MasterSlot: {fileID: 0}
   m_MasterData:
     m_Owner: {fileID: 0}
@@ -221,11 +189,10 @@ MonoBehaviour:
       Culture=neutral, PublicKeyToken=null
   m_Direction: 0
   m_LinkedSlots: []
-  m_SerializableValue:
-    typeInfo:
-      fullName: UnityEditor.VFX.FloatN
-      assemblyName: Assembly-CSharp-Editor-testable
-    JSONnodeData: '{"m_Components":[0.0]}'
+  m_Value:
+    m_Type:
+      m_SerializableType: 
+    m_SerializableObject: 
 --- !u!114 &114789616338887930
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -242,6 +209,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_Space: 0
 --- !u!114 &114814933689467956
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -261,13 +229,11 @@ MonoBehaviour:
   m_InputSlots:
   - {fileID: 114594770978864552}
   - {fileID: 114165376337480876}
-  m_OutputSlots:
-  - {fileID: 114435910858180082}
-  m_SerializableSettings:
-    typeInfo:
-      fullName: 
-      assemblyName: 
-    JSONnodeData: 
+  m_OutputSlots: []
+  m_SettingsBuffer:
+    m_Type:
+      m_SerializableType: 
+    m_SerializableObject: 
 --- !u!114 &114827454886839646
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -303,6 +269,7 @@ MonoBehaviour:
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_Space: 0
 --- !u!114 &114926580267793252
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -320,6 +287,7 @@ MonoBehaviour:
   - {fileID: 114495972410134180}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_Space: 0
 --- !u!114 &114931804099076120
 MonoBehaviour:
   m_ObjectHideFlags: 0

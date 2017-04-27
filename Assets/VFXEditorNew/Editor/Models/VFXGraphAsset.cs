@@ -17,6 +17,7 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         private VFXGraph m_Root;
+        private VFXExpression.Context m_ExpressionContext;
 
         public bool UpdateSubAssets()
         {
@@ -74,7 +75,28 @@ namespace UnityEditor.VFX
                 {
                     //AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
                 }
-            }
+
+                // Just a test
+                m_ExpressionContext = new VFXExpression.Context();
+                HashSet<Object> currentObjects = new HashSet<Object>();
+                m_Root.CollectDependencies(currentObjects);
+
+                foreach (var o in currentObjects)
+                {
+                    if (o is VFXSlot)
+                    {
+                        var slot = o as VFXSlot;
+                        if (slot.GetParent() == null)
+                        {
+                            var exp = slot.GetExpression();
+                            if (exp != null)
+                                m_ExpressionContext.RegisterExpression(exp);
+                        }
+                    }
+                }
+
+                m_ExpressionContext.Compile();
+            } 
 
             Debug.Log("ASSET DIRTY " + cause);
             EditorUtility.SetDirty(this);
