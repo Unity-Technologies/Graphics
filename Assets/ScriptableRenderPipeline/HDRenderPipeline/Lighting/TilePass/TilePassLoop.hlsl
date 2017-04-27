@@ -5,15 +5,15 @@
 void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef DEBUG_DISPLAY
-    if (_DebugDisplayMode == DEBUGDISPLAYMODE_DIFFUSE_LIGHTING)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
     {
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
-    else if (_DebugDisplayMode == DEBUGDISPLAYMODE_SPECULAR_LIGHTING)
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING)
     {
         diffuseLighting = float3(0.0, 0.0, 0.0); // Disable diffuse lighting
     }
-    else if (_DebugDisplayMode == DEBUGDISPLAYMODE_VISUALIZE_CASCADE)
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_VISUALIZE_CASCADE)
     {
         specularLighting = float3(0.0, 0.0, 0.0);
 

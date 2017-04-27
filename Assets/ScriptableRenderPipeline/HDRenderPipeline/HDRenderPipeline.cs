@@ -127,8 +127,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 debugAlbedo = new Vector4(lightingDebugSettings.debugLightingAlbedo.r, lightingDebugSettings.debugLightingAlbedo.g, lightingDebugSettings.debugLightingAlbedo.b, 0.0f);
             Vector4 debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
 
-            Shader.SetGlobalInt("_DebugDisplayMode", (int)debugDisplaySettings.debugDisplayMode);
-            Shader.SetGlobalInt("_DebugViewMaterial", (int)debugDisplaySettings.materialDebugSettings.debugViewMaterial);
+            Shader.SetGlobalInt("_DebugViewMaterial", (int)debugDisplaySettings.GetDebugMaterialIndex());
+            Shader.SetGlobalInt("_DebugLightingMode", (int)debugDisplaySettings.GetDebugLightingMode());
             Shader.SetGlobalVector("_DebugLightingAlbedo", debugAlbedo);
             Shader.SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
         }
@@ -575,7 +575,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CopyDepthBufferIfNeeded(renderContext);
             }
 
-            if (debugDisplaySettings.debugDisplayMode == DebugDisplayMode.ViewMaterial)
+            if (debugDisplaySettings.IsDebugMaterialDisplayEnabled())
             {
                 RenderDebugViewMaterial(cullResults, hdCamera, renderContext);
             }
@@ -719,7 +719,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            string passName = debugDisplaySettings.IsDebugDisplayEnable() ? "GBufferDebugDisplay" : "GBuffer";
+            string passName = debugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer";
 
             using (new Utilities.ProfilingSample(passName, renderContext))
             {
@@ -850,7 +850,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_Owner.renderingSettings.ShouldUseForwardRenderingOnly() && renderOpaque)
                 return;
 
-            string passName = debugDisplaySettings.IsDebugDisplayEnable() ? "ForwardDisplayDebug" : "Forward";
+            string passName = debugDisplaySettings.IsDebugDisplayEnabled() ? "ForwardDisplayDebug" : "Forward";
 
             using (new Utilities.ProfilingSample(passName, renderContext))
             {
@@ -873,7 +873,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Render material that are forward opaque only (like eye), this include unlit material
         void RenderForwardOnlyOpaque(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext)
         {
-            string passName = debugDisplaySettings.IsDebugDisplayEnable() ? "ForwardOnlyOpaqueDisplayDebug" : "ForwardOnlyOpaque";
+            string passName = debugDisplaySettings.IsDebugDisplayEnabled() ? "ForwardOnlyOpaqueDisplayDebug" : "ForwardOnlyOpaque";
 
             using (new Utilities.ProfilingSample(passName, renderContext))
             {
