@@ -116,6 +116,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 float PolygonIrradiance(float4x3 L)
 {
 #ifdef SPHERE_LIGHT_APPROXIMATION
+    [unroll]
     for (int i = 0; i < 4; i++)
     {
         L[i] = normalize(L[i]);
@@ -123,10 +124,11 @@ float PolygonIrradiance(float4x3 L)
 
     float3 F = float3(0, 0, 0);
 
+    [unroll]
     for (int edge = 0; edge < 4; edge++)
     {
         float3 V1 = L[edge];
-        float3 V2 = L[(edge + 1) % 4];
+        float3 V2 = L[(edge + 1) & 0x3];
 
         F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
     }
