@@ -94,7 +94,7 @@ namespace UnityEditor.VFX.UI
         public VFXView()
         {
             forceNotififcationOnAdd = true;
-            SetupZoom(new Vector3(0.125f,0.125f,1),new Vector3(16,16,1));
+            SetupZoom(new Vector3(0.125f,0.125f,1),new Vector3(1,1,1));
 
             AddManipulator(new ContentDragger());
             AddManipulator(new RectangleSelector());
