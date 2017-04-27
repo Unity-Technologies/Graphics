@@ -118,16 +118,6 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
-// We modify diffuseColor here so it affect all the lighting + GI (lightprobe / lightmap) (Need to be done also in GBuffer pass) + transmittance.
-// DiffuseColor will be use during lighting pass. The other contribution will be apply in subsurfacescattering convolution.
-void ConfigureTexturingForSSS(inout BSDFData bsdfData)
-{
-    bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, bsdfData.subsurfaceProfile);
-
-    // It's either post-scatter, or pre- and post-scatter texturing.
-    bsdfData.diffuseColor = performPostScatterTexturing ? float3(1.0, 1.0, 1.0) : sqrt(bsdfData.diffuseColor);
-}
-
 // Evaluates transmittance for a linear combination of two normalized 2D Gaussians.
 // Computes results for each color channel separately.
 // Ref: Real-Time Realistic Skin Translucency (2010), equation 9 (modified).
@@ -150,6 +140,48 @@ float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
     return transmittance * tintColor;
 }
 
+void FillMaterialIdStandardData(float3 baseColor, float specular, float metallic, float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
+{
+    bsdfData.diffuseColor = baseColor * (1.0 - metallic);
+    bsdfData.fresnel0 = lerp(float3(specular.xxx), baseColor, metallic);
+
+    // TODO: encode specular
+
+    bsdfData.tangentWS = tangentWS;
+    bsdfData.bitangentWS = cross(normalWS, tangentWS);
+    ConvertAnisotropyToRoughness(roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+    bsdfData.anisotropy = anisotropy;
+}
+
+void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsurfaceRadius, float thickness, inout BSDFData bsdfData)
+{
+    bsdfData.diffuseColor = baseColor;
+
+    // TODO take from subsurfaceProfile
+    bsdfData.fresnel0 = 0.04; // Should be 0.028 for the skin
+    bsdfData.subsurfaceProfile = subsurfaceProfile;
+    // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
+    bsdfData.subsurfaceRadius = SSS_UNIT_CONVERSION * subsurfaceRadius + 0.0001;
+    bsdfData.thickness = SSS_UNIT_CONVERSION * (_ThicknessRemaps[subsurfaceProfile][0] +
+                                                _ThicknessRemaps[subsurfaceProfile][1] * thickness);
+    
+    bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, subsurfaceProfile);
+    if (bsdfData.enableTransmission)
+    {
+        bsdfData.transmittance = ComputeTransmittance(  _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][0].xyz,
+                                                        _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][0].w,
+                                                        _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][1].xyz,
+                                                        _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][1].w,
+                                                        _TintColors[subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
+    }
+
+    // Handle post-scatter, or pre- and post-scatter texturing.
+    // We modify diffuseColor here so it affect all the lighting + GI (lightprobe / lightmap) (Need to be done also in GBuffer pass) + transmittance
+    // diffuseColor will be solely use during lighting pass. The other contribution will be apply in subsurfacescattering convolution.    
+    bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
+    bsdfData.diffuseColor = performPostScatterTexturing ? float3(1.0, 1.0, 1.0) : sqrt(bsdfData.diffuseColor);
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
@@ -167,37 +199,12 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
-        bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metallic);
-        bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metallic);
-
-        bsdfData.tangentWS   = surfaceData.tangentWS;
-        bsdfData.bitangentWS = cross(surfaceData.normalWS, surfaceData.tangentWS);
-        ConvertAnisotropyToRoughness(bsdfData.roughness, surfaceData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
-        bsdfData.anisotropy = surfaceData.anisotropy;
-
-        bsdfData.materialId = surfaceData.anisotropy > 0 ? MATERIALID_LIT_ANISO : bsdfData.materialId;
+        FillMaterialIdStandardData(surfaceData.baseColor, surfaceData.specular, surfaceData.metallic, bsdfData.roughness, surfaceData.normalWS, surfaceData.tangentWS, surfaceData.anisotropy, bsdfData);
+        bsdfData.materialId = surfaceData.anisotropy > 0.0 ? MATERIALID_LIT_ANISO : bsdfData.materialId;
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        bsdfData.diffuseColor = surfaceData.baseColor;
-        // TODO take from subsurfaceProfile
-        bsdfData.fresnel0 = 0.04; /* 0.028 ? */
-        bsdfData.subsurfaceProfile = surfaceData.subsurfaceProfile;
-        // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
-        bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * surfaceData.subsurfaceRadius + 0.0001;
-        bsdfData.thickness         = SSS_UNIT_CONVERSION * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
-                                                            _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * surfaceData.thickness);
-        bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, bsdfData.subsurfaceProfile);
-        if (bsdfData.enableTransmission)
-        {
-            bsdfData.transmittance = ComputeTransmittance(_HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].xyz,
-                                                          _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].w,
-                                                          _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].xyz,
-                                                          _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].w,
-                                                          _TintColors[bsdfData.subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
-        }
-
-        ConfigureTexturingForSSS(bsdfData);
+        FillMaterialIdSSSData(surfaceData.baseColor, surfaceData.subsurfaceProfile, surfaceData.subsurfaceRadius, surfaceData.thickness, bsdfData);
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SPECULAR)
     {
@@ -363,17 +370,10 @@ void DecodeFromGBuffer(
     if (supportsStandard && bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
         float metallic = inGBuffer2.a;
-        // TODO extract spec
-        float specular = 0.04;
+        float specular = 0.04; // TODO extract spec
         float anisotropy = inGBuffer2.b;
-
-        bsdfData.diffuseColor = baseColor * (1.0 - metallic);
-        bsdfData.fresnel0 = lerp(float3(specular, specular, specular), baseColor, metallic);
-
-        bsdfData.tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
-        bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
-        ConvertAnisotropyToRoughness(bsdfData.roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
-        bsdfData.anisotropy = anisotropy;
+        float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+        FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
 
         if ((featureFlags & FEATURE_FLAG_MATERIAL_LIT_ANISO) && (featureFlags & FEATURE_FLAG_MATERIAL_LIT_STANDARD) == 0 || anisotropy > 0)
         {
@@ -382,26 +382,10 @@ void DecodeFromGBuffer(
     }
     else if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        bsdfData.diffuseColor = baseColor;
-
-        // TODO take from subsurfaceProfile
-        bsdfData.fresnel0 = 0.04; /* 0.028 ? */
-        bsdfData.subsurfaceProfile = (SSS_N_PROFILES - 0.9) * inGBuffer2.a; // Need to bias for integers to round trip through the G-buffer
-        // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
-        bsdfData.subsurfaceRadius  = SSS_UNIT_CONVERSION * inGBuffer2.r + 0.0001;
-        bsdfData.thickness         = SSS_UNIT_CONVERSION * (_ThicknessRemaps[bsdfData.subsurfaceProfile][0] +
-                                                            _ThicknessRemaps[bsdfData.subsurfaceProfile][1] * inGBuffer2.g);
-        bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, bsdfData.subsurfaceProfile);
-        if (bsdfData.enableTransmission)
-        {
-            bsdfData.transmittance = ComputeTransmittance(_HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].xyz,
-                                                          _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][0].w,
-                                                          _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].xyz,
-                                                          _HalfRcpVariancesAndLerpWeights[bsdfData.subsurfaceProfile][1].w,
-                                                          _TintColors[bsdfData.subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
-        }
-
-        ConfigureTexturingForSSS(bsdfData);
+        int subsurfaceProfile = (SSS_N_PROFILES - 0.9) * inGBuffer2.a;
+        float subsurfaceRadius = inGBuffer2.r;
+        float thickness = inGBuffer2.g;
+        FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
     }
     else if (supportsSpecular && bsdfData.materialId == MATERIALID_LIT_SPECULAR)
     {
