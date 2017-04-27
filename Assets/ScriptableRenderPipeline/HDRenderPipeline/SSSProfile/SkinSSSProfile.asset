@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6e7465350bf0d248b4799d98e18cd24, type: 3}
+  m_Name: SkinSSSProfile
+  m_EditorClassIdentifier: 
+  stdDev1: {r: 0.22794116, g: 0.17430794, b: 0.17430794, a: 0}
+  stdDev2: {r: 1, g: 0.05, b: 0.05, a: 0}
+  lerpWeight: 0.5
+  texturingMode: 1
+  enableTransmission: 0
+  tintColor: {r: 1, g: 1, b: 1, a: 1}
+  thicknessRemap: {x: 0, y: 2.04}
+  settingsIndex: 1
+  m_FilterKernel:
+  - {x: 0.09090909, y: 0.5992897, z: 0.5992897, w: -0.00000006668997}
+  - {x: 0.09090909, y: 0.12275139, z: 0.12275139, w: -0.14089748}
+  - {x: 0.09090909, y: 0.061923057, z: 0.061923057, w: -0.2900195}
+  - {x: 0.09090909, y: 0.015196559, z: 0.015196559, w: -0.45901415}
+  - {x: 0.09090909, y: 0.0004841472, z: 0.0004841472, w: -0.6734332}
+  - {x: 0.09090909, y: 0.000000024399057, z: 0.000000024399057, w: -1.0382211}
+  - {x: 0.09090909, y: 0.122751325, z: 0.122751325, w: 0.1408976}
+  - {x: 0.09090909, y: 0.061923057, z: 0.061923057, w: 0.2900195}
+  - {x: 0.09090909, y: 0.015196541, z: 0.015196541, w: 0.45901427}
+  - {x: 0.09090909, y: 0.0004841472, z: 0.0004841472, w: 0.6734332}
+  - {x: 0.09090909, y: 0.000000024398872, z: 0.000000024398872, w: 1.0382214}
+  m_HalfRcpVariances:
+  - {x: 9.623311, y: 16.45643, z: 16.45643}
+  - {x: 0.5, y: 200, z: 200}
+  m_HalfRcpWeightedVariances: {x: 1.3264011, y: 39.750328, z: 39.750328, w: 1.3264011}
