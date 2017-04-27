@@ -14,9 +14,9 @@ namespace UnityEngine.Experimental.Rendering
         protected DebugMenuItem m_MenuItem = null;
 
         // Label for simple GUI items
-        GUIContent m_Label;
-        List<GUIContent> m_EnumStrings = null;
-        List<int> m_EnumValues = null;
+        protected GUIContent m_Label;
+        protected List<GUIContent> m_EnumStrings = null;
+        protected List<int> m_EnumValues = null;
 
         public DebugItemDrawer()
         {
@@ -68,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             else if (m_MenuItem.GetItemType().BaseType == typeof(System.Enum))
             {
-                newItemUI = new DebugMenuEnumItemUI(parent, menuItem, m_Label.text, m_EnumStrings, m_EnumValues);
+                newItemUI = new DebugMenuEnumItemUI(parent, menuItem, m_Label.text, m_EnumStrings.ToArray(), m_EnumValues.ToArray());
             }
 
             return newItemUI;
@@ -255,4 +255,38 @@ namespace UnityEngine.Experimental.Rendering
         }
 #endif
     }
+
+    public class DebugItemDrawerIntEnum
+        : DebugItemDrawer
+    {
+        GUIContent[]    m_EnumStrings = null;
+        int[]           m_EnumValues = null;
+
+        public DebugItemDrawerIntEnum(GUIContent[] enumStrings, int[] enumValues)
+        {
+            m_EnumStrings = enumStrings;
+            m_EnumValues = enumValues;
+        }
+
+        public override DebugMenuItemUI BuildGUI(GameObject parent, DebugMenuItem menuItem)
+        {
+            return new DebugMenuEnumItemUI(parent, menuItem, m_Label.text, m_EnumStrings, m_EnumValues);
+        }
+
+#if UNITY_EDITOR
+        public override bool OnEditorGUI()
+        {
+            UnityEditor.EditorGUI.BeginChangeCheck();
+            int value = UnityEditor.EditorGUILayout.IntPopup(m_Label, (int)m_MenuItem.GetValue(), m_EnumStrings, m_EnumValues);
+            if (UnityEditor.EditorGUI.EndChangeCheck())
+            {
+                m_MenuItem.SetValue(value);
+                return true;
+            }
+
+            return false;
+        }
+#endif
+    }
+
 }

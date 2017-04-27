@@ -99,7 +99,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
 void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 {
 #ifdef DEBUG_DISPLAY
-    if (_DebugDisplayMode == DEBUGDISPLAYMODE_SPECULAR_LIGHTING)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING)
     {
         bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
         float overrideSmoothnessValue = _DebugLightingSmoothness.y;
@@ -111,7 +111,7 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
         }
     }
 
-    if (_DebugDisplayMode == DEBUGDISPLAYMODE_DIFFUSE_LIGHTING)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
     {
         bsdfData.diffuseColor = _DebugLightingAlbedo.xyz;
     }
