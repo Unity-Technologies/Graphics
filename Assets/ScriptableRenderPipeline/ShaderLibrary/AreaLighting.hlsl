@@ -122,7 +122,7 @@ float PolygonIrradiance(float4x3 L)
     float h = saturate(L[0].z) + saturate(L[1].z) + saturate(L[2].z) + saturate(L[3].z);
 
     [branch]
-    if (h == 0) { return 0; }           // Perform horizon clipping
+    if (h == 0) { return 0; }                       // Perform horizon clipping
 
     [unroll]
     for (int i = 0; i < 4; i++)
@@ -150,6 +150,7 @@ float PolygonIrradiance(float4x3 L)
     #else
         float x = sinSqSigma;
         float y = cosOmega;
+
         float b = x * (0.5 + 0.5 * y);              // Bilinear approximation of a sphere light
         float z = b * (0.5 + 0.5 * y);              // Our approximation of a rectangular light
         float r = x * y;                            // The reference value for an unoccluded light
