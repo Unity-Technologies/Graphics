@@ -40,9 +40,16 @@ float IntegrateEdge(float3 V1, float3 V2)
 // N.b.: this function accounts for horizon clipping.
 float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
-    // Clamp to avoid visual artifacts.
-    sinSqSigma = min(sinSqSigma, 0.999);
+#if 1 // Use a numerical fit for the sphere light approximation found in Mathematica.
+    float x = sinSqSigma;
+    float y = cosOmega;
 
+    // For most of the domain, the absolute error is pretty low, under 0.005.
+    // You can use the following Mathematica code to reproduce our results:
+    // t = Flatten[Table[{x, y, f[x,y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
+    // m = NonlinearModelFit[t, {x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3))}, {a, b, c, d, e}, {x, y}]
+    return saturate(x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
+#endif
 #if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
     float sinSqOmega = saturate(1 - cosOmega * cosOmega);
     float cosSqSigma = saturate(1 - sinSqSigma);
@@ -119,11 +126,6 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 float PolygonIrradiance(float4x3 L)
 {
 #ifdef SPHERE_LIGHT_APPROXIMATION
-    float h = saturate(L[0].z) + saturate(L[1].z) + saturate(L[2].z) + saturate(L[3].z);
-
-    [branch]
-    if (h == 0) { return 0; }                       // Perform horizon clipping
-
     [unroll]
     for (uint i = 0; i < 4; i++)
     {
@@ -141,22 +143,12 @@ float PolygonIrradiance(float4x3 L)
         F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
     }
 
+    // Clamp invalid values to avoid visual artifacts.
     float f2         = saturate(dot(F, F));
-    float sinSqSigma = sqrt(f2);
+    float sinSqSigma = min(sqrt(f2), 0.999);
     float cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
 
-    #if 0
-        return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
-    #else
-        float x = sinSqSigma;
-        float y = cosOmega;
-
-        float b = x * (0.5 + 0.5 * y);              // Bilinear approximation of a sphere light
-        float z = b * (0.5 + 0.5 * y);              // Our approximation of a rectangular light
-        float r = x * y;                            // The reference value for an unoccluded light
-
-        return max(r, lerp(z * z, z, saturate(h))); // Horizon fade
-    #endif
+    return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
 #else
     // 1. ClipQuadToHorizon
 
