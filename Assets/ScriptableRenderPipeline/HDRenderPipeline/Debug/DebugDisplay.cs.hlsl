@@ -5,17 +5,17 @@
 #ifndef DEBUGDISPLAY_CS_HLSL
 #define DEBUGDISPLAY_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.DebugDisplayMode:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.DebugLightingMode:  static fields
 //
-#define DEBUGDISPLAYMODE_NONE (0)
-#define DEBUGDISPLAYMODE_VIEW_MATERIAL (1)
-#define DEBUGDISPLAYMODE_DIFFUSE_LIGHTING (2)
-#define DEBUGDISPLAYMODE_SPECULAR_LIGHTING (3)
-#define DEBUGDISPLAYMODE_VISUALIZE_CASCADE (4)
+#define DEBUGLIGHTINGMODE_NONE (0)
+#define DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING (1)
+#define DEBUGLIGHTINGMODE_SPECULAR_LIGHTING (2)
+#define DEBUGLIGHTINGMODE_VISUALIZE_CASCADE (3)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewVarying:  static fields
 //
+#define DEBUGVIEWVARYING_NONE (0)
 #define DEBUGVIEWVARYING_TEXCOORD0 (1)
 #define DEBUGVIEWVARYING_TEXCOORD1 (2)
 #define DEBUGVIEWVARYING_TEXCOORD2 (3)
@@ -29,6 +29,7 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewGbuffer:  static fields
 //
+#define DEBUGVIEWGBUFFER_NONE (0)
 #define DEBUGVIEWGBUFFER_DEPTH (10)
 #define DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE (11)
 

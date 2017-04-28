@@ -1,6 +1,7 @@
 using UnityEngine.Rendering;
 using System;
 using System.Linq;
+using UnityEngine.Experimental.PostProcessing;
 using UnityEngine.Experimental.Rendering.HDPipeline.TilePass;
 
 #if UNITY_EDITOR
@@ -127,8 +128,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 debugAlbedo = new Vector4(lightingDebugSettings.debugLightingAlbedo.r, lightingDebugSettings.debugLightingAlbedo.g, lightingDebugSettings.debugLightingAlbedo.b, 0.0f);
             Vector4 debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
 
-            Shader.SetGlobalInt("_DebugDisplayMode", (int)debugDisplaySettings.debugDisplayMode);
-            Shader.SetGlobalInt("_DebugViewMaterial", (int)debugDisplaySettings.materialDebugSettings.debugViewMaterial);
+            Shader.SetGlobalInt("_DebugViewMaterial", (int)debugDisplaySettings.GetDebugMaterialIndex());
+            Shader.SetGlobalInt("_DebugLightingMode", (int)debugDisplaySettings.GetDebugLightingMode());
             Shader.SetGlobalVector("_DebugLightingAlbedo", debugAlbedo);
             Shader.SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
         }
@@ -266,6 +267,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private RenderTargetIdentifier m_CameraDepthStencilBufferRT;
         private RenderTargetIdentifier m_CameraDepthStencilBufferCopyRT;
 
+        // Post-processing context (recycled on every frame to avoid GC alloc)
+        readonly PostProcessRenderContext m_PostProcessContext;
+
         // Detect when windows size is changing
         int m_CurrentWidth;
         int m_CurrentHeight;
@@ -300,11 +304,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraFilteringBufferRT           = new RenderTargetIdentifier(m_CameraFilteringBuffer);
 
             m_FilterSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
-            m_FilterSubsurfaceScattering.DisableKeyword("FILTER_HORIZONTAL_AND_COMBINE");
+            m_FilterSubsurfaceScattering.DisableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_FilterSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.Zero);
 
             m_FilterAndCombineSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
-            m_FilterAndCombineSubsurfaceScattering.EnableKeyword("FILTER_HORIZONTAL_AND_COMBINE");
+            m_FilterAndCombineSubsurfaceScattering.EnableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
             m_FilterAndCombineSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.One);
 
             InitializeDebugMaterials();
@@ -344,6 +348,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.Build();
             m_SkyManager.skySettings = owner.skySettingsToUse;
+
+            m_PostProcessContext = new PostProcessRenderContext();
         }
 
         void InitializeDebugMaterials()
@@ -575,7 +581,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CopyDepthBufferIfNeeded(renderContext);
             }
 
-            if (debugDisplaySettings.debugDisplayMode == DebugDisplayMode.ViewMaterial)
+            if (debugDisplaySettings.IsDebugMaterialDisplayEnabled())
             {
                 RenderDebugViewMaterial(cullResults, hdCamera, renderContext);
             }
@@ -650,7 +656,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
                     RenderDistortion(cullResults, camera, renderContext);
 
-                    FinalPass(camera, renderContext);
+                    RenderPostProcesses(camera, renderContext);
                 }
             }
 
@@ -719,7 +725,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            string passName = debugDisplaySettings.IsDebugDisplayEnable() ? "GBufferDebugDisplay" : "GBuffer";
+            string passName = debugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer";
 
             using (new Utilities.ProfilingSample(passName, renderContext))
             {
@@ -850,7 +856,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_Owner.renderingSettings.ShouldUseForwardRenderingOnly() && renderOpaque)
                 return;
 
-            string passName = debugDisplaySettings.IsDebugDisplayEnable() ? "ForwardDisplayDebug" : "Forward";
+            string passName = debugDisplaySettings.IsDebugDisplayEnabled() ? "ForwardDisplayDebug" : "Forward";
 
             using (new Utilities.ProfilingSample(passName, renderContext))
             {
@@ -873,7 +879,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Render material that are forward opaque only (like eye), this include unlit material
         void RenderForwardOnlyOpaque(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext)
         {
-            string passName = debugDisplaySettings.IsDebugDisplayEnable() ? "ForwardOnlyOpaqueDisplayDebug" : "ForwardOnlyOpaque";
+            string passName = debugDisplaySettings.IsDebugDisplayEnabled() ? "ForwardOnlyOpaqueDisplayDebug" : "ForwardOnlyOpaque";
 
             using (new Utilities.ProfilingSample(passName, renderContext))
             {
@@ -929,27 +935,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void FinalPass(Camera camera, ScriptableRenderContext renderContext)
+        void RenderPostProcesses(Camera camera, ScriptableRenderContext renderContext)
         {
-            using (new Utilities.ProfilingSample("Final", renderContext))
+            using (new Utilities.ProfilingSample("Post-processing", renderContext))
             {
-                // All of this is temporary, sub-optimal and quickly hacked together but is necessary
-                // for artists to do lighting work until the fully-featured framework is ready
+                var postProcessLayer = camera.GetComponent<PostProcessLayer>();
+                var cmd = new CommandBuffer { name = "" };
 
-                var localPostProcess = camera.GetComponent<PostProcessingSRP>();
-
-                bool localActive = localPostProcess != null && localPostProcess.enabled;
-
-                if (!localActive)
+                if (postProcessLayer != null && postProcessLayer.enabled)
                 {
-                    var cmd = new CommandBuffer { name = "" };
+                    cmd.SetGlobalTexture("_CameraDepthTexture", GetDepthTexture());
+
+                    var context = m_PostProcessContext;
+                    context.Reset();
+                    context.source = m_CameraColorBufferRT;
+                    context.destination = BuiltinRenderTextureType.CameraTarget;
+                    context.command = cmd;
+                    context.camera = camera;
+                    context.sourceFormat = RenderTextureFormat.ARGBHalf; // ?
+                    context.flip = true;
+
+                    postProcessLayer.Render(context);
+                }
+                else
+                {
                     cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
-                    renderContext.ExecuteCommandBuffer(cmd);
-                    cmd.Dispose();
-                    return;
                 }
 
-                localPostProcess.Render(camera, renderContext, m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
             }
         }
 
