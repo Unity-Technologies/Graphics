@@ -235,19 +235,19 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 // normalize(v0 + v1 + v2), etc...
 static const float3 basisNormal[4] =
 {
-    float3(0.816497, 0., -0.57735),
-    float3(-0.816497, 0., -0.57735),
-    float3(0., 0.816497, 0.57735),
-    float3(0., -0.816497, 0.57735)
+    float3(0., 0.816497, -0.57735),
+    float3(-0.816497, 0., 0.57735),
+    float3(0.816497, 0., 0.57735),
+    float3(0., -0.816497, -0.57735)
 };
 
 // Then to get the local matrix (with z axis rotate to basisNormal) use GetLocalFrame(basisNormal[xxx])
 static const float3x3 basisArray[4] =
 {
-    float3x3(0., 1., 0., 0.57735, 0., 0.816497, 0.816497, 0., -0.57735),
-    float3x3(0., -1., 0., -0.57735, 0., 0.816497, -0.816497, 0., -0.57735),
-    float3x3(-1., 0., 0., 0., -0.57735, 0.816497, 0., 0.816497, 0.57735),
-    float3x3(1., 0., 0., 0., 0.57735, 0.816497, 0., -0.816497, 0.57735)
+    float3x3(-1., 0., 0.,0., 0.57735, 0.816497,0., 0.816497, -0.57735),
+    float3x3(0., -1., 0.,0.57735, 0., 0.816497,-0.816497, 0., 0.57735),
+    float3x3(0., 1., 0.,-0.57735, 0., 0.816497,0.816497, 0., 0.57735),
+    float3x3(1., 0., 0.,0., -0.57735, 0.816497,0., -0.816497, -0.57735)
 };
 
 // Return [-1..1] vector2 oriented in plane of the faceIndex of a regular tetrahedron
