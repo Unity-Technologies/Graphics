@@ -17,14 +17,6 @@ uint _NumTileFtplY;
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
 
-#ifdef USE_FPTL_LIGHTLIST
-#define TILE_SIZE TILE_SIZE_FPTL
-#endif
-// Don't do a "#else" so we can catch error if including call don't setup thing correctly
-#ifdef USE_CLUSTERED_LIGHTLIST
-#define TILE_SIZE TILE_SIZE_CLUSTERED
-#endif
-
 #define DWORD_PER_TILE 16 // See dwordsPerTile in TilePass.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
 // these uniforms are only needed for when OPAQUES_ONLY is NOT defined

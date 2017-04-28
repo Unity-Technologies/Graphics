@@ -183,19 +183,19 @@ float GetHorizonOcclusion(float3 V, float3 normalWS, float3 vertexNormal, float 
 // Helper functions
 //-----------------------------------------------------------------------------
 
-// NdotV should not be negative for visible pixels, but it can happen due to the
-// perspective projection and the normal mapping + decals. In that case, the normal
-// should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
-// Note: certain applications (e.g. SpeedTree) require to still have negative normal to perform their own two sided lighting, they can use wantNegativeNormal
-// This will potentially reduce the length of the normal at edges of geometry.
-float GetShiftedNdotV(inout float3 N, float3 V, bool wantNegativeNormal)
+// NdotV can be negative for visible pixels due to the perspective projection, the normal mapping and decals.
+// This can produce visible artifacts with direct specular lighting (white point, black point) and indirect specular (artifact with cubemap fetch)
+// A way to reduce artifact is to limit NdotV value to not be negative and calculate reflection vector for cubemap with a shifted normal (i.e what depends on the view)
+// This is what provide this function
+// Note: NdotV return by this function is always positive, no need for saturate
+float GetShiftedNdotV(inout float3 N, float3 V)
 {
     float NdotV = dot(N, V);
-    float limit = rcp(256.0); // Determined mostly by the quality of the G-buffer normal encoding
+    const float limit = 0.0001; // Epsilon value that avoid divide by 0 (several BSDF divide by NdotV)
 
-    if (!wantNegativeNormal && NdotV < limit)
+    if (NdotV < limit)
     {
-        // We do not renormalize the normal because { abs(length(N) - 1.0) < limit }.
+        // We do not renormalize the normal because { abs(length(N) - 1.0) < limit } + It is use for cubemap
         N    += (-NdotV + limit) * V;
         NdotV = limit;
     }

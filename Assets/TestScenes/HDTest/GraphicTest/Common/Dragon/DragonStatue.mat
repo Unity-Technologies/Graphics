@@ -101,6 +101,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SpecularColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecularOcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -109,7 +113,15 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SubsurfaceRadiusMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TangentMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThicknessMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -136,28 +148,35 @@ Material:
     - _DistortionDepthTest: 0
     - _DistortionEnable: 0
     - _DistortionOnly: 0
+    - _DoubleSidedEnable: 0
+    - _DoubleSidedMirrorEnable: 1
     - _DoubleSidedMode: 0
+    - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
     - _EmissiveIntensity: 0
     - _EnablePerPixelDisplacement: 0
+    - _EnableWind: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightAmplitude: 0
     - _HeightCenter: 0
     - _HorizonFade: 1
+    - _InitialBend: 1
     - _MaterialID: 0
-    - _StencilRef: 1
     - _Metallic: 0
     - _Mode: 0
     - _NormalDetailMul: 0.347
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _OcclusionStrength: 1
+    - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
     - _PPDMinSamples: 5
     - _Parallax: 0.02
+    - _ShiverDirectionality: 0.5
+    - _ShiverDrag: 0.2
     - _Smoothness: 1
     - _SmoothnessAO: 0
     - _SmoothnessAv: 0.499
@@ -165,6 +184,10 @@ Material:
     - _SmoothnessVar: 0.491
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _StencilRef: 2
+    - _Stiffness: 1
+    - _SubsurfaceProfile: 0
+    - _SubsurfaceRadius: 1
     - _SurfaceType: 0
     - _Tess: 8
     - _TessFar: 1
@@ -178,6 +201,7 @@ Material:
     - _TessellationObjectScale: 1
     - _TessellationShapeFactor: 0.75
     - _TexWorldScale: 1
+    - _Thickness: 1
     - _Tiling: 1
     - _TilingDetail: 6
     - _UVBase: 0
@@ -189,7 +213,9 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 0.9862069, g: 0.9862069, b: 0.9862069, a: 1}
+    - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
