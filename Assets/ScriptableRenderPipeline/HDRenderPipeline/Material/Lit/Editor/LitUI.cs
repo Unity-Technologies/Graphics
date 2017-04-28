@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent maskMapSText = new GUIContent("Mask Map - M(R), AO(G), S(A)", "Mask map");
 
             public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
-            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (DXT5) - Need to implement BC5");
+            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
             public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
             public static GUIContent horizonFadeText = new GUIContent("Horizon Fade (Spec occlusion)", "horizon fade is use to control specular occlusion");
 
@@ -53,6 +53,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent subsurfaceRadiusMapText = new GUIContent("Subsurface radius map", "Determines the range of the blur.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
             public static GUIContent thicknessMapText = new GUIContent("Thickness map", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
+
+            // Specular color
+            public static GUIContent specularColorText = new GUIContent("Specular Color", "Specular color (RGB)");
 
             // Emissive
             public static string lightingText = "Inputs Lighting";
@@ -100,8 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             Standard = 0,
             SubsurfaceScattering = 1,
-            ClearCoat = 2,
-            SpecularColor = 3
+            SpecularColor = 2
         }
 
         protected MaterialProperty UVBase = null;
@@ -143,6 +145,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kAnisotropy = "_Anisotropy";
         protected MaterialProperty anisotropyMap = null;
         protected const string kAnisotropyMap = "_AnisotropyMap";
+        protected MaterialProperty specularColor = null;
+        protected const string kSpecularColor = "_SpecularColor";
+        protected MaterialProperty specularColorMap = null;
+        protected const string kSpecularColorMap = "_SpecularColorMap";
 
         protected MaterialProperty UVDetail = null;
         protected const string kUVDetail = "_UVDetail";
@@ -202,6 +208,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tangentMap = FindProperty(kTangentMap, props);
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
+            specularColor = FindProperty(kSpecularColor, props);
+            specularColorMap = FindProperty(kSpecularColorMap, props);
 
             // Details
             UVDetail = FindProperty(kUVDetail, props);
@@ -336,6 +344,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 ShaderSSSInputGUI(material);
             }
+            else if ((MaterialIDType)materialID.floatValue == MaterialIDType.SpecularColor)
+            {
+                m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
+            }
 
             EditorGUILayout.Space();
             GUILayout.Label("    " + Styles.textureControlText, EditorStyles.label);
@@ -429,7 +441,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
             SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
             SetKeyword(material, "_SUBSURFACE_RADIUS_MAP", material.GetTexture(kSubsurfaceRadiusMap));
-            SetKeyword(material, "_THICKNESS_MAP", material.GetTexture(kThicknessMap));
+            SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
+            SetKeyword(material, "_SPECULARCOLORMAP", material.GetTexture(kSpecularColorMap));
 
             bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
             bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
