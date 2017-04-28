@@ -119,7 +119,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 float PolygonIrradiance(float4x3 L)
 {
 #ifdef SPHERE_LIGHT_APPROXIMATION
-    float h = saturate(saturate(L[0].z) + saturate(L[1].z) + saturate(L[2].z) + saturate(L[3].z));
+    float h = saturate(L[0].z) + saturate(L[1].z) + saturate(L[2].z) + saturate(L[3].z);
 
     [branch]
     if (h == 0) { return 0; }           // Perform horizon clipping
@@ -150,10 +150,12 @@ float PolygonIrradiance(float4x3 L)
     #else
         float x = sinSqSigma;
         float y = cosOmega;
-        float b = (x + x * y) * 0.5;    // Bilinear approximation of a sphere light
-        float z = b * sqrt(x);          // Our approximation of a rectangular light
+        float b = x * (0.5 + 0.5 * y);              // Bilinear approximation of a sphere light
+        float z = b * sqrt(x);                      // Our approximation of a rectangular light
+        float a = f2 * b * b;                       // (x * b)^2
+        float r = x * y;                            // The reference value for an unoccluded light
 
-        return lerp(z * z, z, h);       // Horizon fade
+        return max(r, lerp(a, z, saturate(h)));     // Horizon fade
     #endif
 #else
     // 1. ClipQuadToHorizon
