@@ -76,6 +76,14 @@ float2 UnpackDerivativeNormalAG(float4 packedNormal, float scale = 1.0)
     return deriv * scale;
 }
 
+// Unpack normal as DXT5nm (1, y, 0, x) or BC5 (x, y, 0, 1)
+float2 UnpackDerivativeNormalRGorAG(float4 packedNormal, float scale = 1.0)
+{
+    // This do the trick
+    packedNormal.w *= packedNormal.x;
+    return UnpackDerivativeNormalAG(packedNormal, scale);
+}
+
 float2 UnpackDerivativeNormalRGB(float4 packedNormal, float scale = 1.0)
 {
     const float fS = 1.0 / (128.0 * 128.0);

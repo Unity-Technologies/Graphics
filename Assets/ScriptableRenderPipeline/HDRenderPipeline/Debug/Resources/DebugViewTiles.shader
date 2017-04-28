@@ -140,9 +140,9 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
                 int2 pixelCoord = posInput.unPositionSS.xy;
-                int2 tileCoord = (float2)pixelCoord / TILE_SIZE;
-                int2 mouseTileCoord = _MousePixelCoord / TILE_SIZE;
-                int2 offsetInTile = pixelCoord - tileCoord * TILE_SIZE;
+                int2 tileCoord = (float2)pixelCoord / GetTileSize();
+                int2 mouseTileCoord = _MousePixelCoord / GetTileSize();
+                int2 offsetInTile = pixelCoord - tileCoord * GetTileSize();
 
                 int n = 0;
 #ifdef SHOW_LIGHT_CATEGORIES
@@ -167,14 +167,14 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 // Tile overlap counter
                 if (n >= 0)
                 {
-                    result = OverlayHeatMap(int2(posInput.unPositionSS.xy) & (TILE_SIZE - 1), n);
+                    result = OverlayHeatMap(int2(posInput.unPositionSS.xy) & (GetTileSize() - 1), n);
                 }
 
 #ifdef SHOW_LIGHT_CATEGORIES
                 // Highlight selected tile
                 if (all(mouseTileCoord == tileCoord))
                 {
-                    bool border = any(offsetInTile == 0 || offsetInTile == TILE_SIZE - 1);
+                    bool border = any(offsetInTile == 0 || offsetInTile == GetTileSize() - 1);
                     float4 result2 = float4(1.0, 1.0, 1.0, border ? 1.0 : 0.5);
                     result = AlphaBlend(result, result2);
                 }
@@ -183,7 +183,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 int maxLights = 32;
                 if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
-                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw, uint2(0,0));
+                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw, mouseTileCoord);
                     float depthMouse = LOAD_TEXTURE2D(_MainDepthTexture, mousePosInput.unPositionSS).x;
                     UpdatePositionInput(depthMouse, _InvViewProjMatrix, _ViewProjMatrix, mousePosInput);
 

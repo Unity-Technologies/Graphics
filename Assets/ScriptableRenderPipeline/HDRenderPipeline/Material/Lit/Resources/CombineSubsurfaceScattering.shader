@@ -29,9 +29,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #pragma shader_feature _ SSS_PRE_SCATTER_TEXTURING SSS_POST_SCATTER_TEXTURING
-
-            #pragma multi_compile _ FILTER_HORIZONTAL_AND_COMBINE
+            #pragma multi_compile _ SSS_FILTER_HORIZONTAL_AND_COMBINE
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -102,7 +100,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float stepSizeY  = rcp(fragheight);
 
                 // Compute the filtering direction.
-            #ifdef FILTER_HORIZONTAL_AND_COMBINE
+            #ifdef SSS_FILTER_HORIZONTAL_AND_COMBINE
                 float  stepSize      = stepSizeX;
                 float2 unitDirection = float2(1, 0);
             #else
@@ -165,7 +163,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     totalWeight     += sampleWeight;
                 }
 
-            #ifdef FILTER_HORIZONTAL_AND_COMBINE
+            #ifdef SSS_FILTER_HORIZONTAL_AND_COMBINE
                 bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, profileID);
 
                 // It's either post-scatter, or pre- and post-scatter texturing.

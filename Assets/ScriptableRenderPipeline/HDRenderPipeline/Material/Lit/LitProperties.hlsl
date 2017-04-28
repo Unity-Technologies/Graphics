@@ -1,3 +1,5 @@
+CBUFFER_START(_PerMaterial)
+
 // shared constant between lit and layered lit
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
@@ -26,7 +28,7 @@ float _EmissiveIntensity;
 float3 _EmissionColor;
 
 // Wind
-float _InitialBend; 
+float _InitialBend;
 float _Stiffness;
 float _Drag;
 float _ShiverDrag;
@@ -83,13 +85,9 @@ SAMPLER2D(sampler_SubsurfaceRadiusMap);
 TEXTURE2D(_ThicknessMap);
 SAMPLER2D(sampler_ThicknessMap);
 
-// float _CoatCoverage;
-//TEXTURE2D(_CoatCoverageMap);
-//SAMPLER2D(sampler_CoatCoverageMap);
-
-// float _CoatRoughness;
-//TEXTURE2D(_CoatRoughnessMap);
-//SAMPLER2D(sampler_CoatRoughnessMap);
+float4 _SpecularColor;
+TEXTURE2D(_SpecularColorMap);
+SAMPLER2D(sampler_SpecularColorMap);
 
 float _TexWorldScale;
 float4 _UVMappingMask;
@@ -192,3 +190,5 @@ float _TessellationBackFaceCullEpsilon;
 float _TessellationObjectScale;
 float _TessellationTilingScale;
 #endif
+
+CBUFFER_END
