@@ -158,10 +158,12 @@ float PolygonIrradiance(float4x3 L)
         float z = (x + x * y) * (0.370404036340287 * x + 0.5151639656054547 * (1 - 0.7648559657303381 * x) * y);
         float b = (x + x * y) * 0.5;        // Bilinear approximation
 
-        float s = (sqrt(2) * x - 1) * y;    // Compute the falloff from (0.707, 0)
-        float t = (s * s) * (s * s);        // It will remove most of the bleeding artifacts
+        return z;                           // Do not saturate this
 
-        return lerp(z, b, t);               // Perform feathering of 'z' to avoid sharp transitions
+        // float s = (sqrt(2) * x - 1) * y; // Compute the falloff from (0.707, 0)
+        // float t = (s * s) * (s * s);     // It will remove most of the bleeding artifacts
+
+        // return lerp(z, b, t);            // Perform feathering of 'z' to avoid sharp transitions
     #endif
 #else
     // 1. ClipQuadToHorizon
