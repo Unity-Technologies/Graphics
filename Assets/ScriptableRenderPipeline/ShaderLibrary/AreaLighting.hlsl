@@ -150,8 +150,8 @@ float PolygonIrradiance(float4x3 L)
     #else
         float x = sinSqSigma;
         float y = cosOmega;
-        float b = (x + x * y) * 0.5;    // Bilinear approximation
-        float z = b * sqrt(x);          // Area light approximation
+        float b = (x + x * y) * 0.5;    // Bilinear approximation of a sphere light
+        float z = b * sqrt(x);          // Our approximation of a rectangular light
 
         return lerp(z * z, z, h);       // Horizon fade
     #endif
