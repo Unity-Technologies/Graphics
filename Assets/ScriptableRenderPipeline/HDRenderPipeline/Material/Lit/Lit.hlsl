@@ -1294,7 +1294,7 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 unL = lightData.positionWS - positionWS;
 
     [branch]
-    if (dot(lightData.forward, unL) >= 0)
+    if (dot(lightData.forward, unL) >= 0.0001)
     {
         // The light is back-facing.
         return;
