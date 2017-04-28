@@ -183,7 +183,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 int maxLights = 32;
                 if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
-                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw, uint2(0,0));
+                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw, mouseTileCoord);
                     float depthMouse = LOAD_TEXTURE2D(_MainDepthTexture, mousePosInput.unPositionSS).x;
                     UpdatePositionInput(depthMouse, _InvViewProjMatrix, _ViewProjMatrix, mousePosInput);
 
