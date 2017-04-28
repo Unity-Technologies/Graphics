@@ -125,7 +125,7 @@ float PolygonIrradiance(float4x3 L)
     if (h == 0) { return 0; }                       // Perform horizon clipping
 
     [unroll]
-    for (int i = 0; i < 4; i++)
+    for (uint i = 0; i < 4; i++)
     {
         L[i] = normalize(L[i]);
     }
@@ -133,10 +133,10 @@ float PolygonIrradiance(float4x3 L)
     float3 F = float3(0, 0, 0);
 
     [unroll]
-    for (int edge = 0; edge < 4; edge++)
+    for (uint edge = 0; edge < 4; edge++)
     {
         float3 V1 = L[edge];
-        float3 V2 = L[(edge + 1) & 0x3];
+        float3 V2 = L[(edge + 1) % 4];
 
         F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
     }
