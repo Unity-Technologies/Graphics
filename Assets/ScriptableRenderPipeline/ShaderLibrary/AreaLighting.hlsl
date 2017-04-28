@@ -46,7 +46,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 
     // For most of the domain, the absolute error is pretty low, under 0.005.
     // You can use the following Mathematica code to reproduce our results:
-    // t = Flatten[Table[{x, y, f[x,y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
+    // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
     // m = NonlinearModelFit[t, {x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3))}, {a, b, c, d, e}, {x, y}]
     return saturate(x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
 #endif
