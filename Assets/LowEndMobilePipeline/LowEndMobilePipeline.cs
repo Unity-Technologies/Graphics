@@ -100,7 +100,6 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 int pixelLightsCount, vertexLightsCount;
                 GetMaxSupportedLights(visibleLights.Length, out pixelLightsCount, out vertexLightsCount);
 
-                // TODO: handle shader keywords when no lights are present
                 SortLights(ref visibleLights, pixelLightsCount);
 
                 // TODO: Add remaining lights to SH
@@ -188,11 +187,21 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             vertexLightsCount = (m_Asset.SupportsVertexLight) ? Mathf.Min(lightsCount - pixelLightsCount, kMaxVertexLights) : 0;
         }
 
+        private void InitializeLightData()
+        {
+            for (int i = 0; i < kMaxLights; ++i)
+            {
+                m_LightPositions[i] = Vector4.zero;
+                m_LightColors[i] = Vector4.zero;
+                m_LightAttenuations[i] = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+                m_LightSpotDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+            }
+        }
+
         private void SetupLightShaderVariables(VisibleLight[] lights, int pixelLightCount, int vertexLightCount, ScriptableRenderContext context)
         {
             int totalLightCount = pixelLightCount + vertexLightCount;
-            if (lights.Length <= 0)
-                return;
+            InitializeLightData();
 
             for (int i = 0; i < totalLightCount; ++i)
             {
@@ -238,7 +247,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             cmd.SetGlobalVectorArray("globalLightAtten", m_LightAttenuations);
             cmd.SetGlobalVectorArray("globalLightSpotDir", m_LightSpotDirections);
             cmd.SetGlobalVector("globalLightCount", new Vector4(pixelLightCount, totalLightCount, 0.0f, 0.0f));
-            SetShaderKeywords(cmd);
+            SetShaderKeywords(cmd, vertexLightCount > 0);
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
@@ -407,9 +416,9 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             setupShadow.Dispose();
         }
 
-        void SetShaderKeywords(CommandBuffer cmd)
+        void SetShaderKeywords(CommandBuffer cmd, bool vertexLightSupport)
         {
-            if (m_Asset.SupportsVertexLight)
+            if (vertexLightSupport)
                 cmd.EnableShaderKeyword("_VERTEX_LIGHTS");
             else
                 cmd.DisableShaderKeyword("_VERTEX_LIGHTS");

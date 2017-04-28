@@ -112,7 +112,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 o.normal = normal;
 #endif
 
-#if _VERTEX_LIGHTS
+#if defined(_VERTEX_LIGHTS)
                 half4 diffuseAndSpecular = half4(1.0, 1.0, 1.0, 1.0);
                 for (int lightIndex = globalLightCount.x; lightIndex < globalLightCount.y; ++lightIndex)
                 {
@@ -150,34 +150,41 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 half4 specularGloss;
                 SpecularGloss(i.uv01.xy, diffuse, alpha, specularGloss);
 
-                // Indirect Light Contribution
-                half3 indirect;
-                Indirect(i, diffuse, normal, alpha, indirect);
-
-                half3 emissionColor;
-                Emission(i, emissionColor);
-
-                // Compute direct contribution from main directional light.
-                // Only a single directional shadow caster is supported.
-                LightInput mainLight;
-                INITIALIZE_LIGHT(mainLight, 0);
-
+#ifdef _SHADOWS
+                half shadowAttenuation = ComputeShadowAttenuation(i);
+#else
+                half shadowAttenuation = 1.0f;
+#endif
                 half3 viewDir = i.viewDir.xyz;
 
-                half3 directColor = EvaluateOneLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir);
-#ifdef _SHADOWS
-                directColor *= ComputeShadowAttenuation(i);
-#endif
-
-                // Compute direct contribution from additional lights.
-                for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)
+                // TODO: Restrict pixel lights by 4. This way we can keep moderate constrain for most LD project
+                // and can benefit from better data layout/avoid branching by doing vec math.
+                half3 color = half3(0, 0, 0);
+                for (int lightIndex = 0; lightIndex < globalLightCount.x; ++lightIndex)
                 {
                     LightInput additionalLight;
                     INITIALIZE_LIGHT(additionalLight, lightIndex);
-                    directColor += EvaluateOneLight(additionalLight, diffuse, specularGloss, normal, i.posWS, viewDir);
+                    color += EvaluateOneLight(additionalLight, diffuse, specularGloss, normal, i.posWS, viewDir);
+                    if (lightIndex == 0)
+                        color *= shadowAttenuation;
                 }
 
-                half3 color = directColor + indirect + emissionColor;
+                half3 emissionColor;
+                Emission(i, emissionColor);
+                color += emissionColor;
+
+#if defined(LIGHTMAP_ON)
+                color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
+#elif defined(_VERTEX_LIGHTS) || defined(_VERTEX_AND_PIXEL_LIGHTS)
+                color += i.fogCoord.yzw * diffuse;
+#endif
+
+#if _CUBEMAP_REFLECTION
+                // TODO: we can use reflect vec to compute specular instead of half when computing cubemap reflection
+                half3 reflectVec = reflect(-i.viewDir.xyz, normal);
+                color += texCUBE(_Cube, reflectVec).rgb * _ReflectColor.rgb * specularGloss.rgb;
+#endif
+
                 UNITY_APPLY_FOG(i.fogCoord, color);
 
                 return OutputColor(color, alpha);

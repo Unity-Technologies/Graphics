@@ -1,4 +1,3 @@
-#define DEBUG_CASCADES 0
 #define MAX_SHADOW_CASCADES 4
 #define MAX_LIGHTS 8
 
@@ -102,22 +101,6 @@ inline void Emission(v2f i, out half3 emission)
     emission = tex2D(_EmissionMap, i.uv01.xy) * _EmissionColor;
 #else
     emission = _EmissionColor;
-#endif
-}
-
-inline void Indirect(v2f i, half3 diffuse, half3 normal, half glossiness, out half3 indirect)
-{
-#ifdef LIGHTMAP_ON
-    indirect = (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
-#else
-    indirect = i.fogCoord.yzw * diffuse;
-#endif
-
-    // TODO: we can use reflect vec to compute specular instead of half when computing cubemap reflection
-#ifdef _CUBEMAP_REFLECTION
-    half3 reflectVec = reflect(-i.viewDir.xyz, normal);
-    half3 indirectSpecular = texCUBE(_Cube, reflectVec) * _ReflectColor * glossiness;
-    indirect += indirectSpecular;
 #endif
 }
 
