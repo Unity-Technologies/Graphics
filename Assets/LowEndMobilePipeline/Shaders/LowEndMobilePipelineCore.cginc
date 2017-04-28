@@ -195,7 +195,7 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
     half3 lightColor = lightInput.color.rgb * lightAtten;
     half3 diffuse = diffuseColor * lightColor * NdotL;
 
-#if defined(_SHARED_SPECULAR_DIFFUSE) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
+#if defined(_SPECGLOSSMAP_BASE_ALPHA) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     half3 specular = specularGloss.rgb * lightColor * pow(NdotH, _Shininess * 128.0) * specularGloss.a;
     return diffuse + specular;
 #else
