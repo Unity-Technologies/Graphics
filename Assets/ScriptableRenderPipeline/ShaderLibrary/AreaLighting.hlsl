@@ -40,6 +40,9 @@ float IntegrateEdge(float3 V1, float3 V2)
 // N.b.: this function accounts for horizon clipping.
 float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
+    // Clamp to avoid visual artifacts.
+    sinSqSigma = min(sinSqSigma, 0.999);
+
 #if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
     float sinSqOmega = saturate(1 - cosOmega * cosOmega);
     float cosSqSigma = saturate(1 - sinSqSigma);
@@ -54,11 +57,11 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     float omega = acos(cosOmega);
     float gamma = asin(sinGamma);
 
-    // if (omega >= HALF_PI + sigma)
-    // {
-    //     // Full horizon occlusion (case #4). Handled outside this function.
-    //     return 0;
-    // }
+    if (omega >= HALF_PI + sigma)
+    {
+        // Full horizon occlusion (case #4).
+        return 0;
+    }
 
     float e = sinSqSigma * cosOmega;
 
@@ -115,15 +118,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 // Expects non-normalized vertex positions.
 float PolygonIrradiance(float4x3 L)
 {
-    [branch]
-    if (L[0].z < 0 && L[1].z < 0 && L[2].z < 0 && L[3].z < 0)
-    {
-        // The light is below the horizon.
-        return 0;
-    }
-
 #ifdef SPHERE_LIGHT_APPROXIMATION
-
     [unroll]
     for (int i = 0; i < 4; i++)
     {
@@ -141,29 +136,21 @@ float PolygonIrradiance(float4x3 L)
         F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
     }
 
-    // Clamp invalid values (visual artifacts otherwise).
     float f2         = saturate(dot(F, F));
-    float sinSqSigma = min(sqrt(f2), 0.999);
+    float sinSqSigma = sqrt(f2);
     float cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
 
     #if 0
         return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
     #else
-        // We use a numerical fit for the above found with Mathematica.
-        // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
-        // m = NonlinearModelFit[t, x * (1 + y) * (a * x + b * y + c * x * y), {a, b, c}, {x, y}]
-        // The absolute error is quite large (around 0.02). We would like to find a better approximation.
         float x = sinSqSigma;
         float y = cosOmega;
-        float z = (x + x * y) * (0.370404036340287 * x + 0.5151639656054547 * (1 - 0.7648559657303381 * x) * y);
-        float b = (x + x * y) * 0.5;        // Bilinear approximation
+        float b = (x + x * y) * 0.5;    // Bilinear approximation
+        float z = b * sqrt(x);          // Area light approximation
+        float c = z * z;                // Perform horizon clipping
+        float h = saturate(saturate(L[0].z) + saturate(L[1].z) + saturate(L[2].z) + saturate(L[3].z));
 
-        return z;                           // Do not saturate this
-
-        // float s = (sqrt(2) * x - 1) * y; // Compute the falloff from (0.707, 0)
-        // float t = (s * s) * (s * s);     // It will remove most of the bleeding artifacts
-
-        // return lerp(z, b, t);            // Perform feathering of 'z' to avoid sharp transitions
+        return lerp(z, c, 1 - h);
     #endif
 #else
     // 1. ClipQuadToHorizon
