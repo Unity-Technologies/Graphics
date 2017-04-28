@@ -497,7 +497,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void CopyDepthBufferIfNeeded(ScriptableRenderContext renderContext)
         {
             var cmd = new CommandBuffer() { name = NeedDepthBufferCopy() ? "Copy DepthBuffer" : "Set DepthBuffer"};
-            
+
             if (NeedDepthBufferCopy())
             {
                 using (new Utilities.ProfilingSample("Copy depth-stencil buffer", renderContext))
@@ -541,14 +541,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Camera camera = cameras.OrderByDescending(x => x.tag == "MainCamera").FirstOrDefault();
             if (camera == null)
+            {
+                renderContext.Submit();
                 return;
+            }
 
             // Set camera constant buffer
             // TODO...
 
             CullingParameters cullingParams;
             if (!CullResults.GetCullingParameters(camera, out cullingParams))
+            {
+                renderContext.Submit();
                 return;
+            }
 
             m_ShadowPass.UpdateCullingParameters(ref cullingParams);
 
