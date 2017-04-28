@@ -528,9 +528,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		cmd.SetRenderTarget (new RenderTargetIdentifier (s_GBufferEmission), new RenderTargetIdentifier (s_GBufferZ));
 		#endif
 
-		foreach (var light in inputs.visibleLights) {
-			RenderLightGeometry (camera, light, cmd, loop);
-		}
+		RenderLightGeometry (camera, inputs, cmd, loop);
 
 		// TODO: UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. Should preclear emission alpha after gbuffer pass in case this ever changes
 		RenderReflections (camera, cmd, inputs, loop);
@@ -539,103 +537,112 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		cmd.Dispose ();
 	}
 
-	void RenderLightGeometry (Camera camera, VisibleLight light, CommandBuffer cmd, ScriptableRenderContext loop)
+	void RenderLightGeometry (Camera camera, CullResults inputs, CommandBuffer cmd, ScriptableRenderContext loop)
 	{
-		bool renderAsQuad = (light.flags & VisibleLightFlags.IntersectsNearPlane)!=0 || (light.flags & VisibleLightFlags.IntersectsFarPlane)!=0 || (light.lightType == LightType.Directional);
-			
-		Vector3 lightPos = light.localToWorld.GetColumn (3); //position
-		Vector3 lightDir = light.localToWorld.GetColumn (2); //z axis
-		float range = light.range;
-		var lightToWorld = light.localToWorld;
-		var worldToLight = lightToWorld.inverse;
-
-		var props = new MaterialPropertyBlock ();
-		props.SetFloat ("_LightAsQuad", renderAsQuad ? 1 : 0);
-		props.SetVector ("_LightPos", new Vector4(lightPos.x, lightPos.y, lightPos.z, 1.0f / (range * range)));
-		props.SetVector ("_LightDir", new Vector4(lightDir.x, lightDir.y, lightDir.z, 0.0f));
-		props.SetVector ("_LightColor", light.finalColor);
-		props.SetMatrix ("_WorldToLight", lightToWorld.inverse);
-
-		// TODO:OPTIMIZATION DeferredRenderLoop.cpp:660 -- split up into shader varients
-
-		cmd.DisableShaderKeyword ("POINT");
-		cmd.DisableShaderKeyword ("POINT_COOKIE");
-		cmd.DisableShaderKeyword ("SPOT");
-		cmd.DisableShaderKeyword ("DIRECTIONAL");
-		cmd.DisableShaderKeyword ("DIRECTIONAL_COOKIE");
-		switch (light.lightType)
+		int lightCount = inputs.visibleLights.Length;
+		for (int lightNum = 0; lightNum < lightCount; lightNum++) 
 		{
-		case LightType.Point:
-			cmd.EnableShaderKeyword ("POINT");
-			break;
-		case LightType.Spot:
-			cmd.EnableShaderKeyword ("SPOT");
-			break;
-		case LightType.Directional:
-			cmd.EnableShaderKeyword ("DIRECTIONAL");
-			break;
-		}
-			
-		Texture cookie = light.light.cookie;
-		if (cookie != null)
-			cmd.SetGlobalTexture ("_LightTexture0", cookie);
+			VisibleLight light = inputs.visibleLights[lightNum];
 
-		if ((light.lightType == LightType.Point)) {
+			bool renderAsQuad = (light.flags & VisibleLightFlags.IntersectsNearPlane)!=0 || (light.flags & VisibleLightFlags.IntersectsFarPlane)!=0 || (light.lightType == LightType.Directional);
+				
+			Vector3 lightPos = light.localToWorld.GetColumn (3); //position
+			Vector3 lightDir = light.localToWorld.GetColumn (2); //z axis
+			float range = light.range;
+			var lightToWorld = light.localToWorld;
+			var worldToLight = lightToWorld.inverse;
 
-			// scalingFactor corrosoponds to the scale factor setting (and wether file scale is used) of mesh in Unity mesh inspector. 
-			// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here. 
-			var matrix = Matrix4x4.TRS (lightPos, Quaternion.identity, new Vector3 (range*PointLightMeshScaleFactor, range*PointLightMeshScaleFactor, range*PointLightMeshScaleFactor));
+			var props = new MaterialPropertyBlock ();
+			props.SetFloat ("_LightAsQuad", renderAsQuad ? 1 : 0);
+			props.SetVector ("_LightPos", new Vector4(lightPos.x, lightPos.y, lightPos.z, 1.0f / (range * range)));
+			props.SetVector ("_LightDir", new Vector4(lightDir.x, lightDir.y, lightDir.z, 0.0f));
+			props.SetVector ("_LightColor", light.finalColor);
+			props.SetMatrix ("_WorldToLight", lightToWorld.inverse);
 
-			if (cookie!=null)
-				cmd.EnableShaderKeyword ("POINT_COOKIE");
+			float lightShadowNDXOrNot = (light.light.shadows != LightShadows.None) ? (float)lightNum : -1.0f;
+			props.SetFloat ("_LightIndexForShadowMatrixArray", lightShadowNDXOrNot);
 
-			if (renderAsQuad) {
-				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
-			} else {
-				cmd.DrawMesh (m_PointLightMesh, matrix, m_FiniteDeferredLightingMaterial, 0, 0, props);
-			}
+			// TODO:OPTIMIZATION DeferredRenderLoop.cpp:660 -- split up into shader varients
 
-		} else if ((light.lightType == LightType.Spot)) {
-
-			float chsa = GetCotanHalfSpotAngle (light.spotAngle);
-
-			// Setup Light Matrix
-			Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (-.5f, -.5f, 1.0f));
-			Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
-			Matrix4x4 temp3 = PerspectiveCotanMatrix (chsa, 0.0f, range);
-			var LightMatrix0 = temp2 * temp1 * temp3 * worldToLight;
-			props.SetMatrix ("_LightMatrix0", LightMatrix0);
-
-			// Setup Spot Rendering mesh matrix
-			float sideLength = range / chsa;
-
-			// scalingFactor corrosoponds to the scale factor setting (and wether file scale is used) of mesh in Unity mesh inspector. 
-			// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here. 
-			lightToWorld = lightToWorld * Matrix4x4.Scale (new Vector3(sideLength*SpotLightMeshScaleFactor, sideLength*SpotLightMeshScaleFactor, range*SpotLightMeshScaleFactor));
-
-			//set default cookie for spot light if there wasnt one added to the light manually
-			if (cookie == null)
-				cmd.SetGlobalTexture ("_LightTexture0", m_DefaultSpotCookie);
-
-			if (renderAsQuad) {
-				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
-			} else {
-				cmd.DrawMesh (m_SpotLightMesh, lightToWorld, m_FiniteDeferredLightingMaterial, 0, 0, props);
+			cmd.DisableShaderKeyword ("POINT");
+			cmd.DisableShaderKeyword ("POINT_COOKIE");
+			cmd.DisableShaderKeyword ("SPOT");
+			cmd.DisableShaderKeyword ("DIRECTIONAL");
+			cmd.DisableShaderKeyword ("DIRECTIONAL_COOKIE");
+			switch (light.lightType)
+			{
+			case LightType.Point:
+				cmd.EnableShaderKeyword ("POINT");
+				break;
+			case LightType.Spot:
+				cmd.EnableShaderKeyword ("SPOT");
+				break;
+			case LightType.Directional:
+				cmd.EnableShaderKeyword ("DIRECTIONAL");
+				break;
 			}
 				
-		} else {
-
-			// Setup Light Matrix
-			float scale = 1.0f;// / light.light.cookieSize;
-			Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (scale, scale, 0.0f));
-			Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
-			var LightMatrix0 = temp2 * temp1 * worldToLight;
-			props.SetMatrix ("_LightMatrix0", LightMatrix0);
-		
+			Texture cookie = light.light.cookie;
 			if (cookie != null)
-				cmd.EnableShaderKeyword ("DIRECTIONAL_COOKIE");
-		
-			cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
+				cmd.SetGlobalTexture ("_LightTexture0", cookie);
+
+			if ((light.lightType == LightType.Point)) {
+
+				// scalingFactor corrosoponds to the scale factor setting (and wether file scale is used) of mesh in Unity mesh inspector. 
+				// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here. 
+				var matrix = Matrix4x4.TRS (lightPos, Quaternion.identity, new Vector3 (range*PointLightMeshScaleFactor, range*PointLightMeshScaleFactor, range*PointLightMeshScaleFactor));
+
+				if (cookie!=null)
+					cmd.EnableShaderKeyword ("POINT_COOKIE");
+
+				if (renderAsQuad) {
+					cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
+				} else {
+					cmd.DrawMesh (m_PointLightMesh, matrix, m_FiniteDeferredLightingMaterial, 0, 0, props);
+				}
+
+			} else if ((light.lightType == LightType.Spot)) {
+
+				float chsa = GetCotanHalfSpotAngle (light.spotAngle);
+
+				// Setup Light Matrix
+				Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (-.5f, -.5f, 1.0f));
+				Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
+				Matrix4x4 temp3 = PerspectiveCotanMatrix (chsa, 0.0f, range);
+				var LightMatrix0 = temp2 * temp1 * temp3 * worldToLight;
+				props.SetMatrix ("_LightMatrix0", LightMatrix0);
+
+				// Setup Spot Rendering mesh matrix
+				float sideLength = range / chsa;
+
+				// scalingFactor corrosoponds to the scale factor setting (and wether file scale is used) of mesh in Unity mesh inspector. 
+				// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here. 
+				lightToWorld = lightToWorld * Matrix4x4.Scale (new Vector3(sideLength*SpotLightMeshScaleFactor, sideLength*SpotLightMeshScaleFactor, range*SpotLightMeshScaleFactor));
+
+				//set default cookie for spot light if there wasnt one added to the light manually
+				if (cookie == null)
+					cmd.SetGlobalTexture ("_LightTexture0", m_DefaultSpotCookie);
+
+				if (renderAsQuad) {
+					cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
+				} else {
+					cmd.DrawMesh (m_SpotLightMesh, lightToWorld, m_FiniteDeferredLightingMaterial, 0, 0, props);
+				}
+					
+			} else {
+
+				// Setup Light Matrix
+				float scale = 1.0f;// / light.light.cookieSize;
+				Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (scale, scale, 0.0f));
+				Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
+				var LightMatrix0 = temp2 * temp1 * worldToLight;
+				props.SetMatrix ("_LightMatrix0", LightMatrix0);
+			
+				if (cookie != null)
+					cmd.EnableShaderKeyword ("DIRECTIONAL_COOKIE");
+			
+				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
+			}
 		}
 	}
 

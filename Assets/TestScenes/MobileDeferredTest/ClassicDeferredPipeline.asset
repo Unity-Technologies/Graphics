@@ -20,7 +20,9 @@ MonoBehaviour:
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
     directionalLightNearPlaneOffset: 5
   m_PointLightMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  PointLightMeshScaleFactor: 2
   m_SpotLightMesh: {fileID: 4300000, guid: 93e85ba57f65145538a8ac97bd005d40, type: 3}
+  SpotLightMeshScaleFactor: 1
   m_QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   m_BoxMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   m_DefaultSpotCookie: {fileID: 2800000, guid: 41e2109a383fc40ac81d1676de863fa2, type: 3}
