@@ -151,11 +151,10 @@ float PolygonIrradiance(float4x3 L)
         float x = sinSqSigma;
         float y = cosOmega;
         float b = x * (0.5 + 0.5 * y);              // Bilinear approximation of a sphere light
-        float z = b * sqrt(x);                      // Our approximation of a rectangular light
-        float a = f2 * b * b;                       // (x * b)^2
+        float z = b * (0.5 + 0.5 * y);              // Our approximation of a rectangular light
         float r = x * y;                            // The reference value for an unoccluded light
 
-        return max(r, lerp(a, z, saturate(h)));     // Horizon fade
+        return max(r, lerp(z * z, z, saturate(h))); // Horizon fade
     #endif
 #else
     // 1. ClipQuadToHorizon
