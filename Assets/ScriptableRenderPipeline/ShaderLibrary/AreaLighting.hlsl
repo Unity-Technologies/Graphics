@@ -54,7 +54,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     float omega = acos(cosOmega);
     float gamma = asin(sinGamma);
 
-    if (omega < 0 || omega >= HALF_PI + sigma)
+    if (omega >= HALF_PI + sigma)
     {
         // Full horizon occlusion (case #4).
         return 0;
