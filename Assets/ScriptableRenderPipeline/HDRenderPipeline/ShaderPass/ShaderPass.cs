@@ -16,7 +16,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DepthOnly,
         Velocity,
         Distortion,
-        LightTransport,
-        DebugViewMaterial
+        LightTransport
     }
 }

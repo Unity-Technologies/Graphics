@@ -231,6 +231,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 	dpt_ma = asfloat(ldsZMax);
+	if(dpt_ma<=0.0) dpt_ma = VIEWPORT_SCALE_Z;		// assume sky pixel
 #endif
 
 	float2 vTileLL = float2(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight);
