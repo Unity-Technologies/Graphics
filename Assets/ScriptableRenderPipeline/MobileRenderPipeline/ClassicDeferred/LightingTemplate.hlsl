@@ -187,6 +187,8 @@ void OnChipDeferredFragSetup (
 
 static half4 debugLighting;
 
+int _LightIndexForShadowMatrixArray;
+
 void OnChipDeferredCalculateLightParams (
 	unity_v2f_deferred i,
 	out float3 outWorldPos,
@@ -227,7 +229,9 @@ void OnChipDeferredCalculateLightParams (
 		atten *= tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
 		//atten *= UnityDeferredComputeShadow (wpos, fadeDist, uv);
-		atten *= SampleShadow(SPOT_LIGHT, wpos, 0, 0);
+
+		if (_LightIndexForShadowMatrixArray >= 0)
+			atten *= SampleShadow(SPOT_LIGHT, wpos, 0, _LightIndexForShadowMatrixArray);
 	
 	// directional light case		
 	#elif defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
@@ -235,7 +239,9 @@ void OnChipDeferredCalculateLightParams (
 		float atten = 1.0;
 
 		//atten *= UnityDeferredComputeShadow (wpos, fadeDist, uv);
-		atten *= SampleShadow(DIRECTIONAL_LIGHT, wpos, 0, 0);
+
+		if (_LightIndexForShadowMatrixArray >= 0)
+			atten *= SampleShadow(DIRECTIONAL_LIGHT, wpos, 0, _LightIndexForShadowMatrixArray);
 
 		#if defined (DIRECTIONAL_COOKIE)
 		atten *= tex2Dbias (_LightTexture0, float4(mul(unity_WorldToLight, half4(wpos,1)).xy, 0, -8)).w;
@@ -250,7 +256,9 @@ void OnChipDeferredCalculateLightParams (
 		float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 		
 		// atten *= UnityDeferredComputeShadow (tolight, fadeDist, uv);
-		atten *= SampleShadow(SPHERE_LIGHT, wpos, lightDir, 0);
+
+		if (_LightIndexForShadowMatrixArray >= 0)
+			atten *= SampleShadow(SPHERE_LIGHT, wpos, lightDir, _LightIndexForShadowMatrixArray);
 
 		#if defined (POINT_COOKIE)
 		atten *= texCUBEbias(_LightTexture0, float4(mul(unity_WorldToLight, half4(wpos,1)).xyz, -8)).w;
