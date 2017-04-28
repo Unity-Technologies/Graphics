@@ -54,11 +54,11 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     float omega = acos(cosOmega);
     float gamma = asin(sinGamma);
 
-    if (omega >= HALF_PI + sigma)
-    {
-        // Full horizon occlusion (case #4).
-        return 0;
-    }
+    // if (omega >= HALF_PI + sigma)
+    // {
+    //     // Full horizon occlusion (case #4). Handled outside this function.
+    //     return 0;
+    // }
 
     float e = sinSqSigma * cosOmega;
 
@@ -115,7 +115,15 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 // Expects non-normalized vertex positions.
 float PolygonIrradiance(float4x3 L)
 {
+    [branch]
+    if (L[0].z < 0 && L[1].z < 0 && L[2].z < 0 && L[3].z < 0)
+    {
+        // The light is below the horizon.
+        return 0;
+    }
+
 #ifdef SPHERE_LIGHT_APPROXIMATION
+
     [unroll]
     for (int i = 0; i < 4; i++)
     {
@@ -138,19 +146,22 @@ float PolygonIrradiance(float4x3 L)
     float sinSqSigma = min(sqrt(f2), 0.999);
     float cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
 
-    #if 1
+    #if 0
         return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
     #else
         // We use a numerical fit for the above found with Mathematica.
+        // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
+        // m = NonlinearModelFit[t, x * (1 + y) * (a * x + b * y + c * x * y), {a, b, c}, {x, y}]
+        // The absolute error is quite large (around 0.02). We would like to find a better approximation.
         float x = sinSqSigma;
         float y = cosOmega;
-        float z = (x + x * y) * saturate(0.370404036340287 * x + 0.5151639656054547 * (1 - 0.7648559657303381 * x) * y);
-        float l = (x + x * y) * 0.5;    // Bilinear approximation
+        float z = (x + x * y) * (0.370404036340287 * x + 0.5151639656054547 * (1 - 0.7648559657303381 * x) * y);
+        float b = (x + x * y) * 0.5;        // Bilinear approximation
 
-        float s = (sqrt(2) * x - 1);
-        float t = (s * s) * (y * y);    // Compute the quadratic falloff from (0.707, 0)
+        float s = (sqrt(2) * x - 1) * y;    // Compute the falloff from (0.707, 0)
+        float t = (s * s) * (s * s);        // It will remove most of the bleeding artifacts
 
-        return lerp(z, l, t);           // Perform feathering of 'z' to avoid a sharp transition
+        return lerp(z, b, t);               // Perform feathering of 'z' to avoid sharp transitions
     #endif
 #else
     // 1. ClipQuadToHorizon
