@@ -33,6 +33,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public virtual void RenderForward(Camera camera, ScriptableRenderContext renderContext, bool renderOpaque) {}
 
+        public virtual void RenderLightingDebug(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer) {}
+
         public Light GetCurrentSunLight() { return m_CurrentSunLight;  }
     }
 }
