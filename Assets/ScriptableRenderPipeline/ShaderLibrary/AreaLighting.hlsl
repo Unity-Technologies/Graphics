@@ -93,7 +93,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     [branch]
     if (cosSqOmega > sinSqSigma)                                // (y^2)>x
     {
-        return sinSqSigma * saturate(cosOmega);                 // x*Clip[y,{0,1}]
+        return saturate(sinSqSigma * cosOmega);                 // Clip[x*y,{0,1}]
     }
     else
     {
