@@ -1167,12 +1167,6 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
         ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcXformDisneyDiffuse);
     #endif
 
-        if (ltcValue == 0.0)
-        {
-            // The light is below the horizon.
-            return;
-        }
-
     #ifndef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
     #endif
@@ -1349,12 +1343,6 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     #else
         ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, preLightData.ltcXformDisneyDiffuse);
     #endif
-
-        if (ltcValue == 0.0)
-        {
-            // The polygon is either back-facing, or has been completely clipped.
-            return;
-        }
 
     #ifndef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
