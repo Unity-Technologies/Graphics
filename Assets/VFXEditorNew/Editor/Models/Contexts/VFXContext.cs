@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 using Type = System.Type;
@@ -46,7 +47,37 @@ namespace UnityEditor.VFX
 
         public virtual VFXContextType contextType   { get { return m_ContextType; } }
         public virtual VFXDataType inputType        { get { return m_InputType; } }
-        public virtual VFXDataType outputType       { get { return m_OutputType; } }    
+        public virtual VFXDataType outputType       { get { return m_OutputType; } } 
+   
+        protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
+        {
+            base.OnInvalidate(model,cause);
+
+            if (cause == InvalidationCause.kStructureChanged || 
+                cause == InvalidationCause.kConnectionChanged ||
+                cause == InvalidationCause.kExpressionInvalidated)
+            {
+                m_ExpressionContext = new VFXExpression.Context();
+                var expressions = new HashSet<VFXExpression>();
+                foreach (var child in children)
+                {
+                    int nbSlots = child.GetNbInputSlots();
+                    for (int i = 0; i < nbSlots; ++i)
+                    {
+                        var slot = child.GetInputSlot(i);
+                        slot.GetExpressions(expressions);
+                    }
+                }
+
+                foreach (var exp in expressions)
+                {
+                    m_ExpressionContext.RegisterExpression(exp);
+                    Debug.Log("---- Exp: " + exp.GetType() + " " + exp.ValueType);
+                }
+                m_ExpressionContext.Compile();
+                Debug.Log("************** RECOMPILE EXPRESSION CONTEXT FOR " + this.GetType() + " " + this.name + " nbExpressions:" + expressions.Count);          
+            }
+        }
 
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
@@ -84,6 +115,9 @@ namespace UnityEditor.VFX
             }
         }
 
+        public VFXExpression.Context ExpressionContext { get { return m_ExpressionContext; } }
+        [NonSerialized]
+        private VFXExpression.Context m_ExpressionContext = new VFXExpression.Context();
     }
 
     // TODO Do that later!

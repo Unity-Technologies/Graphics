@@ -125,6 +125,18 @@ namespace UnityEditor.VFX
             }
         }
 
+        // Get relevant expressions in the while hierarchy
+        public void GetExpressions(HashSet<VFXExpression> expressions)
+        {
+            var exp = GetExpression();
+            if (exp != null)
+                expressions.Add(exp);
+            else 
+                foreach (var child in children)
+                    child.GetExpressions(expressions);
+
+        }
+
         public VFXExpression DefaultExpr
         {
             get
@@ -474,6 +486,9 @@ namespace UnityEditor.VFX
                         slot.InvalidateExpressionTree();
                 }
             }
+
+            if (masterSlot.GetOwner() != null && direction == Direction.kInput)
+                masterSlot.owner.Invalidate(InvalidationCause.kExpressionInvalidated);
         }
 
         public void UnlinkAll(bool notify = true)
@@ -521,7 +536,7 @@ namespace UnityEditor.VFX
 
         protected virtual VFXValue DefaultExpression() 
         {
-            return null; 
+            return null;
         }
 
         // Expression cache
