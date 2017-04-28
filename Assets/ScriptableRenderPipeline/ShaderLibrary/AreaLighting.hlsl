@@ -47,8 +47,18 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     // For most of the domain, the absolute error is pretty low, under 0.005.
     // You can use the following Mathematica code to reproduce our results:
     // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
-    // m = NonlinearModelFit[t, {x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3))}, {a, b, c, d, e}, {x, y}]
+    // m = NonlinearModelFit[t, x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3)), {a, b, c, d, e}, {x, y}]
     return saturate(x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
+#else
+    float x = sinSqSigma;
+    float y = cosOmega;
+
+    // Another fit found with Mathematica. The error is larger (around 0.02 on average), but the function is very smooth.
+    // You can use the following Mathematica code to reproduce our results:
+    // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
+    // m = NonlinearModelFit[t, 1 - (1 - x)^(a * (y + 1) + b * (y + 1)^2 + c * (y + 1)^3 + d * (y + 1)^4)}, {a, b, c, d}, {x, y}]
+    float p = saturate(0.14506085844485772 + y * (0.2858221675641456 + y * (0.23405929637528905 + y * (0.20682928702038633 + y * 0.1135312997643852))));
+    return saturate(1 - pow(1 - x, p));
 #endif
 #if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
     float sinSqOmega = saturate(1 - cosOmega * cosOmega);
