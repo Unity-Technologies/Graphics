@@ -5,16 +5,6 @@
 // Normal packing
 //-----------------------------------------------------------------------------
 
-float3 PackNormalCartesian(float3 n)
-{
-    return n * 0.5 + 0.5;
-}
-
-float3 UnpackNormalCartesian(float3 n)
-{
-    return normalize(n * 2.0 - 1.0);
-}
-
 float3 PackNormalMaxComponent(float3 n)
 {
     // TODO: use max3
@@ -48,6 +38,72 @@ float3 UnpackNormalOctEncode(float2 f)
     return normalize(n);
 }
 
+// Tetrahedral encoding - Looks like Tetra encoding 10:10 + 2 is similar to oct 11:11, as oct is cheaper prefer it
+// To generate the basisNormal below we use these 4 vertex of a regular tetrahedron
+// v0 = float3(1.0, 0.0, -1.0 / sqrt(2.0));
+// v1 = float3(-1.0, 0.0, -1.0 / sqrt(2.0));
+// v2 = float3(0.0, 1.0, 1.0 / sqrt(2.0));
+// v3 = float3(0.0, -1.0, 1.0 / sqrt(2.0));
+// Then we normalize the average of each face's vertices
+// normalize(v0 + v1 + v2), etc...
+static const float3 tetraBasisNormal[4] =
+{
+    float3(0., 0.816497, -0.57735),
+    float3(-0.816497, 0., 0.57735),
+    float3(0.816497, 0., 0.57735),
+    float3(0., -0.816497, -0.57735)
+};
+
+// Then to get the local matrix (with z axis rotate to basisNormal) use GetLocalFrame(basisNormal[xxx])
+static const float3x3 tetraBasisArray[4] =
+{
+    float3x3(-1., 0., 0.,0., 0.57735, 0.816497,0., 0.816497, -0.57735),
+    float3x3(0., -1., 0.,0.57735, 0., 0.816497,-0.816497, 0., 0.57735),
+    float3x3(0., 1., 0.,-0.57735, 0., 0.816497,0.816497, 0., 0.57735),
+    float3x3(1., 0., 0.,0., -0.57735, 0.816497,0., -0.816497, -0.57735)
+};
+
+// Return [-1..1] vector2 oriented in plane of the faceIndex of a regular tetrahedron
+float2 PackNormalTetraEncode(float3 n, out uint faceIndex)
+{
+    // Retrieve the tetrahedra's face for the normal direction
+    // It is the one with the greatest dot value with face normal
+    float dot0 = dot(n, tetraBasisNormal[0]);
+    float dot1 = dot(n, tetraBasisNormal[1]);
+    float dot2 = dot(n, tetraBasisNormal[2]);
+    float dot3 = dot(n, tetraBasisNormal[3]);
+
+    float maxi0 = max(dot0, dot1);
+    float maxi1 = max(dot2, dot3);
+    float maxi = max(maxi0, maxi1);
+
+    // Get the index from the greatest dot
+    if (maxi == dot0)
+        faceIndex = 0;
+    else if (maxi == dot1)
+        faceIndex = 1;
+    else if (maxi == dot2)
+        faceIndex = 2;
+    else //(maxi == dot3)
+        faceIndex = 3;
+
+    // Rotate n into this local basis
+    n = mul(tetraBasisArray[faceIndex], n);
+
+    // Project n onto the local plane
+    return n.xy;
+}
+
+// Assume f [-1..1]
+float3 UnpackNormalTetraEncode(float2 f, uint faceIndex)
+{
+    // Recover n from local plane
+    float3 n = float3(f.xy, sqrt(1.0 - dot(f.xy, f.xy)));
+    // Inverse of transform PackNormalTetraEncode (just swap order in mul as we have a rotation)
+    return mul(n, tetraBasisArray[faceIndex]);
+}
+
+// Unpack from normal map
 float3 UnpackNormalRGB(float4 packedNormal, float scale = 1.0)
 {
     float3 normal;
