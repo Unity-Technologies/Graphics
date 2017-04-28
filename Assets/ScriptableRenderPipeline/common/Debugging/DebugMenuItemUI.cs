@@ -339,10 +339,10 @@ namespace UnityEngine.Experimental.Rendering
     public class DebugMenuEnumItemUI : DebugMenuSimpleItemUI
     {
         int                 m_CurrentValueIndex = 0;
-        List<GUIContent>    m_ValueNames;
-        List<int>           m_Values;
+        GUIContent[]        m_ValueNames;
+        int[]               m_Values;
 
-        public DebugMenuEnumItemUI(GameObject parent, DebugMenuItem menuItem, string name, List<GUIContent> valueNames, List<int> values)
+        public DebugMenuEnumItemUI(GameObject parent, DebugMenuItem menuItem, string name, GUIContent[] valueNames, int[] values)
             : base(parent, menuItem, name)
         {
             m_Values = values;
@@ -354,7 +354,7 @@ namespace UnityEngine.Experimental.Rendering
 
         private int FindIndexForValue(int value)
         {
-            for(int i = 0 ; i < m_Values.Count ; ++i)
+            for(int i = 0 ; i < m_Values.Length ; ++i)
             {
                 if (m_Values[i] == value)
                     return i;
@@ -378,8 +378,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public override void OnIncrement()
         {
-            m_CurrentValueIndex = (m_CurrentValueIndex + 1) % m_Values.Count;
-            m_MenuItem.SetValue(m_CurrentValueIndex);
+            m_CurrentValueIndex = (m_CurrentValueIndex + 1) % m_Values.Length;
+            m_MenuItem.SetValue(m_Values[m_CurrentValueIndex]);
             Update();
         }
 
@@ -387,9 +387,9 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_CurrentValueIndex -= 1;
             if (m_CurrentValueIndex < 0)
-                m_CurrentValueIndex = m_Values.Count - 1;
+                m_CurrentValueIndex = m_Values.Length - 1;
 
-            m_MenuItem.SetValue(m_CurrentValueIndex);
+            m_MenuItem.SetValue(m_Values[m_CurrentValueIndex]);
             Update();
         }
     }

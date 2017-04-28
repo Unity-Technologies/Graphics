@@ -1,0 +1,27 @@
+Creative Commons Licence
+Infinite, 3D Head Scan by Lee Perry-Smith is licensed under a Creative Commons Attribution 3.0 Unported License.
+Based on a work at www.triplegangers.com.
+Permissions beyond the scope of this license may be available at http://www.ir-ltd.net/
+Please remember: Do what you want with the files, but always mention where you got them from...
+----------------------
+This distribution was created by Morgan McGuire and Guedis Cardenas
+http://graphics.cs.williams.edu/data/
+
+
+Downloaded from:
+http://www.ir-ltd.net/infinite-3d-head-scan-released
+Then decompressed the Object and displacement maps .rar files. We renamed Map-COL.jpg to lambertian.jpg
+We converted the displacement file from .tif to 16-bit .png. and saved it as bump.png
+Then made a lowRes version of the bump map by rescaling it with sharpening in Photoshop using 
+Autolevels to fill the dynamic range, converting 8-bit, and filling the seams with content aware fill.
+We saved this as bump-lowRes.png.
+
+Edited mtl file:
+Set up texture maps and adjusted the default glossy highlight. 
+We added:
+map_bump -bm 0.001 bump-lowRes.png
+
+map_bump -bm 0.02 bump.png (high res)
+ks .0001 .0001 .0001
+Ns 5
+

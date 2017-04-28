@@ -1835,7 +1835,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     var camera = hdCamera.camera;
 
-                    SetupDebugDisplayMode(debugDisplaySettings.IsDebugDisplayEnable());
+                    SetupDebugDisplayMode(debugDisplaySettings.IsDebugDisplayEnabled());
 
                     if (!m_PassSettings.enableTileAndCluster)
                     {
@@ -1863,7 +1863,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (m_PassSettings.enableComputeLightEvaluation)
                         {
-                            bool enableFeatureVariants = GetFeatureVariantsEnabled() && !debugDisplaySettings.IsDebugDisplayEnable();
+                            bool enableFeatureVariants = GetFeatureVariantsEnabled() && !debugDisplaySettings.IsDebugDisplayEnabled();
 
                             int numVariants = 1;
                             if (enableFeatureVariants)
@@ -1879,7 +1879,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 }
                                 else
                                 {
-                                    if (debugDisplaySettings.IsDebugDisplayEnable())
+                                    if (debugDisplaySettings.IsDebugDisplayEnabled())
                                     {
                                         kernel = usingFptl ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectClusteredDebugDisplayKernel;
                                     }
@@ -1894,7 +1894,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 PushGlobalParams(camera, renderContext, shadeOpaqueShader, kernel);
 
                                 // TODO: Update value like in ApplyDebugDisplaySettings() call. Sadly it is high likely that this will not be keep in sync. we really need to get rid of this by making global parameters visible to compute shaders
-                                cmd.SetComputeIntParam(shadeOpaqueShader, "_DebugDisplayMode", Shader.GetGlobalInt("_DebugDisplayMode"));
                                 cmd.SetComputeIntParam(shadeOpaqueShader, "_DebugViewMaterial", Shader.GetGlobalInt("_DebugViewMaterial"));
                                 cmd.SetComputeVectorParam(shadeOpaqueShader, "_DebugLightingAlbedo", Shader.GetGlobalVector("_DebugLightingAlbedo"));
                                 cmd.SetComputeVectorParam(shadeOpaqueShader, "_DebugLightingSmoothness", Shader.GetGlobalVector("_DebugLightingSmoothness"));
