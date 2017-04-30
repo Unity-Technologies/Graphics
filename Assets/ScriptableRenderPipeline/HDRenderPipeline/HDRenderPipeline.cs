@@ -492,7 +492,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void CopyDepthBufferIfNeeded(ScriptableRenderContext renderContext)
         {
             var cmd = new CommandBuffer() { name = NeedDepthBufferCopy() ? "Copy DepthBuffer" : "Set DepthBuffer"};
-            
+
             if (NeedDepthBufferCopy())
             {
                 using (new Utilities.ProfilingSample("Copy depth-stencil buffer", renderContext))
@@ -536,14 +536,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Camera camera = cameras.OrderByDescending(x => x.tag == "MainCamera").FirstOrDefault();
             if (camera == null)
+            {
+                renderContext.Submit();
                 return;
+            }
 
             // Set camera constant buffer
             // TODO...
 
             CullingParameters cullingParams;
             if (!CullResults.GetCullingParameters(camera, out cullingParams))
+            {
+                renderContext.Submit();
                 return;
+            }
 
             m_LightLoop.UpdateCullingParameters( ref cullingParams );
 
@@ -612,6 +618,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Material that are always forward are unlit and complex (Like Hair) and don't require sorting, so it is ok to split them.
                 RenderForward(cullResults, camera, renderContext, true); // Render deferred or forward opaque
                 RenderForwardOnlyOpaque(cullResults, camera, renderContext);
+
+                RenderLightingDebug(hdCamera, renderContext, m_CameraColorBufferRT);
 
                 // If full forward rendering, we did just rendered everything, so we can copy the depth buffer
                 // If Deferred nothing needs copying anymore.
@@ -835,6 +843,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Texture2D ExportSkyToTexture()
         {
             return m_SkyManager.ExportSkyToTexture();
+        }
+
+        void RenderLightingDebug(HDCamera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer)
+        {
+            if (m_LightLoop != null)
+                m_LightLoop.RenderLightingDebug(camera, renderContext, colorBuffer);
         }
 
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)

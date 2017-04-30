@@ -40,8 +40,16 @@ float IntegrateEdge(float3 V1, float3 V2)
 // N.b.: this function accounts for horizon clipping.
 float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
-    float irradiance;
+#if 1 // Use a numerical fit for the sphere light approximation found in Mathematica.
+    float x = sinSqSigma;
+    float y = cosOmega;
 
+    // For most of the domain, the absolute error is pretty low, under 0.005.
+    // You can use the following Mathematica code to reproduce our results:
+    // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
+    // m = NonlinearModelFit[t, {x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3))}, {a, b, c, d, e}, {x, y}]
+    return saturate(x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
+#endif
 #if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
     float sinSqOmega = saturate(1 - cosOmega * cosOmega);
     float cosSqSigma = saturate(1 - sinSqSigma);
@@ -56,7 +64,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     float omega = acos(cosOmega);
     float gamma = asin(sinGamma);
 
-    if (omega < 0 || omega >= HALF_PI + sigma)
+    if (omega >= HALF_PI + sigma)
     {
         // Full horizon occlusion (case #4).
         return 0;
@@ -68,7 +76,7 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
     if (omega < HALF_PI - sigma)
     {
         // No horizon occlusion (case #1).
-        irradiance = e;
+        return e;
     }
     else
     {
@@ -78,47 +86,55 @@ float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
         if (omega < HALF_PI)
         {
             // Partial horizon occlusion (case #2).
-            irradiance = e + INV_PI * (g - h);
+            return saturate(e + INV_PI * (g - h));
         }
         else
         {
             // Partial horizon occlusion (case #3).
-            irradiance = INV_PI * (g + h);
+            return saturate(INV_PI * (g + h));
         }
     }
-#else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015).
-    float cosSqOmega = cosOmega * cosOmega;
+#else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015, optimized).
+    float cosSqOmega = cosOmega * cosOmega;                     // y^2
 
     [branch]
-    if (cosSqOmega > sinSqSigma)
+    if (cosSqOmega > sinSqSigma)                                // (y^2)>x
     {
-        irradiance = sinSqSigma * saturate(cosOmega);
+        return saturate(sinSqSigma * cosOmega);                 // Clip[x*y,{0,1}]
     }
     else
     {
-        float cotanOmega = cosOmega * rsqrt(1 - cosSqOmega);
+        float cotSqSigma = rcp(sinSqSigma) - 1;                 // 1/x-1
+        float tanSqSigma = rcp(cotSqSigma);                     // x/(1-x)
+        float sinSqOmega = 1 - cosSqOmega;                      // 1-y^2
 
-        float x = rcp(sinSqSigma) - 1;
-        float y = -cotanOmega * sqrt(x);
-        float z = sqrt(1 - cosSqOmega * rcp(sinSqSigma));
+        float w = sinSqOmega * tanSqSigma;                      // (1-y^2)*(x/(1-x))
+        float x = -cosOmega * rsqrt(w);                         // -y*Sqrt[(1/x-1)/(1-y^2)]
+        float y = sqrt(sinSqOmega * tanSqSigma - cosSqOmega);   // Sqrt[(1-y^2)*(x/(1-x))-y^2]
+        float z = y * cotSqSigma;                               // Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
 
-        irradiance = INV_PI * ((cosOmega * acos(y) - z * sqrt(x)) * sinSqSigma + atan(z * rsqrt(x)));
+        float a = cosOmega * acos(x) - z;                       // y*ArcCos[-y*Sqrt[(1/x-1)/(1-y^2)]]-Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
+        float b = atan(y);                                      // ArcTan[Sqrt[(1-y^2)*(x/(1-x))-y^2]]
+
+        // Replacing max() with saturate() results in a 12 cycle SGPR forwarding stall on PS4.
+        return max(INV_PI * (a * sinSqSigma + b), 0);           // (a/Pi)*x+(b/Pi)
     }
 #endif
-    return max(irradiance, 0);
 }
 
 // Expects non-normalized vertex positions.
 float PolygonIrradiance(float4x3 L)
 {
 #ifdef SPHERE_LIGHT_APPROXIMATION
-    for (int i = 0; i < 4; i++)
+    [unroll]
+    for (uint i = 0; i < 4; i++)
     {
         L[i] = normalize(L[i]);
     }
 
     float3 F = float3(0, 0, 0);
 
+    [unroll]
     for (uint edge = 0; edge < 4; edge++)
     {
         float3 V1 = L[edge];
@@ -127,8 +143,9 @@ float PolygonIrradiance(float4x3 L)
         F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
     }
 
+    // Clamp invalid values to avoid visual artifacts.
     float f2         = saturate(dot(F, F));
-    float sinSqSigma = sqrt(f2);
+    float sinSqSigma = min(sqrt(f2), 0.999);
     float cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
 
     return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
