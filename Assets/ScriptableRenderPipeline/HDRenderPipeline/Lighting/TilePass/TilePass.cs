@@ -1753,12 +1753,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SetKeyword(m_SingleDeferredMaterialMRT, "DEBUG_DISPLAY", debugDisplayEnable);
             }
 
-            public override void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
-                                                        DebugDisplaySettings debugDisplaySettings,
-                                                        RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
-                                                        bool outputSplitLightingForSSS)
+            public override void RenderLightingDebug(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer)
             {
-                var bUseClusteredForDeferred = !usingFptl;
+                if (m_PassSettings.tileDebugByCategory == TileLightLoopProducer.TileSettings.TileDebug.None)
+                    return;
+
+                var cmd = new CommandBuffer();
+                cmd.name = "Tiled Lighting Debug";
+
+                bool bUseClusteredForDeferred = !usingFptl;
+
+                int w = hdCamera.camera.pixelWidth;
+                int h = hdCamera.camera.pixelHeight;
+                int numTilesX = (w + 15) / 16;
+                int numTilesY = (h + 15) / 16;
+                int numTiles = numTilesX * numTilesY;
 
                 Vector2 mousePixelCoord = Input.mousePosition;
 #if UNITY_EDITOR
@@ -1768,6 +1777,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
                 }
 #endif
+
+                // Debug tiles
+                PushGlobalParams(hdCamera.camera, renderContext, null, 0);
+                if (m_PassSettings.tileDebugByCategory == TileLightLoopProducer.TileSettings.TileDebug.FeatureVariants)
+                {
+                    if (GetFeatureVariantsEnabled())
+                    {
+                        // featureVariants
+                        Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewTilesMaterial);
+                        m_DebugViewTilesMaterial.SetInt("_NumTiles", numTiles);
+                        m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_PassSettings.tileDebugByCategory);
+                        m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
+                        m_DebugViewTilesMaterial.SetBuffer("g_TileList", s_TileList);
+                        m_DebugViewTilesMaterial.SetBuffer("g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
+                        m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                        m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                        m_DebugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
+                        m_DebugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
+                        cmd.SetRenderTarget(colorBuffer);
+                        cmd.DrawProcedural(Matrix4x4.identity, m_DebugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
+                    }
+                }
+                else if (m_PassSettings.tileDebugByCategory != TileLightLoopProducer.TileSettings.TileDebug.None)
+                {
+                    // lightCategories
+                    Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewTilesMaterial);
+                    m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_PassSettings.tileDebugByCategory);
+                    m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
+                    m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                    m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                    m_DebugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
+                    m_DebugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
+
+                    cmd.Blit(null, colorBuffer, m_DebugViewTilesMaterial, 0);
+                }
+                SetGlobalPropertyRedirect(null, 0, null);
+
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
+
+            public override void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
+                                                        DebugDisplaySettings debugDisplaySettings,
+                                                        RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
+                                                        bool outputSplitLightingForSSS)
+            {
+                var bUseClusteredForDeferred = !usingFptl;
 
                 using (new Utilities.ProfilingSample((m_PassSettings.enableTileAndCluster ? "TilePass - Deferred Lighting Pass" : "SinglePass - Deferred Lighting Pass") + (outputSplitLightingForSSS ? " MRT" : ""), renderContext))
                 {
@@ -1943,44 +1999,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     Utilities.SelectKeyword(m_DeferredAllMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
                                 }
-                            }
-                        }
-
-                        if (m_PassSettings.tileDebugByCategory != TileLightLoopProducer.TileSettings.TileDebug.None)
-                        {
-                            // Debug tiles
-                            PushGlobalParams(camera, renderContext, null, 0);
-                            if (m_PassSettings.tileDebugByCategory == TileLightLoopProducer.TileSettings.TileDebug.FeatureVariants)
-                            {
-                                if (GetFeatureVariantsEnabled())
-                                {
-                                    // featureVariants
-                                    Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewTilesMaterial);
-                                    m_DebugViewTilesMaterial.SetInt("_NumTiles", numTiles);
-                                    m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_PassSettings.tileDebugByCategory);
-                                    m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
-                                    m_DebugViewTilesMaterial.SetBuffer("g_TileList", s_TileList);
-                                    m_DebugViewTilesMaterial.SetBuffer("g_DispatchIndirectBuffer", s_DispatchIndirectBuffer);
-                                    m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                    m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                    m_DebugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
-                                    m_DebugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
-                                    cmd.SetRenderTarget(colorBuffers[0]);
-                                    cmd.DrawProcedural(Matrix4x4.identity, m_DebugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
-                                }
-                            }
-                            else if (m_PassSettings.tileDebugByCategory != TileLightLoopProducer.TileSettings.TileDebug.None)
-                            {
-                                // lightCategories
-                                Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewTilesMaterial);
-                                m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)m_PassSettings.tileDebugByCategory);
-                                m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
-                                m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                                m_DebugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
-                                m_DebugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
-
-                                cmd.Blit(null, colorBuffers[0], m_DebugViewTilesMaterial, 0);
                             }
                         }
                     }
