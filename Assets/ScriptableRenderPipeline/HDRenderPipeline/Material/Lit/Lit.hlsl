@@ -164,7 +164,7 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     bsdfData.subsurfaceRadius = SSS_UNIT_CONVERSION * subsurfaceRadius + 0.0001;
     bsdfData.thickness = SSS_UNIT_CONVERSION * (_ThicknessRemaps[subsurfaceProfile][0] +
                                                 _ThicknessRemaps[subsurfaceProfile][1] * thickness);
-    
+
     bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, subsurfaceProfile);
     if (bsdfData.enableTransmission)
     {
@@ -178,7 +178,7 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     #ifndef SSS_FILTER_HORIZONTAL_AND_COMBINE // When doing the SSS comine pass, we must not apply the modification of diffuse color
     // Handle post-scatter, or pre- and post-scatter texturing.
     // We modify diffuseColor here so it affect all the lighting + GI (lightprobe / lightmap) (Need to be done also in GBuffer pass) + transmittance
-    // diffuseColor will be solely use during lighting pass. The other contribution will be apply in subsurfacescattering convolution.    
+    // diffuseColor will be solely use during lighting pass. The other contribution will be apply in subsurfacescattering convolution.
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
     bsdfData.diffuseColor = performPostScatterTexturing ? float3(1.0, 1.0, 1.0) : sqrt(bsdfData.diffuseColor);
     #endif
@@ -223,74 +223,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 // conversion function for deferred
 //-----------------------------------------------------------------------------
 
-#define USE_NORMAL_TETRAHEDRON_ENCODING
-
-#ifdef USE_NORMAL_TETRAHEDRON_ENCODING
-// To generate the basisNormal below we use these 4 vertex of a regular tetrahedron
-// v0 = float3(1.0, 0.0, -1.0 / sqrt(2.0));
-// v1 = float3(-1.0, 0.0, -1.0 / sqrt(2.0));
-// v2 = float3(0.0, 1.0, 1.0 / sqrt(2.0));
-// v3 = float3(0.0, -1.0, 1.0 / sqrt(2.0));
-// Then we normalize the average of each face's vertices
-// normalize(v0 + v1 + v2), etc...
-static const float3 basisNormal[4] =
-{
-    float3(0.816497, 0., -0.57735),
-    float3(-0.816497, 0., -0.57735),
-    float3(0., 0.816497, 0.57735),
-    float3(0., -0.816497, 0.57735)
-};
-
-// Then to get the local matrix (with z axis rotate to basisNormal) use GetLocalFrame(basisNormal[xxx])
-static const float3x3 basisArray[4] =
-{
-    float3x3(0., 1., 0., 0.57735, 0., 0.816497, 0.816497, 0., -0.57735),
-    float3x3(0., -1., 0., -0.57735, 0., 0.816497, -0.816497, 0., -0.57735),
-    float3x3(-1., 0., 0., 0., -0.57735, 0.816497, 0., 0.816497, 0.57735),
-    float3x3(1., 0., 0., 0., 0.57735, 0.816497, 0., -0.816497, 0.57735)
-};
-
-// Return [-1..1] vector2 oriented in plane of the faceIndex of a regular tetrahedron
-float2 PackNormalTetraEncode(float3 n, out uint faceIndex)
-{
-    // Retrieve the tetrahedra's face for the normal direction
-    // It is the one with the greatest dot value with face normal
-    float dot0 = dot(n, basisNormal[0]);
-    float dot1 = dot(n, basisNormal[1]);
-    float dot2 = dot(n, basisNormal[2]);
-    float dot3 = dot(n, basisNormal[3]);
-
-    float maxi0 = max(dot0, dot1);
-    float maxi1 = max(dot2, dot3);
-    float maxi = max(maxi0, maxi1);
-
-    // Get the index from the greatest dot
-    if (maxi == dot0)
-        faceIndex = 0;
-    else if (maxi == dot1)
-        faceIndex = 1;
-    else if (maxi == dot2)
-        faceIndex = 2;
-    else //(maxi == dot3)
-        faceIndex = 3;
-
-    // Rotate n into this local basis
-    n = mul(basisArray[faceIndex], n);
-
-    // Project n onto the local plane
-    return n.xy;
-}
-
-// Assume f [-1..1]
-float3 UnpackNormalTetraEncode(float2 f, uint faceIndex)
-{
-    // Recover n from local plane
-    float3 n = float3(f.xy, sqrt(1.0 - dot(f.xy, f.xy)));
-    // Inverse of transform PackNormalTetraEncode (just swap order in mul as we have a rotation)
-    return mul(n, basisArray[faceIndex]);
-}
-
-#endif
+// Tetra encoding 10:10 + 2 seems equivalent to oct 11:11, as oct is cheaper use that. Let here for future testing in reflective scene for comparison
+//#define USE_NORMAL_TETRAHEDRON_ENCODING
 
 // Encode SurfaceData (BSDF parameters) into GBuffer
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
@@ -324,9 +258,12 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // Store faceIndex on two bits with perceptualRoughness
     outGBuffer1 = float4(tetraNormalWS * 0.5 + 0.5, PackFloatInt10bit(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), faceIndex, 4.0), PackMaterialId(surfaceData.materialId));
 #else
-    // Encode normal on 20bit with oct compression
+    // Encode normal on 20bit with oct compression + 2bit of sign
     float2 octNormalWS = PackNormalOctEncode(surfaceData.normalWS);
-    outGBuffer1 = float4(octNormalWS * 0.5 + 0.5, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), PackMaterialId(surfaceData.materialId));
+    // To have more precision encode the sign of xy in a separate uint
+    uint octNormalSign = (octNormalWS.x > 0.0 ? 1 : 0) + (octNormalWS.y > 0.0 ? 2 : 0);
+    // Store octNormalSign on two bits with perceptualRoughness
+    outGBuffer1 = float4(abs(octNormalWS), PackFloatInt10bit(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), octNormalSign, 4.0), PackMaterialId(surfaceData.materialId));
 #endif
 
     // RT2 - 8:8:8:8
@@ -430,8 +367,11 @@ void DecodeFromGBuffer(
     UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, faceIndex);
     bsdfData.normalWS = UnpackNormalTetraEncode(inGBuffer1.xy * 2.0 - 1.0, faceIndex);
 #else
-    bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r * 2.0 - 1.0, inGBuffer1.g * 2.0 - 1.0));
-    bsdfData.perceptualRoughness = inGBuffer1.b;
+    uint octNormalSign;
+    UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, octNormalSign);
+    inGBuffer1.r *= (octNormalSign & 1) ? 1.0 : -1.0;
+    inGBuffer1.g *= (octNormalSign & 2) ? 1.0 : -1.0;
+    bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r, inGBuffer1.g));
 #endif
 
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
@@ -1155,12 +1095,6 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
         ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcXformDisneyDiffuse);
     #endif
 
-        if (ltcValue == 0.0)
-        {
-            // The light is below the horizon.
-            return;
-        }
-
     #ifndef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
     #endif
@@ -1282,7 +1216,7 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 unL = lightData.positionWS - positionWS;
 
     [branch]
-    if (dot(lightData.forward, unL) >= 0)
+    if (dot(lightData.forward, unL) >= 0.0001)
     {
         // The light is back-facing.
         return;
@@ -1337,12 +1271,6 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     #else
         ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, preLightData.ltcXformDisneyDiffuse);
     #endif
-
-        if (ltcValue == 0.0)
-        {
-            // The polygon is either back-facing, or has been completely clipped.
-            return;
-        }
 
     #ifndef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
