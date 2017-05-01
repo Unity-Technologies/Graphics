@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -21,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering
         };
 
 		// info that gets generated for use
-		// in a dod way 
+		// in a dod way
         public struct TestInfo
         {
             public string name;
@@ -45,16 +46,16 @@ namespace UnityEditor.Experimental.Rendering
 					// find all the scenes
                     var absoluteScenesPath = s_Path.Aggregate(Application.dataPath, Path.Combine);
 					var allPaths = System.IO.Directory.GetFiles(absoluteScenesPath, "*.unity", System.IO.SearchOption.AllDirectories);
-                    
+
 					// construct all the needed test infos
 					foreach (var path in allPaths)
                     {
 						var p = new FileInfo (path);
 						var split = s_Path.Aggregate ("", Path.Combine);
 						split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
-						var splitPaths = Regex.Split (p.FullName, split);
+						var splitPaths = p.FullName.Split (new [] {split}, StringSplitOptions.RemoveEmptyEntries);
 
-						yield return new TestInfo 
+						yield return new TestInfo
 						{
 							name = p.Name,
 							relativePath = splitPaths.Last(),
@@ -77,10 +78,10 @@ namespace UnityEditor.Experimental.Rendering
 			var testSetup = Object.FindObjectOfType<SetupSceneForRenderPipelineTest> ();
 			Assert.IsNotNull(testSetup, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
 			Assert.IsNotNull(testSetup.cameraToUse, "No configured camera in <SetupSceneForRenderPipelineTest>");
-            
+
 			var rtDesc = new RenderTextureDescriptor (
-				             testSetup.width, 
-				             testSetup.height, 
+				             testSetup.width,
+				             testSetup.height,
 				             testSetup.hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32,
 				             24);
 			rtDesc.sRGB = PlayerSettings.colorSpace == ColorSpace.Linear;
@@ -150,7 +151,7 @@ namespace UnityEditor.Experimental.Rendering
 
 			if (pixels1.Length != pixels2.Length)
 				return false;
-			
+
 			int numberOfPixels = pixels1.Length;
 
 			float sumOfSquaredColorDistances = 0;
