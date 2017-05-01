@@ -304,13 +304,14 @@ namespace UnityEngine.Experimental.Rendering
             {
                 sliceIndex = m_LocatorInSliceArray[texId];
                 bFoundAvailOrExistingSlice = true;
-
+#if UNITY_EDITOR
                 if(m_TextureCacheVersion!=s_GlobalTextureCacheVersion)
                 {
                     m_TextureCacheVersion++;
                     Debug.Assert(m_TextureCacheVersion <= s_GlobalTextureCacheVersion);
                     bSwapSlice = true;  // force a reinject.
                 }
+#endif
                 //assert(m_SliceArray[sliceIndex].TexID==TexID);
             }
 
