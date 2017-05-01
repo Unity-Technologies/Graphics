@@ -434,6 +434,11 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                     keywordIndex += 2;
                 cmd.EnableShaderKeyword(shadowKeywords[keywordIndex]);
             }
+
+            if (m_Asset.EnableAmbientProbe)
+                cmd.EnableShaderKeyword("_LIGHT_PROBES_ON");
+            else
+                cmd.DisableShaderKeyword("_LIGHT_PROBES_ON");
         }
 
         // Finds main light and main shadow casters and places them in the beginning of array.
