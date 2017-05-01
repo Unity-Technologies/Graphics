@@ -129,6 +129,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 settings.sorting.flags = SortFlags.CommonOpaque;
                 settings.inputFilter.SetQueuesOpaque();
 
+                settings.rendererConfiguration = RendererConfiguration.PerObjectReflectionProbes;
                 if (m_Asset.EnableLightmap)
                     settings.rendererConfiguration |= RendererConfiguration.PerObjectLightmaps;
 
