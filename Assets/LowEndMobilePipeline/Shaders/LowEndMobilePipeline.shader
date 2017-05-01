@@ -16,7 +16,6 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
         [Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
         _Cube ("Reflection Cubemap", CUBE) = "" {}
-        _ReflectColor("Reflection Color", Color) = (1, 1, 1, 1)
         _ReflectionSource("Reflection Source", Float) = 0
 
         [HideInInspector] _SpecSource("Specular Color Source", Float) = 0.0
@@ -72,7 +71,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             #pragma shader_feature _ _SPECGLOSSMAP _SPECGLOSSMAP_BASE_ALPHA _SPECULAR_COLOR
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _EMISSION_MAP
-            #pragma shader_feature _CUBEMAP_REFLECTION
+            #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ _LIGHT_PROBES_ON
@@ -182,10 +181,14 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 color += i.fogCoord.yzw * diffuse;
 #endif
 
-#if _CUBEMAP_REFLECTION
+#if _REFLECTION_CUBEMAP
                 // TODO: we can use reflect vec to compute specular instead of half when computing cubemap reflection
                 half3 reflectVec = reflect(-i.viewDir.xyz, normal);
-                color += texCUBE(_Cube, reflectVec).rgb * _ReflectColor.rgb * specularGloss.rgb;
+                color += texCUBE(_Cube, reflectVec).rgb * specularGloss.rgb;
+#elif defined(_REFLECTION_PROBE)
+                half3 reflectVec = reflect(-i.viewDir.xyz, normal);
+                half4 reflectionProbe = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflectVec);
+                color += reflectionProbe.rgb * (reflectionProbe.a * unity_SpecCube0_HDR.x) * specularGloss.rgb;
 #endif
 
                 UNITY_APPLY_FOG(i.fogCoord, color);
