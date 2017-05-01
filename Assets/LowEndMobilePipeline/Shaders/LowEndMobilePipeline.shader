@@ -75,6 +75,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             #pragma shader_feature _CUBEMAP_REFLECTION
 
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ _LIGHT_PROBES_ON
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile_fog
@@ -126,7 +127,9 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 o.shadowCoord = mul(_WorldToShadow[0], float4(o.posWS, 1.0));
 #endif
 
+#ifdef _LIGHT_PROBES_ON
                 o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
+#endif
 
                 UNITY_TRANSFER_FOG(o, o.hpos);
                 return o;
@@ -175,7 +178,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
 
 #if defined(LIGHTMAP_ON)
                 color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
-#elif defined(_VERTEX_LIGHTS) || defined(_VERTEX_AND_PIXEL_LIGHTS)
+#elif defined(_VERTEX_LIGHTS) || defined(_LIGHT_PROBES_ON)
                 color += i.fogCoord.yzw * diffuse;
 #endif
 

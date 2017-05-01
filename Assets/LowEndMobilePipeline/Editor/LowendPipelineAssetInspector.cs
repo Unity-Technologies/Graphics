@@ -19,8 +19,8 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             public static GUIContent enableLightmap = new GUIContent("Enable Lightmap",
                     "Only non-directional lightmaps are supported");
 
-            public static GUIContent enableAmbientProbe = new GUIContent("Enable Ambient Probe",
-                    "Uses light probes as ambient light source for non-lightmapped objects.");
+            public static GUIContent enableAmbientProbe = new GUIContent("Enable Light Probes",
+                    "Enables/Disabled light probe support.");
 
             public static GUIContent shadowType = new GUIContent("Shadow Type",
                     "Single directional shadow supported. SOFT_SHADOWS applies shadow filtering.");
