@@ -49,6 +49,8 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
+#define MIN_N_DOT_V           0.0001                       // The minimum value of 'NdotV'
+
 // SSS parameters
 #define SSS_N_PROFILES        8
 #define SSS_LOW_THICKNESS     0.005                        // 0.5 cm
@@ -502,9 +504,7 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 struct PreLightData
 {
     // General
-    float NdotV;   // Between 0.0001 and 1
-    float unNdotV; // Between -1 and 1
-
+    float NdotV;                         // Geometric version (not clamped)
 
     // GGX iso
     float ggxLambdaV;
@@ -515,10 +515,10 @@ struct PreLightData
     float anisoGGXLambdaV;
 
     // IBL
-    float3 iblDirWS;    // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
+    float3 iblDirWS;                     // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
     float  iblMipLevel;
 
-    float3 specularFGD; // Store preconvole BRDF for both specular and diffuse
+    float3 specularFGD;                  // Store preconvoled BRDF for both specular and diffuse
     float diffuseFGD;
 
     // area light
@@ -533,42 +533,45 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 {
     PreLightData preLightData;
 
-    // General
-    float3 iblNormalWS = bsdfData.normalWS;
+    float NdotV = dot(bsdfData.normalWS, V);
 
-    preLightData.unNdotV = dot(bsdfData.normalWS, V);
-    // GetShiftedNdotV return a positive NdotV
-    // In case a material use negative normal for double sided lighting like Speedtree  they need to do a new calculation
-    preLightData.NdotV = GetShiftedNdotV(iblNormalWS, V, preLightData.unNdotV);
+    float3 iblNormalWS = GetViewShiftedNormal(bsdfData.normalWS, V, NdotV, MIN_N_DOT_V);
+
+    preLightData.NdotV = NdotV;      // Store the unaltered (geometric) version
+    NdotV = max(NdotV, MIN_N_DOT_V); // Use the modified (clamped) version
+
+    float3 iblR = reflect(-V, iblNormalWS);
 
     // GGX iso
-    preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
+    preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(NdotV, bsdfData.roughness);
 
     // GGX aniso
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
         preLightData.BdotV = dot(bsdfData.bitangentWS, V);
-        preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+        preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
         // Tangent = highlight stretch (anisotropy) direction. Bitangent = grain (brush) direction.
-        iblNormalWS = GetAnisotropicModifiedNormal(bsdfData.bitangentWS, iblNormalWS, V, bsdfData.anisotropy);
+        float3 anisoIblNormalWS = GetAnisotropicModifiedNormal(bsdfData.bitangentWS, iblNormalWS, V, bsdfData.anisotropy);
 
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
+        iblR = reflect(-V, anisoIblNormalWS);
+        // @Sébastien: I preserved the original behavior by creating 'anisoIblNormalWS', but,
+        // from the performance standpoint, it would be best to store the value in 'iblNormalWS'
+        // and then use it in GetSpecularDominantDir(). Please reconsider. :-) -Evgenii
     }
 
     // IBL
-    GetPreIntegratedFGD(preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
+    GetPreIntegratedFGD(NdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
 
-    // We need to take into account the modified normal for faking anisotropic here.
-    float3 iblR = reflect(-V, iblNormalWS);
-    preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness, preLightData.NdotV);
+    preLightData.iblDirWS = GetSpecularDominantDir(iblNormalWS, iblR, bsdfData.roughness, NdotV);
     preLightData.iblMipLevel = PerceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
 
     // Area light
     // UVs for sampling the LUTs
-    float theta = FastACos(preLightData.NdotV);
+    float theta = FastACos(NdotV);
     float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
 
     // Get the inverse LTC matrix for GGX
@@ -637,13 +640,15 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
+    // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
     float NdotL    = saturate(dot(bsdfData.normalWS, L));
-    float NdotV    = preLightData.unNdotV;             // This value must not be clamped
+    float NdotV    = preLightData.NdotV;        // Get the unaltered (geometric) version
     float LdotV    = dot(L, V);
-    // GCN Optimization: reference PBR Diffuse Lighting for GGX + Smith Microsurfaces
-    float invLenLV = rsqrt(abs(2.0 * LdotV + 2.0));    // invLenLV = rcp(length(L + V))
+    float invLenLV = rsqrt(abs(2 * LdotV + 2)); // invLenLV = rcp(length(L + V))
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
+
+    NdotV          = max(NdotV, MIN_N_DOT_V);   // Use the modified (clamped) version
 
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
@@ -664,11 +669,11 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         bsdfData.roughnessB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessB);
 
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
+        Vis = V_SmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, NdotV, TdotL, BdotL, NdotL,
                                           bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXLambdaV);
         #else
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
-        Vis = V_SmithJointGGXAniso(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
+        Vis = V_SmithJointGGXAniso(preLightData.TdotV, preLightData.BdotV, NdotV, TdotL, BdotL, NdotL,
                                    bsdfData.roughnessT, bsdfData.roughnessB);
         #endif
 
@@ -679,9 +684,9 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         bsdfData.roughness = ClampRoughnessForAnalyticalLights(bsdfData.roughness);
 
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
+        Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
         #else
-        Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness);
+        Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness);
         #endif
         D = D_GGX(NdotH, bsdfData.roughness);
     }
@@ -690,9 +695,9 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();
 #elif LIT_DIFFUSE_GGX_BRDF
-    float3 diffuseTerm = DiffuseGGX(bsdfData.diffuseColor, preLightData.NdotV, NdotL, NdotH, LdotV, bsdfData.perceptualRoughness);
+    float3 diffuseTerm = DiffuseGGX(bsdfData.diffuseColor, NdotV, NdotL, NdotH, LdotV, bsdfData.perceptualRoughness);
 #else
-    float  diffuseTerm = DisneyDiffuse(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+    float  diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
 #endif
 
     diffuseLighting = bsdfData.diffuseColor * diffuseTerm;
@@ -1351,6 +1356,7 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
                                     uint sampleCount = 4096)
 {
     float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+    float    NdotV        = max(preLightData.NdotV, MIN_N_DOT_V);
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
@@ -1373,7 +1379,7 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
             float LdotH = dot(L, H);
             // Note: we call DisneyDiffuse that require to multiply by Albedo / PI. Divide by PI is already taken into account
             // in weightOverPdf of ImportanceSampleLambert call.
-            float disneyDiffuse = DisneyDiffuse(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+            float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
 
             // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
             float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
@@ -1390,6 +1396,7 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
                                   uint sampleCount = 4096)
 {
     float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+    float    NdotV        = max(preLightData.NdotV, MIN_N_DOT_V);
     float3   acc          = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
@@ -1408,11 +1415,11 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
         // GGX BRDF
         if (bsdfData.materialId == MATERIALID_LIT_ANISO)
         {
-            ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, preLightData.NdotV, L, VdotH, NdotL, weightOverPdf);
+            ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
         }
         else
         {
-            ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughness, preLightData.NdotV, L, VdotH, NdotL, weightOverPdf);
+            ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughness, NdotV, L, VdotH, NdotL, weightOverPdf);
         }
 
 
