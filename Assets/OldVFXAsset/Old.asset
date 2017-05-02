@@ -353,6 +353,8 @@ VFXAsset:
       m_Array: []
     m_Vector4f:
       m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
     m_NamedObject:
       m_Array:
       - m_ExpressionIndex: 9
