@@ -402,10 +402,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private class Styles
         {
             public readonly GUIContent   sssProfilePreview0        = new GUIContent("Profile Preview");
-            public readonly GUIContent   sssProfilePreview1        = new GUIContent("Shows the fraction of light scattered from the source as radius increases to 1.");
+            public readonly GUIContent   sssProfilePreview1        = new GUIContent("Shows the fraction of light scattered from the source as the radius increases to 1.");
             public readonly GUIContent   sssProfilePreview2        = new GUIContent("Note that the intensity of the region in the center may be clamped.");
             public readonly GUIContent   sssTransmittancePreview0  = new GUIContent("Transmittance Preview");
-            public readonly GUIContent   sssTransmittancePreview1  = new GUIContent("Shows the fraction of light passing through the object as thickness increases to 1.");
+            public readonly GUIContent   sssTransmittancePreview1  = new GUIContent("Shows the fraction of light passing through the object for thickness values from the remap.");
+            public readonly GUIContent   sssTransmittancePreview2  = new GUIContent("Can be thought of as a cross section of a slab of material illuminated by a white light from the left.");
             public readonly GUIContent   sssProfileStdDev1         = new GUIContent("Standard Deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
             public readonly GUIContent   sssProfileStdDev2         = new GUIContent("Standard Deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
             public readonly GUIContent   sssProfileLerpWeight      = new GUIContent("Filter Interpolation", "Controls linear interpolation between the two Gaussian filters.");
@@ -417,8 +418,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             };
             public readonly GUIContent   sssProfileTransmission    = new GUIContent("Enable Transmission", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
             public readonly GUIContent   sssProfileTintColor       = new GUIContent("Transmission Tint Color", "Tints transmitted light.");
-            public readonly GUIContent   sssProfileMinMaxThickness = new GUIContent("Min-Max Thickness", "Shows the values of the thickness remap below.");
-            public readonly GUIContent   sssProfileThicknessRemap  = new GUIContent("Thickness Remap", "Remaps the thickness parameter from [0, 1] to the desired range.");
+            public readonly GUIContent   sssProfileMinMaxThickness = new GUIContent("Min-Max Thickness", "Shows the values of the thickness remap below (in centimeters).");
+            public readonly GUIContent   sssProfileThicknessRemap  = new GUIContent("Thickness Remap", "Remaps the thickness parameter from [0, 1] to the desired range (in centimeters).");
 
             public readonly GUIStyle     centeredMiniBoldLabel     = new GUIStyle(GUI.skin.label);
 
@@ -500,6 +501,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.sssTransmittancePreview0, styles.centeredMiniBoldLabel);
             EditorGUILayout.LabelField(styles.sssTransmittancePreview1, EditorStyles.centeredGreyMiniLabel);
+            EditorGUILayout.LabelField(styles.sssTransmittancePreview2, EditorStyles.centeredGreyMiniLabel);
             EditorGUILayout.Space();
 
             // Draw the transmittance graph.

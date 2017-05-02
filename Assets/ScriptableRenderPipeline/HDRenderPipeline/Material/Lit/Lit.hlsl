@@ -50,9 +50,10 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
 // SSS parameters
-#define SSS_N_PROFILES      8
-#define SSS_UNIT_CONVERSION (1.0 / 300.0)                  // From 1/3 centimeters to meters
-#define SSS_LOW_THICKNESS   0.002                          // 2 mm
+#define SSS_N_PROFILES        8
+#define SSS_UNIT_CONVERSION   (1.0 / 300.0)                // From 1/3 centimeters to meters
+#define SSS_LOW_THICKNESS     0.005                        // 0.5 cm
+#define CENTIMETERS_TO_METERS (1.0 / 100.0)
 
 uint   _EnableSSS;                                         // Globally toggles subsurface scattering on/off
 uint   _TransmissionFlags;                                 // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
@@ -129,7 +130,7 @@ float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
     // thickness /= radiusScale;
-    thickness /= SSS_UNIT_CONVERSION;
+    thickness /= CENTIMETERS_TO_METERS;
 
     float t2 = thickness * thickness;
 
@@ -162,8 +163,8 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     bsdfData.subsurfaceProfile = subsurfaceProfile;
     // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
     bsdfData.subsurfaceRadius = SSS_UNIT_CONVERSION * subsurfaceRadius + 0.0001;
-    bsdfData.thickness = SSS_UNIT_CONVERSION * (_ThicknessRemaps[subsurfaceProfile][0] +
-                                                _ThicknessRemaps[subsurfaceProfile][1] * thickness);
+    bsdfData.thickness = CENTIMETERS_TO_METERS * (_ThicknessRemaps[subsurfaceProfile][0] +
+                                                  _ThicknessRemaps[subsurfaceProfile][1] * thickness);
 
     bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, subsurfaceProfile);
     if (bsdfData.enableTransmission)
