@@ -51,7 +51,6 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 
 // SSS parameters
 #define SSS_N_PROFILES        8
-#define SSS_UNIT_CONVERSION   (1.0 / 300.0)                // From 1/3 centimeters to meters
 #define SSS_LOW_THICKNESS     0.005                        // 0.5 cm
 #define CENTIMETERS_TO_METERS (1.0 / 100.0)
 
@@ -161,10 +160,9 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     // TODO take from subsurfaceProfile
     bsdfData.fresnel0 = 0.04; // Should be 0.028 for the skin
     bsdfData.subsurfaceProfile = subsurfaceProfile;
-    // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
-    bsdfData.subsurfaceRadius = SSS_UNIT_CONVERSION * subsurfaceRadius + 0.0001;
-    bsdfData.thickness = CENTIMETERS_TO_METERS * (_ThicknessRemaps[subsurfaceProfile][0] +
-                                                  _ThicknessRemaps[subsurfaceProfile][1] * thickness);
+    bsdfData.subsurfaceRadius  = CENTIMETERS_TO_METERS * subsurfaceRadius + 0.0001;
+    bsdfData.thickness         = CENTIMETERS_TO_METERS * (_ThicknessRemaps[subsurfaceProfile][0] +
+                                                          _ThicknessRemaps[subsurfaceProfile][1] * thickness);
 
     bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, subsurfaceProfile);
     if (bsdfData.enableTransmission)
