@@ -50,9 +50,10 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
 // SSS parameters
-#define SSS_N_PROFILES      8
-#define SSS_UNIT_CONVERSION (1.0 / 300.0)                  // From 1/3 centimeters to meters
-#define SSS_LOW_THICKNESS   0.002                          // 2 mm
+#define SSS_N_PROFILES        8
+#define SSS_UNIT_CONVERSION   (1.0 / 300.0)                // From 1/3 centimeters to meters
+#define SSS_LOW_THICKNESS     0.005                        // 0.5 cm
+#define CENTIMETERS_TO_METERS (1.0 / 100.0)
 
 uint   _EnableSSS;                                         // Globally toggles subsurface scattering on/off
 uint   _TransmissionFlags;                                 // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
@@ -129,7 +130,7 @@ float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
     // thickness /= radiusScale;
-    thickness /= SSS_UNIT_CONVERSION;
+    thickness /= CENTIMETERS_TO_METERS;
 
     float t2 = thickness * thickness;
 
@@ -162,8 +163,8 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     bsdfData.subsurfaceProfile = subsurfaceProfile;
     // Make the Std. Dev. of 1 correspond to the effective radius of 1 cm (three-sigma rule).
     bsdfData.subsurfaceRadius = SSS_UNIT_CONVERSION * subsurfaceRadius + 0.0001;
-    bsdfData.thickness = SSS_UNIT_CONVERSION * (_ThicknessRemaps[subsurfaceProfile][0] +
-                                                _ThicknessRemaps[subsurfaceProfile][1] * thickness);
+    bsdfData.thickness = CENTIMETERS_TO_METERS * (_ThicknessRemaps[subsurfaceProfile][0] +
+                                                  _ThicknessRemaps[subsurfaceProfile][1] * thickness);
 
     bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, subsurfaceProfile);
     if (bsdfData.enableTransmission)
@@ -503,7 +504,9 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 struct PreLightData
 {
     // General
-    float NdotV;
+    float NdotV;   // Between 0.0001 and 1
+    float unNdotV; // Between -1 and 1
+
 
     // GGX iso
     float ggxLambdaV;
@@ -534,9 +537,11 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // General
     float3 iblNormalWS = bsdfData.normalWS;
+
+    preLightData.unNdotV = dot(bsdfData.normalWS, V);
     // GetShiftedNdotV return a positive NdotV
     // In case a material use negative normal for double sided lighting like Speedtree  they need to do a new calculation
-    preLightData.NdotV = GetShiftedNdotV(iblNormalWS, V); // Handle artificat for specular lighting
+    preLightData.NdotV = GetShiftedNdotV(iblNormalWS, V, preLightData.unNdotV);
 
     // GGX iso
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
@@ -635,7 +640,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
             out float3 specularLighting)
 {
     float NdotL    = saturate(dot(bsdfData.normalWS, L));
-    float NdotV    = preLightData.NdotV;
+    float NdotV    = preLightData.unNdotV;             // This value must not be clamped
     float LdotV    = dot(L, V);
     // GCN Optimization: reference PBR Diffuse Lighting for GGX + Smith Microsurfaces
     float invLenLV = rsqrt(abs(2.0 * LdotV + 2.0));    // invLenLV = rcp(length(L + V))
@@ -661,12 +666,12 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         bsdfData.roughnessB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessB);
 
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, NdotV, TdotL, BdotL, NdotL,
-                                            bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXLambdaV);
+        Vis = V_SmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
+                                          bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXLambdaV);
         #else
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
-        Vis = V_SmithJointGGXAniso( preLightData.TdotV, preLightData.BdotV, NdotV, TdotL, BdotL, NdotL,
-                                    bsdfData.roughnessT, bsdfData.roughnessB);
+        Vis = V_SmithJointGGXAniso(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
+                                   bsdfData.roughnessT, bsdfData.roughnessB);
         #endif
 
         D = D_GGXAniso(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
@@ -676,9 +681,9 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         bsdfData.roughness = ClampRoughnessForAnalyticalLights(bsdfData.roughness);
 
         #ifdef LIT_USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
+        Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
         #else
-        Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness);
+        Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness);
         #endif
         D = D_GGX(NdotH, bsdfData.roughness);
     }
@@ -687,9 +692,9 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();
 #elif LIT_DIFFUSE_GGX_BRDF
-    float3 diffuseTerm = DiffuseGGX(bsdfData.diffuseColor, NdotV, NdotL, NdotH, LdotV, bsdfData.perceptualRoughness);
+    float3 diffuseTerm = DiffuseGGX(bsdfData.diffuseColor, preLightData.NdotV, NdotL, NdotH, LdotV, bsdfData.perceptualRoughness);
 #else
-    float  diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+    float  diffuseTerm = DisneyDiffuse(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
 #endif
 
     diffuseLighting = bsdfData.diffuseColor * diffuseTerm;

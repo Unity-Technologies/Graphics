@@ -1,7 +1,8 @@
 #ifndef UNITY_AREA_LIGHTING_INCLUDED
 #define UNITY_AREA_LIGHTING_INCLUDED
 
-#define SPHERE_LIGHT_APPROXIMATION
+#define APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+#define APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
 
 // Not normalized by the factor of 1/TWO_PI.
 float3 ComputeEdgeFactor(float3 V1, float3 V2)
@@ -40,92 +41,103 @@ float IntegrateEdge(float3 V1, float3 V2)
 // N.b.: this function accounts for horizon clipping.
 float DiffuseSphereLightIrradiance(float sinSqSigma, float cosOmega)
 {
-#if 1 // Use a numerical fit for the sphere light approximation found in Mathematica.
+#ifdef APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
     float x = sinSqSigma;
     float y = cosOmega;
 
-    // For most of the domain, the absolute error is pretty low, under 0.005.
-    // You can use the following Mathematica code to reproduce our results:
-    // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
-    // m = NonlinearModelFit[t, {x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3))}, {a, b, c, d, e}, {x, y}]
-    return saturate(x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
-#endif
-#if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
-    float sinSqOmega = saturate(1 - cosOmega * cosOmega);
-    float cosSqSigma = saturate(1 - sinSqSigma);
-    float sinSqGamma = saturate(cosSqSigma / sinSqOmega);
-    float cosSqGamma = saturate(1 - sinSqGamma);
+    #if 1
+        // Use a numerical fit found in Mathematica.
+        // For most of the domain, the absolute error is fairly low, under 0.005.
+        // You can use the following Mathematica code to reproduce our results:
+        // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
+        // m = NonlinearModelFit[t, x * (y + e) * (0.5 + (y - e) * (a + b * x + c * x^2 + d * x^3)), {a, b, c, d, e}, {x, y}]
+        return saturate(x * (0.9245867471551246 + y) * (0.5 + (-0.9245867471551246 + y) * (0.5359050373687144 + x * (-1.0054221851257754 + x * (1.8199061187417047 - x * 1.3172081704209504)))));
+    #else
+        // Another fit found with Mathematica. The absolute error is larger (around 0.02 on average), but the function is very smooth.
+        // You can use the following Mathematica code to reproduce our results:
+        // t = Flatten[Table[{x, y, f[x, y]}, {x, 0, 0.999999, 0.001}, {y, -0.999999, 0.999999, 0.002}], 1]
+        // m = NonlinearModelFit[t, 1 - (1 - x)^(a * (y + 1) + b * (y + 1)^2 + c * (y + 1)^3 + d * (y + 1)^4)}, {a, b, c, d}, {x, y}]
+        float p = saturate(0.14506085844485772 + y * (0.2858221675641456 + y * (0.23405929637528905 + y * (0.20682928702038633 + y * 0.1135312997643852))));
+        return saturate(1 - pow(1 - x, p));
+    #endif
+#else
+    #if 0 // Ref: Area Light Sources for Real-Time Graphics, page 4 (1996).
+        float sinSqOmega = saturate(1 - cosOmega * cosOmega);
+        float cosSqSigma = saturate(1 - sinSqSigma);
+        float sinSqGamma = saturate(cosSqSigma / sinSqOmega);
+        float cosSqGamma = saturate(1 - sinSqGamma);
 
-    float sinSigma = sqrt(sinSqSigma);
-    float sinGamma = sqrt(sinSqGamma);
-    float cosGamma = sqrt(cosSqGamma);
+        float sinSigma = sqrt(sinSqSigma);
+        float sinGamma = sqrt(sinSqGamma);
+        float cosGamma = sqrt(cosSqGamma);
 
-    float sigma = asin(sinSigma);
-    float omega = acos(cosOmega);
-    float gamma = asin(sinGamma);
+        float sigma = asin(sinSigma);
+        float omega = acos(cosOmega);
+        float gamma = asin(sinGamma);
 
-    if (omega >= HALF_PI + sigma)
-    {
-        // Full horizon occlusion (case #4).
-        return 0;
-    }
-
-    float e = sinSqSigma * cosOmega;
-
-    [branch]
-    if (omega < HALF_PI - sigma)
-    {
-        // No horizon occlusion (case #1).
-        return e;
-    }
-    else
-    {
-        float g = (-2 * sqrt(sinSqOmega * cosSqSigma) + sinGamma) * cosGamma + (HALF_PI - gamma);
-        float h = cosOmega * (cosGamma * sqrt(saturate(sinSqSigma - cosSqGamma)) + sinSqSigma * asin(saturate(cosGamma / sinSigma)));
-
-        if (omega < HALF_PI)
+        if (omega >= HALF_PI + sigma)
         {
-            // Partial horizon occlusion (case #2).
-            return saturate(e + INV_PI * (g - h));
+            // Full horizon occlusion (case #4).
+            return 0;
+        }
+
+        float e = sinSqSigma * cosOmega;
+
+        [branch]
+        if (omega < HALF_PI - sigma)
+        {
+            // No horizon occlusion (case #1).
+            return e;
         }
         else
         {
-            // Partial horizon occlusion (case #3).
-            return saturate(INV_PI * (g + h));
+            float g = (-2 * sqrt(sinSqOmega * cosSqSigma) + sinGamma) * cosGamma + (HALF_PI - gamma);
+            float h = cosOmega * (cosGamma * sqrt(saturate(sinSqSigma - cosSqGamma)) + sinSqSigma * asin(saturate(cosGamma / sinSigma)));
+
+            if (omega < HALF_PI)
+            {
+                // Partial horizon occlusion (case #2).
+                return saturate(e + INV_PI * (g - h));
+            }
+            else
+            {
+                // Partial horizon occlusion (case #3).
+                return saturate(INV_PI * (g + h));
+            }
         }
-    }
-#else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015, optimized).
-    float cosSqOmega = cosOmega * cosOmega;                     // y^2
+    #else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015, optimized).
+        float cosSqOmega = cosOmega * cosOmega;                     // y^2
 
-    [branch]
-    if (cosSqOmega > sinSqSigma)                                // (y^2)>x
-    {
-        return saturate(sinSqSigma * cosOmega);                 // Clip[x*y,{0,1}]
-    }
-    else
-    {
-        float cotSqSigma = rcp(sinSqSigma) - 1;                 // 1/x-1
-        float tanSqSigma = rcp(cotSqSigma);                     // x/(1-x)
-        float sinSqOmega = 1 - cosSqOmega;                      // 1-y^2
+        [branch]
+        if (cosSqOmega > sinSqSigma)                                // (y^2)>x
+        {
+            return saturate(sinSqSigma * cosOmega);                 // Clip[x*y,{0,1}]
+        }
+        else
+        {
+            float cotSqSigma = rcp(sinSqSigma) - 1;                 // 1/x-1
+            float tanSqSigma = rcp(cotSqSigma);                     // x/(1-x)
+            float sinSqOmega = 1 - cosSqOmega;                      // 1-y^2
 
-        float w = sinSqOmega * tanSqSigma;                      // (1-y^2)*(x/(1-x))
-        float x = -cosOmega * rsqrt(w);                         // -y*Sqrt[(1/x-1)/(1-y^2)]
-        float y = sqrt(sinSqOmega * tanSqSigma - cosSqOmega);   // Sqrt[(1-y^2)*(x/(1-x))-y^2]
-        float z = y * cotSqSigma;                               // Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
+            float w = sinSqOmega * tanSqSigma;                      // (1-y^2)*(x/(1-x))
+            float x = -cosOmega * rsqrt(w);                         // -y*Sqrt[(1/x-1)/(1-y^2)]
+            float y = sqrt(sinSqOmega * tanSqSigma - cosSqOmega);   // Sqrt[(1-y^2)*(x/(1-x))-y^2]
+            float z = y * cotSqSigma;                               // Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
 
-        float a = cosOmega * acos(x) - z;                       // y*ArcCos[-y*Sqrt[(1/x-1)/(1-y^2)]]-Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
-        float b = atan(y);                                      // ArcTan[Sqrt[(1-y^2)*(x/(1-x))-y^2]]
+            float a = cosOmega * acos(x) - z;                       // y*ArcCos[-y*Sqrt[(1/x-1)/(1-y^2)]]-Sqrt[(1-y^2)*(x/(1-x))-y^2]*(1/x-1)
+            float b = atan(y);                                      // ArcTan[Sqrt[(1-y^2)*(x/(1-x))-y^2]]
 
-        // Replacing max() with saturate() results in a 12 cycle SGPR forwarding stall on PS4.
-        return max(INV_PI * (a * sinSqSigma + b), 0);           // (a/Pi)*x+(b/Pi)
-    }
+            // Replacing max() with saturate() results in a 12 cycle SGPR forwarding stall on PS4.
+            return max(INV_PI * (a * sinSqSigma + b), 0);           // (a/Pi)*x+(b/Pi)
+        }
+    #endif
 #endif
 }
 
 // Expects non-normalized vertex positions.
 float PolygonIrradiance(float4x3 L)
 {
-#ifdef SPHERE_LIGHT_APPROXIMATION
+#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
     [unroll]
     for (uint i = 0; i < 4; i++)
     {
