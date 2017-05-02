@@ -114,16 +114,12 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
 
 #if defined(_VERTEX_LIGHTS)
                 half4 diffuseAndSpecular = half4(1.0, 1.0, 1.0, 1.0);
-                for (int lightIndex = globalLightCount.x; lightIndex < globalLightCount.y; ++lightIndex)
+                for (int lightIndex = globalLightData.x; lightIndex < globalLightData.y; ++lightIndex)
                 {
                     LightInput lightInput;
                     INITIALIZE_LIGHT(lightInput, lightIndex);
                     o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS, o.viewDir.xyz);
                 }
-#endif
-
-#ifndef _SHADOW_CASCADES
-                o.shadowCoord = mul(_WorldToShadow[0], float4(o.posWS, 1.0));
 #endif
 
 #ifdef _LIGHT_PROBES_ON
@@ -152,23 +148,24 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 half4 specularGloss;
                 SpecularGloss(i.uv01.xy, diffuse, alpha, specularGloss);
 
-#ifdef _SHADOWS
-                half shadowAttenuation = ComputeShadowAttenuation(i);
-#else
-                half shadowAttenuation = 1.0f;
-#endif
                 half3 viewDir = i.viewDir.xyz;
 
                 // TODO: Restrict pixel lights by 4. This way we can keep moderate constrain for most LD project
                 // and can benefit from better data layout/avoid branching by doing vec math.
                 half3 color = half3(0, 0, 0);
-                for (int lightIndex = 0; lightIndex < globalLightCount.x; ++lightIndex)
+                for (int lightIndex = 0; lightIndex < globalLightData.x; ++lightIndex)
                 {
-                    LightInput additionalLight;
-                    INITIALIZE_LIGHT(additionalLight, lightIndex);
-                    color += EvaluateOneLight(additionalLight, diffuse, specularGloss, normal, i.posWS, viewDir);
+                    LightInput lightData;
+                    half NdotL;
+                    INITIALIZE_LIGHT(lightData, lightIndex);
+                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL); 
+#ifdef _SHADOWS
                     if (lightIndex == 0)
-                        color *= shadowAttenuation;
+                    {
+                        float bias = max(globalLightData.z, (1.0 - NdotL) * globalLightData.w);
+                        color *= ComputeShadowAttenuation(i, i.normal * bias);
+                    }
+#endif
                 }
 
                 half3 emissionColor;
@@ -210,50 +207,17 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             #pragma vertex vert
             #pragma fragment frag
 
-            float4 _WorldLightDirAndBias;
-
             #include "UnityCG.cginc"
 
-            struct VertexInput
+            float4 vert(float4 pos : POSITION) : SV_POSITION
             {
-                float4 pos : POSITION;
-                float3 normal : NORMAL;
-            };
-
-            // Similar to UnityClipSpaceShadowCasterPos but using LDPipeline lightdir and bias and applying near plane clamp
-            float4 ClipSpaceShadowCasterPos(float4 vertex, float3 normal)
-            {
-                float4 wPos = mul(unity_ObjectToWorld, vertex);
-
-                if (_WorldLightDirAndBias.w > 0.0)
-                {
-                    float3 wNormal = UnityObjectToWorldNormal(normal);
-
-                    // apply normal offset bias (inset position along the normal)
-                    // bias needs to be scaled by sine between normal and light direction
-                    // (http://the-witness.net/news/2013/09/shadow-mapping-summary-part-1/)
-                    //
-                    // _WorldLightDirAndBias.w shadow bias defined in LRRenderPipeline asset
-
-                    float shadowCos = dot(wNormal, _WorldLightDirAndBias.xyz);
-                    float shadowSine = sqrt(1 - shadowCos*shadowCos);
-                    float normalBias = _WorldLightDirAndBias.w * shadowSine;
-
-                    wPos.xyz -= wNormal * normalBias;
-                }
-
-                float4 clipPos = mul(UNITY_MATRIX_VP, wPos);
+            	float4 clipPos = UnityObjectToClipPos(pos);
 #if defined(UNITY_REVERSED_Z)
                 clipPos.z = min(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #else
                 clipPos.z = max(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #endif
                 return clipPos;
-            }
-
-            float4 vert(VertexInput i) : SV_POSITION
-            {
-                return ClipSpaceShadowCasterPos(i.pos, i.normal);
             }
 
             half4 frag() : SV_TARGET
@@ -263,28 +227,28 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             ENDCG
         }
 
-                // This pass it not used during regular rendering, only for lightmap baking.
-                Pass
-                {
-                    Name "LD_META"
-                    Tags{ "LightMode" = "Meta" }
+        // This pass it not used during regular rendering, only for lightmap baking.
+        Pass
+        {
+            Name "LD_META"
+            Tags{ "LightMode" = "Meta" }
 
-                    Cull Off
+            Cull Off
 
-                    CGPROGRAM
-                    #pragma vertex vert_meta
-                    #pragma fragment frag_meta
+            CGPROGRAM
+            #pragma vertex vert_meta
+            #pragma fragment frag_meta
 
-                    #pragma shader_feature _EMISSION
-                    #pragma shader_feature _METALLICGLOSSMAP
-                    #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-                    #pragma shader_feature ___ _DETAIL_MULX2
-                    #pragma shader_feature EDITOR_VISUALIZATION
+            #pragma shader_feature _EMISSION
+            #pragma shader_feature _METALLICGLOSSMAP
+            #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature ___ _DETAIL_MULX2
+            #pragma shader_feature EDITOR_VISUALIZATION
 
-                    #include "UnityStandardMeta.cginc"
-                    ENDCG
-                }
+            #include "UnityStandardMeta.cginc"
+            ENDCG
         }
-        Fallback "Standard (Specular setup)"
-        CustomEditor "LowendMobilePipelineMaterialEditor"
+    }
+    Fallback "Standard (Specular setup)"
+    CustomEditor "LowendMobilePipelineMaterialEditor"
 }

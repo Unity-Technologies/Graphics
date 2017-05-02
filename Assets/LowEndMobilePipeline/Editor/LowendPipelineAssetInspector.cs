@@ -29,7 +29,9 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                     "Offset shadow near plane to account for large triangles being distorted by pancaking");
 
             public static GUIContent shadowDistante = new GUIContent("Shadow Distance", "Max shadow drawing distance");
-            public static GUIContent shadowBias = new GUIContent("Shadow Bias");
+
+            public static GUIContent shadowMinBias = new GUIContent("Shadow Min Normal Bias Offset", "Minimum value of normal bias offset applied");
+            public static GUIContent shadowBias = new GUIContent("Shadow Normal Bias", "Normal bias offset value.");
 
             public static GUIContent shadowAtlasResolution = new GUIContent("Shadow Map Resolution",
                     "Resolution of shadow map texture. If cascades are enabled all cascades will be packed into this texture resolution.");
@@ -47,7 +49,8 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
         private SerializedProperty m_EnableAmbientProbeProp;
         private SerializedProperty m_ShadowTypeProp;
         private SerializedProperty m_ShadowNearPlaneOffsetProp;
-        private SerializedProperty m_ShadowBiasProperty;
+        private SerializedProperty m_ShadowMinNormalBiasProperty;
+        private SerializedProperty m_ShadowNormalBiasProperty;
         private SerializedProperty m_ShadowDistanceProp;
         private SerializedProperty m_ShadowAtlasResolutionProp;
         private SerializedProperty m_ShadowCascadesProp;
@@ -62,7 +65,8 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             m_EnableAmbientProbeProp = serializedObject.FindProperty("m_EnableAmbientProbe");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
             m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
-            m_ShadowBiasProperty = serializedObject.FindProperty("m_ShadowBias");
+            m_ShadowMinNormalBiasProperty = serializedObject.FindProperty("m_MinShadowNormalBias");
+            m_ShadowNormalBiasProperty = serializedObject.FindProperty("m_ShadowNormalBias");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
             m_ShadowAtlasResolutionProp = serializedObject.FindProperty("m_ShadowAtlasResolution");
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
@@ -91,7 +95,8 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             EditorGUILayout.PropertyField(m_ShadowTypeProp, Styles.shadowType);
             EditorGUILayout.PropertyField(m_ShadowAtlasResolutionProp, Styles.shadowAtlasResolution);
             EditorGUILayout.PropertyField(m_ShadowNearPlaneOffsetProp, Styles.shadowNearPlaneOffset);
-            EditorGUILayout.PropertyField(m_ShadowBiasProperty, Styles.shadowBias);
+            EditorGUILayout.PropertyField(m_ShadowMinNormalBiasProperty, Styles.shadowMinBias);
+            EditorGUILayout.PropertyField(m_ShadowNormalBiasProperty, Styles.shadowBias);
             EditorGUILayout.PropertyField(m_ShadowDistanceProp, Styles.shadowDistante);
             EditorGUILayout.PropertyField(m_ShadowCascadesProp, Styles.shadowCascades);
 
