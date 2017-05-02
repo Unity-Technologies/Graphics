@@ -1,57 +1,31 @@
-VFXOperatorUI Button
+.VFXNodeUI Button
 {
 	height:17;
 }
 
-VFXParameterUI Button
-{
-height:17;
-}
-
-VFXOperatorUI.node.horizontal
-{
-	width:-1;
-}
-VFXParameterUI.node.horizontal
+.VFXNodeUI.node.horizontal
 {
 	width:-1;
 }
 
-VFXOperatorUI.node.horizontal #pane
+.VFXNodeUI.node.horizontal #pane
 {
-border-top:2;
-border-bottom:2;
-border-left:2;
-border-right:2;
-}
-VFXParameterUI.node.horizontal #pane
-{
-border-top:2;
-border-bottom:2;
-border-left:2;
-border-right:2;
+	border-top:2;
+	border-bottom:2;
+	border-left:2;
+	border-right:2;
 }
 
 .node.horizontal #left > #title > Label {
 	text-color: #c4c4c4;
 }
 
-VFXOperatorUI.node.horizontal #pane > #left
-{
-	width:250;
-}
-VFXParameterUI.node.horizontal #pane > #left
+.VFXNodeUI.node.horizontal #pane > #left
 {
 	width:250;
 }
 
-VFXOperatorUI.node.horizontal #pane > #right
-{
-	width:70;
-	padding-left:2;
-	padding-right:2;
-}
-VFXParameterUI.node.horizontal #pane > #right
+.VFXNodeUI.node.horizontal #pane > #right
 {
 	width:70;
 	padding-left:2;

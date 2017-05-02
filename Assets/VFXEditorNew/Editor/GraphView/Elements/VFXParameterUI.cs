@@ -19,6 +19,7 @@ namespace UnityEditor.VFX.UI
             leftContainer.clipChildren = false;
             rightContainer.clipChildren = false;
             outputContainer.clipChildren = false;
+            AddToClassList("VFXNodeUI");
         }
         public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
         {

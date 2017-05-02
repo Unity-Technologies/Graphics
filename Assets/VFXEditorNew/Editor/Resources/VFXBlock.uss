@@ -16,6 +16,17 @@ VFXBlockUI.node.horizontal #pane
 	flex:1;
 }
 
+VFXBlockUI.VFXNodeUI.node.horizontal #pane > #left
+{
+	width:-1;
+}
+
+VFXBlockUI.VFXNodeUI.node.horizontal #pane > #right
+{
+	width:0;
+	visible:false;
+}
+
 VFXBlockUI.horizontal.node #pane > #left
 {
 	width:-1;
