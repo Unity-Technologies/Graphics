@@ -117,8 +117,9 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 for (int lightIndex = globalLightData.x; lightIndex < globalLightData.y; ++lightIndex)
                 {
                     LightInput lightInput;
+                    half NdotL;
                     INITIALIZE_LIGHT(lightInput, lightIndex);
-                    o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS, o.viewDir.xyz);
+                    o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS, o.viewDir.xyz, NdotL);
                 }
 #endif
 
@@ -162,8 +163,13 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
 #ifdef _SHADOWS
                     if (lightIndex == 0)
                     {
+                    	#if _NORMALMAP
+                    	float3 vertexNormal = float3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
+                    	#else
+                    	float3 vertexNormal = i.normal;
+                    	#endif
                         float bias = max(globalLightData.z, (1.0 - NdotL) * globalLightData.w);
-                        color *= ComputeShadowAttenuation(i, i.normal * bias);
+                        color *= ComputeShadowAttenuation(i, vertexNormal * bias);
                     }
 #endif
                 }
