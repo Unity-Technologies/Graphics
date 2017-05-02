@@ -80,11 +80,20 @@ namespace UnityEditor.VFX.UI
                     };
                     AddChild(line);
                 }
+
             }
+            m_Label.width = defaultLabelWidth - presenter.depth * VFXPropertyIM.depthOffset;
             //m_Label.marginLeft = presenter.depth * VFXPropertyIM.depthOffset;
             AddChild(m_Label);
 
             AddToClassList("propertyrm");
+        }
+
+        public virtual float defaultLabelWidth
+        {
+            get{
+                return 100;
+            }
         }
 
         static Dictionary<Type,Type> m_TypeDictionary =  new Dictionary<Type,Type>
@@ -671,6 +680,13 @@ namespace UnityEditor.VFX.UI
                 base.enabled = value;
                 if (m_Button != null)
                     m_Button.enabled = value;
+            }
+        }
+
+        public override float defaultLabelWidth
+        {
+            get{
+            return 64;
             }
         }
     }

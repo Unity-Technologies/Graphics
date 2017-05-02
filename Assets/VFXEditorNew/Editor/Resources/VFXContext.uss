@@ -11,7 +11,7 @@ VFXContextUI #NodeContents
 	width:368;
 	border-color: rgb(51, 51, 51);
 	border-radius:6;
-	border-width: 2;
+	border-width: 1;
 	padding-top : 12;
 	padding-bottom : 12;
 }
@@ -27,7 +27,7 @@ VFXContextUI .Extremity
 	margin-right:12;
 	padding-top:10;
 	padding-bottom:10;
-	border-radius:4;
+	border-radius:2;
 	justify-content:center;
 	background-color:#414141;
 	margin-bottom:1;
@@ -55,18 +55,27 @@ VFXContextUI #HeaderIcon
 
 VFXContextUI #HeaderSpace
 {
-	border-width:1;
-	border-radius:4;
-	padding-left:4;
-	padding-right:4;
-	padding-bottom:2;
-	padding-top:2;
-	border-color: rgb(153,153,153);
-	text-color: rgb(153,153,153);
-	text-alignment: middle-center;
+	width:48;
+	height:16;
 	position-type:absolute;
 	position-right:5;
 	position-top:10;
+}
+
+
+VFXContextUI #HeaderSpace.spaceLocal
+{
+	background-image:resource("VFX/title-local");
+}
+
+VFXContextUI #HeaderSpace.spaceGlobal
+{
+	background-image:resource("VFX/title-global");
+}
+
+VFXContextUI #HeaderSpace.spaceCamera
+{
+	background-image:resource("VFX/title-camera");
 }
 
 VFXContextUI #FooterIcon
@@ -78,7 +87,7 @@ VFXContextUI .icon
 {
 	background-image:resource("VFX/Execution");
 	width:16;
-	height:14;
+	height:16;
 }
 
 VFXContextUI > * >#Title {
