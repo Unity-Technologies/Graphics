@@ -247,7 +247,9 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             cmd.SetGlobalVectorArray("globalLightColor", m_LightColors);
             cmd.SetGlobalVectorArray("globalLightAtten", m_LightAttenuations);
             cmd.SetGlobalVectorArray("globalLightSpotDir", m_LightSpotDirections);
-            cmd.SetGlobalVector("globalLightCount", new Vector4(pixelLightCount, totalLightCount, 0.0f, 0.0f));
+            float shadowMinNormalBias = m_Asset.ShadowMinNormalBias;
+            float shadowNormalBias = m_Asset.ShadowNormalBias;
+            cmd.SetGlobalVector("globalLightData", new Vector4(pixelLightCount, totalLightCount, shadowMinNormalBias, shadowNormalBias));
             SetShaderKeywords(cmd, vertexLightCount > 0);
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -361,8 +363,6 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             buffer.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY,
                     m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
             buffer.SetViewProjectionMatrices(view, proj);
-            buffer.SetGlobalVector("_WorldLightDirAndBias",
-                new Vector4(-lightDir.x, -lightDir.y, -lightDir.z, m_Asset.ShadowBias));
             context.ExecuteCommandBuffer(buffer);
             buffer.Dispose();
 
