@@ -1,14 +1,13 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.SceneManagement;
 using Object = UnityEngine.Object;
-using System.Text.RegularExpressions;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.TestTools;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -28,6 +27,7 @@ namespace UnityEditor.Experimental.Rendering
             public string name;
             public float threshold;
 			public string relativePath;
+            public int frameWait;
 
             public override string ToString()
             {
@@ -53,27 +53,34 @@ namespace UnityEditor.Experimental.Rendering
 						var p = new FileInfo (path);
 						var split = s_Path.Aggregate ("", Path.Combine);
 						split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
-						var splitPaths = p.FullName.Split (new [] {split}, StringSplitOptions.RemoveEmptyEntries);
+                        var splitPaths = p.FullName.Split(new[] {split}, StringSplitOptions.RemoveEmptyEntries);
 
 						yield return new TestInfo
 						{
 							name = p.Name,
 							relativePath = splitPaths.Last(),
-							threshold = 0.02f
+							threshold = 0.02f,
+                            frameWait = 10
 						};
                     }
                 }
             }
         }
 
-        [Test, TestCaseSource(typeof(CollectScenes), "scenes")]
-        public void TestScene(TestInfo testInfo)
+        [UnityTest]
+//        [TestCaseSource(typeof(CollectScenes), "scenes") ]
+        public IEnumerator TestScene([ValueSource(typeof(CollectScenes), "scenes")]TestInfo testInfo)
         {
 			var prjRelativeGraphsPath = s_Path.Aggregate("Assets", Path.Combine);
 			var filePath = Path.Combine(prjRelativeGraphsPath, testInfo.relativePath);
-
+            
 			// open the scene
             EditorSceneManager.OpenScene(filePath);
+
+            for (int i = 0; i < testInfo.frameWait; ++i)
+            {
+               yield return null;
+            }
 
 			var testSetup = Object.FindObjectOfType<SetupSceneForRenderPipelineTest> ();
 			Assert.IsNotNull(testSetup, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
