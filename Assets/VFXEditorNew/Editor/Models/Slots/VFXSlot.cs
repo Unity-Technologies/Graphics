@@ -125,6 +125,18 @@ namespace UnityEditor.VFX
             }
         }
 
+        // Get relevant expressions in the while hierarchy
+        public void GetExpressions(HashSet<VFXExpression> expressions)
+        {
+            var exp = GetExpression();
+            if (exp != null)
+                expressions.Add(exp);
+            else 
+                foreach (var child in children)
+                    child.GetExpressions(expressions);
+
+        }
+
         public VFXExpression DefaultExpr
         {
             get
@@ -161,6 +173,19 @@ namespace UnityEditor.VFX
                 return GetParent().GetTopMostParent();
         }
 
+        public void SetOwner(VFXModel owner)
+        {
+            if (m_Owner != null)
+                (m_Owner as IVFXSlotContainer).RemoveSlot(this);
+
+            m_Owner = owner;
+
+            foreach(VFXSlot child in children)
+            {
+                child.SetOwner(owner);
+            }
+        }
+
         // Create and return a slot hierarchy from a property info
         public static VFXSlot Create(VFXProperty property, Direction direction, object value = null)
         {
@@ -183,7 +208,9 @@ namespace UnityEditor.VFX
                 {
                     var subSlot = CreateSub(subInfo, direction);
                     if (subSlot != null)
+                    {
                         subSlot.Attach(slot,false);
+                    }
                 }
 
                 return slot;
@@ -459,6 +486,9 @@ namespace UnityEditor.VFX
                         slot.InvalidateExpressionTree();
                 }
             }
+
+            if (masterSlot.GetOwner() != null && direction == Direction.kInput)
+                masterSlot.owner.Invalidate(InvalidationCause.kExpressionInvalidated);
         }
 
         public void UnlinkAll(bool notify = true)
@@ -506,7 +536,7 @@ namespace UnityEditor.VFX
 
         protected virtual VFXValue DefaultExpression() 
         {
-            return null; 
+            return null;
         }
 
         // Expression cache
@@ -550,7 +580,7 @@ namespace UnityEditor.VFX
         private MasterData m_MasterData;
 
         [SerializeField]
-        public VFXModel m_Owner;
+        VFXModel m_Owner;
 
         [SerializeField]
         private VFXProperty m_Property;

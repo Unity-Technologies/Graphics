@@ -214,6 +214,20 @@ namespace UnityEditor.VFX.UI
             {
                 VFXContext context = ((VFXContextPresenter)element).context;
 
+
+                foreach(VFXBlockPresenter blockPres in (element as VFXContextPresenter).blockPresenters)
+                {
+                    foreach (var slot in blockPres.slotContainer.outputSlots)
+                    {
+                        slot.UnlinkAll();
+                    }
+                    foreach (var slot in blockPres.slotContainer.inputSlots)
+                    {
+                        slot.UnlinkAll();
+                    }
+                }
+
+
                 // First we need to disconnect context if needed
                 VFXSystem.DisconnectContext(context, m_GraphAsset.root);
                 var system = context.GetParent();
@@ -225,14 +239,14 @@ namespace UnityEditor.VFX.UI
                 m_GraphAsset.root.RemoveChild(context.GetParent());
                 context.Detach();
             }
-            else if (element is VFXNodePresenter)
+            else if( element is VFXNodePresenter)
             {
                 var operatorPresenter = element as VFXNodePresenter;
                 RecordModel(operatorPresenter.model.name, RecordEvent.Remove);
                 VFXSlot slotToClean = null;
                 do
                 {
-                    slotToClean = operatorPresenter.node.inputSlots.Concat(operatorPresenter.node.outputSlots)
+                    slotToClean = operatorPresenter.slotContainer.inputSlots.Concat(operatorPresenter.slotContainer.outputSlots)
                                     .FirstOrDefault(o => o.HasLink());
                     if (slotToClean)
                     {
@@ -240,10 +254,11 @@ namespace UnityEditor.VFX.UI
                     }
                 } while (slotToClean != null);
 
-                m_GraphAsset.root.RemoveChild(operatorPresenter.node);
-                Undo.DestroyObjectImmediate(operatorPresenter.node);
+                m_GraphAsset.root.RemoveChild(operatorPresenter.model);
+                Undo.DestroyObjectImmediate(operatorPresenter.model);
                 RecreateNodeEdges();
             }
+            
             else if (element is VFXFlowEdgePresenter)
             {
                 var anchorPresenter = ((VFXFlowEdgePresenter)element).input;
@@ -341,8 +356,10 @@ namespace UnityEditor.VFX.UI
         private static void CollectChildOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
         {
             hashChildren.Add(operatorInput);
-
-            var all = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(o => o.m_Owner));
+            
+            var all = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(
+                o => o.owner
+                ));
             var children = all.Cast<IVFXSlotContainer>();
             foreach (var child in children)
             {

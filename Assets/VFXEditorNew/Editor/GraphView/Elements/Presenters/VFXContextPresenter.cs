@@ -127,6 +127,18 @@ namespace UnityEditor.VFX.UI
         {
             Undo.RecordObject(model, "Remove Block");
             context.RemoveChild(block);
+
+            VFXSlot slotToClean = null;
+            do
+            {
+                slotToClean = block.inputSlots.Concat(block.outputSlots)
+                                .FirstOrDefault(o => o.HasLink());
+                if (slotToClean)
+                {
+                    slotToClean.UnlinkAll();
+                }
+            } while (slotToClean != null);
+
             Undo.DestroyObjectImmediate(block);
         }
 

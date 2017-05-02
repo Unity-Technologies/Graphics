@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
             kParamPropagated,       // Some parameter values have change and was propagated from the parents
             kParamExpanded,         // Some parameter values have beed expanded or retracted
             kConnectionChanged,     // Connection have changed
-            kConnectionPropagated,  // No direct change to the model but a change in connection was propagated from the parents
+            kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
             kUIChanged,             // UI stuff has changed
         }
 
