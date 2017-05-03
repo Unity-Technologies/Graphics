@@ -1,0 +1,338 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!2058629509 &8926484042661614526
+VFXAsset:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Simplest
+  m_XmlGraph: "<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<Graph Version=\"10\">\r\n
+    \   <System ModelId=\"0\" WorldSpace=\"False\" MaxNb=\"1024\" SpawnRate=\"10\"
+    BlendingMode=\"kAlpha\" SoftParticlesFadeDistance=\"0\" OrderPriority=\"0\" RenderQueueDelta=\"0\">\r\n
+    \       <Context DescId=\"Initialize\" Position=\"-860,230\" Collapsed=\"False\">\r\n
+    \           <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockVelocityConstant\"
+    Hash=\"-754220764\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"0\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockPositionAABBSequence\"
+    Hash=\"34849907\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"4\">\r\n                    <Values>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>0</kFloat>\r\n                        <kFloat>0</kFloat>\r\n
+    \                       <kFloat>16</kFloat>\r\n                        <kFloat>16</kFloat>\r\n
+    \                       <kFloat>1</kFloat>\r\n                    </Values>\r\n
+    \                   <Collapsed>false true true true true true true true true</Collapsed>\r\n
+    \                   <WorldSpace>false false false false false false false false
+    false</WorldSpace>\r\n                </Slot>\r\n                <Slot SlotId=\"13\">\r\n
+    \                   <Values>\r\n                        <kFloat>16</kFloat>\r\n
+    \                       <kFloat>16</kFloat>\r\n                        <kFloat>1</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true true true
+    true</Collapsed>\r\n                    <WorldSpace>false false false false</WorldSpace>\r\n
+    \               </Slot>\r\n            </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSizeConstantSquare\"
+    Hash=\"-339160254\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"17\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n            <Block DescId=\"UnityEditor.Experimental.VFX.VFXBlockSetLifetimeConstant\"
+    Hash=\"-339160254\" Collapsed=\"False\" Enabled=\"True\">\r\n                <Slot
+    SlotId=\"18\">\r\n                    <Values>\r\n                        <kFloat>1</kFloat>\r\n
+    \                   </Values>\r\n                    <Collapsed>true</Collapsed>\r\n
+    \                   <WorldSpace>false</WorldSpace>\r\n                </Slot>\r\n
+    \           </Block>\r\n        </Context>\r\n        <Context DescId=\"Particle
+    Update\" Position=\"-860,640\" Collapsed=\"False\" />\r\n        <Context DescId=\"Billboard
+    Output\" Position=\"-860,890\" Collapsed=\"False\">\r\n            <Slot SlotId=\"19\">\r\n
+    \               <Values>\r\n                    <kTexture2D>276d9e395ae18fe40a9b4988549f2349</kTexture2D>\r\n
+    \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
+    \           </Slot>\r\n            <Slot SlotId=\"20\">\r\n                <Values>\r\n
+    \                   <kFloat>0</kFloat>\r\n                    <kFloat>0</kFloat>\r\n
+    \               </Values>\r\n                <Collapsed>true true true</Collapsed>\r\n
+    \               <WorldSpace>false false false</WorldSpace>\r\n            </Slot>\r\n
+    \       </Context>\r\n    </System>\r\n    <SpawnerNode ModelId=\"1\" Position=\"-857,27\">\r\n
+    \       <SpawnerBlock Type=\"kConstantRate\" Collapsed=\"False\">\r\n            <Slot
+    SlotId=\"23\">\r\n                <Values>\r\n                    <kFloat>1024</kFloat>\r\n
+    \               </Values>\r\n                <Collapsed>true</Collapsed>\r\n                <WorldSpace>false</WorldSpace>\r\n
+    \           </Slot>\r\n        </SpawnerBlock>\r\n    </SpawnerNode>\r\n    <Connections
+    />\r\n    <SpawnerConnections Id=\"1\">0</SpawnerConnections>\r\n</Graph>"
+  m_Systems:
+  - m_Id: 0
+    m_Capacity: 1024
+    m_SimulationShader: {fileID: 7200000, guid: c6f8cf21ce86afd45b1c57ca95be8f5c,
+      type: 3}
+    m_OutputShader: {fileID: 4800000, guid: e7be8858bffad8f439bfc941619eac14, type: 3}
+    m_BufferDesc:
+    - m_InitName: <noninit>
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
+      m_Flags: 0
+      m_Stride: 4
+      m_PerPoint: 0
+    - m_InitName: <noninit>
+      m_UpdateName: bounds
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 12
+      m_PerPoint: 0
+    - m_InitName: flags
+      m_UpdateName: flags
+      m_OutputName: flags
+      m_Flags: 512
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: deadListIn
+      m_UpdateName: deadListOut
+      m_OutputName: <noninit>
+      m_Flags: 514
+      m_Stride: 4
+      m_PerPoint: 1
+    - m_InitName: deadListCount
+      m_UpdateName: <noninit>
+      m_OutputName: <noninit>
+      m_Flags: 768
+      m_Stride: 4
+      m_PerPoint: 0
+    - m_InitName: attribBuffer0
+      m_UpdateName: attribBuffer0_RO
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 16
+      m_PerPoint: 1
+    - m_InitName: attribBuffer1
+      m_UpdateName: attribBuffer1
+      m_OutputName: attribBuffer1
+      m_Flags: 512
+      m_Stride: 16
+      m_PerPoint: 1
+    - m_InitName: attribBuffer2
+      m_UpdateName: <noninit>
+      m_OutputName: attribBuffer2
+      m_Flags: 512
+      m_Stride: 8
+      m_PerPoint: 1
+    - m_InitName: attribBuffer3
+      m_UpdateName: attribBuffer3
+      m_OutputName: <noninit>
+      m_Flags: 512
+      m_Stride: 4
+      m_PerPoint: 1
+    m_OutputType: 1
+    m_SpawnRate: 10
+    m_OrderPriority: 0
+    m_HasKill: 1
+    m_HasIndirectOutput: 0
+    m_OutputDataIndex: -1
+    m_InitUniforms:
+      m_Uniforms:
+      - name: initUniform0_kVFXCombine3fOp
+        index: 19
+      - name: initUniform1_kVFXCombine3fOp
+        index: 18
+      - name: initUniform2_kVFXCombine3fOp
+        index: 20
+      - name: initUniform3_kVFXCombine3fOp
+        index: 17
+      - name: initUniform4_kVFXValueOp
+        index: 16
+      - name: initUniform5_kVFXValueOp
+        index: 12
+    m_UpdateUniforms:
+      m_Uniforms:
+      - name: updateUniform0_kVFXDeltaTimeOp
+        index: 13
+    m_OutputUniforms:
+      m_Uniforms:
+      - name: outputSampler0_kVFXValueOpTexture
+        index: 15
+    m_SpawnerIndices: 00000000
+  m_Expressions:
+    m_Expressions:
+    - op: 0
+      valueIndex: 0
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 1
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 2
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 3
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 4
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 5
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 6
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 7
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 8
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 9
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 10
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 11
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 12
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 10
+      valueIndex: 13
+      data[0]: 0
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 14
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 15
+      data[0]: 7
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 0
+      valueIndex: 17
+      data[0]: 1
+      data[1]: 0
+      data[2]: 0
+      data[3]: 0
+    - op: 2
+      valueIndex: 18
+      data[0]: 6
+      data[1]: 5
+      data[2]: 4
+      data[3]: 0
+    - op: 2
+      valueIndex: 21
+      data[0]: 11
+      data[1]: 10
+      data[2]: 2
+      data[3]: 0
+    - op: 2
+      valueIndex: 24
+      data[0]: 9
+      data[1]: 8
+      data[2]: 7
+      data[3]: 0
+    - op: 2
+      valueIndex: 27
+      data[0]: 1
+      data[1]: 0
+      data[2]: 3
+      data[3]: 0
+    m_NeedsLocalToWorld: 0
+    m_NeedsWorldToLocal: 0
+  m_Spawners:
+  - - m_Type: 0
+      m_ExpressionIndices: 0e000000
+      m_CustomUserClass: {fileID: 0}
+  m_SpawnerEvents:
+  - m_Name: OnStart
+    m_StartSpawners: 00000000
+    m_StopSpawners: 
+  - m_Name: OnStop
+    m_StartSpawners: 
+    m_StopSpawners: 00000000
+  m_ExposedExpressions: []
+  m_ExposedEditorDescs: []
+  m_FloatTexture: {fileID: 0}
+  m_Bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_PropertySheet:
+    m_Float:
+      m_Array:
+      - m_ExpressionIndex: 0
+        m_Value: 16
+      - m_ExpressionIndex: 1
+        m_Value: 16
+      - m_ExpressionIndex: 2
+        m_Value: 0
+      - m_ExpressionIndex: 3
+        m_Value: 1
+      - m_ExpressionIndex: 4
+        m_Value: 1
+      - m_ExpressionIndex: 5
+        m_Value: 16
+      - m_ExpressionIndex: 6
+        m_Value: 16
+      - m_ExpressionIndex: 7
+        m_Value: 0
+      - m_ExpressionIndex: 8
+        m_Value: 0
+      - m_ExpressionIndex: 9
+        m_Value: 0
+      - m_ExpressionIndex: 10
+        m_Value: 0
+      - m_ExpressionIndex: 11
+        m_Value: 0
+      - m_ExpressionIndex: 12
+        m_Value: 1
+      - m_ExpressionIndex: 14
+        m_Value: 1024
+      - m_ExpressionIndex: 16
+        m_Value: 1
+    m_Vector2f:
+      m_Array: []
+    m_Vector3f:
+      m_Array: []
+    m_Vector4f:
+      m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
+    m_NamedObject:
+      m_Array:
+      - m_ExpressionIndex: 15
+        m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
