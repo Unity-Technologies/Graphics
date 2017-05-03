@@ -43,9 +43,9 @@ half3 distanceFromAABB(half3 p, half3 aabbMin, half3 aabbMax)
 
 #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
 void frag (unity_v2f_deferred i,
-	in half4 outGBuffer0 : SV_Target0,
-	in half4 outGBuffer1 : SV_Target1,
-	in half4 outGBuffer2 : SV_Target2,
+	in half4 gbuffer0 : SV_Target0,
+	in half4 gbuffer1 : SV_Target1,
+	in half4 gbuffer2 : SV_Target2,
 	out half4 outEmission : SV_Target3, 
 	in float outLinearDepth : SV_Target4)
 #else
@@ -111,8 +111,14 @@ half4 frag (unity_v2f_deferred i) : SV_TARGET
     half3 distance = distanceFromAABB(worldPos, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
     half falloff = saturate(1.0 - length(distance)/blendDistance);
 
+    half4 ret = half4(rgb*falloff, 1-falloff);
+
     // UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. TODO: Should preclear emission alpha after gbuffer pass in case this ever changes
-    return half4(rgb*falloff, 1-falloff);
+    #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
+    	outEmission = ret;
+    #else
+        return ret;
+    #endif
 }
 
 ENDCG
