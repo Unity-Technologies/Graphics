@@ -1,10 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
+﻿using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
-	[ExecuteInEditMode]
 	public class SetupSceneForRenderPipelineTest : MonoBehaviour 
 	{
 		private RenderPipelineAsset m_OriginalAsset;
@@ -15,13 +12,13 @@ namespace UnityEngine.Experimental.Rendering
 		public int width = 1280;
 		public int height = 720;
 
-		void OnEnable()
+		public void Setup()
 		{
 			m_OriginalAsset = GraphicsSettings.renderPipelineAsset;
 			GraphicsSettings.renderPipelineAsset = renderPipeline;
 		}
 
-		void OnDisable()
+		public void TearDown()
 		{
 			GraphicsSettings.renderPipelineAsset = m_OriginalAsset;
 		}
