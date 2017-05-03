@@ -3,6 +3,7 @@ VFXBlockUI.node.horizontal {
 	flex:1;
 	align-items:stretch;
 	margin-bottom:1;
+	border-radius:2;
 }
 
 VFXBlockUI.node.horizontal #pane

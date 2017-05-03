@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.UI
             GUILayout.Label(presenter.name, styles.baseStyle, GUILayout.Width(kLabelWidth), GUILayout.Height(styles.lineHeight));
         }
 
-        public const int iconSize = 14;
+        public const int iconSize = 16;
         public const float depthOffset = 12;
     }
 

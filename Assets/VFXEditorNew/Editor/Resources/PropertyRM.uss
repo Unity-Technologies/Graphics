@@ -21,7 +21,6 @@
 .propertyrm #label
 {
     text-color: rgb(153,153,153);
-    min-width:100;
 }
 
 .spaceablepropertyrm.propertyrm #label
@@ -45,13 +44,13 @@
 
 .propertyrm > FloatField
 {
-	margin-bottom:1;
+	margin-bottom:3;
 }
 
 .propertyrm .fieldContainer > *
 {
     flex:1;
-	margin-bottom:1;
+	margin-bottom:3;
 	margin-left:6;
 }
 .propertyrm .textfield

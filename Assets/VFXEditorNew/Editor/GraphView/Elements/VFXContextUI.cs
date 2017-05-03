@@ -145,7 +145,6 @@ namespace UnityEditor.VFX.UI
 
             m_HeaderSpace = new VisualElement();
             m_HeaderSpace.name = "HeaderSpace";
-            m_HeaderSpace.text = CoordinateSpace.Global.ToString();
             m_HeaderSpace.AddManipulator(new Clickable(OnSpace));
 
             m_Header.AddChild(m_HeaderSpace);
@@ -209,7 +208,7 @@ namespace UnityEditor.VFX.UI
         void OnSpace()
         {
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
-            int result = (int)System.Enum.Parse(typeof(CoordinateSpace),m_HeaderSpace.text);
+            int result = (int)presenter.context.space;
 
             presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (int)(CoordinateSpace.SpaceCount));
 
@@ -487,7 +486,7 @@ namespace UnityEditor.VFX.UI
                     return Resources.Load<Texture2D>("VFX/Execution");
                     break;
                 case VFXDataType.kParticle:
-                    return EditorGUIUtility.LoadIcon("Particle Effect");
+                    return Resources.Load<Texture2D>("VFX/Particles");
             }
             return null;
         }
@@ -513,7 +512,12 @@ namespace UnityEditor.VFX.UI
             RemoveFromClassList("update");
             RemoveFromClassList("output");
 
-            m_HeaderSpace.text = (presenter.context.space).ToString();
+
+            foreach(int val in System.Enum.GetValues(typeof(CoordinateSpace)))
+            {
+                m_HeaderSpace.RemoveFromClassList("space"+((CoordinateSpace)val).ToString() );
+            }
+            m_HeaderSpace.AddToClassList("space"+(presenter.context.space).ToString());
 
             switch (contextType)
             {
