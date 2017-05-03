@@ -44,8 +44,14 @@ namespace UnityEditor.VFX
         {
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
 
+            if (!slot.IsMasterSlot())
+                throw new ArgumentException();
+
             if (slot.owner != this as IVFXSlotContainer)
             {
+                if (slot.owner != null)
+                    slot.owner.RemoveSlot(slot);
+
                 slotList.Add(slot);
                 slot.SetOwner(this);
                 Invalidate(InvalidationCause.kStructureChanged);
@@ -55,6 +61,9 @@ namespace UnityEditor.VFX
         public virtual void RemoveSlot(VFXSlot slot)
         {
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
+
+            if (!slot.IsMasterSlot())
+                throw new ArgumentException();
 
             if (slot.owner == this as IVFXSlotContainer)
             {
