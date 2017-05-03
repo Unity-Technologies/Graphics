@@ -63,8 +63,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // Properties
         // Material ID
-        protected MaterialProperty materialID = null;
-        protected const string kMaterialID = "_MaterialID";
+        protected MaterialProperty materialID  = null;
+        protected const string     kMaterialID = "_MaterialID";
+
+        protected const string     kStencilRef = "_StencilRef";
 
         // Wind
         protected MaterialProperty windEnable = null;
@@ -264,25 +266,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool depthOffsetEnable = material.GetFloat(kDepthOffsetEnable) > 0.0f;
             SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
-            int stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.Standard; // See 'StencilBits'.
+            // Temp. material ID upgrade workaround: determine the material ID from the stencil reference value.
+            // Select the menu item [HDRenderPipeline -> Reset all material keywords] to proceed.
+            // Remove after upgrading all projects!
             if (material.HasProperty(kMaterialID))
             {
-                int materialID = (int)material.GetFloat(kMaterialID);
+                int sr = (int)material.GetFloat(kStencilRef);
+                Debug.Assert(sr > 0, "The stencil reference value must be greater than 0. This material will have an incorrect ID assigned to it.");
 
-                switch (materialID)
-                {
-                    case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS:
-                        stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.SSS;
-                        break;
-                    case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitStandard:
-                        stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.Standard;
-                        break;
-                    default:
-                        stencilRef = 1 + materialID;
-                        break;
-                }
+                material.SetInt(kMaterialID, sr - 1);
             }
-            material.SetInt("_StencilRef", stencilRef);
+
+            // Set the reference value for the stencil test.
+            int stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.Standard;
+            if (material.HasProperty(kMaterialID))
+            {
+                stencilRef = 1 + (int)material.GetFloat(kMaterialID);
+            }
+            material.SetInt(kStencilRef, stencilRef);
 
             bool enablePerPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) > 0.0f;
             SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", enablePerPixelDisplacement);
