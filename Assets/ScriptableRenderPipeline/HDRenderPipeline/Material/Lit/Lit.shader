@@ -38,6 +38,9 @@ Shader "HDRenderPipeline/Lit"
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
 
+        _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
+        _SpecularColorMap("SpecularColorMap", 2D) = "white" {}
+
         // Wind
         [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
         _InitialBend("Initial Bend", float) = 1.0
@@ -45,12 +48,6 @@ Shader "HDRenderPipeline/Lit"
         _Drag("Drag", float) = 1.0
         _ShiverDrag("Shiver Drag", float) = 0.2
         _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
-
-        //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
-        //_CoatCoverageMap("CoatCoverageMapMap", 2D) = "white" {}
-
-        //_CoatRoughness("CoatRoughness", Range(0.0, 1.0)) = 0
-        //_CoatRoughnessMap("CoatRoughnessMap", 2D) = "white" {}
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
@@ -92,7 +89,7 @@ Shader "HDRenderPipeline/Lit"
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
-        [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2, Specular Color, 3)] _MaterialID("MaterialId", Int) = 0
+        [Enum(Standard, 0, Subsurface Scattering, 1, Specular Color, 2)] _MaterialID("MaterialId", Int) = 0
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
@@ -139,7 +136,8 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _ANISOTROPYMAP
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
-    #pragma shader_feature _THICKNESS_MAP
+    #pragma shader_feature _THICKNESSMAP
+    #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _VERTEX_WIND
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
