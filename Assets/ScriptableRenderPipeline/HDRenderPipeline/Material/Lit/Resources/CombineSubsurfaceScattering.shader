@@ -108,7 +108,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float2 unitDirection = float2(0, 1);
             #endif
 
-                float2   scaledDirection  = distScale * stepSize * unitDirection;
+                float    scaledStepSize   = distScale * stepSize;
+                float2   scaledDirection  = scaledStepSize * unitDirection;
                 float    phi              = 0; // Random rotation; unused for now
                 float2x2 rotationMatrix   = float2x2(cos(phi), -sin(phi), sin(phi), cos(phi));
                 float2   rotatedDirection = mul(rotationMatrix, scaledDirection);
@@ -120,10 +121,29 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float  halfRcpVariance = _HalfRcpWeightedVariances[profileID].a;
             #endif
 
+            #ifdef SSS_FILTER_HORIZONTAL_AND_COMBINE
+                bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, profileID);
+
+                // It's either post-scatter, or pre- and post-scatter texturing.
+                float3 albedoContrib = performPostScatterTexturing ? bsdfData.diffuseColor
+                                                                   : sqrt(bsdfData.diffuseColor);
+            #else
+                float3 albedoContrib = float3(1, 1, 1);
+            #endif
+
                 // Take the first (central) sample.
                 float2 samplePosition   = posInput.unPositionSS;
                 float3 sampleWeight     = _FilterKernels[profileID][0].rgb;
                 float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
+
+                // The max. value of the scattering distance is 2. We perform point sampling.
+                // Therefore, we do not need to perform filtering if (scaledStepSize * 2 < 0.5).
+                // This is a conservative estimate.
+                [branch]
+                if (scaledStepSize < 0.25)
+                {
+                    return float4(albedoContrib * sampleIrradiance, 1);
+                }
 
                 // Accumulate filtered irradiance.
                 float3 totalIrradiance = sampleWeight * sampleIrradiance;
@@ -163,16 +183,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     totalWeight     += sampleWeight;
                 }
 
-            #ifdef SSS_FILTER_HORIZONTAL_AND_COMBINE
-                bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, profileID);
-
-                // It's either post-scatter, or pre- and post-scatter texturing.
-                float3 diffuseContrib = performPostScatterTexturing ? bsdfData.diffuseColor
-                                                                    : sqrt(bsdfData.diffuseColor);
-                return float4(diffuseContrib * totalIrradiance / totalWeight, 1.0);
-            #else
-                return float4(totalIrradiance / totalWeight, 1.0);
-            #endif
+                return float4(albedoContrib * totalIrradiance / totalWeight, 1);
             }
             ENDHLSL
         }
