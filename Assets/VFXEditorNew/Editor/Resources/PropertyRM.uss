@@ -1,6 +1,5 @@
 .propertyrm
 {
-    margin-left:12;
     flex-direction: row;
 }
 

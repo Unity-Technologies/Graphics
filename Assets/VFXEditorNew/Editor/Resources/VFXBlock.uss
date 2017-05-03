@@ -21,6 +21,11 @@ VFXBlockUI.VFXNodeUI.node.horizontal #pane > #left
 	width:-1;
 }
 
+.VFXNodeUI  .propertyrm
+{
+	margin-left:12;
+}
+
 VFXBlockUI.VFXNodeUI.node.horizontal #pane > #right
 {
 	width:0;
