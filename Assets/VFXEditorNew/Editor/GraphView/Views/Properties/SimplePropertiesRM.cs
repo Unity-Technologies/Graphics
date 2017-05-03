@@ -1,0 +1,85 @@
+using System.Collections.Generic;
+using System.Reflection;
+using UnityEngine;
+using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEditor.Experimental.UIElements;
+using UnityEditor.VFX;
+using UnityEditor.VFX.UIElements;
+using Object = UnityEngine.Object;
+using Type = System.Type;
+
+namespace UnityEditor.VFX.UI
+{
+    class IntPropertyRM : SimplePropertyRM<int>
+    {
+        public IntPropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        {
+        }
+
+        public override ValueControl<int> CreateField()
+        {
+            return new IntField(m_Label);
+        }
+    }
+
+    class FloatPropertyRM : SimplePropertyRM<float>
+    {
+        public FloatPropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        {
+        }
+
+        public override ValueControl<float> CreateField()
+        {
+            return new FloatField(m_Label);
+        }
+    }
+
+    class CurvePropertyRM : SimplePropertyRM<AnimationCurve>
+    {
+        public CurvePropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        {
+        }
+
+        public override ValueControl<AnimationCurve> CreateField()
+        {
+            return new CurveField(m_Label);
+        }
+    }
+
+    class Vector4PropertyRM : SimplePropertyRM<Vector4>
+    {
+        public Vector4PropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        {
+        }
+
+        public override ValueControl<Vector4> CreateField()
+        {
+            return new Vector4Field(m_Label);
+        }
+    }
+
+    class Vector3PropertyRM : SimplePropertyRM<Vector3>
+    {
+        public Vector3PropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        {
+        }
+
+        public override ValueControl<Vector3> CreateField()
+        {
+            return new Vector3Field(m_Label);
+        }
+    }
+
+    class Vector2PropertyRM : SimplePropertyRM<Vector2>
+    {
+        public Vector2PropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        {
+        }
+
+        public override ValueControl<Vector2> CreateField()
+        {
+            return new Vector2Field(m_Label);
+        }
+    }
+}
