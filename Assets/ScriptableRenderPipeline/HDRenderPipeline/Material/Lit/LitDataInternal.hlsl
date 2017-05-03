@@ -254,8 +254,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     // Mandatory to setup value to keep compiler quiet
 
-    // Layered shader only support materialId 0
-    surfaceData.materialId = 0;
+    // Layered shader only supports the standard material
+    surfaceData.materialId = 1; // MaterialId.LitStandard
 
     // All these parameters are ignore as they are re-setup outside of the layers function
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
