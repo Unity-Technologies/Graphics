@@ -136,11 +136,12 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float3 sampleWeight     = _FilterKernels[profileID][0].rgb;
                 float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
 
-                // The max. value of the scattering distance is 2. We perform point sampling.
-                // Therefore, we do not need to perform filtering if (scaledStepSize * 2 < 0.5).
-                // This is a conservative estimate.
+                // We perform point sampling. Therefore, we can avoid the cost
+                // of filtering if we stay within the bounds of the current pixel.
+                float maxDistance = _FilterKernels[profileID][N_SAMPLES - 1].a;
+
                 [branch]
-                if (scaledStepSize < 0.25)
+                if (scaledStepSize * maxDistance < 0.5)
                 {
                     return float4(albedoContrib * sampleIrradiance, 1);
                 }
