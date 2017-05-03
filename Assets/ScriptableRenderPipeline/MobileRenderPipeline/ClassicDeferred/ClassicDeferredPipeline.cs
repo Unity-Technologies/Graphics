@@ -596,9 +596,10 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 				// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here. 
 				var matrix = Matrix4x4.TRS (lightPos, Quaternion.identity, new Vector3 (range*PointLightMeshScaleFactor, range*PointLightMeshScaleFactor, range*PointLightMeshScaleFactor));
 
-				if (cookie!=null)
+				if (cookie != null) {
+					cmd.DisableShaderKeyword ("POINT");
 					cmd.EnableShaderKeyword ("POINT_COOKIE");
-
+				}
 				if (renderAsQuad) {
 					cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
 				} else {
@@ -642,9 +643,10 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 				var LightMatrix0 = temp2 * temp1 * worldToLight;
 				props.SetMatrix ("_LightMatrix0", LightMatrix0);
 			
-				if (cookie != null)
+				if (cookie != null) {
+					cmd.DisableShaderKeyword ("DIRECTIONAL");
 					cmd.EnableShaderKeyword ("DIRECTIONAL_COOKIE");
-			
+				}
 				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
 			}
 		}
