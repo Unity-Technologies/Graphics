@@ -266,17 +266,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool depthOffsetEnable = material.GetFloat(kDepthOffsetEnable) > 0.0f;
             SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
-            // Temp. material ID upgrade workaround: determine the material ID from the stencil reference value.
-            // Select the menu item [HDRenderPipeline -> Reset all material keywords] to proceed.
-            // Remove after upgrading all projects!
-            if (material.HasProperty(kMaterialID))
-            {
-                int sr = (int)material.GetFloat(kStencilRef);
-                Debug.Assert(sr > 0, "The stencil reference value must be greater than 0. This material will have an incorrect ID assigned to it.");
-
-                material.SetInt(kMaterialID, sr - 1);
-            }
-
             // Set the reference value for the stencil test.
             int stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.Standard;
             if (material.HasProperty(kMaterialID))
