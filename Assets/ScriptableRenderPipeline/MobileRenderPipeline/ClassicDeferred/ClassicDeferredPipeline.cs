@@ -49,11 +49,15 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		foreach (Renderer _renderer in _renderers) {
 			Material[] _materials = _renderer.sharedMaterials;
 			foreach (Material _material in _materials) {
+				if (_material == null)
+					continue;
+				
 				if (_material.shader.name.Contains ("Standard (Specular setup)")) {
 					_material.shader = Shader.Find("Standard-SRP (Specular setup)");
 				} else if (_material.shader.name.Contains ("Standard")) {
 					_material.shader = Shader.Find("Standard-SRP");
 				}
+
 			}
 		}
 	}
