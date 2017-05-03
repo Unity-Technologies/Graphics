@@ -60,15 +60,24 @@ namespace UnityEditor.Experimental.Rendering
 							name = p.Name,
 							relativePath = splitPaths.Last(),
 							threshold = 0.02f,
-                            frameWait = 10
+                            frameWait = 100
 						};
                     }
                 }
             }
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            var testSetup = Object.FindObjectOfType<SetupSceneForRenderPipelineTest>();
+            if (testSetup == null)
+                return;
+
+            testSetup.TearDown();
+        }
+
         [UnityTest]
-//        [TestCaseSource(typeof(CollectScenes), "scenes") ]
         public IEnumerator TestScene([ValueSource(typeof(CollectScenes), "scenes")]TestInfo testInfo)
         {
 			var prjRelativeGraphsPath = s_Path.Aggregate("Assets", Path.Combine);
@@ -77,16 +86,23 @@ namespace UnityEditor.Experimental.Rendering
 			// open the scene
             EditorSceneManager.OpenScene(filePath);
 
-            for (int i = 0; i < testInfo.frameWait; ++i)
-            {
-               yield return null;
-            }
-
-			var testSetup = Object.FindObjectOfType<SetupSceneForRenderPipelineTest> ();
+            var testSetup = Object.FindObjectOfType<SetupSceneForRenderPipelineTest> ();
 			Assert.IsNotNull(testSetup, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
 			Assert.IsNotNull(testSetup.cameraToUse, "No configured camera in <SetupSceneForRenderPipelineTest>");
 
-			var rtDesc = new RenderTextureDescriptor (
+            testSetup.Setup();
+
+            for (int i = 0; i < testInfo.frameWait; ++i)
+            {
+                yield return null;
+            }
+
+            while (Lightmapping.isRunning)
+            {
+                yield return null;
+            }
+
+            var rtDesc = new RenderTextureDescriptor (
 				             testSetup.width,
 				             testSetup.height,
 				             testSetup.hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32,
