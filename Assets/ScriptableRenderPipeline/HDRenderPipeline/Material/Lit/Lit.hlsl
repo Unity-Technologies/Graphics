@@ -641,14 +641,14 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
             out float3 specularLighting)
 {
     // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
-    float NdotL    = saturate(dot(bsdfData.normalWS, L));
-    float NdotV    = preLightData.NdotV;        // Get the unaltered (geometric) version
+    float NdotL    = saturate(dot(bsdfData.normalWS, L)); // Must have the same value without the clamp
+    float NdotV    = preLightData.NdotV;                  // Get the unaltered (geometric) version
     float LdotV    = dot(L, V);
-    float invLenLV = rsqrt(abs(2 * LdotV + 2)); // invLenLV = rcp(length(L + V))
+    float invLenLV = rsqrt(abs(2 * LdotV + 2));           // invLenLV = rcp(length(L + V))
     float NdotH    = saturate((NdotL + NdotV) * invLenLV);
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
 
-    NdotV          = max(NdotV, MIN_N_DOT_V);   // Use the modified (clamped) version
+    NdotV          = max(NdotV, MIN_N_DOT_V);             // Use the modified (clamped) version
 
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
@@ -1023,16 +1023,15 @@ void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
         float  sinLT = length(cross(L, T));
         float  NdotL = saturate(dot(bsdfData.normalWS, L));
 
-        float3 lightDiff, lightSpec;
+        if (NdotL > 0)
+        {
+            float3 lightDiff, lightSpec;
 
-        BSDF(V, L, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
+            BSDF(V, L, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
 
-        // The value of the specular BSDF could be infinite.
-        // Summing up infinities leads to NaNs.
-        lightSpec = min(lightSpec, FLT_MAX);
-
-        diffuseLighting  += lightDiff * (sinLT / dist2 * NdotL);
-        specularLighting += lightSpec * (sinLT / dist2 * NdotL);
+            diffuseLighting  += lightDiff * (sinLT / dist2 * NdotL);
+            specularLighting += lightSpec * (sinLT / dist2 * NdotL);
+        }
     }
 
     // The factor of 2 is due to the fact: Integral{0, 2 PI}{max(0, cos(x))dx} = 2.
