@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6e7465350bf0d248b4799d98e18cd24, type: 3}
+  m_Name: FoliageSSSProfile
+  m_EditorClassIdentifier: 
+  stdDev1: {r: 0.27931032, g: 1, b: 0.050000012, a: 0}
+  stdDev2: {r: 0.3010142, g: 0.8235294, b: 0.05, a: 0}
+  lerpWeight: 0.5
+  texturingMode: 0
+  enableTransmission: 1
+  tintColor: {r: 1, g: 1, b: 1, a: 1}
+  thicknessRemap: {x: 0, y: 0.2873168}
+  settingsIndex: 0
+  m_FilterKernel:
+  - {x: 0.28517896, y: 0.09090909, z: 0.9996764, w: -0.00000009903661}
+  - {x: 0.22566724, y: 0.09090909, z: 0.00016186091, w: -0.209237}
+  - {x: 0.10604589, y: 0.09090909, z: 8.6876086e-17, w: -0.43068767}
+  - {x: 0.024215871, y: 0.09090909, z: 5.8571e-41, w: -0.6816498}
+  - {x: 0.0014802383, y: 0.09090909, z: 0, w: -1.0000685}
+  - {x: 0.0000013396462, y: 0.09090909, z: 0, w: -1.5417894}
+  - {x: 0.22566712, y: 0.09090909, z: 0.00016185877, w: 0.20923716}
+  - {x: 0.10604589, y: 0.09090909, z: 8.6876086e-17, w: 0.43068767}
+  - {x: 0.02421585, y: 0.09090909, z: 5.857e-41, w: 0.6816499}
+  - {x: 0.0014802383, y: 0.09090909, z: 0, w: 1.0000685}
+  - {x: 0.0000013396391, y: 0.09090909, z: 0, w: 1.5417898}
+  m_HalfRcpVariances:
+  - {x: 6.4090853, y: 0.5, z: 199.99991}
+  - {x: 5.518182, y: 0.7372449, z: 200}
+  m_HalfRcpWeightedVariances: {x: 5.9386554, y: 0.60145676, z: 199.99997, w: 0.60145676}

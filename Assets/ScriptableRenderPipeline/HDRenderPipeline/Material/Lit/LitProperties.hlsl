@@ -85,13 +85,9 @@ SAMPLER2D(sampler_SubsurfaceRadiusMap);
 TEXTURE2D(_ThicknessMap);
 SAMPLER2D(sampler_ThicknessMap);
 
-// float _CoatCoverage;
-//TEXTURE2D(_CoatCoverageMap);
-//SAMPLER2D(sampler_CoatCoverageMap);
-
-// float _CoatRoughness;
-//TEXTURE2D(_CoatRoughnessMap);
-//SAMPLER2D(sampler_CoatRoughnessMap);
+float4 _SpecularColor;
+TEXTURE2D(_SpecularColorMap);
+SAMPLER2D(sampler_SpecularColorMap);
 
 float _TexWorldScale;
 float4 _UVMappingMask;
