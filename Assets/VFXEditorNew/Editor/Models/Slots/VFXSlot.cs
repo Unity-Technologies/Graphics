@@ -31,9 +31,9 @@ namespace UnityEditor.VFX
             {
                 try
                 {
-                    if (GetParent() == null)
+                    if (IsMasterSlot())
                     {
-                        return m_Value.Get();
+                        return GetMasterData().m_Value.Get();
                     }
                     else
                     {
@@ -55,9 +55,9 @@ namespace UnityEditor.VFX
             {
                 try
                 {
-                    if (GetParent() == null)
+                    if (IsMasterSlot())
                     {
-                        m_Value.Set(value);
+                        GetMasterData().m_Value.Set(value);
                         UpdateDefaultExpressionValue();
                         if (owner != null)
                             owner.Invalidate(InvalidationCause.kParamChanged);
@@ -163,34 +163,44 @@ namespace UnityEditor.VFX
             } 
         }
 
-        public IVFXSlotContainer owner { get { return m_Owner as IVFXSlotContainer; } }
+        public IVFXSlotContainer owner { get { return GetMasterData().m_Owner as IVFXSlotContainer; } }
 
-        public VFXSlot GetTopMostParent() // TODO Cache this instead of walking the hierarchy every time
-        {
-            if (GetParent() == null)
-                return this;
-            else
-                return GetParent().GetTopMostParent();
-        }
+        public bool IsMasterSlot()          { return m_MasterSlot == this; }
+        public VFXSlot GetMasterSlot()      { return m_MasterSlot; }
+        private MasterData GetMasterData()  { return GetMasterSlot().m_MasterData; }
 
+        // Never call this directly ! Called only by VFXSlotContainerModel
         public void SetOwner(VFXModel owner)
         {
-            if (m_Owner != null)
-                (m_Owner as IVFXSlotContainer).RemoveSlot(this);
+            if (IsMasterSlot())
+                m_MasterData.m_Owner = owner;
+            else
+                throw new InvalidOperationException();
 
-            m_Owner = owner;
+           // m_Owner = owner;
 
-            foreach(VFXSlot child in children)
+           /* foreach(VFXSlot child in children)
             {
                 child.SetOwner(owner);
-            }
+            }*/
         }
 
         // Create and return a slot hierarchy from a property info
         public static VFXSlot Create(VFXProperty property, Direction direction, object value = null)
         {
             var slot = CreateSub(property, direction); // First create slot tree
-            slot.value = value; // Then set value
+
+            var masterData = new MasterData();
+            masterData.m_Owner = null;
+            masterData.m_Value = new VFXSerializableObject(property.type,value);
+
+            slot.PropagateToChildren(s => {
+                s.m_MasterSlot = slot;
+                s.m_MasterData = null;
+            });
+            slot.m_MasterData = masterData;
+            slot.UpdateDefaultExpressionValue();
+
             return slot;
         }
      
@@ -202,7 +212,7 @@ namespace UnityEditor.VFX
                 var slot = desc.CreateInstance();
                 slot.m_Direction = direction;
                 slot.m_Property = property;
-                slot.m_Value = new VFXSerializableObject(property.type);
+                //slot.m_Value = new VFXSerializableObject(property.type);
 
                 foreach (var subInfo in property.SubProperties())
                 {
@@ -231,6 +241,25 @@ namespace UnityEditor.VFX
                 Debug.Log(String.Format("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
 
             m_ExpressionTreeUpToDate = false;
+
+            // Fix master stuff (not needed normally)
+            /*if (m_MasterSlot == null)
+            {
+                if (GetParent() == null)
+                    PropagateToChildren(s => s.m_MasterSlot = this);
+            }
+            else if (IsMasterSlot())
+            {
+                if (m_MasterData == null)
+                {
+                    var masterData = new MasterData();
+                    m_MasterData.m_Owner = null;
+                    m_MasterData.m_Value = new VFXSerializableObject(property.type);
+                }
+            }
+            else
+                m_MasterData = null; // Non master slot will always have a null master data
+            */
         }
 
         private void SetDefaultExpressionValue()
@@ -262,7 +291,7 @@ namespace UnityEditor.VFX
         {
             if (!m_DefaultExpressionInitialized)
                 InitDefaultExpression();
-            GetTopMostParent().PropagateToChildren(s => SetDefaultExpressionValue() );
+            GetMasterSlot().PropagateToChildren(s => SetDefaultExpressionValue() );
         }
 
         void InvalidateChildren(VFXModel model, InvalidationCause cause)
@@ -281,9 +310,10 @@ namespace UnityEditor.VFX
             // TODO this breaks the rule that invalidate propagate upwards only
             // Remove this and handle the downwards propagation in the delegate directly if needed!
             InvalidateChildren(model, cause);
-            
-            if (m_Owner != null && direction == Direction.kInput)
-                m_Owner.Invalidate(cause);
+
+            var owner = this.owner;
+            if (owner != null  && direction == Direction.kInput)
+                owner.Invalidate(cause);
         }
 
         public override T Clone<T>()
@@ -293,6 +323,33 @@ namespace UnityEditor.VFX
 
             cloneSlot.m_LinkedSlots.Clear();
             return clone;
+        }
+
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+
+            var parent = GetParent();
+            PropagateToChildren(s =>
+            {
+                s.m_MasterData = null;
+                s.m_MasterSlot = parent.m_MasterSlot;
+            });
+        }
+
+        protected override void OnRemoved()
+        {
+            base.OnRemoved();
+
+            var masterData = new MasterData();
+            masterData.m_Owner = null;
+            masterData.m_Value = new VFXSerializableObject(property.type,value);
+
+            PropagateToChildren(s => { 
+                s.m_MasterData = null;
+                s.m_MasterSlot = this;
+            });
+            m_MasterData = masterData;
         }
     
         public int GetNbLinks() { return m_LinkedSlots.Count; }
@@ -366,20 +423,10 @@ namespace UnityEditor.VFX
             PropagateToChildren(func);
         }
 
-
-        protected IVFXSlotContainer GetOwner()
-        {
-            var parent = GetParent();
-            if (parent != null)
-                return parent.GetOwner();
-            else
-                return owner;
-        }
-
         private void RecomputeExpressionTree()
         {
             // Start from the top most parent
-            var masterSlot = GetTopMostParent();
+            var masterSlot = GetMasterSlot();
 
             // TODO This is a hack that should not be needed! Investigate why (has to do with floatN I think)
             if (!m_DefaultExpressionInitialized)
@@ -392,7 +439,6 @@ namespace UnityEditor.VFX
                 masterSlot.PropagateToChildren(s => s.m_LinkedInExpression = s.HasLink() ? s.refSlot.GetExpression() : null); // this will trigger recomputation of linked expressions if needed
             else
             {
-                var owner = GetOwner();
                 if (owner != null)
                     owner.UpdateOutputs();
                 else
@@ -443,7 +489,6 @@ namespace UnityEditor.VFX
                 m_OutExpression = exp;
                 if (direction == Direction.kInput)
                 {
-                    var owner = GetOwner();
                     if (owner != null)
                         toInvalidate.UnionWith(owner.outputSlots);
                 }
@@ -456,7 +501,6 @@ namespace UnityEditor.VFX
 
         private string GetOwnerType()
         {
-            var owner = GetOwner();
             if (owner != null)
                 return owner.GetType().Name;
             else
@@ -465,7 +509,7 @@ namespace UnityEditor.VFX
 
         private void InvalidateExpressionTree()
         {
-            var masterSlot = GetTopMostParent();
+            var masterSlot = GetMasterSlot();
 
             masterSlot.PropagateToChildren(s => {
                 if (s.m_ExpressionTreeUpToDate)
@@ -479,7 +523,6 @@ namespace UnityEditor.VFX
 
             if (masterSlot.direction == Direction.kInput)
             {
-                var owner = masterSlot.GetOwner();
                 if (owner != null)
                 {
                     foreach (var slot in owner.outputSlots)
@@ -487,8 +530,8 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if (masterSlot.GetOwner() != null && direction == Direction.kInput)
-                masterSlot.owner.Invalidate(InvalidationCause.kExpressionInvalidated);
+            if (owner != null && direction == Direction.kInput)
+                owner.Invalidate(InvalidationCause.kExpressionInvalidated);
         }
 
         public void UnlinkAll(bool notify = true)
@@ -552,35 +595,16 @@ namespace UnityEditor.VFX
 
         // TODO currently not used
         [Serializable]
-        private class MasterData : ISerializationCallbackReceiver
+        private class MasterData
         {
             public VFXModel m_Owner;
-            [NonSerialized]
-            public object m_Value;
-            [SerializeField]
-            public SerializationHelper.JSONSerializedElement m_SerializedValue;
-
-            public virtual void OnBeforeSerialize()
-            {
-                if (m_Value != null)
-                    m_SerializedValue = SerializationHelper.Serialize(m_Value);
-                else
-                    m_SerializedValue.Clear();
-            }
-
-            public virtual void OnAfterDeserialize()
-            {
-                m_Value = !m_SerializedValue.Empty ? SerializationHelper.Deserialize<object>(m_SerializedValue, null) : null;
-            }
+            public VFXSerializableObject m_Value;
         }
 
         [SerializeField]
         private VFXSlot m_MasterSlot;
         [SerializeField]
-        private MasterData m_MasterData;
-
-        [SerializeField]
-        VFXModel m_Owner;
+        private MasterData m_MasterData; // always null for none master slots
 
         [SerializeField]
         private VFXProperty m_Property;
@@ -590,8 +614,5 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         private List<VFXSlot> m_LinkedSlots;
-
-        [SerializeField]
-        private VFXSerializableObject m_Value;
     }
 }

@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
             if ((owner is VFXOperator || owner is VFXParameter) && slot.direction == VFXSlot.Direction.kOutput) // output to operators
                 return true;
 
-            var topOwner = slot.GetTopMostParent().owner;
+            var topOwner = slot.GetMasterSlot().owner;
             if (topOwner is VFXBlock && slot.direction == VFXSlot.Direction.kInput && slot.HasLink()) // linked inputs to blocks
                 return true;
 
@@ -116,7 +116,7 @@ namespace UnityEditor.VFX
                     bool belongToBlock = false;
                     foreach (var slot in mainExpressions[exp])
                     {
-                        var topOwner = slot.GetTopMostParent().owner;
+                        var topOwner = slot.GetMasterSlot().owner;
                         allOwnersStr += string.Format("\n{0} - {1}", topOwner.GetType().Name, GetRecursiveName(slot));
                         belongToBlock |= topOwner is VFXBlock;
                     }
