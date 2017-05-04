@@ -32,6 +32,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Model = model;
             m_ContextPresenter = contextPresenter;
+            base.Init(contextPresenter.ViewPresenter);
 
 
             //TODO unregister when the block is destroyed

@@ -8,7 +8,6 @@ namespace UnityEditor.VFX.UI
 {
     class VFXNodePresenter : VFXLinkablePresenter, IVFXPresenter
     {
-        private VFXViewPresenter m_View;
         public VFXModel model { get { return m_Node; } }
 
         [SerializeField]
@@ -142,7 +141,7 @@ namespace UnityEditor.VFX.UI
                     outputAnchors.Clear();
                     inputAnchors.AddRange(newinputAnchors);
                     outputAnchors.AddRange(newoutputAnchors);
-                    m_View.RecreateNodeEdges();
+                    viewPresenter.RecreateNodeEdges();
                 }
             }
             else
@@ -166,7 +165,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
-            m_View = viewPresenter;
+            base.Init(viewPresenter);
 
             if (m_Node != model)
             {

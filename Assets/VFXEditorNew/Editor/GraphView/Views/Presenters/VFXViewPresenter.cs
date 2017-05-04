@@ -287,7 +287,6 @@ namespace UnityEditor.VFX.UI
             {
                 var edge = element as VFXDataEdgePresenter;
                 var to = edge.input as VFXDataAnchorPresenter;
-                var from = edge.output as VFXDataAnchorPresenter;
 
                 RecordEdgePresenter(edge, RecordEvent.Remove);
                 if (to != null)
