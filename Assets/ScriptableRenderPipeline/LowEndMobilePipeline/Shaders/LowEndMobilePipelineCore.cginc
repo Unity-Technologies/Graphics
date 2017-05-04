@@ -190,7 +190,7 @@ inline half ComputeShadowAttenuation(v2f i, float3 offset)
 
 #ifdef _SHADOW_CASCADES
     cascadeIndex = ComputeCascadeIndex(i.posWS);
-    if (cascadeIndex < 4)
+    if (cascadeIndex >= MAX_SHADOW_CASCADES)
         return 1.0;
 #endif
     float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorldOffsetNormal, 1.0));
