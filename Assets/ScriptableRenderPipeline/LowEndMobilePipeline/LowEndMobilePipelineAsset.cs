@@ -61,7 +61,9 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
         [SerializeField] private float m_ShadowDistance = 50.0f;
 
-        [SerializeField] private float m_ShadowBias = 0.0005f;
+        [SerializeField] private float m_MinShadowNormalBias = 0.0005f;
+
+        [SerializeField] private float m_ShadowNormalBias = 0.05f;
 
         [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.NO_CASCADES;
 
@@ -117,10 +119,16 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             private set { m_ShadowDistance = value; }
         }
 
-        public float ShadowBias
+		public float ShadowMinNormalBias
         {
-            get { return m_ShadowBias; }
-            private set { m_ShadowBias = value; }
+            get { return m_MinShadowNormalBias; }
+            private set { m_MinShadowNormalBias = value; }
+        }
+
+        public float ShadowNormalBias
+        {
+            get { return m_ShadowNormalBias; }
+            private set { m_ShadowNormalBias = value; }
         }
 
         public int CascadeCount

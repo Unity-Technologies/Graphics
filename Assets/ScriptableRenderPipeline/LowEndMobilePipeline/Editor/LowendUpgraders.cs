@@ -186,23 +186,17 @@ namespace UnityEditor.Experimental.Rendering.LowendMobile
 
         private static void UpdateMaterialReflectionSource(Material material)
         {
+            SetKeyword(material, "_REFLECTION_CUBEMAP", false);
+            SetKeyword(material, "_REFLECTION_PROBE", false);
+
             ReflectionSource reflectionSource = (ReflectionSource)material.GetFloat("_ReflectionSource");
-            if (reflectionSource == ReflectionSource.NoReflection)
+            if (reflectionSource == ReflectionSource.Cubemap && material.GetTexture("_Cube"))
             {
-                SetKeyword(material, "_CUBEMAP_REFLECTION", false);
-            }
-            else if (reflectionSource == ReflectionSource.Cubemap && material.GetTexture("_Cube"))
-            {
-                SetKeyword(material, "_CUBEMAP_REFLECTION", true);
+                SetKeyword(material, "_REFLECTION_CUBEMAP", true);
             }
             else if (reflectionSource == ReflectionSource.ReflectionProbe)
             {
-                Debug.LogWarning("Reflection probe not implemented yet");
-                SetKeyword(material, "_CUBEMAP_REFLECTION", false);
-            }
-            else
-            {
-                SetKeyword(material, "_CUBEMAP_REFLECTION", false);
+                SetKeyword(material, "_REFLECTION_PROBE", true);
             }
         }
 
