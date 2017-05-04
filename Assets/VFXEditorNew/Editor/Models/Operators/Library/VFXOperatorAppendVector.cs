@@ -37,11 +37,11 @@ namespace UnityEditor.VFX
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var allComponent = inputExpression.SelectMany(e => VFXOperatorUtility.ExtractComponents(e))
-                                                .Take(4)
-                                                .ToArray();
+                .Take(4)
+                .ToArray();
             if (allComponent.Length == 0)
             {
-                return new VFXExpression[] { };
+                return new VFXExpression[] {};
             }
             else if (allComponent.Length == 1)
             {

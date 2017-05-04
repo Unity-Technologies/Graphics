@@ -96,7 +96,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual string iconName
         {
-            get{ return anchorType.Name; }
+            get { return anchorType.Name; }
         }
 
         [SerializeField]
@@ -106,7 +106,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_Hidden && ! connected;
+                return m_Hidden && !connected;
             }
         }
         public bool editable

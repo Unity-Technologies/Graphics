@@ -24,7 +24,6 @@ namespace UnityEditor.VFX
 
         void Invalidate(VFXModel.InvalidationCause cause);
         void UpdateOutputs();
-        
     }
 
     class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
@@ -78,6 +77,7 @@ namespace UnityEditor.VFX
         {
             return "InputProperties";
         }
+
         protected string GetOutputPropertiesTypeName()
         {
             return "OutputProperties";
@@ -150,7 +150,7 @@ namespace UnityEditor.VFX
 
             return clone;
         }
-        
+
         static private VFXExpression GetExpressionFromObject(object value)
         {
             if (value is float)
@@ -180,7 +180,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        private void InitSlotsFromProperties(string className,VFXSlot.Direction direction)
+        private void InitSlotsFromProperties(string className, VFXSlot.Direction direction)
         {
             System.Type type = GetType().GetNestedType(className);
 
