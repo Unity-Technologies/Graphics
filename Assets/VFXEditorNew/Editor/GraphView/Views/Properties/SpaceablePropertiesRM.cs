@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
 {
     class SpaceablePropertyRM<T> : PropertyRM<T> where T : Spaceable
     {
-        public SpaceablePropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public SpaceablePropertyRM(IPropertyRMProvider presenter) : base(presenter)
         {
             m_Button = new VisualElement() {name = "spacebutton"};
             m_Button.AddManipulator(new Clickable(OnButtonClick));
@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T> where T : Spaceable
     {
-        public Vector3SpaceablePropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public Vector3SpaceablePropertyRM(IPropertyRMProvider presenter) : base(presenter)
         {
             m_VectorField = new Vector3Field(m_Label);
             m_VectorField.onValueChanged = OnValueChanged;
@@ -89,7 +89,7 @@ namespace UnityEditor.VFX.UI
 
     class VectorPropertyRM : Vector3SpaceablePropertyRM<Vector>
     {
-        public VectorPropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public VectorPropertyRM(IPropertyRMProvider presenter) : base(presenter)
         {
         }
 
@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.UI
 
     class PositionPropertyRM : Vector3SpaceablePropertyRM<Position>
     {
-        public PositionPropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public PositionPropertyRM(IPropertyRMProvider presenter) : base(presenter)
         {
         }
 

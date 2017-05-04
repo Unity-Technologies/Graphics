@@ -11,6 +11,20 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
+    interface IPropertyRMProvider
+    {
+        bool expanded { get; }
+        bool expandable { get; }
+        object value{ get; set; }
+        string name { get; }
+
+        Type anchorType { get; }
+        int depth {get; }
+
+        void RetractPath();
+        void ExpandPath();
+    }
+
     abstract class PropertyRM : VisualContainer
     {
         public abstract void SetValue(object obj);
@@ -24,23 +38,23 @@ namespace UnityEditor.VFX.UI
 
         public void Update()
         {
-            m_Icon.backgroundImage = m_IconStates[m_Presenter.expanded && m_Presenter.expandable ? 1 : 0];
-            SetValue(m_Presenter.value);
-            m_Label.text = m_Presenter.name;
+            m_Icon.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
+            SetValue(m_Provider.value);
+            m_Label.text = m_Provider.name;
         }
 
-        public PropertyRM(VFXDataAnchorPresenter presenter)
+        public PropertyRM(IPropertyRMProvider provider)
         {
-            m_Presenter = presenter;
+            m_Provider = provider;
 
             m_Icon =  new VisualElement() {name = "icon"};
             AddChild(m_Icon);
 
-            if (presenter.expandable)
+            if (provider.expandable)
             {
                 m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + presenter.anchorType.Name + "_plus"),
-                    Resources.Load<Texture2D>("VFX/" + presenter.anchorType.Name + "_minus")
+                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name + "_plus"),
+                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name + "_minus")
                 };
 
                 if (m_IconStates[0] == null)
@@ -53,7 +67,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + presenter.anchorType.Name)
+                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name)
                 };
 
                 if (m_IconStates[0] == null)
@@ -65,10 +79,10 @@ namespace UnityEditor.VFX.UI
             m_Icon.backgroundImage = m_IconStates[0];
 
 
-            m_Label = new VisualElement() {name = "label", text = presenter.name};
-            if (presenter.depth != 0)
+            m_Label = new VisualElement() {name = "label", text = provider.name};
+            if (provider.depth != 0)
             {
-                for (int i = 0; i < presenter.depth; ++i)
+                for (int i = 0; i < provider.depth; ++i)
                 {
                     VisualElement line = new VisualElement()
                     {
@@ -80,7 +94,7 @@ namespace UnityEditor.VFX.UI
                     AddChild(line);
                 }
             }
-            m_Label.width = defaultLabelWidth - presenter.depth * VFXPropertyIM.depthOffset;
+            m_Label.width = defaultLabelWidth - provider.depth * VFXPropertyIM.depthOffset;
             //m_Label.marginLeft = presenter.depth * VFXPropertyIM.depthOffset;
             AddChild(m_Label);
 
@@ -110,7 +124,7 @@ namespace UnityEditor.VFX.UI
             {typeof(AnimationCurve), typeof(CurvePropertyRM)}
         };
 
-        public static PropertyRM Create(VFXDataAnchorPresenter presenter)
+        public static PropertyRM Create(IPropertyRMProvider presenter)
         {
             Type propertyType = null;
 
@@ -140,22 +154,23 @@ namespace UnityEditor.VFX.UI
 
         protected void NotifyValueChanged()
         {
-            m_Presenter.SetPropertyValue(GetValue());
+            //m_Presenter.SetPropertyValue(GetValue());
+            m_Provider.value = GetValue();
         }
 
         void OnExpand()
         {
-            if (m_Presenter.expanded)
+            if (m_Provider.expanded)
             {
-                m_Presenter.RetractPath();
+                m_Provider.RetractPath();
             }
             else
             {
-                m_Presenter.ExpandPath();
+                m_Provider.ExpandPath();
             }
         }
 
-        protected VFXDataAnchorPresenter m_Presenter;
+        protected IPropertyRMProvider m_Provider;
     }
 
     interface IFloatNAffector<T>
@@ -187,7 +202,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class PropertyRM<T> : PropertyRM
     {
-        public PropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public PropertyRM(IPropertyRMProvider presenter) : base(presenter)
         {}
         public override void SetValue(object obj)
         {
@@ -219,7 +234,7 @@ namespace UnityEditor.VFX.UI
     {
         public abstract ValueControl<T> CreateField();
 
-        public SimplePropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public SimplePropertyRM(IPropertyRMProvider presenter) : base(presenter)
         {
             m_Field = CreateField();
             m_Field.AddToClassList("fieldContainer");

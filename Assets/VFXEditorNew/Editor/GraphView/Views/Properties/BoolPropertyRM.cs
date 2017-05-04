@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
 {
     class BoolPropertyRM : PropertyRM<bool>
     {
-        public BoolPropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public BoolPropertyRM(IPropertyRMProvider presenter) : base(presenter)
         {
             m_Toggle =  new Toggle(OnValueChanged);
             AddChild(m_Toggle);

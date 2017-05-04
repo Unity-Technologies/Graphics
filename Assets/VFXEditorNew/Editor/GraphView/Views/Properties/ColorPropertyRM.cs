@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
 {
     class ColorPropertyRM : PropertyRM<Color>
     {
-        public ColorPropertyRM(VFXDataAnchorPresenter presenter) : base(presenter)
+        public ColorPropertyRM(IPropertyRMProvider presenter) : base(presenter)
         {
             VisualContainer mainContainer = new VisualContainer();
 

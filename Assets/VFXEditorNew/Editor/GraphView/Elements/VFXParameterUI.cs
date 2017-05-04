@@ -110,7 +110,7 @@ namespace UnityEditor.VFX.UI
 
             if (m_Property == null)
             {
-                m_Property = PropertyRM.Create(presenter.allChildren.OfType<VFXDataAnchorPresenter>().First());
+                m_Property = PropertyRM.Create(presenter);
 
                 inputContainer.AddChild(m_Property);
             }

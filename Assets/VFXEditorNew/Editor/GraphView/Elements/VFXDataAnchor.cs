@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            if (presenter.collapsed)
+            if (presenter.collapsed && ! presenter.connected)
             {
                 visible = false;
 

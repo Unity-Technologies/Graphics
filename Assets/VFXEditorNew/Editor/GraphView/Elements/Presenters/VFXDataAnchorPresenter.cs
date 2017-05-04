@@ -5,7 +5,7 @@ using UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXDataAnchorPresenter : NodeAnchorPresenter
+    abstract class VFXDataAnchorPresenter : NodeAnchorPresenter, IPropertyRMProvider
     {
         [SerializeField]
         VFXModel m_Owner;
@@ -69,6 +69,8 @@ namespace UnityEditor.VFX.UI
         public object value
         {
             get { return model.value; }
+
+            set { SetPropertyValue(value); }
         }
 
 
@@ -92,6 +94,11 @@ namespace UnityEditor.VFX.UI
             get { return VFXBlockPresenter.IsTypeExpandable(anchorType); }
         }
 
+        public virtual string iconName
+        {
+            get{ return anchorType.Name; }
+        }
+
         [SerializeField]
         private bool m_Hidden;
 
@@ -99,7 +106,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_Hidden;
+                return m_Hidden && ! connected;
             }
         }
         public bool editable
