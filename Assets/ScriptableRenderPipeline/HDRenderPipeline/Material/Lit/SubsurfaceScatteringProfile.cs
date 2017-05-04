@@ -10,7 +10,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public enum TexturingMode : int { PreAndPostScatter = 0, PostScatter = 1 };
 
-        public const int numSamples = 11; // Must be an odd number
+        public const int   numSamples    = 11; // Must be an odd number
+
+        public const float distanceScale = 3;  // SSS distance units per centimeter
 
         [ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
         public Color         scatterDistance1;
@@ -35,12 +37,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SubsurfaceScatteringProfile()
         {
             scatterDistance1   = new Color(0.3f, 0.3f, 0.3f, 0.0f);
-            scatterDistance2   = new Color(0.6f, 0.6f, 0.6f, 0.0f);
-            lerpWeight         = 0.5f;
+            scatterDistance2   = new Color(0.5f, 0.5f, 0.5f, 0.0f);
+            lerpWeight         = 1.0f;
             texturingMode      = TexturingMode.PreAndPostScatter;
             enableTransmission = false;
             tintColor          = Color.white;
-            thicknessRemap     = new Vector2(0, 1);
+            thicknessRemap     = new Vector2(0, 0.5f);
             settingsIndex      = SubsurfaceScatteringSettings.neutralProfileID; // Updated by SubsurfaceScatteringSettings.OnValidate() once assigned
 
             UpdateKernelAndVarianceData();
@@ -76,9 +78,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_HalfRcpVariances = new Vector3[2];
             }
 
-            // Apply the three-sigma rule.
-            Color stdDev1 = scatterDistance1 * (1.0f / 3.0f);
-            Color stdDev2 = scatterDistance2 * (1.0f / 3.0f);
+            // Apply the three-sigma rule, and rescale.
+            // Increase the value a bit due to our (low) number of samples.
+            Color stdDev1 = ((1.0f / 3.0f) * (1.0f / 0.8f) * distanceScale) * scatterDistance1;
+            Color stdDev2 = ((1.0f / 3.0f) * (1.0f / 0.8f) * distanceScale) * scatterDistance2;
 
             // Our goal is to blur the image using a filter which is represented
             // as a product of a linear combination of two normalized 1D Gaussians
@@ -91,6 +94,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // A2(v1, v2, w, x, y) = A1(v1, v2, w, x) * A1(v1, v2, w, y).
             // The resulting filter function is a non-Gaussian PDF.
             // It is separable by design, but generally not radially symmetric.
+
+            // N.b.: our scattering distance is rather limited. Therefore, in order to allow
+            // for a greater range of standard deviation values for flatter profiles,
+            // we rescale the world using 'distanceScale', effectively reducing the SSS
+            // distance units from centimeters to (1 / distanceScale).
 
             // Find the widest Gaussian across 3 color channels.
             float maxStdDev1 = Mathf.Max(stdDev1.r, stdDev1.g, stdDev1.b);
@@ -496,17 +504,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
             }
 
-            // Apply the three-sigma rule.
-            Vector4 stdDev1 = new Vector4((1.0f / 3.0f) * m_ScatterDistance1.colorValue.r,
-                                          (1.0f / 3.0f) * m_ScatterDistance1.colorValue.g,
-                                          (1.0f / 3.0f) * m_ScatterDistance1.colorValue.b);
-            Vector4 stdDev2 = new Vector4((1.0f / 3.0f) * m_ScatterDistance2.colorValue.r,
-                                          (1.0f / 3.0f) * m_ScatterDistance2.colorValue.g,
-                                          (1.0f / 3.0f) * m_ScatterDistance2.colorValue.b);
+            // Apply the three-sigma rule, and rescale.
+            // Increase the value a bit due to our (low) number of samples.
+            float   s       = (1.0f / 3.0f) * (1.0f / 0.8f) * SubsurfaceScatteringProfile.distanceScale;
+            Vector4 stdDev1 = new Vector4(s * m_ScatterDistance1.colorValue.r, s * m_ScatterDistance1.colorValue.g, s * m_ScatterDistance1.colorValue.b);
+            Vector4 stdDev2 = new Vector4(s * m_ScatterDistance2.colorValue.r, s * m_ScatterDistance2.colorValue.g, s * m_ScatterDistance2.colorValue.b);
+            Vector4 tintCol = new Vector4(m_TintColor.colorValue.r, m_TintColor.colorValue.g, m_TintColor.colorValue.b);
 
             // Draw the profile.
-            m_ProfileMaterial.SetVector("_StdDev1",    stdDev1);
-            m_ProfileMaterial.SetVector("_StdDev2",    stdDev2);
+            m_ProfileMaterial.SetVector("_StdDev1",   stdDev1);
+            m_ProfileMaterial.SetVector("_StdDev2",   stdDev2);
             m_ProfileMaterial.SetFloat("_LerpWeight", m_LerpWeight.floatValue);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImage, m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
 
@@ -521,7 +528,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_TransmittanceMaterial.SetVector("_StdDev2",        stdDev2);
             m_TransmittanceMaterial.SetFloat("_LerpWeight",      m_LerpWeight.floatValue);
             m_TransmittanceMaterial.SetVector("_ThicknessRemap", m_ThicknessRemap.vector2Value);
-            m_TransmittanceMaterial.SetVector("_TintColor",      m_TintColor.colorValue);
+            m_TransmittanceMaterial.SetVector("_TintColor",      tintCol);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImage, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
 
             serializedObject.ApplyModifiedProperties();

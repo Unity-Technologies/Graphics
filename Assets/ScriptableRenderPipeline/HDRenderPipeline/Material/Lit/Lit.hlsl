@@ -53,7 +53,9 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 
 // SSS parameters
 #define SSS_N_PROFILES        8
+#define SSS_N_SAMPLES         11
 #define SSS_LOW_THICKNESS     0.005                        // 0.5 cm
+#define SSS_DISTANCE_SCALE    3                            // SSS distance units per centimeter
 #define CENTIMETERS_TO_METERS 0.001
 
 uint   _EnableSSS;                                         // Globally toggles subsurface scattering on/off
@@ -127,11 +129,10 @@ float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
                             float3 halfRcpVariance2, float lerpWeight2,
                             float3 tintColor, float thickness, float radiusScale)
 {
-
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
-    // thickness /= radiusScale;
-    thickness /= CENTIMETERS_TO_METERS;
+    // thickness *= SSS_DISTANCE_SCALE / radiusScale;
+    thickness *= SSS_DISTANCE_SCALE / CENTIMETERS_TO_METERS;
 
     float t2 = thickness * thickness;
 

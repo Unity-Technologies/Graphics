@@ -45,14 +45,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            #define N_PROFILES 8
-            #define N_SAMPLES  11
+            float4 _FilterKernels[SSS_N_PROFILES][SSS_N_SAMPLES]; // RGB = weights, A = radial distance
+            float4 _HalfRcpWeightedVariances[SSS_N_PROFILES];     // RGB for chromatic, A for achromatic
 
-            float4 _FilterKernels[N_PROFILES][N_SAMPLES]; // RGB = weights, A = radial distance
-            float4 _HalfRcpWeightedVariances[N_PROFILES]; // RGB for chromatic, A for achromatic
-
-            TEXTURE2D(_IrradianceSource);                 // RGB = irradiance on the back side of the object
-            DECLARE_GBUFFER_TEXTURE(_GBufferTexture);     // Contains the albedo and SSS parameters
+            TEXTURE2D(_IrradianceSource);             // RGB = irradiance on the back side of the object
+            DECLARE_GBUFFER_TEXTURE(_GBufferTexture); // Contains the albedo and SSS parameters
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -86,7 +83,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
 
                 int   profileID    = bsdfData.subsurfaceProfile;
-                float distScale    = bsdfData.subsurfaceRadius;
+                float distScale    = bsdfData.subsurfaceRadius * rcp(SSS_DISTANCE_SCALE);
                 float invDistScale = rcp(distScale);
 
                 // Reconstruct the view-space position.
@@ -138,7 +135,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 // We perform point sampling. Therefore, we can avoid the cost
                 // of filtering if we stay within the bounds of the current pixel.
-                float maxDistance = _FilterKernels[profileID][N_SAMPLES - 1].a;
+                float maxDistance = _FilterKernels[profileID][SSS_N_SAMPLES - 1].a;
 
                 [branch]
                 if (scaledStepSize * maxDistance < 0.5)
@@ -154,7 +151,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float3 totalWeight = sampleWeight;
 
                 [unroll]
-                for (int i = 1; i < N_SAMPLES; i++)
+                for (int i = 1; i < SSS_N_SAMPLES; i++)
                 {
                     samplePosition = posInput.unPositionSS + rotatedDirection * _FilterKernels[profileID][i].a;
                     sampleWeight   = _FilterKernels[profileID][i].rgb;

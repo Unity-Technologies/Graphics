@@ -2,11 +2,10 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 {
     Properties
     {
-        [HideInInspector] _StdDev1("", Color) = (0, 0, 0)
-        [HideInInspector] _StdDev2("", Color) = (0, 0, 0)
+        [HideInInspector] _StdDev1("", Vector)   = (0, 0, 0, 0)
+        [HideInInspector] _StdDev2("", Vector)   = (0, 0, 0, 0)
         [HideInInspector] _LerpWeight("", Float) = 0
-        [HideInInspector] _ThicknessScale("", Float) = 0
-        [HideInInspector] _TintColor("", Color) = (0, 0, 0)
+        [HideInInspector] _TintColor("", Vector) = (0, 0, 0, 0)
     }
 
     SubShader
@@ -37,8 +36,10 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
+            #define SSS_DISTANCE_SCALE 3 // SSS distance units per centimeter
+
             float4 _StdDev1, _StdDev2, _ThicknessRemap, _TintColor;
-            float _LerpWeight; // See 'SubsurfaceScatteringParameters'
+            float _LerpWeight;           // See 'SubsurfaceScatteringParameters'
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -66,7 +67,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float thickness = _ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x);
+                float thickness = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x)) * SSS_DISTANCE_SCALE;
                 float t2        = thickness * thickness;
 
                 float3 var1 = _StdDev1.rgb * _StdDev1.rgb;
