@@ -114,6 +114,8 @@ namespace UnityEditor.VFX.UI
 
                 inputContainer.AddChild(m_Property);
             }
+            if( m_Property!= null )
+                m_Property.Update();
         }
     }
 }

@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                throw new NotImplementedException();
+                return false;
             }
         }
 
@@ -60,6 +60,7 @@ namespace UnityEditor.VFX.UI
             set {
                 VFXParameter model = this.model as VFXParameter;
 
+                Undo.RecordObject(model, "Change Value");
                 model.GetOutputSlot(0).value = value;
             }
         }
@@ -103,6 +104,10 @@ namespace UnityEditor.VFX.UI
         void IPropertyRMProvider.RetractPath()
         {
             throw new NotImplementedException();
+        }
+        public override UnityEngine.Object[] GetObjectsToWatch()
+        {
+            return new UnityEngine.Object[] { this, model, node.outputSlots[0] };
         }
     }
 }
