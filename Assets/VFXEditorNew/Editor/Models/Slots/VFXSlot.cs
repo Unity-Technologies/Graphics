@@ -176,13 +176,6 @@ namespace UnityEditor.VFX
                 m_MasterData.m_Owner = owner;
             else
                 throw new InvalidOperationException();
-
-           // m_Owner = owner;
-
-           /* foreach(VFXSlot child in children)
-            {
-                child.SetOwner(owner);
-            }*/
         }
 
         // Create and return a slot hierarchy from a property info
@@ -212,7 +205,6 @@ namespace UnityEditor.VFX
                 var slot = desc.CreateInstance();
                 slot.m_Direction = direction;
                 slot.m_Property = property;
-                //slot.m_Value = new VFXSerializableObject(property.type);
 
                 foreach (var subInfo in property.SubProperties())
                 {
@@ -242,24 +234,8 @@ namespace UnityEditor.VFX
 
             m_ExpressionTreeUpToDate = false;
 
-            // Fix master stuff (not needed normally)
-            /*if (m_MasterSlot == null)
-            {
-                if (GetParent() == null)
-                    PropagateToChildren(s => s.m_MasterSlot = this);
-            }
-            else if (IsMasterSlot())
-            {
-                if (m_MasterData == null)
-                {
-                    var masterData = new MasterData();
-                    m_MasterData.m_Owner = null;
-                    m_MasterData.m_Value = new VFXSerializableObject(property.type);
-                }
-            }
-            else
+            if (!IsMasterSlot())
                 m_MasterData = null; // Non master slot will always have a null master data
-            */
         }
 
         private void SetDefaultExpressionValue()
@@ -593,7 +569,6 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private bool m_DefaultExpressionInitialized = false;
 
-        // TODO currently not used
         [Serializable]
         private class MasterData
         {

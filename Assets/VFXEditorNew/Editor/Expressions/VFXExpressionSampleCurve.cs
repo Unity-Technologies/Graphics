@@ -39,8 +39,8 @@ namespace UnityEditor.VFX
             var curveReduce = constParents[0];
             var timeReduce = constParents[1];
 
-            var curve = curveReduce.GetContent<AnimationCurve>();
-            var time = timeReduce.GetContent<float>();
+            var curve = curveReduce.Get<AnimationCurve>();
+            var time = timeReduce.Get<float>();
             return new VFXValueFloat(curve.Evaluate(time), true);
 
         }

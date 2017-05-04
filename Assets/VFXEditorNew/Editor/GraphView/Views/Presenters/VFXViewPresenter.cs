@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.VFX.UI
 {
     [Serializable]
-    class VFXViewPresenter : GraphViewPresenter
+    partial class VFXViewPresenter : GraphViewPresenter
     {
         [SerializeField]
         public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;
@@ -564,14 +564,21 @@ namespace UnityEditor.VFX.UI
 
                 Clear();
                 Debug.Log(string.Format("SET GRAPH ASSET new:{0} old:{1} force:{2}", graph, m_GraphAsset, force));
-               
+
                 if (m_GraphAsset != null)
+                {
                     m_GraphAsset.root.onInvalidateDelegate -= SyncPresentersFromModel;
+                    m_GraphAsset.root.onInvalidateDelegate -= RecomputeExpressionGraph;
+                }
 
                 m_GraphAsset = graph == null ? CreateInstance<VFXGraphAsset>() : graph;
 
                 m_GraphAsset.root.onInvalidateDelegate += SyncPresentersFromModel;
-                SyncPresentersFromModel(m_GraphAsset.root,VFXModel.InvalidationCause.kStructureChanged); // First call to trigger a sync
+                m_GraphAsset.root.onInvalidateDelegate += RecomputeExpressionGraph;
+
+                // First trigger
+                SyncPresentersFromModel(m_GraphAsset.root,VFXModel.InvalidationCause.kStructureChanged);
+                RecomputeExpressionGraph(m_GraphAsset.root, VFXModel.InvalidationCause.kStructureChanged);
 
                 // Doesn't work for some reason
                 //View.FrameAll();
