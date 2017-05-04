@@ -2,8 +2,8 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
 {
     Properties
     {
-        [HideInInspector] _StdDev1("", Color) = (0, 0, 0)
-        [HideInInspector] _StdDev2("", Color) = (0, 0, 0)
+        [HideInInspector] _StdDev1("", Vector)   = (0, 0, 0, 0)
+        [HideInInspector] _StdDev2("", Vector)   = (0, 0, 0, 0)
         [HideInInspector] _LerpWeight("", Float) = 0
     }
 

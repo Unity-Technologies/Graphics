@@ -497,12 +497,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Apply the three-sigma rule.
-            Color stdDev1 = m_ScatterDistance1.colorValue * (1.0f / 3.0f);
-            Color stdDev2 = m_ScatterDistance2.colorValue * (1.0f / 3.0f);
+            Vector4 stdDev1 = new Vector4((1.0f / 3.0f) * m_ScatterDistance1.colorValue.r,
+                                          (1.0f / 3.0f) * m_ScatterDistance1.colorValue.g,
+                                          (1.0f / 3.0f) * m_ScatterDistance1.colorValue.b);
+            Vector4 stdDev2 = new Vector4((1.0f / 3.0f) * m_ScatterDistance2.colorValue.r,
+                                          (1.0f / 3.0f) * m_ScatterDistance2.colorValue.g,
+                                          (1.0f / 3.0f) * m_ScatterDistance2.colorValue.b);
 
             // Draw the profile.
-            m_ProfileMaterial.SetColor("_StdDev1",    stdDev1);
-            m_ProfileMaterial.SetColor("_StdDev2",    stdDev2);
+            m_ProfileMaterial.SetVector("_StdDev1",    stdDev1);
+            m_ProfileMaterial.SetVector("_StdDev2",    stdDev2);
             m_ProfileMaterial.SetFloat("_LerpWeight", m_LerpWeight.floatValue);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImage, m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
 
@@ -513,8 +517,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
 
             // Draw the transmittance graph.
-            m_TransmittanceMaterial.SetColor("_StdDev1",         stdDev1);
-            m_TransmittanceMaterial.SetColor("_StdDev2",         stdDev2);
+            m_TransmittanceMaterial.SetVector("_StdDev1",        stdDev1);
+            m_TransmittanceMaterial.SetVector("_StdDev2",        stdDev2);
             m_TransmittanceMaterial.SetFloat("_LerpWeight",      m_LerpWeight.floatValue);
             m_TransmittanceMaterial.SetVector("_ThicknessRemap", m_ThicknessRemap.vector2Value);
             m_TransmittanceMaterial.SetVector("_TintColor",      m_TintColor.colorValue);
