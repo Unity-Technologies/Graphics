@@ -120,9 +120,6 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("invisible");
             }
 
-
-            Debug.LogWarning("Presenter:" + presenter.name + " is " + (presenter.collapsed ? "hidden" : "visible") + "and " + visible);
-
             if (presenter.direction == Direction.Output)
                 m_ConnectorText.text = presenter.name;
 

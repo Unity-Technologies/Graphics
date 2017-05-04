@@ -476,7 +476,6 @@ namespace UnityEditor.VFX.UI
             {
                 case VFXDataType.kNone:
                     return Resources.Load<Texture2D>("VFX/Execution");
-                    break;
                 case VFXDataType.kParticle:
                     return Resources.Load<Texture2D>("VFX/Particles");
             }

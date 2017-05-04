@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.UI
             return reduced.Is(VFXExpression.Flags.Value);
         }
 
-        public object GetEvaluatedContent<T>(VFXSlot slot)
+        public object GetEvaluatedContent(VFXSlot slot)
         {
             if (!CanGetEvaluatedContent(slot))
                 return null;
