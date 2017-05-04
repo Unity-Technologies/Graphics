@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
 {
     class IntPropertyRM : SimplePropertyRM<int>
     {
-        public IntPropertyRM(IPropertyRMProvider presenter) : base(presenter)
+        public IntPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.UI
 
     class FloatPropertyRM : SimplePropertyRM<float>
     {
-        public FloatPropertyRM(IPropertyRMProvider presenter) : base(presenter)
+        public FloatPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.UI
 
     class CurvePropertyRM : SimplePropertyRM<AnimationCurve>
     {
-        public CurvePropertyRM(IPropertyRMProvider presenter) : base(presenter)
+        public CurvePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.UI
 
     class Vector4PropertyRM : SimplePropertyRM<Vector4>
     {
-        public Vector4PropertyRM(IPropertyRMProvider presenter) : base(presenter)
+        public Vector4PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.UI
 
     class Vector3PropertyRM : SimplePropertyRM<Vector3>
     {
-        public Vector3PropertyRM(IPropertyRMProvider presenter) : base(presenter)
+        public Vector3PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.UI
 
     class Vector2PropertyRM : SimplePropertyRM<Vector2>
     {
-        public Vector2PropertyRM(IPropertyRMProvider presenter) : base(presenter)
+        public Vector2PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
         }
 

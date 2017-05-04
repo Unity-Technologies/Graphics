@@ -60,7 +60,7 @@ VFXParameterUI .value
 VFXParameterUI .label
 {
 	text-color:#c4c4c4;
-	width : 116;
+	width : 69;
 }
 
 VFXParameterUI #IconContainer

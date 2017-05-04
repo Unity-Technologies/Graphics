@@ -110,8 +110,7 @@ namespace UnityEditor.VFX.UI
 
             if (m_Property == null)
             {
-                m_Property = PropertyRM.Create(presenter);
-
+                m_Property = PropertyRM.Create(presenter,55);
                 inputContainer.AddChild(m_Property);
             }
             if( m_Property!= null )

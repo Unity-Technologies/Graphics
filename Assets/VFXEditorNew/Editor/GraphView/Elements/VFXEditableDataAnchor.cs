@@ -99,7 +99,7 @@ namespace UnityEditor.VFX.UI
         {
             clipChildren = false;
 
-            m_PropertyRM = PropertyRM.Create(presenter);
+            m_PropertyRM = PropertyRM.Create(presenter,100);
             if (m_PropertyRM != null)
             {
                 AddChild(m_PropertyRM);

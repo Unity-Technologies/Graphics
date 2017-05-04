@@ -25,7 +25,6 @@
 .spaceablepropertyrm.propertyrm #label
 {
 	margin-right:12px;
-    min-width:64;
 }
 
 .spaceCamera
