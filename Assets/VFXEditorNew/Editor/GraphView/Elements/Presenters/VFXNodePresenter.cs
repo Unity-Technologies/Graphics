@@ -76,30 +76,30 @@ namespace UnityEditor.VFX.UI
         public static bool SequenceEqual<T1, T2>(IEnumerable<T1> first, IEnumerable<T2> second, Func<T1, T2, bool> comparer)
         {
             using (IEnumerator<T1> e1 = first.GetEnumerator())
-            using (IEnumerator<T2> e2 = second.GetEnumerator())
-            {
-                while (e1.MoveNext())
+                using (IEnumerator<T2> e2 = second.GetEnumerator())
                 {
-                    if (!(e2.MoveNext() && comparer(e1.Current, e2.Current)))
+                    while (e1.MoveNext())
+                    {
+                        if (!(e2.MoveNext() && comparer(e1.Current, e2.Current)))
+                            return false;
+                    }
+
+                    if (e2.MoveNext())
                         return false;
                 }
-
-                if (e2.MoveNext())
-                    return false;
-            }
 
             return true;
         }
 
-        void CreateAllAnchorPresenter(IEnumerable<VFXSlot> slots,Direction direction,List<NodeAnchorPresenter> results)
+        void CreateAllAnchorPresenter(IEnumerable<VFXSlot> slots, Direction direction, List<NodeAnchorPresenter> results)
         {
-            foreach(VFXSlot slot in slots)
+            foreach (VFXSlot slot in slots)
             {
                 NodeAnchorPresenter pres = CreateAnchorPresenter(slot, direction);
 
                 results.Add(pres);
 
-                if( slot.expanded )
+                //if( slot.expanded )
                 {
                     CreateAllAnchorPresenter(slot.children, direction, results);
                 }
@@ -120,20 +120,20 @@ namespace UnityEditor.VFX.UI
                 }
 
                 List<NodeAnchorPresenter> newinputAnchors = new List<NodeAnchorPresenter>();
-                CreateAllAnchorPresenter(node.inputSlots,Direction.Input,newinputAnchors);
+                CreateAllAnchorPresenter(node.inputSlots, Direction.Input, newinputAnchors);
 
 
                 List<NodeAnchorPresenter> newoutputAnchors = new List<NodeAnchorPresenter>();
-                CreateAllAnchorPresenter(node.outputSlots,Direction.Output,newoutputAnchors);
+                CreateAllAnchorPresenter(node.outputSlots, Direction.Output, newoutputAnchors);
 
-                Func<NodeAnchorPresenter, NodeAnchorPresenter, bool> fnComparer = delegate (NodeAnchorPresenter x, NodeAnchorPresenter y)
-                {
-                    var X = x as VFXOperatorAnchorPresenter;
-                    var Y = y as VFXOperatorAnchorPresenter;
-                    return X.model == Y.model
+                Func<NodeAnchorPresenter, NodeAnchorPresenter, bool> fnComparer = delegate(NodeAnchorPresenter x, NodeAnchorPresenter y)
+                    {
+                        var X = x as VFXOperatorAnchorPresenter;
+                        var Y = y as VFXOperatorAnchorPresenter;
+                        return X.model == Y.model
                             && X.name == Y.name
                             && X.anchorType == Y.anchorType;
-                };
+                    };
 
                 if (!SequenceEqual(newinputAnchors, inputAnchors, fnComparer)
                     || !SequenceEqual(newoutputAnchors, outputAnchors, fnComparer))
@@ -182,4 +182,3 @@ namespace UnityEditor.VFX.UI
         }
     }
 }
-

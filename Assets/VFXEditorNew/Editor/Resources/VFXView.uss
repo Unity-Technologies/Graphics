@@ -30,12 +30,14 @@ VFXView #VFXBackgroundGrid {
 	margin-left:-15;
 	margin-bottom:0;
 	margin-right:6;
+	Visible:true;
 }
 
 .VFXDataAnchor.invisible
 {
 	max-height:0;
 	min-height:0;
+	Visible:false;
 }
 
 .VFXDataAnchor.invisible #connector

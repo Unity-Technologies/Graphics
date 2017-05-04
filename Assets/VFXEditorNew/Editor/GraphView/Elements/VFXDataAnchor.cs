@@ -47,7 +47,6 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-
         public enum IconType
         {
             plus,
@@ -55,10 +54,10 @@ namespace UnityEditor.VFX.UI
             simple
         }
 
-        public static Texture2D GetTypeIcon(Type type,IconType iconType)
+        public static Texture2D GetTypeIcon(Type type, IconType iconType)
         {
             string suffix = "";
-            switch( iconType)
+            switch (iconType)
             {
                 case IconType.plus:
                     suffix = "_plus";
@@ -70,7 +69,7 @@ namespace UnityEditor.VFX.UI
 
             Texture2D result = Resources.Load<Texture2D>("VFX/" + type.Name + suffix);
             if (result == null)
-                return Resources.Load<Texture2D>("VFX/Default"+suffix);
+                return Resources.Load<Texture2D>("VFX/Default" + suffix);
             return result;
         }
 
@@ -90,8 +89,6 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("connected");
 
 
-
-
             // update the css type of the class
             foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
                 m_ConnectorBox.RemoveFromClassList(cls);
@@ -109,18 +106,24 @@ namespace UnityEditor.VFX.UI
                     break;
             }
 
-            if(presenter.hidden)
+
+            if (presenter.collapsed)
             {
-                m_ConnectorBox.visible = false;
+                visible = false;
+
                 AddToClassList("invisible");
             }
-            else
+            else if (!visible)
             {
-
-                m_ConnectorBox.visible = true;
+                visible = true;
+                RemoveFromClassList("hidden");
                 RemoveFromClassList("invisible");
             }
-            if( presenter.direction == Direction.Output )
+
+
+            Debug.LogWarning("Presenter:" + presenter.name + " is " + (presenter.collapsed ? "hidden" : "visible") + "and " + visible);
+
+            if (presenter.direction == Direction.Output)
                 m_ConnectorText.text = presenter.name;
 
             clipChildren = false;
@@ -130,7 +133,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
-            var center = m_ConnectorBox.position.position + new Vector2(presenter.direction == Direction.Input ? 1 : m_ConnectorBox.position.width -1, m_ConnectorBox.position.height * 0.5f -0.5f);
+            var center = m_ConnectorBox.position.position + new Vector2(presenter.direction == Direction.Input ? 1 : m_ConnectorBox.position.width - 1, m_ConnectorBox.position.height * 0.5f - 0.5f);
             center = m_ConnectorBox.transform.MultiplyPoint3x4(center);
             return this.LocalToGlobal(center);
         }
@@ -147,9 +150,9 @@ namespace UnityEditor.VFX.UI
 
 
             Node endNode = null;
-            foreach( var node in view.GetAllNodes())
+            foreach (var node in view.GetAllNodes())
             {
-                if( node.localBound.Contains(position))
+                if (node.localBound.Contains(position))
                 {
                     endNode = node;
                 }
@@ -191,7 +194,7 @@ namespace UnityEditor.VFX.UI
                 VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.Name);
                 if (parameterDesc != null)
                 {
-                    VFXParameter parameter = viewPresenter.AddVFXParameter(position - new Vector2(360,0), parameterDesc);
+                    VFXParameter parameter = viewPresenter.AddVFXParameter(position - new Vector2(360, 0), parameterDesc);
                     startSlot.Link(parameter.outputSlots[0]);
                 }
             }

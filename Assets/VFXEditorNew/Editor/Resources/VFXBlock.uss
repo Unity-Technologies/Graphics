@@ -21,7 +21,7 @@ VFXBlockUI.VFXNodeUI.node.horizontal #pane > #left
 	width:-1;
 }
 
-.VFXNodeUI  .propertyrm
+VFXBlockUI  .propertyrm
 {
 	margin-left:12;
 }

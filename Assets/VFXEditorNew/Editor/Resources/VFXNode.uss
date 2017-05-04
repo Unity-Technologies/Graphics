@@ -27,7 +27,7 @@
 
 .VFXNodeUI.node.horizontal #pane > #right
 {
-	width:70;
+	width:85;
 	padding-left:2;
 	padding-right:2;
 }

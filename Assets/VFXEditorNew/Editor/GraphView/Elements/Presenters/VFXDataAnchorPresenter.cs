@@ -20,7 +20,6 @@ namespace UnityEditor.VFX.UI
             return new UnityEngine.Object[] { this, m_Model };
         }
 
-
         private VFXLinkablePresenter m_SourceNode;
 
         public VFXLinkablePresenter sourceNode
@@ -31,7 +30,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void Init(VFXModel owner,VFXSlot model, VFXLinkablePresenter nodePresenter)
+        public void Init(VFXModel owner, VFXSlot model, VFXLinkablePresenter nodePresenter)
         {
             m_Owner = owner;
             m_Model = model;
@@ -96,10 +95,10 @@ namespace UnityEditor.VFX.UI
         [SerializeField]
         private bool m_Hidden;
 
-        public bool hidden
+        public override bool collapsed
         {
-            get{
-
+            get
+            {
                 return m_Hidden;
             }
         }
@@ -110,9 +109,9 @@ namespace UnityEditor.VFX.UI
                 bool editable = true;
 
                 VFXSlot slot = model;
-                while(slot != null )
+                while (slot != null)
                 {
-                    if( slot.LinkedSlots.Count > 0)
+                    if (slot.LinkedSlots.Count > 0)
                     {
                         editable = false;
                         break;
@@ -144,5 +143,4 @@ namespace UnityEditor.VFX.UI
             model.Invalidate(VFXModel.InvalidationCause.kParamExpanded);
         }
     }
-
 }
