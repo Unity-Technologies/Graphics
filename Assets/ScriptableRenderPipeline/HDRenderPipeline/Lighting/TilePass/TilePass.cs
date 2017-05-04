@@ -1223,14 +1223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var additionalData = light.light.GetComponent<AdditionalLightData>();
 
                         if (additionalData == null)
-                        {
-                            // Don't display warning for the preview windows
-                            if (camera.cameraType != CameraType.Preview)
-                            {
-                                Debug.LogWarningFormat(light.light, "Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
-                            }
                             additionalData = DefaultAdditionalLightData;
-                        }
 
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;

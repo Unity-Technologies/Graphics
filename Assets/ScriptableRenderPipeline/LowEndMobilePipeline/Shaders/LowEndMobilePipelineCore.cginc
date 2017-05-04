@@ -1,4 +1,3 @@
-#define DEBUG_CASCADES 0
 #define MAX_SHADOW_CASCADES 4
 #define MAX_LIGHTS 8
 
@@ -46,9 +45,6 @@ struct v2f
 #endif
     half4 viewDir : TEXCOORD5; // xyz: viewDir
     UNITY_FOG_COORDS_PACKED(6, half4) // x: fogCoord, yzw: vertexColor
-#ifndef _SHADOW_CASCADES
-    float4 shadowCoord : TEXCOORD7;
-#endif
     float4 hpos : SV_POSITION;
 };
 
@@ -59,12 +55,12 @@ half4 globalLightColor[MAX_LIGHTS];
 float4 globalLightPos[MAX_LIGHTS];
 half4 globalLightSpotDir[MAX_LIGHTS];
 half4 globalLightAtten[MAX_LIGHTS];
-int4  globalLightCount; // x: pixelLightCount, y = totalLightCount (pixel + vert)
+float4  globalLightData; // x: pixelLightCount, y = totalLightCount (pixel + vert), z = minShadowNormalBiasOffset, w = shadowNormalBiasOffset
 
 sampler2D_float _ShadowMap;
 float _PCFKernel[8];
 
-half4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
+float4x4 _WorldToShadow[MAX_SHADOW_CASCADES];
 float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
 half _Shininess;
 samplerCUBE _Cube;
@@ -105,22 +101,6 @@ inline void Emission(v2f i, out half3 emission)
 #endif
 }
 
-inline void Indirect(v2f i, half3 diffuse, half3 normal, half glossiness, out half3 indirect)
-{
-#ifdef LIGHTMAP_ON
-    indirect = (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
-#else
-    indirect = i.fogCoord.yzw * diffuse;
-#endif
-
-    // TODO: we can use reflect vec to compute specular instead of half when computing cubemap reflection
-#ifdef _CUBEMAP_REFLECTION
-    half3 reflectVec = reflect(-i.viewDir.xyz, normal);
-    half3 indirectSpecular = texCUBE(_Cube, reflectVec) * _ReflectColor * glossiness;
-    indirect += indirectSpecular;
-#endif
-}
-
 half4 OutputColor(half3 color, half alpha)
 {
 #ifdef _ALPHABLEND_ON
@@ -148,12 +128,12 @@ inline half ComputeCascadeIndex(float3 wpos)
     return 4 - dot(weights, fixed4(4, 3, 2, 1));
 }
 
-inline half ShadowAttenuation(half3 shadowCoord)
+inline half ShadowAttenuation(float3 shadowCoord)
 {
     if (shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1)
         return 1;
 
-    half depth = tex2D(_ShadowMap, shadowCoord).r;
+    float depth = tex2D(_ShadowMap, shadowCoord).r;
 #if defined(UNITY_REVERSED_Z)
     return step(depth, shadowCoord.z);
 #else
@@ -172,7 +152,7 @@ inline half ShadowPCF(half3 shadowCoord)
     return attenuation * 0.25;
 }
 
-inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float3 posWorld, half3 viewDir)
+inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 specularGloss, half3 normal, float3 posWorld, half3 viewDir, out half NdotL)
 {
     float3 posToLight = lightInput.pos.xyz;
     posToLight -= posWorld * lightInput.pos.w;
@@ -180,14 +160,14 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
     float distanceSqr = max(dot(posToLight, posToLight), 0.001);
     float lightAtten = 1.0 / (1.0 + distanceSqr * lightInput.atten.z);
 
-    half3 lightDir = posToLight * rsqrt(distanceSqr);
+    float3 lightDir = posToLight * rsqrt(distanceSqr);
     half SdotL = saturate(dot(lightInput.spotDir.xyz, lightDir));
     lightAtten *= saturate((SdotL - lightInput.atten.x) / lightInput.atten.y);
 
     half cutoff = step(distanceSqr, lightInput.atten.w);
     lightAtten *= cutoff;
 
-    half NdotL = saturate(dot(normal, lightDir));
+    NdotL = saturate(dot(normal, lightDir));
 
     half3 halfVec = normalize(lightDir + viewDir);
     half NdotH = saturate(dot(normal, halfVec));
@@ -195,7 +175,7 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
     half3 lightColor = lightInput.color.rgb * lightAtten;
     half3 diffuse = diffuseColor * lightColor * NdotL;
 
-#if defined(_SHARED_SPECULAR_DIFFUSE) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
+#if defined(_SPECGLOSSMAP_BASE_ALPHA) || defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     half3 specular = specularGloss.rgb * lightColor * pow(NdotH, _Shininess * 128.0) * specularGloss.a;
     return diffuse + specular;
 #else
@@ -203,20 +183,17 @@ inline half3 EvaluateOneLight(LightInput lightInput, half3 diffuseColor, half4 s
 #endif
 }
 
-inline half ComputeShadowAttenuation(v2f i)
+inline half ComputeShadowAttenuation(v2f i, float3 offset)
 {
-#ifndef _SHADOW_CASCADES
-    half4 shadowCoord;
-    shadowCoord = i.shadowCoord;
-#else
-    half4 shadowCoord;
-    int cascadeIndex = ComputeCascadeIndex(i.posWS);
+	float3 posWorldOffsetNormal = i.posWS + offset;
+	int cascadeIndex = 0;
+
+#ifdef _SHADOW_CASCADES
+    cascadeIndex = ComputeCascadeIndex(i.posWS);
     if (cascadeIndex < 4)
-        shadowCoord = mul(_WorldToShadow[cascadeIndex], half4(i.posWS, 1.0));
-    else
         return 1.0;
 #endif
-
+    float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorldOffsetNormal, 1.0));
     shadowCoord.xyz /= shadowCoord.w;
     shadowCoord.z = saturate(shadowCoord.z);
 
