@@ -35,6 +35,8 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
+            #define SSS_DISTANCE_SCALE 3                  // SSS distance units per centimeter
+
             float4 _StdDev1, _StdDev2; float _LerpWeight; // See 'SubsurfaceScatteringParameters'
 
             //-------------------------------------------------------------------------------------
@@ -63,7 +65,7 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float  dist = length(input.texcoord - 0.5);
+                float  dist = length(input.texcoord - 0.5) * SSS_DISTANCE_SCALE;
 
                 float3 var1 = _StdDev1.rgb * _StdDev1.rgb;
                 float3 var2 = _StdDev2.rgb * _StdDev2.rgb;
