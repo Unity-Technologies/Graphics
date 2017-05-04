@@ -265,8 +265,8 @@ namespace UnityEditor.VFX
         private void SetDefaultExpressionValue()
         {
             var val = value;
-            if (value != null && m_DefaultExpression is VFXValue)
-                ((VFXValue)m_DefaultExpression).SetContent(value);
+            if (val != null && m_DefaultExpression is VFXValue)
+                ((VFXValue)m_DefaultExpression).SetContent(val);
         }
 
         private void InitDefaultExpression()
@@ -428,7 +428,7 @@ namespace UnityEditor.VFX
             // Start from the top most parent
             var masterSlot = GetMasterSlot();
 
-            // TODO This is a hack that should not be needed! Investigate why (has to do with floatN I think)
+            // When deserializing, default expression wont be initialized
             if (!m_DefaultExpressionInitialized)
                 InitDefaultExpression(); 
 

@@ -96,10 +96,13 @@ namespace UnityEditor.VFX
                 }
 
                 m_ExpressionContext.Compile();
-            } 
+            }
 
-            Debug.Log("ASSET DIRTY " + cause);
-            EditorUtility.SetDirty(this);
+            if (cause != VFXModel.InvalidationCause.kExpressionInvalidated)
+            {
+                Debug.Log("ASSET DIRTY " + cause);
+                EditorUtility.SetDirty(this);
+            }
         }
 
         void OnEnable()

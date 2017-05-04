@@ -13,6 +13,7 @@ namespace UnityEditor.VFX
 
         public VFXExpressionSampleCurve(VFXExpression curve, VFXExpression time)
         {
+            m_Flags = Flags.ValidOnCPU;
             m_Curve = curve;
             m_Time = time;
         }

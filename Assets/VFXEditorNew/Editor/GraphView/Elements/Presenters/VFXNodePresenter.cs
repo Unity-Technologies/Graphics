@@ -154,7 +154,11 @@ namespace UnityEditor.VFX.UI
 
         void OnOperatorInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            if (model == m_Node && cause != VFXModel.InvalidationCause.kUIChanged)
+            if (cause == VFXModel.InvalidationCause.kUIChanged ||
+                cause == VFXModel.InvalidationCause.kExpressionInvalidated)
+                return;
+
+            if (model == m_Node)
             {
                 Reset();
             }
