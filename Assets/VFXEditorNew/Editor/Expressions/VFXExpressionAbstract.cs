@@ -138,6 +138,19 @@ namespace UnityEditor.VFX
             if (Operation != other.Operation)
                 return false;
 
+            if (ValueType != other.ValueType)
+                return false;
+
+            var addionnalParams = AdditionnalParameters;
+            var otherAdditionnalParams = other.AdditionnalParameters;
+
+            if (addionnalParams.Length != otherAdditionnalParams.Length)
+                return false;
+
+            for (int i = 0; i < addionnalParams.Length; ++i)
+                if (addionnalParams[i] != otherAdditionnalParams[i])
+                    return false;
+
             //if (GetHashCode() != obj.GetHashCode())
             //    return false;
 

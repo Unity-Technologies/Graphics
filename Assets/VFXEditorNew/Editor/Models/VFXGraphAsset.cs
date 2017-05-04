@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
         {
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
-                Debug.Log("UPDATE SUB ASSETS");
+                //Debug.Log("UPDATE SUB ASSETS");
                 if (UpdateSubAssets())
                 {
                     //AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated)
             {
-                Debug.Log("ASSET DIRTY " + cause);
+                //Debug.Log("ASSET DIRTY " + cause);
                 EditorUtility.SetDirty(this);
             }
         }
