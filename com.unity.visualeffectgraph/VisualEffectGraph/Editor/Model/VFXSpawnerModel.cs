@@ -130,58 +130,59 @@ namespace UnityEditor.Experimental.VFX
     public class VFXSpawnerBlockModel : VFXModelWithSlots<VFXSpawnerNodeModel, VFXElementModel>, VFXUIDataHolder
     {
         // Must match C++ side enum
-        public enum Type
-        {
-            kConstantRate,
-            kBurst,
-            kPeriodicBurst,
-            kVariableRate,
-        }
-
-        public static string TypeToName(Type spawnerType)
+        public static string TypeToName(VFXSpawnerType spawnerType)
         {
             switch (spawnerType)
             {
-                case Type.kConstantRate:
+                case VFXSpawnerType.kConstantRate:
                     return "Constant Rate";
-                case Type.kBurst:
+                case VFXSpawnerType.kBurst:
                     return "Burst";
-                case Type.kPeriodicBurst:
+                case VFXSpawnerType.kPeriodicBurst:
                     return "Periodic Burst";
-                case Type.kVariableRate:
+                case VFXSpawnerType.kVariableRate:
                     return "Variable Rate";
+                case VFXSpawnerType.kCustomCallback:
+                    return "Custom Callback (WIP)";
                 default:
                     throw new ArgumentException("Unknown spawner type");
             }
         }
 
-        public VFXSpawnerBlockModel(Type spawnerType)
+        public VFXSpawnerBlockModel(VFXSpawnerType spawnerType)
         {
             m_Type = spawnerType;
             VFXProperty[] properties = CreateProperties(m_Type);
             InitSlots(properties, null);
         }
 
-        private static VFXProperty[] CreateProperties(Type spawnerType)
+        private static VFXProperty[] CreateProperties(VFXSpawnerType spawnerType)
         {
             switch (spawnerType)
             {
-                case Type.kConstantRate:
+                case VFXSpawnerType.kConstantRate:
                     return new VFXProperty[] { new VFXProperty( new VFXFloatType(10.0f),"Rate") };
-                case Type.kBurst:
+                case VFXSpawnerType.kBurst:
                     return new VFXProperty[] { 
                         new VFXProperty(new VFXFloat2Type(new Vector2(0,3)),"Count"),
                         new VFXProperty(new VFXFloat2Type(new Vector2(0.03f,0.25f)),"Delay")
                     };
-                case Type.kPeriodicBurst:
+                case VFXSpawnerType.kPeriodicBurst:
                     return new VFXProperty[] { 
                         VFXProperty.Create<VFXFloat2Type>("nb"),
                         VFXProperty.Create<VFXFloat2Type>("period")
                     };
-                case Type.kVariableRate:
+                case VFXSpawnerType.kVariableRate:
                     return new VFXProperty[] { 
                         VFXProperty.Create<VFXFloat2Type>("nb"),
                         VFXProperty.Create<VFXFloat2Type>("period")
+                    };
+                case VFXSpawnerType.kCustomCallback:
+                    return new VFXProperty[] {
+                        VFXProperty.Create<VFXFloat4Type>("a"),
+                        VFXProperty.Create<VFXFloat4Type>("b"),
+                        VFXProperty.Create<VFXFloat4Type>("c"),
+                        VFXProperty.Create<VFXFloat4Type>("d"),
                     };
                 default:
                     throw new ArgumentException("Unknown spawner type");
@@ -194,9 +195,9 @@ namespace UnityEditor.Experimental.VFX
         public bool UICollapsed { get { return m_UICollapsed; } }
         private bool m_UICollapsed;
 
-        public Type SpawnerType { get { return m_Type; } }
+        public VFXSpawnerType SpawnerType { get { return m_Type; } }
 
-        private Type m_Type;
+        private VFXSpawnerType m_Type;
     }
 
     public class VFXEventModel : VFXElementModel<VFXElementModel, VFXElementModel>, VFXUIDataHolder
