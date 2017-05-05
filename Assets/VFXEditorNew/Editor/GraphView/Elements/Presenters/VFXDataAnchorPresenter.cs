@@ -68,9 +68,28 @@ namespace UnityEditor.VFX.UI
 
         public object value
         {
-            get { return model.value; }
+            get {
+                if(!editable)
+                {
+                    VFXViewPresenter presenter = m_SourceNode.viewPresenter;
+
+                    if( presenter.CanGetEvaluatedContent(model))
+                    {
+                        return presenter.GetEvaluatedContent(model);
+                    }
+                }
+
+                return model.value;
+            }
 
             set { SetPropertyValue(value); }
+        }
+
+
+        public override void Connect(EdgePresenter edgePresenter)
+        {
+            base.Connect(edgePresenter);
+
         }
 
 
@@ -96,7 +115,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual string iconName
         {
-            get{ return anchorType.Name; }
+            get { return anchorType.Name; }
         }
 
         [SerializeField]
@@ -106,7 +125,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_Hidden && ! connected;
+                return m_Hidden && !connected;
             }
         }
         public bool editable

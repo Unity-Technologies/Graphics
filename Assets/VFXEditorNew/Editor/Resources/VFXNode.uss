@@ -70,3 +70,8 @@ VFXParameterUI #IconContainer
 	width:16;
 	height:16;
 }
+
+VFXOperatorUI  .propertyrm
+{
+	margin-left:12;
+}

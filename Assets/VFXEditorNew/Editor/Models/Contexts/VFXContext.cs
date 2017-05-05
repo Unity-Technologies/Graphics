@@ -42,18 +42,18 @@ namespace UnityEditor.VFX
             m_OutputType = outputType;
         }
 
-        public VFXContext(VFXContextType contextType) : this(contextType,VFXDataType.kNone,VFXDataType.kNone)
+        public VFXContext(VFXContextType contextType) : this(contextType, VFXDataType.kNone, VFXDataType.kNone)
         {}
 
         public virtual VFXContextType contextType   { get { return m_ContextType; } }
         public virtual VFXDataType inputType        { get { return m_InputType; } }
-        public virtual VFXDataType outputType       { get { return m_OutputType; } } 
-   
-        protected override void OnInvalidate(VFXModel model,InvalidationCause cause)
-        {
-            base.OnInvalidate(model,cause);
+        public virtual VFXDataType outputType       { get { return m_OutputType; } }
 
-            if (cause == InvalidationCause.kStructureChanged || 
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.OnInvalidate(model, cause);
+
+            if (cause == InvalidationCause.kStructureChanged ||
                 cause == InvalidationCause.kConnectionChanged ||
                 cause == InvalidationCause.kExpressionInvalidated)
             {
@@ -85,7 +85,7 @@ namespace UnityEditor.VFX
                 return false;
 
             var block = (VFXBlock)model;
-            return Accept(block,index);
+            return Accept(block, index);
         }
 
         public bool Accept(VFXBlock block, int index = -1)
@@ -121,10 +121,10 @@ namespace UnityEditor.VFX
     }
 
     // TODO Do that later!
-   /* class VFXSubContext : VFXModel<VFXContext, VFXModel>
-    {
-        // In and out sub context, if null directly connected to the context input/output
-        private VFXSubContext m_In;
-        private VFXSubContext m_Out;
-    }*/
+    /* class VFXSubContext : VFXModel<VFXContext, VFXModel>
+     {
+         // In and out sub context, if null directly connected to the context input/output
+         private VFXSubContext m_In;
+         private VFXSubContext m_Out;
+     }*/
 }

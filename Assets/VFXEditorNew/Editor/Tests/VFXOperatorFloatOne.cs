@@ -23,5 +23,3 @@ namespace UnityEditor.VFX.Test
         }
     }
 }
-
-

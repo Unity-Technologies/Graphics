@@ -10,7 +10,6 @@ namespace UnityEditor.VFX.Test
     {
         class VFXDummySlot : VFXSlot
         {
-
         }
 
         [Test]

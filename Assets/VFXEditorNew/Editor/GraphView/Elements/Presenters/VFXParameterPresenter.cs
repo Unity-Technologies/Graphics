@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterPresenter : VFXNodePresenter, IVFXPresenter,IPropertyRMProvider
+    class VFXParameterPresenter : VFXNodePresenter, IVFXPresenter, IPropertyRMProvider
     {
         [SerializeField]
         private string m_exposedName;
@@ -50,14 +50,16 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expandable {get  { return false; } }
 
-        object IPropertyRMProvider.value {
-            get {
+        object IPropertyRMProvider.value
+        {
+            get
+            {
                 VFXParameter model = this.model as VFXParameter;
 
                 return model.GetOutputSlot(0).value;
-
             }
-            set {
+            set
+            {
                 VFXParameter model = this.model as VFXParameter;
 
                 Undo.RecordObject(model, "Change Value");
@@ -65,10 +67,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        string IPropertyRMProvider.name { get{ return "Value"; } }
+        string IPropertyRMProvider.name { get { return "Value"; } }
 
-        Type IPropertyRMProvider.anchorType {get {
-
+        Type IPropertyRMProvider.anchorType
+        {
+            get
+            {
                 VFXParameter model = this.model as VFXParameter;
 
                 return model.GetOutputSlot(0).property.type;
@@ -105,6 +109,7 @@ namespace UnityEditor.VFX.UI
         {
             throw new NotImplementedException();
         }
+
         public override UnityEngine.Object[] GetObjectsToWatch()
         {
             return new UnityEngine.Object[] { this, model, node.outputSlots[0] };

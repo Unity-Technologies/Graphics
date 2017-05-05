@@ -13,11 +13,11 @@ namespace UnityEditor.VFX.UI
     {
         public override IVFXSlotContainer slotContainer { get { return m_Model; } }
         protected new void OnEnable()
-		{
-			capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Movable;
+        {
+            capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Movable;
 
             // Most initialization will be done in Init
-		}
+        }
 
         VFXBlockDataInputAnchorPresenter AddDataAnchor(VFXSlot slot)
         {
@@ -28,10 +28,11 @@ namespace UnityEditor.VFX.UI
             return anchorPresenter;
         }
 
-        public void Init(VFXBlock model,VFXContextPresenter contextPresenter)
+        public void Init(VFXBlock model, VFXContextPresenter contextPresenter)
         {
             m_Model = model;
             m_ContextPresenter = contextPresenter;
+            base.Init(contextPresenter.ViewPresenter);
 
 
             //TODO unregister when the block is destroyed
@@ -42,19 +43,19 @@ namespace UnityEditor.VFX.UI
 
         private void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            if( model is VFXBlock && cause == VFXModel.InvalidationCause.kStructureChanged)
+            if (model is VFXBlock && cause == VFXModel.InvalidationCause.kStructureChanged)
             {
                 var inputs = inputAnchors;
                 inputAnchors.Clear();
                 Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter> newAnchors = new Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter>();
 
                 VFXBlock block = model as VFXBlock;
-                UpdateSlots(newAnchors, block.inputSlots,true);
+                UpdateSlots(newAnchors, block.inputSlots, true);
                 m_Anchors = newAnchors;
             }
         }
 
-        void UpdateSlots(Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter> newAnchors , IEnumerable<VFXSlot> slotList,bool expanded)
+        void UpdateSlots(Dictionary<VFXSlot, VFXBlockDataInputAnchorPresenter> newAnchors , IEnumerable<VFXSlot> slotList, bool expanded)
         {
             foreach (VFXSlot slot in slotList)
             {
@@ -90,7 +91,7 @@ namespace UnityEditor.VFX.UI
 
         public int index
         {
-            get { return m_ContextPresenter.blockPresenters.FindIndex(t=>t == this); }
+            get { return m_ContextPresenter.blockPresenters.FindIndex(t => t == this); }
         }
 
         public VFXBlockDataInputAnchorPresenter GetPropertyPresenter(VFXSlot slot)
@@ -113,23 +114,19 @@ namespace UnityEditor.VFX.UI
             public int depth;
             public string parentPath;
 
-            public string path { get { return !string.IsNullOrEmpty(parentPath)?parentPath + "." + name : name; } }
+            public string path { get { return !string.IsNullOrEmpty(parentPath) ? parentPath + "." + name : name; } }
         }
 
-        
 
         public static bool IsTypeExpandable(System.Type type)
         {
-            return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && ! type.IsEnum && type != typeof(Gradient);
+            return !type.IsPrimitive && !typeof(Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && !type.IsEnum && type != typeof(Gradient);
         }
-
-
 
         bool ShouldSkipLevel(Type type)
         {
             return typeof(Spaceable).IsAssignableFrom(type) && type.GetFields().Length == 2; // spaceable having only one member plus their space member.
         }
-
 
         bool ShouldIgnoreMember(Type type, FieldInfo field)
         {
@@ -141,18 +138,18 @@ namespace UnityEditor.VFX.UI
             if (type == null)
                 yield break;
 
-            FieldInfo[] infos = type.GetFields(BindingFlags.Public|BindingFlags.Instance);
+            FieldInfo[] infos = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
 
-            if( ShouldSkipLevel(type) )
+            if (ShouldSkipLevel(type))
             {
                 foreach (var field in infos)
                 {
-                    if( ShouldIgnoreMember(type,field))
+                    if (ShouldIgnoreMember(type, field))
                         continue;
 
                     object fieldValue = field.GetValue(value);
-                    string fieldPath = string.IsNullOrEmpty(prefix)? field.Name:prefix + "." + field.Name;
+                    string fieldPath = string.IsNullOrEmpty(prefix) ? field.Name : prefix + "." + field.Name;
 
                     foreach (var subField in GetProperties(field.FieldType, fieldValue, fieldPath, depth + 1))
                     {
@@ -164,13 +161,13 @@ namespace UnityEditor.VFX.UI
 
             foreach (var field in infos)
             {
-                if( ShouldIgnoreMember(type,field))
+                if (ShouldIgnoreMember(type, field))
                     continue;
 
                 object fieldValue = field.GetValue(value);
 
 
-                string fieldPath = string.IsNullOrEmpty(prefix)? field.Name:prefix + "." + field.Name;
+                string fieldPath = string.IsNullOrEmpty(prefix) ? field.Name : prefix + "." + field.Name;
                 bool expanded = m_Model.IsPathExpanded(fieldPath);
 
                 yield return new PropertyInfo()
@@ -193,11 +190,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
-
         public override IEnumerable<GraphElementPresenter> allChildren
         {
-            get {
+            get
+            {
                 foreach (var kv in m_Anchors)
                 {
                     yield return kv.Value;

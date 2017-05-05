@@ -47,14 +47,14 @@ namespace UnityEditor.VFX.UI
 
         public bool CanGetEvaluatedContent(VFXSlot slot)
         {
-            if (m_ExpressionContext != null)
+            if (m_ExpressionContext == null)
                 return false;
 
             var reduced = m_ExpressionContext.GetReduced(slot.GetExpression());
             return reduced.Is(VFXExpression.Flags.Value);
         }
 
-        public object GetEvaluatedContent<T>(VFXSlot slot)
+        public object GetEvaluatedContent(VFXSlot slot)
         {
             if (!CanGetEvaluatedContent(slot))
                 return null;
