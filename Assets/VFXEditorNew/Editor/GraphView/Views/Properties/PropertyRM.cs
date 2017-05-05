@@ -181,28 +181,6 @@ namespace UnityEditor.VFX.UI
         T GetValue(object floatN);
     }
 
-    class FloatNAffector : IFloatNAffector<float>, IFloatNAffector<Vector2>, IFloatNAffector<Vector3>, IFloatNAffector<Vector4>
-    {
-        float IFloatNAffector<float>.GetValue(object floatN)
-        {
-            return (FloatN)floatN;
-        }
-        Vector2 IFloatNAffector<Vector2>.GetValue(object floatN)
-        {
-            return (FloatN)floatN;
-        }
-        Vector3 IFloatNAffector<Vector3>.GetValue(object floatN)
-        {
-            return (FloatN)floatN;
-        }
-        Vector4 IFloatNAffector<Vector4>.GetValue(object floatN)
-        {
-            return (FloatN)floatN;
-        }
-
-        public static FloatNAffector Default = new FloatNAffector();
-    }
-
     abstract class PropertyRM<T> : PropertyRM
     {
         public PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
@@ -217,7 +195,13 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    m_Value = (T)obj;
+                    try{
+                        m_Value = (T)obj;
+                    }
+                    catch(System.Exception)
+                    {
+                        Debug.Log("Error Trying to convert" + (obj!= null ? obj.GetType().Name : "null") +" to "+  typeof(T).Name);
+                    }
                 }
             }
             UpdateGUI();
