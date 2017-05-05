@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
         {
             if (inputExpression.Length != 2)
             {
-                return new VFXExpression[] { };
+                return new VFXExpression[] {};
             }
 
             return new[] { new VFXExpressionSampleCurve(inputExpression[0], inputExpression[1]) };

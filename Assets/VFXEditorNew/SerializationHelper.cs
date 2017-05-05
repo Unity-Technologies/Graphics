@@ -43,8 +43,8 @@ namespace UnityEngine.Graphing
                 get
                 {
                     return string.IsNullOrEmpty(typeInfo.assemblyName)
-                    && string.IsNullOrEmpty(typeInfo.fullName)
-                    && string.IsNullOrEmpty(JSONnodeData);
+                        && string.IsNullOrEmpty(typeInfo.fullName)
+                        && string.IsNullOrEmpty(JSONnodeData);
                 }
             }
 
@@ -57,10 +57,10 @@ namespace UnityEngine.Graphing
         public static TypeSerializationInfo GetTypeSerializableAsString(Type type)
         {
             return new TypeSerializationInfo
-                   {
-                       fullName = type.FullName,
-                       assemblyName = type.Assembly.GetName().Name
-                   };
+            {
+                fullName = type.FullName,
+                assemblyName = type.Assembly.GetName().Name
+            };
         }
 
         private static Type GetTypeFromSerializedString(TypeSerializationInfo typeInfo)
@@ -84,10 +84,10 @@ namespace UnityEngine.Graphing
             ;
 
             return new JSONSerializedElement
-                   {
-                       typeInfo = typeInfo,
-                       JSONnodeData = data
-                   };
+            {
+                typeInfo = typeInfo,
+                JSONnodeData = data
+            };
         }
 
         private static TypeSerializationInfo DoTypeRemap(TypeSerializationInfo info, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper)
@@ -115,11 +115,11 @@ namespace UnityEngine.Graphing
             try
             {
                 instance = Activator.CreateInstance(
-                    type, 
-                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, 
-                    null, 
-                    constructorArgs, 
-                    null) as T;
+                        type,
+                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
+                        null,
+                        constructorArgs,
+                        null) as T;
             }
             catch (Exception e)
             {

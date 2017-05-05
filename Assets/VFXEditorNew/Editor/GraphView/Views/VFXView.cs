@@ -29,62 +29,63 @@ namespace UnityEditor.VFX.UI
         {
             return desc.name;
         }
+
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
             var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
-            {
-                return new Descriptor()
                 {
-                    modelDescriptor = o,
-                    category = "Context/" + o.info.category,
-                    name = o.name
-                };
-            }).OrderBy(o => o.name);
+                    return new Descriptor()
+                    {
+                        modelDescriptor = o,
+                        category = "Context/" + o.info.category,
+                        name = o.name
+                    };
+                }).OrderBy(o => o.name);
 
             var descriptorsOperator = VFXLibrary.GetOperators().Select(o =>
-            {
-                return new Descriptor()
                 {
-                    modelDescriptor = o,
-                    category = "Operator/" + o.info.category,
-                    name = o.name
-                };
-            }).OrderBy(o => o.name);
+                    return new Descriptor()
+                    {
+                        modelDescriptor = o,
+                        category = "Operator/" + o.info.category,
+                        name = o.name
+                    };
+                }).OrderBy(o => o.name);
 
             var descriptorParameter = VFXLibrary.GetParameters().Select(o =>
-            {
-                return new Descriptor()
                 {
-                    modelDescriptor = o,
-                    category = "Parameter/",
-                    name = o.name
-                };
-            }).OrderBy(o => o.name);
+                    return new Descriptor()
+                    {
+                        modelDescriptor = o,
+                        category = "Parameter/",
+                        name = o.name
+                    };
+                }).OrderBy(o => o.name);
 
             var descriptorBuiltInParameter = VFXLibrary.GetBuiltInParameters().Select(o =>
-            {
-                return new Descriptor()
                 {
-                    modelDescriptor = o,
-                    category = "BuiltIn/",
-                    name = o.name
-                };
-            }).OrderBy(o => o.name);
+                    return new Descriptor()
+                    {
+                        modelDescriptor = o,
+                        category = "BuiltIn/",
+                        name = o.name
+                    };
+                }).OrderBy(o => o.name);
 
             var descriptorAttributeParameter = VFXLibrary.GetAttributeParameters().Select(o =>
-            {
-                return new Descriptor()
                 {
-                    modelDescriptor = o,
-                    category = "Attribute/",
-                    name = o.name
-                };
-            }).OrderBy(o => o.name);
+                    return new Descriptor()
+                    {
+                        modelDescriptor = o,
+                        category = "Attribute/",
+                        name = o.name
+                    };
+                }).OrderBy(o => o.name);
 
-            return descriptorsContext   .Concat(descriptorsOperator)
-                                        .Concat(descriptorParameter)
-                                        .Concat(descriptorBuiltInParameter)
-                                        .Concat(descriptorAttributeParameter);
+            return descriptorsContext.Concat(descriptorsOperator)
+                .Concat(descriptorParameter)
+                .Concat(descriptorBuiltInParameter)
+                .Concat(descriptorAttributeParameter);
         }
     }
 
@@ -94,26 +95,26 @@ namespace UnityEditor.VFX.UI
         public VFXView()
         {
             forceNotififcationOnAdd = true;
-            SetupZoom(new Vector3(0.125f,0.125f,1),new Vector3(1,1,1));
+            SetupZoom(new Vector3(0.125f, 0.125f, 1), new Vector3(1, 1, 1));
 
             AddManipulator(new ContentDragger());
             AddManipulator(new RectangleSelector());
             AddManipulator(new SelectionDragger());
             AddManipulator(new ClickSelector());
             AddManipulator(new ShortcutHandler(
-                new Dictionary<Event, ShortcutDelegate>
-                {
-                    {Event.KeyboardEvent("a"), FrameAll},
-                    {Event.KeyboardEvent("f"), FrameSelection},
-                    {Event.KeyboardEvent("o"), FrameOrigin},
-                    {Event.KeyboardEvent("delete"), DeleteSelection},
-//					{Event.KeyboardEvent("#tab"), FramePrev},
-//					{Event.KeyboardEvent("tab"), FrameNext},
-                    {Event.KeyboardEvent("c"), CloneModels}, // TEST
-                    {Event.KeyboardEvent("#r"), Resync},
-                    {Event.KeyboardEvent("#d"), OutputToDot},
-                    {Event.KeyboardEvent("^#d"), OutputToDotReduced},
-                }));
+                    new Dictionary<Event, ShortcutDelegate>
+            {
+                {Event.KeyboardEvent("a"), FrameAll},
+                {Event.KeyboardEvent("f"), FrameSelection},
+                {Event.KeyboardEvent("o"), FrameOrigin},
+                {Event.KeyboardEvent("delete"), DeleteSelection},
+//                  {Event.KeyboardEvent("#tab"), FramePrev},
+//                  {Event.KeyboardEvent("tab"), FrameNext},
+                {Event.KeyboardEvent("c"), CloneModels},     // TEST
+                {Event.KeyboardEvent("#r"), Resync},
+                {Event.KeyboardEvent("#d"), OutputToDot},
+                {Event.KeyboardEvent("^#d"), OutputToDotReduced},
+            }));
 
             Undo.undoRedoPerformed += () => Resync();
 
@@ -121,33 +122,33 @@ namespace UnityEditor.VFX.UI
             InsertChild(0, bg);
 
             AddManipulator(new FilterPopup(new VFXNodeProvider((d, mPos) =>
-            {
-                Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
-                if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
                 {
-                    AddVFXOperator(tPos, (d.modelDescriptor as VFXModelDescriptor<VFXOperator>));
-                }
-                else if (d.modelDescriptor is VFXModelDescriptor<VFXContext>)
-                {
-                    AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
-                }
-                else if (d.modelDescriptor is VFXModelDescriptorParameters)
-                {
-                    AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
-                }
-                else if (d.modelDescriptor is VFXModelDescriptorBuiltInParameters)
-                {
-                    AddVFXBuiltInParameter(tPos, d.modelDescriptor as VFXModelDescriptorBuiltInParameters);
-                }
-                else if (d.modelDescriptor is VFXModelDescriptorAttributeParameters)
-                {
-                    AddVFXAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorAttributeParameters);
-                }
-                else
-                {
-                    Debug.LogErrorFormat("Add unknown presenter : {0}", d.modelDescriptor.GetType());
-                }
-            }), null));
+                    Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
+                    if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
+                    {
+                        AddVFXOperator(tPos, (d.modelDescriptor as VFXModelDescriptor<VFXOperator>));
+                    }
+                    else if (d.modelDescriptor is VFXModelDescriptor<VFXContext>)
+                    {
+                        AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
+                    }
+                    else if (d.modelDescriptor is VFXModelDescriptorParameters)
+                    {
+                        AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
+                    }
+                    else if (d.modelDescriptor is VFXModelDescriptorBuiltInParameters)
+                    {
+                        AddVFXBuiltInParameter(tPos, d.modelDescriptor as VFXModelDescriptorBuiltInParameters);
+                    }
+                    else if (d.modelDescriptor is VFXModelDescriptorAttributeParameters)
+                    {
+                        AddVFXAttributeParameter(tPos, d.modelDescriptor as VFXModelDescriptorAttributeParameters);
+                    }
+                    else
+                    {
+                        Debug.LogErrorFormat("Add unknown presenter : {0}", d.modelDescriptor.GetType());
+                    }
+                }), null));
 
             typeFactory[typeof(VFXAttributeParameterPresenter)] = typeof(VFXAttributeParameterUI);
             typeFactory[typeof(VFXBuiltInParameterPresenter)] = typeof(VFXBuiltInParameterUI);
@@ -169,9 +170,9 @@ namespace UnityEditor.VFX.UI
             Dirty(ChangeType.Transform);
         }
 
-        void AddVFXContext(Vector2 pos,VFXModelDescriptor<VFXContext> desc)
+        void AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
         {
-            GetPresenter<VFXViewPresenter>().AddVFXContext(pos,desc);
+            GetPresenter<VFXViewPresenter>().AddVFXContext(pos, desc);
         }
 
         void AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
@@ -264,11 +265,11 @@ namespace UnityEditor.VFX.UI
 
                         foreach (VFXBlockUI block in context.GetAllBlocks())
                         {
-                            foreach(VFXDataAnchor anchor in block.GetAnchors(input,output))
+                            foreach (VFXDataAnchor anchor in block.GetAnchors(input, output))
                                 yield return anchor;
                         }
                     }
-                    else if( element is VFXNodeUI)
+                    else if (element is VFXNodeUI)
                     {
                         var ope = element as VFXNodeUI;
                         foreach (VFXDataAnchor anchor in ope.GetAnchors(input, output))
@@ -277,8 +278,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-
-
 
         public override IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
         {
@@ -303,16 +302,14 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var element in layer)
                 {
-                    if( element is VFXContextUI)
+                    if (element is VFXContextUI)
                     {
                         var context = element as VFXContextUI;
 
-                        foreach( var block in context.GetAllBlocks())
+                        foreach (var block in context.GetAllBlocks())
                         {
                             yield return block;
                         }
-
-
                     }
                 }
             }

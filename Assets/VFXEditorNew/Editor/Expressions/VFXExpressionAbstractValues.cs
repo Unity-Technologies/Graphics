@@ -11,6 +11,7 @@ namespace UnityEditor.VFX
         {
             m_Flags |= Flags.Value | Flags.ValidOnGPU | Flags.ValidOnCPU;
         }
+
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXValueOp; } }
 
         sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
@@ -64,12 +65,13 @@ namespace UnityEditor.VFX
         private static VFXValue FindAndCreateFirstConcreteType()
         {
             var firstConcreteType = typeof(VFXValue<T>)
-                                    .Assembly
-                                    .GetTypes()
-                                    .Where(t => t.IsSubclassOf(typeof(VFXValue<T>)) && !t.IsAbstract)
-                                    .First();
+                .Assembly
+                .GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(VFXValue<T>)) && !t.IsAbstract)
+                .First();
             return CreateNewInstance(firstConcreteType) as VFXValue;
         }
+
         private static readonly VFXValue s_Default = FindAndCreateFirstConcreteType();
         public static VFXValue Default { get { return s_Default; } }
 
@@ -98,8 +100,8 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    var implicitMethod = fromType   .GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
-                                                    .FirstOrDefault(m => m.Name == "op_Implicit" && m.ReturnType == toType);
+                    var implicitMethod = fromType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                        .FirstOrDefault(m => m.Name == "op_Implicit" && m.ReturnType == toType);
                     if (implicitMethod != null)
                     {
                         m_Content = (T)implicitMethod.Invoke(null, new object[] { value });

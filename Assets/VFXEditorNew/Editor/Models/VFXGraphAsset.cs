@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
             if (EditorUtility.IsPersistent(this))
             {
                 Profiler.BeginSample("UpdateSubAssets");
- 
+
                 try
                 {
                     HashSet<Object> persistentObjects = new HashSet<Object>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)));
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
                     m_Root.CollectDependencies(currentObjects);
                     currentObjects.Add(m_Root);
 
-                    // Add sub assets that are not already present         
+                    // Add sub assets that are not already present
                     foreach (var obj in currentObjects)
                         if (!persistentObjects.Contains(obj))
                         {
@@ -65,7 +65,7 @@ namespace UnityEditor.VFX
             return modified;
         }
 
-        private void OnModelInvalidate(VFXModel model,VFXModel.InvalidationCause cause)
+        private void OnModelInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX
                 {
                     //AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
                 }
-            }     
+            }
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated)
             {

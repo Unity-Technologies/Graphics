@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        private void CheckSlotEnumerable(TestSlotContainer model,IEnumerable<VFXSlot> slots, VFXProperty[] correctProperties)
+        private void CheckSlotEnumerable(TestSlotContainer model, IEnumerable<VFXSlot> slots, VFXProperty[] correctProperties)
         {
             // First count slots
             int index = 0;
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
             index = 0;
             foreach (var slot in slots)
             {
-                Assert.AreEqual(correctProperties[index].name,slot.name);
+                Assert.AreEqual(correctProperties[index].name, slot.name);
                 Assert.AreEqual(correctProperties[index], slot.property);
                 Assert.AreEqual(model, slot.owner);
                 ++index;
@@ -44,14 +44,16 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void GetSlots()
         {
-            var correctInputs = new VFXProperty[2]  {
-                new VFXProperty(typeof(Vector4),"v"),  
-                new VFXProperty(typeof(float),"f")
+            var correctInputs = new VFXProperty[2]
+            {
+                new VFXProperty(typeof(Vector4), "v"),
+                new VFXProperty(typeof(float), "f")
             };
 
-            var correctOutputs = new VFXProperty[2] {
-                new VFXProperty(typeof(Vector2),"v2"), 
-                new VFXProperty(typeof(Vector3),"v3")
+            var correctOutputs = new VFXProperty[2]
+            {
+                new VFXProperty(typeof(Vector2), "v2"),
+                new VFXProperty(typeof(Vector3), "v3")
             };
 
             var model = new TestSlotContainer();
@@ -67,7 +69,7 @@ namespace UnityEditor.VFX.Test
         {
             var model = new TestSlotContainer();
 
-            var inputSlot = VFXSlot.Create(new VFXProperty(typeof(Texture2D),"t"), VFXSlot.Direction.kInput);
+            var inputSlot = VFXSlot.Create(new VFXProperty(typeof(Texture2D), "t"), VFXSlot.Direction.kInput);
             Assert.IsNull(inputSlot.owner);
             model.AddSlot(inputSlot);
             Assert.AreEqual(model, inputSlot.owner);
@@ -95,7 +97,7 @@ namespace UnityEditor.VFX.Test
             var outputSlot = model.GetOutputSlot(1);
             model.RemoveSlot(outputSlot);
             Assert.IsNull(outputSlot.owner);
-            Assert.AreEqual(1, model.GetNbOutputSlots());     
+            Assert.AreEqual(1, model.GetNbOutputSlots());
         }
     }
 }

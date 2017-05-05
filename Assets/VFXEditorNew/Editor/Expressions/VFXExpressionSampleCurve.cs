@@ -42,7 +42,6 @@ namespace UnityEditor.VFX
             var curve = curveReduce.Get<AnimationCurve>();
             var time = timeReduce.Get<float>();
             return new VFXValueFloat(curve.Evaluate(time), true);
-
         }
 
         private VFXExpression m_Curve;

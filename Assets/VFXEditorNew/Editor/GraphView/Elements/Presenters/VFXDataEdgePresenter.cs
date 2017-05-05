@@ -6,11 +6,10 @@ using UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXDataEdgePresenter: EdgePresenter
+    public class VFXDataEdgePresenter : EdgePresenter
     {
         public VFXDataEdgePresenter()
         {
-
         }
     }
 }

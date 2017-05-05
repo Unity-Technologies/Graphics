@@ -45,7 +45,7 @@ namespace UnityEditor.VFX
                 Compile();
             }
 
-            private bool ShouldEvaluate(VFXExpression exp,VFXExpression[] reducedParents)
+            private bool ShouldEvaluate(VFXExpression exp, VFXExpression[] reducedParents)
             {
                 if (Option != ReductionOption.CPUEvaluation && Option != ReductionOption.ConstantFolding)
                     return false;
@@ -93,7 +93,7 @@ namespace UnityEditor.VFX
             public VFXExpression GetReduced(VFXExpression expression)
             {
                 VFXExpression reduced;
-                m_ReducedCache.TryGetValue(expression,out reduced);
+                m_ReducedCache.TryGetValue(expression, out reduced);
                 return reduced != null ? reduced : expression;
             }
 

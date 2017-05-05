@@ -75,7 +75,7 @@ namespace UnityEditor.VFX
                     //Debug.Log("---- Exp: " + exp.GetType() + " " + exp.ValueType);
                 }
                 m_ExpressionContext.Compile();
-                //Debug.Log("************** RECOMPILE EXPRESSION CONTEXT FOR " + this.GetType() + " " + this.name + " nbExpressions:" + expressions.Count);          
+                //Debug.Log("************** RECOMPILE EXPRESSION CONTEXT FOR " + this.GetType() + " " + this.name + " nbExpressions:" + expressions.Count);
             }
         }
 

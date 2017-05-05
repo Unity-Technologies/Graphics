@@ -23,7 +23,7 @@ namespace UnityEditor.VFX
         public new virtual string name  { get { return string.Empty; } }
         //public new virtual string name  { get { return string.Empty; } }
         public Guid id              { get { return m_Id; } }
-        
+
         public int m_OnEnabledCount = 0;
 
         public string DebugName
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
             {
                 int nbRemoved = m_Children.RemoveAll(c => c == null);// Remove bad references if any
                 if (nbRemoved > 0)
-                    Debug.Log(String.Format("Remove {0} child(ren) that couldnt be deserialized from {1} of type {2}",nbRemoved,name,GetType()));
+                    Debug.Log(String.Format("Remove {0} child(ren) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
         }
 
@@ -77,13 +77,14 @@ namespace UnityEditor.VFX
             return clone;
         }
 
-        protected virtual void OnInvalidate(VFXModel model,InvalidationCause cause)
+        protected virtual void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (onInvalidateDelegate != null)
             {
                 onInvalidateDelegate(model, cause);
             }
         }
+
         protected virtual void OnAdded() {}
         protected virtual void OnRemoved() {}
 
@@ -123,9 +124,9 @@ namespace UnityEditor.VFX
             model.OnRemoved();
             m_Children.Remove(model);
             model.m_Parent = null;
-            
+
             if (notify)
-                Invalidate(InvalidationCause.kStructureChanged);     
+                Invalidate(InvalidationCause.kStructureChanged);
         }
 
         public void RemoveAllChildren(bool notify = true)
@@ -210,14 +211,14 @@ namespace UnityEditor.VFX
 
         public void Invalidate(InvalidationCause cause)
         {
-            Invalidate(this,cause);
+            Invalidate(this, cause);
         }
 
-        protected virtual void Invalidate(VFXModel model,InvalidationCause cause)
+        protected virtual void Invalidate(VFXModel model, InvalidationCause cause)
         {
-            OnInvalidate(model,cause);
+            OnInvalidate(model, cause);
             if (m_Parent != null)
-                m_Parent.Invalidate(model,cause);
+                m_Parent.Invalidate(model, cause);
         }
 
         public virtual void OnBeforeSerialize()
@@ -227,7 +228,7 @@ namespace UnityEditor.VFX
         public virtual void OnAfterDeserialize()
         {
         }
-      
+
         private Guid m_Id; // TODO Not used
 
         [SerializeField]

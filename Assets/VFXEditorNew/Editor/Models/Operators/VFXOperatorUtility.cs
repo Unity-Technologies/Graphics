@@ -19,9 +19,9 @@ namespace UnityEditor.VFX
         public static readonly Dictionary<int, VFXExpression> HalfExpression = new Dictionary<int, VFXExpression>
         {
             { 1, new VFXValueFloat(0.5f, true) },
-            { 3, new VFXValueFloat3(Vector3.one*0.5f, true) },
-            { 2, new VFXValueFloat2(Vector2.one*0.5f, true) },
-            { 4, new VFXValueFloat4(Vector4.one*0.5f, true) },
+            { 3, new VFXValueFloat3(Vector3.one * 0.5f, true) },
+            { 2, new VFXValueFloat2(Vector2.one * 0.5f, true) },
+            { 4, new VFXValueFloat4(Vector4.one * 0.5f, true) },
         };
 
         public static readonly Dictionary<int, VFXExpression> ZeroExpression = new Dictionary<int, VFXExpression>
@@ -182,6 +182,5 @@ namespace UnityEditor.VFX
             var combine = new VFXExpressionCombine(outputComponent);
             return combine;
         }
-
     }
 }

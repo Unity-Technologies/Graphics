@@ -1,11 +1,10 @@
-﻿
 using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
-    public class FilterPopup  : Manipulator
+    public class FilterPopup : Manipulator
     {
         private readonly VFXFilterWindow.IProvider m_FilterProvider;
         //private readonly Object m_CustomData;
@@ -29,7 +28,7 @@ namespace UnityEditor.VFX.UI
             {
                 case EventType.ContextClick:
 
-                        VFXFilterWindow.Show(Event.current.mousePosition, m_FilterProvider); ;
+                    VFXFilterWindow.Show(Event.current.mousePosition, m_FilterProvider);
                     return EventPropagation.Stop;
             }
 

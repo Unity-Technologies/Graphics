@@ -55,6 +55,5 @@ namespace UnityEditor.VFX.UI
                 m_GUIStyles.baseStyle.padding = new RectOffset(IMPadding, IMPadding, IMPadding, IMPadding);
             }
         }
-
     }
 }

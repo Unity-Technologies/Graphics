@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
             return value != null ? value.m_Type : null;
         }
 
-        private SerializableType() { }
+        private SerializableType() {}
         public SerializableType(Type type)
         {
             m_Type = type;
@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
     [Serializable]
     public class VFXSerializableObject
     {
-        private VFXSerializableObject() { }
+        private VFXSerializableObject() {}
 
         public VFXSerializableObject(Type type, object obj) : this(type)
         {
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX
                 }
                 newValue = VFXSerializer.Save(obj);
             }
-            
+
             if (m_SerializableObject != newValue)
             {
                 m_SerializableObject = newValue;
@@ -137,7 +137,6 @@ namespace UnityEditor.VFX
             public Keyframe[] frames;
             public WrapMode preWrapMode;
             public WrapMode postWrapMode;
-
         }
 
         [System.Serializable]
@@ -187,7 +186,6 @@ namespace UnityEditor.VFX
             return null;
         }
 
-
         public static string Save(object obj)
         {
             if (obj == null)
@@ -222,20 +220,20 @@ namespace UnityEditor.VFX
 
                 return JsonUtility.ToJson(sac);
             }
-            else if( obj is Gradient)
+            else if (obj is Gradient)
             {
                 GradientWrapper gw = new GradientWrapper();
                 Gradient gradient = obj as Gradient;
 
                 gw.gradientMode = gradient.mode;
                 gw.colorKeys = new GradientWrapper.ColorKey[gradient.colorKeys.Length];
-                for(int i = 0; i < gradient.colorKeys.Length; ++i)
+                for (int i = 0; i < gradient.colorKeys.Length; ++i)
                 {
                     gw.colorKeys[i].color = gradient.colorKeys[i].color;
                     gw.colorKeys[i].time = gradient.colorKeys[i].time;
                 }
                 gw.alphaKeys = new GradientWrapper.AlphaKey[gradient.alphaKeys.Length];
-                for(int i = 0; i < gradient.alphaKeys.Length; ++i)
+                for (int i = 0; i < gradient.alphaKeys.Length; ++i)
                 {
                     gw.alphaKeys[i].alpha = gradient.alphaKeys[i].alpha;
                     gw.alphaKeys[i].time = gradient.alphaKeys[i].time;
@@ -271,7 +269,7 @@ namespace UnityEditor.VFX
             {
                 AnimCurveWrapper sac = new AnimCurveWrapper();
 
-                JsonUtility.FromJsonOverwrite(text,sac);
+                JsonUtility.FromJsonOverwrite(text, sac);
 
                 AnimationCurve curve = new AnimationCurve();
 
@@ -293,7 +291,7 @@ namespace UnityEditor.VFX
 
                 return curve;
             }
-            else if( type.IsAssignableFrom(typeof(Gradient)))
+            else if (type.IsAssignableFrom(typeof(Gradient)))
             {
                 GradientWrapper gw = new GradientWrapper();
                 Gradient gradient = new Gradient();

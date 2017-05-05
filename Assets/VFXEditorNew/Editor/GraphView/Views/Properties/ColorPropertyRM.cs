@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
 {
     class ColorPropertyRM : PropertyRM<Color>
     {
-        public ColorPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter,labelWidth)
+        public ColorPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {
             VisualContainer mainContainer = new VisualContainer();
 

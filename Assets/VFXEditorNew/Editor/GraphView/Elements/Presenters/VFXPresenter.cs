@@ -11,4 +11,3 @@ namespace UnityEditor.VFX.UI
         void Init(VFXModel model, VFXViewPresenter viewPresenter);
     }
 }
-

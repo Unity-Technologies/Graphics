@@ -42,6 +42,5 @@ namespace UnityEditor.VFX.UI
             else
                 RemoveFromClassList("connected");
         }
-
     }
 }

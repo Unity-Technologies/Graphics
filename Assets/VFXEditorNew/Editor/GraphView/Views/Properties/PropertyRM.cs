@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.UI
     {
         bool expanded { get; }
         bool expandable { get; }
-        object value{ get; set; }
+        object value { get; set; }
         string name { get; }
 
         Type anchorType { get; }
@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.UI
             m_Label.text = m_Provider.name;
         }
 
-        public PropertyRM(IPropertyRMProvider provider,float labelWidth)
+        public PropertyRM(IPropertyRMProvider provider, float labelWidth)
         {
             m_Provider = provider;
             m_labelWidth = labelWidth;
@@ -127,7 +127,7 @@ namespace UnityEditor.VFX.UI
             {typeof(AnimationCurve), typeof(CurvePropertyRM)}
         };
 
-        public static PropertyRM Create(IPropertyRMProvider presenter,float labelWidth)
+        public static PropertyRM Create(IPropertyRMProvider presenter, float labelWidth)
         {
             Type propertyType = null;
 
@@ -152,7 +152,7 @@ namespace UnityEditor.VFX.UI
                 type = type.BaseType;
             }
 
-            return propertyType != null ? System.Activator.CreateInstance(propertyType, new object[] {presenter,labelWidth}) as PropertyRM : null;
+            return propertyType != null ? System.Activator.CreateInstance(propertyType, new object[] {presenter, labelWidth}) as PropertyRM : null;
         }
 
         protected void NotifyValueChanged()
@@ -205,7 +205,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class PropertyRM<T> : PropertyRM
     {
-        public PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter,labelWidth)
+        public PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
         {}
         public override void SetValue(object obj)
         {

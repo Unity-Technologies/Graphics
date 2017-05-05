@@ -16,14 +16,12 @@ namespace UnityEditor.VFX.UI
         public void Init(VFXModel owner, VFXSlot model, VFXBlockPresenter nodePresenter)
         {
             base.Init(owner, model, nodePresenter);
-
         }
 
         public void UpdateInfos(bool expanded)
         {
             anchorType = model.property.type;
         }
-
 
         public VFXBlockPresenter blockPresenter
         {
@@ -52,5 +50,4 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-
 }
