@@ -9,7 +9,6 @@ namespace UnityEditor.VFX.UI
 {
     partial class VFXOutputDataAnchor : VFXDataAnchor
     {
-
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static new VFXOutputDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
         {
@@ -35,7 +34,7 @@ namespace UnityEditor.VFX.UI
 
             AddChild(m_Icon); //insert between text and connector
 
-            if( presenter.expandable)
+            if (presenter.expandable)
             {
                 m_Icons = new Texture2D[2];
                 m_Icons[0] = GetTypeIcon(presenter.anchorType, IconType.plus);
@@ -49,14 +48,27 @@ namespace UnityEditor.VFX.UI
             {
                 m_Icon.backgroundImage = GetTypeIcon(presenter.anchorType, IconType.simple);
             }
-            
+            if (presenter.depth != 0)
+            {
+                for (int i = 0; i < presenter.depth; ++i)
+                {
+                    VisualElement line = new VisualElement()
+                    {
+                        width = 1,
+                        name = "line",
+                        marginLeft = 0.5f * VFXPropertyIM.depthOffset,
+                        marginRight = VFXPropertyIM.depthOffset * 0.5f
+                    };
+                    InsertChild(0, line);
+                }
+            }
         }
 
         void OnToggleExpanded()
         {
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
-            if( presenter.expanded )
+            if (presenter.expanded)
             {
                 presenter.RetractPath();
             }
@@ -72,10 +84,10 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
 
             clipChildren = false;
-            if( presenter.expandable)
+            if (presenter.expandable)
                 m_Icon.backgroundImage = presenter.expanded ? m_Icons[1] : m_Icons[0];
         }
-        
+
         public override bool ContainsPoint(Vector2 localPoint)
         {
             return position.Contains(localPoint);
@@ -84,6 +96,5 @@ namespace UnityEditor.VFX.UI
             //localPoint -= position.position;
             //return m_ConnectorBox.ContainsPoint(m_ConnectorBox.transform.MultiplyPoint3x4(localPoint));
         }
-
     }
 }

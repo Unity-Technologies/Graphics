@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.Test
 
             var context = new VFXExpression.Context();
             var result = context.Compile(finalExpr);
-            var eight = result.GetContent<float>();
+            var eight = result.Get<float>();
 
             Assert.AreEqual(count, eight);
         }
@@ -57,7 +57,7 @@ namespace UnityEditor.VFX.Test
 
             var context = new VFXExpression.Context();
             var result = context.Compile(mul.outputSlots[0].GetExpression());
-            var final = result.GetContent<Vector3>();
+            var final = result.Get<Vector3>();
 
             Assert.AreEqual(final, new Vector3(4, 4, 2));
         }

@@ -166,10 +166,7 @@ namespace UnityEditor.VFX
         private static string GetExpressionValue(VFXExpression exp)
         {
             // TODO We should have a way in VFXValue to retrieve an object representing the value
-            if (exp is VFXValueFloat) return ((VFXValueFloat)exp).GetContent<float>().ToString();
-            if (exp is VFXValueFloat2) return ((VFXValueFloat2)exp).GetContent<Vector2>().ToString();
-            if (exp is VFXValueFloat3) return ((VFXValueFloat3)exp).GetContent<Vector3>().ToString();
-            if (exp is VFXValueFloat4) return ((VFXValueFloat4)exp).GetContent<Vector4>().ToString();
+            if (exp is VFXValue) return exp.GetContent().ToString();
             if (exp is VFXBuiltInExpression) return ((VFXBuiltInExpression)exp).Operation.ToString();
             if (exp is VFXAttributeExpression) return ((VFXAttributeExpression)exp).attributeName;
 

@@ -37,12 +37,12 @@ namespace UnityEditor.VFX.UI
             //TODO unregister when the block is destroyed
             model.onInvalidateDelegate += OnInvalidate;
 
-            OnInvalidate(model, VFXModel.InvalidationCause.kParamChanged);
+            OnInvalidate(model, VFXModel.InvalidationCause.kStructureChanged);
         }
 
         private void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            if( model is VFXBlock)
+            if( model is VFXBlock && cause == VFXModel.InvalidationCause.kStructureChanged)
             {
                 var inputs = inputAnchors;
                 inputAnchors.Clear();

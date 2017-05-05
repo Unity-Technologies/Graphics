@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.VFX.UI
 {
     [Serializable]
-    class VFXViewPresenter : GraphViewPresenter
+    partial class VFXViewPresenter : GraphViewPresenter
     {
         [SerializeField]
         public List<VFXFlowAnchorPresenter> m_FlowAnchorPresenters;
@@ -144,10 +144,10 @@ namespace UnityEditor.VFX.UI
             Remove
         }
 
-        private void RecordEdgePresenter(VFXDataEdgePresenter flowEdge, RecordEvent e)
+        private void RecordEdgePresenter(VFXDataEdgePresenter dataEdge, RecordEvent e)
         {
-            var fromAnchor = flowEdge.output as VFXDataAnchorPresenter;
-            var toAnchor = flowEdge.input as VFXDataAnchorPresenter;
+            var fromAnchor = dataEdge.output as VFXDataAnchorPresenter;
+            var toAnchor = dataEdge.input as VFXDataAnchorPresenter;
             var from = fromAnchor.Owner as IVFXSlotContainer;
             var to = toAnchor.Owner as IVFXSlotContainer;
             var children = new HashSet<IVFXSlotContainer>();
@@ -156,12 +156,23 @@ namespace UnityEditor.VFX.UI
 
             var allOperator = children.OfType<Object>().ToArray();
             var allSlot = children.SelectMany(c => c.outputSlots.Concat(c.inputSlots)).OfType<Object>().ToArray();
-            Undo.RecordObjects(allOperator.Concat(allSlot).ToArray(), e == RecordEvent.Add ? "Add Edge" : "Remove Edge");
+            Undo.RecordObjects(allOperator.Concat(allSlot).ToArray(), string.Format("{0} Edge", e == RecordEvent.Add ? "Add Edge" : "Remove Edge"));
         }
 
-        private void RecordModel(string modelName, RecordEvent e)
+        private void RecordFlowEdgePresenter(VFXFlowEdgePresenter flowEdge, RecordEvent e)
         {
-            Undo.RecordObject(m_GraphAsset.root, string.Format("{0} {1}", e == RecordEvent.Add ? "Add" : "Remove", modelName));
+            var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner as VFXContext;
+            var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner as VFXContext;
+            var objects = new Object[] { context0, context1, context0.GetParent(), context1.GetParent() }.Where(o => o != null).ToArray();
+            var eventName = string.Format("{0} FlowEdge", e == RecordEvent.Add ? "Add" : "Remove");
+            Undo.RecordObjects(objects, eventName);
+
+            Undo.RegisterFullObjectHierarchyUndo(m_GraphAsset.root, eventName); //Hotfix : VFXContext issue, refactor in progress
+        }
+
+        private void RecordAll(string modelName, RecordEvent e)
+        {
+            Undo.RegisterFullObjectHierarchyUndo(m_GraphAsset.root, string.Format("{0} {1}", e == RecordEvent.Add ? "Add" : "Remove", modelName)); //Full hierarchy for VFXContext, refactor in progress (hotfix)
         }
 
         public override void AddElement(EdgePresenter edge)
@@ -169,6 +180,7 @@ namespace UnityEditor.VFX.UI
             if (edge is VFXFlowEdgePresenter)
             {
                 var flowEdge = (VFXFlowEdgePresenter)edge;
+                RecordFlowEdgePresenter(flowEdge, RecordEvent.Add);
 
                 var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner as VFXContext;
                 var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner as VFXContext;
@@ -213,9 +225,9 @@ namespace UnityEditor.VFX.UI
             if (element is VFXContextPresenter)
             {
                 VFXContext context = ((VFXContextPresenter)element).context;
+                RecordAll(context.name, RecordEvent.Remove);
 
-
-                foreach(VFXBlockPresenter blockPres in (element as VFXContextPresenter).blockPresenters)
+                foreach (VFXBlockPresenter blockPres in (element as VFXContextPresenter).blockPresenters)
                 {
                     foreach (var slot in blockPres.slotContainer.outputSlots)
                     {
@@ -227,7 +239,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-
                 // First we need to disconnect context if needed
                 VFXSystem.DisconnectContext(context, m_GraphAsset.root);
                 var system = context.GetParent();
@@ -236,13 +247,15 @@ namespace UnityEditor.VFX.UI
                     VFXSystem.DisconnectContext(system.GetChild(index + 1), m_GraphAsset.root);
 
                 // now context should be in its own system
-                m_GraphAsset.root.RemoveChild(context.GetParent());
+                var newSystem = context.GetParent();
+                m_GraphAsset.root.RemoveChild(newSystem);
+                Undo.DestroyObjectImmediate(newSystem);
                 context.Detach();
             }
             else if( element is VFXNodePresenter)
             {
                 var operatorPresenter = element as VFXNodePresenter;
-                RecordModel(operatorPresenter.model.name, RecordEvent.Remove);
+                RecordAll(operatorPresenter.model.name, RecordEvent.Remove);
                 VFXSlot slotToClean = null;
                 do
                 {
@@ -261,7 +274,10 @@ namespace UnityEditor.VFX.UI
             
             else if (element is VFXFlowEdgePresenter)
             {
-                var anchorPresenter = ((VFXFlowEdgePresenter)element).input;
+                var flowEdge = element as VFXFlowEdgePresenter;
+                RecordFlowEdgePresenter(flowEdge, RecordEvent.Add);
+
+                var anchorPresenter = flowEdge.input;
                 var context = ((VFXFlowAnchorPresenter)anchorPresenter).Owner as VFXContext;
                 if (context != null)
                     VFXSystem.DisconnectContext(context, m_GraphAsset.root);
@@ -466,10 +482,12 @@ namespace UnityEditor.VFX.UI
         public VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
         {
             VFXContext newContext = desc.CreateInstance();
+            RecordAll(newContext.name, RecordEvent.Add);
+
             newContext.position = pos;
 
             // needs to create a temp system to hold the context
-            var system = ScriptableObject.CreateInstance<VFXSystem>();
+            var system = CreateInstance<VFXSystem>();
             system.AddChild(newContext);
             m_GraphAsset.root.AddChild(system);
 
@@ -479,7 +497,7 @@ namespace UnityEditor.VFX.UI
         private void AddVFXModel(Vector2 pos, VFXModel model)
         {
             model.position = pos;
-            RecordModel(model.name, RecordEvent.Add);
+            RecordAll(model.name, RecordEvent.Add);
             m_GraphAsset.root.AddChild(model);
         }
 
@@ -564,14 +582,21 @@ namespace UnityEditor.VFX.UI
 
                 Clear();
                 Debug.Log(string.Format("SET GRAPH ASSET new:{0} old:{1} force:{2}", graph, m_GraphAsset, force));
-               
+
                 if (m_GraphAsset != null)
+                {
                     m_GraphAsset.root.onInvalidateDelegate -= SyncPresentersFromModel;
+                    m_GraphAsset.root.onInvalidateDelegate -= RecomputeExpressionGraph;
+                }
 
                 m_GraphAsset = graph == null ? CreateInstance<VFXGraphAsset>() : graph;
 
                 m_GraphAsset.root.onInvalidateDelegate += SyncPresentersFromModel;
-                SyncPresentersFromModel(m_GraphAsset.root,VFXModel.InvalidationCause.kStructureChanged); // First call to trigger a sync
+                m_GraphAsset.root.onInvalidateDelegate += RecomputeExpressionGraph;
+
+                // First trigger
+                SyncPresentersFromModel(m_GraphAsset.root,VFXModel.InvalidationCause.kStructureChanged);
+                RecomputeExpressionGraph(m_GraphAsset.root, VFXModel.InvalidationCause.kStructureChanged);
 
                 // Doesn't work for some reason
                 //View.FrameAll();

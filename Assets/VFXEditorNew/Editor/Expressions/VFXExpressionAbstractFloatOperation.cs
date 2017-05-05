@@ -22,10 +22,10 @@ namespace UnityEditor.VFX
         {
             switch (input.ValueType)
             {
-                case VFXValueType.kFloat: return ToFloatArray(input.GetContent<float>());
-                case VFXValueType.kFloat2: return ToFloatArray(input.GetContent<Vector2>());
-                case VFXValueType.kFloat3: return ToFloatArray(input.GetContent<Vector3>());
-                case VFXValueType.kFloat4: return ToFloatArray(input.GetContent<Vector4>());
+                case VFXValueType.kFloat: return ToFloatArray(input.Get<float>());
+                case VFXValueType.kFloat2: return ToFloatArray(input.Get<Vector2>());
+                case VFXValueType.kFloat3: return ToFloatArray(input.Get<Vector3>());
+                case VFXValueType.kFloat4: return ToFloatArray(input.Get<Vector4>());
             }
             return null;
         }

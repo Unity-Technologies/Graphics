@@ -56,10 +56,10 @@ namespace UnityEditor.VFX.Test
 
             var valueFloat = new VFXValueFloat(0.0f, true);
             valueFloat.SetContent(a);
-            Assert.AreEqual(a, valueFloat.GetContent<float>());
+            Assert.AreEqual(a, valueFloat.Get<float>());
 
             valueFloat.SetContent(new FloatN(b));
-            Assert.AreEqual(b, valueFloat.GetContent<float>());
+            Assert.AreEqual(b, valueFloat.Get<float>());
         }
         
         [Test]
@@ -93,10 +93,10 @@ namespace UnityEditor.VFX.Test
             var resultC = context.Compile(mulExpression);
             var resultD = context.Compile(substractExpression);
 
-            Assert.AreEqual(refResultA, resultA.GetContent<Vector3>());
-            Assert.AreEqual(refResultB, resultB.GetContent<Vector3>());
-            Assert.AreEqual(refResultC, resultC.GetContent<Vector3>());
-            Assert.AreEqual(refResultD, resultD.GetContent<Vector3>());
+            Assert.AreEqual(refResultA, resultA.Get<Vector3>());
+            Assert.AreEqual(refResultB, resultB.Get<Vector3>());
+            Assert.AreEqual(refResultC, resultC.Get<Vector3>());
+            Assert.AreEqual(refResultD, resultD.Get<Vector3>());
 
             //Build Graph Proto :
             var addedExpression = new HashSet<VFXExpression>();
@@ -165,7 +165,7 @@ namespace UnityEditor.VFX.Test
             var context = new VFXExpression.Context();
             var reduced = context.Compile(sampleCurve);
 
-            Assert.AreEqual(resultRef, reduced.GetContent<float>());
+            Assert.AreEqual(resultRef, reduced.Get<float>());
         }
 
         [Test]

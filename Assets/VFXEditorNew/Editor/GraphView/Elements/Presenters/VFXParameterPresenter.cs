@@ -1,9 +1,10 @@
+using System;
 using UIElements.GraphView;
 using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterPresenter : VFXNodePresenter, IVFXPresenter
+    class VFXParameterPresenter : VFXNodePresenter, IVFXPresenter,IPropertyRMProvider
     {
         [SerializeField]
         private string m_exposedName;
@@ -39,6 +40,43 @@ namespace UnityEditor.VFX.UI
 
         private VFXParameter parameter { get { return node as VFXParameter; } }
 
+        bool IPropertyRMProvider.expanded
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        bool IPropertyRMProvider.expandable {get  { return false; } }
+
+        object IPropertyRMProvider.value {
+            get {
+                VFXParameter model = this.model as VFXParameter;
+
+                return model.GetOutputSlot(0).value;
+
+            }
+            set {
+                VFXParameter model = this.model as VFXParameter;
+
+                Undo.RecordObject(model, "Change Value");
+                model.GetOutputSlot(0).value = value;
+            }
+        }
+
+        string IPropertyRMProvider.name { get{ return "Value"; } }
+
+        Type IPropertyRMProvider.anchorType {get {
+
+                VFXParameter model = this.model as VFXParameter;
+
+                return model.GetOutputSlot(0).property.type;
+            }
+        }
+
+        int IPropertyRMProvider.depth { get { return 0; }}
+
         protected override NodeAnchorPresenter CreateAnchorPresenter(VFXSlot slot, Direction direction)
         {
             var anchor = base.CreateAnchorPresenter(slot, direction);
@@ -56,6 +94,20 @@ namespace UnityEditor.VFX.UI
                 exposedName = parameter.exposedName;
             }
             base.Reset();
+        }
+
+        void IPropertyRMProvider.ExpandPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPropertyRMProvider.RetractPath()
+        {
+            throw new NotImplementedException();
+        }
+        public override UnityEngine.Object[] GetObjectsToWatch()
+        {
+            return new UnityEngine.Object[] { this, model, node.outputSlots[0] };
         }
     }
 }

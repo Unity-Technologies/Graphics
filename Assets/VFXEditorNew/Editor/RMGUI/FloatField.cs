@@ -7,10 +7,30 @@ namespace UnityEditor.VFX.UIElements
 {
     abstract class ValueControl<T> : VisualContainer
     {
+        protected VisualElement m_Label;
+
+        protected ValueControl(VisualElement existingLabel)
+        {
+            m_Label = existingLabel;
+        }
+
+        protected ValueControl(string label)
+        {
+            if (!string.IsNullOrEmpty(label))
+            {
+                m_Label = new VisualElement() { text = label };
+                m_Label.AddToClassList("label");
+
+                AddChild(m_Label);
+            }
+            flexDirection = FlexDirection.Row;
+        }
+
         public T GetValue()
         {
             return m_Value;
         }
+
         public void SetValue(T value)
         {
             m_Value = value;
@@ -21,38 +41,26 @@ namespace UnityEditor.VFX.UIElements
 
         public System.Action onValueChanged;
 
-
         protected abstract void ValueToGUI();
-
     }
 
     class FloatField : ValueControl<float>, IValueChangeListener<float>
     {
         EditorTextField m_TextField;
-        VisualElement m_Label;
 
 
-        void CreateTextField()
+        void CreateFields()
         {
-            m_TextField = new EditorTextField(30,false,false,'*');
+            m_TextField = new EditorTextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
             m_TextField.onTextChanged = OnTextChanged;
             m_TextField.useStylePainter = true;
         }
 
-        public FloatField(string label) 
+        public FloatField(string label) : base(label)
         {
-            CreateTextField();            
-
-            if( !string.IsNullOrEmpty(label) )
-            {
-                m_Label = new VisualElement(){text = label};
-                m_Label.AddToClassList("label");
-                m_Label.AddManipulator(new DragValueManipulator<float>(this,null));
-                AddChild(m_Label);
-            }
-
-            flexDirection = FlexDirection.Row;
+            CreateFields();
+            m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
             AddChild(m_TextField);
         }
 
@@ -61,54 +69,43 @@ namespace UnityEditor.VFX.UIElements
             m_Value = 0;
             float.TryParse(m_TextField.text, out m_Value);
 
-            if(onValueChanged != null)
+            if (onValueChanged != null)
             {
                 onValueChanged();
             }
         }
 
-        public FloatField(VisualElement existingLabel)
+        public FloatField(VisualElement existingLabel) : base(existingLabel)
         {
-            CreateTextField();
+            CreateFields();
             AddChild(m_TextField);
 
-            m_Label = existingLabel;
-
-            m_Label.AddManipulator(new DragValueManipulator<float>(this,null));
-
-            //m_TextField.positionType = PositionType.Absolute;
-            //m_TextField.positionBottom = m_TextField.positionTop = m_TextField.positionLeft = m_TextField.positionRight = 0;
+            m_Label.AddManipulator(new DragValueManipulator<float>(this, null));
         }
-
 
         float IValueChangeListener<float>.GetValue(object userData)
         {
             float newValue = 0;
 
-            float.TryParse(m_TextField.text,out newValue);
+            float.TryParse(m_TextField.text, out newValue);
 
             return newValue;
         }
 
-        void IValueChangeListener<float>.SetValue(float value,object userData)
+        void IValueChangeListener<float>.SetValue(float value, object userData)
         {
             m_Value = value;
             ValueToGUI();
 
-            if(onValueChanged != null)
+            if (onValueChanged != null)
             {
                 onValueChanged();
             }
         }
-        /*
-        bool IValueChangeListener<float>.enabled
-        {
-            get { return enabled; }
-        }*/
 
         protected override void ValueToGUI()
         {
-              m_TextField.text = m_Value.ToString("0.###");
+            m_TextField.text = m_Value.ToString("0.###");
         }
 
         public override bool enabled
@@ -120,6 +117,5 @@ namespace UnityEditor.VFX.UIElements
                     m_TextField.enabled = value;
             }
         }
-
     }
 }

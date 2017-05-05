@@ -176,13 +176,6 @@ namespace UnityEditor.VFX
                 m_MasterData.m_Owner = owner;
             else
                 throw new InvalidOperationException();
-
-           // m_Owner = owner;
-
-           /* foreach(VFXSlot child in children)
-            {
-                child.SetOwner(owner);
-            }*/
         }
 
         // Create and return a slot hierarchy from a property info
@@ -212,7 +205,6 @@ namespace UnityEditor.VFX
                 var slot = desc.CreateInstance();
                 slot.m_Direction = direction;
                 slot.m_Property = property;
-                //slot.m_Value = new VFXSerializableObject(property.type);
 
                 foreach (var subInfo in property.SubProperties())
                 {
@@ -242,31 +234,15 @@ namespace UnityEditor.VFX
 
             m_ExpressionTreeUpToDate = false;
 
-            // Fix master stuff (not needed normally)
-            /*if (m_MasterSlot == null)
-            {
-                if (GetParent() == null)
-                    PropagateToChildren(s => s.m_MasterSlot = this);
-            }
-            else if (IsMasterSlot())
-            {
-                if (m_MasterData == null)
-                {
-                    var masterData = new MasterData();
-                    m_MasterData.m_Owner = null;
-                    m_MasterData.m_Value = new VFXSerializableObject(property.type);
-                }
-            }
-            else
+            if (!IsMasterSlot())
                 m_MasterData = null; // Non master slot will always have a null master data
-            */
         }
 
         private void SetDefaultExpressionValue()
         {
             var val = value;
-            if (value != null && m_DefaultExpression is VFXValue)
-                ((VFXValue)m_DefaultExpression).SetContent(value);
+            if (val != null && m_DefaultExpression is VFXValue)
+                ((VFXValue)m_DefaultExpression).SetContent(val);
         }
 
         private void InitDefaultExpression()
@@ -428,7 +404,7 @@ namespace UnityEditor.VFX
             // Start from the top most parent
             var masterSlot = GetMasterSlot();
 
-            // TODO This is a hack that should not be needed! Investigate why (has to do with floatN I think)
+            // When deserializing, default expression wont be initialized
             if (!m_DefaultExpressionInitialized)
                 InitDefaultExpression(); 
 
@@ -593,7 +569,6 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private bool m_DefaultExpressionInitialized = false;
 
-        // TODO currently not used
         [Serializable]
         private class MasterData
         {

@@ -49,7 +49,11 @@ namespace UnityEditor.VFX
         {
             if (_type != null && outputSlots.Count == 0)
             {
-                AddSlot(VFXSlot.Create(new VFXProperty(_type, "o"), VFXSlot.Direction.kOutput));
+                VFXSlot slot = VFXSlot.Create(new VFXProperty(_type, "o"), VFXSlot.Direction.kOutput);
+                AddSlot(slot);
+
+                if( ! typeof(UnityEngine.Object).IsAssignableFrom(_type))
+                    slot.value = System.Activator.CreateInstance(_type);
             }
             else
             {

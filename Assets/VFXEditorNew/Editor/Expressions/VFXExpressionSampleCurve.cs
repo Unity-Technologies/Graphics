@@ -13,6 +13,7 @@ namespace UnityEditor.VFX
 
         public VFXExpressionSampleCurve(VFXExpression curve, VFXExpression time)
         {
+            m_Flags = Flags.ValidOnCPU;
             m_Curve = curve;
             m_Time = time;
         }
@@ -38,8 +39,8 @@ namespace UnityEditor.VFX
             var curveReduce = constParents[0];
             var timeReduce = constParents[1];
 
-            var curve = curveReduce.GetContent<AnimationCurve>();
-            var time = timeReduce.GetContent<float>();
+            var curve = curveReduce.Get<AnimationCurve>();
+            var time = timeReduce.Get<float>();
             return new VFXValueFloat(curve.Evaluate(time), true);
 
         }

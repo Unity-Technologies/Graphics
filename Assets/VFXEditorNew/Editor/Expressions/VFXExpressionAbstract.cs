@@ -138,6 +138,19 @@ namespace UnityEditor.VFX
             if (Operation != other.Operation)
                 return false;
 
+            if (ValueType != other.ValueType)
+                return false;
+
+            var addionnalParams = AdditionnalParameters;
+            var otherAdditionnalParams = other.AdditionnalParameters;
+
+            if (addionnalParams.Length != otherAdditionnalParams.Length)
+                return false;
+
+            for (int i = 0; i < addionnalParams.Length; ++i)
+                if (addionnalParams[i] != otherAdditionnalParams[i])
+                    return false;
+
             //if (GetHashCode() != obj.GetHashCode())
             //    return false;
 
@@ -179,18 +192,22 @@ namespace UnityEditor.VFX
         }
 
         public virtual int[] AdditionnalParameters { get { return new int[] { }; } }
-        public virtual T GetContent<T>()
+        public virtual T Get<T>()
         {
             var value = (this as VFXValue<T>);
             if (value == null)
             {
-                throw new ArgumentException(string.Format("GetContent isn't available for {0} with {1}", typeof(T).FullName, GetType().FullName));
+                throw new ArgumentException(string.Format("Get isn't available for {0} with {1}", typeof(T).FullName, GetType().FullName));
             }
-            return value.GetContent();
+            return value.Get();
+        }
+
+        public virtual object GetContent()
+        {
+            throw new ArgumentException(string.Format("GetContent isn't available for {0}", GetType().FullName));
         }
 
         protected Flags m_Flags = Flags.None;
-
     }
 
 }
