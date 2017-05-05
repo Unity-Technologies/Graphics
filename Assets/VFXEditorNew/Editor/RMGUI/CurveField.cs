@@ -7,16 +7,14 @@ using UnityEditorInternal;
 
 namespace UnityEditor.VFX.UIElements
 {
-
     class CurveField : ValueControl<AnimationCurve>
     {
         VisualElement m_Curve;
-        VisualElement m_Label;
 
 
         void CreateCurve()
         {
-            m_Curve = new VisualElement() { minWidth=4,minHeight=4 };
+            m_Curve = new VisualElement() { minWidth = 4, minHeight = 4 };
             m_Curve.AddToClassList("curve");
 
             m_Curve.AddManipulator(new Clickable(OnCurveClick));
@@ -38,7 +36,7 @@ namespace UnityEditor.VFX.UIElements
             if (m_Value == null)
                 m_Value = new AnimationCurve(new Keyframe[] { new Keyframe(0, 0), new Keyframe(1, 1) });
             CurveEditorWindow.curve = m_Value;
-            
+
             CurveEditorWindow.color = Color.green;
             CurveEditorWindow.instance.Show(OnCurveChanged, settings);
         }
@@ -51,29 +49,20 @@ namespace UnityEditor.VFX.UIElements
             if (onValueChanged != null)
                 onValueChanged();
         }
-        public CurveField(string label) 
-        {
-            CreateCurve();            
 
-            if( !string.IsNullOrEmpty(label) )
-            {
-                m_Label = new VisualElement(){text = label};
-                m_Label.AddToClassList("label");
-                AddChild(m_Label);
-            }
+        public CurveField(string label) : base(label)
+        {
+            CreateCurve();
 
             flexDirection = FlexDirection.Row;
             AddChild(m_Curve);
         }
 
-        public CurveField(VisualElement existingLabel)
+        public CurveField(VisualElement existingLabel) : base(existingLabel)
         {
             CreateCurve();
             AddChild(m_Curve);
-
-            m_Label = existingLabel;
         }
-
 
         protected internal override void OnPostLayout(bool hasNewLayout)
         {
@@ -89,14 +78,13 @@ namespace UnityEditor.VFX.UIElements
             {
                 Rect range = new Rect(0, 0, 1, 1);
                 m_Curve.backgroundImage = AnimationCurvePreviewCache.GetPreview(previewWidth,
-                                                                                previewHeight,
-                                                                                m_Value,
-                                                                                Color.green,
-                                                                                Color.clear,
-                                                                                Color.clear,
-                                                                                range);
+                        previewHeight,
+                        m_Value,
+                        Color.green,
+                        Color.clear,
+                        Color.clear,
+                        range);
             }
         }
-
     }
 }

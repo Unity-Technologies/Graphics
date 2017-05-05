@@ -73,9 +73,15 @@ namespace UnityEditor.VFX
         private static readonly VFXValue s_Default = FindAndCreateFirstConcreteType();
         public static VFXValue Default { get { return s_Default; } }
 
-        public T GetContent()
+
+        public T Get()
         {
             return m_Content;
+        }
+
+        public override object GetContent()
+        {
+            return Get();
         }
 
         public override void SetContent(object value)

@@ -99,8 +99,8 @@ namespace UnityEditor.VFX.UI
         {
             clipChildren = false;
 
-            m_PropertyRM = PropertyRM.Create(presenter);
-            if(m_PropertyRM != null)
+            m_PropertyRM = PropertyRM.Create(presenter,100);
+            if (m_PropertyRM != null)
             {
                 AddChild(m_PropertyRM);
             }
@@ -114,6 +114,7 @@ namespace UnityEditor.VFX.UI
                 AddChild(m_Container);
             }
         }
+
         void OnGUI()
         {
             // update the GUISTyle from the element style defined in USS
@@ -121,7 +122,7 @@ namespace UnityEditor.VFX.UI
 
             //try
             {
-               bool different = false;
+                bool different = false;
 
                 if (m_GUIStyles.baseStyle.font != font)
                 {
@@ -171,13 +172,13 @@ namespace UnityEditor.VFX.UI
 
             if (m_PropertyRM != null)
             {
-                m_PropertyRM.enabled = presenter.editable && ! presenter.hidden;
+                m_PropertyRM.enabled = presenter.editable && !presenter.collapsed;
                 m_PropertyRM.Update();
             }
 
             clipChildren = false;
         }
-        
+
         public override bool ContainsPoint(Vector2 localPoint)
         {
             return position.Contains(localPoint);
@@ -186,6 +187,5 @@ namespace UnityEditor.VFX.UI
             //localPoint -= position.position;
             //return m_ConnectorBox.ContainsPoint(m_ConnectorBox.transform.MultiplyPoint3x4(localPoint));
         }
-
     }
 }

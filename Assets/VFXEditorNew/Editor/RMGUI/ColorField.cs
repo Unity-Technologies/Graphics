@@ -8,10 +8,8 @@ namespace UnityEditor.VFX.UIElements
 {
     class ColorField : ValueControl<Color>
     {
-        VisualElement m_Label;
-
         VisualElement m_ColorDisplay;
-        
+
         VisualElement m_AlphaDisplay;
         VisualElement m_NotAlphaDisplay;
 
@@ -28,13 +26,13 @@ namespace UnityEditor.VFX.UIElements
             m_Container.flex = 1;
             m_Container.AddToClassList("colorcontainer");
 
-            m_ColorDisplay = new VisualElement(){height=10};
+            m_ColorDisplay = new VisualElement() {height = 10};
             m_ColorDisplay.AddToClassList("colordisplay");
-            
-            m_AlphaDisplay = new VisualElement(){height=3,backgroundColor=Color.white};
+
+            m_AlphaDisplay = new VisualElement() {height = 3, backgroundColor = Color.white};
             m_AlphaDisplay.AddToClassList("alphadisplay");
 
-            m_NotAlphaDisplay = new VisualElement() {height=3,backgroundColor=Color.black};
+            m_NotAlphaDisplay = new VisualElement() {height = 3, backgroundColor = Color.black};
             m_NotAlphaDisplay.AddToClassList("notalphadisplay");
 
             VisualContainer alphaContainer = new VisualContainer() { flexDirection = FlexDirection.Row, height = 3 };
@@ -43,14 +41,16 @@ namespace UnityEditor.VFX.UIElements
             m_AlphaDisplay.AddManipulator(new Clickable(OnColorClick));
 
 
-            m_HDRLabel = new VisualElement(){text="HDR",
-                                            textAlignment=TextAnchor.MiddleCenter,
-                                            pickingMode = PickingMode.Ignore,
-                                            positionType = PositionType.Absolute,
-                                            positionTop=0,
-                                            positionBottom=0,
-                                            positionLeft=0,
-                                            positionRight=0};
+            m_HDRLabel = new VisualElement() {
+                text = "HDR",
+                textAlignment = TextAnchor.MiddleCenter,
+                pickingMode = PickingMode.Ignore,
+                positionType = PositionType.Absolute,
+                positionTop = 0,
+                positionBottom = 0,
+                positionLeft = 0,
+                positionRight = 0
+            };
             m_HDRLabel.AddToClassList("hdr");
 
             m_Container.AddChild(m_ColorDisplay);
@@ -59,8 +59,6 @@ namespace UnityEditor.VFX.UIElements
 
             alphaContainer.AddChild(m_AlphaDisplay);
             alphaContainer.AddChild(m_NotAlphaDisplay);
-
-
 
 
             return m_Container;
@@ -73,40 +71,28 @@ namespace UnityEditor.VFX.UIElements
 
         VisualElement CreateEyeDropper()
         {
-            Texture2D eyeDropperIcon = EditorGUIUtility.IconContent ("EyeDropper.Large").image as Texture2D;
-            VisualElement eyeDropper = new VisualElement(){backgroundImage=eyeDropperIcon,width=eyeDropperIcon.width,height =eyeDropperIcon.height};
+            Texture2D eyeDropperIcon = EditorGUIUtility.IconContent("EyeDropper.Large").image as Texture2D;
+            VisualElement eyeDropper = new VisualElement() {backgroundImage = eyeDropperIcon, width = eyeDropperIcon.width, height = eyeDropperIcon.height};
 
-            eyeDropper.AddManipulator(new Clickable(()=>EyeDropper.Start(OnColorChanged)));
+            eyeDropper.AddManipulator(new Clickable(() => EyeDropper.Start(OnColorChanged)));
 
             return eyeDropper;
         }
 
-        public ColorField(string label) 
+        public ColorField(string label) : base(label)
         {
-            VisualContainer container = CreateColorContainer();            
-
-            if( !string.IsNullOrEmpty(label) )
-            {
-                m_Label = new VisualElement(){text = label};
-                m_Label.AddToClassList("label");
-                AddChild(m_Label);
-            }
-
-            flexDirection = FlexDirection.Row;
+            VisualContainer container = CreateColorContainer();
             AddChild(container);
 
-            
 
             AddChild(CreateEyeDropper());
         }
 
-        public ColorField(VisualElement existingLabel)
+        public ColorField(VisualElement existingLabel) : base(existingLabel)
         {
-            VisualContainer container = CreateColorContainer();     
+            VisualContainer container = CreateColorContainer();
             AddChild(container);
 
-            m_Label = existingLabel;
-            
             AddChild(CreateEyeDropper());
         }
 
@@ -118,24 +104,22 @@ namespace UnityEditor.VFX.UIElements
                 onValueChanged();
 
             Dirty(ChangeType.Repaint);
-
         }
 
         protected override void ValueToGUI()
         {
-            m_ColorDisplay.backgroundColor = new Color(m_Value.r,m_Value.g,m_Value.b,1);
+            m_ColorDisplay.backgroundColor = new Color(m_Value.r, m_Value.g, m_Value.b, 1);
             m_AlphaDisplay.flex = m_Value.a;
-            m_NotAlphaDisplay.flex = 1-m_Value.a;
+            m_NotAlphaDisplay.flex = 1 - m_Value.a;
 
             bool hdr = m_Value.r > 1 || m_Value.g > 1 || m_Value.b > 1;
-            if( (m_HDRLabel.parent != null) != hdr )
+            if ((m_HDRLabel.parent != null) != hdr)
             {
-                if( hdr )
+                if (hdr)
                     m_Container.AddChild(m_HDRLabel);
                 else
                     m_Container.RemoveChild(m_HDRLabel);
             }
         }
-
     }
 }

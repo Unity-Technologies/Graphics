@@ -25,10 +25,10 @@ namespace UnityEditor.VFX.UI
         {
             ClearSelection();
 
-            for(int i = 0; i < childrenCount; ++i)
+            for (int i = 0; i < childrenCount; ++i)
             {
                 var child = GetChildAt(0) as VFXBlockUI;
-                if( child != null)
+                if (child != null)
                     AddToSelection(child);
             }
 
@@ -120,12 +120,12 @@ namespace UnityEditor.VFX.UI
             m_NodeContainer.clipChildren = false;
 
             AddManipulator(new ShortcutHandler(
-                new Dictionary<Event, ShortcutDelegate>
-                {
-                    {Event.KeyboardEvent("#a"), SelectAll},
-                    {Event.KeyboardEvent("#n"), ClearSelection},
-                    {Event.KeyboardEvent("delete"), DeleteSelection},
-                }));
+                    new Dictionary<Event, ShortcutDelegate>
+            {
+                {Event.KeyboardEvent("#a"), SelectAll},
+                {Event.KeyboardEvent("#n"), ClearSelection},
+                {Event.KeyboardEvent("delete"), DeleteSelection},
+            }));
 
             AddChild(m_NodeContainer);
 
@@ -134,9 +134,9 @@ namespace UnityEditor.VFX.UI
                 clipChildren = false
             };
             m_Header.AddToClassList("Extremity");
-            m_HeaderTitle = new VisualElement() { name = "HeaderTitle" ,text = "Title" };
+            m_HeaderTitle = new VisualElement() { name = "HeaderTitle" , text = "Title" };
             m_HeaderTitle.AddToClassList("title");
-            m_HeaderIcon = new VisualElement() { name="HeaderIcon"};
+            m_HeaderIcon = new VisualElement() { name = "HeaderIcon"};
             m_HeaderIcon.AddToClassList("icon");
             m_Header.AddChild(m_HeaderIcon);
             m_Header.AddChild(m_HeaderTitle);
@@ -211,8 +211,6 @@ namespace UnityEditor.VFX.UI
             int result = (int)presenter.context.space;
 
             presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (int)(CoordinateSpace.SpaceCount));
-
-            
         }
 
         public EventPropagation SelectAll()
@@ -226,13 +224,12 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-
-        public bool CanDrop(IEnumerable<VFXBlockUI> blocks,VFXBlockUI target)
+        public bool CanDrop(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target)
         {
             bool accept = true;
             foreach (var block in blocks)
             {
-                if( block == target )
+                if (block == target)
                 {
                     accept = false;
                     break;
@@ -246,10 +243,10 @@ namespace UnityEditor.VFX.UI
             return accept;
         }
 
-        public void DraggingBlocks( IEnumerable<VFXBlockUI> blocks,VFXBlockUI target, bool after)
+        public void DraggingBlocks(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target, bool after)
         {
             DragFinished();
-            if( ! CanDrop(blocks,target) )
+            if (!CanDrop(blocks, target))
             {
                 return;
             }
@@ -265,7 +262,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                if( after)
+                if (after)
                 {
                     position.y = m_BlockContainer.position.height;
                 }
@@ -276,7 +273,7 @@ namespace UnityEditor.VFX.UI
             }
             m_DragDisplay.positionTop = position.y;
 
-            if( m_DragDisplay.parent == null)
+            if (m_DragDisplay.parent == null)
             {
                 m_BlockContainer.AddChild(m_DragDisplay);
             }
@@ -288,16 +285,14 @@ namespace UnityEditor.VFX.UI
                 m_BlockContainer.RemoveChild(m_DragDisplay);
         }
 
-
         bool m_DragStarted;
-
 
 
         public bool CanAcceptDrop(List<ISelectable> selection)
         {
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
-            return CanDrop(blocksUI,null);
+            return CanDrop(blocksUI, null);
         }
 
         EventPropagation IDropTarget.DragUpdated(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
@@ -328,10 +323,10 @@ namespace UnityEditor.VFX.UI
 
             VFXContextPresenter presenter = GetPresenter<VFXContextPresenter>();
 
-            foreach(var blockui in blocksUI)
+            foreach (var blockui in blocksUI)
             {
-                VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();   
-                presenter.AddBlock(-1,blockPres.Model);
+                VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();
+                presenter.AddBlock(-1, blockPres.Model);
             }
 
             m_DragStarted = false;
@@ -348,7 +343,6 @@ namespace UnityEditor.VFX.UI
 
             return EventPropagation.Stop;
         }
-
 
         public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
         {
@@ -424,21 +418,21 @@ namespace UnityEditor.VFX.UI
             // recreate the children list based on the presenter list to keep the order.
 
             var blocksUIs = new Dictionary<VFXBlockPresenter, VFXBlockUI>();
-            for(int i = 0; i < m_BlockContainer.childrenCount; ++i)
+            for (int i = 0; i < m_BlockContainer.childrenCount; ++i)
             {
                 var child = m_BlockContainer.GetChildAt(i) as VFXBlockUI;
-                if(child != null)
-                    blocksUIs.Add( child.GetPresenter<VFXBlockPresenter>(),child);
+                if (child != null)
+                    blocksUIs.Add(child.GetPresenter<VFXBlockPresenter>(), child);
             }
 
-            foreach(var kv in blocksUIs)
+            foreach (var kv in blocksUIs)
             {
                 m_BlockContainer.RemoveChild(kv.Value);
             }
-            foreach(var blockPresenter in blockPresenters)
+            foreach (var blockPresenter in blockPresenters)
             {
                 VFXBlockUI blockUI;
-                if( blocksUIs.TryGetValue(blockPresenter,out blockUI))
+                if (blocksUIs.TryGetValue(blockPresenter, out blockUI))
                 {
                     m_BlockContainer.AddChild(blockUI);
                 }
@@ -448,8 +442,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-
-            
 
             // Does not guarantee correct ordering
             /*var blocks = m_BlockContainer.children.OfType<VFXBlockUI>().ToList();
@@ -480,7 +472,7 @@ namespace UnityEditor.VFX.UI
 
         Texture2D GetIconForVFXType(VFXDataType type)
         {
-            switch(type)
+            switch (type)
             {
                 case VFXDataType.kNone:
                     return Resources.Load<Texture2D>("VFX/Execution");
@@ -513,11 +505,11 @@ namespace UnityEditor.VFX.UI
             RemoveFromClassList("output");
 
 
-            foreach(int val in System.Enum.GetValues(typeof(CoordinateSpace)))
+            foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
             {
-                m_HeaderSpace.RemoveFromClassList("space"+((CoordinateSpace)val).ToString() );
+                m_HeaderSpace.RemoveFromClassList("space" + ((CoordinateSpace)val).ToString());
             }
-            m_HeaderSpace.AddToClassList("space"+(presenter.context.space).ToString());
+            m_HeaderSpace.AddToClassList("space" + (presenter.context.space).ToString());
 
             switch (contextType)
             {
@@ -528,14 +520,14 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            if( presenter.context.outputType == VFXDataType.kNone)
+            if (presenter.context.outputType == VFXDataType.kNone)
             {
-                if( m_Footer.parent != null)
+                if (m_Footer.parent != null)
                     m_NodeContainer.RemoveChild(m_Footer);
             }
             else
             {
-                if( m_Footer.parent == null)
+                if (m_Footer.parent == null)
                     m_NodeContainer.AddChild(m_Footer);
                 m_FooterTitle.text = presenter.context.outputType.ToString().Substring(1);
                 m_FooterIcon.backgroundImage = GetIconForVFXType(presenter.context.outputType);
@@ -558,11 +550,10 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            foreach(var nonLongerExistingAnchor in m_FlowInputConnectorContainer.Where(t=>!newInAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
+            foreach (var nonLongerExistingAnchor in m_FlowInputConnectorContainer.Where(t => !newInAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
             {
                 m_FlowInputConnectorContainer.RemoveChild(nonLongerExistingAnchor);
             }
-
 
 
             HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
@@ -596,11 +587,10 @@ namespace UnityEditor.VFX.UI
                 m_NodeContainer.RemoveManipulator(m_PopupManipulator);
             }
             m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, (d, mPos) =>
-            {
-                GetPresenter<VFXContextPresenter>().AddBlock(-1, d.CreateInstance());
-            }));
+                {
+                    GetPresenter<VFXContextPresenter>().AddBlock(-1, d.CreateInstance());
+                }));
             m_NodeContainer.AddManipulator(m_PopupManipulator);
-
         }
 
         FilterPopup m_PopupManipulator;
@@ -624,7 +614,7 @@ namespace UnityEditor.VFX.UI
 
         public IEnumerable<VFXBlockUI> GetAllBlocks()
         {
-            foreach( VFXBlockUI block in m_BlockContainer.OfType<VFXBlockUI>())
+            foreach (VFXBlockUI block in m_BlockContainer.OfType<VFXBlockUI>())
             {
                 yield return block;
             }
@@ -635,14 +625,14 @@ namespace UnityEditor.VFX.UI
             return (IEnumerable<NodeAnchor>)GetFlowAnchors(input, output);
         }
 
-        public IEnumerable<VFXFlowAnchor> GetFlowAnchors(bool input,bool output)
+        public IEnumerable<VFXFlowAnchor> GetFlowAnchors(bool input, bool output)
         {
-            if( input )
-                foreach(VFXFlowAnchor anchor in m_FlowInputConnectorContainer)
+            if (input)
+                foreach (VFXFlowAnchor anchor in m_FlowInputConnectorContainer)
                 {
                     yield return anchor;
                 }
-            if( output)
+            if (output)
                 foreach (VFXFlowAnchor anchor in m_FlowOutputConnectorContainer)
                 {
                     yield return anchor;

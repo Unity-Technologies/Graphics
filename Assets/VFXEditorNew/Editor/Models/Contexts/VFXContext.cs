@@ -72,10 +72,10 @@ namespace UnityEditor.VFX
                 foreach (var exp in expressions)
                 {
                     m_ExpressionContext.RegisterExpression(exp);
-                    Debug.Log("---- Exp: " + exp.GetType() + " " + exp.ValueType);
+                    //Debug.Log("---- Exp: " + exp.GetType() + " " + exp.ValueType);
                 }
                 m_ExpressionContext.Compile();
-                Debug.Log("************** RECOMPILE EXPRESSION CONTEXT FOR " + this.GetType() + " " + this.name + " nbExpressions:" + expressions.Count);          
+                //Debug.Log("************** RECOMPILE EXPRESSION CONTEXT FOR " + this.GetType() + " " + this.name + " nbExpressions:" + expressions.Count);          
             }
         }
 

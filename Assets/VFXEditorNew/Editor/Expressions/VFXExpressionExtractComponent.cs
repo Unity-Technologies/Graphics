@@ -63,10 +63,10 @@ namespace UnityEditor.VFX
             var parent = reducedParents[0];
             switch (reducedParents[0].ValueType)
             {
-                case VFXValueType.kFloat: readValue = parent.GetContent<float>(); break;
-                case VFXValueType.kFloat2: readValue = GetChannel(parent.GetContent<Vector2>(), Channel); break;
-                case VFXValueType.kFloat3: readValue = GetChannel(parent.GetContent<Vector3>(), Channel); break;
-                case VFXValueType.kFloat4: readValue = GetChannel(parent.GetContent<Vector4>(), Channel); break;
+                case VFXValueType.kFloat: readValue = parent.Get<float>(); break;
+                case VFXValueType.kFloat2: readValue = GetChannel(parent.Get<Vector2>(), Channel); break;
+                case VFXValueType.kFloat3: readValue = GetChannel(parent.Get<Vector3>(), Channel); break;
+                case VFXValueType.kFloat4: readValue = GetChannel(parent.Get<Vector4>(), Channel); break;
             }
             return new VFXValueFloat(readValue, true);
         }

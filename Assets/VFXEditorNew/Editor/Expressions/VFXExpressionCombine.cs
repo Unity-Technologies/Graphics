@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
-            var constParentFloat = reducedParents.Cast<VFXValueFloat>().Select(o => o.GetContent()).ToArray();
+            var constParentFloat = reducedParents.Cast<VFXValueFloat>().Select(o => o.Get()).ToArray();
             if (constParentFloat.Length != m_Parents.Length)
             {
                 throw new ArgumentException("Incorrect VFXExpressionCombine.ExecuteConstantOperation");
