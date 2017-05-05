@@ -556,12 +556,13 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			var lightToWorld = light.localToWorld;
 			var worldToLight = lightToWorld.inverse;
 
+			cmd.SetGlobalMatrix ("unity_WorldToLight", lightToWorld.inverse);
+
 			var props = new MaterialPropertyBlock ();
 			props.SetFloat ("_LightAsQuad", renderAsQuad ? 1 : 0);
 			props.SetVector ("_LightPos", new Vector4(lightPos.x, lightPos.y, lightPos.z, 1.0f / (range * range)));
 			props.SetVector ("_LightDir", new Vector4(lightDir.x, lightDir.y, lightDir.z, 0.0f));
 			props.SetVector ("_LightColor", light.finalColor);
-			props.SetMatrix ("_WorldToLight", lightToWorld.inverse);
 
 			float lightShadowNDXOrNot = (light.light.shadows != LightShadows.None) ? (float)lightNum : -1.0f;
 			props.SetFloat ("_LightIndexForShadowMatrixArray", lightShadowNDXOrNot);
