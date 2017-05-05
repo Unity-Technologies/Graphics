@@ -638,7 +638,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			} else {
 
 				// Setup Light Matrix
-				float scale = 1.0f;// / light.light.cookieSize;
+				float scale = 1.0f / light.light.cookieSize;
 				Matrix4x4 temp1 = Matrix4x4.Scale(new Vector3 (scale, scale, 0.0f));
 				Matrix4x4 temp2 = Matrix4x4.Translate( new Vector3 (.5f, .5f, 0.0f));
 				var LightMatrix0 = temp2 * temp1 * worldToLight;
