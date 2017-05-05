@@ -185,7 +185,7 @@ void OnChipDeferredFragSetup (
 	outWPos = wpos;
 }
 
-static half4 debugLighting;
+static float4 debugLighting;
 
 int _LightIndexForShadowMatrixArray;
 
@@ -196,12 +196,15 @@ void OnChipDeferredCalculateLightParams (
 	out half3 outLightDir,
 	out float outAtten,
 	out float outFadeDist,
+	out float4 outCookieColor,
 	float depth
 	)
 {
 	float4 vpos;
 	float3 wpos;
 	float2 uv; 
+	float4 colorCookie = float4(1, 1, 1, 1);
+
 	OnChipDeferredFragSetup(i, uv, vpos, wpos, depth); 
 
 	// needed? old shadow code is commented out, we switched to new shadow code .. aka sampleShadow()
@@ -213,22 +216,12 @@ void OnChipDeferredCalculateLightParams (
 		half3 lightDir = normalize (tolight);
 		
 		float4 uvCookie = mul (unity_WorldToLight, float4(wpos,1));
-		// negative bias because http://aras-p.info/blog/2010/01/07/screenspace-vs-mip-mapping/
-		float atten = tex2Dbias (_LightTexture0, float4(uvCookie.xy / uvCookie.w, 0, -8)).w;
+		colorCookie = tex2Dlod (_LightTexture0, float4(uvCookie.xy / uvCookie.w, 0, 0));
+		float atten = colorCookie.w;
 		atten *= uvCookie.w < 0;
-
-		// debug code to set a programmatic cookie
-		//float d0 = 0.65;
-		//float2 d1 = 2*(uvCookie.xy / uvCookie.w)-1;
-		//debugLighting = half4(d1, 0.0, 1.0);
-		//debugLighting = half4(frac(wpos), 1.0);
-        //float angularAtt = smoothstep(0.0, 1.0-d0, 1.0-length(d1));
-        //atten *= angularAtt;
 
 		float att = dot(tolight, tolight) * _LightPos.w;
 		atten *= tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
-
-		//atten *= UnityDeferredComputeShadow (wpos, fadeDist, uv);
 
 		if (_LightIndexForShadowMatrixArray >= 0)
 			atten *= SampleShadow(SPOT_LIGHT, wpos, 0, _LightIndexForShadowMatrixArray);
@@ -238,13 +231,12 @@ void OnChipDeferredCalculateLightParams (
 		half3 lightDir = -_LightDir.xyz;
 		float atten = 1.0;
 
-		//atten *= UnityDeferredComputeShadow (wpos, fadeDist, uv);
-
 		if (_LightIndexForShadowMatrixArray >= 0)
 			atten *= SampleShadow(DIRECTIONAL_LIGHT, wpos, 0, _LightIndexForShadowMatrixArray);
 
 		#if defined (DIRECTIONAL_COOKIE)
-		atten *= tex2Dbias (_LightTexture0, float4(mul(unity_WorldToLight, half4(wpos,1)).xy, 0, -8)).w;
+		colorCookie = tex2Dlod (_LightTexture0, float4(mul(unity_WorldToLight, half4(wpos,1)).xy, 0, 0));
+		atten *= colorCookie.w;
 		#endif //DIRECTIONAL_COOKIE
 
 	// point light case	
@@ -254,14 +246,13 @@ void OnChipDeferredCalculateLightParams (
 		
 		float att = dot(tolight, tolight) * _LightPos.w;
 		float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
-		
-		// atten *= UnityDeferredComputeShadow (tolight, fadeDist, uv);
 
 		if (_LightIndexForShadowMatrixArray >= 0)
 			atten *= SampleShadow(SPHERE_LIGHT, wpos, lightDir, _LightIndexForShadowMatrixArray);
 
 		#if defined (POINT_COOKIE)
-		atten *= texCUBEbias(_LightTexture0, float4(mul(unity_WorldToLight, half4(wpos,1)).xyz, -8)).w;
+			colorCookie = texCUBElod(_LightTexture0, float4(mul(unity_WorldToLight, float4(wpos,1)).xyz, 0));
+			atten *= colorCookie.w;
 		#endif //POINT_COOKIE	
 	#else
 		half3 lightDir = 0;
@@ -273,6 +264,7 @@ void OnChipDeferredCalculateLightParams (
 	outLightDir = lightDir;
 	outAtten = atten;
 	outFadeDist = fadeDist;
+	outCookieColor = colorCookie;
 }
 
 #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
@@ -284,18 +276,24 @@ half4 CalculateLight (unity_v2f_deferred i)
 	float3 wpos;
 	float2 uv;
 	float atten, fadeDist;
+	float4 colorCookie = float4(1, 1, 1, 1);
+
 	UnityLight light;
 	UNITY_INITIALIZE_OUTPUT(UnityLight, light);
 
-	//debugLighting = half4(0.0, 0.0, 0.0, 0.0);
+	//debugLighting = float4(0.0, 0.0, 0.0, 0.0);
 
 #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
-	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, vpDepth);
+	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, colorCookie, vpDepth);
 #else
-	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, 0.0);
+	OnChipDeferredCalculateLightParams (i, wpos, uv, light.dir, atten, fadeDist, colorCookie, 0.0);
 #endif
 
-	light.color = _LightColor.rgb * atten;
+	#if defined (POINT_COOKIE) || defined (DIRECTIONAL_COOKIE) || defined (SPOT)
+		light.color = _LightColor.rgb * colorCookie.rgb * atten;
+	#else
+		light.color = _LightColor.rgb * atten;
+	#endif
 
 #ifndef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
 	// unpack Gbuffer
