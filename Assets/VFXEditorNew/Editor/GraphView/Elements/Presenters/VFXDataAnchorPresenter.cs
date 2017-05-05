@@ -70,20 +70,27 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if (!editable)
+                if( anchorType != null)
                 {
-                    VFXViewPresenter presenter = m_SourceNode.viewPresenter;
-
-                    if (presenter.CanGetEvaluatedContent(model))
+                    if (!editable)
                     {
-                        return presenter.GetEvaluatedContent(model);
-                    }
-                }
+                        VFXViewPresenter presenter = m_SourceNode.viewPresenter;
 
-                return model.value;
+                        if (presenter.CanGetEvaluatedContent(model))
+                        {
+                            return VFXConverter.ConvertTo(presenter.GetEvaluatedContent(model),anchorType);
+                        }
+                    }
+
+                    return VFXConverter.ConvertTo(model.value,anchorType);
+                }
+                else
+                {
+                    return null;
+                }
             }
 
-            set { SetPropertyValue(value); }
+            set { SetPropertyValue(VFXConverter.ConvertTo(value,anchorType)); }
         }
 
 
