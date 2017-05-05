@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.UI
 {
     static class VFXTypeDefinition
     {
-        public static readonly Type[] potentialTypes = new Type[] 
+        public static readonly Type[] potentialTypes = new Type[]
         {
             typeof(bool),
             typeof(int),
@@ -31,18 +31,18 @@ namespace UnityEditor.VFX.UI
         private static readonly string[] cssClasses = null;
 
 
-
         static VFXTypeDefinition()
         {
-            cssClasses = new string[potentialTypes.Length+1];
-            for(int i = 0; i < potentialTypes.Length; ++i)
+            cssClasses = new string[potentialTypes.Length + 1];
+            for (int i = 0; i < potentialTypes.Length; ++i)
             {
                 cssClasses[i] = "type" + potentialTypes[i].Name.ToLower();
             }
 
             cssClasses[potentialTypes.Length] = "typeStruct";
         }
-        public static string GetTypeCSSClass(Type type )
+
+        public static string GetTypeCSSClass(Type type)
         {
             int index = MatchType(type);
             if (index >= 0)
@@ -59,17 +59,16 @@ namespace UnityEditor.VFX.UI
 
         static int MatchType(Type type)
         {
-            for(int i = 0; i < potentialTypes.Length; ++i)
+            for (int i = 0; i < potentialTypes.Length; ++i)
             {
                 if (potentialTypes[i].IsAssignableFrom(type))
                     return i;
             }
-            if( type.IsValueType && ! type.IsPrimitive && ! type.IsEnum)
+            if (type.IsValueType && !type.IsPrimitive && !type.IsEnum)
             {
                 return potentialTypes.Length - 1;
             }
             return -1;
         }
-
     }
 }

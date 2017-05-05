@@ -14,21 +14,21 @@ namespace UnityEditor.VFX.Test
         {}
 
         // VFXModelA <>- VFXModelB <>- VFXModelC
-        private class VFXModelA : VFXModel<VFXModel,  VFXModelB> 
+        private class VFXModelA : VFXModel<VFXModel,  VFXModelB>
         {
-            protected override void OnInvalidate(VFXModel model,InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelA " + cause); }
+            protected override void OnInvalidate(VFXModel model, InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelA " + cause); }
             protected override void OnAdded() { s_logs.Add("OnAdded VFXModelA"); }
             protected override void OnRemoved() { s_logs.Add("OnRemoved VFXModelA"); }
         }
 
-        private class VFXModelB : VFXModel<VFXModelA, VFXModelC> 
+        private class VFXModelB : VFXModel<VFXModelA, VFXModelC>
         {
             protected override void OnInvalidate(VFXModel model, InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelB " + cause); }
             protected override void OnAdded() { s_logs.Add("OnAdded VFXModelB"); }
             protected override void OnRemoved() { s_logs.Add("OnRemoved VFXModelB"); }
         }
 
-        private class VFXModelC : VFXModel<VFXModelB, VFXModel>  
+        private class VFXModelC : VFXModel<VFXModelB, VFXModel>
         {
             protected override void OnInvalidate(VFXModel model, InvalidationCause cause) { s_logs.Add("OnInvalidate VFXModelC " + cause); }
             protected override void OnAdded() { s_logs.Add("OnAdded VFXModelC"); }
@@ -75,8 +75,8 @@ namespace UnityEditor.VFX.Test
 
             s_logs.Clear();
             modelA.AddChild(modelB2);
-            modelA.AddChild(modelB0,0);
-            modelA.AddChild(modelB1,1);
+            modelA.AddChild(modelB0, 0);
+            modelA.AddChild(modelB1, 1);
 
             Assert.AreEqual(3, modelA.GetNbChildren(), 3);
             Assert.AreEqual(modelB0, modelA.GetChild(0));
@@ -100,8 +100,8 @@ namespace UnityEditor.VFX.Test
             VFXModel modelC = new VFXModelC();
 
             // First add children but dont notify
-            modelB.Attach(modelA,false);
-            modelC.Attach(modelB,false);
+            modelB.Attach(modelA, false);
+            modelC.Attach(modelB, false);
 
             // Test both interfaces
             s_logs.Clear();
@@ -181,9 +181,9 @@ namespace UnityEditor.VFX.Test
             VFXModel modelB = new VFXModelB();
 
             s_logs.Clear();
-            Assert.Throws<ArgumentException>( () =>
+            Assert.Throws<ArgumentException>(() =>
                 modelB.AddChild(modelA)
-            );
+                );
 
             Assert.AreEqual(0, modelB.GetNbChildren());
             Assert.IsNull(modelA.GetParent());
@@ -197,9 +197,9 @@ namespace UnityEditor.VFX.Test
             VFXModel modelB = new VFXModelB();
 
             s_logs.Clear();
-            Assert.Throws<ArgumentException>( () =>
-                modelA.AddChild(modelB,2)
-            );
+            Assert.Throws<ArgumentException>(() =>
+                modelA.AddChild(modelB, 2)
+                );
 
             Assert.AreEqual(0, modelB.GetNbChildren());
             Assert.IsNull(modelA.GetParent());

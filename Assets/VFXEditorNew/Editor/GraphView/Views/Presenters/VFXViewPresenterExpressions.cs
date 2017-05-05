@@ -9,6 +9,7 @@ namespace UnityEditor.VFX.UI
 {
     partial class VFXViewPresenter : GraphViewPresenter
     {
+        public event System.Action onRecompileEvent;
         public void RecomputeExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
@@ -19,6 +20,11 @@ namespace UnityEditor.VFX.UI
             Debug.Log("------------------------ RECOMPUTE EXPRESSION CONTEXT");
             CreateExpressionContext(cause == VFXModel.InvalidationCause.kStructureChanged);
             m_ExpressionContext.Recompile();
+
+            if (onRecompileEvent != null)
+            {
+                onRecompileEvent();
+            }
         }
 
         private void CreateExpressionContext(bool forceRecreation)

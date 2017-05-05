@@ -10,10 +10,8 @@ namespace UnityEditor.VFX.UI
     {
         public void Init(VFXModel owner, VFXSlot model, VFXNodePresenter source)
         {
-            base.Init(owner, model,source);
+            base.Init(owner, model, source);
         }
-
-
     }
 
 

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    class VFXSystem : VFXModel<VFXModel,VFXContext>
+    class VFXSystem : VFXModel<VFXModel, VFXContext>
     {
         public override bool AcceptChild(VFXModel model, int index = -1)
         {

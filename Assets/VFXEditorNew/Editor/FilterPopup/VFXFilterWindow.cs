@@ -8,8 +8,6 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    
-
     [InitializeOnLoad]
     public class VFXFilterWindow : EditorWindow
     {
@@ -239,7 +237,7 @@ namespace UnityEditor.VFX.UI
         {
             var tree = new List<Element>();
             m_Provider.CreateComponentTree(tree);
-            
+
 
             m_Tree = tree.ToArray();
 
@@ -408,7 +406,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-
         }
 
         const string kSearchHeader = "Search";
@@ -557,7 +554,7 @@ namespace UnityEditor.VFX.UI
 
         private void GoToChild(Element e, bool addIfComponent)
         {
-            if(m_Provider.GoToChild(e, addIfComponent))
+            if (m_Provider.GoToChild(e, addIfComponent))
                 Close();
             else if (!hasSearch)//TODO RF || e is NewElement)
             {
@@ -570,7 +567,6 @@ namespace UnityEditor.VFX.UI
                     m_Stack.Add(e as VFXFilterWindow.GroupElement);
                 }
             }
-
         }
 
         private void ListGUI(Element[] tree, GroupElement parent)
@@ -682,7 +678,6 @@ namespace UnityEditor.VFX.UI
 
             return children;
         }
-
     }
 
     public struct DisabledScope : IDisposable
@@ -707,5 +702,4 @@ namespace UnityEditor.VFX.UI
                 GUI.enabled = s_EnabledStack.Pop();
         }
     }
-
 }

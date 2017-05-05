@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.Test
             valueFloat.SetContent(new FloatN(b));
             Assert.AreEqual(b, valueFloat.Get<float>());
         }
-        
+
         [Test]
         public void ProcessExpressionBasic()
         {
@@ -108,17 +108,17 @@ namespace UnityEditor.VFX.Test
             {
                 hasParent = false;
                 var currentLevelList = graphLevel.Peek();
-                var parentsList = currentLevelList  .SelectMany(o => o.Parents)
-                                                    .Where(o => !addedExpression.Contains(o))
-                                                    .Distinct().ToArray();
+                var parentsList = currentLevelList.SelectMany(o => o.Parents)
+                    .Where(o => !addedExpression.Contains(o))
+                    .Distinct().ToArray();
                 if (parentsList.Length > 0)
                 {
                     hasParent = true;
                     addedExpression.UnionWith(parentsList);
                     graphLevel.Push(parentsList);
                 }
-
-            } while (hasParent);
+            }
+            while (hasParent);
 
 
             var functionList = new HashSet<string>();
@@ -145,9 +145,9 @@ namespace UnityEditor.VFX.Test
             }
 
             string final = string.Format("//Inputs\n{0}\n//Functions\n{1}//Call\n{2}",
-                                            uniformList.Aggregate((x, y) => x + y),
-                                            functionList.Aggregate((x, y) => x + y), 
-                                            callFunction.ToString());
+                    uniformList.Aggregate((x, y) => x + y),
+                    functionList.Aggregate((x, y) => x + y),
+                    callFunction.ToString());
             Assert.AreNotEqual(final, null);
         }
 
@@ -172,8 +172,8 @@ namespace UnityEditor.VFX.Test
         public void ProcessExpressionTestConcreteExpression()
         {
             var expressionTypes = typeof(VFXExpression)
-                                  .Assembly.GetTypes()
-                                  .Where(t => t.IsSubclassOf(typeof(VFXExpression)) && !t.IsAbstract);
+                .Assembly.GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(VFXExpression)) && !t.IsAbstract);
 
             var newInstanceHelper = typeof(VFXExpression).GetMethod("CreateNewInstance", BindingFlags.Static | BindingFlags.NonPublic, null, new Type[] { typeof(Type) }, null);
             Assert.AreNotEqual(newInstanceHelper, null);
@@ -182,7 +182,7 @@ namespace UnityEditor.VFX.Test
             {
                 object newInstance = null;
                 Assert.DoesNotThrow(() => { newInstance = newInstanceHelper.Invoke(null, new Type[] { expressionType }); },
-                                            "ProcessExpressionTestConcreteExpression fails with : " + expressionType.FullName);
+                    "ProcessExpressionTestConcreteExpression fails with : " + expressionType.FullName);
 
                 if (expressionType.GetConstructors().Any())
                 {
@@ -231,16 +231,16 @@ namespace UnityEditor.VFX.Test
                 hasParent = false;
                 var currentLevelList = graphLevel.Peek();
                 var parentsList = currentLevelList.SelectMany(o => o.Parents)
-                                                    .Where(o => !addedExpression.Contains(o))
-                                                    .Distinct().ToArray();
+                    .Where(o => !addedExpression.Contains(o))
+                    .Distinct().ToArray();
                 if (parentsList.Length > 0)
                 {
                     hasParent = true;
                     addedExpression.UnionWith(parentsList);
                     graphLevel.Push(parentsList);
                 }
-
-            } while (hasParent);
+            }
+            while (hasParent);
 
 
             var functionList = new HashSet<string>();
@@ -267,9 +267,9 @@ namespace UnityEditor.VFX.Test
             }
 
             string final = string.Format("//Inputs\n{0}\n//Functions\n{1}//Call\n{2}",
-                                            uniformList.Aggregate((x, y) => x + y),
-                                            functionList.Aggregate((x, y) => x + y),
-                                            callFunction.ToString());
+                    uniformList.Aggregate((x, y) => x + y),
+                    functionList.Aggregate((x, y) => x + y),
+                    callFunction.ToString());
             Assert.AreNotEqual(final, null);
         }
     }

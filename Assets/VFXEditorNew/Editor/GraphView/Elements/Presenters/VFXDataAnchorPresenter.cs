@@ -68,12 +68,13 @@ namespace UnityEditor.VFX.UI
 
         public object value
         {
-            get {
-                if(!editable)
+            get
+            {
+                if (!editable)
                 {
                     VFXViewPresenter presenter = m_SourceNode.viewPresenter;
 
-                    if( presenter.CanGetEvaluatedContent(model))
+                    if (presenter.CanGetEvaluatedContent(model))
                     {
                         return presenter.GetEvaluatedContent(model);
                     }
@@ -89,9 +90,7 @@ namespace UnityEditor.VFX.UI
         public override void Connect(EdgePresenter edgePresenter)
         {
             base.Connect(edgePresenter);
-
         }
-
 
         public string path
         {

@@ -77,7 +77,7 @@ namespace UnityEditor.VFX.UI
                 ViewPresenter.UnregisterFlowAnchorPresenter(anchor);
         }
 
-        public virtual void Init(VFXModel model,VFXViewPresenter viewPresenter)
+        public virtual void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             m_ViewPresenter = viewPresenter;
             m_Model = (VFXContext)model;
@@ -111,13 +111,13 @@ namespace UnityEditor.VFX.UI
             SyncPresenters();
         }
 
-        private void OnModelInvalidate(VFXModel model,VFXModel.InvalidationCause cause)
+        private void OnModelInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (model == this.model && cause == VFXModel.InvalidationCause.kStructureChanged)
                 SyncPresenters();
         }
 
-        public void AddBlock(int index,VFXBlock block)
+        public void AddBlock(int index, VFXBlock block)
         {
             Undo.RecordObject(model, "Add Block");
             context.AddChild(block, index);
@@ -132,12 +132,13 @@ namespace UnityEditor.VFX.UI
             do
             {
                 slotToClean = block.inputSlots.Concat(block.outputSlots)
-                                .FirstOrDefault(o => o.HasLink());
+                    .FirstOrDefault(o => o.HasLink());
                 if (slotToClean)
                 {
                     slotToClean.UnlinkAll();
                 }
-            } while (slotToClean != null);
+            }
+            while (slotToClean != null);
 
             Undo.DestroyObjectImmediate(block);
         }
@@ -166,8 +167,9 @@ namespace UnityEditor.VFX.UI
 
         public override IEnumerable<GraphElementPresenter> allChildren
         {
-            get {
-                foreach( var presenter in m_BlockPresenters)
+            get
+            {
+                foreach (var presenter in m_BlockPresenters)
                 {
                     yield return presenter;
                 }
@@ -177,10 +179,10 @@ namespace UnityEditor.VFX.UI
         internal void BlocksDropped(VFXBlockPresenter blockPresenter, bool after, IEnumerable<VFXBlockPresenter> draggedBlocks)
         {
             //Sort draggedBlock in the order we want them to appear and not the selected order ( blocks in the same context should appear in the same order as they where relative to each other).
-            
-            draggedBlocks = draggedBlocks.OrderBy(t=>t.index).GroupBy(t => t.ContextPresenter).SelectMany<IGrouping<VFXContextPresenter,VFXBlockPresenter>,VFXBlockPresenter>(t=>t.Select(u=>u));
 
-            foreach(VFXBlockPresenter draggedBlock in draggedBlocks)
+            draggedBlocks = draggedBlocks.OrderBy(t => t.index).GroupBy(t => t.ContextPresenter).SelectMany<IGrouping<VFXContextPresenter, VFXBlockPresenter>, VFXBlockPresenter>(t => t.Select(u => u));
+
+            foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
             {
                 draggedBlock.ContextPresenter.RemoveBlock(draggedBlock.Model);
             }
@@ -190,7 +192,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
             {
-                this.AddBlock(insertIndex++,draggedBlock.Model);
+                this.AddBlock(insertIndex++, draggedBlock.Model);
             }
         }
     }

@@ -57,4 +57,3 @@ namespace UnityEditor.VFX
         }
     }
 }
-

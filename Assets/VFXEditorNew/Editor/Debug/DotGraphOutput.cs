@@ -42,13 +42,13 @@ namespace UnityEditor.VFX
             return name;
         }
 
-        public static void DebugExpressionGraph(VFXGraph graph,bool reduce = false)
+        public static void DebugExpressionGraph(VFXGraph graph, bool reduce = false)
         {
             var objs = new HashSet<UnityEngine.Object>();
             graph.CollectDependencies(objs);
 
             var mainSlots = new HashSet<VFXSlot>(objs.OfType<VFXSlot>()
-                .Where(s => IsHighlightedSlot(s)));//.Select(s => s.GetTopMostParent());
+                    .Where(s => IsHighlightedSlot(s)));//.Select(s => s.GetTopMostParent());
 
             var mainExpressions = new Dictionary<VFXExpression, List<VFXSlot>>();
             foreach (var slot in mainSlots)
@@ -132,7 +132,7 @@ namespace UnityEditor.VFX
                 expressionsToDot[exp] = dotNode;
                 dotGraph.AddElement(dotNode);
             }
-          
+
             foreach (var exp in expressionsToDot)
             {
                 var parents = exp.Key.Parents;
@@ -173,14 +173,14 @@ namespace UnityEditor.VFX
             return string.Empty;
         }
 
-        private static void CollectExpressions(VFXExpression exp,HashSet<VFXExpression> expressions)
+        private static void CollectExpressions(VFXExpression exp, HashSet<VFXExpression> expressions)
         {
             if (/*exp != null &&*/ !expressions.Contains(exp))
             {
                 expressions.Add(exp);
                 foreach (var parent in exp.Parents)
                     //if (parent != null)
-                        CollectExpressions(parent, expressions);
+                    CollectExpressions(parent, expressions);
             }
         }
     }

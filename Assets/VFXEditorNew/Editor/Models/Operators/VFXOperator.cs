@@ -160,10 +160,10 @@ namespace UnityEditor.VFX
             }
 
             outputExpressionQueue.Enqueue(outputExpressionArray);
-            
+
             if (outputExpressionQueue.Count > 1)
                 return;
-            
+
             // Dequeue
             while (outputExpressionQueue.Count > 0)
                 DequeueOutputSlotFromExpression();
@@ -176,7 +176,7 @@ namespace UnityEditor.VFX
             UpdateOutputs();
         }
 
-        sealed override protected void OnInvalidate(VFXModel model,InvalidationCause cause)
+        sealed override protected void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (cause == InvalidationCause.kConnectionChanged) // Connection changed is only triggered for
                 OnInputConnectionsChanged();

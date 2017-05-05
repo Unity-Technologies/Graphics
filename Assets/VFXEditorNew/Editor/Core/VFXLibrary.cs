@@ -66,7 +66,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXModelDescriptorParameters(Type type):base(ScriptableObject.CreateInstance<VFXParameter>())
+        public VFXModelDescriptorParameters(Type type) : base(ScriptableObject.CreateInstance<VFXParameter>())
         {
             m_Template.Init(type);
             m_name = type.Name;
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXModelDescriptorBuiltInParameters(VFXExpressionOp op):base(ScriptableObject.CreateInstance<VFXBuiltInParameter>())
+        public VFXModelDescriptorBuiltInParameters(VFXExpressionOp op) : base(ScriptableObject.CreateInstance<VFXBuiltInParameter>())
         {
             m_name = op.ToString();
             m_Template.Init(op);
@@ -142,10 +142,10 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptorAttributeParameters> GetAttributeParameters() { LoadIfNeeded(); return m_AttributeParametersDecs; }
 
         public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)
-        { 
-            LoadSlotsIfNeeded(); 
+        {
+            LoadSlotsIfNeeded();
             VFXModelDescriptor<VFXSlot> desc;
-            m_SlotDescs.TryGetValue(type,out desc);
+            m_SlotDescs.TryGetValue(type, out desc);
             return desc;
         }
 
@@ -160,10 +160,10 @@ namespace UnityEditor.VFX
                     Load();
             }
         }
-        
+
         public static void Load()
         {
-            lock(m_Lock)
+            lock (m_Lock)
             {
                 LoadSlotsIfNeeded();
                 m_ContextDescs = LoadModels<VFXContext>();
@@ -171,22 +171,22 @@ namespace UnityEditor.VFX
                 m_OperatorDescs = LoadModels<VFXOperator>();
 
                 m_ParametersDescs = m_SlotDescs.Select(s =>
-                {
-                    var desc = new VFXModelDescriptorParameters(s.Key);
-                    return desc;
-                }).ToList();
+                    {
+                        var desc = new VFXModelDescriptorParameters(s.Key);
+                        return desc;
+                    }).ToList();
 
                 m_BuiltInParametersDescs = VFXBuiltInExpression.All.Select(e =>
-                {
-                    var desc = new VFXModelDescriptorBuiltInParameters(e);
-                    return desc;
-                }).ToList();
+                    {
+                        var desc = new VFXModelDescriptorBuiltInParameters(e);
+                        return desc;
+                    }).ToList();
 
                 m_AttributeParametersDecs = VFXAttributeExpression.All.Select(a =>
-                {
-                    var desc = new VFXModelDescriptorAttributeParameters(a);
-                    return desc;
-                }).ToList();
+                    {
+                        var desc = new VFXModelDescriptorAttributeParameters(a);
+                        return desc;
+                    }).ToList();
 
                 m_Loaded = true;
             }
@@ -209,7 +209,7 @@ namespace UnityEditor.VFX
 
         private static List<VFXModelDescriptor<T>> LoadModels<T>() where T : VFXModel
         {
-            var modelTypes = FindConcreteSubclasses(typeof(T),typeof(VFXInfoAttribute));
+            var modelTypes = FindConcreteSubclasses(typeof(T), typeof(VFXInfoAttribute));
             var modelDescs = new List<VFXModelDescriptor<T>>();
             foreach (var modelType in modelTypes)
             {
@@ -230,7 +230,7 @@ namespace UnityEditor.VFX
         private static Dictionary<Type, VFXModelDescriptor<VFXSlot>> LoadSlots()
         {
             // First find concrete slots
-            var slotTypes = FindConcreteSubclasses(typeof(VFXSlot),typeof(VFXInfoAttribute));
+            var slotTypes = FindConcreteSubclasses(typeof(VFXSlot), typeof(VFXInfoAttribute));
             var dictionary = new Dictionary<Type, VFXModelDescriptor<VFXSlot>>();
             foreach (var slotType in slotTypes)
             {
@@ -253,7 +253,7 @@ namespace UnityEditor.VFX
             }
 
             // Then find types that needs a generic slot
-            var vfxTypes = FindConcreteSubclasses(null,typeof(VFXTypeAttribute));
+            var vfxTypes = FindConcreteSubclasses(null, typeof(VFXTypeAttribute));
             foreach (var type in vfxTypes)
             {
                 if (!dictionary.ContainsKey(type)) // If a slot was not already explicitly declared
@@ -266,7 +266,7 @@ namespace UnityEditor.VFX
             return dictionary;
         }
 
-        private static IEnumerable<Type> FindConcreteSubclasses(Type objectType = null,Type attributeType = null)
+        private static IEnumerable<Type> FindConcreteSubclasses(Type objectType = null, Type attributeType = null)
         {
             List<Type> types = new List<Type>();
             foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -295,7 +295,7 @@ namespace UnityEditor.VFX
         private static volatile List<VFXModelDescriptorParameters> m_ParametersDescs;
         private static volatile List<VFXModelDescriptorBuiltInParameters> m_BuiltInParametersDescs;
         private static volatile List<VFXModelDescriptorAttributeParameters> m_AttributeParametersDecs;
-        private static volatile Dictionary<Type,VFXModelDescriptor<VFXSlot>> m_SlotDescs;
+        private static volatile Dictionary<Type, VFXModelDescriptor<VFXSlot>> m_SlotDescs;
 
         private static Object m_Lock = new Object();
         private static volatile bool m_Loaded = false;

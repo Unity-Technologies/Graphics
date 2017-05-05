@@ -9,8 +9,8 @@ using UnityEngine.Profiling;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
-{   
-	public class VFXGraphAssetFactory
+{
+    public class VFXGraphAssetFactory
     {
         [MenuItem("Assets/Create/VFXGraphAsset", priority = 301)]
         private static void MenuCreateVFXGraphAsset()

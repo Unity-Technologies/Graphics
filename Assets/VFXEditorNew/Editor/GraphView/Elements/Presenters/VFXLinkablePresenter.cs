@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
             m_ViewPresenter = presenter;
         }
 
-        public VFXViewPresenter viewPresenter{ get{ return m_ViewPresenter; }}
+        public VFXViewPresenter viewPresenter { get { return m_ViewPresenter; }}
 
         public abstract IVFXSlotContainer slotContainer { get; }
 

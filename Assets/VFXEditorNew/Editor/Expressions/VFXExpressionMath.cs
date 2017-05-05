@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionCos : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionCos() : this(VFXValueFloat.Default) { }
+        public VFXExpressionCos() : this(VFXValueFloat.Default) {}
 
         public VFXExpressionCos(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXCosOp)
         {
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSin : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionSin() : this(VFXValueFloat.Default) { }
+        public VFXExpressionSin() : this(VFXValueFloat.Default) {}
 
         public VFXExpressionSin(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXSinOp)
         {
@@ -45,7 +45,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionAbs : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionAbs() : this(VFXValueFloat.Default) { }
+        public VFXExpressionAbs() : this(VFXValueFloat.Default) {}
 
         public VFXExpressionAbs(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXAbsOp)
         {
@@ -64,7 +64,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionFloor : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionFloor() : this(VFXValueFloat.Default) { }
+        public VFXExpressionFloor() : this(VFXValueFloat.Default) {}
 
         public VFXExpressionFloor(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXFloorOp)
         {
@@ -116,6 +116,7 @@ namespace UnityEditor.VFX
         {
             return left * right;
         }
+
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
             return string.Format("{0} * {1}", left, right);
@@ -136,6 +137,7 @@ namespace UnityEditor.VFX
         {
             return left / right;
         }
+
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
             return string.Format("{0} / {1}", left, right);
@@ -151,10 +153,12 @@ namespace UnityEditor.VFX
         public VFXExpressionSubtract(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXSubtractOp)
         {
         }
+
         sealed protected override float ProcessBinaryOperation(float left, float right)
         {
             return left - right;
         }
+
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
             return string.Format("{0} - {1}", left, right);
@@ -170,10 +174,12 @@ namespace UnityEditor.VFX
         public VFXExpressionMin(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMinOp)
         {
         }
+
         sealed protected override float ProcessBinaryOperation(float left, float right)
         {
             return Mathf.Min(left, right);
         }
+
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
             return string.Format("min({0}, {1})", left, right);
@@ -189,10 +195,12 @@ namespace UnityEditor.VFX
         public VFXExpressionMax(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMaxOp)
         {
         }
+
         sealed protected override float ProcessBinaryOperation(float left, float right)
         {
             return Mathf.Max(left, right);
         }
+
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
             return string.Format("max({0}, {1})", left, right);
@@ -208,10 +216,12 @@ namespace UnityEditor.VFX
         public VFXExpressionPow(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXPowOp)
         {
         }
+
         sealed protected override float ProcessBinaryOperation(float left, float right)
         {
             return Mathf.Pow(left, right);
         }
+
         sealed protected override string GetBinaryOperationCode(string left, string right)
         {
             return string.Format("pow({0}, {1})", left, right);

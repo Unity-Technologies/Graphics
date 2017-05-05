@@ -10,8 +10,8 @@ namespace UnityEditor.VFX
         protected VFXExpressionFloatOperation()
         {
             m_Flags = Flags.ValidOnCPU | Flags.ValidOnGPU;
-            m_Parents = new VFXExpression[] { };
-            m_AdditionnalParameters = new int[] { };
+            m_Parents = new VFXExpression[] {};
+            m_AdditionnalParameters = new int[] {};
         }
 
         static private float[] ToFloatArray(float input) { return new float[] { input }; }
@@ -166,6 +166,7 @@ namespace UnityEditor.VFX
             m_Parents = new VFXExpression[] { a, b, c };
             m_Operation = operation;
         }
+
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             var a = reducedParents[0];

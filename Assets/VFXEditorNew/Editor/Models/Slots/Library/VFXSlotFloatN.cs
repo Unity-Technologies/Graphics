@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
 
         protected override bool CanConvertFrom(Type type)
         {
-            return type == typeof(float) 
+            return type == typeof(float)
                 || type == typeof(Vector2)
                 || type == typeof(Vector3)
                 || type == typeof(Vector4);
@@ -60,4 +60,3 @@ namespace UnityEditor.VFX
         }
     }
 }
-

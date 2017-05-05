@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
             public uint anUint;
             public FlipBook aFlipBook;
             public bool aBool;
-            public AnimationCurve curve = new AnimationCurve(new Keyframe[] { new Keyframe(0,0),new Keyframe(1,1)});
+            public AnimationCurve curve = new AnimationCurve(new Keyframe[] { new Keyframe(0, 0), new Keyframe(1, 1)});
             public Mesh aMesh;
         }
     }

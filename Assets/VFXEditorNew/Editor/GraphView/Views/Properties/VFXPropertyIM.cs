@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -14,14 +14,14 @@ namespace UnityEditor.VFX.UI
         {
             EditorGUI.BeginChangeCheck();
 
-            if(!presenter.editable)
+            if (!presenter.editable)
             {
                 GUI.enabled = false;
             }
 
-            object result = DoOnGUI(presenter,styles);
+            object result = DoOnGUI(presenter, styles);
 
-            
+
             GUI.enabled = true;
 
             if (EditorGUI.EndChangeCheck())
@@ -35,32 +35,32 @@ namespace UnityEditor.VFX.UI
                 return false;
             }
         }
+
         protected abstract object DoOnGUI(VFXBlockDataAnchorPresenter presenter, VFXEditableDataAnchor.GUIStyles styles);
 
 
         public const float kLabelWidth = 100;
 
 
-
         static Dictionary<Type, Type> m_PropertyIMTypes = new Dictionary<Type, Type>
         {
-            {typeof(float),typeof(VFXFloatPropertyIM) },
-            {typeof(Vector2),typeof(VFXVector2PropertyIM) },
-            {typeof(Vector3),typeof(VFXVector3PropertyIM) },
-            {typeof(Vector4),typeof(VFXVector4PropertyIM) },
-            {typeof(Color),typeof(VFXColorPropertyIM) },
-            {typeof(Texture2D),typeof(VFXObjectPropertyIM<Texture2D>) },
-            {typeof(Texture3D),typeof(VFXObjectPropertyIM<Texture3D>) },
-            {typeof(Mesh),typeof(VFXObjectPropertyIM<Mesh>) },
-            {typeof(int),typeof(VFXIntPropertyIM) },
-            {typeof(Gradient),typeof(VFXGradientPropertyIM) },
-            {typeof(AnimationCurve),typeof(VFXAnimationCurvePropertyIM) }
+            {typeof(float), typeof(VFXFloatPropertyIM) },
+            {typeof(Vector2), typeof(VFXVector2PropertyIM) },
+            {typeof(Vector3), typeof(VFXVector3PropertyIM) },
+            {typeof(Vector4), typeof(VFXVector4PropertyIM) },
+            {typeof(Color), typeof(VFXColorPropertyIM) },
+            {typeof(Texture2D), typeof(VFXObjectPropertyIM<Texture2D>) },
+            {typeof(Texture3D), typeof(VFXObjectPropertyIM<Texture3D>) },
+            {typeof(Mesh), typeof(VFXObjectPropertyIM<Mesh>) },
+            {typeof(int), typeof(VFXIntPropertyIM) },
+            {typeof(Gradient), typeof(VFXGradientPropertyIM) },
+            {typeof(AnimationCurve), typeof(VFXAnimationCurvePropertyIM) }
         };
         public static VFXPropertyIM Create(Type type)
         {
             Type propertyIMType;
 
-            if(m_PropertyIMTypes.TryGetValue(type,out propertyIMType))
+            if (m_PropertyIMTypes.TryGetValue(type, out propertyIMType))
             {
                 return System.Activator.CreateInstance(propertyIMType) as VFXPropertyIM;
             }
@@ -70,11 +70,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
-
         public void Label(VFXBlockDataAnchorPresenter presenter, VFXEditableDataAnchor.GUIStyles styles)
         {
-
             if (presenter.depth > 0)
                 GUILayout.Space(presenter.depth * depthOffset);
             GUILayout.BeginVertical();
@@ -116,10 +113,7 @@ namespace UnityEditor.VFX.UI
         protected override object DoOnGUI(VFXBlockDataAnchorPresenter presenter, VFXEditableDataAnchor.GUIStyles styles)
         {
             return OnParameterGUI(presenter, (T)presenter.value, styles);
-
         }
-
-
 
         public abstract T OnParameterGUI(VFXBlockDataAnchorPresenter presenter, T value, VFXEditableDataAnchor.GUIStyles styles);
     }
@@ -161,7 +155,6 @@ namespace UnityEditor.VFX.UI
     {
         protected override object DoOnGUI(VFXBlockDataAnchorPresenter presenter, VFXEditableDataAnchor.GUIStyles styles)
         {
-
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
             GUILayout.FlexibleSpace();
@@ -169,7 +162,6 @@ namespace UnityEditor.VFX.UI
 
             return null;
         }
-
     }
 
 
@@ -201,7 +193,6 @@ namespace UnityEditor.VFX.UI
     {
         public override Vector3 OnParameterGUI(VFXBlockDataAnchorPresenter presenter, Vector3 value, VFXEditableDataAnchor.GUIStyles styles)
         {
-
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
             GUILayout.Label("x", styles.baseStyle, GUILayout.Height(styles.lineHeight));
@@ -239,7 +230,7 @@ namespace UnityEditor.VFX.UI
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Space((presenter.depth+1) * depthOffset);
+            GUILayout.Space((presenter.depth + 1) * depthOffset);
             GUILayout.Label("x", styles.baseStyle, GUILayout.Height(styles.lineHeight));
             value.x = EditorGUILayout.FloatField(value.x, styles.baseStyle, GUILayout.Height(styles.lineHeight));
             GUILayout.Label("y", styles.baseStyle, GUILayout.Height(styles.lineHeight));
@@ -309,10 +300,9 @@ namespace UnityEditor.VFX.UI
         {
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
-            value = (T)EditorGUILayout.ObjectField(value,typeof(T),false);
+            value = (T)EditorGUILayout.ObjectField(value, typeof(T), false);
             GUILayout.EndHorizontal();
             return value;
         }
     }
-
 }

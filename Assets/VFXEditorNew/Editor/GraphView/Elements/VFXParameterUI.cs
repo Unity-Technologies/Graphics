@@ -26,11 +26,25 @@ namespace UnityEditor.VFX.UI
         {
             if (presenter.direction == Direction.Input)
             {
-                return VFXEditableDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
+                VFXDataAnchorPresenter anchorPresenter = presenter as VFXDataAnchorPresenter;
+                VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create<VFXDataEdgePresenter>(anchorPresenter);
+
+
+                anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
+
+                return anchor;
             }
             else
             {
                 return VFXOutputDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXDataAnchorPresenter);
+            }
+        }
+
+        protected override void OnAnchorRemoved(NodeAnchor anchor)
+        {
+            if (anchor is VFXEditableDataAnchor)
+            {
+                GetPresenter<VFXParameterPresenter>().viewPresenter.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
             }
         }
     }
@@ -110,10 +124,10 @@ namespace UnityEditor.VFX.UI
 
             if (m_Property == null)
             {
-                m_Property = PropertyRM.Create(presenter,55);
+                m_Property = PropertyRM.Create(presenter, 55);
                 inputContainer.AddChild(m_Property);
             }
-            if( m_Property!= null )
+            if (m_Property != null)
                 m_Property.Update();
         }
     }

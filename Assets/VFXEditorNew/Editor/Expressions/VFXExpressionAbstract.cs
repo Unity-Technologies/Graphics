@@ -38,9 +38,9 @@ namespace UnityEditor.VFX
         public static bool IsFloatValueType(VFXValueType valueType)
         {
             return valueType == VFXValueType.kFloat
-                    || valueType == VFXValueType.kFloat2
-                    || valueType == VFXValueType.kFloat3
-                    || valueType == VFXValueType.kFloat4;
+                || valueType == VFXValueType.kFloat2
+                || valueType == VFXValueType.kFloat3
+                || valueType == VFXValueType.kFloat4;
         }
 
         public static int TypeToSize(VFXValueType type)
@@ -81,7 +81,6 @@ namespace UnityEditor.VFX
             throw new NotImplementedException(type.ToString());
         }
 
-
         //Helper using reflection to recreate a concrete type from an abstract class (useful with reduce behavior)
         protected static VFXExpression CreateNewInstance(Type expressionType)
         {
@@ -90,13 +89,13 @@ namespace UnityEditor.VFX
                 return null; //Only static readonly expression allowed, constructors are private (attribute or builtIn)
 
             var constructor =   allconstructors
-                                .OrderBy(o => o.GetParameters().Count()) //promote simplest (or default) constructors
-                                .First();
+                .OrderBy(o => o.GetParameters().Count())                 //promote simplest (or default) constructors
+                .First();
             var param = constructor.GetParameters().Select(o =>
-            {
-                var type = o.GetType();
-                return type.IsValueType ? Activator.CreateInstance(type) : null;
-            }).ToArray();
+                {
+                    var type = o.GetType();
+                    return type.IsValueType ? Activator.CreateInstance(type) : null;
+                }).ToArray();
             return (VFXExpression)constructor.Invoke(param);
         }
 
@@ -108,8 +107,8 @@ namespace UnityEditor.VFX
         protected static T[] CollectStaticReadOnlyExpression<T>(Type expressionType) where T : VFXExpression
         {
             var members = expressionType.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
-                                        .Where(m => m.IsInitOnly && m.FieldType == typeof(T))
-                                        .ToArray();
+                .Where(m => m.IsInitOnly && m.FieldType == typeof(T))
+                .ToArray();
             var expressions = members.Select(m => m.GetValue(null) as T).ToArray();
             return expressions;
         }
@@ -121,7 +120,7 @@ namespace UnityEditor.VFX
         public bool Is(Flags flag)  { return (m_Flags & flag) == flag; }
         public abstract VFXValueType ValueType { get; }
         public abstract VFXExpressionOp Operation { get; }
-        public virtual VFXExpression[] Parents { get { return new VFXExpression[] { }; } }
+        public virtual VFXExpression[] Parents { get { return new VFXExpression[] {}; } }
         public virtual string[] ParentsCodeName { get { return new string[] { "a", "b", "c", "d" }; } }
 
         public virtual string GetOperationCodeContent()
@@ -191,7 +190,7 @@ namespace UnityEditor.VFX
             return hash;
         }
 
-        public virtual int[] AdditionnalParameters { get { return new int[] { }; } }
+        public virtual int[] AdditionnalParameters { get { return new int[] {}; } }
         public virtual T Get<T>()
         {
             var value = (this as VFXValue<T>);
@@ -209,5 +208,4 @@ namespace UnityEditor.VFX
 
         protected Flags m_Flags = Flags.None;
     }
-
 }

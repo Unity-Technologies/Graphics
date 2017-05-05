@@ -7,7 +7,6 @@ using UnityEditor;
 
 namespace  UnityEditor.VFX.UI
 {
-
     [Serializable]
     class VFXViewWindow : GraphViewEditorWindow
     {
@@ -28,7 +27,7 @@ namespace  UnityEditor.VFX.UI
             if (m_ViewPresenter == null)
                 m_ViewPresenter = CreateInstance<VFXViewPresenter>();
 
-            if(!string.IsNullOrEmpty(m_DisplayedAssetPath))
+            if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
             {
                 VFXGraphAsset asset = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(m_DisplayedAssetPath);
                 m_ViewPresenter.SetGraphAsset(asset, true);
@@ -44,7 +43,7 @@ namespace  UnityEditor.VFX.UI
             {
                 m_ViewPresenter.SetGraphAsset(objs[0] as VFXGraphAsset, true);
             }
-            else if(!string.IsNullOrEmpty(m_DisplayedAssetPath) )
+            else if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
             {
                 VFXGraphAsset asset = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(m_DisplayedAssetPath);
 
@@ -56,7 +55,7 @@ namespace  UnityEditor.VFX.UI
 
         protected new void OnDisable()
         {
-            m_ViewPresenter.SetGraphAsset(null,false);
+            m_ViewPresenter.SetGraphAsset(null, false);
             base.OnDisable();
         }
 

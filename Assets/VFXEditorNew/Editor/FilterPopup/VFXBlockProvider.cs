@@ -20,11 +20,10 @@ namespace UnityEditor.VFX.UI
             public VFXBlockElement(int level, T desc, string category, string name)
             {
                 this.level = level;
-                content = new GUIContent(category.Replace("/", " ") + " : " + name/*, VFXEditor.styles.GetIcon(desc.Icon)*/);
+                content = new GUIContent(category.Replace("/", " ") + " : " + name /*, VFXEditor.styles.GetIcon(desc.Icon)*/);
                 descriptor = desc;
             }
         }
-
 
 
         protected VFXAbstractProvider(Action<T, Vector2> onSpawnDesc) : base(null)
@@ -113,12 +112,12 @@ namespace UnityEditor.VFX.UI
             var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
             var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.model)).ToList();
             filteredBlocks.Sort((blockA, blockB) =>
-            {
-                var infoA = blockA.info;
-                var infoB = blockB.info;
-                int res = infoA.category.CompareTo(infoB.category);
-                return res != 0 ? res : blockA.name.CompareTo(blockB.name);
-            });
+                {
+                    var infoA = blockA.info;
+                    var infoB = blockB.info;
+                    int res = infoA.category.CompareTo(infoB.category);
+                    return res != 0 ? res : blockA.name.CompareTo(blockB.name);
+                });
             return filteredBlocks;
         }
     }

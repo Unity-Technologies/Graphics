@@ -4,7 +4,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionExtractComponent : VFXExpressionFloatOperation
     {
-        public VFXExpressionExtractComponent() : this(VFXValueFloat4.Default, 0) { }
+        public VFXExpressionExtractComponent() : this(VFXValueFloat4.Default, 0) {}
 
         public VFXExpressionExtractComponent(VFXExpression parent, int iChannel)
         {
@@ -88,5 +88,3 @@ namespace UnityEditor.VFX
         }
     }
 }
-
-

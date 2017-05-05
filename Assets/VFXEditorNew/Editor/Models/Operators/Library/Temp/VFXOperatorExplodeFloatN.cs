@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         public class InputProperties
         {
-           public FloatN x = 0.0f;
+            public FloatN x = 0.0f;
         }
 
         override public string name { get { return "Temp_Explode"; } }
@@ -17,7 +17,5 @@ namespace UnityEditor.VFX
         {
             return VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray();
         }
-
     }
 }
-

@@ -10,19 +10,15 @@ namespace UnityEditor.VFX
     {
         public FloatN(float a) : this(new[] { a })
         {
-
         }
-        public FloatN(Vector2 a) : this(new[] { a.x,a.y })
+        public FloatN(Vector2 a) : this(new[] { a.x, a.y })
         {
-
         }
-        public FloatN(Vector3 a) : this(new[] { a.x,a.y,a.z })
+        public FloatN(Vector3 a) : this(new[] { a.x, a.y, a.z })
         {
-
         }
-        public FloatN(Vector4 a) : this(new[] { a.x,a.y,a.z,a.w })
+        public FloatN(Vector4 a) : this(new[] { a.x, a.y, a.z, a.w })
         {
-
         }
         public FloatN(float[] currentValues = null)
         {
@@ -184,7 +180,7 @@ namespace UnityEditor.VFX
                 RemoveSlot(slot);
             }
 
-            UpdateOutputs();                   
+            UpdateOutputs();
         }
 
         public override void UpdateOutputs()
@@ -200,7 +196,7 @@ namespace UnityEditor.VFX
                 outputExpression.Push(compose);
             }
             SetOuputSlotFromExpression(outputExpression);
-        }      
+        }
     }
 
     abstract class VFXOperatorBinaryFloatOperationOne : VFXOperatorBinaryFloatCascadableOperation

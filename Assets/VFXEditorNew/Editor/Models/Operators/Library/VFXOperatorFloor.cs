@@ -12,6 +12,4 @@ namespace UnityEditor.VFX
             return new[] { new VFXExpressionFloor(inputExpression[0]) };
         }
     }
-
 }
-

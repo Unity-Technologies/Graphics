@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValueFloat2(Vector2.zero,false);
+            return new VFXValueFloat2(Vector2.zero, false);
         }
 
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
@@ -20,11 +20,11 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression[] ExpressionToChildren(VFXExpression expr)
         {
-            return new VFXExpression[2] {
-                new VFXExpressionExtractComponent(expr,0),
-                new VFXExpressionExtractComponent(expr,1)};
+            return new VFXExpression[2]
+            {
+                new VFXExpressionExtractComponent(expr, 0),
+                new VFXExpressionExtractComponent(expr, 1)
+            };
         }
     }
 }
-
-

@@ -8,4 +8,3 @@ namespace UnityEditor.VFX
     {
     }
 }
-
