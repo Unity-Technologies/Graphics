@@ -99,7 +99,7 @@ namespace UnityEditor.VFX.UI
         {
             clipChildren = false;
 
-            m_PropertyRM = PropertyRM.Create(presenter,100);
+            m_PropertyRM = PropertyRM.Create(presenter, 100);
             if (m_PropertyRM != null)
             {
                 AddChild(m_PropertyRM);
@@ -170,13 +170,19 @@ namespace UnityEditor.VFX.UI
             if (m_Container != null)
                 m_Container.executionContext = presenter.GetInstanceID();
 
+            OnRecompile();
+
+            clipChildren = false;
+        }
+
+        public void OnRecompile()
+        {
+            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
             if (m_PropertyRM != null)
             {
                 m_PropertyRM.enabled = presenter.editable && !presenter.collapsed;
                 m_PropertyRM.Update();
             }
-
-            clipChildren = false;
         }
 
         public override bool ContainsPoint(Vector2 localPoint)

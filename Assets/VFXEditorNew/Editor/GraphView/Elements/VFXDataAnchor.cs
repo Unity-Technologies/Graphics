@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            if (presenter.collapsed && ! presenter.connected)
+            if (presenter.collapsed && !presenter.connected)
             {
                 visible = false;
 
@@ -159,7 +159,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXLinkablePresenter nodePresenter = endNode.GetPresenter<VFXLinkablePresenter>();
 
-                var compatibleAnchors = nodePresenter.viewPresenter.GetCompatibleAnchors(presenter,null);
+                var compatibleAnchors = nodePresenter.viewPresenter.GetCompatibleAnchors(presenter, null);
 
 
                 if (nodePresenter != null)

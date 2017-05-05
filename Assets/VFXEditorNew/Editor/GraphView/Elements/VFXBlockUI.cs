@@ -40,9 +40,24 @@ namespace UnityEditor.VFX.UI
 
             return EventPropagation.Stop;
         }
+
         public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
         {
-            return VFXEditableDataAnchor.Create<VFXDataEdgePresenter>(presenter as VFXBlockDataAnchorPresenter);
+            VFXBlockDataAnchorPresenter anchorPresenter = presenter as VFXBlockDataAnchorPresenter;
+
+            VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create<VFXDataEdgePresenter>(anchorPresenter);
+
+            anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
+
+            return anchor;
+        }
+
+        protected override void OnAnchorRemoved(NodeAnchor anchor)
+        {
+            if (anchor is VFXEditableDataAnchor)
+            {
+                GetPresenter<VFXParameterPresenter>().viewPresenter.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
+            }
         }
 
         public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
@@ -87,7 +102,6 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-
         public override void OnDataChanged()
         {
             base.OnDataChanged();
@@ -100,7 +114,6 @@ namespace UnityEditor.VFX.UI
             presenter.Model.collapsed = !presenter.expanded;
         }
 
-
         public override void DoRepaint(IStylePainter painter)
         {
             base.DoRepaint(painter);
@@ -110,14 +123,16 @@ namespace UnityEditor.VFX.UI
         {
             return selection.Any(t => t is VFXBlockUI);
         }
+
         EventPropagation IDropTarget.DragUpdated(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             Vector2 pos = this.GlobalToBound(evt.mousePosition);
 
             context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > position.height / 2);
-            
+
             return EventPropagation.Stop;
         }
+
         EventPropagation IDropTarget.DragPerform(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             context.DragFinished();
@@ -129,7 +144,7 @@ namespace UnityEditor.VFX.UI
             VFXBlockPresenter blockPresenter = GetPresenter<VFXBlockPresenter>();
             VFXContextPresenter contextPresenter = blockPresenter.ContextPresenter;
 
-            if (context.CanDrop(draggedBlocksUI,this))
+            if (context.CanDrop(draggedBlocksUI, this))
             {
                 contextPresenter.BlocksDropped(blockPresenter, pos.y > position.height / 2, draggedBlocks);
             }
@@ -139,17 +154,16 @@ namespace UnityEditor.VFX.UI
 
             return EventPropagation.Stop;
         }
+
         EventPropagation IDropTarget.DragExited()
         {
             context.DragFinished();
             return EventPropagation.Stop;
         }
 
-
         public VFXContextUI context
         {
-            get{return this.GetFirstAncestorOfType<VFXContextUI>();}
-    }
-
+            get {return this.GetFirstAncestorOfType<VFXContextUI>(); }
+        }
     }
 }
