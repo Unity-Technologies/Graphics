@@ -159,6 +159,9 @@ namespace UnityEditor.VFX.UI
             {
                 VFXLinkablePresenter nodePresenter = endNode.GetPresenter<VFXLinkablePresenter>();
 
+                var compatibleAnchors = nodePresenter.viewPresenter.GetCompatibleAnchors(presenter,null);
+
+
                 if (nodePresenter != null)
                 {
                     IVFXSlotContainer slotContainer = nodePresenter.slotContainer;
@@ -166,7 +169,8 @@ namespace UnityEditor.VFX.UI
                     {
                         foreach (var outputSlot in slotContainer.outputSlots)
                         {
-                            if (startSlot.CanLink(outputSlot))
+                            var endPresenter = nodePresenter.allChildren.OfType<VFXDataAnchorPresenter>().First(t => t.model == outputSlot);
+                            if (compatibleAnchors.Contains(endPresenter))
                             {
                                 startSlot.Link(outputSlot);
                                 break;
@@ -177,7 +181,8 @@ namespace UnityEditor.VFX.UI
                     {
                         foreach (var inputSlot in slotContainer.inputSlots)
                         {
-                            if (inputSlot.CanLink(startSlot))
+                            var endPresenter = nodePresenter.allChildren.OfType<VFXDataAnchorPresenter>().First(t => t.model == inputSlot);
+                            if (compatibleAnchors.Contains(endPresenter))
                             {
                                 inputSlot.Link(startSlot);
                                 break;
