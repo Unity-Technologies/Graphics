@@ -106,13 +106,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Vector3 weightSum = new Vector3(0, 0, 0);
 
-            float rcpNumSamples = 1.0f / numSamples;
+            int numSamplesPlus2 = numSamples + 2;
+
+            float step = 1.0f / (numSamplesPlus2 - 1);
 
             // Importance sample the linear combination of two Gaussians.
-            for (uint i = 0; i < numSamples; i++)
+            for (int i = 0, s = 0; s < numSamplesPlus2; s++)
             {
-                float u = (i <= numSamples / 2) ? 0.5f - i * rcpNumSamples    // The center and to the left
-                                                : (i + 0.5f) * rcpNumSamples; // From the center to the right
+                 // Skip the leftmost and the rightmost samples due to the low weight.
+                if (s == numSamplesPlus2 / 2 || s == numSamplesPlus2 - 1) continue;
+
+                // Generate 'u' on (0, 0.5] and (0.5, 1).
+                float u = (s < numSamplesPlus2 / 2) ? 0.5f - s * step // The center and to the left
+                                                    : s * step;       // From the center to the right
 
                 float pos = GaussianCombinationCdfInverse(u, maxStdDev1, maxStdDev2, lerpWeight);
                 float pdf = GaussianCombination(pos, maxStdDev1, maxStdDev2, lerpWeight);
@@ -131,10 +137,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 weightSum.x += m_FilterKernel[i].x;
                 weightSum.y += m_FilterKernel[i].y;
                 weightSum.z += m_FilterKernel[i].z;
+
+                i++;
             }
 
             // Renormalize the weights to conserve energy.
-            for (uint i = 0; i < numSamples; i++)
+            for (int i = 0; i < numSamples; i++)
             {
                 m_FilterKernel[i].x *= 1 / weightSum.x;
                 m_FilterKernel[i].y *= 1 / weightSum.y;
