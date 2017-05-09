@@ -47,7 +47,7 @@ void frag (unity_v2f_deferred i,
 	in half4 gbuffer1 : SV_Target1,
 	in half4 gbuffer2 : SV_Target2,
 	out half4 outEmission : SV_Target3, 
-	in float outLinearDepth : SV_Target4)
+	in float linearDepth : SV_Target4)
 #else
 half4 frag (unity_v2f_deferred i) : SV_TARGET
 #endif
@@ -59,7 +59,7 @@ half4 frag (unity_v2f_deferred i) : SV_TARGET
 	#ifndef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
     	OnChipDeferredFragSetup(i, uv, viewPos, worldPos, 0.0);
 	#else
-    	OnChipDeferredFragSetup(i, uv, viewPos, worldPos, outLinearDepth);
+    	OnChipDeferredFragSetup(i, uv, viewPos, worldPos, linearDepth);
 	#endif
 
 #ifndef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
@@ -112,6 +112,10 @@ half4 frag (unity_v2f_deferred i) : SV_TARGET
     half falloff = saturate(1.0 - length(distance)/blendDistance);
 
     half4 ret = half4(rgb*falloff, 1-falloff);
+
+    //debug
+    //if (all(worldPos>specMin && worldPos<specMax))
+    	//ret = half4(frac(0.2*worldPos), 1);
 
     // UNITY_BRDF_PBS1 writes out alpha 1 to our emission alpha. TODO: Should preclear emission alpha after gbuffer pass in case this ever changes
     #ifdef UNITY_FRAMEBUFFER_FETCH_AVAILABLE
