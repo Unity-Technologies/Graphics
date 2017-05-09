@@ -40,7 +40,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [Range(0.0f, 1.0f)]
             public float specularGlobalDimmer = 1.0f;
 
-            public enum TileDebug : int { None = 0, Punctual = 1, Area = 2, AreaAndPunctual = 3, Environment = 4, EnvironmentAndPunctual = 5, EnvironmentAndArea = 6, EnvironmentAndAreaAndPunctual = 7, FeatureVariants = 8 };
+            public enum TileDebug : int { None = 0, Punctual = 1, Area = 2, AreaAndPunctual = 3, Projector = 4, ProjectorAndPunctual = 5, ProjectorAndArea = 6, ProjectorAndAreaAndPunctual = 7,
+                Environment = 8, EnvironmentAndPunctual = 9, EnvironmentAndArea = 10, EnvironemntAndAreaAndPunctual = 11,
+                EnvironmentAndProjector = 12, EnvironmentAndProjectorAndPunctual = 13, EnvironmentAndProjectorAndArea = 14, EnvironmentAndProjectorAndAreaAndPunctual = 15,
+                FeatureVariants = 16 }; //TODO: we should probably make this checkboxes
             public TileDebug tileDebugByCategory;
 
             public static TileSettings defaultSettings = new TileSettings
