@@ -79,9 +79,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Apply the three-sigma rule, and rescale.
-            // Increase the value a bit due to our (low) number of samples.
-            Color stdDev1 = ((1.0f / 3.0f) * (1.0f / 0.8f) * distanceScale) * scatterDistance1;
-            Color stdDev2 = ((1.0f / 3.0f) * (1.0f / 0.8f) * distanceScale) * scatterDistance2;
+            Color stdDev1 = ((1.0f / 3.0f) * distanceScale) * scatterDistance1;
+            Color stdDev2 = ((1.0f / 3.0f) * distanceScale) * scatterDistance2;
 
             // Our goal is to blur the image using a filter which is represented
             // as a product of a linear combination of two normalized 1D Gaussians
@@ -106,19 +105,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Vector3 weightSum = new Vector3(0, 0, 0);
 
-            int numSamplesPlus2 = numSamples + 2;
-
-            float step = 1.0f / (numSamplesPlus2 - 1);
+            float step = 1.0f / (numSamples - 1);
 
             // Importance sample the linear combination of two Gaussians.
-            for (int i = 0, s = 0; s < numSamplesPlus2; s++)
+            for (int i = 0; i < numSamples; i++)
             {
-                 // Skip the leftmost and the rightmost samples due to the low weight.
-                if (s == numSamplesPlus2 / 2 || s == numSamplesPlus2 - 1) continue;
-
                 // Generate 'u' on (0, 0.5] and (0.5, 1).
-                float u = (s < numSamplesPlus2 / 2) ? 0.5f - s * step // The center and to the left
-                                                    : s * step;       // From the center to the right
+                float u = (i <= numSamples / 2) ? 0.5f - i * step // The center and to the left
+                                                : i * step;       // From the center to the right
+
+                u = Mathf.Clamp(u, 0.001f, 0.999f);
 
                 float pos = GaussianCombinationCdfInverse(u, maxStdDev1, maxStdDev2, lerpWeight);
                 float pdf = GaussianCombination(pos, maxStdDev1, maxStdDev2, lerpWeight);
@@ -137,8 +133,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 weightSum.x += m_FilterKernel[i].x;
                 weightSum.y += m_FilterKernel[i].y;
                 weightSum.z += m_FilterKernel[i].z;
-
-                i++;
             }
 
             // Renormalize the weights to conserve energy.
@@ -513,8 +507,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Apply the three-sigma rule, and rescale.
-            // Increase the value a bit due to our (low) number of samples.
-            float   s       = (1.0f / 3.0f) * (1.0f / 0.8f) * SubsurfaceScatteringProfile.distanceScale;
+            float   s       = (1.0f / 3.0f) * SubsurfaceScatteringProfile.distanceScale;
             Vector4 stdDev1 = new Vector4(s * m_ScatterDistance1.colorValue.r, s * m_ScatterDistance1.colorValue.g, s * m_ScatterDistance1.colorValue.b);
             Vector4 stdDev2 = new Vector4(s * m_ScatterDistance2.colorValue.r, s * m_ScatterDistance2.colorValue.g, s * m_ScatterDistance2.colorValue.b);
             Vector4 tintCol = new Vector4(m_TintColor.colorValue.r, m_TintColor.colorValue.g, m_TintColor.colorValue.b);
