@@ -274,10 +274,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_CurrentWidth;
         int m_CurrentHeight;
 
-        ShadowRenderPass m_ShadowPass;
-        ShadowOutput m_ShadowsResult = new ShadowOutput();
-
-        public int GetCurrentShadowCount() { return m_ShadowsResult.shadowLights == null ? 0 : m_ShadowsResult.shadowLights.Length; }
+        public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
 
         readonly SkyManager m_SkyManager = new SkyManager();
         private readonly BaseLightLoop m_LightLoop;
@@ -312,8 +309,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FilterAndCombineSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.One);
 
             InitializeDebugMaterials();
-
-            m_ShadowPass = new ShadowRenderPass(owner.shadowSettings);
 
             // Init Gbuffer description
             m_gbufferManager.gbufferCount = m_LitRenderLoop.GetMaterialGBufferCount();
@@ -562,7 +557,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            m_ShadowPass.UpdateCullingParameters(ref cullingParams);
+            m_LightLoop.UpdateCullingParameters( ref cullingParams );
 
             var cullResults = CullResults.Cull(ref cullingParams, renderContext);
 
@@ -599,18 +594,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-                using (new Utilities.ProfilingSample("Shadow", renderContext))
-                {
-                    m_ShadowPass.Render(renderContext, cullResults, out m_ShadowsResult);
-                }
-
-                renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
-
                 if (m_LightLoop != null)
                 {
                     using (new Utilities.ProfilingSample("Build Light list", renderContext))
                     {
-                        m_LightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera, ref m_ShadowsResult);
+                        m_LightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera);
                         m_LightLoop.RenderShadows(renderContext, cullResults);
                         renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
                         m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT); // TODO: Use async compute here to run light culling during shadow
@@ -1020,6 +1008,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                 {
+#if SHADOWS_OLD
                     uint visualizeShadowIndex = Math.Min(lightingDebug.shadowMapIndex, (uint)(GetCurrentShadowCount() - 1));
                     ShadowLight shadowLight = m_ShadowsResult.shadowLights[visualizeShadowIndex];
                     for (int slice = 0; slice < shadowLight.shadowSliceCount; ++slice)
@@ -1038,6 +1027,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
                     }
+#endif
                 }
                 else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                 {
@@ -1061,14 +1051,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             renderContext.ExecuteCommandBuffer(debugCB);
-        }
-
-        // Function to prepare light structure for GPU lighting
-        void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
-        {
-            // build per tile light lists
-            if (m_LightLoop != null)
-                m_LightLoop.PrepareLightsForGPU(shadowSettings, cullResults, camera, ref shadowOutput);
         }
 
         void InitAndClearBuffer(Camera camera, ScriptableRenderContext renderContext)
