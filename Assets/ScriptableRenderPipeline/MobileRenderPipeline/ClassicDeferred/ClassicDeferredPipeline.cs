@@ -112,6 +112,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 	private Material m_DirectionalDeferredLightingMaterial;
 	private Material m_FiniteDeferredLightingMaterial;
+	private Material m_FiniteNearDeferredLightingMaterial;
 
 	private Material m_ReflectionMaterial;
 	private Material m_ReflectionNearClipMaterial;
@@ -129,6 +130,7 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
 		if (m_DirectionalDeferredLightingMaterial) DestroyImmediate(m_DirectionalDeferredLightingMaterial);
 		if (m_FiniteDeferredLightingMaterial) DestroyImmediate(m_FiniteDeferredLightingMaterial);
+		if (m_FiniteNearDeferredLightingMaterial) DestroyImmediate(m_FiniteNearDeferredLightingMaterial);
 		if (m_ReflectionMaterial) DestroyImmediate (m_ReflectionMaterial);
 		if (m_ReflectionNearClipMaterial) DestroyImmediate (m_ReflectionNearClipMaterial);
 		if (m_ReflectionNearAndFarClipMaterial) DestroyImmediate (m_ReflectionNearAndFarClipMaterial);
@@ -163,6 +165,14 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		m_FiniteDeferredLightingMaterial.SetInt("_DstABlend", (int)BlendMode.Zero);
 		m_FiniteDeferredLightingMaterial.SetInt("_CullMode", (int)CullMode.Back);
 		m_FiniteDeferredLightingMaterial.SetInt("_CompareFunc", (int)CompareFunction.LessEqual);
+
+		m_FiniteNearDeferredLightingMaterial = new Material (deferredShader) { hideFlags = HideFlags.HideAndDontSave };
+		m_FiniteNearDeferredLightingMaterial.SetInt("_SrcBlend", (int)BlendMode.One);
+		m_FiniteNearDeferredLightingMaterial.SetInt("_DstBlend", (int)BlendMode.One);
+		m_FiniteNearDeferredLightingMaterial.SetInt("_SrcABlend", (int)BlendMode.One);
+		m_FiniteNearDeferredLightingMaterial.SetInt("_DstABlend", (int)BlendMode.Zero);
+		m_FiniteNearDeferredLightingMaterial.SetInt("_CullMode", (int)CullMode.Front);
+		m_FiniteNearDeferredLightingMaterial.SetInt("_CompareFunc", (int)CompareFunction.Greater);
 
 		m_ReflectionMaterial = new Material (deferredReflectionShader) { hideFlags = HideFlags.HideAndDontSave };
 		m_ReflectionMaterial.SetInt("_SrcBlend", (int)BlendMode.DstAlpha);
@@ -552,7 +562,9 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 		{
 			VisibleLight light = inputs.visibleLights[lightNum];
 
-			bool renderAsQuad = (light.flags & VisibleLightFlags.IntersectsNearPlane)!=0 || (light.flags & VisibleLightFlags.IntersectsFarPlane)!=0 || (light.lightType == LightType.Directional);
+			bool intersectsNear = (light.flags & VisibleLightFlags.IntersectsNearPlane) != 0;
+			bool intersectsFar = (light.flags & VisibleLightFlags.IntersectsFarPlane) != 0;
+			bool renderAsQuad =  (intersectsNear && intersectsFar) || (light.lightType == LightType.Directional);
 				
 			Vector3 lightPos = light.localToWorld.GetColumn (3); //position
 			Vector3 lightDir = light.localToWorld.GetColumn (2); //z axis
@@ -607,6 +619,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 				}
 				if (renderAsQuad) {
 					cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
+				} else if (intersectsNear) {
+					cmd.DrawMesh (m_PointLightMesh, matrix, m_FiniteNearDeferredLightingMaterial, 0, 0, props);
 				} else {
 					cmd.DrawMesh (m_PointLightMesh, matrix, m_FiniteDeferredLightingMaterial, 0, 0, props);
 				}
@@ -635,6 +649,8 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 
 				if (renderAsQuad) {
 					cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, props);
+				} else if (intersectsNear) {
+					cmd.DrawMesh (m_SpotLightMesh, lightToWorld, m_FiniteNearDeferredLightingMaterial, 0, 0, props);
 				} else {
 					cmd.DrawMesh (m_SpotLightMesh, lightToWorld, m_FiniteDeferredLightingMaterial, 0, 0, props);
 				}
