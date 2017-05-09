@@ -1,0 +1,259 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.20506</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <RootNamespace></RootNamespace>
+    <ProjectGuid>{425682D6-2799-ABE6-93DD-977B724BF07C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <AssemblyName>Assembly-UnityScript</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <BaseDirectory>Assets</BaseDirectory>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Temp\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_1_0;UNITY_2017_1;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_DUCK_TYPING;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_RUNTIME_NAVMESH_BUILDING;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_RAKNET;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;UNITY_STANDALONE_OSX;UNITY_STANDALONE;ENABLE_SUBSTANCE;ENABLE_GAMECENTER;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_VR;ENABLE_MODULAR_UNITYENGINE_ASSEMBLIES;ENABLE_CLUSTERINPUT;ENABLE_WEBSOCKET_HOST;ENABLE_MONO;NET_2_0_SUBSET;ENABLE_PROFILER;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_OSX;ENABLE_NATIVE_ARRAY_CHECKS;UNITY_TEAM_LICENSE;UNITY_PRO_LICENSE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>0169</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Temp\bin\Release\</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>0169</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="UnityEngine">
+      <HintPath>/Applications/Unity_Installs/Unity branches/ScriptablePipeline/SRP_27april17.app/Contents/Managed/UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor">
+      <HintPath>/Applications/Unity_Installs/Unity branches/ScriptablePipeline/SRP_27april17.app/Contents/Managed/UnityEditor.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+     <Compile Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Scripts\Fps.js" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\CommonLighting.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderConfig.cs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Material.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Shadow\ShadowSampling.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\LitTessellation.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\LightingTemplate.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\lightlistbuild-clustered.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\TiledReflectionTemplate.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\Resources\lightlistbuild-clustered.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\PostProcess\Resources\FinalPass.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\SampleUVMappingNormalInternal.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\LightDefinitions.cs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\LightingUtils.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Unlit\UnlitData.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\ShaderPassGBuffer.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\AreaLighting.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\SortingComputeUtils.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\ScreenSpaceAmbientObscurance.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\LitProperties.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Shadow\ShadowDispatch.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\GeometricTools.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\NFAA.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Builtin\BuiltinData.cs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Debug\DebugDisplay.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\ShaderPassVelocity.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Unlit\ShaderPass\UnlitSharePass.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\SceneSettings\Resources\DrawGaussianProfile.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Sky\Resources\GGXConvolve.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\TessellationShare.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\common\Resources\BlitCubemap.shader" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_DepthOfField\DepthOfFieldScatter.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\ShaderPassForwardUnlit.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Shadow\ShadowAlgorithmsCustom.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Shaders\WavingGrass.shader" />
+     <None Include="Assets\LowEndMobilePipeline\Shaders\LowEndParticlesAdd.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\Common.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Builtin\BuiltinData.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\Wind.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\SampleUVMappingInternal.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Shaders\DistanceFade.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Sky\Resources\BuildProbabilityTables.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\ShaderPass\LitMetaPass.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\scrbound.compute" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\SSAA.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\LightingConvexHullUtils.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\ShaderPassForward.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\Resources\lightlistbuild.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\LightBoundsDebug.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\API\D3D11_1.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_DepthOfField\DepthOfFieldDX11.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\SortingComputeUtils.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\FXAAPreset3.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\TilePassLoop.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\ShaderPass.cs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\EntityLighting.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\ReflectionTemplate.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\MaterialUtilities.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\frag_ao.cginc" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Shadow\ShadowBase.cs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\Resources\PreIntegratedFGD.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\CommonMaterial.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\LitDataInternal.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Debug\DebugDisplay.cs.hlsl" />
+     <None Include="Assets\LowEndMobilePipeline\Shaders\LowEndMobilePipelineCore.cginc" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Shadow\ShadowContext.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\Lit.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\ShaderPass\LitDepthPass.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\FragInputs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\LayeredLit\LayeredLit.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Unlit\UnlitProperties.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\Resources\scrbound.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\PostProcess\Resources\ColorGrading.hlsl" />
+     <None Include="Assets\LowEndMobilePipeline\Shaders\LowEndParticlesMultiply.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\Resources\lightlistbuild-bigtile.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Debug\Resources\DebugViewTiles.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\UnityStandardForwardNew.cginc" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\ShaderPassDistortion.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Unlit\Unlit.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\PostProcess\Resources\EyeAdaptation.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\API\Validate.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\PostProcess\Resources\Textures\LICENSE.txt" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\API\Metal.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Unlit\Unlit.cs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\Resources\shadeopaque.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\PatchStandardShaderToNewNamingConvention.cginc" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\ShaderPass\LitSharePass.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\API\D3D11.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\PostProcess\Resources\LutGen.shader" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\SSAOShader.shader" />
+     <None Include="Assets\BasicRenderPipelineTutorial\BasicRenderPipelineShader.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\ShaderPassDepthOnly.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\TilePass.cs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Sky\HDRISky\Resources\SkyHDRI.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\PostProcess\Resources\Textures\COPYING.txt" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\TiledLightingUtils.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\TilePass.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Shadow\ShadowAlgorithms.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\LitTessellation.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\Internal-DeferredComputeShading.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Debug\Resources\DebugDisplayShadowMap.shader" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\ChromaticAberrationShader.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Debug\Resources\DebugDisplayLatlong.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\QuaternionMath.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\GlobalFog.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\Internal-DeferredShading.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\API\PSSL.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\Tessellation.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\LightUtilities.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\BSDF.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\LitData.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\Forward.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\Resources\cleardispatchindirect.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\FinalPass.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\Filtering.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Shadow\Shadow.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\CameraMotionBlurDX11.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\ShaderPass\LitVelocityPass.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\SceneSettings\Resources\DrawTransmittanceGraph.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\RegularForwardReflectionTemplate.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\RegularForwardLightingUtils.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Debug\Resources\DebugViewMaterialGBuffer.shader" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\CameraMotionBlur.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\CommonShadow.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\DLAA.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderVariables.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\ShaderBase.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Sky\SkyManager.cs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\Fibonacci.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\NormalSurfaceGradient.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\Lit.cs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\LightingConvexHullUtils.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\ShaderPass\LitDistortionPass.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Sky\Resources\ComputeGgxIblSampleData.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\lightlistbuild.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\Resources\CombineSubsurfaceScattering.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\StandardTest.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\Packing.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_DepthOfField\SeparableBlur.shader" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\MotionBlurClear.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\PostProcess\Resources\EyeAdaptation.hlsl" />
+     <None Include="Assets\LowEndMobilePipeline\Shaders\LowEndMobilePipeline.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\PostProcess\Resources\EyeHistogram.compute" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Sky\ProceduralSky\Resources\SkyProcedural.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Lit\Lit.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\Hammersley.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\Color.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Shadow\ShadowTexFetch.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\common\CubeToSpherical.shader" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\VignettingShader.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\SHMath.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\FXAA2.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\VaryingMesh.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\SampleUVMapping.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\RegularForwardLightingTemplate.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\ClusteredUtils.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\Internal-DeferredReflections.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\Lighting.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\LayeredLit\LayeredLitTessellation.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\PerPixelDisplacement.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\ShaderPassLightTransport.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\Resources\Deferred.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Unlit\ShaderPass\UnlitDistortionPass.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Unlit\ShaderPass\UnlitMetaPass.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Shaders\TerrainSurface.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\LightDefinition.cs.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\TiledLightingTemplate.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\Sampling.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Sky\ProceduralSky\Resources\AtmosphericScattering.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Lighting\TilePass\FeatureFlags.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Material\Unlit\Unlit.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\fptl\lightlistbuild-bigtile.compute" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\FXAA3Console.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\Debug.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\ShaderLibrary\ImageBasedLighting.hlsl" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Sky\README.txt" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\ShaderPass\VertMesh.hlsl" />
+     <None Include="Assets\TestScenes\Big\BenchRenderVikingVillageStatic\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\FXAAPreset2.shader" />
+     <None Include="Assets\ScriptableRenderPipeline\HDRenderPipeline\Shadow\FixedSizePCF\FixedSizePCF.hlsl" />
+ <Reference Include="UnityEngine.UI">
+ <HintPath>/Applications/Unity_Installs/Unity branches/ScriptablePipeline/SRP_27april17.app/Contents/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.Networking">
+ <HintPath>/Applications/Unity_Installs/Unity branches/ScriptablePipeline/SRP_27april17.app/Contents/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.TestRunner">
+ <HintPath>/Applications/Unity_Installs/Unity branches/ScriptablePipeline/SRP_27april17.app/Contents/UnityExtensions/Unity/TestRunner/UnityEngine.TestRunner.dll</HintPath>
+ </Reference>
+ <Reference Include="nunit.framework">
+ <HintPath>/Applications/Unity_Installs/Unity branches/ScriptablePipeline/SRP_27april17.app/Contents/UnityExtensions/Unity/TestRunner/nunit.framework.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.Timeline">
+ <HintPath>/Applications/Unity_Installs/Unity branches/ScriptablePipeline/SRP_27april17.app/Contents/UnityExtensions/Unity/Timeline/RuntimeEditor/UnityEngine.Timeline.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.Analytics">
+ <HintPath>/Applications/Unity_Installs/Unity branches/ScriptablePipeline/SRP_27april17.app/Contents/UnityExtensions/Unity/UnityAnalytics/UnityEngine.Analytics.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.HoloLens">
+ <HintPath>/Applications/Unity_Installs/Unity branches/ScriptablePipeline/SRP_27april17.app/Contents/UnityExtensions/Unity/UnityHoloLens/RuntimeEditor/UnityEngine.HoloLens.dll</HintPath>
+ </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  
+</Project>
