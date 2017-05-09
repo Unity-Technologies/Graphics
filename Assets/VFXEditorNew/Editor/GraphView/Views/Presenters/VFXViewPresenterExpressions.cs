@@ -36,19 +36,25 @@ namespace UnityEditor.VFX.UI
             HashSet<Object> currentObjects = new HashSet<Object>();
             m_GraphAsset.root.CollectDependencies(currentObjects);
 
+            int nbExpr = 0;
             foreach (var o in currentObjects)
             {
                 if (o is VFXSlot)
                 {
                     var slot = o as VFXSlot;
-                    if (slot.GetParent() == null)
+                    //if (slot.GetParent() == null)
                     {
                         var exp = slot.GetExpression();
                         if (exp != null)
+                        {
                             m_ExpressionContext.RegisterExpression(exp);
+                            ++nbExpr;
+                        }
                     }
                 }
             }
+
+            Debug.Log("")
         }
 
         public bool CanGetEvaluatedContent(VFXSlot slot)
