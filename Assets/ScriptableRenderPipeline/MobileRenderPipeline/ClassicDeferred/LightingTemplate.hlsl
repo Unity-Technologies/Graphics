@@ -155,6 +155,17 @@ float SampleShadow(uint type, float3 vPositionWs, float3 vPositionToLightDirWs, 
     return flShadowScalar;
 }
 
+//debug
+//float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
+//{
+//	float fSx = UNITY_MATRIX_P[0].x;
+//	float fCx = UNITY_MATRIX_P[0].z;
+//	float fSy = UNITY_MATRIX_P[1].y;
+//	float fCy = UNITY_MATRIX_P[1].z;
+//
+//	return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
+//}
+
 // --------------------------------------------------------
 // Common lighting data calculation (direction, attenuation, ...)
 
@@ -168,6 +179,7 @@ void OnChipDeferredFragSetup (
 {
 	i.ray = i.ray * (_ProjectionParams.z / i.ray.z);
 	float2 uv = i.uv.xy / i.uv.w;
+	//float2 uv = i.pos.xy / float2(_ScreenParams.xy);
 
 	// read depth and reconstruct world position
 	// if we have framebuffer fetch, its expected depth was passed in the parameter from the framebuffer so no need to fetch
@@ -176,6 +188,10 @@ void OnChipDeferredFragSetup (
 	#endif
 
 	depth = Linear01Depth (depth);
+
+	//debug
+	//float linDepth = depth * (_ProjectionParams.z-_ProjectionParams.y) + _ProjectionParams.y;
+	//float4 vpos = float4(GetViewPosFromLinDepth((2*uv-1)*float2(1, -1), linDepth), 1);
 
 	float4 vpos = float4(i.ray * depth,1);
 	float3 wpos = mul (unity_CameraToWorld, vpos).xyz;
