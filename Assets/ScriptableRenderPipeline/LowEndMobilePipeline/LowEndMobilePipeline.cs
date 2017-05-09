@@ -428,7 +428,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             for (int i = 0; i < shadowKeywords.Length; ++i)
                 cmd.DisableShaderKeyword(shadowKeywords[i]);
 
-            if (m_ShadowLightIndex != -1 || m_Asset.CurrShadowType != ShadowType.NO_SHADOW)
+            if (m_ShadowLightIndex != -1 && m_Asset.CurrShadowType != ShadowType.NO_SHADOW)
             {
                 int keywordIndex = (int)m_Asset.CurrShadowType - 1;
                 if (m_Asset.CascadeCount > 1)

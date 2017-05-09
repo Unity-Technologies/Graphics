@@ -76,7 +76,6 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
         public override void OnInspectorGUI()
         {
-            LowEndMobilePipelineAsset pipeAsset = target as LowEndMobilePipelineAsset;
             serializedObject.Update();
 
             EditorGUILayout.Space();
