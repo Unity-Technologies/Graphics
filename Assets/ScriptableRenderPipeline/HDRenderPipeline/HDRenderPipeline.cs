@@ -354,6 +354,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugDisplayLatlong = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayLatlong");
         }
 
+        public void OnSceneLoad()
+        {
+            // Recreate the textures which went NULL, and set 'isInit' to 'false'.
+            m_LitRenderLoop.Build();
+        }
+
         public override void Dispose()
         {
             base.Dispose();

@@ -188,9 +188,8 @@ float GetHorizonOcclusion(float3 V, float3 normalWS, float3 vertexNormal, float 
 // A way to reduce artifact is to limit NdotV value to not be negative and calculate reflection vector for cubemap with a shifted normal (i.e what depends on the view)
 // This is what provide this function
 // Note: NdotV return by this function is always positive, no need for saturate
-float GetShiftedNdotV(inout float3 N, float3 V)
+float GetShiftedNdotV(inout float3 N, float3 V, float NdotV)
 {
-    float NdotV = dot(N, V);
     const float limit = 0.0001; // Epsilon value that avoid divide by 0 (several BSDF divide by NdotV)
 
     if (NdotV < limit)

@@ -100,7 +100,6 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 int pixelLightsCount, vertexLightsCount;
                 GetMaxSupportedLights(visibleLights.Length, out pixelLightsCount, out vertexLightsCount);
 
-                // TODO: handle shader keywords when no lights are present
                 SortLights(ref visibleLights, pixelLightsCount);
 
                 // TODO: Add remaining lights to SH
@@ -130,6 +129,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 settings.sorting.flags = SortFlags.CommonOpaque;
                 settings.inputFilter.SetQueuesOpaque();
 
+                settings.rendererConfiguration = RendererConfiguration.PerObjectReflectionProbes;
                 if (m_Asset.EnableLightmap)
                     settings.rendererConfiguration |= RendererConfiguration.PerObjectLightmaps;
 
@@ -188,11 +188,21 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             vertexLightsCount = (m_Asset.SupportsVertexLight) ? Mathf.Min(lightsCount - pixelLightsCount, kMaxVertexLights) : 0;
         }
 
+        private void InitializeLightData()
+        {
+            for (int i = 0; i < kMaxLights; ++i)
+            {
+                m_LightPositions[i] = Vector4.zero;
+                m_LightColors[i] = Vector4.zero;
+                m_LightAttenuations[i] = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+                m_LightSpotDirections[i] = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+            }
+        }
+
         private void SetupLightShaderVariables(VisibleLight[] lights, int pixelLightCount, int vertexLightCount, ScriptableRenderContext context)
         {
             int totalLightCount = pixelLightCount + vertexLightCount;
-            if (lights.Length <= 0)
-                return;
+            InitializeLightData();
 
             for (int i = 0; i < totalLightCount; ++i)
             {
@@ -237,8 +247,10 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             cmd.SetGlobalVectorArray("globalLightColor", m_LightColors);
             cmd.SetGlobalVectorArray("globalLightAtten", m_LightAttenuations);
             cmd.SetGlobalVectorArray("globalLightSpotDir", m_LightSpotDirections);
-            cmd.SetGlobalVector("globalLightCount", new Vector4(pixelLightCount, totalLightCount, 0.0f, 0.0f));
-            SetShaderKeywords(cmd);
+            float shadowMinNormalBias = m_Asset.ShadowMinNormalBias;
+            float shadowNormalBias = m_Asset.ShadowNormalBias;
+            cmd.SetGlobalVector("globalLightData", new Vector4(pixelLightCount, totalLightCount, shadowMinNormalBias, shadowNormalBias));
+            SetShaderKeywords(cmd, vertexLightCount > 0);
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
@@ -351,8 +363,6 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             buffer.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY,
                     m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
             buffer.SetViewProjectionMatrices(view, proj);
-            buffer.SetGlobalVector("_WorldLightDirAndBias",
-                new Vector4(-lightDir.x, -lightDir.y, -lightDir.z, m_Asset.ShadowBias));
             context.ExecuteCommandBuffer(buffer);
             buffer.Dispose();
 
@@ -407,9 +417,9 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             setupShadow.Dispose();
         }
 
-        void SetShaderKeywords(CommandBuffer cmd)
+        void SetShaderKeywords(CommandBuffer cmd, bool vertexLightSupport)
         {
-            if (m_Asset.SupportsVertexLight)
+            if (vertexLightSupport)
                 cmd.EnableShaderKeyword("_VERTEX_LIGHTS");
             else
                 cmd.DisableShaderKeyword("_VERTEX_LIGHTS");
@@ -418,13 +428,18 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             for (int i = 0; i < shadowKeywords.Length; ++i)
                 cmd.DisableShaderKeyword(shadowKeywords[i]);
 
-            if (m_ShadowLightIndex != -1 || m_Asset.CurrShadowType != ShadowType.NO_SHADOW)
+            if (m_ShadowLightIndex != -1 && m_Asset.CurrShadowType != ShadowType.NO_SHADOW)
             {
                 int keywordIndex = (int)m_Asset.CurrShadowType - 1;
                 if (m_Asset.CascadeCount > 1)
                     keywordIndex += 2;
                 cmd.EnableShaderKeyword(shadowKeywords[keywordIndex]);
             }
+
+            if (m_Asset.EnableAmbientProbe)
+                cmd.EnableShaderKeyword("_LIGHT_PROBES_ON");
+            else
+                cmd.DisableShaderKeyword("_LIGHT_PROBES_ON");
         }
 
         // Finds main light and main shadow casters and places them in the beginning of array.

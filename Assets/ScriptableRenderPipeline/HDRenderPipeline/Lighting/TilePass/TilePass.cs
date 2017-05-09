@@ -1201,14 +1201,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var additionalData = light.light.GetComponent<AdditionalLightData>();
 
                         if (additionalData == null)
-                        {
-                            // Don't display warning for the preview windows
-                            if (camera.cameraType != CameraType.Preview)
-                            {
-                                Debug.LogWarningFormat(light.light, "Light entity {0} has no additional data, will be rendered using default values.", light.light.name);
-                            }
                             additionalData = DefaultAdditionalLightData;
-                        }
 
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
@@ -1922,7 +1915,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "_InvViewProjMatrix", invViewProjection);
                                 Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "_ViewProjMatrix", viewProjection);
                                 Utilities.SetMatrixCS(cmd, shadeOpaqueShader, "g_mInvScrProjection", Shader.GetGlobalMatrix("g_mInvScrProjection"));
-                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_ScreenSize", Shader.GetGlobalVector("_ScreenSize"));
+                                cmd.SetComputeVectorParam(shadeOpaqueShader, "_ScreenSize", hdCamera.screenSize);
                                 cmd.SetComputeIntParam(shadeOpaqueShader, "_UseTileLightList", Shader.GetGlobalInt("_UseTileLightList"));
 
                                 cmd.SetComputeVectorParam(shadeOpaqueShader, "_Time", Shader.GetGlobalVector("_Time"));
