@@ -287,8 +287,12 @@ public class ClassicDeferredPipeline : RenderPipelineAsset {
 			var bnds = rl.bounds;
 			var boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
 			var blendDistance = rl.blendDistance;
-			var mat = rl.localToWorld;
-		
+
+			// TODO: fix for rotations on probes... Builtin Unity also does not take these into account, for now just grab position for mat
+			//var mat = rl.localToWorld;
+			Matrix4x4 mat = Matrix4x4.identity;
+			mat.SetColumn (3, rl.localToWorld.GetColumn (3));
+
 			var boxProj = (rl.boxProjection != 0);
 			var probePosition = mat.GetColumn (3); // translation vector
 			var probePosition1 = new Vector4 (probePosition [0], probePosition [1], probePosition [2], boxProj ? 1f : 0f);
