@@ -227,8 +227,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_InitPreFGD = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
-                // TODO: switch to RGBA64 when it becomes available.
-                m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                // Value for DisneyDiffuse integration are slightly above one (1.05)
+                m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
                 m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
                 m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
                 m_PreIntegratedFGD.hideFlags = HideFlags.DontSave;
