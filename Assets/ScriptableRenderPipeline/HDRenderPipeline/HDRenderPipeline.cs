@@ -121,11 +121,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField] private Material m_DefaultDiffuseMaterial;
+        [SerializeField] private Shader m_DefaultShader;
 
         public Material DefaultDiffuseMaterial
         {
             get { return m_DefaultDiffuseMaterial; }
             private set { m_DefaultDiffuseMaterial = value; }
+        }
+        public override Shader GetDefaultShader()
+        {
+            return m_DefaultShader;
         }
 
         public override Material GetDefaultMaterial()
