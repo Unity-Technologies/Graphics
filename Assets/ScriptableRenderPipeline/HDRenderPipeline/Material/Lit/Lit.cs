@@ -227,7 +227,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_InitPreFGD = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
-                // Value for DisneyDiffuse integration are slightly above one (1.05)
+                // For DisneyDiffuse integration values goes from (0.5 to 1.53125). GGX need 0 to 1. Use float format.
                 m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
                 m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
                 m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
