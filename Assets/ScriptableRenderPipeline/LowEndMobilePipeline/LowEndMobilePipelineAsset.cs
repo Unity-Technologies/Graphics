@@ -158,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
         }
 
         #endregion
-        public override Material GetDefaultDiffuseMaterial()
+        public override Material GetDefaultMaterial()
         {
             return m_DefaultDiffuseMaterial;
         }
