@@ -273,7 +273,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!validProfile)
             {
                 // Disable SSS for this object.
-                material.SetInt("_SubsurfaceProfile", SubsurfaceScatteringSettings.neutralProfileID);
+                material.SetInt("_SubsurfaceProfile", SssConstants.SSS_NEUTRAL_PROFILE_ID);
             }
 
             m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);

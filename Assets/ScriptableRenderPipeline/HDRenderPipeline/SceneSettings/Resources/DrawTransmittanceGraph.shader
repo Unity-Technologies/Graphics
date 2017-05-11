@@ -36,10 +36,8 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            #define SSS_DISTANCE_SCALE 3 // SSS distance units per centimeter
-
-            float4 _StdDev1, _StdDev2, _ThicknessRemap, _TintColor;
-            float _LerpWeight;           // See 'SubsurfaceScatteringParameters'
+            float4 _SurfaceAlbedo, _ShapeParameter, _ThicknessRemap;
+            float _ScatteringDistance; // See 'SubsurfaceScatteringProfile'
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -67,17 +65,12 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float thickness = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x)) * SSS_DISTANCE_SCALE;
-                float t2        = thickness * thickness;
+                float  d = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x));
+                float3 S = _ShapeParameter.rgb;
+                float3 T = 0.5 * exp(-d * S) + 0.5 * exp(-d * S * (1.0 / 3.0));
 
-                float3 var1 = _StdDev1.rgb * _StdDev1.rgb;
-                float3 var2 = _StdDev2.rgb * _StdDev2.rgb;
-
-                // See ComputeTransmittance() in Lit.hlsl for more details.
-                float3 transmittance = lerp(exp(-t2 * 0.5 * rcp(var1)),
-                                            exp(-t2 * 0.5 * rcp(var2)), _LerpWeight);
-
-                return float4(transmittance * _TintColor.rgb, 1);
+                // N.b.: we multiply by the surface albedo of the actual geometry during shading.
+                return float4(T * _SurfaceAlbedo.rgb, 1);
             }
             ENDHLSL
         }

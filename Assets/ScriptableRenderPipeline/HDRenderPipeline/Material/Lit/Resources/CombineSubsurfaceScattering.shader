@@ -19,17 +19,18 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             Cull   Off
             ZTest  Always
             ZWrite Off
-            Blend  One [_DstBlend]
+            Blend  One One
 
             HLSLPROGRAM
             #pragma target 4.5
             #pragma only_renderers d3d11 ps4 metal // TEMP: until we go further in dev
-            // #pragma enable_d3d11_debug_symbols
+            #pragma enable_d3d11_debug_symbols
 
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #pragma multi_compile _ SSS_FILTER_HORIZONTAL_AND_COMBINE
+            #define SSS_PASS
+            #define METERS_TO_MILLIMETERS 1000
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -45,8 +46,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _FilterKernels[SSS_N_PROFILES][SSS_N_SAMPLES]; // RGB = weights, A = radial distance
-            float4 _HalfRcpWeightedVariances[SSS_N_PROFILES];     // RGB for chromatic, A for achromatic
+            float4 _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // RGB = weights, A = radial distance (in millimeters)
+            float4 _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD];   // RGB = weights, A = radial distance (in millimeters)
 
             TEXTURE2D(_IrradianceSource);             // RGB = irradiance on the back side of the object
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture); // Contains the albedo and SSS parameters
@@ -54,6 +55,31 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             //-------------------------------------------------------------------------------------
             // Implementation
             //-------------------------------------------------------------------------------------
+
+            // Computes A * B, s.t.:
+            // A = (exp(-S * sqrt(r*r + z*z)) + exp(-S * sqrt(r*r + z*z) / 3)) / sqrt(r*r + z*z)
+            // B = sqrt(r*r) / (exp(-S * sqrt(r*r)) + exp(-S * sqrt(r*r) / 3))
+            float3 ComputeBilateralWeight(float3 S, float r, float z, float distScale)
+            {
+                float3 S3 = S * (1.0 / 3.0); // Same for all samples
+                float  iF = rcp(distScale);  // Same for all samples
+
+                r *= iF; z *= iF;
+
+                float  rz2 = r * r + z * z;
+                float  sR  = abs(r);
+                float  sRZ = sqrt(rz2);
+                float  iRZ = rsqrt(rz2);
+                float3 eR  = exp(-S3 * sR);
+                float3 eRZ = exp(-S3 * sRZ);
+
+                eR  += eR  * eR  * eR;
+
+                float3 A = iRZ * (eRZ * eRZ * eRZ + eRZ);
+                float3 B = sR  / (eR  * eR  * eR  + eR ); // TODO: precompute
+
+                return A * B;
+            }
 
             struct Attributes
             {
@@ -82,106 +108,87 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
 
-                int   profileID    = bsdfData.subsurfaceProfile;
-                float distScale    = bsdfData.subsurfaceRadius * rcp(SSS_DISTANCE_SCALE);
-                float invDistScale = rcp(distScale);
+                int    profileID  = bsdfData.subsurfaceProfile;
+                float  distScale  = bsdfData.subsurfaceRadius;
+                float3 shapeParam = _ShapeParameters[profileID].rgb;
 
                 // Reconstruct the view-space position.
                 float  rawDepth    = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r;
                 float3 centerPosVS = ComputeViewSpacePosition(posInput.positionSS, rawDepth, _InvProjMatrix);
 
                 // Compute the dimensions of the surface fragment viewed as a quad facing the camera.
-                float fragWidth  = ddx_fine(centerPosVS.x);
-                float fragheight = ddy_fine(centerPosVS.y);
-                float stepSizeX  = rcp(fragWidth);
-                float stepSizeY  = rcp(fragheight);
+                // TODO: this could be done more accurately using a matrix precomputed on the CPU.
+                float2 metersPerPixel      = float2(ddx_fine(centerPosVS.x), ddy_fine(centerPosVS.y));
+                float2 pixelsPerMillimeter = distScale * rcp(METERS_TO_MILLIMETERS * metersPerPixel);
 
-                // Compute the filtering direction.
-            #ifdef SSS_FILTER_HORIZONTAL_AND_COMBINE
-                float  stepSize      = stepSizeX;
-                float2 unitDirection = float2(1, 0);
-            #else
-                float  stepSize      = stepSizeY;
-                float2 unitDirection = float2(0, 1);
-            #endif
+                bool useNearFieldKernel = true; // TODO
 
-                float    scaledStepSize   = distScale * stepSize;
-                float2   scaledDirection  = scaledStepSize * unitDirection;
-                float    phi              = 0; // Random rotation; unused for now
-                float2x2 rotationMatrix   = float2x2(cos(phi), -sin(phi), sin(phi), cos(phi));
-                float2   rotatedDirection = mul(rotationMatrix, scaledDirection);
-
-                // Load (1 / (2 * WeightedVariance)) for bilateral weighting.
-            #ifdef RBG_BILATERAL_WEIGHTS
-                float3 halfRcpVariance = _HalfRcpWeightedVariances[profileID].rgb;
-            #else
-                float  halfRcpVariance = _HalfRcpWeightedVariances[profileID].a;
-            #endif
-
-            #ifdef SSS_FILTER_HORIZONTAL_AND_COMBINE
-                bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, profileID);
-
-                // It's either post-scatter, or pre- and post-scatter texturing.
-                float3 albedoContrib = performPostScatterTexturing ? bsdfData.diffuseColor
-                                                                   : sqrt(bsdfData.diffuseColor);
-            #else
-                float3 albedoContrib = float3(1, 1, 1);
-            #endif
-
-                // Take the first (central) sample.
-                float2 samplePosition   = posInput.unPositionSS;
-                float3 sampleWeight     = _FilterKernels[profileID][0].rgb;
-                float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
-
-                // We perform point sampling. Therefore, we can avoid the cost
-                // of filtering if we stay within the bounds of the current pixel.
-                float maxDistance = _FilterKernels[profileID][SSS_N_SAMPLES - 1].a;
-
-                [branch]
-                if (scaledStepSize * maxDistance < 0.5)
+                if (useNearFieldKernel)
                 {
-                    return float4(albedoContrib * sampleIrradiance, 1);
-                }
+                    // Take the first (central) sample.
+                    float2 samplePosition   = posInput.unPositionSS;
+                    float3 sampleWeight     = _FilterKernelsNearField[profileID][0].rgb;
+                    float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
 
-                // Accumulate filtered irradiance.
-                float3 totalIrradiance = sampleWeight * sampleIrradiance;
+                    // We perform point sampling. Therefore, we can avoid the cost
+                    // of filtering if we stay within the bounds of the current pixel.
+                    float maxDistance = _FilterKernelsNearField[profileID][0].a;
 
-                // Make sure bilateral filtering does not cause energy loss.
-                // TODO: ask Morten if there is a better way to do this.
-                float3 totalWeight = sampleWeight;
-
-                [unroll]
-                for (int i = 1; i < SSS_N_SAMPLES; i++)
-                {
-                    samplePosition = posInput.unPositionSS + rotatedDirection * _FilterKernels[profileID][i].a;
-                    sampleWeight   = _FilterKernels[profileID][i].rgb;
-
-                    rawDepth         = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
-                    sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
-
-                    // Apply bilateral weighting.
-                    // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
-                    // Ref #2: Separable SSS, Supplementary Materials, Section E.
-                    float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
-                    float zDistance   = invDistScale * sampleDepth - (invDistScale * centerPosVS.z);
-                    sampleWeight     *= exp(-zDistance * zDistance * halfRcpVariance);
-
-                    if (any(sampleIrradiance) == false)
+                    [branch]
+                    if (maxDistance * max(pixelsPerMillimeter.x, pixelsPerMillimeter.y) < 0.5)
                     {
-                        // The irradiance is 0. This could happen for 2 reasons.
-                        // Most likely, the surface fragment does not have an SSS material.
-                        // Alternatively, the surface fragment could be completely shadowed.
-                        // Our blur is energy-preserving, so 'sampleWeight' should be set to 0.
-                        // We do not terminate the loop since we want to gather the contribution
-                        // of the remaining samples (e.g. in case of hair covering skin).
-                        continue;
+                        return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
                     }
 
-                    totalIrradiance += sampleWeight * sampleIrradiance;
-                    totalWeight     += sampleWeight;
-                }
+                    // Accumulate filtered irradiance and bilateral weights (for renormalization).
+                    float3 totalIrradiance = sampleWeight * sampleIrradiance;
+                    float3 totalWeight     = sampleWeight;
 
-                return float4(albedoContrib * totalIrradiance / totalWeight, 1);
+                    // Perform integration over the screen-aligned plane in the view space.
+                    // TODO: it would be more accurate to use the tangent plane in the world space.
+                    [unroll]
+                    for (uint i = 1; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
+                    {
+                        // Everything except for the radius is a compile-time constant.
+                        float  r   = _FilterKernelsNearField[profileID][i].a;
+                        float  phi = TWO_PI * VanDerCorputBase2(i);
+                        float2 pos = r * float2(cos(phi), sin(phi));
+
+                        samplePosition = posInput.unPositionSS + pos * pixelsPerMillimeter;
+                        sampleWeight   = _FilterKernelsNearField[profileID][i].rgb;
+
+                        rawDepth         = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
+                        sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
+
+                        // Apply bilateral weighting.
+                        // We adjust the precomputed weight W(r) by W(d)/W(r), where
+                        // r = sqrt(x^2 + y^2), d = sqrt(x^2 + y^2 + z^2) = sqrt(r^2 + z^2).
+                        float sampleZ = LinearEyeDepth(rawDepth, _ZBufferParams);
+                        float z       = METERS_TO_MILLIMETERS * sampleZ - (METERS_TO_MILLIMETERS * centerPosVS.z);
+                        sampleWeight *= ComputeBilateralWeight(shapeParam, r, z, distScale);
+
+                        [flatten]
+                        if (any(sampleIrradiance) == false)
+                        {
+                            // The irradiance is 0. This could happen for 2 reasons.
+                            // Most likely, the surface fragment does not have an SSS material.
+                            // Alternatively, the surface fragment could be completely shadowed.
+                            // Our blur is energy-preserving, so 'sampleWeight' should be set to 0.
+                            // We do not terminate the loop since we want to gather the contribution
+                            // of the remaining samples (e.g. in case of hair covering skin).
+                            continue;
+                        }
+
+                        totalIrradiance += sampleWeight * sampleIrradiance;
+                        totalWeight     += sampleWeight;
+                    }
+
+                    return float4(bsdfData.diffuseColor * totalIrradiance / totalWeight, 1);
+                }
+                else
+                {
+                    return float4(0, 0, 0, 0); // TODO
+                }
             }
             ENDHLSL
         }
