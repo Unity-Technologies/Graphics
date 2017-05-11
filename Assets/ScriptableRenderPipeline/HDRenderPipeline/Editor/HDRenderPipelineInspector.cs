@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas height");
 
             // Subsurface Scattering Settings
-            public readonly GUIContent[] sssProfiles             = new GUIContent[SubsurfaceScatteringSettings.maxNumProfiles] { new GUIContent("Profile #0"), new GUIContent("Profile #1"), new GUIContent("Profile #2"), new GUIContent("Profile #3"), new GUIContent("Profile #4"), new GUIContent("Profile #5"), new GUIContent("Profile #6"), new GUIContent("Profile #7") };
+            public readonly GUIContent[] sssProfiles             = new GUIContent[SSSConstants.SSS_PROFILES_MAX] { new GUIContent("Profile #0"), new GUIContent("Profile #1"), new GUIContent("Profile #2"), new GUIContent("Profile #3"), new GUIContent("Profile #4"), new GUIContent("Profile #5"), new GUIContent("Profile #6"), new GUIContent("Profile #7") };
             public readonly GUIContent   sssNumProfiles          = new GUIContent("Number of profiles");
 
             // Tile pass Settings
@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent[] debugViewLightingStrings = { new GUIContent("None"), new GUIContent("Diffuse Lighting"), new GUIContent("Specular Lighting"), new GUIContent("Visualize Cascades") };
             public readonly int[] debugViewLightingValues = { (int)DebugLightingMode.None, (int)DebugLightingMode.DiffuseLighting, (int)DebugLightingMode.SpecularLighting, (int)DebugLightingMode.VisualizeCascade };
             public readonly GUIContent shadowDebugVisualizationMode = new GUIContent("Shadow Maps Debug Mode");
-            public readonly GUIContent shadowDebugVisualizeShadowIndex = new GUIContent("Visualize Shadow Index");            
+            public readonly GUIContent shadowDebugVisualizeShadowIndex = new GUIContent("Visualize Shadow Index");
             public readonly GUIContent lightingDebugOverrideSmoothness = new GUIContent("Override Smoothness");
             public readonly GUIContent lightingDebugOverrideSmoothnessValue = new GUIContent("Smoothness Value");
             public readonly GUIContent lightingDebugAlbedo = new GUIContent("Lighting Debug Albedo");
@@ -263,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.PropertyField(m_NumProfiles, styles.sssNumProfiles);
 
-            for (int i = 0, n = Math.Min(m_Profiles.arraySize, SubsurfaceScatteringSettings.maxNumProfiles); i < n; i++)
+            for (int i = 0, n = Math.Min(m_Profiles.arraySize, SSSConstants.SSS_PROFILES_MAX); i < n; i++)
             {
                 SerializedProperty profile = m_Profiles.GetArrayElementAtIndex(i);
                 EditorGUILayout.PropertyField(profile, styles.sssProfiles[i]);
