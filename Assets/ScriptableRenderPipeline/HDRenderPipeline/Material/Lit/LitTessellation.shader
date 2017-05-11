@@ -33,10 +33,13 @@ Shader "HDRenderPipeline/LitTessellation"
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
         _SubsurfaceProfile("Subsurface Profile", Int) = 0
-        _SubsurfaceRadius("Subsurface Radius", Range(0.004, 1.0)) = 1.0
+        _SubsurfaceRadius("Subsurface Radius", Range(0.0, 1.0)) = 1.0
         _SubsurfaceRadiusMap("Subsurface Radius Map", 2D) = "white" {}
-        _Thickness("Thickness", Range(0.004, 1.0)) = 1.0
+        _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
+
+        _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
+        _SpecularColorMap("SpecularColorMap", 2D) = "white" {}
 
         // Wind
         [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
@@ -44,12 +47,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _Stiffness("Stiffness", float) = 1.0
         _Drag("Drag", float) = 1.0
         _ShiverDrag("Shiver Drag", float) = 0.2
-
-        //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
-        //_CoatCoverageMap("CoatCoverageMapMap", 2D) = "white" {}
-
-        //_CoatRoughness("CoatRoughness", Range(0.0, 1.0)) = 0
-        //_CoatRoughnessMap("CoatRoughnessMap", 2D) = "white" {}
+        _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
@@ -71,7 +69,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilBits.Standard
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilBits.NonSSS
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -91,7 +89,7 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
-        [Enum(Standard, 0, Subsurface Scattering, 1, Clear Coat, 2, Specular Color, 3)] _MaterialID("MaterialId", Int) = 0
+        [Enum(Subsurface Scattering, 0, Standard, 1, Specular Color, 2)] _MaterialID("MaterialId", Int) = 1 // MaterialId.LitStandard
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
@@ -154,8 +152,8 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _ANISOTROPYMAP
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _SUBSURFACE_RADIUS_MAP
-    #pragma shader_feature _THICKNESS_MAP
-    #pragma shader_feature _SUBSURFACE_SCATTERING
+    #pragma shader_feature _THICKNESSMAP
+    #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _VERTEX_WIND
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
@@ -234,8 +232,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
         Pass
         {
-            Name "GBufferDebugLighting"  // Name is not used
-            Tags{ "LightMode" = "GBufferDebugLighting" } // This will be only for opaque object based on the RenderQueue index
+            Name "GBufferDebugDisplay"  // Name is not used
+            Tags{ "LightMode" = "GBufferDebugDisplay" } // This will be only for opaque object based on the RenderQueue index
 
             Cull [_CullMode]
 
@@ -251,35 +249,13 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #define LIGHTING_DEBUG
+            #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "../../Debug/DebugLighting.hlsl"
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Debug"
-            Tags { "LightMode" = "DebugViewMaterial" }
-
-            Cull[_CullMode]
-
-            HLSLPROGRAM
-
-            #pragma hull Hull
-            #pragma domain Domain
-
-            #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/LitSharePass.hlsl"
-            #include "LitData.hlsl"
-            #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
             ENDHLSL
         }
@@ -435,8 +411,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
         Pass
         {
-            Name "ForwardDebugLighting" // Name is not used
-            Tags{ "LightMode" = "ForwardDebugLighting" } // This will be only for transparent object based on the RenderQueue index
+            Name "ForwardDisplayDebug" // Name is not used
+            Tags{ "LightMode" = "ForwardDisplayDebug" } // This will be only for transparent object based on the RenderQueue index
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
@@ -447,12 +423,10 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #define LIGHTING_DEBUG
+            #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Lighting/Forward.hlsl"
-            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "../../Debug/DebugLighting.hlsl"
-
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
 

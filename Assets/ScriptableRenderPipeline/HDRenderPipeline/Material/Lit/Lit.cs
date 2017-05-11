@@ -7,21 +7,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialId
         {
-            LitStandard = 0,
-            LitSSS = 1,
-            LitClearCoat = 2,
-            LitSpecular = 3,
-            LitAniso = 4 // Should be the last as it is not setup by the users but generated based on anisotropy property
+            LitSSS      = 0,
+            LitStandard = 1,
+            LitSpecular = 2,
+            LitUnused   = 3,
+            LitAniso    = 4 // Should be the last as it is not setup by the users but generated based on anisotropy property
         };
 
         [GenerateHLSL]
         public class MaterialFeatureFlags
         {
-            public static uint FEATURE_FLAG_MATERIAL_LIT_STANDARD = 1 << 12;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_SSS = 1 << 13;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_CLEAR_COAT = 1 << 14;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_SPECULAR = 1 << 15;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_ANISO = 1 << 16;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_SSS      = 1 << 12;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_STANDARD = 1 << 13;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_SPECULAR = 1 << 14;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_ANISO    = 1 << 15;
         }
 
         //-----------------------------------------------------------------------------
@@ -32,12 +31,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, true, 1000)]
         public struct SurfaceData
         {
-            [SurfaceDataAttributes("Base Color")]
+            [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
             [SurfaceDataAttributes("Specular Occlusion")]
             public float specularOcclusion;
 
-            [SurfaceDataAttributes("Normal")]
+            [SurfaceDataAttributes("Normal", true)]
             public Vector3 normalWS;
             [SurfaceDataAttributes("Smoothness")]
             public float perceptualSmoothness;
@@ -50,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // MaterialId dependent attribute
 
             // standard
-            [SurfaceDataAttributes("Tangent")]
+            [SurfaceDataAttributes("Tangent", true)]
             public Vector3 tangentWS;
             [SurfaceDataAttributes("Anisotropy")]
             public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction)
@@ -67,14 +66,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Subsurface Profile")]
             public int subsurfaceProfile;
 
-            // Clearcoat
-            [SurfaceDataAttributes("Coat Normal")]
-            public Vector3 coatNormalWS;
-            [SurfaceDataAttributes("Coat Smoothness")]
-            public float coatPerceptualSmoothness;
-
             // SpecColor
-            [SurfaceDataAttributes("Specular Color")]
+            [SurfaceDataAttributes("Specular Color", false, true)]
             public Vector3 specularColor;
         };
 
@@ -82,24 +75,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
+        [GenerateHLSL(PackingRules.Exact)]
+        public enum TransmissionType
+        {
+            None = 0,
+            Regular = 1,
+            ThinObject = 2,
+        };
+
         [GenerateHLSL(PackingRules.Exact, false, true, 1030)]
         public struct BSDFData
         {
+            [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
 
             public Vector3 fresnel0;
 
             public float specularOcclusion;
 
+            [SurfaceDataAttributes("", true)]
             public Vector3 normalWS;
             public float perceptualRoughness;
             public float roughness;
-            public float materialId;
+            public int materialId;
 
             // MaterialId dependent attribute
 
             // standard
+            [SurfaceDataAttributes("", true)]
             public Vector3 tangentWS;
+            [SurfaceDataAttributes("", true)]
             public Vector3 bitangentWS;
             public float roughnessT;
             public float roughnessB;
@@ -111,12 +116,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float   subsurfaceRadius;
             public float   thickness;
             public int     subsurfaceProfile;
-            public bool    enableTransmission; // Read from the SSS profile
-            public Vector3 transmittance;
-
-            // Clearcoat
-            public Vector3 coatNormalWS;
-            public float coatRoughness;
+            public TransmissionType transmissionType; // Compute from the SSS profile. 0 is none, 1 is regular transmission, 2 is thin transmission
+            public Vector3 transmittance; // Compute from SSS profile
 
             // SpecColor
             // fold into fresnel0
@@ -234,10 +235,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_InitPreFGD = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
-                // TODO: switch to RGBA64 when it becomes available.
-                m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                // For DisneyDiffuse integration values goes from (0.5 to 1.53125). GGX need 0 to 1. Use float format.
+                m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
                 m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
                 m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
+                m_PreIntegratedFGD.hideFlags = HideFlags.DontSave;
                 m_PreIntegratedFGD.Create();
 
                 m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)

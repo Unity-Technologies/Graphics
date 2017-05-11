@@ -1248,14 +1248,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = input.worldToTangent[0].xyz;
 #endif
     // Init other parameters
-    surfaceData.materialId = 0;
+    surfaceData.materialId = 1; // MaterialId.LitStandard
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
     surfaceData.subsurfaceRadius = 1.0;
     surfaceData.thickness = 0.0;
     surfaceData.subsurfaceProfile = 0;
-    surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
-    surfaceData.coatPerceptualSmoothness = 1.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);

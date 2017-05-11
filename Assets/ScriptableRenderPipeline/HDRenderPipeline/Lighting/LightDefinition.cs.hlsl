@@ -50,9 +50,9 @@ struct LightData
     int shadowIndex;
     int IESIndex;
     int cookieIndex;
-    int lightType;
     float2 size;
-    bool twoSided;
+    int lightType;
+    float unused;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.DirectionalLightData
@@ -73,18 +73,6 @@ struct DirectionalLightData
     float sinAngle;
     int shadowIndex;
     int cookieIndex;
-};
-
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.ShadowData
-// PackingRules = Exact
-struct ShadowData
-{
-    float4x4 worldToShadow;
-    float bias;
-    float quality;
-    float unused;
-    float unused2;
-    float4 invResolution;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
@@ -110,71 +98,71 @@ struct EnvLightData
 //
 float3 GetPositionWS(LightData value)
 {
-    return value.positionWS;
+	return value.positionWS;
 }
 float GetInvSqrAttenuationRadius(LightData value)
 {
-    return value.invSqrAttenuationRadius;
+	return value.invSqrAttenuationRadius;
 }
 float3 GetColor(LightData value)
 {
-    return value.color;
+	return value.color;
 }
 float GetAngleScale(LightData value)
 {
-    return value.angleScale;
+	return value.angleScale;
 }
 float3 GetForward(LightData value)
 {
-    return value.forward;
+	return value.forward;
 }
 float GetAngleOffset(LightData value)
 {
-    return value.angleOffset;
+	return value.angleOffset;
 }
 float3 GetUp(LightData value)
 {
-    return value.up;
+	return value.up;
 }
 float GetDiffuseScale(LightData value)
 {
-    return value.diffuseScale;
+	return value.diffuseScale;
 }
 float3 GetRight(LightData value)
 {
-    return value.right;
+	return value.right;
 }
 float GetSpecularScale(LightData value)
 {
-    return value.specularScale;
+	return value.specularScale;
 }
 float GetShadowDimmer(LightData value)
 {
-    return value.shadowDimmer;
+	return value.shadowDimmer;
 }
 int GetShadowIndex(LightData value)
 {
-    return value.shadowIndex;
+	return value.shadowIndex;
 }
 int GetIESIndex(LightData value)
 {
-    return value.IESIndex;
+	return value.IESIndex;
 }
 int GetCookieIndex(LightData value)
 {
-    return value.cookieIndex;
-}
-int GetLightType(LightData value)
-{
-    return value.lightType;
+	return value.cookieIndex;
 }
 float2 GetSize(LightData value)
 {
-    return value.size;
+	return value.size;
 }
-bool GetTwoSided(LightData value)
+int GetLightType(LightData value)
 {
-    return value.twoSided;
+	return value.lightType;
+}
+float GetUnused(LightData value)
+{
+	return value.unused;
 }
 
 //
@@ -182,87 +170,59 @@ bool GetTwoSided(LightData value)
 //
 float3 GetForward(DirectionalLightData value)
 {
-    return value.forward;
+	return value.forward;
 }
 float GetDiffuseScale(DirectionalLightData value)
 {
-    return value.diffuseScale;
+	return value.diffuseScale;
 }
 float3 GetUp(DirectionalLightData value)
 {
-    return value.up;
+	return value.up;
 }
 float GetInvScaleY(DirectionalLightData value)
 {
-    return value.invScaleY;
+	return value.invScaleY;
 }
 float3 GetRight(DirectionalLightData value)
 {
-    return value.right;
+	return value.right;
 }
 float GetInvScaleX(DirectionalLightData value)
 {
-    return value.invScaleX;
+	return value.invScaleX;
 }
 float3 GetPositionWS(DirectionalLightData value)
 {
-    return value.positionWS;
+	return value.positionWS;
 }
 bool GetTileCookie(DirectionalLightData value)
 {
-    return value.tileCookie;
+	return value.tileCookie;
 }
 float3 GetColor(DirectionalLightData value)
 {
-    return value.color;
+	return value.color;
 }
 float GetSpecularScale(DirectionalLightData value)
 {
-    return value.specularScale;
+	return value.specularScale;
 }
 float GetCosAngle(DirectionalLightData value)
 {
-    return value.cosAngle;
+	return value.cosAngle;
 }
 float GetSinAngle(DirectionalLightData value)
 {
-    return value.sinAngle;
+	return value.sinAngle;
 }
 int GetShadowIndex(DirectionalLightData value)
 {
-    return value.shadowIndex;
+	return value.shadowIndex;
 }
 int GetCookieIndex(DirectionalLightData value)
 {
-    return value.cookieIndex;
-}
-
-//
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.ShadowData
-//
-float4x4 GetWorldToShadow(ShadowData value)
-{
-    return value.worldToShadow;
-}
-float GetBias(ShadowData value)
-{
-    return value.bias;
-}
-float GetQuality(ShadowData value)
-{
-    return value.quality;
-}
-float GetUnused(ShadowData value)
-{
-    return value.unused;
-}
-float GetUnused2(ShadowData value)
-{
-    return value.unused2;
-}
-float4 GetInvResolution(ShadowData value)
-{
-    return value.invResolution;
+	return value.cookieIndex;
 }
 
 //
@@ -270,51 +230,51 @@ float4 GetInvResolution(ShadowData value)
 //
 float3 GetPositionWS(EnvLightData value)
 {
-    return value.positionWS;
+	return value.positionWS;
 }
 int GetEnvShapeType(EnvLightData value)
 {
-    return value.envShapeType;
+	return value.envShapeType;
 }
 float3 GetForward(EnvLightData value)
 {
-    return value.forward;
+	return value.forward;
 }
 int GetEnvIndex(EnvLightData value)
 {
-    return value.envIndex;
+	return value.envIndex;
 }
 float3 GetUp(EnvLightData value)
 {
-    return value.up;
+	return value.up;
 }
 float GetBlendDistance(EnvLightData value)
 {
-    return value.blendDistance;
+	return value.blendDistance;
 }
 float3 GetRight(EnvLightData value)
 {
-    return value.right;
+	return value.right;
 }
 int GetUnused0(EnvLightData value)
 {
-    return value.unused0;
+	return value.unused0;
 }
 float3 GetInnerDistance(EnvLightData value)
 {
-    return value.innerDistance;
+	return value.innerDistance;
 }
 float GetUnused1(EnvLightData value)
 {
-    return value.unused1;
+	return value.unused1;
 }
 float3 GetOffsetLS(EnvLightData value)
 {
-    return value.offsetLS;
+	return value.offsetLS;
 }
 float GetUnused2(EnvLightData value)
 {
-    return value.unused2;
+	return value.unused2;
 }
 
 

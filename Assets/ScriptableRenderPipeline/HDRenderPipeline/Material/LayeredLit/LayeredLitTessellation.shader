@@ -178,6 +178,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _Stiffness("Stiffness", float) = 1.0
         _Drag("Drag", float) = 1.0
         _ShiverDrag("Shiver Drag", float) = 0.2
+        _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
 
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
@@ -195,7 +196,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilBits.Standard
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilBits.NonSSS (fixed at compile time)
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -414,8 +415,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
         Pass
         {
-            Name "GBufferDebugLighting"  // Name is not used
-            Tags{ "LightMode" = "GBufferDebugLighting" } // This will be only for opaque object based on the RenderQueue index
+            Name "GBufferDebugDisplay"  // Name is not used
+            Tags{ "LightMode" = "GBufferDebugDisplay" } // This will be only for opaque object based on the RenderQueue index
 
             Cull [_CullMode]
 
@@ -431,36 +432,13 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #define LIGHTING_DEBUG
+            #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "../../Debug/DebugLighting.hlsl"
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Debug"
-            Tags{ "LightMode" = "DebugViewMaterial" }
-
-            Cull[_CullMode]
-
-            HLSLPROGRAM
-
-            #pragma hull Hull
-            #pragma domain Domain
-
-            #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
-
-            #include "../../Material/Material.hlsl"
-            #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "../Lit/LitData.hlsl"
-            #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
             ENDHLSL
         }
@@ -616,8 +594,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
         Pass
         {
-            Name "ForwardDebugLighting" // Name is not used
-            Tags{ "LightMode" = "ForwardDebugLighting" } // This will be only for transparent object based on the RenderQueue index
+            Name "ForwardDisplayDebug" // Name is not used
+            Tags{ "LightMode" = "ForwardDisplayDebug" } // This will be only for transparent object based on the RenderQueue index
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
@@ -628,11 +606,10 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
-            #define LIGHTING_DEBUG
+            #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_FORWARD
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Lighting/Forward.hlsl"
-            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "../../Debug/DebugLighting.hlsl"
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
 

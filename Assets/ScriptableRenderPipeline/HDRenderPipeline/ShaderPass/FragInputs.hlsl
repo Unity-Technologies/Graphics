@@ -3,7 +3,7 @@
 // This structure gather all possible varying/interpolator for this shader.
 //-------------------------------------------------------------------------------------
 
-#include "../Debug/DebugViewMaterial.cs.hlsl"
+#include "../Debug/DebugDisplay.cs.hlsl"
 
 struct FragInputs
 {

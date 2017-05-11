@@ -13,18 +13,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LightLoopProducer: {fileID: 11400000, guid: bf8cd9ae03ff7d54c89603e67be0bfc5,
     type: 2}
-  globalDebugSettings:
+  debugDisplaySettings:
     debugOverlayRatio: 0.33
     displayMaterialDebug: 1
-    displayRenderingDebug: 1
+    displayRenderingDebug: 0
     displayLightingDebug: 0
-    materialDebugSettings:
-      debugViewMaterial: 0
     lightingDebugSettings:
+      debugLightingMode: 0
       enableShadows: 1
       shadowDebugMode: 0
       shadowMapIndex: 0
-      lightingDebugMode: 0
       overrideSmoothness: 0
       overrideSmoothnessValue: 0.5
       debugLightingAlbedo: {r: 0.5, g: 0.5, b: 0.5, a: 1}
@@ -39,15 +37,20 @@ MonoBehaviour:
     useForwardRenderingOnly: 0
     useDepthPrepass: 0
   sssSettings:
-    numProfiles: 0
-    texturingMode: 0
-    transmissionFlags: 0
-    profiles: []
+    numProfiles: 7
+    profiles:
+    - {fileID: 11400000, guid: d6ee4403015766f4093158d69216c0bf, type: 2}
+    - {fileID: 11400000, guid: 906339bac2066fc4aa22a3652e1283ef, type: 2}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
-    maxShadowDistance: 1000
+    maxShadowDistance: 400
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
     directionalLightNearPlaneOffset: 5
@@ -63,3 +66,6 @@ MonoBehaviour:
     m_ShadowCascadeSplit2: 0.3
     m_ShadowNearPlaneOffset: 5
   m_SkySettings: {fileID: 0}
+  m_DefaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
+    type: 2}
+  m_DefaultShader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}

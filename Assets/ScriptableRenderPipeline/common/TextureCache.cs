@@ -236,7 +236,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static TextureFormat GetPreferredCompressedTextureFormat
+        public static TextureFormat GetPreferredHdrCompressedTextureFormat
         {
             get
             {
@@ -245,8 +245,13 @@ namespace UnityEngine.Experimental.Rendering
                 var probeFormat = TextureFormat.BC6H;
 
                 // On editor the texture is uncompressed when operating against mobile build targets
-                if (SystemInfo.SupportsTextureFormat(probeFormat) && !TextureCache.isMobileBuildTarget)
+//#if UNITY_2017_2_OR_NEWER
+                if (SystemInfo.SupportsTextureFormat(probeFormat) && !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_DXT5nm))
                     format = probeFormat;
+//#else
+//                if (SystemInfo.SupportsTextureFormat(probeFormat) && !TextureCache.isMobileBuildTarget)
+//                    format = probeFormat;
+//#endif
 
                 return format;
             }
@@ -256,7 +261,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
-                return (SystemInfo.supportsCubemapArrayTextures && !TextureCache.isMobileBuildTarget);
+//#if UNITY_2017_2_OR_NEWER
+                return !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_CUBEMAP_ARRAY);
+//#else
+//                return (SystemInfo.supportsCubemapArrayTextures && !TextureCache.isMobileBuildTarget);
+//#endif
             }
         }
 
@@ -275,31 +284,34 @@ namespace UnityEngine.Experimental.Rendering
         private static uint g_MaxFrameCount = unchecked((uint)(-1));
         private static uint g_InvalidTexID = (uint)0;
 
-        public int FetchSlice(Texture texture)
+        public int FetchSlice(Texture texture, bool forceReinject=false)
         {
+            var sliceIndex = -1;
+
+            if (texture == null)
+                return sliceIndex;
+
             var texId = (uint)texture.GetInstanceID();
 
             //assert(TexID!=g_InvalidTexID);
             if (texId == g_InvalidTexID) return 0;
 
-            var bSwapSlice = false;
+            var bSwapSlice = forceReinject;
             var bFoundAvailOrExistingSlice = false;
-            var sliceIndex = -1;
 
             // search for existing copy
             if (m_LocatorInSliceArray.ContainsKey(texId))
             {
-                if (m_TextureCacheVersion != s_GlobalTextureCacheVersion)
+                sliceIndex = m_LocatorInSliceArray[texId];
+                bFoundAvailOrExistingSlice = true;
+#if UNITY_EDITOR
+                if(m_TextureCacheVersion!=s_GlobalTextureCacheVersion)
                 {
-                    m_LocatorInSliceArray.Remove(texId);
                     m_TextureCacheVersion++;
                     Debug.Assert(m_TextureCacheVersion <= s_GlobalTextureCacheVersion);
+                    bSwapSlice = true;  // force a reinject.
                 }
-                else
-                {
-                    sliceIndex = m_LocatorInSliceArray[texId];
-                    bFoundAvailOrExistingSlice = true;
-                }
+#endif
                 //assert(m_SliceArray[sliceIndex].TexID==TexID);
             }
 

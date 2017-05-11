@@ -114,6 +114,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ProceduralSkyMaterial.SetFloat("_WorldRayleighNearScatterPush", -Mathf.Pow(Mathf.Abs(param.worldRayleighNearScatterPush), param.worldScaleExponent) * Mathf.Sign(param.worldRayleighNearScatterPush));
             m_ProceduralSkyMaterial.SetFloat("_WorldRayleighDensity", -param.worldRayleighDensity / 100000f);
             m_ProceduralSkyMaterial.SetFloat("_WorldMieDensity", -param.worldMieDensity / 100000f);
+            m_ProceduralSkyMaterial.SetFloat("_SkyDepth", 1.0f / param.maxSkyDistance);
 
             var rayleighColorM20 = param.worldRayleighColorRamp.Evaluate(0.00f);
             var rayleighColorM10 = param.worldRayleighColorRamp.Evaluate(0.25f);

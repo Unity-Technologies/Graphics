@@ -18,36 +18,26 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData data)
 }
 
 //-----------------------------------------------------------------------------
-// No light evaluation, this is unlit
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Debug method (use to display values)
 //-----------------------------------------------------------------------------
 
 void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout bool needLinearToSRGB)
 {
-    switch (paramId)
-    {
-    case DEBUGVIEW_UNLIT_SURFACEDATA_COLOR:
-        result = surfaceData.color; needLinearToSRGB = true;
-        break;
-    }
+    GetGeneratedSurfaceDataDebug(paramId, surfaceData, result, needLinearToSRGB);
 }
 
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
-    switch (paramId)
-    {
-    case DEBUGVIEW_UNLIT_SURFACEDATA_COLOR:
-        result = bsdfData.color; needLinearToSRGB = true;
-        break;
-    }
+    GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
 }
 
-LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
+//-----------------------------------------------------------------------------
+// No light evaluation, this is unlit
+//-----------------------------------------------------------------------------
+
+LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
-    LighTransportData lightTransportData;
+    LightTransportData lightTransportData;
 
     lightTransportData.diffuseColor = float3(0.0, 0.0, 0.0);
     lightTransportData.emissiveColor = builtinData.emissiveColor;

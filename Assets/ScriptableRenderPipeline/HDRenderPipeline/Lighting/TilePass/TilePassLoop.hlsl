@@ -1,21 +1,19 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
 
 void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout float3 diffuseLighting, inout float3 specularLighting)
 {
-#ifdef LIGHTING_DEBUG
-    int lightDebugMode = (int)_DebugLightModeAndAlbedo.x;
-
-    if (lightDebugMode == LIGHTINGDEBUGMODE_DIFFUSE_LIGHTING)
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
     {
-        specularLighting = float3(0.0, 0.0, 0.0);
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
-    else if (lightDebugMode == LIGHTINGDEBUGMODE_SPECULAR_LIGHTING)
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING)
     {
-        diffuseLighting = float3(0.0, 0.0, 0.0);
+        diffuseLighting = float3(0.0, 0.0, 0.0); // Disable diffuse lighting
     }
-    else if (lightDebugMode == LIGHTINGDEBUGMODE_VISUALIZE_CASCADE)
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_VISUALIZE_CASCADE)
     {
         specularLighting = float3(0.0, 0.0, 0.0);
 
@@ -26,13 +24,11 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
             float3(1.0, 1.0, 0.0)
         };
 
-#ifdef SHADOWS_USE_SHADOWCTXT
-        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
-#else
-        float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
-#endif
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, float3(0.0, 1.0, 0.0 ), 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
+        float4 dirShadowSplitSpheres[4];
+        uint payloadOffset = EvalShadow_LoadSplitSpheres(lightLoopContext.shadowContext, 0, dirShadowSplitSpheres);
+        int shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows(positionWS, dirShadowSplitSpheres);
 
-        int shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _DirShadowSplitSpheres);
         if (shadowSplitIndex == -1)
             diffuseLighting = float3(0.0, 0.0, 0.0);
         else
@@ -87,7 +83,10 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
 
 uint GetTileSize()
 {
-    return TILE_SIZE_CLUSTERED;
+    if (_UseTileLightList)
+        return TILE_SIZE_FPTL;
+    else
+        return TILE_SIZE_CLUSTERED;
 }
 
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
@@ -141,13 +140,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
-#ifndef SHADOWS_USE_SHADOWCTXT
-    ZERO_INITIALIZE(LightLoopContext, context);
-#else
     context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
-#endif
 
     diffuseLighting = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -222,6 +217,28 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     }
 #endif
 
+#ifdef PROCESS_PROJECTOR_LIGHT
+    if(featureFlags & FEATURE_FLAG_LIGHT_PROJECTOR)
+    {
+        // TODO: Convert the for loop below to a while on each type as we know we are sorted!
+        uint projectorLightStart;
+        uint projectorLightCount;
+        GetCountAndStart(posInput, LIGHTCATEGORY_PROJECTOR, projectorLightStart, projectorLightCount);
+        for(i = 0; i < projectorLightCount; ++i)
+        {
+            float3 localDiffuseLighting, localSpecularLighting;
+
+            uint projectorIndex = FetchIndex(projectorLightStart, i);
+
+            EvaluateBSDF_Projector(context, V, posInput, prelightData, _LightDatas[projectorIndex], bsdfData,
+                                   localDiffuseLighting, localSpecularLighting);
+
+            diffuseLighting += localDiffuseLighting;
+            specularLighting += localSpecularLighting;
+        }
+    }
+#endif
+
 #ifdef PROCESS_ENV_LIGHT
     float3 iblDiffuseLighting = float3(0.0, 0.0, 0.0);
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
@@ -288,13 +305,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
-#ifndef SHADOWS_USE_SHADOWCTXT
-    ZERO_INITIALIZE(LightLoopContext, context);
-#else
     context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
-#endif
 
     diffuseLighting = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -323,8 +336,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         specularLighting += localSpecularLighting;
     }
 
-    // Area are store with punctual, just offset the index
-    for (i = _PunctualLightCount; i < _AreaLightCount + _PunctualLightCount; ++i)
+    for (; i < _PunctualLightCount + _AreaLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
@@ -338,6 +350,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
             EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[i], bsdfData,
                                 localDiffuseLighting, localSpecularLighting);
         }
+
+        diffuseLighting += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
+    }
+
+    for (; i < _PunctualLightCount + _AreaLightCount + _ProjectorLightCount; ++i)
+    {
+        float3 localDiffuseLighting, localSpecularLighting;
+
+        EvaluateBSDF_Projector(  context, V, posInput, prelightData, _LightDatas[i], bsdfData,
+                                 localDiffuseLighting, localSpecularLighting);
 
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;

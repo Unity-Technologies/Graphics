@@ -23,10 +23,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We would prefer to split lighting and material information but for performance reasons,
             // those lighting information are fill
             // at the same time than material information.
-            [SurfaceDataAttributes("Bake Diffuse Lighting")]
+            [SurfaceDataAttributes("Bake Diffuse Lighting", false, true)]
             public Vector3 bakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume
 
-            [SurfaceDataAttributes("Emissive Color")]
+            [SurfaceDataAttributes("Emissive Color", false, true)]
             public Vector3 emissiveColor;
             [SurfaceDataAttributes("Emissive Intensity")]
             public float emissiveIntensity;
@@ -47,14 +47,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         //-----------------------------------------------------------------------------
-        // LighTransportData
+        // LightTransportData
         // This struct is use to store information for Enlighten/Progressive light mapper. both at runtime or off line.
         //-----------------------------------------------------------------------------
         [GenerateHLSL(PackingRules.Exact, false, true, 120)]
-        public struct LighTransportData
+        public struct LightTransportData
         {
+            [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
-            public Vector3 emissiveColor;
+            public Vector3 emissiveColor; // HDR value
         };
 
         public class RenderLoop : Object
