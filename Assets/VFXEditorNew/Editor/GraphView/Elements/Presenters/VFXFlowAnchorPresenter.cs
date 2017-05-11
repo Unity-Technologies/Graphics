@@ -8,10 +8,10 @@ namespace UnityEditor.VFX.UI
     abstract class VFXFlowAnchorPresenter : NodeAnchorPresenter
     {
         [SerializeField]
-        private VFXModel m_Owner;
-        public VFXModel Owner { get { return m_Owner; } }
+        private VFXContext m_Owner;
+        public VFXContext Owner { get { return m_Owner; } }
 
-        public void Init(VFXModel owner)
+        public void Init(VFXContext owner)
         {
             m_Owner = owner;
             anchorType = typeof(int); // We dont care about that atm!

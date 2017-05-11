@@ -191,7 +191,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-            else if (presenter.direction == Direction.Input)
+            else if (presenter.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
             {
                 VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.Name);
                 if (parameterDesc != null)
