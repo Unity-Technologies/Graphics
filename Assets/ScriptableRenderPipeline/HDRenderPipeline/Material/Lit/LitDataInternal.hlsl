@@ -180,7 +180,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.normalWS = float3(0.0, 0.0, 0.0); // Need to init this to keep quiet the compiler, but this is overriden later (0, 0, 0) so if we forget to override the compiler may comply.
 
-    // TODO: think about using BC5
     normalTS = ADD_IDX(GetNormalTS)(input, layerTexCoord, detailNormalTS, detailMask, false, 0.0);
 
 #if defined(_MASKMAP_IDX)
@@ -206,13 +205,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 
-#ifdef _SUBSURFACE_SCATTERING
-    surfaceData.materialId = _MaterialID;
-#else
-    surfaceData.materialId = (_MaterialID == MATERIALID_LIT_SSS) ? 0 : _MaterialID;
-#endif
+    surfaceData.materialId = (_EnableSSS || _MaterialID != MATERIALID_LIT_SSS) ? _MaterialID : MATERIALID_LIT_STANDARD;
 
-    // TODO: think about using BC5
 #ifdef _TANGENTMAP
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX // Normal and tangent use same space
     float3 tangentTS = SAMPLE_UVMAPPING_NORMALMAP(_TangentMap, sampler_TangentMap, layerTexCoord.base, 1.0);
@@ -240,28 +234,28 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.specular = 0.04;
 
     surfaceData.subsurfaceProfile = _SubsurfaceProfile;
+    surfaceData.subsurfaceRadius  = _SubsurfaceRadius;
+    surfaceData.thickness         = _Thickness;
+
 #ifdef _SUBSURFACE_RADIUS_MAP
-    surfaceData.subsurfaceRadius = SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r * _SubsurfaceRadius;
-#else
-    surfaceData.subsurfaceRadius = _SubsurfaceRadius;
+    surfaceData.subsurfaceRadius *= SAMPLE_UVMAPPING_TEXTURE2D(_SubsurfaceRadiusMap, sampler_SubsurfaceRadiusMap, layerTexCoord.base).r;
 #endif
 
-#ifdef _THICKNESS_MAP
-    surfaceData.thickness = SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
-#else
-    surfaceData.thickness = _Thickness;
+#ifdef _THICKNESSMAP
+    surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
 #endif
 
-    surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
-    surfaceData.coatPerceptualSmoothness = 1.0;
-    surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+    surfaceData.specularColor = _SpecularColor.rgb;
+#ifdef _SPECULARCOLORMAP
+    surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
+#endif
 
 #else // #if !defined(LAYERED_LIT_SHADER)
 
     // Mandatory to setup value to keep compiler quiet
 
-    // Layered shader only support materialId 0
-    surfaceData.materialId = 0;
+    // Layered shader only supports the standard material
+    surfaceData.materialId = 1; // MaterialId.LitStandard
 
     // All these parameters are ignore as they are re-setup outside of the layers function
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
@@ -272,8 +266,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.thickness = 0.0;
     surfaceData.subsurfaceProfile = 0;
 
-    surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
-    surfaceData.coatPerceptualSmoothness = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
 #endif // #if !defined(LAYERED_LIT_SHADER)

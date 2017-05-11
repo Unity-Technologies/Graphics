@@ -183,24 +183,21 @@ float GetHorizonOcclusion(float3 V, float3 normalWS, float3 vertexNormal, float 
 // Helper functions
 //-----------------------------------------------------------------------------
 
-// NdotV should not be negative for visible pixels, but it can happen due to the
-// perspective projection and the normal mapping + decals. In that case, the normal
-// should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
-// Note: certain applications (e.g. SpeedTree) require to still have negative normal to perform their own two sided lighting, they can use wantNegativeNormal
-// This will potentially reduce the length of the normal at edges of geometry.
-float GetShiftedNdotV(inout float3 N, float3 V, bool wantNegativeNormal)
+// 'NdotV' can become negative for visible pixels due to the perspective projection, normal mapping and decals.
+// This can produce visible artifacts under specular lighting, both direct (overly dark/bright pixels) and indirect (incorrect cubemap direction).
+// One way of avoiding these artifacts is to limit the value of 'NdotV' to a small positive number,
+// and calculate the reflection vector for the cubemap fetch using a normal shifted into view.
+float3 GetViewShiftedNormal(float3 N, float3 V, float NdotV, float minNdotV)
 {
-    float NdotV = dot(N, V);
-    float limit = rcp(256.0); // Determined mostly by the quality of the G-buffer normal encoding
-
-    if (!wantNegativeNormal && NdotV < limit)
+    if (NdotV < minNdotV)
     {
-        // We do not renormalize the normal because { abs(length(N) - 1.0) < limit }.
-        N    += (-NdotV + limit) * V;
-        NdotV = limit;
+        // We do not renormalize the normal to save a few clock cycles.
+        // The magnitude difference is typically negligible, and the normal is only used to compute
+        // the reflection vector for the IBL cube map fetch (which does not depend on the magnitude).
+        N += (-NdotV + minNdotV) * V;
     }
 
-    return NdotV;
+    return N;
 }
 
 // Generates an orthonormal basis from a unit vector.

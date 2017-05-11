@@ -44,19 +44,14 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
 
-         // #ifdef OUTPUT_SPLIT_LIGHTING
-            #pragma shader_feature _ SSS_PRE_SCATTER_TEXTURING SSS_POST_SCATTER_TEXTURING
-         // #endif
-
-            #pragma multi_compile _ LIGHTING_DEBUG
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             //-------------------------------------------------------------------------------------
             // Include
             //-------------------------------------------------------------------------------------
 
             #include "../../../ShaderLibrary/Common.hlsl"
-            #include "../../Debug/HDRenderPipelineDebug.cs.hlsl"
-            #include "../../Debug/DebugLighting.hlsl"
+            #include "../../Debug/DebugDisplay.hlsl"
 
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
@@ -127,6 +122,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             #else
                 outputs.combinedLighting = float4(diffuseLighting + specularLighting, 1.0);
             #endif
+
                 return outputs;
             }
 

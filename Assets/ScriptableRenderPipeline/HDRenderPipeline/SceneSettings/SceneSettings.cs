@@ -17,13 +17,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_SkySettings; }
         }
 
-        [SerializeField] private CommonSettings m_CommonSettings;
-        [SerializeField] private SkySettings    m_SkySettings;
+        [SerializeField] private CommonSettings m_CommonSettings = null;
+        [SerializeField] private SkySettings    m_SkySettings = null;
 
         // Use this for initialization
         void OnEnable()
         {
             SceneSettingsManager.instance.AddSceneSettings(this);
+
+            HDRenderPipelineInstance hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+
+            if (hdPipeline != null)
+            {
+                hdPipeline.OnSceneLoad();
+            }
         }
 
         void OnDisable()

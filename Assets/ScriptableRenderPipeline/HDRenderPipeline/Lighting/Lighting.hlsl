@@ -19,7 +19,9 @@
 #include "../Lighting/LightDefinition.cs.hlsl"
 #include "../Lighting/LightUtilities.hlsl"
 
-#include "../Shadow/Shadow.hlsl"
+#define SHADOW_TILEPASS
+#include "../../ShaderLibrary/Shadow/Shadow.hlsl"
+#undef SHADOW_TILEPASS
 
 #if defined(LIGHTLOOP_SINGLE_PASS) || defined(LIGHTLOOP_TILE_PASS)
 #include "../Lighting/TilePass/TilePass.hlsl"

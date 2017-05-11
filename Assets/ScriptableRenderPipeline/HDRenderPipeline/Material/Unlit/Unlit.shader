@@ -84,24 +84,6 @@ Shader "HDRenderPipeline/Unlit"
         Tags { "RenderType"="Opaque" "PerformanceChecks"="False" }
         LOD 300
 
-        Pass
-        {
-            Name "Debug"
-            Tags { "LightMode" = "DebugViewMaterial" }
-
-            Cull[_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/UnlitSharePass.hlsl"
-            #include "UnlitData.hlsl"
-            #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
-
-            ENDHLSL
-        }
-
         // Extracts information for lightmapping, GI (emission, albedo, ...)
         // This pass it not used during regular rendering.
         Pass
@@ -167,6 +149,28 @@ Shader "HDRenderPipeline/Unlit"
             ENDHLSL
         }
 
+        Pass
+        {
+            Name "ForwardUnlit"
+            Tags { "LightMode" = "ForwardDisplayDebug" }
+
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #define DEBUG_DISPLAY
+            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+            #include "../../Debug/DebugDisplay.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/UnlitSharePass.hlsl"
+            #include "UnlitData.hlsl"
+            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
+
+            ENDHLSL
+        }
+
         // Unlit opaque material need to be render with ForwardOnlyOpaque. Unlike Lit that can be both deferred and forward,
         // unlit require to be forward only, that's why we need this pass. Unlit transparent will use regular Forward pass
         // (Code is exactly the same as "Forward", it simply allow our system to filter objects correctly)
@@ -182,6 +186,27 @@ Shader "HDRenderPipeline/Unlit"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/UnlitSharePass.hlsl"
+            #include "UnlitData.hlsl"
+            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "ForwardUnlit"
+            Tags { "LightMode" = "ForwardOnlyOpaqueDisplayDebug" }
+
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+            #include "../../Debug/DebugDisplay.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/UnlitSharePass.hlsl"
             #include "UnlitData.hlsl"

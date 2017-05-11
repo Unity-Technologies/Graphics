@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -44,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent windStiffnessText = new GUIContent("Stiffness");
             public static GUIContent windDragText = new GUIContent("Drag");
             public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
+            public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
 
             public static string vertexAnimation = "Vertex Animation";
         }
@@ -62,8 +64,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // Properties
         // Material ID
-        protected MaterialProperty materialID = null;
-        protected const string kMaterialID = "_MaterialID";
+        protected MaterialProperty materialID  = null;
+        protected const string     kMaterialID = "_MaterialID";
+
+        protected const string     kStencilRef = "_StencilRef";
 
         // Wind
         protected MaterialProperty windEnable = null;
@@ -76,6 +80,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kWindDrag = "_Drag";
         protected MaterialProperty windShiverDrag = null;
         protected const string kWindShiverDrag = "_ShiverDrag";
+        protected MaterialProperty windShiverDirectionality = null;
+        protected const string kWindShiverDirectionality = "_ShiverDirectionality";
 
         // Per pixel displacement params
         protected MaterialProperty enablePerPixelDisplacement = null;
@@ -140,6 +146,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             windStiffness = FindProperty(kWindStiffness, props);
             windDrag = FindProperty(kWindDrag, props);
             windShiverDrag = FindProperty(kWindShiverDrag, props);
+            windShiverDirectionality = FindProperty(kWindShiverDirectionality, props);
         }
 
         void TessellationModePopup()
@@ -228,6 +235,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(windStiffness, StylesBaseLit.windStiffnessText);
                 m_MaterialEditor.ShaderProperty(windDrag, StylesBaseLit.windDragText);
                 m_MaterialEditor.ShaderProperty(windShiverDrag, StylesBaseLit.windShiverDragText);
+                m_MaterialEditor.ShaderProperty(windShiverDirectionality, StylesBaseLit.windShiverDirectionalityText);
                 EditorGUI.indentLevel--;
             }
 
@@ -259,25 +267,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool depthOffsetEnable = material.GetFloat(kDepthOffsetEnable) > 0.0f;
             SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
-            int stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.Standard; // See 'StencilBits'.
+            // Set the reference value for the stencil test.
+            int stencilRef = (int)StencilBits.NonSSS;
             if (material.HasProperty(kMaterialID))
             {
-                int materialID = (int)material.GetFloat(kMaterialID);
-
-                switch (materialID)
+                if ((int)material.GetFloat(kMaterialID) == (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS)
                 {
-                    case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS:
-                        stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.SSS;
-                        break;
-                    case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitStandard:
-                        stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.Standard;
-                        break;
-                    default:
-                        stencilRef = 1 + materialID;
-                        break;
+                    stencilRef = (int)StencilBits.SSS;
                 }
             }
-            material.SetInt("_StencilRef", stencilRef);
+            material.SetInt(kStencilRef, stencilRef);
 
             bool enablePerPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) > 0.0f;
             SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", enablePerPixelDisplacement);
@@ -320,24 +319,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (distortionEnable && distortionOnly)
             {
-                // Disable all passes except debug material
+                // Disable all passes except distortion (setup in BaseUnlitUI.cs) and debug passes (to visualize distortion)
                 material.SetShaderPassEnabled("GBuffer", false);
-                material.SetShaderPassEnabled("DebugViewMaterial", true);
+                material.SetShaderPassEnabled("GBufferDisplayDebug", true);
                 material.SetShaderPassEnabled("Meta", false);
                 material.SetShaderPassEnabled("ShadowCaster", false);
                 material.SetShaderPassEnabled("DepthOnly", false);
                 material.SetShaderPassEnabled("MotionVectors", false);
                 material.SetShaderPassEnabled("Forward", false);
+                material.SetShaderPassEnabled("ForwardDisplayDebug", true);
             }
             else
             {
+                // Enable all passes except distortion (setup in BaseUnlitUI.cs)
                 material.SetShaderPassEnabled("GBuffer", true);
-                material.SetShaderPassEnabled("DebugViewMaterial", true);
+                material.SetShaderPassEnabled("GBufferDisplayDebug", true);
                 material.SetShaderPassEnabled("Meta", true);
                 material.SetShaderPassEnabled("ShadowCaster", true);
                 material.SetShaderPassEnabled("DepthOnly", true);
                 material.SetShaderPassEnabled("MotionVectors", true);
                 material.SetShaderPassEnabled("Forward", true);
+                material.SetShaderPassEnabled("ForwardDisplayDebug", true);
             }
         }
     }

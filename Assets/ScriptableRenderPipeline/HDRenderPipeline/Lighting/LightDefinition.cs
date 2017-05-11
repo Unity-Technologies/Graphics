@@ -50,10 +50,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int IESIndex;
         public int cookieIndex;
 
+        public Vector2 size;  // Used by area, projector and spot lights; x = cot(outerHalfAngle) for spot lights
         public GPULightType lightType;
-        // Area Light specific
-        public Vector2 size; // x = cot(outerHalfAngle) for spot lights
-        public bool twoSided;
+        public float unused;
     };
 
     [GenerateHLSL]
@@ -81,22 +80,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int cookieIndex; // -1 if unused
     };
 
-
-    // TODO: we may have to add various parameters here for shadow - was suppose to be coupled with a light loop
-    // A point light is 6x PunctualShadowData
-    [GenerateHLSL]
-    public struct ShadowData
-    {
-        // World to ShadowMap matrix
-        // Include scale and bias for shadow atlas if any
-        public Matrix4x4 worldToShadow;
-
-        public float bias;
-        public float quality;
-        public float unused;
-        public float unused2;
-        public Vector4 invResolution;
-    };
 
     [GenerateHLSL]
     public enum EnvShapeType
