@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
         {
             public static GUIContent renderingLabel = new GUIContent("Rendering");
             public static GUIContent shadowLabel = new GUIContent("Shadows");
+            public static GUIContent defaults = new GUIContent("Defaults");
 
             public static GUIContent maxPixelLights = new GUIContent("Max per-pixel lights supported",
                     "Amount of dynamic lights processed in fragment shader. More than 1 per-pixel light is not recommended.");
@@ -40,7 +41,10 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                     "Number of cascades for directional shadows");
 
             public static GUIContent shadowCascadeSplit = new GUIContent("Shadow Cascade Split",
-                    "Percentages to split shadow volume");
+                "Percentages to split shadow volume");
+
+            public static GUIContent defaultDiffuseMaterial = new GUIContent("Default Diffuse Material",
+                "Material to use when creating objects");
         }
 
         private SerializedProperty m_MaxPixelLights;
@@ -56,6 +60,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
         private SerializedProperty m_ShadowCascadesProp;
         private SerializedProperty m_ShadowCascade2SplitProp;
         private SerializedProperty m_ShadowCascade4SplitProp;
+        private SerializedProperty m_DefaultDiffuseMaterial;
 
         void OnEnable()
         {
@@ -72,6 +77,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
+            m_DefaultDiffuseMaterial = serializedObject.FindProperty("m_DefaultDiffuseMaterial");
         }
 
         public override void OnInspectorGUI()
@@ -109,6 +115,11 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
                 EditorGUILayout.PropertyField(m_ShadowCascade2SplitProp, Styles.shadowCascadeSplit);
             }
 
+            EditorGUI.indentLevel--;
+
+            EditorGUILayout.LabelField(Styles.defaults, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_DefaultDiffuseMaterial, Styles.defaultDiffuseMaterial);
             EditorGUI.indentLevel--;
 
             serializedObject.ApplyModifiedProperties();
