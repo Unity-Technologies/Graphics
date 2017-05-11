@@ -21,7 +21,6 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
     private MaterialProperty emissionMapProp = null;
     private MaterialProperty emissionColorProp = null;
     private MaterialProperty reflectionMapProp = null;
-    private MaterialProperty reflectionColorProp = null;
 
     private MaterialEditor m_MaterialEditor = null;
 
@@ -86,7 +85,6 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
         emissionMapProp = FindProperty("_EmissionMap", properties);
         emissionColorProp = FindProperty("_EmissionColor", properties);
         reflectionMapProp = FindProperty("_Cube", properties);
-        reflectionColorProp = FindProperty("_ReflectColor", properties);
         reflectionSourceProp = FindProperty("_ReflectionSource", properties);
     }
 
@@ -229,8 +227,7 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
         EditorGUILayout.Space();
         ReflectionSource reflectionSource = (ReflectionSource)reflectionSourceProp.floatValue;
         if (reflectionSource == ReflectionSource.Cubemap)
-            m_MaterialEditor.TexturePropertySingleLine(Styles.reflectionMapLabel, reflectionMapProp,
-                reflectionColorProp);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.reflectionMapLabel, reflectionMapProp);
     }
 
     private void ConvertFromLegacy(Material material, string oldShaderName)

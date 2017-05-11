@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Experimental.Rendering.HDPipeline.Lit;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -97,13 +98,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             UseEmissiveColor,
             UseEmissiveMask,
-        }
-
-        public enum MaterialIDType
-        {
-            Standard = 0,
-            SubsurfaceScattering = 1,
-            SpecularColor = 2
         }
 
         protected MaterialProperty UVBase = null;
@@ -336,17 +330,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            if ((MaterialIDType)materialID.floatValue == MaterialIDType.Standard)
+            switch ((MaterialId)materialID.floatValue)
             {
-                ShaderStandardInputGUI();
-            }
-            else if ((MaterialIDType)materialID.floatValue == MaterialIDType.SubsurfaceScattering)
-            {
-                ShaderSSSInputGUI(material);
-            }
-            else if ((MaterialIDType)materialID.floatValue == MaterialIDType.SpecularColor)
-            {
-                m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
+                case MaterialId.LitSSS:
+                    ShaderSSSInputGUI(material);
+                    break;
+                case MaterialId.LitStandard:
+                    ShaderStandardInputGUI();
+                    break;
+                case MaterialId.LitSpecular:
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
+                    break;
+                default:
+                    Debug.Assert(false, "Encountered an unsupported MaterialID.");
+                    break;
             }
 
             EditorGUILayout.Space();

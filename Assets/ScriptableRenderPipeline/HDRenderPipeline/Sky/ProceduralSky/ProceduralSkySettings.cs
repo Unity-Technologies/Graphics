@@ -56,6 +56,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // public Shader atmosphericShader = null;
         // public Shader occlusionShader   = null;
         public float worldScaleExponent    = 1.0f;
+        public float maxSkyDistance        = 4000.0f;
         public ScatterDebugMode debugMode  = ScatterDebugMode.None;
 
         // Camera   m_currentCamera;
@@ -104,6 +105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             heightRayleighNearScatterPush = Mathf.Clamp(heightRayleighNearScatterPush, -200f, 300f);
 
             worldScaleExponent            = Mathf.Clamp(worldScaleExponent, 1f, 2f);
+            maxSkyDistance                = Mathf.Clamp(maxSkyDistance, 1.0f, 1000000.0f);
 
             /*
             occlusionBias                = Mathf.Clamp01(occlusionBias);

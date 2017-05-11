@@ -139,7 +139,7 @@ Material:
     - _HeightCenter: 0.5
     - _HorizonFade: 1
     - _InitialBend: 1
-    - _MaterialID: 1
+    - _MaterialID: 0
     - _Metallic: 0
     - _Mode: 0
     - _NormalMapSpace: 0

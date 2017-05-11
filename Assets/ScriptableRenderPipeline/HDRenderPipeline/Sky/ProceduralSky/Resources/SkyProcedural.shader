@@ -36,6 +36,8 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
             float4x4 _InvViewProjMatrix;
 
+            float _SkyDepth;
+
             float _DisableSkyOcclusionTest;
 
             float _FlipY;
@@ -80,22 +82,19 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
-                // An arbitrary value attempting to match the size of the sky mesh from the Blacksmith demo.
-                const float skyDepth = 0.00025;
-
                 #ifdef PERFORM_SKY_OCCLUSION_TEST
                     // Determine whether the sky is occluded by the scene geometry.
                     // Do not perform blending with the environment map if the sky is occluded.
-                    float depthRaw     = max(skyDepth, LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r);
-                    float skyTexWeight = (depthRaw > skyDepth) ? 0.0 : 1.0;
+                    float depthRaw     = max(_SkyDepth, LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r);
+                    float skyTexWeight = (depthRaw > _SkyDepth) ? 0.0 : 1.0;
                 #else
-                    float depthRaw     = skyDepth;
+                    float depthRaw     = _SkyDepth;
                     float skyTexWeight = 1.0;
                 #endif
 
                 if (_DisableSkyOcclusionTest != 0.0)
                 {
-                    depthRaw     = skyDepth;
+                    depthRaw     = _SkyDepth;
                     skyTexWeight = 1.0;
                 }
 
