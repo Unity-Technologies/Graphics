@@ -45,6 +45,9 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
             public static GUIContent defaultDiffuseMaterial = new GUIContent("Default Diffuse Material",
                 "Material to use when creating objects");
+
+            public static GUIContent defaultShader = new GUIContent("Default Shader",
+                "Shader to use when creating materials");
         }
 
         private SerializedProperty m_MaxPixelLights;
@@ -61,6 +64,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
         private SerializedProperty m_ShadowCascade2SplitProp;
         private SerializedProperty m_ShadowCascade4SplitProp;
         private SerializedProperty m_DefaultDiffuseMaterial;
+        private SerializedProperty m_DefaultShader;
 
         void OnEnable()
         {
@@ -78,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
             m_DefaultDiffuseMaterial = serializedObject.FindProperty("m_DefaultDiffuseMaterial");
+            m_DefaultShader = serializedObject.FindProperty("m_DefaultShader");
         }
 
         public override void OnInspectorGUI()
@@ -120,6 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             EditorGUILayout.LabelField(Styles.defaults, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_DefaultDiffuseMaterial, Styles.defaultDiffuseMaterial);
+            EditorGUILayout.PropertyField(m_DefaultShader, Styles.defaultShader);
             EditorGUI.indentLevel--;
 
             serializedObject.ApplyModifiedProperties();
