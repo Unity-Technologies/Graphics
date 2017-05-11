@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
+Shader "Hidden/HDRenderPipeline/DrawSssProfile"
 {
     Properties
     {
@@ -35,9 +35,8 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            #define SSS_DISTANCE_SCALE 3                  // SSS distance units per centimeter
-
-            float4 _StdDev1, _StdDev2; float _LerpWeight; // See 'SubsurfaceScatteringParameters'
+            float4 _SurfaceAlbedo, _ShapeParameter;
+            float _ScatteringDistance; // See 'SubsurfaceScatteringProfile'
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -65,19 +64,13 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float  dist = length(input.texcoord - 0.5) * SSS_DISTANCE_SCALE;
+                float  r = (2 * length(input.texcoord - 0.5)) * _ScatteringDistance;
+                float3 S = _ShapeParameter.rgb;
+                float3 M = S * (exp(-r * S) + exp(-r * S * (1.0 / 3.0))) / (8 * PI * r);
 
-                float3 var1 = _StdDev1.rgb * _StdDev1.rgb;
-                float3 var2 = _StdDev2.rgb * _StdDev2.rgb;
-
-                // Evaluate the linear combination of two 2D Gaussians instead of
-                // product of a linear combination of two normalized 1D Gaussians
-                // since we do not want to bother artists with the lack of radial symmetry.
-
-                float3 magnitude = lerp(exp(-dist * dist / (2 * var1)) / (TWO_PI * var1),
-                                        exp(-dist * dist / (2 * var2)) / (TWO_PI * var2), _LerpWeight);
-
-                return float4(magnitude, 1);
+                // Apply gamma for visualization only. It is not present in the actual formula!
+                // N.b.: we multiply by the surface albedo of the actual geometry during shading.
+                return float4(pow(M * _SurfaceAlbedo.rgb, 1.0 / 3.0), 1);
             }
             ENDHLSL
         }

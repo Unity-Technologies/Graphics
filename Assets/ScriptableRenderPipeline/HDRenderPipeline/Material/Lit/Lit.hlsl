@@ -4,6 +4,7 @@
 
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
+#include "SubsurfaceScatteringProfile.cs.hlsl"
 
 // In case we pack data uint16 buffer we need to change the output render target format to uint16
 // TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
@@ -49,21 +50,15 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
-#define MIN_N_DOT_V           0.0001                       // The minimum value of 'NdotV'
+#define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
 
-// SSS parameters
-#define SSS_N_PROFILES        8
-#define SSS_N_SAMPLES         11
-#define SSS_LOW_THICKNESS     0.005                        // 0.5 cm
-#define SSS_DISTANCE_SCALE    3                            // SSS distance units per centimeter
-#define CENTIMETERS_TO_METERS 0.01
+uint   _EnableSSS;                          // Globally toggles subsurface scattering on/off
+uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
+float4 _ShapeParameters[SSS_N_PROFILES];    // RGB: S = 1 / D; alpha is unused
 
-uint   _EnableSSS;                                         // Globally toggles subsurface scattering on/off
-uint   _TransmissionFlags;                                 // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
-uint   _TexturingModeFlags;                                // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-float4 _TintColors[SSS_N_PROFILES];                        // For transmission; alpha is unused
-float  _ThicknessRemaps[SSS_N_PROFILES][2];                // Remap: 0 = start, 1 = end - start
-float4 _HalfRcpVariancesAndLerpWeights[SSS_N_PROFILES][2]; // 2x Gaussians per color channel, A is the the associated interpolation weight
+#define SSS_LOW_THICKNESS 10000             // REMOVE
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -132,15 +127,8 @@ float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
     // thickness *= SSS_DISTANCE_SCALE / radiusScale;
-    thickness *= SSS_DISTANCE_SCALE / CENTIMETERS_TO_METERS;
 
-    float t2 = thickness * thickness;
-
-    // TODO: 6 exponentials is kind of expensive... Should we use a LUT instead?
-    // T = lerp(exp(-t2 * halfRcpVariance1), exp(-t2 * halfRcpVariance2), lerpWeight2)
-    float3 transmittance = exp(-t2 * halfRcpVariance1) * lerpWeight1
-                         + exp(-t2 * halfRcpVariance2) * lerpWeight2;
-    return transmittance * tintColor;
+    return float3(0, 0, 0);
 }
 
 void FillMaterialIdStandardData(float3 baseColor, float specular, float metallic, float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
@@ -163,27 +151,29 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     // TODO take from subsurfaceProfile
     bsdfData.fresnel0 = 0.04; // Should be 0.028 for the skin
     bsdfData.subsurfaceProfile = subsurfaceProfile;
-    bsdfData.subsurfaceRadius  = CENTIMETERS_TO_METERS * subsurfaceRadius + 0.0001;
-    bsdfData.thickness         = CENTIMETERS_TO_METERS * (_ThicknessRemaps[subsurfaceProfile][0] +
-                                                          _ThicknessRemaps[subsurfaceProfile][1] * thickness);
+    bsdfData.subsurfaceRadius  = subsurfaceRadius;
+    bsdfData.thickness         = _ThicknessRemaps[subsurfaceProfile][0] +
+                                 _ThicknessRemaps[subsurfaceProfile][1] * thickness;
 
-    bsdfData.enableTransmission = IsBitSet(_TransmissionFlags, subsurfaceProfile);
+    bsdfData.enableTransmission = false;
     if (bsdfData.enableTransmission)
     {
-        bsdfData.transmittance = ComputeTransmittance(  _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][0].xyz,
-                                                        _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][0].w,
-                                                        _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][1].xyz,
-                                                        _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][1].w,
-                                                        _TintColors[subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
+        bsdfData.transmittance = 0;
     }
 
-    #ifndef SSS_FILTER_HORIZONTAL_AND_COMBINE // When doing the SSS comine pass, we must not apply the modification of diffuse color
-    // Handle post-scatter, or pre- and post-scatter texturing.
-    // We modify diffuseColor here so it affect all the lighting + GI (lightprobe / lightmap) (Need to be done also in GBuffer pass) + transmittance
-    // diffuseColor will be solely use during lighting pass. The other contribution will be apply in subsurfacescattering convolution.
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
-    bsdfData.diffuseColor = performPostScatterTexturing ? float3(1.0, 1.0, 1.0) : sqrt(bsdfData.diffuseColor);
+
+    // We modify the albedo here as this code is used by all lighting (including light maps and GI).
+    if (performPostScatterTexturing)
+    {
+    #ifndef SSS_PASS
+        bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
     #endif
+    }
+    else
+    {
+        bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
+    }
 }
 
 //-----------------------------------------------------------------------------
