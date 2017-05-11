@@ -473,6 +473,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalInt("_EnableSSS", debugDisplaySettings.renderingDebugSettings.enableSSS ? 1 : 0);
             Shader.SetGlobalInt("_TransmissionFlags",   sssParameters.transmissionFlags);
             Shader.SetGlobalInt("_TexturingModeFlags",  sssParameters.texturingModeFlags);
+            Shader.SetGlobalInt("_ThinMaterialFlags",   sssParameters.thinMaterialFlags);
             cmd.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
             cmd.SetGlobalVectorArray("_TintColors",     sssParameters.tintColors);
             cmd.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
