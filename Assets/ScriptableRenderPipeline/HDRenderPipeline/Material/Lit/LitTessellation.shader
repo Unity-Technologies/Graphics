@@ -69,7 +69,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _HorizonFade("Horizon fade", Range(0.0, 5.0)) = 1.0
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilBits.Standard
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilBits.NonSSS
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -89,7 +89,7 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
-        [Enum(Standard, 0, Subsurface Scattering, 1, Specular Color, 2)] _MaterialID("MaterialId", Int) = 0
+        [Enum(Subsurface Scattering, 0, Standard, 1, Specular Color, 2)] _MaterialID("MaterialId", Int) = 1 // MaterialId.LitStandard
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5

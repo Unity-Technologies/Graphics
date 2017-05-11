@@ -13,9 +13,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int numSamples = 11; // Must be an odd number
 
         [ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
-        public Color         stdDev1;
+        public Color         scatterDistance1;
         [ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
-        public Color         stdDev2;
+        public Color         scatterDistance2;
         public float         lerpWeight;
         public TexturingMode texturingMode;
         public bool          enableTransmission;
@@ -34,8 +34,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public SubsurfaceScatteringProfile()
         {
-            stdDev1            = new Color(0.3f, 0.3f, 0.3f, 0.0f);
-            stdDev2            = new Color(0.6f, 0.6f, 0.6f, 0.0f);
+            scatterDistance1   = new Color(0.3f, 0.3f, 0.3f, 0.0f);
+            scatterDistance2   = new Color(0.6f, 0.6f, 0.6f, 0.0f);
             lerpWeight         = 0.5f;
             texturingMode      = TexturingMode.PreAndPostScatter;
             enableTransmission = false;
@@ -75,6 +75,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_HalfRcpVariances = new Vector3[2];
             }
+
+            // Apply the three-sigma rule.
+            Color stdDev1 = scatterDistance1 * (1.0f / 3.0f);
+            Color stdDev2 = scatterDistance2 * (1.0f / 3.0f);
 
             // Our goal is to blur the image using a filter which is represented
             // as a product of a linear combination of two normalized 1D Gaussians
@@ -206,10 +210,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int                           numProfiles;
         public SubsurfaceScatteringProfile[] profiles;
         // Below is the cache filled during OnValidate().
-        [NonSerialized] public int           texturingModeFlags; // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-        [NonSerialized] public int           transmissionFlags;  // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
-        [NonSerialized] public Vector4[]     tintColors;         // For transmission; alpha is unused
-        [NonSerialized] public float[]       thicknessRemaps;
+        [NonSerialized] public int           texturingModeFlags;    // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+        [NonSerialized] public int           transmissionFlags;     // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
+        [NonSerialized] public Vector4[]     tintColors;            // For transmission; alpha is unused
+        [NonSerialized] public float[]       thicknessRemaps;       // Remap: 0 = start, 1 = end - start
         [NonSerialized] public Vector4[]     halfRcpVariancesAndLerpWeights;
         [NonSerialized] public Vector4[]     halfRcpWeightedVariances;
         [NonSerialized] public Vector4[]     filterKernels;
@@ -258,19 +262,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Skip unassigned profiles.
                 if (profiles[i] == null) continue;
 
-                c.r = Mathf.Clamp(profiles[i].stdDev1.r, 0.05f, 2.0f);
-                c.g = Mathf.Clamp(profiles[i].stdDev1.g, 0.05f, 2.0f);
-                c.b = Mathf.Clamp(profiles[i].stdDev1.b, 0.05f, 2.0f);
+                c.r = Mathf.Clamp(profiles[i].scatterDistance1.r, 0.05f, 2.0f);
+                c.g = Mathf.Clamp(profiles[i].scatterDistance1.g, 0.05f, 2.0f);
+                c.b = Mathf.Clamp(profiles[i].scatterDistance1.b, 0.05f, 2.0f);
                 c.a = 0.0f;
 
-                profiles[i].stdDev1 = c;
+                profiles[i].scatterDistance1 = c;
 
-                c.r = Mathf.Clamp(profiles[i].stdDev2.r, 0.05f, 2.0f);
-                c.g = Mathf.Clamp(profiles[i].stdDev2.g, 0.05f, 2.0f);
-                c.b = Mathf.Clamp(profiles[i].stdDev2.b, 0.05f, 2.0f);
+                c.r = Mathf.Clamp(profiles[i].scatterDistance2.r, 0.05f, 2.0f);
+                c.g = Mathf.Clamp(profiles[i].scatterDistance2.g, 0.05f, 2.0f);
+                c.b = Mathf.Clamp(profiles[i].scatterDistance2.b, 0.05f, 2.0f);
                 c.a = 0.0f;
 
-                profiles[i].stdDev2 = c;
+                profiles[i].scatterDistance2 = c;
 
                 profiles[i].lerpWeight = Mathf.Clamp01(profiles[i].lerpWeight);
 
@@ -401,17 +405,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         private class Styles
         {
-            public readonly GUIContent   sssProfilePreview0        = new GUIContent("Profile Preview");
-            public readonly GUIContent   sssProfilePreview1        = new GUIContent("Shows the fraction of light scattered from the source as the radius increases to 1.");
-            public readonly GUIContent   sssProfilePreview2        = new GUIContent("Note that the intensity of the region in the center may be clamped.");
-            public readonly GUIContent   sssTransmittancePreview0  = new GUIContent("Transmittance Preview");
-            public readonly GUIContent   sssTransmittancePreview1  = new GUIContent("Shows the fraction of light passing through the object for thickness values from the remap.");
-            public readonly GUIContent   sssTransmittancePreview2  = new GUIContent("Can be thought of as a cross section of a slab of material illuminated by a white light from the left.");
-            public readonly GUIContent   sssProfileStdDev1         = new GUIContent("Standard Deviation #1", "Determines the shape of the 1st Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
-            public readonly GUIContent   sssProfileStdDev2         = new GUIContent("Standard Deviation #2", "Determines the shape of the 2nd Gaussian filter. Increases the strength and the radius of the blur of the corresponding color channel.");
-            public readonly GUIContent   sssProfileLerpWeight      = new GUIContent("Filter Interpolation", "Controls linear interpolation between the two Gaussian filters.");
-            public readonly GUIContent   sssTexturingMode          = new GUIContent("Texturing Mode", "Specifies when the diffuse texture should be applied.");
-            public readonly GUIContent[] sssTexturingModeOptions   = new GUIContent[2]
+            public readonly GUIContent   sssProfilePreview0         = new GUIContent("Profile Preview");
+            public readonly GUIContent   sssProfilePreview1         = new GUIContent("Shows the fraction of light scattered from the source as the radius increases to 1.");
+            public readonly GUIContent   sssProfilePreview2         = new GUIContent("Note that the intensity of the region in the center may be clamped.");
+            public readonly GUIContent   sssTransmittancePreview0   = new GUIContent("Transmittance Preview");
+            public readonly GUIContent   sssTransmittancePreview1   = new GUIContent("Shows the fraction of light passing through the object for thickness values from the remap.");
+            public readonly GUIContent   sssTransmittancePreview2   = new GUIContent("Can be thought of as a cross section of a slab of material illuminated by a white light from the left.");
+            public readonly GUIContent   sssProfileScatterDistance1 = new GUIContent("Scatter Distance #1", "The radius (in centimeters) of the 1st Gaussian filter, one per color channel. Alpha is ignored. The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Smaller values increase the sharpness.");
+            public readonly GUIContent   sssProfileScatterDistance2 = new GUIContent("Scatter Distance #2", "The radius (in centimeters) of the 2nd Gaussian filter, one per color channel. Alpha is ignored. The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Smaller values increase the sharpness.");
+            public readonly GUIContent   sssProfileLerpWeight       = new GUIContent("Filter Interpolation", "Controls linear interpolation between the two Gaussian filters.");
+            public readonly GUIContent   sssTexturingMode           = new GUIContent("Texturing Mode", "Specifies when the diffuse texture should be applied.");
+            public readonly GUIContent[] sssTexturingModeOptions    = new GUIContent[2]
             {
                 new GUIContent("Pre- and post-scatter", "Texturing is performed during both the lighting and the SSS passes. Slightly blurs the diffuse texture. Choose this mode if your diffuse texture contains little to no SSS lighting."),
                 new GUIContent("Post-scatter", "Texturing is performed only during the SSS pass. Effectively preserves the sharpness of the diffuse texture. Choose this mode if your diffuse texture already contains SSS lighting (e.g. a photo of skin).")
@@ -447,18 +451,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private RenderTexture      m_ProfileImage, m_TransmittanceImage;
         private Material           m_ProfileMaterial, m_TransmittanceMaterial;
-        private SerializedProperty m_StdDev1, m_StdDev2, m_LerpWeight, m_TintColor,
+        private SerializedProperty m_ScatterDistance1, m_ScatterDistance2, m_LerpWeight, m_TintColor,
                                    m_TexturingMode, m_Transmission, m_ThicknessRemap;
 
         void OnEnable()
         {
-            m_StdDev1        = serializedObject.FindProperty("stdDev1");
-            m_StdDev2        = serializedObject.FindProperty("stdDev2");
-            m_LerpWeight     = serializedObject.FindProperty("lerpWeight");
-            m_TexturingMode  = serializedObject.FindProperty("texturingMode");
-            m_Transmission   = serializedObject.FindProperty("enableTransmission");
-            m_TintColor      = serializedObject.FindProperty("tintColor");
-            m_ThicknessRemap = serializedObject.FindProperty("thicknessRemap");
+            m_ScatterDistance1 = serializedObject.FindProperty("scatterDistance1");
+            m_ScatterDistance2 = serializedObject.FindProperty("scatterDistance2");
+            m_LerpWeight       = serializedObject.FindProperty("lerpWeight");
+            m_TexturingMode    = serializedObject.FindProperty("texturingMode");
+            m_Transmission     = serializedObject.FindProperty("enableTransmission");
+            m_TintColor        = serializedObject.FindProperty("tintColor");
+            m_ThicknessRemap   = serializedObject.FindProperty("thicknessRemap");
 
             m_ProfileMaterial       = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawGaussianProfile");
             m_TransmittanceMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
@@ -473,12 +477,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             EditorGUI.BeginChangeCheck();
             {
-                EditorGUILayout.PropertyField(m_StdDev1,      styles.sssProfileStdDev1);
-                EditorGUILayout.PropertyField(m_StdDev2,      styles.sssProfileStdDev2);
-                EditorGUILayout.PropertyField(m_LerpWeight,   styles.sssProfileLerpWeight);
+                EditorGUILayout.PropertyField(m_ScatterDistance1, styles.sssProfileScatterDistance1);
+                EditorGUILayout.PropertyField(m_ScatterDistance2, styles.sssProfileScatterDistance2);
+                EditorGUILayout.PropertyField(m_LerpWeight,       styles.sssProfileLerpWeight);
                 m_TexturingMode.intValue = EditorGUILayout.Popup(styles.sssTexturingMode, m_TexturingMode.intValue, styles.sssTexturingModeOptions);
-                EditorGUILayout.PropertyField(m_Transmission, styles.sssProfileTransmission);
-                EditorGUILayout.PropertyField(m_TintColor,    styles.sssProfileTintColor);
+                EditorGUILayout.PropertyField(m_Transmission,     styles.sssProfileTransmission);
+                EditorGUILayout.PropertyField(m_TintColor,        styles.sssProfileTintColor);
 
                 EditorGUILayout.PropertyField(m_ThicknessRemap, styles.sssProfileMinMaxThickness);
                 Vector2 thicknessRemap = m_ThicknessRemap.vector2Value;
@@ -492,9 +496,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
             }
 
+            // Apply the three-sigma rule.
+            Color stdDev1 = m_ScatterDistance1.colorValue * (1.0f / 3.0f);
+            Color stdDev2 = m_ScatterDistance2.colorValue * (1.0f / 3.0f);
+
             // Draw the profile.
-            m_ProfileMaterial.SetColor("_StdDev1",    m_StdDev1.colorValue);
-            m_ProfileMaterial.SetColor("_StdDev2",    m_StdDev2.colorValue);
+            m_ProfileMaterial.SetColor("_StdDev1",    stdDev1);
+            m_ProfileMaterial.SetColor("_StdDev2",    stdDev2);
             m_ProfileMaterial.SetFloat("_LerpWeight", m_LerpWeight.floatValue);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImage, m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
 
@@ -505,8 +513,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
 
             // Draw the transmittance graph.
-            m_TransmittanceMaterial.SetColor("_StdDev1",         m_StdDev1.colorValue);
-            m_TransmittanceMaterial.SetColor("_StdDev2",         m_StdDev2.colorValue);
+            m_TransmittanceMaterial.SetColor("_StdDev1",         stdDev1);
+            m_TransmittanceMaterial.SetColor("_StdDev2",         stdDev2);
             m_TransmittanceMaterial.SetFloat("_LerpWeight",      m_LerpWeight.floatValue);
             m_TransmittanceMaterial.SetVector("_ThicknessRemap", m_ThicknessRemap.vector2Value);
             m_TransmittanceMaterial.SetVector("_TintColor",      m_TintColor.colorValue);

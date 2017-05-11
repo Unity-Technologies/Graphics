@@ -477,8 +477,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SelectKeyword(m_DeferredDirectMaterialSRT, tileKeywords, 0);
                 m_DeferredDirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredDirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
-                m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
+                m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", 2 /* Less */); // Shade if stencil is not 0 and not SSS
                 m_DeferredDirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredDirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -495,8 +495,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SelectKeyword(m_DeferredIndirectMaterialSRT, tileKeywords, 1);
                 m_DeferredIndirectMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredIndirectMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
-                m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
+                m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", 2 /* Less */); // Shade if stencil is not 0 and not SSS
                 m_DeferredIndirectMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredIndirectMaterialSRT.SetInt("_DstBlend", (int)BlendMode.One); // Additive color & alpha source
 
@@ -513,8 +513,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Utilities.SelectKeyword(m_DeferredAllMaterialSRT, tileKeywords, 2);
                 m_DeferredAllMaterialSRT.EnableKeyword("LIGHTLOOP_TILE_PASS");
                 m_DeferredAllMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
-                m_DeferredAllMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
+                m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_DeferredAllMaterialSRT.SetInt("_StencilCmp", 2 /* Less */); // Shade if stencil is not 0 and not SSS
                 m_DeferredAllMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_DeferredAllMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -532,8 +532,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SingleDeferredMaterialSRT = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/Deferred");
                 m_SingleDeferredMaterialSRT.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
                 m_SingleDeferredMaterialSRT.DisableKeyword("OUTPUT_SPLIT_LIGHTING");
-                m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)StencilBits.Standard);
-                m_SingleDeferredMaterialSRT.SetInt("_StencilCmp", 4 /* LEqual */);
+                m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)StencilBits.SSS);
+                m_SingleDeferredMaterialSRT.SetInt("_StencilCmp", 2 /* Less */); // Shade if stencil is not 0 and not SSS
                 m_SingleDeferredMaterialSRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_SingleDeferredMaterialSRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
@@ -1838,8 +1838,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            // Note: in the enum StencilBits, Standard is before SSS and the stencil is setup to greater equal. So the code below is draw all stencil bit except SSS
-                            m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.Standard : StencilBits.SSS));
+                            // The stencil test uses a LESS comparison mode.
+                            // If asked to disable SSS, we set the material ID of SSS materials to Standard, and shade all pixels with non-zero stencil values.
+                            m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.SSS : 0));
+
                             Utilities.DrawFullScreen(cmd, m_SingleDeferredMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
                         }
                     }
@@ -1968,12 +1970,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 }
                                 else
                                 {
-                                    // Note: in the enum StencilBits, Standard is before SSS and the stencil is setup to greater equal. So the code below is draw all stencil bit except SSS
-                                    m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.Standard : StencilBits.SSS));
+                                    // The stencil test uses a LESS comparison mode.
+                                    // If asked to disable SSS, we set the material ID of SSS materials to Standard, and shade all pixels with non-zero stencil values.
+                                    m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.SSS : 0));
+                                    m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.SSS : 0));
+
                                     Utilities.SelectKeyword(m_DeferredDirectMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredDirectMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
 
-                                    m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.Standard : StencilBits.SSS));
                                     Utilities.SelectKeyword(m_DeferredIndirectMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredIndirectMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
                                 }
@@ -1987,8 +1991,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 }
                                 else
                                 {
-                                    // Note: in the enum StencilBits, Standard is before SSS and the stencil is setup to greater equal. So the code below is draw all stencil bit except SSS
-                                    m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.Standard : StencilBits.SSS));
+                                    // The stencil test uses a LESS comparison mode.
+                                    // If asked to disable SSS, we set the material ID of SSS materials to Standard, and shade all pixels with non-zero stencil values.
+                                    m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.NonSSS : StencilBits.SSS));
+
                                     Utilities.SelectKeyword(m_DeferredAllMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);
                                 }
