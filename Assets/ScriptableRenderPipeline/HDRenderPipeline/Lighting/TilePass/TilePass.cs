@@ -2059,7 +2059,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 {
                                     // The stencil test uses a LESS comparison mode.
                                     // If asked to disable SSS, we set the material ID of SSS materials to Standard, and shade all pixels with non-zero stencil values.
-                                    m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.Standard : StencilBits.SSS));
+                                    m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)(debugDisplaySettings.renderingDebugSettings.enableSSS ? StencilBits.NonSSS : StencilBits.SSS));
 
                                     Utilities.SelectKeyword(m_DeferredAllMaterialSRT, "USE_CLUSTERED_LIGHTLIST", "USE_FPTL_LIGHTLIST", bUseClusteredForDeferred);
                                     Utilities.DrawFullScreen(cmd, m_DeferredAllMaterialSRT, hdCamera, colorBuffers[0], depthStencilBuffer);

@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -267,10 +268,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
             // Set the reference value for the stencil test.
-            int stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.Standard;
+            int stencilRef = (int)StencilBits.NonSSS;
             if (material.HasProperty(kMaterialID))
             {
-                stencilRef = 1 + (int)material.GetFloat(kMaterialID);
+                if ((int)material.GetFloat(kMaterialID) == (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS)
+                {
+                    stencilRef = (int)StencilBits.SSS;
+                }
             }
             material.SetInt(kStencilRef, stencilRef);
 
