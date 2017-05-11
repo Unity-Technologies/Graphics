@@ -120,6 +120,54 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        [SerializeField] private Material m_DefaultDiffuseMaterial;
+
+        public Material DefaultDiffuseMaterial
+        {
+            get { return m_DefaultDiffuseMaterial; }
+            private set { m_DefaultDiffuseMaterial = value; }
+        }
+
+        public override Material GetDefaultMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultParticleMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultLineMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultTerrainMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultUIMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultUIOverdrawMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultUIETC1SupportedMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefault2DMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
         public void ApplyDebugDisplaySettings()
         {
             m_ShadowSettings.enabled = debugDisplaySettings.lightingDebugSettings.enableShadows;
