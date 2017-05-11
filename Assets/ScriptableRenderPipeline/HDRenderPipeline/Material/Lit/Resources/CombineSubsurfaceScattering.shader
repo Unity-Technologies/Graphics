@@ -30,12 +30,15 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #pragma fragment Frag
 
             #pragma multi_compile _ SSS_FILTER_HORIZONTAL_AND_COMBINE
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             //-------------------------------------------------------------------------------------
             // Include
             //-------------------------------------------------------------------------------------
 
             #include "../../../../ShaderLibrary/Common.hlsl"
+            #include "../../../Debug/DebugDisplay.hlsl"
+
             #include "../../../ShaderConfig.cs.hlsl"
             #include "../../../ShaderVariables.hlsl"
             #define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl
