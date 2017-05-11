@@ -138,17 +138,20 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                bool editable = true;
+                bool editable = m_SourceNode.enabled;
 
-                VFXSlot slot = model;
-                while (slot != null)
+                if( editable)
                 {
-                    if (slot.LinkedSlots.Count > 0)
+                    VFXSlot slot = model;
+                    while (slot != null)
                     {
-                        editable = false;
-                        break;
+                        if (slot.LinkedSlots.Count > 0)
+                        {
+                            editable = false;
+                            break;
+                        }
+                        slot = slot.GetParent();
                     }
-                    slot = slot.GetParent();
                 }
 
                 return editable;
