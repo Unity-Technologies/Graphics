@@ -8,13 +8,13 @@ namespace UnityEditor.VFX
     abstract class VFXBlock : VFXSlotContainerModel<VFXContext, VFXModel>
     {
         [SerializeField]
-        protected bool m_Enabled = true;
+        protected bool m_Disabled = false;
 
         public bool enabled
         {
-            get { return m_Enabled;}
+            get { return !m_Disabled;}
             set {
-                m_Enabled = value;
+                m_Disabled = !value;
                 Invalidate(this,InvalidationCause.kStructureChanged);
             }
         }

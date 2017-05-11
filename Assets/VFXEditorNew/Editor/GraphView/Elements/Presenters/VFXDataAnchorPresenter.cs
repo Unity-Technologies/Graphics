@@ -152,6 +152,15 @@ namespace UnityEditor.VFX.UI
                         }
                         slot = slot.GetParent();
                     }
+
+
+                    foreach(VFXSlot child in model.children)
+                    {
+                        if(child.LinkedSlots.Count > 0)
+                        {
+                            editable = false;
+                        }
+                    }
                 }
 
                 return editable;
