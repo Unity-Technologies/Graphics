@@ -7,20 +7,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialId
         {
-            LitStandard = 0,
-            LitSSS = 1,
+            LitSSS      = 0,
+            LitStandard = 1,
             LitSpecular = 2,
-            LitUnused = 3,
-            LitAniso = 4 // Should be the last as it is not setup by the users but generated based on anisotropy property
+            LitUnused   = 3,
+            LitAniso    = 4 // Should be the last as it is not setup by the users but generated based on anisotropy property
         };
 
         [GenerateHLSL]
         public class MaterialFeatureFlags
         {
-            public static uint FEATURE_FLAG_MATERIAL_LIT_STANDARD = 1 << 12;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_SSS = 1 << 13;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_SSS      = 1 << 12;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_STANDARD = 1 << 13;
             public static uint FEATURE_FLAG_MATERIAL_LIT_SPECULAR = 1 << 14;
-            public static uint FEATURE_FLAG_MATERIAL_LIT_ANISO = 1 << 15;
+            public static uint FEATURE_FLAG_MATERIAL_LIT_ANISO    = 1 << 15;
         }
 
         //-----------------------------------------------------------------------------
@@ -227,10 +227,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_InitPreFGD = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
-                // TODO: switch to RGBA64 when it becomes available.
-                m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                // Value for DisneyDiffuse integration are slightly above one (1.05)
+                m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
                 m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
                 m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
+                m_PreIntegratedFGD.hideFlags = HideFlags.DontSave;
                 m_PreIntegratedFGD.Create();
 
                 m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)

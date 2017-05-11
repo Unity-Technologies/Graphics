@@ -75,18 +75,6 @@ struct DirectionalLightData
     int cookieIndex;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.ShadowData
-// PackingRules = Exact
-struct ShadowData
-{
-    float4x4 worldToShadow;
-    float bias;
-    float quality;
-    float unused;
-    float unused2;
-    float4 invResolution;
-};
-
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
 // PackingRules = Exact
 struct EnvLightData
@@ -235,34 +223,6 @@ int GetShadowIndex(DirectionalLightData value)
 int GetCookieIndex(DirectionalLightData value)
 {
 	return value.cookieIndex;
-}
-
-//
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.ShadowData
-//
-float4x4 GetWorldToShadow(ShadowData value)
-{
-	return value.worldToShadow;
-}
-float GetBias(ShadowData value)
-{
-	return value.bias;
-}
-float GetQuality(ShadowData value)
-{
-	return value.quality;
-}
-float GetUnused(ShadowData value)
-{
-	return value.unused;
-}
-float GetUnused2(ShadowData value)
-{
-	return value.unused2;
-}
-float4 GetInvResolution(ShadowData value)
-{
-	return value.invResolution;
 }
 
 //

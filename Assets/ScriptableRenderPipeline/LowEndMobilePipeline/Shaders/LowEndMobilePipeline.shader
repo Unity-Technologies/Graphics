@@ -16,7 +16,6 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
         [Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
         _Cube ("Reflection Cubemap", CUBE) = "" {}
-        _ReflectColor("Reflection Color", Color) = (1, 1, 1, 1)
         _ReflectionSource("Reflection Source", Float) = 0
 
         [HideInInspector] _SpecSource("Specular Color Source", Float) = 0.0
@@ -72,9 +71,10 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             #pragma shader_feature _ _SPECGLOSSMAP _SPECGLOSSMAP_BASE_ALPHA _SPECULAR_COLOR
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _EMISSION_MAP
-            #pragma shader_feature _CUBEMAP_REFLECTION
+            #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ _LIGHT_PROBES_ON
             #pragma multi_compile _ _HARD_SHADOWS _SOFT_SHADOWS _HARD_SHADOWS_CASCADES _SOFT_SHADOWS_CASCADES
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile_fog
@@ -112,21 +112,20 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 o.normal = normal;
 #endif
 
-#if _VERTEX_LIGHTS
+#if defined(_VERTEX_LIGHTS)
                 half4 diffuseAndSpecular = half4(1.0, 1.0, 1.0, 1.0);
-                for (int lightIndex = globalLightCount.x; lightIndex < globalLightCount.y; ++lightIndex)
+                for (int lightIndex = globalLightData.x; lightIndex < globalLightData.y; ++lightIndex)
                 {
                     LightInput lightInput;
+                    half NdotL;
                     INITIALIZE_LIGHT(lightInput, lightIndex);
-                    o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS, o.viewDir.xyz);
+                    o.fogCoord.yzw += EvaluateOneLight(lightInput, diffuseAndSpecular.rgb, diffuseAndSpecular, normal, o.posWS, o.viewDir.xyz, NdotL);
                 }
 #endif
 
-#ifndef _SHADOW_CASCADES
-                o.shadowCoord = mul(_WorldToShadow[0], float4(o.posWS, 1.0));
-#endif
-
+#ifdef _LIGHT_PROBES_ON
                 o.fogCoord.yzw += max(half3(0, 0, 0), ShadeSH9(half4(normal, 1)));
+#endif
 
                 UNITY_TRANSFER_FOG(o, o.hpos);
                 return o;
@@ -150,34 +149,51 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 half4 specularGloss;
                 SpecularGloss(i.uv01.xy, diffuse, alpha, specularGloss);
 
-                // Indirect Light Contribution
-                half3 indirect;
-                Indirect(i, diffuse, normal, alpha, indirect);
+                half3 viewDir = i.viewDir.xyz;
+
+                // TODO: Restrict pixel lights by 4. This way we can keep moderate constrain for most LD project
+                // and can benefit from better data layout/avoid branching by doing vec math.
+                half3 color = half3(0, 0, 0);
+                for (int lightIndex = 0; lightIndex < globalLightData.x; ++lightIndex)
+                {
+                    LightInput lightData;
+                    half NdotL;
+                    INITIALIZE_LIGHT(lightData, lightIndex);
+                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL); 
+#ifdef _SHADOWS
+                    if (lightIndex == 0)
+                    {
+                    	#if _NORMALMAP
+                    	float3 vertexNormal = float3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
+                    	#else
+                    	float3 vertexNormal = i.normal;
+                    	#endif
+                        float bias = max(globalLightData.z, (1.0 - NdotL) * globalLightData.w);
+                        color *= ComputeShadowAttenuation(i, vertexNormal * bias);
+                    }
+#endif
+                }
 
                 half3 emissionColor;
                 Emission(i, emissionColor);
+                color += emissionColor;
 
-                // Compute direct contribution from main directional light.
-                // Only a single directional shadow caster is supported.
-                LightInput mainLight;
-                INITIALIZE_LIGHT(mainLight, 0);
-
-                half3 viewDir = i.viewDir.xyz;
-
-                half3 directColor = EvaluateOneLight(mainLight, diffuse, specularGloss, normal, i.posWS, viewDir);
-#ifdef _SHADOWS
-                directColor *= ComputeShadowAttenuation(i);
+#if defined(LIGHTMAP_ON)
+                color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
+#elif defined(_VERTEX_LIGHTS) || defined(_LIGHT_PROBES_ON)
+                color += i.fogCoord.yzw * diffuse;
 #endif
 
-                // Compute direct contribution from additional lights.
-                for (int lightIndex = 1; lightIndex < globalLightCount.x; ++lightIndex)
-                {
-                    LightInput additionalLight;
-                    INITIALIZE_LIGHT(additionalLight, lightIndex);
-                    directColor += EvaluateOneLight(additionalLight, diffuse, specularGloss, normal, i.posWS, viewDir);
-                }
+#if _REFLECTION_CUBEMAP
+                // TODO: we can use reflect vec to compute specular instead of half when computing cubemap reflection
+                half3 reflectVec = reflect(-i.viewDir.xyz, normal);
+                color += texCUBE(_Cube, reflectVec).rgb * specularGloss.rgb;
+#elif defined(_REFLECTION_PROBE)
+                half3 reflectVec = reflect(-i.viewDir.xyz, normal);
+                half4 reflectionProbe = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflectVec);
+                color += reflectionProbe.rgb * (reflectionProbe.a * unity_SpecCube0_HDR.x) * specularGloss.rgb;
+#endif
 
-                half3 color = directColor + indirect + emissionColor;
                 UNITY_APPLY_FOG(i.fogCoord, color);
 
                 return OutputColor(color, alpha);
@@ -197,50 +213,17 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             #pragma vertex vert
             #pragma fragment frag
 
-            float4 _WorldLightDirAndBias;
-
             #include "UnityCG.cginc"
 
-            struct VertexInput
+            float4 vert(float4 pos : POSITION) : SV_POSITION
             {
-                float4 pos : POSITION;
-                float3 normal : NORMAL;
-            };
-
-            // Similar to UnityClipSpaceShadowCasterPos but using LDPipeline lightdir and bias and applying near plane clamp
-            float4 ClipSpaceShadowCasterPos(float4 vertex, float3 normal)
-            {
-                float4 wPos = mul(unity_ObjectToWorld, vertex);
-
-                if (_WorldLightDirAndBias.w > 0.0)
-                {
-                    float3 wNormal = UnityObjectToWorldNormal(normal);
-
-                    // apply normal offset bias (inset position along the normal)
-                    // bias needs to be scaled by sine between normal and light direction
-                    // (http://the-witness.net/news/2013/09/shadow-mapping-summary-part-1/)
-                    //
-                    // _WorldLightDirAndBias.w shadow bias defined in LRRenderPipeline asset
-
-                    float shadowCos = dot(wNormal, _WorldLightDirAndBias.xyz);
-                    float shadowSine = sqrt(1 - shadowCos*shadowCos);
-                    float normalBias = _WorldLightDirAndBias.w * shadowSine;
-
-                    wPos.xyz -= wNormal * normalBias;
-                }
-
-                float4 clipPos = mul(UNITY_MATRIX_VP, wPos);
+            	float4 clipPos = UnityObjectToClipPos(pos);
 #if defined(UNITY_REVERSED_Z)
                 clipPos.z = min(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #else
                 clipPos.z = max(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #endif
                 return clipPos;
-            }
-
-            float4 vert(VertexInput i) : SV_POSITION
-            {
-                return ClipSpaceShadowCasterPos(i.pos, i.normal);
             }
 
             half4 frag() : SV_TARGET
@@ -250,28 +233,28 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             ENDCG
         }
 
-                // This pass it not used during regular rendering, only for lightmap baking.
-                Pass
-                {
-                    Name "LD_META"
-                    Tags{ "LightMode" = "Meta" }
+        // This pass it not used during regular rendering, only for lightmap baking.
+        Pass
+        {
+            Name "LD_META"
+            Tags{ "LightMode" = "Meta" }
 
-                    Cull Off
+            Cull Off
 
-                    CGPROGRAM
-                    #pragma vertex vert_meta
-                    #pragma fragment frag_meta
+            CGPROGRAM
+            #pragma vertex vert_meta
+            #pragma fragment frag_meta
 
-                    #pragma shader_feature _EMISSION
-                    #pragma shader_feature _METALLICGLOSSMAP
-                    #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-                    #pragma shader_feature ___ _DETAIL_MULX2
-                    #pragma shader_feature EDITOR_VISUALIZATION
+            #pragma shader_feature _EMISSION
+            #pragma shader_feature _METALLICGLOSSMAP
+            #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature ___ _DETAIL_MULX2
+            #pragma shader_feature EDITOR_VISUALIZATION
 
-                    #include "UnityStandardMeta.cginc"
-                    ENDCG
-                }
+            #include "UnityStandardMeta.cginc"
+            ENDCG
         }
-        Fallback "Standard (Specular setup)"
-        CustomEditor "LowendMobilePipelineMaterialEditor"
+    }
+    Fallback "Standard (Specular setup)"
+    CustomEditor "LowendMobilePipelineMaterialEditor"
 }
