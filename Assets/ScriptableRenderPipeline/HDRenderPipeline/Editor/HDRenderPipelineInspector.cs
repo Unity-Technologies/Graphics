@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public static GUIContent defaults = new GUIContent("Defaults");
             public static GUIContent defaultDiffuseMaterial = new GUIContent("Default Diffuse Material", "Material to use when creating objects");
+            public static GUIContent defaultShader = new GUIContent("Default Shader", "Shader to use when creating materials");
 
             public readonly GUIContent settingsLabel = new GUIContent("Settings");
 
@@ -97,6 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         private SerializedProperty m_DefaultDiffuseMaterial;
+        private SerializedProperty m_DefaultShader;
 
         // Display Debug
         SerializedProperty m_ShowMaterialDebug = null;
@@ -131,6 +133,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void InitializeProperties()
         {
             m_DefaultDiffuseMaterial = serializedObject.FindProperty("m_DefaultDiffuseMaterial");
+            m_DefaultShader = serializedObject.FindProperty("m_DefaultShader");
 
             // DebugDisplay debug
             m_DebugOverlayRatio = FindProperty(x => x.debugDisplaySettings.debugOverlayRatio);
@@ -482,6 +485,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(Styles.defaults, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_DefaultDiffuseMaterial, Styles.defaultDiffuseMaterial);
+            EditorGUILayout.PropertyField(m_DefaultShader, Styles.defaultShader);
             EditorGUI.indentLevel--;
 
             DebuggingUI(renderContext, renderpipelineInstance);
