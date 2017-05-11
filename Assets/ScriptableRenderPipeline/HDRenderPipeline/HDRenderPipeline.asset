@@ -18,10 +18,8 @@ MonoBehaviour:
     displayMaterialDebug: 1
     displayRenderingDebug: 0
     displayLightingDebug: 0
-    debugDisplayMode: 0
-    materialDebugSettings:
-      debugViewMaterial: 1002
     lightingDebugSettings:
+      debugLightingMode: 0
       enableShadows: 1
       shadowDebugMode: 0
       shadowMapIndex: 0
@@ -52,7 +50,7 @@ MonoBehaviour:
     enabled: 1
     shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
-    maxShadowDistance: 1000
+    maxShadowDistance: 400
     directionalLightCascadeCount: 4
     directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
     directionalLightNearPlaneOffset: 5
@@ -68,3 +66,6 @@ MonoBehaviour:
     m_ShadowCascadeSplit2: 0.3
     m_ShadowNearPlaneOffset: 5
   m_SkySettings: {fileID: 0}
+  m_DefaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
+    type: 2}
+  m_DefaultShader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}

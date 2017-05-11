@@ -120,6 +120,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        [SerializeField] private Material m_DefaultDiffuseMaterial;
+        [SerializeField] private Shader m_DefaultShader;
+
+        public Material DefaultDiffuseMaterial
+        {
+            get { return m_DefaultDiffuseMaterial; }
+            private set { m_DefaultDiffuseMaterial = value; }
+        }
+        public override Shader GetDefaultShader()
+        {
+            return m_DefaultShader;
+        }
+
+        public override Material GetDefaultMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultParticleMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultLineMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultTerrainMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultUIMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultUIOverdrawMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefaultUIETC1SupportedMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
+        public override Material GetDefault2DMaterial()
+        {
+            return m_DefaultDiffuseMaterial;
+        }
+
         public void ApplyDebugDisplaySettings()
         {
             m_ShadowSettings.enabled = debugDisplaySettings.lightingDebugSettings.enableShadows;
@@ -822,15 +875,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
             m_FilterSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
-            Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera,
-                m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
+            Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera, m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
+
+            // when recombining the lighting, we apply albedo. This need to be modified in case of debug display with diffuse lighting only.
+            Utilities.SetKeyword(m_FilterAndCombineSubsurfaceScattering, "DEBUG_DISPLAY", debugDisplaySettings.IsDebugDisplayEnabled());
 
             // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
             m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
             m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
-            Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera,
-                m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
+            Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
