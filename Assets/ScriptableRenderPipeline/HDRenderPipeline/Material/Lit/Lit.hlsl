@@ -558,9 +558,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
         iblR = reflect(-V, anisoIblNormalWS);
-        // @Sébastien: I preserved the original behavior by creating 'anisoIblNormalWS', but,
-        // from the performance standpoint, it would be best to store the value in 'iblNormalWS'
-        // and then use it in GetSpecularDominantDir(). Please reconsider. :-) -Evgenii
     }
 
     // IBL
