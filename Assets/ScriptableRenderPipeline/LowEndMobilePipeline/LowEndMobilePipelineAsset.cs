@@ -73,6 +73,8 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
 
         [SerializeField] private Material m_DefaultDiffuseMaterial;
 
+        [SerializeField] private Shader m_DefaultShader;
+
         public int MaxSupportedPixelLights
         {
             get { return m_MaxPixelLights; }
@@ -196,6 +198,10 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
         public override Material GetDefault2DMaterial()
         {
             return m_DefaultDiffuseMaterial;
+        }
+        public override Shader GetDefaultShader()
+        {
+            return m_DefaultShader;
         }
     }
 }
