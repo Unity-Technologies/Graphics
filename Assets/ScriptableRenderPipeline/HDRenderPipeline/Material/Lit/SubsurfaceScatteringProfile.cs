@@ -5,6 +5,12 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [GenerateHLSL]
+    public class SSSConstants
+    {
+        public const int SSS_PROFILES_MAX = 8;
+    }
+
     [Serializable]
     public class SubsurfaceScatteringProfile : ScriptableObject
     {
@@ -13,35 +19,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int numSamples = 11; // Must be an odd number
 
         [ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
-        public Color         scatterDistance1;
+        public Color            scatterDistance1;
         [ColorUsage(false, true, 0.05f, 2.0f, 1.0f, 1.0f)]
-        public Color         scatterDistance2;
-        public float         lerpWeight;
-        public TexturingMode texturingMode;
-        public bool          enableTransmission;
-        public Color         tintColor;
-        public Vector2       thicknessRemap;
+        public Color            scatterDistance2;
+        public float            lerpWeight;
+        public TexturingMode    texturingMode;
+        public bool             enableTransmission;
+        public bool             enableThinObject;
+        public Color            tintColor;
+        public Vector2          thicknessRemap;
         [HideInInspector]
-        public int           settingsIndex;
+        public int              settingsIndex;
         [SerializeField]
-        Vector4[]            m_FilterKernel;
+        Vector4[]               m_FilterKernel;
         [SerializeField]
-        Vector3[]            m_HalfRcpVariances;
+        Vector3[]               m_HalfRcpVariances;
         [SerializeField]
-        Vector4              m_HalfRcpWeightedVariances;
+        Vector4                 m_HalfRcpWeightedVariances;
 
         // --- Public Methods ---
 
         public SubsurfaceScatteringProfile()
         {
-            scatterDistance1   = new Color(0.3f, 0.3f, 0.3f, 0.0f);
-            scatterDistance2   = new Color(0.6f, 0.6f, 0.6f, 0.0f);
-            lerpWeight         = 0.5f;
-            texturingMode      = TexturingMode.PreAndPostScatter;
-            enableTransmission = false;
-            tintColor          = Color.white;
-            thicknessRemap     = new Vector2(0, 1);
-            settingsIndex      = SubsurfaceScatteringSettings.neutralProfileID; // Updated by SubsurfaceScatteringSettings.OnValidate() once assigned
+            scatterDistance1    = new Color(0.3f, 0.3f, 0.3f, 0.0f);
+            scatterDistance2    = new Color(0.6f, 0.6f, 0.6f, 0.0f);
+            lerpWeight          = 0.5f;
+            texturingMode       = TexturingMode.PreAndPostScatter;
+            enableTransmission  = false;
+            enableThinObject  = false;
+            tintColor           = Color.white;
+            thicknessRemap      = new Vector2(0, 1);
+            settingsIndex       = SubsurfaceScatteringSettings.neutralProfileID; // Updated by SubsurfaceScatteringSettings.OnValidate() once assigned
 
             UpdateKernelAndVarianceData();
         }
@@ -204,14 +212,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class SubsurfaceScatteringSettings : ISerializationCallbackReceiver
     {
-        public const int maxNumProfiles   = 8;
-        public const int neutralProfileID = maxNumProfiles - 1;
+        public const int neutralProfileID = SSSConstants.SSS_PROFILES_MAX - 1;
 
         public int                           numProfiles;
         public SubsurfaceScatteringProfile[] profiles;
         // Below is the cache filled during OnValidate().
         [NonSerialized] public int           texturingModeFlags;    // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-        [NonSerialized] public int           transmissionFlags;     // 1 bit/profile; 0 = inf. thick, 1 = supports transmission
+        [NonSerialized] public float[]       transmissionType;      // TODO: no int array suppport in shader in Unity :(
         [NonSerialized] public Vector4[]     tintColors;            // For transmission; alpha is unused
         [NonSerialized] public float[]       thicknessRemaps;       // Remap: 0 = start, 1 = end - start
         [NonSerialized] public Vector4[]     halfRcpVariancesAndLerpWeights;
@@ -225,8 +232,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             numProfiles                    = 1;
             profiles                       = new SubsurfaceScatteringProfile[numProfiles];
             profiles[0]                    = null;
+            transmissionType                = null;
             texturingModeFlags             = 0;
-            transmissionFlags              = 0;
             tintColors                     = null;
             thicknessRemaps                = null;
             halfRcpVariancesAndLerpWeights = null;
@@ -239,7 +246,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void OnValidate()
         {
             // Reserve one slot for the neutral profile.
-            numProfiles = Math.Min(profiles.Length, maxNumProfiles - 1);
+            numProfiles = Math.Min(profiles.Length, SSSConstants.SSS_PROFILES_MAX - 1);
 
             if (profiles.Length != numProfiles)
             {
@@ -294,32 +301,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCache()
         {
-            texturingModeFlags = 0;
-            transmissionFlags  = 0;
+            texturingModeFlags  = 0;
 
-            if (tintColors == null || tintColors.Length != maxNumProfiles)
+            if (transmissionType == null || transmissionType.Length != (SSSConstants.SSS_PROFILES_MAX))
             {
-                tintColors = new Vector4[maxNumProfiles];
+                transmissionType = new float[SSSConstants.SSS_PROFILES_MAX];
             }
 
-            if (thicknessRemaps == null || thicknessRemaps.Length != (maxNumProfiles * 2))
+            if (tintColors == null || tintColors.Length != SSSConstants.SSS_PROFILES_MAX)
             {
-                thicknessRemaps = new float[maxNumProfiles * 2];
+                tintColors = new Vector4[SSSConstants.SSS_PROFILES_MAX];
             }
 
-            if (halfRcpVariancesAndLerpWeights == null || halfRcpVariancesAndLerpWeights.Length != (maxNumProfiles * 2))
+            if (thicknessRemaps == null || thicknessRemaps.Length != (SSSConstants.SSS_PROFILES_MAX * 2))
             {
-                halfRcpVariancesAndLerpWeights = new Vector4[maxNumProfiles * 2];
+                thicknessRemaps = new float[SSSConstants.SSS_PROFILES_MAX * 2];
             }
 
-            if (halfRcpWeightedVariances == null || halfRcpWeightedVariances.Length != maxNumProfiles)
+            if (halfRcpVariancesAndLerpWeights == null || halfRcpVariancesAndLerpWeights.Length != (SSSConstants.SSS_PROFILES_MAX * 2))
             {
-                halfRcpWeightedVariances = new Vector4[maxNumProfiles];
+                halfRcpVariancesAndLerpWeights = new Vector4[SSSConstants.SSS_PROFILES_MAX * 2];
             }
 
-            if (filterKernels == null || filterKernels.Length != (maxNumProfiles * SubsurfaceScatteringProfile.numSamples))
+            if (halfRcpWeightedVariances == null || halfRcpWeightedVariances.Length != SSSConstants.SSS_PROFILES_MAX)
             {
-                filterKernels = new Vector4[maxNumProfiles * SubsurfaceScatteringProfile.numSamples];
+                halfRcpWeightedVariances = new Vector4[SSSConstants.SSS_PROFILES_MAX];
+            }
+
+            if (filterKernels == null || filterKernels.Length != (SSSConstants.SSS_PROFILES_MAX * SubsurfaceScatteringProfile.numSamples))
+            {
+                filterKernels = new Vector4[SSSConstants.SSS_PROFILES_MAX * SubsurfaceScatteringProfile.numSamples];
             }
 
             for (int i = 0; i < numProfiles; i++)
@@ -328,7 +339,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (profiles[i] == null) continue;
 
                 texturingModeFlags |= ((int)profiles[i].texturingMode) << i;
-                transmissionFlags  |= (profiles[i].enableTransmission ? 1 : 0) << i;
+                if (profiles[i].enableTransmission)
+                {
+                    transmissionType[i] = (float)(profiles[i].enableThinObject ? Lit.TransmissionType.ThinObject :Lit.TransmissionType.Regular);
+                }
+                else
+                {
+                    transmissionType[i] = (float)Lit.TransmissionType.None;
+                }
 
                 tintColors[i]                               = profiles[i].tintColor;
                 thicknessRemaps[2 * i]                      = profiles[i].thicknessRemap.x;
@@ -422,6 +440,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             };
             public readonly GUIContent   sssProfileTransmission    = new GUIContent("Enable Transmission", "Toggles simulation of light passing through thin objects. Depends on the thickness of the material.");
             public readonly GUIContent   sssProfileTintColor       = new GUIContent("Transmission Tint Color", "Tints transmitted light.");
+            public readonly GUIContent   sssProfileThinObject    = new GUIContent("Enable Thin Object", "Define is the object is thin (paper, leaf) or not. Allow to get cheap transmission and shadow.");
             public readonly GUIContent   sssProfileMinMaxThickness = new GUIContent("Min-Max Thickness", "Shows the values of the thickness remap below (in centimeters).");
             public readonly GUIContent   sssProfileThicknessRemap  = new GUIContent("Thickness Remap", "Remaps the thickness parameter from [0, 1] to the desired range (in centimeters).");
 
@@ -451,7 +470,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private RenderTexture      m_ProfileImage, m_TransmittanceImage;
         private Material           m_ProfileMaterial, m_TransmittanceMaterial;
-        private SerializedProperty m_ScatterDistance1, m_ScatterDistance2, m_LerpWeight, m_TintColor,
+        private SerializedProperty m_ScatterDistance1, m_ScatterDistance2, m_LerpWeight, m_TintColor, m_ThinObject,
                                    m_TexturingMode, m_Transmission, m_ThicknessRemap;
 
         void OnEnable()
@@ -461,6 +480,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LerpWeight       = serializedObject.FindProperty("lerpWeight");
             m_TexturingMode    = serializedObject.FindProperty("texturingMode");
             m_Transmission     = serializedObject.FindProperty("enableTransmission");
+            m_ThinObject     = serializedObject.FindProperty("enableThinObject");
             m_TintColor        = serializedObject.FindProperty("tintColor");
             m_ThicknessRemap   = serializedObject.FindProperty("thicknessRemap");
 
@@ -483,6 +503,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TexturingMode.intValue = EditorGUILayout.Popup(styles.sssTexturingMode, m_TexturingMode.intValue, styles.sssTexturingModeOptions);
                 EditorGUILayout.PropertyField(m_Transmission,     styles.sssProfileTransmission);
                 EditorGUILayout.PropertyField(m_TintColor,        styles.sssProfileTintColor);
+
+                EditorGUILayout.PropertyField(m_ThinObject,     styles.sssProfileThinObject);
 
                 EditorGUILayout.PropertyField(m_ThicknessRemap, styles.sssProfileMinMaxThickness);
                 Vector2 thicknessRemap = m_ThicknessRemap.vector2Value;
@@ -513,11 +535,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
 
             // Draw the transmittance graph.
-            m_TransmittanceMaterial.SetColor("_StdDev1",         stdDev1);
-            m_TransmittanceMaterial.SetColor("_StdDev2",         stdDev2);
-            m_TransmittanceMaterial.SetFloat("_LerpWeight",      m_LerpWeight.floatValue);
+            m_TransmittanceMaterial.SetColor("_StdDev1", stdDev1);
+            m_TransmittanceMaterial.SetColor("_StdDev2", stdDev2);
+            m_TransmittanceMaterial.SetFloat("_LerpWeight", m_LerpWeight.floatValue);
             m_TransmittanceMaterial.SetVector("_ThicknessRemap", m_ThicknessRemap.vector2Value);
-            m_TransmittanceMaterial.SetVector("_TintColor",      m_TintColor.colorValue);
+            m_TransmittanceMaterial.SetVector("_TintColor", m_TintColor.colorValue);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImage, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
 
             serializedObject.ApplyModifiedProperties();
