@@ -40,6 +40,13 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1013)
 
 //
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit.TransmissionType:  static fields
+//
+#define TRANSMISSIONTYPE_NONE (0)
+#define TRANSMISSIONTYPE_REGULAR (1)
+#define TRANSMISSIONTYPE_THIN_OBJECT (2)
+
+//
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit.BSDFData:  static fields
 //
 #define DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR (1030)
@@ -57,7 +64,7 @@
 #define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_RADIUS (1042)
 #define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1043)
 #define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE (1044)
-#define DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION (1045)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMISSION_TYPE (1045)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1046)
 
 //
@@ -104,7 +111,7 @@ struct BSDFData
     float subsurfaceRadius;
     float thickness;
     int subsurfaceProfile;
-    bool enableTransmission;
+    int transmissionType;
     float3 transmittance;
 };
 
@@ -215,8 +222,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE:
             result = GetIndexColor(bsdfdata.subsurfaceProfile);
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION:
-            result = (bsdfdata.enableTransmission) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
+        case DEBUGVIEW_LIT_BSDFDATA_TRANSMISSION_TYPE:
+            result = GetIndexColor(bsdfdata.transmissionType);
             break;
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE:
             result = bsdfdata.transmittance;
