@@ -75,6 +75,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
+        [GenerateHLSL(PackingRules.Exact)]
+        public enum TransmissionType
+        {
+            None = 0,
+            Regular = 1,
+            ThinObject = 2,
+        };
+
         [GenerateHLSL(PackingRules.Exact, false, true, 1030)]
         public struct BSDFData
         {
@@ -108,8 +116,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float   subsurfaceRadius;
             public float   thickness;
             public int     subsurfaceProfile;
-            public bool    enableTransmission; // Read from the SSS profile
-            public bool    enableThinMaterial; // Read from the SSS profile
+            public TransmissionType transmissionType; // Compute from the SSS profile. 0 is none, 1 is regular transmission, 2 is thin transmission
             public Vector3 transmittance; // Compute from SSS profile
 
             // SpecColor
