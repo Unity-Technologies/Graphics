@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        protected override void DrawEdge(IStylePainter painter)
+        internal override void DrawEdge(IStylePainter painter)
         {
             var edgePresenter = GetPresenter<EdgePresenter>();
 

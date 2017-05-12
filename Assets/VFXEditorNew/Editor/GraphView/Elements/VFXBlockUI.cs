@@ -130,7 +130,7 @@ namespace UnityEditor.VFX.UI
             this.enabled = m_EnableToggle.on = presenter.Model.enabled;
         }
 
-        public override void DoRepaint(IStylePainter painter)
+        internal override void DoRepaint(IStylePainter painter)
         {
             base.DoRepaint(painter);
         }

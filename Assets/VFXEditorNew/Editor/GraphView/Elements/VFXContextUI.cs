@@ -92,7 +92,7 @@ namespace UnityEditor.VFX.UI
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
-            phaseInterest = EventPhase.BubbleUp;
+            phaseInterest = PropagationPhase.BubbleUp;
 
             m_FlowInputConnectorContainer = new VisualContainer()
             {
@@ -594,7 +594,7 @@ namespace UnityEditor.VFX.UI
 
         FilterPopup m_PopupManipulator;
 
-        public override void DoRepaint(IStylePainter painter)
+        internal override void DoRepaint(IStylePainter painter)
         {
             base.DoRepaint(painter);
         }
