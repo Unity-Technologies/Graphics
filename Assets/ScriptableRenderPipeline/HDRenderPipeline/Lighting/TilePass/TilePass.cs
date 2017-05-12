@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
@@ -749,7 +749,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
             {
-                // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarly chosen but should work well enough.
+                // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
                 float distanceFadeNear = 0.9f * fadeDistance;
                 return 1.0f - Mathf.Clamp01((distanceToCamera - distanceFadeNear) / (fadeDistance - distanceFadeNear));
             }
@@ -1177,13 +1177,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     float oldSpecularGlobalDimmer = m_PassSettings.specularGlobalDimmer;
-                    // Change some parameters in case of "special" rendering (can be preview, reflection, etc.
+                    // Change some parameters in case of "special" rendering (can be preview, reflection, etc.)
                     if (camera.cameraType == CameraType.Reflection)
                     {
                         m_PassSettings.specularGlobalDimmer = 0.0f;
                     }
 
-                    // 1. Count the number of lights and sort all light by category, type and volume
+                    // 1. Count the number of lights and sort all lights by category, type and volume - This is required for the fptl/cluster shader code
+                    // If we reach maximum of lights available on screen, then we discard the light.
+                    // Lights are processed in order, so we don't discards light based on their importance but based on their ordering in visible lights list.
                     int directionalLightcount = 0;
                     int punctualLightcount = 0;
                     int areaLightCount = 0;
@@ -1293,7 +1295,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
                     m_CurrentSunLight = null;
 
-                    // 2. Go thought all lights, convert them to GPU format.
+                    // 2. Go through all lights, convert them to GPU format.
                     // Create simultaneously data for culling (LigthVolumeData and rendering)
                     var worldToView = WorldToCamera(camera);
 
