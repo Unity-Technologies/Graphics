@@ -630,7 +630,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Forward opaque with deferred/cluster tile require that we fill the depth buffer
             // correctly to build the light list.
-            // TODO: avoid double lighting by tagging stencil or gbuffer that we must not lit.
             RenderForwardOnlyOpaqueDepthPrepass(cullResults, camera, renderContext);
             RenderGBuffer(cullResults, camera, renderContext);
 
@@ -649,7 +648,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_LightLoop != null)
                 {
-                    using (new Utilities.ProfilingSample("Build Light list", renderContext))
+                    using (new Utilities.ProfilingSample("Build Light list and render shadows", renderContext))
                     {
                         m_LightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera);
                         m_LightLoop.RenderShadows(renderContext, cullResults);
