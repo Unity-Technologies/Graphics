@@ -1144,17 +1144,30 @@ namespace UnityEngine.Experimental.Rendering
                 GPUShadowType shadowType = GPUShadowType.Point;
 
                 AdditionalLightData ald = vl.light.GetComponent<AdditionalLightData>();
-                Vector3 lpos            = new Vector3( vl.localToWorld.GetColumn( 3 ).x, vl.localToWorld.GetColumn( 3 ).y, vl.localToWorld.GetColumn( 3 ).z );
+                Vector3 lpos            = vl.light.transform.position;
                 float   distToCam       = (campos - lpos).magnitude;
-                bool    add             = distToCam < ald.shadowFadeDistance;
+                // TODO: Directional light (not projector), should not test shadowFadeDistance
+                bool    add             = distToCam < ald.shadowFadeDistance && m_ShadowSettings.enabled;
 
                 if( add )
                 {
                     switch( vl.lightType )
                     {
-                        case LightType.Directional  : add = --m_MaxShadows[(int)GPUShadowType.Directional  , 0] >= 0; shadowType = GPUShadowType.Directional; facecount = m_ShadowSettings.directionalLightCascadeCount; break;
-                        case LightType.Point        : add = --m_MaxShadows[(int)GPUShadowType.Point        , 0] >= 0; shadowType = GPUShadowType.Point      ; facecount = 6; break;
-                        case LightType.Spot         : add = --m_MaxShadows[(int)GPUShadowType.Spot         , 0] >= 0; shadowType = GPUShadowType.Spot       ; facecount = 1; break;
+                        case LightType.Directional: 
+                            add = --m_MaxShadows[(int)GPUShadowType.Directional, 0] >= 0; 
+                            shadowType = GPUShadowType.Directional; 
+                            facecount = m_ShadowSettings.directionalLightCascadeCount; 
+                            break;
+                        case LightType.Point: 
+                            add = --m_MaxShadows[(int)GPUShadowType.Point, 0] >= 0; 
+                            shadowType = GPUShadowType.Point; 
+                            facecount = 6; 
+                            break;
+                        case LightType.Spot: 
+                            add = --m_MaxShadows[(int)GPUShadowType.Spot, 0] >= 0;
+                            shadowType = GPUShadowType.Spot; 
+                            facecount = 1; 
+                            break;
                     }
                 }
 

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -21,12 +21,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public virtual void NewFrame() {}
 
         public virtual int GetCurrentShadowCount() { return 0; }
+
         public virtual void UpdateCullingParameters( ref CullingParameters cullingParams ) {}
         public virtual void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera) {}
         public virtual void RenderShadows(ScriptableRenderContext renderContext, CullResults cullResults) {}
         
         // TODO: this should not be part of the interface but for now make something working
-        public virtual void BuildGPULightLists(Camera camera, ScriptableRenderContext loop, RenderTargetIdentifier cameraDepthBufferRT) {}
+        public virtual void BuildGPULightLists(Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT) {}
 
         public virtual void RenderDeferredLighting( HDCamera hdCamera, ScriptableRenderContext renderContext,
                                                     DebugDisplaySettings debugDisplaySettings,
@@ -38,5 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public virtual void RenderLightingDebug(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer) {}
 
         public Light GetCurrentSunLight() { return m_CurrentSunLight;  }
+
+        public virtual void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width) { }
     }
 }
