@@ -27,19 +27,14 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 
     // Output UV coordinate in vertex shader
     if (unity_MetaVertexControl.x)
-    {
         inputMesh.positionOS.xy = inputMesh.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
-        // OpenGL right now needs to actually use incoming vertex position,
-        // so use it in a very dummy way
-        //v.positionOS.z = vertex.z > 0 ? 1.0e-4 : 0.0;
-    }
+
     if (unity_MetaVertexControl.y)
-    {
         inputMesh.positionOS.xy = inputMesh.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-        // OpenGL right now needs to actually use incoming vertex position,
-        // so use it in a very dummy way
-        //v.positionOS.z = vertex.z > 0 ? 1.0e-4 : 0.0;
-    }
+
+    // Zero out the Z component. However, OpenGL right now needs to actually use the incoming vertex
+    // position, so also take this opportunity to create a dependence on it.
+    inputMesh.positionOS.z = inputMesh.positionOS.z > 0 ? 1.0e-4 : 0.0;
 
     float3 positionWS = TransformObjectToWorld(inputMesh.positionOS);
     output.vmesh.positionCS = TransformWorldToHClip(positionWS);

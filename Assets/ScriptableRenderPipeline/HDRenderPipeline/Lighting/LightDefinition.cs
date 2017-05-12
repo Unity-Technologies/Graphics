@@ -81,22 +81,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     };
 
 
-    // TODO: we may have to add various parameters here for shadow - was suppose to be coupled with a light loop
-    // A point light is 6x PunctualShadowData
-    [GenerateHLSL]
-    public struct ShadowData
-    {
-        // World to ShadowMap matrix
-        // Include scale and bias for shadow atlas if any
-        public Matrix4x4 worldToShadow;
-
-        public float bias;
-        public float quality;
-        public float unused;
-        public float unused2;
-        public Vector4 invResolution;
-    };
-
     [GenerateHLSL]
     public enum EnvShapeType
     {

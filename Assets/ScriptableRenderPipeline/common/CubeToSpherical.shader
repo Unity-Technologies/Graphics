@@ -68,9 +68,8 @@ half4 frag (v2f i) : SV_Target
     uint2 pixCoord = ((uint2) i.vertex.xy);
 
     half3 dir = SphericalTexCoordinateToDirection(i.texcoord.xy);
-    half3 res = UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float) _cubeMipLvl).xyz;
-
-    return half4(res,1.0);
+    
+    return (half4) UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float) _cubeMipLvl);
 }
 
 ENDCG

@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -63,8 +64,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // Properties
         // Material ID
-        protected MaterialProperty materialID = null;
-        protected const string kMaterialID = "_MaterialID";
+        protected MaterialProperty materialID  = null;
+        protected const string     kMaterialID = "_MaterialID";
+
+        protected const string     kStencilRef = "_StencilRef";
 
         // Wind
         protected MaterialProperty windEnable = null;
@@ -264,25 +267,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool depthOffsetEnable = material.GetFloat(kDepthOffsetEnable) > 0.0f;
             SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
-            int stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.Standard; // See 'StencilBits'.
+            // Set the reference value for the stencil test.
+            int stencilRef = (int)StencilBits.NonSSS;
             if (material.HasProperty(kMaterialID))
             {
-                int materialID = (int)material.GetFloat(kMaterialID);
-
-                switch (materialID)
+                if ((int)material.GetFloat(kMaterialID) == (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS)
                 {
-                    case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitSSS:
-                        stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.SSS;
-                        break;
-                    case (int)UnityEngine.Experimental.Rendering.HDPipeline.Lit.MaterialId.LitStandard:
-                        stencilRef = (int)UnityEngine.Experimental.Rendering.HDPipeline.StencilBits.Standard;
-                        break;
-                    default:
-                        stencilRef = 1 + materialID;
-                        break;
+                    stencilRef = (int)StencilBits.SSS;
                 }
             }
-            material.SetInt("_StencilRef", stencilRef);
+            material.SetInt(kStencilRef, stencilRef);
 
             bool enablePerPixelDisplacement = material.GetFloat(kEnablePerPixelDisplacement) > 0.0f;
             SetKeyword(material, "_PER_PIXEL_DISPLACEMENT", enablePerPixelDisplacement);

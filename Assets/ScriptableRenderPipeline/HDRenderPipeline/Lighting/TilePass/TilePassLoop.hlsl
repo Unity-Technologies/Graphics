@@ -1,19 +1,19 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
 
 void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef DEBUG_DISPLAY
-    if (_DebugDisplayMode == DEBUGDISPLAYMODE_DIFFUSE_LIGHTING)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
     {
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
-    else if (_DebugDisplayMode == DEBUGDISPLAYMODE_SPECULAR_LIGHTING)
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING)
     {
         diffuseLighting = float3(0.0, 0.0, 0.0); // Disable diffuse lighting
     }
-    else if (_DebugDisplayMode == DEBUGDISPLAYMODE_VISUALIZE_CASCADE)
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_VISUALIZE_CASCADE)
     {
         specularLighting = float3(0.0, 0.0, 0.0);
 
@@ -24,13 +24,11 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
             float3(1.0, 1.0, 0.0)
         };
 
-#ifdef SHADOWS_USE_SHADOWCTXT
-        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
-#else
-        float shadow = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
-#endif
+        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, float3(0.0, 1.0, 0.0 ), 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
+        float4 dirShadowSplitSpheres[4];
+        uint payloadOffset = EvalShadow_LoadSplitSpheres(lightLoopContext.shadowContext, 0, dirShadowSplitSpheres);
+        int shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows(positionWS, dirShadowSplitSpheres);
 
-        int shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _DirShadowSplitSpheres);
         if (shadowSplitIndex == -1)
             diffuseLighting = float3(0.0, 0.0, 0.0);
         else
@@ -142,13 +140,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
-#ifndef SHADOWS_USE_SHADOWCTXT
-    ZERO_INITIALIZE(LightLoopContext, context);
-#else
     context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
-#endif
 
     diffuseLighting = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -311,13 +305,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
-#ifndef SHADOWS_USE_SHADOWCTXT
-    ZERO_INITIALIZE(LightLoopContext, context);
-#else
     context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
-#endif
 
     diffuseLighting = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);

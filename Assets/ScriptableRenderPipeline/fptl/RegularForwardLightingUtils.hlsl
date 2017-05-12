@@ -6,7 +6,7 @@
 
 
 StructuredBuffer<SFiniteLightData> g_vLightData;
-Buffer<uint> g_vLightListMeshInst;          // build on CPU if in use. direct lights first, then reflection probes.
+StructuredBuffer<uint> g_vLightListMeshInst;          // build on CPU if in use. direct lights first, then reflection probes. (don't support Buffer yet in unity, so using structured)
 
 uniform int g_numLights;
 uniform int g_numReflectionProbes;
