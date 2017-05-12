@@ -352,6 +352,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Material m_SingleDeferredMaterialSRT   = null;
             Material m_SingleDeferredMaterialMRT   = null;
 
+            // For displaying shadow map
+            private Material m_DebugDisplayShadowMap;
+
             // shadow related stuff
             FrameId                 m_FrameId = new FrameId();
             ShadowSetup             m_ShadowSetup; // doesn't actually have to reside here, it would be enough to pass the IShadowManager in from the outside
@@ -545,6 +548,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SingleDeferredMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_SingleDeferredMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
+                m_DebugDisplayShadowMap = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayShadowMap");
+
                 m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
                 m_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
                 m_DefaultTexture2DArray.Apply();
@@ -607,6 +612,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Utilities.Destroy(m_SingleDeferredMaterialSRT);
                 Utilities.Destroy(m_SingleDeferredMaterialMRT);
+
+                Utilities.Destroy(m_DebugDisplayShadowMap);
 
                 Utilities.Destroy(s_DefaultAdditionalLightDataGameObject);
                 s_DefaultAdditionalLightDataGameObject = null;
@@ -1899,7 +1906,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture1", Shader.PropertyToID("_GBufferTexture1"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture2", Shader.PropertyToID("_GBufferTexture2"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture3", Shader.PropertyToID("_GBufferTexture3"));
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "g_tShadowBuffer", Shader.PropertyToID("g_tShadowBuffer"));
 
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcData", Shader.GetGlobalTexture(Shader.PropertyToID("_LtcData")));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_PreIntegratedFGD", Shader.GetGlobalTexture("_PreIntegratedFGD"));
@@ -2036,6 +2042,54 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
+            }
+
+            public override void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
+            {
+                CommandBuffer debugCB = new CommandBuffer();
+                debugCB.name = "Lit Debug Overlay";
+
+                MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+
+                LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
+
+                if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
+                {
+                    if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
+                    {
+                        /*
+                        uint visualizeShadowIndex = Math.Min(lightingDebug.shadowMapIndex, (uint)(GetCurrentShadowCount() - 1));
+                        ShadowLight shadowLight = m_ShadowsResult.shadowLights[visualizeShadowIndex];
+                        for (int slice = 0; slice < shadowLight.shadowSliceCount; ++slice)
+                        {
+                            ShadowSliceData sliceData = m_ShadowsResult.shadowSlices[shadowLight.shadowSliceIndex + slice];
+
+                            Vector4 texcoordScaleBias = new Vector4((float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasWidth,
+                                    (float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasHeight,
+                                    (float)sliceData.atlasX / m_Owner.shadowSettings.shadowAtlasWidth,
+                                    (float)sliceData.atlasY / m_Owner.shadowSettings.shadowAtlasHeight);
+
+                            propertyBlock.SetVector("_TextureScaleBias", texcoordScaleBias);
+
+                            debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                            debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
+
+                            Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+                        }
+                         */
+                    }
+                    else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
+                    {
+                        propertyBlock.SetVector("_TextureScaleBias", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+
+                        debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                        debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
+
+                        Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+                    }
+                }
+
+                renderContext.ExecuteCommandBuffer(debugCB);
             }
         }
     }

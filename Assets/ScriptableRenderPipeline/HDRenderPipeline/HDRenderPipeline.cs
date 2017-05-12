@@ -295,8 +295,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Various set of material use in render loop
         readonly Material m_FilterSubsurfaceScattering;
         readonly Material m_FilterAndCombineSubsurfaceScattering;
-
-        private Material m_DebugDisplayShadowMap;
+        
         private Material m_DebugViewMaterialGBuffer;
         private Material m_DebugDisplayLatlong;
 
@@ -401,8 +400,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         void InitializeDebugMaterials()
-        {
-            m_DebugDisplayShadowMap = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayShadowMap");
+        {            
             m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
             m_DebugDisplayLatlong = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayLatlong");
         }
@@ -421,8 +419,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LightLoop.Cleanup();
 
             m_LitRenderLoop.Cleanup();
-
-            Utilities.Destroy(m_DebugDisplayShadowMap);
+            
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
             Utilities.Destroy(m_DebugDisplayLatlong);
 
@@ -1028,16 +1025,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void NextOverlayCoord(ref float x, ref float y, float overlaySize, float width)
-        {
-            x += overlaySize;
-            // Go to next line if it goes outside the screen.
-            if (x + overlaySize > width)
-            {
-                x = 0;
-                y -= overlaySize;
-            }
-        }
+
 
         void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext)
         {
@@ -1057,42 +1045,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
 
-            if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
-            {
-                if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
-                {
-#if SHADOWS_OLD
-                    uint visualizeShadowIndex = Math.Min(lightingDebug.shadowMapIndex, (uint)(GetCurrentShadowCount() - 1));
-                    ShadowLight shadowLight = m_ShadowsResult.shadowLights[visualizeShadowIndex];
-                    for (int slice = 0; slice < shadowLight.shadowSliceCount; ++slice)
-                    {
-                        ShadowSliceData sliceData = m_ShadowsResult.shadowSlices[shadowLight.shadowSliceIndex + slice];
-
-                        Vector4 texcoordScaleBias = new Vector4((float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasWidth,
-                                (float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasHeight,
-                                (float)sliceData.atlasX / m_Owner.shadowSettings.shadowAtlasWidth,
-                                (float)sliceData.atlasY / m_Owner.shadowSettings.shadowAtlasHeight);
-
-                        propertyBlock.SetVector("_TextureScaleBias", texcoordScaleBias);
-
-                        debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                        debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
-
-                        NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
-                    }
-#endif
-                }
-                else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
-                {
-                    propertyBlock.SetVector("_TextureScaleBias", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-
-                    debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                    debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
-
-                    NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
-                }
-            }
-
             if (lightingDebug.displaySkyReflection)
             {
                 Texture skyReflection = m_SkyManager.skyReflection;
@@ -1100,10 +1052,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 propertyBlock.SetFloat("_Mipmap", lightingDebug.skyReflectionMipmap);
                 debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
                 debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayLatlong, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
-                NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+                Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
             }
 
             renderContext.ExecuteCommandBuffer(debugCB);
+
+            if (m_LightLoop != null)
+                m_LightLoop.RenderDebugOverlay(camera, renderContext, debugDisplaySettings, ref x, ref y, overlaySize, camera.pixelWidth);            
         }
 
         void InitAndClearBuffer(Camera camera, ScriptableRenderContext renderContext)
