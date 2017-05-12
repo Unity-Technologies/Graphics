@@ -183,24 +183,21 @@ float GetHorizonOcclusion(float3 V, float3 normalWS, float3 vertexNormal, float 
 // Helper functions
 //-----------------------------------------------------------------------------
 
-// NdotV can be negative for visible pixels due to the perspective projection, the normal mapping and decals.
-// This can produce visible artifacts with direct specular lighting (white point, black point) and indirect specular (artifact with cubemap fetch)
-// A way to reduce artifact is to limit NdotV value to not be negative and calculate reflection vector for cubemap with a shifted normal (i.e what depends on the view)
-// This is what provide this function
-// Note: NdotV return by this function is always positive, no need for saturate
-float GetShiftedNdotV(inout float3 N, float3 V)
+// 'NdotV' can become negative for visible pixels due to the perspective projection, normal mapping and decals.
+// This can produce visible artifacts under specular lighting, both direct (overly dark/bright pixels) and indirect (incorrect cubemap direction).
+// One way of avoiding these artifacts is to limit the value of 'NdotV' to a small positive number,
+// and calculate the reflection vector for the cubemap fetch using a normal shifted into view.
+float3 GetViewShiftedNormal(float3 N, float3 V, float NdotV, float minNdotV)
 {
-    float NdotV = dot(N, V);
-    const float limit = 0.0001; // Epsilon value that avoid divide by 0 (several BSDF divide by NdotV)
-
-    if (NdotV < limit)
+    if (NdotV < minNdotV)
     {
-        // We do not renormalize the normal because { abs(length(N) - 1.0) < limit } + It is use for cubemap
-        N    += (-NdotV + limit) * V;
-        NdotV = limit;
+        // We do not renormalize the normal to save a few clock cycles.
+        // The magnitude difference is typically negligible, and the normal is only used to compute
+        // the reflection vector for the IBL cube map fetch (which does not depend on the magnitude).
+        N += (-NdotV + minNdotV) * V;
     }
 
-    return NdotV;
+    return N;
 }
 
 // Generates an orthonormal basis from a unit vector.

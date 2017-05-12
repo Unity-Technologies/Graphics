@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SkyRenderer             m_Renderer = null;
         int                     m_SkyParametersHash = -1;
         bool                    m_NeedLowLevelUpdateEnvironment = false;
-        bool                    m_UpdateRequired = true;
+        int                     m_UpdatedFramesRequired = 2; // The first frame after the scene load is currently not rendered correctly
         float                   m_CurrentUpdateTime = 0.0f;
 
         bool                    m_useMIS = false;
@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_SkyParametersHash = -1;
                 m_SkySettings = value;
-                m_UpdateRequired = true;
+                m_UpdatedFramesRequired = 2;
 
                 if (value != null)
                 {
@@ -213,7 +213,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_SkyboxConditionalCdfRT.Create();
                 }
 
-                m_UpdateRequired = true; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
+                m_UpdatedFramesRequired = 2; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
             }
 
             m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
@@ -371,7 +371,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RequestEnvironmentUpdate()
         {
-            m_UpdateRequired = true;
+            m_UpdatedFramesRequired = Math.Max(m_UpdatedFramesRequired, 1);
         }
 
         public void UpdateEnvironment(HDCamera camera, Light sunLight, ScriptableRenderContext renderContext)
@@ -402,7 +402,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.sunLight = sunLight;
 
                     if (
-                        (skySettings.updateMode == EnvironementUpdateMode.OnDemand && m_UpdateRequired) ||
+                        m_UpdatedFramesRequired > 0 ||
                         (skySettings.updateMode == EnvironementUpdateMode.OnChanged && skySettings.GetHash() != m_SkyParametersHash) ||
                         (skySettings.updateMode == EnvironementUpdateMode.Realtime && m_CurrentUpdateTime > skySettings.updatePeriod)
                         )
@@ -419,7 +419,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderCubemapGGXConvolution(renderContext, m_BuiltinParameters, skySettings, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
                         m_NeedLowLevelUpdateEnvironment = true;
-                        m_UpdateRequired = false;
+                        m_UpdatedFramesRequired--;
                         m_SkyParametersHash = skySettings.GetHash();
                         m_CurrentUpdateTime = 0.0f;
                     }

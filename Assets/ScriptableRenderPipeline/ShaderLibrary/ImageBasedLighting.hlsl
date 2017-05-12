@@ -289,7 +289,7 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
         {
             float3 H = normalize(L + V);
             float LdotH = dot(L, H);
-            float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, RoughnessToPerceptualRoughness(roughness));
+            float disneyDiffuse = DisneyDiffuseNoPI(NdotV, NdotL, LdotH, RoughnessToPerceptualRoughness(roughness));
 
             acc.z += disneyDiffuse * weightOverPdf;
         }

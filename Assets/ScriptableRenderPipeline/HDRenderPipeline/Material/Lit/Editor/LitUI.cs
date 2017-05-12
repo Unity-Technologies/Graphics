@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Experimental.Rendering.HDPipeline.Lit;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -54,6 +55,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent thicknessText = new GUIContent("Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
             public static GUIContent thicknessMapText = new GUIContent("Thickness map", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
 
+            // Specular color
+            public static GUIContent specularColorText = new GUIContent("Specular Color", "Specular color (RGB)");
+
             // Emissive
             public static string lightingText = "Inputs Lighting";
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
@@ -96,14 +100,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseEmissiveMask,
         }
 
-        public enum MaterialIDType
-        {
-            Standard = 0,
-            SubsurfaceScattering = 1,
-            ClearCoat = 2,
-            SpecularColor = 3
-        }
-
         protected MaterialProperty UVBase = null;
         protected const string kUVBase = "_UVBase";
         protected MaterialProperty TexWorldScale = null;
@@ -143,6 +139,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kAnisotropy = "_Anisotropy";
         protected MaterialProperty anisotropyMap = null;
         protected const string kAnisotropyMap = "_AnisotropyMap";
+        protected MaterialProperty specularColor = null;
+        protected const string kSpecularColor = "_SpecularColor";
+        protected MaterialProperty specularColorMap = null;
+        protected const string kSpecularColorMap = "_SpecularColorMap";
 
         protected MaterialProperty UVDetail = null;
         protected const string kUVDetail = "_UVDetail";
@@ -202,6 +202,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tangentMap = FindProperty(kTangentMap, props);
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
+            specularColor = FindProperty(kSpecularColor, props);
+            specularColorMap = FindProperty(kSpecularColorMap, props);
 
             // Details
             UVDetail = FindProperty(kUVDetail, props);
@@ -328,13 +330,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            if ((MaterialIDType)materialID.floatValue == MaterialIDType.Standard)
+            switch ((MaterialId)materialID.floatValue)
             {
-                ShaderStandardInputGUI();
-            }
-            else if ((MaterialIDType)materialID.floatValue == MaterialIDType.SubsurfaceScattering)
-            {
-                ShaderSSSInputGUI(material);
+                case MaterialId.LitSSS:
+                    ShaderSSSInputGUI(material);
+                    break;
+                case MaterialId.LitStandard:
+                    ShaderStandardInputGUI();
+                    break;
+                case MaterialId.LitSpecular:
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
+                    break;
+                default:
+                    Debug.Assert(false, "Encountered an unsupported MaterialID.");
+                    break;
             }
 
             EditorGUILayout.Space();
@@ -429,7 +438,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
             SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
             SetKeyword(material, "_SUBSURFACE_RADIUS_MAP", material.GetTexture(kSubsurfaceRadiusMap));
-            SetKeyword(material, "_THICKNESS_MAP", material.GetTexture(kThicknessMap));
+            SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
+            SetKeyword(material, "_SPECULARCOLORMAP", material.GetTexture(kSpecularColorMap));
 
             bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
             bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;

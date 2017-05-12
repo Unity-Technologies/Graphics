@@ -14,9 +14,9 @@ namespace UnityEngine.Experimental.Rendering
         protected DebugMenuItem m_MenuItem = null;
 
         // Label for simple GUI items
-        GUIContent m_Label;
-        List<GUIContent> m_EnumStrings = null;
-        List<int> m_EnumValues = null;
+        protected GUIContent m_Label;
+        protected List<GUIContent> m_EnumStrings = null;
+        protected List<int> m_EnumValues = null;
 
         public DebugItemDrawer()
         {
@@ -68,14 +68,14 @@ namespace UnityEngine.Experimental.Rendering
             }
             else if (m_MenuItem.GetItemType().BaseType == typeof(System.Enum))
             {
-                newItemUI = new DebugMenuEnumItemUI(parent, menuItem, m_Label.text, m_EnumStrings, m_EnumValues);
+                newItemUI = new DebugMenuEnumItemUI(parent, menuItem, m_Label.text, m_EnumStrings.ToArray(), m_EnumValues.ToArray());
             }
 
             return newItemUI;
         }
 
 #if UNITY_EDITOR
-        void DrawBoolItem()
+        bool DrawBoolItem()
         {
             bool value = (bool)m_MenuItem.GetValue();
             if (m_MenuItem.readOnly)
@@ -89,11 +89,14 @@ namespace UnityEngine.Experimental.Rendering
                 if (EditorGUI.EndChangeCheck())
                 {
                     m_MenuItem.SetValue(value);
+                    return true;
                 }
             }
+
+            return false;
         }
 
-        void DrawIntItem()
+        bool DrawIntItem()
         {
             int value = (int)m_MenuItem.GetValue();
             if (m_MenuItem.readOnly)
@@ -107,11 +110,14 @@ namespace UnityEngine.Experimental.Rendering
                 if (EditorGUI.EndChangeCheck())
                 {
                     m_MenuItem.SetValue(value);
+                    return true;
                 }
             }
+
+            return false;
         }
 
-        void DrawUIntItem()
+        bool DrawUIntItem()
         {
             int value = (int)(uint)m_MenuItem.GetValue();
             if (m_MenuItem.readOnly)
@@ -126,11 +132,14 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     value = System.Math.Max(0, value);
                     m_MenuItem.SetValue((uint)value);
+                    return true;
                 }
             }
+
+            return false;
         }
 
-        void DrawFloatItem()
+        bool DrawFloatItem()
         {
             float value = (float)m_MenuItem.GetValue();
             if(m_MenuItem.readOnly)
@@ -144,56 +153,67 @@ namespace UnityEngine.Experimental.Rendering
                 if (EditorGUI.EndChangeCheck())
                 {
                     m_MenuItem.SetValue(value);
+                    return true;
                 }
             }
+
+            return false;
         }
 
-        void DrawColorItem()
+        bool DrawColorItem()
         {
             EditorGUI.BeginChangeCheck();
             Color value = EditorGUILayout.ColorField(m_Label, (Color)m_MenuItem.GetValue());
             if (EditorGUI.EndChangeCheck())
             {
                 m_MenuItem.SetValue(value);
+                return true;
             }
+
+            return false;
         }
 
-        void DrawEnumItem()
+        bool DrawEnumItem()
         {
             EditorGUI.BeginChangeCheck();
             int value = EditorGUILayout.IntPopup(m_Label, (int)m_MenuItem.GetValue(), m_EnumStrings.ToArray(), m_EnumValues.ToArray());
             if (EditorGUI.EndChangeCheck())
             {
                 m_MenuItem.SetValue(value);
+                return true;
             }
+
+            return false;
         }
 
-        public virtual void OnEditorGUI()
+        public virtual bool OnEditorGUI()
         {
             if (m_MenuItem.GetItemType() == typeof(bool))
             {
-                DrawBoolItem();
+                return DrawBoolItem();
             }
             else if (m_MenuItem.GetItemType() == typeof(int))
             {
-                DrawIntItem();
+                return DrawIntItem();
             }
             else if(m_MenuItem.GetItemType() == typeof(uint))
             {
-                DrawUIntItem();
+                return DrawUIntItem();
             }
             else if (m_MenuItem.GetItemType() == typeof(float))
             {
-                DrawFloatItem();
+                return DrawFloatItem();
             }
             else if (m_MenuItem.GetItemType() == typeof(Color))
             {
-                DrawColorItem();
+                return DrawColorItem();
             }
             else if (m_MenuItem.GetItemType().BaseType == typeof(System.Enum))
             {
-                DrawEnumItem();
+                return DrawEnumItem();
             }
+
+            return false;
         }
 #endif
 }
@@ -221,15 +241,52 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        public override void OnEditorGUI()
+        public override bool OnEditorGUI()
         {
             EditorGUI.BeginChangeCheck();
             float value = EditorGUILayout.Slider(m_MenuItem.name, (float)m_MenuItem.GetValue(), m_Min, m_Max);
             if (EditorGUI.EndChangeCheck())
             {
                 m_MenuItem.SetValue(value);
+                return true;
             }
+
+            return false;
         }
 #endif
     }
+
+    public class DebugItemDrawerIntEnum
+        : DebugItemDrawer
+    {
+        GUIContent[]    m_EnumStrings = null;
+        int[]           m_EnumValues = null;
+
+        public DebugItemDrawerIntEnum(GUIContent[] enumStrings, int[] enumValues)
+        {
+            m_EnumStrings = enumStrings;
+            m_EnumValues = enumValues;
+        }
+
+        public override DebugMenuItemUI BuildGUI(GameObject parent, DebugMenuItem menuItem)
+        {
+            return new DebugMenuEnumItemUI(parent, menuItem, m_Label.text, m_EnumStrings, m_EnumValues);
+        }
+
+#if UNITY_EDITOR
+        public override bool OnEditorGUI()
+        {
+            UnityEditor.EditorGUI.BeginChangeCheck();
+            int value = UnityEditor.EditorGUILayout.IntPopup(m_Label, (int)m_MenuItem.GetValue(), m_EnumStrings, m_EnumValues);
+            if (UnityEditor.EditorGUI.EndChangeCheck())
+            {
+                m_MenuItem.SetValue(value);
+                return true;
+            }
+
+            return false;
+        }
+#endif
+    }
+
 }
