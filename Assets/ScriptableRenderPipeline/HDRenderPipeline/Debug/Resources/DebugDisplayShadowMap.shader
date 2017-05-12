@@ -18,10 +18,11 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayShadowMap"
 
             #include "../../../ShaderLibrary/Common.hlsl"
 
-            TEXTURE2D_FLOAT(g_tShadowBuffer);
+            #define SHADOW_TILEPASS // TODO: Not sure it must be define, ask uygar
+            #include "../../../ShaderLibrary/Shadow/Shadow.hlsl"
+            #undef SHADOW_TILEPASS
 
-            TEXTURE2D(_DummyTexture);
-            SAMPLER2D(sampler_DummyTexture);
+            SamplerState ltc_linear_clamp_sampler;
 
             float4 _TextureScaleBias;
 
@@ -47,9 +48,10 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayShadowMap"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                // We need the dummy texture for the sampler, but we also need to sample it in order not to get a compile error.
-                float4 dummy = SAMPLE_TEXTURE2D(_DummyTexture, sampler_DummyTexture, input.texcoord) * 0.00001;
-                return SAMPLE_TEXTURE2D(g_tShadowBuffer, sampler_DummyTexture, input.texcoord).xxxx + dummy;
+                ShadowContext shadowContext = InitShadowContext();
+
+                // Caution: ShadowContext is define in Shadowcontext.hlsl for current render pipeline. This shader must be in sync with its content else it doesn't work. 
+                return SAMPLE_TEXTURE2D_ARRAY(_ShadowmapExp_PCF, ltc_linear_clamp_sampler, input.texcoord, 0).xxxx;
             }
 
             ENDHLSL
