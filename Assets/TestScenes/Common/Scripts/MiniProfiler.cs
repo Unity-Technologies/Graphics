@@ -31,10 +31,9 @@ public class MiniProfiler : MonoBehaviour {
         new RecorderEntry() { name="RenderLoop.Draw" },
 //        new RecorderEntry() { name="BatchRenderer.Flush" },
         new RecorderEntry() { name="Shadows.Draw" },
-        new RecorderEntry() { name="BatchRenderer.ApplyShaderPass" },
-            new RecorderEntry() { name="Batch.DrawStatic" },
-//        new RecorderEntry() { name="gDrawBatchPointers" },
-        new RecorderEntry() { name="DrawBuffersBatchMode" },
+//        new RecorderEntry() { name="BatchRenderer.ApplyShaderPass" },
+//            new RecorderEntry() { name="Batch.DrawStatic" },
+//        new RecorderEntry() { name="DrawBuffersBatchMode" },
 /*
         new RecorderEntry() { name="NewBatch.Instances" },
         new RecorderEntry() { name="NewBatch.Elements" },
@@ -141,7 +140,7 @@ public class MiniProfiler : MonoBehaviour {
 			}
 */
             GUI.color = new Color(1, 1, 1, .75f);
-            float w = 500, h = recordersList.Length * 18 + 24;
+            float w = 500, h = 24 + (recordersList.Length+1) * 16 + 8;
 
             GUILayout.BeginArea(new Rect(10, 50, w, h), "Mini Profiler", GUI.skin.window);
             string sLabel = System.String.Format("<b>{0:F2} FPS ({1:F2}ms)</b>\n", 1.0f / m_AvgDeltaTime, Time.deltaTime * 1000.0f);
