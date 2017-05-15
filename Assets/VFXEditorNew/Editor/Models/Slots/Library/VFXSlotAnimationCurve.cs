@@ -4,5 +4,11 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(AnimationCurve))]
-    class VFXSlotAnimationCurve : VFXSlot {}
+    class VFXSlotAnimationCurve : VFXSlot
+    {
+        protected override VFXValue DefaultExpression()
+        {
+            return new VFXValue<AnimationCurve>(new AnimationCurve(), false);
+        }
+    }
 }
