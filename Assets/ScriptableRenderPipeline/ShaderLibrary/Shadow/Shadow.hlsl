@@ -17,7 +17,7 @@
 
 #define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0 // only on >= sm 5.1
 
-#include "../../common/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
+#include "../../Core/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
 #include "ShadowTexFetch.hlsl"						// Resource sampling definitions (don't modify)
 
 // Declares a shadow context struct with members and sampling code based on whether _...Slots > 0

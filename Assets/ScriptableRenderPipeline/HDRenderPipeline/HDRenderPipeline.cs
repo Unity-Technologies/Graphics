@@ -128,6 +128,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_DefaultDiffuseMaterial; }
             private set { m_DefaultDiffuseMaterial = value; }
         }
+
+        public Shader DefaultShader
+        {
+            get { return m_DefaultShader; }
+            private set { m_DefaultShader = value; }
+        }
+
         public override Shader GetDefaultShader()
         {
             return m_DefaultShader;
@@ -295,7 +302,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Various set of material use in render loop
         readonly Material m_FilterSubsurfaceScattering;
         readonly Material m_FilterAndCombineSubsurfaceScattering;
-        
+
         private Material m_DebugViewMaterialGBuffer;
         private Material m_DebugDisplayLatlong;
 
@@ -400,7 +407,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         void InitializeDebugMaterials()
-        {            
+        {
             m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
             m_DebugDisplayLatlong = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayLatlong");
         }
@@ -419,7 +426,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LightLoop.Cleanup();
 
             m_LitRenderLoop.Cleanup();
-            
+
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
             Utilities.Destroy(m_DebugDisplayLatlong);
 
@@ -1058,7 +1065,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderContext.ExecuteCommandBuffer(debugCB);
 
             if (m_LightLoop != null)
-                m_LightLoop.RenderDebugOverlay(camera, renderContext, debugDisplaySettings, ref x, ref y, overlaySize, camera.pixelWidth);            
+                m_LightLoop.RenderDebugOverlay(camera, renderContext, debugDisplaySettings, ref x, ref y, overlaySize, camera.pixelWidth);
         }
 
         void InitAndClearBuffer(Camera camera, ScriptableRenderContext renderContext)
