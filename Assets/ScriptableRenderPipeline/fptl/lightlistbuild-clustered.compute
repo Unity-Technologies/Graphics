@@ -6,7 +6,7 @@
 #pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile		LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile		ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED		USE_TWO_PASS_TILED_LIGHTING
 #pragma kernel ClearAtomic
 
-#include "..\common\ShaderBase.h"
+#include "ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
 #include "LightingConvexHullUtils.hlsl"
 
@@ -135,7 +135,7 @@ bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float suggest
 		for(int p=0; p<6; p++)
 		{
 			float4 plane = lightPlanes[6*(l&3)+p];
-		
+
 			bool bAllInvisib = true;
 
 			for(int i=0; i<8; i++)
@@ -266,7 +266,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 	int iNrCoarseLights = min(lightOffs,MAX_NR_COARSE_ENTRIES);
-	
+
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(TILE_SIZE_CLUSTERED/2,TILE_SIZE_CLUSTERED/2), uint2(iWidth-1, iHeight-1))) );
 #endif
@@ -317,7 +317,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 
 	//////////////////////////////////////////////////////////
-	
+
 	uint start = 0;
 	int i=(int) t;
 	int iSpaceAvail = 0;
@@ -381,7 +381,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 float4 FetchPlane(int l, int p)
 {
 	SFiniteLightBound lgtDat = g_data[coarseList[l]];
-	
+
 	const float3 boxX = lgtDat.boxAxisX.xyz;
 	const float3 boxY = lgtDat.boxAxisY.xyz;
 	const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip axis (so it points away from the light direction for a spot-light)
@@ -407,7 +407,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
 	float halfTileSizeAtZDistOne = (TILE_SIZE_CLUSTERED/2)*onePixDiagDist;		// scale by half a tile
-	
+
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
 		SFiniteLightBound lgtDat = g_data[coarseList[l]];
@@ -488,7 +488,7 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 		[branch]if(g_vLightData[idxCoarse].lightType!=SPHERE_LIGHT)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
-	
+
 			const float3 boxX = lgtDat.boxAxisX.xyz;
 			const float3 boxY = lgtDat.boxAxisY.xyz;
 			const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip axis (so it points away from the light direction for a spot-light)
@@ -503,14 +503,14 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 				int idx_cur=0, idx_twin=0;
 				float3 vP0, vE0;
 				GetHullEdge(idx_cur, idx_twin, vP0, vE0, e0, boxX, boxY, boxZ, center, scaleXY);
-				
-			
+
+
 				float3 vP1, vE1;
 				GetFrustEdge(vP1, vE1, e1, viTilLL, viTilUR, fTileFarPlane);
-				
+
 				// potential separation plane
 				float3 vN = cross(vE0, vE1);
-			
+
 				int positive=0, negative=0;
 				for(int k=1; k<8; k++)		// only need to test 7 verts (technically just 6).
 				{

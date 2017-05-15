@@ -1,6 +1,6 @@
 #pragma kernel BigTileLightListGen
 
-#include "..\common\ShaderBase.h"
+#include "ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
 
 #include "LightingConvexHullUtils.hlsl"
@@ -159,11 +159,11 @@ void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 scree
 
 	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
 	float halfTileSizeAtZDistOne = 32*onePixDiagDist;		// scale by half a tile
-	
+
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
 		SFiniteLightBound lgtDat = g_data[lightsListLDS[l]];
-	
+
 		if( !DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lgtDat.center.xyz, lgtDat.radius) )
 			lightsListLDS[l]=0xffffffff;
 	}
@@ -217,7 +217,7 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 		[branch]if(canEnter)
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
-	
+
 			const float3 boxX = lgtDat.boxAxisX.xyz;
 			const float3 boxY = lgtDat.boxAxisY.xyz;
 			const float3 boxZ = -lgtDat.boxAxisZ.xyz;	// flip axis (so it points away from the light direction for a spot-light)
@@ -232,14 +232,14 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 				int idx_cur=0, idx_twin=0;
 				float3 vP0, vE0;
 				GetHullEdge(idx_cur, idx_twin, vP0, vE0, e0, boxX, boxY, boxZ, center, scaleXY);
-				
-			
+
+
 				float3 vP1, vE1;
 				GetFrustEdge(vP1, vE1, e1, viTilLL, viTilUR, g_fFarPlane);
-				
+
 				// potential separation plane
 				float3 vN = cross(vE0, vE1);
-			
+
 				int positive=0, negative=0;
 				for(int k=1; k<8; k++)		// only need to test 7 verts (technically just 6).
 				{

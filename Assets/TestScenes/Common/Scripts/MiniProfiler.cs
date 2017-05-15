@@ -12,7 +12,7 @@ public class MiniProfiler : MonoBehaviour {
     private const int kAverageFrameCount = 64;
     private float m_AccDeltaTime;
     private float m_AvgDeltaTime;
-    private	bool m_UseNewBatcher = false;
+ //   private	bool m_UseNewBatcher = false;
 
     internal class RecorderEntry
     {
