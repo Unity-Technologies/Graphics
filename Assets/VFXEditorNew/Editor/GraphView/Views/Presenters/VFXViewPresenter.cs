@@ -640,7 +640,7 @@ namespace UnityEditor.VFX.UI
                     break;
             }
 
-            Debug.Log("Invalidate Model: " + model + " Cause: " + cause + " nbElements:" + m_Elements.Count);
+            //Debug.Log("Invalidate Model: " + model + " Cause: " + cause + " nbElements:" + m_Elements.Count);
         }
 
         private void AddPresentersFromModel(VFXModel model, Dictionary<VFXModel, IVFXPresenter> syncedModels)

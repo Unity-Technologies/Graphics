@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
                 cause != VFXModel.InvalidationCause.kParamChanged)
                 return;
 
-            Debug.Log("------------------------ RECOMPUTE EXPRESSION CONTEXT");
+            //Debug.Log("------------------------ RECOMPUTE EXPRESSION CONTEXT");
             CreateExpressionContext(cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kConnectionChanged);
             m_ExpressionContext.Recompile();
 

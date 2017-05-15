@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Graphing;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX
 {
@@ -81,7 +82,15 @@ namespace UnityEditor.VFX
         {
             if (onInvalidateDelegate != null)
             {
-                onInvalidateDelegate(model, cause);
+                Profiler.BeginSample("OnInvalidateDelegate");
+                try
+                {
+                    onInvalidateDelegate(model, cause);
+                }
+                finally
+                {
+                    Profiler.EndSample();
+                }
             }
         }
 
@@ -211,7 +220,16 @@ namespace UnityEditor.VFX
 
         public void Invalidate(InvalidationCause cause)
         {
-            Invalidate(this, cause);
+            string sampleName = GetType().Name + "-" + name + "-" + cause + "-Invalidate";
+            Profiler.BeginSample(sampleName);
+            try
+            {
+                Invalidate(this, cause);
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
         }
 
         protected virtual void Invalidate(VFXModel model, InvalidationCause cause)
