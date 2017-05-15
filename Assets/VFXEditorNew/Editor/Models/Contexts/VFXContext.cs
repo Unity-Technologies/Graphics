@@ -33,10 +33,6 @@ namespace UnityEditor.VFX
 
         public VFXContext(VFXContextType contextType, VFXDataType inputType, VFXDataType outputType)
         {
-            // type must not be a combination of flags so test if it's a power of two
-            if (contextType == VFXContextType.kNone || (contextType & (contextType - 1)) != 0)
-                throw new ArgumentException("Illegal context type");
-
             m_ContextType = contextType;
             m_InputType = inputType;
             m_OutputType = outputType;
@@ -44,6 +40,19 @@ namespace UnityEditor.VFX
 
         public VFXContext(VFXContextType contextType) : this(contextType, VFXDataType.kNone, VFXDataType.kNone)
         {}
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            // type must not be a combination of flags so test if it's a power of two
+            if (m_ContextType == VFXContextType.kNone || (m_ContextType & (m_ContextType - 1)) != 0)
+            {
+                var invalidContext = m_ContextType;
+                m_ContextType = VFXContextType.kNone;
+                throw new ArgumentException(string.Format("Illegal context type: {0}",invalidContext));
+            }
+        }
 
         public virtual VFXContextType contextType   { get { return m_ContextType; } }
         public virtual VFXDataType inputType        { get { return m_InputType; } }

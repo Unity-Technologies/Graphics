@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            Debug.Log("")
+            //Debug.Log("")
         }
 
         public bool CanGetEvaluatedContent(VFXSlot slot)

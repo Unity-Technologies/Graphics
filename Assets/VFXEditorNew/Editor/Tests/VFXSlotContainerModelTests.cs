@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.Test
                 new VFXProperty(typeof(Vector3), "v3")
             };
 
-            var model = new TestSlotContainer();
+            var model = ScriptableObject.CreateInstance<TestSlotContainer>();
             Assert.AreEqual(correctInputs.Length, model.GetNbInputSlots());
             Assert.AreEqual(correctOutputs.Length, model.GetNbOutputSlots());
 
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void AddSlot()
         {
-            var model = new TestSlotContainer();
+            var model = ScriptableObject.CreateInstance<TestSlotContainer>();
 
             var inputSlot = VFXSlot.Create(new VFXProperty(typeof(Texture2D), "t"), VFXSlot.Direction.kInput);
             Assert.IsNull(inputSlot.owner);
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void RemoveSlot()
         {
-            var model = new TestSlotContainer();
+            var model = ScriptableObject.CreateInstance<TestSlotContainer>();
 
             var inputSlot = model.GetInputSlot(0);
             model.RemoveSlot(inputSlot);

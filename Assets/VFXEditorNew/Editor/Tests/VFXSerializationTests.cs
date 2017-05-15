@@ -55,12 +55,12 @@ namespace UnityEditor.VFX.Test
         {
             asset.root.RemoveAllChildren();
 
-            VFXSystem system0 = new VFXSystem();
+            VFXSystem system0 = ScriptableObject.CreateInstance<VFXSystem>();
             system0.AddChild(ScriptableObject.CreateInstance<VFXBasicInitialize>());
             system0.AddChild(ScriptableObject.CreateInstance<VFXBasicUpdate>());
             system0.AddChild(ScriptableObject.CreateInstance<VFXBasicOutput>());
 
-            VFXSystem system1 = new VFXSystem();
+            VFXSystem system1 = ScriptableObject.CreateInstance<VFXSystem>();
             system1.AddChild(ScriptableObject.CreateInstance<VFXBasicInitialize>());
             system1.AddChild(ScriptableObject.CreateInstance<VFXBasicOutput>());
 

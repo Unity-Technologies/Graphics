@@ -40,9 +40,9 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void AddChild()
         {
-            VFXModel modelA = new VFXModelA();
-            VFXModel modelB = new VFXModelB();
-            VFXModel modelC = new VFXModelC();
+            VFXModel modelA = ScriptableObject.CreateInstance<VFXModelA>();
+            VFXModel modelB = ScriptableObject.CreateInstance<VFXModelB>();
+            VFXModel modelC = ScriptableObject.CreateInstance<VFXModelC>();
 
             // Test both interfaces
             s_logs.Clear();
@@ -68,10 +68,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void InsertChild()
         {
-            VFXModel modelA = new VFXModelA();
-            VFXModel modelB0 = new VFXModelB();
-            VFXModel modelB1 = new VFXModelB();
-            VFXModel modelB2 = new VFXModelB();
+            VFXModel modelA = ScriptableObject.CreateInstance<VFXModelA>();
+            VFXModel modelB0 = ScriptableObject.CreateInstance<VFXModelB>();
+            VFXModel modelB1 = ScriptableObject.CreateInstance<VFXModelB>();
+            VFXModel modelB2 = ScriptableObject.CreateInstance<VFXModelB>();
 
             s_logs.Clear();
             modelA.AddChild(modelB2);
@@ -95,9 +95,9 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void RemoveChild()
         {
-            VFXModel modelA = new VFXModelA();
-            VFXModel modelB = new VFXModelB();
-            VFXModel modelC = new VFXModelC();
+            VFXModel modelA = ScriptableObject.CreateInstance<VFXModelA>();
+            VFXModel modelB = ScriptableObject.CreateInstance<VFXModelB>();
+            VFXModel modelC = ScriptableObject.CreateInstance<VFXModelC>();
 
             // First add children but dont notify
             modelB.Attach(modelA, false);
@@ -125,10 +125,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void RemoveAllChildren()
         {
-            VFXModel modelA = new VFXModelA();
-            VFXModel modelB0 = new VFXModelB();
-            VFXModel modelB1 = new VFXModelB();
-            VFXModel modelB2 = new VFXModelB();
+            VFXModel modelA = ScriptableObject.CreateInstance<VFXModelA>();
+            VFXModel modelB0 = ScriptableObject.CreateInstance<VFXModelB>();
+            VFXModel modelB1 = ScriptableObject.CreateInstance<VFXModelB>();
+            VFXModel modelB2 = ScriptableObject.CreateInstance<VFXModelB>();
 
             modelA.AddChild(modelB0);
             modelA.AddChild(modelB1);
@@ -153,9 +153,9 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ChangeParent()
         {
-            VFXModel modelA0 = new VFXModelA();
-            VFXModel modelA1 = new VFXModelA();
-            VFXModel modelB = new VFXModelB();
+            VFXModel modelA0 = ScriptableObject.CreateInstance<VFXModelA>();
+            VFXModel modelA1 = ScriptableObject.CreateInstance<VFXModelA>();
+            VFXModel modelB = ScriptableObject.CreateInstance<VFXModelB>();
 
             s_logs.Clear();
             modelA0.AddChild(modelB);
@@ -177,8 +177,8 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void AddChild_IncompatibleModel()
         {
-            VFXModel modelA = new VFXModelA();
-            VFXModel modelB = new VFXModelB();
+            VFXModel modelA = ScriptableObject.CreateInstance<VFXModelA>();
+            VFXModel modelB = ScriptableObject.CreateInstance<VFXModelB>();
 
             s_logs.Clear();
             Assert.Throws<ArgumentException>(() =>
@@ -193,8 +193,8 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void AddChild_OutOfBounds()
         {
-            VFXModel modelA = new VFXModelA();
-            VFXModel modelB = new VFXModelB();
+            VFXModel modelA = ScriptableObject.CreateInstance<VFXModelA>();
+            VFXModel modelB = ScriptableObject.CreateInstance<VFXModelB>();
 
             s_logs.Clear();
             Assert.Throws<ArgumentException>(() =>
@@ -211,13 +211,13 @@ namespace UnityEditor.VFX.Test
         {
             s_logs.Clear();
 
-            var graph = new VFXGraph();
-            var model = new VFXDummyModel();
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var model = ScriptableObject.CreateInstance<VFXDummyModel>();
             graph.AddChild(model);
             graph.onInvalidateDelegate += OnModelInvalidated;
-            graph.AddChild(new VFXDummyModel());
+            graph.AddChild(ScriptableObject.CreateInstance<VFXDummyModel>());
             graph.onInvalidateDelegate -= OnModelInvalidated;
-            graph.AddChild(new VFXDummyModel());
+            graph.AddChild(ScriptableObject.CreateInstance<VFXDummyModel>());
             graph.onInvalidateDelegate += OnModelInvalidated;
             model.position = new Vector2(32.0f, 32.0f);
             graph.RemoveAllChildren();

@@ -1,6 +1,7 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Test
@@ -39,27 +40,26 @@ namespace UnityEditor.VFX.Test
             public ContextTestAll() : base(VFXContextType.kAll) {}
         }
 
+        private void CheckContext(VFXContext context,VFXContextType expectedType)
+        {
+            Assert.AreEqual(expectedType,context.contextType);
+        }
+
         [Test]
         public void ConstructWithAllTypes()
         {
-            Assert.DoesNotThrow(() =>
-                {
-                    new ContextTestInit();
-                    new ContextTestUpdate();
-                    new ContextTestOutput();
-                });
+            CheckContext(ScriptableObject.CreateInstance<ContextTestInit>(), VFXContextType.kInit);
+            CheckContext(ScriptableObject.CreateInstance<ContextTestUpdate>(), VFXContextType.kUpdate);
+            CheckContext(ScriptableObject.CreateInstance<ContextTestOutput>(), VFXContextType.kOutput);
 
-            Assert.Throws<ArgumentException>(() => {
-                    new ContextTestNone();
-                });
+            CheckContext(ScriptableObject.CreateInstance<ContextTestNone>(), VFXContextType.kNone);
+            LogAssert.Expect(LogType.Exception, "ArgumentException: Illegal context type: kNone");
 
-            Assert.Throws<ArgumentException>(() => {
-                    new ContextTestInitAndUpdate();
-                });
+            CheckContext(ScriptableObject.CreateInstance<ContextTestInitAndUpdate>(), VFXContextType.kNone);
+            LogAssert.Expect(LogType.Exception, "ArgumentException: Illegal context type: kInitAndUpdate");
 
-            Assert.Throws<ArgumentException>(() => {
-                    new ContextTestAll();
-                });
+            CheckContext(ScriptableObject.CreateInstance<ContextTestAll>(), VFXContextType.kNone);
+            LogAssert.Expect(LogType.Exception, "ArgumentException: Illegal context type: kAll");
         }
     }
 }

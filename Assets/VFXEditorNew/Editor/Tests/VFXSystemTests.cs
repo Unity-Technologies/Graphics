@@ -13,16 +13,16 @@ namespace UnityEditor.VFX.Test
         {
             var graph = ScriptableObject.CreateInstance<VFXGraphAsset>();
 
-            var system0 = new VFXSystem();
-            system0.AddChild(new VFXContext(VFXContextType.kInit));
-            system0.AddChild(new VFXContext(VFXContextType.kUpdate));
-            system0.AddChild(new VFXContext(VFXContextType.kOutput));
+            var system0 = ScriptableObject.CreateInstance<VFXSystem>();
+            system0.AddChild(ScriptableObject.CreateInstance<VFXBasicInitialize>());
+            system0.AddChild(ScriptableObject.CreateInstance<VFXBasicUpdate>());
+            system0.AddChild(ScriptableObject.CreateInstance<VFXBasicOutput>());
             graph.root.AddChild(system0);
 
-            var system1 = new VFXSystem();
-            system1.AddChild(new VFXContext(VFXContextType.kInit));
-            system1.AddChild(new VFXContext(VFXContextType.kUpdate));
-            system1.AddChild(new VFXContext(VFXContextType.kOutput));
+            var system1 = ScriptableObject.CreateInstance<VFXSystem>();
+            system1.AddChild(ScriptableObject.CreateInstance<VFXBasicInitialize>());
+            system1.AddChild(ScriptableObject.CreateInstance<VFXBasicUpdate>());
+            system1.AddChild(ScriptableObject.CreateInstance<VFXBasicOutput>());
             graph.root.AddChild(system1);
 
             return graph;

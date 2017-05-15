@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Test
 
         void CreateTestAsset()
         {
-            VFXGraphAsset asset = VFXGraphAsset.CreateInstance<VFXGraphAsset>();
+            VFXGraphAsset asset = ScriptableObject.CreateInstance<VFXGraphAsset>();
 
             var directoryPath = Path.GetDirectoryName(testAssetName);
             if (!Directory.Exists(directoryPath))
