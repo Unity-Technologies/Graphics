@@ -47,6 +47,11 @@ VFXParameterUI #exposedContainer
 	flex-direction:row;
 }
 
+VFXParameterUI IMGUIContainer
+{
+    text-color: rgb(153,153,153);
+}
+
 VFXParameterUI #exposedNameContainer
 {
 	flex-direction:row;

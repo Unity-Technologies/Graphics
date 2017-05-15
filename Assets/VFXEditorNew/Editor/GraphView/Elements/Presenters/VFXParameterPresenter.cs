@@ -69,7 +69,7 @@ namespace UnityEditor.VFX.UI
 
         string IPropertyRMProvider.name { get { return "Value"; } }
 
-        Type IPropertyRMProvider.anchorType
+        public Type anchorType
         {
             get
             {

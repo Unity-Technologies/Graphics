@@ -7,81 +7,115 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
+
+
+    public class VFXDataGUIStyles
+    {
+        public GUIStyle baseStyle;
+
+        public VFXDataGUIStyles()
+        {
+            baseStyle = new GUIStyle();
+        }
+        public void ConfigureForElement(VisualElement elem)
+        {
+
+            bool different = false;
+
+            if (baseStyle.font != elem.font)
+            {
+                baseStyle.font = elem.font;
+                different = true;
+            }
+            if (baseStyle.fontSize != elem.fontSize)
+            {
+                baseStyle.fontSize = elem.fontSize;
+                different = true;
+            }
+            if (baseStyle.focused.textColor != elem.textColor)
+            {
+                baseStyle.focused.textColor = baseStyle.active.textColor = baseStyle.normal.textColor = elem.textColor;
+                different = true;
+            }
+
+            if (different)
+            {
+                Reset();
+            }
+
+        }
+
+        public GUIStyle GetGUIStyleForExpandableType(Type type)
+        {
+            GUIStyle style = null;
+
+            if (typeStyles.TryGetValue(type, out style))
+            {
+                return style;
+            }
+
+            GUIStyle typeStyle = new GUIStyle(baseStyle);
+            typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_plus");
+            if (typeStyle.normal.background == null)
+                typeStyle.normal.background = Resources.Load<Texture2D>("VFX/Default_plus");
+            typeStyle.active.background = typeStyle.focused.background = null;
+            typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_minus");
+            if (typeStyle.onNormal.background == null)
+                typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/Default_minus");
+            typeStyle.border.top = 0;
+            typeStyle.border.left = 0;
+            typeStyle.border.bottom = typeStyle.border.right = 0;
+            typeStyle.padding.top = 3;
+
+            typeStyles.Add(type, typeStyle);
+
+
+            return typeStyle;
+        }
+
+        public GUIStyle GetGUIStyleForType(Type type)
+        {
+            GUIStyle style = null;
+
+            if (typeStyles.TryGetValue(type, out style))
+            {
+                return style;
+            }
+
+            GUIStyle typeStyle = new GUIStyle(baseStyle);
+            typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name);
+            if (typeStyle.normal.background == null)
+                typeStyle.normal.background = Resources.Load<Texture2D>("VFX/Default");
+            typeStyle.active.background = typeStyle.focused.background = null;
+            typeStyle.border.top = 0;
+            typeStyle.border.left = 0;
+            typeStyle.border.bottom = typeStyle.border.right = 0;
+
+            typeStyles.Add(type, typeStyle);
+
+
+            return typeStyle;
+        }
+
+        static Dictionary<Type, GUIStyle> typeStyles = new Dictionary<Type, GUIStyle>();
+
+        public void Reset()
+        {
+            typeStyles.Clear();
+        }
+
+        public float lineHeight
+        { get { return baseStyle.fontSize * 1.25f; } }
+    }
+
     partial class VFXEditableDataAnchor : VFXDataAnchor
     {
         VFXPropertyIM   m_PropertyIM;
         IMGUIContainer  m_Container;
-        GUIStyles m_GUIStyles = null;
+        VFXDataGUIStyles m_GUIStyles = null;
 
 
         PropertyRM      m_PropertyRM;
-
-        public class GUIStyles
-        {
-            public GUIStyle baseStyle;
-
-            public GUIStyle GetGUIStyleForExpandableType(Type type)
-            {
-                GUIStyle style = null;
-
-                if (typeStyles.TryGetValue(type, out style))
-                {
-                    return style;
-                }
-
-                GUIStyle typeStyle = new GUIStyle(baseStyle);
-                typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_plus");
-                if (typeStyle.normal.background == null)
-                    typeStyle.normal.background = Resources.Load<Texture2D>("VFX/Default_plus");
-                typeStyle.active.background = typeStyle.focused.background = null;
-                typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_minus");
-                if (typeStyle.onNormal.background == null)
-                    typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/Default_minus");
-                typeStyle.border.top = 0;
-                typeStyle.border.left = 0;
-                typeStyle.border.bottom = typeStyle.border.right = 0;
-                typeStyle.padding.top = 3;
-
-                typeStyles.Add(type, typeStyle);
-
-
-                return typeStyle;
-            }
-
-            public GUIStyle GetGUIStyleForType(Type type)
-            {
-                GUIStyle style = null;
-
-                if (typeStyles.TryGetValue(type, out style))
-                {
-                    return style;
-                }
-
-                GUIStyle typeStyle = new GUIStyle(baseStyle);
-                typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name);
-                if (typeStyle.normal.background == null)
-                    typeStyle.normal.background = Resources.Load<Texture2D>("VFX/Default");
-                typeStyle.active.background = typeStyle.focused.background = null;
-                typeStyle.border.top = 0;
-                typeStyle.border.left = 0;
-                typeStyle.border.bottom = typeStyle.border.right = 0;
-
-                typeStyles.Add(type, typeStyle);
-
-
-                return typeStyle;
-            }
-
-            Dictionary<Type, GUIStyle> typeStyles = new Dictionary<Type, GUIStyle>();
-
-            public void Reset()
-            {
-                typeStyles.Clear();
-            }
-
-            public float lineHeight
-            { get { return baseStyle.fontSize * 1.25f; } }
-        }
 
 
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
@@ -106,9 +140,8 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                m_GUIStyles = new GUIStyles();
-                m_GUIStyles.baseStyle = new GUIStyle();
-                m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType);
+                m_GUIStyles = new VFXDataGUIStyles();
+                m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType,100);
 
                 m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
                 AddChild(m_Container);
@@ -122,26 +155,7 @@ namespace UnityEditor.VFX.UI
 
             //try
             {
-                bool different = false;
-
-                if (m_GUIStyles.baseStyle.font != font)
-                {
-                    m_GUIStyles.baseStyle.font = font;
-                    different = true;
-                }
-                if (m_GUIStyles.baseStyle.fontSize != fontSize)
-                {
-                    m_GUIStyles.baseStyle.fontSize = fontSize;
-                    different = true;
-                }
-                if (m_GUIStyles.baseStyle.focused.textColor != textColor)
-                {
-                    m_GUIStyles.baseStyle.focused.textColor = m_GUIStyles.baseStyle.active.textColor = m_GUIStyles.baseStyle.normal.textColor = textColor;
-                    different = true;
-                }
-
-                if (different)
-                    m_GUIStyles.Reset();
+                m_GUIStyles.ConfigureForElement(this);
 
                 bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXBlockDataAnchorPresenter>(), m_GUIStyles);
 

@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXPropertyIM
     {
-        public bool OnGUI(VFXBlockDataAnchorPresenter presenter, VFXEditableDataAnchor.GUIStyles styles)
+        public bool OnGUI(VFXDataAnchorPresenter presenter, VFXDataGUIStyles styles)
         {
             EditorGUI.BeginChangeCheck();
 
@@ -36,10 +36,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected abstract object DoOnGUI(VFXBlockDataAnchorPresenter presenter, VFXEditableDataAnchor.GUIStyles styles);
+        protected abstract object DoOnGUI(VFXDataAnchorPresenter presenter, VFXDataGUIStyles styles);
 
 
-        public const float kLabelWidth = 100;
+        public float m_LabelWidth = 100;
 
 
         static Dictionary<Type, Type> m_PropertyIMTypes = new Dictionary<Type, Type>
@@ -56,21 +56,27 @@ namespace UnityEditor.VFX.UI
             {typeof(Gradient), typeof(VFXGradientPropertyIM) },
             {typeof(AnimationCurve), typeof(VFXAnimationCurvePropertyIM) }
         };
-        public static VFXPropertyIM Create(Type type)
+        public static VFXPropertyIM Create(Type type,float labelWidth)
         {
             Type propertyIMType;
 
             if (m_PropertyIMTypes.TryGetValue(type, out propertyIMType))
             {
-                return System.Activator.CreateInstance(propertyIMType) as VFXPropertyIM;
+                var property = System.Activator.CreateInstance(propertyIMType) as VFXPropertyIM;
+                property.m_LabelWidth = labelWidth;
+
+                return property;
+
             }
             else
             {
-                return new VFXDefaultPropertyIM();
+                var property = new VFXDefaultPropertyIM();
+                property.m_LabelWidth = labelWidth;
+                return property;
             }
         }
 
-        public void Label(VFXBlockDataAnchorPresenter presenter, VFXEditableDataAnchor.GUIStyles styles)
+        public void Label(VFXDataAnchorPresenter presenter, VFXDataGUIStyles styles)
         {
             if (presenter.depth > 0)
                 GUILayout.Space(presenter.depth * depthOffset);
@@ -101,7 +107,7 @@ namespace UnityEditor.VFX.UI
                 GUILayout.Label("", styles.GetGUIStyleForType(presenter.anchorType), GUILayout.Width(iconSize), GUILayout.Height(iconSize));
             }
             GUILayout.EndVertical();
-            GUILayout.Label(presenter.name, styles.baseStyle, GUILayout.Width(kLabelWidth), GUILayout.Height(styles.lineHeight));
+            GUILayout.Label(presenter.name, styles.baseStyle, GUILayout.Width(m_LabelWidth), GUILayout.Height(styles.lineHeight));
         }
 
         public const int iconSize = 16;
@@ -110,12 +116,12 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXPropertyIM<T> : VFXPropertyIM
     {
-        protected override object DoOnGUI(VFXBlockDataAnchorPresenter presenter, VFXEditableDataAnchor.GUIStyles styles)
+        protected override object DoOnGUI(VFXDataAnchorPresenter presenter, VFXDataGUIStyles styles)
         {
             return OnParameterGUI(presenter, (T)presenter.value, styles);
         }
 
-        public abstract T OnParameterGUI(VFXBlockDataAnchorPresenter presenter, T value, VFXEditableDataAnchor.GUIStyles styles);
+        public abstract T OnParameterGUI(VFXDataAnchorPresenter presenter, T value, VFXDataGUIStyles styles);
     }
 
 
@@ -153,7 +159,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXDefaultPropertyIM : VFXPropertyIM
     {
-        protected override object DoOnGUI(VFXBlockDataAnchorPresenter presenter, VFXEditableDataAnchor.GUIStyles styles)
+        protected override object DoOnGUI(VFXDataAnchorPresenter presenter, VFXDataGUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
@@ -167,7 +173,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXFloatPropertyIM : VFXPropertyIM<float>
     {
-        public override float OnParameterGUI(VFXBlockDataAnchorPresenter presenter, float value, VFXEditableDataAnchor.GUIStyles styles)
+        public override float OnParameterGUI(VFXDataAnchorPresenter presenter, float value, VFXDataGUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
@@ -179,7 +185,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXIntPropertyIM : VFXPropertyIM<int>
     {
-        public override int OnParameterGUI(VFXBlockDataAnchorPresenter presenter, int value, VFXEditableDataAnchor.GUIStyles styles)
+        public override int OnParameterGUI(VFXDataAnchorPresenter presenter, int value, VFXDataGUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
@@ -191,7 +197,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector3PropertyIM : VFXPropertyIM<Vector3>
     {
-        public override Vector3 OnParameterGUI(VFXBlockDataAnchorPresenter presenter, Vector3 value, VFXEditableDataAnchor.GUIStyles styles)
+        public override Vector3 OnParameterGUI(VFXDataAnchorPresenter presenter, Vector3 value, VFXDataGUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
@@ -208,7 +214,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector2PropertyIM : VFXPropertyIM<Vector2>
     {
-        public override Vector2 OnParameterGUI(VFXBlockDataAnchorPresenter presenter, Vector2 value, VFXEditableDataAnchor.GUIStyles styles)
+        public override Vector2 OnParameterGUI(VFXDataAnchorPresenter presenter, Vector2 value, VFXDataGUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
@@ -223,7 +229,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXVector4PropertyIM : VFXPropertyIM<Vector4>
     {
-        public override Vector4 OnParameterGUI(VFXBlockDataAnchorPresenter presenter, Vector4 value, VFXEditableDataAnchor.GUIStyles styles)
+        public override Vector4 OnParameterGUI(VFXDataAnchorPresenter presenter, Vector4 value, VFXDataGUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
@@ -246,7 +252,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXColorPropertyIM : VFXPropertyIM<Color>
     {
-        public override Color OnParameterGUI(VFXBlockDataAnchorPresenter presenter, Color value, VFXEditableDataAnchor.GUIStyles styles)
+        public override Color OnParameterGUI(VFXDataAnchorPresenter presenter, Color value, VFXDataGUIStyles styles)
         {
             Color startValue = value;
             GUILayout.BeginHorizontal();
@@ -270,7 +276,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXAnimationCurvePropertyIM : VFXPropertyIM<AnimationCurve>
     {
-        public override AnimationCurve OnParameterGUI(VFXBlockDataAnchorPresenter presenter, AnimationCurve value, VFXEditableDataAnchor.GUIStyles styles)
+        public override AnimationCurve OnParameterGUI(VFXDataAnchorPresenter presenter, AnimationCurve value, VFXDataGUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
@@ -285,7 +291,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXGradientPropertyIM : VFXPropertyIM<Gradient>
     {
-        public override Gradient OnParameterGUI(VFXBlockDataAnchorPresenter presenter, Gradient value, VFXEditableDataAnchor.GUIStyles styles)
+        public override Gradient OnParameterGUI(VFXDataAnchorPresenter presenter, Gradient value, VFXDataGUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
@@ -296,7 +302,7 @@ namespace UnityEditor.VFX.UI
     }
     class VFXObjectPropertyIM<T> : VFXPropertyIM<T> where T : Object
     {
-        public override T OnParameterGUI(VFXBlockDataAnchorPresenter presenter, T value, VFXEditableDataAnchor.GUIStyles styles)
+        public override T OnParameterGUI(VFXDataAnchorPresenter presenter, T value, VFXDataGUIStyles styles)
         {
             GUILayout.BeginHorizontal();
             Label(presenter, styles);
