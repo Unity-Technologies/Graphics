@@ -24,7 +24,6 @@ namespace UnityEditor.VFX.Test
             public ContextTestOutput() : base(VFXContextType.kOutput) {}
         }
 
-        // TODO Add attributes to fill the Library instead of reflection before uncommenting this !
         private class ContextTestNone : VFXContext
         {
             public ContextTestNone() : base(VFXContextType.kNone) {}

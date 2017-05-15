@@ -266,7 +266,7 @@ namespace UnityEditor.VFX
         {
             if (!m_DefaultExpressionInitialized)
                 InitDefaultExpression();
-            GetMasterSlot().PropagateToChildren(s => SetDefaultExpressionValue());
+            GetMasterSlot().PropagateToChildren(s => s.SetDefaultExpressionValue());
         }
 
         void InvalidateChildren(VFXModel model, InvalidationCause cause)
