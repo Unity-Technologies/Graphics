@@ -13,12 +13,13 @@ namespace UnityEditor.VFX.UI
         public void RecomputeExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
+                cause != VFXModel.InvalidationCause.kConnectionChanged &&
                 cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kParamChanged)
                 return;
 
             Debug.Log("------------------------ RECOMPUTE EXPRESSION CONTEXT");
-            CreateExpressionContext(cause == VFXModel.InvalidationCause.kStructureChanged);
+            CreateExpressionContext(cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kConnectionChanged);
             m_ExpressionContext.Recompile();
 
             if (onRecompileEvent != null)
@@ -41,16 +42,12 @@ namespace UnityEditor.VFX.UI
             {
                 if (o is VFXSlot)
                 {
-                    var slot = o as VFXSlot;
-                    //if (slot.GetParent() == null)
-                    {
-                        var exp = slot.GetExpression();
-                        if (exp != null)
+                    var exp = ((VFXSlot)o).GetExpression();
+                    if (exp != null)
                         {
-                            m_ExpressionContext.RegisterExpression(exp);
+                        m_ExpressionContext.RegisterExpression(exp);
                             ++nbExpr;
                         }
-                    }
                 }
             }
 

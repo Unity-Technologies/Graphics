@@ -53,15 +53,18 @@ VFXBlockUI.node.horizontal #title Button
 	border-color:#FFFFFF;
 }
 
-VFXBlockUI.node
-{
-	border-color:#363636;
-}
 VFXBlockUI.node.horizontal #left > #title > Label {
 	text-color: #c4c4c4;
 	font-style: bold;
 	text-alignment: middle-left;
 	flex: 1;
+}
+VFXBlockUI.node.horizontal:disabled #left > #title > Label {
+	text-color: #333;
+}
+
+VFXBlockUI.node.horizontal:disabled {
+	background-color: #F00;
 }
 
 VFXBlockUI.node.horizontal #left > #title > Button {

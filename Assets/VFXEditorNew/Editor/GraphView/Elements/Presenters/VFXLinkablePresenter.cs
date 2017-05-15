@@ -22,6 +22,8 @@ namespace UnityEditor.VFX.UI
 
         public abstract IVFXSlotContainer slotContainer { get; }
 
+        public virtual bool enabled { get {return true;} }
+
         public override UnityEngine.Object[] GetObjectsToWatch()
         {
             return new UnityEngine.Object[] { this, slotContainer as UnityEngine.Object };

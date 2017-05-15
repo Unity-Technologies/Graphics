@@ -234,7 +234,7 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        public IEnumerable<VFXFlowAnchor> GetAllFlowAnchors(bool input, bool output)
+        public IEnumerable<VFXContextUI> GetAllContexts()
         {
             foreach (var layer in GetAllLayers())
             {
@@ -242,13 +242,19 @@ namespace UnityEditor.VFX.UI
                 {
                     if (element is VFXContextUI)
                     {
-                        var context = element as VFXContextUI;
-
-                        foreach (VFXFlowAnchor anchor in context.GetFlowAnchors(input, output))
-                        {
-                            yield return anchor;
-                        }
+                        yield return element as VFXContextUI;
                     }
+                }
+            }
+        }
+
+        public IEnumerable<VFXFlowAnchor> GetAllFlowAnchors(bool input, bool output)
+        {
+            foreach (var context in GetAllContexts())
+            {
+                foreach (VFXFlowAnchor anchor in context.GetFlowAnchors(input, output))
+                {
+                    yield return anchor;
                 }
             }
         }

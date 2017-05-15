@@ -89,6 +89,8 @@ namespace UnityEditor.VFX.UI
             get { return m_ContextPresenter; }
         }
 
+        public override bool enabled { get {return Model.enabled; } }
+
         public int index
         {
             get { return m_ContextPresenter.blockPresenters.FindIndex(t => t == this); }

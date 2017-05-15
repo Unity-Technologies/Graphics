@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UI
 
         public FilterPopup(VFXFilterWindow.IProvider filterProvider)
         {
-            phaseInterest = EventPhase.Capture;
+            phaseInterest = PropagationPhase.Capture;
             m_FilterProvider = filterProvider;
             //m_CustomData = null;
         }

@@ -13,6 +13,9 @@ namespace UnityEditor.VFX.UI
     {
         public GraphViewTypeFactory typeFactory { get; set; }
 
+
+        Toggle m_EnableToggle;
+
         public VFXBlockUI()
         {
             forceNotififcationOnAdd = true;
@@ -20,6 +23,17 @@ namespace UnityEditor.VFX.UI
 
             AddManipulator(new SelectionDropper(HandleDropEvent));
             leftContainer.alignContent = Align.Stretch;
+
+            m_EnableToggle = new Toggle(OnToggleEnable);
+            titleContainer.InsertChild(0,m_EnableToggle);
+        }
+
+
+        void OnToggleEnable()
+        {
+            var presenter = GetPresenter<VFXBlockPresenter>();
+
+            presenter.Model.enabled = ! presenter.Model.enabled;
         }
 
         // This function is a placeholder for common stuff to do before we delegate the action to the drop target
@@ -112,9 +126,11 @@ namespace UnityEditor.VFX.UI
 
             SetPosition(presenter.position);
             presenter.Model.collapsed = !presenter.expanded;
+
+            this.enabled = m_EnableToggle.on = presenter.Model.enabled;
         }
 
-        public override void DoRepaint(IStylePainter painter)
+        internal override void DoRepaint(IStylePainter painter)
         {
             base.DoRepaint(painter);
         }
