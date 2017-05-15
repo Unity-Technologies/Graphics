@@ -739,6 +739,8 @@ namespace UnityEngine.Experimental.Rendering
         void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, VisibleLight[] lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices );
         // Renders all shadows for lights the were deemed shadow casters after the last call to ProcessShadowRequests
         void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
+        // Debug function to display a shadow at the screen coordinate with the provided material.
+        void DisplayShadows(ScriptableRenderContext renderContext, Material displayMaterial, int shadowMapIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
         // Synchronize data with GPU buffers
         void SyncData();
         // Binds resources to shader stages just before rendering the lighting pass
@@ -749,11 +751,12 @@ namespace UnityEngine.Experimental.Rendering
 
     abstract public class ShadowManagerBase : ShadowRegistry, IShadowManager
     {
-        public    abstract void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, VisibleLight[] lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices );
-        public    abstract void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
-        public    abstract void SyncData();
-        public    abstract void BindResources( ScriptableRenderContext renderContext );
-        public    abstract void UpdateCullingParameters( ref CullingParameters cullingParams );
+        public  abstract void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, VisibleLight[] lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices );
+        public  abstract void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
+        public  abstract void DisplayShadows(ScriptableRenderContext renderContext, Material displayMaterial, int shadowMapIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
+        public  abstract void SyncData();
+        public  abstract void BindResources( ScriptableRenderContext renderContext );
+        public  abstract void UpdateCullingParameters( ref CullingParameters cullingParams );
         // sort the shadow requests in descending priority - may only modify shadowRequests
         protected abstract void PrioritizeShadowCasters( Camera camera, VisibleLight[] lights, uint shadowRequestsCount, int[] shadowRequests );
         // prune the shadow requests - may modify shadowRequests and shadowsCountshadowRequestsCount

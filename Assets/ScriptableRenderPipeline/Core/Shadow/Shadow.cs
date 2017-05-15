@@ -1153,20 +1153,20 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     switch( vl.lightType )
                     {
-                        case LightType.Directional: 
-                            add = --m_MaxShadows[(int)GPUShadowType.Directional, 0] >= 0; 
-                            shadowType = GPUShadowType.Directional; 
-                            facecount = m_ShadowSettings.directionalLightCascadeCount; 
+                        case LightType.Directional:
+                            add = --m_MaxShadows[(int)GPUShadowType.Directional, 0] >= 0;
+                            shadowType = GPUShadowType.Directional;
+                            facecount = m_ShadowSettings.directionalLightCascadeCount;
                             break;
-                        case LightType.Point: 
-                            add = --m_MaxShadows[(int)GPUShadowType.Point, 0] >= 0; 
-                            shadowType = GPUShadowType.Point; 
-                            facecount = 6; 
+                        case LightType.Point:
+                            add = --m_MaxShadows[(int)GPUShadowType.Point, 0] >= 0;
+                            shadowType = GPUShadowType.Point;
+                            facecount = 6;
                             break;
-                        case LightType.Spot: 
+                        case LightType.Spot:
                             add = --m_MaxShadows[(int)GPUShadowType.Spot, 0] >= 0;
-                            shadowType = GPUShadowType.Spot; 
-                            facecount = 1; 
+                            shadowType = GPUShadowType.Spot;
+                            facecount = 1;
                             break;
                     }
                 }
@@ -1241,6 +1241,34 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     sm.Update( frameId, renderContext, cullResults, lights );
                 }
+            }
+        }
+
+        public override void DisplayShadows(ScriptableRenderContext renderContext, Material displayMaterial, int shadowMapIndex, float screenX, float screenY, float screenSizeX, float screenSizeY)
+        {
+            using (new HDPipeline.Utilities.ProfilingSample("Display Shadows", renderContext))
+            {
+                // This code is specific to shadow atlas implementation
+                MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+
+                CommandBuffer debugCB = new CommandBuffer();
+                debugCB.name = "Display shadow Overlay";
+
+                if (shadowMapIndex == -1) // Display the Atlas
+                {
+                    propertyBlock.SetVector("_TextureScaleBias", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                }
+                else // Display particular index
+                {
+                    VectorArray<ShadowData> shadowDatas = m_ShadowCtxt.shadowDatas;
+                    uint shadowIdx = Math.Min((uint)shadowMapIndex, shadowDatas.Count());
+                    propertyBlock.SetVector("_TextureScaleBias", shadowDatas[shadowIdx].scaleOffset);
+                }
+
+                debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
+                debugCB.DrawProcedural(Matrix4x4.identity, displayMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
+
+                renderContext.ExecuteCommandBuffer(debugCB);
             }
         }
 

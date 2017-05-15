@@ -2046,20 +2046,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public override void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
             {
-                CommandBuffer debugCB = new CommandBuffer();
-                debugCB.name = "Lit Debug Overlay";
-
-                MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
-
                 LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
 
                 if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
                 {
                     if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                     {
+                        m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, (int)lightingDebug.shadowMapIndex, x, y, overlaySize, overlaySize);
+                        Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+
+                        // TODO: @Julien exchange shadowmapIndex by lightIndex and draw all slide like below
                         /*
-                        uint visualizeShadowIndex = Math.Min(lightingDebug.shadowMapIndex, (uint)(GetCurrentShadowCount() - 1));
-                        ShadowLight shadowLight = m_ShadowsResult.shadowLights[visualizeShadowIndex];
                         for (int slice = 0; slice < shadowLight.shadowSliceCount; ++slice)
                         {
                             ShadowSliceData sliceData = m_ShadowsResult.shadowSlices[shadowLight.shadowSliceIndex + slice];
@@ -2076,20 +2073,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
                         }
-                         */
+                        */
                     }
                     else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                     {
-                        propertyBlock.SetVector("_TextureScaleBias", new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-
-                        debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                        debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
-
+                        m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, -1, x, y, overlaySize, overlaySize);
                         Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
                     }
                 }
-
-                renderContext.ExecuteCommandBuffer(debugCB);
             }
         }
     }
