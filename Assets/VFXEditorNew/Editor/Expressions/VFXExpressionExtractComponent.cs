@@ -4,7 +4,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionExtractComponent : VFXExpressionFloatOperation
     {
-        public VFXExpressionExtractComponent() : this(VFXValueFloat4.Default, 0) {}
+        public VFXExpressionExtractComponent() : this(VFXValue<Vector4>.Default, 0) {}
 
         public VFXExpressionExtractComponent(VFXExpression parent, int iChannel)
         {
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat3: readValue = GetChannel(parent.Get<Vector3>(), Channel); break;
                 case VFXValueType.kFloat4: readValue = GetChannel(parent.Get<Vector4>(), Channel); break;
             }
-            return new VFXValueFloat(readValue, true);
+            return new VFXValue<float>(readValue, true);
         }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)

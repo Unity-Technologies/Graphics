@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionSampleCurve : VFXExpression
     {
-        public VFXExpressionSampleCurve() : this(VFXValueCurve.Default, VFXValueFloat.Default)
+        public VFXExpressionSampleCurve() : this(VFXValue<AnimationCurve>.Default, VFXValue<float>.Default)
         {
         }
 
@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
 
             var curve = curveReduce.Get<AnimationCurve>();
             var time = timeReduce.Get<float>();
-            return new VFXValueFloat(curve.Evaluate(time), true);
+            return new VFXValue<float>(curve.Evaluate(time), true);
         }
 
         private VFXExpression m_Curve;

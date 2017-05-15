@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionCos : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionCos() : this(VFXValueFloat.Default) {}
+        public VFXExpressionCos() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionCos(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXCosOp)
         {
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSin : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionSin() : this(VFXValueFloat.Default) {}
+        public VFXExpressionSin() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionSin(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXSinOp)
         {
@@ -45,7 +45,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionAbs : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionAbs() : this(VFXValueFloat.Default) {}
+        public VFXExpressionAbs() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionAbs(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXAbsOp)
         {
@@ -64,7 +64,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionFloor : VFXExpressionUnaryFloatOperation
     {
-        public VFXExpressionFloor() : this(VFXValueFloat.Default) {}
+        public VFXExpressionFloor() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionFloor(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXFloorOp)
         {
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionAdd : VFXExpressionBinaryFloatOperation
     {
-        public VFXExpressionAdd() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        public VFXExpressionAdd() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
         }
 
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionMul : VFXExpressionBinaryFloatOperation
     {
-        public VFXExpressionMul() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        public VFXExpressionMul() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
         }
 
@@ -125,7 +125,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionDivide : VFXExpressionBinaryFloatOperation
     {
-        public VFXExpressionDivide() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        public VFXExpressionDivide() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
         }
 
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSubtract : VFXExpressionBinaryFloatOperation
     {
-        public VFXExpressionSubtract() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        public VFXExpressionSubtract() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
         }
 
@@ -167,7 +167,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionMin : VFXExpressionBinaryFloatOperation
     {
-        public VFXExpressionMin() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        public VFXExpressionMin() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
         }
 
@@ -188,7 +188,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionMax : VFXExpressionBinaryFloatOperation
     {
-        public VFXExpressionMax() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        public VFXExpressionMax() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
         }
 
@@ -209,7 +209,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionPow : VFXExpressionBinaryFloatOperation
     {
-        public VFXExpressionPow() : this(VFXValueFloat.Default, VFXValueFloat.Default)
+        public VFXExpressionPow() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
         }
 

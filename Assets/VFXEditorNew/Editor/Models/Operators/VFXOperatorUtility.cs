@@ -10,26 +10,26 @@ namespace UnityEditor.VFX
     {
         public static readonly Dictionary<int, VFXExpression> OneExpression = new Dictionary<int, VFXExpression>
         {
-            { 1, new VFXValueFloat(1.0f, true) },
-            { 2, new VFXValueFloat2(Vector2.one, true) },
-            { 3, new VFXValueFloat3(Vector3.one, true) },
-            { 4, new VFXValueFloat4(Vector4.one, true) },
+            { 1, new VFXValue<float>(1.0f, true) },
+            { 2, new VFXValue<Vector2>(Vector2.one, true) },
+            { 3, new VFXValue<Vector3>(Vector3.one, true) },
+            { 4, new VFXValue<Vector4>(Vector4.one, true) },
         };
 
         public static readonly Dictionary<int, VFXExpression> HalfExpression = new Dictionary<int, VFXExpression>
         {
-            { 1, new VFXValueFloat(0.5f, true) },
-            { 3, new VFXValueFloat3(Vector3.one * 0.5f, true) },
-            { 2, new VFXValueFloat2(Vector2.one * 0.5f, true) },
-            { 4, new VFXValueFloat4(Vector4.one * 0.5f, true) },
+            { 1, new VFXValue<float>(0.5f, true) },
+            { 3, new VFXValue<Vector3>(Vector3.one * 0.5f, true) },
+            { 2, new VFXValue<Vector2>(Vector2.one * 0.5f, true) },
+            { 4, new VFXValue<Vector4>(Vector4.one * 0.5f, true) },
         };
 
         public static readonly Dictionary<int, VFXExpression> ZeroExpression = new Dictionary<int, VFXExpression>
         {
-            { 1, new VFXValueFloat(0.0f, true) },
-            { 2, new VFXValueFloat2(Vector2.zero, true) },
-            { 3, new VFXValueFloat3(Vector3.zero, true) },
-            { 4, new VFXValueFloat4(Vector4.zero, true) },
+            { 1, new VFXValue<float>(0.0f, true) },
+            { 2, new VFXValue<Vector2>(Vector2.zero, true) },
+            { 3, new VFXValue<Vector3>(Vector3.zero, true) },
+            { 4, new VFXValue<Vector4>(Vector4.zero, true) },
         };
 
         static public VFXExpression Clamp(VFXExpression input, VFXExpression min, VFXExpression max)
@@ -170,7 +170,7 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    outputComponent[iChannel] = new VFXValueFloat(defautValue, true);
+                    outputComponent[iChannel] = new VFXValue<float>(defautValue, true);
                 }
             }
 

@@ -94,10 +94,10 @@ namespace UnityEditor.VFX
         {
             switch (value.realSize)
             {
-                case 1: return new VFXValueFloat(value, true);
-                case 2: return new VFXValueFloat2(value, true);
-                case 3: return new VFXValueFloat3(value, true);
-                case 4: return new VFXValueFloat4(value, true);
+                case 1: return new VFXValue<float>(value, true);
+                case 2: return new VFXValue<Vector2>(value, true);
+                case 3: return new VFXValue<Vector3>(value, true);
+                case 4: return new VFXValue<Vector4>(value, true);
             }
             return null;
         }

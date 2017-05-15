@@ -34,10 +34,10 @@ namespace UnityEditor.VFX
         {
             switch (input.Length)
             {
-                case 1: return new VFXValueFloat(input[0], true);
-                case 2: return new VFXValueFloat2(new Vector2(input[0], input[1]), true);
-                case 3: return new VFXValueFloat3(new Vector3(input[0], input[1], input[2]), true);
-                case 4: return new VFXValueFloat4(new Vector4(input[0], input[1], input[2], input[3]), true);
+                case 1: return new VFXValue<float>(input[0], true);
+                case 2: return new VFXValue<Vector2>(new Vector2(input[0], input[1]), true);
+                case 3: return new VFXValue<Vector3>(new Vector3(input[0], input[1], input[2]), true);
+                case 4: return new VFXValue<Vector4>(new Vector4(input[0], input[1], input[2], input[3]), true);
             }
             return null;
         }

@@ -35,9 +35,9 @@ namespace UnityEditor.VFX
         public abstract void SetContent(object value);
     }
 
-    abstract class VFXValue<T> : VFXValue
+    sealed class VFXValue<T> : VFXValue
     {
-        protected VFXValue(T content = default(T), bool isConst = true)
+        public VFXValue(T content = default(T), bool isConst = true)
         {
             m_Content = content;
             if (isConst)
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
 
         sealed public override VFXValue CopyExpression(bool isConst)
         {
-            var copy = FindAndCreateFirstConcreteType() as VFXValue<T>;
+            var copy = new VFXValue<T>();
             copy.m_Content = m_Content;
             copy.m_Flags = m_Flags;
             if (isConst)
@@ -62,17 +62,7 @@ namespace UnityEditor.VFX
             return copy;
         }
 
-        private static VFXValue FindAndCreateFirstConcreteType()
-        {
-            var firstConcreteType = typeof(VFXValue<T>)
-                .Assembly
-                .GetTypes()
-                .Where(t => t.IsSubclassOf(typeof(VFXValue<T>)) && !t.IsAbstract)
-                .First();
-            return CreateNewInstance(firstConcreteType) as VFXValue;
-        }
-
-        private static readonly VFXValue s_Default = FindAndCreateFirstConcreteType();
+        private static readonly VFXValue s_Default = new VFXValue<T>();
         public static VFXValue Default { get { return s_Default; } }
 
 

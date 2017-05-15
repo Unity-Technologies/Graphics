@@ -155,19 +155,19 @@ namespace UnityEditor.VFX
         {
             if (value is float)
             {
-                return new VFXValueFloat((float)value, true);
+                return new VFXValue<float>((float)value, true);
             }
             else if (value is Vector2)
             {
-                return new VFXValueFloat2((Vector2)value, true);
+                return new VFXValue<Vector2>((Vector2)value, true);
             }
             else if (value is Vector3)
             {
-                return new VFXValueFloat3((Vector3)value, true);
+                return new VFXValue<Vector3>((Vector3)value, true);
             }
             else if (value is Vector4)
             {
-                return new VFXValueFloat4((Vector4)value, true);
+                return new VFXValue<Vector4>((Vector4)value, true);
             }
             else if (value is FloatN)
             {
@@ -175,7 +175,7 @@ namespace UnityEditor.VFX
             }
             else if (value is AnimationCurve)
             {
-                return new VFXValueCurve(value as AnimationCurve, true);
+                return new VFXValue<AnimationCurve>(value as AnimationCurve, true);
             }
             return null;
         }

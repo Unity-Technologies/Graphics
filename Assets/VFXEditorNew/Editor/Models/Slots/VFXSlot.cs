@@ -240,7 +240,7 @@ namespace UnityEditor.VFX
         private void SetDefaultExpressionValue()
         {
             var val = value;
-            if (val != null && m_DefaultExpression is VFXValue)
+            if (m_DefaultExpression is VFXValue)
                 ((VFXValue)m_DefaultExpression).SetContent(val);
         }
 

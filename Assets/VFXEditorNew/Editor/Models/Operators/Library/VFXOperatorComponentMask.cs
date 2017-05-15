@@ -40,7 +40,7 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    componentStack.Push(VFXValueFloat.Default);
+                    componentStack.Push(VFXValue<float>.Default);
                 }
             }
 
