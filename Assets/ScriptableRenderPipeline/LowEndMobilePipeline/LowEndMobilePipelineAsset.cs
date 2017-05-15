@@ -159,6 +159,12 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             private set { m_DefaultDiffuseMaterial = value; }
         }
 
+        public Shader DefaultShader
+        {
+            get { return m_DefaultShader; }
+            private set { m_DefaultShader = value; }
+        }
+
         #endregion
         public override Material GetDefaultMaterial()
         {

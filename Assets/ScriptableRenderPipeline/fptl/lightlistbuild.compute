@@ -4,7 +4,7 @@
 #pragma kernel TileLightListGen					LIGHTLISTGEN=TileLightListGen
 #pragma kernel TileLightListGen_SrcBigTile		LIGHTLISTGEN=TileLightListGen_SrcBigTile		USE_TWO_PASS_TILED_LIGHTING
 
-#include "..\common\ShaderBase.h"
+#include "ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
 #include "LightingConvexHullUtils.hlsl"
 
@@ -111,7 +111,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	if(t<MAX_NR_COARSE_ENTRIES)
 		prunedList[t]=0;
-	
+
 	uint iWidth = g_viDimensions.x;
 	uint iHeight = g_viDimensions.y;
 	uint nrTilesX = (iWidth+15)/16;
@@ -167,7 +167,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	float3 vTileLL = float3(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight, asfloat(ldsZMin));
 	float3 vTileUR = float3((viTilLL.x+16)/(float) iWidth, (viTilLL.y+16)/(float) iHeight, asfloat(ldsZMax));
 	vTileUR.xy = min(vTileUR.xy,float2(1.0,1.0)).xy;
-	
+
 
 	// build coarse list using AABB
 #ifdef USE_TWO_PASS_TILED_LIGHTING
@@ -195,7 +195,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		}
 	}
 
-#ifdef FINE_PRUNING_ENABLED	
+#ifdef FINE_PRUNING_ENABLED
 	if(t<2) ldsDoesLightIntersect[t] = 0;
 #endif
 
@@ -209,7 +209,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
 #endif
 
-#ifndef FINE_PRUNING_ENABLED	
+#ifndef FINE_PRUNING_ENABLED
 	{
 		if((int)t<iNrCoarseLights) prunedList[t] = coarseList[t];
 		if(t==0) ldsNrLightsFinal=iNrCoarseLights;
@@ -229,9 +229,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
-	
+
 	int nrLightsCombinedList = min(ldsNrLightsFinal,MAX_NR_COARSE_ENTRIES);
-	for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS) 
+	for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS)
 	{
 		InterlockedAdd(ldsModelListCount[ g_vLightData[ prunedList[i] ].lightModel ], 1);
 	}
@@ -290,11 +290,11 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
 	float halfTileSizeAtZDistOne = 8*onePixDiagDist;		// scale by half a tile
-	
+
 	for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
 		SFiniteLightBound lightData = g_data[prunedList[l]];
-	
+
 		if( DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lightData.center.xyz, lightData.radius) )
 		{
 			unsigned int uIndex;
@@ -336,16 +336,16 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 		{
 			SFiniteLightData lightData = g_vLightData[idxCoarse];
 			const bool bIsSpotDisc = (lightData.flags&IS_CIRCULAR_SPOT_SHAPE)!=0;
-				
+
 			// serially check 4 pixels
 			uint uVal = 0;
 			for(int i=0; i<4; i++)
 			{
 				int idx = t + i*NR_THREADS;
-	
+
 				uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
 				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
-	
+
 				// check pixel
 				float3 fromLight = vVPos-lightData.lightPos.xyz;
 				float distSq = dot(fromLight,fromLight);
@@ -372,15 +372,15 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 			for(int i=0; i<4; i++)
 			{
 				int idx = t + i*NR_THREADS;
-	
+
 				uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
 				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
-	
+
 				// check pixel
 				float3 vLp = lightData.lightPos.xyz;
-				float3 toLight = vLp - vVPos; 
+				float3 toLight = vLp - vVPos;
 				float distSq = dot(toLight,toLight);
-			
+
 				if(lightData.radiusSq>distSq) uVal = 1;
 			}
 
@@ -399,7 +399,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 			for(int i=0; i<4; i++)
 			{
 				int idx = t + i*NR_THREADS;
-	
+
 				uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
 				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
 
