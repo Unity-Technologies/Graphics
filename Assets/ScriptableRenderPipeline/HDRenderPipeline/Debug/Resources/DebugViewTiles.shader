@@ -174,7 +174,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 // Highlight selected tile
                 if (all(mouseTileCoord == tileCoord))
                 {
-                    bool border = any(offsetInTile == 0 || offsetInTile == GetTileSize() - 1);
+                    bool border = any(offsetInTile == 0 || offsetInTile == (int)GetTileSize() - 1);
                     float4 result2 = float4(1.0, 1.0, 1.0, border ? 1.0 : 0.5);
                     result = AlphaBlend(result, result2);
                 }
