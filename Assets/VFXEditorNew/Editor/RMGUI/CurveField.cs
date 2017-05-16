@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -43,7 +43,10 @@ namespace UnityEditor.VFX.UIElements
 
         void OnCurveChanged(AnimationCurve curve)
         {
-            m_Value = curve;
+            m_Value = new AnimationCurve();
+            m_Value.keys = curve.keys;
+            m_Value.preWrapMode = curve.preWrapMode;
+            m_Value.postWrapMode = curve.postWrapMode;
             ValueToGUI();
 
             if (onValueChanged != null)

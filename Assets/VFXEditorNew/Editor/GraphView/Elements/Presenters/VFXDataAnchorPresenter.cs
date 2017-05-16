@@ -138,6 +138,8 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
+                if (direction == Direction.Output)
+                    return true;
                 bool editable = m_SourceNode.enabled;
 
                 if (editable)
