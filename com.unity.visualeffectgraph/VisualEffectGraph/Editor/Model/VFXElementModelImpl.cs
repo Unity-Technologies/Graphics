@@ -168,52 +168,9 @@ namespace UnityEditor.Experimental
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
                 m_ReloadUniforms = false;
-
-                // Update expressions
                 VFXAsset asset = VFXEditor.asset;
-                foreach (var kvp in m_Expressions)
-                {
-                    VFXExpression expr = kvp.Key;
-                    int index = kvp.Value.index;
-                    if (expr.IsValue(false))
-                    {
-                        switch (expr.ValueType)
-                        {
-                           case VFXValueType.kInt: 
-                                asset.SetInt(index,expr.Get<int>());
-                                break;
-                           case VFXValueType.kUint: 
-                                asset.SetUInt(index,expr.Get<UInt32>()); 
-                                break;
-                            case VFXValueType.kFloat: 
-                                asset.SetFloat(index,expr.Get<float>()); 
-                                break;
-                            case VFXValueType.kFloat2:
-                                asset.SetVector2(index,expr.Get<Vector2>()); 
-                                break;
-                            case VFXValueType.kFloat3:
-                                asset.SetVector3(index,expr.Get<Vector3>()); 
-                                break;
-                            case VFXValueType.kFloat4:
-                                asset.SetVector4(index,expr.Get<Vector4>()); 
-                                break;
-                            case VFXValueType.kTexture2D:
-                                asset.SetTexture2D(index,expr.Get<Texture2D>());
-                                break;
-                            case VFXValueType.kTexture3D:
-                                asset.SetTexture3D(index,expr.Get<Texture3D>());
-                                break;
-                            case VFXValueType.kTransform:
-                                asset.SetMatrix(index,expr.Get<Matrix4x4>());
-                                break;
-							case VFXValueType.kMesh:
-								asset.SetMesh(index,expr.Get<Mesh>());
-								break;
-                            // curve and gradient uniform dont change, only the correponding textures are updated
-                        }
-                    }
-                }
-
+                var sheet = CreateValueSheet(m_Expressions.Select(o => o.Key).ToList()); //stupid redirection, but ease refactor
+                asset.SetValueSheet(sheet);
                 m_TextureData.UpdateAndUploadDirty();
             }
 
@@ -221,6 +178,46 @@ namespace UnityEditor.Experimental
                 VFXEditor.ForeachComponents(c => c.Reinit());
 
             Profiler.EndSample();
+        }
+
+
+        private VFXExpressionValueAbstractContainerDesc[] CreateValueSheet(List<VFXExpression> expressionList)
+        {
+            return expressionList.Where(e => e.IsValue(false)).Select(expr =>
+            {
+                var value = expr as VFXValue;
+                switch (value.ValueType)
+                {
+                    case VFXValueType.kInt:
+                        return new VFXExpressionValueIntContainerDesc() { value = value.Get<int>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kUint:
+                        return new VFXExpressionValueUInt32ContainerDesc() { value = value.Get<UInt32>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kFloat:
+                        return new VFXExpressionValueFloatContainerDesc() { value = value.Get<float>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kFloat2:
+                        return new VFXExpressionValueVector2ContainerDesc() { value = value.Get<Vector2>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kFloat3:
+                        return new VFXExpressionValueVector3ContainerDesc() { value = value.Get<Vector3>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kFloat4:
+                        return new VFXExpressionValueVector4ContainerDesc() { value = value.Get<Vector4>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kTexture2D:
+                        return new VFXExpressionValueTexture2DContainerDesc() { value = value.Get<Texture2D>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kTexture3D:
+                        return new VFXExpressionValueTexture3DContainerDesc() { value = value.Get<Texture3D>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kTransform:
+                        return new VFXExpressionValueMatrix4x4ContainerDesc() { value = value.Get<Matrix4x4>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kMesh:
+                        return new VFXExpressionValueMeshContainerDesc() { value = value.Get<Mesh>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    /* temp : evaluate directly binded value */
+                    case VFXValueType.kCurve:
+                        return new VFXExpressionValueVector4ContainerDesc() { value = m_TextureData.GetCurveUniform(value), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kColorGradient:
+                        return new VFXExpressionValueFloatContainerDesc() { value = m_TextureData.GetGradientUniform(value), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    case VFXValueType.kSpline:
+                        return new VFXExpressionValueVector2ContainerDesc() { value = m_TextureData.GetSplineUniform(value), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                    default: throw new Exception("Invalid value");
+                }
+            }).ToArray();
         }
 
         private void GenerateNativeData()
@@ -353,79 +350,40 @@ namespace UnityEditor.Experimental
             if (asset != null)
             {
                 asset.ClearPropertyData();
-                foreach (var expr in expressionList)
+
+                VFXExpressionSheet sheet;
+                sheet.expressions = expressionList.Select(expr =>
                 {
-                    if (expr.IsValue(false)) // check non reduced value
+                    VFXExpressionDesc exprDesc;
+                    var parents = expr.GetParents().Select(p => m_Expressions[p].index).ToList();
+                    if (expr is VFXTransformExpression)
                     {
-                        VFXValue value = (VFXValue)expr;
+                        parents.Add((int)(expr as VFXTransformExpression).GetSpaceRef());
+                    }
+                    else if (expr.IsValue(false))
+                    {
+                        var value = expr as VFXValue;
+                        /* temp : rewrap to target type (directly evaluated here, see GetCurveUniform/GetGradientUniform/GetSplineUniform ) */
                         switch (value.ValueType)
                         {
-                            case VFXValueType.kInt:
-                                asset.AddInt(value.Get<int>());
-                                break;
-                            case VFXValueType.kUint:
-                                asset.AddUInt(value.Get<UInt32>());
-                                break;
-                            case VFXValueType.kFloat:
-                                asset.AddFloat(value.Get<float>());
-                                break;
-                            case VFXValueType.kFloat2:
-                                asset.AddVector2(value.Get<Vector2>());
-                                break;
-                            case VFXValueType.kFloat3:
-                                asset.AddVector3(value.Get<Vector3>());
-                                break;
-                            case VFXValueType.kFloat4:
-                                asset.AddVector4(value.Get<Vector4>());
-                                break;
-                            case VFXValueType.kTexture2D:
-                                asset.AddTexture2D(value.Get<Texture2D>());
-                                break;
-                            case VFXValueType.kTexture3D:
-                                asset.AddTexture3D(value.Get<Texture3D>());
-                                break;
-                            case VFXValueType.kTransform:
-                                asset.AddMatrix(value.Get<Matrix4x4>());
-                                break;
-                            case VFXValueType.kCurve:
-                                asset.AddVector4(m_TextureData.GetCurveUniform(value));
-                                break;
-                            case VFXValueType.kColorGradient:
-                                asset.AddFloat(m_TextureData.GetGradientUniform(value));
-                                break;
-                            case VFXValueType.kMesh:
-                                asset.AddMesh(value.Get<Mesh>());
-                                break;
-                            case VFXValueType.kSpline:
-                                asset.AddVector2(m_TextureData.GetSplineUniform(value));
-                                break;
-                            default:
-                                throw new Exception("Invalid value");
+                            case VFXValueType.kCurve: parents.Add((int)VFXValueType.kFloat4); break;
+                            case VFXValueType.kColorGradient: parents.Add((int)VFXValueType.kFloat); break;
+                            case VFXValueType.kSpline: parents.Add((int)VFXValueType.kFloat2); break;
+                            default: parents.Add((int)value.ValueType); break;
                         }
                     }
-                    else
-                    {
-                        // Needs to fill the dependencies
-                        VFXExpression[] parents = expr.GetParents();
-                        int nbParents = parents == null ? 0 : parents.Length;
-                        int[] parentIds = new int[4];
-                        for (int i = 0; i < nbParents; ++i)
-                            parentIds[i] = m_Expressions[parents[i]].index;
+                    exprDesc.data = parents.ToArray();
+                    exprDesc.op = expr.Operation;
+                    return exprDesc;
+                }).ToArray();
 
-                        // For transform expression store the type in index 1
-                        if (expr is VFXTransformExpression)
-                        {
-                            // VFXTransformExpression ensures the number of parents is 1, so 1 is a free slot
-                            parentIds[1] = (int)((VFXTransformExpression)expr).GetSpaceRef();
-                        }
+                sheet.values = CreateValueSheet(expressionList);
+                sheet.semantics = new VFXExpressionSemanticDesc[] { };
+                asset.SetExpressionSheet(sheet);
 
-                        asset.AddExpression(expr.Operation, parentIds[0], parentIds[1], parentIds[2], parentIds[3]);
-                    }
-                }
+            // Generate spawner native data
 
-                // Generate spawner native data
-
-                ProgressBarHelper.IncrementStep("Generate data: Sync spawners");
+            ProgressBarHelper.IncrementStep("Generate data: Sync spawners");
                 asset.ClearSpawnerData();
                 foreach (var spawner in spawners)
                 {
