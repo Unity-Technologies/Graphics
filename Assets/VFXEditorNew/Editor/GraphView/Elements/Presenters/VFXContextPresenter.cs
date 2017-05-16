@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,7 +66,8 @@ namespace UnityEditor.VFX.UI
         protected void OnDisable()
         {
             UnregisterAnchors();
-            model.onInvalidateDelegate -= OnModelInvalidate; // Is is the right place ?
+            if( model != null )
+                model.onInvalidateDelegate -= OnModelInvalidate; // Is is the right place ?
         }
 
         private void UnregisterAnchors()
