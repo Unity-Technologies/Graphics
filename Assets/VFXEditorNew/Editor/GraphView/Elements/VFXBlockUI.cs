@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXBlockDataAnchorPresenter anchorPresenter = presenter as VFXBlockDataAnchorPresenter;
 
-            VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create<VFXDataEdgePresenter>(anchorPresenter);
+            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create<VFXDataEdgePresenter>(anchorPresenter);
 
             anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
 

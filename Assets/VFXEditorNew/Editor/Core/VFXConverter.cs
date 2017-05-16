@@ -68,8 +68,6 @@ namespace UnityEditor.VFX.UI
             {
                 return value;
             }
-
-            return value;
         }
 
         public static Color ConvertToColor(object value)

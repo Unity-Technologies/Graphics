@@ -55,7 +55,7 @@ namespace UnityEditor.VFX.UI
             var edgePresenter = GetPresenter<EdgePresenter>();
 
             NodeAnchorPresenter outputPresenter = edgePresenter.output;
-            NodeAnchorPresenter inputPresenter = edgePresenter.input;
+            VFXDataAnchorPresenter inputPresenter = edgePresenter.input as VFXDataAnchorPresenter;
 
             if (outputPresenter == null && inputPresenter == null)
                 return;
@@ -63,8 +63,13 @@ namespace UnityEditor.VFX.UI
             Vector2 from = Vector2.zero;
             Vector2 to = Vector2.zero;
             GetFromToPoints(ref from, ref to);
-
             Color edgeColor = borderColor;
+
+            if (inputPresenter.sourceNode is VFXBlockPresenter)
+            {
+                to = to + new Vector2(-6, 0);
+            }
+
 
             Orientation orientation = Orientation.Horizontal;
             Vector3[] points, tangents;

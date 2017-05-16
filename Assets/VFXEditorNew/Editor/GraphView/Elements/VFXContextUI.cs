@@ -195,8 +195,8 @@ namespace UnityEditor.VFX.UI
             */
             typeFactory = new GraphViewTypeFactory();
             typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
-            typeFactory[typeof(VFXBlockDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(VFXBlockDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(VFXBlockDataInputAnchorPresenter)] = typeof(VFXBlockDataAnchor);
+            typeFactory[typeof(VFXBlockDataOutputAnchorPresenter)] = typeof(VFXBlockDataAnchor);
 
             ClearClassList();
             AddToClassList("VFXContext");
