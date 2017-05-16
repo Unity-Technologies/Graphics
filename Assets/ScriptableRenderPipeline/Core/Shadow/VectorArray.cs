@@ -321,6 +321,14 @@ namespace UnityEngine.Experimental
             Array.Sort(m_array, (int)m_offset, (int)m_count);
         }
 
+        // Sort according to some comparer
+        public void Sort(System.Collections.Generic.IComparer<T> comparer)
+        {
+
+            Debug.Assert(m_count <= int.MaxValue && m_offset <= int.MaxValue);
+            Array.Sort(m_array, (int)m_offset, (int)m_count, comparer);
+        }
+
         // Returns true if the element matches the designator according to the comparator. idx will hold the index to the first matched object in the array.
         public delegate bool Comparator<U>(ref U designator, ref T obj);
         public bool FindFirst<U>(out uint idx, ref U designator, Comparator<U> compareDelegate)

@@ -1101,6 +1101,13 @@ namespace UnityEngine.Experimental.Rendering
             shadowDataIndices = m_ShadowIndices.AsArray( out offset, out shadowRequestsCount );
         }
 
+        public class SortReverter : System.Collections.Generic.IComparer<long>
+        {
+            public int Compare(long lhs, long rhs)
+            {
+                return rhs.CompareTo(lhs);
+            }
+        }
 
         protected override void PrioritizeShadowCasters( Camera camera, VisibleLight[] lights, uint shadowRequestsCount, int[] shadowRequests )
         {
@@ -1120,7 +1127,8 @@ namespace UnityEngine.Experimental.Rendering
                 val |= (uint)vlidx;
                 m_TmpSortKeys.AddUnchecked( val );
             }
-            m_TmpSortKeys.Sort();
+
+            m_TmpSortKeys.Sort( new SortReverter() );
             m_TmpSortKeys.ExtractTo( shadowRequests, 0, out shadowRequestsCount, delegate(long key) { return (int) (key & 0xffffffff); } );
         }
 
