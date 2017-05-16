@@ -287,7 +287,8 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, m_CascadeCount, m_CascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
                         m_TmpSplits[key.faceIdx]    = ce.current.splitData.cullingSphere;
-                        m_TmpSplits[key.faceIdx].w *= ce.current.splitData.cullingSphere.w;
+                        if( ce.current.splitData.cullingSphere.w != float.NegativeInfinity )
+                            m_TmpSplits[key.faceIdx].w *= ce.current.splitData.cullingSphere.w;
                     }
                     else
                         vp = Matrix4x4.identity; // should never happen, though
@@ -1146,8 +1147,7 @@ namespace UnityEngine.Experimental.Rendering
                 AdditionalLightData ald = vl.light.GetComponent<AdditionalLightData>();
                 Vector3 lpos            = vl.light.transform.position;
                 float   distToCam       = (campos - lpos).magnitude;
-                // TODO: Directional light (not projector), should not test shadowFadeDistance
-                bool    add             = distToCam < ald.shadowFadeDistance && m_ShadowSettings.enabled;
+                bool    add             = (distToCam < ald.shadowFadeDistance || vl.lightType == LightType.Directional) && m_ShadowSettings.enabled;
 
                 if( add )
                 {
