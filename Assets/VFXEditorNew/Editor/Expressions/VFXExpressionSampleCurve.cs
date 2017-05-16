@@ -36,8 +36,8 @@ namespace UnityEditor.VFX
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
-            var timeReduce = constParents[0];
-            var curveReduce = constParents[1];
+            var timeReduce = constParents[1];
+            var curveReduce = constParents[0];
 
             var curve = curveReduce.Get<AnimationCurve>();
             var time = timeReduce.Get<float>();

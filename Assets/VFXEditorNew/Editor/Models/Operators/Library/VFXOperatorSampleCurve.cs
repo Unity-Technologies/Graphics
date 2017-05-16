@@ -13,8 +13,8 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public float time = 0.0f;
             public AnimationCurve curve = new AnimationCurve();
+            public float time = 0.0f;
         }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
