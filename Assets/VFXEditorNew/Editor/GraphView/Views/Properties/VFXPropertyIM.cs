@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
             {typeof(Gradient), typeof(VFXGradientPropertyIM) },
             {typeof(AnimationCurve), typeof(VFXAnimationCurvePropertyIM) }
         };
-        public static VFXPropertyIM Create(Type type,float labelWidth)
+        public static VFXPropertyIM Create(Type type, float labelWidth)
         {
             Type propertyIMType;
 
@@ -66,7 +66,6 @@ namespace UnityEditor.VFX.UI
                 property.m_LabelWidth = labelWidth;
 
                 return property;
-
             }
             else
             {

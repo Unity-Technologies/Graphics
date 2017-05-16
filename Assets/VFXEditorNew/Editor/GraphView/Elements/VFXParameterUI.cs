@@ -111,19 +111,17 @@ namespace UnityEditor.VFX.UI
 
             inputContainer.AddChild(exposedNameContainer);
             inputContainer.AddChild(m_ExposedContainer);
-
         }
 
         void OnGUI()
         {
-            if(m_PropertyIM != null)
+            if (m_PropertyIM != null)
             {
                 m_GUIStyles.ConfigureForElement(m_Container);
 
-                m_PropertyIM.OnGUI(presenter.allChildren.OfType<VFXDataAnchorPresenter>().FirstOrDefault(),m_GUIStyles);
+                m_PropertyIM.OnGUI(presenter.allChildren.OfType<VFXDataAnchorPresenter>().FirstOrDefault(), m_GUIStyles);
             }
         }
-
 
         public override void OnDataChanged()
         {
@@ -140,17 +138,16 @@ namespace UnityEditor.VFX.UI
             if (m_Property == null && m_PropertyIM == null)
             {
                 m_Property = PropertyRM.Create(presenter, 55);
-                if(m_Property != null)
+                if (m_Property != null)
                     inputContainer.AddChild(m_Property);
                 else
                 {
                     m_GUIStyles = new VFXDataGUIStyles();
-                    m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType,55);
+                    m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 55);
 
                     m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
                     inputContainer.AddChild(m_Container);
                 }
-
             }
             if (m_Property != null)
                 m_Property.Update();

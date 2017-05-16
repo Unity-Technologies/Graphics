@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if( anchorType != null)
+                if (anchorType != null)
                 {
                     if (!editable)
                     {
@@ -78,11 +78,11 @@ namespace UnityEditor.VFX.UI
 
                         if (presenter.CanGetEvaluatedContent(model))
                         {
-                            return VFXConverter.ConvertTo(presenter.GetEvaluatedContent(model),anchorType);
+                            return VFXConverter.ConvertTo(presenter.GetEvaluatedContent(model), anchorType);
                         }
                     }
 
-                    return VFXConverter.ConvertTo(model.value,anchorType);
+                    return VFXConverter.ConvertTo(model.value, anchorType);
                 }
                 else
                 {
@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            set { SetPropertyValue(VFXConverter.ConvertTo(value,anchorType)); }
+            set { SetPropertyValue(VFXConverter.ConvertTo(value, anchorType)); }
         }
 
 
@@ -140,7 +140,7 @@ namespace UnityEditor.VFX.UI
             {
                 bool editable = m_SourceNode.enabled;
 
-                if( editable)
+                if (editable)
                 {
                     VFXSlot slot = model;
                     while (slot != null)
@@ -154,9 +154,9 @@ namespace UnityEditor.VFX.UI
                     }
 
 
-                    foreach(VFXSlot child in model.children)
+                    foreach (VFXSlot child in model.children)
                     {
-                        if(child.LinkedSlots.Count > 0)
+                        if (child.LinkedSlots.Count > 0)
                         {
                             editable = false;
                         }

@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.UI
         {
             var fromAnchor = dataEdge.output as VFXDataAnchorPresenter;
             var toAnchor = dataEdge.input as VFXDataAnchorPresenter;
-            if ( fromAnchor == null || toAnchor == null ) return; // no need to record invalid edge
+            if (fromAnchor == null ||  toAnchor == null) return;  // no need to record invalid edge
             var from = fromAnchor.Owner as IVFXSlotContainer;
             var to = toAnchor.Owner as IVFXSlotContainer;
             var children = new HashSet<IVFXSlotContainer>();

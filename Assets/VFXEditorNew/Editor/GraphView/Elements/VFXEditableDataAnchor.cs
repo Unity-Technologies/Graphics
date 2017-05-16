@@ -7,8 +7,6 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
-
-
     public class VFXDataGUIStyles
     {
         public GUIStyle baseStyle;
@@ -17,9 +15,9 @@ namespace UnityEditor.VFX.UI
         {
             baseStyle = new GUIStyle();
         }
+
         public void ConfigureForElement(VisualElement elem)
         {
-
             bool different = false;
 
             if (baseStyle.font != elem.font)
@@ -42,7 +40,6 @@ namespace UnityEditor.VFX.UI
             {
                 Reset();
             }
-
         }
 
         public GUIStyle GetGUIStyleForExpandableType(Type type)
@@ -141,7 +138,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 m_GUIStyles = new VFXDataGUIStyles();
-                m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType,100);
+                m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 100);
 
                 m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
                 AddChild(m_Container);

@@ -7,7 +7,7 @@ using System.Linq;
 namespace UnityEditor.VFX.UI
 {
     class VFXFlowAnchor : NodeAnchor, IEdgeConnectorListener
-  {
+    {
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static VFXFlowAnchor Create<TEdgePresenter>(VFXFlowAnchorPresenter presenter) where TEdgePresenter : VFXFlowEdgePresenter
         {
@@ -103,17 +103,16 @@ namespace UnityEditor.VFX.UI
             {
                 VFXContextType targetContextType = VFXContextType.kNone;
                 //TODO create the most obvious context and link
-                if( presenter.direction == Direction.Input)
+                if (presenter.direction == Direction.Input)
                 {
-
                     switch (presenter.Owner.contextType)
                     {
                         case VFXContextType.kUpdate:
                             targetContextType = VFXContextType.kInit;
-                        break;
+                            break;
                         case VFXContextType.kOutput:
                             targetContextType = VFXContextType.kUpdate;
-                        break;
+                            break;
                     }
                 }
                 else
@@ -122,24 +121,24 @@ namespace UnityEditor.VFX.UI
                     {
                         case VFXContextType.kUpdate:
                             targetContextType = VFXContextType.kOutput;
-                        break;
+                            break;
                         case VFXContextType.kInit:
                             targetContextType = VFXContextType.kUpdate;
-                        break;
+                            break;
                     }
                 }
 
-                if(targetContextType != VFXContextType.kNone)
+                if (targetContextType != VFXContextType.kNone)
                 {
-                    var contextDesc = VFXLibrary.GetContexts().FirstOrDefault(t=>t.CreateInstance().contextType == targetContextType);
-                    if( contextDesc != null)
+                    var contextDesc = VFXLibrary.GetContexts().FirstOrDefault(t => t.CreateInstance().contextType == targetContextType);
+                    if (contextDesc != null)
                     {
-                        VFXContext newContext = viewPresenter.AddVFXContext(position - new Vector2(188,presenter.direction == Direction.Input ? 92 : 16),contextDesc);
+                        VFXContext newContext = viewPresenter.AddVFXContext(position - new Vector2(188, presenter.direction == Direction.Input ? 92 : 16), contextDesc);
 
-                        VFXContextPresenter newContextPresenter = viewPresenter.elements.OfType<VFXContextPresenter>().FirstOrDefault(t=>t.model == newContext);
+                        VFXContextPresenter newContextPresenter = viewPresenter.elements.OfType<VFXContextPresenter>().FirstOrDefault(t => t.model == newContext);
 
                         VFXFlowEdgePresenter edgePresenter = new VFXFlowEdgePresenter();
-                        edgePresenter.input = presenter.direction == Direction.Input ? presenter : newContextPresenter.inputAnchors[0] ;
+                        edgePresenter.input = presenter.direction == Direction.Input ? presenter : newContextPresenter.inputAnchors[0];
                         edgePresenter.output = presenter.direction == Direction.Output ? presenter : newContextPresenter.outputAnchors[0];
 
                         viewPresenter.AddElement(edgePresenter);

@@ -50,7 +50,7 @@ namespace UnityEditor.VFX
             {
                 var invalidContext = m_ContextType;
                 m_ContextType = VFXContextType.kNone;
-                throw new ArgumentException(string.Format("Illegal context type: {0}",invalidContext));
+                throw new ArgumentException(string.Format("Illegal context type: {0}", invalidContext));
             }
         }
 

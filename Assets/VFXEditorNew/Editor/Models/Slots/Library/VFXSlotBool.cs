@@ -3,7 +3,7 @@ using System;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(bool))]
-    class VFXSlotBool : VFXSlot 
+    class VFXSlotBool : VFXSlot
     {
         // TODO Add VFXValueType.Boolean
         /*protected override VFXValue DefaultExpression()

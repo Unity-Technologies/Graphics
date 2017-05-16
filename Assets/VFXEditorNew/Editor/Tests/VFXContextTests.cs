@@ -39,9 +39,9 @@ namespace UnityEditor.VFX.Test
             public ContextTestAll() : base(VFXContextType.kAll) {}
         }
 
-        private void CheckContext(VFXContext context,VFXContextType expectedType)
+        private void CheckContext(VFXContext context, VFXContextType expectedType)
         {
-            Assert.AreEqual(expectedType,context.contextType);
+            Assert.AreEqual(expectedType, context.contextType);
         }
 
         [Test]

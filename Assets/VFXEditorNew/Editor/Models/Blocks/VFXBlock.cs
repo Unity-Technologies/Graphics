@@ -12,10 +12,11 @@ namespace UnityEditor.VFX
 
         public bool enabled
         {
-            get { return !m_Disabled;}
-            set {
+            get { return !m_Disabled; }
+            set
+            {
                 m_Disabled = !value;
-                Invalidate(this,InvalidationCause.kStructureChanged);
+                Invalidate(this, InvalidationCause.kStructureChanged);
             }
         }
         public abstract VFXContextType compatibleContexts { get; }

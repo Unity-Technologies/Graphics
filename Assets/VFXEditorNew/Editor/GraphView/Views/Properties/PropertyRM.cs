@@ -195,12 +195,13 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    try{
+                    try
+                    {
                         m_Value = (T)obj;
                     }
-                    catch(System.Exception)
+                    catch (System.Exception)
                     {
-                        Debug.Log("Error Trying to convert" + (obj!= null ? obj.GetType().Name : "null") +" to "+  typeof(T).Name);
+                        Debug.Log("Error Trying to convert" + (obj != null ? obj.GetType().Name : "null") + " to " +  typeof(T).Name);
                     }
                 }
             }

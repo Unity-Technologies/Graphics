@@ -44,10 +44,10 @@ namespace UnityEditor.VFX.UI
                 {
                     var exp = ((VFXSlot)o).GetExpression();
                     if (exp != null)
-                        {
+                    {
                         m_ExpressionContext.RegisterExpression(exp);
-                            ++nbExpr;
-                        }
+                        ++nbExpr;
+                    }
                 }
             }
 

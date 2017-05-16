@@ -1,11 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using Type = System.Type;
 
 
 namespace UnityEditor.VFX.UI
 {
-
     class FloatNAffector : IFloatNAffector<float>, IFloatNAffector<Vector2>, IFloatNAffector<Vector3>, IFloatNAffector<Vector4>
     {
         float IFloatNAffector<float>.GetValue(object floatN)
@@ -37,7 +36,7 @@ namespace UnityEditor.VFX.UI
 
         public static object ConvertTo(object value, Type type)
         {
-            if( value == null || value.GetType() == type)
+            if (value == null || value.GetType() == type)
             {
                 return value;
             }
@@ -85,14 +84,14 @@ namespace UnityEditor.VFX.UI
                 Vector3 val = (Vector3)value;
                 return new Color(val.x, val.y, val.z);
             }
-            else if( value is FloatN)
+            else if (value is FloatN)
             {
                 FloatN val = (FloatN)value;
-                if( val.realSize == 4)
+                if (val.realSize == 4)
                 {
-                    return new Color(val[0],val[1],val[2],val[3]);
+                    return new Color(val[0], val[1], val[2], val[3]);
                 }
-                else if(val.realSize == 3)
+                else if (val.realSize == 3)
                 {
                     return new Color(val[0], val[1], val[2]);
                 }
@@ -249,7 +248,7 @@ namespace UnityEditor.VFX.UI
             {
                 FloatN val = (FloatN)value;
 
-                return new Position{position = val};
+                return new Position {position = val};
             }
             return (Position)value;
         }
