@@ -18,15 +18,56 @@ namespace UnityEditor.VFX.Test
             VFXGUITests tests = new VFXGUITests();
 
             tests.CreateTestAsset("GUITest");
-            tests.CreateAllInitializeBlocks();
-            tests.CreateAllUpdateBlocks();
-            tests.CreateAllOutputBlocks();
+            var initContext = tests.CreateAllInitializeBlocks();
+            var updateContext = tests.CreateAllUpdateBlocks();
+            var outputContext = tests.CreateAllOutputBlocks();
+
+            tests.CreateEdges(initContext,updateContext,outputContext);
         }
         VFXViewPresenter m_ViewPresenter;
         VFXViewWindow m_Window;
         VFXView m_View;
 
         const string testAssetName = "Assets/TmpTests/{0}.asset";
+
+
+        [Test]
+        public void CreateFlowEdgesTest()
+        {
+            CreateTestAsset("GUITest4");
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
+            var initContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 100), initContextDesc);
+            var initContextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().First(t=>t.model == initContext) as VFXContextPresenter;
+
+            var updateContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Update").First();
+            var updateContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 1000), updateContextDesc);
+            var updateContextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().First(t => t.model == updateContext) as VFXContextPresenter;
+
+            var outputContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Output").First();
+            var outputContext = m_ViewPresenter.AddVFXContext(new Vector2(100, 1000), outputContextDesc);
+            var outputContextPresenter = m_ViewPresenter.allChildren.OfType<VFXContextPresenter>().First(t => t.model == outputContext) as VFXContextPresenter;
+
+            CreateEdges(initContextPresenter,updateContextPresenter,outputContextPresenter);
+
+            DestroyTestAsset("GUITest4");
+        }
+
+        void CreateEdges(VFXContextPresenter initContext,VFXContextPresenter updateContext,VFXContextPresenter outputContext)
+        {
+            VFXFlowEdgePresenter edgePresenter = new VFXFlowEdgePresenter();
+
+            edgePresenter.output = initContext.outputAnchors.First();
+            edgePresenter.input = updateContext.inputAnchors.First();
+
+            m_ViewPresenter.AddElement(edgePresenter);
+
+            edgePresenter = new VFXFlowEdgePresenter();
+
+            edgePresenter.output = updateContext.outputAnchors.First();
+            edgePresenter.input = outputContext.inputAnchors.First();
+
+            m_ViewPresenter.AddElement(edgePresenter);
+        }
 
         public void CreateTestAsset(string name)
         {
@@ -67,7 +108,7 @@ namespace UnityEditor.VFX.Test
             CreateAllInitializeBlocks();
             DestroyTestAsset("TestGUI1");
         }
-            public void CreateAllInitializeBlocks()
+            VFXContextPresenter CreateAllInitializeBlocks()
         {
 
 
@@ -93,6 +134,8 @@ namespace UnityEditor.VFX.Test
 
                 Assert.NotNull(blockPresenter);
             }
+
+            return contextPresenter;
         }
 
 
@@ -104,7 +147,7 @@ namespace UnityEditor.VFX.Test
             DestroyTestAsset("TestGUI2");
         }
 
-        public void CreateAllUpdateBlocks()
+        VFXContextPresenter CreateAllUpdateBlocks()
         {
 
             var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Update").First();
@@ -127,6 +170,7 @@ namespace UnityEditor.VFX.Test
 
                 Assert.NotNull(blockPresenter);
             }
+            return contextPresenter;
         }
 
         [Test]
@@ -137,7 +181,7 @@ namespace UnityEditor.VFX.Test
             DestroyTestAsset("TestGUI3");
         }
 
-        public void CreateAllOutputBlocks()
+        VFXContextPresenter CreateAllOutputBlocks()
         {
 
             var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Output").First();
@@ -160,6 +204,7 @@ namespace UnityEditor.VFX.Test
 
                 Assert.NotNull(blockPresenter);
             }
+            return contextPresenter;
         }
 
         [Test]
