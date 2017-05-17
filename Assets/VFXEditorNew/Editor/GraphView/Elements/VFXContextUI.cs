@@ -86,7 +86,11 @@ namespace UnityEditor.VFX.UI
 
         VisualElement       m_DragDisplay;
 
+        VFXSlotContainerUI  m_OwnData;
+
         protected GraphViewTypeFactory typeFactory { get; set; }
+
+        public VFXSlotContainerUI ownData { get { return m_OwnData; }}
 
         public VFXContextUI()
         {
@@ -151,6 +155,10 @@ namespace UnityEditor.VFX.UI
 
             m_NodeContainer.AddChild(m_Header);
 
+
+            m_OwnData = new VFXSlotContainerUI();
+            m_NodeContainer.AddChild(m_OwnData);
+
             m_BlockContainer = new BlockContainer()
             {
                 pickingMode = PickingMode.Ignore
@@ -195,8 +203,8 @@ namespace UnityEditor.VFX.UI
             */
             typeFactory = new GraphViewTypeFactory();
             typeFactory[typeof(VFXBlockPresenter)] = typeof(VFXBlockUI);
-            typeFactory[typeof(VFXBlockDataInputAnchorPresenter)] = typeof(VFXBlockDataAnchor);
-            typeFactory[typeof(VFXBlockDataOutputAnchorPresenter)] = typeof(VFXBlockDataAnchor);
+            typeFactory[typeof(VFXContextDataInputAnchorPresenter)] = typeof(VFXBlockDataAnchor);
+            typeFactory[typeof(VFXContextDataOutputAnchorPresenter)] = typeof(VFXBlockDataAnchor);
 
             ClearClassList();
             AddToClassList("VFXContext");
@@ -590,6 +598,9 @@ namespace UnityEditor.VFX.UI
                     GetPresenter<VFXContextPresenter>().AddBlock(-1, d.CreateInstance());
                 }));
             m_NodeContainer.AddManipulator(m_PopupManipulator);
+
+
+            m_OwnData.presenter = presenter.slotContainerPresenter;
         }
 
         FilterPopup m_PopupManipulator;

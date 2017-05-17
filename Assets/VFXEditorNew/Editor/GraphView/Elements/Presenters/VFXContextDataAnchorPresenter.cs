@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXBlockDataAnchorPresenter : VFXDataAnchorPresenter
+    abstract class VFXContextDataAnchorPresenter : VFXDataAnchorPresenter
     {
         public override bool expandable
         {
@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        public void Init(VFXModel owner, VFXSlot model, VFXBlockPresenter nodePresenter)
+        public void Init(VFXModel owner, VFXSlot model, VFXSlotContainerPresenter nodePresenter)
         {
             base.Init(owner, model, nodePresenter);
         }
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXBlockDataInputAnchorPresenter : VFXBlockDataAnchorPresenter
+    class VFXContextDataInputAnchorPresenter : VFXContextDataAnchorPresenter
     {
         public override Direction direction
         {
@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXBlockDataOutputAnchorPresenter : VFXBlockDataAnchorPresenter
+    class VFXContextDataOutputAnchorPresenter : VFXContextDataAnchorPresenter
     {
         public override Direction direction
         {

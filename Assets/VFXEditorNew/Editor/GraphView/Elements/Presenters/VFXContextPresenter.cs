@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
         protected void OnDisable()
         {
             UnregisterAnchors();
-            if( model != null )
+            if (model != null)
                 model.onInvalidateDelegate -= OnModelInvalidate; // Is is the right place ?
         }
 
@@ -110,7 +110,14 @@ namespace UnityEditor.VFX.UI
 
             model.onInvalidateDelegate += OnModelInvalidate;
             SyncPresenters();
+
+            m_SlotContainerPresenter = new VFXSlotContainerPresenter();
+            m_SlotContainerPresenter.Init(model as IVFXSlotContainer, this);
         }
+
+        VFXSlotContainerPresenter m_SlotContainerPresenter;
+
+        public VFXSlotContainerPresenter slotContainerPresenter { get {return m_SlotContainerPresenter; } }
 
         private void OnModelInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {

@@ -95,7 +95,7 @@ namespace UnityEditor.VFX.UI
         public VFXView()
         {
             forceNotififcationOnAdd = true;
-            SetupZoom(new Vector3(0.125f, 0.125f, 1), new Vector3(1, 1, 1));
+            SetupZoom(new Vector3(0.125f, 0.125f, 1), new Vector3(8, 8, 1));
 
             AddManipulator(new ContentDragger());
             AddManipulator(new RectangleSelector());
@@ -159,8 +159,8 @@ namespace UnityEditor.VFX.UI
             typeFactory[typeof(VFXDataEdgePresenter)] = typeof(VFXDataEdge);
             typeFactory[typeof(VFXFlowInputAnchorPresenter)] = typeof(VFXFlowAnchor);
             typeFactory[typeof(VFXFlowOutputAnchorPresenter)] = typeof(VFXFlowAnchor);
-            typeFactory[typeof(VFXBlockDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
-            typeFactory[typeof(VFXBlockDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(VFXContextDataInputAnchorPresenter)] = typeof(VFXDataAnchor);
+            typeFactory[typeof(VFXContextDataOutputAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXInputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
             typeFactory[typeof(VFXOutputOperatorAnchorPresenter)] = typeof(VFXDataAnchor);
 
@@ -268,6 +268,10 @@ namespace UnityEditor.VFX.UI
                     if (element is VFXContextUI)
                     {
                         var context = element as VFXContextUI;
+
+
+                        foreach (VFXDataAnchor anchor in context.ownData.GetAnchors(input, output))
+                            yield return anchor;
 
                         foreach (VFXBlockUI block in context.GetAllBlocks())
                         {

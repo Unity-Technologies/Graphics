@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -25,14 +25,13 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-
-        internal override void DoRepaint( IStylePainter pc )
+        internal override void DoRepaint(IStylePainter pc)
         {
             base.DoRepaint(pc);
 
-            VFXBlockDataAnchorPresenter presenter = GetPresenter<VFXBlockDataAnchorPresenter>();
+            VFXContextDataAnchorPresenter presenter = GetPresenter<VFXContextDataAnchorPresenter>();
 
-            if( presenter.connected )
+            if (presenter.connected)
             {
                 var edgePresenter = presenter.connections.First() as VFXDataEdgePresenter;
 

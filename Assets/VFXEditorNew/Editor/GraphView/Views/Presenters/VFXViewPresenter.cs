@@ -316,7 +316,7 @@ namespace UnityEditor.VFX.UI
             m_FlowAnchorPresenters.Remove(presenter);
         }
 
-        public void RegisterDataAnchorPresenter(VFXBlockDataInputAnchorPresenter presenter)
+        public void RegisterDataAnchorPresenter(VFXContextDataInputAnchorPresenter presenter)
         {
             List<NodeAnchorPresenter> list;
             if (!m_DataInputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
@@ -328,7 +328,7 @@ namespace UnityEditor.VFX.UI
                 list.Add(presenter);
         }
 
-        public void UnregisterDataAnchorPresenter(VFXBlockDataInputAnchorPresenter presenter)
+        public void UnregisterDataAnchorPresenter(VFXContextDataInputAnchorPresenter presenter)
         {
             List<NodeAnchorPresenter> list;
             if (m_DataInputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
@@ -337,7 +337,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void RegisterDataAnchorPresenter(VFXBlockDataOutputAnchorPresenter presenter)
+        public void RegisterDataAnchorPresenter(VFXContextDataOutputAnchorPresenter presenter)
         {
             List<NodeAnchorPresenter> list;
             if (!m_DataOutputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
@@ -349,7 +349,7 @@ namespace UnityEditor.VFX.UI
                 list.Add(presenter);
         }
 
-        public void UnregisterDataAnchorPresenter(VFXBlockDataOutputAnchorPresenter presenter)
+        public void UnregisterDataAnchorPresenter(VFXContextDataOutputAnchorPresenter presenter)
         {
             List<NodeAnchorPresenter> list;
             if (m_DataOutputAnchorPresenters.TryGetValue(presenter.anchorType, out list))

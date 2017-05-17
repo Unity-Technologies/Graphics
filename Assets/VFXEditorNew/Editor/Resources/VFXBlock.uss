@@ -1,12 +1,13 @@
-VFXBlockUI.node.horizontal {
+.VFXSlotContainerUI.node.horizontal {
 	background-color: #2C2C2C;
 	flex:1;
 	align-items:stretch;
 	margin-bottom:1;
 	border-radius:2;
+	border-color:rgba(0,0,0,0);
 }
 
-VFXBlockUI.node.horizontal #pane
+.VFXSlotContainerUI.node.horizontal #pane
 {
 	border-left: 2;
 	border-top: 2;
@@ -15,34 +16,34 @@ VFXBlockUI.node.horizontal #pane
 	flex-direction:column;
 	flex:1;
 }
-
-VFXBlockUI.VFXNodeUI.node.horizontal #pane > #left
+.VFXSlotContainerUI.VFXNodeUI.node.horizontal #pane > #left
 {
 	width:-1;
+	background-color:rgba(0,0,0,0);
 }
 
-VFXBlockUI  .propertyrm
+.VFXSlotContainerUI  .propertyrm
 {
 	margin-left:12;
 }
 
-VFXBlockUI.VFXNodeUI.node.horizontal #pane > #right
+.VFXSlotContainerUI.VFXNodeUI.node.horizontal #pane > #right
 {
 	width:0;
 	visible:false;
 }
 
-VFXBlockUI.horizontal.node #pane > #left
+.VFXSlotContainerUI.horizontal.node #pane > #left
 {
 	width:-1;
 	background-color: #363636;
 }
 
-VFXBlockUI.node.horizontal #title {
+.VFXSlotContainerUI.node.horizontal #title {
 	flex-direction:row;
 }
 
-VFXBlockUI.node.horizontal #title Button
+.VFXSlotContainerUI.node.horizontal #title Button
 {
 	min-width:40;
 	height:17;
@@ -53,21 +54,21 @@ VFXBlockUI.node.horizontal #title Button
 	border-color:#FFFFFF;
 }
 
-VFXBlockUI.node.horizontal #left > #title > Label {
+.VFXSlotContainerUI.node.horizontal #left > #title > Label {
 	text-color: #c4c4c4;
 	font-style: bold;
 	text-alignment: middle-left;
 	flex: 1;
 }
-VFXBlockUI.node.horizontal:disabled #left > #title > Label {
+.VFXSlotContainerUI.node.horizontal:disabled #left > #title > Label {
 	text-color: #333;
 }
 
-VFXBlockUI.node.horizontal:disabled {
+.VFXSlotContainerUI.node.horizontal:disabled {
 	background-color: #F00;
 }
 
-VFXBlockUI.node.horizontal #left > #title > Button {
+.VFXSlotContainerUI.node.horizontal #left > #title > Button {
 	text-color: rgb(153, 153, 153);
 	min-width:50;
 	margin-right: 6;
@@ -77,16 +78,22 @@ VFXBlockUI.node.horizontal #left > #title > Button {
 	text-alignment: middle-center;
 }
 
-VFXBlockUI #pane #left VisualContainer#input
+.VFXSlotContainerUI #pane #left VisualContainer#input
 {
 	flex:1;
 	align-items: stretch;
 	padding-bottom:3;
 }
 
-VFXBlockUI #pane #left VisualContainer#output
+.VFXSlotContainerUI #pane #left VisualContainer#output
 {
 	flex:1;
 	align-items: stretch;
 	padding-bottom:3;
+}
+
+VFXSlotContainerUI
+{
+	margin-left:12;
+	margin-right:12;
 }

@@ -9,20 +9,13 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockUI : VFXNodeUI, IDropTarget
+    class VFXBlockUI : VFXSlotContainerUI, IDropTarget
     {
-        public GraphViewTypeFactory typeFactory { get; set; }
-
-
         Toggle m_EnableToggle;
 
         public VFXBlockUI()
         {
-            forceNotififcationOnAdd = true;
-            pickingMode = PickingMode.Position;
-
             AddManipulator(new SelectionDropper(HandleDropEvent));
-            leftContainer.alignContent = Align.Stretch;
 
             m_EnableToggle = new Toggle(OnToggleEnable);
             titleContainer.InsertChild(0, m_EnableToggle);
@@ -52,25 +45,6 @@ namespace UnityEditor.VFX.UI
             }
 
             return EventPropagation.Stop;
-        }
-
-        public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
-        {
-            VFXBlockDataAnchorPresenter anchorPresenter = presenter as VFXBlockDataAnchorPresenter;
-
-            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create<VFXDataEdgePresenter>(anchorPresenter);
-
-            anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
-
-            return anchor;
-        }
-
-        protected override void OnAnchorRemoved(NodeAnchor anchor)
-        {
-            if (anchor is VFXEditableDataAnchor)
-            {
-                GetPresenter<VFXParameterPresenter>().viewPresenter.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
-            }
         }
 
         public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
@@ -110,28 +84,13 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Continue;
         }
 
-        // On purpose -- until we support Drag&Drop I suppose
-        public override void SetPosition(Rect newPos)
-        {
-        }
-
         public override void OnDataChanged()
         {
             base.OnDataChanged();
             var presenter = GetPresenter<VFXBlockPresenter>();
 
-            if (presenter == null)
-                return;
-
-            SetPosition(presenter.position);
             presenter.Model.collapsed = !presenter.expanded;
-
             this.enabled = m_EnableToggle.on = presenter.Model.enabled;
-        }
-
-        internal override void DoRepaint(IStylePainter painter)
-        {
-            base.DoRepaint(painter);
         }
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
@@ -174,11 +133,6 @@ namespace UnityEditor.VFX.UI
         {
             context.DragFinished();
             return EventPropagation.Stop;
-        }
-
-        public VFXContextUI context
-        {
-            get {return this.GetFirstAncestorOfType<VFXContextUI>(); }
         }
     }
 }
