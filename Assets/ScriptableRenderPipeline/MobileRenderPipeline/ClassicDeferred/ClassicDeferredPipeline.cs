@@ -340,14 +340,14 @@ using UnityEngine.Experimental.Rendering;
 
 		void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
 		{
+			UpdateShadowConstants (camera, cullResults);
+
 			m_ShadowMgr.RenderShadows( m_FrameId, loop, cullResults, cullResults.visibleLights );
 			m_ShadowMgr.SyncData();
 			m_ShadowMgr.BindResources( loop );
 
 			loop.SetupCameraProperties(camera);
 			RenderGBuffer(cullResults, camera, loop);
-
-			UpdateShadowConstants (camera, cullResults);
 
 			// IF PLATFORM_MAC -- cannot use framebuffer fetch
 			#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
