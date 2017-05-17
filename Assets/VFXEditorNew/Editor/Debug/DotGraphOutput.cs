@@ -66,7 +66,7 @@ namespace UnityEditor.VFX
 
             if (reduce)
             {
-                var exprContext = new VFXExpression.Context();
+                var exprContext = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
                 foreach (var exp in mainExpressions.Keys)
                     exprContext.RegisterExpression(exp);
                 exprContext.Compile();

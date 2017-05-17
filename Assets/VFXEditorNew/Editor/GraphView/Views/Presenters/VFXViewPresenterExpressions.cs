@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.UI
             if (!forceRecreation && m_ExpressionContext != null)
                 return;
 
-            m_ExpressionContext = new VFXExpression.Context();
+            m_ExpressionContext = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
             HashSet<Object> currentObjects = new HashSet<Object>();
             m_GraphAsset.root.CollectDependencies(currentObjects);
 

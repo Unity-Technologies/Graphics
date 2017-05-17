@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.Test
 
             var finalExpr = add.outputSlots.First().GetExpression();
 
-            var context = new VFXExpression.Context();
+            var context = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
             var result = context.Compile(finalExpr);
             var eight = result.Get<float>();
 
@@ -55,7 +55,7 @@ namespace UnityEditor.VFX.Test
             mul.inputSlots[0].Link(vec2_Two.outputSlots[0]);
             mul.inputSlots[1].Link(vec3_Two.outputSlots[0]);
 
-            var context = new VFXExpression.Context();
+            var context = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
             var result = context.Compile(mul.outputSlots[0].GetExpression());
             var final = result.Get<Vector3>();
 

@@ -11,13 +11,14 @@ namespace UnityEditor.VFX
         {
             public enum ReductionOption
             {
-                CPUEvaluation =     1 << 0,
-                ConstantFolding =   1 << 1,
+                CPUReduction =      1 << 0,
+                CPUEvaluation =     1 << 1,
+                ConstantFolding =   1 << 2,
             }
 
             public ReductionOption Option { get { return m_ReductionOption; } }
 
-            public Context(ReductionOption reductionOption = ReductionOption.CPUEvaluation)
+            public Context(ReductionOption reductionOption = ReductionOption.CPUReduction)
             {
                 m_ReductionOption = reductionOption;
             }
