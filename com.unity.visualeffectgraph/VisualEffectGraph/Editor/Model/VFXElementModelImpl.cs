@@ -378,12 +378,71 @@ namespace UnityEditor.Experimental
                 }).ToArray();
 
                 sheet.values = CreateValueSheet(expressionList);
-                sheet.semantics = new VFXExpressionSemanticDesc[] { };
+
+                var semantics = new List<VFXExpressionSemanticDesc>();
+                Action<VFXInputSlot, uint, uint> fnAddSemantic = delegate (VFXInputSlot slot, uint contextId, uint blockID)
+                {
+                    var expressionRef = slot.ValueRef;
+                    if (m_Expressions.ContainsKey(expressionRef))
+                    {
+                        var expressionSemantic = new VFXExpressionSemanticDesc()
+                        {
+                            contextID = contextId,
+                            blockID = blockID,
+                            slotID = slot.Name,
+                            expressionIndex = (uint)m_Expressions[expressionRef].index
+                        };
+                        semantics.Add(expressionSemantic);
+                    }
+                    else
+                    {
+                        Debug.LogFormat("Cannot retrieve expression link to slot : {0}", slot.Name);
+                    }
+                };
+
+                int spawnerIndex = 0;
+                foreach (var spawner in spawners)
+                {
+                    for (int i = 0; i < spawner.GetNbChildren(); i++)
+                    {
+                        var block = spawner.GetChild(i);
+                        for (int k = 0; k < block.GetNbInputSlots(); k++)
+                        {
+                            var slot = block.GetInputSlot(k);
+                            fnAddSemantic(slot, (uint)spawnerIndex, (uint)k);
+                        }
+                    }
+                    spawnerIndex++;
+                }
+
+                for (int i = 0; i < GetNbChildren(); ++i)
+                {
+                    var system = GetChild(i);
+                    for (int j = 0; j < system.GetNbChildren(); j++)
+                    {
+                        var context = system.GetChild(j);
+                        for (int k = 0; k < context.GetNbInputSlots(); k++)
+                        {
+                            var slot = context.GetInputSlot(k);
+                            fnAddSemantic(slot, (uint)j, uint.MaxValue);
+                        }
+
+                        for (int l = 0; l < context.GetNbChildren(); l++)
+                        {
+                            var block = context.GetChild(l);
+                            for (int m = 0; m < block.GetNbInputSlots(); m++)
+                            {
+                                var slot = block.GetInputSlot(m);
+                                fnAddSemantic(slot, (uint)j, (uint)m);
+                            }
+                        }
+                    }
+                }
+                sheet.semantics = semantics.ToArray();
                 asset.SetExpressionSheet(sheet);
 
-            // Generate spawner native data
-
-            ProgressBarHelper.IncrementStep("Generate data: Sync spawners");
+                // Generate spawner native data
+                ProgressBarHelper.IncrementStep("Generate data: Sync spawners");
                 asset.ClearSpawnerData();
                 foreach (var spawner in spawners)
                 {
@@ -400,15 +459,9 @@ namespace UnityEditor.Experimental
                         VFXSpawnerDesc desc;
                         desc.type = block.SpawnerType;
                         desc.customBehavior = block.SpawnerType == VFXSpawnerType.kCustomCallback ? typeof(WorkInProgress.CustomSpawnerCallback) : default(Type); //WIP
-                        var expressionStream = new List<uint>();
-                        for (int j = 0; j < block.GetNbInputSlots(); ++j)
-                        {
-                            expressionStream.Add((uint)m_Expressions[block.GetInputSlot(j).ValueRef].index);
-                        }
-                        desc.expressionStream = expressionStream.ToArray();
                         spawnerDesc.Add(desc);
                     }
-                    int spawnerIndex = asset.AddSpawner(spawnerDesc.ToArray());
+                    spawnerIndex = asset.AddSpawner(spawnerDesc.ToArray());
                     foreach (var context in spawner.LinkedContexts)
                         asset.LinkSpawner(context.GetOwner().Id, spawnerIndex);
 
