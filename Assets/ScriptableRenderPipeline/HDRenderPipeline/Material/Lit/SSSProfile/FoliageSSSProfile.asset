@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6e7465350bf0d248b4799d98e18cd24, type: 3}
+  m_Name: FoliageSSSProfile
+  m_EditorClassIdentifier: 
+  scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+  scatterDistance2: {r: 0.6, g: 0.6, b: 0.6, a: 0}
+  lerpWeight: 0.5
+  texturingMode: 0
+  enableTransmission: 1
+  enableThinObject: 1
+  tintColor: {r: 1, g: 1, b: 1, a: 1}
+  thicknessRemap: {x: 0, y: 0.2873168}
+  settingsIndex: 0
+  m_FilterKernel:
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: -0.00000001629312}
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: -0.034422863}
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: -0.07085508}
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: -0.112142384}
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: -0.16452742}
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: -0.25364923}
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: 0.03442289}
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: 0.07085508}
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: 0.11214242}
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: 0.16452742}
+  - {x: 0.09090909, y: 0.09090909, z: 0.09090909, w: 0.2536493}
+  m_HalfRcpVariances:
+  - {x: 49.999992, y: 49.999992, z: 49.999992}
+  - {x: 12.499998, y: 12.499998, z: 12.499998}
+  m_HalfRcpWeightedVariances: {x: 22.222221, y: 22.222221, z: 22.222221, w: 22.222221}

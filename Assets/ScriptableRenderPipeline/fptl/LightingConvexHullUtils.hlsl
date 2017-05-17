@@ -2,7 +2,7 @@
 #define __LIGHTINGCONVEXHULLUTILS_H__
 
 
-#include "..\common\ShaderBase.h"
+#include "ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
 
 

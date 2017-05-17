@@ -46,13 +46,6 @@ StructuredBuffer<LightData>            _LightDatas;
 StructuredBuffer<EnvLightData>         _EnvLightDatas;
 StructuredBuffer<ShadowData>           _ShadowDatas;
 
-// Use texture atlas for shadow map
-//TEXTURE2D(_ShadowAtlas);
-//SAMPLER2D_SHADOW(sampler_ShadowAtlas);
-//SAMPLER2D(sampler_ManualShadowAtlas); // TODO: settings sampler individually is not supported in shader yet...
-TEXTURE2D(g_tShadowBuffer); // TODO: No choice, the name is hardcoded in ShadowrenderPass.cs for now. Need to change this!
-SAMPLER2D_SHADOW(samplerg_tShadowBuffer);
-
 // Use texture array for IES
 //TEXTURE2D_ARRAY(_IESArray);
 //SAMPLER2D(sampler_IESArray);

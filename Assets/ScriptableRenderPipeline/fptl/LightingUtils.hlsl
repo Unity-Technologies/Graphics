@@ -2,7 +2,7 @@
 #define __LIGHTINGUTILS_H__
 
 
-#include "..\common\ShaderBase.h"
+#include "ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
 
 

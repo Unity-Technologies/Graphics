@@ -380,5 +380,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // no depth target ends up being bound.
             DrawFullScreen(commandBuffer, material, camera, colorBuffers, colorBuffers[0], properties, shaderPassID);
         }
+
+        // Helper to help to display debug info on screen
+        public static void NextOverlayCoord(ref float x, ref float y, float overlaySize, float width)
+        {
+            x += overlaySize;
+            // Go to next line if it goes outside the screen.
+            if (x + overlaySize > width)
+            {
+                x = 0;
+                y -= overlaySize;
+            }
+        }
     }
 }
