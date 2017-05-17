@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
@@ -352,6 +352,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Material m_SingleDeferredMaterialSRT   = null;
             Material m_SingleDeferredMaterialMRT   = null;
 
+            // For displaying shadow map
+            private Material m_DebugDisplayShadowMap;
+
             // shadow related stuff
             FrameId                 m_FrameId = new FrameId();
             ShadowSetup             m_ShadowSetup; // doesn't actually have to reside here, it would be enough to pass the IShadowManager in from the outside
@@ -545,6 +548,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SingleDeferredMaterialMRT.SetInt("_SrcBlend", (int)BlendMode.One);
                 m_SingleDeferredMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
+                m_DebugDisplayShadowMap = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayShadowMap");
+
                 m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
                 m_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
                 m_DefaultTexture2DArray.Apply();
@@ -607,6 +612,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Utilities.Destroy(m_SingleDeferredMaterialSRT);
                 Utilities.Destroy(m_SingleDeferredMaterialMRT);
+
+                Utilities.Destroy(m_DebugDisplayShadowMap);
 
                 Utilities.Destroy(s_DefaultAdditionalLightDataGameObject);
                 s_DefaultAdditionalLightDataGameObject = null;
@@ -749,7 +756,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
             {
-                // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarly chosen but should work well enough.
+                // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
                 float distanceFadeNear = 0.9f * fadeDistance;
                 return 1.0f - Mathf.Clamp01((distanceToCamera - distanceFadeNear) / (fadeDistance - distanceFadeNear));
             }
@@ -1177,13 +1184,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     float oldSpecularGlobalDimmer = m_PassSettings.specularGlobalDimmer;
-                    // Change some parameters in case of "special" rendering (can be preview, reflection, etc.
+                    // Change some parameters in case of "special" rendering (can be preview, reflection, etc.)
                     if (camera.cameraType == CameraType.Reflection)
                     {
                         m_PassSettings.specularGlobalDimmer = 0.0f;
                     }
 
-                    // 1. Count the number of lights and sort all light by category, type and volume
+                    // 1. Count the number of lights and sort all lights by category, type and volume - This is required for the fptl/cluster shader code
+                    // If we reach maximum of lights available on screen, then we discard the light.
+                    // Lights are processed in order, so we don't discards light based on their importance but based on their ordering in visible lights list.
                     int directionalLightcount = 0;
                     int punctualLightcount = 0;
                     int areaLightCount = 0;
@@ -1293,7 +1302,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
                     m_CurrentSunLight = null;
 
-                    // 2. Go thought all lights, convert them to GPU format.
+                    // 2. Go through all lights, convert them to GPU format.
                     // Create simultaneously data for culling (LigthVolumeData and rendering)
                     var worldToView = WorldToCamera(camera);
 
@@ -1897,7 +1906,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture1", Shader.PropertyToID("_GBufferTexture1"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture2", Shader.PropertyToID("_GBufferTexture2"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture3", Shader.PropertyToID("_GBufferTexture3"));
-                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "g_tShadowBuffer", Shader.PropertyToID("g_tShadowBuffer"));
 
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcData", Shader.GetGlobalTexture(Shader.PropertyToID("_LtcData")));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_PreIntegratedFGD", Shader.GetGlobalTexture("_PreIntegratedFGD"));
@@ -2034,6 +2042,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
+            }
+
+            public override void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
+            {
+                LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
+
+                if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
+                {
+                    if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
+                    {
+                        m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, (int)lightingDebug.shadowMapIndex, x, y, overlaySize, overlaySize);
+                        Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+
+                        // TODO: @Julien exchange shadowmapIndex by lightIndex and draw all slide like below
+                        /*
+                        for (int slice = 0; slice < shadowLight.shadowSliceCount; ++slice)
+                        {
+                            ShadowSliceData sliceData = m_ShadowsResult.shadowSlices[shadowLight.shadowSliceIndex + slice];
+
+                            Vector4 texcoordScaleBias = new Vector4((float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasWidth,
+                                    (float)sliceData.shadowResolution / m_Owner.shadowSettings.shadowAtlasHeight,
+                                    (float)sliceData.atlasX / m_Owner.shadowSettings.shadowAtlasWidth,
+                                    (float)sliceData.atlasY / m_Owner.shadowSettings.shadowAtlasHeight);
+
+                            propertyBlock.SetVector("_TextureScaleBias", texcoordScaleBias);
+
+                            debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                            debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayShadowMap, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
+
+                            Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+                        }
+                        */
+                    }
+                    else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
+                    {
+                        m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, -1, x, y, overlaySize, overlaySize);
+                        Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+                    }
+                }
             }
         }
     }

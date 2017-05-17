@@ -8923,6 +8923,104 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!1001 &1159917811
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 500408927}
+    m_Modifications:
+    - target: {fileID: 400026, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.68
+      objectReference: {fileID: 0}
+    - target: {fileID: 400026, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.267
+      objectReference: {fileID: 0}
+    - target: {fileID: 400026, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.17
+      objectReference: {fileID: 0}
+    - target: {fileID: 400026, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400026, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400026, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400026, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400026, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300020, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300006, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300022, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300024, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300000, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300002, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300004, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300008, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300010, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300012, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300014, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300016, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    - target: {fileID: 2300018, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 70d048a3453cc5b4183269db4555c8e7, type: 2}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: 2b46db496f27398459cf881becf5763a, type: 3}
+  m_IsPrefabParent: 0
+--- !u!4 &1159917812 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 1159917811}
 --- !u!1 &1161056796
 GameObject:
   m_ObjectHideFlags: 0
@@ -13915,6 +14013,7 @@ GameObject:
   - component: {fileID: 1828470161}
   - component: {fileID: 1828470160}
   - component: {fileID: 1828470166}
+  - component: {fileID: 1828470167}
   - component: {fileID: 1828470165}
   m_Layer: 0
   m_Name: Main Camera
@@ -14001,22 +14100,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1828470159}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 948f4100a11a5c24981795d21301da5c, type: 3}
+  m_Script: {fileID: 11500000, guid: 8b9a305e18de0c04dbd257a21cd47087, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  volumeTrigger: {fileID: 1828470164}
-  volumeLayer:
-    serializedVersion: 2
-    m_Bits: 1
-  antialiasingMode: 0
-  temporalAntialiasing:
-    jitterSpread: 0.75
-    sharpen: 0.25
-    stationaryBlending: 0.95
-    motionBlending: 0.85
-  showDebugUI: 0
-  debugView:
-    monitor: 1
+  sharedProfile: {fileID: 11400000, guid: 2139b7e52a6c6c74bb94f65be9294325, type: 2}
+  isGlobal: 1
+  blendDistance: 0
+  priority: 0
 --- !u!114 &1828470166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14032,6 +14122,33 @@ MonoBehaviour:
   m_LookSpeedMouse: 10
   m_MoveSpeed: 50
   m_Turbo: 10
+--- !u!114 &1828470167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1828470159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 948f4100a11a5c24981795d21301da5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  volumeTrigger: {fileID: 1828470164}
+  volumeLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  antialiasingMode: 0
+  temporalAntialiasing:
+    jitterSpread: 0.75
+    sharpen: 0.25
+    stationaryBlending: 0.95
+    motionBlending: 0.85
+  fastApproximateAntialiasing:
+    mobileOptimized: 0
+  showDebugUI: 0
+  debugView:
+    monitor: 1
+  m_Resources: {fileID: 11400000, guid: d82512f9c8e5d4a4d938b575d47f88d4, type: 2}
 --- !u!1 &1828745839
 GameObject:
   m_ObjectHideFlags: 0
