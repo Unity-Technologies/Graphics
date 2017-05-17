@@ -346,16 +346,14 @@ using UnityEngine.Experimental.Rendering;
 
 			loop.SetupCameraProperties(camera);
 			RenderGBuffer(cullResults, camera, loop);
-		
-			//DepthOnlyForForwardOpaques(cullResults, camera, loop);
+
+			UpdateShadowConstants (camera, cullResults);
 
 			// IF PLATFORM_MAC -- cannot use framebuffer fetch
 			#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
 			CopyDepthAfterGBuffer(loop);
 			#endif
-
-			//PushGlobalShadowParams (loop);
-
+			
 			RenderLighting (camera, cullResults, loop);
 
 			loop.DrawSkybox (camera);
@@ -627,10 +625,8 @@ using UnityEngine.Experimental.Rendering;
 				props.SetVector ("_LightDir", new Vector4(lightDir.x, lightDir.y, lightDir.z, 0.0f));
 				props.SetVector ("_LightColor", light.finalColor);
 
-				//int shadowIdx;
-				//float lightShadowNDXOrNot = m_ShadowIndices.TryGetValue( (int) lightNum, out shadowIdx ) ? (float) shadowIdx : -1.0f;
-
-				float lightShadowNDXOrNot = (light.light.shadows != LightShadows.None) ? (float)lightNum : -1.0f;
+				int shadowIdx;
+				float lightShadowNDXOrNot = m_ShadowIndices.TryGetValue( (int) lightNum, out shadowIdx ) ? (float) shadowIdx : -1.0f;
 				props.SetFloat ("_LightIndexForShadowMatrixArray", lightShadowNDXOrNot);
 
 				// TODO:OPTIMIZATION DeferredRenderLoop.cpp:660 -- split up into shader varients
