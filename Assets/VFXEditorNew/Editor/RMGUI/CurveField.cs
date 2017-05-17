@@ -22,6 +22,8 @@ namespace UnityEditor.VFX.UIElements
 
         void OnCurveClick()
         {
+            if (!enabled)
+                return;
             /*
             CurveEditorSettings settings = new CurveEditorSettings();
             if (ranges.width > 0 && ranges.height > 0 && ranges.width != Mathf.Infinity && ranges.height != Mathf.Infinity)

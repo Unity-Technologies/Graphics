@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UI
             GetFromToPoints(ref from, ref to);
             Color edgeColor = borderColor;
 
-            if (inputPresenter.sourceNode is VFXBlockPresenter)
+            if (inputPresenter != null && outputPresenter != null && inputPresenter.sourceNode is VFXBlockPresenter)
             {
                 to = to + new Vector2(-6, 0);
             }
