@@ -125,7 +125,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        // Get relevant expressions in the while hierarchy
+        // Get relevant expressions in the slot hierarchy
         public void GetExpressions(HashSet<VFXExpression> expressions)
         {
             var exp = GetExpression();
@@ -134,6 +134,21 @@ namespace UnityEditor.VFX
             else
                 foreach (var child in children)
                     child.GetExpressions(expressions);
+        }
+
+        // Get relevant slots
+        public IEnumerable<VFXSlot> GetExpressionSlots()
+        {
+            var exp = GetExpression();
+            if (exp != null)
+                yield return this;
+            else
+                foreach (var child in children)
+                {
+                    var exps = child.GetExpressionSlots();
+                    foreach (var e in exps)
+                        yield return e;
+                }
         }
 
         public VFXExpression DefaultExpr

@@ -76,10 +76,16 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if (cause != VFXModel.InvalidationCause.kExpressionInvalidated)
+            if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
+                cause != VFXModel.InvalidationCause.kExpressionGraphChanged)
             {
                 //Debug.Log("ASSET DIRTY " + cause);
                 EditorUtility.SetDirty(this);
+            }
+
+            if (cause == VFXModel.InvalidationCause.kExpressionGraphChanged)
+            {
+                m_ExpressionGraphDirty = true;
             }
         }
 
@@ -89,5 +95,28 @@ namespace UnityEditor.VFX
                 m_Root = ScriptableObject.CreateInstance<VFXGraph>();
             m_Root.onInvalidateDelegate += OnModelInvalidate;
         }
+
+        public void RecompileIfNeeded()
+        {
+            if (m_ExpressionGraphDirty)
+            {
+                try
+                {
+                    if (m_Root != null)
+                    {
+                        var expressionCompiler = new VFXExpressionCompiler();
+                        expressionCompiler.CompileExpressions(m_Root);
+                    }
+                }
+                catch(Exception e)
+                {
+                    Debug.LogError(string.Format("Exception while compiling expression graph: {0}: {1}", e, e.StackTrace));
+                }
+
+                m_ExpressionGraphDirty = false;
+            }
+        }
+
+        private bool m_ExpressionGraphDirty = true;
     }
 }

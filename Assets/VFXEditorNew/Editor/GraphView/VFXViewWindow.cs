@@ -69,6 +69,13 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
+        void Update()
+        {
+            var graphAsset = m_ViewPresenter.GetGraphAsset();
+            if (graphAsset != null)
+                graphAsset.RecompileIfNeeded();
+        }
+
         [SerializeField]
         private string m_DisplayedAssetPath;
 

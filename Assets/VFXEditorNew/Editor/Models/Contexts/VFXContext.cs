@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
         kParticle = 1 << 1,
     };
 
-    class VFXContext : VFXModel<VFXSystem, VFXBlock>
+    class VFXContext : VFXSlotContainerModel<VFXSystem, VFXBlock>
     {
         private VFXContext() {} // Used by serialization
 
@@ -66,25 +66,7 @@ namespace UnityEditor.VFX
                 cause == InvalidationCause.kConnectionChanged ||
                 cause == InvalidationCause.kExpressionInvalidated)
             {
-                m_ExpressionContext = new VFXExpression.Context();
-                var expressions = new HashSet<VFXExpression>();
-                foreach (var child in children)
-                {
-                    int nbSlots = child.GetNbInputSlots();
-                    for (int i = 0; i < nbSlots; ++i)
-                    {
-                        var slot = child.GetInputSlot(i);
-                        slot.GetExpressions(expressions);
-                    }
-                }
-
-                foreach (var exp in expressions)
-                {
-                    m_ExpressionContext.RegisterExpression(exp);
-                    //Debug.Log("---- Exp: " + exp.GetType() + " " + exp.ValueType);
-                }
-                m_ExpressionContext.Compile();
-                //Debug.Log("************** RECOMPILE EXPRESSION CONTEXT FOR " + this.GetType() + " " + this.name + " nbExpressions:" + expressions.Count);
+                RecreateExpressionContext();
             }
         }
 
@@ -100,6 +82,50 @@ namespace UnityEditor.VFX
         public bool Accept(VFXBlock block, int index = -1)
         {
             return (block.compatibleContexts & contextType) != 0;
+        }
+
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            RecreateExpressionContext();
+        }
+
+        protected override void OnRemoved()
+        {
+            base.OnRemoved();
+            Invalidate(InvalidationCause.kExpressionGraphChanged);
+        }
+
+        private void AddExpressionsToContext(HashSet<VFXExpression> expressions,IVFXSlotContainer slotContainer)
+        {
+            int nbSlots = slotContainer.GetNbInputSlots();
+            for (int i = 0; i < nbSlots; ++i)
+            {
+                var slot = slotContainer.GetInputSlot(i);
+                slot.GetExpressions(expressions);
+            }
+        }
+
+        private void RecreateExpressionContext()
+        {
+            m_ExpressionContext = new VFXExpression.Context();
+            var expressions = new HashSet<VFXExpression>();
+
+            // First add context slots
+            AddExpressionsToContext(expressions, this);
+
+            // Then block slots
+            foreach (var child in children)
+                AddExpressionsToContext(expressions, child);
+
+            foreach (var exp in expressions)
+            {
+                m_ExpressionContext.RegisterExpression(exp);
+                //Debug.Log("---- Exp: " + exp.GetType() + " " + exp.ValueType);
+            }
+            m_ExpressionContext.Compile();
+            Invalidate(InvalidationCause.kExpressionGraphChanged);
+            //Debug.Log("************** RECOMPILE EXPRESSION CONTEXT FOR " + this.GetType() + " " + this.name + " nbExpressions:" + expressions.Count);
         }
 
         // Not serialized nor exposed

@@ -21,6 +21,18 @@ namespace UnityEditor.VFX
             return true;
         }
 
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            Invalidate(InvalidationCause.kExpressionGraphChanged);
+        }
+
+        protected override void OnRemoved()
+        {
+            base.OnRemoved();
+            Invalidate(InvalidationCause.kExpressionGraphChanged);
+        }
+
         // Helper function
         // Connect context0 to context1 and recreate another system if necessary
         public static bool ConnectContexts(VFXContext context0, VFXContext context1, VFXGraph root)

@@ -15,6 +15,7 @@ namespace UnityEditor.VFX.UI
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
                 cause != VFXModel.InvalidationCause.kConnectionChanged &&
                 cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
+                //cause != VFXModel.InvalidationCause.kExpressionGraphChanged &&
                 cause != VFXModel.InvalidationCause.kParamChanged)
                 return;
 

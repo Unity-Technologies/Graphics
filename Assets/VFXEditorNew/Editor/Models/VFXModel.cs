@@ -18,6 +18,7 @@ namespace UnityEditor.VFX
             kParamExpanded,         // Some parameter values have beed expanded or retracted
             kConnectionChanged,     // Connection have changed
             kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
+            kExpressionGraphChanged,// Expression graph must be recomputed
             kUIChanged,             // UI stuff has changed
         }
 

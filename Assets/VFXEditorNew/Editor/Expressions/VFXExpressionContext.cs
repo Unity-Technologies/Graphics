@@ -97,6 +97,11 @@ namespace UnityEditor.VFX
                 return reduced != null ? reduced : expression;
             }
 
+            public IEnumerable<VFXExpression> AllReduced()
+            {
+                return m_ReducedCache.Values;
+            }
+
             public ReadOnlyCollection<VFXExpression> RegisteredExpressions { get { return m_EndExpressions.ToList().AsReadOnly(); } }
 
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
