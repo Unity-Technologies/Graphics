@@ -34,7 +34,7 @@ public class Sun : MonoBehaviour {
 		sunlight.transform.position = midpoint + Quaternion.Euler(0,0,sunangle)*(radius*Vector3.right);
 		sunlight.transform.LookAt (midpoint);
 
-		sunlight.color = Color.Lerp(daytimeSkyColor, nighttimeSkyColor, timeAnim/blend);
+		//sunlight.color = Color.Lerp(daytimeSkyColor, nighttimeSkyColor, timeAnim/blend);
 
 	}
 }
