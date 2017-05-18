@@ -147,37 +147,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override Material GetDefaultParticleMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return null;
         }
 
         public override Material GetDefaultLineMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return null;
         }
 
         public override Material GetDefaultTerrainMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return null;
         }
 
         public override Material GetDefaultUIMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return null;
         }
 
         public override Material GetDefaultUIOverdrawMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return null;
         }
 
         public override Material GetDefaultUIETC1SupportedMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return null;
         }
 
         public override Material GetDefault2DMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return null;
         }
 
         public void ApplyDebugDisplaySettings()
