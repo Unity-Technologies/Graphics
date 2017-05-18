@@ -15,22 +15,6 @@ namespace UnityEditor.VFX
             graph.OutputToDotFile("d:\\testDot.dot");
         }
 
-        private static bool IsHighlightedSlot(VFXSlot slot)
-        {
-            var owner = slot.owner;
-            if (slot.GetExpression() == null)
-                return false;
-
-            if ((owner is VFXOperator || owner is VFXParameter) && slot.direction == VFXSlot.Direction.kOutput) // output to operators
-                return true;
-
-            var topOwner = slot.GetMasterSlot().owner;
-            if (topOwner is VFXBlock && slot.direction == VFXSlot.Direction.kInput && slot.HasLink()) // linked inputs to blocks
-                return true;
-
-            return false;
-        }
-
         private static string GetRecursiveName(VFXSlot slot)
         {
             string name = slot.property.name;
@@ -42,18 +26,17 @@ namespace UnityEditor.VFX
             return name;
         }
 
-        public static void DebugExpressionGraph(VFXGraph graph, bool reduce = false)
+        public static void DebugExpressionGraph(VFXGraph graph, VFXExpression.Context.ReductionOption option)
         {
-            var objs = new HashSet<UnityEngine.Object>();
-            graph.CollectDependencies(objs);
-
-            var mainSlots = new HashSet<VFXSlot>(objs.OfType<VFXSlot>()
-                    .Where(s => IsHighlightedSlot(s)));//.Select(s => s.GetTopMostParent());
+            var expressionGraph = new VFXExpressionGraph();
+            expressionGraph.CompileExpressions(graph, option);
 
             var mainExpressions = new Dictionary<VFXExpression, List<VFXSlot>>();
-            foreach (var slot in mainSlots)
+            foreach (var kvp in expressionGraph.SlotsToExpressions)
             {
-                var expr = slot.GetExpression();
+                var slot = kvp.Key;
+                var expr = kvp.Value;
+
                 if (mainExpressions.ContainsKey(expr))
                     mainExpressions[expr].Add(slot);
                 else
@@ -64,37 +47,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if (reduce)
-            {
-                var exprContext = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
-                foreach (var exp in mainExpressions.Keys)
-                    exprContext.RegisterExpression(exp);
-                exprContext.Compile();
-
-                var reducedExpressions = new Dictionary<VFXExpression, List<VFXSlot>>();
-                foreach (var kvp in mainExpressions)
-                {
-                    var exp = kvp.Key;
-                    var slots = kvp.Value;
-
-                    var reduced = exprContext.GetReduced(exp);
-                    if (reducedExpressions.ContainsKey(reduced))
-                        reducedExpressions[reduced].AddRange(slots);
-                    else
-                    {
-                        var list = new List<VFXSlot>();
-                        list.AddRange(slots);
-                        reducedExpressions[reduced] = list;
-                    }
-                }
-
-                mainExpressions = reducedExpressions;
-            }
-
-            var expressions = new HashSet<VFXExpression>();
-
-            foreach (var exp in mainExpressions.Keys)
-                CollectExpressions(exp, expressions);
+            var expressions = expressionGraph.Expressions;
 
             DotGraph dotGraph = new DotGraph();
 
@@ -113,18 +66,18 @@ namespace UnityEditor.VFX
                 if (mainExpressions.ContainsKey(exp))
                 {
                     string allOwnersStr = string.Empty;
-                    bool belongToBlock = false;
+                    //bool belongToBlock = false;
                     foreach (var slot in mainExpressions[exp])
                     {
                         var topOwner = slot.GetMasterSlot().owner;
                         allOwnersStr += string.Format("\n{0} - {1}", topOwner.GetType().Name, GetRecursiveName(slot));
-                        belongToBlock |= topOwner is VFXBlock;
+                       // belongToBlock |= topOwner is VFXBlock;
                     }
 
                     name += string.Format("{0}", allOwnersStr);
 
                     dotNode.attributes[DotAttribute.Style] = DotStyle.Filled;
-                    dotNode.attributes[DotAttribute.Color] = belongToBlock ? DotColor.Cyan : DotColor.Green;
+                    dotNode.attributes[DotAttribute.Color] = /*belongToBlock ?*/ DotColor.Cyan /*: DotColor.Green*/;
                 }
 
                 dotNode.Label = name;
@@ -165,23 +118,15 @@ namespace UnityEditor.VFX
 
         private static string GetExpressionValue(VFXExpression exp)
         {
-            // TODO We should have a way in VFXValue to retrieve an object representing the value
-            if (exp is VFXValue) return exp.GetContent().ToString();
+            if (exp is VFXValue)
+            {
+                var content = exp.GetContent();
+                return content == null ? "null" : content.ToString();
+            }
             if (exp is VFXBuiltInExpression) return ((VFXBuiltInExpression)exp).Operation.ToString();
             if (exp is VFXAttributeExpression) return ((VFXAttributeExpression)exp).attributeName;
 
             return string.Empty;
-        }
-
-        private static void CollectExpressions(VFXExpression exp, HashSet<VFXExpression> expressions)
-        {
-            if (/*exp != null &&*/ !expressions.Contains(exp))
-            {
-                expressions.Add(exp);
-                foreach (var parent in exp.Parents)
-                    //if (parent != null)
-                    CollectExpressions(parent, expressions);
-            }
         }
     }
 }

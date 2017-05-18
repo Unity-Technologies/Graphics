@@ -11,6 +11,7 @@ namespace UnityEditor.VFX
         {
             public enum ReductionOption
             {
+                None =              0,
                 CPUReduction =      1 << 0,
                 CPUEvaluation =     1 << 1,
                 ConstantFolding =   1 << 2,
