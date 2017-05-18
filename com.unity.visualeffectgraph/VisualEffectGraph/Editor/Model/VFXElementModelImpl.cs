@@ -180,41 +180,46 @@ namespace UnityEditor.Experimental
             Profiler.EndSample();
         }
 
+        private static VFXExpressionValueContainerDescAbstract CreateVFXExpressionValueContainer<T>(VFXValue value, uint index)
+        {
+            return new VFXExpressionValueContainerDesc<T>() { value = value.Get<T>(), expressionIndex = (uint)index } as VFXExpressionValueContainerDescAbstract;
+        }
 
-        private VFXExpressionValueAbstractContainerDesc[] CreateValueSheet(List<VFXExpression> expressionList)
+        private VFXExpressionValueContainerDescAbstract[] CreateValueSheet(List<VFXExpression> expressionList)
         {
             return expressionList.Where(e => e.IsValue(false)).Select(expr =>
             {
                 var value = expr as VFXValue;
+                var exprIndex = (uint)m_Expressions[expr].index;
                 switch (value.ValueType)
                 {
                     case VFXValueType.kInt:
-                        return new VFXExpressionValueIntContainerDesc() { value = value.Get<int>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return CreateVFXExpressionValueContainer<int>(value, exprIndex);
                     case VFXValueType.kUint:
-                        return new VFXExpressionValueUInt32ContainerDesc() { value = value.Get<UInt32>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return CreateVFXExpressionValueContainer<UInt32>(value, exprIndex);
                     case VFXValueType.kFloat:
-                        return new VFXExpressionValueFloatContainerDesc() { value = value.Get<float>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return CreateVFXExpressionValueContainer<float>(value, exprIndex);
                     case VFXValueType.kFloat2:
-                        return new VFXExpressionValueVector2ContainerDesc() { value = value.Get<Vector2>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return CreateVFXExpressionValueContainer<Vector2>(value, exprIndex);
                     case VFXValueType.kFloat3:
-                        return new VFXExpressionValueVector3ContainerDesc() { value = value.Get<Vector3>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return CreateVFXExpressionValueContainer<Vector3>(value, exprIndex);
                     case VFXValueType.kFloat4:
-                        return new VFXExpressionValueVector4ContainerDesc() { value = value.Get<Vector4>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return CreateVFXExpressionValueContainer<Vector4>(value, exprIndex);
                     case VFXValueType.kTexture2D:
-                        return new VFXExpressionValueTexture2DContainerDesc() { value = value.Get<Texture2D>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return CreateVFXExpressionValueContainer<Texture2D>(value, exprIndex);
                     case VFXValueType.kTexture3D:
-                        return new VFXExpressionValueTexture3DContainerDesc() { value = value.Get<Texture3D>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return CreateVFXExpressionValueContainer<Texture3D>(value, exprIndex);
                     case VFXValueType.kTransform:
-                        return new VFXExpressionValueMatrix4x4ContainerDesc() { value = value.Get<Matrix4x4>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return CreateVFXExpressionValueContainer<Matrix4x4>(value, exprIndex);
                     case VFXValueType.kMesh:
-                        return new VFXExpressionValueMeshContainerDesc() { value = value.Get<Mesh>(), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return CreateVFXExpressionValueContainer<Mesh>(value, exprIndex);
                     /* temp : evaluate directly binded value */
                     case VFXValueType.kCurve:
-                        return new VFXExpressionValueVector4ContainerDesc() { value = m_TextureData.GetCurveUniform(value), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return new VFXExpressionValueContainerDesc<Vector4>() { value = m_TextureData.GetCurveUniform(value), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueContainerDescAbstract;
                     case VFXValueType.kColorGradient:
-                        return new VFXExpressionValueFloatContainerDesc() { value = m_TextureData.GetGradientUniform(value), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return new VFXExpressionValueContainerDesc<float>() { value = m_TextureData.GetGradientUniform(value), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueContainerDescAbstract;
                     case VFXValueType.kSpline:
-                        return new VFXExpressionValueVector2ContainerDesc() { value = m_TextureData.GetSplineUniform(value), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueAbstractContainerDesc;
+                        return new VFXExpressionValueContainerDesc<Vector2>() { value = m_TextureData.GetSplineUniform(value), expressionIndex = (uint)m_Expressions[expr].index } as VFXExpressionValueContainerDescAbstract;
                     default: throw new Exception("Invalid value");
                 }
             }).ToArray();
