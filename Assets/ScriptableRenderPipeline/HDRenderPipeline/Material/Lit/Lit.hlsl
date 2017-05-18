@@ -364,11 +364,11 @@ void DecodeFromGBuffer(
     bsdfData.specularOcclusion = inGBuffer0.a;
 
 #ifdef USE_NORMAL_TETRAHEDRON_ENCODING
-    uint faceIndex;
+    int faceIndex;
     UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, faceIndex);
     bsdfData.normalWS = UnpackNormalTetraEncode(inGBuffer1.xy * 2.0 - 1.0, faceIndex);
 #else
-    uint octNormalSign;
+    int octNormalSign;
     UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, octNormalSign);
     inGBuffer1.r *= (octNormalSign & 1) ? 1.0 : -1.0;
     inGBuffer1.g *= (octNormalSign & 2) ? 1.0 : -1.0;
