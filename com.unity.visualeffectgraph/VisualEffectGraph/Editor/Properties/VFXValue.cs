@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.VFX
         // Invalidate the reduction to impose a recomputation
         public abstract void Invalidate();
         // Returns dependencies
-        public virtual VFXExpression[] GetParents() { return null; }
+        public virtual VFXExpression[] GetParents() { return new VFXExpression[] { }; }
 
         public override bool Equals(object obj)
         {

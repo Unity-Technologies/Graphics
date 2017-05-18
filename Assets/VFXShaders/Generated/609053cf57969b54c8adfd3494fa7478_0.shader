@@ -28,7 +28,7 @@ Shader "Hidden/VFX_0"
 			Texture2D outputSampler0_kVFXValueOpTexture;
 			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
-			struct Attribute1
+			struct Attribute0
 			{
 				float2 size;
 			};
@@ -45,7 +45,7 @@ Shader "Hidden/VFX_0"
 				uint _PADDING_0;
 			};
 			
-			StructuredBuffer<Attribute1> attribBuffer1;
+			StructuredBuffer<Attribute0> attribBuffer0;
 			StructuredBuffer<Attribute2> attribBuffer2;
 			StructuredBuffer<Attribute3> attribBuffer3;
 			StructuredBuffer<int> flags;
@@ -63,13 +63,13 @@ Shader "Hidden/VFX_0"
 				uint index = (id >> 2) + instanceID * 2048;
 				if (flags[index] == 1)
 				{
-					Attribute1 attrib1 = attribBuffer1[index];
+					Attribute0 attrib0 = attribBuffer0[index];
 					Attribute2 attrib2 = attribBuffer2[index];
 					Attribute3 attrib3 = attribBuffer3[index];
 					
 					VFXSampler2D outputSampler0_kVFXValueOp = InitSampler(outputSampler0_kVFXValueOpTexture,sampleroutputSampler0_kVFXValueOpTexture);
 					
-					float2 size = attrib1.size * 0.5f;
+					float2 size = attrib0.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
 					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
 					

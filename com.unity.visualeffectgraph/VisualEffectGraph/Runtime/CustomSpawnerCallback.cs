@@ -18,7 +18,7 @@ namespace WorkInProgress
 
         public override void ReInit(VFXExpressionValues vfxValues)
         {
-            var a = vfxValues.GetVector4(0);
+            var a = vfxValues.GetVector4("a");
             int value = (int)a.x;
             int mod = (int)a.y;
             if (m_reinitCount % mod == value)
