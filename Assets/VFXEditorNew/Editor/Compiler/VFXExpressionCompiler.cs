@@ -12,6 +12,7 @@ namespace UnityEditor.VFX
         private struct ExpressionData
         {
             public int depth;
+            public int index;
         }
 
         public VFXExpressionGraph()
@@ -98,6 +99,14 @@ namespace UnityEditor.VFX
                 var sortedList = expressionData.Where(kvp => !kvp.Key.Is(VFXExpression.Flags.PerElement)).ToList();
                 sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));
                 m_FlattenedExpressions = sortedList.Select(kvp => kvp.Key).ToList();
+
+                // update index in expression data
+                for (int i = 0; i < m_FlattenedExpressions.Count; ++i)
+                {
+                    var data = expressionData[m_FlattenedExpressions[i]];
+                    data.index = i;
+                    expressionData[m_FlattenedExpressions[i]] = data;
+                }
 
                 //Debug.Log("---- Expression list");
                 //for (int i = 0; i < m_FlattenedExpressions.Count; ++i)
