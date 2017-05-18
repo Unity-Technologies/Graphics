@@ -106,28 +106,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void RecreateExpressionContext()
-        {
-            m_ExpressionContext = new VFXExpression.Context();
-            var expressions = new HashSet<VFXExpression>();
-
-            // First add context slots
-            AddExpressionsToContext(expressions, this);
-
-            // Then block slots
-            foreach (var child in children)
-                AddExpressionsToContext(expressions, child);
-
-            foreach (var exp in expressions)
-            {
-                m_ExpressionContext.RegisterExpression(exp);
-                //Debug.Log("---- Exp: " + exp.GetType() + " " + exp.ValueType);
-            }
-            m_ExpressionContext.Compile();
-            Invalidate(InvalidationCause.kExpressionGraphChanged);
-            //Debug.Log("************** RECOMPILE EXPRESSION CONTEXT FOR " + this.GetType() + " " + this.name + " nbExpressions:" + expressions.Count);
-        }
-
         // Not serialized nor exposed
         private VFXContextType m_ContextType;
         private VFXDataType m_InputType;
