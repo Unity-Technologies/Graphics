@@ -20,12 +20,23 @@ VFXContextUI.selected #NodeContents
 	border-color: #FFF;
 }
 
-VFXContextUI #header
+VFXContextUI #Header
 {
 	background-color:#414141;
 	border-radius:2;
+	margin-left: 12;
+	margin-right:12;
+	padding-top:10;
+	padding-bottom:10;
 }
-VFXContextUI .Extremity
+
+VFXContextUI #HeaderContainer
+{
+	flex-direction:row;
+	justify-content:center;
+}
+
+VFXContextUI #Footer
 {
 	flex-direction:row;
 	margin-left: 12;
@@ -64,7 +75,7 @@ VFXContextUI #HeaderSpace
 	height:16;
 	position-type:absolute;
 	position-right:5;
-	position-top:10;
+	-position-top:10;
 }
 
 

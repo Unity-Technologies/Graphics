@@ -608,7 +608,16 @@ namespace UnityEditor.VFX.UI
 
 
             m_OwnData.presenter = presenter.slotContainerPresenter;
-            m_OwnData.visible = presenter.slotContainerPresenter.inputAnchors.Count > 0;
+
+            bool slotsVisible = presenter.slotContainerPresenter.inputAnchors.Count > 0;
+            if( slotsVisible && m_OwnData.parent == null )
+            {
+                m_Header.AddChild(m_OwnData);
+            }
+            else if( !slotsVisible && m_OwnData.parent != null)
+            {
+                m_Header.RemoveChild(m_OwnData);
+            }
         }
 
         FilterPopup m_PopupManipulator;
