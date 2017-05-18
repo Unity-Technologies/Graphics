@@ -122,15 +122,163 @@ VFXAsset:
     m_HasIndirectOutput: 0
     m_OutputDataIndex: -1
     m_InitUniforms:
-      m_Uniforms: []
+      m_Uniforms:
+      - name: initUniform0_kVFXCombine3fOp
+        index: 19
+      - name: initUniform1_kVFXCombine3fOp
+        index: 18
+      - name: initUniform2_kVFXCombine3fOp
+        index: 20
+      - name: initUniform3_kVFXCombine3fOp
+        index: 17
+      - name: initUniform4_kVFXValueOp
+        index: 16
+      - name: initUniform5_kVFXValueOp
+        index: 12
     m_UpdateUniforms:
-      m_Uniforms: []
+      m_Uniforms:
+      - name: updateUniform0_kVFXDeltaTimeOp
+        index: 13
     m_OutputUniforms:
-      m_Uniforms: []
-    m_SpawnerIndices: 
+      m_Uniforms:
+      - name: outputSampler0_kVFXValueOpTexture
+        index: 15
+    m_SpawnerIndices: 00000000
   m_Expressions:
-    m_Expressions: []
-    m_SemanticToExpressionIndex: {}
+    m_Expressions:
+    - op: 0
+      valueIndex: 30
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 31
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 32
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 33
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 34
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 35
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 36
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 37
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 38
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 39
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 40
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 41
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 42
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 10
+      valueIndex: 13
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 43
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 45
+      data[0]: 7
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 0
+      valueIndex: 44
+      data[0]: 1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 2
+      valueIndex: 18
+      data[0]: 6
+      data[1]: 5
+      data[2]: 4
+      data[3]: -1
+    - op: 2
+      valueIndex: 21
+      data[0]: 11
+      data[1]: 10
+      data[2]: 2
+      data[3]: -1
+    - op: 2
+      valueIndex: 24
+      data[0]: 9
+      data[1]: 8
+      data[2]: 7
+      data[3]: -1
+    - op: 2
+      valueIndex: 27
+      data[0]: 1
+      data[1]: 0
+      data[2]: 3
+      data[3]: -1
+    m_SemanticToExpressionIndex:
+      1409375635: 14
+      4169642813: 19
+      2524235579: 16
+      3382177266: 15
+      2176166166: 12
+      3526866322: 17
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
   m_Spawners:
@@ -151,7 +299,37 @@ VFXAsset:
     m_Extent: {x: 0, y: 0, z: 0}
   m_PropertySheet:
     m_Float:
-      m_Array: []
+      m_Array:
+      - m_ExpressionIndex: 0
+        m_Value: 16
+      - m_ExpressionIndex: 1
+        m_Value: 16
+      - m_ExpressionIndex: 2
+        m_Value: 0
+      - m_ExpressionIndex: 3
+        m_Value: 1
+      - m_ExpressionIndex: 4
+        m_Value: 1
+      - m_ExpressionIndex: 5
+        m_Value: 16
+      - m_ExpressionIndex: 6
+        m_Value: 16
+      - m_ExpressionIndex: 7
+        m_Value: 0
+      - m_ExpressionIndex: 8
+        m_Value: 0
+      - m_ExpressionIndex: 9
+        m_Value: 0
+      - m_ExpressionIndex: 10
+        m_Value: 0
+      - m_ExpressionIndex: 11
+        m_Value: 0
+      - m_ExpressionIndex: 12
+        m_Value: 1
+      - m_ExpressionIndex: 14
+        m_Value: 1024
+      - m_ExpressionIndex: 16
+        m_Value: 1
     m_Vector2f:
       m_Array: []
     m_Vector3f:
@@ -161,4 +339,6 @@ VFXAsset:
     m_Matrix4x4f:
       m_Array: []
     m_NamedObject:
-      m_Array: []
+      m_Array:
+      - m_ExpressionIndex: 15
+        m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}

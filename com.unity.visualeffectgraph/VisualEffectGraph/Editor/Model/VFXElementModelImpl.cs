@@ -388,7 +388,7 @@ namespace UnityEditor.Experimental
                 Action<VFXInputSlot, uint, uint> fnAddSemantic = delegate (VFXInputSlot slot, uint contextId, uint blockID)
                 {
                     var expressionRef = slot.ValueRef;
-                    if (m_Expressions.ContainsKey(expressionRef))
+                    if (expressionRef != null && m_Expressions.ContainsKey(expressionRef))
                     {
                         var expressionSemantic = new VFXExpressionSemanticDesc()
                         {
