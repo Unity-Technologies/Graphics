@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -70,6 +70,7 @@ namespace UnityEditor.VFX.UI
         const string RectColorProperty = "rect-color";
 
         VisualContainer     m_Header;
+        VisualContainer     m_HeaderContainer;
         VisualElement       m_HeaderIcon;
         VisualElement       m_HeaderTitle;
 
@@ -137,13 +138,18 @@ namespace UnityEditor.VFX.UI
                 name = "Header",
                 clipChildren = false
             };
-            m_Header.AddToClassList("Extremity");
+            m_HeaderContainer = new VisualContainer()
+            {
+                name = "HeaderContainer",
+                clipChildren = false
+            };
+            m_HeaderContainer.AddToClassList("Extremity");
             m_HeaderTitle = new VisualElement() { name = "HeaderTitle" , text = "Title" };
             m_HeaderTitle.AddToClassList("title");
             m_HeaderIcon = new VisualElement() { name = "HeaderIcon"};
             m_HeaderIcon.AddToClassList("icon");
-            m_Header.AddChild(m_HeaderIcon);
-            m_Header.AddChild(m_HeaderTitle);
+            m_HeaderContainer.AddChild(m_HeaderIcon);
+            m_HeaderContainer.AddChild(m_HeaderTitle);
 
             m_Header.AddChild(m_FlowInputConnectorContainer);
 
@@ -151,13 +157,14 @@ namespace UnityEditor.VFX.UI
             m_HeaderSpace.name = "HeaderSpace";
             m_HeaderSpace.AddManipulator(new Clickable(OnSpace));
 
-            m_Header.AddChild(m_HeaderSpace);
+            m_HeaderContainer.AddChild(m_HeaderSpace);
 
             m_NodeContainer.AddChild(m_Header);
 
 
             m_OwnData = new VFXSlotContainerUI();
-            m_NodeContainer.AddChild(m_OwnData);
+            m_Header.AddChild(m_HeaderContainer);
+            m_Header.AddChild(m_OwnData);
 
             m_BlockContainer = new BlockContainer()
             {
@@ -601,6 +608,7 @@ namespace UnityEditor.VFX.UI
 
 
             m_OwnData.presenter = presenter.slotContainerPresenter;
+            m_OwnData.visible = presenter.slotContainerPresenter.inputAnchors.Count > 0;
         }
 
         FilterPopup m_PopupManipulator;

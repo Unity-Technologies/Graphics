@@ -20,6 +20,11 @@ VFXContextUI.selected #NodeContents
 	border-color: #FFF;
 }
 
+VFXContextUI #header
+{
+	background-color:#414141;
+	border-radius:2;
+}
 VFXContextUI .Extremity
 {
 	flex-direction:row;

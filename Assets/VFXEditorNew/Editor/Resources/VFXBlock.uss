@@ -92,8 +92,9 @@
 	padding-bottom:3;
 }
 
-VFXSlotContainerUI
+VFXSlotContainerUI.VFXSlotContainerUI.node.horizontal
 {
 	margin-left:12;
 	margin-right:12;
+	background-color:#414141;
 }
