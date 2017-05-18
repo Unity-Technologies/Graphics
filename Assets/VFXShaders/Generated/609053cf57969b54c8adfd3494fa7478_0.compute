@@ -10,11 +10,11 @@ CBUFFER_START(initUniforms)
 	float3 initUniform2_kVFXCombine3fOp;
 	float initUniform0_kVFXValueOp;
 	
-	float3 initUniform3_kVFXCombine3fOp;
+	float3 initUniform5_kVFXCombine3fOp;
 	float initUniform1_kVFXValueOp;
 	
+	float initUniform3_kVFXValueOp;
 	float initUniform4_kVFXValueOp;
-	float initUniform5_kVFXValueOp;
 	uint initUniform6_kVFXSystemSeedOp;
 	uint nbSpawned;
 	
@@ -109,14 +109,14 @@ void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
 	velocity += Velocity;
 }
 
-void VFXBlockVelocityRandomVector( inout float3 velocity,float3 Divergence,inout uint seed)
-{
-	velocity += (RAND3 * 2 - 1) * Divergence;
-}
-
 void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
+}
+
+void VFXBlockVelocityRandomVector( inout float3 velocity,float3 Divergence,inout uint seed)
+{
+	velocity += (RAND3 * 2 - 1) * Divergence;
 }
 
 void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
@@ -146,8 +146,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		local_seed = WangHash((id.x + spawnIndex) ^ initUniform6_kVFXSystemSeedOp);
 		VFXBlockSizeRandomSquare( attrib0.size,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,local_seed);
 		VFXBlockVelocityConstant( attrib1.velocity,initUniform2_kVFXCombine3fOp);
-		VFXBlockVelocityRandomVector( attrib1.velocity,initUniform3_kVFXCombine3fOp,local_seed);
-		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,local_seed);
+		VFXBlockVelocityRandomVector( attrib1.velocity,initUniform5_kVFXCombine3fOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
