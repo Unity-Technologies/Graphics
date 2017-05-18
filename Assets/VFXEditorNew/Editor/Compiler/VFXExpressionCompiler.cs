@@ -7,9 +7,14 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-	class VFXExpressionCompiler
+	class VFXExpressionGraph
 	{
-        public VFXExpressionCompiler()
+        private struct ExpressionData
+        {
+            public int depth;
+        }
+
+        public VFXExpressionGraph()
 		{}
 
         private void AddExpressionsToContext(HashSet<VFXExpression> expressions, IVFXSlotContainer slotContainer)
@@ -40,18 +45,31 @@ namespace UnityEditor.VFX
             return expressionContext;
         } 
 
+        private void AddExpressionDataRecursively(Dictionary<VFXExpression,ExpressionData> dst, VFXExpression exp,int depth = 0)
+        {
+            ExpressionData data;
+            if (!dst.TryGetValue(exp, out data) || data.depth < depth)
+            {
+                data.depth = depth;
+                dst[exp] = data;
+                foreach (var parent in exp.Parents)
+                    AddExpressionDataRecursively(dst, parent, depth + 1);
+            }
+        }
+
 		public void CompileExpressions(VFXGraph graph,bool constantFolding)
 		{
             Profiler.BeginSample("CompileExpressionGraph");
 
             try
             {
+                m_Expressions.Clear();
+                m_SlotToExpressions.Clear();
+                m_FlattenedExpressions.Clear();
+
                 var models = new HashSet<Object>();
                 graph.CollectDependencies(models);
                 var contexts = models.OfType<VFXContext>();
-
-                var expressions = new HashSet<VFXExpression>();
-                var slotsToExpressions = new Dictionary<VFXSlot, VFXExpression>();
 
                 var options = VFXExpression.Context.ReductionOption.CPUReduction;
                 if (constantFolding)
@@ -62,7 +80,7 @@ namespace UnityEditor.VFX
                     var expressionContext = CreateLocalExpressionContext(context, options);
                     expressionContext.Compile();
 
-                    expressions.UnionWith(expressionContext.AllReduced());
+                    m_Expressions.UnionWith(expressionContext.AllReduced());
 
                     models.Clear();
                     context.CollectDependencies(models);
@@ -73,19 +91,36 @@ namespace UnityEditor.VFX
                         .Select(s => new KeyValuePair<VFXSlot, VFXExpression>(s, s.GetExpression()));
 
                     foreach (var kvp in kvps)
-                        slotsToExpressions.Add(kvp.Key, kvp.Value);
+                        m_SlotToExpressions.Add(kvp.Key, kvp.Value);
                 }
 
-                // Keep only non per element expressions in the graph
-                expressions.RemoveWhere(e => e.Is(VFXExpression.Flags.PerElement));
+                // flatten
+                var expressionData = new Dictionary<VFXExpression,ExpressionData>();
+                foreach (var exp in m_SlotToExpressions.Values)
+                    AddExpressionDataRecursively(expressionData, exp);
 
-                Debug.Log(string.Format("RECOMPILE EXPRESSION GRAPH - NB EXPRESSIONS: {0} - NB SLOTS: {1}", expressions.Count, slotsToExpressions.Count));
+                var sortedList = expressionData.Where(kvp => !kvp.Key.Is(VFXExpression.Flags.PerElement)).ToList();
+                sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));
+                m_FlattenedExpressions = sortedList.Select(kvp => kvp.Key).ToList();
+
+                //Debug.Log("---- Expression list");
+                //for (int i = 0; i < expressionList.Count; ++i)
+                //    Debug.Log(string.Format("{0}\t\t{1}",i,expressionList[i].GetType()));
+
+                // Keep only non per element expressions in the graph
+                m_Expressions.RemoveWhere(e => e.Is(VFXExpression.Flags.PerElement));
+
+                Debug.Log(string.Format("RECOMPILE EXPRESSION GRAPH - NB EXPRESSIONS: {0} - NB SLOTS: {1}", m_Expressions.Count, m_SlotToExpressions.Count));
             }
             finally
             {
                 Profiler.EndSample();
             }
 		}
+
+        private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
+        private Dictionary<VFXSlot, VFXExpression> m_SlotToExpressions = new Dictionary<VFXSlot, VFXExpression>();
+        private List<VFXExpression> m_FlattenedExpressions = new List<VFXExpression>();
 	}
 	
 }
