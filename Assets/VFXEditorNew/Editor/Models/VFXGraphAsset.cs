@@ -105,7 +105,7 @@ namespace UnityEditor.VFX
                     if (m_Root != null)
                     {
                         var expressionCompiler = new VFXExpressionCompiler();
-                        expressionCompiler.CompileExpressions(m_Root);
+                        expressionCompiler.CompileExpressions(m_Root,false);
                     }
                 }
                 catch(Exception e)

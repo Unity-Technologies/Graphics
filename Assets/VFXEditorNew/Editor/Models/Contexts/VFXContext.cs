@@ -22,9 +22,9 @@ namespace UnityEditor.VFX
     [Flags]
     public enum VFXDataType
     {
-        kNone = 0,
-        //kHits =     1 << 0,
-        kParticle = 1 << 1,
+        kNone =         0,
+        kEvent =        1 << 0,
+        kParticle =     1 << 1,
     };
 
     class VFXContext : VFXSlotContainerModel<VFXSystem, VFXBlock>
@@ -66,7 +66,7 @@ namespace UnityEditor.VFX
                 cause == InvalidationCause.kConnectionChanged ||
                 cause == InvalidationCause.kExpressionInvalidated)
             {
-                RecreateExpressionContext();
+                Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
         }
 
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX
         protected override void OnAdded()
         {
             base.OnAdded();
-            RecreateExpressionContext();
+            Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
         protected override void OnRemoved()
@@ -96,43 +96,10 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
-        private void AddExpressionsToContext(HashSet<VFXExpression> expressions,IVFXSlotContainer slotContainer)
-        {
-            int nbSlots = slotContainer.GetNbInputSlots();
-            for (int i = 0; i < nbSlots; ++i)
-            {
-                var slot = slotContainer.GetInputSlot(i);
-                slot.GetExpressions(expressions);
-            }
-        }
-
-        private void RecreateExpressionContext()
-        {
-            m_ExpressionContext = new VFXExpression.Context();
-            var expressions = new HashSet<VFXExpression>();
-
-            // First add context slots
-            AddExpressionsToContext(expressions, this);
-
-            // Then block slots
-            foreach (var child in children)
-                AddExpressionsToContext(expressions, child);
-
-            foreach (var exp in expressions)
-            {
-                m_ExpressionContext.RegisterExpression(exp);
-                //Debug.Log("---- Exp: " + exp.GetType() + " " + exp.ValueType);
-            }
-            m_ExpressionContext.Compile();
-            Invalidate(InvalidationCause.kExpressionGraphChanged);
-            //Debug.Log("************** RECOMPILE EXPRESSION CONTEXT FOR " + this.GetType() + " " + this.name + " nbExpressions:" + expressions.Count);
-        }
-
         // Not serialized nor exposed
         private VFXContextType m_ContextType;
         private VFXDataType m_InputType;
         private VFXDataType m_OutputType;
-
 
         [SerializeField]
         private CoordinateSpace m_Space;
@@ -146,13 +113,9 @@ namespace UnityEditor.VFX
             set
             {
                 m_Space = value;
-                Invalidate(InvalidationCause.kStructureChanged);
+                Invalidate(InvalidationCause.kStructureChanged); // TODO This does not seem correct
             }
         }
-
-        public VFXExpression.Context ExpressionContext { get { return m_ExpressionContext; } }
-        [NonSerialized]
-        private VFXExpression.Context m_ExpressionContext = new VFXExpression.Context();
     }
 
     // TODO Do that later!
