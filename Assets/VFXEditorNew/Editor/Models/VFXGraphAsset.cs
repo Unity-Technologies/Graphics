@@ -117,6 +117,7 @@ namespace UnityEditor.VFX
             }
         }
 
+        [NonSerialized]
         private bool m_ExpressionGraphDirty = true;
     }
 }

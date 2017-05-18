@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValue<Mesh>(null, false);
+            return new VFXValue<Mesh>(null, true);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValue<AnimationCurve>(new AnimationCurve(), false);
+            return new VFXValue<AnimationCurve>(new AnimationCurve(), true);
         }
     }
 }

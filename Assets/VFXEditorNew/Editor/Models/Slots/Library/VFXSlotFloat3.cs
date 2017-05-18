@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValue<Vector3>(Vector3.zero, false);
+            return new VFXValue<Vector3>(Vector3.zero, true);
         }
 
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)

@@ -71,9 +71,7 @@ namespace UnityEditor.VFX
                 graph.CollectDependencies(models);
                 var contexts = models.OfType<VFXContext>();
 
-                var options = VFXExpression.Context.ReductionOption.CPUReduction;
-                if (constantFolding)
-                    options |= VFXExpression.Context.ReductionOption.ConstantFolding;
+                var options = constantFolding ? VFXExpression.Context.ReductionOption.ConstantFolding : VFXExpression.Context.ReductionOption.CPUReduction;
 
                 foreach (var context in contexts.ToArray())
                 {
@@ -88,7 +86,7 @@ namespace UnityEditor.VFX
                     var kvps = models.OfType<VFXSlot>()
                         .Where(s => s.IsMasterSlot())
                         .SelectMany(s => s.GetExpressionSlots())
-                        .Select(s => new KeyValuePair<VFXSlot, VFXExpression>(s, s.GetExpression()));
+                        .Select(s => new KeyValuePair<VFXSlot, VFXExpression>(s, expressionContext.GetReduced(s.GetExpression())));
 
                     foreach (var kvp in kvps)
                         m_SlotToExpressions.Add(kvp.Key, kvp.Value);
@@ -103,9 +101,9 @@ namespace UnityEditor.VFX
                 sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));
                 m_FlattenedExpressions = sortedList.Select(kvp => kvp.Key).ToList();
 
-                //Debug.Log("---- Expression list");
-                //for (int i = 0; i < expressionList.Count; ++i)
-                //    Debug.Log(string.Format("{0}\t\t{1}",i,expressionList[i].GetType()));
+                Debug.Log("---- Expression list");
+                for (int i = 0; i < m_FlattenedExpressions.Count; ++i)
+                    Debug.Log(string.Format("{0}\t\t{1}", i, m_FlattenedExpressions[i].GetType().Name));
 
                 // Keep only non per element expressions in the graph
                 m_Expressions.RemoveWhere(e => e.Is(VFXExpression.Flags.PerElement));

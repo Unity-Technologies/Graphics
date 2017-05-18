@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
     {
         protected override VFXValue DefaultExpression()
         {
-            return new VFXValue<int>(0, false);
+            return new VFXValue<int>(0, true);
         }
     }
 }
