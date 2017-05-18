@@ -105,7 +105,7 @@ namespace UnityEditor.VFX
                     if (m_Root != null)
                     {
                         var expressionGraph = new VFXExpressionGraph();
-                        expressionGraph.CompileExpressions(m_Root, false);
+                        expressionGraph.CompileExpressions(m_Root, VFXExpression.Context.ReductionOption.CPUReduction);
                     }
                 }
                 catch(Exception e)
