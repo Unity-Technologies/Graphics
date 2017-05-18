@@ -100,14 +100,14 @@ float4 _UVDetailsMappingMask;
 // sampler are share by texture type inside a layered material but we need to support that a particualr layer have no texture, so we take the first sampler of available texture as the share one
 // mean we must declare all sampler
 #define PROP_DECL_TEX2D(name)\
-    TEXTURE2D(name##0); \
-    SAMPLER2D(sampler##name##0); \
-    TEXTURE2D(name##1); \
-    SAMPLER2D(sampler##name##1); \
-    TEXTURE2D(name##2); \
-    SAMPLER2D(sampler##name##2); \
-    TEXTURE2D(name##3); \
-    SAMPLER2D(sampler##name##3);
+    TEXTURE2D(MERGE_NAME(name, 0)); \
+    SAMPLER2D(MERGE_NAME(MERGE_NAME(sampler, name), 0)); \
+    TEXTURE2D(MERGE_NAME(name, 1)); \
+    SAMPLER2D(MERGE_NAME(MERGE_NAME(sampler, name), 1)); \
+    TEXTURE2D(MERGE_NAME(name, 2)); \
+    SAMPLER2D(MERGE_NAME(MERGE_NAME(sampler, name), 2)); \
+    TEXTURE2D(MERGE_NAME(name, 3)); \
+    SAMPLER2D(MERGE_NAME(MERGE_NAME(sampler, name), 3));
 
 // Set of users variables
 PROP_DECL(float4, _BaseColor);
