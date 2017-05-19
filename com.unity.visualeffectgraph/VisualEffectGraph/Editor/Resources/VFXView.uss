@@ -1,4 +1,4 @@
-@import url("Assets/VFXEditorNew/Editor/Resources/VFXContext.uss");
+@import url("Assets/VFXEditor/Editor/Resources/VFXContext.uss");
 @import url("VFXFlow.uss");
 @import url("VFXBlock.uss");
 @import url("VFXNode.uss");
