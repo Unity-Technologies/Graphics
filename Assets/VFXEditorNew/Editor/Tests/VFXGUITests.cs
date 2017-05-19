@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
@@ -58,14 +58,14 @@ namespace UnityEditor.VFX.Test
 
         void CreateFlowEdges(VFXContextPresenter initContext, VFXContextPresenter updateContext, VFXContextPresenter outputContext)
         {
-            VFXFlowEdgePresenter edgePresenter = new VFXFlowEdgePresenter();
+            VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
 
             edgePresenter.output = initContext.outputAnchors.First();
             edgePresenter.input = updateContext.inputAnchors.First();
 
             m_ViewPresenter.AddElement(edgePresenter);
 
-            edgePresenter = new VFXFlowEdgePresenter();
+            edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
 
             edgePresenter.output = updateContext.outputAnchors.First();
             edgePresenter.input = outputContext.inputAnchors.First();
