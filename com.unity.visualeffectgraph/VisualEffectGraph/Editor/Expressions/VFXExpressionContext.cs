@@ -37,14 +37,28 @@ namespace UnityEditor.VFX
 
             public void Compile()
             {
+                m_Reduced.Clear();
                 foreach (var exp in m_EndExpressions)
+                {
                     Compile(exp);
+                    AddReducedGraph(m_ReducedCache[exp]);
+                }
             }
 
             public void Recompile()
             {
                 Invalidate();
                 Compile();
+            }
+
+            private void AddReducedGraph(VFXExpression exp)
+            {
+                if (!m_Reduced.Contains(exp))
+                {
+                    m_Reduced.Add(exp);
+                    foreach (var parent in exp.Parents)
+                        AddReducedGraph(parent);
+                }
             }
 
             private bool ShouldEvaluate(VFXExpression exp, VFXExpression[] reducedParents)
@@ -72,9 +86,13 @@ namespace UnityEditor.VFX
                     {
                         reduced = expression.Evaluate(parents);
                     }
-                    else
+                    else if (Option != ReductionOption.None)
                     {
                         reduced = expression.Reduce(parents);
+                    }
+                    else
+                    {
+                        reduced = expression;
                     }
 
                     m_ReducedCache[expression] = reduced;
@@ -101,12 +119,13 @@ namespace UnityEditor.VFX
 
             public IEnumerable<VFXExpression> AllReduced()
             {
-                return m_ReducedCache.Values;
+                return m_Reduced;
             }
 
             public ReadOnlyCollection<VFXExpression> RegisteredExpressions { get { return m_EndExpressions.ToList().AsReadOnly(); } }
 
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
+            private HashSet<VFXExpression> m_Reduced = new HashSet<VFXExpression>();
             private HashSet<VFXExpression> m_EndExpressions = new HashSet<VFXExpression>();
 
             private ReductionOption m_ReductionOption;
