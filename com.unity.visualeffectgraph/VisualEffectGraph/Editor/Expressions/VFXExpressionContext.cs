@@ -103,13 +103,13 @@ namespace UnityEditor.VFX
                 return reduced != null ? reduced : expression;
             }
 
-            private void AddReducedGraph(HashSet<VFXExpression> dst,VFXExpression exp)
+            private void AddReducedGraph(HashSet<VFXExpression> dst, VFXExpression exp)
             {
                 if (!dst.Contains(exp))
                 {
                     dst.Add(exp);
                     foreach (var parent in exp.Parents)
-                        AddReducedGraph(dst,parent);
+                        AddReducedGraph(dst, parent);
                 }
             }
 
