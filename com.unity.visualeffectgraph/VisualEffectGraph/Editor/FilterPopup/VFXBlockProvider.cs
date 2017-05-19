@@ -3,120 +3,121 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.Experimental.UIElements;
+using UnityEditor.Experimental;
 
-namespace UnityEditor.Experimental
+namespace UnityEditor.VFX.UI
 {
-    public class VFXBlockProvider : IProvider
+    abstract class VFXAbstractProvider<T> : ContextualMenu, VFXFilterWindow.IProvider
     {
-        Vector2 m_mousePosition;
-        VFXContextModel m_contextModel;
-        VFXEdDataSource m_dataSource;
-        VFXBlockModel m_blockModel;
+        Action<T, Vector2> m_onSpawnDesc;
 
-        public class VFXBlockElement : VFXFilterWindow.Element
+        protected class VFXBlockElement : VFXFilterWindow.Element
         {
-            public VFXBlockDesc m_Desc;
-            public Action<VFXBlockElement> m_SpawnCallback;
+            public T descriptor { get; private set; }
 
-            public VFXBlockElement(int level, VFXBlockDesc desc, Action<VFXBlockElement> spawncallback)
+            public VFXBlockElement(int level, T desc, string category, string name)
             {
                 this.level = level;
-                content = new GUIContent(desc.Category.Replace("/"," ")+" : " + desc.Name, VFXEditor.styles.GetIcon(desc.Icon));
-                m_Desc = desc;
-                m_SpawnCallback = spawncallback;
+                content = new GUIContent(category.Replace("/", " ") + " : " + name /*, VFXEditor.styles.GetIcon(desc.Icon)*/);
+                descriptor = desc;
             }
         }
 
-        internal VFXBlockProvider(Vector2 mousePosition, VFXContextModel contextModel, VFXEdDataSource dataSource)
+
+        protected VFXAbstractProvider(Action<T, Vector2> onSpawnDesc) : base(null)
         {
-            m_mousePosition = mousePosition;
-            m_contextModel = contextModel;
-            m_blockModel = null;
-            m_dataSource = dataSource;
+            m_onSpawnDesc = onSpawnDesc;
         }
 
-        internal VFXBlockProvider(Vector2 mousePosition, VFXContextModel contextModel, VFXBlockModel blockModel, VFXEdDataSource dataSource)
-        {
-            m_mousePosition = mousePosition;
-            m_contextModel = contextModel;
-            m_blockModel = blockModel;
-            m_dataSource = dataSource;
-            
-        }
+        protected abstract IEnumerable<T> GetDescriptors();
+        protected abstract string GetName(T desc);
+        protected abstract string GetCategory(T desc);
 
         public void CreateComponentTree(List<VFXFilterWindow.Element> tree)
         {
-            tree.Add(new VFXFilterWindow.GroupElement(0, "NodeBlocks"));
+            tree.Add(new VFXFilterWindow.GroupElement(0, "Node"));
+            var descriptors = GetDescriptors();
 
-            var blocks = new List<VFXBlockDesc>(VFXEditor.BlockLibrary.GetBlocks());
-
-            var filteredBlocks = blocks.Where(b => m_contextModel.Accept(b)).ToList();
-
-            filteredBlocks.Sort((blockA, blockB) => {
-                int res = blockA.Category.CompareTo(blockB.Category);
-                return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
-            });
-
-            HashSet<string> categories = new HashSet<string>();
-
-            foreach(VFXBlockDesc desc in filteredBlocks)
+            var categories = new HashSet<string>();
+            foreach (var desc in descriptors)
             {
-                int i = 0; 
-
-                if(!categories.Contains(desc.Category) && desc.Category != "")
+                int depth = 0;
+                var category = GetCategory(desc);
+                if (!string.IsNullOrEmpty(category))
                 {
-                    string[] split = desc.Category.Split('/');
-                    string current = "";
-
-                    while(i < split.Length)
+                    var split = category.Split('/').Where(o => o != "").ToArray();
+                    if (!categories.Contains(category))
                     {
-                        current += split[i];
-                        if(!categories.Contains(current))
-                            tree.Add(new VFXFilterWindow.GroupElement(i+1,split[i]));
-                        i++;
-                        current += "/";
+                        var current = "";
+                        while (depth < split.Length)
+                        {
+                            current += split[depth];
+                            if (!categories.Contains(current))
+                                tree.Add(new VFXFilterWindow.GroupElement(depth + 1, split[depth]));
+                            depth++;
+                            current += "/";
+                        }
+                        categories.Add(category);
                     }
-                    categories.Add(desc.Category);
+                    else
+                    {
+                        depth = split.Length;
+                    }
+                    depth++;
                 }
-                else
-                {
-                    i = desc.Category.Split('/').Length;
-                }
 
-                if (desc.Category != "")
-                    i++;
-
-                tree.Add(new VFXBlockElement(i, desc, SpawnBlock));
-
+                tree.Add(new VFXBlockElement(depth, desc, category, GetName(desc)));
             }
-        }
-
-        public void SpawnBlock(VFXBlockElement block)
-        {
-            int index;
-            if(m_blockModel != null)
-            {
-                index = m_blockModel.GetOwner().GetIndex(m_blockModel);
-                m_dataSource.Remove(m_blockModel);
-            }
-            else
-            {
-                index = m_dataSource.GetUI<VFXEdContextNode>(m_contextModel).NodeBlockContainer.GetDropIndex(m_mousePosition);
-            }
-
-            m_dataSource.Create(new VFXBlockModel(block.m_Desc), m_contextModel, index);
         }
 
         public bool GoToChild(VFXFilterWindow.Element element, bool addIfComponent)
         {
             if (element is VFXBlockElement)
             {
-                ((VFXBlockElement)element).m_SpawnCallback.Invoke((VFXBlockElement)element);
+                var blockElem = element as VFXBlockElement;
+                m_onSpawnDesc(blockElem.descriptor, position);
                 return true;
             }
-
             return false;
+        }
+
+        public Vector2 position
+        {
+            get; set;
+        }
+    }
+
+    class VFXBlockProvider : VFXAbstractProvider<VFXModelDescriptor<VFXBlock>>
+    {
+        VFXContextPresenter m_ContextPresenter;
+        public VFXBlockProvider(VFXContextPresenter context, Action<VFXModelDescriptor<VFXBlock>, Vector2> onAddBlock) : base(onAddBlock)
+        {
+            m_ContextPresenter = context;
+        }
+
+        protected override string GetCategory(VFXModelDescriptor<VFXBlock> desc)
+        {
+            return desc.name;
+        }
+
+        protected override string GetName(VFXModelDescriptor<VFXBlock> desc)
+        {
+            return desc.info.category;
+        }
+
+        protected override IEnumerable<VFXModelDescriptor<VFXBlock>> GetDescriptors()
+        {
+            var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
+            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.model)).ToList();
+            filteredBlocks.Sort((blockA, blockB) =>
+                {
+                    var infoA = blockA.info;
+                    var infoB = blockB.info;
+                    int res = infoA.category.CompareTo(infoB.category);
+                    return res != 0 ? res : blockA.name.CompareTo(blockB.name);
+                });
+            return filteredBlocks;
         }
     }
 }

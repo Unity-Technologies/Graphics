@@ -4,18 +4,21 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
-namespace UnityEditor.Experimental
+namespace UnityEditor.VFX.UI
 {
-    public interface IProvider
-    {
-        void CreateComponentTree(List<VFXFilterWindow.Element> tree);
-        bool GoToChild(VFXFilterWindow.Element element, bool addIfComponent);
-    }
-
     [InitializeOnLoad]
     public class VFXFilterWindow : EditorWindow
     {
+        public interface IProvider
+        {
+            void CreateComponentTree(List<VFXFilterWindow.Element> tree);
+            bool GoToChild(VFXFilterWindow.Element element, bool addIfComponent);
+
+            Vector2 position { get; set; }
+        }
+
         public static readonly float DefaultWidth = 240f;
         public static readonly float DefaultHeight = 300f;
 
@@ -217,8 +220,9 @@ namespace UnityEditor.Experimental
         {
             m_Provider = provider;
             // Has to be done before calling Show / ShowWithMode
-            Vector2 pos = GUIUtility.GUIToScreenPoint(position);
-            Rect buttonRect = new Rect(pos.x - DefaultWidth / 2, pos.y - 16, DefaultWidth, 1);
+            m_Provider.position = position;
+            position = GUIUtility.GUIToScreenPoint(position);
+            Rect buttonRect = new Rect(position.x - DefaultWidth / 2, position.y - 16, DefaultWidth, 1);
 
             CreateComponentTree();
 
@@ -233,7 +237,7 @@ namespace UnityEditor.Experimental
         {
             var tree = new List<Element>();
             m_Provider.CreateComponentTree(tree);
-            
+
 
             m_Tree = tree.ToArray();
 
@@ -297,7 +301,10 @@ namespace UnityEditor.Experimental
 
             // Search
             if (!(activeParent.WantsFocus))
+            {
                 EditorGUI.FocusTextInControl("ComponentSearch");
+                Focus();
+            }
             Rect searchRect = GUILayoutUtility.GetRect(10, 20);
             searchRect.x += 8;
             searchRect.width -= 16;
@@ -547,7 +554,7 @@ namespace UnityEditor.Experimental
 
         private void GoToChild(Element e, bool addIfComponent)
         {
-            if(m_Provider.GoToChild(e, addIfComponent))
+            if (m_Provider.GoToChild(e, addIfComponent))
                 Close();
             else if (!hasSearch)//TODO RF || e is NewElement)
             {
@@ -560,7 +567,6 @@ namespace UnityEditor.Experimental
                     m_Stack.Add(e as VFXFilterWindow.GroupElement);
                 }
             }
-
         }
 
         private void ListGUI(Element[] tree, GroupElement parent)
@@ -672,7 +678,6 @@ namespace UnityEditor.Experimental
 
             return children;
         }
-
     }
 
     public struct DisabledScope : IDisposable
@@ -697,5 +702,4 @@ namespace UnityEditor.Experimental
                 GUI.enabled = s_EnabledStack.Pop();
         }
     }
-
 }
