@@ -1,6 +1,9 @@
-using RMGUI.GraphView;
 using UnityEngine;
-using UnityEngine.RMGUI;
+using UnityEngine.Experimental.UIElements;
+using MouseManipulator = UnityEngine.Experimental.UIElements.MouseManipulator;
+
+using ManipulatorActivationFilter = UnityEngine.Experimental.UIElements.ManipulatorActivationFilter;
+using MouseButton = UnityEngine.Experimental.UIElements.MouseButton;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -24,7 +27,7 @@ namespace UnityEditor.Graphing.Drawing
 
 		public Clicker()
 		{
-			activators.Add(new ManipActivator {button = MouseButton.LeftMouse});
+			activators.Add(new ManipulatorActivationFilter {button = MouseButton.LeftMouse});
 		}
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)

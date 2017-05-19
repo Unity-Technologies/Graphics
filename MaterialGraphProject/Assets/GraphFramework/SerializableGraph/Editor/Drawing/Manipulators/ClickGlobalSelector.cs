@@ -1,8 +1,9 @@
 ﻿using System;
-using RMGUI.GraphView;
-using UnityEditor.Graphing.Drawing;
 using UnityEngine;
-using UnityEngine.RMGUI;
+using UnityEngine.Experimental.UIElements;
+using ManipulatorActivationFilter = UnityEngine.Experimental.UIElements.ManipulatorActivationFilter;
+using MouseButton = UnityEngine.Experimental.UIElements.MouseButton;
+using MouseManipulator = UnityEngine.Experimental.UIElements.MouseManipulator;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -10,9 +11,9 @@ namespace UnityEditor.Graphing.Drawing
     {
         public ClickGlobalSelector()
         {
-            phaseInterest = EventPhase.Capture;
-            activators.Add(new ManipActivator {button = MouseButton.LeftMouse});
-            activators.Add(new ManipActivator {button = MouseButton.RightMouse});
+            phaseInterest = PropagationPhase.Capture;
+            activators.Add(new ManipulatorActivationFilter {button = MouseButton.LeftMouse});
+            activators.Add(new ManipulatorActivationFilter { button = MouseButton.RightMouse});
         }
 
         public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
 using UnityEngine;
-using UnityEngine.RMGUI;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -71,7 +71,7 @@ namespace UnityEditor.Graphing.Drawing
             if (graphAsset == null || graphAsset.drawingData.selection.SequenceEqual(selection.OfType<NodeDrawer>().Select(d => ((GraphNodePresenter) d.presenter).node.guid))) return;
 
             var selectedDrawers = graphDataSource.graphAsset.drawingData.selection
-                .Select(guid => contentViewContainer.children
+                .Select(guid => contentViewContainer
                             .OfType<NodeDrawer>()
                             .FirstOrDefault(drawer => ((GraphNodePresenter) drawer.presenter).node.guid == guid))
                 .ToList();

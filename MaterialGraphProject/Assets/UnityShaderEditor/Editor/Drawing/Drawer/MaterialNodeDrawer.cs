@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using UnityEngine.RMGUI;
+using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 
@@ -116,12 +116,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             if (nodeData.expanded)
             {
-                m_PreviewContainer.paintFlags &= ~PaintFlags.Invisible;
+                //m_PreviewContainer.paintFlags &= ~PaintFlags.Invisible;
                 m_PreviewContainer.RemoveFromClassList("hidden");
             }
             else
             {
-                m_PreviewContainer.paintFlags |= PaintFlags.Invisible;
+                //m_PreviewContainer.paintFlags |= PaintFlags.Invisible;
                 m_PreviewContainer.AddToClassList("hidden");
             }
         }
