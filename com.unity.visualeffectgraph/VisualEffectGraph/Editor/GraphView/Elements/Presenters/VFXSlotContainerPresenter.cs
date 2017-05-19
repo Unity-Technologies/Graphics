@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.UI
                 inputAnchors.Clear();
                 Dictionary<VFXSlot, VFXContextDataInputAnchorPresenter> newAnchors = new Dictionary<VFXSlot, VFXContextDataInputAnchorPresenter>();
 
-                IVFXSlotContainer block = model as IVFXSlotContainer;
+                IVFXSlotContainer block = m_Model as IVFXSlotContainer;
                 UpdateSlots(newAnchors, block.inputSlots, true);
                 m_Anchors = newAnchors;
             }
