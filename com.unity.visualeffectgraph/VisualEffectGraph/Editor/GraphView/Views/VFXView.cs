@@ -114,6 +114,7 @@ namespace UnityEditor.VFX.UI
                 {Event.KeyboardEvent("#r"), Resync},
                 {Event.KeyboardEvent("#d"), OutputToDot},
                 {Event.KeyboardEvent("^#d"), OutputToDotReduced},
+                {Event.KeyboardEvent("#c"), OutputToDotConstantFolding},
             }));
 
             Undo.undoRedoPerformed += () => Resync();
@@ -231,6 +232,12 @@ namespace UnityEditor.VFX.UI
         public EventPropagation OutputToDotReduced()
         {
             DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraphAsset().root, VFXExpression.Context.ReductionOption.CPUReduction);
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation OutputToDotConstantFolding()
+        {
+            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraphAsset().root, VFXExpression.Context.ReductionOption.ConstantFolding);
             return EventPropagation.Stop;
         }
 

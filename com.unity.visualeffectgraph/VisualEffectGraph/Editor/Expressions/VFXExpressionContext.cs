@@ -81,6 +81,10 @@ namespace UnityEditor.VFX
                         reduced = expression;
                     }
 
+                    // TODO Does not work with reduction
+                    //if (parents.Any(p => p.Is(VFXExpression.Flags.PerElement)))
+                    //    reduced.Set(VFXExpression.Flags.PerElement);
+
                     m_ReducedCache[expression] = reduced;
                 }
                 return reduced;

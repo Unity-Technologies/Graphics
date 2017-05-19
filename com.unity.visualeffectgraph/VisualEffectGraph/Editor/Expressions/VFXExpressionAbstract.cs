@@ -117,7 +117,10 @@ namespace UnityEditor.VFX
         protected abstract VFXExpression Reduce(VFXExpression[] reducedParents);
         protected abstract VFXExpression Evaluate(VFXExpression[] constParents);
 
-        public bool Is(Flags flag)  { return (m_Flags & flag) == flag; }
+        public bool Is(Flags flag)      { return (m_Flags & flag) == flag; }
+        public void Set(Flags flag)     { m_Flags |= flag; }
+        public void Unset(Flags flag)   { m_Flags &= ~flag; } 
+
         public abstract VFXValueType ValueType { get; }
         public abstract VFXExpressionOp Operation { get; }
         public virtual VFXExpression[] Parents { get { return new VFXExpression[] {}; } }

@@ -63,22 +63,25 @@ namespace UnityEditor.VFX
                     name += string.Format(" ({0})", valueStr);
 
                 dotNode.attributes[DotAttribute.Shape] = DotShape.Box;
+
                 if (mainExpressions.ContainsKey(exp))
                 {
                     string allOwnersStr = string.Empty;
-                    //bool belongToBlock = false;
                     foreach (var slot in mainExpressions[exp])
                     {
                         var topOwner = slot.GetMasterSlot().owner;
                         allOwnersStr += string.Format("\n{0} - {1}", topOwner.GetType().Name, GetRecursiveName(slot));
-                        // belongToBlock |= topOwner is VFXBlock;
                     }
 
                     name += string.Format("{0}", allOwnersStr);
 
-                    dotNode.attributes[DotAttribute.Style] = DotStyle.Filled;
-                    dotNode.attributes[DotAttribute.Color] = /*belongToBlock ?*/ DotColor.Cyan /*: DotColor.Green*/;
+                    dotNode.attributes[DotAttribute.Color] = DotColor.Cyan;
                 }
+                else if (exp.Is(VFXExpression.Flags.PerElement))
+                    dotNode.attributes[DotAttribute.Color] = DotColor.Yellow;
+
+                if (dotNode.attributes.ContainsKey(DotAttribute.Color))
+                    dotNode.attributes[DotAttribute.Style] = DotStyle.Filled;
 
                 dotNode.Label = name;
 
