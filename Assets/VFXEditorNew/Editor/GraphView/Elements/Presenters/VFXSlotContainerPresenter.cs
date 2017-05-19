@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.UI
         public void Init(IVFXSlotContainer model, VFXContextPresenter contextPresenter)
         {
             m_Model = model;
-            if( m_Model == null)
+            if (m_Model == null)
             {
                 Debug.LogError("Model must not be null");
             }

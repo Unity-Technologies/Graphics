@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -37,14 +37,13 @@ namespace UnityEditor.VFX.UI
 
                 VFXDataEdge edge = this.GetFirstAncestorOfType<VFXView>().GetDataEdgeByPresenter(edgePresenter);
 
-                if( edge != null )
+                if (edge != null)
                 {
-
                     Vector2 globaCenter = position.position + (Vector2)GetLocalCenter();
 
                     Vector2 from = globaCenter - new Vector2(9, 0);
                     Vector2 to = globaCenter + new Vector2(5, 0);
-                    Handles.DrawBezier(from,to,to,from,edge.borderColor,null,2);
+                    Handles.DrawBezier(from, to, to, from, edge.borderColor, null, 2);
                 }
             }
         }

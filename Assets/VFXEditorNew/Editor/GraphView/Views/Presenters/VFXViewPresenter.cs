@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.UI
 
             var operatorPresenters = m_Elements.OfType<VFXNodePresenter>().Cast<VFXLinkablePresenter>();
             var blockPresenters = (m_Elements.OfType<VFXContextPresenter>().SelectMany(t => t.allChildren.OfType<VFXBlockPresenter>())).Cast<VFXLinkablePresenter>();
-            var contextSlotPresenters = m_Elements.OfType<VFXContextPresenter>().Select(t=> t.slotContainerPresenter).Cast<VFXLinkablePresenter>();
+            var contextSlotPresenters = m_Elements.OfType<VFXContextPresenter>().Select(t => t.slotContainerPresenter).Cast<VFXLinkablePresenter>();
 
             var allLinkables = operatorPresenters.Concat(blockPresenters).Concat(contextSlotPresenters).ToArray();
             foreach (var operatorPresenter in allLinkables)

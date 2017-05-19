@@ -71,7 +71,7 @@ namespace UnityEditor.VFX
                     {
                         var topOwner = slot.GetMasterSlot().owner;
                         allOwnersStr += string.Format("\n{0} - {1}", topOwner.GetType().Name, GetRecursiveName(slot));
-                       // belongToBlock |= topOwner is VFXBlock;
+                        // belongToBlock |= topOwner is VFXBlock;
                     }
 
                     name += string.Format("{0}", allOwnersStr);

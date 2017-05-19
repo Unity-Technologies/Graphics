@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UIElements
 
         void OnColorClick()
         {
-            if( enabled )
+            if (enabled)
                 ColorPicker.Show(OnColorChanged, m_Value, true, true, new ColorPickerHDRConfig(0.0f, 100.0f, 0.0f, 100.0f));
         }
 
@@ -109,7 +109,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI()
         {
-            m_ColorDisplay.backgroundColor = new Color(m_Value.r, m_Value.g, m_Value.b,1);
+            m_ColorDisplay.backgroundColor = new Color(m_Value.r, m_Value.g, m_Value.b, 1);
             m_AlphaDisplay.flex = m_Value.a;
             m_NotAlphaDisplay.flex = 1 - m_Value.a;
 

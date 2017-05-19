@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;

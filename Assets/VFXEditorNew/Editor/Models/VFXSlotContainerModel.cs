@@ -60,7 +60,7 @@ namespace UnityEditor.VFX
         }
 
         public virtual void RemoveSlot(VFXSlot slot) { InnerRemoveSlot(slot, true); }
-        private void InnerRemoveSlot(VFXSlot slot,bool notify)
+        private void InnerRemoveSlot(VFXSlot slot, bool notify)
         {
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
 
@@ -210,7 +210,7 @@ namespace UnityEditor.VFX
                     var slot = VFXSlot.Create(property, direction, value);
                     if (slot != null)
                     {
-                        InnerAddSlot(slot,false);
+                        InnerAddSlot(slot, false);
                     }
                 }
             }

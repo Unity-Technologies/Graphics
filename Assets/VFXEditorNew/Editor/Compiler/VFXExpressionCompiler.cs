@@ -7,8 +7,8 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-	class VFXExpressionGraph
-	{
+    class VFXExpressionGraph
+    {
         private struct ExpressionData
         {
             public int depth;
@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         }
 
         public VFXExpressionGraph()
-		{}
+        {}
 
         private void AddExpressionsToContext(HashSet<VFXExpression> expressions, IVFXSlotContainer slotContainer)
         {
@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private VFXExpression.Context CreateLocalExpressionContext(VFXContext context,VFXExpression.Context.ReductionOption option)
+        private VFXExpression.Context CreateLocalExpressionContext(VFXContext context, VFXExpression.Context.ReductionOption option)
         {
             var expressionContext = new VFXExpression.Context(option);
             var expressions = new HashSet<VFXExpression>();
@@ -44,9 +44,9 @@ namespace UnityEditor.VFX
                 expressionContext.RegisterExpression(exp);
 
             return expressionContext;
-        } 
+        }
 
-        private void AddExpressionDataRecursively(Dictionary<VFXExpression,ExpressionData> dst, VFXExpression exp,int depth = 0)
+        private void AddExpressionDataRecursively(Dictionary<VFXExpression, ExpressionData> dst, VFXExpression exp, int depth = 0)
         {
             ExpressionData data;
             if (!dst.TryGetValue(exp, out data) || data.depth < depth)
@@ -58,8 +58,8 @@ namespace UnityEditor.VFX
             }
         }
 
-		public void CompileExpressions(VFXGraph graph,VFXExpression.Context.ReductionOption option)
-		{
+        public void CompileExpressions(VFXGraph graph, VFXExpression.Context.ReductionOption option)
+        {
             Profiler.BeginSample("CompileExpressionGraph");
 
             try
@@ -92,7 +92,7 @@ namespace UnityEditor.VFX
                 }
 
                 // flatten
-                var expressionData = new Dictionary<VFXExpression,ExpressionData>();
+                var expressionData = new Dictionary<VFXExpression, ExpressionData>();
                 foreach (var exp in m_SlotsToExpressions.Values)
                     AddExpressionDataRecursively(expressionData, exp);
 
@@ -121,15 +121,14 @@ namespace UnityEditor.VFX
             {
                 Profiler.EndSample();
             }
-		}
+        }
 
         public HashSet<VFXExpression> Expressions { get { return m_Expressions; } }
         public Dictionary<VFXSlot, VFXExpression> SlotsToExpressions { get { return m_SlotsToExpressions; } }
-        public List<VFXExpression> FlattenedExpressions { get { return m_FlattenedExpressions; } } 
+        public List<VFXExpression> FlattenedExpressions { get { return m_FlattenedExpressions; } }
 
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
         private Dictionary<VFXSlot, VFXExpression> m_SlotsToExpressions = new Dictionary<VFXSlot, VFXExpression>();
         private List<VFXExpression> m_FlattenedExpressions = new List<VFXExpression>();
-	}
-	
+    }
 }

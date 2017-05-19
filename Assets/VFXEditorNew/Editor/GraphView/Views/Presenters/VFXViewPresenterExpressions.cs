@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UIElements.GraphView;
 using UnityEngine;
@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.UI
                 return false;
 
             var reduced = m_ExpressionContext.GetReduced(slot.GetExpression());
-            return reduced!= null && reduced.Is(VFXExpression.Flags.Value);
+            return reduced != null && reduced.Is(VFXExpression.Flags.Value);
         }
 
         public object GetEvaluatedContent(VFXSlot slot)

@@ -108,7 +108,7 @@ namespace UnityEditor.VFX
                         expressionGraph.CompileExpressions(m_Root, VFXExpression.Context.ReductionOption.CPUReduction);
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Debug.LogError(string.Format("Exception while compiling expression graph: {0}: {1}", e, e.StackTrace));
                 }
