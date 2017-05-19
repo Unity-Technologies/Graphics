@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UI
             GetFromToPoints(ref from, ref to);
             Color edgeColor = borderColor;
 
-            if (inputPresenter != null && outputPresenter != null && inputPresenter.sourceNode is VFXBlockPresenter)
+            if (inputPresenter != null && inputPresenter.sourceNode is VFXBlockPresenter)
             {
                 to = to + new Vector2(-7, 0);
             }
