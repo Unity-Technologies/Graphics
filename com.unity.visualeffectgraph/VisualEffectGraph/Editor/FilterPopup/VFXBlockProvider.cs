@@ -8,7 +8,7 @@ using UnityEditor.Experimental;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXAbstractProvider<T> : ContextualMenu, VFXFilterWindow.IProvider
+    abstract class VFXAbstractProvider<T> : VFXFilterWindow.IProvider
     {
         Action<T, Vector2> m_onSpawnDesc;
 
