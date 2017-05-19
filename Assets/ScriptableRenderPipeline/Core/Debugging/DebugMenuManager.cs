@@ -29,6 +29,14 @@ namespace UnityEngine.Experimental.Rendering
             LookUpDebugMenuClasses();
             m_PersistentDebugMenu = new DebugMenu("Persistent");
             m_DebugMenuUI = new DebugMenuUI(this);
+
+            var updater = Object.FindObjectOfType<DebugMenuUpdater>();
+            if (updater == null)
+            {
+                GameObject go = new GameObject("DebugMenuUpdater");
+                go.hideFlags = HideFlags.HideAndDontSave;
+                go.AddComponent<DebugMenuUpdater>();
+            }
         }
 
         bool            m_Enabled = false;
