@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -133,12 +133,12 @@ namespace UnityEditor.VFX.UI
 
         public void ReorderBlock(int index, VFXBlock block)
         {
-            if( block.GetParent() == model && context.GetIndex(block) < index)
+            if (block.GetParent() == model && context.GetIndex(block) < index)
             {
                 --index;
             }
 
-            
+
             context.AddChild(block, index);
         }
 

@@ -77,7 +77,7 @@ namespace UnityEditor.VFX
                     var expressionContext = CreateLocalExpressionContext(context, option);
                     expressionContext.Compile();
 
-                    m_Expressions.UnionWith(expressionContext.AllReduced());
+                    m_Expressions.UnionWith(expressionContext.BuildAllReduced());
 
                     models.Clear();
                     context.CollectDependencies(models);

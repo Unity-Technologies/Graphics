@@ -71,13 +71,14 @@ public class SceneCameraTheft : MonoBehaviour
     {
         if (gameObject.activeInHierarchy) Update();
     }
+
 #else
-	private void Start() {	
-		//transform.position = new Vector3(0,0,0);
-		transform.rotation = new Quaternion();
-		transform.localPosition = new Vector3(0,0,0);
-	}
+    private void Start()
+    {
+        //transform.position = new Vector3(0,0,0);
+        transform.rotation = new Quaternion();
+        transform.localPosition = new Vector3(0, 0, 0);
+    }
+
 #endif
-
-
 }

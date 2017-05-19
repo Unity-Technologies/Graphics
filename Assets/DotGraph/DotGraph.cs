@@ -27,7 +27,7 @@ namespace UnityEditor.Dot
         public string GenerateDotString()
         {
             var nodes = elements.Where(kvp => kvp.Key is DotNode).OrderBy(kvp => kvp.Value);
-            var edges = elements.Where(kvp => kvp.Key is DotEdge).Select(kvp => new KeyValuePair<DotEdge,int>((DotEdge)(kvp.Key),kvp.Value)).OrderBy(kvp => kvp.Value);
+            var edges = elements.Where(kvp => kvp.Key is DotEdge).Select(kvp => new KeyValuePair<DotEdge, int>((DotEdge)(kvp.Key), kvp.Value)).OrderBy(kvp => kvp.Value);
 
             StringBuilder builder = new StringBuilder();
 
@@ -35,7 +35,7 @@ namespace UnityEditor.Dot
 
             foreach (var node in nodes)
             {
-                WriteName(builder,node);
+                WriteName(builder, node);
                 builder.Append(' ');
                 WriteAttributes(builder, node.Key);
                 builder.AppendLine();
@@ -59,7 +59,7 @@ namespace UnityEditor.Dot
         public void OutputToDotFile(string path)
         {
             (new FileInfo(path)).Directory.Create();
-            File.WriteAllText(path,GenerateDotString());
+            File.WriteAllText(path, GenerateDotString());
         }
 
         /*public OutputToImageFile(string path)
@@ -72,13 +72,13 @@ namespace UnityEditor.Dot
             return new KeyValuePair<DotElement, int>(element, elements[element]);
         }
 
-        private static void WriteName<T>(StringBuilder builder, KeyValuePair<T,int> element) where T : DotElement
+        private static void WriteName<T>(StringBuilder builder, KeyValuePair<T, int> element) where T : DotElement
         {
             builder.Append(element.Key.Name);
             builder.Append(element.Value);
         }
 
-        private static void WriteAttributes(StringBuilder builder,DotElement element)
+        private static void WriteAttributes(StringBuilder builder, DotElement element)
         {
             if (!element.HasAttributes())
                 return;

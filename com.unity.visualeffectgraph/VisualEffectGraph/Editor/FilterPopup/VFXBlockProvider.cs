@@ -24,8 +24,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
-        protected VFXAbstractProvider(Action<T, Vector2> onSpawnDesc) : base(null)
+        protected VFXAbstractProvider(Action<T, Vector2> onSpawnDesc)
         {
             m_onSpawnDesc = onSpawnDesc;
         }
