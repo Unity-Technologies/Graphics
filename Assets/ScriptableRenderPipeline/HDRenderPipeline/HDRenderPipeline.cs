@@ -328,6 +328,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Post-processing context (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
+        readonly AmbientOcclusionContext m_SsaoContext;
 
         // Detect when windows size is changing
         int m_CurrentWidth;
@@ -404,6 +405,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skySettings = owner.skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
+            m_SsaoContext = new AmbientOcclusionContext(new AmbientOcclusionSettings(), m_gbufferManager.GetGBuffers());
         }
 
         void InitializeDebugMaterials()
@@ -431,6 +433,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Utilities.Destroy(m_DebugDisplayLatlong);
 
             m_SkyManager.Cleanup();
+            m_SsaoContext.Cleanup();
 
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = SupportedRenderingFeatures.Default;
@@ -636,6 +639,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // correctly to build the light list.
             RenderForwardOnlyOpaqueDepthPrepass(cullResults, camera, renderContext);
             RenderGBuffer(cullResults, camera, renderContext);
+
+            m_SsaoContext.Render(camera, renderContext, m_CameraDepthStencilBufferRT);
 
             // If full forward rendering, we did not do any rendering yet, so don't need to copy the buffer.
             // If Deferred then the depth buffer is full (regular GBuffer + ForwardOnly depth prepass are done so we can copy it safely.
