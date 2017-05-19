@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -446,14 +446,17 @@ namespace UnityEditor.VFX.UI
             }
             foreach (var blockPresenter in blockPresenters)
             {
-                VFXBlockUI blockUI;
-                if (blocksUIs.TryGetValue(blockPresenter, out blockUI))
+                if( blockPresenter.Model != null )
                 {
-                    m_BlockContainer.AddChild(blockUI);
-                }
-                else
-                {
-                    InstantiateBlock(blockPresenter);
+                    VFXBlockUI blockUI;
+                    if (blocksUIs.TryGetValue(blockPresenter, out blockUI))
+                    {
+                        m_BlockContainer.AddChild(blockUI);
+                    }
+                    else
+                    {
+                        InstantiateBlock(blockPresenter);
+                    }
                 }
             }
 

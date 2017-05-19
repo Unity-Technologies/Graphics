@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -131,6 +131,17 @@ namespace UnityEditor.VFX.UI
             context.AddChild(block, index);
         }
 
+        public void ReorderBlock(int index, VFXBlock block)
+        {
+            if( block.GetParent() == model && context.GetIndex(block) < index)
+            {
+                --index;
+            }
+
+            
+            context.AddChild(block, index);
+        }
+
         public void RemoveBlock(VFXBlock block)
         {
             Undo.RecordObject(model, "Remove Block");
@@ -190,17 +201,17 @@ namespace UnityEditor.VFX.UI
 
             draggedBlocks = draggedBlocks.OrderBy(t => t.index).GroupBy(t => t.ContextPresenter).SelectMany<IGrouping<VFXContextPresenter, VFXBlockPresenter>, VFXBlockPresenter>(t => t.Select(u => u));
 
-            foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
+            /*foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
             {
                 draggedBlock.ContextPresenter.RemoveBlock(draggedBlock.Model);
-            }
+            }*/
 
             int insertIndex = blockPresenter.index;
             if (after) insertIndex++;
 
             foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
             {
-                this.AddBlock(insertIndex++, draggedBlock.Model);
+                this.ReorderBlock(insertIndex++, draggedBlock.Model);
             }
         }
     }
