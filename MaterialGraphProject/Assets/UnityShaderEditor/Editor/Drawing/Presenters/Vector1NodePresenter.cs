@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEditor.Graphing.Drawing;
-using UnityEngine;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -13,7 +12,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnGUIHandler();
 
-            var tNode = node as UnityEngine.MaterialGraph.Vector1Node;
+            var tNode = node as Vector1Node;
             if (tNode == null)
                 return;
 

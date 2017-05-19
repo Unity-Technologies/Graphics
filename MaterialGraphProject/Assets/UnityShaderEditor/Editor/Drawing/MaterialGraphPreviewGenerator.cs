@@ -140,28 +140,30 @@ namespace UnityEditor.MaterialGraph.Drawing
             }
             else
             {
-                utility.camera.projectionMatrix = Matrix4x4.identity;
+                utility.camera.transform.position = -Vector3.forward * 5;
+                utility.camera.transform.rotation = Quaternion.identity;
             }
 
             EditorUtility.SetCameraAnimateMaterialsTime(utility.camera, time);
             utility.lights[0].intensity = 1.0f;
             utility.lights[0].transform.rotation = Quaternion.Euler(50f, 50f, 0);
             utility.lights[1].intensity = 1.0f;
-            InternalEditorUtility.SetCustomLighting(utility.lights, Color.black);
-            var oldFog = RenderSettings.fog;
-            Unsupported.SetRenderSettingsUseFogNoDirty(false);
             utility.camera.clearFlags = CameraClearFlags.Depth;
 
-            utility.DrawMesh(
-                mode == PreviewMode.Preview3D ? s_Meshes[0] : quad,
-                Vector3.zero,
-                Quaternion.identity,
-                mat,
-                0);
-            utility.camera.Render();
-
-            Unsupported.SetRenderSettingsUseFogNoDirty(oldFog);
-            InternalEditorUtility.RemoveCustomLighting();
+            if (PreviewMode.Preview3D == mode)
+            {
+                utility.DrawMesh(
+                    s_Meshes[0],
+                    Vector3.zero,
+                    Quaternion.identity,
+                    mat,
+                    0);
+            }
+            else
+            {
+                Graphics.DrawMesh(quad, Matrix4x4.identity, mat, 0, utility.camera, 0);
+            }
+            utility.Render();
 
             return utility.EndPreview();
         }
