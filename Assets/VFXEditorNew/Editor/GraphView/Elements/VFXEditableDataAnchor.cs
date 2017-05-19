@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -189,7 +189,7 @@ namespace UnityEditor.VFX.UI
         public void OnRecompile()
         {
             VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
-            if (m_PropertyRM != null)
+            if (m_PropertyRM != null && presenter != null)
             {
                 m_PropertyRM.enabled = presenter.editable && !presenter.collapsed;
                 m_PropertyRM.Update();

@@ -28,6 +28,10 @@ namespace UnityEditor.VFX.UI
         public void Init(IVFXSlotContainer model, VFXContextPresenter contextPresenter)
         {
             m_Model = model;
+            if( m_Model == null)
+            {
+                Debug.LogError("Model must not be null");
+            }
             m_ContextPresenter = contextPresenter;
             base.Init(contextPresenter.ViewPresenter);
 

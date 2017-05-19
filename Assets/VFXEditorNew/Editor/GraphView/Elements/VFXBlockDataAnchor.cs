@@ -37,16 +37,15 @@ namespace UnityEditor.VFX.UI
 
                 VFXDataEdge edge = this.GetFirstAncestorOfType<VFXView>().GetDataEdgeByPresenter(edgePresenter);
 
-                //Handles.color = edge.borderColor;
+                if( edge != null )
+                {
 
-                Vector2 globaCenter = position.position + (Vector2)GetLocalCenter();
-                //Handles.DrawLine(globaCenter + new Vector2(-3,0),globaCenter + new Vector2(-17,0));
+                    Vector2 globaCenter = position.position + (Vector2)GetLocalCenter();
 
-                //pc.DrawRect(new Rect(globaCenter.x - 9, globaCenter.y, 14, 1), edge.borderColor);
-
-                Vector2 from = globaCenter - new Vector2(9, 0);
-                Vector2 to = globaCenter + new Vector2(5, 0);
-                Handles.DrawBezier(from,to,to,from,edge.borderColor,null,2);
+                    Vector2 from = globaCenter - new Vector2(9, 0);
+                    Vector2 to = globaCenter + new Vector2(5, 0);
+                    Handles.DrawBezier(from,to,to,from,edge.borderColor,null,2);
+                }
             }
         }
     }

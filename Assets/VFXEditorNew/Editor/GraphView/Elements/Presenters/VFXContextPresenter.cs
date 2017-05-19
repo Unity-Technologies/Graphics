@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.UI
             model.onInvalidateDelegate += OnModelInvalidate;
             SyncPresenters();
 
-            m_SlotContainerPresenter = new VFXSlotContainerPresenter();
+            m_SlotContainerPresenter = VFXSlotContainerPresenter.CreateInstance<VFXSlotContainerPresenter>();
             m_SlotContainerPresenter.Init(model as IVFXSlotContainer, this);
         }
 
