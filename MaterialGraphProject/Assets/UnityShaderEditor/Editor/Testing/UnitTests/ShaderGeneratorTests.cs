@@ -11,7 +11,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [TestFixtureSetUp]
         public void RunBeforeAnyTests()
         {
-            Debug.logger.logHandler = new ConsoleLogHandler();
+            Debug.unityLogger.logHandler = new ConsoleLogHandler();
         }
 
         class TestNode : AbstractMaterialNode

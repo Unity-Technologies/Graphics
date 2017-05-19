@@ -18,7 +18,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
         [TestFixtureSetUp]
         public void RunBeforeAnyTests()
         {
-            Debug.logger.logHandler = new ConsoleLogHandler();
+            Debug.unityLogger.logHandler = new ConsoleLogHandler();
         }
 
         private static readonly string[] s_TexturePath =

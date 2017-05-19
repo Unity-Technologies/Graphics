@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using RMGUI.GraphView;
-using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleSheets;
 using System.Linq;
+using RMGUI.GraphView;
+using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing.Util;
-using System;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -31,7 +29,6 @@ namespace UnityEditor.Graphing.Drawing
 
         public TitleBarDrawer(TitleBarPresenter dataProvider)
         {
-            classList = ClassList.empty;
             name = "TitleBar";
 
             m_LeftContainer = new VisualContainer()
@@ -68,7 +65,7 @@ namespace UnityEditor.Graphing.Drawing
         void UpdateContainer(VisualContainer container, IEnumerable<TitleBarButtonPresenter> itemDatas)
         {
             // The number of items can't change for now.
-            foreach (var pair in itemDatas.Zip(container.children.OfType<TitleBarButtonDrawer>()))
+            foreach (var pair in itemDatas.Zip(container.OfType<TitleBarButtonDrawer>()))
             {
                 var itemData = pair.Item1;
                 var item = pair.Item2;

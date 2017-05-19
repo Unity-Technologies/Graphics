@@ -3,7 +3,7 @@ using System.Linq;
 using RMGUI.GraphView;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.RMGUI;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -14,7 +14,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public NodeDrawer()
         {
-            content = new GUIContent("");
+            text = string.Empty;
 
             m_ControlsContainer = new VisualContainer
             {
@@ -42,8 +42,8 @@ namespace UnityEditor.Graphing.Drawing
                 for (int i = 0; i < controlPresenters.Count; i++)
                 {
                     var controlData = controlPresenters[i];
-                    var imContainer = m_ControlsContainer.GetChildAtIndex(i) as IMGUIContainer;
-                    imContainer.OnGUIHandler = controlData.OnGUIHandler;
+                    var imContainer = m_ControlsContainer.GetChildAt(i) as IMGUIContainer;
+                    imContainer.OnGuiHandler = controlData.OnGUIHandler;
                     imContainer.height = controlData.GetHeight();
                 }
             }
@@ -54,10 +54,9 @@ namespace UnityEditor.Graphing.Drawing
 
                 foreach (var controlData in controlPresenters)
                 {
-                    var imContainer = new IMGUIContainer()
+                    var imContainer = new IMGUIContainer(controlData.OnGUIHandler)
                     {
                         name = "element",
-                        OnGUIHandler = controlData.OnGUIHandler,
                         pickingMode = PickingMode.Position,
                         height = controlData.GetHeight()
                     };

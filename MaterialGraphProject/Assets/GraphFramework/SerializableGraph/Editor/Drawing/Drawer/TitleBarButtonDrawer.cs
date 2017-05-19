@@ -1,6 +1,5 @@
-using UnityEngine.RMGUI;
+using UnityEngine.Experimental.UIElements;
 using RMGUI.GraphView;
-using UnityEngine.RMGUI.StyleSheets;
 using UnityEngine;
 
 namespace UnityEditor.Graphing.Drawing
@@ -27,21 +26,24 @@ namespace UnityEditor.Graphing.Drawing
 
         public TitleBarButtonDrawer(TitleBarButtonPresenter dataProvider)
         {
-            classList = new ClassList("titleBarItem");
+            AddToClassList("titleBarItem");
 
             m_clicker = new Clicker();
             m_clicker.onClick += OnClick;
             m_clicker.onStateChange += OnClickStateChanged;
             AddManipulator(m_clicker);
 
-            AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
-            m_label = new VisualElement()
-            {
-                classList = new ClassList("titleBarItemLabel"),
-                content = new GUIContent("")
-            };
+            var ve = new VisualElement();
+            ve.AddToClassList("titleBarItemBorder");
+            AddChild(ve);
+
+
+            m_label = new VisualElement();
+            m_label.AddToClassList("titleBarItemLabel");
             AddChild(m_label);
-            AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
+
+            var ve2 = new VisualElement();
+            ve2.AddToClassList("titleBarItemBorder");
 
             this.dataProvider = dataProvider;
         }
@@ -51,7 +53,7 @@ namespace UnityEditor.Graphing.Drawing
             if (m_dataProvider == null)
                 return;
 
-            m_label.content.text = m_dataProvider.text;
+            m_label.text = m_dataProvider.text;
 
             this.Dirty(ChangeType.Repaint);
         }
