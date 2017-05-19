@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXSerializationTests
     {
-        private readonly static string kTestAssetDir = "Assets/VFXEditorNew/Editor/Tests";
+        private readonly static string kTestAssetDir = "Assets/VFXEditor/Editor/Tests";
         private readonly static string kTestAssetName = "TestAsset";
         private readonly static string kTestAssetPath = kTestAssetDir + "/" + kTestAssetName + ".asset";
 

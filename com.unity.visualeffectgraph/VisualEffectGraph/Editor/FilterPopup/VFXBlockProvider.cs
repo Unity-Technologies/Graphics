@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Experimental;
 

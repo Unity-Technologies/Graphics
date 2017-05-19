@@ -89,7 +89,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    //[StyleSheet("Assets/VFXEditorNew/Editor/GraphView/Views/")]
+    //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
     class VFXView : GraphView
     {
         public VFXView()

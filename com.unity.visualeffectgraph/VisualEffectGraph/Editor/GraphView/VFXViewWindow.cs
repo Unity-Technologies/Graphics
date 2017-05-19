@@ -10,7 +10,7 @@ namespace  UnityEditor.VFX.UI
     [Serializable]
     class VFXViewWindow : GraphViewEditorWindow
     {
-        [MenuItem("Window/VFXEditorNew")]
+        [MenuItem("Window/VFXEditor")]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
