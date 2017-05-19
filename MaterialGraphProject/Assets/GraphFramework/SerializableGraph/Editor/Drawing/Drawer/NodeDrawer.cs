@@ -24,6 +24,8 @@ namespace UnityEditor.Graphing.Drawing
 
             leftContainer.AddChild(m_ControlsContainer);
             m_CurrentControlPresenter = new List<GraphControlPresenter>();
+
+            usePixelCaching = false;
         }
 
         private void AddControls(GraphNodePresenter nodeData)
