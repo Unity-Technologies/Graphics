@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -7,21 +8,21 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.Graphing.Drawing
 {
     // TODO JOCE Derive from GraphViewEditorWindow
-    public abstract class AbstractGraphEditWindow<T> : EditorWindow, ISerializationCallbackReceiver where T : class, IGraphAsset
+    public abstract class AbstractGraphEditWindow : EditorWindow, ISerializationCallbackReceiver
     {
         public RenderTexture rt;
 
-        [NonSerialized]
-        private T m_LastSelection;
+		[NonSerialized]
+		private IGraphAsset m_Selected;
 
-        [SerializeField]
-        private ScriptableObject m_LastSelectedGraphSerialized;
+		[NonSerialized]
+		private IGraphAsset m_InMemoryAsset;
 
         private bool shouldRepaint
         {
             get
             {
-                return m_LastSelection != null && m_LastSelection.shouldRepaint;
+				return m_InMemoryAsset != null && m_InMemoryAsset.shouldRepaint;
             }
         }
 
@@ -45,7 +46,7 @@ namespace UnityEditor.Graphing.Drawing
         void OnEnable()
         {
             var source = CreateDataSource();
-            source.Initialize(m_LastSelection, this);
+			source.Initialize(m_InMemoryAsset, this);
 
             m_GraphEditorDrawer = new GraphEditorDrawer(CreateGraphView(), source);
             rootVisualContainer.AddChild(m_GraphEditorDrawer);
@@ -69,32 +70,61 @@ namespace UnityEditor.Graphing.Drawing
             focused = true;
         }
 
-        void OnSelectionChange()
-        {
-            if (Selection.activeObject == null || !EditorUtility.IsPersistent(Selection.activeObject))
-                return;
+		public void PingAsset()
+		{
+			if (m_Selected != null)
+				EditorGUIUtility.PingObject(m_Selected.GetScriptableObject());
+		}
 
-            if (Selection.activeObject is ScriptableObject)
-            {
-                var selection = Selection.activeObject as T;
-                if (selection!= null && selection != m_LastSelection)
-                {
-                    var graph = selection.graph;
-                    graph.OnEnable();
-                    graph.ValidateGraph();
-                    m_LastSelection = selection;
+		public void UpdateAsset()
+		{
+			if (m_Selected != null && m_Selected is IGraphAsset)
+			{
+				var path = AssetDatabase.GetAssetPath (m_Selected.GetScriptableObject());
 
+				if (!string.IsNullOrEmpty(path) && m_InMemoryAsset != null) 
+				{
+					File.WriteAllText (path, EditorJsonUtility.ToJson (m_InMemoryAsset.graph as object));
+					AssetDatabase.Refresh ();
 
-                    var source = CreateDataSource();
-                    source.Initialize(m_LastSelection, this);
-                    m_GraphEditorDrawer.presenter = source;
-                    //m_GraphView.StretchToParentSize();
-                    Repaint();
-                    focused = false;
-                    m_GraphEditorDrawer.graphView.Schedule(Focus).StartingIn(1).Until(() => focused);
-                }
-            }
-        }
+					var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject> (path) as IGraphAsset;
+					if (asset != null)
+						ChangeSelction (asset, false);
+				}
+			}
+		}
+
+		public void ChangeSelction(IGraphAsset newSelection, bool refocus = true)
+		{
+			if (!(newSelection is ScriptableObject))
+				return;
+
+			var newGraph = (ScriptableObject)newSelection;
+			if (!EditorUtility.IsPersistent (newGraph))
+				return;
+
+			if (m_Selected == newSelection)
+				return;
+
+			m_Selected = newSelection;
+
+			m_InMemoryAsset = UnityEngine.Object.Instantiate (newGraph) as IGraphAsset;
+               
+			var graph = m_InMemoryAsset.graph;
+			graph.OnEnable ();
+			graph.ValidateGraph ();
+
+			var source = CreateDataSource ();
+			source.Initialize (m_InMemoryAsset, this);
+			m_GraphEditorDrawer.presenter = source;
+			//m_GraphView.StretchToParentSize();
+			Repaint ();
+			if (refocus) 
+			{
+				focused = false;
+				m_GraphEditorDrawer.graphView.Schedule (Focus).StartingIn (1).Until (() => focused);
+			}
+		}
 
         /*
         private void ConvertSelectionToSubGraph()
@@ -242,17 +272,17 @@ namespace UnityEditor.Graphing.Drawing
 
         public void OnBeforeSerialize()
         {
-            var o = m_LastSelection as ScriptableObject;
+       /*     var o = m_Selected as ScriptableObject;
             if (o != null)
-                m_LastSelectedGraphSerialized = o;
+                m_LastSelectedGraphSerialized = o;*/
         }
 
         public void OnAfterDeserialize()
         {
-            if (m_LastSelectedGraphSerialized != null)
-                m_LastSelection = m_LastSelectedGraphSerialized as T;
+           /* if (m_LastSelectedGraphSerialized != null)
+                m_Selected = m_LastSelectedGraphSerialized as T;
 
-            m_LastSelectedGraphSerialized = null;
+            m_LastSelectedGraphSerialized = null;*/
         }
     }
 }

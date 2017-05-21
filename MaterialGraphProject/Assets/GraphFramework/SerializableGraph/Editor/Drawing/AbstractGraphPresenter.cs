@@ -16,12 +16,12 @@ namespace UnityEditor.Graphing.Drawing
         public IGraphAsset graphAsset { get; private set; }
 
         [SerializeField]
-        private TitleBarPresenter m_TitleBar;
+		private TitleBarPresenter m_TitleBar;
 
         [SerializeField]
         private EditorWindow m_Container;
 
-        public TitleBarPresenter titleBar
+		public TitleBarPresenter titleBar
         {
             get { return m_TitleBar; }
         }
@@ -170,13 +170,13 @@ namespace UnityEditor.Graphing.Drawing
             m_Elements.AddRange(drawableEdges.OfType<GraphElementPresenter>());
         }
 
-        public virtual void Initialize(IGraphAsset graphAsset, EditorWindow container)
+		public virtual void Initialize(IGraphAsset graphAsset, AbstractGraphEditWindow container)
         {
             this.graphAsset = graphAsset;
             m_Container = container;
 
             m_TitleBar = CreateInstance<TitleBarPresenter>();
-            m_TitleBar.Initialize(graphAsset);
+			m_TitleBar.Initialize(container);
 
             if (graphAsset == null)
                 return;
