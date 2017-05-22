@@ -92,11 +92,13 @@ namespace UnityEditor.Graphing.Drawing
 				if (!string.IsNullOrEmpty(path) && m_InMemoryAsset != null) 
 				{
 					File.WriteAllText (path, EditorJsonUtility.ToJson (m_InMemoryAsset.graph as object));
-					AssetDatabase.Refresh ();
+					AssetDatabase.ImportAsset (path);
 
 					var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject> (path) as IGraphAsset;
-					if (asset != null)
+					if (asset != null) {
+						m_Selected = null;
 						ChangeSelction (asset, false);
+					}
 				}
 			}
 		}
