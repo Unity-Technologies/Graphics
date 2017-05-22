@@ -18,12 +18,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             internal static readonly int _CameraGBufferTexture1 = Shader.PropertyToID("_CameraGBufferTexture1");
         }
 
-        AmbientOcclusionSettings m_Settings;
+        CommonSettings.ScreenSpaceAmbientOcclusionSettings m_Settings;
         RenderTargetIdentifier[] m_GBufferIDs;
         RenderTargetIdentifier[] m_MRT = { 0, 0 };
         PropertySheet m_Sheet;
 
-        public AmbientOcclusionContext(AmbientOcclusionSettings settings, RenderTargetIdentifier[] gbufferIDs)
+        public AmbientOcclusionContext(CommonSettings.ScreenSpaceAmbientOcclusionSettings settings, RenderTargetIdentifier[] gbufferIDs)
         {
             m_Settings = settings;
             m_GBufferIDs = gbufferIDs;
@@ -33,7 +33,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Sheet == null)
             {
-                var material = new Material(m_Settings.aoShader) { hideFlags = HideFlags.DontSave };
+                var shader = Shader.Find("Hidden/HDPipeline/ScreenSpaceAmbientOcclusion");
+                var material = new Material(shader) { hideFlags = HideFlags.DontSave };
                 m_Sheet = new PropertySheet(material);
             }
 

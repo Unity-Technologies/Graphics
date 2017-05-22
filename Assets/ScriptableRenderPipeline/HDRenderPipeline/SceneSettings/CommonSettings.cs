@@ -49,6 +49,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             };
         }
 
+        [Serializable]
+        public sealed class ScreenSpaceAmbientOcclusionSettings
+        {
+            [Range(0, 2)]
+            public float intensity = 1.0f;
+
+            public float radius = 0.5f;
+
+            [Range(1, 32)]
+            public int sampleCount = 8;
+
+            public bool downsampling = true;
+        }
+
         [SerializeField]
         private Settings m_Settings = Settings.s_Defaultsettings;
 
@@ -57,5 +71,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_Settings; }
             set { m_Settings = value; }
         }
+
+        public ScreenSpaceAmbientOcclusionSettings screenSpaceAmbientOcclusionSettings;
     }
 }
