@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool downsampling = true;
     }
 
-    public sealed class ScreenSpaceAmbientOcclusionContext
+    public sealed class ScreenSpaceAmbientOcclusionEffect
     {
         static class Uniforms
         {
@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier[] m_MRT = { 0, 0 };
         PropertySheet m_Sheet;
 
-        public ScreenSpaceAmbientOcclusionContext(RenderTargetIdentifier[] gbufferIDs)
+        public ScreenSpaceAmbientOcclusionEffect(RenderTargetIdentifier[] gbufferIDs)
         {
             m_GBufferIDs = gbufferIDs;
         }
@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_Sheet == null)
             {
-                var shader = Shader.Find("Hidden/HDPipeline/ScreenSpaceAmbientOcclusion");
+                var shader = Shader.Find("Hidden/HDPipeline/ScreenSpace/AmbientOcclusion");
                 var material = new Material(shader) { hideFlags = HideFlags.DontSave };
                 m_Sheet = new PropertySheet(material);
             }

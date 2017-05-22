@@ -329,9 +329,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private RenderTargetIdentifier m_CameraDepthStencilBufferRT;
         private RenderTargetIdentifier m_CameraDepthStencilBufferCopyRT;
 
-        // Post-processing context (recycled on every frame to avoid GC alloc)
+        // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
-        readonly ScreenSpaceAmbientOcclusionContext m_SsaoContext;
+        readonly ScreenSpaceAmbientOcclusionEffect m_SsaoEffect;
 
         // Detect when windows size is changing
         int m_CurrentWidth;
@@ -408,7 +408,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skySettings = owner.skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
-            m_SsaoContext = new ScreenSpaceAmbientOcclusionContext(m_gbufferManager.GetGBuffers());
+            m_SsaoEffect = new ScreenSpaceAmbientOcclusionEffect(m_gbufferManager.GetGBuffers());
         }
 
         void InitializeDebugMaterials()
@@ -436,7 +436,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Utilities.Destroy(m_DebugDisplayLatlong);
 
             m_SkyManager.Cleanup();
-            m_SsaoContext.Cleanup();
+            m_SsaoEffect.Cleanup();
 
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = SupportedRenderingFeatures.Default;
@@ -643,9 +643,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderForwardOnlyOpaqueDepthPrepass(cullResults, camera, renderContext);
             RenderGBuffer(cullResults, camera, renderContext);
 
+            // Apply screen-space effects to the GBuffer.
             if (m_Owner.commonSettingsToUse != null)
             {
-                m_SsaoContext.Render(m_Owner.commonSettingsToUse.screenSpaceAmbientOcclusionSettings, camera, renderContext, m_CameraDepthStencilBufferRT);
+                m_SsaoEffect.Render(m_Owner.commonSettingsToUse.screenSpaceAmbientOcclusionSettings, camera, renderContext, m_CameraDepthStencilBufferRT);
             }
 
             // If full forward rendering, we did not do any rendering yet, so don't need to copy the buffer.
