@@ -7,6 +7,7 @@ namespace UnityEngine.MaterialGraph
 
         public Color m_Color;
         public Texture2D m_Texture;
+		public Cubemap m_Cubemap;
         public Vector4 m_Vector4;
         public float m_Float;
     }
