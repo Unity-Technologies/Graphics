@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Art/Level Node")]
+    [Title("Range/Level Node")]
     public class LevelNode : Function1Input, IGeneratesFunction
     {
         [SerializeField]
