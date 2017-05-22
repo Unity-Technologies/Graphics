@@ -107,6 +107,8 @@ namespace UnityEditor.Graphing.Drawing
 
         void UpdateAsset()
         {
+			//TODO: We need two currently.. fix later
+			m_Owner.UpdateAsset ();
 			m_Owner.UpdateAsset ();
         }
     }

@@ -48,6 +48,7 @@ public class ShaderGraphImporter : ScriptedImporter
 		if (shader == null)
 			return null;
 
+		File.WriteAllText (path, shaderString);
 		ShaderUtil.UpdateShaderAsset (shader, shaderString);
 
 		var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
