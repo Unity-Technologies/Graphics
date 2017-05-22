@@ -21,6 +21,11 @@ namespace UnityEditor.VFX
             }
             return g as VFXGraph;
         }
+
+        public static void UpdateSubAssets(this VFXAsset asset)
+        {
+            asset.GetOrCreateGraph().UpdateSubAssets();
+        }
     }
 
     class VFXGraph : VFXModel

@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
-using System.Collections.Generic;
+using UnityEditor.VFX;
+
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.Test
@@ -23,7 +25,7 @@ namespace UnityEditor.VFX.Test
             // If the asset does not exist, create it
             if (guids.Length == 0)
             {
-                VFXGraphAsset asset = ScriptableObject.CreateInstance<VFXGraphAsset>();
+                VFXAsset asset = new VFXAsset();
                 InitAsset(asset);
                 AssetDatabase.CreateAsset(asset, kTestAssetPath);
                 asset.UpdateSubAssets();
@@ -33,8 +35,8 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeModel()
         {
-            VFXGraphAsset assetSrc = ScriptableObject.CreateInstance<VFXGraphAsset>();
-            VFXGraphAsset assetDst = ScriptableObject.CreateInstance<VFXGraphAsset>();
+            VFXAsset assetSrc = new VFXAsset();
+            VFXAsset assetDst = new VFXAsset();
 
             InitAsset(assetSrc);
             EditorUtility.CopySerialized(assetSrc, assetDst);
@@ -47,13 +49,14 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void LoadAssetFromPath()
         {
-            VFXGraphAsset asset = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(kTestAssetPath);
+            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(kTestAssetPath);
             CheckAsset(asset);
         }
 
-        private void InitAsset(VFXGraphAsset asset)
+        private void InitAsset(VFXAsset asset)
         {
-            asset.root.RemoveAllChildren();
+            var graph = asset.GetOrCreateGraph();
+            graph.RemoveAllChildren();
 
             VFXSystem system0 = ScriptableObject.CreateInstance<VFXSystem>();
             system0.AddChild(ScriptableObject.CreateInstance<VFXBasicInitialize>());
@@ -76,35 +79,37 @@ namespace UnityEditor.VFX.Test
             system0[1].AddChild(block1);
             system0[2].AddChild(block2);
 
-            asset.root.AddChild(system0);
-            asset.root.AddChild(system1);
-            asset.root.AddChild(add);
+            graph.AddChild(system0);
+            graph.AddChild(system1);
+            graph.AddChild(add);
         }
 
-        private void CheckAsset(VFXGraphAsset asset)
+        private void CheckAsset(VFXAsset asset)
         {
-            Assert.AreEqual(3, asset.root.GetNbChildren());
+            VFXGraph graph = asset.GetOrCreateGraph();
 
-            Assert.AreEqual(3, asset.root[0].GetNbChildren());
-            Assert.AreEqual(2, asset.root[1].GetNbChildren());
-            Assert.AreEqual(0, asset.root[2].GetNbChildren());
+            Assert.AreEqual(3, graph.GetNbChildren());
 
-            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(1));
-            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(2));
-            Assert.IsNotNull(((VFXSystem)(asset.root[1])).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(asset.root[1])).GetChild(1));
+            Assert.AreEqual(3, graph[0].GetNbChildren());
+            Assert.AreEqual(2, graph[1].GetNbChildren());
+            Assert.AreEqual(0, graph[2].GetNbChildren());
 
-            Assert.AreEqual(VFXContextType.kInit, ((VFXSystem)(asset.root[0])).GetChild(0).contextType);
-            Assert.AreEqual(VFXContextType.kUpdate, ((VFXSystem)(asset.root[0])).GetChild(1).contextType);
-            Assert.AreEqual(VFXContextType.kOutput, ((VFXSystem)(asset.root[0])).GetChild(2).contextType);
-            Assert.AreEqual(VFXContextType.kInit, ((VFXSystem)(asset.root[1])).GetChild(0).contextType);
-            Assert.AreEqual(VFXContextType.kOutput, ((VFXSystem)(asset.root[1])).GetChild(1).contextType);
+            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(1));
+            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(2));
+            Assert.IsNotNull(((VFXSystem)(graph[1])).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(graph[1])).GetChild(1));
 
-            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(0).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(1).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(asset.root[0])).GetChild(2).GetChild(0));
-            Assert.IsNotNull((VFXOperatorAdd)asset.root[2]);
+            Assert.AreEqual(VFXContextType.kInit, ((VFXSystem)(graph[0])).GetChild(0).contextType);
+            Assert.AreEqual(VFXContextType.kUpdate, ((VFXSystem)(graph[0])).GetChild(1).contextType);
+            Assert.AreEqual(VFXContextType.kOutput, ((VFXSystem)(graph[0])).GetChild(2).contextType);
+            Assert.AreEqual(VFXContextType.kInit, ((VFXSystem)(graph[1])).GetChild(0).contextType);
+            Assert.AreEqual(VFXContextType.kOutput, ((VFXSystem)(graph[1])).GetChild(1).contextType);
+
+            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(0).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(1).GetChild(0));
+            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(2).GetChild(0));
+            Assert.IsNotNull((VFXOperatorAdd)graph[2]);
         }
 
         private void CheckIsolatedOperatorAdd(VFXOperatorAdd add)
@@ -135,7 +140,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(abs.inputSlots[0].GetExpression() is VFXExpressionAdd);
         }
 
-        private void InnerSaveAndReloadTest(string suffixname, Action<VFXGraphAsset> write, Action<VFXGraphAsset> read)
+        private void InnerSaveAndReloadTest(string suffixname, Action<VFXAsset> write, Action<VFXAsset> read)
         {
             var kTempAssetPathA = string.Format("{0}/Temp_{1}_A.asset", kTestAssetDir, suffixname);
             var kTempAssetPathB = string.Format("{0}/Temp_{1}_B.asset", kTestAssetDir, suffixname);
@@ -144,7 +149,7 @@ namespace UnityEditor.VFX.Test
 
             int hashCodeAsset = 0; //check reference are different between load & reload
             {
-                var asset = ScriptableObject.CreateInstance<VFXGraphAsset>();
+                var asset = new VFXAsset();
                 hashCodeAsset = asset.GetHashCode();
 
                 write(asset);
@@ -162,7 +167,7 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
             EditorUtility.UnloadUnusedAssetsImmediate();
             {
-                VFXGraphAsset asset = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(kTempAssetPathB);
+                VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(kTempAssetPathB);
                 Assert.AreNotEqual(hashCodeAsset, asset.GetHashCode());
 
                 read(asset);
@@ -171,10 +176,11 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(kTempAssetPathB);
         }
 
-        private void WriteBasicOperators(VFXGraphAsset asset, bool spawnAbs, bool linkAbs)
+        private void WriteBasicOperators(VFXAsset asset, bool spawnAbs, bool linkAbs)
         {
             var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
-            asset.root.AddChild(add);
+            var graph = asset.GetOrCreateGraph();
+            graph.AddChild(add);
 
             CheckIsolatedOperatorAdd(add);
 
@@ -182,7 +188,7 @@ namespace UnityEditor.VFX.Test
             {
                 var abs = ScriptableObject.CreateInstance<VFXOperatorAbs>();
                 abs.position = new Vector2(64.0f, 64.0f);
-                asset.root.AddChild(abs);
+                graph.AddChild(abs);
                 CheckIsolatedOperatorAbs(abs);
                 if (linkAbs)
                 {
@@ -192,17 +198,18 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        private void ReadBasicOperators(VFXGraphAsset asset, bool spawnAbs, bool linkAbs)
+        private void ReadBasicOperators(VFXAsset asset, bool spawnAbs, bool linkAbs)
         {
-            Assert.AreEqual(spawnAbs ? 2 : 1, asset.root.GetNbChildren());
-            Assert.IsNotNull((VFXOperatorAdd)asset.root[0]);
-            var add = (VFXOperatorAdd)asset.root[0];
+            var graph = asset.GetOrCreateGraph();
+            Assert.AreEqual(spawnAbs ? 2 : 1, graph.GetNbChildren());
+            Assert.IsNotNull((VFXOperatorAdd)graph[0]);
+            var add = (VFXOperatorAdd)graph[0];
             CheckIsolatedOperatorAdd(add);
 
             if (spawnAbs)
             {
-                Assert.IsNotNull((VFXOperatorAbs)asset.root[1]);
-                var abs = (VFXOperatorAbs)asset.root[1];
+                Assert.IsNotNull((VFXOperatorAbs)graph[1]);
+                var abs = (VFXOperatorAbs)graph[1];
                 CheckIsolatedOperatorAbs(abs);
                 Assert.AreEqual(abs.position.x, 64.0f);
                 Assert.AreEqual(abs.position.y, 64.0f);
@@ -242,22 +249,23 @@ namespace UnityEditor.VFX.Test
         public void SerializeOperatorMaskWithState()
         {
             string expectedValue = "xyx";
-            Action<VFXGraphAsset> write = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
                     var mask = ScriptableObject.CreateInstance<VFXOperatorComponentMask>();
                     mask.settings = new VFXOperatorComponentMask.Settings()
                     {
                         mask = expectedValue
                     };
-                    asset.root.AddChild(mask);
+                    asset.GetOrCreateGraph().AddChild(mask);
                     Assert.AreEqual(expectedValue, (mask.settings as VFXOperatorComponentMask.Settings).mask);
                 };
 
-            Action<VFXGraphAsset> read = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> read = delegate(VFXAsset asset)
                 {
-                    Assert.AreEqual(1, asset.root.GetNbChildren());
-                    Assert.IsInstanceOf(typeof(VFXOperatorComponentMask), asset.root[0]);
-                    var mask = asset.root[0] as VFXOperatorComponentMask;
+                    var graph = asset.GetOrCreateGraph();
+                    Assert.AreEqual(1, graph.GetNbChildren());
+                    Assert.IsInstanceOf(typeof(VFXOperatorComponentMask), graph[0]);
+                    var mask = graph[0] as VFXOperatorComponentMask;
                     Assert.IsInstanceOf(typeof(VFXOperatorComponentMask.Settings), mask.settings);
                     Assert.AreEqual(expectedValue, (mask.settings as VFXOperatorComponentMask.Settings).mask);
                 };
@@ -269,18 +277,18 @@ namespace UnityEditor.VFX.Test
         public void SerializeParameter()
         {
             var name = "unity";
-            Action<VFXGraphAsset> write = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
                     var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
                     parameter.exposed = true;
                     parameter.exposedName = name;
-                    asset.root.AddChild(parameter);
+                    asset.GetOrCreateGraph().AddChild(parameter);
                     Assert.AreEqual(VFXValueType.kFloat2, parameter.outputSlots[0].GetExpression().ValueType);
                 };
 
-            Action<VFXGraphAsset> read = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> read = delegate(VFXAsset asset)
                 {
-                    var parameter = asset.root[0] as VFXParameter;
+                    var parameter = asset.GetOrCreateGraph()[0] as VFXParameter;
                     Assert.AreNotEqual(null, parameter);
                     Assert.AreEqual(true, parameter.exposed);
                     Assert.AreEqual(parameter.exposedName, name);
@@ -293,21 +301,23 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeOperatorAndParameter()
         {
-            Action<VFXGraphAsset> write = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
+                    var graph = asset.GetOrCreateGraph();
                     var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
                     var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
-                    asset.root.AddChild(add);
-                    asset.root.AddChild(parameter);
+                    graph.AddChild(add);
+                    graph.AddChild(parameter);
                     add.inputSlots[0].Link(parameter.outputSlots[0]);
 
                     Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].GetExpression().ValueType);
                 };
 
-            Action<VFXGraphAsset> read = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> read = delegate(VFXAsset asset)
                 {
-                    var add = asset.root[0] as VFXOperatorAdd;
-                    var parameter = asset.root[1] as VFXParameter;
+                    var graph = asset.GetOrCreateGraph();
+                    var add = graph[0] as VFXOperatorAdd;
+                    var parameter = graph[1] as VFXParameter;
                     Assert.AreNotEqual(null, parameter);
                     Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].GetExpression().ValueType);
                 };
@@ -318,16 +328,16 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeBuiltInParameter()
         {
-            Action<VFXGraphAsset> write = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
                     var builtIn = VFXLibrary.GetBuiltInParameters().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
-                    asset.root.AddChild(builtIn);
+                    asset.GetOrCreateGraph().AddChild(builtIn);
                     Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().Operation);
                 };
 
-            Action<VFXGraphAsset> read = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> read = delegate(VFXAsset asset)
                 {
-                    var builtIn = asset.root[0] as VFXBuiltInParameter;
+                    var builtIn = asset.GetOrCreateGraph()[0] as VFXBuiltInParameter;
                     Assert.AreNotEqual(null, builtIn);
                     Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().Operation);
                 };
@@ -337,22 +347,24 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeOperatorAndBuiltInParameter()
         {
-            Action<VFXGraphAsset> write = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
+                    var graph = asset.GetOrCreateGraph();
                     var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
                     var builtIn = VFXLibrary.GetBuiltInParameters().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
-                    asset.root.AddChild(builtIn);
-                    asset.root.AddChild(add);
+                    graph.AddChild(builtIn);
+                    graph.AddChild(add);
                     add.inputSlots[0].Link(builtIn.outputSlots[0]);
 
                     Assert.AreEqual(VFXExpressionOp.kVFXTotalTimeOp, builtIn.outputSlots[0].GetExpression().Operation);
                     Assert.IsTrue(add.inputSlots[0].HasLink());
                 };
 
-            Action<VFXGraphAsset> read = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> read = delegate(VFXAsset asset)
                 {
-                    var builtIn = asset.root[0] as VFXBuiltInParameter;
-                    var add = asset.root[1] as VFXOperatorAdd;
+                    var graph = asset.GetOrCreateGraph();
+                    var builtIn = graph[0] as VFXBuiltInParameter;
+                    var add = graph[1] as VFXOperatorAdd;
 
                     Assert.AreNotEqual(null, builtIn);
                     Assert.AreNotEqual(null, add);
@@ -374,16 +386,16 @@ namespace UnityEditor.VFX.Test
                     Assert.AreEqual(testAttribute, (parameter.outputSlots[0].GetExpression() as VFXAttributeExpression).attributeName);
                 };
 
-            Action<VFXGraphAsset> write = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> write = delegate(VFXAsset asset)
                 {
                     var size = VFXLibrary.GetAttributeParameters().First(o => o.name == testAttribute).CreateInstance();
-                    asset.root.AddChild(size);
+                    asset.GetOrCreateGraph().AddChild(size);
                     test(size);
                 };
 
-            Action<VFXGraphAsset> read = delegate(VFXGraphAsset asset)
+            Action<VFXAsset> read = delegate(VFXAsset asset)
                 {
-                    var size = asset.root[0] as VFXAttributeParameter;
+                    var size = asset.GetOrCreateGraph()[0] as VFXAttributeParameter;
                     Assert.AreNotEqual(null, size);
                     test(size);
                 };
