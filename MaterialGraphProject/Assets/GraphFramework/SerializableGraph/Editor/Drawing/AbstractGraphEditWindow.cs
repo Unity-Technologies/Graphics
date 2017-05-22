@@ -10,13 +10,14 @@ namespace UnityEditor.Graphing.Drawing
     // TODO JOCE Derive from GraphViewEditorWindow
     public abstract class AbstractGraphEditWindow : EditorWindow, ISerializationCallbackReceiver
     {
-        public RenderTexture rt;
-
 		[NonSerialized]
 		private IGraphAsset m_Selected;
 
 		[NonSerialized]
 		private IGraphAsset m_InMemoryAsset;
+
+		[SerializeField]
+		private ScriptableObject m_ToLoad;
 
         private bool shouldRepaint
         {
@@ -59,6 +60,12 @@ namespace UnityEditor.Graphing.Drawing
 
         void Update()
         {
+			if (m_ToLoad) 
+			{
+				ChangeSelction (m_ToLoad as IGraphAsset);
+				m_ToLoad = null;
+			}
+
             if (shouldRepaint)
                 Repaint();
         }
@@ -106,6 +113,12 @@ namespace UnityEditor.Graphing.Drawing
 			if (m_Selected == newSelection)
 				return;
 
+			if (m_Selected != null) {
+				if (EditorUtility.DisplayDialog ("Save Old Graph?", "Save Old Graph?", "yes!", "no")) {
+					UpdateAsset ();
+				}
+			}
+
 			m_Selected = newSelection;
 
 			m_InMemoryAsset = UnityEngine.Object.Instantiate (newGraph) as IGraphAsset;
@@ -115,7 +128,7 @@ namespace UnityEditor.Graphing.Drawing
 			graph.ValidateGraph ();
 
 			var source = CreateDataSource ();
-			source.Initialize (m_InMemoryAsset, this);
+			source.Initialize (m_InMemoryAsset, this) ;
 			m_GraphEditorDrawer.presenter = source;
 			//m_GraphView.StretchToParentSize();
 			Repaint ();
@@ -125,6 +138,14 @@ namespace UnityEditor.Graphing.Drawing
 				m_GraphEditorDrawer.graphView.Schedule (Focus).StartingIn (1).Until (() => focused);
 			}
 		}
+
+		public void OnBeforeSerialize()
+		{
+			m_ToLoad = m_Selected as ScriptableObject;
+		}
+
+		public void OnAfterDeserialize()
+		{}
 
         /*
         private void ConvertSelectionToSubGraph()
@@ -270,19 +291,6 @@ namespace UnityEditor.Graphing.Drawing
             m_Canvas.Repaint();
         }*/
 
-        public void OnBeforeSerialize()
-        {
-       /*     var o = m_Selected as ScriptableObject;
-            if (o != null)
-                m_LastSelectedGraphSerialized = o;*/
-        }
 
-        public void OnAfterDeserialize()
-        {
-           /* if (m_LastSelectedGraphSerialized != null)
-                m_Selected = m_LastSelectedGraphSerialized as T;
-
-            m_LastSelectedGraphSerialized = null;*/
-        }
     }
 }
