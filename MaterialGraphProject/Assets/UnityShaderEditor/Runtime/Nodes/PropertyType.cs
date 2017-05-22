@@ -4,6 +4,7 @@ namespace UnityEngine.MaterialGraph
     {
         Color,
         Texture2D,
+		Cubemap,
         Float,
         Vector2,
         Vector3,

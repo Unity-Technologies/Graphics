@@ -10,6 +10,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(AbstractMaterialNode)] = typeof(MaterialNodePresenter);
             typeMapper[typeof(ColorNode)] = typeof(ColorNodePresenter);
             typeMapper[typeof(TextureNode)] = typeof(TextureNodePresenter);
+            typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodePresenter);
+            typeMapper[typeof(CubemapNode)] = typeof(CubeNodePresenter);
             typeMapper[typeof(UVNode)] = typeof(UVNodePresenter);
             typeMapper[typeof(Vector1Node)] = typeof(Vector1NodePresenter);
             typeMapper[typeof(Vector2Node)] = typeof(Vector2NodePresenter);
