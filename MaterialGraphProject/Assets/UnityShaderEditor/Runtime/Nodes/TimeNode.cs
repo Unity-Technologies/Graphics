@@ -6,10 +6,10 @@ namespace UnityEngine.MaterialGraph
     public class TimeNode : AbstractMaterialNode, IRequiresTime
     {
         private const string kOutputSlotName = "Time";
-        private const string kOutputSlotNameX = "Time.x";
-        private const string kOutputSlotNameY = "Time.y";
-        private const string kOutputSlotNameZ = "Time.z";
-        private const string kOutputSlotNameW = "Time.w";
+        private const string kOutputSlotNameX = "Time/20";
+        private const string kOutputSlotNameY = "Time";
+        private const string kOutputSlotNameZ = "Time * 2";
+        private const string kOutputSlotNameW = "Time * 3";
 
         public const int OutputSlotId = 0;
         public const int OutputSlotIdX = 1;
@@ -35,7 +35,7 @@ namespace UnityEngine.MaterialGraph
 
         protected int[] validSlots
         {
-            get { return new[] {OutputSlotId, OutputSlotIdX, OutputSlotIdY, OutputSlotIdZ, OutputSlotId}; }
+			get { return new[] {OutputSlotId, OutputSlotIdX, OutputSlotIdY, OutputSlotIdZ, OutputSlotIdW}; }
         }
 
         public override string GetVariableNameForSlot(int slotId)
