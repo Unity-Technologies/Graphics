@@ -1,10 +1,19 @@
 namespace UnityEngine.MaterialGraph
 {
     [Title("Channels/Swizzle Node")]
-    public class SwizzleNode : Function2Input
+    public class SwizzleNode : Function1Input
     {
+        enum SwizzleChannels
+        {
+            R = 0,
+            G = 1,
+            B = 2,
+            A = 3,
+        }
+
         [SerializeField]
-        private int[] m_SwizzleChannel = new int[4];
+        private SwizzleChannels[] m_SwizzleChannels = new SwizzleChannels[4] { SwizzleChannels.R, SwizzleChannels.G, SwizzleChannels.B, SwizzleChannels.A };
+
 
         public SwizzleNode()
         {
@@ -38,24 +47,51 @@ namespace UnityEngine.MaterialGraph
             return "";
         }
 
-        protected override string GetFunctionCallBody(string inputValue1, string inputValue2)
+        protected override string GetFunctionCallBody(string inputValue)
         {
-            string[] inputValues = { inputValue1, inputValue2 };
             string[] channelNames = { "x", "y", "z", "w" };
-            string s = precision + "4(";
-            for (int n = 0; n < 4; n++)
+            int numInputChannels = (int)FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
+            int numOutputChannels = (int)FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType;
+
+            if (numOutputChannels == 0)
             {
-                int c = m_SwizzleChannel[n];
-                if (c < 2)
-                    s += c;
-                else
-                {
-                    c -= 2;
-                    s += inputValues[c >> 2] + "." + channelNames[c & 3];
-                }
-                s += (n == 3) ? ")" : ",";
+                return "1.0";
             }
-            return s;
+
+            string outputString = precision + "4(";
+            //float4(1.0,1.0,1.0,1.0)
+            if (numInputChannels == 0)
+            {
+                outputString += "1.0, 1.0, 1.0, 1.0)";
+            }
+            else
+            {
+                //float4(arg1.
+                outputString += inputValue + ".";
+
+                //float4(arg1.xy
+                int i = 0;
+                for (; i < numInputChannels; i++)
+                {
+                    int channel = (int)m_SwizzleChannels[i];
+                    outputString += channelNames[channel];
+                }
+
+                //float4(arg1.xy, 1.0, 1.0)
+                for (; i < 4; i++)
+                {
+                    outputString += ", 1.0";
+                }
+                outputString += ").";
+            }
+
+            //float4(arg1.xy, 1.0, 1.0).rg
+            for (int j = 0; j < numOutputChannels; j++)
+            {
+                int channel = (int)m_SwizzleChannels[j];
+                outputString += channelNames[channel];
+            }
+            return outputString;
         }
     }
 }
