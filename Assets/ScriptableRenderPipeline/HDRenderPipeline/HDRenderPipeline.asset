@@ -13,26 +13,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LightLoopProducer: {fileID: 11400000, guid: bf8cd9ae03ff7d54c89603e67be0bfc5,
     type: 2}
-  debugDisplaySettings:
-    debugOverlayRatio: 0.33
-    displayMaterialDebug: 1
-    displayRenderingDebug: 0
-    displayLightingDebug: 0
-    lightingDebugSettings:
-      debugLightingMode: 0
-      enableShadows: 1
-      shadowDebugMode: 0
-      shadowMapIndex: 0
-      overrideSmoothness: 0
-      overrideSmoothnessValue: 0.5
-      debugLightingAlbedo: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-      displaySkyReflection: 0
-      skyReflectionMipmap: 0
-    renderingDebugSettings:
-      displayOpaqueObjects: 1
-      displayTransparentObjects: 1
-      enableDistortion: 1
-      enableSSS: 1
   renderingSettings:
     useForwardRenderingOnly: 0
     useDepthPrepass: 0

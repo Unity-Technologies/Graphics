@@ -9,7 +9,10 @@ namespace UnityEngine.Experimental.Rendering
 {
     public class DebugMenuManager
     {
-        static private DebugMenuManager s_Instance = null;
+        private static DebugMenuManager s_Instance = null;
+        private static string s_MenuStateAssetPath = "Assets/DebugMenuState.asset";
+
+        private DebugMenuState m_DebugMenuState = null;
 
         static public DebugMenuManager instance
         {
@@ -18,24 +21,10 @@ namespace UnityEngine.Experimental.Rendering
                 if (s_Instance == null)
                 {
                     s_Instance = new DebugMenuManager();
+                    s_Instance.Initialize();
                 }
 
                 return s_Instance;
-            }
-        }
-
-        DebugMenuManager()
-        {
-            LookUpDebugMenuClasses();
-            m_PersistentDebugMenu = new DebugMenu("Persistent");
-            m_DebugMenuUI = new DebugMenuUI(this);
-
-            var updater = Object.FindObjectOfType<DebugMenuUpdater>();
-            if (updater == null)
-            {
-                GameObject go = new GameObject("DebugMenuUpdater");
-                go.hideFlags = HideFlags.HideAndDontSave;
-                go.AddComponent<DebugMenuUpdater>();
             }
         }
 
@@ -44,10 +33,54 @@ namespace UnityEngine.Experimental.Rendering
         List<DebugMenu> m_DebugMenus = new List<DebugMenu>();
         DebugMenu       m_PersistentDebugMenu = null;
         DebugMenuUI     m_DebugMenuUI = null;
+        bool            m_UpdateFromItemStateRequired = false;
 
         public bool isEnabled       { get { return m_Enabled; } }
         public int activeMenuIndex  { get { return m_ActiveMenuIndex; } set { m_ActiveMenuIndex = value; } }
         public int  menuCount       { get { return m_DebugMenus.Count; } }
+
+        DebugMenuManager()
+        {
+            LookUpDebugMenuClasses();
+            m_PersistentDebugMenu = new DebugMenu("Persistent");
+            m_DebugMenuUI = new DebugMenuUI(this);
+
+            var updater = GameObject.Find("DebugMenuUpdater");
+            if (updater == null)
+            {
+                GameObject go = new GameObject("DebugMenuUpdater");
+                go.hideFlags = HideFlags.HideAndDontSave;
+                go.AddComponent<DebugMenuUpdater>();
+            }
+        }
+
+        private void Initialize()
+        {
+#if UNITY_EDITOR
+            m_DebugMenuState = UnityEditor.AssetDatabase.LoadAssetAtPath<DebugMenuState>(s_MenuStateAssetPath);
+
+            if (m_DebugMenuState == null)
+            {
+                m_DebugMenuState = ScriptableObject.CreateInstance<DebugMenuState>();
+                UnityEditor.AssetDatabase.CreateAsset(m_DebugMenuState, s_MenuStateAssetPath);
+            }
+#endif
+        }
+
+        public void RequireUpdateFromDebugItemState()
+        {
+            m_UpdateFromItemStateRequired = true;
+        }
+
+        public DebugMenuItemState FindDebugItemState(string itemName, string menuName)
+        {
+            return m_DebugMenuState.FindDebugItemState(itemName, menuName);
+        }
+
+        public void AddDebugMenuItemState(DebugMenuItemState state)
+        {
+            m_DebugMenuState.AddDebugItemState(state);
+        }
 
         public DebugMenu GetDebugMenu(int index)
         {
@@ -155,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering
             return null;
         }
 
-        DebugMenu GetDebugMenu(string name)
+        public DebugMenu GetDebugMenu(string name)
         {
             foreach(DebugMenu menu in m_DebugMenus)
             {
@@ -172,18 +205,24 @@ namespace UnityEngine.Experimental.Rendering
                 m_DebugMenus[m_ActiveMenuIndex].Update();
 
             m_PersistentDebugMenu.Update();
+
+            if(m_UpdateFromItemStateRequired)
+            {
+                m_UpdateFromItemStateRequired = false;
+                m_DebugMenuState.UpdateAllItems();
+            }
         }
 
-        public void AddDebugItem<DebugMenuType, ItemType>(string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemDrawer drawer = null) where DebugMenuType : DebugMenu
+        public void AddDebugItem<DebugMenuType, ItemType>(string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemHandler handler = null) where DebugMenuType : DebugMenu
         {
             DebugMenuType debugMenu = GetDebugMenu<DebugMenuType>();
             if (debugMenu != null)
             {
-                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, dynamicDisplay, drawer);
+                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, dynamicDisplay, handler);
             }
         }
 
-        public void AddDebugItem<ItemType>(string debugMenuName, string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemDrawer drawer = null)
+        public void AddDebugItem<ItemType>(string debugMenuName, string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemHandler handler = null)
         {
             DebugMenu debugMenu = GetDebugMenu(debugMenuName);
             // If the menu does not exist, create a generic one. This way, users don't have to explicitely create a new DebugMenu class if they don't need any particular overriding of default behavior.
@@ -195,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering
 
             if (debugMenu != null)
             {
-                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, dynamicDisplay, drawer);
+                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, dynamicDisplay, handler);
             }
         }
     }

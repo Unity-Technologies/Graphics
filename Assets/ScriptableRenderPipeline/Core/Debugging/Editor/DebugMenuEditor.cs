@@ -60,7 +60,8 @@ namespace UnityEngine.Experimental.Rendering
                 bool needRepaint = false;
                 for (int i = 0; i < activeMenu.itemCount; ++i)
                 {
-                    needRepaint = needRepaint || activeMenu.GetDebugMenuItem(i).drawer.OnEditorGUI();
+                    DebugMenuItem menuItem = activeMenu.GetDebugMenuItem(i);
+                    needRepaint = needRepaint || menuItem.handler.OnEditorGUI();
                 }
 
                 if (needRepaint)

@@ -9,17 +9,17 @@ namespace UnityEngine.Experimental.Rendering
     {
         public Type             type            { get { return m_Type; } }
         public string           name            { get { return m_Name; } }
-        public DebugItemDrawer  drawer          { get { return m_Drawer; } }
+        public DebugItemHandler handler          { get { return m_Handler; } }
         public bool             dynamicDisplay  { get { return m_DynamicDisplay; } }
         public bool             readOnly        { get { return m_Setter == null; } }
 
-        public DebugMenuItem(string name, Type type, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemDrawer drawer = null)
+        public DebugMenuItem(string name, Type type, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemHandler handler = null)
         {
             m_Type = type;
             m_Setter = setter;
             m_Getter = getter;
             m_Name = name;
-            m_Drawer = drawer;
+            m_Handler = handler;
             m_DynamicDisplay = dynamicDisplay;
         }
 
@@ -28,13 +28,17 @@ namespace UnityEngine.Experimental.Rendering
             return m_Type;
         }
 
-        public void SetValue(object value)
+        public void SetValue(object value, bool record = true)
         {
             // Setter can be null for readonly items
             if(m_Setter != null)
             {
                 m_Setter(value);
-                m_Drawer.ClampValues(m_Getter, m_Setter);
+                m_Handler.ClampValues(m_Getter, m_Setter);
+
+                // Update state for serialization/undo
+                if(record)
+                    m_State.SetValue(m_Getter());
             }
         }
 
@@ -43,12 +47,18 @@ namespace UnityEngine.Experimental.Rendering
             return m_Getter();
         }
 
-        Func<object>    m_Getter;
-        Action<object>  m_Setter;
-        Type            m_Type;
-        string          m_Name;
-        DebugItemDrawer m_Drawer = null;
-        bool            m_DynamicDisplay = false;
+        public void SetDebugItemState(DebugMenuItemState state)
+        {
+            m_State = state;
+        }
+
+        Func<object>        m_Getter;
+        Action<object>      m_Setter;
+        Type                m_Type;
+        string              m_Name;
+        DebugItemHandler    m_Handler = null;
+        bool                m_DynamicDisplay = false;
+        DebugMenuItemState  m_State = null;
     }
 
     public class DebugMenu
@@ -73,6 +83,11 @@ namespace UnityEngine.Experimental.Rendering
             if (index >= m_Items.Count || index < 0)
                 return null;
             return m_Items[index];
+        }
+
+        public DebugMenuItem GetDebugMenuItem(string name)
+        {
+            return m_Items.Find(x => x.name == name);
         }
 
         public DebugMenuItem GetSelectedDebugMenuItem()
@@ -144,8 +159,8 @@ namespace UnityEngine.Experimental.Rendering
             m_ItemsUI.Clear();
             foreach (DebugMenuItem menuItem in m_Items)
             {
-                DebugItemDrawer drawer = menuItem.drawer; // Should never be null, we have at least the default drawer
-                m_ItemsUI.Add(drawer.BuildGUI(m_Root, menuItem));
+                DebugItemHandler handler = menuItem.handler; // Should never be null, we have at least the default handler
+                m_ItemsUI.Add(handler.BuildGUI(m_Root));
             }
         }
 
@@ -233,13 +248,25 @@ namespace UnityEngine.Experimental.Rendering
                 m_ItemsUI[m_SelectedItem].OnValidate();
         }
 
-        public void AddDebugMenuItem<ItemType>(string name, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemDrawer drawer = null)
+        public void AddDebugMenuItem<ItemType>(string name, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemHandler handler = null)
         {
-            if (drawer == null)
-                drawer = new DebugItemDrawer();
-            DebugMenuItem newItem = new DebugMenuItem(name, typeof(ItemType), getter, setter, dynamicDisplay, drawer);
-            drawer.SetDebugItem(newItem);
+            if (handler == null)
+                handler = new DefaultDebugItemHandler();
+            DebugMenuItem newItem = new DebugMenuItem(name, typeof(ItemType), getter, setter, dynamicDisplay, handler);
+            handler.SetDebugMenuItem(newItem);
             m_Items.Add(newItem);
+
+            DebugMenuManager dmm = DebugMenuManager.instance;
+            DebugMenuItemState itemState = dmm.FindDebugItemState(name, m_Name);
+            if(itemState == null)
+            {
+                itemState = handler.CreateDebugMenuItemState();
+                itemState.Initialize(name, m_Name);
+                itemState.SetValue(getter());
+                dmm.AddDebugMenuItemState(itemState);
+            }
+
+            newItem.SetDebugItemState(itemState);
         }
 
         public void Update()
