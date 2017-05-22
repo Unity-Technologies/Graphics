@@ -89,15 +89,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public TextureSettings textureSettings              { get { return m_TextureSettings; } set { m_TextureSettings = value; } }
 
         // Renderer Settings (per "scene")
-        [SerializeField] private CommonSettings.Settings    m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
+        [SerializeField] private CommonSettings    m_CommonSettings;
         [SerializeField] private SkySettings                m_SkySettings;
 
-        public CommonSettings.Settings commonSettingsToUse
+        public CommonSettings commonSettingsToUse
         {
             get
             {
                 if (CommonSettingsSingleton.overrideSettings)
-                    return CommonSettingsSingleton.overrideSettings.settings;
+                    return CommonSettingsSingleton.overrideSettings;
 
                 return m_CommonSettings;
             }
@@ -196,7 +196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCommonSettings()
         {
-            var commonSettings = commonSettingsToUse;
+            var commonSettings = commonSettingsToUse.settings;
 
             m_ShadowSettings.directionalLightCascadeCount = commonSettings.shadowCascadeCount;
             m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
@@ -405,7 +405,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skySettings = owner.skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
-            m_SsaoContext = new AmbientOcclusionContext(new AmbientOcclusionSettings(), m_gbufferManager.GetGBuffers());
+            m_SsaoContext = new AmbientOcclusionContext(owner.commonSettingsToUse.screenSpaceAmbientOcclusionSettings, m_gbufferManager.GetGBuffers());
         }
 
         void InitializeDebugMaterials()
