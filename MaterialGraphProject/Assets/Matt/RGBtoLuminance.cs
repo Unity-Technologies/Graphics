@@ -22,6 +22,7 @@ namespace UnityEngine.MaterialGraph
 
 		protected override MaterialSlot GetOutputSlot ()
 		{
+			return new MaterialSlot (OutputSlotId, GetOutputSlotName (), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector1, Vector4.zero);
 		}
 
         // Convert rgb to luminance with rgb in linear space with sRGB primaries and D65 white point (from PostProcessing)
