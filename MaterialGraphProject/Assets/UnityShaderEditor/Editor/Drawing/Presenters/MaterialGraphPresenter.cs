@@ -20,6 +20,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(MasterRemapInputNode)] = typeof(RemapInputNodePresenter);
             typeMapper[typeof(AbstractSubGraphIONode)] = typeof(SubgraphIONodePresenter);
             typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterPresenter);
+            typeMapper[typeof(LevelNode)] = typeof(LevelNodePresenter);
         }
     }
 }
