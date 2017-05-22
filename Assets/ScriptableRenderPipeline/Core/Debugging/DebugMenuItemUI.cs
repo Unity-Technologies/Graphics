@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    // Class that users need to extend for runtime debug menu item UI
     public abstract class DebugMenuItemUI
     {
         protected GameObject m_Root = null;
@@ -16,10 +17,16 @@ namespace UnityEngine.Experimental.Rendering
             m_MenuItem = menuItem;
         }
 
+        // Implement for selection specific beahavior (like changing color for example)
         public abstract void SetSelected(bool value);
+        // Implement behavior when user execute the "Validate" action
         public abstract void OnValidate();
+        // Implement behavior when user execute the "Increment" action
         public abstract void OnIncrement();
+        // Implement behavior when user execute the "Decrement" action
         public abstract void OnDecrement();
+        // Implement this method to update the UI with current item value.
+        // User must call it whenever Validate/Increment/Decrement is called. It will also be automatically called for dynamically displayed items.
         public abstract void Update();
     }
 
