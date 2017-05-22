@@ -17,8 +17,10 @@ namespace UnityEngine.MaterialGraph
 		protected const string kOutputSlotGName = "G";
 		protected const string kOutputSlotBName = "B";
 		protected const string kOutputSlotAName = "A";
+		protected const string kInputSlotLodName = "MipLevel";
 
 		public const int UvSlotId = 0;
+		public const int InputSlotLod = 6;
 		public const int OutputSlotRgbaId = 1;
 		public const int OutputSlotRId = 2;
 		public const int OutputSlotGId = 3;
@@ -84,6 +86,7 @@ namespace UnityEngine.MaterialGraph
 			AddSlot(new MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
 			AddSlot(new MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
 			AddSlot(new MaterialSlot(UvSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector3, Vector3.zero, false));
+			AddSlot (new MaterialSlot(InputSlotLod, kInputSlotLodName, kInputSlotLodName, SlotType.Input, SlotValueType.Vector1, Vector2.zero));
 			RemoveSlotsNameNotMatching(validSlots);
 		}
 
@@ -95,7 +98,7 @@ namespace UnityEngine.MaterialGraph
 
 		protected int[] validSlots
 		{
-			get { return new[] {OutputSlotRgbaId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, UvSlotId}; }
+			get { return new[] {OutputSlotRgbaId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, UvSlotId, InputSlotLod}; }
 		}
 
 		// Node generations
@@ -105,7 +108,12 @@ namespace UnityEngine.MaterialGraph
 			if (uvSlot == null)
 				return;
 
+			var lodID = FindInputSlot<MaterialSlot>(InputSlotLod);
+			if (lodID == null)
+				return;
+
 			var uvName = string.Format("{0}.xyz", UVChannel.uv0.GetUVName());
+			//var lodValue = string.Format ("{0}", )
 			var edges = owner.GetEdges(uvSlot.slotReference).ToList();
 
 			if (edges.Count > 0)
@@ -115,7 +123,7 @@ namespace UnityEngine.MaterialGraph
 				uvName = ShaderGenerator.AdaptNodeOutput(fromNode, edge.outputSlot.slotId, ConcreteSlotValueType.Vector3, true);
 			}
 
-			string body = "texCUBE (" + propertyName + ", " + uvName + ")";
+			string body = "texCUBElod (" + propertyName + ", " + precision + "4(" + uvName + "," + lodID.currentValue.x + "))";
 			visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + body + ";", true);
 		}
 
