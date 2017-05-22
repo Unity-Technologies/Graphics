@@ -18,19 +18,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             internal static readonly int _CameraGBufferTexture1 = Shader.PropertyToID("_CameraGBufferTexture1");
         }
 
-        CommonSettings.ScreenSpaceAmbientOcclusionSettings m_Settings;
         RenderTargetIdentifier[] m_GBufferIDs;
         RenderTargetIdentifier[] m_MRT = { 0, 0 };
         PropertySheet m_Sheet;
 
-        public AmbientOcclusionContext(CommonSettings.ScreenSpaceAmbientOcclusionSettings settings, RenderTargetIdentifier[] gbufferIDs)
+        public AmbientOcclusionContext(RenderTargetIdentifier[] gbufferIDs)
         {
-            m_Settings = settings;
             m_GBufferIDs = gbufferIDs;
         }
 
-        public void Render(Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier depthID)
+        public void Render(CommonSettings.ScreenSpaceAmbientOcclusionSettings settings, Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier depthID)
         {
+            if (settings == null) return;
+
             if (m_Sheet == null)
             {
                 var shader = Shader.Find("Hidden/HDPipeline/ScreenSpaceAmbientOcclusion");
@@ -44,13 +44,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var width = camera.pixelWidth;
             var height = camera.pixelHeight;
-            var downsize = m_Settings.downsampling ? 2 : 1;
+            var downsize = settings.downsampling ? 2 : 1;
 
             // Provide the settings via uniforms.
-            m_Sheet.properties.SetFloat(Uniforms._Intensity, m_Settings.intensity);
-            m_Sheet.properties.SetFloat(Uniforms._Radius, m_Settings.radius);
+            m_Sheet.properties.SetFloat(Uniforms._Intensity, settings.intensity);
+            m_Sheet.properties.SetFloat(Uniforms._Radius, settings.radius);
             m_Sheet.properties.SetFloat(Uniforms._Downsample, 1.0f / downsize);
-            m_Sheet.properties.SetFloat(Uniforms._SampleCount, m_Settings.sampleCount);
+            m_Sheet.properties.SetFloat(Uniforms._SampleCount, settings.sampleCount);
 
             // Start building a command buffer.
             var cmd = new CommandBuffer { name = "Ambient Occlusion" };
