@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDPipeline/ScreenSpaceAmbientOcclusion"
+Shader "Hidden/HDPipeline/ScreenSpaceAmbientOcclusion"
 {
     SubShader
     {
