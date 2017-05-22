@@ -89,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public TextureSettings textureSettings              { get { return m_TextureSettings; } set { m_TextureSettings = value; } }
 
         // Renderer Settings (per "scene")
-        [SerializeField] private CommonSettings    m_CommonSettings;
+        [SerializeField] private CommonSettings             m_CommonSettings;
         [SerializeField] private SkySettings                m_SkySettings;
 
         public CommonSettings commonSettingsToUse
@@ -196,12 +196,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCommonSettings()
         {
-            var commonSettings = commonSettingsToUse.settings;
+            if (commonSettingsToUse != null)
+            {
+                var commonSettings = commonSettingsToUse.settings;
 
-            m_ShadowSettings.directionalLightCascadeCount = commonSettings.shadowCascadeCount;
-            m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
-            m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
-            m_ShadowSettings.directionalLightNearPlaneOffset = commonSettings.shadowNearPlaneOffset;
+                m_ShadowSettings.directionalLightCascadeCount = commonSettings.shadowCascadeCount;
+                m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
+                m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
+                m_ShadowSettings.directionalLightNearPlaneOffset = commonSettings.shadowNearPlaneOffset;
+            }
         }
 
         public void OnValidate()
@@ -405,7 +408,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skySettings = owner.skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
-            m_SsaoContext = new AmbientOcclusionContext(owner.commonSettingsToUse.screenSpaceAmbientOcclusionSettings, m_gbufferManager.GetGBuffers());
+            m_SsaoContext = new AmbientOcclusionContext(m_gbufferManager.GetGBuffers());
         }
 
         void InitializeDebugMaterials()
@@ -640,7 +643,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderForwardOnlyOpaqueDepthPrepass(cullResults, camera, renderContext);
             RenderGBuffer(cullResults, camera, renderContext);
 
-            m_SsaoContext.Render(camera, renderContext, m_CameraDepthStencilBufferRT);
+            if (m_Owner.commonSettingsToUse != null)
+            {
+                m_SsaoContext.Render(m_Owner.commonSettingsToUse.screenSpaceAmbientOcclusionSettings, camera, renderContext, m_CameraDepthStencilBufferRT);
+            }
 
             // If full forward rendering, we did not do any rendering yet, so don't need to copy the buffer.
             // If Deferred then the depth buffer is full (regular GBuffer + ForwardOnly depth prepass are done so we can copy it safely.
