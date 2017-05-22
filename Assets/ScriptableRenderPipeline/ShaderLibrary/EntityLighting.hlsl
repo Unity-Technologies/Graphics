@@ -127,7 +127,7 @@ float3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2
     {
         illuminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
     }
-    return SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
+    return illuminance;
 }
 
 float3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool lightmapRGBM)
