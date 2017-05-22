@@ -1,8 +1,8 @@
 #ifndef UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_COMMON
 #define UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_COMMON
 
-#include "../../../ShaderLibrary/Common.hlsl"
-#include "../../../ShaderLibrary/Packing.hlsl"
+#include "../../../../ShaderLibrary/Common.hlsl"
+#include "../../../../ShaderLibrary/Packing.hlsl"
 
 // Uniforms given from the camera.
 float4x4 unity_WorldToCamera;
