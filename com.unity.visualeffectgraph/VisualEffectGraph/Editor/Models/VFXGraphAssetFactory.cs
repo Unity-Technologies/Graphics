@@ -10,28 +10,28 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    public class VFXGraphAssetFactory
+    public class VFXAssetFactory
     {
-        [MenuItem("Assets/Create/VFXGraphAsset", priority = 301)]
-        private static void MenuCreateVFXGraphAsset()
+        [MenuItem("Assets/Create/VFXAsset", priority = 301)]
+        private static void MenuCreateVFXAsset()
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateVFXGraphAsset>(), "New VFXGraph.asset", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateVFXAsset>(), "New VFXAsset.asset", null, null);
         }
 
-        internal static VFXGraphAsset CreateVFXGraphAssetAtPath(string path)
+        internal static VFXAsset CreateVFXAssetAtPath(string path)
         {
-            VFXGraphAsset asset = ScriptableObject.CreateInstance<VFXGraphAsset>();
+            VFXAsset asset = new VFXAsset();
             asset.name = Path.GetFileName(path);
             AssetDatabase.CreateAsset(asset, path);
             return asset;
         }
     }
 
-    internal class DoCreateVFXGraphAsset : EndNameEditAction
+    internal class DoCreateVFXAsset : EndNameEditAction
     {
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            VFXGraphAsset asset = VFXGraphAssetFactory.CreateVFXGraphAssetAtPath(pathName);
+            VFXAsset asset = VFXAssetFactory.CreateVFXAssetAtPath(pathName);
             ProjectWindowUtil.ShowCreatedAsset(asset);
         }
     }

@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.UI
 
             m_ExpressionContext = new VFXExpression.Context(VFXExpression.Context.ReductionOption.CPUEvaluation);
             HashSet<Object> currentObjects = new HashSet<Object>();
-            m_GraphAsset.root.CollectDependencies(currentObjects);
+            m_Graph.CollectDependencies(currentObjects);
 
             int nbExpr = 0;
             foreach (var o in currentObjects)

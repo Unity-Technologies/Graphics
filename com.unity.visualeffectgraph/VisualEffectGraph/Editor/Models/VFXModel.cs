@@ -23,7 +23,6 @@ namespace UnityEditor.VFX
         }
 
         public new virtual string name  { get { return string.Empty; } }
-        //public new virtual string name  { get { return string.Empty; } }
         public Guid id              { get { return m_Id; } }
 
         public int m_OnEnabledCount = 0;
