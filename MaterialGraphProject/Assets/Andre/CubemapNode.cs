@@ -9,7 +9,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
 	[Title("Input/Cubemap")]
-	public class CubemapNode : PropertyNode, IGeneratesBodyCode, IMayRequireMeshUV
+	public class CubemapNode : PropertyNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal
 	{
 		protected const string kUVSlotName = "Refl";
 		protected const string kOutputSlotRGBAName = "RGBA";
@@ -113,17 +113,26 @@ namespace UnityEngine.MaterialGraph
 				return;
 
 			var uvName = string.Format("{0}.xyz", UVChannel.uv0.GetUVName());
-			//var lodValue = string.Format ("{0}", )
-			var edges = owner.GetEdges(uvSlot.slotReference).ToList();
+			var lodValue = lodID.currentValue.x.ToString ();
+			var edgesUV = owner.GetEdges(uvSlot.slotReference).ToList();
+			var edgesLOD = owner.GetEdges (lodID.slotReference).ToList ();
 
-			if (edges.Count > 0)
+
+			if (edgesUV.Count > 0)
 			{
-				var edge = edges[0];
+				var edge = edgesUV[0];
 				var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
 				uvName = ShaderGenerator.AdaptNodeOutput(fromNode, edge.outputSlot.slotId, ConcreteSlotValueType.Vector3, true);
 			}
 
-			string body = "texCUBElod (" + propertyName + ", " + precision + "4(" + uvName + "," + lodID.currentValue.x + "))";
+			if (edgesLOD.Count > 0)
+			{
+				var edge = edgesLOD[0];
+				var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
+				lodValue = GetSlotValue (edge.inputSlot.slotId, GenerationMode.ForReals);
+			}
+
+			string body = "texCUBElod (" + propertyName + ", " + precision + "4(reflect(-IN.worldViewDir, normalize(IN.worldNormal)).xyz," + lodValue + "))";
 			visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + body + ";", true);
 		}
 
@@ -187,7 +196,17 @@ namespace UnityEngine.MaterialGraph
 
 		public override PropertyType propertyType { get { return PropertyType.Cubemap; } }
 
-		public bool RequiresMeshUV(UVChannel channel)
+		public bool RequiresViewDirection()
+		{
+			return true;
+		}
+
+		public bool RequiresNormal()
+		{
+			return true;
+		}
+
+		/*public bool RequiresMeshUV(UVChannel channel)
 		{
 			if (channel != UVChannel.uv0)
 			{
@@ -200,6 +219,6 @@ namespace UnityEngine.MaterialGraph
 
 			var edges = owner.GetEdges(uvSlot.slotReference).ToList();
 			return edges.Count == 0;
-		}
+		}*/
 	}
 }

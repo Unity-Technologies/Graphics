@@ -26,7 +26,6 @@ namespace UnityEngine.MaterialGraph
 		public RemapNode ()
 		{
 			name = "Remap";
-			//UpdateNodeAfterDeserialization ();
 		}
 
 		public string GetFunctionName ()
