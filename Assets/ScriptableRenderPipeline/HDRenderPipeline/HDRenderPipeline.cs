@@ -331,7 +331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Post-processing context (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
-        readonly AmbientOcclusionContext m_SsaoContext;
+        readonly ScreenSpaceAmbientOcclusionContext m_SsaoContext;
 
         // Detect when windows size is changing
         int m_CurrentWidth;
@@ -408,7 +408,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skySettings = owner.skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
-            m_SsaoContext = new AmbientOcclusionContext(m_gbufferManager.GetGBuffers());
+            m_SsaoContext = new ScreenSpaceAmbientOcclusionContext(m_gbufferManager.GetGBuffers());
         }
 
         void InitializeDebugMaterials()

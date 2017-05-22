@@ -4,7 +4,21 @@ using UnityEngine.Experimental.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public sealed class AmbientOcclusionContext
+    [System.Serializable]
+    public sealed class ScreenSpaceAmbientOcclusionSettings
+    {
+        [Range(0, 2)]
+        public float intensity = 1.0f;
+
+        public float radius = 0.5f;
+
+        [Range(1, 32)]
+        public int sampleCount = 8;
+
+        public bool downsampling = true;
+    }
+
+    public sealed class ScreenSpaceAmbientOcclusionContext
     {
         static class Uniforms
         {
@@ -22,12 +36,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier[] m_MRT = { 0, 0 };
         PropertySheet m_Sheet;
 
-        public AmbientOcclusionContext(RenderTargetIdentifier[] gbufferIDs)
+        public ScreenSpaceAmbientOcclusionContext(RenderTargetIdentifier[] gbufferIDs)
         {
             m_GBufferIDs = gbufferIDs;
         }
 
-        public void Render(CommonSettings.ScreenSpaceAmbientOcclusionSettings settings, Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier depthID)
+        public void Render(ScreenSpaceAmbientOcclusionSettings settings, Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier depthID)
         {
             if (settings == null) return;
 
