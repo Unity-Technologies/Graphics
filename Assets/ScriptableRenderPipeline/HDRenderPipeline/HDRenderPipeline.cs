@@ -643,17 +643,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderForwardOnlyOpaqueDepthPrepass(cullResults, camera, renderContext);
             RenderGBuffer(cullResults, camera, renderContext);
 
-            // Apply screen-space effects to the GBuffer.
-            if (m_Owner.commonSettingsToUse != null)
-            {
-                m_SsaoEffect.Render(m_Owner.commonSettingsToUse.screenSpaceAmbientOcclusionSettings, camera, renderContext, m_CameraDepthStencilBufferRT);
-            }
-
             // If full forward rendering, we did not do any rendering yet, so don't need to copy the buffer.
             // If Deferred then the depth buffer is full (regular GBuffer + ForwardOnly depth prepass are done so we can copy it safely.
             if (!m_Owner.renderingSettings.useForwardRenderingOnly)
             {
                 CopyDepthBufferIfNeeded(renderContext);
+
+                // Now the depth texture and the GBuffer are ready. We can run some screen-space effects on it.
+                if (m_Owner.commonSettingsToUse != null)
+                {
+                    m_SsaoEffect.Render(m_Owner.commonSettingsToUse.screenSpaceAmbientOcclusionSettings, camera, renderContext, GetDepthTexture());
+                }
             }
 
             if (debugDisplaySettings.IsDebugMaterialDisplayEnabled())
