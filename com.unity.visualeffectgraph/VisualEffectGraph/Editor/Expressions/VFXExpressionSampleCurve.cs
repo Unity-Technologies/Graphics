@@ -12,22 +12,11 @@ namespace UnityEditor.VFX
         }
 
         public VFXExpressionSampleCurve(VFXExpression curve, VFXExpression time)
-        {
-            m_Flags = Flags.ValidOnCPU;
-            m_Curve = curve;
-            m_Time = time;
-        }
+            : base(Flags.ValidOnCPU, new VFXExpression[2] { curve, time })
+        {}
 
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXSampleCurve; } }
         sealed public override VFXValueType ValueType { get { return VFXValueType.kFloat; } }
-
-        sealed public override VFXExpression[] Parents
-        {
-            get
-            {
-                return new VFXExpression[] { m_Curve, m_Time };
-            }
-        }
 
         sealed protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
@@ -43,8 +32,5 @@ namespace UnityEditor.VFX
             var time = timeReduce.Get<float>();
             return new VFXValue<float>(curve.Evaluate(time), true);
         }
-
-        private VFXExpression m_Curve;
-        private VFXExpression m_Time;
     }
 }

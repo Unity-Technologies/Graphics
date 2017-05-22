@@ -37,9 +37,8 @@ namespace UnityEditor.VFX
             return expression;
         }
 
-        private VFXAttributeExpression(string name, VFXValueType type)
+        private VFXAttributeExpression(string name, VFXValueType type) : base(Flags.PerElement)
         {
-            m_Flags = Flags.PerElement;
             m_AttributeName = name;
             m_ValueType = type;
         }

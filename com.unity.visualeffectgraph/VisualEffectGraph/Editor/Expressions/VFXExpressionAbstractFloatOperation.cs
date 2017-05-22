@@ -7,10 +7,9 @@ namespace UnityEditor.VFX
 {
     abstract class VFXExpressionFloatOperation : VFXExpression
     {
-        protected VFXExpressionFloatOperation()
+        protected VFXExpressionFloatOperation(VFXExpression[] parents)
+            : base(Flags.ValidOnCPU | Flags.ValidOnGPU, parents)
         {
-            m_Flags = Flags.ValidOnCPU | Flags.ValidOnGPU;
-            m_Parents = new VFXExpression[] {};
             m_AdditionnalParameters = new int[] {};
         }
 
@@ -44,20 +43,18 @@ namespace UnityEditor.VFX
 
         sealed public override VFXValueType ValueType { get { return m_ValueType; } }
         sealed public override VFXExpressionOp Operation { get { return m_Operation; } }
-        sealed public override VFXExpression[] Parents { get { return m_Parents; } }
         sealed public override int[] AdditionnalParameters { get { return m_AdditionnalParameters; } }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
             var newExpression = (VFXExpressionFloatOperation)CreateNewInstance();
+            newExpression.Initialize(Flags.None, reducedParents);
             newExpression.m_AdditionnalParameters = m_AdditionnalParameters.Select(o => o).ToArray();
-            newExpression.m_Parents = reducedParents;
             newExpression.m_Operation = m_Operation;
             newExpression.m_ValueType = m_ValueType;
             return newExpression;
         }
 
-        protected VFXExpression[] m_Parents;
         protected int[] m_AdditionnalParameters;
         protected VFXExpressionOp m_Operation;
         protected VFXValueType m_ValueType;
@@ -65,7 +62,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXExpressionUnaryFloatOperation : VFXExpressionFloatOperation
     {
-        protected VFXExpressionUnaryFloatOperation(VFXExpression parent, VFXExpressionOp operation)
+        protected VFXExpressionUnaryFloatOperation(VFXExpression parent, VFXExpressionOp operation) : base(new VFXExpression[1] { parent })
         {
             if (!IsFloatValueType(parent.ValueType))
             {
@@ -74,7 +71,6 @@ namespace UnityEditor.VFX
 
             m_ValueType = parent.ValueType;
             m_AdditionnalParameters = new int[] { TypeToSize(m_ValueType) };
-            m_Parents = new VFXExpression[] { parent };
             m_Operation = operation;
         }
 
@@ -102,6 +98,7 @@ namespace UnityEditor.VFX
     abstract class VFXExpressionBinaryFloatOperation : VFXExpressionFloatOperation
     {
         protected VFXExpressionBinaryFloatOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation)
+            : base(new VFXExpression[2] { parentLeft, parentRight })
         {
             if (!IsFloatValueType(parentLeft.ValueType) || !IsFloatValueType(parentRight.ValueType))
             {
@@ -115,7 +112,6 @@ namespace UnityEditor.VFX
 
             m_ValueType = parentLeft.ValueType;
             m_AdditionnalParameters = new int[] { TypeToSize(m_ValueType) };
-            m_Parents = new VFXExpression[] { parentLeft, parentRight };
             m_Operation = operation;
         }
 
@@ -148,6 +144,7 @@ namespace UnityEditor.VFX
     abstract class VFXExpressionTernaryFloatOperation : VFXExpressionFloatOperation
     {
         protected VFXExpressionTernaryFloatOperation(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpressionOp operation)
+            : base(new VFXExpression[3] { a, b, c })
         {
             if (!IsFloatValueType(a.ValueType)
                 || !IsFloatValueType(b.ValueType)
@@ -163,7 +160,6 @@ namespace UnityEditor.VFX
 
             m_ValueType = a.ValueType;
             m_AdditionnalParameters = new int[] { TypeToSize(m_ValueType) };
-            m_Parents = new VFXExpression[] { a, b, c };
             m_Operation = operation;
         }
 

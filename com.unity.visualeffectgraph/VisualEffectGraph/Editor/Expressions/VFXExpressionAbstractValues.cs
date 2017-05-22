@@ -8,9 +8,8 @@ namespace UnityEditor.VFX
     abstract class VFXValue : VFXExpression
     {
         protected VFXValue()
-        {
-            m_Flags |= Flags.Value | Flags.ValidOnGPU | Flags.ValidOnCPU;
-        }
+            : base(Flags.Value | Flags.ValidOnGPU | Flags.ValidOnCPU)
+        {}
 
         sealed public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXValueOp; } }
 

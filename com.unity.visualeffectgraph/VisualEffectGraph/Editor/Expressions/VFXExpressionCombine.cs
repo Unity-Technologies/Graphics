@@ -14,14 +14,14 @@ namespace UnityEditor.VFX
         }
 
         public VFXExpressionCombine(params VFXExpression[] parents)
+            : base(parents)
         {
             if (parents.Length <= 1 || parents.Length > 4 || parents.Any(o => !IsFloatValueType(o.ValueType)))
             {
                 throw new ArgumentException("Incorrect VFXExpressionCombine");
             }
 
-            m_Parents = parents;
-            switch (m_Parents.Length)
+            switch (parents.Length)
             {
                 case 2:
                     m_Operation = VFXExpressionOp.kVFXCombine2fOp;
@@ -41,12 +41,12 @@ namespace UnityEditor.VFX
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
             var constParentFloat = reducedParents.Cast<VFXValue<float>>().Select(o => o.Get()).ToArray();
-            if (constParentFloat.Length != m_Parents.Length)
+            if (constParentFloat.Length != Parents.Length)
             {
                 throw new ArgumentException("Incorrect VFXExpressionCombine.ExecuteConstantOperation");
             }
 
-            switch (m_Parents.Length)
+            switch (Parents.Length)
             {
                 case 2: return new VFXValue<Vector2>(new Vector2(constParentFloat[0], constParentFloat[1]), true);
                 case 3: return new VFXValue<Vector3>(new Vector3(constParentFloat[0], constParentFloat[1], constParentFloat[2]), true);

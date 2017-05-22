@@ -81,6 +81,23 @@ namespace UnityEditor.VFX
             throw new NotImplementedException(type.ToString());
         }
 
+        protected VFXExpression(Flags flags)
+            : this(flags, new VFXExpression[0] {}
+                   )
+        {}
+
+        protected VFXExpression(Flags flags, VFXExpression parent)
+            : this(flags, new VFXExpression[1] { parent }
+                   )
+        {}
+
+        protected VFXExpression(Flags flags, VFXExpression[] parents)
+        {
+            m_Parents = parents;
+            m_Flags = flags;
+            PropagateParentsFlags();
+        }
+
         //Helper using reflection to recreate a concrete type from an abstract class (useful with reduce behavior)
         protected static VFXExpression CreateNewInstance(Type expressionType)
         {
@@ -118,12 +135,10 @@ namespace UnityEditor.VFX
         protected abstract VFXExpression Evaluate(VFXExpression[] constParents);
 
         public bool Is(Flags flag)      { return (m_Flags & flag) == flag; }
-        public void Set(Flags flag)     { m_Flags |= flag; }
-        public void Unset(Flags flag)   { m_Flags &= ~flag; } 
 
         public abstract VFXValueType ValueType { get; }
         public abstract VFXExpressionOp Operation { get; }
-        public virtual VFXExpression[] Parents { get { return new VFXExpression[] {}; } }
+        public VFXExpression[] Parents { get { return m_Parents; } }
         public virtual string[] ParentsCodeName { get { return new string[] { "a", "b", "c", "d" }; } }
 
         public virtual string GetOperationCodeContent()
@@ -141,6 +156,9 @@ namespace UnityEditor.VFX
                 return false;
 
             if (ValueType != other.ValueType)
+                return false;
+
+            if (m_Flags != other.m_Flags)
                 return false;
 
             var addionnalParams = AdditionnalParameters;
@@ -209,6 +227,21 @@ namespace UnityEditor.VFX
             throw new ArgumentException(string.Format("GetContent isn't available for {0}", GetType().FullName));
         }
 
+        // Only do that when constructing an instance if needed
+        protected void Initialize(Flags additionalFlags, VFXExpression[] parents)
+        {
+            m_Parents = parents;
+            m_Flags |= additionalFlags;
+            PropagateParentsFlags();
+        }
+
+        private void PropagateParentsFlags()
+        {
+            foreach (var parent in m_Parents)
+                m_Flags |= (parent.m_Flags & Flags.PerElement);
+        }
+
         protected Flags m_Flags = Flags.None;
+        private VFXExpression[] m_Parents;
     }
 }

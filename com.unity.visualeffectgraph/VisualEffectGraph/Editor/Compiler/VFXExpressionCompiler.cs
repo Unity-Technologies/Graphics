@@ -96,7 +96,7 @@ namespace UnityEditor.VFX
                 foreach (var exp in m_SlotsToExpressions.Values)
                     AddExpressionDataRecursively(expressionData, exp);
 
-                var sortedList = expressionData/*.Where(kvp => !kvp.Key.Is(VFXExpression.Flags.PerElement))*/.ToList();
+                var sortedList = expressionData.ToList();
                 sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));
                 m_FlattenedExpressions = sortedList.Select(kvp => kvp.Key).ToList();
 
@@ -111,9 +111,6 @@ namespace UnityEditor.VFX
                 //Debug.Log("---- Expression list");
                 //for (int i = 0; i < m_FlattenedExpressions.Count; ++i)
                 //    Debug.Log(string.Format("{0}\t\t{1}", i, m_FlattenedExpressions[i].GetType().Name));
-
-                // Keep only non per element expressions in the graph
-                //m_Expressions.RemoveWhere(e => e.Is(VFXExpression.Flags.PerElement));
 
                 Debug.Log(string.Format("RECOMPILE EXPRESSION GRAPH - NB EXPRESSIONS: {0} - NB SLOTS: {1}", m_Expressions.Count, m_SlotsToExpressions.Count));
             }
