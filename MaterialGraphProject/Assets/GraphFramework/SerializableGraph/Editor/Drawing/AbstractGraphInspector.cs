@@ -20,7 +20,7 @@ namespace UnityEditor.Graphing.Drawing
 
         protected IGraphAsset graphAsset
         {
-            get { return target as IGraphAsset; }
+			get { return target as IGraphAsset; }
         }
 
         protected AbstractGraphInspector(IEnumerable<TypeMapping> typeMappings)

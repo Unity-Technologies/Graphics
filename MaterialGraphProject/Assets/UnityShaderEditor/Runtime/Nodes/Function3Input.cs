@@ -4,10 +4,10 @@ namespace UnityEngine.MaterialGraph
 {
     public abstract class Function3Input : AbstractMaterialNode, IGeneratesBodyCode
     {
-        private const string kInputSlot1ShaderName = "Input1";
-        private const string kInputSlot2ShaderName = "Input2";
-        private const string kInputSlot3ShaderName = "Input3";
-        private const string kOutputSlotShaderName = "Output";
+        protected const string kInputSlot1ShaderName = "Input1";
+        protected const string kInputSlot2ShaderName = "Input2";
+        protected const string kInputSlot3ShaderName = "Input3";
+        protected const string kOutputSlotShaderName = "Output";
 
         public const int InputSlot1Id = 0;
         public const int InputSlot2Id = 1;
