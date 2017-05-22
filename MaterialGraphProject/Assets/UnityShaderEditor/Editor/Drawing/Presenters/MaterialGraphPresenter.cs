@@ -21,6 +21,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(AbstractSubGraphIONode)] = typeof(SubgraphIONodePresenter);
             typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterPresenter);
             typeMapper[typeof(LevelNode)] = typeof(LevelNodePresenter);
+            typeMapper[typeof(SwizzleNode)] = typeof(SwizzleNodePresenter);
         }
     }
 }
