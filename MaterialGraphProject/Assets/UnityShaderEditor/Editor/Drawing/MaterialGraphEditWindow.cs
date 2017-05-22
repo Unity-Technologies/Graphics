@@ -4,7 +4,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    public class MaterialGraphEditWindow : AbstractGraphEditWindow<IMaterialGraphAsset>
+    public class MaterialGraphEditWindow : AbstractGraphEditWindow
     {
         [MenuItem("Window/Material Editor")]
         public static void OpenMenu()
