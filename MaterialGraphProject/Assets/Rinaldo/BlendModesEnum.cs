@@ -20,7 +20,7 @@
 //        PinLight,
         Screen,
         SoftLight,
-//        Substract,
+        Substract,
 //        VividLight
 
 
