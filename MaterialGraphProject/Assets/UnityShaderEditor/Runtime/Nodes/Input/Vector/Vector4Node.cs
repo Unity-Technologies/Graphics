@@ -2,33 +2,33 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Vector 3 Node")]
-    public class Vector3Node : PropertyNode, IGeneratesBodyCode
+    [Title("Input/Vector/Vector 4")]
+    public class Vector4Node : PropertyNode, IGeneratesBodyCode
     {
+        [SerializeField]
+        private Vector4 m_Value;
+
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Value";
 
-        [SerializeField]
-        private Vector3 m_Value;
-
-        public Vector3Node()
+        public Vector4Node()
         {
-            name = "V3Node";
+            name = "Vector4";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector3, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public override PropertyType propertyType
         {
-            get { return PropertyType.Vector3; }
+            get { return PropertyType.Vector4; }
         }
 
-        public Vector3 value
+        public Vector4 value
         {
             get { return m_Value; }
             set
@@ -52,7 +52,7 @@ namespace UnityEngine.MaterialGraph
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk(precision + "3 " + propertyName + ";", true);
+                visitor.AddShaderChunk(precision + "4 " + propertyName + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -60,7 +60,7 @@ namespace UnityEngine.MaterialGraph
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "3 " +  propertyName + " = " + precision + "3 (" + m_Value.x + ", " + m_Value.y + ", " + m_Value.z + ");", true);
+            visitor.AddShaderChunk(precision + "4 " +  propertyName + " = " + precision + "4 (" + m_Value.x + ", " + m_Value.y + ", " + m_Value.z + ", " + m_Value.w + ");", true);
         }
 
         public override PreviewProperty GetPreviewProperty()
@@ -68,7 +68,7 @@ namespace UnityEngine.MaterialGraph
             return new PreviewProperty
                    {
                        m_Name = propertyName,
-                       m_PropType = PropertyType.Vector3,
+                       m_PropType = PropertyType.Vector4,
                        m_Vector4 = m_Value
                    };
         }

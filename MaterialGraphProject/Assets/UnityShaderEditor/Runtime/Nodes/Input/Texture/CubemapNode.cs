@@ -8,10 +8,10 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-	[Title("Input/Cubemap")]
+	[Title("Input/Texture/Cubemap")]
 	public class CubemapNode : PropertyNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal
 	{
-		protected const string kUVSlotName = "Refl";
+		protected const string kUVSlotName = "RefVector";
 		protected const string kOutputSlotRGBAName = "RGBA";
 		protected const string kOutputSlotRName = "R";
 		protected const string kOutputSlotGName = "G";

@@ -2,7 +2,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Vector 1 Node")]
+    [Title("Input/Vector/Vector 1")]
     public class Vector1Node : PropertyNode, IGeneratesBodyCode
     {
         [SerializeField]
@@ -13,7 +13,7 @@ namespace UnityEngine.MaterialGraph
 
         public Vector1Node()
         {
-            name = "V1Node";
+            name = "Vector1";
             UpdateNodeAfterDeserialization();
         }
 

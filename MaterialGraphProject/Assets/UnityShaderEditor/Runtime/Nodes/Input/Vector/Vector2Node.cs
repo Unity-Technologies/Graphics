@@ -2,72 +2,65 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Color Node")]
-    public class ColorNode : PropertyNode, IGeneratesBodyCode
+    [Title("Input/Vector/Vector 2")]
+    public class Vector2Node : PropertyNode, IGeneratesBodyCode
     {
-        [SerializeField]
-        private Color m_Color;
-
         private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "Color";
+        private const string kOutputSlotName = "Value";
 
-        public ColorNode()
+        [SerializeField]
+        private Vector2 m_Value;
+
+        public Vector2Node()
         {
-            name = "ColorNode";
+            name = "Vector2";
             UpdateNodeAfterDeserialization();
-        }
-
-        public override bool hasPreview
-        {
-            get { return true; }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector2, Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public override PropertyType propertyType
         {
-            get { return PropertyType.Color; }
+            get { return PropertyType.Vector2; }
         }
 
-        public Color color
+        public Vector2 value
         {
-            get { return m_Color; }
+            get { return m_Value; }
             set
             {
-                if (m_Color == value)
+                if (m_Value == value)
                     return;
 
-                m_Color = value;
+                m_Value = value;
+
                 if (onModified != null)
-                {
                     onModified(this, ModificationScope.Node);
-                }
             }
         }
 
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed)
-                visitor.AddShaderProperty(new ColorPropertyChunk(propertyName, description, color, PropertyChunk.HideState.Visible));
+                visitor.AddShaderProperty(new VectorPropertyChunk(propertyName, description, m_Value, PropertyChunk.HideState.Visible));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk(precision + "4 " + propertyName + ";", true);
+                visitor.AddShaderChunk(precision + "2 " + propertyName + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            // we only need to generate node code if we are using a constant... otherwise we can just refer to the property :)
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + precision + "4 (" + color.r + ", " + color.g + ", " + color.b + ", " + color.a + ");", true);
+            visitor.AddShaderChunk(precision + "2 " +  propertyName + " = " + precision + "2 (" + m_Value.x + ", " + m_Value.y + ");", true);
         }
 
         public override PreviewProperty GetPreviewProperty()
@@ -75,8 +68,8 @@ namespace UnityEngine.MaterialGraph
             return new PreviewProperty
                    {
                        m_Name = propertyName,
-                       m_PropType = PropertyType.Color,
-                       m_Color = color
+                       m_PropType = PropertyType.Vector2,
+                       m_Vector4 = m_Value
                    };
         }
     }

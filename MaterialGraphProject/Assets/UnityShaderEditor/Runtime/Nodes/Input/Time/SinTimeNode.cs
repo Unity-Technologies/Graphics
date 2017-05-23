@@ -2,12 +2,12 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Sine Time Node")]
+    [Title("Input/Time/Sine Time")]
     public class SinTimeNode : AbstractMaterialNode, IRequiresTime
     {
         public SinTimeNode()
         {
-            name = "Sine Time";
+            name = "SineTime";
             UpdateNodeAfterDeserialization();
         }
 

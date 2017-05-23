@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
         bool RequiresTangent();
     }
 
-    [Title("Input/World Tangent Node")]
+    [Title("Input/Geometry/World Tangent")]
     public class WorldSpaceTangentNode : AbstractMaterialNode, IMayRequireTangent
     {
         public const int kOutputSlotId = 0;
@@ -15,7 +15,7 @@ namespace UnityEngine.MaterialGraph
 
         public WorldSpaceTangentNode()
         {
-            name = "World Tangent";
+            name = "WorldTangent";
             UpdateNodeAfterDeserialization();
         }
 

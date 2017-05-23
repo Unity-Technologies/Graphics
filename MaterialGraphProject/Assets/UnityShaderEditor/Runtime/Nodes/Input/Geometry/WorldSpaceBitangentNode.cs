@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
         bool RequiresBitangent();
     }
 
-    [Title("Input/World Bitangent Node")]
+    [Title("Input/Geometry/World Bitangent")]
     public class WorldSpaceBitangentNode : AbstractMaterialNode, IMayRequireBitangent
     {
         public const int kOutputSlotId = 0;
@@ -15,7 +15,7 @@ namespace UnityEngine.MaterialGraph
 
         public WorldSpaceBitangentNode()
         {
-            name = "World Bitangent";
+            name = "WorldBitangent";
             UpdateNodeAfterDeserialization();
         }
 

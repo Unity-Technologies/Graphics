@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
         bool RequiresWorldPosition();
     }
 
-    [Title("Input/World Space Position Node")]
+    [Title("Input/Geometry/World Space Position")]
     public class WorldSpacePositionNode : AbstractMaterialNode, IMayRequireWorldPosition
     {
         private const int kOutputSlotId = 0;
@@ -21,7 +21,7 @@ namespace UnityEngine.MaterialGraph
 
         public WorldSpacePositionNode()
         {
-            name = "World Space Pos";
+            name = "WorldSpacePosition";
             UpdateNodeAfterDeserialization();
         }
 
