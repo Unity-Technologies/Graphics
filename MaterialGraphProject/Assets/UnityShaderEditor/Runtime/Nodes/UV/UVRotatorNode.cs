@@ -2,7 +2,7 @@
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("UV/Rotator")]
+    [Title("UV/UV Rotator")]
     public class UVRotatorNode : Function2Input, IGeneratesFunction
     {
         private const string kUVSlotName = "UV";
@@ -33,8 +33,6 @@ namespace UnityEngine.MaterialGraph
             return new MaterialSlot(OutputSlotId, kUVSlotName, kUVSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero);
         }
 
-        //TODO:Externalize
-        //Reference code from:http://www.chilliant.com/rgb2hsv.html
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
