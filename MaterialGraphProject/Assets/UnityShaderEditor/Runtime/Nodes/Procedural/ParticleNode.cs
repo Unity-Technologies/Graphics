@@ -1,11 +1,11 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
-    [Title("Procedural/Particle Node")]
+    [Title("Procedural/Particle")]
     public class ParticleNode : Function2Input, IGeneratesFunction
     {
         public ParticleNode()
         {
-            name = "ParticleNode";
+            name = "Particle";
         }
 
         protected override string GetFunctionName()

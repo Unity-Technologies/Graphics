@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Channels/Swizzle Node")]
+    [Title("Channel/Swizzle")]
     public class SwizzleNode : Function1Input
     {
         public enum SwizzleChannel
@@ -36,7 +36,7 @@ namespace UnityEngine.MaterialGraph
 
         public SwizzleNode()
         {
-            name = "SwizzleNode";
+            name = "Swizzle";
         }
 
         protected override string GetFunctionName()

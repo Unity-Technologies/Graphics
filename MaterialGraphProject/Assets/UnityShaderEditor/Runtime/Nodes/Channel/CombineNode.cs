@@ -1,53 +1,53 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Channel/Split")]
-    public class SplitChannelsNode : PropertyNode, IGeneratesBodyCode
+    [Title("Channel/Combine")]
+    public class CombineNode : PropertyNode, IGeneratesBodyCode
     {
-        protected const string kInputSlotName = "Input";
-        protected const string kOutputSlotRName = "R";
-        protected const string kOutputSlotGName = "G";
-        protected const string kOutputSlotBName = "B";
-        protected const string kOutputSlotAName = "A";
-        protected const string kOutputSlotRGBName = "RGB";
-        protected const string kOutputSlotRGName = "RG";
+        protected const string kOutputSlot0Id = "Input0";
+        protected const string kOutputSlot1Id = "Input1";
+        protected const string kOutputSlot2Id = "Input2";
+        protected const string kOutputSlot3Id = "Input3";
 
-        public const int InputSlotId = 0;
-        public const int OutputSlotRId = 1;
-        public const int OutputSlotGId = 2;
-        public const int OutputSlotBId = 3;
-        public const int OutputSlotAId = 4;
+        protected const string kOutputSlotRGBAName = "RGBA";
+        protected const string kOutputSlotRGBSlotName = "RGB";
+        protected const string kOutputSlotRGSlotName = "RG";
+
+        public const int InputSlot0Id = 0;
+        public const int InputSlot1Id = 1;
+        public const int InputSlot2Id = 2;
+        public const int InputSlot3Id = 3;
+
+        public const int OutputSlotRGBAId = 4;
         public const int OutputSlotRGBId = 5;
         public const int OutputSlotRGId = 6;
-        
-        public SplitChannelsNode()
+
+        public CombineNode()
         {
-            name = "ComponentSplit";
+            name = "Combine";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, SlotValueType.Dynamic, Vector4.zero));
-            AddSlot(new MaterialSlot(OutputSlotRId, kOutputSlotRName, kOutputSlotRName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(OutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(OutputSlotRGBId, kOutputSlotRGBName, kOutputSlotRGBName, SlotType.Output, SlotValueType.Vector3, Vector4.zero));
-            AddSlot(new MaterialSlot(OutputSlotRGId, kOutputSlotRGName, kOutputSlotRGName, SlotType.Output, SlotValueType.Vector2, Vector4.zero));
+            AddSlot(new MaterialSlot(InputSlot0Id, kOutputSlot0Id, kOutputSlot0Id, SlotType.Input, SlotValueType.Dynamic, Vector4.zero));
+            AddSlot(new MaterialSlot(InputSlot1Id, kOutputSlot1Id, kOutputSlot1Id, SlotType.Input, SlotValueType.Dynamic, Vector4.zero));
+            AddSlot(new MaterialSlot(InputSlot2Id, kOutputSlot2Id, kOutputSlot2Id, SlotType.Input, SlotValueType.Dynamic, Vector4.zero));
+            AddSlot(new MaterialSlot(InputSlot3Id, kOutputSlot3Id, kOutputSlot3Id, SlotType.Input, SlotValueType.Dynamic, Vector4.zero));
+
+            AddSlot(new MaterialSlot(OutputSlotRGBAId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotRGBId, kOutputSlotRGBSlotName, kOutputSlotRGBSlotName, SlotType.Output, SlotValueType.Vector3, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotRGId, kOutputSlotRGSlotName, kOutputSlotRGSlotName, SlotType.Output, SlotValueType.Vector2, Vector4.zero));
             RemoveSlotsNameNotMatching(validSlots);
         }
 
         protected int[] validSlots
         {
-            get { return new[] { InputSlotId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, OutputSlotRGBId, OutputSlotRGId }; }
+            get { return new[] { InputSlot0Id, InputSlot1Id, InputSlot2Id, InputSlot3Id, OutputSlotRGBAId, OutputSlotRGBId, OutputSlotRGId }; }
         }
 
         [SerializeField]
@@ -85,15 +85,15 @@ namespace UnityEngine.MaterialGraph
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             //if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-              //  return;
-            var inputValue = GetSlotValue(InputSlotId, generationMode);
+            //  return;
+            var inputValue = GetSlotValue(InputSlot0Id, generationMode);
             visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + inputValue + ";", false);
             //visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + precision + "4 (" + m_Value.x + ", " + m_Value.y + ", " + m_Value.z + ", " + m_Value.w + ");", true);
         }
 
         protected virtual MaterialSlot GetInputSlot()
         {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotName, SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(InputSlot0Id, GetInputSlotName(), kOutputSlot0Id, SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
         protected virtual string GetInputSlotName() { return "Input"; }
@@ -108,7 +108,7 @@ namespace UnityEngine.MaterialGraph
             };
         }
 
-        public override string GetVariableNameForSlot(int slotId)
+        /*public override string GetVariableNameForSlot(int slotId)
         {
             string slotOutput;
             switch (slotId)
@@ -125,19 +125,13 @@ namespace UnityEngine.MaterialGraph
                 case OutputSlotAId:
                     slotOutput = ".a";
                     break;
-                case OutputSlotRGBId:
-                    slotOutput = ".rgb";
-                    break;
-                case OutputSlotRGId:
-                    slotOutput = ".rg";
-                    break;
                 default:
                     slotOutput = "";
                     break;
-            } 
+            }
             return propertyName + slotOutput;
             //return GetVariableNameForNode() + slotOutput;
-        }
+        }*/
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
