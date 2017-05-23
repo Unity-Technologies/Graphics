@@ -17,7 +17,7 @@
         Multiply,
         Negation,
         Overlay,
-//        PinLight,
+        PinLight,
         Screen,
         SoftLight,
         Substract,

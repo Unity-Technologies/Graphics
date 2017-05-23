@@ -189,6 +189,16 @@ namespace UnityEngine.MaterialGraph
                     outputString.Deindent();
                     outputString.AddShaderChunk("}", false);
                     break;
+                case BlendModesEnum.PinLight:
+                    outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
+                    outputString.AddShaderChunk("{", false);
+                    outputString.Indent();
+                    outputString.AddShaderChunk(precision + outputDimension + " check = step (0.5, arg1);", false);
+                    outputString.AddShaderChunk(precision + outputDimension + " result = check * max(2.0*(arg1 - 0.5), arg2);", false);
+                    outputString.AddShaderChunk("return result += (1.0 - check) * min(2.0 * arg1,arg2);", false);
+                    outputString.Deindent();
+                    outputString.AddShaderChunk("}", false);
+                    break;
                 case BlendModesEnum.Screen:
                     outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
                     outputString.AddShaderChunk("{", false);
