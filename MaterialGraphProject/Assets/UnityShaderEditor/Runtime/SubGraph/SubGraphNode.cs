@@ -21,6 +21,7 @@ namespace UnityEngine.MaterialGraph
         , IMayRequireViewDirection
         , IMayRequireWorldPosition
         , IMayRequireVertexColor
+        , IMayRequireViewDirectionTangentSpace
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -310,6 +311,14 @@ namespace UnityEngine.MaterialGraph
                 return false;
 
             return subGraph.activeNodes.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
+        }
+
+        public bool RequiresViewDirectionTangentSpace()
+        {
+            if (subGraph == null)
+                return false;
+
+            return subGraph.activeNodes.OfType<IMayRequireViewDirectionTangentSpace>().Any(x => x.RequiresViewDirectionTangentSpace());
         }
 
         public bool RequiresWorldPosition()
