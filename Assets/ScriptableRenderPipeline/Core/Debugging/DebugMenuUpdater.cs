@@ -20,14 +20,14 @@ namespace UnityEngine.Experimental.Rendering
 
             if (DebugMenuManager.instance.isEnabled)
             {
-                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.PreviousDebugMenu) != 0.0f)
+                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.PreviousDebugPanel) != 0.0f)
                 {
-                    DebugMenuManager.instance.PreviousDebugMenu();
+                    DebugMenuManager.instance.PreviousDebugPanel();
                 }
 
-                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.NextDebugMenu) != 0.0f)
+                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.NextDebugPanel) != 0.0f)
                 {
-                    DebugMenuManager.instance.NextDebugMenu();
+                    DebugMenuManager.instance.NextDebugPanel();
                 }
 
                 if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.Validate) != 0.0f)
@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering
                     DebugMenuManager.instance.OnValidate();
                 }
 
-                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.Persistent) != 0.0f)
+                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.MakePersistent) != 0.0f)
                 {
                     DebugMenuManager.instance.OnMakePersistent();
                 }

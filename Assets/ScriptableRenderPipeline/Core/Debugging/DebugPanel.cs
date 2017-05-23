@@ -5,7 +5,7 @@ using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    public class DebugMenuItem
+    public class DebugItem
     {
         public Type             type            { get { return m_Type; } }
         public string           name            { get { return m_Name; } }
@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool             dynamicDisplay  { get { return m_DynamicDisplay; } }
         public bool             readOnly        { get { return m_Setter == null; } }
 
-        public DebugMenuItem(string name, Type type, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemHandler handler = null)
+        public DebugItem(string name, Type type, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemHandler handler = null)
         {
             m_Type = type;
             m_Setter = setter;
@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering
             return m_Getter();
         }
 
-        public void SetDebugItemState(DebugMenuItemState state)
+        public void SetDebugItemState(DebugItemState state)
         {
             m_State = state;
         }
@@ -58,39 +58,38 @@ namespace UnityEngine.Experimental.Rendering
         string              m_Name;
         DebugItemHandler    m_Handler = null;
         bool                m_DynamicDisplay = false;
-        DebugMenuItemState  m_State = null;
+        DebugItemState  m_State = null;
     }
 
-    public class DebugMenu
+    public class DebugPanel
     {
-        public string name { get { return m_Name; } }
-        public int itemCount { get { return m_Items.Count; } }
+        public string   name { get { return m_Name; } }
+        public int      itemCount { get { return m_Items.Count; } }
 
-        protected string m_Name = "Unknown Debug Menu";
+        protected string            m_Name = "Unknown Debug Menu";
+        private GameObject          m_Root = null;
+        private List<DebugItem>     m_Items = new List<DebugItem>();
+        private List<DebugItemUI>   m_ItemsUI = new List<DebugItemUI>();
+        private int                 m_SelectedItem = -1;
 
-        private GameObject m_Root = null;
-        private List<DebugMenuItem> m_Items = new List<DebugMenuItem>();
-        private List<DebugMenuItemUI> m_ItemsUI = new List<DebugMenuItemUI>();
-        private int m_SelectedItem = -1;
-
-        public DebugMenu(string name)
+        public DebugPanel(string name)
         {
             m_Name = name;
         }
 
-        public DebugMenuItem GetDebugMenuItem(int index)
+        public DebugItem GetDebugItem(int index)
         {
             if (index >= m_Items.Count || index < 0)
                 return null;
             return m_Items[index];
         }
 
-        public DebugMenuItem GetDebugMenuItem(string name)
+        public DebugItem GetDebugItem(string name)
         {
             return m_Items.Find(x => x.name == name);
         }
 
-        public DebugMenuItem GetSelectedDebugMenuItem()
+        public DebugItem GetSelectedDebugItem()
         {
             if(m_SelectedItem != -1)
             {
@@ -100,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering
             return null;
         }
 
-        public bool HasItem(DebugMenuItem debugItem)
+        public bool HasDebugItem(DebugItem debugItem)
         {
             foreach(var item in m_Items)
             {
@@ -111,13 +110,13 @@ namespace UnityEngine.Experimental.Rendering
             return false;
         }
 
-        public void RemoveDebugItem(DebugMenuItem debugItem)
+        public void RemoveDebugItem(DebugItem debugItem)
         {
             m_Items.Remove(debugItem);
             RebuildGUI();
         }
 
-        public void AddDebugItem(DebugMenuItem debugItem)
+        public void AddDebugItem(DebugItem debugItem)
         {
             m_Items.Add(debugItem);
             RebuildGUI();
@@ -157,9 +156,9 @@ namespace UnityEngine.Experimental.Rendering
             DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_Name), m_Name, 14, TextAnchor.MiddleLeft, m_Root);
 
             m_ItemsUI.Clear();
-            foreach (DebugMenuItem menuItem in m_Items)
+            foreach (DebugItem debugItem in m_Items)
             {
-                DebugItemHandler handler = menuItem.handler; // Should never be null, we have at least the default handler
+                DebugItemHandler handler = debugItem.handler; // Should never be null, we have at least the default handler
                 m_ItemsUI.Add(handler.BuildGUI(m_Root));
             }
         }
@@ -179,6 +178,7 @@ namespace UnityEngine.Experimental.Rendering
         public void SetSelected(bool value)
         {
             m_Root.SetActive(value);
+
             if(value)
             {
                 if (m_SelectedItem == -1)
@@ -190,11 +190,6 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        int NextItemIndex(int current)
-        {
-            return (current + 1) % m_Items.Count;
-        }
-
         void NextItem()
         {
             if(m_Items.Count != 0)
@@ -202,14 +197,6 @@ namespace UnityEngine.Experimental.Rendering
                 int newSelected = (m_SelectedItem + 1) % m_Items.Count;
                 SetSelectedItem(newSelected);
             }
-        }
-
-        int PreviousItemIndex(int current)
-        {
-            int newSelected = current - 1;
-            if (newSelected == -1)
-                newSelected = m_Items.Count - 1;
-            return newSelected;
         }
 
         void PreviousItem()
@@ -248,22 +235,22 @@ namespace UnityEngine.Experimental.Rendering
                 m_ItemsUI[m_SelectedItem].OnValidate();
         }
 
-        public void AddDebugMenuItem<ItemType>(string name, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemHandler handler = null)
+        public void AddDebugItem<ItemType>(string name, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemHandler handler = null)
         {
             if (handler == null)
                 handler = new DefaultDebugItemHandler();
-            DebugMenuItem newItem = new DebugMenuItem(name, typeof(ItemType), getter, setter, dynamicDisplay, handler);
-            handler.SetDebugMenuItem(newItem);
+            DebugItem newItem = new DebugItem(name, typeof(ItemType), getter, setter, dynamicDisplay, handler);
+            handler.SetDebugItem(newItem);
             m_Items.Add(newItem);
 
             DebugMenuManager dmm = DebugMenuManager.instance;
-            DebugMenuItemState itemState = dmm.FindDebugItemState(name, m_Name);
+            DebugItemState itemState = dmm.FindDebugItemState(name, m_Name);
             if(itemState == null)
             {
-                itemState = handler.CreateDebugMenuItemState();
+                itemState = handler.CreateDebugItemState();
                 itemState.Initialize(name, m_Name);
                 itemState.SetValue(getter());
-                dmm.AddDebugMenuItemState(itemState);
+                dmm.AddDebugItemState(itemState);
             }
 
             newItem.SetDebugItemState(itemState);
@@ -283,10 +270,10 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    public class LightingDebugMenu
-        : DebugMenu
+    public class LightingDebugPanel
+        : DebugPanel
     {
-        public LightingDebugMenu()
+        public LightingDebugPanel()
             : base("Lighting")
         {
         }

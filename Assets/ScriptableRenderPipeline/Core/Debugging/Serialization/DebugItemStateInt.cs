@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    public class DebugItemStateInt : DebugMenuItemState<int>
+    public class DebugItemStateInt : DebugItemState<int>
     {
     }
 }
