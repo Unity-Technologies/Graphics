@@ -56,12 +56,12 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetFullShader(GenerationMode mode, out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
-            /*
+            
             // figure out what kind of preview we want!
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
 
-            string templateLocation = ShaderGenerator.GetTemplatePath("2DPreview.template");
+            string templateLocation = ShaderGenerator.GetTemplatePath("ExportTexture.template");
             if (!File.Exists(templateLocation))
             {
                 configuredTextures = new List<PropertyGenerator.TextureInfo>();
@@ -167,10 +167,21 @@ namespace UnityEngine.MaterialGraph
 
             //shaderBodyVisitor.AddShaderChunk("return " + ShaderGenerator.AdaptNodeOutputForPreview(this, GetOutputSlots<MaterialSlot>().First().id) + ";", true);
             //shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeInputForPreview(this, ColorSlotId) + ";", true);
-            shaderBodyVisitor.AddShaderChunk("return " + GetVariableNameForSlot(GetSlotReference(ColorSlotId).slotId) + ";", true);
-            
-           
+            //shaderBodyVisitor.AddShaderChunk("return " + GetVariableNameForSlot(GetSlotReference(ColorSlotId).slotId) + ";", true);
 
+            var inputSlot = GetInputSlots<MaterialSlot>().First();
+            var edges = owner.GetEdges(inputSlot.slotReference);
+            if (edges.Count() > 0)
+            {
+                var outputRef = edges.First().outputSlot;
+                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+                shaderBodyVisitor.AddShaderChunk("return " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
+            }
+            else
+            {
+                shaderBodyVisitor.AddShaderChunk("return float4(1.0, 1.0, 1.0, 1.0);", true);
+            }
+            
             ListPool<INode>.Release(activeNodeList);
 
             template = template.Replace("${ShaderName}", shaderName);
@@ -195,10 +206,10 @@ namespace UnityEngine.MaterialGraph
 
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
             return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
-            */
+            
             //=============================================================================================
 
-            
+            /*
             string templateLocation = ShaderGenerator.GetTemplatePath("ExportTexture.template");
 
             if (!File.Exists(templateLocation))
@@ -236,7 +247,7 @@ namespace UnityEngine.MaterialGraph
             ListPool<INode>.Release(activeNodeList);
             
             return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
-            
+            */
         }
     }
 }
