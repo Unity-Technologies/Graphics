@@ -3,17 +3,17 @@
     public enum BlendModesEnum
     {
         Burn,
-        Dodge,
         Darken,
         Difference,
-//        Divide,
+        Dodge,
+        Divide,
         Exclusion,
         HardLight,
-//        HardMix,
+        HardMix,
         Lighten,
-//        LinearDodge,
-//        LinearLight,
-//       LinearBurn,
+        LinearBurn,
+        LinearDodge,
+        LinearLight,
         Multiply,
         Negation,
         Overlay,
@@ -21,7 +21,7 @@
         Screen,
         SoftLight,
         Substract,
-//        VividLight
+        VividLight
 
 
 /* Old Order 
