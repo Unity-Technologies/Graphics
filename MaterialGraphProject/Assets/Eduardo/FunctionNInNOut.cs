@@ -23,7 +23,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public int AddSlot(string displayName, string nameInShader, SlotType slotType, SlotValueType valueType)
+        public int AddSlot(string displayName, string nameInShader, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
         {
             int nextSlotId;
             if (slotType == SlotType.Output)
@@ -31,7 +31,7 @@ namespace UnityEngine.MaterialGraph
             else
                 nextSlotId = GetInputSlots<MaterialSlot>().Count() + 1;
 
-            AddSlot(new MaterialSlot(nextSlotId, displayName, nameInShader, slotType, valueType, Vector4.zero, true));
+            AddSlot(new MaterialSlot(nextSlotId, displayName, nameInShader, slotType, valueType, defaultValue, true));
             return nextSlotId;
         }
 
