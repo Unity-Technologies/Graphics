@@ -1,6 +1,6 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Procedural/Noise")]
+    [Title("Procedural/Noise")]
     public class NoiseNode : Function1Input, IGeneratesFunction
     {
         public NoiseNode()
