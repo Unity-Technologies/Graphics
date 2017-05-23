@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
         bool RequiresNormal();
     }
 
-    [Title("Input/World Normal Node")]
+    [Title("Input/Geometry/World Normal")]
     public class WorldSpaceNormalNode : AbstractMaterialNode, IMayRequireNormal
     {
         public const int kOutputSlotId = 0;
@@ -15,7 +15,7 @@ namespace UnityEngine.MaterialGraph
 
         public WorldSpaceNormalNode()
         {
-            name = "World Normal";
+            name = "WorldNormal";
             UpdateNodeAfterDeserialization();
         }
 

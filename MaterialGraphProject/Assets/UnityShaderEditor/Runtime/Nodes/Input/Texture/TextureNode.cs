@@ -8,7 +8,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Texture Node")]
+    [Title("Input/Texture/Texture")]
     public class TextureNode : PropertyNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         protected const string kUVSlotName = "UV";

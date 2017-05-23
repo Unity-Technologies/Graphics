@@ -8,7 +8,7 @@ namespace UnityEngine.MaterialGraph
         bool RequiresVertexColor();
     }
 
-    [Title("Input/Vertex Color Node")]
+    [Title("Input/Geometry/Vertex Color")]
     public class VertexColorNode : AbstractMaterialNode, IMayRequireVertexColor
     {
         private const int kOutputSlotId = 0;
@@ -22,7 +22,7 @@ namespace UnityEngine.MaterialGraph
 
         public VertexColorNode()
         {
-            name = "Vertex Color";
+            name = "VertexColor";
             UpdateNodeAfterDeserialization();
         }
 

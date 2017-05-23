@@ -7,12 +7,12 @@ namespace UnityEngine.MaterialGraph
         bool RequiresScreenPosition();
     }
 
-    [Title("Input/Screen Pos Node")]
+    [Title("Input/Scene Data/Screen Position")]
     public class ScreenPosNode : AbstractMaterialNode, IMayRequireScreenPosition
     {
         public ScreenPosNode()
         {
-            name = "ScreenPos";
+            name = "ScreenPosition";
             UpdateNodeAfterDeserialization();
         }
 

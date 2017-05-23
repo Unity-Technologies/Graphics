@@ -8,7 +8,7 @@ namespace UnityEngine.MaterialGraph
         bool RequiresViewDirection();
     }
 
-    [Title("Input/World Space View Direction Node")]
+    [Title("Input/Geometry/World Space View Direction")]
     public class WorldSpaceViewDirectionNode : AbstractMaterialNode, IMayRequireViewDirection
     {
         private const int kOutputSlotId = 0;
@@ -21,7 +21,7 @@ namespace UnityEngine.MaterialGraph
 
         public WorldSpaceViewDirectionNode()
         {
-            name = "World View Direction";
+            name = "WorldSpaceViewDirection";
             UpdateNodeAfterDeserialization();
         }
 

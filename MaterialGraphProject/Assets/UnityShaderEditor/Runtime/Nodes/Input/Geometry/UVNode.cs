@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
         bool RequiresMeshUV(UVChannel channel);
     }
 
-    [Title("Input/UV Node")]
+    [Title("Input/Geometry/UV")]
 	public class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotId = 0;
