@@ -1,7 +1,7 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Pulse")]
-    public class PulseNode : Function3Input, IGeneratesFunction
+    public class PulseNode : Function2Input, IGeneratesFunction
     {
         public PulseNode()
         {
@@ -15,17 +15,12 @@
 
         protected override string GetInputSlot1Name()
         {
-            return "Value";
+            return "X Value";
         }
 
         protected override string GetInputSlot2Name()
         {
-            return "MinValue";
-        }
-
-        protected override string GetInputSlot3Name()
-        {
-            return "MaxValue";
+            return "X Min and Max";
         }
 
         protected override MaterialSlot GetInputSlot1()
@@ -35,12 +30,7 @@
 
         protected override MaterialSlot GetInputSlot2()
         {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector1, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetInputSlot3()
-        {
-            return new MaterialSlot(InputSlot3Id, GetInputSlot3Name(), kInputSlot3ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector1, Vector2.zero);
+            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
         }
 
         protected override MaterialSlot GetOutputSlot()
@@ -51,11 +41,11 @@
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("value", "minValue", "maxValue"), false);
+            outputString.AddShaderChunk(GetFunctionPrototype("xValue", "xMinAndMax"), false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
 
-            outputString.AddShaderChunk("return step( minValue, value ) - step( maxValue, value );", false);
+            outputString.AddShaderChunk("return step( xMinAndMax.x, xValue ) - step( xMinAndMax.y, xValue );", false);
 
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
