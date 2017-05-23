@@ -32,7 +32,7 @@ namespace UnityEngine.MaterialGraph
 
         protected override MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(OutputSlotId, kUVSlotName, kUVSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero);
+            return new MaterialSlot(OutputSlotId, kUVSlotName, kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector4, Vector4.zero);
         }
 
         protected override string GetFunctionCallBody(string input1Value, string input2Value)
