@@ -26,11 +26,13 @@ namespace UnityEngine.MaterialGraph
 		public RemapNode ()
 		{
 			name = "Remap";
+			UpdateNodeAfterDeserialization();
 		}
 
 		public string GetFunctionName ()
 		{
 			return "unity_remap_" + precision;
+
 		}
 
 		public sealed override void UpdateNodeAfterDeserialization()
