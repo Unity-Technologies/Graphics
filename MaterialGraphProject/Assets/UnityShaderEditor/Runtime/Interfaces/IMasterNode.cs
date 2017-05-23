@@ -12,5 +12,7 @@ namespace UnityEngine.MaterialGraph
         string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor);
 
         string GetVariableNameForNode();
+
+        bool has3DPreview();
     }
 }
