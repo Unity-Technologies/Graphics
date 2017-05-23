@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
 	{
 		public LineartoRGBNode()
 		{
-			name = "RGBtoLinear";
+			name = "LineartoRGB";
 		}
 
 		protected override string GetFunctionName ()
