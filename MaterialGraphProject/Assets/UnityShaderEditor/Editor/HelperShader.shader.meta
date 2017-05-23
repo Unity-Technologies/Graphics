@@ -1,10 +1,12 @@
 fileFormatVersion: 2
 guid: 9ab5e16c2083a4fe689209a8c1ae425e
-timeCreated: 1495526268
+timeCreated: 1495529915
 licenseType: Pro
 ShaderImporter:
   defaultTextures: []
-  nonModifiableTextures: []
+  nonModifiableTextures:
+  - Texture_5537060b_db74_4900_8f2b_178ba97b7f11_Uniform: {fileID: 2800000, guid: 6e8d12f68bae2294da814f9d4c81b29a,
+      type: 3}
   userData: 
   assetBundleName: 
   assetBundleVariant: 
