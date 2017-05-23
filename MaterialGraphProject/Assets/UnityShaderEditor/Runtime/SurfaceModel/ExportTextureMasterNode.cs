@@ -14,14 +14,6 @@ namespace UnityEngine.MaterialGraph
         public const string ColorSlotName = "Color";
         public const int ColorSlotId = 0;
 
-        [SerializeField]
-        private SurfaceMaterialOptions m_MaterialOptions = new SurfaceMaterialOptions();
-
-        public SurfaceMaterialOptions options
-        {
-            get { return m_MaterialOptions; }
-        }
-
         public ExportTextureMasterNode()
         {
             name = "ExportTextureMasterNode";
@@ -74,12 +66,6 @@ namespace UnityEngine.MaterialGraph
             var shaderFunctionVisitor = new ShaderGenerator();
             var shaderPropertiesVisitor = new PropertyGenerator();
             var shaderPropertyUsagesVisitor = new ShaderGenerator();
-
-
-            var shaderName = "Hidden/PreviewShader/" + GetType() + guid.ToString();
-            //var shaderName = "Hidden/PreviewShader/" + this.GetVariableNameForSlot(this.GetOutputSlots<MaterialSlot>().First().id);
-
-
             var shaderInputVisitor = new ShaderGenerator();
             var vertexShaderBlock = new ShaderGenerator();
 
@@ -165,10 +151,6 @@ namespace UnityEngine.MaterialGraph
                 activeNode.GeneratePropertyUsages(shaderPropertyUsagesVisitor, generationMode);
             }
 
-            //shaderBodyVisitor.AddShaderChunk("return " + ShaderGenerator.AdaptNodeOutputForPreview(this, GetOutputSlots<MaterialSlot>().First().id) + ";", true);
-            //shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeInputForPreview(this, ColorSlotId) + ";", true);
-            //shaderBodyVisitor.AddShaderChunk("return " + GetVariableNameForSlot(GetSlotReference(ColorSlotId).slotId) + ";", true);
-
             var inputSlot = GetInputSlots<MaterialSlot>().First();
             var edges = owner.GetEdges(inputSlot.slotReference);
             if (edges.Count() > 0)
@@ -179,12 +161,12 @@ namespace UnityEngine.MaterialGraph
             }
             else
             {
-                shaderBodyVisitor.AddShaderChunk("return float4(1.0, 1.0, 1.0, 1.0);", true);
+                shaderBodyVisitor.AddShaderChunk("return float4(0.5, 0.5, 0.5, 0.5);", true);
             }
             
             ListPool<INode>.Release(activeNodeList);
 
-            template = template.Replace("${ShaderName}", shaderName);
+            template = template.Replace("${ShaderName}", GetType() + guid.ToString());
             template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
             template = template.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(3));
             template = template.Replace("${ShaderInputs}", shaderInputVisitor.GetShaderString(4));
@@ -206,48 +188,6 @@ namespace UnityEngine.MaterialGraph
 
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
             return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
-            
-            //=============================================================================================
-
-            /*
-            string templateLocation = ShaderGenerator.GetTemplatePath("ExportTexture.template");
-
-            if (!File.Exists(templateLocation))
-            {
-                configuredTextures = new List<PropertyGenerator.TextureInfo>();
-                return string.Empty;
-            }
-
-            var shaderPropertiesVisitor = new PropertyGenerator();
-
-            // figure out what kind of preview we want!
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
-            foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
-            {
-                //if (node is IGeneratesFunction)
-                   // (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, mode);
-                node.GeneratePropertyBlock(shaderPropertiesVisitor, mode);
-            }
-
-            string texName = "_ExportTexture";
-
-            if (shaderPropertiesVisitor.GetConfiguredTexutres().Count > 0)
-            texName = shaderPropertiesVisitor.GetConfiguredTexutres()[0].name;
-
-
-            string template = File.ReadAllText(templateLocation);
-            var shaderName = "Hidden/ExportTexture/" + this.GetVariableNameForSlot(this.GetInputSlots<MaterialSlot>().First().id);
-            template = template.Replace("${ShaderName}", shaderName);
-            template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(0));
-            template = template.Replace("${ShaderTextureName}", texName);
-
-            configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
-
-            ListPool<INode>.Release(activeNodeList);
-            
-            return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
-            */
         }
     }
 }
