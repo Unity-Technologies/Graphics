@@ -32,7 +32,7 @@
         {
             var outputString = new ShaderGenerator();
 
-            outputString.AddShaderChunk("inline float unity_randomValue (float2 uv)", false);
+            outputString.AddShaderChunk("inline float unity_noise_randomValue (float2 uv)", false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
 
@@ -42,7 +42,7 @@
             outputString.AddShaderChunk("}", false);
 
 
-            outputString.AddShaderChunk("inline float unity_interpolate (float a, float b, float t)", false);
+            outputString.AddShaderChunk("inline float unity_noise_interpolate (float a, float b, float t)", false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
 
@@ -64,14 +64,14 @@
             outputString.AddShaderChunk("float2 c1 = i + float2(1.0, 0.0);", false);
             outputString.AddShaderChunk("float2 c2 = i + float2(0.0, 1.0);", false);
             outputString.AddShaderChunk("float2 c3 = i + float2(1.0, 1.0);", false);
-            outputString.AddShaderChunk("float r0 = unity_randomValue(c0);", false);
-            outputString.AddShaderChunk("float r1 = unity_randomValue(c1);", false);
-            outputString.AddShaderChunk("float r2 = unity_randomValue(c2);", false);
-            outputString.AddShaderChunk("float r3 = unity_randomValue(c3);", false);
+            outputString.AddShaderChunk("float r0 = unity_noise_randomValue(c0);", false);
+            outputString.AddShaderChunk("float r1 = unity_noise_randomValue(c1);", false);
+            outputString.AddShaderChunk("float r2 = unity_noise_randomValue(c2);", false);
+            outputString.AddShaderChunk("float r3 = unity_noise_randomValue(c3);", false);
 
-            outputString.AddShaderChunk("float bottomOfGrid = unity_interpolate(r0, r1, f.x);", false);
-            outputString.AddShaderChunk("float topOfGrid = unity_interpolate(r2, r3, f.x);", false);
-            outputString.AddShaderChunk("float t = unity_interpolate(bottomOfGrid, topOfGrid, f.y);", false);
+            outputString.AddShaderChunk("float bottomOfGrid = unity_noise_interpolate(r0, r1, f.x);", false);
+            outputString.AddShaderChunk("float topOfGrid = unity_noise_interpolate(r2, r3, f.x);", false);
+            outputString.AddShaderChunk("float t = unity_noise_interpolate(bottomOfGrid, topOfGrid, f.y);", false);
             outputString.AddShaderChunk("return t;", false);
 
             outputString.Deindent();
