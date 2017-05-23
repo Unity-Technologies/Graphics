@@ -6,8 +6,8 @@ namespace UnityEngine.MaterialGraph
 	public class RemapNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
 	{
 		protected const string kInputSlot1ShaderName = "Input1";
-		protected const string kInputSlot2ShaderName = "InMin";
-		protected const string kInputSlot3ShaderName = "InMax";
+		protected const string kInputSlot2ShaderName = "InMinMax";
+		protected const string kInputSlot3ShaderName = "OutMinMax";
 		protected const string kOutputSlotShaderName = "Output";
 
 		public const int InputSlot1Id = 0;
@@ -74,12 +74,12 @@ namespace UnityEngine.MaterialGraph
 
 		protected virtual string GetInputSlot2Name()
 		{
-			return "InMin/Max";
+			return "InMinMax";
 		}
 
 		protected virtual string GetInputSlot3Name()
 		{
-			return "OutMin/Max";
+			return "OutMinMax";
 		}
 
 		protected virtual string GetOutputSlotName()
