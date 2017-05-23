@@ -16,7 +16,7 @@ namespace UnityEngine.MaterialGraph
         public override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
-            foreach (var slot in GetOutputSlots<MaterialSlot>())
+            foreach (var slot in GetSlots<MaterialSlot>())
             {
                 slot.showValue = true;
             }
@@ -26,17 +26,17 @@ namespace UnityEngine.MaterialGraph
         {
             int nextSlotId;
             if (slotType == SlotType.Output)
-                nextSlotId = GetOutputSlots<ISlot>().Count() + 1;
+                nextSlotId = -GetOutputSlots<MaterialSlot>().Count() + 1;
             else
-                nextSlotId = GetInputSlots<ISlot>().Count() + 1;
+                nextSlotId = GetInputSlots<MaterialSlot>().Count() + 1;
 
-            AddSlot(new MaterialSlot(-nextSlotId, displayName, nameInShader, slotType, valueType, Vector4.zero, true));
-            return -nextSlotId;
+            AddSlot(new MaterialSlot(nextSlotId, displayName, nameInShader, slotType, valueType, Vector4.zero, true));
+            return nextSlotId;
         }
 
         public void RemoveOutputSlot()
         {
-            var lastSlotId = GetOutputSlots<ISlot>().Count();
+            var lastSlotId = -GetOutputSlots<ISlot>().Count();
             RemoveSlotById(lastSlotId);
         }
 
@@ -46,11 +46,11 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotById(lastSlotId);
         }
 
-        void RemoveSlotById(int slotID)
+        private void RemoveSlotById(int slotID)
         {
             if (slotID == 0)
                 return;
-            RemoveSlot(-slotID);
+            RemoveSlot(slotID);
         }
 
         public string GetSlotTypeName(int slotId)
@@ -58,6 +58,12 @@ namespace UnityEngine.MaterialGraph
             return ConvertConcreteSlotValueTypeToString(FindSlot<MaterialSlot>(slotId).concreteValueType);
         }
 
+        protected string GetShaderOutputName(int slotId)
+        {
+            return FindSlot<MaterialSlot>(slotId).shaderOutputName;
+        }
+
+        // Must override this
         protected abstract string GetFunctionName();
 
         private string GetFunctionParameters()
@@ -70,7 +76,7 @@ namespace UnityEngine.MaterialGraph
                     param += "out ";
 
                 param += precision + GetSlotTypeName(inSlot.id) + " ";
-                param += FindSlot<MaterialSlot>(inSlot.id).shaderOutputName;
+                param += GetShaderOutputName(inSlot.id);
 
                 if (remainingParams > 1)
                     param += ", ";
@@ -122,6 +128,7 @@ namespace UnityEngine.MaterialGraph
 
             return outDeclaration;
         }
+
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
