@@ -3,12 +3,12 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Channels/Unpack Normal Node")]
+    [Title("Channel/Unpack Normal")]
     internal class UnpackNormalNode : Function1Input
     {
         public UnpackNormalNode()
         {
-            name = "UnpackNormalNode";
+            name = "UnpackNormal";
         }
 
         public override bool hasPreview

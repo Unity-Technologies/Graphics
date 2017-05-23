@@ -1,11 +1,11 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
-    [Title("Procedural/Gradient Ramp Node")]
+    [Title("Procedural/Gradient Ramp")]
     public class GradientRampNode : Function2Input, IGeneratesFunction
     {
         public GradientRampNode()
         {
-            name = "GradientRampNode";
+            name = "GradientRamp";
         }
 
         protected override string GetFunctionName()

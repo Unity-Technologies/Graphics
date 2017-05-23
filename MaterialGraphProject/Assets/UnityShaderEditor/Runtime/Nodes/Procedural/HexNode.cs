@@ -1,11 +1,11 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
-    [Title("Procedural/Hex Node")]
+    [Title("Procedural/Hex")]
     public class HexNode : Function2Input, IGeneratesFunction
     {
         public HexNode()
         {
-            name = "HexNode";
+            name = "Hex";
         }
 
         protected override string GetFunctionName()
