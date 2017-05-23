@@ -436,7 +436,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Utilities.Destroy(m_DebugDisplayLatlong);
 
             m_SkyManager.Cleanup();
-            m_SsaoEffect.Cleanup();
+
+            if (m_SsaoEffect != null)
+                m_SsaoEffect.Cleanup();
 
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = SupportedRenderingFeatures.Default;
