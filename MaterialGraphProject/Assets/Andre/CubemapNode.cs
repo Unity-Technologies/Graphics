@@ -112,7 +112,7 @@ namespace UnityEngine.MaterialGraph
 			if (lodID == null)
 				return;
 
-			var uvName = string.Format("{0}.xyz", UVChannel.uv0.GetUVName());
+			var uvName = "reflect(-worldSpaceViewDirection, worldSpaceNormal).xyz";
 			var lodValue = lodID.currentValue.x.ToString ();
 			var edgesUV = owner.GetEdges(uvSlot.slotReference).ToList();
 			var edgesLOD = owner.GetEdges (lodID.slotReference).ToList ();
@@ -131,8 +131,8 @@ namespace UnityEngine.MaterialGraph
 				var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
 				lodValue = GetSlotValue (edge.inputSlot.slotId, GenerationMode.ForReals);
 			}
-
-			string body = "texCUBElod (" + propertyName + ", " + precision + "4(reflect(-IN.worldViewDir, normalize(IN.worldNormal)).xyz," + lodValue + "))";
+			//reflect(-IN.worldViewDir, normalize(IN.worldNormal)).xyz
+			string body = "texCUBElod (" + propertyName + ", " + precision + "4(" + uvName + "," + lodValue + "))";
 			visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + body + ";", true);
 		}
 
@@ -205,20 +205,5 @@ namespace UnityEngine.MaterialGraph
 		{
 			return true;
 		}
-
-		/*public bool RequiresMeshUV(UVChannel channel)
-		{
-			if (channel != UVChannel.uv0)
-			{
-				return false;
-			}
-
-			var uvSlot = FindInputSlot<MaterialSlot>(UvSlotId);
-			if (uvSlot == null)
-				return true;
-
-			var edges = owner.GetEdges(uvSlot.slotReference).ToList();
-			return edges.Count == 0;
-		}*/
 	}
 }

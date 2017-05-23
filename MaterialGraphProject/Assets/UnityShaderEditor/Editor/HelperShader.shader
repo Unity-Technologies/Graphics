@@ -1,58 +1,76 @@
-﻿Shader "Unlit/NewUnlitShader"
+Shader "Graph/UnityEngine.MaterialGraph.MetallicMasterNodefb4e5d27-b55b-4c39-84a8-ae6dcd6d7631" 
 {
-	Properties
+	Properties 
 	{
-		_MainTex ("Texture", 2D) = "white" {}
-	}
-	SubShader
-	{
-		Tags { "RenderType"="Opaque" }
-		LOD 100
+		[NonModifiableTextureData] Texture_5537060b_db74_4900_8f2b_178ba97b7f11_Uniform("", 2D) = "white" {}
+		Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9_Uniform("", Cube) = "" {}
 
-		Pass
+	}	
+	
+SubShader 
+{
+		Tags
 		{
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
-			// make fog work
-			#pragma multi_compile_fog
-			
-			#include "UnityCG.cginc"
-
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
-			};
-
-			struct v2f
-			{
-				float2 uv : TEXCOORD0;
-				UNITY_FOG_COORDS(1)
-				float4 vertex : SV_POSITION;
-			};
-
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
-			
-			v2f vert (appdata v)
-			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-				UNITY_TRANSFER_FOG(o,o.vertex);
-				return o;
-			}
-			
-			fixed4 frag (v2f i) : SV_Target
-			{
-				// sample the texture
-				fixed4 col = tex2D(_MainTex, i.uv);
-				// apply fog
-				UNITY_APPLY_FOG(i.fogCoord, col);
-				return col;
-			}
-			ENDCG
+			"RenderType"="Opaque"
+			"Queue"="Geometry"
 		}
+
+		Blend One Zero
+
+		Cull Back
+
+		ZTest LEqual
+
+		ZWrite On
+
+
+	LOD 200
+	
+	CGPROGRAM
+	#pragma target 3.0
+	#pragma surface surf Standard vertex:vert
+	#pragma glsl
+	#pragma debug
+
+		inline float unity_remap_float (float arg1, float2 arg2, float2 arg3)
+		{
+			return arg1 * ((arg3.y - arg3.x) / (arg2.y - arg2.x)) + arg3.x;
+		}
+
+		sampler2D Texture_5537060b_db74_4900_8f2b_178ba97b7f11_Uniform;
+		samplerCUBE Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9_Uniform;
+
+
+	struct Input 
+	{
+			float4 color : COLOR;
+			half4 meshUV0;
+			float3 worldViewDir;
+			float3 worldNormal;
+
+	};
+
+	void vert (inout appdata_full v, out Input o)
+	{
+		UNITY_INITIALIZE_OUTPUT(Input,o);
+			o.meshUV0 = v.texcoord;
+
 	}
+  
+	void surf (Input IN, inout SurfaceOutputStandard o) 
+	{
+			half4 uv0 = IN.meshUV0;
+			float3 worldSpaceViewDirection = IN.worldViewDir;
+			float3 worldSpaceNormal = normalize(IN.worldNormal);
+			float4 Texture_5537060b_db74_4900_8f2b_178ba97b7f11 = tex2D (Texture_5537060b_db74_4900_8f2b_178ba97b7f11_Uniform, uv0.xy);
+			float Remap_26b4b7a4_1c55_4c03_9830_fc5d53b3a504_Output = unity_remap_float (Texture_5537060b_db74_4900_8f2b_178ba97b7f11.r, float2 (0,1), float2 (7,-2));
+			float4 Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9 = texCUBElod (Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9_Uniform, float4(reflect(-IN.worldViewDir, normalize(IN.worldNormal)).xyz,Remap_26b4b7a4_1c55_4c03_9830_fc5d53b3a504_Output));
+			o.Emission = Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9;
+
+	}
+	ENDCG
+}
+
+
+	FallBack "Diffuse"
 }
