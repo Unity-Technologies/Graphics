@@ -19,12 +19,12 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (addNode == null)
                 return;
 
-            if (GUILayout.Button("Add Slot"))
+            if (GUILayout.Button("Add Input"))
             {
                 addNode.AddInputSlot();
                 addNode.OnModified();
             }
-            if (GUILayout.Button("Remove Slot"))
+            if (GUILayout.Button("Remove Input"))
             {
                 addNode.RemoveInputSlot();
                 addNode.OnModified();
@@ -33,7 +33,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public override float GetHeight()
         {
-            return EditorGUIUtility.singleLineHeight * 2 + 10 * EditorGUIUtility.standardVerticalSpacing;
+            return EditorGUIUtility.singleLineHeight * 2 + 3 * EditorGUIUtility.standardVerticalSpacing;
         }
     }
 

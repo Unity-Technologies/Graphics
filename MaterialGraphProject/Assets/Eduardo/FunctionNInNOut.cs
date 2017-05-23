@@ -26,7 +26,7 @@ namespace UnityEngine.MaterialGraph
         {
             int nextSlotId;
             if (slotType == SlotType.Output)
-                nextSlotId = -GetOutputSlots<MaterialSlot>().Count() + 1;
+                nextSlotId = -( GetOutputSlots<MaterialSlot>().Count() + 1 );
             else
                 nextSlotId = GetInputSlots<MaterialSlot>().Count() + 1;
 

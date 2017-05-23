@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Math/Advanced/AddMultiple")]
+    [Title("Math/Advanced/Adder")]
     public class AddManyNode : FunctionNInNOut, IGeneratesFunction
     {
         int m_nodeInputCount = 2;
@@ -17,7 +17,7 @@ namespace UnityEngine.MaterialGraph
 
         public AddManyNode()
         {
-            name = "AddMany";
+            name = "Adder";
             for(int i = 0; i < m_nodeInputCount; ++i)
             {
                 AddInputSlot();
@@ -35,7 +35,7 @@ namespace UnityEngine.MaterialGraph
 
         protected override string GetFunctionName()
         {
-            return "unity_AddMultiple";
+            return "unity_Adder";
         }
 
         string GetSumOfAllInputs()
