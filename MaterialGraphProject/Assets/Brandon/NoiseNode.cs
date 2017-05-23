@@ -1,11 +1,11 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Procedural/Noise Node")]
+    [Title("Input/Procedural/Noise")]
     public class NoiseNode : Function1Input, IGeneratesFunction
     {
         public NoiseNode()
         {
-            name = "NoiseNode";
+            name = "Noise";
         }
 
         protected override string GetFunctionName()
