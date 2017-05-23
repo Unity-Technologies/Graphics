@@ -12,7 +12,7 @@ namespace UnityEngine.MaterialGraph
         
         protected override string GetFunctionName()
         {
-            return "unity_blendmode_" + precision;
+            return "unity_blendmode_" + System.Enum.GetName(typeof(BlendModesEnum), m_BlendMode);
         }
         protected override string GetInputSlot1Name()
         {
