@@ -25,8 +25,12 @@ Material:
         m_Texture: {fileID: 8900000, guid: f7111c407ddfe4109af9703cb740eaf9, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - Texture_02e4013b_5c99_456a_a8d8_cafbb1dfc0da_Uniform:
+        m_Texture: {fileID: 2800000, guid: 5a5e07ee958edbd468227e1d9ac4726a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - Texture_5537060b_db74_4900_8f2b_178ba97b7f11_Uniform:
-        m_Texture: {fileID: 2800000, guid: 6e8d12f68bae2294da814f9d4c81b29a, type: 3}
+        m_Texture: {fileID: 10305, guid: 0000000000000000f000000000000000, type: 0}
         m_Scale: {x: 1, y: 2}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:

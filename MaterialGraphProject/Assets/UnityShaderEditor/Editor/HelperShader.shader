@@ -64,7 +64,7 @@ SubShader
 			float3 worldSpaceNormal = normalize(IN.worldNormal);
 			float4 Texture_5537060b_db74_4900_8f2b_178ba97b7f11 = tex2D (Texture_5537060b_db74_4900_8f2b_178ba97b7f11_Uniform, uv0.xy);
 			float Remap_26b4b7a4_1c55_4c03_9830_fc5d53b3a504_Output = unity_remap_float (Texture_5537060b_db74_4900_8f2b_178ba97b7f11.r, float2 (0,1), float2 (7,-2));
-			float4 Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9 = texCUBElod (Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9_Uniform, float4(reflect(-IN.worldViewDir, normalize(IN.worldNormal)).xyz,Remap_26b4b7a4_1c55_4c03_9830_fc5d53b3a504_Output));
+			float4 Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9 = texCUBElod (Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9_Uniform, float4(reflect(-worldSpaceViewDirection, worldSpaceNormal).xyz,Remap_26b4b7a4_1c55_4c03_9830_fc5d53b3a504_Output));
 			o.Emission = Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9;
 
 	}
