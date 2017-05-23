@@ -17,6 +17,13 @@ namespace UnityEditor.VFX.Test
         private readonly static string kTestAssetName = "TestAsset";
         private readonly static string kTestAssetPath = kTestAssetDir + "/" + kTestAssetName + ".asset";
 
+        private VFXAsset CreateAssetAtPath(string path)
+        {
+            VFXAsset asset = new VFXAsset();
+            AssetDatabase.CreateAsset(asset, path);
+            return asset;
+        }
+
         [OneTimeSetUpAttribute]
         public void OneTimeSetUpAttribute()
         {
@@ -25,9 +32,8 @@ namespace UnityEditor.VFX.Test
             // If the asset does not exist, create it
             if (guids.Length == 0)
             {
-                VFXAsset asset = new VFXAsset();
+                VFXAsset asset = CreateAssetAtPath(kTestAssetPath);
                 InitAsset(asset);
-                AssetDatabase.CreateAsset(asset, kTestAssetPath);
                 asset.UpdateSubAssets();
             }
         }
@@ -149,12 +155,11 @@ namespace UnityEditor.VFX.Test
 
             int hashCodeAsset = 0; //check reference are different between load & reload
             {
-                var asset = new VFXAsset();
+                var asset = CreateAssetAtPath(kTempAssetPathA);
+
                 hashCodeAsset = asset.GetHashCode();
 
                 write(asset);
-
-                AssetDatabase.CreateAsset(asset, kTempAssetPathA);
                 asset.UpdateSubAssets();
 
                 AssetDatabase.SaveAssets();

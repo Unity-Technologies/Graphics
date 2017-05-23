@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &11400000
+--- !u!114 &114043089496040764
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -8,48 +8,30 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50af7eaf6e2b10a48bf29d26134cf7e4, type: 3}
-  m_Name: TestAsset
-  m_EditorClassIdentifier: 
-  m_Root: {fileID: 114222654040958320}
---- !u!114 &114134536731845628
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9eac2724ce3930b4dbd1a5cc4e63ec72, type: 3}
-  m_Name: VFXBasicOutput
-  m_EditorClassIdentifier: 
-  m_OnEnabledCount: 0
-  m_Parent: {fileID: 114355352168141392}
-  m_Children:
-  - {fileID: 114524659945019480}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  m_Space: 0
---- !u!114 &114222654040958320
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: VFXGraph
+  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
+  m_Name: VFXSlotFloatN
   m_EditorClassIdentifier: 
   m_OnEnabledCount: 0
   m_Parent: {fileID: 0}
-  m_Children:
-  - {fileID: 114355352168141392}
-  - {fileID: 114694920997441534}
-  - {fileID: 114930636833525950}
+  m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
---- !u!114 &114334038400263760
+  expanded: 0
+  m_MasterSlot: {fileID: 114043089496040764}
+  m_MasterData:
+    m_Owner: {fileID: 114914353269033574}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"m_Components":[0.0]}'
+  m_Property:
+    name: right
+    typeName: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &114167302849422246
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -57,17 +39,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9dfea48843f53fc438eabc12a3a30abc, type: 3}
-  m_Name: VFXBasicInitialize
+  m_Script: {fileID: 11500000, guid: ce3c8f2f082d66940aad4832890a5527, type: 3}
+  m_Name: VFXUpdateBlockTest
   m_EditorClassIdentifier: 
   m_OnEnabledCount: 0
-  m_Parent: {fileID: 114355352168141392}
-  m_Children:
-  - {fileID: 114697524975589290}
+  m_Parent: {fileID: 114513079282167236}
+  m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
-  m_Space: 0
---- !u!114 &114355297445908046
+  m_InputSlots: []
+  m_OutputSlots: []
+  m_Disabled: 0
+--- !u!114 &114170484411282176
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -84,9 +67,9 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   expanded: 0
-  m_MasterSlot: {fileID: 114355297445908046}
+  m_MasterSlot: {fileID: 114170484411282176}
   m_MasterData:
-    m_Owner: {fileID: 114930636833525950}
+    m_Owner: {fileID: 114914353269033574}
     m_Value:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
@@ -97,7 +80,26 @@ MonoBehaviour:
     typeName: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
   m_Direction: 1
   m_LinkedSlots: []
---- !u!114 &114355352168141392
+--- !u!114 &114182869428683030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
+  m_Name: VFXGraph
+  m_EditorClassIdentifier: 
+  m_OnEnabledCount: 0
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 114735578626334852}
+  - {fileID: 114366234821033256}
+  - {fileID: 114914353269033574}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+--- !u!114 &114366234821033256
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -109,14 +111,13 @@ MonoBehaviour:
   m_Name: VFXSystem
   m_EditorClassIdentifier: 
   m_OnEnabledCount: 0
-  m_Parent: {fileID: 114222654040958320}
+  m_Parent: {fileID: 114182869428683030}
   m_Children:
-  - {fileID: 114334038400263760}
-  - {fileID: 114741034412431100}
-  - {fileID: 114134536731845628}
+  - {fileID: 114385589487793938}
+  - {fileID: 114718762207328570}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
---- !u!114 &114421581111530608
+--- !u!114 &114385589487793938
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -128,12 +129,14 @@ MonoBehaviour:
   m_Name: VFXBasicInitialize
   m_EditorClassIdentifier: 
   m_OnEnabledCount: 0
-  m_Parent: {fileID: 114694920997441534}
+  m_Parent: {fileID: 114366234821033256}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots: []
   m_Space: 0
---- !u!114 &114524659945019480
+--- !u!114 &114388290396550388
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -141,55 +144,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85a065f9117f7204f869b219219f2105, type: 3}
-  m_Name: VFXOutputBlockTest
+  m_Script: {fileID: 11500000, guid: 9dfea48843f53fc438eabc12a3a30abc, type: 3}
+  m_Name: VFXBasicInitialize
   m_EditorClassIdentifier: 
   m_OnEnabledCount: 0
-  m_Parent: {fileID: 114134536731845628}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  m_InputSlots: []
-  m_OutputSlots: []
-  m_Disabled: 0
---- !u!114 &114694920997441534
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 015eabc1f22b29644b722ce5fb0da63f, type: 3}
-  m_Name: VFXSystem
-  m_EditorClassIdentifier: 
-  m_OnEnabledCount: 0
-  m_Parent: {fileID: 114222654040958320}
+  m_Parent: {fileID: 114735578626334852}
   m_Children:
-  - {fileID: 114421581111530608}
-  - {fileID: 114784242602018928}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
---- !u!114 &114697524975589290
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 515aa73a6b508f441a2ce0e583435f55, type: 3}
-  m_Name: VFXInitBlockTest
-  m_EditorClassIdentifier: 
-  m_OnEnabledCount: 0
-  m_Parent: {fileID: 114334038400263760}
-  m_Children: []
+  - {fileID: 114797645557497792}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Disabled: 0
---- !u!114 &114722703329637816
+  m_Space: 0
+--- !u!114 &114394579051527132
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -206,58 +173,9 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   expanded: 0
-  m_MasterSlot: {fileID: 114722703329637816}
+  m_MasterSlot: {fileID: 114394579051527132}
   m_MasterData:
-    m_Owner: {fileID: 114930636833525950}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[0.0]}'
-  m_Property:
-    name: right
-    typeName: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable, Version=0.0.0.0,
-      Culture=neutral, PublicKeyToken=null
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114741034412431100
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2dc095764ededfa4bb32fa602511ea4b, type: 3}
-  m_Name: VFXBasicUpdate
-  m_EditorClassIdentifier: 
-  m_OnEnabledCount: 0
-  m_Parent: {fileID: 114355352168141392}
-  m_Children:
-  - {fileID: 114810083796771944}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  m_Space: 0
---- !u!114 &114741589218294824
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_OnEnabledCount: 0
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
-  expanded: 0
-  m_MasterSlot: {fileID: 114741589218294824}
-  m_MasterData:
-    m_Owner: {fileID: 114930636833525950}
+    m_Owner: {fileID: 114914353269033574}
     m_Value:
       m_Type:
         m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
@@ -269,7 +187,27 @@ MonoBehaviour:
       Culture=neutral, PublicKeyToken=null
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114784242602018928
+--- !u!114 &114513079282167236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dc095764ededfa4bb32fa602511ea4b, type: 3}
+  m_Name: VFXBasicUpdate
+  m_EditorClassIdentifier: 
+  m_OnEnabledCount: 0
+  m_Parent: {fileID: 114735578626334852}
+  m_Children:
+  - {fileID: 114167302849422246}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots: []
+  m_Space: 0
+--- !u!114 &114718762207328570
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -281,12 +219,14 @@ MonoBehaviour:
   m_Name: VFXBasicOutput
   m_EditorClassIdentifier: 
   m_OnEnabledCount: 0
-  m_Parent: {fileID: 114694920997441534}
+  m_Parent: {fileID: 114366234821033256}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots: []
   m_Space: 0
---- !u!114 &114810083796771944
+--- !u!114 &114735578626334852
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -294,18 +234,37 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ce3c8f2f082d66940aad4832890a5527, type: 3}
-  m_Name: VFXUpdateBlockTest
+  m_Script: {fileID: 11500000, guid: 015eabc1f22b29644b722ce5fb0da63f, type: 3}
+  m_Name: VFXSystem
   m_EditorClassIdentifier: 
   m_OnEnabledCount: 0
-  m_Parent: {fileID: 114741034412431100}
+  m_Parent: {fileID: 114182869428683030}
+  m_Children:
+  - {fileID: 114388290396550388}
+  - {fileID: 114513079282167236}
+  - {fileID: 114961351619585584}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+--- !u!114 &114797645557497792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 515aa73a6b508f441a2ce0e583435f55, type: 3}
+  m_Name: VFXInitBlockTest
+  m_EditorClassIdentifier: 
+  m_OnEnabledCount: 0
+  m_Parent: {fileID: 114388290396550388}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
   m_Disabled: 0
---- !u!114 &114930636833525950
+--- !u!114 &114914353269033574
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -317,16 +276,89 @@ MonoBehaviour:
   m_Name: VFXOperatorAdd
   m_EditorClassIdentifier: 
   m_OnEnabledCount: 0
-  m_Parent: {fileID: 114222654040958320}
+  m_Parent: {fileID: 114182869428683030}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_InputSlots:
-  - {fileID: 114722703329637816}
-  - {fileID: 114741589218294824}
+  - {fileID: 114043089496040764}
+  - {fileID: 114394579051527132}
   m_OutputSlots:
-  - {fileID: 114355297445908046}
+  - {fileID: 114170484411282176}
   m_SettingsBuffer:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+--- !u!114 &114944146129371670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85a065f9117f7204f869b219219f2105, type: 3}
+  m_Name: VFXOutputBlockTest
+  m_EditorClassIdentifier: 
+  m_OnEnabledCount: 0
+  m_Parent: {fileID: 114961351619585584}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots: []
+  m_Disabled: 0
+--- !u!114 &114961351619585584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eac2724ce3930b4dbd1a5cc4e63ec72, type: 3}
+  m_Name: VFXBasicOutput
+  m_EditorClassIdentifier: 
+  m_OnEnabledCount: 0
+  m_Parent: {fileID: 114735578626334852}
+  m_Children:
+  - {fileID: 114944146129371670}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_InputSlots: []
+  m_OutputSlots: []
+  m_Space: 0
+--- !u!2058629509 &8926484042661614526
+VFXAsset:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: TestAsset
+  m_Graph: {fileID: 114182869428683030}
+  m_Systems: []
+  m_Expressions:
+    m_Expressions: []
+    m_SemanticToExpressionIndex: {}
+    m_NeedsLocalToWorld: 0
+    m_NeedsWorldToLocal: 0
+  m_Spawners: []
+  m_SpawnerEvents: []
+  m_ExposedExpressions: []
+  m_ExposedEditorDescs: []
+  m_FloatTexture: {fileID: 0}
+  m_Bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_PropertySheet:
+    m_Float:
+      m_Array: []
+    m_Vector2f:
+      m_Array: []
+    m_Vector3f:
+      m_Array: []
+    m_Vector4f:
+      m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
+    m_NamedObject:
+      m_Array: []
