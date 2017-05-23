@@ -28,21 +28,21 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        bool            m_Enabled = false;
-        int             m_ActiveMenuIndex = 0;
-        List<DebugMenu> m_DebugMenus = new List<DebugMenu>();
-        DebugMenu       m_PersistentDebugMenu = null;
-        DebugMenuUI     m_DebugMenuUI = null;
-        bool            m_UpdateFromItemStateRequired = false;
+        bool                m_Enabled = false;
+        int                 m_ActivePanelIndex = 0;
+        List<DebugPanel>    m_DebugPanels = new List<DebugPanel>();
+        DebugPanel          m_PersistentDebugPanel = null;
+        DebugMenuUI         m_DebugMenuUI = null;
+        bool                m_UpdateFromItemStateRequired = false;
 
-        public bool isEnabled       { get { return m_Enabled; } }
-        public int activeMenuIndex  { get { return m_ActiveMenuIndex; } set { m_ActiveMenuIndex = value; } }
-        public int  menuCount       { get { return m_DebugMenus.Count; } }
+        public bool isEnabled           { get { return m_Enabled; } }
+        public int  activePanelIndex    { get { return m_ActivePanelIndex; } set { m_ActivePanelIndex = value; } }
+        public int  panelCount          { get { return m_DebugPanels.Count; } }
 
         DebugMenuManager()
         {
-            LookUpDebugMenuClasses();
-            m_PersistentDebugMenu = new DebugMenu("Persistent");
+            LookUpDebugPanelClasses();
+            m_PersistentDebugPanel = new DebugPanel("Persistent");
             m_DebugMenuUI = new DebugMenuUI(this);
 
             var updater = GameObject.Find("DebugMenuUpdater");
@@ -72,58 +72,65 @@ namespace UnityEngine.Experimental.Rendering
             m_UpdateFromItemStateRequired = true;
         }
 
-        public DebugMenuItemState FindDebugItemState(string itemName, string menuName)
+        public DebugItemState FindDebugItemState(string itemName, string menuName)
         {
             return m_DebugMenuState.FindDebugItemState(itemName, menuName);
         }
 
-        public void AddDebugMenuItemState(DebugMenuItemState state)
+        public void AddDebugItemState(DebugItemState state)
         {
             m_DebugMenuState.AddDebugItemState(state);
         }
 
-        public DebugMenu GetDebugMenu(int index)
+        public DebugPanel GetDebugPanel(int index)
         {
-            if (index < m_DebugMenus.Count)
-                return m_DebugMenus[index];
+            if (index < m_DebugPanels.Count)
+                return m_DebugPanels[index];
             else
                 return null;
         }
 
-        public DebugMenu GetPersistentDebugMenu()
+        public DebugPanel GetPersistentDebugPanel()
         {
-            return m_PersistentDebugMenu;
+            return m_PersistentDebugPanel;
         }
 
-        void LookUpDebugMenuClasses()
+        void LookUpDebugPanelClasses()
         {
             // Prepare all debug menus
-            var types = Assembly.GetAssembly(typeof(DebugMenu)).GetTypes()
-                .Where(t => t.IsSubclassOf(typeof(DebugMenu)));
+            var types = Assembly.GetAssembly(typeof(DebugPanel)).GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(DebugPanel)));
 
-            m_DebugMenus.Clear();
+            m_DebugPanels.Clear();
 
             foreach (var type in types)
             {
-                m_DebugMenus.Add((DebugMenu)Activator.CreateInstance(type));
+                m_DebugPanels.Add((DebugPanel)Activator.CreateInstance(type));
             }
         }
 
-        public void PreviousDebugMenu()
+        public void PreviousDebugPanel()
         {
-            m_DebugMenus[m_ActiveMenuIndex].SetSelected(false);
-            m_ActiveMenuIndex = m_ActiveMenuIndex - 1;
-            if (m_ActiveMenuIndex == -1)
-                m_ActiveMenuIndex = m_DebugMenus.Count - 1;
+            m_DebugPanels[m_ActivePanelIndex].SetSelected(false);
+            m_ActivePanelIndex = m_ActivePanelIndex - 1;
+            if (m_ActivePanelIndex == -1)
+                m_ActivePanelIndex = m_DebugPanels.Count - 1;
 
-            m_DebugMenus[m_ActiveMenuIndex].SetSelected(true);
+            m_DebugPanels[m_ActivePanelIndex].SetSelected(true);
+
+            //m_DebugMenuUI.Toggle();
+            //m_DebugMenuUI.Toggle();
         }
 
-        public void NextDebugMenu()
+        public void NextDebugPanel()
         {
-            m_DebugMenus[m_ActiveMenuIndex].SetSelected(false);
-            m_ActiveMenuIndex = (m_ActiveMenuIndex + 1) % m_DebugMenus.Count;
-            m_DebugMenus[m_ActiveMenuIndex].SetSelected(true);
+            m_DebugPanels[m_ActivePanelIndex].SetSelected(false);
+            m_ActivePanelIndex = (m_ActivePanelIndex + 1) % m_DebugPanels.Count;
+            m_DebugPanels[m_ActivePanelIndex].SetSelected(true);
+
+
+            //m_DebugMenuUI.Toggle();
+            //m_DebugMenuUI.Toggle();
         }
 
         public void ToggleMenu()
@@ -132,54 +139,54 @@ namespace UnityEngine.Experimental.Rendering
 
             m_DebugMenuUI.BuildGUI();
             m_DebugMenuUI.Toggle();
-            m_DebugMenus[m_ActiveMenuIndex].SetSelected(m_Enabled);
+            m_DebugPanels[m_ActivePanelIndex].SetSelected(m_Enabled);
         }
 
         public void OnValidate()
         {
-            m_DebugMenus[m_ActiveMenuIndex].OnValidate();
+            m_DebugPanels[m_ActivePanelIndex].OnValidate();
         }
 
         public void OnMakePersistent()
         {
-            DebugMenuItem selectedItem = m_DebugMenus[m_ActiveMenuIndex].GetSelectedDebugMenuItem();
+            DebugItem selectedItem = m_DebugPanels[m_ActivePanelIndex].GetSelectedDebugItem();
             if(selectedItem != null && selectedItem.readOnly)
             {
-                if(m_PersistentDebugMenu.HasItem(selectedItem))
+                if(m_PersistentDebugPanel.HasDebugItem(selectedItem))
                 {
-                    m_PersistentDebugMenu.RemoveDebugItem(selectedItem);
+                    m_PersistentDebugPanel.RemoveDebugItem(selectedItem);
                 }
                 else
                 {
-                    m_PersistentDebugMenu.AddDebugItem(selectedItem);
+                    m_PersistentDebugPanel.AddDebugItem(selectedItem);
                 }
             }
 
-            if(m_PersistentDebugMenu.itemCount == 0)
+            if(m_PersistentDebugPanel.itemCount == 0)
             {
-                m_PersistentDebugMenu.SetSelected(false);
+                m_PersistentDebugPanel.SetSelected(false);
                 m_DebugMenuUI.EnablePersistentView(false); // Temp, should just need the above. Wait for background UI to be moved to menu itself
             }
             else
             {
-                m_PersistentDebugMenu.SetSelected(true);
+                m_PersistentDebugPanel.SetSelected(true);
                 m_DebugMenuUI.EnablePersistentView(true);
             }
         }
 
         public void OnMoveHorizontal(float value)
         {
-            m_DebugMenus[m_ActiveMenuIndex].OnMoveHorizontal(value);
+            m_DebugPanels[m_ActivePanelIndex].OnMoveHorizontal(value);
         }
 
         public void OnMoveVertical(float value)
         {
-            m_DebugMenus[m_ActiveMenuIndex].OnMoveVertical(value);
+            m_DebugPanels[m_ActivePanelIndex].OnMoveVertical(value);
         }
 
-        T GetDebugMenu<T>() where T:DebugMenu
+        T GetDebugPanel<T>() where T:DebugPanel
         {
-            foreach(DebugMenu menu in m_DebugMenus)
+            foreach(DebugPanel menu in m_DebugPanels)
             {
                 if (menu is T)
                     return menu as T;
@@ -188,9 +195,9 @@ namespace UnityEngine.Experimental.Rendering
             return null;
         }
 
-        public DebugMenu GetDebugMenu(string name)
+        public DebugPanel GetDebugPanel(string name)
         {
-            foreach(DebugMenu menu in m_DebugMenus)
+            foreach(DebugPanel menu in m_DebugPanels)
             {
                 if (menu.name == name)
                     return menu;
@@ -201,10 +208,10 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Update()
         {
-            if (m_ActiveMenuIndex != -1)
-                m_DebugMenus[m_ActiveMenuIndex].Update();
+            if (m_ActivePanelIndex != -1)
+                m_DebugPanels[m_ActivePanelIndex].Update();
 
-            m_PersistentDebugMenu.Update();
+            m_PersistentDebugPanel.Update();
 
             if(m_UpdateFromItemStateRequired)
             {
@@ -213,28 +220,28 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public void AddDebugItem<DebugMenuType, ItemType>(string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemHandler handler = null) where DebugMenuType : DebugMenu
+        public void AddDebugItem<DebugPanelType, DebugItemType>(string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemHandler handler = null) where DebugPanelType : DebugPanel
         {
-            DebugMenuType debugMenu = GetDebugMenu<DebugMenuType>();
+            DebugPanelType debugMenu = GetDebugPanel<DebugPanelType>();
             if (debugMenu != null)
             {
-                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, dynamicDisplay, handler);
+                debugMenu.AddDebugItem<DebugItemType>(name, getter, setter, dynamicDisplay, handler);
             }
         }
 
-        public void AddDebugItem<ItemType>(string debugMenuName, string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemHandler handler = null)
+        public void AddDebugItem<DebugItemType>(string debugPanelName, string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemHandler handler = null)
         {
-            DebugMenu debugMenu = GetDebugMenu(debugMenuName);
+            DebugPanel debugPanel = GetDebugPanel(debugPanelName);
             // If the menu does not exist, create a generic one. This way, users don't have to explicitely create a new DebugMenu class if they don't need any particular overriding of default behavior.
-            if(debugMenu == null)
+            if(debugPanel == null)
             {
-                debugMenu = new DebugMenu(debugMenuName);
-                m_DebugMenus.Add(debugMenu);
+                debugPanel = new DebugPanel(debugPanelName);
+                m_DebugPanels.Add(debugPanel);
             }
 
-            if (debugMenu != null)
+            if (debugPanel != null)
             {
-                debugMenu.AddDebugMenuItem<ItemType>(name, getter, setter, dynamicDisplay, handler);
+                debugPanel.AddDebugItem<DebugItemType>(name, getter, setter, dynamicDisplay, handler);
             }
         }
     }

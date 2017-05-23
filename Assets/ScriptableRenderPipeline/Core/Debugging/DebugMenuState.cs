@@ -6,28 +6,28 @@ using System;
 namespace UnityEngine.Experimental.Rendering
 {
     [Serializable]
-    public abstract class DebugMenuItemState
+    public abstract class DebugItemState
         : ScriptableObject
     {
-        public DebugMenuItemState()
+        public DebugItemState()
         {
 
         }
 
-        public string menuName = "";
+        public string panelName = "";
         public string itemName = "";
 
         public abstract void UpdateValue();
         public abstract void SetValue(object value);
 
-        public void Initialize(string itemName, string menuName)
+        public void Initialize(string itemName, string panelName)
         {
-            this.menuName = menuName;
+            this.panelName = panelName;
             this.itemName = itemName;
         }
     }
 
-    public class DebugMenuItemState<T> : DebugMenuItemState
+    public class DebugItemState<T> : DebugItemState
     {
         public T value;
 
@@ -43,10 +43,10 @@ namespace UnityEngine.Experimental.Rendering
         public override void UpdateValue()
         {
             DebugMenuManager dmm = DebugMenuManager.instance;
-            DebugMenu menu = dmm.GetDebugMenu(menuName);
+            DebugPanel menu = dmm.GetDebugPanel(panelName);
             if (menu != null)
             {
-                DebugMenuItem item = menu.GetDebugMenuItem(itemName);
+                DebugItem item = menu.GetDebugItem(itemName);
                 if (item != null)
                 {
                     item.SetValue(value, false);
@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering
         : ScriptableObject
     {
         [SerializeField]
-        List<DebugMenuItemState> m_ItemStateList = new List<DebugMenuItemState>();
+        List<DebugItemState> m_ItemStateList = new List<DebugItemState>();
 
         public void OnEnable()
         {
@@ -95,14 +95,14 @@ namespace UnityEngine.Experimental.Rendering
         {
             // Remove all objects that may have been removed from the debug menu.
             DebugMenuManager dmm = DebugMenuManager.instance;
-            List<DebugMenuItemState> tempList = new List<DebugMenuItemState>();
+            List<DebugItemState> tempList = new List<DebugItemState>();
             foreach(var itemState in  m_ItemStateList)
             {
-                DebugMenuItem item = null;
-                DebugMenu menu = dmm.GetDebugMenu(itemState.menuName);
+                DebugItem item = null;
+                DebugPanel menu = dmm.GetDebugPanel(itemState.panelName);
                 if(menu != null)
                 {
-                    item = menu.GetDebugMenuItem(itemState.itemName);
+                    item = menu.GetDebugItem(itemState.itemName);
                 }
 
                 // Item no longer exist, clean up its state from the asset.
@@ -119,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public void AddDebugItemState(DebugMenuItemState state)
+        public void AddDebugItemState(DebugItemState state)
         {
 #if UNITY_EDITOR
             UnityEditor.AssetDatabase.AddObjectToAsset(state, this);
@@ -127,9 +127,9 @@ namespace UnityEngine.Experimental.Rendering
             m_ItemStateList.Add(state);
         }
 
-        public DebugMenuItemState FindDebugItemState(string itemName, string menuName)
+        public DebugItemState FindDebugItemState(string itemName, string menuName)
         {
-            return m_ItemStateList.Find(x => x.itemName == itemName && x.menuName == menuName);
+            return m_ItemStateList.Find(x => x.itemName == itemName && x.panelName == menuName);
         }
 
         public void UpdateAllItems()

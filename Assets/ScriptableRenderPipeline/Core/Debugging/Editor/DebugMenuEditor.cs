@@ -34,8 +34,8 @@ namespace UnityEngine.Experimental.Rendering
 
             // Contrary to the menu in the player, here we always render the menu wether it's enabled or not. This is a separate window so user can manage it however they want.
             EditorGUI.BeginChangeCheck();
-            int debugMenuCount = m_DebugMenu.menuCount;
-            int activeMenuIndex = m_DebugMenu.activeMenuIndex;
+            int debugMenuCount = m_DebugMenu.panelCount;
+            int activeMenuIndex = m_DebugMenu.activePanelIndex;
             using (new EditorGUILayout.HorizontalScope())
             {
                 for(int i = 0 ; i < debugMenuCount ; ++i)
@@ -45,23 +45,23 @@ namespace UnityEngine.Experimental.Rendering
                         style = EditorStyles.miniButtonLeft;
                     if (i == debugMenuCount - 1)
                         style = EditorStyles.miniButtonRight;
-                    if (GUILayout.Toggle(i == activeMenuIndex, new GUIContent(m_DebugMenu.GetDebugMenu(i).name), style))
+                    if (GUILayout.Toggle(i == activeMenuIndex, new GUIContent(m_DebugMenu.GetDebugPanel(i).name), style))
                         activeMenuIndex = i;
                 }
             }
             if(EditorGUI.EndChangeCheck())
             {
-                m_DebugMenu.activeMenuIndex = activeMenuIndex;
+                m_DebugMenu.activePanelIndex = activeMenuIndex;
             }
            
             using(new EditorGUILayout.VerticalScope())
             {
-                DebugMenu activeMenu = m_DebugMenu.GetDebugMenu(m_DebugMenu.activeMenuIndex);
+                DebugPanel activePanel = m_DebugMenu.GetDebugPanel(m_DebugMenu.activePanelIndex);
                 bool needRepaint = false;
-                for (int i = 0; i < activeMenu.itemCount; ++i)
+                for (int i = 0; i < activePanel.itemCount; ++i)
                 {
-                    DebugMenuItem menuItem = activeMenu.GetDebugMenuItem(i);
-                    needRepaint = needRepaint || menuItem.handler.OnEditorGUI();
+                    DebugItem debugItem = activePanel.GetDebugItem(i);
+                    needRepaint = needRepaint || debugItem.handler.OnEditorGUI();
                 }
 
                 if (needRepaint)

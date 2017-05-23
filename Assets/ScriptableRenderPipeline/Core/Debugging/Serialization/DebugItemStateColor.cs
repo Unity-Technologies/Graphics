@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    public class DebugItemStateColor : DebugMenuItemState<Color>
+    public class DebugItemStateColor : DebugItemState<Color>
     {
     }
 }

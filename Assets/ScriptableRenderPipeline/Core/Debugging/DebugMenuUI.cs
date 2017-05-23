@@ -104,14 +104,14 @@ namespace UnityEngine.Experimental.Rendering
 
             DebugMenuUI.CreateTextElement("DebugMenuTitle", "Debug Menu", 14, TextAnchor.MiddleCenter, goVL);
 
-            int menuCount = m_DebugMenuManager.menuCount;
+            int menuCount = m_DebugMenuManager.panelCount;
             m_MenuRoots = new GameObject[menuCount];
             for (int i = 0; i < menuCount; ++i)
             {
-                m_MenuRoots[i] = m_DebugMenuManager.GetDebugMenu(i).BuildGUI(goVL);
+                m_MenuRoots[i] = m_DebugMenuManager.GetDebugPanel(i).BuildGUI(goVL);
             }
 
-            m_DebugMenuManager.GetPersistentDebugMenu().BuildGUI(goVL2);
+            m_DebugMenuManager.GetPersistentDebugPanel().BuildGUI(goVL2);
         }
 
         public static GameObject CreateVerticalLayoutGroup(string name, bool controlWidth, bool controlHeight, bool forceExpandWidth, bool forceExpandHeight, GameObject parent = null )
