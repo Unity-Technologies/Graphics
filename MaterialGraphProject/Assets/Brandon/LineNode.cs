@@ -55,22 +55,6 @@
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
 
-
-            //float line(vec2 a, vec2 b, vec2 p)
-            //{
-            //    vec2 aTob = b - a;
-            //    vec2 aTop = p - a;
-
-            //    float t = dot(aTop, aTob) / dot(aTob, aTob);
-
-            //    t = clamp(t, 0.0, 1.0);
-
-            //    float d = length(p - (a + aTob * t));
-            //    d = 1.0 / d;
-
-            //    return clamp(d, 0.0, 1.0);
-            //}
-
             outputString.AddShaderChunk("float2 aTob = b - a;", false);
             outputString.AddShaderChunk("float2 aTop = uv - a;", false);
             outputString.AddShaderChunk("float t = dot(aTop, aTob) / dot(aTob, aTob);", false);
