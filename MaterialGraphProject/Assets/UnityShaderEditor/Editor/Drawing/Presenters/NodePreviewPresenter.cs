@@ -181,6 +181,9 @@ namespace UnityEditor.MaterialGraph.Drawing
                 case PropertyType.Texture2D:
                     mat.SetTexture(previewProperty.m_Name, previewProperty.m_Texture);
                     break;
+				case PropertyType.Cubemap:
+					mat.SetTexture(previewProperty.m_Name, previewProperty.m_Cubemap);
+					break;
                 case PropertyType.Color:
                     mat.SetColor(previewProperty.m_Name, previewProperty.m_Color);
                     break;

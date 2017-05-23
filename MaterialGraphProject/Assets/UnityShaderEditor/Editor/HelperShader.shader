@@ -1,58 +1,57 @@
-﻿Shader "Unlit/NewUnlitShader"
+Shader "Graph/UnityEngine.MaterialGraph.MetallicMasterNode6ab95a24-fc7d-4a4e-8828-a2de989d8143" 
 {
-	Properties
+	Properties 
 	{
-		_MainTex ("Texture", 2D) = "white" {}
-	}
-	SubShader
-	{
-		Tags { "RenderType"="Opaque" }
-		LOD 100
 
-		Pass
+	}	
+	
+SubShader 
+{
+		Tags
 		{
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
-			// make fog work
-			#pragma multi_compile_fog
-			
-			#include "UnityCG.cginc"
-
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
-			};
-
-			struct v2f
-			{
-				float2 uv : TEXCOORD0;
-				UNITY_FOG_COORDS(1)
-				float4 vertex : SV_POSITION;
-			};
-
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
-			
-			v2f vert (appdata v)
-			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-				UNITY_TRANSFER_FOG(o,o.vertex);
-				return o;
-			}
-			
-			fixed4 frag (v2f i) : SV_Target
-			{
-				// sample the texture
-				fixed4 col = tex2D(_MainTex, i.uv);
-				// apply fog
-				UNITY_APPLY_FOG(i.fogCoord, col);
-				return col;
-			}
-			ENDCG
+			"RenderType"="Opaque"
+			"Queue"="Geometry"
 		}
+
+		Blend One Zero
+
+		Cull Back
+
+		ZTest LEqual
+
+		ZWrite On
+
+
+	LOD 200
+	
+	CGPROGRAM
+	#pragma target 3.0
+	#pragma surface surf Standard vertex:vert
+	#pragma glsl
+	#pragma debug
+
+
+
+
+	struct Input 
+	{
+			float4 color : COLOR;
+
+	};
+
+	void vert (inout appdata_full v, out Input o)
+	{
+		UNITY_INITIALIZE_OUTPUT(Input,o);
+
 	}
+  
+	void surf (Input IN, inout SurfaceOutputStandard o) 
+	{
+
+	}
+	ENDCG
+}
+
+
+	FallBack "Diffuse"
 }

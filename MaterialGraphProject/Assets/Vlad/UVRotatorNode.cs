@@ -2,7 +2,7 @@
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Math/UVOperations/Rotator")]
+    [Title("UV/Rotator")]
     public class UVRotatorNode : Function2Input, IGeneratesFunction
     {
         private const string kUVSlotName = "UV";

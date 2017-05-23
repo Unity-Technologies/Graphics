@@ -175,6 +175,14 @@ namespace UnityEngine.MaterialGraph
                     outputString.Deindent();
                     outputString.AddShaderChunk("}", false);
                     break;
+                case BlendModesEnum.Substract:
+                    outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
+                    outputString.AddShaderChunk("{", false);
+                    outputString.Indent();
+                    outputString.AddShaderChunk("return arg1 - arg2;", false);
+                    outputString.Deindent();
+                    outputString.AddShaderChunk("}", false);
+                    break;
             }
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
