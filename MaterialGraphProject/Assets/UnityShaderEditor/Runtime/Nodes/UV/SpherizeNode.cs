@@ -65,7 +65,7 @@
 
             outputString.AddShaderChunk("float2 fromUVToPoint = position - uv;", false);
             outputString.AddShaderChunk("float dist = length(fromUVToPoint);", false);
-            outputString.AddShaderChunk("float mag = (1.0 - (dist / radiusAndStrength.x)) * radiusAndStrength.y * step(dist, radiusAndStrength.x);", false);
+            outputString.AddShaderChunk("float mag = ((1.0 - (dist / radiusAndStrength.x)) * radiusAndStrength.y) * step(dist, radiusAndStrength.x);", false);
             outputString.AddShaderChunk("return uv + (mag * fromUVToPoint);", false);
 
             outputString.Deindent();
