@@ -5,6 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public enum SlotValueType
     {
+        sampler2D,
         Dynamic,
         Vector4,
         Vector3,
@@ -14,6 +15,7 @@ namespace UnityEngine.MaterialGraph
 
     public enum ConcreteSlotValueType
     {
+        sampler2D = 5,
         Vector4 = 4,
         Vector3 = 3,
         Vector2 = 2,

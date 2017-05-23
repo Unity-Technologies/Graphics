@@ -71,6 +71,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual("2", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector2));
             Assert.AreEqual("3", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector3));
             Assert.AreEqual("4", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector4));
+            Assert.AreEqual("5", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Error));
             Assert.AreEqual("Error", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Error));
         }
 

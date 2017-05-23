@@ -130,6 +130,8 @@ namespace UnityEngine.MaterialGraph
                     return ConcreteSlotValueType.Vector3;
                 case SlotValueType.Vector4:
                     return ConcreteSlotValueType.Vector4;
+                case SlotValueType.sampler2D:
+                    return ConcreteSlotValueType.sampler2D;
             }
             return ConcreteSlotValueType.Error;
         }
@@ -290,6 +292,8 @@ namespace UnityEngine.MaterialGraph
                     return "3";
                 case ConcreteSlotValueType.Vector4:
                     return "4";
+                case ConcreteSlotValueType.sampler2D:
+                    return "5";
                 default:
                     return "Error";
             }
@@ -299,6 +303,8 @@ namespace UnityEngine.MaterialGraph
         {
             switch (slotValue)
             {
+                case ConcreteSlotValueType.sampler2D:
+                    return PropertyType.Texture2D;
                 case ConcreteSlotValueType.Vector1:
                     return PropertyType.Float;
                 case ConcreteSlotValueType.Vector2:
