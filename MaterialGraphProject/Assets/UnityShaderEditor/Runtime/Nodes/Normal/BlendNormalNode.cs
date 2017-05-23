@@ -2,17 +2,17 @@
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Art/Normal Blend")]
-    public class NormalBlendNode : Function2Input, IGeneratesFunction
+    [Title("Normal/Blend Normal")]
+    public class BlendNormalNode : Function2Input, IGeneratesFunction
     {
-        public NormalBlendNode()
+        public BlendNormalNode()
         {
-            name = "Normal Blend";
+            name = "BlendNormal";
         }
 
         protected override string GetFunctionName()
         {
-            return "unity_normalblend_" + precision;
+            return "unity_blendnormal_" + precision;
         }
 
         protected override MaterialSlot GetInputSlot1()

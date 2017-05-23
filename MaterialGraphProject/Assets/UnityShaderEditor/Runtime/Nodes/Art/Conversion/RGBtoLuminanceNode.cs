@@ -2,10 +2,10 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-	[Title ("Math/Color/RGBtoLuminance")]
-	public class RGBtoLuminance : Function1Input, IGeneratesFunction
+	[Title ("Art/Conversion/RGBtoLuminance")]
+	public class RGBtoLuminanceNode : Function1Input, IGeneratesFunction
 	{
-		public RGBtoLuminance()
+		public RGBtoLuminanceNode()
 		{
 			name = "RGBtoLuminance";
 		}

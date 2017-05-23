@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Range/Level Node")]
-    public class LevelNode : Function1Input, IGeneratesFunction
+    [Title("Art/Adjustments/Levels")]
+    public class LevelsNode : Function1Input, IGeneratesFunction
     {
         [SerializeField]
         private float m_InputMin = 0.0f;
@@ -82,14 +82,14 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public LevelNode()
+        public LevelsNode()
         {
-            name = "LevelNode";
+            name = "Levels";
         }
 
         protected override string GetFunctionName()
         {
-            return "unity_level_" + precision;
+            return "unity_levels_" + precision;
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)

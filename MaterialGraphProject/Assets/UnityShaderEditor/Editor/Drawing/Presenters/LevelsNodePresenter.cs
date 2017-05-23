@@ -6,13 +6,13 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    class LevelControlPresenter : GraphControlPresenter
+    class LevelsControlPresenter : GraphControlPresenter
     {
         public override void OnGUIHandler()
         {
             base.OnGUIHandler();
 
-            var tNode = node as LevelNode;
+            var tNode = node as LevelsNode;
             if (tNode == null)
                 return;
 
@@ -30,11 +30,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-    public class LevelNodePresenter : PropertyNodePresenter
+    public class LevelsNodePresenter : PropertyNodePresenter
     {
         protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
-            var instance = CreateInstance<LevelControlPresenter>();
+            var instance = CreateInstance<LevelsControlPresenter>();
             instance.Initialize(node);
             return new List<GraphElementPresenter>(base.GetControlData()) { instance };
         }

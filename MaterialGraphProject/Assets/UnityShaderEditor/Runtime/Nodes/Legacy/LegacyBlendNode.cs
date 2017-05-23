@@ -1,11 +1,11 @@
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Art/Blend Node")]
-    public class BlendNode : Function2Input, IGeneratesFunction
+    [Title("Legacy/Blend")]
+    public class LegacyBlendNode : Function2Input, IGeneratesFunction
     {
-        public BlendNode()
+        public LegacyBlendNode()
         {
-            name = "BlendNode";
+            name = "Blend";
         }
 
         public enum Operation

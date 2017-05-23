@@ -3,7 +3,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Channel/Unpack Normal")]
+    [Title("Normal/Unpack Normal")]
     internal class UnpackNormalNode : Function1Input
     {
         public UnpackNormalNode()
