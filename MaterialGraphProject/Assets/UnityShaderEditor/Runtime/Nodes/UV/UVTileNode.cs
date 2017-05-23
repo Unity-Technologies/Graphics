@@ -1,11 +1,11 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
-    [Title("UV/Tile Node")]
+    [Title("UV/UV Tile")]
     public class UVTileNode : Function2Input, IGeneratesFunction
     {
         public UVTileNode()
         {
-            name = "UVTileNode";
+            name = "UVTile";
         }
 
         protected override string GetFunctionName()

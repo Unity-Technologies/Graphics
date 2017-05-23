@@ -1,16 +1,16 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
-    [Title("UV/Panner")]
+    [Title("UV/UV Panner")]
     public class PannerNode : Function3Input, IGeneratesFunction
     {
         public PannerNode()
         {
-            name = "Panner";
+            name = "UVPanner";
         }
 
         protected override string GetFunctionName()
         {
-            return "unity_pan_" + precision;
+            return "unity_uvpanner_" + precision;
         }
 
         protected override string GetInputSlot1Name()

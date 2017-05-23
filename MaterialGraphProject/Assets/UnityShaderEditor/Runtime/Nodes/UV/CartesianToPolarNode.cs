@@ -1,11 +1,11 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
-    [Title("UV/Cartesian To Polar Node")]
+    [Title("UV/Cartesian To Polar")]
     public class CartesianToPolarNode : Function3Input, IGeneratesFunction
     {
         public CartesianToPolarNode()
         {
-            name = "CartesianToPolarNode";
+            name = "CartesianToPolar";
         }
 
         protected override string GetFunctionName()
