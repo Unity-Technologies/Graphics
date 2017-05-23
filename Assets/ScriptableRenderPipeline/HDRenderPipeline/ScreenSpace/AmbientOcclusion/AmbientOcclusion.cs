@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Cleanup()
         {
-            m_Sheet.Release();
+            if (m_Sheet != null) m_Sheet.Release();
         }
     }
 }
