@@ -11,7 +11,7 @@ namespace UnityEngine.MaterialGraph
 
         public void AddInputSlot()
         {
-            string inputName = "Input" + GetInputSlots<ISlot>().Count().ToString();
+            string inputName = "Input" + GetInputSlots<MaterialSlot>().Count().ToString();
             AddSlot(inputName, inputName, Graphing.SlotType.Input, SlotValueType.Dynamic);
         }
 

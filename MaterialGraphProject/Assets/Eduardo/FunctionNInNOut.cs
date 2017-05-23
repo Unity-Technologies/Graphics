@@ -11,6 +11,7 @@ namespace UnityEngine.MaterialGraph
         public FunctionNInNOut()
         {
             name = "FunctionNInNOut";
+            UpdateNodeAfterDeserialization();
         }
 
         public override void UpdateNodeAfterDeserialization()
