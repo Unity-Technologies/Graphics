@@ -12,7 +12,7 @@ namespace UnityEngine.MaterialGraph
         public void AddInputSlot()
         {
             string inputName = "Input" + GetInputSlots<MaterialSlot>().Count().ToString();
-            AddSlot(inputName, inputName, Graphing.SlotType.Input, SlotValueType.Dynamic);
+            AddSlot(inputName, inputName, Graphing.SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
         public AddManyNode()
@@ -23,7 +23,7 @@ namespace UnityEngine.MaterialGraph
                 AddInputSlot();
             }
 
-            AddSlot("Sum", "finalSum", Graphing.SlotType.Output, SlotValueType.Dynamic);
+            AddSlot("Sum", "finalSum", Graphing.SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
             UpdateNodeAfterDeserialization();
         }
 

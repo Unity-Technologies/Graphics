@@ -11,12 +11,12 @@ namespace UnityEngine.MaterialGraph
         public FractalNode()
         {
             name = "Fractal";
-            AddSlot("UV", "texCoord", Graphing.SlotType.Input, SlotValueType.Vector2);
-            AddSlot("Pan", "Pan", Graphing.SlotType.Input, SlotValueType.Vector2);
-            AddSlot("Zoom", "Zoom", Graphing.SlotType.Input, SlotValueType.Vector1);
-            AddSlot("Aspect", "Aspect", Graphing.SlotType.Input, SlotValueType.Vector1);
+            AddSlot("UV", "texCoord", Graphing.SlotType.Input, SlotValueType.Vector2, Vector4.zero);
+            AddSlot("Pan", "Pan", Graphing.SlotType.Input, SlotValueType.Vector2, new Vector4(0.5f,0,0,0));
+            AddSlot("Zoom", "Zoom", Graphing.SlotType.Input, SlotValueType.Vector1, new Vector4(3,0,0,0));
+            AddSlot("Aspect", "Aspect", Graphing.SlotType.Input, SlotValueType.Vector1, new Vector4(0.9f,0,0,0));
 
-            AddSlot("FracResult", "fractalRes", Graphing.SlotType.Output, SlotValueType.Dynamic);
+            AddSlot("FracResult", "fractalRes", Graphing.SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
 
             UpdateNodeAfterDeserialization();
         }
