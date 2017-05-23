@@ -2,7 +2,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-	[Title ("Math/Color/RGBtoLinear")]
+	[Title ("Art/Conversion/RGBtoLinear")]
 	public class RGBtoLinearNode : Function1Input, IGeneratesFunction
 	{
 		public RGBtoLinearNode()

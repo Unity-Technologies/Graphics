@@ -2,7 +2,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-	[Title ("Math/Color/RGBtoHSV")]
+	[Title ("Art/Conversion/RGBtoHSV")]
 	public class RGBtoHSVNode : Function1Input, IGeneratesFunction
 	{
 		public RGBtoHSVNode ()

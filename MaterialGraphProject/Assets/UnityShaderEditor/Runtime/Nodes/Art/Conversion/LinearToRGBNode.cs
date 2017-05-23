@@ -2,17 +2,17 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-	[Title ("Math/Color/HSVtoRGB")]
-	public class HSVtoRGBNode : Function1Input, IGeneratesFunction
+	[Title ("Art/Conversion/LineartoRGB")]
+	public class LineartoRGBNode : Function1Input, IGeneratesFunction
 	{
-		public HSVtoRGBNode ()
+		public LineartoRGBNode()
 		{
-			name = "HSVtoRGB";
+			name = "RGBtoLinear";
 		}
 
 		protected override string GetFunctionName ()
 		{
-			return "unity_hsvtorgb_" + precision;
+			return "unity_lineartorgb_" + precision;
 		}
 
 		protected override MaterialSlot GetInputSlot ()
@@ -25,21 +25,19 @@ namespace UnityEngine.MaterialGraph
 			return new MaterialSlot (OutputSlotId, GetOutputSlotName (), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
 		}
 
-		//TODO:Externalize
-		//Reference code from:https://github.com/Unity-Technologies/PostProcessing/blob/master/PostProcessing/Resources/Shaders/ColorGrading.cginc#L175
 		public void GenerateNodeFunction (ShaderGenerator visitor, GenerationMode generationMode)
 		{
 			var outputString = new ShaderGenerator ();
 			outputString.AddShaderChunk (GetFunctionPrototype ("arg1"), false);
 			outputString.AddShaderChunk ("{", false);
 			outputString.Indent ();
-			outputString.AddShaderChunk (precision + "4 K = " + precision + "4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);", false);
-			outputString.AddShaderChunk (precision + "3 P = abs(frac(arg1.xxx + K.xyz) * 6.0 - K.www);", false);
-			outputString.AddShaderChunk ("return arg1.z * lerp(K.xxx, saturate(P - K.xxx), arg1.y);", false);
+            outputString.AddShaderChunk (precision + "3 sRGBLo = arg1 * 12.92;", false);
+            outputString.AddShaderChunk (precision + "3 sRGBHi = (pow(max(abs(arg1), 1.192092896e-07), "+precision+ "3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;", false);
+            outputString.AddShaderChunk ("return " + precision + "3(arg1 <= 0.0031308) ? sRGBLo : sRGBHi;", false);
 			outputString.Deindent ();
 			outputString.AddShaderChunk ("}", false);
 
-			visitor.AddShaderChunk (outputString.GetShaderString (0), true);
+            visitor.AddShaderChunk (outputString.GetShaderString (0), true);
 		}
 	}
 }

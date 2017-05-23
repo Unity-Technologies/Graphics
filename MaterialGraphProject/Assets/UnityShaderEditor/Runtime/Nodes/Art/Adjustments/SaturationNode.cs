@@ -2,17 +2,17 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-	[Title ("Math/Color/Contrast")]
-	public class Contrast : Function3Input, IGeneratesFunction
+	[Title ("Art/Adjustments/Saturation")]
+	public class SaturationNode : Function2Input, IGeneratesFunction
 	{
-		public Contrast()
+		public SaturationNode()
 		{
-			name = "Contrast";
+			name = "Saturation";
 		}
 
 		protected override string GetFunctionName ()
 		{
-			return "unity_contrast_" + precision;
+			return "unity_saturation_" + precision;
 		}
 
 		protected override MaterialSlot GetInputSlot1 ()
@@ -25,11 +25,6 @@ namespace UnityEngine.MaterialGraph
             return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
         }
 
-        protected override MaterialSlot GetInputSlot3()
-        {
-            return new MaterialSlot(InputSlot3Id, GetInputSlot3Name(), kInputSlot3ShaderName, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
-        }
-
         protected override MaterialSlot GetOutputSlot ()
 		{
 			return new MaterialSlot (OutputSlotId, GetOutputSlotName (), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
@@ -37,24 +32,21 @@ namespace UnityEngine.MaterialGraph
 
         protected override string GetInputSlot2Name()
         {
-            return "Contrast";
+            return "Saturation";
         }
 
-        protected override string GetInputSlot3Name()
-        {
-            return "Midpoint";
-        }
-
-        // Contrast (reacts better when applied in log)
-        // Optimal range: [0.0, 2.0]]
+        // RGB Saturation (closer to a vibrance effect than actual saturation)
+        // Recommended workspace: ACEScg (linear)
+        // Optimal range: [0.0, 2.0]
         // From PostProcessing
         public void GenerateNodeFunction (ShaderGenerator visitor, GenerationMode generationMode)
 		{
 			var outputString = new ShaderGenerator ();
-			outputString.AddShaderChunk (GetFunctionPrototype ("arg1", "arg2", "arg3"), false);
+			outputString.AddShaderChunk (GetFunctionPrototype ("arg1", "arg2"), false);
 			outputString.AddShaderChunk ("{", false);
 			outputString.Indent ();
-            outputString.AddShaderChunk ("return (arg1 - arg3) * arg2 + arg3;", false);
+            outputString.AddShaderChunk(precision+" luma = dot(arg1, " + precision + outputDimension + "(0.2126729, 0.7151522, 0.0721750));", false);
+            outputString.AddShaderChunk ("return luma.xxx + arg2.xxx * (arg1 - luma.xxx);", false);
             outputString.Deindent ();
 			outputString.AddShaderChunk ("}", false);
 
