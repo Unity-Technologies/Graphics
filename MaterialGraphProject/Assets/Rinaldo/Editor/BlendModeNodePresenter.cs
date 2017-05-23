@@ -17,7 +17,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (cNode == null)
                 return;
 
-            cNode.blendMode = (BlendModesEnum)EditorGUILayout.EnumPopup("Mode", cNode.blendMode);
+            cNode.blendMode = (BlendModesEnum)EditorGUILayout.EnumPopup("", cNode.blendMode);
         }
 
  /*       public override float GetHeight()
