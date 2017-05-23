@@ -53,7 +53,7 @@
             outputString.AddShaderChunk(GetFunctionPrototype("uv", "horizontalTileScale", "verticalTileScale"), false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
-            outputString.AddShaderChunk("return floor(fmod(floor(uv.x * horizontalTileScale) + floor(uv.y * verticalTileScale), 2.0)) * float4(1.0, 1.0, 1.0, 1.0);", false);
+            outputString.AddShaderChunk("return abs(floor(fmod(floor(uv.x * horizontalTileScale) + floor(uv.y * verticalTileScale), 2.0)));", false);
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
 
