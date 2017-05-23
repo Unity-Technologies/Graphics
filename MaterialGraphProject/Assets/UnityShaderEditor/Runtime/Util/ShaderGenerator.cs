@@ -18,6 +18,7 @@ namespace UnityEngine.MaterialGraph
         public const string WorldSpaceTangent = "worldSpaceTangent";
         public const string WorldSpacePosition = "worldPosition";
         public const string WorldSpaceViewDirection = "worldSpaceViewDirection";
+        public const string TangentSpaceViewDirection = "tangentSpaceViewDirection";
         public const string ScreenPosition = "screenPosition";
         public const string VertexColor = "vertexColor";
 
@@ -256,16 +257,24 @@ namespace UnityEngine.MaterialGraph
             vertexShaderBlock.AddShaderChunk("float4 screenPos = ComputeScreenPos(UnityObjectToClipPos(v.vertex));", true);
             vertexShaderBlock.AddShaderChunk("float3 worldNormal = UnityObjectToWorldNormal(v.normal);", true);
 
-            bool needBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
-            bool needsWorldPos = activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
-            if (needsWorldPos || activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition()))
+            bool requiresBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
+            bool requiresTangent = activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent());
+            bool requiresViewDirTangentSpace = activeNodeList.OfType<IMayRequireViewDirectionTangentSpace>().Any(x => x.RequiresViewDirectionTangentSpace());
+            bool requiresViewDir = activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
+            bool requiresWorldPos = activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition());
+            bool requiresNormal = activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal());
+            bool requiresScreenPosition = activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
+            bool requiresVertexColor = activeNodeList.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
+
+            // view directions calculated from world position
+            if (requiresWorldPos || requiresViewDir || requiresViewDirTangentSpace)
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldPos : TEXCOORD0;", true);
                 vertexShaderBlock.AddShaderChunk("o.worldPos = worldPos;", true);
                 shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpacePosition + " = IN.worldPos;", true);
             }
 
-            if (needBitangent || activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal()))
+            if (requiresBitangent || requiresNormal || requiresViewDirTangentSpace)
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldNormal : TEXCOORD1;", true);
                 vertexShaderBlock.AddShaderChunk("o.worldNormal = worldNormal;", true);
@@ -283,7 +292,7 @@ namespace UnityEngine.MaterialGraph
                 }
             }
 
-            if (activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection()))
+            if (requiresViewDir || requiresViewDirTangentSpace)
             {
                 shaderBodyVisitor.AddShaderChunk(
                     "float3 " 
@@ -293,26 +302,47 @@ namespace UnityEngine.MaterialGraph
                     + "));", true);
             }
 
-            if (activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition()))
+            if (requiresScreenPosition)
             {
                 shaderInputVisitor.AddShaderChunk("float4 screenPos : TEXCOORD3;", true);
                 vertexShaderBlock.AddShaderChunk("o.screenPos = screenPos;", true);
                 shaderBodyVisitor.AddShaderChunk("half4 " + ShaderGeneratorNames.ScreenPosition + " = IN.screenPos;", true);
             }
 
-            if (needBitangent || activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent()))
+            if (requiresBitangent || requiresViewDirTangentSpace || requiresTangent)
             {
                 shaderInputVisitor.AddShaderChunk("float4 worldTangent : TEXCOORD4;", true);
                 vertexShaderBlock.AddShaderChunk("o.worldTangent = float4(UnityObjectToWorldDir(v.tangent.xyz), v.tangent.w);", true);
                 shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceTangent + " = normalize(IN.worldTangent.xyz);", true);
             }
 
-            if (needBitangent)
+            if (requiresBitangent || requiresViewDirTangentSpace)
             {
                 shaderBodyVisitor.AddShaderChunk(string.Format("float3 {0} = cross({1}, {2}) * IN.worldTangent.w;", ShaderGeneratorNames.WorldSpaceBitangent, ShaderGeneratorNames.WorldSpaceNormal, ShaderGeneratorNames.WorldSpaceTangent), true);
             }
 
-            if (activeNodeList.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor()))
+            if (requiresViewDirTangentSpace)
+            {
+                shaderBodyVisitor.AddShaderChunk(
+                    "float3 " + ShaderGeneratorNames.TangentSpaceViewDirection + ";", true);
+
+                shaderBodyVisitor.AddShaderChunk(
+                    ShaderGeneratorNames.TangentSpaceViewDirection + ".x = dot(" +
+                        ShaderGeneratorNames.WorldSpaceViewDirection + "," +
+                        ShaderGeneratorNames.WorldSpaceTangent + ");", true);
+
+                shaderBodyVisitor.AddShaderChunk(
+                    ShaderGeneratorNames.TangentSpaceViewDirection + ".y = dot(" +
+                        ShaderGeneratorNames.WorldSpaceViewDirection + "," +
+                        ShaderGeneratorNames.WorldSpaceBitangent + ");", true);
+
+                shaderBodyVisitor.AddShaderChunk(
+                    ShaderGeneratorNames.TangentSpaceViewDirection + ".z = dot(" +
+                        ShaderGeneratorNames.WorldSpaceViewDirection + "," +
+                        ShaderGeneratorNames.WorldSpaceNormal + ");", true);
+            }
+
+            if (requiresVertexColor)
             {
                 vertexShaderBlock.AddShaderChunk("o.color = v.color;", true);
                 shaderBodyVisitor.AddShaderChunk("float4 " + ShaderGeneratorNames.VertexColor + " = IN.color;", true);
