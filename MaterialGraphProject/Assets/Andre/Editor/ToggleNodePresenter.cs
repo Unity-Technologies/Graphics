@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEditor.Graphing.Drawing;
+using UnityEngine;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -13,11 +14,12 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnGUIHandler();
 
-            var cNode = node as BlendModeNode;
+			var cNode = node as ToggleNode;
             if (cNode == null)
                 return;
 
-            cNode.blendMode = (BlendModesEnum)EditorGUILayout.EnumPopup("", cNode.blendMode);
+			cNode.value = EditorGUILayout.Toggle(cNode.value);
+			cNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), cNode.exposedState);
         }
 
  /*       public override float GetHeight()
@@ -27,7 +29,7 @@ namespace UnityEditor.MaterialGraph.Drawing
  */
         public override float GetHeight()
         {
-            return 3 * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
+            return 2 * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
         }
     }
 

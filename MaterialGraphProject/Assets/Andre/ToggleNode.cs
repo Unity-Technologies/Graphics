@@ -7,6 +7,7 @@ namespace UnityEngine.MaterialGraph
     {
         [SerializeField]
         private float m_Float;
+		private bool m_ToggleState;
 
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Ouput";
@@ -33,15 +34,15 @@ namespace UnityEngine.MaterialGraph
 			get { return PropertyType.Float; }
         }
 
-        public float value
+        public bool value
         {
-            get { return m_Float; }
+            get { return m_ToggleState; }
             set
             {
-                if (m_Float == value)
+				if (m_ToggleState == value)
                     return;
 
-                m_Float = value;
+				m_ToggleState = value;
                 if (onModified != null)
                 {
                     onModified(this, ModificationScope.Node);
@@ -75,7 +76,7 @@ namespace UnityEngine.MaterialGraph
                    {
 						m_Name = propertyName,
 						m_PropType = PropertyType.Float,
-						m_Float = value
+						m_Float = value ? 1f : 0f
                    };
         }
     }
