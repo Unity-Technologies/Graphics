@@ -23,7 +23,7 @@ namespace UnityEngine.MaterialGraph
 
         protected override string GetFunctionName()
         {
-            return "unity_ObjectScale";
+            return "unity_HeightToNormal";
         }
 
         public override bool hasPreview
