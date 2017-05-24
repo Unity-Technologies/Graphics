@@ -7,10 +7,10 @@ Shader "${ShaderName}"
 	
 	SubShader 
 	{
-		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
+		Tags { "Queue"="Geometry" "IgnoreProjector"="True" "RenderType"="Opaque" }
 
 		ZWrite Off
-		Blend SrcAlpha OneMinusSrcAlpha
+		Blend One Zero
 		
 		Pass 
 		{
@@ -19,27 +19,27 @@ Shader "${ShaderName}"
 			#pragma fragment frag
 			#include "UnityCG.cginc"
 
+${ShaderPropertyUsages}
+
 			struct v2f 
 			{
 				float4 pos : SV_POSITION;
-				float2 uv : TEXCOORD0;
+${ShaderInputs}
 			};
 
-			sampler2D ${ShaderTextureName};
-			float4 ${ShaderTextureName}_ST;
+${ShaderFunctions}
 
 			v2f vert (appdata_full v) 
 			{
 				v2f o = (v2f)0;
 				o.pos = UnityObjectToClipPos(v.vertex);
-				o.uv = TRANSFORM_TEX(v.texcoord, ${ShaderTextureName});
+${VertexShaderBody}
 				return o;
 			}
 
 			half4 frag (v2f IN) : COLOR
 			{
-				half4 col = tex2D(${ShaderTextureName}, IN.uv);
-				return col;
+${PixelShaderBody}
 			}
 			ENDCG
 		}
