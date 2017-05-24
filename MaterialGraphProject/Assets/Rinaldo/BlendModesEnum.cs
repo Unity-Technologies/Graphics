@@ -2,7 +2,6 @@
 {
     public enum BlendModesEnum
     {
-        AddSub,
         Burn,
         Darken,
         Difference,
@@ -14,7 +13,7 @@
         Lighten,
         LinearBurn,
         LinearDodge,
-        LinearLight,
+        LinearLight_AddSub,
         Multiply,
         Negation,
         Overlay,
