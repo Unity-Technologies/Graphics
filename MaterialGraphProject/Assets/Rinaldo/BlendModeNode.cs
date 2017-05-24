@@ -40,7 +40,7 @@ namespace UnityEngine.MaterialGraph
                 }
             }
         }
-/*This is to overide input to be vector 3, not really necessary anymore*/
+/*This is to overide input to be vector 3, not really necessary */
 /*
         protected override MaterialSlot GetInputSlot1()
         {
@@ -62,6 +62,14 @@ namespace UnityEngine.MaterialGraph
             var outputString = new ShaderGenerator();
             switch (m_BlendMode)
             {
+                case BlendModesEnum.AddSub:
+                    outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
+                    outputString.AddShaderChunk("{", false);
+                    outputString.Indent();
+                    outputString.AddShaderChunk("return 2.0 * arg1 + arg2 - 1.0;", false);
+                    outputString.Deindent();
+                    outputString.AddShaderChunk("}", false);
+                    break;
                 case BlendModesEnum.Burn:
                     outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
                     outputString.AddShaderChunk("{", false);
@@ -238,7 +246,6 @@ namespace UnityEngine.MaterialGraph
                     outputString.AddShaderChunk("}", false);
                     break;
             }
-
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
     }

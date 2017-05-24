@@ -2,6 +2,7 @@
 {
     public enum BlendModesEnum
     {
+        AddSub,
         Burn,
         Darken,
         Difference,
