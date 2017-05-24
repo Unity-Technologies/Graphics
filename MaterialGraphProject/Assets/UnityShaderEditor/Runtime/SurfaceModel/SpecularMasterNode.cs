@@ -19,8 +19,38 @@ namespace UnityEngine.MaterialGraph
             UpdateNodeAfterDeserialization();
         }
 
+        protected override int[] surfaceInputs
+        {
+            get
+            {
+                return new[]
+                                       {
+                                        AlbedoSlotId,
+                                           NormalSlotId,
+                                           EmissionSlotId,
+                                           SmoothnessSlotId,
+                                           OcclusionSlotId,
+                                           AlphaSlotId,
+                                           SpecularSlotId
+                                       };
+            }
+        }
+
+
+        protected override int[] vertexInputs
+        {
+            get
+            {
+                return new[]
+                                       {
+                    VertexOffsetId
+                                       };
+            }
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            AddSlot(new MaterialSlot(VertexOffsetId, VertexOffsetName, VertexOffsetName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
             AddSlot(new MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
             AddSlot(new MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
             AddSlot(new MaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
