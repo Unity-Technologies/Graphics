@@ -16,9 +16,20 @@ Shader "${ShaderName}"
 		{
 			CGPROGRAM
 			#include "UnityCustomRenderTexture.cginc"
-		 	#pragma vertex CustomRenderTextureVertexShader
+		 	#pragma vertex CustomRenderTextureVertexShader${ShaderIsUsingPreview}
 			#pragma fragment frag
 			#pragma target 4.0
+			
+			v2f_customrendertexture CustomRenderTextureVertexShader_Preview(appdata_base IN)
+			{
+				v2f_customrendertexture OUT;
+				OUT.vertex = UnityObjectToClipPos(IN.vertex);
+				OUT.primitiveID = 0;//TODO
+				OUT.localTexcoord = IN.texcoord;
+				OUT.globalTexcoord = IN.texcoord;
+				OUT.direction = CustomRenderTextureComputeCubeDirection(OUT.globalTexcoord.xy);
+				return OUT;
+			}
 
 ${ShaderPropertyUsages}
 
