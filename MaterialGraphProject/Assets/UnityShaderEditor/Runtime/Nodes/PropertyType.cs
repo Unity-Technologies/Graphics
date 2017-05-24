@@ -3,7 +3,7 @@ namespace UnityEngine.MaterialGraph
     public enum PropertyType
     {
         Color,
-        Texture2D,
+        Texture,
 		Cubemap,
         Float,
         Vector2,
