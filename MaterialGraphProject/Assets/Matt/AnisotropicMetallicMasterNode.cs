@@ -15,13 +15,23 @@ namespace UnityEngine.MaterialGraph
 
         public AnisotropicMetallicMasterNode()
         {
-            name = "AnisotropicMetallicMasterNode";
+            name = "AnisotropicMetallicMaster";
             UpdateNodeAfterDeserialization();
         }
 
         public override string GetMaterialID()
         {
             return "SHADINGMODELID_STANDARD";
+        }
+
+        public override int[] GetCustomDataSlots()
+        {
+            return new int[] { };
+        }
+
+        public override string[] GetCustomData()
+        {
+            return new string[] { };
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
