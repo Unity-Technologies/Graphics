@@ -69,7 +69,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (codeEditorPopup == null)
             {
                 codeEditorPopup = new CodeEditorPopup(tNode);
-                tNode.Code = "//Write your function below.\r\nvoid test(float a, float b, out float c)\r\n{\r\n\tc = a + b;\r\n}\r\n";
+                if (string.IsNullOrEmpty(tNode.Code))
+                {
+                    tNode.Code = "//Write your function below.\r\nvoid test(float a, float b, out float c)\r\n{\r\n\tc = a + b;\r\n}\r\n";
+                }
             }
 
             string buttonText = codeEditorPopup.IsOpen ? "Close Code Editor" : "Open Code Editor";
