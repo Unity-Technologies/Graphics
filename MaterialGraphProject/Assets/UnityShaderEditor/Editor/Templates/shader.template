@@ -8,4 +8,5 @@ ${ShaderPropertiesHeader}
 ${SubShader}
 
 	FallBack "Diffuse"
+	CustomEditor "LegacyIlluminShaderGUI"
 }
