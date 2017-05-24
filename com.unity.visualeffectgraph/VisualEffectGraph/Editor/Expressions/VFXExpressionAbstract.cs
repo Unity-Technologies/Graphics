@@ -81,17 +81,7 @@ namespace UnityEditor.VFX
             throw new NotImplementedException(type.ToString());
         }
 
-        protected VFXExpression(Flags flags)
-            : this(flags, new VFXExpression[0] {}
-                   )
-        {}
-
-        protected VFXExpression(Flags flags, VFXExpression parent)
-            : this(flags, new VFXExpression[1] { parent }
-                   )
-        {}
-
-        protected VFXExpression(Flags flags, VFXExpression[] parents)
+        protected VFXExpression(Flags flags, params VFXExpression[] parents)
         {
             m_Parents = parents;
             m_Flags = flags;
@@ -138,6 +128,7 @@ namespace UnityEditor.VFX
 
         public abstract VFXValueType ValueType { get; }
         public abstract VFXExpressionOp Operation { get; }
+
         public VFXExpression[] Parents { get { return m_Parents; } }
         public virtual string[] ParentsCodeName { get { return new string[] { "a", "b", "c", "d" }; } }
 

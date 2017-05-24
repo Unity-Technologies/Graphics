@@ -8,10 +8,8 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionCombine : VFXExpressionFloatOperation
     {
-        public VFXExpressionCombine() : this(new VFXExpression[] { VFXValue<float>.Default, VFXValue<float>.Default }
-                                             )
-        {
-        }
+        public VFXExpressionCombine() : this(VFXValue<float>.Default, VFXValue<float>.Default)
+        {}
 
         public VFXExpressionCombine(params VFXExpression[] parents)
             : base(parents)

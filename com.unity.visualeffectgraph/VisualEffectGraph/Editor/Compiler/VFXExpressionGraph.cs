@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -49,6 +50,7 @@ namespace UnityEditor.VFX
         private void AddExpressionDataRecursively(Dictionary<VFXExpression, ExpressionData> dst, VFXExpression exp, int depth = 0)
         {
             ExpressionData data;
+            data.index = -1; // Will be overridden later on
             if (!dst.TryGetValue(exp, out data) || data.depth < depth)
             {
                 data.depth = depth;
@@ -67,6 +69,7 @@ namespace UnityEditor.VFX
                 m_Expressions.Clear();
                 m_SlotsToExpressions.Clear();
                 m_FlattenedExpressions.Clear();
+                m_ExpressionsData.Clear();
 
                 var models = new HashSet<Object>();
                 graph.CollectDependencies(models);
@@ -92,20 +95,19 @@ namespace UnityEditor.VFX
                 }
 
                 // flatten
-                var expressionData = new Dictionary<VFXExpression, ExpressionData>();
                 foreach (var exp in m_SlotsToExpressions.Values)
-                    AddExpressionDataRecursively(expressionData, exp);
+                    AddExpressionDataRecursively(m_ExpressionsData, exp);
 
-                var sortedList = expressionData.ToList();
+                var sortedList = m_ExpressionsData.Where(kvp => !kvp.Key.Is(VFXExpression.Flags.PerElement)).ToList(); // remove per element expression from flattened data
                 sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));
                 m_FlattenedExpressions = sortedList.Select(kvp => kvp.Key).ToList();
 
                 // update index in expression data
                 for (int i = 0; i < m_FlattenedExpressions.Count; ++i)
                 {
-                    var data = expressionData[m_FlattenedExpressions[i]];
+                    var data = m_ExpressionsData[m_FlattenedExpressions[i]];
                     data.index = i;
-                    expressionData[m_FlattenedExpressions[i]] = data;
+                    m_ExpressionsData[m_FlattenedExpressions[i]] = data;
                 }
 
                 //Debug.Log("---- Expression list");
@@ -120,6 +122,13 @@ namespace UnityEditor.VFX
             }
         }
 
+        public int GetFlattenedIndex(VFXExpression exp)
+        {
+            if (m_ExpressionsData.ContainsKey(exp))
+                return m_ExpressionsData[exp].index;
+            return -1;
+        }
+
         public HashSet<VFXExpression> Expressions { get { return m_Expressions; } }
         public Dictionary<VFXSlot, VFXExpression> SlotsToExpressions { get { return m_SlotsToExpressions; } }
         public List<VFXExpression> FlattenedExpressions { get { return m_FlattenedExpressions; } }
@@ -127,5 +136,6 @@ namespace UnityEditor.VFX
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
         private Dictionary<VFXSlot, VFXExpression> m_SlotsToExpressions = new Dictionary<VFXSlot, VFXExpression>();
         private List<VFXExpression> m_FlattenedExpressions = new List<VFXExpression>();
+        private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
     }
 }
