@@ -1,10 +1,16 @@
 fileFormatVersion: 2
 guid: 9ab5e16c2083a4fe689209a8c1ae425e
-timeCreated: 1495569001
+timeCreated: 1495630928
 licenseType: Pro
 ShaderImporter:
-  defaultTextures: []
-  nonModifiableTextures: []
+  defaultTextures:
+  - TextureAsset_ebbe75eb_728a_4e6c_b8a1_994df86c74ad_Uniform: {fileID: 2800000, guid: 225a31f233f5b82488f996901413908d,
+      type: 3}
+  nonModifiableTextures:
+  - Texture_94ba0aed_e579_4ba0_b677_86c6deda72a2_Uniform: {fileID: 2800000, guid: 9c50a18d04437449b86568cfcbb668a7,
+      type: 3}
+  - Texture_65e72eb9_bdc7_4c17_b514_379aaeefd7ca_Uniform: {fileID: 2800000, guid: 84462bdfeee9d694bbebf34e5f3faa74,
+      type: 3}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

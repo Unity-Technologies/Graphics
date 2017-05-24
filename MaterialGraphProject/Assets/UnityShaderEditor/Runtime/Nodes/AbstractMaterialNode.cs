@@ -91,8 +91,6 @@ namespace UnityEngine.MaterialGraph
             if (inputSlot == null)
                 return string.Empty;
 
-            string sufix = "";
-
             var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
 
             if (edges.Any())
@@ -106,14 +104,10 @@ namespace UnityEngine.MaterialGraph
                 if (slot == null)
                     return string.Empty;
 
-                if (slot.concreteValueType == ConcreteSlotValueType.sampler2D)
-                    sufix += "_Uniform";
-                return ShaderGenerator.AdaptNodeOutput(fromNode, slot.id, slot.concreteValueType) + sufix;
+                return ShaderGenerator.AdaptNodeOutput(fromNode, slot.id, slot.concreteValueType);
             }
 
-            if (inputSlot.concreteValueType == ConcreteSlotValueType.sampler2D)
-                sufix += "_Uniform";
-            return inputSlot.GetDefaultValue(generationMode) + sufix;
+            return inputSlot.GetDefaultValue(generationMode);
         }
 
         private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType from, ConcreteSlotValueType to)
@@ -310,7 +304,7 @@ namespace UnityEngine.MaterialGraph
             switch (slotValue)
             {
                 case ConcreteSlotValueType.sampler2D:
-                    return PropertyType.Texture2D;
+                    return PropertyType.Texture;
                 case ConcreteSlotValueType.Vector1:
                     return PropertyType.Float;
                 case ConcreteSlotValueType.Vector2:

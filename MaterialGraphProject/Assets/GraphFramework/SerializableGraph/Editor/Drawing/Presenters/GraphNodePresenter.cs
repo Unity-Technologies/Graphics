@@ -71,7 +71,9 @@ namespace UnityEditor.Graphing.Drawing
             foreach (var slot in slots)
             {
                 var data = CreateInstance<GraphAnchorPresenter>();
+                data.capabilities &= ~Capabilities.Movable; 
                 data.Initialize(slot);
+
                 if (slot.isOutputSlot)
                 {
                     outputAnchors.Add(data);

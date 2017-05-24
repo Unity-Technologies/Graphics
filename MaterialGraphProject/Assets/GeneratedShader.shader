@@ -1,12 +1,28 @@
+Shader "Graph/Generated.AnisotropicMetallicMasterNoded3249a79-099e-4f35-8185-c418a23965c8" 
+{
+	Properties 
+	{
+
+	}	
+	
 SubShader 
 {
-${Tags}
-${Blending}
-${Culling}
-${ZTest}
-${ZWrite}
+		Tags
+		{
+			"RenderType"="Opaque"
+			"Queue"="Geometry"
+		}
 
-	LOD ${LOD}
+		Blend One Zero
+
+		Cull Back
+
+		ZTest LEqual
+
+		ZWrite On
+
+
+	LOD 200
 	
 	CGPROGRAM
 	#include "UnityCG.cginc"
@@ -14,7 +30,7 @@ ${ZWrite}
 	//#include "AdvancedShading.cginc"
 	//#include "AdvancedLighting.cginc"
 	
-	${MaterialID}
+	#define SHADINGMODELID_STANDARD
 	
 	
 // ------------------------------------------------------------------
@@ -564,10 +580,10 @@ float4 EyeShading(float3 diffColor, float3 specColor, float3 viewDir, half3 norm
 
 float3 SubsurfaceShadingSimple(float3 diffColor, float3 normal, float3 viewDir, float3 thickness, UnityLight light)
 {
-	half3 vLTLight = light.dir + normal * 1;
-	half  fLTDot = pow(saturate(dot(viewDir, -vLTLight)), 3.5) * 1.5;
-	half3 fLT = 1 * (fLTDot + 1.2) * (thickness);
-	return diffColor * ((light.color * fLT) * 0.4);
+	half3 vLTLight = light.dir + normal * _TDistortion;
+	half  fLTDot = pow(saturate(dot(viewDir, -vLTLight)), _TPower) * _TScale;
+	half3 fLT = _TAttenuation * (fLTDot + _TAmbient) * (thickness);
+	return diffColor * ((light.color * fLT) * _TransmissionOverallStrength);
 }
 
 // ------------------------------------------------------------------
@@ -845,28 +861,46 @@ inline void LightingAdvanced_GI(SurfaceOutputAdvanced s, UnityGIInput data, inou
 	///END
 	
 	
-	//#pragma target 5.0
-	#pragma surface surf ${LightingFunctionName} ${VertexShaderDecl}
+	#pragma target 5.0
+	#pragma surface surf Advanced vertex:vert
 	#pragma glsl
 	#pragma debug
 
-${ShaderFunctions}
-${ShaderPropertyUsages}
+
+		float4 Color_eb55295a_2a33_4a48_b612_9d279e2cf480_Uniform;
+		float Vector1_58a74627_6519_4fc6_ac27_ff4e37beadf7_Uniform;
+
 
 	struct Input 
 	{
-${ShaderInputs}
+			float4 color : COLOR;
+			float4 worldTangent;
+			float3 worldNormal;
+
 	};
 
 	void vert (inout appdata_full v, out Input o)
 	{
 		UNITY_INITIALIZE_OUTPUT(Input,o);
-${VertexShaderBody}
+			o.worldTangent = float4(UnityObjectToWorldDir(v.tangent.xyz), v.tangent.w);
+
 	}
   
-	void surf (Input IN, inout ${SurfaceOutputStructureName} o) 
+	void surf (Input IN, inout SurfaceOutputAdvanced o) 
 	{
-${PixelShaderBody}
+			float3 worldSpaceTangent = normalize(IN.worldTangent.xyz);
+			float3 worldSpaceNormal = normalize(IN.worldNormal);
+			float3 worldSpaceBitangent = cross(worldSpaceNormal, worldSpaceTangent) * IN.worldTangent.w;
+			o.Albedo = Color_eb55295a_2a33_4a48_b612_9d279e2cf480_Uniform;
+			o.Metallic = Vector1_58a74627_6519_4fc6_ac27_ff4e37beadf7_Uniform;
+			o.Smoothness = Vector1_58a74627_6519_4fc6_ac27_ff4e37beadf7_Uniform;
+			o.Anisotropy = Vector1_58a74627_6519_4fc6_ac27_ff4e37beadf7_Uniform;
+			o.WorldVectors = float3x3(worldSpaceTangent, worldSpaceBitangent, worldSpaceNormal);
+
 	}
 	ENDCG
+}
+
+
+	FallBack "Diffuse"
 }

@@ -24,13 +24,13 @@ namespace UnityEngine.MaterialGraph
         [Serializable]
         private class TextureHelper
         {
-            public Texture2D texture;
+            public Texture texture;
         }
 
         public override bool hasPreview { get { return false; } }
 
 #if UNITY_EDITOR
-        public Texture2D defaultTexture
+        public Texture defaultTexture
         {
             get
             {
@@ -57,7 +57,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 #else
-        public Texture2D defaultTexture {get; set; }
+        public Texture defaultTexture {get; set; }
 #endif
 
         public TextureType textureType
@@ -94,18 +94,6 @@ namespace UnityEngine.MaterialGraph
             get { return new[] { OutputSlotRgbaId }; }
         }
 
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            string slotOutput;
-            switch (slotId)
-            {
-                default:
-                    slotOutput = "";
-                    break;
-            }
-            return GetVariableNameForNode() + slotOutput;
-        }
-
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             properties.Add(GetPreviewProperty());
@@ -138,7 +126,7 @@ namespace UnityEngine.MaterialGraph
             return new PreviewProperty
             {
                 m_Name = propertyName,
-                m_PropType = PropertyType.Texture2D,
+                m_PropType = PropertyType.Texture,
                 m_Texture = defaultTexture
             };
         }
@@ -146,7 +134,7 @@ namespace UnityEngine.MaterialGraph
    
 
 
-        public override PropertyType propertyType { get { return PropertyType.Texture2D; } }
+        public override PropertyType propertyType { get { return PropertyType.Texture; } }
 
     }
 }
