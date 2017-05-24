@@ -31,7 +31,20 @@ namespace UnityEngine.MaterialGraph
             UpdateNodeAfterDeserialization();
         }
 
-        protected override string GetFunctionPrototype(string argName)
+		public override bool hasPreview
+		{
+			get { return true; }
+		}
+
+		public override PreviewMode previewMode
+		{
+			get
+			{
+				return PreviewMode.Preview3D;
+			}
+		}
+
+		protected override string GetFunctionPrototype(string argName)
         {
             return "inline " + precision + outputDimension + " " + GetFunctionName() + " ("
                    + "sampler2D " + argName + ", float3 normal, float3 pos)";
