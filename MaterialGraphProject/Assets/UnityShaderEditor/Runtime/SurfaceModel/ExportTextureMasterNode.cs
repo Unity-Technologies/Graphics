@@ -8,7 +8,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    [Title("Master/Export Texture")]
+    [Title("Master/Custom Texture")]
     public class ExportTextureMasterNode : AbstractMasterNode
     {
         public const string ColorSlotName = "Color";
@@ -46,7 +46,7 @@ namespace UnityEngine.MaterialGraph
             return false;
         }
 
-        public override string GetFullShader(GenerationMode mode, out List<PropertyGenerator.TextureInfo> configuredTextures)
+        public override string GetFullShader(GenerationMode generationMode, out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
             
             // figure out what kind of preview we want!
@@ -115,7 +115,6 @@ namespace UnityEngine.MaterialGraph
                 shaderBodyVisitor.AddShaderChunk("float4 " + ShaderGeneratorNames.VertexColor + " = float4(1.0,1.0,1.0,1.0);", true);
             }
 
-            var generationMode = GenerationMode.Preview;
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (activeNode is IGeneratesFunction)
@@ -147,6 +146,9 @@ namespace UnityEngine.MaterialGraph
             template = template.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(3));
             template = template.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(3));
             template = template.Replace("${PixelShaderBody}", shaderBodyVisitor.GetShaderString(4));
+
+            //In preview mode we use a different vertex shader, as the custom texture shaders are customized and not preview compatible.
+            template = template.Replace("${ShaderIsUsingPreview}", generationMode == GenerationMode.Preview?"_Preview":"");
 
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
             return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
