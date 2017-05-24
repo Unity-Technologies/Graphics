@@ -59,6 +59,12 @@ namespace UnityEngine.MaterialGraph
                     return "(3)";
                 case ConcreteSlotValueType.Vector4:
                     return "(4)";
+                case ConcreteSlotValueType.Matrix2:
+                    return "(2x2)";
+                case ConcreteSlotValueType.Matrix3:
+                    return "(3x3)";
+                case ConcreteSlotValueType.Matrix4:
+                    return "(4x4)";
                 default:
                     return "(E)";
             }
@@ -91,6 +97,15 @@ namespace UnityEngine.MaterialGraph
                         break;
                     case SlotValueType.Vector3:
                         concreteValueType = ConcreteSlotValueType.Vector3;
+                        break;
+                    case SlotValueType.Matrix2:
+                        concreteValueType = ConcreteSlotValueType.Matrix2;
+                        break;
+                    case SlotValueType.Matrix3:
+                        concreteValueType = ConcreteSlotValueType.Matrix3;
+                        break;
+                    case SlotValueType.Matrix4:
+                        concreteValueType = ConcreteSlotValueType.Matrix4;
                         break;
                     default:
                         concreteValueType = ConcreteSlotValueType.Vector4;
@@ -155,6 +170,12 @@ namespace UnityEngine.MaterialGraph
                     return matOwner.precision + "3 (" + m_CurrentValue.x + "," + m_CurrentValue.y + "," + m_CurrentValue.z + ")";
                 case ConcreteSlotValueType.Vector4:
                     return matOwner.precision + "4 (" + m_CurrentValue.x + "," + m_CurrentValue.y + "," + m_CurrentValue.z + "," + m_CurrentValue.w + ")";
+                case ConcreteSlotValueType.Matrix2:
+                    return matOwner.precision + "2x2 (" + matOwner.precision + "2(" + m_CurrentValue.x + ", " + m_CurrentValue.x + "), " + matOwner.precision + "2(" + m_CurrentValue.y + ", "+ m_CurrentValue.y + "))";
+                case ConcreteSlotValueType.Matrix3:
+                    return matOwner.precision + "3x3 (" + matOwner.precision + "3(" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + "), " + matOwner.precision + "3(" + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + "), " + matOwner.precision + "3(" + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + "))";
+                case ConcreteSlotValueType.Matrix4:
+                    return matOwner.precision + "4x4 (" + matOwner.precision + "4(" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + "), " + matOwner.precision + "4(" + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + "), " + matOwner.precision + "4(" + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + "), " + matOwner.precision + "4(" + m_CurrentValue.w + ", " + m_CurrentValue.w + ", " + m_CurrentValue.w + ", " + m_CurrentValue.w + "))";
                 default:
                     return "error";
             }
