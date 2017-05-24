@@ -27,7 +27,7 @@ namespace UnityEditor.MaterialGraph.Drawing
  */
         public override float GetHeight()
         {
-            return 3 * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
+            return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing + EditorGUIUtility.standardVerticalSpacing;
         }
     }
 
