@@ -31,7 +31,8 @@ namespace UnityEngine.MaterialGraph
             else
                 nextSlotId = GetInputSlots<MaterialSlot>().Count() + 1;
 
-            AddSlot(new MaterialSlot(nextSlotId, displayName, nameInShader, slotType, valueType, defaultValue, true));
+            bool useDefaultValue = (valueType != SlotValueType.sampler2D);
+            AddSlot(new MaterialSlot(nextSlotId, displayName, nameInShader, slotType, valueType, defaultValue, useDefaultValue));
             return nextSlotId;
         }
 
@@ -76,7 +77,9 @@ namespace UnityEngine.MaterialGraph
                 if (inSlot.isOutputSlot)
                     param += "out ";
 
-                param += precision + GetSlotTypeName(inSlot.id) + " ";
+                if (FindSlot<MaterialSlot>(inSlot.id).concreteValueType != ConcreteSlotValueType.sampler2D)
+                    param += precision;
+                param += GetSlotTypeName(inSlot.id) + " ";
                 param += GetShaderOutputName(inSlot.id);
 
                 if (remainingParams > 1)
