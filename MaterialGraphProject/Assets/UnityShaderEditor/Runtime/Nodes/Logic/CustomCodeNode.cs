@@ -47,9 +47,7 @@ namespace UnityEngine.MaterialGraph
 
         protected override string GetFunctionName()
         {
-            string guid = System.Guid.NewGuid().ToString();
-            guid = guid.Replace("-", "_");
-            return "unity_CustomCode_" + GetFunctionName(GetFunctionSignature()); // + "_" + guid;
+            return "unity_CustomCode_" + GetFunctionName(GetFunctionSignature());
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
@@ -81,11 +79,6 @@ namespace UnityEngine.MaterialGraph
 
         void UpdateInputSlots(List<FunctionArgument> inputArguments)
         {
-            if (inputArguments == null || inputArguments.Count <= 0)
-            {
-                return;
-            }
-
             int slotIndex = 0;
             if (inputSlotIds.Count > 0)
             {
@@ -100,6 +93,11 @@ namespace UnityEngine.MaterialGraph
             foreach (ISlot inSlot in GetSlots<ISlot>())
             {
                 slotIds.Add(inSlot.id);
+            }
+
+            if (inputArguments == null || inputArguments.Count <= 0)
+            {
+                return;
             }
 
             // TODO: This is a bit of a hack.  We need to find a better way
@@ -132,11 +130,6 @@ namespace UnityEngine.MaterialGraph
 
         void UpdateOutputSlots(List<FunctionArgument> outputArguments)
         {
-            if (outputArguments == null || outputArguments.Count <= 0)
-            {
-                return;
-            }
-
             int slotIndex = 0;
             if (outputSlotIds.Count > 0)
             {
@@ -145,6 +138,11 @@ namespace UnityEngine.MaterialGraph
                     RemoveSlot(outputSlotIds[slotIndex]);
                 }
                 outputSlotIds.Clear();
+            }
+
+            if (outputArguments == null || outputArguments.Count <= 0)
+            {
+                return;
             }
 
             for (slotIndex = 0; slotIndex < outputArguments.Count; ++slotIndex)
@@ -237,6 +235,11 @@ namespace UnityEngine.MaterialGraph
             {
                 string trimmedArg = arg.Trim();
                 string[] components = trimmedArg.Split(new char[] {' '});
+                if (components == null || components.Length < 2)
+                {
+                    continue;
+                }
+
                 if (string.Equals(components[0].ToLower(), "out"))
                 {
                     break;
