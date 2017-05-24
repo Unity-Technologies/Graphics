@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("HeightToNormal")]
+    [Title("Utility/Heightmap To Normalmap")]
     public class HeightToNormalNode : FunctionNInNOut, IGeneratesFunction
     {
 
