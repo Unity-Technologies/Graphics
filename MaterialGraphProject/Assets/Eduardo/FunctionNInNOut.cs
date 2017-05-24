@@ -125,7 +125,7 @@ namespace UnityEngine.MaterialGraph
         private string GetOutputDeclaration()
         {
             string outDeclaration = "";
-            foreach (ISlot outSlot in GetOutputSlots<ISlot>())
+            foreach (MaterialSlot outSlot in GetOutputSlots<MaterialSlot>())
             {
                 outDeclaration += "\n " + precision + GetSlotTypeName(outSlot.id) + " " + GetVariableNameForSlot(outSlot.id) + ";\n";
             }
