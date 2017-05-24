@@ -171,11 +171,11 @@ namespace UnityEngine.MaterialGraph
                 case ConcreteSlotValueType.Vector4:
                     return matOwner.precision + "4 (" + m_CurrentValue.x + "," + m_CurrentValue.y + "," + m_CurrentValue.z + "," + m_CurrentValue.w + ")";
                 case ConcreteSlotValueType.Matrix2:
-                    return matOwner.precision + "2x2 (" + matOwner.precision + "2(" + m_CurrentValue.x + ", " + m_CurrentValue.x + "), " + matOwner.precision + "2(" + m_CurrentValue.y + ", "+ m_CurrentValue.y + "))";
+                    return matOwner.precision + "2x2 (" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.y + ", "+ m_CurrentValue.y + ")";
                 case ConcreteSlotValueType.Matrix3:
-                    return matOwner.precision + "3x3 (" + matOwner.precision + "3(" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + "), " + matOwner.precision + "3(" + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + "), " + matOwner.precision + "3(" + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + "))";
+                    return matOwner.precision + "3x3 (" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ")";
                 case ConcreteSlotValueType.Matrix4:
-                    return matOwner.precision + "4x4 (" + matOwner.precision + "4(" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + "), " + matOwner.precision + "4(" + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + "), " + matOwner.precision + "4(" + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + "), " + matOwner.precision + "4(" + m_CurrentValue.w + ", " + m_CurrentValue.w + ", " + m_CurrentValue.w + ", " + m_CurrentValue.w + "))";
+                    return matOwner.precision + "4x4 (" + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.x + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.y + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.z + ", " + m_CurrentValue.w + ", " + m_CurrentValue.w + ", " + m_CurrentValue.w + ", " + m_CurrentValue.w + ")";
                 default:
                     return "error";
             }
