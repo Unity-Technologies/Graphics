@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Channel/Split")]
-    public class SplitNode : PropertyNode, IGeneratesBodyCode
+    public class SplitNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         protected const string kInputSlotName = "Input";
         protected const string kOutputSlotRName = "R";
@@ -50,66 +47,45 @@ namespace UnityEngine.MaterialGraph
             get { return new[] { InputSlotId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, OutputSlotRGBId, OutputSlotRGId }; }
         }
 
-        [SerializeField]
-        private Vector4 m_Value;
-
-        public Vector4 value
-        {
-            get { return m_Value; }
-            set
-            {
-                if (m_Value == value)
-                    return;
-
-                m_Value = value;
-
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
-            }
-        }
-
-        public override PropertyType propertyType { get { return PropertyType.Vector4; } }
-
-        public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (exposedState == ExposedState.Exposed)
-                visitor.AddShaderProperty(new VectorPropertyChunk(propertyName, description, m_Value, PropertyChunk.HideState.Visible));
-        }
-
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk(precision + "4 " + propertyName + ";", true);
-        }
-
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            //if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-              //  return;
-            var inputValue = GetSlotValue(InputSlotId, generationMode);
-            visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + inputValue + ";", false);
-            //visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + precision + "4 (" + m_Value.x + ", " + m_Value.y + ", " + m_Value.z + ", " + m_Value.w + ");", true);
+            NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlotId }, new[] { OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotRGBId, OutputSlotRGId });
+            string inputValue = GetSlotValue(InputSlotId, generationMode);
+            visitor.AddShaderChunk(precision +"4 "+ GetVariableNameForNode() + " = " + GetNodeBody(inputValue) + ";", true);
         }
 
-        protected virtual MaterialSlot GetInputSlot()
+        protected string GetNodeBody(string inputValue)
         {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotName, SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
-        }
+            string[] channelNames = { "r", "g", "b", "a" };
+            var inputSlot = FindInputSlot<MaterialSlot>(InputSlotId);
+            if (inputSlot == null)
+                return "1.0";
 
-        protected virtual string GetInputSlotName() { return "Input"; }
+            int numInputChannels = (int)inputSlot.concreteValueType;
+            if (owner.GetEdges(inputSlot.slotReference).ToList().Count() == 0)
+                numInputChannels = 0;
 
-        public override PreviewProperty GetPreviewProperty()
-        {
-            return new PreviewProperty
+            string outputString = precision + "4(";
+            if (numInputChannels == 0)
             {
-                m_Name = propertyName,
-                m_PropType = PropertyType.Vector4,
-                m_Vector4 = m_Value
-            };
+                outputString += "1.0, 1.0, 1.0, 1.0)";
+            }
+            else
+            {
+                //float4(arg1, 1.0, 1.0)
+                outputString += inputValue;
+                for (int i = numInputChannels; i < 4; i++)
+                {
+                    outputString += ", 1.0";
+                }
+                outputString += ")";
+            }
+            return outputString;
         }
 
         public override string GetVariableNameForSlot(int slotId)
-        {
+        { 
+
             string slotOutput;
             switch (slotId)
             {
@@ -135,13 +111,7 @@ namespace UnityEngine.MaterialGraph
                     slotOutput = "";
                     break;
             } 
-            return propertyName + slotOutput;
-            //return GetVariableNameForNode() + slotOutput;
-        }
-
-        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
-        {
-            properties.Add(GetPreviewProperty());
+            return GetVariableNameForNode() + slotOutput;
         }
     }
 }
