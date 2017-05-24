@@ -32,6 +32,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(AddManyNode)] = typeof(AddManyNodePresenter);
             typeMapper[typeof(IfNode)] = typeof(IfNodePresenter);
             typeMapper[typeof(CustomCodeNode)] = typeof(CustomCodePresenter);
+            typeMapper[typeof(Matrix2Node)] = typeof(Matrix2NodePresenter);
+            typeMapper[typeof(Matrix3Node)] = typeof(Matrix3NodePresenter);
         }
     }
 }
