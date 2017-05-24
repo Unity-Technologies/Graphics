@@ -19,7 +19,7 @@ namespace UnityEngine.MaterialGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public Texture2D defaultTexture { get; set; }
+        public Texture defaultTexture { get; set; }
 
         public MotionVectorTextureNode()
         {
@@ -74,7 +74,7 @@ namespace UnityEngine.MaterialGraph
             return new PreviewProperty
             {
                 m_Name = propertyName,
-                m_PropType = PropertyType.Texture2D,
+                m_PropType = PropertyType.Texture,
                 m_Texture = defaultTexture
             };
         }
@@ -84,7 +84,7 @@ namespace UnityEngine.MaterialGraph
             return GetVariableNameForNode();
         }
 
-        public override PropertyType propertyType { get { return PropertyType.Texture2D; } }
+        public override PropertyType propertyType { get { return PropertyType.Texture; } }
 
         public bool RequiresMeshUV(UVChannel channel)
         {

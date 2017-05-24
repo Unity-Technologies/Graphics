@@ -304,7 +304,7 @@ namespace UnityEngine.MaterialGraph
             switch (slotValue)
             {
                 case ConcreteSlotValueType.sampler2D:
-                    return PropertyType.Texture2D;
+                    return PropertyType.Texture;
                 case ConcreteSlotValueType.Vector1:
                     return PropertyType.Float;
                 case ConcreteSlotValueType.Vector2:

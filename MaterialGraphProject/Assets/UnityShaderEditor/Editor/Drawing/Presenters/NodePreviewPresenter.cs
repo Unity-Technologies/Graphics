@@ -185,7 +185,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             switch (previewProperty.m_PropType)
             {
-                case PropertyType.Texture2D:
+                case PropertyType.Texture:
                     mat.SetTexture(previewProperty.m_Name, previewProperty.m_Texture);
                     break;
 				case PropertyType.Cubemap:
