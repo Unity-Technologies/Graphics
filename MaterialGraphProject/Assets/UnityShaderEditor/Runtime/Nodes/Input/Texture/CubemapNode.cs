@@ -19,7 +19,7 @@ namespace UnityEngine.MaterialGraph
 		protected const string kOutputSlotAName = "A";
 		protected const string kInputSlotLodName = "MipLevel";
 
-		public const int UvSlotId = 0;
+		public const int RefDirSlot = 0;
 		public const int InputSlotLod = 6;
 		public const int OutputSlotRgbaId = 1;
 		public const int OutputSlotRId = 2;
@@ -85,7 +85,7 @@ namespace UnityEngine.MaterialGraph
 			AddSlot(new MaterialSlot(OutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
 			AddSlot(new MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
 			AddSlot(new MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-			AddSlot(new MaterialSlot(UvSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector3, Vector3.zero, false));
+			AddSlot(new MaterialSlot(RefDirSlot, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector3, Vector3.zero, false));
 			AddSlot (new MaterialSlot(InputSlotLod, kInputSlotLodName, kInputSlotLodName, SlotType.Input, SlotValueType.Vector1, Vector2.zero));
 			RemoveSlotsNameNotMatching(validSlots);
 		}
@@ -98,13 +98,13 @@ namespace UnityEngine.MaterialGraph
 
 		protected int[] validSlots
 		{
-			get { return new[] {OutputSlotRgbaId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, UvSlotId, InputSlotLod}; }
+			get { return new[] {OutputSlotRgbaId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, RefDirSlot, InputSlotLod}; }
 		}
 
 		// Node generations
 		public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
 		{
-			var uvSlot = FindInputSlot<MaterialSlot>(UvSlotId);
+			var uvSlot = FindInputSlot<MaterialSlot>(RefDirSlot);
 			if (uvSlot == null)
 				return;
 
@@ -143,6 +143,12 @@ namespace UnityEngine.MaterialGraph
 			{
 			case OutputSlotRId:
 				slotOutput = ".r";
+				break;
+			case InputSlotLod:
+				slotOutput = "_lod";
+				break;
+			case RefDirSlot:
+				slotOutput = "_RefDir";
 				break;
 			case OutputSlotGId:
 				slotOutput = ".g";

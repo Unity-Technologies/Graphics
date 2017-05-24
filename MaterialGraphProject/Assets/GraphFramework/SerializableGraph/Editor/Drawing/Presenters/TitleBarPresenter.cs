@@ -65,21 +65,23 @@ namespace UnityEditor.Graphing.Drawing
 
 		class CallbackData
 		{
-			public MaterialGraphAsset asset;
+			public IGraphAsset asset;
 			public AbstractGraphEditWindow owner;
 		}
 
-		public static List<MaterialGraphAsset> FindAssets()
+		public static List<IGraphAsset> FindAssets()
 		{
-			var assets = new List<MaterialGraphAsset>();
-			string[] guids = AssetDatabase.FindAssets(string.Format("t:MaterialGraphAsset", typeof(MaterialGraphAsset)));
-			for( int i = 0; i < guids.Length; i++ )
+			var assets = new List<IGraphAsset>();
+			List<string> guids = AssetDatabase.FindAssets(string.Format("t:MaterialGraphAsset", typeof(MaterialGraphAsset))).ToList();
+			guids.AddRange( AssetDatabase.FindAssets(string.Format("t:MaterialSubGraphAsset", typeof(MaterialSubGraphAsset))));
+
+			for( int i = 0; i < guids.Count; i++ )
 			{
 				string assetPath = AssetDatabase.GUIDToAssetPath( guids[i] );
-				MaterialGraphAsset asset = AssetDatabase.LoadAssetAtPath<MaterialGraphAsset>( assetPath );
-				if( asset != null )
+				ScriptableObject asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>( assetPath );
+				if( asset != null && EditorUtility.IsPersistent(asset) && asset is IGraphAsset)
 				{
-					assets.Add(asset);
+					assets.Add((IGraphAsset)asset);
 				}
 			}
 			return assets;
@@ -87,10 +89,10 @@ namespace UnityEditor.Graphing.Drawing
 
 		void SelectGraph()
 		{
-			var options = FindAssets().Where (x => EditorUtility.IsPersistent (x)).ToList ();
+			var options = FindAssets();
 			var gm = new GenericMenu ();
 			foreach (var option in options) {
-				gm.AddItem (new GUIContent (AssetDatabase.GetAssetPath (option)), false, Callback, new CallbackData(){asset = option, owner = m_Owner});
+				gm.AddItem (new GUIContent (AssetDatabase.GetAssetPath (option.GetScriptableObject())), false, Callback, new CallbackData(){asset = option, owner = m_Owner});
 						
 			}
 			gm.ShowAsContext ();

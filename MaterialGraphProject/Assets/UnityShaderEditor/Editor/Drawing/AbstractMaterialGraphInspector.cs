@@ -51,7 +51,8 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             get
             {
-                yield return new TypeMapping(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector));
+				yield return new TypeMapping(typeof(AbstractSurfaceMasterNode), typeof(SurfaceMasterNodeInspector));
+				yield return new TypeMapping(typeof(PropertyNode), typeof(PropertyNodeInspector));
                 yield return new TypeMapping(typeof(SubGraphInputNode), typeof(SubgraphInputNodeInspector));
                 yield return new TypeMapping(typeof(SubGraphOutputNode), typeof(SubgraphOutputNodeInspector));
             }

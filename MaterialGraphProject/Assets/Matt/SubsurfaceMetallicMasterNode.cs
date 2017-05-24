@@ -10,6 +10,8 @@ namespace UnityEngine.MaterialGraph
         public const string MetallicSlotName = "Metallic";
         public const int MetallicSlotId = 2;
 
+        public const string AnisotropySlotName = "Anisotropy";
+        public const int AnisotropySlotId = 8;
         public const string TranslucencySlotName = "Translucency";
         public const int TranslucencySlotId = 9;
 
@@ -25,6 +27,11 @@ namespace UnityEngine.MaterialGraph
         public override string GetMaterialID()
         {
             return "SHADINGMODELID_SUBSURFACE";
+        }
+
+        public override bool RequireTangentCalculation()
+        {
+            return true;
         }
 
         public override int[] GetCustomDataSlots()
@@ -50,7 +57,6 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(AnisotropySlotId, AnisotropySlotName, AnisotropySlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(TangentSlotId, TangentSlotName, TangentSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
             AddSlot(new MaterialSlot(AnisotropySlotId, AnisotropySlotName, AnisotropySlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(TranslucencySlotId, TranslucencySlotName, TranslucencySlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
@@ -67,8 +73,8 @@ namespace UnityEngine.MaterialGraph
                                            SmoothnessSlotId,
                                            OcclusionSlotId,
                                            AlphaSlotId,
-                                           AnisotropySlotId,
                                            TangentSlotId,
+                                           AnisotropySlotId,
                                            TranslucencySlotId
                                        });
         }
