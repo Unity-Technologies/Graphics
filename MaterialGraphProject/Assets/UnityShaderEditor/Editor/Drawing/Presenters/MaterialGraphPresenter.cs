@@ -10,8 +10,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(AbstractMaterialNode)] = typeof(MaterialNodePresenter);
             typeMapper[typeof(ColorNode)] = typeof(ColorNodePresenter);
             typeMapper[typeof(TextureNode)] = typeof(TextureNodePresenter);
+            typeMapper[typeof(TextureAssetNode)] = typeof(TextureAssetNodePresenter);
             typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodePresenter);
             typeMapper[typeof(CubemapNode)] = typeof(CubeNodePresenter);
+			typeMapper[typeof(ToggleNode)] = typeof(ToggleNodePresenter);
             typeMapper[typeof(UVNode)] = typeof(UVNodePresenter);
             typeMapper[typeof(Vector1Node)] = typeof(Vector1NodePresenter);
             typeMapper[typeof(Vector2Node)] = typeof(Vector2NodePresenter);
@@ -27,6 +29,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(SwizzleNode)] = typeof(SwizzleNodePresenter);
 			typeMapper[typeof(BlendModeNode)] = typeof(BlendModeNodePresenter);
             typeMapper[typeof(AddManyNode)] = typeof(AddManyNodePresenter);
+            typeMapper[typeof(IfNode)] = typeof(IfNodePresenter);
         }
     }
 }
