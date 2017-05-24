@@ -18,11 +18,6 @@ namespace UnityEngine.MaterialGraph
             UpdateNodeAfterDeserialization();
         }
 
-		/* public override bool hasPreview
-        {
-            get { return true; }
-        }*/
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector1, Vector2.zero));
@@ -53,7 +48,7 @@ namespace UnityEngine.MaterialGraph
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed)
-				visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, 0f, PropertyChunk.HideState.Visible));
+				visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, 0f, FloatPropertyChunk.FloatType.Toggle, PropertyChunk.HideState.Visible));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
