@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: New Material
-  m_Shader: {fileID: 4800000, guid: 9ab5e16c2083a4fe689209a8c1ae425e, type: 3}
+  m_Shader: {fileID: 4800000, guid: 4afc3341bed83d34cb1aebb7e98d8751, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -17,24 +17,8 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - Cubemap_dc3182b8_fe99_45ed_8c1d_67fb354034bd_Uniform:
-        m_Texture: {fileID: 8900000, guid: f7111c407ddfe4109af9703cb740eaf9, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - Cubemap_ee09e335_3be2_46ee_9d59_ce2673aeedf9_Uniform:
-        m_Texture: {fileID: 8900000, guid: f7111c407ddfe4109af9703cb740eaf9, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - Texture_02e4013b_5c99_456a_a8d8_cafbb1dfc0da_Uniform:
-        m_Texture: {fileID: 2800000, guid: 5a5e07ee958edbd468227e1d9ac4726a, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - Texture_5537060b_db74_4900_8f2b_178ba97b7f11_Uniform:
-        m_Texture: {fileID: 10305, guid: 0000000000000000f000000000000000, type: 0}
-        m_Scale: {x: 1, y: 2}
-        m_Offset: {x: 0, y: 0}
-    - Texture_7e044bc6_b639_4457_83f6_752bfaedcb11_Uniform:
-        m_Texture: {fileID: 2800000, guid: 330f42016073a97418a4aae5517e32c8, type: 3}
+    - _AnisotropyMap:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -57,6 +41,18 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _FuzzTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _IrisMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _IrisNormal:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -73,24 +69,45 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TangentMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TranslucencyMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
-    - Toggle_bda28932_b1ab_4b0b_ba54_ca5db612047a_Uniform: 0
+    - Vector1_9fc5b769_bf77_4f9d_8bc7_07fc5576501e_Uniform: 0.5
+    - _Anisotropy: 0
     - _BumpScale: 1
+    - _Cloth: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _IrisDistance: 0.5
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _ShadingModel: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _TAmbient: 1.7
+    - _TAttenuation: 1
+    - _TDistortion: 2
+    - _TPower: 3.5
+    - _TScale: 1.5
+    - _TransmissionOverallStrength: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
+    - Color_eb55295a_2a33_4a48_b612_9d279e2cf480_Uniform: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _FuzzColor: {r: 0, g: 0, b: 0, a: 1}
+    - _TranslucentColor: {r: 0, g: 0, b: 0, a: 1}
