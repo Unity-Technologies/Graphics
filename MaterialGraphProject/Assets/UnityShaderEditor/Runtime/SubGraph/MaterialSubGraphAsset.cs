@@ -15,7 +15,8 @@ namespace UnityEngine.MaterialGraph
 
         public SubGraph subGraph
         {
-            get { return m_MaterialSubGraph; }
+			get { return m_MaterialSubGraph; }
+			set { m_MaterialSubGraph = value; }
         }
 
         public void PostCreate()
