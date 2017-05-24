@@ -4,49 +4,55 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    [Title("Master/SubsurfaceMetallic")]
-    public class SubsurfaceMetallicMasterNode : AbstractAdvancedMasterNode
+    [Title("Master/Eye")]
+    public class EyeMasterNode : AbstractAdvancedMasterNode
     {
-        public const string MetallicSlotName = "Metallic";
-        public const int MetallicSlotId = 2;
-
-        public const string AnisotropySlotName = "Anisotropy";
-        public const int AnisotropySlotId = 8;
-        public const string TranslucencySlotName = "Translucency";
-        public const int TranslucencySlotId = 9;
+        //public const string MetallicSlotName = "Metallic";
+        //public const int MetallicSlotId = 2;
 
         public const string LightFunctionName = "Advanced";
         public const string SurfaceOutputStructureName = "SurfaceOutputAdvanced";
 
-        public SubsurfaceMetallicMasterNode()
+        public const string IrisMaskSlotName = "IrisMask";
+        public const int IrisMaskSlotId = 8;
+
+        public const string IrisDistanceSlotName = "IrisDistance";
+        public const int IrisDistanceSlotId = 9;
+
+        public EyeMasterNode()
         {
-            name = "SubsurfaceMetallic";
+            name = "EyeMaster";
             UpdateNodeAfterDeserialization();
         }
 
         public override string GetMaterialID()
         {
-            return "SHADINGMODELID_SUBSURFACE";
-        }
-
-        public override bool RequireTangentCalculation()
-        {
-            return true;
+            return "SHADINGMODELID_EYE";
         }
 
         public override int[] GetCustomDataSlots()
         {
-            return new int[] { 9 };
+            return new int[] { 8, 9 };
         }
 
         public override string[] GetCustomData()
         {
-            string translucencyInput = GetVariableNameForSlotAtId(9);
-            if (translucencyInput == "")
-                translucencyInput = "float3(0,0,0)";
+            string tangentInput = GetVariableNameForSlotAtId(7);
+            if (tangentInput == "")
+                tangentInput = "float2(1,0)";
             else
-                translucencyInput = translucencyInput + ".rgb";
-            return new string[] { "o.CustomData = float4(" + translucencyInput + ", 0);" };
+                tangentInput = tangentInput + ".rg";
+            string irisMaskInput = GetVariableNameForSlotAtId(8);
+            if (irisMaskInput == "")
+                irisMaskInput = "0";
+            else
+                irisMaskInput = irisMaskInput + ".r";
+            string irisDistanceInput = GetVariableNameForSlotAtId(9);
+            if (irisDistanceInput == "")
+                irisDistanceInput = "0";
+            else
+                irisDistanceInput = irisDistanceInput + ".r";
+            return new string[] { "o.CustomData = float4(" + tangentInput + ", " + irisMaskInput + ", " + irisDistanceInput + ");" };
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -54,12 +60,13 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
             AddSlot(new MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
             AddSlot(new MaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
-            AddSlot(new MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
+            //AddSlot(new MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(TangentSlotId, TangentSlotName, TangentSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
-            AddSlot(new MaterialSlot(AnisotropySlotId, AnisotropySlotName, AnisotropySlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(TranslucencySlotId, TranslucencySlotName, TranslucencySlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
+            AddSlot(new MaterialSlot(TangentSlotId, TangentSlotName, TangentSlotName, SlotType.Input, SlotValueType.Vector2, Vector4.zero));
+            AddSlot(new MaterialSlot(IrisMaskSlotId, IrisMaskSlotName, IrisMaskSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(IrisDistanceSlotId, IrisDistanceSlotName, IrisDistanceSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
 
             // clear out slot names that do not match the slots
             // we support
@@ -69,13 +76,13 @@ namespace UnityEngine.MaterialGraph
                                            AlbedoSlotId,
                                            NormalSlotId,
                                            EmissionSlotId,
-                                           MetallicSlotId,
+                                           //MetallicSlotId,
                                            SmoothnessSlotId,
                                            OcclusionSlotId,
                                            AlphaSlotId,
                                            TangentSlotId,
-                                           AnisotropySlotId,
-                                           TranslucencySlotId
+                                           IrisMaskSlotId,
+                                           IrisDistanceSlotId
                                        });
         }
         
