@@ -58,21 +58,20 @@ namespace UnityEngine.Experimental.Rendering
         string              m_Name;
         DebugItemHandler    m_Handler = null;
         bool                m_DynamicDisplay = false;
-        DebugItemState  m_State = null;
+        DebugItemState      m_State = null;
     }
 
     public class DebugPanel
     {
-        public string   name { get { return m_Name; } }
-        public int      itemCount { get { return m_Items.Count; } }
+        public string       name        { get { return m_Name; } }
+        public DebugPanelUI panelUI     { get { return m_DebugPanelUI; } }
+        public int          itemCount   { get { return m_Items.Count; } }
 
         protected string            m_Name = "Unknown Debug Menu";
-        private GameObject          m_Root = null;
-        private List<DebugItem>     m_Items = new List<DebugItem>();
-        private List<DebugItemUI>   m_ItemsUI = new List<DebugItemUI>();
-        private int                 m_SelectedItem = -1;
+        protected List<DebugItem>   m_Items = new List<DebugItem>();
+        protected DebugPanelUI      m_DebugPanelUI = null;
 
-        public DebugPanel(string name)
+        protected DebugPanel(string name)
         {
             m_Name = name;
         }
@@ -89,16 +88,6 @@ namespace UnityEngine.Experimental.Rendering
             return m_Items.Find(x => x.name == name);
         }
 
-        public DebugItem GetSelectedDebugItem()
-        {
-            if(m_SelectedItem != -1)
-            {
-                return m_Items[m_SelectedItem];
-            }
-
-            return null;
-        }
-
         public bool HasDebugItem(DebugItem debugItem)
         {
             foreach(var item in m_Items)
@@ -113,126 +102,13 @@ namespace UnityEngine.Experimental.Rendering
         public void RemoveDebugItem(DebugItem debugItem)
         {
             m_Items.Remove(debugItem);
-            RebuildGUI();
+            m_DebugPanelUI.RebuildGUI();
         }
 
         public void AddDebugItem(DebugItem debugItem)
         {
             m_Items.Add(debugItem);
-            RebuildGUI();
-        }
-
-        // TODO: Move this to UI classes
-        public GameObject BuildGUI(GameObject parent)
-        {
-            m_Root = new GameObject(string.Format("{0}", m_Name));
-            m_Root.transform.SetParent(parent.transform);
-            m_Root.transform.localPosition = Vector3.zero;
-            m_Root.transform.localScale = Vector3.one;
-
-            UI.VerticalLayoutGroup menuVL = m_Root.AddComponent<UI.VerticalLayoutGroup>();
-            menuVL.spacing = 5.0f;
-            menuVL.childControlWidth = true;
-            menuVL.childControlHeight = true;
-            menuVL.childForceExpandWidth = true;
-            menuVL.childForceExpandHeight = false;
-
-            RectTransform menuVLRectTransform = m_Root.GetComponent<RectTransform>();
-            menuVLRectTransform.pivot = new Vector2(0.0f, 0.0f);
-            menuVLRectTransform.localPosition = new Vector3(0.0f, 0.0f);
-            menuVLRectTransform.anchorMin = new Vector2(0.0f, 0.0f);
-            menuVLRectTransform.anchorMax = new Vector2(1.0f, 1.0f);
-
-            RebuildGUI();
-
-            m_Root.SetActive(false);
-            return m_Root;
-        }
-
-        private void RebuildGUI()
-        {
-            m_Root.transform.DetachChildren();
-
-            DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_Name), m_Name, 14, TextAnchor.MiddleLeft, m_Root);
-
-            m_ItemsUI.Clear();
-            foreach (DebugItem debugItem in m_Items)
-            {
-                DebugItemHandler handler = debugItem.handler; // Should never be null, we have at least the default handler
-                m_ItemsUI.Add(handler.BuildGUI(m_Root));
-            }
-        }
-
-
-        void SetSelectedItem(int index)
-        {
-            if(m_SelectedItem != -1)
-            {
-                m_ItemsUI[m_SelectedItem].SetSelected(false);
-            }
-
-            m_SelectedItem = index;
-            m_ItemsUI[m_SelectedItem].SetSelected(true);
-        }
-
-        public void SetSelected(bool value)
-        {
-            m_Root.SetActive(value);
-
-            if(value)
-            {
-                if (m_SelectedItem == -1)
-                {
-                    NextItem();
-                }
-                else
-                    SetSelectedItem(m_SelectedItem);
-            }
-        }
-
-        void NextItem()
-        {
-            if(m_Items.Count != 0)
-            {
-                int newSelected = (m_SelectedItem + 1) % m_Items.Count;
-                SetSelectedItem(newSelected);
-            }
-        }
-
-        void PreviousItem()
-        {
-            if(m_Items.Count != 0)
-            {
-                int newSelected = m_SelectedItem - 1;
-                if (newSelected == -1)
-                    newSelected = m_Items.Count - 1;
-                SetSelectedItem(newSelected);
-            }
-        }
-
-        public void OnMoveHorizontal(float value)
-        {
-            if(m_SelectedItem != -1 && !m_Items[m_SelectedItem].readOnly)
-            {
-                if (value > 0.0f)
-                    m_ItemsUI[m_SelectedItem].OnIncrement();
-                else
-                    m_ItemsUI[m_SelectedItem].OnDecrement();
-            }
-        }
-
-        public void OnMoveVertical(float value)
-        {
-            if (value > 0.0f)
-                PreviousItem();
-            else
-                NextItem();
-        }
-
-        public void OnValidate()
-        {
-            if (m_SelectedItem != -1 && !m_Items[m_SelectedItem].readOnly)
-                m_ItemsUI[m_SelectedItem].OnValidate();
+            m_DebugPanelUI.RebuildGUI();
         }
 
         public void AddDebugItem<ItemType>(string name, Func<object> getter, Action<object> setter, bool dynamicDisplay = false, DebugItemHandler handler = null)
@@ -254,24 +130,23 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             newItem.SetDebugItemState(itemState);
+            //m_DebugPanelUI.RebuildGUI();
         }
+    }
 
-        public void Update()
+    public class DebugPanel<DebugPanelUIClass>
+        : DebugPanel where DebugPanelUIClass:DebugPanelUI, new()
+    {
+        public DebugPanel(string name)
+            : base(name)
         {
-            // Can happen if the debug menu has been disabled (all UI is destroyed). We can't test DebugMenuManager directly though because of the persistant debug menu (which is always displayed no matter what)
-            if (m_Root == null)
-                return;
-
-            foreach(var itemUI in m_ItemsUI)
-            {
-                if(itemUI.dynamicDisplay)
-                    itemUI.Update();
-            }
+            m_DebugPanelUI = new DebugPanelUIClass();
+            m_DebugPanelUI.SetDebugPanel(this);
         }
     }
 
     public class LightingDebugPanel
-        : DebugPanel
+        : DebugPanel<DebugPanelUI>
     {
         public LightingDebugPanel()
             : base("Lighting")

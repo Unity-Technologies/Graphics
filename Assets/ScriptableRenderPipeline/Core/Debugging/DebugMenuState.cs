@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering
         public string panelName = "";
         public string itemName = "";
 
-        public abstract void UpdateValue();
+        public abstract void UpdateDebugItemValue();
         public abstract void SetValue(object value);
 
         public void Initialize(string itemName, string panelName)
@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering
             this.value = (T)value;
         }
 
-        public override void UpdateValue()
+        public override void UpdateDebugItemValue()
         {
             DebugMenuManager dmm = DebugMenuManager.instance;
             DebugPanel menu = dmm.GetDebugPanel(panelName);
@@ -86,14 +86,14 @@ namespace UnityEngine.Experimental.Rendering
         void OnUndoRedoPerformed()
         {
             // Maybe check a hash or something? So that we don't do that at each redo...
-            UpdateAllItems();
+            UpdateAllDebugItems();
             UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
         }
 #endif
 
         void CheckConsistency()
         {
-            // Remove all objects that may have been removed from the debug menu.
+            // Remove all objects that may have been removed from the debug menu since last serialization
             DebugMenuManager dmm = DebugMenuManager.instance;
             List<DebugItemState> tempList = new List<DebugItemState>();
             foreach(var itemState in  m_ItemStateList)
@@ -132,11 +132,11 @@ namespace UnityEngine.Experimental.Rendering
             return m_ItemStateList.Find(x => x.itemName == itemName && x.panelName == menuName);
         }
 
-        public void UpdateAllItems()
+        public void UpdateAllDebugItems()
         {
             foreach (var itemState in m_ItemStateList)
             {
-                itemState.UpdateValue();
+                itemState.UpdateDebugItemValue();
             }
         }
     }
