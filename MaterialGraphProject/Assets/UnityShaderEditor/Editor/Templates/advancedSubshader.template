@@ -564,10 +564,10 @@ float4 EyeShading(float3 diffColor, float3 specColor, float3 viewDir, half3 norm
 
 float3 SubsurfaceShadingSimple(float3 diffColor, float3 normal, float3 viewDir, float3 thickness, UnityLight light)
 {
-	half3 vLTLight = light.dir + normal * _TDistortion;
-	half  fLTDot = pow(saturate(dot(viewDir, -vLTLight)), _TPower) * _TScale;
-	half3 fLT = _TAttenuation * (fLTDot + _TAmbient) * (thickness);
-	return diffColor * ((light.color * fLT) * _TransmissionOverallStrength);
+	half3 vLTLight = light.dir + normal * 1;
+	half  fLTDot = pow(saturate(dot(viewDir, -vLTLight)), 3.5) * 1.5;
+	half3 fLT = 1 * (fLTDot + 1.2) * (thickness);
+	return diffColor * ((light.color * fLT) * 0.4);
 }
 
 // ------------------------------------------------------------------
@@ -845,7 +845,7 @@ inline void LightingAdvanced_GI(SurfaceOutputAdvanced s, UnityGIInput data, inou
 	///END
 	
 	
-	#pragma target 5.0
+	//#pragma target 5.0
 	#pragma surface surf ${LightingFunctionName} ${VertexShaderDecl}
 	#pragma glsl
 	#pragma debug
