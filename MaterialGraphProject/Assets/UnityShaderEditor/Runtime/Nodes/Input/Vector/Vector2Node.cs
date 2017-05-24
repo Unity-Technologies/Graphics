@@ -60,7 +60,7 @@ namespace UnityEngine.MaterialGraph
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "2 " +  propertyName + " = " + precision + "2 (" + m_Value.x + ", " + m_Value.y + ");", true);
+            visitor.AddShaderChunk(precision + "2x2 " + propertyName + " = " + precision + "2 " +  propertyName + " = " + precision + "2 (" + m_Value.x + ", " + m_Value.y + ");", true);
         }
 
         public override PreviewProperty GetPreviewProperty()

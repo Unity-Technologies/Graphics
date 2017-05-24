@@ -2,16 +2,16 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Matrix/Matrix 3")]
-    public class Matrix3Node : AbstractMaterialNode, IGeneratesBodyCode
+    [Title("Input/Matrix/Matrix 4")]
+    public class Matrix4Node : AbstractMaterialNode, IGeneratesBodyCode
     {
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Value";
 
         [SerializeField]
-        private Vector3[] m_Value = new Vector3[3];
+        private Vector4[] m_Value = new Vector4[4];
 
-        public Vector3 this[int index]
+        public Vector4 this[int index]
         {
             get { return m_Value[index]; }
             set
@@ -26,15 +26,15 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public Matrix3Node()
+        public Matrix4Node()
         {
-            name = "Matrix3";
+            name = "Matrix4";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Matrix3, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Matrix4, Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
@@ -56,7 +56,7 @@ namespace UnityEngine.MaterialGraph
             //if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
             //    return;
 
-            visitor.AddShaderChunk(precision + "3x3 " + propertyName + " = " + precision + "3x3 (" + m_Value[0].x + ", " + m_Value[0].y + ", " + m_Value[0].z + ", " + m_Value[1].x + ", " + m_Value[1].y + ", " + m_Value[1].z + ", " + m_Value[2].x + ", " + m_Value[2].y + ", " + m_Value[2].z + ");", true);
+            visitor.AddShaderChunk(precision + "4x4 " + propertyName + " = " + precision + "4x4 (" + m_Value[0].x + ", " + m_Value[0].y + ", " + m_Value[0].z + ", " + m_Value[0].w + ", " + m_Value[1].x + ", " + m_Value[1].y + ", " + m_Value[1].z + ", " + m_Value[1].w + ", " + m_Value[2].x + ", " + m_Value[2].y + ", " + m_Value[2].z + ", " + m_Value[2].w + ", " + m_Value[3].x + ", " + m_Value[3].y + ", " + m_Value[3].z + ", " + m_Value[3].w + ");", true);
         }
 
         [SerializeField]

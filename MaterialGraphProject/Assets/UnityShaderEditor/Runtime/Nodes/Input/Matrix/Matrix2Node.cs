@@ -56,7 +56,7 @@ namespace UnityEngine.MaterialGraph
             //if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
             //    return;
 
-            visitor.AddShaderChunk(precision + "2 " +  propertyName + " = " + precision + "2x2 (" + precision + "2(" + m_Value[0].x + ", " + m_Value[0].y + "), " + precision + "2(" + m_Value[1].x + ", " + m_Value[1].y + "))", true);
+            visitor.AddShaderChunk(precision + "2 " +  propertyName + " = " + precision + "2x2 (" + m_Value[0].x + ", " + m_Value[0].y + ", " + m_Value[1].x + ", " + m_Value[1].y + ");", true);
         }
 
         [SerializeField]
