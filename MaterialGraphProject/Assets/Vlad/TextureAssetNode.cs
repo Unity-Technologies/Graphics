@@ -94,18 +94,6 @@ namespace UnityEngine.MaterialGraph
             get { return new[] { OutputSlotRgbaId }; }
         }
 
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            string slotOutput;
-            switch (slotId)
-            {
-                default:
-                    slotOutput = "";
-                    break;
-            }
-            return GetVariableNameForNode() + slotOutput;
-        }
-
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             properties.Add(GetPreviewProperty());

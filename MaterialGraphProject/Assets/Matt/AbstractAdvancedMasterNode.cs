@@ -40,6 +40,8 @@ namespace UnityEngine.MaterialGraph
         public abstract string GetSurfaceOutputName();
         public abstract string GetLightFunction();
         public abstract string GetMaterialID();
+        public abstract int[] GetCustomDataSlots();
+        public abstract string[] GetCustomData();
 
         public override string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
         {
@@ -223,8 +225,70 @@ namespace UnityEngine.MaterialGraph
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
             ListPool<INode>.Release(nodes);
-
+            
             foreach (var slot in GetInputSlots<MaterialSlot>())
+            {
+                if (!CheckForCustomData(slot.id)) // Check to ignore writing surface data for items getting packed into custom data
+                {
+                    foreach (var edge in owner.GetEdges(slot.slotReference))
+                    {
+                        var outputRef = edge.outputSlot;
+                        var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+                        if (fromNode == null)
+                            continue;
+
+                        var remapper = fromNode as INodeGroupRemapper;
+                        if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
+                            continue;
+
+                        shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
+
+                        if (slot.id == NormalSlotId)
+                            shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
+                    }
+
+                    // Write tangent data to WorldVectors input on SurfaceOutput
+                    if (slot.id == TangentSlotId)
+                    {
+                        var edges = owner.GetEdges(slot.slotReference);
+                        if (edges.Any())
+                        {
+                            shaderBody.AddShaderChunk("float3x3 worldToTangent;", false);
+                            shaderBody.AddShaderChunk("worldToTangent[0] = float3(1, 0, 0);", false);
+                            shaderBody.AddShaderChunk("worldToTangent[1] = float3(0, 1, 0);", false);
+                            shaderBody.AddShaderChunk("worldToTangent[2] = float3(0, 0, 1);", false);
+                            shaderBody.AddShaderChunk("float3 tangentTWS = mul(o." + slot.shaderOutputName + ", worldToTangent);", false);
+                            shaderBody.AddShaderChunk("o.WorldVectors = float3x3(tangentTWS, " + ShaderGeneratorNames.WorldSpaceBitangent + ", " + ShaderGeneratorNames.WorldSpaceNormal + ");", false);
+                        }
+                        else
+                        {
+                            shaderBody.AddShaderChunk("o.WorldVectors = float3x3(" + ShaderGeneratorNames.WorldSpaceTangent + ", " + ShaderGeneratorNames.WorldSpaceBitangent + ", " + ShaderGeneratorNames.WorldSpaceNormal + ");", false);
+                        }
+                    }
+                }
+            }
+
+            string[] customData = GetCustomData();
+            foreach(string data in customData)
+            {
+                shaderBody.AddShaderChunk(data, false);
+            }
+        }
+
+        public MaterialSlot GetMaterialSlot(int id)
+        {
+            foreach (var slot in GetInputSlots<MaterialSlot>())
+            {
+                if (slot.id == id)
+                    return slot;
+            }
+            return null;
+        }
+
+        public string GetVariableNameForSlotAtId(int id)
+        {
+            MaterialSlot slot = GetMaterialSlot(id);
+            if (slot != null)
             {
                 foreach (var edge in owner.GetEdges(slot.slotReference))
                 {
@@ -237,31 +301,21 @@ namespace UnityEngine.MaterialGraph
                     if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
                         continue;
 
-                    shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
-
-                    if (slot.id == NormalSlotId)
-                        shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
-                }
-
-                // Write tangent data to WorldVectors input on SurfaceOutput
-                if (slot.id == TangentSlotId)
-                {
-                    var edges = owner.GetEdges(slot.slotReference);
-                    if (edges.Any())
-                    {
-                        shaderBody.AddShaderChunk("float3x3 worldToTangent;", false);
-                        shaderBody.AddShaderChunk("worldToTangent[0] = float3(1, 0, 0);", false);
-                        shaderBody.AddShaderChunk("worldToTangent[1] = float3(0, 1, 0);", false);
-                        shaderBody.AddShaderChunk("worldToTangent[2] = float3(0, 0, 1);", false);
-                        shaderBody.AddShaderChunk("float3 tangentTWS = mul(o." + slot.shaderOutputName + ", worldToTangent);", false);
-                        shaderBody.AddShaderChunk("o.WorldVectors = float3x3(tangentTWS, "+ ShaderGeneratorNames.WorldSpaceBitangent + ", "+ ShaderGeneratorNames.WorldSpaceNormal+ ");", false);
-                    }
-                    else
-                    {
-                        shaderBody.AddShaderChunk("o.WorldVectors = float3x3(" + ShaderGeneratorNames.WorldSpaceTangent + ", " + ShaderGeneratorNames.WorldSpaceBitangent + ", " + ShaderGeneratorNames.WorldSpaceNormal + ");", false);
-                    }
+                    return fromNode.GetVariableNameForSlot(outputRef.slotId);
+                    //shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
                 }
             }
+            return "";
+        }
+
+        bool CheckForCustomData(int id)
+        {
+            foreach (var custom in GetCustomDataSlots())
+            {
+                if (custom == id)
+                    return true;
+            }
+            return false;
         }
     }
 }
