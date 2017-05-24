@@ -29,6 +29,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(SwizzleNode)] = typeof(SwizzleNodePresenter);
 			typeMapper[typeof(BlendModeNode)] = typeof(BlendModeNodePresenter);
             typeMapper[typeof(AddManyNode)] = typeof(AddManyNodePresenter);
+            typeMapper[typeof(IfNode)] = typeof(IfNodePresenter);
         }
     }
 }
