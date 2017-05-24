@@ -62,7 +62,7 @@ namespace UnityEngine.MaterialGraph
             var outputString = new ShaderGenerator();
             switch (m_BlendMode)
             {
-                case BlendModesEnum.AddSub:
+/*                case BlendModesEnum.AddSub:
                     outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
                     outputString.AddShaderChunk("{", false);
                     outputString.Indent();
@@ -70,6 +70,7 @@ namespace UnityEngine.MaterialGraph
                     outputString.Deindent();
                     outputString.AddShaderChunk("}", false);
                     break;
+*/
                 case BlendModesEnum.Burn:
                     outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
                     outputString.AddShaderChunk("{", false);
@@ -162,7 +163,7 @@ namespace UnityEngine.MaterialGraph
                     outputString.Deindent();
                     outputString.AddShaderChunk("}", false);
                     break;
-                case BlendModesEnum.LinearLight:
+                case BlendModesEnum.LinearLight_AddSub:
                     outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
                     outputString.AddShaderChunk("{", false);
                     outputString.Indent();
