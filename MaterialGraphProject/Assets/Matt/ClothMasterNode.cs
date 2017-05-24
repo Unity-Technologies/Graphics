@@ -10,9 +10,10 @@ namespace UnityEngine.MaterialGraph
         //public const string MetallicSlotName = "Metallic";
         //public const int MetallicSlotId = 2;
 
+        public const string AnisotropySlotName = "Anisotropy";
+        public const int AnisotropySlotId = 8;
         public const string FuzzSlotName = "Fuzz";
         public const int FuzzSlotId = 9;
-
         public const string ClothFactorSlotName = "ClothFactor";
         public const int ClothFactorSlotId = 10;
 
@@ -28,6 +29,11 @@ namespace UnityEngine.MaterialGraph
         public override string GetMaterialID()
         {
             return "SHADINGMODELID_CLOTH";
+        }
+
+        public override bool RequireTangentCalculation()
+        {
+            return true;
         }
 
         public override int[] GetCustomDataSlots()
@@ -58,7 +64,6 @@ namespace UnityEngine.MaterialGraph
             //AddSlot(new MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(AnisotropySlotId, AnisotropySlotName, AnisotropySlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(TangentSlotId, TangentSlotName, TangentSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
             AddSlot(new MaterialSlot(AnisotropySlotId, AnisotropySlotName, AnisotropySlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(FuzzSlotId, FuzzSlotName, FuzzSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
@@ -76,8 +81,8 @@ namespace UnityEngine.MaterialGraph
                                            SmoothnessSlotId,
                                            OcclusionSlotId,
                                            AlphaSlotId,
-                                           AnisotropySlotId,
                                            TangentSlotId,
+                                           AnisotropySlotId,
                                            FuzzSlotId,
                                            ClothFactorSlotId
                                        });

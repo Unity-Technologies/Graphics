@@ -24,10 +24,8 @@ namespace UnityEngine.MaterialGraph
         public const int OcclusionSlotId = 5;
         public const int AlphaSlotId = 6;
 
-        public const string AnisotropySlotName = "Anisotropy";
-        public const int AnisotropySlotId = 7;
         public const string TangentSlotName = "Tangent";
-        public const int TangentSlotId = 8;
+        public const int TangentSlotId = 7;
 
         [SerializeField]
         private SurfaceMaterialOptions m_MaterialOptions = new SurfaceMaterialOptions();
@@ -39,9 +37,17 @@ namespace UnityEngine.MaterialGraph
 
         public abstract string GetSurfaceOutputName();
         public abstract string GetLightFunction();
+
         public abstract string GetMaterialID();
+        //Deal with custom data packing
         public abstract int[] GetCustomDataSlots();
         public abstract string[] GetCustomData();
+
+        // Check for whether tangents are needed in the BRDF
+        public virtual bool RequireTangentCalculation()
+        {
+            return false;
+        }
 
         public override string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
         {
@@ -247,22 +253,26 @@ namespace UnityEngine.MaterialGraph
                             shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
                     }
 
+                    // If tangents are needed for the BRDF
                     // Write tangent data to WorldVectors input on SurfaceOutput
                     if (slot.id == TangentSlotId)
                     {
-                        var edges = owner.GetEdges(slot.slotReference);
-                        if (edges.Any())
+                        if (RequireTangentCalculation())
                         {
-                            shaderBody.AddShaderChunk("float3x3 worldToTangent;", false);
-                            shaderBody.AddShaderChunk("worldToTangent[0] = float3(1, 0, 0);", false);
-                            shaderBody.AddShaderChunk("worldToTangent[1] = float3(0, 1, 0);", false);
-                            shaderBody.AddShaderChunk("worldToTangent[2] = float3(0, 0, 1);", false);
-                            shaderBody.AddShaderChunk("float3 tangentTWS = mul(o." + slot.shaderOutputName + ", worldToTangent);", false);
-                            shaderBody.AddShaderChunk("o.WorldVectors = float3x3(tangentTWS, " + ShaderGeneratorNames.WorldSpaceBitangent + ", " + ShaderGeneratorNames.WorldSpaceNormal + ");", false);
-                        }
-                        else
-                        {
-                            shaderBody.AddShaderChunk("o.WorldVectors = float3x3(" + ShaderGeneratorNames.WorldSpaceTangent + ", " + ShaderGeneratorNames.WorldSpaceBitangent + ", " + ShaderGeneratorNames.WorldSpaceNormal + ");", false);
+                            var edges = owner.GetEdges(slot.slotReference);
+                            if (edges.Any())
+                            {
+                                shaderBody.AddShaderChunk("float3x3 worldToTangent;", false);
+                                shaderBody.AddShaderChunk("worldToTangent[0] = float3(1, 0, 0);", false);
+                                shaderBody.AddShaderChunk("worldToTangent[1] = float3(0, 1, 0);", false);
+                                shaderBody.AddShaderChunk("worldToTangent[2] = float3(0, 0, 1);", false);
+                                shaderBody.AddShaderChunk("float3 tangentTWS = mul(o." + slot.shaderOutputName + ", worldToTangent);", false);
+                                shaderBody.AddShaderChunk("o.WorldVectors = float3x3(tangentTWS, " + ShaderGeneratorNames.WorldSpaceBitangent + ", " + ShaderGeneratorNames.WorldSpaceNormal + ");", false);
+                            }
+                            else
+                            {
+                                shaderBody.AddShaderChunk("o.WorldVectors = float3x3(" + ShaderGeneratorNames.WorldSpaceTangent + ", " + ShaderGeneratorNames.WorldSpaceBitangent + ", " + ShaderGeneratorNames.WorldSpaceNormal + ");", false);
+                            }
                         }
                     }
                 }
