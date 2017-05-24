@@ -39,8 +39,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             Event e = Event.current;
             
-            
-            if (prevWindow != EditorWindow.focusedWindow.ToString() && EditorWindow.focusedWindow.ToString() != "(UnityEditor.GradientPicker)")
+            if (EditorWindow.focusedWindow != null && prevWindow != EditorWindow.focusedWindow.ToString() && EditorWindow.focusedWindow.ToString() != "(UnityEditor.GradientPicker)")
             {
                cNode.UpdateGradient();
                 prevWindow = EditorWindow.focusedWindow.ToString();
