@@ -1,16 +1,23 @@
+using UnityEngine.Graphing;
+
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Matrix/Transpose Node")]
+    [Title("Math/Matrix/TransposeMatrix")]
     public class MatrixTransposeNode : Function1Input, IGeneratesFunction
     {
         public MatrixTransposeNode()
         {
-            name = "MatrixTranspose";
+            name = "TransposeMatrix";
         }
 
         protected override string GetFunctionName()
         {
             return "unity_matrix_transpose_" + precision;
+        }
+
+        public override bool hasPreview
+        {
+            get { return false; }
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
@@ -24,6 +31,16 @@ namespace UnityEngine.MaterialGraph
             outputString.AddShaderChunk("}", false);
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        }
+
+        protected override MaterialSlot GetInputSlot()
+        {
+            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Matrix3, Vector4.zero);
+        }
+
+        protected override MaterialSlot GetOutputSlot()
+        {
+            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Matrix3, Vector4.zero);
         }
     }
 }
