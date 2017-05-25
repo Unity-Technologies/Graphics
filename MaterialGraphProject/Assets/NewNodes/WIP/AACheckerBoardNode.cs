@@ -35,6 +35,7 @@ namespace UnityEngine.MaterialGraph
                     };
                 }
             }
+            public ShaderGlobal[] globals { get { return new ShaderGlobal[] { }; } }
 
             public string hlsl
             {
