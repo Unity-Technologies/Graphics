@@ -5,19 +5,31 @@ using System.Linq;
 namespace UnityEngine.MaterialGraph
 {
     [Title("UV/Tri-Planar Mapping")]
-    public class UVTriPlanar : Function1Input, IGeneratesFunction, IMayRequireNormal, IMayRequireWorldPosition
+    public class UVTriPlanar : Function3Input, IGeneratesFunction, IMayRequireNormal, IMayRequireWorldPosition
     {
 
         private const string kTextureSlotName = "Texture";
+        private const string kTileSlotName = "Tile";
+        private const string kBlendSlotName = "Blend";
 
         protected override string GetFunctionName()
         {
             return "unity_triplanar_" + precision;
         }
 
-        protected override MaterialSlot GetInputSlot()
+        protected override MaterialSlot GetInputSlot1()
         {
-            return new MaterialSlot(InputSlotId, kTextureSlotName, kTextureSlotName, SlotType.Input, SlotValueType.sampler2D, Vector4.zero, false);
+            return new MaterialSlot(InputSlot1Id, kTextureSlotName, kTextureSlotName, SlotType.Input, SlotValueType.sampler2D, Vector4.zero, false);
+        }
+
+        protected override MaterialSlot GetInputSlot2()
+        {
+            return new MaterialSlot(InputSlot2Id, kTileSlotName, kTileSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.one);
+        }
+
+        protected override MaterialSlot GetInputSlot3()
+        {
+            return new MaterialSlot(InputSlot3Id, kBlendSlotName, kBlendSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.one);
         }
 
         protected override MaterialSlot GetOutputSlot()
@@ -44,15 +56,18 @@ namespace UnityEngine.MaterialGraph
 			}
 		}
 
-		protected override string GetFunctionPrototype(string argName)
+		protected override string GetFunctionPrototype(string arg1Name, string arg2Name, string arg3Name)
         {
             return "inline " + precision + outputDimension + " " + GetFunctionName() + " ("
-                   + "sampler2D " + argName + ", float3 normal, float3 pos)";
+                   + "sampler2D " + arg1Name + ", " 
+                   + precision + " " + arg2Name + ", " 
+                   + precision + " " + arg3Name + 
+                   ", float3 normal, float3 pos)";
         }
 
-        protected override string GetFunctionCallBody(string inputValue)
+        protected override string GetFunctionCallBody(string input1Value, string input2Value, string input3Value)
         {
-            return GetFunctionName() + " (" + inputValue + "_Uniform" + ", IN.worldNormal, IN.worldPos)";
+            return GetFunctionName() + " (" + input1Value + ", " + input2Value + ", " + input3Value + ", IN.worldNormal, IN.worldPos)";
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
@@ -66,7 +81,7 @@ namespace UnityEngine.MaterialGraph
         {
             var outputString = new ShaderGenerator();
 
-            var textureSlot = FindInputSlot<MaterialSlot>(InputSlotId);
+            var textureSlot = FindInputSlot<MaterialSlot>(InputSlot1Id);
             if (textureSlot == null)
                 return;
 
@@ -81,25 +96,23 @@ namespace UnityEngine.MaterialGraph
             }
               
 
-            ////////////////////////////////QQQ: Any better way of getting "_Uniform" at the end? //////////////////////////////////
-           // outputString.AddShaderChunk("sampler2D " + textureName + "_Uniform;", false);
-           // outputString.AddShaderChunk("", false);
-
-            outputString.AddShaderChunk(GetFunctionPrototype("arg"), false);
+            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2", "arg3"), false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
 
+            // create UVs from position
+            outputString.AddShaderChunk("fixed3 uvs = pos * arg2;", false);
 
             // use absolute value of normal as texture weights
-            outputString.AddShaderChunk("half3 blend = abs(normal);", false);
+            outputString.AddShaderChunk("half3 blend = pow(abs(normal), arg3);", false);
+
             // make sure the weights sum up to 1 (divide by sum of x+y+z)
             outputString.AddShaderChunk("blend /= dot(blend, 1.0);", false);
 
-
             // read the three texture projections, for x,y,z axes
-            outputString.AddShaderChunk("fixed4 cx = tex2D(arg, pos.yz);", false);
-            outputString.AddShaderChunk("fixed4 cy = tex2D(arg, pos.xz);", false);
-            outputString.AddShaderChunk("fixed4 cz = tex2D(arg, pos.xy);", false);
+            outputString.AddShaderChunk("fixed4 cx = tex2D(arg1, uvs.yz);", false);
+            outputString.AddShaderChunk("fixed4 cy = tex2D(arg1, uvs.xz);", false);
+            outputString.AddShaderChunk("fixed4 cz = tex2D(arg1, uvs.xy);", false);
 
 
             // blend the textures based on weights
@@ -110,6 +123,19 @@ namespace UnityEngine.MaterialGraph
             outputString.AddShaderChunk("}", false);
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        }
+
+        //prevent validation errors when a sampler2D input is missing
+        //use on any input requiring a TextureAssetNode
+        public override void ValidateNode()
+        {
+            base.ValidateNode();
+            var slot = FindInputSlot<MaterialSlot>(InputSlot1Id);
+            if (slot == null)
+                return;
+
+            var edges = owner.GetEdges(slot.slotReference).ToList();
+            hasError |= edges.Count == 0;
         }
 
         public bool RequiresNormal()

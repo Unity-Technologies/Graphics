@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("ChannelBlend")]
+    [Title("Art/ChannelBlend")]
     public class ChannelBlend : FunctionNInNOut, IGeneratesFunction
     {
 

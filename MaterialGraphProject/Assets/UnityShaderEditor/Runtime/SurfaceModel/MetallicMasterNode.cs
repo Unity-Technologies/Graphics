@@ -21,6 +21,7 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            AddSlot(new MaterialSlot(VertexOffsetId, VertexOffsetName, VertexOffsetName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
             AddSlot(new MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
             AddSlot(new MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
             AddSlot(new MaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
@@ -40,10 +41,40 @@ namespace UnityEngine.MaterialGraph
                                            MetallicSlotId,
                                            SmoothnessSlotId,
                                            OcclusionSlotId,
-                                           AlphaSlotId
+                                           AlphaSlotId,
+                                           VertexOffsetId
                                        });
         }
-        
+
+        protected override int[] surfaceInputs
+        {
+            get
+            {
+                return new[]
+                                       {
+                    AlbedoSlotId,
+                                           NormalSlotId,
+                                           EmissionSlotId,
+                                           MetallicSlotId,
+                                           SmoothnessSlotId,
+                                           OcclusionSlotId,
+                                           AlphaSlotId,
+                                       };
+            }
+        }
+
+
+        protected override int[] vertexInputs
+        {
+            get
+            {
+                return new[]
+                                       {
+                    VertexOffsetId
+                                       };
+            }
+        }
+
         public override string GetSurfaceOutputName()
         {
             return SurfaceOutputStructureName;

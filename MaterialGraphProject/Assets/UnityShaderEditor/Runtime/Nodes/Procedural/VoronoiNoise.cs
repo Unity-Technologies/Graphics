@@ -1,11 +1,16 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Voronoi Noise")]
-    public class VoronoiNoiseNode : Function2Input, IGeneratesFunction
+    public class VoronoiNoiseNode : FunctionNInNOut, IGeneratesFunction
     {
         public VoronoiNoiseNode()
         {
             name = "VoronoiNoise";
+            AddSlot("UV", "uv", Graphing.SlotType.Input, SlotValueType.Vector2, Vector4.zero);
+            AddSlot("AngleOffset", "angleOffset", Graphing.SlotType.Input, SlotValueType.Vector1, new Vector4(2.0f,0,0,0));
+            AddSlot("Cellular", "n1", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
+            AddSlot("Tile", "n2", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
+            AddSlot("1 - Cellular", "n3", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
         }
 
         protected override string GetFunctionName()
@@ -13,29 +18,12 @@
             return "unity_voronoinoise_" + precision;
         }
 
-        protected override string GetInputSlot1Name()
+        public override bool hasPreview
         {
-            return "UV";
-        }
-
-        protected override MaterialSlot GetInputSlot1()
-        {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        protected override string GetInputSlot2Name()
-        {
-            return "AngleOffset";
-        }
-
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector1, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector1, Vector2.zero);
+            get
+            {
+                return true;
+            }
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
@@ -53,7 +41,7 @@
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
 
-            outputString.AddShaderChunk(GetFunctionPrototype("uv", "angleOffset"), false);
+            outputString.AddShaderChunk(GetFunctionPrototype(), false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
 
@@ -61,7 +49,6 @@
             outputString.AddShaderChunk("float2 f = frac(uv);", false);
             outputString.AddShaderChunk("float t = 8.0;", false);
             outputString.AddShaderChunk("float3 res = float3(8.0, 0.0, 0.0);", false);
-
 
             outputString.AddShaderChunk("for(int y=-1; y<=1; y++)", false);
             outputString.AddShaderChunk("{", false);
@@ -79,6 +66,9 @@
             outputString.Indent();
 
             outputString.AddShaderChunk("res = float3(d, offset.x, offset.y);", false);
+            outputString.AddShaderChunk("n1 = res.x;", false);
+            outputString.AddShaderChunk("n2 = res.y;", false);
+            outputString.AddShaderChunk("n3 = 1.0 - res.x;", false);
 
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
@@ -88,8 +78,6 @@
 
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
-
-            outputString.AddShaderChunk("return res.x;", false);
 
 
             outputString.Deindent();

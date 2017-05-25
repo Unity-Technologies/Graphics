@@ -91,8 +91,6 @@ namespace UnityEngine.MaterialGraph
             if (inputSlot == null)
                 return string.Empty;
 
-            string sufix = "";
-
             var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
 
             if (edges.Any())
@@ -106,14 +104,10 @@ namespace UnityEngine.MaterialGraph
                 if (slot == null)
                     return string.Empty;
 
-                if (slot.concreteValueType == ConcreteSlotValueType.sampler2D)
-                    sufix += "_Uniform";
-                return ShaderGenerator.AdaptNodeOutput(fromNode, slot.id, slot.concreteValueType) + sufix;
+                return ShaderGenerator.AdaptNodeOutput(fromNode, slot.id, slot.concreteValueType);
             }
 
-            if (inputSlot.concreteValueType == ConcreteSlotValueType.sampler2D)
-                sufix += "_Uniform";
-            return inputSlot.GetDefaultValue(generationMode) + sufix;
+            return inputSlot.GetDefaultValue(generationMode);
         }
 
         private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType from, ConcreteSlotValueType to)
@@ -138,6 +132,12 @@ namespace UnityEngine.MaterialGraph
                     return ConcreteSlotValueType.Vector4;
                 case SlotValueType.sampler2D:
                     return ConcreteSlotValueType.sampler2D;
+                case SlotValueType.Matrix2:
+                    return ConcreteSlotValueType.Matrix2;
+                case SlotValueType.Matrix3:
+                    return ConcreteSlotValueType.Matrix3;
+                case SlotValueType.Matrix4:
+                    return ConcreteSlotValueType.Matrix4;
             }
             return ConcreteSlotValueType.Error;
         }
@@ -300,6 +300,12 @@ namespace UnityEngine.MaterialGraph
                     return "4";
                 case ConcreteSlotValueType.sampler2D:
                     return "sampler2D";
+                case ConcreteSlotValueType.Matrix2:
+                    return "2x2";
+                case ConcreteSlotValueType.Matrix3:
+                    return "3x3";
+                case ConcreteSlotValueType.Matrix4:
+                    return "4x4";
                 default:
                     return "Error";
             }
@@ -310,7 +316,7 @@ namespace UnityEngine.MaterialGraph
             switch (slotValue)
             {
                 case ConcreteSlotValueType.sampler2D:
-                    return PropertyType.Texture2D;
+                    return PropertyType.Texture;
                 case ConcreteSlotValueType.Vector1:
                     return PropertyType.Float;
                 case ConcreteSlotValueType.Vector2:
@@ -319,6 +325,12 @@ namespace UnityEngine.MaterialGraph
                     return PropertyType.Vector3;
                 case ConcreteSlotValueType.Vector4:
                     return PropertyType.Vector4;
+                case ConcreteSlotValueType.Matrix2:
+                    return PropertyType.Matrix2;
+                case ConcreteSlotValueType.Matrix3:
+                    return PropertyType.Matrix3;
+                case ConcreteSlotValueType.Matrix4:
+                    return PropertyType.Matrix4;
                 default:
                     return PropertyType.Vector4;
             }
