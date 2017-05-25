@@ -1,9 +1,9 @@
 fileFormatVersion: 2
-guid: 0e5edf7e3bc2bbc47bdb6b74107cc104
+guid: 96bf971901c0d7c468d21e8511ced163
 timeCreated: 1495479560
 licenseType: Pro
-NativeFormatImporter:
-  mainObjectFileID: 0
+ScriptedImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
