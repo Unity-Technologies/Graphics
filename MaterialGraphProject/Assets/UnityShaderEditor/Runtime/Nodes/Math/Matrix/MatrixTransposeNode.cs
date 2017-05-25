@@ -35,12 +35,12 @@ namespace UnityEngine.MaterialGraph
 
         protected override MaterialSlot GetInputSlot()
         {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Matrix3, Vector4.zero);
+            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Matrix4, Vector4.zero);
         }
 
         protected override MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Matrix3, Vector4.zero);
+            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Matrix4, Vector4.zero);
         }
     }
 }
