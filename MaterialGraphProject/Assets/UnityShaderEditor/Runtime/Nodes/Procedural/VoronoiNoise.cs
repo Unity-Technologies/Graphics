@@ -35,7 +35,7 @@
 
         protected override MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector1, Vector2.zero);
+            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector3, Vector3.zero);
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
@@ -89,7 +89,7 @@
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
 
-            outputString.AddShaderChunk("return res.x;", false);
+            outputString.AddShaderChunk("return res;", false);
 
 
             outputString.Deindent();
