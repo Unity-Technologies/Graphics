@@ -18,13 +18,15 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (tNode == null)
                 return;
 
-			//tNode.floatType = (FloatPropertyChunk.FloatType)EditorGUILayout.EnumPopup ("Float", tNode.floatType);
-
+			//EditorGUILayout.BeginHorizontal ();
+			tNode.spaceFrom = (SimpleMatrixType)EditorGUILayout.EnumPopup ("From", tNode.spaceFrom);
+			tNode.spaceTo = (SimpleMatrixType)EditorGUILayout.EnumPopup ("To", tNode.spaceTo);
+			//EditorGUILayout.BeginHorizontal ();
         }
 
         public override float GetHeight()
         {
-			return (EditorGUIUtility.singleLineHeight + 16 * EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
+			return (EditorGUIUtility.singleLineHeight + 6 * EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
         }
     }
 

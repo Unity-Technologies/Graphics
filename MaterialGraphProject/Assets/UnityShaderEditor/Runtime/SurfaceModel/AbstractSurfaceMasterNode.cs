@@ -209,8 +209,24 @@ namespace UnityEngine.MaterialGraph
 
             foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
             {
+                string prefix = "";
+                string sufix = "";
+                foreach (ISlot slot in node.GetInputSlots<MaterialSlot>())
+                {
+                    SlotValueType slotValueType = FindSlot<MaterialSlot>(slot.id).valueType;
+                    if (slotValueType == SlotValueType.Texture2D || slotValueType == SlotValueType.SamplerState)
+                    {
+                        prefix = "#ifdef UNITY_COMPILER_HLSL \n";
+                        sufix = "\n #endif";
+                    }
+                }
+
                 if (node is IGeneratesFunction)
+                {
+                    nodeFunction.AddShaderChunk(prefix, false);
                     (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, mode);
+                    nodeFunction.AddShaderChunk(sufix, false);
+                }
 
                 node.GeneratePropertyUsages(propertyUsages, mode);
             }

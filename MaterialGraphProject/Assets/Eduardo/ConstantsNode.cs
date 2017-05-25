@@ -10,6 +10,7 @@ namespace UnityEngine.MaterialGraph
         
         static Dictionary<ConstantType, float> m_constantList = new Dictionary<ConstantType, float>
         {
+            {ConstantType.PI, 3.1415926f },
             {ConstantType.TAU, 6.28318530f},
             {ConstantType.PHI, 1.618034f},
             {ConstantType.E, 2.718282f},
