@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using UnityEngine.Graphing;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("UV/Cartesian To Polar")]
     public class CartesianToPolarNode : Function1Input, IGeneratesFunction
@@ -20,7 +22,12 @@
 
         protected override MaterialSlot GetInputSlot()
         {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
+            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Vector2, Vector2.zero);
+        }
+
+        protected override MaterialSlot GetOutputSlot()
+        {
+            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector2, Vector2.zero);
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)

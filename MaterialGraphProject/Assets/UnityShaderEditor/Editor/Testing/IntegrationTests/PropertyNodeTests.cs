@@ -32,10 +32,10 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             "MudDiffuse.tif"
         };
 
-        private static Texture2D FindTestTexture()
+        private static Texture FindTestTexture()
         {
             var texturePath = s_TexturePath.Aggregate(Path.Combine);
-            return AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+            return AssetDatabase.LoadAssetAtPath<Texture>(texturePath);
         }
 
         [SetUp]
@@ -49,7 +49,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
         [Test]
         public void TestTextureNodeTypeIsCorrect()
         {
-            Assert.AreEqual(PropertyType.Texture2D, m_TextureNode.propertyType);
+            Assert.AreEqual(PropertyType.Texture, m_TextureNode.propertyType);
         }
 
         [Test]
