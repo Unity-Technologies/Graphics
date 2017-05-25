@@ -5,7 +5,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Gradient Editor")]
-    public class GradientNode : Function1Input, IGeneratesFunction
+    public class GradientNode : FunctionNInNOut, IGeneratesFunction
     {
         [SerializeField]
         private Gradient m_gradient;
@@ -47,6 +47,12 @@ namespace UnityEngine.MaterialGraph
         public GradientNode()
         {
             name = "Gradient";
+            AddSlot("Value", "v", Graphing.SlotType.Input, SlotValueType.Vector1, Vector4.one);
+            AddSlot("RGBA", "finalColor", Graphing.SlotType.Output, SlotValueType.Vector4, Vector4.zero);
+            AddSlot("R", "finalR", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
+            AddSlot("G", "finalG", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
+            AddSlot("B", "finalB", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
+            AddSlot("A", "finalA", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
             UpdateNodeAfterDeserialization();
         }
 
@@ -55,20 +61,11 @@ namespace UnityEngine.MaterialGraph
             return "unity_Gradient_" + precision;
         }
 
-        protected override string GetInputSlotName()
+        public override bool hasPreview
         {
-            return "Value";
+            get { return true; }
         }
 
-        protected override MaterialSlot GetInputSlot()
-        {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector1, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector4, Vector2.zero);
-        }
 
         private void GNF(ShaderGenerator visitor, GenerationMode generationMode)
         {
@@ -79,7 +76,7 @@ namespace UnityEngine.MaterialGraph
 
             //Start
 
-            outputString.AddShaderChunk(GetFunctionPrototype("v"), false);
+            outputString.AddShaderChunk(GetFunctionPrototype(), false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
 
@@ -127,7 +124,11 @@ namespace UnityEngine.MaterialGraph
 
             //Result
 
-            outputString.AddShaderChunk("return float4(gradcolor,gradalpha);", false);
+            outputString.AddShaderChunk("finalColor = float4(gradcolor,gradalpha);", false);
+            outputString.AddShaderChunk("finalR = finalColor.r;", false);
+            outputString.AddShaderChunk("finalG = finalColor.g;", false);
+            outputString.AddShaderChunk("finalB = finalColor.b;", false);
+            outputString.AddShaderChunk("finalA = finalColor.a;", false);
 
             //End
 
