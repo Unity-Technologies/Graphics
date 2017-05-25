@@ -32,7 +32,8 @@ namespace UnityEngine.MaterialGraph
         public ScatterNode()
         {
             name = "Scatter";
-            AddSlot("Texture", "inputTex", Graphing.SlotType.Input, SlotValueType.Texture2D, Vector4.zero);
+            AddSlot("TextureAsset", "inputTex", Graphing.SlotType.Input, SlotValueType.Texture2D, Vector4.zero);
+            AddSlot("SamplerState", "inputSampler", Graphing.SlotType.Input, SlotValueType.SamplerState, Vector4.zero);
             AddSlot("UV", "inputUV", Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.one);
             AddSlot("Seed", "seed", Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.one);
             AddSlot("PositionRange", "p_range", Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
@@ -50,6 +51,24 @@ namespace UnityEngine.MaterialGraph
         public override bool hasPreview
         {
             get { return true; }
+        }
+
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+
+            //Sampler input slot
+
+            base.GeneratePropertyUsages(visitor, generationMode);
+            var samplerSlot = FindInputSlot<MaterialSlot>(2);
+
+            if (samplerSlot != null)
+            {
+                var samplerName = GetSamplerInput(2);
+
+                visitor.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", false);
+                visitor.AddShaderChunk("SamplerState " + samplerName + ";", true);
+                visitor.AddShaderChunk("#endif", false);
+            }
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
@@ -82,7 +101,8 @@ namespace UnityEngine.MaterialGraph
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
             outputString.AddShaderChunk("float randomno =  frac(sin(dot(randomseed, float2(12.9898, 78.233)))*43758.5453);", false);
-            outputString.AddShaderChunk("return floor(randomno * (max - min + 1)) + min;", false);
+            outputString.AddShaderChunk("return lerp(min,max,abs(frac(randomno)));", false);
+            //outputString.AddShaderChunk("return floor(randomno * (max - min + 1)) + min;", false);
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
 
@@ -92,24 +112,49 @@ namespace UnityEngine.MaterialGraph
             outputString.Indent();
 
             outputString.AddShaderChunk("finalColor = float4(0,0,0,0);", false);
-            outputString.AddShaderChunk("float2 newuv = inputUV;", false);
-            outputString.AddShaderChunk("float4 tex = tex2D(inputTex,newuv);", false);
-            
+            outputString.AddShaderChunk("float2 newuv;", false);
+            outputString.AddShaderChunk("float4 tex = finalColor;", false);
+
+            outputString.AddShaderChunk("float scale;", false);
+            outputString.AddShaderChunk("float rotation;", false);
+            outputString.AddShaderChunk("float2 position;", false);
+            outputString.AddShaderChunk("float j;", false);
+
+
             for (int i=0; i<m_num; i++)
             {
                 //random UV
-                outputString.AddShaderChunk("newuv *= randomrange(seed,s_range.x,s_range.y);", false); //Scale
-                outputString.AddShaderChunk("newuv = rotateUV(newuv,randomrange(seed,r_range.x,r_range.y));", false); //Rotate
-                outputString.AddShaderChunk("newuv += randomrange(seed,p_range.x,p_range.y));", false); //Position
 
-                //seamless
+                outputString.AddShaderChunk("newuv = inputUV;", false);
+                outputString.AddShaderChunk("j = "+i+"+0.001f;", false);
 
+                outputString.AddShaderChunk("scale = randomrange(seed+j,s_range.x,s_range.y);", false); //Random Scale
+                outputString.AddShaderChunk("newuv *= scale;", false); //Scale
+                outputString.AddShaderChunk("newuv -= (scale-1)*0.5f;", false); //Move to Center After Scale
+
+                outputString.AddShaderChunk("rotation = randomrange(seed+j,r_range.x,r_range.y);", false); //Random rotation
+                outputString.AddShaderChunk("newuv = rotateUV(newuv,rotation);", false); //Rotate
+
+                outputString.AddShaderChunk("position.x = randomrange(seed.x+j,p_range.x,p_range.y);", false); //Random position
+                outputString.AddShaderChunk("position.y = randomrange(seed.y+j,p_range.x,p_range.y);", false); //Random position
+                outputString.AddShaderChunk("newuv += position*scale;", false); //Position
 
                 //sample
-                outputString.AddShaderChunk("tex = tex2D(inputTex,newuv);", false);
+                outputString.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", false);
+                outputString.AddShaderChunk("tex = inputTex.Sample(inputSampler, newuv);", false);
+                outputString.AddShaderChunk("#endif",false);
 
                 //blend together
-                outputString.AddShaderChunk("finalColor += tex/"+m_num+";", false);
+                outputString.AddShaderChunk("finalColor = lerp(finalColor,tex, tex.a);", false);
+
+                //seamless
+                outputString.AddShaderChunk("newuv = 1-newuv;", false);
+                outputString.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", false);
+                outputString.AddShaderChunk("tex = inputTex.Sample(inputSampler, newuv);", false);
+                outputString.AddShaderChunk("#endif", false);
+                //blend seamless
+                outputString.AddShaderChunk("finalColor = lerp(finalColor,tex, tex.a);", false);
+
             }
 
             outputString.Deindent();
