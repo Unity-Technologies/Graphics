@@ -11,9 +11,11 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Texture/Texture Asset")]
     public class TextureAssetNode : PropertyNode
     {
-        protected const string kOutputSlotRGBAName = "Texture";
+        protected const string outputTexture2D_name = "Texture2D";
+        protected const string outputSampler2D_name = "Sampler2D";
 
-        public const int OutputSlotRgbaId = 0;
+        public const int outputTexture2D_id = 0;
+        public const int outputSampler2D_id = 1;
 
         [SerializeField]
         private string m_SerializedTexture;
@@ -85,13 +87,14 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(OutputSlotRgbaId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, SlotValueType.Texture2D, Vector4.zero, false));
+            AddSlot(new MaterialSlot(outputTexture2D_id, outputTexture2D_name, outputTexture2D_name, SlotType.Output, SlotValueType.Texture2D, Vector4.zero, false));
+            AddSlot(new MaterialSlot(outputSampler2D_id, outputSampler2D_name, outputSampler2D_name, SlotType.Output, SlotValueType.Sampler2D, Vector4.zero, false));
             RemoveSlotsNameNotMatching(validSlots);
         }
 
         protected int[] validSlots
         {
-            get { return new[] { OutputSlotRgbaId }; }
+            get { return new[] { outputTexture2D_id, outputSampler2D_id }; }
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -116,9 +119,27 @@ namespace UnityEngine.MaterialGraph
         
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", true);
-            visitor.AddShaderChunk("Texture2D " + propertyName + ";", true);
-            visitor.AddShaderChunk("#endif", true);
+            var slotTexture2D = FindOutputSlot<MaterialSlot>(0);
+            if (slotTexture2D != null)
+            {
+                var edgesTexture2D = owner.GetEdges(slotTexture2D.slotReference).ToList();
+                if (edgesTexture2D.Count > 0)
+                {
+                    visitor.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", true);
+                    visitor.AddShaderChunk("Texture2D " + propertyName + ";", true);
+                    visitor.AddShaderChunk("#endif", true);
+                }
+            }
+
+            var slotSampler2D = FindOutputSlot<MaterialSlot>(1);
+            if (slotSampler2D != null)
+            {
+                var edgesSampler2D = owner.GetEdges(slotSampler2D.slotReference).ToList();
+                if (edgesSampler2D.Count > 0)
+                {
+                    visitor.AddShaderChunk("sampler2D " + propertyName + ";", true);
+                }
+            }
         }
 
 
