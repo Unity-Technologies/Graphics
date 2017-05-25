@@ -68,7 +68,7 @@ namespace UnityEngine.MaterialGraph
         }
         protected virtual MaterialSlot GetTextureSlot()
         {
-            return new MaterialSlot(TextureSlotId, GetTextureSlotName(), kTextureSlotShaderName, SlotType.Input, SlotValueType.sampler2D, Vector4.zero);
+            return new MaterialSlot(TextureSlotId, GetTextureSlotName(), kTextureSlotShaderName, SlotType.Input, SlotValueType.Texture2D, Vector4.zero);
         }
 
         protected virtual MaterialSlot GetOutputSlot()
