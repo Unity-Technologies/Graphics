@@ -96,7 +96,7 @@ namespace UnityEngine.MaterialGraph
 
         protected override MaterialSlot GetInputSlot1()
         {
-            return new MaterialSlot(InputSlot1Id, kTextureSlotName, kTextureSlotName, SlotType.Input, SlotValueType.sampler2D, Vector4.zero, false);
+            return new MaterialSlot(InputSlot1Id, kTextureSlotName, kTextureSlotName, SlotType.Input, SlotValueType.Texture2D, Vector4.zero, false);
         }
 
         protected override MaterialSlot GetInputSlot2()

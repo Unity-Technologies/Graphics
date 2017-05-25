@@ -107,6 +107,12 @@ namespace UnityEngine.MaterialGraph
                     case SlotValueType.Matrix4:
                         concreteValueType = ConcreteSlotValueType.Matrix4;
                         break;
+					case SlotValueType.Texture2D:
+                        concreteValueType = ConcreteSlotValueType.Texture2D;
+                        break;
+                    case SlotValueType.SamplerState:
+                        concreteValueType = ConcreteSlotValueType.SamplerState;
+                        break;
                     default:
                         concreteValueType = ConcreteSlotValueType.Vector4;
                         break;
