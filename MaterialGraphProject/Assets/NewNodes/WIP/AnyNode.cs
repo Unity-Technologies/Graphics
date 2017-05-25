@@ -24,7 +24,7 @@ namespace UnityEngine.MaterialGraph
         {
             switch (slotValueType)
             {
-                case SlotValueType.sampler2D:
+                case SlotValueType.Sampler2D:
                     // TODO
                     break;
                 case SlotValueType.Dynamic:
@@ -72,10 +72,10 @@ namespace UnityEngine.MaterialGraph
                     slotValueType = SlotValueType.Vector4;
                     break;
                 case PropertyType.Texture:
-                    slotValueType = SlotValueType.sampler2D;
+                    slotValueType = SlotValueType.Sampler2D;
                     break;
                 case PropertyType.Cubemap:
-                    slotValueType = SlotValueType.sampler2D;
+                    slotValueType = SlotValueType.Sampler2D;
                     break;
                 case PropertyType.Float:
                     slotValueType = SlotValueType.Vector1;
