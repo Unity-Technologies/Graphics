@@ -1,0 +1,127 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: challenger_teeth
+  m_Shader: {fileID: 4800000, guid: 9ab5e16c2083a4fe689209a8c1ae425e, type: 3}
+  m_ShaderKeywords: _DETAIL_MULX2 _EMISSIONMAP _LIGHTMAPPING_DYNAMIC_LIGHTMAPS _LIGHTMAPPING_REALTIME
+    _NORMALMAP _UVSEC_UV1
+  m_LightmapFlags: 1
+  m_EnableInstancingVariants: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - Texture_11a92303_cad4_4ed7_b9a2_01fe39187cce_Uniform:
+        m_Texture: {fileID: 2800000, guid: 38cfa8e556a37e149b3bc96a9c9dbc61, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture_182faa0c_4b84_44f9_8526_6a2b5d1bfceb_Uniform:
+        m_Texture: {fileID: 2800000, guid: 3f262c34c1f2a5f4f8f243e5579d9525, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture_6bba204c_5a19_44ba_9609_fc2dce308020_Uniform:
+        m_Texture: {fileID: 2800000, guid: 3ce2fee9b4ec4714f8b54cf287194cd7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture_fa598f24_b328_4d21_a9aa_ded3cd2600dd_Uniform:
+        m_Texture: {fileID: 2800000, guid: c38826c181bea7c43b1698d6bf8c97df, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: ab505ce17bdf25b46b0b716592d1b99b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 2800000, guid: 5794e01efe77f944dbf2985b92afa924, type: 3}
+        m_Scale: {x: 19, y: -0.81}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 2800000, guid: 530f1bcdd1a12c745998eab674699d24, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionTempRamp:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionTemperatureRamp:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: e908a97418bbd80429da0e4f4fe82b0b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Occlusion:
+        m_Texture: {fileID: 2800000, guid: a53cd3661bc370d4b8f26e23cc135050, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 2800000, guid: 70f21b489d46f664693dba36123952a6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SpecGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - Vector1_078dba25_d724_4a74_99fe_078c8dc7ebf6_Uniform: 0.5
+    - Vector1_66d312ef_3451_4b07_9f27_d37785582eb7_Uniform: 1
+    - Vector1_d429c42e_84f9_4cd9_aeff_2b5531f4227d_Uniform: 1
+    - _AlphaTestRef: 0.5
+    - _BumpScale: 1
+    - _CullMode: 2
+    - _Cutoff: 0.5
+    - _DetailNormalMapScale: 0.3
+    - _DstBlend: 0
+    - _EmissionScaleUI: 0
+    - _EmissionTemperature: 0
+    - _Glossiness: 0.599
+    - _Lightmapping: 1
+    - _Metallic: 0
+    - _Mode: 0
+    - _OcclusionStrength: 0.8
+    - _Orthonormalize: 0
+    - _Parallax: 0.02
+    - _PlaneReflectionBumpClamp: 0.05
+    - _PlaneReflectionBumpScale: 0.4
+    - _SmoothnessInAlbedo: 0
+    - _SmoothnessTweak1: 1
+    - _SmoothnessTweak2: 0
+    - _SrcBlend: 1
+    - _UVSec: 0
+    - _ZWrite: 1
+    m_Colors:
+    - Color_14397097_d99f_4fb0_84c5_307d9e0d6ea9_Uniform: {r: 1, g: 1, b: 1, a: 0}
+    - Color_edaba26b_8c62_4e4c_8e17_5626c4a01b5c_Uniform: {r: 0.58088225, g: 0.33910328,
+        b: 0.11959336, a: 0}
+    - _Color: {r: 0.88978046, g: 0.89705884, b: 0.76513845, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
+    - _EmissionColorUI: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissionColorWithMapUI: {r: 0.99999994, g: 0.8586226, b: 0.75000346, a: 1}
+    - _SmoothnessTweaks: {r: 1, g: 0, b: 0, a: 0}
+    - _SpecColor: {r: 0.1544118, g: 0.1544118, b: 0.1544118, a: 1}
+    - _SpecularColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+    - _SpecularMapColorTweak: {r: 1, g: 1, b: 1, a: 1}
