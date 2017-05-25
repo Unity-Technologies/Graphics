@@ -12,11 +12,13 @@ namespace UnityEngine.MaterialGraph
         IMayRequireNormal,
         IMayRequireViewDirectionTangentSpace
     {
+        protected const string kInputHeightScaleShaderName = "HeightScale";
         protected const string kTextureSlotShaderName = "Texture";
         protected const string kOutputSlotShaderName = "UV";
-        
-        public const int TextureSlotId = 0;             // 'tex'
-        public const int OutputSlotId = 1;
+
+        public const int HeightScaleSlotId = 0;         // 'height_scale'
+        public const int TextureSlotId = 1;             // 'tex'
+        public const int OutputSlotId = 2;
 
         public override bool hasPreview
         {
@@ -44,16 +46,26 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            AddSlot(GetInputHeightScaleSlot());
             AddSlot(GetTextureSlot());
             AddSlot(GetOutputSlot());
+
             RemoveSlotsNameNotMatching(validSlots);
         }
 
         protected int[] validSlots
         {
-            get { return new[] { TextureSlotId, OutputSlotId }; }
+            get { return new[] { HeightScaleSlotId, TextureSlotId, OutputSlotId }; }
         }
-           
+        protected virtual string GetInputHeightScaleName()
+        {
+            return kInputHeightScaleShaderName;
+        }
+        protected virtual MaterialSlot GetInputHeightScaleSlot()
+        {
+            return new MaterialSlot(
+                HeightScaleSlotId, GetInputHeightScaleName(), kInputHeightScaleShaderName, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
+        }
         protected virtual MaterialSlot GetTextureSlot()
         {
             return new MaterialSlot(TextureSlotId, GetTextureSlotName(), kTextureSlotShaderName, SlotType.Input, SlotValueType.sampler2D, Vector4.zero);
@@ -74,10 +86,16 @@ namespace UnityEngine.MaterialGraph
             return kOutputSlotShaderName;
         }
 
+        private string inputHeightScaleDimension
+        {
+            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(HeightScaleSlotId).concreteValueType); }
+        }
+
         protected virtual string GetFunctionPrototype(
-            string tex, string UVs, string viewTangentSpace, string worldSpaceNormal, string worldSpaceViewDirection)
+            string heightScale, string tex, string UVs, string viewTangentSpace, string worldSpaceNormal, string worldSpaceViewDirection)
         {
             return "inline " + precision + "2 " + GetFunctionName() + " (" +
+                precision + inputHeightScaleDimension + " " + heightScale + ", " + 
                 "sampler2D " + tex + ", " +
                 precision + "2 " + UVs + ", " +
                 precision + "3 " + viewTangentSpace + ", " +
@@ -89,19 +107,20 @@ namespace UnityEngine.MaterialGraph
         {
             NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
                 this, 
-                new[] { TextureSlotId }, 
+                new[] { HeightScaleSlotId, TextureSlotId }, 
                 new[] { OutputSlotId });
+            string heightScaleValue = GetSlotValue(HeightScaleSlotId, generationMode);
             string textureValue = GetSlotValue(TextureSlotId, generationMode);
 
             visitor.AddShaderChunk(precision + "2 " + GetVariableNameForSlot(OutputSlotId) + " = " + 
-                GetFunctionCallBody(textureValue) + ";", true);
+                GetFunctionCallBody(heightScaleValue, textureValue) + ";", true);
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
             outputString.AddShaderChunk(
-                    GetFunctionPrototype("tex", "UVs", "viewTangentSpace", "worldSpaceNormal", "worldSpaceViewDirection" ), 
+                    GetFunctionPrototype("heightScale", "tex", "UVs", "viewTangentSpace", "worldSpaceNormal", "worldSpaceViewDirection" ), 
                     false);
             
             outputString.AddShaderChunk("{", false);
@@ -130,16 +149,12 @@ namespace UnityEngine.MaterialGraph
             // to computing a bump mapping result:
             outputString.AddShaderChunk(precision + "2 " + "result_texcoord = texcoord;", false);
 
-            outputString.AddShaderChunk("float height_scale_value = 1.0f;", false);
-            outputString.AddShaderChunk("float height_scale_adjust = 0.02f;", false);
+            outputString.AddShaderChunk("float height_scale_value = heightScale;", false);
+            outputString.AddShaderChunk("float height_scale_adjust = height_scale_value;", false);
 
 
-            outputString.AddShaderChunk("float per_pixel_height_scale_value = height_scale_value * height_scale_adjust;", false);
-
-            outputString.AddShaderChunk("if (per_pixel_height_scale_value > 0)", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
+            outputString.AddShaderChunk("float per_pixel_height_scale_value = height_scale_value * heightScale;", false);
+            
             // Parallax occlusion mapping offset computation 
             //--------------
 
@@ -197,7 +212,7 @@ namespace UnityEngine.MaterialGraph
 
             // Need to scale the amount of displacement to account for different height ranges
             // in height maps. This is controlled by an artist-editable parameter:
-            outputString.AddShaderChunk("parallax_offset_in_tangent_space *= per_pixel_height_scale_value;", false);
+            outputString.AddShaderChunk("parallax_offset_in_tangent_space *= saturate(heightScale);", false); 
 
             outputString.AddShaderChunk("float2 texcoord_offset_per_step = step_size * parallax_offset_in_tangent_space;", false);
 
@@ -278,25 +293,20 @@ namespace UnityEngine.MaterialGraph
             // The computed texture offset for the displaced point on the pseudo-extruded surface:
             outputString.AddShaderChunk("float2 parallaxed_texcoord = texcoord - parallax_offset;", false);
 
-            outputString.AddShaderChunk("result_texcoord = parallaxed_texcoord;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-            
-            outputString.Deindent();
-					
-            outputString.AddShaderChunk("return result_texcoord;", false);
-            
+            outputString.AddShaderChunk("return parallaxed_texcoord;", false);
+
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
-        protected virtual string GetFunctionCallBody(string texValue)
+        protected virtual string GetFunctionCallBody(string heightScale, string texValue)
         {
             var channel = UVChannel.uv0;
             
             return GetFunctionName() + " (" +
+                heightScale + ", " + 
                 texValue + ", " +
                 channel.GetUVName() + ", " +
                 ShaderGeneratorNames.TangentSpaceViewDirection + ", " +
