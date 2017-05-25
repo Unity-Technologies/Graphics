@@ -10,6 +10,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(AbstractMaterialNode)] = typeof(MaterialNodePresenter);
             typeMapper[typeof(ColorNode)] = typeof(ColorNodePresenter);
             typeMapper[typeof(GradientNode)] = typeof(GradientNodePresenter);
+            typeMapper[typeof(ScatterNode)] = typeof(ScatterNodePresenter);
             typeMapper[typeof(TextureNode)] = typeof(TextureNodePresenter);
             typeMapper[typeof(TextureAssetNode)] = typeof(TextureAssetNodePresenter);
             typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodePresenter);
@@ -35,6 +36,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(Matrix2Node)] = typeof(Matrix2NodePresenter);
             typeMapper[typeof(Matrix3Node)] = typeof(Matrix3NodePresenter);
             typeMapper[typeof(Matrix4Node)] = typeof(Matrix4NodePresenter);
+            typeMapper[typeof(MatrixCommonNode)] = typeof(MatrixCommonNodePresenter);
+			typeMapper[typeof(TransformNode)] = typeof(TransformNodePresenter);
         }
     }
 }
