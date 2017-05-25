@@ -10,9 +10,15 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     class GradientContolPresenter : GraphControlPresenter
     {
+        [SerializeField]
         private GradientObject gradientobj;
+
+        [SerializeField]
         private SerializedObject hserializedObject;
+
+        [SerializeField]
         private SerializedProperty hcolorGradient;
+
         private UnityEngine.MaterialGraph.GradientNode prevnode;
 
         private string prevWindow = "";
@@ -29,6 +35,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 prevnode = cNode;
                 gradientobj = new GradientObject();
+                if (cNode.gradient != null)
+                {
+                    gradientobj.gradient = cNode.gradient;
+                }
+                
                 hserializedObject = new SerializedObject(gradientobj);
                 hcolorGradient = hserializedObject.FindProperty("gradient");
             }
@@ -65,6 +76,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         }
     }
 
+    [Serializable]
     public class GradientObject : ScriptableObject
     {
         public Gradient gradient = new Gradient();
