@@ -12,9 +12,6 @@ namespace UnityEngine.MaterialGraph
         }
 
         [SerializeField]
-        private string m_PropertyName = string.Empty;
-
-        [SerializeField]
         private string m_Description = string.Empty;
 
         [SerializeField]
@@ -42,10 +39,7 @@ namespace UnityEngine.MaterialGraph
         {
             get
             {
-                if (string.IsNullOrEmpty(m_Description))
-                    return m_PropertyName;
-
-                return m_Description;
+				return  string.IsNullOrEmpty(m_Description) ? name : m_Description;
             }
             set { m_Description = value; }
         }
@@ -54,12 +48,8 @@ namespace UnityEngine.MaterialGraph
         {
             get
             {
-                if (exposedState == ExposedState.NotExposed || string.IsNullOrEmpty(m_PropertyName))
                     return string.Format("{0}_{1}_Uniform", name, guid.ToString().Replace("-", "_"));
-
-                return m_PropertyName + "_Uniform";
             }
-            set { m_PropertyName = value; }
         }
 
         public abstract PropertyType propertyType { get; }
