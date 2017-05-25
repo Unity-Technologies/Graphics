@@ -1,73 +1,98 @@
-Shader "Hidden/PreviewShader/Posterize_f232fbec_5ce8_4ba5_8491_a7a66291d45f_Output" {
-	Properties {
-		Vector1_20d0d38d_52d0_4444_8ef4_da01a311590e_Uniform("", Float) = 0.1
+Shader "Graph/Generated.MetallicMasterNode554b91b5-7a00-4f5f-b71a-f7729fcbdee8" 
+{
+	Properties 
+	{
+		[NonModifiableTextureData] TextureAsset_8f4a8771_6c8f_4107_9c0b_83da34d57a9b_Uniform("TextureAsset", 2D) = "white" {}
 
 	}	
 	
-	SubShader {
-		// inside SubShader
+SubShader 
+{
 		Tags
 		{
-			"Queue"="Geometry"
 			"RenderType"="Opaque"
-			"IgnoreProjector"="True"
+			"Queue"="Geometry"
 		}
-
-		// inside Pass
-		ZWrite On
 
 		Blend One Zero
-		
-		Pass {
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
-			#include "UnityCG.cginc"
+
+		Cull Back
+
+		ZTest LEqual
+
+		ZWrite On
 
 
-			float3 ReflectionProbe_4f8cb744_19c5_4a6e_9bc1_172200f2fa25_normalDir;
-			float Vector1_20d0d38d_52d0_4444_8ef4_da01a311590e_Uniform;
+	LOD 200
+	
+	CGPROGRAM
+	#pragma target 3.0
+	#pragma surface surf Standard vertex:vert
+	#pragma glsl
+	#pragma debug
 
+		#ifdef UNITY_COMPILER_HLSL
+		Texture2D TextureAsset_8f4a8771_6c8f_4107_9c0b_83da34d57a9b_Uniform;
+		#endif
+		float HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_texOffset;
+		float HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_strength;
+		#ifdef UNITY_COMPILER_HLSL
+		SamplerState my_linear_repeat_sampler;
+		#endif
 
-			struct v2f 
-			{
-				float4 pos : SV_POSITION;
-				float4 color : COLOR;
-				float3 worldNormal : TEXCOORD1;
-
-			};
-
-
-			inline float unity_posterize_float (float input, float stepsize)
-			{
-				return floor(input / stepsize) * stepsize;
-			}
-
-
-			v2f vert (appdata_full v) 
-			{
-				v2f o = (v2f)0;
-				o.pos = UnityObjectToClipPos(v.vertex);;
-				float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-				float3 viewDir = UnityWorldSpaceViewDir(worldPos);
-				float4 screenPos = ComputeScreenPos(UnityObjectToClipPos(v.vertex));
-				float3 worldNormal = UnityObjectToWorldNormal(v.normal);
-				o.worldNormal = worldNormal;
-
-				return o;
-			}
-
-			half4 frag (v2f IN) : COLOR
-			{
-				float3 worldSpaceNormal = normalize(IN.worldNormal);
-				float3 ReflectionProbe_4f8cb744_19c5_4a6e_9bc1_172200f2fa25 = ShadeSH9(float4(worldSpaceNormal.xyz , 1));
-				float4 Split_f630c862_c9a4_4765_b085_f9b01dd46061 = float4(ReflectionProbe_4f8cb744_19c5_4a6e_9bc1_172200f2fa25, 1.0);
-				float Posterize_f232fbec_5ce8_4ba5_8491_a7a66291d45f_Output = unity_posterize_float (Split_f630c862_c9a4_4765_b085_f9b01dd46061.r, Vector1_20d0d38d_52d0_4444_8ef4_da01a311590e_Uniform);
-				return half4(Posterize_f232fbec_5ce8_4ba5_8491_a7a66291d45f_Output, Posterize_f232fbec_5ce8_4ba5_8491_a7a66291d45f_Output, Posterize_f232fbec_5ce8_4ba5_8491_a7a66291d45f_Output, 1.0);
-
-			}
-			ENDCG
+		#ifdef UNITY_COMPILER_HLSL
+		#endif
+		inline void unity_HeightToNormal (Texture2D heightmap, float2 texCoord, float texOffset, float strength, out float3 normalRes)
+		{
+		float2 offsetU = float2(texCoord.x + texOffset, texCoord.y);
+		float2 offsetV = float2(texCoord.x, texCoord.y + texOffset);
+		float normalSample = 0;
+		float uSample = 0;
+		float vSample = 0;
+		normalSample = heightmap.Sample(my_linear_repeat_sampler, texCoord).r;
+		uSample = heightmap.Sample(my_linear_repeat_sampler, offsetU).r;
+		vSample = heightmap.Sample(my_linear_repeat_sampler, offsetV).r;
+		float uMinusNormal = uSample - normalSample;
+		float vMinusNormal = vSample - normalSample;
+		uMinusNormal = uMinusNormal * strength;
+		vMinusNormal = vMinusNormal * strength;
+		float3 va = float3(1, 0, uMinusNormal);
+		float3 vb = float3(0, 1, vMinusNormal);
+		normalRes = cross(va, vb);
 		}
+
+
+
+	struct Input 
+	{
+			float4 color : COLOR;
+			half4 meshUV0;
+
+	};
+
+	void vert (inout appdata_full v, out Input o)
+	{
+		UNITY_INITIALIZE_OUTPUT(Input,o);
+			o.meshUV0 = v.texcoord;
+
 	}
-	Fallback Off
+  
+	void surf (Input IN, inout SurfaceOutputStandard o) 
+	{
+			half4 uv0 = IN.meshUV0;
+			float4 UV_de8d7b89_7b50_499d_aa73_0f2a725356e6_UV = uv0;
+			 float3 HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_normalRes;
+			#ifdef UNITY_COMPILER_HLSL 
+			unity_HeightToNormal (TextureAsset_8f4a8771_6c8f_4107_9c0b_83da34d57a9b_Uniform, UV_de8d7b89_7b50_499d_aa73_0f2a725356e6_UV, HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_texOffset, HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_strength, HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_normalRes);
+			 #endif
+			o.Normal = HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_normalRes;
+			o.Normal += 1e-6;
+
+	}
+	ENDCG
+}
+
+
+	FallBack "Diffuse"
+	CustomEditor "LegacyIlluminShaderGUI"
 }
