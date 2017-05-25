@@ -65,6 +65,12 @@ namespace UnityEngine.MaterialGraph
                     return "(3x3)";
                 case ConcreteSlotValueType.Matrix4:
                     return "(4x4)";
+                case ConcreteSlotValueType.SamplerState:
+                    return "(SS)";
+                case ConcreteSlotValueType.Texture2D:
+                    return "(T)";
+                case ConcreteSlotValueType.Sampler2D:
+                    return "(S)";
                 default:
                     return "(E)";
             }
@@ -112,6 +118,9 @@ namespace UnityEngine.MaterialGraph
                         break;
                     case SlotValueType.SamplerState:
                         concreteValueType = ConcreteSlotValueType.SamplerState;
+                        break;
+                    case SlotValueType.Sampler2D:
+                        concreteValueType = ConcreteSlotValueType.Sampler2D;
                         break;
                     default:
                         concreteValueType = ConcreteSlotValueType.Vector4;

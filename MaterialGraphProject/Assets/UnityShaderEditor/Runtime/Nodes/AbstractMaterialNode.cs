@@ -317,6 +317,8 @@ namespace UnityEngine.MaterialGraph
                     return "4x4";
 				case ConcreteSlotValueType.SamplerState:
                     return "SamplerState";
+                case ConcreteSlotValueType.Sampler2D:
+                    return "sampler2D";
                 default:
                     return "Error";
             }
@@ -344,6 +346,8 @@ namespace UnityEngine.MaterialGraph
                     return PropertyType.Matrix4;
 				case ConcreteSlotValueType.SamplerState:
                     return PropertyType.SamplerState;
+                case ConcreteSlotValueType.Sampler2D:
+                    return PropertyType.Texture;
                 default:
                     return PropertyType.Vector4;
             }
