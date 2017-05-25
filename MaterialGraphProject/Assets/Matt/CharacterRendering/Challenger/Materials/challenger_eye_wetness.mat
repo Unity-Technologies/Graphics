@@ -1,0 +1,294 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: challenger_eye_wetness
+  m_Shader: {fileID: 4800000, guid: cc77cd34d845f4a479ddec96dd10a3f9, type: 3}
+  m_ShaderKeywords: _ALPHAPREMULTIPLY_ON _DETAIL_MULX2 _LIGHTMAPPING_DYNAMIC_LIGHTMAPS
+    _LIGHTMAPPING_REALTIME _NORMALMAP _SPECGLOSSMAP _UVSEC_UV1
+  m_LightmapFlags: 5
+  m_CustomRenderQueue: 3000
+  stringTagMap:
+    RenderType: Transparent
+  m_SavedProperties:
+    serializedVersion: 2
+    m_TexEnvs:
+      data:
+        first:
+          name: _MainTex
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _BumpMap
+        second:
+          m_Texture: {fileID: 2800000, guid: 6164f86085ef15b4da15538826d3c7ba, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _NormalMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _DetailNormalMap
+        second:
+          m_Texture: {fileID: 2800000, guid: 6164f86085ef15b4da15538826d3c7ba, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _EmissionMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _ParallaxMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _SpecGlossMap
+        second:
+          m_Texture: {fileID: 2800000, guid: e226e64fed228564b9719ee97391c288, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _DetailMask
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _DetailAlbedoMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _OcclusionMap
+        second:
+          m_Texture: {fileID: 2800000, guid: e305301cb56859e43b6c492a63eb8ce3, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _Occlusion
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: Aux
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _Subdermal
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _SpecularMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: beckmannTex
+        second:
+          m_Texture: {fileID: 2800000, guid: 1f8a2a9513b71304096392a57129f8b7, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+    m_Floats:
+      data:
+        first:
+          name: _SrcBlend
+        second: 1
+      data:
+        first:
+          name: _DstBlend
+        second: 10
+      data:
+        first:
+          name: _Cutoff
+        second: .5
+      data:
+        first:
+          name: _AlphaTestRef
+        second: .5
+      data:
+        first:
+          name: _Parallax
+        second: .0199999996
+      data:
+        first:
+          name: _ZWrite
+        second: 0
+      data:
+        first:
+          name: _Glossiness
+        second: .899999976
+      data:
+        first:
+          name: _BumpScale
+        second: .439999998
+      data:
+        first:
+          name: _OcclusionStrength
+        second: 1
+      data:
+        first:
+          name: _DetailNormalMapScale
+        second: .340000004
+      data:
+        first:
+          name: _UVSec
+        second: 0
+      data:
+        first:
+          name: _Mode
+        second: 3
+      data:
+        first:
+          name: _EmissionScaleUI
+        second: 1
+      data:
+        first:
+          name: _Lightmapping
+        second: 1
+      data:
+        first:
+          name: _SmoothnessInAlbedo
+        second: 0
+      data:
+        first:
+          name: _SmoothnessTweak1
+        second: 1
+      data:
+        first:
+          name: _SmoothnessTweak2
+        second: 0
+      data:
+        first:
+          name: _CullMode
+        second: 2
+      data:
+        first:
+          name: _PlaneReflectionBumpScale
+        second: .400000006
+      data:
+        first:
+          name: _PlaneReflectionBumpClamp
+        second: .0500000007
+      data:
+        first:
+          name: _ProbesBoost
+        second: 1
+      data:
+        first:
+          name: _Tile
+        second: 1
+      data:
+        first:
+          name: _Distortion
+        second: .0500000007
+      data:
+        first:
+          name: _F0
+        second: .0199999996
+      data:
+        first:
+          name: _ReflectionBlur
+        second: .0199999996
+      data:
+        first:
+          name: _RefractionBlur
+        second: .0199999996
+      data:
+        first:
+          name: DepthTest2
+        second: 0
+      data:
+        first:
+          name: _Wrap
+        second: 0
+      data:
+        first:
+          name: Refraction
+        second: 1
+      data:
+        first:
+          name: Dilation
+        second: 0
+      data:
+        first:
+          name: _AlbedoDesaturation
+        second: 0
+      data:
+        first:
+          name: AOsaturation
+        second: .5
+      data:
+        first:
+          name: Roughness
+        second: .5
+      data:
+        first:
+          name: _LightenShadows
+        second: .0599999987
+    m_Colors:
+      data:
+        first:
+          name: _EmissionColor
+        second: {r: 0, g: 0, b: 0, a: 1}
+      data:
+        first:
+          name: _Color
+        second: {r: .99999994, g: .99999994, b: .99999994, a: 0}
+      data:
+        first:
+          name: _SpecColor
+        second: {r: .220588207, g: .220588207, b: .220588207, a: 1}
+      data:
+        first:
+          name: 
+        second: {r: 0, g: 0, b: 0, a: 0}
+      data:
+        first:
+          name: _EmissionColorUI
+        second: {r: 0, g: 0, b: 0, a: 1}
+      data:
+        first:
+          name: _EmissionColorWithMapUI
+        second: {r: 1, g: 1, b: 1, a: 1}
+      data:
+        first:
+          name: _SpecularMapColorTweak
+        second: {r: 1, g: 1, b: 1, a: 1}
+      data:
+        first:
+          name: _SmoothnessTweaks
+        second: {r: 1, g: 0, b: 0, a: 0}
