@@ -98,8 +98,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             EditorGUILayout.BeginVertical();
             EditorGUI.BeginChangeCheck();
-            
+
             EditorGUILayout.LabelField("Kernel");
+            KernelPresets kernelPresets = KernelPresets.Presets;
+            kernelPresets = (KernelPresets)EditorGUILayout.EnumPopup(kernelPresets);
+            ApplyPreset(kernelPresets, ref values, ref divisor);
+
             for (int col = 0; col < 5; ++col)
             {
                 EditorGUILayout.BeginHorizontal();
@@ -112,11 +116,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             EditorGUILayout.Space();
 
             divisor = EditorGUILayout.FloatField("Divisor", divisor);
-            EditorGUILayout.Space();
-
-            KernelPresets kernelPresets = KernelPresets.Presets;
-            kernelPresets = (KernelPresets)EditorGUILayout.EnumPopup(kernelPresets);
-            ApplyPreset(kernelPresets, ref values, ref divisor);
 
             EditorGUILayout.EndVertical();
 
