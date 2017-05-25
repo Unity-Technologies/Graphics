@@ -6,6 +6,22 @@ using System;
 
 namespace UnityEngine.MaterialGraph
 {
+    public enum ShaderGlobal
+    {
+        UV0,
+        UV1,
+        UV2,
+        UV3,
+        WorldSpaceNormal,
+        WorldSpaceBitangent,
+        WorldSpaceTangent,
+        WorldSpacePosition,
+        WorldSpaceViewDirection,
+        TangentSpaceViewDirection,
+        ScreenPosition,
+        VertexColor,
+    }
+
     [Serializable]
     public class AnyNodeSlot
     {
@@ -24,7 +40,7 @@ namespace UnityEngine.MaterialGraph
         {
             switch (slotValueType)
             {
-                case SlotValueType.sampler2D:
+                case SlotValueType.Sampler2D:
                     // TODO
                     break;
                 case SlotValueType.Dynamic:
@@ -72,10 +88,10 @@ namespace UnityEngine.MaterialGraph
                     slotValueType = SlotValueType.Vector4;
                     break;
                 case PropertyType.Texture:
-                    slotValueType = SlotValueType.sampler2D;
+                    slotValueType = SlotValueType.Sampler2D;
                     break;
                 case PropertyType.Cubemap:
-                    slotValueType = SlotValueType.sampler2D;
+                    slotValueType = SlotValueType.Sampler2D;
                     break;
                 case PropertyType.Float:
                     slotValueType = SlotValueType.Vector1;
@@ -163,6 +179,7 @@ namespace UnityEngine.MaterialGraph
         string name { get; }
         AnyNodeProperty[] properties { get; }
         AnyNodeSlot[] outputs { get; }
+        ShaderGlobal[] globals { get; }
         string hlsl { get; }
     }
 
@@ -176,6 +193,9 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         protected AnyNodeSlot[] m_outputSlots;
+
+        [SerializeField]
+        protected ShaderGlobal[] m_globals;
 
         public IEnumerable<AnyNodeProperty> properties
         {
@@ -215,18 +235,16 @@ namespace UnityEngine.MaterialGraph
         AnyNodeBase
 		, IGeneratesBodyCode
 		, IGeneratesFunction
+//        , IMayRequireMeshUV
+//        , IMayRequireNormal             // TODO
+//        , IMayRequireTangent
+//        , IMayRequireBitangent
+//        , IMayRequireScreenPosition
+//        , IMayRequireViewDirection
+//        , IMayRequireWorldPosition
+//        , IMayRequireVertexColor
+        , IMayRequireViewDirectionTangentSpace 
 
-        /*      , IMayRequireMeshUV
-                , IOnAssetEnabled               // TODO
-                , IMayRequireNormal             // TODO
-                , IMayRequireTangent
-                , IMayRequireBitangent
-                , IMayRequireScreenPosition
-                , IMayRequireViewDirection
-                , IMayRequireWorldPosition
-                , IMayRequireVertexColor
-                , IMayRequireViewDirectionTangentSpace 
-        */
         where DEFINITION : IAnyNodeDefinition, new()
     {
         private DEFINITION m_definition;
@@ -254,6 +272,8 @@ namespace UnityEngine.MaterialGraph
             m_properties = m_definition.properties;
 
             m_outputSlots = m_definition.outputs;
+
+            m_globals = m_definition.globals;
 
             UpdateNodeAfterDeserialization();
 		}
@@ -290,6 +310,7 @@ namespace UnityEngine.MaterialGraph
             // now that we've copied the old data into the new properties, start using the new properties
             m_properties = new_properties;
             m_outputSlots = new_outputs;
+            m_globals = m_definition.globals;
 
             List<int> validSlotIds = new List<int>();
 
@@ -350,15 +371,17 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
+        public bool RequiresViewDirectionTangentSpace()
+        {
+            return (Array.FindIndex(m_globals, x => x == ShaderGlobal.TangentSpaceViewDirection) >= 0);
+        }
+
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> property_list)
 		{
 			base.CollectPreviewMaterialProperties(property_list);
 
-
-            //		properties.AddRange(subGraph.GetPreviewProperties());       // ???
             foreach (AnyNodeProperty p in m_properties)
             {
-
                 switch (p.propertyType)
                 {
                     case PropertyType.Float:
@@ -383,6 +406,81 @@ namespace UnityEngine.MaterialGraph
             return "unity_any_" + node_name + "_" + precision;
         }
 
+        private string GetShaderGlobalName(ShaderGlobal g)
+        {
+            string globalname = null;
+            switch (g)
+            {
+                case ShaderGlobal.UV0:
+                    globalname = ShaderGeneratorNames.GetUVName(UVChannel.uv0);
+                    break;
+                case ShaderGlobal.UV1:
+                    globalname = ShaderGeneratorNames.GetUVName(UVChannel.uv1);
+                    break;
+                case ShaderGlobal.UV2:
+                    globalname = ShaderGeneratorNames.GetUVName(UVChannel.uv2);
+                    break;
+                case ShaderGlobal.UV3:
+                    globalname = ShaderGeneratorNames.GetUVName(UVChannel.uv3);
+                    break;
+                case ShaderGlobal.WorldSpaceNormal:
+                    globalname = ShaderGeneratorNames.WorldSpaceNormal;
+                    break;
+                case ShaderGlobal.WorldSpaceBitangent:
+                    globalname = ShaderGeneratorNames.WorldSpaceBitangent;
+                    break;
+                case ShaderGlobal.WorldSpaceTangent:
+                    globalname = ShaderGeneratorNames.WorldSpaceTangent;
+                    break;
+                case ShaderGlobal.WorldSpacePosition:
+                    globalname = ShaderGeneratorNames.WorldSpacePosition;
+                    break;
+                case ShaderGlobal.WorldSpaceViewDirection:
+                    globalname = ShaderGeneratorNames.WorldSpaceViewDirection;
+                    break;
+                case ShaderGlobal.TangentSpaceViewDirection:
+                    globalname = ShaderGeneratorNames.TangentSpaceViewDirection;
+                    break;
+                case ShaderGlobal.ScreenPosition:
+                    globalname = ShaderGeneratorNames.ScreenPosition;
+                    break;
+                case ShaderGlobal.VertexColor:
+                    globalname = ShaderGeneratorNames.VertexColor;
+                    break;
+            }
+            return globalname;
+        }
+
+        private string GetShaderGlobalTypeDecl(ShaderGlobal g)
+        {
+            string typeDecl = null;
+            switch (g)
+            {
+                case ShaderGlobal.UV0:
+                case ShaderGlobal.UV1:
+                case ShaderGlobal.UV2:
+                case ShaderGlobal.UV3:
+                    typeDecl = "float4";
+                    break;
+                case ShaderGlobal.WorldSpaceNormal:
+                case ShaderGlobal.WorldSpaceBitangent:
+                case ShaderGlobal.WorldSpaceTangent:
+                case ShaderGlobal.WorldSpacePosition:
+                case ShaderGlobal.WorldSpaceViewDirection:
+                case ShaderGlobal.TangentSpaceViewDirection:
+                    typeDecl = "float3";
+                    break;
+                case ShaderGlobal.ScreenPosition:
+                    typeDecl = "float2";
+                    break;
+                case ShaderGlobal.VertexColor:
+                    typeDecl = "float4";
+                    break;
+            }
+
+            return typeDecl;
+        }
+
         protected virtual string GetFunctionPrototype()
         {
             string result = "inline void " + GetFunctionName() + "(";
@@ -397,7 +495,10 @@ namespace UnityEngine.MaterialGraph
             }
 
             // then 'globals'
-            // TODO
+            foreach (ShaderGlobal g in m_globals)
+            {
+                result += "in " + GetShaderGlobalTypeDecl(g) + " " + GetShaderGlobalName(g) + ", ";
+            }
 
             // then outputs
             foreach (AnyNodeSlot s in m_outputSlots)
@@ -518,6 +619,13 @@ namespace UnityEngine.MaterialGraph
                         inputVariableName = p.name;
                     }
                     outputString.AddShaderChunk((first ? "" : ",") + inputVariableName, false);
+                    first = false;
+                }
+
+                outputString.AddShaderChunk("// global parameters", false);
+                foreach (ShaderGlobal g in m_globals)
+                {
+                    outputString.AddShaderChunk((first ? "" : ",") + GetShaderGlobalName(g), false);
                     first = false;
                 }
 
