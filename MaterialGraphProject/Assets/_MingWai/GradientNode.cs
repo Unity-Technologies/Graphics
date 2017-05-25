@@ -10,7 +10,6 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private Gradient m_gradient;
 
-        
         public Gradient gradient
         {
             get { return m_gradient; }
