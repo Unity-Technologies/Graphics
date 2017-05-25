@@ -1,5 +1,8 @@
 using UnityEditor.Graphing.Drawing;
 using UnityEngine.MaterialGraph;
+using System.Collections.Generic;
+using System.Linq;
+using RMGUI.GraphView;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -38,6 +41,18 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(Matrix4Node)] = typeof(Matrix4NodePresenter);
             typeMapper[typeof(MatrixCommonNode)] = typeof(MatrixCommonNodePresenter);
 			typeMapper[typeof(TransformNode)] = typeof(TransformNodePresenter);
+        }
+
+		public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
+        {
+			return allChildren.OfType<NodeAnchorPresenter>()
+                              .Where(nap => nap.IsConnectable() &&
+                                     nap.orientation == startAnchor.orientation &&
+                                     nap.direction != startAnchor.direction &&
+                                     nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null && 
+									(startAnchor is GraphAnchorPresenter && ((GraphAnchorPresenter)nap).slot is MaterialSlot && 
+									((MaterialSlot)((GraphAnchorPresenter)startAnchor).slot).IsCompatibleWithInputSlotType(((MaterialSlot)((GraphAnchorPresenter)nap).slot).valueType)))
+                              .ToList();
         }
     }
 }
