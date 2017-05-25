@@ -65,6 +65,13 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
+        protected override string GetFunctionCall(GenerationMode generationMode)
+        {
+            //here we don't want to generate final value as the parameters are used as output
+            //TODO allow to define parameters as ouput in the function prototype and handle
+            //that automatically
+            return base.GetFunctionCall(GenerationMode.Preview);
+        }
 
         private void GNF(ShaderGenerator visitor, GenerationMode generationMode)
         {

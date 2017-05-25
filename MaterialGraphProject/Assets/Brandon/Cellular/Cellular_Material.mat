@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Electricity
-  m_Shader: {fileID: 4800000, guid: 073d4fc800a96ba49a525f9363f6cd18, type: 3}
+  m_Name: Cellular_Material
+  m_Shader: {fileID: 4800000, guid: b1fd770cc7814084f9a27232d7fba579, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
@@ -17,8 +17,8 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - TextureAsset_8f4a8771_6c8f_4107_9c0b_83da34d57a9b_Uniform:
-        m_Texture: {fileID: 2800000, guid: 5d84e1086e00e3347aaa0bbba206bb80, type: 3}
+    - Texture_b86ff54c_bbe9_4694_8531_326cc9640f0b_Uniform:
+        m_Texture: {fileID: 2800000, guid: ad78029cb3832214ca442896e68ae18f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
