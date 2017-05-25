@@ -6,10 +6,10 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Cellular
-  m_Shader: {fileID: 4800000, guid: 9ab5e16c2083a4fe689209a8c1ae425e, type: 3}
+  m_Name: Cellular_Material
+  m_Shader: {fileID: 4800000, guid: b1fd770cc7814084f9a27232d7fba579, type: 3}
   m_ShaderKeywords: 
-  m_LightmapFlags: 0
+  m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
