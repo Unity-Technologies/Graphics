@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Anisotropy
-  m_Shader: {fileID: 4800000, guid: 9ab5e16c2083a4fe689209a8c1ae425e, type: 3}
+  m_Shader: {fileID: 4800000, guid: 01a19a2c08481994c87ec502a371225e, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 0
@@ -17,6 +17,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - Texture_25f557fd_e8c0_4423_81b1_854877e54145_Uniform:
+        m_Texture: {fileID: 2800000, guid: f147ecc73752dd84c862347627c2506c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - Texture_3db1140f_b814_4ba5_a49c_d40499367921_Uniform:
         m_Texture: {fileID: 2800000, guid: cbf25f5368b2350408963109a1c8f22d, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -59,6 +63,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - Vector1_3c037cd0_a4ae_48b0_8e8c_e1507ff6f738_Uniform: 1
+    - Vector1_5c761f75_773e_42ed_b242_72e6b25acebd_Uniform: 0.896
+    - Vector1_8272d735_22ca_40c5_a082_1c40f63ad50b_Uniform: 0.415
+    - Vector1_91e780ac_52c0_4e9a_bd0e_974f5805854d_Uniform: 0.546
     - Vector1_da8ece50_8bc4_4e14_b77a_24dfc74c32da_Uniform: 0.817
     - _BumpScale: 1
     - _Cutoff: 0.5
