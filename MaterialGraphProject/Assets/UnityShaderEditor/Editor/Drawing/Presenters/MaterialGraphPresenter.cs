@@ -18,6 +18,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(TextureSamplerNode)] = typeof(TextureSamplerNodePresenter);
             typeMapper[typeof(TextureAssetNode)] = typeof(TextureAssetNodePresenter);
             typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodePresenter);
+            typeMapper[typeof(SamplerStateNode)] = typeof(SamplerStateNodePresenter);
             typeMapper[typeof(CubemapNode)] = typeof(CubeNodePresenter);
 			typeMapper[typeof(ToggleNode)] = typeof(ToggleNodePresenter);
             typeMapper[typeof(UVNode)] = typeof(UVNodePresenter);
