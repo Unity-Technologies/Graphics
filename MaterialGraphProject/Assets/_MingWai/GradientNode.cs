@@ -65,7 +65,7 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
-        protected virtual string GetFunctionCall(GenerationMode generationMode)
+        protected override string GetFunctionCall(GenerationMode generationMode)
         {
             //here we don't want to generate final value as the parameters are used as output
             //TODO allow to define parameters as ouput in the function prototype and handle

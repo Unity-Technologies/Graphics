@@ -125,7 +125,8 @@ namespace UnityEngine.MaterialGraph
                 ")";
         }
 
-        private string GetFunctionCall(GenerationMode generationMode)
+
+        protected virtual string GetFunctionCall(GenerationMode generationMode)
         {
             string prefix = "";
             string sufix = "";
@@ -159,7 +160,7 @@ namespace UnityEngine.MaterialGraph
             var outputString = new ShaderGenerator();
             outputString.AddShaderChunk(GetOutputDeclaration(), false);
             outputString.AddShaderChunk(GetFunctionCall(generationMode), false);
-
+             
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
