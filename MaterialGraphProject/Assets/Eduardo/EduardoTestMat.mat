@@ -21,6 +21,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 6ff1e57e8df9d2948bb6d703d02af730, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - Texture_ec519094_93da_4612_af61_2f8bcdc6589e_Uniform:
+        m_Texture: {fileID: 2800000, guid: 6ff1e57e8df9d2948bb6d703d02af730, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
