@@ -151,6 +151,11 @@ namespace UnityEngine.MaterialGraph
             visitor.AddShaderChunk(matOwner.precision + AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(concreteValueType) + " " + matOwner.GetVariableNameForSlot(id) + ";", true);
         }
 
+		public bool IsCompatibleWithInputSlotType(SlotValueType inputType)
+		{
+			return (inputType == SlotValueType.Dynamic || valueType == SlotValueType.Vector1 || valueType <= inputType);
+		}
+
         public string GetDefaultValue(GenerationMode generationMode)
         {
             var matOwner = owner as AbstractMaterialNode;
