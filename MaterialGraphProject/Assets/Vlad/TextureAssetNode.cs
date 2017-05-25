@@ -85,7 +85,7 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(OutputSlotRgbaId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, SlotValueType.sampler2D, Vector4.zero, false));
+            AddSlot(new MaterialSlot(OutputSlotRgbaId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, SlotValueType.Texture2D, Vector4.zero, false));
             RemoveSlotsNameNotMatching(validSlots);
         }
 
@@ -116,9 +116,12 @@ namespace UnityEngine.MaterialGraph
         
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk("sampler2D " + propertyName + ";", true);
-            visitor.AddShaderChunk(precision + "4 " + propertyName + "_TexelSize;", true);
+            visitor.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", true);
+            visitor.AddShaderChunk("Texture2D " + propertyName + ";", true);
+            visitor.AddShaderChunk("#endif", true);
         }
+
+
 
         public override PreviewProperty GetPreviewProperty()
         {

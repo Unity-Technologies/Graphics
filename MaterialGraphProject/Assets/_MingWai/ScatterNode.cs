@@ -32,7 +32,7 @@ namespace UnityEngine.MaterialGraph
         public ScatterNode()
         {
             name = "Scatter";
-            AddSlot("Texture", "inputTex", Graphing.SlotType.Input, SlotValueType.sampler2D, Vector4.zero);
+            AddSlot("Texture", "inputTex", Graphing.SlotType.Input, SlotValueType.Texture2D, Vector4.zero);
             AddSlot("UV", "inputUV", Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.one);
             AddSlot("Seed", "seed", Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.one);
             AddSlot("PositionRange", "p_range", Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);

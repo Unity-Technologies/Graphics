@@ -11,7 +11,7 @@ namespace UnityEngine.MaterialGraph
         public HeightToNormalNode()
         {
             name = "HeightToNormal";
-            AddSlot("HeightMap", "heightmap", Graphing.SlotType.Input, SlotValueType.sampler2D, Vector4.zero);
+            AddSlot("HeightMap", "heightmap", Graphing.SlotType.Input, SlotValueType.Texture2D, Vector4.zero);
             AddSlot("UV", "texCoord", Graphing.SlotType.Input, SlotValueType.Vector2, Vector4.zero);
             AddSlot("Offset", "texOffset", Graphing.SlotType.Input, SlotValueType.Vector1, new Vector4(0.005f, 0,0,0));
             AddSlot("Strength", "strength", Graphing.SlotType.Input, SlotValueType.Vector1, new Vector4(8,0,0,0));
@@ -39,9 +39,9 @@ namespace UnityEngine.MaterialGraph
             outputString.AddShaderChunk("float2 offsetU = float2(texCoord.x + texOffset, texCoord.y);", false);
             outputString.AddShaderChunk("float2 offsetV = float2(texCoord.x, texCoord.y + texOffset);", false);
 
-            outputString.AddShaderChunk("float normalSample = tex2D(heightmap, texCoord).r;", false);
-            outputString.AddShaderChunk("float uSample = tex2D(heightmap, offsetU).r;", false);
-            outputString.AddShaderChunk("float vSample = tex2D(heightmap, offsetV).r;", false);
+            outputString.AddShaderChunk("float normalSample = heightmap.Sample(my_linear_repeat_sampler, texCoord).r;", false);
+            outputString.AddShaderChunk("float uSample = heightmap.Sample(my_linear_repeat_sampler, offsetU).r;", false);
+            outputString.AddShaderChunk("float vSample = heightmap.Sample(my_linear_repeat_sampler, offsetV).r;", false);
 
             outputString.AddShaderChunk("float uMinusNormal = uSample - normalSample;", false);
             outputString.AddShaderChunk("float vMinusNormal = vSample - normalSample;", false);
