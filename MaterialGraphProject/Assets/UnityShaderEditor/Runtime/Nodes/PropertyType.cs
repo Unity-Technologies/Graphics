@@ -11,6 +11,7 @@ namespace UnityEngine.MaterialGraph
         Vector4,
         Matrix2,
         Matrix3,
-        Matrix4
+        Matrix4,
+		SamplerState
     }
 }
