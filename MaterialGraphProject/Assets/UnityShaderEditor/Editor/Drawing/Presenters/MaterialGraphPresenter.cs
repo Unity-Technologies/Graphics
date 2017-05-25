@@ -20,6 +20,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(Vector2Node)] = typeof(Vector2NodePresenter);
             typeMapper[typeof(Vector3Node)] = typeof(Vector3NodePresenter);
             typeMapper[typeof(Vector4Node)] = typeof(Vector4NodePresenter);
+            typeMapper[typeof(ScaleOffsetNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
+            typeMapper[typeof(RadialShearNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
+            typeMapper[typeof(SphereWarpNode)] = typeof(AnyNodePresenter);          // anything derived from AnyNode should use the AnyNodePresenter
+            typeMapper[typeof(AACheckerboardNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
             typeMapper[typeof(SubGraphNode)] = typeof(SubgraphNodePresenter);
             typeMapper[typeof(RemapMasterNode)] = typeof(RemapMasterNodePresenter);
             typeMapper[typeof(MasterRemapInputNode)] = typeof(RemapInputNodePresenter);
