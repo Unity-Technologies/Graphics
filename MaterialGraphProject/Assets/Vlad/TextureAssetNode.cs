@@ -119,25 +119,25 @@ namespace UnityEngine.MaterialGraph
         
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var slotTexture2D = FindInputSlot<MaterialSlot>(0);
+            var slotTexture2D = FindOutputSlot<MaterialSlot>(0);
             if (slotTexture2D != null)
             {
                 var edgesTexture2D = owner.GetEdges(slotTexture2D.slotReference).ToList();
                 if (edgesTexture2D.Count > 0)
                 {
                     visitor.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", true);
-                    visitor.AddShaderChunk("Texture2D " + propertyName + "_T2D;", true);
+                    visitor.AddShaderChunk("Texture2D " + propertyName + ";", true);
                     visitor.AddShaderChunk("#endif", true);
                 }
             }
 
-            var slotSampler2D = FindInputSlot<MaterialSlot>(0);
+            var slotSampler2D = FindOutputSlot<MaterialSlot>(1);
             if (slotSampler2D != null)
             {
-                var edgesSampler2D = owner.GetEdges(slotTexture2D.slotReference).ToList();
+                var edgesSampler2D = owner.GetEdges(slotSampler2D.slotReference).ToList();
                 if (edgesSampler2D.Count > 0)
                 {
-                    visitor.AddShaderChunk("Sampler2D " + propertyName + "_S2D;", true);
+                    visitor.AddShaderChunk("sampler2D " + propertyName + ";", true);
                 }
             }
         }
