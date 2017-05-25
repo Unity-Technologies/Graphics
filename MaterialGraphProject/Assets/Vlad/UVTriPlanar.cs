@@ -5,41 +5,35 @@ using System.Linq;
 namespace UnityEngine.MaterialGraph
 {
     [Title("UV/Tri-Planar Mapping")]
-    public class UVTriPlanar : Function3Input, IGeneratesFunction, IMayRequireNormal, IMayRequireWorldPosition
+    public class UVTriPlanar : FunctionNInNOut, IGeneratesFunction, IMayRequireNormal, IMayRequireWorldPosition
     {
+        private int slot0, slot1, slot2, slot3, slot4, slot5, slot6 = 0;
 
-        private const string kTextureSlotName = "Texture";
-        private const string kTileSlotName = "Tile";
-        private const string kBlendSlotName = "Blend";
+        private string slot0Name = "texRef";
+        private string slot1Name = "tileFactor";
+        private string slot2Name = "blendFactor";
+        private string slot3Name = "samplerRef";
+        private string slot4Name = "normalRef";
+        private string slot5Name = "posRef";
+        private string slot6Name = "outputRef";
 
         protected override string GetFunctionName()
         {
             return "unity_triplanar_" + precision;
         }
 
-        protected override MaterialSlot GetInputSlot1()
-        {
-            return new MaterialSlot(InputSlot1Id, kTextureSlotName, kTextureSlotName, SlotType.Input, SlotValueType.sampler2D, Vector4.zero, false);
-        }
-
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, kTileSlotName, kTileSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.one);
-        }
-
-        protected override MaterialSlot GetInputSlot3()
-        {
-            return new MaterialSlot(InputSlot3Id, kBlendSlotName, kBlendSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.one);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, kTextureSlotName, kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector4, Vector4.zero);
-        }
-
         public UVTriPlanar()
         {
             name = "UVTriPlanar";
+
+            slot0 = AddSlot("Texture", slot0Name, Graphing.SlotType.Input, SlotValueType.Texture2D, Vector4.zero);
+            slot1 = AddSlot("Tile", slot1Name, Graphing.SlotType.Input, SlotValueType.Vector1, Vector4.zero);
+            slot2 = AddSlot("Blend", slot2Name, Graphing.SlotType.Input, SlotValueType.Vector1, Vector4.zero);
+            slot3 = AddSlot("Sampler", slot3Name, Graphing.SlotType.Input, SlotValueType.SamplerState, Vector4.zero);
+            slot4 = AddSlot("Normals", slot4Name, Graphing.SlotType.Input, SlotValueType.Vector3, Vector3.one);
+            slot5 = AddSlot("Position", slot5Name, Graphing.SlotType.Input, SlotValueType.Vector3, Vector3.one);
+            slot6 = AddSlot("RGBA ", slot6Name, Graphing.SlotType.Output, SlotValueType.Vector4, Vector4.zero);
+
             UpdateNodeAfterDeserialization();
         }
 
@@ -56,81 +50,71 @@ namespace UnityEngine.MaterialGraph
 			}
 		}
 
-		protected override string GetFunctionPrototype(string arg1Name, string arg2Name, string arg3Name)
-        {
-            return "inline " + precision + outputDimension + " " + GetFunctionName() + " ("
-                   + "sampler2D " + arg1Name + ", " 
-                   + precision + " " + arg2Name + ", " 
-                   + precision + " " + arg3Name + 
-                   ", float3 normal, float3 pos)";
-        }
 
-        protected override string GetFunctionCallBody(string input1Value, string input2Value, string input3Value)
-        {
-            return GetFunctionName() + " (" + input1Value + ", " + input2Value + ", " + input3Value + ", IN.worldNormal, IN.worldPos)";
-        }
-
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            base.GeneratePropertyUsages(visitor, generationMode);
-        }
 
         //TODO:Externalize
         //Reference code from:http://www.chilliant.com/rgb2hsv.html
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
+            //Sampler input
+            var samplerName = GetSamplerInput(3);
+            outputString.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", false);
 
-            var textureSlot = FindInputSlot<MaterialSlot>(InputSlot1Id);
-            if (textureSlot == null)
-                return;
-
-            var textureName = "";
-
-            var edges = owner.GetEdges(textureSlot.slotReference).ToList();
-            if (edges.Count > 0)
-            {
-                var edge = edges[0];
-                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
-                textureName = ShaderGenerator.AdaptNodeOutput(fromNode, edge.outputSlot.slotId, ConcreteSlotValueType.sampler2D, true);
-            }
-              
-
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2", "arg3"), false);
-            outputString.AddShaderChunk("{", false);
+           // outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2", "arg3", samplerName), false);
+            outputString.AddShaderChunk(GetFunctionPrototype(), false);
             outputString.Indent();
-
+            outputString.AddShaderChunk("{", false);
             // create UVs from position
-            outputString.AddShaderChunk("fixed3 uvs = pos * arg2;", false);
+            outputString.AddShaderChunk("float3 uvs = " + slot5Name + "*" + slot1Name + ";", false);
 
             // use absolute value of normal as texture weights
-            outputString.AddShaderChunk("half3 blend = pow(abs(normal), arg3);", false);
+            outputString.AddShaderChunk("half3 blend = pow(abs(" + slot4Name + ")," + slot2Name + ");", false);
 
             // make sure the weights sum up to 1 (divide by sum of x+y+z)
             outputString.AddShaderChunk("blend /= dot(blend, 1.0);", false);
 
             // read the three texture projections, for x,y,z axes
-            outputString.AddShaderChunk("fixed4 cx = tex2D(arg1, uvs.yz);", false);
-            outputString.AddShaderChunk("fixed4 cy = tex2D(arg1, uvs.xz);", false);
-            outputString.AddShaderChunk("fixed4 cz = tex2D(arg1, uvs.xy);", false);
+            outputString.AddShaderChunk("float4 cx = " + slot0Name + ".Sample(" + slot3Name + ", uvs.yz);", false);
+            outputString.AddShaderChunk("float4 cy = " + slot0Name + ".Sample(" + slot3Name + ", uvs.xz);", false);
+            outputString.AddShaderChunk("float4 cz = " + slot0Name + ".Sample(" + slot3Name + ", uvs.xy);", false);
 
 
             // blend the textures based on weights
-            outputString.AddShaderChunk("fixed4 c = cx * blend.x + cy * blend.y + cz * blend.z;", false);
-            
-            outputString.AddShaderChunk("return " + "c;", false);
+            outputString.AddShaderChunk(slot6Name + " = cx * blend.x + cy * blend.y + cz * blend.z;", false);
+
+            //outputString.AddShaderChunk("return " + "c;", false);
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
-
+            outputString.AddShaderChunk("#endif", true);
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
+
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            
+    //Sampler input slot
+            
+            base.GeneratePropertyUsages(visitor, generationMode);
+            var samplerSlot = FindInputSlot<MaterialSlot>(slot3);
+
+            if (samplerSlot != null)
+            {
+                var samplerName = GetSamplerInput(slot3);
+
+                visitor.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", false);
+                visitor.AddShaderChunk("SamplerState " + samplerName + ";", true);
+                visitor.AddShaderChunk("#endif", false);
+            }
+        }
+
 
         //prevent validation errors when a sampler2D input is missing
         //use on any input requiring a TextureAssetNode
         public override void ValidateNode()
         {
             base.ValidateNode();
-            var slot = FindInputSlot<MaterialSlot>(InputSlot1Id);
+            var slot = FindInputSlot<MaterialSlot>(0);
             if (slot == null)
                 return;
 

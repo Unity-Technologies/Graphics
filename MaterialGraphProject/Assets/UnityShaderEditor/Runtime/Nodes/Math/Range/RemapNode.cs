@@ -109,11 +109,16 @@ namespace UnityEngine.MaterialGraph
 
 		public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
 		{
+			//new  = arg3.x + (arg1 - arg2.x) * (arg3.y - arg3.x) / (arg2.y - arg2.x)
+			//low2 + (value - low1) * (high2 - low2) / (high1 - low1)
+
+			//old = arg1 * ((arg3.y - arg3.x) / (arg2.y - arg2.x)) + arg3.x
+
 			var outputString = new ShaderGenerator ();
 			outputString.AddShaderChunk (GetFunctionPrototype ("arg1", "arg2", "arg3"), false);
 			outputString.AddShaderChunk ("{", false);
 			outputString.Indent ();
-			outputString.AddShaderChunk ("return arg1 * ((arg3.y - arg3.x) / (arg2.y - arg2.x)) + arg3.x;", false);
+			outputString.AddShaderChunk ("return arg3.x + (arg1 - arg2.x) * (arg3.y - arg3.x) / (arg2.y - arg2.x);", false);
 			outputString.Deindent ();
 			outputString.AddShaderChunk ("}", false);
 

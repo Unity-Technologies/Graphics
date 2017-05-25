@@ -65,6 +65,12 @@ namespace UnityEngine.MaterialGraph
                     return "(3x3)";
                 case ConcreteSlotValueType.Matrix4:
                     return "(4x4)";
+                case ConcreteSlotValueType.SamplerState:
+                    return "(SS)";
+                case ConcreteSlotValueType.Texture2D:
+                    return "(T)";
+                case ConcreteSlotValueType.Sampler2D:
+                    return "(S)";
                 default:
                     return "(E)";
             }
@@ -106,6 +112,15 @@ namespace UnityEngine.MaterialGraph
                         break;
                     case SlotValueType.Matrix4:
                         concreteValueType = ConcreteSlotValueType.Matrix4;
+                        break;
+					case SlotValueType.Texture2D:
+                        concreteValueType = ConcreteSlotValueType.Texture2D;
+                        break;
+                    case SlotValueType.SamplerState:
+                        concreteValueType = ConcreteSlotValueType.SamplerState;
+                        break;
+                    case SlotValueType.Sampler2D:
+                        concreteValueType = ConcreteSlotValueType.Sampler2D;
                         break;
                     default:
                         concreteValueType = ConcreteSlotValueType.Vector4;
@@ -150,6 +165,11 @@ namespace UnityEngine.MaterialGraph
 
             visitor.AddShaderChunk(matOwner.precision + AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(concreteValueType) + " " + matOwner.GetVariableNameForSlot(id) + ";", true);
         }
+
+		public bool IsCompatibleWithInputSlotType(SlotValueType inputType)
+		{
+			return (inputType == SlotValueType.Dynamic || valueType == SlotValueType.Vector1 || valueType <= inputType);
+		}
 
         public string GetDefaultValue(GenerationMode generationMode)
         {
