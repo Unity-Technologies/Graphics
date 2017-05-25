@@ -208,16 +208,9 @@ namespace UnityEngine.MaterialGraph
             outputString.Indent();
 
             outputString.AddShaderChunk("fixed4 fetches = fixed4(0,0,0,0);", false);
-            /*for (int i = 0; i < (kNumConvolutionVector4 - 1); ++i)
-            {
-                outputString.AddShaderChunk("fetches += tex2D(textSampler, baseUv) * weights" + i + ".x;", false);
-                outputString.AddShaderChunk("fetches += tex2D(textSampler, baseUv) * weights" + i + ".y;", false);
-                outputString.AddShaderChunk("fetches += tex2D(textSampler, baseUv) * weights" + i + ".z;", false);
-                outputString.AddShaderChunk("fetches += tex2D(textSampler, baseUv) * weights" + i + ".w;", false);
-            }
-            outputString.AddShaderChunk("fetches += tex2D(textSampler, baseUv) * weights6.x;", false);
-            outputString.AddShaderChunk("fetches *= weights6.w;", false);*/
+            outputString.AddShaderChunk("fixed weight = 1;", false);
 
+            string[] channelNames = { ".x", ".y", ".z", ".w" };
             for(int col=0; col < 5; ++col)
             {
                 for(int row=0; row < 5; ++row)
@@ -226,11 +219,12 @@ namespace UnityEngine.MaterialGraph
                     int vectorIndex = valueIndex / 4;
                     int vectorOffset = valueIndex % 4;
 
-                    outputString.AddShaderChunk("fetches += tex2D(textSampler, baseUv + texelSize * fixed2("+(row-2)+","+(col-2)+"));", false);
+                    outputString.AddShaderChunk("weight = weights" + vectorIndex + channelNames[vectorOffset] + ";", false);
+                    outputString.AddShaderChunk("fetches += weight * tex2D(textSampler, baseUv + texelSize * fixed2("+(row-2)+","+(col-2)+"));", false);
                 }
             }
 
-            outputString.AddShaderChunk("fetches /= 25;", false);
+            outputString.AddShaderChunk("fetches *= weights6.w;", false);
             outputString.AddShaderChunk("return fetches;", false);
 
             outputString.Deindent();
