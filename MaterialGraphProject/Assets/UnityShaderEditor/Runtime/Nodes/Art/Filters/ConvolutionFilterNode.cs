@@ -6,7 +6,7 @@ using System;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Art/Filters/Convolution")]
-    public class ConvolutionFilter : Function2Input, IGeneratesFunction, IGeneratesBodyCode, IMayRequireMeshUV
+    public class ConvolutionFilterNode : Function2Input, IGeneratesFunction, IGeneratesBodyCode, IMayRequireMeshUV
     {
         private const string kUVSlotName = "UV";
         private const string kTextureSlotName = "Texture";
@@ -20,7 +20,7 @@ namespace UnityEngine.MaterialGraph
               new Vector4(1,1,1,1),
               new Vector4(1,1,1,1),
               new Vector4(1,1,1,1),
-              new Vector4(1,0,0,1.0f/25.0f) };
+              new Vector4(1,0,0,25.0f) };
 
         private void GetPositionInData(int row, int col, out int vectorIndex, out int vectorOffset)
         {
@@ -33,6 +33,16 @@ namespace UnityEngine.MaterialGraph
             int valueIndex = col * 5 + row;
             vectorIndex = valueIndex / 4;
             vectorOffset = valueIndex % 4;
+        }
+
+        public float GetConvolutionDivisor()
+        {
+            return m_ConvolutionFilter[6].w; 
+        }
+
+        public void SetConvolutionDivisor(float value)
+        {
+            m_ConvolutionFilter[6].w = value;
         }
 
         public float GetConvolutionWeight(int row, int col)
@@ -93,7 +103,7 @@ namespace UnityEngine.MaterialGraph
             return new MaterialSlot(OutputSlotId, kOutputSlotShaderName, kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector4, Vector4.zero);
         }
 
-        public ConvolutionFilter()
+        public ConvolutionFilterNode()
         {
             name = "Convolution";
             UpdateNodeAfterDeserialization();

@@ -32,6 +32,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(AddManyNode)] = typeof(AddManyNodePresenter);
             typeMapper[typeof(IfNode)] = typeof(IfNodePresenter);
             typeMapper[typeof(CustomCodeNode)] = typeof(CustomCodePresenter);
+            typeMapper[typeof(ConvolutionFilterNode)] = typeof(ConvolutionFilterNodePresenter);
         }
     }
 }
