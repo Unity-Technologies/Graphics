@@ -42,7 +42,13 @@ namespace UnityEngine.MaterialGraph
 
         public void SetConvolutionDivisor(float value)
         {
+            if (value == m_ConvolutionFilter[6].w)
+                return;
+
             m_ConvolutionFilter[6].w = value;
+
+            if (onModified != null)
+                onModified(this, ModificationScope.Node);
         }
 
         public float GetConvolutionWeight(int row, int col)
@@ -129,7 +135,7 @@ namespace UnityEngine.MaterialGraph
                 string propGuid = guid.ToString().Replace("-", "_");
                 for (int i = 0; i < kNumConvolutionVector4; ++i)
                 {
-                    visitor.AddShaderChunk(precision + " " + GetPropertyName(i, propGuid) + ";", true);
+                    visitor.AddShaderChunk(precision + "4 " + GetPropertyName(i, propGuid) + ";", true);
                 }
             }
         }
@@ -155,7 +161,6 @@ namespace UnityEngine.MaterialGraph
             string samplerName = GetSlotValue(InputSlot1Id, generationMode);
             
             //uv
-            //string input2Value = GetSlotValue(InputSlot2Id, generationMode);
             var uvSlot = FindInputSlot<MaterialSlot>(InputSlot2Id);
             if (uvSlot == null)
                 return;
@@ -171,7 +176,6 @@ namespace UnityEngine.MaterialGraph
 
             //texelSize
             string texelSize = samplerName + "_TexelSize.xy";
-
             visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + GetFunctionCallBody(samplerName, baseUV, texelSize) + ";", true);
 
 
@@ -228,13 +232,12 @@ namespace UnityEngine.MaterialGraph
                     int valueIndex = col * 5 + row;
                     int vectorIndex = valueIndex / 4;
                     int vectorOffset = valueIndex % 4;
-
                     outputString.AddShaderChunk("weight = weights" + vectorIndex + channelNames[vectorOffset] + ";", false);
                     outputString.AddShaderChunk("fetches += weight * tex2D(textSampler, baseUv + texelSize * fixed2("+(row-2)+","+(col-2)+"));", false);
                 }
             }
 
-            outputString.AddShaderChunk("fetches *= weights6.w;", false);
+            outputString.AddShaderChunk("fetches /= weights6.w;", false);
             outputString.AddShaderChunk("return fetches;", false);
 
             outputString.Deindent();
