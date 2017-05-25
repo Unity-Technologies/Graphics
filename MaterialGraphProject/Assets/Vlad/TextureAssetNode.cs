@@ -117,9 +117,8 @@ namespace UnityEngine.MaterialGraph
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             visitor.AddShaderChunk("sampler2D " + propertyName + ";", true);
+            visitor.AddShaderChunk(precision + "4 " + propertyName + "_TexelSize;", true);
         }
-        
-
 
         public override PreviewProperty GetPreviewProperty()
         {

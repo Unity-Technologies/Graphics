@@ -30,7 +30,7 @@
 
         protected override MaterialSlot GetInputSlot2()
         {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
+            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, new Vector2(2,2));
         }
 
         protected override MaterialSlot GetOutputSlot()

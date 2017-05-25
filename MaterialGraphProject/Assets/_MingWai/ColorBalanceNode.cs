@@ -1,6 +1,6 @@
 ﻿namespace UnityEngine.MaterialGraph
 {
-    [Title("ColorBalance")]
+    [Title("Art/Adjustments/ColorBalance")]
     public class ColorBalanceNode : FunctionNInNOut, IGeneratesFunction
     {
         public ColorBalanceNode()
