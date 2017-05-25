@@ -16,6 +16,7 @@ namespace UnityEngine.MaterialGraph
         public const string SmoothnessSlotName = "Smoothness";
         public const string OcclusionSlotName = "Occlusion";
         public const string AlphaSlotName = "Alpha";
+        public const string VertexOffsetName = "VertexPosition";
 
         public const int AlbedoSlotId = 0;
         public const int NormalSlotId = 1;
@@ -23,6 +24,7 @@ namespace UnityEngine.MaterialGraph
         public const int SmoothnessSlotId = 4;
         public const int OcclusionSlotId = 5;
         public const int AlphaSlotId = 6;
+        public const int VertexOffsetId = 7;
 
         [SerializeField]
         private SurfaceMaterialOptions m_MaterialOptions = new SurfaceMaterialOptions();
@@ -34,6 +36,66 @@ namespace UnityEngine.MaterialGraph
 
         public abstract string GetSurfaceOutputName();
         public abstract string GetLightFunction();
+
+
+
+        void GenerateNodeFunctionsAndPropertyUsages(
+            ShaderGenerator shaderBody,
+            ShaderGenerator propertyUsages,
+            ShaderGenerator nodeFunction,
+            GenerationMode mode,
+            int[] validNodeIds)
+        {
+            var activeNodeList = new List<INode>();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, NodeUtils.IncludeSelf.Include,
+               new List<int>(validNodeIds));
+
+            foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
+            {
+                if (node is IGeneratesFunction)
+                    (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, mode);
+
+                node.GeneratePropertyUsages(propertyUsages, mode);
+            }
+
+            var nodes = ListPool<INode>.Get();
+            //Get the rest of the nodes for all the other slots
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude, new List<int>(vertexInputs));
+            for (var i = 0; i < nodes.Count; i++)
+            {
+                var node = nodes[i];
+                if (node is IGeneratesBodyCode)
+                    (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, mode);
+            }
+            ListPool<INode>.Release(nodes);
+        }
+
+        void GenerateVertexShaderInternal(
+            ShaderGenerator propertyUsages,
+           ShaderGenerator shaderBody,
+           ShaderGenerator nodeFunction,
+           ShaderGenerator vertexShaderBlock,
+           GenerationMode mode)
+        {
+
+            GenerateNodeFunctionsAndPropertyUsages(vertexShaderBlock, propertyUsages, nodeFunction, mode, vertexInputs);
+           
+            var slot = FindInputSlot<MaterialSlot>(VertexOffsetId);
+            foreach (var edge in owner.GetEdges(slot.slotReference))
+            {
+                var outputRef = edge.outputSlot;
+                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+                if (fromNode == null)
+                    continue;
+
+                var remapper = fromNode as INodeGroupRemapper;
+                if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
+                    continue;
+
+                vertexShaderBlock.AddShaderChunk("v.vertex.xyz = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
+            }
+
+        }
 
         public override string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
         {
@@ -59,6 +121,13 @@ namespace UnityEngine.MaterialGraph
                 shaderBodyVisitor,
                 shaderFunctionVisitor,
                 shaderInputVisitor,
+                vertexShaderBlock,
+                mode);
+
+            GenerateVertexShaderInternal(
+                shaderPropertyUsagesVisitor,
+                shaderBodyVisitor,
+                shaderFunctionVisitor,
                 vertexShaderBlock,
                 mode);
 
@@ -115,6 +184,17 @@ namespace UnityEngine.MaterialGraph
             return Regex.Replace(resultShader, @"\r\n|\n\r|\n|\r", Environment.NewLine);
         }
 
+
+        protected abstract int[] surfaceInputs
+        {
+            get;
+        }
+
+        protected abstract int[] vertexInputs
+        {
+            get;
+        }
+
         private void GenerateSurfaceShaderInternal(
            ShaderGenerator propertyUsages,
            ShaderGenerator shaderBody,
@@ -124,7 +204,8 @@ namespace UnityEngine.MaterialGraph
            GenerationMode mode)
         {
             var activeNodeList = new List<INode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this, NodeUtils.IncludeSelf.Include, 
+               new List<int>(surfaceInputs));
 
             foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
             {
@@ -237,7 +318,7 @@ namespace UnityEngine.MaterialGraph
             var nodes = ListPool<INode>.Get();
             
             //Get the rest of the nodes for all the other slots
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude);
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude, new List<int>(surfaceInputs));
             for (var i = 0; i < nodes.Count; i++)
             {
                 var node = nodes[i];
@@ -248,21 +329,24 @@ namespace UnityEngine.MaterialGraph
 
             foreach (var slot in GetInputSlots<MaterialSlot>())
             {
-                foreach (var edge in owner.GetEdges(slot.slotReference))
+                if (surfaceInputs.Contains(slot.id))
                 {
-                    var outputRef = edge.outputSlot;
-                    var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                    if (fromNode == null)
-                        continue;
+                    foreach (var edge in owner.GetEdges(slot.slotReference))
+                    {
+                        var outputRef = edge.outputSlot;
+                        var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+                        if (fromNode == null)
+                            continue;
 
-                    var remapper = fromNode as INodeGroupRemapper;
-                    if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
-                        continue;
+                        var remapper = fromNode as INodeGroupRemapper;
+                        if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
+                            continue;
 
-                    shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
+                        shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
 
-                    if (slot.id == NormalSlotId)
-                        shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
+                        if (slot.id == NormalSlotId)
+                            shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
+                    }
                 }
             }
         }
