@@ -74,7 +74,7 @@ namespace UnityEngine.MaterialGraph
                    + precision + input2Dimension + " " + arg2Name + ")";
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlot1Id, InputSlot2Id }, new[] { OutputSlotId });
             string input1Value = GetSlotValue(InputSlot1Id, generationMode);
@@ -92,12 +92,12 @@ namespace UnityEngine.MaterialGraph
             get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType); }
         }
 
-        private string input1Dimension
+        protected string input1Dimension
         {
             get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlot1Id).concreteValueType); }
         }
 
-        private string input2Dimension
+        protected string input2Dimension
         {
             get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlot2Id).concreteValueType); }
         }
