@@ -6,7 +6,7 @@ namespace UnityEngine.MaterialGraph
     public class ToggleNode : PropertyNode, IGeneratesBodyCode
     {
         [SerializeField]
-        private float m_Float;
+        //private float m_Float;
 		private bool m_ToggleState;
 
         private const int kOutputSlotId = 0;
