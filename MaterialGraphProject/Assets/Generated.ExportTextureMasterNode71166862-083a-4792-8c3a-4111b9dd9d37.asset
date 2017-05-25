@@ -5,7 +5,7 @@ CustomRenderTexture:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: 2PassCustomTexture
+  m_Name: Generated.ExportTextureMasterNode71166862-083a-4792-8c3a-4111b9dd9d37
   m_ImageContentsHash:
     serializedVersion: 2
     Hash: 00000000000000000000000000000000
@@ -27,13 +27,13 @@ CustomRenderTexture:
     m_WrapW: 1
   m_Dimension: 2
   m_VolumeDepth: 1
-  m_Material: {fileID: 2100000, guid: 08334708bd70c504e8c76f956c62750f, type: 2}
+  m_Material: {fileID: 2100000, guid: 3bf2f26244334984889b9e531155075d, type: 2}
   m_InitSource: 0
   m_InitMaterial: {fileID: 0}
   m_InitColor: {r: 1, g: 1, b: 1, a: 1}
   m_InitTexture: {fileID: 0}
-  m_UpdateMode: 1
-  m_InitializationMode: 1
+  m_UpdateMode: 0
+  m_InitializationMode: 2
   m_UpdateZoneSpace: 0
   m_CurrentUpdateZoneSpace: 0
   m_UpdateZones: []
