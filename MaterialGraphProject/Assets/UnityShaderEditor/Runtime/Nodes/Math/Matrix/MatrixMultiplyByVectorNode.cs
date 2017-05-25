@@ -2,8 +2,8 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Math/Matrix/MultiplyMatrix")]
-    public class MatrixMultiplyNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    [Title("Math/Matrix/MultiplyMatrixByVector")]
+    public class MatrixMultiplyByVectorNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         protected const string kInputSlot1ShaderName = "Input1";
         protected const string kInputSlot2ShaderName = "Input2";
@@ -18,15 +18,15 @@ namespace UnityEngine.MaterialGraph
             get { return false; }
         }
 
-        public MatrixMultiplyNode()
+        public MatrixMultiplyByVectorNode()
         {
-            name = "MultiplyMatrix";
+            name = "MultiplyMatrixByVector";
             UpdateNodeAfterDeserialization();
         }
 
         protected string GetFunctionName()
         {
-            return "unity_matrix_multiply_" + precision;
+            return "unity_matrix_multiplybyvector_" + precision;
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -44,17 +44,17 @@ namespace UnityEngine.MaterialGraph
 
         protected MaterialSlot GetInputSlot1()
         {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, SlotType.Input, SlotValueType.Matrix3, Vector4.zero);
+            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, SlotType.Input, SlotValueType.Matrix4, Vector4.zero);
         }
 
         protected MaterialSlot GetInputSlot2()
         {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input, SlotValueType.Matrix3, Vector4.zero);
+            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input, SlotValueType.Vector4, Vector4.zero);
         }
 
         protected MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Matrix3, Vector4.zero);
+            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector4, Vector4.zero);
         }
 
         protected virtual string GetInputSlot1Name()
