@@ -37,6 +37,13 @@ SubShader
 		{
 			return arg3.x + (arg1 - arg2.x) * (arg3.y - arg3.x) / (arg2.y - arg2.x);
 		}
+		inline float2 unity_spherize_float (float2 uv, float2 position, float2 radiusAndStrength)
+		{
+			float2 fromUVToPoint = position - uv;
+			float dist = length(fromUVToPoint);
+			float mag = ((1.0 - (dist / radiusAndStrength.x)) * radiusAndStrength.y) * step(dist, radiusAndStrength.x);
+			return uv + (mag * fromUVToPoint);
+		}
 		inline float2 unity_voronoi_noise_randomVector (float2 uv, float offset)
 		{
 			float2x2 m = float2x2(15.27, 47.63, 99.41, 89.98);
@@ -128,10 +135,16 @@ SubShader
 			float3 Vector3_ff318061_3405_4489_b0c0_004f3556b379_Uniform = float3 (3, 2.5, 5);
 			float4 UV_257dbdde_fb0e_45d2_b1d5_3245a77a7446_UV = uv0;
 			float4 Remap_e2de5e87_5108_4e55_91d0_202c89bfdc77_Output = unity_remap_float (UV_257dbdde_fb0e_45d2_b1d5_3245a77a7446_UV, float2 (0,1), float2 (-10,10));
+			float Sin_b1ddf0e6_502c_4513_9a06_d60c0f84e7e7_Output = sin (_Time.y);
+			float Absolute_fca0185b_603c_4c3f_a7d7_20003e1bfbf1_Output = abs (Sin_b1ddf0e6_502c_4513_9a06_d60c0f84e7e7_Output);
+			float Lerp_6aff06be_b078_46b9_a5d9_131ef80392d8_Output = lerp (1, 20, Absolute_fca0185b_603c_4c3f_a7d7_20003e1bfbf1_Output);
+			float Vector1_09cb6502_ddcd_40fa_a9c4_80a8217e6532_Uniform = 0.5;
+			float4 Combine_27399d01_fcb9_4ec2_8c0e_864fa09b5aa3_Output = float4(Lerp_6aff06be_b078_46b9_a5d9_131ef80392d8_Output,Vector1_09cb6502_ddcd_40fa_a9c4_80a8217e6532_Uniform,0.0, 0.0);
+			float2 Spherize_fe87ab04_d3e2_4b06_93f6_ea59773ab7eb_Output = unity_spherize_float (Remap_e2de5e87_5108_4e55_91d0_202c89bfdc77_Output, float2 (0,0), Combine_27399d01_fcb9_4ec2_8c0e_864fa09b5aa3_Output);
 			 float VoronoiNoise_6363f48c_fb0a_4d4a_b0a0_e9c095b25f14_n1;
 			 float VoronoiNoise_6363f48c_fb0a_4d4a_b0a0_e9c095b25f14_n2;
 			 float VoronoiNoise_6363f48c_fb0a_4d4a_b0a0_e9c095b25f14_n3;
-			unity_voronoinoise_float (Remap_e2de5e87_5108_4e55_91d0_202c89bfdc77_Output, _Time.y, VoronoiNoise_6363f48c_fb0a_4d4a_b0a0_e9c095b25f14_n1, VoronoiNoise_6363f48c_fb0a_4d4a_b0a0_e9c095b25f14_n2, VoronoiNoise_6363f48c_fb0a_4d4a_b0a0_e9c095b25f14_n3);
+			unity_voronoinoise_float (Spherize_fe87ab04_d3e2_4b06_93f6_ea59773ab7eb_Output, _Time.y, VoronoiNoise_6363f48c_fb0a_4d4a_b0a0_e9c095b25f14_n1, VoronoiNoise_6363f48c_fb0a_4d4a_b0a0_e9c095b25f14_n2, VoronoiNoise_6363f48c_fb0a_4d4a_b0a0_e9c095b25f14_n3);
 			float4 UV_b1e148d9_f64d_4409_bc93_047246acb763_UV = uv0;
 			float Particle_bc661883_3410_41aa_9c40_9841d35071d1_Output = unity_particle_float (UV_b1e148d9_f64d_4409_bc93_047246acb763_UV, 2.44);
 			float OneMinus_ed098cd5_7e1f_43c8_aa71_e28f93649eb3_Output = unity_oneminus_float (Particle_bc661883_3410_41aa_9c40_9841d35071d1_Output);
