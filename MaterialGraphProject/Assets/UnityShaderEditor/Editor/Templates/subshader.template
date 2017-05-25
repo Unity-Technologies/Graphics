@@ -14,8 +14,9 @@ ${ZWrite}
 	#pragma glsl
 	#pragma debug
 
-${ShaderFunctions}
 ${ShaderPropertyUsages}
+${ShaderFunctions}
+
 
 	struct Input 
 	{
