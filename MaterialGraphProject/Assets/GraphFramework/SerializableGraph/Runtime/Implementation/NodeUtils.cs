@@ -66,7 +66,7 @@ namespace UnityEngine.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode(List<INode> nodeList, INode node, IncludeSelf includeSelf = IncludeSelf.Include)
+        public static void DepthFirstCollectNodesFromNode(List<INode> nodeList, INode node, IncludeSelf includeSelf = IncludeSelf.Include, List<int>slotIds = null)
         {
             // no where to start
             if (node == null)
@@ -82,8 +82,12 @@ namespace UnityEngine.Graphing
                 remapper.DepthFirstCollectNodesFromNodeSlotList(nodeList, includeSelf);
                 return;
             }
+
+            var ids = node.GetInputSlots<ISlot>().Select(x => x.id);
+            if (slotIds != null)
+                ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
             
-            foreach (var slot in node.GetInputSlots<ISlot>().Select(x => x.id))
+            foreach (var slot in ids)
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {

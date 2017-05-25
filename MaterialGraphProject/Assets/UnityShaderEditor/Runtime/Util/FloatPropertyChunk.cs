@@ -14,7 +14,7 @@ namespace UnityEngine.MaterialGraph
 
         private readonly float m_DefaultValue;
 		private readonly FloatType m_FloatType;
-		private readonly Vector3 m_rangeValues = new Vector3(0f, 1f, 2f);
+		private readonly Vector3 m_rangeValues;
 
         public FloatPropertyChunk(string propertyName, string propertyDescription, float defaultValue, HideState hideState)
             : base(propertyName, propertyDescription, hideState)
@@ -26,6 +26,14 @@ namespace UnityEngine.MaterialGraph
 			: base(propertyName, propertyDescription, hideState)
 		{
 			m_FloatType = floatType;
+			m_DefaultValue = defaultValue;
+		}
+
+		public FloatPropertyChunk(string propertyName, string propertyDescription, float defaultValue, FloatType floatType, Vector3 rangeValues, HideState hideState)
+			: base(propertyName, propertyDescription, hideState)
+		{
+			m_FloatType = floatType;
+			m_rangeValues = rangeValues;
 			m_DefaultValue = defaultValue;
 		}
 
