@@ -31,7 +31,7 @@ namespace UnityEngine.MaterialGraph
 				{
 					return new AnyNodeSlot[]
 					{
-							new AnyNodeSlot { slotId= 4,    name = "outUVs",   description = "Output UV texture coordinates", slotValueType = SlotValueType.Vector2, value = Vector4.zero  },
+							new AnyNodeSlot { slotId= 4,    name = "outUVs",   description = "Output UVW texture coordinates", slotValueType = SlotValueType.Vector3, value = Vector4.zero  },
 							new AnyNodeSlot { slotId= 5,    name = "outNormal", description = "Output Normal in tangent space", slotValueType = SlotValueType.Vector3, value = Vector4.zero  }
 					};
 				}
@@ -49,7 +49,7 @@ namespace UnityEngine.MaterialGraph
 						"float3 sphereCenter = float3(center, height);\n" +
 						"float3 edgeA = sphereCenter - cur;\n" +
 						"float a2 = dot(edgeA, edgeA);\n" +
-						"outUVs= inUVs;\n" +
+						"outUVs= float3(inUVs.xy, 0.0f);\n" +
                         "outNormal= float3(0.0f, 0.0f, 1.0f);\n" +
 						"if (a2 < radius2)\n" +
 						"{\n" +
@@ -59,7 +59,7 @@ namespace UnityEngine.MaterialGraph
 						"   float x = cosineR * a - sqrt(-a2 + radius2 + a2 * cosineR * cosineR);\n" +
 						"   float3 intersectedEdge = cur + tangentSpaceViewDirection * x;\n" +
                         "   outNormal= normalize(sphereCenter - intersectedEdge);\n" +
-						"   outUVs = intersectedEdge.xy;\n" +
+						"   outUVs = intersectedEdge.xyz;\n" +
 						"}\n";
 
 				}
