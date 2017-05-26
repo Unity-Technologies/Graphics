@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Unlit_Wathever
-  m_Shader: {fileID: 4800000, guid: 0caa73edc5ef95645a596a31baaf26ea, type: 3}
+  m_Name: UnityEngine.MaterialGraph.ExportTextureMasterNodee933fd86-9b63-40a2-9321-e857830b2339
+  m_Shader: {fileID: 4800000, guid: 7da779631b3abb64da5b34a8ac4b5011, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -16,10 +16,6 @@ Material:
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 8080b3773b9568a46bcaaf9b18512990, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
+    m_TexEnvs: []
     m_Floats: []
     m_Colors: []
