@@ -1,98 +1,101 @@
-Shader "Graph/Generated.MetallicMasterNode554b91b5-7a00-4f5f-b71a-f7729fcbdee8" 
+Shader "Generated.ExportTextureMasterNode31754f39-6eb9-4773-ae21-b2fca7f2fcde" 
 {
 	Properties 
 	{
-		[NonModifiableTextureData] TextureAsset_8f4a8771_6c8f_4107_9c0b_83da34d57a9b_Uniform("TextureAsset", 2D) = "white" {}
-
+		
 	}	
 	
-SubShader 
-{
-		Tags
-		{
-			"RenderType"="Opaque"
-			"Queue"="Geometry"
-		}
+	SubShader 
+	{
+		Tags { "Queue"="Geometry" "IgnoreProjector"="True" "RenderType"="Opaque" }
 
+		ZWrite Off
 		Blend One Zero
-
-		Cull Back
-
-		ZTest LEqual
-
-		ZWrite On
-
-
-	LOD 200
-	
-	CGPROGRAM
-	#pragma target 3.0
-	#pragma surface surf Standard vertex:vert
-	#pragma glsl
-	#pragma debug
-
-		#ifdef UNITY_COMPILER_HLSL
-		Texture2D TextureAsset_8f4a8771_6c8f_4107_9c0b_83da34d57a9b_Uniform;
-		#endif
-		float HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_texOffset;
-		float HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_strength;
-		#ifdef UNITY_COMPILER_HLSL
-		SamplerState my_linear_repeat_sampler;
-		#endif
-
-		#ifdef UNITY_COMPILER_HLSL
-		#endif
-		inline void unity_HeightToNormal (Texture2D heightmap, float2 texCoord, float texOffset, float strength, out float3 normalRes)
+		
+		Pass 
 		{
-		float2 offsetU = float2(texCoord.x + texOffset, texCoord.y);
-		float2 offsetV = float2(texCoord.x, texCoord.y + texOffset);
-		float normalSample = 0;
-		float uSample = 0;
-		float vSample = 0;
-		normalSample = heightmap.Sample(my_linear_repeat_sampler, texCoord).r;
-		uSample = heightmap.Sample(my_linear_repeat_sampler, offsetU).r;
-		vSample = heightmap.Sample(my_linear_repeat_sampler, offsetV).r;
-		float uMinusNormal = uSample - normalSample;
-		float vMinusNormal = vSample - normalSample;
-		uMinusNormal = uMinusNormal * strength;
-		vMinusNormal = vMinusNormal * strength;
-		float3 va = float3(1, 0, uMinusNormal);
-		float3 vb = float3(0, 1, vMinusNormal);
-		normalRes = cross(va, vb);
+			CGPROGRAM
+			#include "UnityCustomRenderTexture.cginc"
+		 	#pragma vertex CustomRenderTextureVertexShader_Preview
+			#pragma fragment frag
+			#pragma target 4.0
+			
+			v2f_customrendertexture CustomRenderTextureVertexShader_Preview(appdata_base IN)
+			{
+				v2f_customrendertexture OUT;
+				OUT.vertex = UnityObjectToClipPos(IN.vertex);
+				OUT.primitiveID = 0;//TODO
+				OUT.localTexcoord = IN.texcoord;
+				OUT.globalTexcoord = IN.texcoord;
+				OUT.direction = CustomRenderTextureComputeCubeDirection(OUT.globalTexcoord.xy);
+				return OUT;
+			}
+
+
+
+			inline void unity_Gradient_float (float v, out float4 finalColor, out float finalR, out float finalG, out float finalB, out float finalA)
+			{
+				float3 color0=float3(0.1176471,0.08960744,0.07439446);
+				float colorp0=0;
+				float3 color1=float3(0,0,0);
+				float colorp1=0.1147021;
+				float3 color2=float3(0.2132353,0.07766853,0);
+				float colorp2=0.2500038;
+				float3 color3=float3(0.6364486,0.2844907,0);
+				float colorp3=0.3764706;
+				float3 color4=float3(1,0.9310344,0);
+				float colorp4=0.5058824;
+				float3 color5=float3(1,1,1);
+				float colorp5=0.6529488;
+				float3 color6=float3(1,0.6413793,0);
+				float colorp6=0.7823606;
+				float3 color7=float3(0.4779412,0.353851,0.02811421);
+				float colorp7=1;
+				float3 gradcolor = color0;
+				float colorLerpPosition0=smoothstep(colorp0,colorp1,v);
+				gradcolor = lerp(gradcolor,color1,colorLerpPosition0);
+				float colorLerpPosition1=smoothstep(colorp1,colorp2,v);
+				gradcolor = lerp(gradcolor,color2,colorLerpPosition1);
+				float colorLerpPosition2=smoothstep(colorp2,colorp3,v);
+				gradcolor = lerp(gradcolor,color3,colorLerpPosition2);
+				float colorLerpPosition3=smoothstep(colorp3,colorp4,v);
+				gradcolor = lerp(gradcolor,color4,colorLerpPosition3);
+				float colorLerpPosition4=smoothstep(colorp4,colorp5,v);
+				gradcolor = lerp(gradcolor,color5,colorLerpPosition4);
+				float colorLerpPosition5=smoothstep(colorp5,colorp6,v);
+				gradcolor = lerp(gradcolor,color6,colorLerpPosition5);
+				float colorLerpPosition6=smoothstep(colorp6,colorp7,v);
+				gradcolor = lerp(gradcolor,color7,colorLerpPosition6);
+				float alpha0=1;
+				float alphap0=0;
+				float alpha1=1;
+				float alphap1=1;
+				float gradalpha = alpha0;
+				float alphaLerpPosition0=smoothstep(alphap0,alphap1,v);
+				gradalpha = lerp(gradalpha,alpha1,alphaLerpPosition0);
+				finalColor = float4(gradcolor,gradalpha);
+				finalR = finalColor.r;
+				finalG = finalColor.g;
+				finalB = finalColor.b;
+				finalA = finalColor.a;
+			}
+
+
+			float4 frag(v2f_customrendertexture IN) : COLOR
+			{
+				half4 uv0 = float4(IN.localTexcoord.xyz,1.0);
+				float4 UV_49a5272a_c49d_4f7e_94ba_3a2e27fcbed4_UV = uv0;
+				 float4 Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalColor;
+				 float Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalR;
+				 float Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalG;
+				 float Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalB;
+				 float Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalA;
+				unity_Gradient_float (UV_49a5272a_c49d_4f7e_94ba_3a2e27fcbed4_UV, Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalColor, Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalR, Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalG, Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalB, Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalA);
+				return Gradient_9866089f_0763_409d_904a_c1f7836ea742_finalColor;
+
+			}
+			ENDCG
 		}
-
-
-
-	struct Input 
-	{
-			float4 color : COLOR;
-			half4 meshUV0;
-
-	};
-
-	void vert (inout appdata_full v, out Input o)
-	{
-		UNITY_INITIALIZE_OUTPUT(Input,o);
-			o.meshUV0 = v.texcoord;
-
 	}
-  
-	void surf (Input IN, inout SurfaceOutputStandard o) 
-	{
-			half4 uv0 = IN.meshUV0;
-			float4 UV_de8d7b89_7b50_499d_aa73_0f2a725356e6_UV = uv0;
-			 float3 HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_normalRes;
-			#ifdef UNITY_COMPILER_HLSL 
-			unity_HeightToNormal (TextureAsset_8f4a8771_6c8f_4107_9c0b_83da34d57a9b_Uniform, UV_de8d7b89_7b50_499d_aa73_0f2a725356e6_UV, HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_texOffset, HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_strength, HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_normalRes);
-			 #endif
-			o.Normal = HeightToNormal_81cdd9a9_500d_41e2_9771_df274a2363bd_normalRes;
-			o.Normal += 1e-6;
-
-	}
-	ENDCG
-}
-
-
-	FallBack "Diffuse"
-	CustomEditor "LegacyIlluminShaderGUI"
+	Fallback Off
 }
