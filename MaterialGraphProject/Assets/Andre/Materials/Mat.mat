@@ -54,6 +54,6 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - Vector1_15d5efb3_faea_4990_90ce_629f350a50cb_Uniform: 0.75
+    - Vector1_15d5efb3_faea_4990_90ce_629f350a50cb_Uniform: 0.357
     - Vector1_a2ac4923_bc39_4a5c_924e_e77bd500d4f3_Uniform: 1
     m_Colors: []

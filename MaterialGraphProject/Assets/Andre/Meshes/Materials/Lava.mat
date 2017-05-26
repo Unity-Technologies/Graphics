@@ -109,7 +109,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - Color_0cf876a7_4590_4973_82b7_3f878b008b3c_Uniform: {r: 4.007354, g: 1.2436613,
+    - Color_0cf876a7_4590_4973_82b7_3f878b008b3c_Uniform: {r: 12.674, g: 3.933309,
         b: 0, a: 1}
     - Color_d1ecd429_6e84_47b1_903b_60f454b7d326_Uniform: {r: 0, g: 0, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
