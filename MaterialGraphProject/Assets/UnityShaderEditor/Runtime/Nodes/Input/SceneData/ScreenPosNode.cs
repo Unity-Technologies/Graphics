@@ -46,7 +46,7 @@ namespace UnityEngine.MaterialGraph
 				returnString = "float3(" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w, 0)";
 				break;
 			}
-            return ShaderGeneratorNames.ScreenPosition;
+			return returnString;
         }
 
         public bool RequiresScreenPosition()
