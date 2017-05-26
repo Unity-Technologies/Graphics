@@ -53,7 +53,8 @@ namespace UnityEditor.Graphing.Drawing
 			m_leftItems.Add(selectGraph);
 
             var optionsItem = CreateInstance<TitleBarButtonPresenter>();
-            optionsItem.text = "Options";
+			optionsItem.text = "Time";
+			optionsItem.onClick += ToggleTime;
             m_rightItems.Add(optionsItem);
         }
 
@@ -113,5 +114,10 @@ namespace UnityEditor.Graphing.Drawing
 			m_Owner.UpdateAsset ();
 			m_Owner.UpdateAsset ();
         }
+
+		void ToggleTime()
+		{
+			m_Owner.ToggleRequiresTime();
+		}
     }
 }

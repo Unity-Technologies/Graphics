@@ -96,7 +96,7 @@ namespace UnityEngine.MaterialGraph
         {
             if (generationMode.IsPreview())
             {
-                string propGuid = guid.ToString().Replace("-", "_");
+                var propGuid = GetVariableNameForNode();
                 visitor.AddShaderChunk(precision + " inputMin" + propGuid +";", true);
                 visitor.AddShaderChunk(precision + " inputMax" + propGuid + ";", true);
                 visitor.AddShaderChunk(precision + " inputInvGamma" + propGuid + ";", true);
@@ -111,7 +111,7 @@ namespace UnityEngine.MaterialGraph
                 return;
 
             float inputInvGamma = 1.0f / m_InputGamma;
-            string propGuid = guid.ToString().Replace("-", "_");
+            var propGuid = GetVariableNameForNode();
 
             visitor.AddShaderChunk(precision + " inputMin" + propGuid + " = " + m_InputMin + ";", true);
             visitor.AddShaderChunk(precision + " inputMax" + propGuid + " = " + m_InputMax + ";", true);
@@ -122,9 +122,9 @@ namespace UnityEngine.MaterialGraph
 
         protected override string GetFunctionCallBody(string inputValue)
         {
-            string propGuid = guid.ToString().Replace("-", "_");
-            return GetFunctionName() + "(" + inputValue + 
-                ", inputMin" + propGuid +    
+            string propGuid = GetVariableNameForNode();
+            return GetFunctionName() + "(" + inputValue +
+                ", inputMin" + propGuid +
                 ", inputMax" + propGuid +
                 ", inputInvGamma" + propGuid +
                 ", outputMin" + propGuid +
@@ -155,7 +155,7 @@ namespace UnityEngine.MaterialGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            string propGuid = guid.ToString().Replace("-", "_");
+            var propGuid = GetVariableNameForNode();
 
             base.CollectPreviewMaterialProperties(properties);
             float inputInvGamma = 1.0f / m_InputGamma;

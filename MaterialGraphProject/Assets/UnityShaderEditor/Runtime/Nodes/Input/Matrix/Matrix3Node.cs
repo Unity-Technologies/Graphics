@@ -40,10 +40,7 @@ namespace UnityEngine.MaterialGraph
 
         public string propertyName
         {
-            get
-            {
-                return string.Format("{0}_{1}_Uniform", name, guid.ToString().Replace("-", "_"));
-            }
+            get { return string.Format("{0}_{1}_Uniform", name, GetVariableNameForNode()); }
         }
 
         public override string GetVariableNameForSlot(int slotId)

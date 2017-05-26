@@ -37,7 +37,7 @@ namespace UnityEngine.MaterialGraph
 
         public float GetConvolutionDivisor()
         {
-            return m_ConvolutionFilter[6].w; 
+            return m_ConvolutionFilter[6].w;
         }
 
         public void SetConvolutionDivisor(float value)
@@ -52,17 +52,17 @@ namespace UnityEngine.MaterialGraph
         }
 
         public float GetConvolutionWeight(int row, int col)
-        { 
+        {
             int vectorIndex;
             int vectorOffset;
             GetPositionInData(row, col, out vectorIndex, out vectorOffset);
 
             switch(vectorOffset)
             {
-                case 0: return m_ConvolutionFilter[vectorIndex].x; 
-                case 1: return m_ConvolutionFilter[vectorIndex].y; 
-                case 2: return m_ConvolutionFilter[vectorIndex].z; 
-                default: return m_ConvolutionFilter[vectorIndex].w; 
+                case 0: return m_ConvolutionFilter[vectorIndex].x;
+                case 1: return m_ConvolutionFilter[vectorIndex].y;
+                case 2: return m_ConvolutionFilter[vectorIndex].z;
+                default: return m_ConvolutionFilter[vectorIndex].w;
             }
         }
 
@@ -132,7 +132,7 @@ namespace UnityEngine.MaterialGraph
         {
             if (generationMode.IsPreview())
             {
-                string propGuid = guid.ToString().Replace("-", "_");
+                string propGuid = GetVariableNameForNode();
                 for (int i = 0; i < kNumConvolutionVector4; ++i)
                 {
                     visitor.AddShaderChunk(precision + "4 " + GetPropertyName(i, propGuid) + ";", true);
@@ -151,7 +151,7 @@ namespace UnityEngine.MaterialGraph
 
             if (!generationMode.IsPreview())
             {
-                string propGuid = guid.ToString().Replace("-", "_");
+                var propGuid = GetVariableNameForNode();
                 for (int i = 0; i < kNumConvolutionVector4; ++i)
                 {
                     visitor.AddShaderChunk(precision + "4 " + GetPropertyName(i, propGuid) + "=" + precision + "4 (" + m_ConvolutionFilter[i].x + ", " + m_ConvolutionFilter[i].y + ", " + m_ConvolutionFilter[i].z + ", " + m_ConvolutionFilter[i].w + ");", true);
@@ -159,7 +159,7 @@ namespace UnityEngine.MaterialGraph
             }
 
             string samplerName = GetSlotValue(InputSlot1Id, generationMode);
-            
+
             //uv
             var uvSlot = FindInputSlot<MaterialSlot>(InputSlot2Id);
             if (uvSlot == null)
@@ -183,7 +183,7 @@ namespace UnityEngine.MaterialGraph
 
         protected string GetFunctionCallBody(string samplerName, string baseUv, string texelSize)
         {
-            string propGuid = guid.ToString().Replace("-", "_");
+            var propGuid = GetVariableNameForNode();
 
             return GetFunctionName() + " (" + samplerName + ", " + baseUv + ", "
                  + GetPropertyName(0, propGuid) + ", "
@@ -198,7 +198,7 @@ namespace UnityEngine.MaterialGraph
 
         protected override string GetFunctionPrototype(string arg1Name, string arg2Name)
         {
-            string propGuid = guid.ToString().Replace("-", "_");
+            var propGuid = GetVariableNameForNode();
 
             return "inline " + precision + "4 " + GetFunctionName() + " ("
                    + "sampler2D " + arg1Name + ", "
@@ -262,7 +262,7 @@ namespace UnityEngine.MaterialGraph
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);
-            string propGuid = guid.ToString().Replace("-", "_");
+            var propGuid = GetVariableNameForNode();
             for (int i = 0; i < kNumConvolutionVector4; ++i)
             {
                 properties.Add(new PreviewProperty { m_Name = GetPropertyName(i, propGuid), m_PropType = PropertyType.Vector4, m_Vector4 = m_ConvolutionFilter[i] });

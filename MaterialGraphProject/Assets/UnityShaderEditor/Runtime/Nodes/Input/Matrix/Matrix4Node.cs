@@ -42,7 +42,7 @@ namespace UnityEngine.MaterialGraph
         {
             get
             {
-                return string.Format("{0}_{1}_Uniform", name, guid.ToString().Replace("-", "_"));
+                return string.Format("{0}_{1}_Uniform", name, GetVariableNameForNode());
             }
         }
 
