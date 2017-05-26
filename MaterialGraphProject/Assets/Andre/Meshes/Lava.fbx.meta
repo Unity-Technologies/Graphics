@@ -1,0 +1,158 @@
+fileFormatVersion: 2
+guid: f3a76c41447b84daabaa84848510464d
+timeCreated: 1495749721
+licenseType: Pro
+ModelImporter:
+  serializedVersion: 21
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: Lava_surface
+    100004: Mesh_2
+    100006: Mesh_2_10
+    100008: Mesh_2_11
+    100010: Mesh_2_12
+    100012: Mesh_2_13
+    100014: Mesh_2_14
+    100016: Mesh_2_2
+    100018: Mesh_2_3
+    100020: Mesh_2_4
+    100022: Mesh_2_5
+    100024: Mesh_2_6
+    100026: Mesh_2_7
+    100028: Mesh_2_8
+    100030: Mesh_2_9
+    100032: RockMesh
+    100034: Rocks
+    100036: LavaPoolwall
+    400000: //RootNode
+    400002: Lava_surface
+    400004: Mesh_2
+    400006: Mesh_2_10
+    400008: Mesh_2_11
+    400010: Mesh_2_12
+    400012: Mesh_2_13
+    400014: Mesh_2_14
+    400016: Mesh_2_2
+    400018: Mesh_2_3
+    400020: Mesh_2_4
+    400022: Mesh_2_5
+    400024: Mesh_2_6
+    400026: Mesh_2_7
+    400028: Mesh_2_8
+    400030: Mesh_2_9
+    400032: RockMesh
+    400034: Rocks
+    400036: LavaPoolwall
+    2300000: Lava_surface
+    2300002: Mesh_2
+    2300004: Mesh_2_10
+    2300006: Mesh_2_11
+    2300008: Mesh_2_12
+    2300010: Mesh_2_13
+    2300012: Mesh_2_14
+    2300014: Mesh_2_2
+    2300016: Mesh_2_3
+    2300018: Mesh_2_4
+    2300020: Mesh_2_5
+    2300022: Mesh_2_6
+    2300024: Mesh_2_7
+    2300026: Mesh_2_8
+    2300028: Mesh_2_9
+    2300030: RockMesh
+    2300032: LavaPoolwall
+    3300000: Lava_surface
+    3300002: Mesh_2
+    3300004: Mesh_2_10
+    3300006: Mesh_2_11
+    3300008: Mesh_2_12
+    3300010: Mesh_2_13
+    3300012: Mesh_2_14
+    3300014: Mesh_2_2
+    3300016: Mesh_2_3
+    3300018: Mesh_2_4
+    3300020: Mesh_2_5
+    3300022: Mesh_2_6
+    3300024: Mesh_2_7
+    3300026: Mesh_2_8
+    3300028: Mesh_2_9
+    3300030: RockMesh
+    3300032: LavaPoolwall
+    4300000: Lava_surface
+    4300002: RockMesh
+    4300004: LavaPoolwall
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
