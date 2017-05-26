@@ -147,6 +147,8 @@ namespace UnityEngine.MaterialGraph
                     return ConcreteSlotValueType.Matrix4;
 				case SlotValueType.SamplerState:
                     return ConcreteSlotValueType.SamplerState;
+                case SlotValueType.Sampler2D:
+                    return ConcreteSlotValueType.Sampler2D;
             }
             return ConcreteSlotValueType.Error;
         }
