@@ -1,0 +1,28 @@
+fileFormatVersion: 2
+guid: cb267e18a2bfb48199dd718e33eb9f9b
+timeCreated: 1495756524
+licenseType: Pro
+ShaderImporter:
+  defaultTextures:
+  - Texture_f6eb7ab6_0df6_4d1f_a833_847f9eefa1ce_Uniform: {fileID: 2800000, guid: 8a17a00c2a071472cb92f6911bb7be11,
+      type: 3}
+  - Texture_aa489395_d5b1_4bce_a08c_71ce4329894d_Uniform: {fileID: 2800000, guid: 330f42016073a97418a4aae5517e32c8,
+      type: 3}
+  - Texture_8304e17f_0ca3_45b8_9081_4e083e4ffba7_Uniform: {fileID: 2800000, guid: 330f42016073a97418a4aae5517e32c8,
+      type: 3}
+  - Texture_73d7755c_9da7_46d2_90c6_35c2a880d380_Uniform: {fileID: 2800000, guid: 5a5e07ee958edbd468227e1d9ac4726a,
+      type: 3}
+  - Texture_d6d1ed65_5575_444c_8f92_38740ace2353_Uniform: {fileID: 2800000, guid: 5a5e07ee958edbd468227e1d9ac4726a,
+      type: 3}
+  - Texture_c384b973_02cf_4076_96d9_302f320a2dd5_Uniform: {fileID: 2800000, guid: a653bbc25cc7e4794829cf7b1184abcb,
+      type: 3}
+  - Texture_3cc862ff_e5c3_40c2_a0f2_895da84195ea_Uniform: {fileID: 2800000, guid: a653bbc25cc7e4794829cf7b1184abcb,
+      type: 3}
+  - Texture_ead3f7f8_56e5_41f9_8217_555fb21e0536_Uniform: {fileID: 2800000, guid: 9d64a9e7ca6864704ae6b8ca7afc9d85,
+      type: 3}
+  - Texture_9dcd98df_78a5_4ad3_83dd_e3c00c88f898_Uniform: {fileID: 2800000, guid: 9d64a9e7ca6864704ae6b8ca7afc9d85,
+      type: 3}
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
