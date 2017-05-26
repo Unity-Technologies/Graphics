@@ -11,11 +11,9 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Texture/Texture Asset")]
     public class TextureAssetNode : PropertyNode
     {
-        protected const string outputTexture2D_name = "Texture2D";
-        protected const string outputSampler2D_name = "Sampler2D";
+        protected const string textureName = "Texture";
 
-        public const int outputTexture2D_id = 0;
-        public const int outputSampler2D_id = 1;
+        public const int textureID = 0;
 
         [SerializeField]
         private string m_SerializedTexture;
@@ -87,14 +85,13 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(outputTexture2D_id, outputTexture2D_name, outputTexture2D_name, SlotType.Output, SlotValueType.Texture2D, Vector4.zero, false));
-            AddSlot(new MaterialSlot(outputSampler2D_id, outputSampler2D_name, outputSampler2D_name, SlotType.Output, SlotValueType.Sampler2D, Vector4.zero, false));
+            AddSlot(new MaterialSlot(textureID, textureName, textureName, SlotType.Output, SlotValueType.Texture2D, Vector4.zero, false));
             RemoveSlotsNameNotMatching(validSlots);
         }
 
         protected int[] validSlots
         {
-            get { return new[] { outputTexture2D_id, outputSampler2D_id }; }
+            get { return new[] { textureID }; }
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -116,7 +113,7 @@ namespace UnityEngine.MaterialGraph
                         : TexturePropertyChunk.ModifiableState.NonModifiable));
         }
 
-        
+
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var slotTexture2D = FindOutputSlot<MaterialSlot>(0);
@@ -128,16 +125,6 @@ namespace UnityEngine.MaterialGraph
                     visitor.AddShaderChunk("#ifdef UNITY_COMPILER_HLSL", true);
                     visitor.AddShaderChunk("Texture2D " + propertyName + ";", true);
                     visitor.AddShaderChunk("#endif", true);
-                }
-            }
-
-            var slotSampler2D = FindOutputSlot<MaterialSlot>(1);
-            if (slotSampler2D != null)
-            {
-                var edgesSampler2D = owner.GetEdges(slotSampler2D.slotReference).ToList();
-                if (edgesSampler2D.Count > 0)
-                {
-                    visitor.AddShaderChunk("sampler2D " + propertyName + ";", true);
                 }
             }
         }
@@ -153,9 +140,6 @@ namespace UnityEngine.MaterialGraph
                 m_Texture = defaultTexture
             };
         }
-
-   
-
 
         public override PropertyType propertyType { get { return PropertyType.Texture; } }
 
