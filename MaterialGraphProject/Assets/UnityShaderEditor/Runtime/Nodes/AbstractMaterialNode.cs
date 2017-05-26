@@ -5,6 +5,15 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
+    public static class GuidEncoder
+    {
+        public static string Encode(Guid guid)
+        {
+            string enc = Convert.ToBase64String(guid.ToByteArray());
+            return String.Format("{0:X}", enc.GetHashCode());
+        }
+    }
+
     [Serializable]
     public abstract class AbstractMaterialNode : SerializableNode, IGenerateProperties
     {
@@ -398,7 +407,7 @@ namespace UnityEngine.MaterialGraph
 
         public virtual string GetVariableNameForNode()
         {
-            return name + "_" + guid.ToString().Replace("-", "_");
+            return name + "_" + GuidEncoder.Encode(guid);
         }
 
         public sealed override void AddSlot(ISlot slot)

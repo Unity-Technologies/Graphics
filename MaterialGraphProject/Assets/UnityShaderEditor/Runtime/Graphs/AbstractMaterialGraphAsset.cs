@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
 
         public bool shouldRepaint
         {
-            get { return graph.GetNodes<AbstractMaterialNode>().OfType<IRequiresTime>().Any(); }
+			get { return graph.GetNodes<AbstractMaterialNode>().OfType<IRequiresTime>().Any(); }
         }
 
         public ScriptableObject GetScriptableObject()

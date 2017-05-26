@@ -19,11 +19,13 @@ namespace UnityEditor.Graphing.Drawing
 		[SerializeField]
 		private ScriptableObject m_ToLoad;
 
+		public static bool allowAlwaysRepaint = true;
+
         private bool shouldRepaint
         {
             get
             {
-				return m_InMemoryAsset != null && m_InMemoryAsset.shouldRepaint;
+				return allowAlwaysRepaint && m_InMemoryAsset != null && m_InMemoryAsset.shouldRepaint;
             }
         }
 
@@ -101,6 +103,11 @@ namespace UnityEditor.Graphing.Drawing
 					}
 				}
 			}
+		}
+
+		public virtual void ToggleRequiresTime()
+		{
+			allowAlwaysRepaint = !allowAlwaysRepaint;
 		}
 
 		public void ChangeSelction(IGraphAsset newSelection, bool refocus = true)
