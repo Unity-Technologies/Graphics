@@ -15,6 +15,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(GradientNode)] = typeof(GradientNodePresenter);
             typeMapper[typeof(ScatterNode)] = typeof(ScatterNodePresenter);
             typeMapper[typeof(TextureNode)] = typeof(TextureNodePresenter);
+            typeMapper[typeof(SamplerAssetNode)] = typeof(SamplerAssetNodePresenter);
             typeMapper[typeof(TextureSamplerNode)] = typeof(TextureSamplerNodePresenter);
             typeMapper[typeof(TextureAssetNode)] = typeof(TextureAssetNodePresenter);
             typeMapper[typeof(TextureLODNode)] = typeof(TextureLODNodePresenter);
@@ -29,6 +30,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(ScaleOffsetNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
             typeMapper[typeof(RadialShearNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
             typeMapper[typeof(SphereWarpNode)] = typeof(AnyNodePresenter);          // anything derived from AnyNode should use the AnyNodePresenter
+            typeMapper[typeof(SphericalIndentationNode)] = typeof(AnyNodePresenter);          // anything derived from AnyNode should use the AnyNodePresenter
             typeMapper[typeof(AACheckerboardNode)] = typeof(AnyNodePresenter);         // anything derived from AnyNode should use the AnyNodePresenter
             typeMapper[typeof(SubGraphNode)] = typeof(SubgraphNodePresenter);
             typeMapper[typeof(RemapMasterNode)] = typeof(RemapMasterNodePresenter);
