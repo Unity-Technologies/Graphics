@@ -25,7 +25,7 @@ namespace UnityEngine.MaterialGraph
         private bool m_ShowValue;
 
         public MaterialSlot() {}
-        
+
         public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
             : base(slotId, displayName, slotType)
         {
@@ -163,7 +163,7 @@ namespace UnityEngine.MaterialGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            visitor.AddShaderChunk(matOwner.precision + AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(concreteValueType) + " " + matOwner.GetVariableNameForSlot(id) + ";", true);
+            visitor.AddShaderChunk(AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(matOwner.precision, concreteValueType) + " " + matOwner.GetVariableNameForSlot(id) + ";", true);
         }
 
 		public bool IsCompatibleWithInputSlotType(SlotValueType inputType)
