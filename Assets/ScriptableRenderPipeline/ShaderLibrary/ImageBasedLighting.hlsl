@@ -52,7 +52,7 @@ float MipmapLevelToPerceptualRoughness(float mipmapLevel)
 {
     float perceptualRoughness = saturate(mipmapLevel / UNITY_SPECCUBE_LOD_STEPS);
 
-    return saturate(1.7 / 1.4 - sqrt(2.89 - 2.8 * perceptualRoughness) / 1.4);
+    return saturate(1.7 / 1.4 - sqrt(2.89 / 1.96 - (2.8 / 1.96) * perceptualRoughness));
 }
 
 // Ref: "Moving Frostbite to PBR", p. 69.
