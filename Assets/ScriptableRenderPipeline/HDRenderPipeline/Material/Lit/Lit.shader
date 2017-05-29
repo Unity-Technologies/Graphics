@@ -81,7 +81,7 @@ Shader "HDRenderPipeline/Lit"
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
-        [ToggleOff] _DoubleSidedMirrorEnable("Double sided mirror enable", Float) = 1.0
+        [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
