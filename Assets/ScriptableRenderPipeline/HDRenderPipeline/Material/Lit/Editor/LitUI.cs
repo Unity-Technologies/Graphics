@@ -258,7 +258,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Load the profile from the GUI field.
                 int profileID = subsurfaceProfile.settingsIndex;
 
-                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length)
+                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length &&
+                    hdPipeline.sssSettings.profiles[profileID] != null &&
+                    hdPipeline.sssSettings.profiles[profileID] == subsurfaceProfile)
                 {
                     validProfile = true;
                     material.SetInt("_SubsurfaceProfile", profileID);
