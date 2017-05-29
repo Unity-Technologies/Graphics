@@ -182,7 +182,7 @@ namespace UnityEditor.VFX
                             data[1] = extractExp.Channel;
                             data[2] = VFXExpression.TypeToSize(exp.ValueType);
                         }
-                        else if (exp is VFXExpressionFloatOperation)
+                        else if (exp is VFXExpressionFloatOperation && !(exp is VFXExpressionCombine)) // TODO Make a better test
                         {
                             var parents = exp.Parents;
                             if (parents.Length > 3)
@@ -202,6 +202,16 @@ namespace UnityEditor.VFX
                         expressionDescs[i].op = exp.Operation;
                         expressionDescs[i].data = data;
                     }
+
+                    // Generate uniforms
+                    var models = new HashSet<Object>();
+                    CollectDependencies(models);
+
+                    var compilerData = new VFXCompilerData(expressionGraph);
+                    foreach (var context in models.OfType<VFXContext>())
+                        context.Compile(compilerData);
+
+                    // TODO Generate rt mapper
 
                     var expressionSheet = new VFXExpressionSheet();
                     expressionSheet.expressions = expressionDescs;
