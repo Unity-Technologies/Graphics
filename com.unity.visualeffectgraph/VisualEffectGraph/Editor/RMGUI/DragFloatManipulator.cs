@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.UIElements
         }
     }
 
-    class DragValueManipulator<T> : Manipulator
+    class DragValueManipulator<T> : Manipulator, IEventHandler
     {
         public DragValueManipulator(IValueChangeListener<T> listener, object userdata)
         {
@@ -79,8 +79,8 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void RegisterCallbacksOnTarget()
         {
-            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
-            target.RegisterCallback<MouseDownEvent>(OnMouseDown);
+            target.RegisterCallback<MouseUpEvent>(OnMouseUp,Capture.Capture);
+            target.RegisterCallback<MouseDownEvent>(OnMouseDown,Capture.Capture);
             target.RegisterCallback<MouseMoveEvent>(OnMouseDrag);
             target.RegisterCallback<KeyDownEvent>(OnKeyDown);
 
@@ -94,12 +94,22 @@ namespace UnityEditor.VFX.UIElements
         }
 
 
+
+        IPanel IEventHandler.panel { get{ return target.panel; } }
+
+        void IEventHandler.HandleEvent(EventBase evt){ }
+        void IEventHandler.OnLostCapture()
+        {
+            m_Dragging = false;
+        }
+        void IEventHandler.OnLostKeyboardFocus(){}
+
         void OnMouseUp(MouseUpEvent evt)
         {
             if (evt.button == 0 && m_Dragging)
             {
                 m_Dragging = false;
-                target.ReleaseCapture();
+                UIElementsUtility.eventDispatcher.ReleaseCapture(this);
                 EditorGUIUtility.SetWantsMouseJumping(0);
             }
         }
@@ -109,9 +119,10 @@ namespace UnityEditor.VFX.UIElements
             if (evt.button == 0)
             {
                 EditorGUIUtility.SetWantsMouseJumping(1);
-                target.TakeCapture();
+                UIElementsUtility.eventDispatcher.TakeCapture(this);
                 m_Dragging = true;
                 m_OriginalValue = m_Listener.GetValue(m_UserData);
+                evt.StopPropagation();
             }
         }
 

@@ -217,6 +217,8 @@ namespace UnityEditor.VFX.UI
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
+
+
         }
 
         void OnSpace()
@@ -502,6 +504,16 @@ namespace UnityEditor.VFX.UI
             if (presenter == null || presenter.context == null)
                 return;
 
+            if (m_PopupManipulator == null)
+            {
+                m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, (d, mPos) =>
+                    {
+                        GetPresenter<VFXContextPresenter>().AddBlock(-1, d.CreateInstance());
+                    }));
+                m_NodeContainer.AddManipulator(m_PopupManipulator);
+            }
+
+
             // Recreate label with good name // Dirty
             if (presenter.context.inputType != VFXDataType.kNone)
                 m_HeaderTitle.text = string.Format("{0} {1}", presenter.context.name, presenter.context.inputType.ToString().Substring(1));
@@ -593,15 +605,6 @@ namespace UnityEditor.VFX.UI
             RefreshContext();
 
 
-            if (m_PopupManipulator != null)
-            {
-                m_NodeContainer.RemoveManipulator(m_PopupManipulator);
-            }
-            m_PopupManipulator = new FilterPopup(new VFXBlockProvider(presenter, (d, mPos) =>
-                {
-                    GetPresenter<VFXContextPresenter>().AddBlock(-1, d.CreateInstance());
-                }));
-            m_NodeContainer.AddManipulator(m_PopupManipulator);
 
 
             m_OwnData.presenter = presenter.slotContainerPresenter;

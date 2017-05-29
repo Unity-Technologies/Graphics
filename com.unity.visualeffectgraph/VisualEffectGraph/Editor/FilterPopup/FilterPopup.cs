@@ -36,7 +36,10 @@ namespace UnityEditor.VFX.UI
         protected void ShowContextualMenu(MouseUpEvent e)
         {
             if( e.button == 1)
+            {
                 VFXFilterWindow.Show(Event.current.mousePosition, m_FilterProvider);
+                e.StopPropagation();
+            }
         }
     }
 }
