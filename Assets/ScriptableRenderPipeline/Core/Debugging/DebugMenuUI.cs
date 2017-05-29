@@ -26,6 +26,9 @@ namespace UnityEngine.Experimental.Rendering
         public bool isEnabled           { get { return m_Enabled; } }
         public int  activePanelIndex    { get { return m_ActivePanelIndex; } set { m_ActivePanelIndex = value; } }
 
+        static bool         s_UIChanged = false;
+        static public bool  changed     { get { return s_UIChanged; } set { s_UIChanged = value; } }
+
         public DebugMenuUI(DebugMenuManager manager)
         {
             m_DebugMenuManager = manager;
@@ -202,19 +205,27 @@ namespace UnityEngine.Experimental.Rendering
             m_DebugMenuManager.GetPersistentDebugPanel().panelUI.BuildGUI(m_PersistentPanelLayout);
             m_PersistentDebugPanelUI = m_DebugMenuManager.GetPersistentDebugPanel().panelUI;
 
-            m_DebugPanelUIs.Clear();
             for (int i = 0; i < m_DebugMenuManager.panelCount; ++i)
             {
-                m_DebugPanelUIs.Add(m_DebugMenuManager.GetDebugPanel(i).panelUI);
                 m_DebugMenuManager.GetDebugPanel(i).panelUI.BuildGUI(m_MainPanelLayout);
                 m_DebugPanelUIs[i].SetSelected(false);
             }
         }
 
+        public void AddDebugPanel(DebugPanel panel)
+        {
+            m_DebugPanelUIs.Add(panel.panelUI);
+        }
+
 #if UNITY_EDITOR
         public void OnEditorGUI()
         {
+            s_UIChanged = false;
             m_DebugPanelUIs[m_ActivePanelIndex].OnEditorGUI();
+            if(s_UIChanged)
+            {
+                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+            }
         }
 #endif
 

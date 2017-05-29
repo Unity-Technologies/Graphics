@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering
             // Contrary to the menu in the player, here we always render the menu wether it's enabled or not. This is a separate window so user can manage it however they want.
             EditorGUI.BeginChangeCheck();
             DebugMenuUI debugMenuUI = m_DebugMenu.menuUI;
-            int debugMenuCount = debugMenuUI.panelCount;
+            int debugMenuCount = m_DebugMenu.panelCount;
             int activePanelIndex = debugMenuUI.activePanelIndex;
             using (new EditorGUILayout.HorizontalScope())
             {
