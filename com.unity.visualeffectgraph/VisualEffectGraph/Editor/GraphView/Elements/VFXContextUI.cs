@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -97,7 +97,6 @@ namespace UnityEditor.VFX.UI
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
-            phaseInterest = PropagationPhase.BubbleUp;
 
             m_FlowInputConnectorContainer = new VisualContainer()
             {
@@ -310,7 +309,7 @@ namespace UnityEditor.VFX.UI
             return CanDrop(blocksUI, null);
         }
 
-        EventPropagation IDropTarget.DragUpdated(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        EventPropagation IDropTarget.DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
@@ -329,7 +328,7 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        EventPropagation IDropTarget.DragPerform(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             DragFinished();
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
@@ -359,19 +358,14 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
+        public override void Select(GraphView selectionContainer, bool additive)
         {
-            var clearBlockSelection = false;
-            var gView = this.GetFirstAncestorOfType<GraphView>();
-            if (gView != null && gView.selection.Contains(this) && !evt.control)
-                clearBlockSelection = true;
+            bool clearBlockSelection = !additive;
 
-            var result = base.Select(selectionContainer, evt);
+            base.Select(selectionContainer, additive);
 
             if (clearBlockSelection)
                 m_BlockContainer.ClearSelection();
-
-            return result;
         }
 
         public EventPropagation DeleteSelection()

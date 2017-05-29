@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        internal override void DrawEdge(IStylePainter painter)
+        protected override void DrawEdge()
         {
             var edgePresenter = GetPresenter<EdgePresenter>();
 

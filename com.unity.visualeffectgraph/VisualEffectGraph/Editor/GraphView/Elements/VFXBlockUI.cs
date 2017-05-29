@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -29,29 +29,32 @@ namespace UnityEditor.VFX.UI
         }
 
         // This function is a placeholder for common stuff to do before we delegate the action to the drop target
-        private EventPropagation HandleDropEvent(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        private void HandleDropEvent(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)
         {
             if (dropTarget == null)
-                return EventPropagation.Continue;
+                return;
 
-            switch (evt.type)
+            switch ((EventType)evt.GetEventTypeId())
             {
                 case EventType.DragUpdated:
-                    return dropTarget.DragUpdated(evt, selection, dropTarget);
+                    dropTarget.DragUpdated(evt, selection, dropTarget);
+                    break;
                 case EventType.DragExited:
-                    return dropTarget.DragExited();
+                    dropTarget.DragExited();
+                    break;
                 case EventType.DragPerform:
-                    return dropTarget.DragPerform(evt, selection, dropTarget);
+                    dropTarget.DragPerform(evt, selection, dropTarget);
+                    break;
             }
-
-            return EventPropagation.Stop;
         }
 
-        public override EventPropagation Select(VisualContainer selectionContainer, Event evt)
+
+        public override void Select(GraphView selectionContainer, bool additive)
         {
+            /*
             BlockContainer blockContainer = selectionContainer as BlockContainer;
             if (blockContainer == null || blockContainer != parent || !IsSelectable())
-                return EventPropagation.Continue;
+                return;
 
             // TODO: Get rid of this hack (parent.parent) to reach contextUI
             // Make sure we select the container context node
@@ -71,17 +74,12 @@ namespace UnityEditor.VFX.UI
                 if (evt.control)
                 {
                     blockContainer.RemoveFromSelection(this);
-                    return EventPropagation.Stop;
                 }
-                return EventPropagation.Continue;
             }
 
             if (!evt.control)
                 blockContainer.ClearSelection();
-            blockContainer.AddToSelection(this);
-
-            // TODO: Reset to EventPropagation.Continue when Drag&Drop is supported
-            return EventPropagation.Continue;
+            blockContainer.AddToSelection(this);*/
         }
 
         public override void OnDataChanged()
@@ -98,19 +96,19 @@ namespace UnityEditor.VFX.UI
             return selection.Any(t => t is VFXBlockUI);
         }
 
-        EventPropagation IDropTarget.DragUpdated(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        EventPropagation IDropTarget.DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
-            Vector2 pos = this.GlobalToBound(evt.mousePosition);
+            Vector2 pos = this.GlobalToBound(evt.imguiEvent.mousePosition);
 
             context.DraggingBlocks(selection.Select(t => t as VFXBlockUI).Where(t => t != null), this, pos.y > position.height / 2);
 
             return EventPropagation.Stop;
         }
 
-        EventPropagation IDropTarget.DragPerform(Event evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             context.DragFinished();
-            Vector2 pos = this.GlobalToBound(evt.mousePosition);
+            Vector2 pos = this.GlobalToBound(evt.imguiEvent.mousePosition);
 
             IEnumerable<VFXBlockUI> draggedBlocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
             IEnumerable<VFXBlockPresenter> draggedBlocks = draggedBlocksUI.Select(t => t.GetPresenter<VFXBlockPresenter>());

@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
 
@@ -11,9 +11,20 @@ namespace UnityEditor.VFX.UI
 
         public FilterPopup(VFXFilterWindow.IProvider filterProvider)
         {
-            phaseInterest = PropagationPhase.Capture;
             m_FilterProvider = filterProvider;
+
+
             //m_CustomData = null;
+        }
+
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<MouseUpEvent>(ShowContextualMenu);
+
+        }
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<MouseUpEvent>(ShowContextualMenu);
         }
 
         public FilterPopup(VFXFilterWindow.IProvider filterProvider, Object customData)
@@ -22,17 +33,10 @@ namespace UnityEditor.VFX.UI
             //m_CustomData = customData;
         }
 
-        public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
+        protected void ShowContextualMenu(MouseUpEvent e)
         {
-            switch (evt.type)
-            {
-                case EventType.ContextClick:
-
-                    VFXFilterWindow.Show(Event.current.mousePosition, m_FilterProvider);
-                    return EventPropagation.Stop;
-            }
-
-            return EventPropagation.Continue;
+            if( e.button == 1)
+                VFXFilterWindow.Show(Event.current.mousePosition, m_FilterProvider);
         }
     }
 }

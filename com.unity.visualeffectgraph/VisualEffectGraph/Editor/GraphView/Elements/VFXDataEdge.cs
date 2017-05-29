@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.UI
                 yield return anchor;
         }
 
-        internal override void DrawEdge(IStylePainter painter)
+        protected override void DrawEdge()
         {
             var edgePresenter = GetPresenter<EdgePresenter>();
 

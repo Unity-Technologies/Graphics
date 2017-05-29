@@ -7,7 +7,10 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 0
     path: Assets/Tutorial/5-Advanced.unity
+    guid: 00000000000000000000000000000000
   - enabled: 0
     path: Assets/Tests/sdftest2.unity
-  - enabled: 1
+    guid: 00000000000000000000000000000000
+  - enabled: 0
     path: Assets/Tests/sdftest.unity
+    guid: 00000000000000000000000000000000

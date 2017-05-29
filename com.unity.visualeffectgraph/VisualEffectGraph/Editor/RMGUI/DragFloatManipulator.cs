@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor;
 
@@ -65,7 +65,6 @@ namespace UnityEditor.VFX.UIElements
     {
         public DragValueManipulator(IValueChangeListener<T> listener, object userdata)
         {
-            phaseInterest = PropagationPhase.Capture;
             m_UserData = userdata;
             m_Listener = listener;
         }
@@ -75,20 +74,70 @@ namespace UnityEditor.VFX.UIElements
 
         T m_OriginalValue;
         bool m_Dragging;
+
+
+
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
+            target.RegisterCallback<MouseDownEvent>(OnMouseDown);
+            target.RegisterCallback<MouseMoveEvent>(OnMouseDrag);
+            target.RegisterCallback<KeyDownEvent>(OnKeyDown);
+
+        }
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
+            target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
+            target.UnregisterCallback<MouseMoveEvent>(OnMouseDrag);
+            target.UnregisterCallback<KeyDownEvent>(OnKeyDown);
+        }
+
+
+        void OnMouseUp(MouseUpEvent evt)
+        {
+            if (evt.button == 0 && m_Dragging)
+            {
+                m_Dragging = false;
+                target.ReleaseCapture();
+                EditorGUIUtility.SetWantsMouseJumping(0);
+            }
+        }
+
+        void OnMouseDown(MouseDownEvent evt)
+        {
+            if (evt.button == 0)
+            {
+                EditorGUIUtility.SetWantsMouseJumping(1);
+                target.TakeCapture();
+                m_Dragging = true;
+                m_OriginalValue = m_Listener.GetValue(m_UserData);
+            }
+        }
+
+        void OnMouseDrag(MouseMoveEvent evt)
+        {
+            if (evt.button == 0 && m_Dragging)
+            {
+                ApplyDelta(HandleUtility.niceMouseDelta);
+            }
+        }
+
+        void OnKeyDown(KeyDownEvent evt)
+        {
+            if (m_Dragging && evt.keyCode == KeyCode.Escape)
+            {
+                m_Listener.SetValue(m_OriginalValue, m_UserData);
+                m_Dragging = false;
+            }
+        }
+        /*
         public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
         {
             if (!m_Listener.enabled) return EventPropagation.Continue;
             switch (evt.type)
             {
                 case EventType.MouseDown:
-                    if (evt.button == 0)
-                    {
-                        EditorGUIUtility.SetWantsMouseJumping(1);
-                        this.TakeCapture();
-                        m_Dragging = true;
-                        m_OriginalValue = m_Listener.GetValue(m_UserData);
-                        return EventPropagation.Stop;
-                    }
                     break;
                 case EventType.MouseUp:
                     if (evt.button == 0 && m_Dragging)
@@ -115,7 +164,7 @@ namespace UnityEditor.VFX.UIElements
                     break;
             }
             return EventPropagation.Continue;
-        }
+        }*/
 
         void ApplyDelta(float delta)
         {
