@@ -23,7 +23,15 @@ namespace UnityEngine.Experimental.Rendering
         // Method that will create UI items for runtime debug menu.
         public abstract DebugItemUI BuildGUI(GameObject parent);
         // Method users need to override for editor specific UI
-        public abstract bool OnEditorGUI();
+        public abstract bool OnEditorGUIImpl();
+        public void OnEditorGUI()
+        {
+            if(OnEditorGUIImpl())
+            {
+                DebugMenuUI.changed = true;
+            }
+        }
+
         // Method users need to override for specific serialization of custom types.
         public abstract DebugItemState CreateDebugItemState();
     }
@@ -211,7 +219,7 @@ namespace UnityEngine.Experimental.Rendering
             return false;
         }
 
-        public override bool OnEditorGUI()
+        public override bool OnEditorGUIImpl()
         {
             Initialize();
 
@@ -268,7 +276,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        public override bool OnEditorGUI()
+        public override bool OnEditorGUIImpl()
         {
             Initialize();
 
@@ -305,7 +313,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        public override bool OnEditorGUI()
+        public override bool OnEditorGUIImpl()
         {
             Initialize();
 

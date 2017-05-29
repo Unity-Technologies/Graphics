@@ -43,19 +43,23 @@ namespace UnityEngine.Experimental.Rendering
             menuVLRectTransform.anchorMin = new Vector2(0.0f, 0.0f);
             menuVLRectTransform.anchorMax = new Vector2(1.0f, 1.0f);
 
-            DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_DebugPanel.name), m_DebugPanel.name, 14, TextAnchor.MiddleLeft, m_Root);
-
             BuildGUIImpl(m_Root);
         }
 
         public void RebuildGUI()
         {
+            for (int i = 0; i < m_Root.transform.childCount; ++i)
+            {
+                Object.DestroyImmediate(m_Root.transform.GetChild(i).gameObject);
+            }
             BuildGUIImpl(m_Root);
         }
 
         // Default Implementation: just build all items with provided handler.
         public virtual void BuildGUIImpl(GameObject parent)
         {
+            DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_DebugPanel.name), m_DebugPanel.name, 14, TextAnchor.MiddleLeft, m_Root);
+
             m_ItemsUI.Clear();
             for (int i = 0; i < m_DebugPanel.itemCount; i++)
             {
@@ -71,14 +75,10 @@ namespace UnityEngine.Experimental.Rendering
         {
             using (new UnityEditor.EditorGUILayout.VerticalScope())
             {
-                bool needRepaint = false;
                 for (int i = 0; i < m_DebugPanel.itemCount; ++i)
                 {
-                    needRepaint = needRepaint || m_DebugPanel.GetDebugItem(i).handler.OnEditorGUI();
+                    m_DebugPanel.GetDebugItem(i).handler.OnEditorGUI();
                 }
-
-                if (needRepaint)
-                    UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
         }
 #endif

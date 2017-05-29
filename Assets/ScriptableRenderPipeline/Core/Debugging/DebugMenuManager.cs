@@ -144,6 +144,7 @@ namespace UnityEngine.Experimental.Rendering
         private void AddDebugPanel(DebugPanel panel)
         {
             m_DebugPanels.Add(panel);
+            m_DebugMenuUI.AddDebugPanel(panel);
         }
 
         public void AddDebugItem<DebugPanelType, DebugItemType>(string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemHandler handler = null) where DebugPanelType : DebugPanel

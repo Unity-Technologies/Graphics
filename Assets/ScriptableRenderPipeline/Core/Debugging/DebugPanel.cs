@@ -130,7 +130,6 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             newItem.SetDebugItemState(itemState);
-            //m_DebugPanelUI.RebuildGUI();
         }
     }
 
@@ -142,15 +141,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_DebugPanelUI = new DebugPanelUIClass();
             m_DebugPanelUI.SetDebugPanel(this);
-        }
-    }
-
-    public class LightingDebugPanel
-        : DebugPanel<DebugPanelUI>
-    {
-        public LightingDebugPanel()
-            : base("Lighting")
-        {
         }
     }
 }
