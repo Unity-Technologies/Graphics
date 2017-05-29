@@ -50,9 +50,9 @@ namespace UnityEditor.VFX
         private void AddExpressionDataRecursively(Dictionary<VFXExpression, ExpressionData> dst, VFXExpression exp, int depth = 0)
         {
             ExpressionData data;
-            data.index = -1; // Will be overridden later on
             if (!dst.TryGetValue(exp, out data) || data.depth < depth)
             {
+                data.index = -1; // Will be overridden later on
                 data.depth = depth;
                 dst[exp] = data;
                 foreach (var parent in exp.Parents)
