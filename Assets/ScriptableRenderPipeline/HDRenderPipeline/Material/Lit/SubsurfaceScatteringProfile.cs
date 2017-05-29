@@ -28,13 +28,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public TransmissionMode transmissionMode;
         public Vector2          thicknessRemap;             // X = min, Y = max (in millimeters)
         [HideInInspector]
-        public int              settingsIndex;
+        public int              settingsIndex;              // For SubsurfaceScatteringSettings.profiles
         [SerializeField]
-        Vector3                 m_S;                        // RGB shape parameter: S = 1 / D
+        Vector4                 m_S;                        // RGB = shape parameter, A = filter radius
         [SerializeField]
-        Vector4[]               m_FilterKernelNearField;    // RGB = weights, A = radial distance (in millimeters)
+        Vector2[]               m_FilterKernelNearField;    // X = radius, Y = reciprocal of the PDF
         [SerializeField]
-        Vector4[]               m_FilterKernelFarField;     // RGB = weights, A = radial distance (in millimeters)
+        Vector2[]               m_FilterKernelFarField;     // X = radius, Y = reciprocal of the PDF
 
         // --- Public Methods ---
 
@@ -55,15 +55,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_FilterKernelNearField == null || m_FilterKernelNearField.Length != SssConstants.SSS_N_SAMPLES_NEAR_FIELD)
             {
-                m_FilterKernelNearField = new Vector4[SssConstants.SSS_N_SAMPLES_NEAR_FIELD];
+                m_FilterKernelNearField = new Vector2[SssConstants.SSS_N_SAMPLES_NEAR_FIELD];
             }
 
             if (m_FilterKernelFarField == null || m_FilterKernelFarField.Length != SssConstants.SSS_N_SAMPLES_FAR_FIELD)
             {
-                m_FilterKernelFarField = new Vector4[SssConstants.SSS_N_SAMPLES_FAR_FIELD];
+                m_FilterKernelFarField = new Vector2[SssConstants.SSS_N_SAMPLES_FAR_FIELD];
             }
 
-            m_S = new Vector3();
+            m_S = new Vector4();
 
             // Evaluate the fit for diffuse surface transmission.
             m_S.x = FindFitForS(surfaceAlbedo.r);
@@ -90,64 +90,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // CDF(r, s) = 1 - 1/4 * Exp[-r * s] - 3/4 * Exp[-r * s / 3]
             // ------------------------------------------------------------------------------------
             
-            Vector3 weightSum = new Vector3(0, 0, 0);
-
             // Importance sample the near field kernel.
             for (int i = 0; i < SssConstants.SSS_N_SAMPLES_NEAR_FIELD; i++)
             {
                 float p = i * (1.0f / SssConstants.SSS_N_SAMPLES_NEAR_FIELD);
                 float r = KernelCdfInverse(p, s);
-
-                float pdf = KernelPdf(r, s);
                 
-                Vector3 val;
-                // N.b.: we multiply by the surface albedo of the actual geometry during shading.
-                val.x = KernelValCircle(r, m_S.x);
-                val.y = KernelValCircle(r, m_S.y);
-                val.z = KernelValCircle(r, m_S.z);
-                
-                // float a = (2.0f * Mathf.PI) * VanDerCorputBase2(i);
-                // m_FilterKernelNearFieldPositions[i] = new Vector2(r * Mathf.Cos(a), r * Mathf.Sin(a));
-
-                // We do not divide by 'NUM_SAMPLES_NEAR_FIELD' due to the subsequent weight normalization.
-                m_FilterKernelNearField[i].x = val.x * (1.0f / pdf);
-                m_FilterKernelNearField[i].y = val.y * (1.0f / pdf);
-                m_FilterKernelNearField[i].z = val.z * (1.0f / pdf);
-                m_FilterKernelNearField[i].w = r;
-
-                weightSum.x += m_FilterKernelNearField[i].x;
-                weightSum.y += m_FilterKernelNearField[i].y;
-                weightSum.z += m_FilterKernelNearField[i].z;
+                // N.b.: computation of normalized weights, and multiplication by the surface albedo
+                // of the actual geometry is performed at runtime (in the shader).
+                m_FilterKernelNearField[i].x = r;
+                m_FilterKernelNearField[i].y = 1.0f / KernelPdf(r, s);
             }
 
-            // As the first sample is in the center of the filter,
-            // we can use its radius slot to store the max radius of the kernel.
-            m_FilterKernelNearField[0].w = m_FilterKernelNearField[SssConstants.SSS_N_SAMPLES_NEAR_FIELD - 1].w;
-
-            // Normalize the weights to conserve energy.
-            for (int i = 0; i < SssConstants.SSS_N_SAMPLES_NEAR_FIELD; i++)
-            {
-                m_FilterKernelNearField[i].x *= 1.0f / weightSum.x;
-                m_FilterKernelNearField[i].y *= 1.0f / weightSum.y;
-                m_FilterKernelNearField[i].z *= 1.0f / weightSum.z;
-            }
+            // Store the radius of the disk kernel.
+            m_S.w = m_FilterKernelNearField[SssConstants.SSS_N_SAMPLES_NEAR_FIELD - 1].x;
 
             // TODO: far field.
         }
 
-        public Vector3 shapeParameter
+        public Vector4 shapeParameter
         {
             // Set in BuildKernel().
             get { return m_S; }
         }
 
-        public Vector4[] filterKernelNearField
+        public Vector2[] filterKernelNearField
         {
             // Set in BuildKernel().
             get { return m_FilterKernelNearField; }
         }
         
-        public Vector4[] filterKernelFarField
+        public Vector2[] filterKernelFarField
         {
             // Set in BuildKernel().
             get { return m_FilterKernelFarField; }
@@ -160,38 +133,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return 1.9f - A + 3.5f * (A - 0.8f) * (A - 0.8f);
         }
 
-        // Same formula for s = 1 / d.
         static float KernelVal(float r, float s)
         {
             return s * (Mathf.Exp(-r * s) + Mathf.Exp(-r * s * (1.0f / 3.0f))) / (8.0f * Mathf.PI * r);
         }
 
-        // Returns (2 * PI * r) * KernelVal(), which is useful for integration over a disk.
-        // Same formula for s = 1 / d.
+        // Computes the value of the integrand over a disk: (2 * PI * r) * KernelVal().
         static float KernelValCircle(float r, float s)
         {
             return 0.25f * s * (Mathf.Exp(-r * s) + Mathf.Exp(-r * s * (1.0f / 3.0f)));
         }
 
-        // Same formula for s = 1 / d.
         static float KernelPdf(float r, float s)
         {
             return KernelValCircle(r, s);
         }
 
-        // Same formula for s = 1 / d.
         static float KernelCdf(float r, float s)
         {
             return 1.0f - 0.25f * Mathf.Exp(-r * s) - 0.75f * Mathf.Exp(-r * s * (1.0f / 3.0f));
         }
 
-        // Same formula for s = 1 / d.
         static float KernelCdfDerivative1(float r, float s)
         {
             return 0.25f * s * Mathf.Exp(-r * s) * (1.0f + Mathf.Exp(r * s * (2.0f / 3.0f)));
         }
 
-        // Same formula for s = 1 / d.
         static float KernelCdfDerivative2(float r, float s)
         {
             return (-1.0f / 12.0f) * s * s * Mathf.Exp(-r * s) * (3.0f + Mathf.Exp(r * s * (2.0f / 3.0f)));
@@ -199,7 +166,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The CDF is not analytically invertible, so we use Halley's Method of root finding.
         // { f(r, s, p) = CDF(r, s) - p = 0 } with the initial guess { r = (10^p - 1) / s }.
-        // Same formula for s = 1 / d.
         static float KernelCdfInverse(float p, float s)
         {
             // Supply the initial guess.
@@ -234,13 +200,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public int                           numProfiles;               // Excluding the neutral profile
         public SubsurfaceScatteringProfile[] profiles;
-        // Below is the cache filled during OnValidate().
+        // Below are the cached values.
         [NonSerialized] public uint          texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
         [NonSerialized] public uint          transmissionFlags;         // 2 bit/profile; 0 = None, 1 = ThinObject, 2 = ThickObject
         [NonSerialized] public float[]       thicknessRemaps;           // Remap: 0 = start, 1 = end - start
-        [NonSerialized] public Vector4[]     shapeParameters;           // RGB: S = 1 / D; alpha is unused
-        [NonSerialized] public Vector4[]     filterKernelsNearField;    // RGB = weights, A = radial distance
-        [NonSerialized] public Vector4[]     filterKernelsFarField;     // RGB = weights, A = radial distance
+        [NonSerialized] public Vector4[]     shapeParameters;           // RGB = S = 1 / D, A = filter radius
+        [NonSerialized] public float[]       filterKernelsNearField;    // 0 = radius, 1 = reciprocal of the PDF
+        [NonSerialized] public float[]       filterKernelsFarField;     // 0 = radius, 1 = reciprocal of the PDF
 
         // --- Public Methods ---
 
@@ -297,24 +263,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             
             texturingModeFlags = transmissionFlags = 0;
 
-            if (thicknessRemaps == null || thicknessRemaps.Length != (SssConstants.SSS_N_PROFILES * 2))
+            const int thicknessRemapsLen = SssConstants.SSS_N_PROFILES * 2;
+            if (thicknessRemaps == null || thicknessRemaps.Length != thicknessRemapsLen)
             {
-                thicknessRemaps = new float[SssConstants.SSS_N_PROFILES * 2];
+                thicknessRemaps = new float[thicknessRemapsLen];
             }
 
-            if (shapeParameters == null || shapeParameters.Length != SssConstants.SSS_N_PROFILES)
+            const int shapeParametersLen = SssConstants.SSS_N_PROFILES;
+            if (shapeParameters == null || shapeParameters.Length != shapeParametersLen)
             {
-                shapeParameters = new Vector4[SssConstants.SSS_N_PROFILES];
+                shapeParameters = new Vector4[shapeParametersLen];
             }
 
-            if (filterKernelsNearField == null || filterKernelsNearField.Length != SssConstants.SSS_N_PROFILES)
+            const int filterKernelsNearFieldLen = 2 * SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_NEAR_FIELD;
+            if (filterKernelsNearField == null || filterKernelsNearField.Length != filterKernelsNearFieldLen)
             {
-                filterKernelsNearField = new Vector4[SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_NEAR_FIELD];
+                filterKernelsNearField = new float[filterKernelsNearFieldLen];
             }
 
-            if (filterKernelsFarField == null || filterKernelsFarField.Length != SssConstants.SSS_N_PROFILES)
+            const int filterKernelsFarFieldLen = 2 * SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_FAR_FIELD;
+            if (filterKernelsFarField == null || filterKernelsFarField.Length != filterKernelsFarFieldLen)
             {
-                filterKernelsFarField = new Vector4[SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_FAR_FIELD];
+                filterKernelsFarField = new float[filterKernelsFarFieldLen];
             }
 
             for (int i = 0; i < numProfiles; i++)
@@ -333,12 +303,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                 {
-                    filterKernelsNearField[n * i + j] = profiles[i].filterKernelNearField[j];
+                    filterKernelsNearField[2 * (n * i + j) + 0] = profiles[i].filterKernelNearField[j].x;
+                    filterKernelsNearField[2 * (n * i + j) + 1] = profiles[i].filterKernelNearField[j].y;
                 }
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; j < n; j++)
                 {
-                    filterKernelsFarField[n * i + j] = profiles[i].filterKernelFarField[j];
+                    filterKernelsFarField[2 * (n * i + j) + 0] = profiles[i].filterKernelFarField[j].x;
+                    filterKernelsFarField[2 * (n * i + j) + 1] = profiles[i].filterKernelFarField[j].y;
                 }
             }
 
@@ -346,16 +318,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int i = SssConstants.SSS_NEUTRAL_PROFILE_ID;
 
-                shapeParameters[i] = Vector4.zero; // Plays no role in this case (only used for bilateral filtering)
+                shapeParameters[i] = Vector4.zero;
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                 {
-                    filterKernelsNearField[n * i + j] = Vector3.one; // Radius = 0
+                    filterKernelsNearField[2 * (n * i + j) + 0] = 0.0f;
+                    filterKernelsNearField[2 * (n * i + j) + 1] = 1.0f;
                 }
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_FAR_FIELD; j < n; j++)
                 {
-                    filterKernelsFarField[n * i + j] = Vector3.one;  // Radius = 0
+                    filterKernelsFarField[2 * (n * i + j) + 0] = 0.0f;
+                    filterKernelsFarField[2 * (n * i + j) + 1] = 1.0f;
                 }
             }
         }
@@ -502,7 +476,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             float   d = m_ScatteringDistance.floatValue;
             Vector4 A = m_SurfaceAlbedo.colorValue;
-            Vector4 S = m_S.vector3Value;
+            Vector4 S = m_S.vector4Value;
             Vector2 R = m_ThicknessRemap.vector2Value;
 
             // Draw the profile.

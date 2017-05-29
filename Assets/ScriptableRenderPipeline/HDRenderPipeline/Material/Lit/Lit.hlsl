@@ -56,7 +56,7 @@ uint   _EnableSSS;                          // Globally toggles subsurface scatt
 uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
-float4 _ShapeParameters[SSS_N_PROFILES];    // RGB: S = 1 / D; alpha is unused
+float4 _ShapeParameters[SSS_N_PROFILES];    // RGB = S = 1 / D; A = filter radius
 
 #define SSS_LOW_THICKNESS 10000             // REMOVE
 
