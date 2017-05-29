@@ -32,10 +32,10 @@ namespace UnityEngine.Experimental.Rendering
         public enum DebugAction
         {
             EnableDebugMenu,
-            PreviousDebugMenu,
-            NextDebugMenu,
+            PreviousDebugPanel,
+            NextDebugPanel,
             Validate,
-            Persistent,
+            MakePersistent,
             MoveVertical,
             MoveHorizontal,
             DebugActionCount
@@ -167,15 +167,15 @@ namespace UnityEngine.Experimental.Rendering
             enableDebugMenu.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.EnableDebugMenu, enableDebugMenu);
 
-            DebugActionDesc nextDebugMenu = new DebugActionDesc();
-            nextDebugMenu.buttonTriggerList.Add(new[] { kDebugNextBtn });
-            nextDebugMenu.repeatMode = DebugActionRepeatMode.Never;
-            AddAction(DebugAction.NextDebugMenu, nextDebugMenu);
+            DebugActionDesc nextDebugPanel = new DebugActionDesc();
+            nextDebugPanel.buttonTriggerList.Add(new[] { kDebugNextBtn });
+            nextDebugPanel.repeatMode = DebugActionRepeatMode.Never;
+            AddAction(DebugAction.NextDebugPanel, nextDebugPanel);
 
-            DebugActionDesc previousDebugMenu = new DebugActionDesc();
-            previousDebugMenu.buttonTriggerList.Add(new[] { kDebugPreviousBtn });
-            previousDebugMenu.repeatMode = DebugActionRepeatMode.Never;
-            AddAction(DebugAction.PreviousDebugMenu, previousDebugMenu);
+            DebugActionDesc previousDebugPanel = new DebugActionDesc();
+            previousDebugPanel.buttonTriggerList.Add(new[] { kDebugPreviousBtn });
+            previousDebugPanel.repeatMode = DebugActionRepeatMode.Never;
+            AddAction(DebugAction.PreviousDebugPanel, previousDebugPanel);
 
             DebugActionDesc validate = new DebugActionDesc();
             validate.buttonTriggerList.Add(new[] { kValidateBtn });
@@ -186,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering
             DebugActionDesc persistent = new DebugActionDesc();
             persistent.buttonTriggerList.Add(new[] { kPersistentBtn });
             persistent.repeatMode = DebugActionRepeatMode.Never;
-            AddAction(DebugAction.Persistent, persistent);
+            AddAction(DebugAction.MakePersistent, persistent);
             
             AddAction(DebugAction.MoveVertical, new DebugActionDesc { axisTrigger = kDPadVertical, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.2f } );
             AddAction(DebugAction.MoveHorizontal, new DebugActionDesc { axisTrigger = kDPadHorizontal, repeatMode = DebugActionRepeatMode.Delay, repeatDelay = 0.2f } );
