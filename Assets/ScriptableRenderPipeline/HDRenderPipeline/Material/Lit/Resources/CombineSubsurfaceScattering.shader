@@ -46,39 +46,35 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // RGB = weights, A = radial distance (in millimeters)
-            float4 _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD];   // RGB = weights, A = radial distance (in millimeters)
+            float _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD][2]; // 0 = radius, 1 = reciprocal of the PDF
+            float _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD][2];   // 0 = radius, 1 = reciprocal of the PDF
 
-            TEXTURE2D(_IrradianceSource);             // RGB = irradiance on the back side of the object
+            TEXTURE2D(_IrradianceSource);             // Includes transmitted light
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture); // Contains the albedo and SSS parameters
 
             //-------------------------------------------------------------------------------------
             // Implementation
             //-------------------------------------------------------------------------------------
 
-            // Computes A * B, s.t.:
-            // A = (exp(-S * sqrt(r*r + z*z)) + exp(-S * sqrt(r*r + z*z) / 3)) / sqrt(r*r + z*z)
-            // B = sqrt(r*r) / (exp(-S * sqrt(r*r)) + exp(-S * sqrt(r*r) / 3))
-            float3 ComputeBilateralWeight(float3 S, float r, float z, float distScale)
+            // Computes the value of the integrand over a disk: (2 * PI * r) * KernelVal().
+            float3 KernelValCircle(float r, float3 S)
             {
-                float3 S3 = S * (1.0 / 3.0); // Same for all samples
-                float  iF = rcp(distScale);  // Same for all samples
+                float3 expOneThird = exp(-r * (S * (1.0 / 3.0)));
+                return (0.25 * S) * (expOneThird + expOneThird * expOneThird * expOneThird);
+            }
 
-                r *= iF; z *= iF;
+            // Computes F(x)/P(x), s.t. x = sqrt(r^2 + z^2).
+            float3 ComputeBilateralWeight(float3 S, float r, float z, float distScale, float rcpPdf)
+            {
+                // Reducing the integration distance is equivalent to stretching the integration axis.
+                float3 valX = KernelValCircle(sqrt(r * r + z * z) * rcp(distScale), S);
 
-                float  rz2 = r * r + z * z;
-                float  sR  = abs(r);
-                float  sRZ = sqrt(rz2);
-                float  iRZ = rsqrt(rz2);
-                float3 eR  = exp(-S3 * sR);
-                float3 eRZ = exp(-S3 * sRZ);
+                // The reciprocal of the PDF could be reinterpreted as a 'dx' term in Int{F(x)dx}.
+                // As we shift the location of the value on the curve during integration,
+                // the length of the segment 'dx' under the curve changes approximately linearly.
+                float rcpPdfX = rcpPdf * (1 + abs(z) / r);
 
-                eR  += eR  * eR  * eR;
-
-                float3 A = iRZ * (eRZ * eRZ * eRZ + eRZ);
-                float3 B = sR  / (eR  * eR  * eR  + eR ); // TODO: precompute
-
-                return A * B;
+                return valX * rcpPdfX;
             }
 
             struct Attributes
@@ -108,9 +104,10 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
 
-                int    profileID  = bsdfData.subsurfaceProfile;
-                float  distScale  = bsdfData.subsurfaceRadius;
-                float3 shapeParam = _ShapeParameters[profileID].rgb;
+                int    profileID   = bsdfData.subsurfaceProfile;
+                float  distScale   = bsdfData.subsurfaceRadius;
+                float3 shapeParam  = _ShapeParameters[profileID].rgb;
+                float  maxDistance = _ShapeParameters[profileID].a;
 
                 // Reconstruct the view-space position.
                 float  rawDepth    = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r;
@@ -118,27 +115,27 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 // Compute the dimensions of the surface fragment viewed as a quad facing the camera.
                 // TODO: this could be done more accurately using a matrix precomputed on the CPU.
-                float2 metersPerPixel      = float2(ddx_fine(centerPosVS.x), ddy_fine(centerPosVS.y));
-                float2 pixelsPerMillimeter = distScale * rcp(METERS_TO_MILLIMETERS * metersPerPixel);
+                float2 metersPerPixel = float2(ddx_fine(centerPosVS.x), ddy_fine(centerPosVS.y));
+                float2 scaledPixPerMm = distScale * rcp(METERS_TO_MILLIMETERS * metersPerPixel);
+
+                // Take the first (central) sample.
+                float2 samplePosition   = posInput.unPositionSS;
+                float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
+
+                // We perform point sampling. Therefore, we can avoid the cost
+                // of filtering if we stay within the bounds of the current pixel.
+                [branch]
+                if (maxDistance * max(scaledPixPerMm.x, scaledPixPerMm.y) < 0.5)
+                {
+                    return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                }
 
                 bool useNearFieldKernel = true; // TODO
 
                 if (useNearFieldKernel)
                 {
-                    // Take the first (central) sample.
-                    float2 samplePosition   = posInput.unPositionSS;
-                    float3 sampleWeight     = _FilterKernelsNearField[profileID][0].rgb;
-                    float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
-
-                    // We perform point sampling. Therefore, we can avoid the cost
-                    // of filtering if we stay within the bounds of the current pixel.
-                    float maxDistance = _FilterKernelsNearField[profileID][0].a;
-
-                    [branch]
-                    if (maxDistance * max(pixelsPerMillimeter.x, pixelsPerMillimeter.y) < 0.5)
-                    {
-                        return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
-                    }
+                    float  sampleRcpPdf = _FilterKernelsNearField[profileID][0][1];
+                    float3 sampleWeight = KernelValCircle(0, shapeParam) * sampleRcpPdf;
 
                     // Accumulate filtered irradiance and bilateral weights (for renormalization).
                     float3 totalIrradiance = sampleWeight * sampleIrradiance;
@@ -150,22 +147,15 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     for (uint i = 1; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
                     {
                         // Everything except for the radius is a compile-time constant.
-                        float  r   = _FilterKernelsNearField[profileID][i].a;
+                        float  r   = _FilterKernelsNearField[profileID][i][0];
                         float  phi = TWO_PI * VanDerCorputBase2(i);
                         float2 pos = r * float2(cos(phi), sin(phi));
 
-                        samplePosition = posInput.unPositionSS + pos * pixelsPerMillimeter;
-                        sampleWeight   = _FilterKernelsNearField[profileID][i].rgb;
+                        samplePosition = posInput.unPositionSS + pos * scaledPixPerMm;
+                        sampleRcpPdf   = _FilterKernelsNearField[profileID][i][1];
 
                         rawDepth         = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
                         sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
-
-                        // Apply bilateral weighting.
-                        // We adjust the precomputed weight W(r) by W(d)/W(r), where
-                        // r = sqrt(x^2 + y^2), d = sqrt(x^2 + y^2 + z^2) = sqrt(r^2 + z^2).
-                        float sampleZ = LinearEyeDepth(rawDepth, _ZBufferParams);
-                        float z       = METERS_TO_MILLIMETERS * sampleZ - (METERS_TO_MILLIMETERS * centerPosVS.z);
-                        sampleWeight *= ComputeBilateralWeight(shapeParam, r, z, distScale);
 
                         [flatten]
                         if (any(sampleIrradiance) == false)
@@ -178,6 +168,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                             // of the remaining samples (e.g. in case of hair covering skin).
                             continue;
                         }
+
+                        // Apply bilateral weighting.
+                        float sampleZ = LinearEyeDepth(rawDepth, _ZBufferParams);
+                        float z       = METERS_TO_MILLIMETERS * sampleZ - (METERS_TO_MILLIMETERS * centerPosVS.z);
+                        sampleWeight  = ComputeBilateralWeight(shapeParam, r, z, distScale, sampleRcpPdf);
 
                         totalIrradiance += sampleWeight * sampleIrradiance;
                         totalWeight     += sampleWeight;

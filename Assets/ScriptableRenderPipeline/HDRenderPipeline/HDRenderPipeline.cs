@@ -257,7 +257,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // It is stored within 'm_CameraSubsurfaceBufferRT'.
         readonly RenderTargetIdentifier m_CameraColorBufferRT;
         readonly RenderTargetIdentifier m_CameraSubsurfaceBufferRT;
-        readonly RenderTargetIdentifier m_CameraFilteringBufferRT;
         readonly RenderTargetIdentifier m_VelocityBufferRT;
         readonly RenderTargetIdentifier m_DistortionBufferRT;
 
@@ -295,9 +294,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraSubsurfaceBuffer        = Shader.PropertyToID("_CameraSubsurfaceTexture");
             m_CameraFilteringBuffer         = Shader.PropertyToID("_CameraFilteringBuffer");
 
-            m_CameraColorBufferRT               = new RenderTargetIdentifier(m_CameraColorBuffer);
-            m_CameraSubsurfaceBufferRT          = new RenderTargetIdentifier(m_CameraSubsurfaceBuffer);
-            m_CameraFilteringBufferRT           = new RenderTargetIdentifier(m_CameraFilteringBuffer);
+            m_CameraColorBufferRT      = new RenderTargetIdentifier(m_CameraColorBuffer);
+            m_CameraSubsurfaceBufferRT = new RenderTargetIdentifier(m_CameraSubsurfaceBuffer);
 
             m_FilterAndCombineSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
 
@@ -811,8 +809,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var cmd = new CommandBuffer() { name = "Subsurface Scattering" };
 
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT); // Cannot set a RT on a material
-            m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
-            m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernelsFarField",  sssParameters.filterKernelsFarField);
+            m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
+            m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsFarField",  sssParameters.filterKernelsFarField);
 
             Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
