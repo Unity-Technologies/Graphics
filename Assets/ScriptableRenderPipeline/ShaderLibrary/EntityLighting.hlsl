@@ -82,7 +82,9 @@ float3 SampleProbeVolumeSH4(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), fl
 // It is required for other platform that aren't supporting this format to implement variant of these functions
 // (But these kind of platform should use regular render loop and not news shaders).
 
-#define LIGHTMAP_RGBM_RANGE 5.0
+// RGBM lightmaps are currently always gamma encoded, so we use a constant of range^2.2 = 5^2.2
+#define LIGHTMAP_RGBM_RANGE 34.493242f
+
 // TODO: This is the max value allowed for emissive (bad name - but keep for now to retrieve it) (It is 8^2.2 (gamma) and 8 is the limit of punctual light slider...), comme from UnityCg.cginc. Fix it!
 // Ask Jesper if this can be change for HDRenderPipeline
 #define EMISSIVE_RGBM_SCALE 97.0
@@ -110,7 +112,8 @@ float4 PackEmissiveRGBM(float3 rgb)
 
 float3 UnpackLightmapRGBM(float4 rgbmInput)
 {
-    return rgbmInput.rgb * rgbmInput.a * LIGHTMAP_RGBM_RANGE;
+    // RGBM lightmaps are always gamma encoded for now, so decode with that in mind:
+    return rgbmInput.rgb * pow(rgbmInput.a, 2.2f) * LIGHTMAP_RGBM_RANGE;
 }
 
 float3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2 uv, float4 transform, bool lightmapRGBM)
@@ -127,7 +130,7 @@ float3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2
     {
         illuminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
     }
-    return SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
+    return illuminance;
 }
 
 float3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool lightmapRGBM)

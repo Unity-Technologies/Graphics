@@ -114,5 +114,5 @@ void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout fl
     // Orthonormalize the basis vectors using the Gram-Schmidt process.
     // We assume that the length of the surface normal is sufficiently close to 1.
     // This is use with anisotropic material
-    tangentWS = normalize(tangentWS - dot(tangentWS, normalWS));
+    tangentWS = normalize(tangentWS - dot(tangentWS, normalWS) * normalWS);
 }
