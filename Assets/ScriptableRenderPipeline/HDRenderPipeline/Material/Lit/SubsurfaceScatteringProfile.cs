@@ -23,14 +23,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum TransmissionMode : uint { None = SssConstants.SSS_TRSM_MODE_NONE, ThinObject = SssConstants.SSS_TRSM_MODE_THIN, Regular };
 
         public Color            surfaceAlbedo;              // Color, 0 to 1
-        public float            scatteringDistance;         // Effective radius (in millimeters)
+        public float            lenVolMeanFreePath;         // Length of the volume mean free path (in millimeters)
         public TexturingMode    texturingMode;
         public TransmissionMode transmissionMode;
         public Vector2          thicknessRemap;             // X = min, Y = max (in millimeters)
         [HideInInspector]
         public int              settingsIndex;              // For SubsurfaceScatteringSettings.profiles
         [SerializeField]
-        Vector4                 m_S;                        // RGB = shape parameter, A = filter radius
+        Vector3                 m_S;                        // RGB = shape parameter: S = 1 / D
+        [SerializeField]
+        float                   m_ScatteringDistance;       // Filter radius (in millimeters)
         [SerializeField]
         Vector2[]               m_FilterKernelNearField;    // X = radius, Y = reciprocal of the PDF
         [SerializeField]
@@ -41,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SubsurfaceScatteringProfile()
         {
             surfaceAlbedo      = Color.white;
-            scatteringDistance = 5.0f;
+            lenVolMeanFreePath = 0.5f;
             texturingMode      = TexturingMode.PreAndPostScatter;
             transmissionMode   = TransmissionMode.None;
             thicknessRemap     = new Vector2(0.0f, 5.0f);
@@ -63,20 +65,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FilterKernelFarField = new Vector2[SssConstants.SSS_N_SAMPLES_FAR_FIELD];
             }
 
-            m_S = new Vector4();
+            m_S = new Vector3();
 
             // Evaluate the fit for diffuse surface transmission.
             m_S.x = FindFitForS(surfaceAlbedo.r);
             m_S.y = FindFitForS(surfaceAlbedo.g);
             m_S.z = FindFitForS(surfaceAlbedo.b);
 
-            // Compute the length of the volume mean free path (in millimeters).
-            float L = 0.1f * scatteringDistance;
-
             // Compute { 1 / D = S / L } as you can substitute s = 1 / d in all formulas.
-            m_S.x *= 1.0f / L;
-            m_S.y *= 1.0f / L;
-            m_S.z *= 1.0f / L;
+            m_S.x *= 1.0f / lenVolMeanFreePath;
+            m_S.y *= 1.0f / lenVolMeanFreePath;
+            m_S.z *= 1.0f / lenVolMeanFreePath;
 
             // We importance sample the color channel with the highest albedo value,
             // since higher albedo values result in scattering over a larger distance.
@@ -102,16 +101,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FilterKernelNearField[i].y = 1.0f / KernelPdf(r, s);
             }
 
-            // Store the radius of the disk kernel.
-            m_S.w = m_FilterKernelNearField[SssConstants.SSS_N_SAMPLES_NEAR_FIELD - 1].x;
+            m_ScatteringDistance = m_FilterKernelNearField[SssConstants.SSS_N_SAMPLES_NEAR_FIELD - 1].x;
 
             // TODO: far field.
         }
 
-        public Vector4 shapeParameter
+        public Vector3 shapeParameter
         {
             // Set in BuildKernel().
             get { return m_S; }
+        }
+
+        public float scatteringDistance
+        {
+            // Set in BuildKernel().
+            get { return m_ScatteringDistance; }
         }
 
         public Vector2[] filterKernelNearField
@@ -300,6 +304,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 thicknessRemaps[2 * i]     = profiles[i].thicknessRemap.x;
                 thicknessRemaps[2 * i + 1] = profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x;
                 shapeParameters[i]         = profiles[i].shapeParameter;
+                shapeParameters[i].w       = profiles[i].scatteringDistance;
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                 {
@@ -380,17 +385,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         private class Styles
         {
-            public readonly GUIContent   sssProfilePreview0         = new GUIContent("Profile Preview");
-            public readonly GUIContent   sssProfilePreview1         = new GUIContent("Shows the fraction of light scattered from the source (center).");
-            public readonly GUIContent   sssProfilePreview2         = new GUIContent("The distance to the boundary of the image corresponds to the Scattering Distance.");
-            public readonly GUIContent   sssProfilePreview3         = new GUIContent("Note that the intensity of pixels around the center may be clipped.");
-            public readonly GUIContent   sssTransmittancePreview0   = new GUIContent("Transmittance Preview");
-            public readonly GUIContent   sssTransmittancePreview1   = new GUIContent("Shows the fraction of light passing through the object for thickness values from the remap.");
-            public readonly GUIContent   sssTransmittancePreview2   = new GUIContent("Can be viewed as a cross section of a slab of material illuminated by white light from the left.");
-            public readonly GUIContent   sssProfileSurfaceAlbedo    = new GUIContent("Surface Albedo", "A color which determines the shape of the profile.");
-            public readonly GUIContent   sssProfileScatterDistance  = new GUIContent("Scattering Distance", "Determines the effective radius of the filter. The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Smaller values increase the sharpness of the result.");
-            public readonly GUIContent   sssTexturingMode           = new GUIContent("Texturing Mode", "Specifies when the diffuse texture should be applied.");
-            public readonly GUIContent[] sssTexturingModeOptions    = new GUIContent[2]
+            public readonly GUIContent   sssProfilePreview0           = new GUIContent("Profile Preview");
+            public readonly GUIContent   sssProfilePreview1           = new GUIContent("Shows the fraction of light scattered from the source (center).");
+            public readonly GUIContent   sssProfilePreview2           = new GUIContent("The distance to the boundary of the image corresponds to the Scattering Distance.");
+            public readonly GUIContent   sssProfilePreview3           = new GUIContent("Note that the intensity of pixels around the center may be clipped.");
+            public readonly GUIContent   sssTransmittancePreview0     = new GUIContent("Transmittance Preview");
+            public readonly GUIContent   sssTransmittancePreview1     = new GUIContent("Shows the fraction of light passing through the object for thickness values from the remap.");
+            public readonly GUIContent   sssTransmittancePreview2     = new GUIContent("Can be viewed as a cross section of a slab of material illuminated by white light from the left.");
+            public readonly GUIContent   sssProfileSurfaceAlbedo      = new GUIContent("Surface Albedo", "Color which determines the shape of the profile. Alpha is ignored.");
+            public readonly GUIContent   sssProfileLenVolMeanFreePath = new GUIContent("Volume Mean Free Path", "The length of the volume mean free path (in millimeters) describes the average distance a photon travels within the volume before an extinction event occurs. Determines the effective radius of the filter.");
+            public readonly GUIContent   sssProfileScatteringDistance = new GUIContent("Scattering Distance", "Effective radius of the filter (in millimeters). The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Reducing the distance increases the sharpness of the result.");
+            public readonly GUIContent   sssTexturingMode             = new GUIContent("Texturing Mode", "Specifies when the diffuse texture should be applied.");
+            public readonly GUIContent[] sssTexturingModeOptions      = new GUIContent[2]
             {
                 new GUIContent("Pre- and post-scatter", "Texturing is performed during both the lighting and the SSS passes. Slightly blurs the diffuse texture. Choose this mode if your diffuse texture contains little to no SSS lighting."),
                 new GUIContent("Post-scatter",          "Texturing is performed only during the SSS pass. Effectively preserves the sharpness of the diffuse texture. Choose this mode if your diffuse texture already contains SSS lighting (e.g. a photo of skin).")
@@ -431,13 +437,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private RenderTexture      m_ProfileImage, m_TransmittanceImage;
         private Material           m_ProfileMaterial, m_TransmittanceMaterial;
-        private SerializedProperty m_ScatteringDistance, m_SurfaceAlbedo, m_S,
+        private SerializedProperty m_LenVolMeanFreePath, m_ScatteringDistance, m_SurfaceAlbedo, m_S,
                                    m_TexturingMode, m_TransmissionMode, m_ThicknessRemap;
 
         void OnEnable()
         {
             m_SurfaceAlbedo         = serializedObject.FindProperty("surfaceAlbedo");
-            m_ScatteringDistance    = serializedObject.FindProperty("scatteringDistance");
+            m_LenVolMeanFreePath    = serializedObject.FindProperty("lenVolMeanFreePath");
+            m_ScatteringDistance    = serializedObject.FindProperty("m_ScatteringDistance");
             m_S                     = serializedObject.FindProperty("m_S");
             m_TexturingMode         = serializedObject.FindProperty("texturingMode");
             m_TransmissionMode      = serializedObject.FindProperty("transmissionMode");
@@ -457,7 +464,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
             {
                 EditorGUILayout.PropertyField(m_SurfaceAlbedo,      styles.sssProfileSurfaceAlbedo);
-                m_ScatteringDistance.floatValue = EditorGUILayout.Slider(styles.sssProfileScatterDistance, m_ScatteringDistance.floatValue, 0.1f, 10.0f);
+                m_LenVolMeanFreePath.floatValue = EditorGUILayout.Slider(styles.sssProfileLenVolMeanFreePath, m_LenVolMeanFreePath.floatValue, 0.01f, 1.0f);
+                
+                GUI.enabled = false;
+                EditorGUILayout.PropertyField(m_ScatteringDistance, styles.sssProfileScatteringDistance);
+                GUI.enabled = true;
+
                 m_TexturingMode.intValue        = EditorGUILayout.Popup(styles.sssTexturingMode,           m_TexturingMode.intValue,    styles.sssTexturingModeOptions);
                 m_TransmissionMode.intValue     = EditorGUILayout.Popup(styles.sssProfileTransmissionMode, m_TransmissionMode.intValue, styles.sssTransmissionModeOptions);
 
@@ -476,7 +488,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             float   d = m_ScatteringDistance.floatValue;
             Vector4 A = m_SurfaceAlbedo.colorValue;
-            Vector4 S = m_S.vector4Value;
+            Vector3 S = m_S.vector3Value;
             Vector2 R = m_ThicknessRemap.vector2Value;
 
             // Draw the profile.
