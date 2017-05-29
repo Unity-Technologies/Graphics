@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Test
 
         void CreateTestAsset()
         {
-            VFXGraphAsset asset = ScriptableObject.CreateInstance<VFXGraphAsset>();
+            VFXAsset asset = new VFXAsset();
 
             var directoryPath = Path.GetDirectoryName(testAssetName);
             if (!Directory.Exists(directoryPath))
@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.CreateAsset(asset, testAssetName);
 
             m_ViewPresenter = ScriptableObject.CreateInstance<VFXViewPresenter>();
-            m_ViewPresenter.SetGraphAsset(asset, false);
+            m_ViewPresenter.SetVFXAsset(asset, false);
         }
 
         void DestroyTestAsset()
@@ -260,7 +260,7 @@ namespace UnityEditor.VFX.Test
             Action fnResync = delegate()
                 {
                     //Force Resync (in test suite, Undo.undoRedoPerformed isn't triggered)
-                    m_ViewPresenter.SetGraphAsset(m_ViewPresenter.GetGraphAsset(), true);
+                    m_ViewPresenter.SetVFXAsset(m_ViewPresenter.GetVFXAsset(), true);
                 };
 
             Action fnTestShouldExist = delegate()
@@ -303,7 +303,7 @@ namespace UnityEditor.VFX.Test
             Action fnResync = delegate()
                 {
                     //Force Resync (in test suite, Undo.undoRedoPerformed isn't triggered)
-                    m_ViewPresenter.SetGraphAsset(m_ViewPresenter.GetGraphAsset(), true);
+                    m_ViewPresenter.SetVFXAsset(m_ViewPresenter.GetVFXAsset(), true);
                 };
 
             CreateTestAsset();
@@ -351,7 +351,7 @@ namespace UnityEditor.VFX.Test
             Action fnResync = delegate()
                 {
                     //Force Resync (in test suite, Undo.undoRedoPerformed isn't triggered)
-                    m_ViewPresenter.SetGraphAsset(m_ViewPresenter.GetGraphAsset(), true);
+                    m_ViewPresenter.SetVFXAsset(m_ViewPresenter.GetVFXAsset(), true);
                 };
 
             Func<Type, VFXNodePresenter> fnFindPresenter = delegate(Type type)
@@ -530,7 +530,7 @@ namespace UnityEditor.VFX.Test
             Action fnResync = delegate()
                 {
                     //Force Resync (in test suite, Undo.undoRedoPerformed isn't triggered)
-                    m_ViewPresenter.SetGraphAsset(m_ViewPresenter.GetGraphAsset(), true);
+                    m_ViewPresenter.SetVFXAsset(m_ViewPresenter.GetVFXAsset(), true);
                 };
 
             var contextDesc = VFXLibrary.GetContexts().FirstOrDefault();

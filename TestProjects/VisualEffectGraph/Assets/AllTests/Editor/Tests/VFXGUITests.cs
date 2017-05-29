@@ -104,7 +104,7 @@ namespace UnityEditor.VFX.Test
 
         public void CreateTestAsset(string name)
         {
-            VFXGraphAsset asset = VFXGraphAsset.CreateInstance<VFXGraphAsset>();
+            VFXAsset asset = new VFXAsset();
 
             var filePath = string.Format(testAssetName, name);
             var directoryPath = Path.GetDirectoryName(filePath);
@@ -115,7 +115,7 @@ namespace UnityEditor.VFX.Test
 
             AssetDatabase.CreateAsset(asset, filePath);
 
-            Selection.activeObject = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(filePath);
+            Selection.activeObject = AssetDatabase.LoadAssetAtPath<VFXAsset>(filePath);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();

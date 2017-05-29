@@ -9,21 +9,21 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXSystemTests
     {
-        private VFXGraphAsset CreateAndInitContainer()
+        private VFXAsset CreateAndInitContainer()
         {
-            var graph = ScriptableObject.CreateInstance<VFXGraphAsset>();
+            var graph = new VFXAsset();
 
             var system0 = ScriptableObject.CreateInstance<VFXSystem>();
             system0.AddChild(ScriptableObject.CreateInstance<VFXBasicInitialize>());
             system0.AddChild(ScriptableObject.CreateInstance<VFXBasicUpdate>());
             system0.AddChild(ScriptableObject.CreateInstance<VFXBasicOutput>());
-            graph.root.AddChild(system0);
+            graph.GetOrCreateGraph().AddChild(system0);
 
             var system1 = ScriptableObject.CreateInstance<VFXSystem>();
             system1.AddChild(ScriptableObject.CreateInstance<VFXBasicInitialize>());
             system1.AddChild(ScriptableObject.CreateInstance<VFXBasicUpdate>());
             system1.AddChild(ScriptableObject.CreateInstance<VFXBasicOutput>());
-            graph.root.AddChild(system1);
+            graph.GetOrCreateGraph().AddChild(system1);
 
             return graph;
         }
@@ -31,31 +31,34 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ConnectContext()
         {
-            var graph = CreateAndInitContainer();
+            var asset = CreateAndInitContainer();
+            var graph = asset.GetOrCreateGraph();
 
-            VFXSystem.ConnectContexts(((VFXSystem)graph.root[0]).GetChild(0), ((VFXSystem)graph.root[1]).GetChild(1), graph.root);
+            VFXSystem.ConnectContexts(((VFXSystem)graph[0]).GetChild(0), ((VFXSystem)graph[1]).GetChild(1), graph);
 
-            Assert.AreEqual(3, graph.root.GetNbChildren());
-            Assert.AreEqual(3, graph.root[0].GetNbChildren());
-            Assert.AreEqual(1, graph.root[1].GetNbChildren());
-            Assert.AreEqual(2, graph.root[2].GetNbChildren());
 
-            Object.DestroyImmediate(graph);
+            Assert.AreEqual(3, graph.GetNbChildren());
+            Assert.AreEqual(3, graph[0].GetNbChildren());
+            Assert.AreEqual(1, graph[1].GetNbChildren());
+            Assert.AreEqual(2, graph[2].GetNbChildren());
+
+            Object.DestroyImmediate(asset);
         }
 
         [Test]
         public void DisconnectContext()
         {
-            var graph = CreateAndInitContainer();
+            var asset = CreateAndInitContainer();
+            var graph = asset.GetOrCreateGraph();
 
-            VFXSystem.DisconnectContext(((VFXSystem)graph.root[0]).GetChild(1), graph.root);
-            VFXSystem.DisconnectContext(((VFXSystem)graph.root[1]).GetChild(2), graph.root);
+            VFXSystem.DisconnectContext(((VFXSystem)graph[0]).GetChild(1), graph);
+            VFXSystem.DisconnectContext(((VFXSystem)graph[1]).GetChild(2), graph);
 
-            Assert.AreEqual(4, graph.root.GetNbChildren());
-            Assert.AreEqual(1, graph.root[0].GetNbChildren());
-            Assert.AreEqual(2, graph.root[1].GetNbChildren());
-            Assert.AreEqual(2, graph.root[2].GetNbChildren());
-            Assert.AreEqual(1, graph.root[3].GetNbChildren());
+            Assert.AreEqual(4, graph.GetNbChildren());
+            Assert.AreEqual(1, graph[0].GetNbChildren());
+            Assert.AreEqual(2, graph[1].GetNbChildren());
+            Assert.AreEqual(2, graph[2].GetNbChildren());
+            Assert.AreEqual(1, graph[3].GetNbChildren());
 
             Object.DestroyImmediate(graph);
         }

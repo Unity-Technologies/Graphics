@@ -7,13 +7,13 @@ namespace UnityEditor.VFX
         public VFXExpressionExtractComponent() : this(VFXValue<Vector4>.Default, 0) {}
 
         public VFXExpressionExtractComponent(VFXExpression parent, int iChannel)
+            : base(new VFXExpression[1] { parent })
         {
             if (parent.ValueType == VFXValueType.kFloat || !IsFloatValueType(parent.ValueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionExtractComponent");
             }
 
-            m_Parents = new VFXExpression[] { parent };
             m_Operation = VFXExpressionOp.kVFXExtractComponentOp;
             m_AdditionnalParameters = new int[] { TypeToSize(parent.ValueType), iChannel };
             m_ValueType = VFXValueType.kFloat;

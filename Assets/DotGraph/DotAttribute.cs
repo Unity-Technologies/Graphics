@@ -26,6 +26,7 @@ namespace UnityEditor.Dot
         public static readonly string Green         = "green";
         public static readonly string Blue          = "blue";
         public static readonly string Cyan          = "cyan";
+        public static readonly string Yellow        = "yellow";
     }
 
     public static class DotStyle

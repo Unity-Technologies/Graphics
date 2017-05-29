@@ -114,6 +114,7 @@ namespace UnityEditor.VFX.UI
                 {Event.KeyboardEvent("#r"), Resync},
                 {Event.KeyboardEvent("#d"), OutputToDot},
                 {Event.KeyboardEvent("^#d"), OutputToDotReduced},
+                {Event.KeyboardEvent("#c"), OutputToDotConstantFolding},
             }));
 
             Undo.undoRedoPerformed += () => Resync();
@@ -203,14 +204,14 @@ namespace UnityEditor.VFX.UI
                 var system = ScriptableObject.CreateInstance<VFXSystem>();
                 system.AddChild(context);
                 context.position = context.position + new Vector2(50, 50);
-                GetPresenter<VFXViewPresenter>().GetGraphAsset().root.AddChild(system);
+                GetPresenter<VFXViewPresenter>().GetGraph().AddChild(system);
             }
 
             var operators = selection.OfType<Node>().Select(p => p.GetPresenter<VFXNodePresenter>().node.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
             foreach (var op in operators)
             {
                 op.position = op.position + new Vector2(50, 50);
-                GetPresenter<VFXViewPresenter>().GetGraphAsset().root.AddChild(op);
+                GetPresenter<VFXViewPresenter>().GetGraph().AddChild(op);
             }
             return EventPropagation.Stop;
         }
@@ -218,19 +219,25 @@ namespace UnityEditor.VFX.UI
         public EventPropagation Resync()
         {
             var presenter = GetPresenter<VFXViewPresenter>();
-            presenter.SetGraphAsset(presenter.GetGraphAsset(), true);
+            presenter.SetVFXAsset(presenter.GetVFXAsset(), true);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDot()
         {
-            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraphAsset().root, VFXExpression.Context.ReductionOption.None);
+            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpression.Context.ReductionOption.None);
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotReduced()
         {
-            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraphAsset().root, VFXExpression.Context.ReductionOption.CPUReduction);
+            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpression.Context.ReductionOption.CPUReduction);
+            return EventPropagation.Stop;
+        }
+
+        public EventPropagation OutputToDotConstantFolding()
+        {
+            DotGraphOutput.DebugExpressionGraph(GetPresenter<VFXViewPresenter>().GetGraph(), VFXExpression.Context.ReductionOption.ConstantFolding);
             return EventPropagation.Stop;
         }
 
