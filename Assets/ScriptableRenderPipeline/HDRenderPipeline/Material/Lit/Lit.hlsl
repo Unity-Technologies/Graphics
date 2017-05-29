@@ -58,8 +58,6 @@ uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 
 float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
 float4 _ShapeParameters[SSS_N_PROFILES];    // RGB = S = 1 / D; A = filter radius
 
-#define SSS_LOW_THICKNESS 10000             // REMOVE
-
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
@@ -117,18 +115,18 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
-// Evaluates transmittance for a linear combination of two normalized 2D Gaussians.
-// Computes results for each color channel separately.
-// Ref: Real-Time Realistic Skin Translucency (2010), equation 9 (modified).
-float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
-                            float3 halfRcpVariance2, float lerpWeight2,
-                            float3 tintColor, float thickness, float radiusScale)
+// Computes the fraction of light passing through the object.
+// N.b.: it is not just zero scattering (light traveling in a straight path)!
+// Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar (BSSRDF only).
+float3 ComputeTransmittance(float3 S, float thickness, float radiusScale)
 {
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
-    // thickness *= SSS_DISTANCE_SCALE / radiusScale;
+    // thickness /= radiusScale;
 
-    return float3(0, 0, 0);
+    float3 expOneThird = exp((-thickness * (1.0 / 3.0)) * S);
+
+    return 0.5 * (expOneThird + expOneThird * expOneThird * expOneThird);
 }
 
 void FillMaterialIdStandardData(float3 baseColor, float specular, float metallic, float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
@@ -155,10 +153,14 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     bsdfData.thickness         = _ThicknessRemaps[subsurfaceProfile][0] +
                                  _ThicknessRemaps[subsurfaceProfile][1] * thickness;
 
-    bsdfData.enableTransmission = false;
+    uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2, 2 * subsurfaceProfile);
+
+    bsdfData.enableTransmission = (_EnableSSS != 0) && (transmissionMode != SSS_TRSM_MODE_NONE);
+    bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
+
     if (bsdfData.enableTransmission)
     {
-        bsdfData.transmittance = 0;
+        bsdfData.transmittance = ComputeTransmittance(_ShapeParameters[subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
     }
 
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
@@ -761,7 +763,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
-        shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
+        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
@@ -868,7 +870,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         illuminance *= attenuation;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
-        shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
+        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
@@ -954,7 +956,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
         illuminance *= clipFactor;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
-        shadow       = (bsdfData.thickness <= SSS_LOW_THICKNESS) ? shadow : 1;
+        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
