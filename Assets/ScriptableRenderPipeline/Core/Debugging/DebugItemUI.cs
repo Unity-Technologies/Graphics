@@ -4,36 +4,43 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    public abstract class DebugMenuItemUI
+    // Class that users need to extend for runtime debug menu item UI
+    public abstract class DebugItemUI
     {
-        protected GameObject m_Root = null;
-        protected DebugMenuItem m_MenuItem = null;
+        protected GameObject    m_Root = null;
+        protected DebugItem     m_DebugItem = null;
 
-        public bool dynamicDisplay { get { return m_MenuItem.dynamicDisplay; } }
+        public bool dynamicDisplay { get { return m_DebugItem.dynamicDisplay; } }
 
-        protected DebugMenuItemUI(DebugMenuItem menuItem)
+        protected DebugItemUI(DebugItem debugItem)
         {
-            m_MenuItem = menuItem;
+            m_DebugItem = debugItem;
         }
 
+        // Implement for selection specific beahavior (like changing color for example)
         public abstract void SetSelected(bool value);
+        // Implement behavior when user execute the "Validate" action
         public abstract void OnValidate();
+        // Implement behavior when user execute the "Increment" action
         public abstract void OnIncrement();
+        // Implement behavior when user execute the "Decrement" action
         public abstract void OnDecrement();
+        // Implement this method to update the UI with current item value.
+        // User must call it whenever Validate/Increment/Decrement is called. It will also be automatically called for dynamically displayed items.
         public abstract void Update();
     }
 
-    public class DebugMenuSimpleItemUI : DebugMenuItemUI
+    public class DebugSimpleItemUI : DebugItemUI
     {
         protected GameObject m_Name = null;
         protected GameObject m_Value = null;
 
-        protected DebugMenuSimpleItemUI(GameObject parent, DebugMenuItem menuItem, string name)
-            : base(menuItem)
+        protected DebugSimpleItemUI(GameObject parent, DebugItem debugItem, string name)
+            : base(debugItem)
         {
 
             m_Root = DebugMenuUI.CreateHorizontalLayoutGroup("", true, true, false, false, parent);
-            m_Name = DebugMenuUI.CreateTextElement(m_MenuItem.name, name, 10, TextAnchor.MiddleLeft, m_Root);
+            m_Name = DebugMenuUI.CreateTextElement(m_DebugItem.name, name, 10, TextAnchor.MiddleLeft, m_Root);
             var layoutElem = m_Name.AddComponent<UI.LayoutElement>();
             layoutElem.minWidth = DebugMenuUI.kDebugItemNameWidth;
             m_Value = DebugMenuUI.CreateTextElement(string.Format("{0} value", name), "", 10, TextAnchor.MiddleLeft, m_Root);
@@ -66,23 +73,23 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    public class DebugMenuBoolItemUI : DebugMenuSimpleItemUI
+    public class DebugBoolItemUI : DebugSimpleItemUI
     {
-        public DebugMenuBoolItemUI(GameObject parent, DebugMenuItem menuItem, string name)
-            : base(parent, menuItem, name)
+        public DebugBoolItemUI(GameObject parent, DebugItem debugItem, string name)
+            : base(parent, debugItem, name)
         {
             Update();
         }
 
         public override void Update()
         {
-            m_Value.GetComponent<UI.Text>().text = (bool)m_MenuItem.GetValue() ? "True" : "False";
+            m_Value.GetComponent<UI.Text>().text = (bool)m_DebugItem.GetValue() ? "True" : "False";
         }
 
 
         public override void OnValidate()
         {
-            m_MenuItem.SetValue(!(bool)m_MenuItem.GetValue());
+            m_DebugItem.SetValue(!(bool)m_DebugItem.GetValue());
             Update();
         }
 
@@ -97,20 +104,20 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
-    public class DebugMenuFloatItemUI : DebugMenuSimpleItemUI
+    public class DebugFloatItemUI : DebugSimpleItemUI
     {
         bool m_SelectIncrementMode = false;
         int m_CurrentIncrementIndex = -1;
 
-        public DebugMenuFloatItemUI(GameObject parent, DebugMenuItem menuItem, string name)
-            : base(parent, menuItem, name)
+        public DebugFloatItemUI(GameObject parent, DebugItem debugItem, string name)
+            : base(parent, debugItem, name)
         {
             Update();
         }
 
         public override void Update()
         {
-            float currentValue = (float)m_MenuItem.GetValue();
+            float currentValue = (float)m_DebugItem.GetValue();
             bool isNegative = currentValue < 0.0f;
             // Easier to format the string without caring about the '-' sign. We add it back at the end
             currentValue = Mathf.Abs(currentValue);
@@ -176,7 +183,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if(!m_SelectIncrementMode)
             {
-                m_MenuItem.SetValue((float)m_MenuItem.GetValue() + Mathf.Pow(10.0f, (float)m_CurrentIncrementIndex));
+                m_DebugItem.SetValue((float)m_DebugItem.GetValue() + Mathf.Pow(10.0f, (float)m_CurrentIncrementIndex));
             }
             else
             {
@@ -190,7 +197,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (!m_SelectIncrementMode)
             {
-                m_MenuItem.SetValue((float)m_MenuItem.GetValue() - Mathf.Pow(10.0f, (float)m_CurrentIncrementIndex));
+                m_DebugItem.SetValue((float)m_DebugItem.GetValue() - Mathf.Pow(10.0f, (float)m_CurrentIncrementIndex));
             }
             else
             {
@@ -201,13 +208,13 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     // Everything is done with int. We don't really care about values > 2b for debugging.
-    public class DebugMenuIntegerItemUI : DebugMenuSimpleItemUI
+    public class DebugIntegerItemUI : DebugSimpleItemUI
     {
         bool m_SelectIncrementMode = false;
         int m_CurrentIncrementIndex = 0;
 
-        public DebugMenuIntegerItemUI(GameObject parent, DebugMenuItem menuItem, string name)
-            : base(parent, menuItem, name)
+        public DebugIntegerItemUI(GameObject parent, DebugItem debugItem, string name)
+            : base(parent, debugItem, name)
         {
         }
 
@@ -298,56 +305,56 @@ namespace UnityEngine.Experimental.Rendering
             Update();
         }
     }
-    public class DebugMenuIntItemUI : DebugMenuIntegerItemUI
+    public class DebugIntItemUI : DebugIntegerItemUI
     {
-        public DebugMenuIntItemUI(GameObject parent, DebugMenuItem menuItem, string name)
-            : base(parent, menuItem, name)
+        public DebugIntItemUI(GameObject parent, DebugItem debugItem, string name)
+            : base(parent, debugItem, name)
         {
-            UpdateText((int)m_MenuItem.GetValue());
+            UpdateText((int)m_DebugItem.GetValue());
         }
 
         protected override int GetIntegerValue()
         {
-            return (int)m_MenuItem.GetValue();
+            return (int)m_DebugItem.GetValue();
         }
 
         protected override void SetIntegerValue(int value)
         {
-            m_MenuItem.SetValue(value);
+            m_DebugItem.SetValue(value);
         }
     }
 
-    public class DebugMenuUIntItemUI : DebugMenuIntegerItemUI
+    public class DebugUIntItemUI : DebugIntegerItemUI
     {
-        public DebugMenuUIntItemUI(GameObject parent, DebugMenuItem menuItem, string name)
-            : base(parent, menuItem, name)
+        public DebugUIntItemUI(GameObject parent, DebugItem debugItem, string name)
+            : base(parent, debugItem, name)
         {
-            UpdateText((int)(uint)m_MenuItem.GetValue());
+            UpdateText((int)(uint)m_DebugItem.GetValue());
         }
 
         protected override int GetIntegerValue()
         {
-            return (int)(uint)m_MenuItem.GetValue();
+            return (int)(uint)m_DebugItem.GetValue();
         }
 
         protected override void SetIntegerValue(int value)
         {
-            m_MenuItem.SetValue((uint)System.Math.Max(0, value));
+            m_DebugItem.SetValue((uint)System.Math.Max(0, value));
         }
     }
 
-    public class DebugMenuEnumItemUI : DebugMenuSimpleItemUI
+    public class DebugEnumItemUI : DebugSimpleItemUI
     {
         int                 m_CurrentValueIndex = 0;
         GUIContent[]        m_ValueNames;
         int[]               m_Values;
 
-        public DebugMenuEnumItemUI(GameObject parent, DebugMenuItem menuItem, string name, GUIContent[] valueNames, int[] values)
-            : base(parent, menuItem, name)
+        public DebugEnumItemUI(GameObject parent, DebugItem debugItem, string name, GUIContent[] valueNames, int[] values)
+            : base(parent, debugItem, name)
         {
             m_Values = values;
             m_ValueNames = valueNames;
-            m_CurrentValueIndex = FindIndexForValue((int)m_MenuItem.GetValue());
+            m_CurrentValueIndex = FindIndexForValue((int)m_DebugItem.GetValue());
 
             Update();
         }
@@ -379,7 +386,7 @@ namespace UnityEngine.Experimental.Rendering
         public override void OnIncrement()
         {
             m_CurrentValueIndex = (m_CurrentValueIndex + 1) % m_Values.Length;
-            m_MenuItem.SetValue(m_Values[m_CurrentValueIndex]);
+            m_DebugItem.SetValue(m_Values[m_CurrentValueIndex]);
             Update();
         }
 
@@ -389,24 +396,24 @@ namespace UnityEngine.Experimental.Rendering
             if (m_CurrentValueIndex < 0)
                 m_CurrentValueIndex = m_Values.Length - 1;
 
-            m_MenuItem.SetValue(m_Values[m_CurrentValueIndex]);
+            m_DebugItem.SetValue(m_Values[m_CurrentValueIndex]);
             Update();
         }
     }
 
-    public class DebugMenuColorItemUI : DebugMenuItemUI
+    public class DebugColorItemUI : DebugItemUI
     {
         protected GameObject m_Name = null;
         protected GameObject m_ColorRect = null;
 
-        public DebugMenuColorItemUI(GameObject parent, DebugMenuItem menuItem, string name)
-            : base(menuItem)
+        public DebugColorItemUI(GameObject parent, DebugItem debugItem, string name)
+            : base(debugItem)
         {
-            m_MenuItem = menuItem;
+            m_DebugItem = debugItem;
 
             m_Root = DebugMenuUI.CreateHorizontalLayoutGroup(name, true, true, false, false, parent);
 
-            m_Name = DebugMenuUI.CreateTextElement(m_MenuItem.name, name, 10, TextAnchor.MiddleLeft, m_Root);
+            m_Name = DebugMenuUI.CreateTextElement(m_DebugItem.name, name, 10, TextAnchor.MiddleLeft, m_Root);
             var layoutElemName = m_Name.AddComponent<UI.LayoutElement>();
             layoutElemName.minWidth = DebugMenuUI.kDebugItemNameWidth;
 
@@ -427,7 +434,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public override void Update()
         {
-            Color currentValue = (Color)m_MenuItem.GetValue();
+            Color currentValue = (Color)m_DebugItem.GetValue();
             UI.Image image = m_ColorRect.GetComponent<UI.Image>();
             image.color = currentValue;
         }
