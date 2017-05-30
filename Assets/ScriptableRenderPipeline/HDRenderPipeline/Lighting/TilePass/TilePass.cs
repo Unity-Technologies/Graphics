@@ -404,7 +404,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             TileLightLoopProducer.TileSettings m_PassSettings;
-            private TilePassResources m_PassResources;
 
             public LightLoop(TileLightLoopProducer producer)
             {
