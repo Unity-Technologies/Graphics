@@ -156,7 +156,7 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 
     uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2, 2 * subsurfaceProfile);
 
-    bsdfData.enableTransmission = (_EnableSSS != 0) && (transmissionMode != SSS_TRSM_MODE_NONE);
+    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE;
     bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
 
     if (bsdfData.enableTransmission)
