@@ -58,22 +58,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_RenderPipelineResources = value; }
         }
 
-        // NOTE:
-        // All those properties are public because of how HDRenderPipelineInspector retrieve those properties via serialization/reflection
-        // Those that are not will be refactored later.
+        // NOTE: All those properties are public because of how HDRenderPipelineInspector retrieve those properties via serialization/reflection
+        // Doing it this way allow to change parameters name and still retrieve correct serialized value
 
-        // Debugging
+        // Debugging (Not persistent)
         public DebugDisplaySettings debugDisplaySettings = new DebugDisplaySettings();
 
         // Renderer Settings (per project)
         public RenderingSettings renderingSettings = new RenderingSettings();
         public SubsurfaceScatteringSettings sssSettings = new SubsurfaceScatteringSettings();
+        public TileSettings tileSettings = new TileSettings();
 
+        // TODO: Following two settings need to be update to the serialization/reflection way like above
         [SerializeField]
         ShadowSettings m_ShadowSettings = ShadowSettings.Default;
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
-
+        
         public ShadowSettings shadowSettings
         {
             get { return m_ShadowSettings; }
@@ -84,6 +85,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_TextureSettings; }
             set { m_TextureSettings = value; }
         }
+
+        // NOTE: Following settings are Asset so they need to be serialized as usual. no reflection/serialization here
 
         // Renderer Settings (per "scene")
         [SerializeField]
@@ -120,9 +123,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        private Material m_DefaultDiffuseMaterial;
+        Material m_DefaultDiffuseMaterial;
         [SerializeField]
-        private Shader m_DefaultShader;
+        Shader m_DefaultShader;
 
         public Material DefaultDiffuseMaterial
         {
@@ -214,14 +217,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnEnable()
         {
             debugDisplaySettings.RegisterDebug();
-        }
-
-        [SerializeField]
-        TileSettings m_TileSettings = TileSettings.defaultSettings;
-        public TileSettings tileSettings
-        {
-            get { return m_TileSettings; }
-            set { m_TileSettings = value; }
         }
     }
 }

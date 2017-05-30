@@ -11,8 +11,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  m_LightLoopProducer: {fileID: 11400000, guid: bf8cd9ae03ff7d54c89603e67be0bfc5,
-    type: 2}
   m_RenderPipelineResources: {fileID: 11400000, guid: 42086e81f4f0c724f96f7f09cc995354,
     type: 2}
   renderingSettings:
@@ -22,6 +20,17 @@ MonoBehaviour:
     numProfiles: 1
     profiles:
     - {fileID: 0}
+  tileSettings:
+    enableTileAndCluster: 1
+    enableSplitLightEvaluation: 1
+    enableComputeLightEvaluation: 0
+    enableComputeFeatureVariants: 0
+    enableClustered: 1
+    enableFptlForOpaqueWhenClustered: 1
+    enableBigTilePrepass: 1
+    diffuseGlobalDimmer: 1
+    specularGlobalDimmer: 1
+    tileDebugByCategory: 0
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096
