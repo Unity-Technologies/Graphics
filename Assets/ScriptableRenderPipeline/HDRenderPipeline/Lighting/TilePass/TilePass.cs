@@ -232,18 +232,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }; //TODO: we should probably make this checkboxes
             public TileDebug tileDebugByCategory;
 
-            public static TileSettings defaultSettings = new TileSettings
+            public TileSettings()
             {
-                enableTileAndCluster = true,
-                enableSplitLightEvaluation = true,
-                enableComputeLightEvaluation = false,
-                enableComputeFeatureVariants = false,
+                enableTileAndCluster = true;
+                enableSplitLightEvaluation = true;
+                enableComputeLightEvaluation = false;
+                enableComputeFeatureVariants = false;
 
-                tileDebugByCategory = TileDebug.None,
-                enableClustered = true,
-                enableFptlForOpaqueWhenClustered = true,
-                enableBigTilePrepass = true,
-            };
+                enableClustered = true;
+                enableFptlForOpaqueWhenClustered = true;
+                enableBigTilePrepass = true;
+
+                diffuseGlobalDimmer = 1.0f;
+                specularGlobalDimmer = 1.0f;
+
+                tileDebugByCategory = TileDebug.None;
+            }
         }
 
         public class LightLoop
