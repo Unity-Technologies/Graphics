@@ -145,7 +145,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     // Perform integration over the screen-aligned plane in the view space.
                     // TODO: it would be more accurate to use the tangent plane in the world space.
 
-                    int invalidSampleCount = 0;
+                    int validSampleCount = 0;
 
                     [unroll]
                     for (uint i = 1; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
@@ -165,7 +165,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         if (rawDepth == 0)
                         {
                             // Our sample comes from a region without any geometry.
-                            invalidSampleCount++;
                             continue;
                         }
 
@@ -178,7 +177,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                             // Our blur is energy-preserving, so 'sampleWeight' should be set to 0.
                             // We do not terminate the loop since we want to gather the contribution
                             // of the remaining samples (e.g. in case of hair covering skin).
-                            invalidSampleCount++;
                             continue;
                         }
 
@@ -189,10 +187,12 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                         totalIrradiance += sampleWeight * sampleIrradiance;
                         totalWeight     += sampleWeight;
+
+                        validSampleCount++;
                     }
 
                     [branch]
-                    if (invalidSampleCount > SSS_N_SAMPLES_NEAR_FIELD / 2)
+                    if (validSampleCount < SSS_N_SAMPLES_NEAR_FIELD / 2)
                     {
                         // Do not blur.
                         samplePosition   = posInput.unPositionSS;
