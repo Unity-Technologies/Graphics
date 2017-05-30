@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
 
@@ -20,8 +20,8 @@ namespace UnityEditor.VFX.UI
         protected override void RegisterCallbacksOnTarget()
         {
             target.RegisterCallback<MouseUpEvent>(ShowContextualMenu);
-
         }
+
         protected override void UnregisterCallbacksFromTarget()
         {
             target.UnregisterCallback<MouseUpEvent>(ShowContextualMenu);
@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.UI
 
         protected void ShowContextualMenu(MouseUpEvent e)
         {
-            if( e.button == 1)
+            if (e.button == 1)
             {
                 VFXFilterWindow.Show(Event.current.mousePosition, m_FilterProvider);
                 e.StopPropagation();

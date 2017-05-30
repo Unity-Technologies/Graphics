@@ -56,26 +56,31 @@ namespace UnityEditor.VFX
             m_Prefix = prefix;
         }
 
-        private static void AddExpressionFromSlotContainer(VFXExpressionMapper binder, IVFXSlotContainer slotContainer, VFXExpressionGraph graph)
+        public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsToNames.Keys; } }
+
+        public void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, VFXExpressionGraph graph = null)
         {
             foreach (var master in slotContainer.inputSlots)
             {
                 foreach (var slot in master.GetExpressionSlots())
                 {
-                    var exp = graph.SlotsToExpressions[slot];
-                    if (!binder.Contains(exp))
-                        binder.AddExpression(exp, slot.property.name);
+                    var exp = slot.GetExpression();
+                    if (graph != null)
+                        exp = graph.GetReduced(exp);
+
+                    if (!Contains(exp))
+                        AddExpression(exp, slot.property.name);
                 }
             }
         }
 
-        public static VFXExpressionMapper FromContext(VFXContext context, VFXExpressionGraph graph, string prefix = null)
+        public static VFXExpressionMapper FromContext(VFXContext context, VFXExpressionGraph graph = null, string prefix = null)
         {
-            var binder = new VFXExpressionMapper(prefix);
+            var mapper = new VFXExpressionMapper(prefix);
 
-            AddExpressionFromSlotContainer(binder, context, graph);
+            mapper.AddExpressionFromSlotContainer(context, graph);
             foreach (var block in context.children)
-                AddExpressionFromSlotContainer(binder, block, graph);
+                mapper.AddExpressionFromSlotContainer(block, graph);
 
             // DEBUG
             /*if (binder.m_ExpressionsToNames.Count > 0)
@@ -85,7 +90,7 @@ namespace UnityEditor.VFX
                     Debug.Log("----" + kvp.Key.ValueType + " " + kvp.Value);
             }*/
 
-            return binder;
+            return mapper;
         }
 
         public string GetName(VFXExpression exp)

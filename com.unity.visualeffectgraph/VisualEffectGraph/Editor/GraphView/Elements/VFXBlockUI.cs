@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -47,7 +47,6 @@ namespace UnityEditor.VFX.UI
                     break;
             }
         }
-
 
         public override void Select(GraphView selectionContainer, bool additive)
         {

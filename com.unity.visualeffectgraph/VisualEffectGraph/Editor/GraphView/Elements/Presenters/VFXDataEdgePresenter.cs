@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter anchorInput = input as VFXDataAnchorPresenter;
             VFXDataAnchorPresenter anchorOutput = output as VFXDataAnchorPresenter;
 
-            return new UnityEngine.Object[] { this,anchorInput != null ? anchorInput.model : null,anchorOutput != null ? anchorOutput.model : null };
+            return new UnityEngine.Object[] { this, anchorInput != null ? anchorInput.model : null, anchorOutput != null ? anchorOutput.model : null };
         }
 
         public override void OnRemoveFromGraph()
@@ -27,11 +27,10 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter anchorInput = input as VFXDataAnchorPresenter;
             VFXDataAnchorPresenter anchorOutput = output as VFXDataAnchorPresenter;
 
-            if( anchorInput != null )
+            if (anchorInput != null)
                 anchorInput.Disconnect(this);
-            if( anchorOutput != null )
+            if (anchorOutput != null)
                 anchorOutput.Disconnect(this);
-
         }
     }
 }

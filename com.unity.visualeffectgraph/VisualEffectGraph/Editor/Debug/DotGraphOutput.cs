@@ -31,19 +31,19 @@ namespace UnityEditor.VFX
             var expressionGraph = new VFXExpressionGraph();
             expressionGraph.CompileExpressions(graph, option);
 
-            var mainExpressions = new Dictionary<VFXExpression, List<VFXSlot>>();
-            foreach (var kvp in expressionGraph.SlotsToExpressions)
+            var mainExpressions = new Dictionary<VFXExpression, List<string>>();
+            foreach (var kvp in expressionGraph.ExpressionsToReduced)
             {
-                var slot = kvp.Key;
-                var expr = kvp.Value;
+                var exp = kvp.Key;
+                var reduced = kvp.Value;
 
-                if (mainExpressions.ContainsKey(expr))
-                    mainExpressions[expr].Add(slot);
+                if (mainExpressions.ContainsKey(reduced))
+                    mainExpressions[reduced].AddRange(expressionGraph.GetAllNames(exp));
                 else
                 {
-                    var list = new List<VFXSlot>();
-                    list.Add(slot);
-                    mainExpressions[expr] = list;
+                    var list = new List<string>();
+                    list.AddRange(expressionGraph.GetAllNames(exp));
+                    mainExpressions[reduced] = list;
                 }
             }
 
@@ -67,10 +67,11 @@ namespace UnityEditor.VFX
                 if (mainExpressions.ContainsKey(exp))
                 {
                     string allOwnersStr = string.Empty;
-                    foreach (var slot in mainExpressions[exp])
+                    foreach (var str in mainExpressions[exp])
                     {
-                        var topOwner = slot.GetMasterSlot().owner;
-                        allOwnersStr += string.Format("\n{0} - {1}", topOwner.GetType().Name, GetRecursiveName(slot));
+                        // var topOwner = slot.GetMasterSlot().owner;
+                        // allOwnersStr += string.Format("\n{0} - {1}", topOwner.GetType().Name, GetRecursiveName(slot));
+                        allOwnersStr += "\n" + str;
                     }
 
                     name += string.Format("{0}", allOwnersStr);

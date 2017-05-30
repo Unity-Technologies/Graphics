@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -217,8 +217,6 @@ namespace UnityEditor.VFX.UI
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
-
-
         }
 
         void OnSpace()
@@ -603,8 +601,6 @@ namespace UnityEditor.VFX.UI
 
 
             RefreshContext();
-
-
 
 
             m_OwnData.presenter = presenter.slotContainerPresenter;

@@ -76,22 +76,23 @@ namespace UnityEditor.VFX.Test
 
         private void BasicTest(VFXExpressionGraph graph, int ExpectedNbSlots, int ExpectedNbExpressions, int ExpectedNbFlattened)
         {
-            Assert.AreEqual(ExpectedNbSlots, graph.SlotsToExpressions.Count);
+            Assert.AreEqual(ExpectedNbSlots, graph.ExpressionsToReduced.Count);
             Assert.AreEqual(ExpectedNbExpressions, graph.Expressions.Count);
             Assert.AreEqual(ExpectedNbFlattened, graph.FlattenedExpressions.Count);
         }
 
         private void CheckExpressionValue<T>(VFXExpressionGraph graph, VFXSlot slot, T value)
         {
-            Assert.IsTrue(graph.SlotsToExpressions.ContainsKey(slot));
-            var expression = graph.SlotsToExpressions[slot];
+            var exp = slot.GetExpression();
+            Assert.IsTrue(graph.ExpressionsToReduced.ContainsKey(exp));
+            var expression = graph.ExpressionsToReduced[exp];
             Assert.IsTrue(expression.Is(VFXExpression.Flags.Value));
             Assert.AreEqual(value, expression.Get<T>());
         }
 
         private void CheckFlattenedIndex(VFXExpressionGraph graph, VFXSlot slot)
         {
-            int index = graph.GetFlattenedIndex(graph.SlotsToExpressions[slot]);
+            int index = graph.GetFlattenedIndex(graph.ExpressionsToReduced[slot.GetExpression()]);
             Assert.Greater(graph.FlattenedExpressions.Count, index);
             Assert.Less(-1, index);
         }
@@ -157,7 +158,7 @@ namespace UnityEditor.VFX.Test
 
                     var context = (VFXContext)g.vfx[0];
                     var slot = context.GetInputSlot(0);
-                    var exp = g.exp.SlotsToExpressions[slot];
+                    var exp = g.exp.ExpressionsToReduced[slot.GetExpression()];
 
                     Assert.IsTrue(exp.Is(VFXExpression.Flags.PerElement));
                     Assert.AreEqual(-1, g.exp.GetFlattenedIndex(exp));

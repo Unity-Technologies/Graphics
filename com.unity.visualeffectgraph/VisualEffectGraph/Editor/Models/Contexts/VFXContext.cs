@@ -106,6 +106,16 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual VFXExpressionMapper GetGPUExpressions()
+        {
+            return VFXExpressionMapper.FromContext(this, null, "uniform");
+        }
+
+        public virtual VFXExpressionMapper GetCPUExpressions()
+        {
+            return null;
+        }
+
         public virtual void Compile(VFXCompilerData data)
         {
             // TODO Temp this should not go here

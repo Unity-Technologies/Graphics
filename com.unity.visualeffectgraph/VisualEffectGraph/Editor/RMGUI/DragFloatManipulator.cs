@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor;
 
@@ -76,15 +76,14 @@ namespace UnityEditor.VFX.UIElements
         bool m_Dragging;
 
 
-
         protected override void RegisterCallbacksOnTarget()
         {
-            target.RegisterCallback<MouseUpEvent>(OnMouseUp,Capture.Capture);
-            target.RegisterCallback<MouseDownEvent>(OnMouseDown,Capture.Capture);
+            target.RegisterCallback<MouseUpEvent>(OnMouseUp, Capture.Capture);
+            target.RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
             target.RegisterCallback<MouseMoveEvent>(OnMouseDrag);
             target.RegisterCallback<KeyDownEvent>(OnKeyDown);
-
         }
+
         protected override void UnregisterCallbacksFromTarget()
         {
             target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
@@ -93,16 +92,15 @@ namespace UnityEditor.VFX.UIElements
             target.UnregisterCallback<KeyDownEvent>(OnKeyDown);
         }
 
+        IPanel IEventHandler.panel { get { return target.panel; } }
 
-
-        IPanel IEventHandler.panel { get{ return target.panel; } }
-
-        void IEventHandler.HandleEvent(EventBase evt){ }
+        void IEventHandler.HandleEvent(EventBase evt) {}
         void IEventHandler.OnLostCapture()
         {
             m_Dragging = false;
         }
-        void IEventHandler.OnLostKeyboardFocus(){}
+
+        void IEventHandler.OnLostKeyboardFocus() {}
 
         void OnMouseUp(MouseUpEvent evt)
         {
@@ -142,6 +140,7 @@ namespace UnityEditor.VFX.UIElements
                 m_Dragging = false;
             }
         }
+
         /*
         public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
         {
