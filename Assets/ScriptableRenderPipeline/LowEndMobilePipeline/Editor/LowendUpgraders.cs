@@ -111,7 +111,7 @@ namespace UnityEditor.Experimental.Rendering.LowendMobile
             UpdateMaterialReflectionSource(material);
             SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
             SetKeyword(material, "_CUBEMAP_REFLECTION", material.GetTexture("_Cube"));
-            SetKeyword(material, "_EMISSION_MAP", material.GetTexture("_EmissionMap"));
+            SetKeyword(material, "_EMISSION", material.GetTexture("_EmissionMap"));
         }
 
         private static void UpdateMaterialBlendMode(Material material)
