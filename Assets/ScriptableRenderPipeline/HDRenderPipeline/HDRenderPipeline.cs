@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
 
         readonly SkyManager m_SkyManager = new SkyManager();
-        private readonly BaseLightLoop m_LightLoop;
+        readonly LightLoop m_LightLoop = new LightLoop();
 
         private DebugDisplaySettings debugDisplaySettings
         {
@@ -188,11 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_LitRenderLoop.Build();
 
-            if (asset.lightLoopProducer)
-                m_LightLoop = asset.lightLoopProducer.CreateLightLoop(asset.renderPipelineResources);
-
-            if (m_LightLoop != null)
-                m_LightLoop.Build(asset.textureSettings);
+            m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.textureSettings);
 
             m_SkyManager.Build();
             m_SkyManager.skySettings = asset.skySettingsToUse;

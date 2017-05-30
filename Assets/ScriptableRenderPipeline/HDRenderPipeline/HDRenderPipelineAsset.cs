@@ -51,14 +51,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        private LightLoopProducer m_LightLoopProducer;
-        public LightLoopProducer lightLoopProducer
-        {
-            get { return m_LightLoopProducer; }
-            set { m_LightLoopProducer = value; }
-        }
-
-        [SerializeField]
         private RenderPipelineResources m_RenderPipelineResources;
         public RenderPipelineResources renderPipelineResources
         {
@@ -222,6 +214,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnEnable()
         {
             debugDisplaySettings.RegisterDebug();
+        }
+
+        [SerializeField]
+        TileSettings m_TileSettings = TileSettings.defaultSettings;
+        public TileSettings tileSettings
+        {
+            get { return m_TileSettings; }
+            set { m_TileSettings = value; }
         }
     }
 }
