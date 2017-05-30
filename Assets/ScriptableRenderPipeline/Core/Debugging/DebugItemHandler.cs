@@ -22,6 +22,8 @@ namespace UnityEngine.Experimental.Rendering
         public virtual void ClampValues(Func<object> getter, Action<object> setter) {}
         // Method that will create UI items for runtime debug menu.
         public abstract DebugItemUI BuildGUI(GameObject parent);
+
+#if UNITY_EDITOR
         // Method users need to override for editor specific UI
         public abstract bool OnEditorGUIImpl();
         public void OnEditorGUI()
@@ -31,6 +33,7 @@ namespace UnityEngine.Experimental.Rendering
                 DebugMenuUI.changed = true;
             }
         }
+#endif
 
         // Method users need to override for specific serialization of custom types.
         public abstract DebugItemState CreateDebugItemState();

@@ -186,11 +186,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DistortionBuffer = Shader.PropertyToID("_DistortionTexture");
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
 
-            m_LitRenderLoop.Build();
+            m_LitRenderLoop.Build(asset.renderPipelineResources);
 
             m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.textureSettings);
 
-            m_SkyManager.Build();
+            m_SkyManager.Build(asset.renderPipelineResources);
             m_SkyManager.skySettings = asset.skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
@@ -205,7 +205,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void OnSceneLoad()
         {
             // Recreate the textures which went NULL, and set 'isInit' to 'false'.
-            m_LitRenderLoop.Build();
+            m_LitRenderLoop.Build(m_Asset.renderPipelineResources);
         }
 
         public override void Dispose()
