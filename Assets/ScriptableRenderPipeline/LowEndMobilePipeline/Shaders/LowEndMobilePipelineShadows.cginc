@@ -18,27 +18,6 @@ inline half ShadowAttenuation(float3 shadowCoord)
 #endif
 }
 
-inline half ComputeShadowAttenuation(v2f i, float3 offset)
-{
-	float3 posWorldOffsetNormal = i.posWS + offset;
-	int cascadeIndex = 0;
-
-#ifdef _SHADOW_CASCADES
-    cascadeIndex = ComputeCascadeIndex(i.posWS);
-    if (cascadeIndex >= MAX_SHADOW_CASCADES)
-        return 1.0;
-#endif
-    float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorldOffsetNormal, 1.0));
-    shadowCoord.xyz /= shadowCoord.w;
-    shadowCoord.z = saturate(shadowCoord.z);
-
-#if defined(_SOFT_SHADOWS) || defined(_SOFT_SHADOWS_CASCADES)
-    return ShadowPCF(shadowCoord.xyz);
-#else
-    return ShadowAttenuation(shadowCoord.xyz);
-#endif
-}
-
 inline half ComputeCascadeIndex(float3 wpos)
 {
     float3 fromCenter0 = wpos.xyz - _DirShadowSplitSpheres[0].xyz;
@@ -66,4 +45,25 @@ inline half ShadowPCF(half3 shadowCoord)
         ShadowAttenuation(half3(shadowCoord.xy + half2(_PCFKernel[4], _PCFKernel[5]) + offset, shadowCoord.z)) +
         ShadowAttenuation(half3(shadowCoord.xy + half2(_PCFKernel[6], _PCFKernel[7]) + offset, shadowCoord.z));
     return attenuation * 0.25;
+}
+
+inline half ComputeShadowAttenuation(v2f i, float3 offset)
+{
+    float3 posWorldOffsetNormal = i.posWS + offset;
+    int cascadeIndex = 0;
+
+#ifdef _SHADOW_CASCADES
+    cascadeIndex = ComputeCascadeIndex(i.posWS);
+    if (cascadeIndex >= MAX_SHADOW_CASCADES)
+        return 1.0;
+#endif
+    float4 shadowCoord = mul(_WorldToShadow[cascadeIndex], float4(posWorldOffsetNormal, 1.0));
+    shadowCoord.xyz /= shadowCoord.w;
+    shadowCoord.z = saturate(shadowCoord.z);
+
+#if defined(_SOFT_SHADOWS) || defined(_SOFT_SHADOWS_CASCADES)
+    return ShadowPCF(shadowCoord.xyz);
+#else
+    return ShadowAttenuation(shadowCoord.xyz);
+#endif
 }

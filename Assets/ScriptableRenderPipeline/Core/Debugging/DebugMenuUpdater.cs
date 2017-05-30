@@ -15,41 +15,41 @@ namespace UnityEngine.Experimental.Rendering
 
             if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.EnableDebugMenu) != 0.0f)
             {
-                DebugMenuManager.instance.ToggleMenu();
+                DebugMenuManager.instance.menuUI.ToggleMenu();
             }
 
-            if (DebugMenuManager.instance.isEnabled)
+            if (DebugMenuManager.instance.menuUI.isEnabled)
             {
-                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.PreviousDebugMenu) != 0.0f)
+                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.PreviousDebugPanel) != 0.0f)
                 {
-                    DebugMenuManager.instance.PreviousDebugMenu();
+                    DebugMenuManager.instance.menuUI.PreviousDebugPanel();
                 }
 
-                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.NextDebugMenu) != 0.0f)
+                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.NextDebugPanel) != 0.0f)
                 {
-                    DebugMenuManager.instance.NextDebugMenu();
+                    DebugMenuManager.instance.menuUI.NextDebugPanel();
                 }
 
                 if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.Validate) != 0.0f)
                 {
-                    DebugMenuManager.instance.OnValidate();
+                    DebugMenuManager.instance.menuUI.OnValidate();
                 }
 
-                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.Persistent) != 0.0f)
+                if (DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.MakePersistent) != 0.0f)
                 {
-                    DebugMenuManager.instance.OnMakePersistent();
+                    DebugMenuManager.instance.menuUI.OnMakePersistent();
                 }
 
                 float moveHorizontal = DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.MoveHorizontal);
                 if (moveHorizontal != 0.0f)
                 {
-                    DebugMenuManager.instance.OnMoveHorizontal(moveHorizontal);
+                    DebugMenuManager.instance.menuUI.OnMoveHorizontal(moveHorizontal);
                 }
 
                 float moveVertical = DebugActionManager.instance.GetAction(DebugActionManager.DebugAction.MoveVertical);
                 if (moveVertical != 0.0f)
                 {
-                    DebugMenuManager.instance.OnMoveVertical(moveVertical);
+                    DebugMenuManager.instance.menuUI.OnMoveVertical(moveVertical);
                 }
             }
         }
