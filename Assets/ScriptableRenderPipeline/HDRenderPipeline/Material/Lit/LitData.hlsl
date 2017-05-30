@@ -360,13 +360,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ApplyDepthOffsetPositionInput(V, depthOffset, GetWorldToHClipMatrix(), posInput);
 #endif
 
+    float3 interpolatedVertexNormal = input.worldToTangent[2].xyz;
+
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
     // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
     float3 normalTS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS);
     GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
     // Done one time for all layered - cumulate with spec occ alpha for now
-    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, input.worldToTangent[2].xyz, _HorizonFade);
+    surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, interpolatedVertexNormal, _HorizonFade);
+
+    // Convert thickness along the normal to thickness along the viewing direction.
+    surfaceData.thickness *= saturate(dot(interpolatedVertexNormal, V));
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
