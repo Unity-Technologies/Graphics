@@ -49,28 +49,28 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             [HideInInspector] _ZWrite("__zw", Float) = 1.0
     }
 
-        SubShader
-        {
-            Tags { "RenderType" = "Opaque" "RenderPipeline" = "LowEndMobilePipeline" }
-            LOD 300
+    SubShader
+    {
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LowEndMobilePipeline" }
+        LOD 300
 
-            Pass
-            {
-                Name "LD_SINGLE_PASS_FORWARD"
-                Tags { "LightMode" = "LowEndMobileForward" }
+        Pass
+        {
+            Name "LD_SINGLE_PASS_FORWARD"
+            Tags { "LightMode" = "LowEndMobileForward" }
 
             // Use same blending / depth states as Standard shader
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
 
             CGPROGRAM
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
             #pragma shader_feature _ _SPECGLOSSMAP _SPECGLOSSMAP_BASE_ALPHA _SPECULAR_COLOR
             #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _EMISSION_MAP
+            #pragma shader_feature _EMISSION
             #pragma shader_feature _ _REFLECTION_CUBEMAP _REFLECTION_PROBE
 
             #pragma multi_compile _ LIGHTMAP_ON
@@ -147,7 +147,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                 NormalMap(i, normal);
 
                 half4 specularGloss;
-                SpecularGloss(i.uv01.xy, diffuse, alpha, specularGloss);
+                SpecularGloss(i.uv01.xy, alpha, specularGloss);
 
                 half3 viewDir = i.viewDir.xyz;
 
@@ -159,24 +159,22 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                     LightInput lightData;
                     half NdotL;
                     INITIALIZE_LIGHT(lightData, lightIndex);
-                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL); 
+                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL);
 #ifdef _SHADOWS
                     if (lightIndex == 0)
                     {
-                    	#if _NORMALMAP
-                    	float3 vertexNormal = float3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
-                    	#else
-                    	float3 vertexNormal = i.normal;
-                    	#endif
+                        #if _NORMALMAP
+                        float3 vertexNormal = float3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
+                        #else
+                        float3 vertexNormal = i.normal;
+                        #endif
                         float bias = max(globalLightData.z, (1.0 - NdotL) * globalLightData.w);
                         color *= ComputeShadowAttenuation(i, vertexNormal * bias);
                     }
 #endif
                 }
 
-                half3 emissionColor;
-                Emission(i, emissionColor);
-                color += emissionColor;
+                Emission(i.uv01.xy, color);
 
 #if defined(LIGHTMAP_ON)
                 color += (DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, i.uv01.zw)) + i.fogCoord.yzw) * diffuse;
@@ -242,16 +240,34 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             Cull Off
 
             CGPROGRAM
+            #define UNITY_SETUP_BRDF_INPUT SpecularSetup
             #pragma vertex vert_meta
-            #pragma fragment frag_meta
+            #pragma fragment frag_meta_ld
 
             #pragma shader_feature _EMISSION
-            #pragma shader_feature _METALLICGLOSSMAP
+            #pragma shader_feature _SPECGLOSSMAP
             #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature ___ _DETAIL_MULX2
             #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "UnityStandardMeta.cginc"
+            #include "LowEndMobilePipelineCore.cginc"
+
+            fixed4 frag_meta_ld(v2f_meta i) : SV_Target
+            {
+                UnityMetaInput o;
+                UNITY_INITIALIZE_OUTPUT(UnityMetaInput, o);
+
+                o.Albedo = Albedo(i.uv);
+
+                half4 specularColor;
+                SpecularGloss(i.uv.xy, 1.0, specularColor);
+                o.SpecularColor = specularColor;
+
+                Emission(i.uv.xy, o.Emission);
+
+                return UnityMetaFragment(o);
+            }
             ENDCG
         }
     }
