@@ -273,7 +273,19 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subsurfaceProfile * rcp(SSS_N_PROFILES - 1));
+        // Use 16 bits to encode the thickness, and up to 8 bits to encode the profile ID.
+        // We need a lot of precision to minimize banding of NdotV-weighted thickness.
+        int   ip = surfaceData.subsurfaceProfile;   // [0, 255]
+        float ft = surfaceData.thickness;           // [0, 1]
+        int   it = int(ft * ((1 << 16) - 1));       // [0, 65535]
+        int   lo = it & ((1 << 8) - 1);             // 8 bit low
+        int   hi = (it >> 8) & ((1 << 8) - 1);      // 8 bit high
+
+        float y = saturate(lo * rcp((1 << 8) - 1));
+        float z = saturate(hi * rcp((1 << 8) - 1));
+        float w = saturate(ip * rcp((1 << 8) - 1));
+
+        outGBuffer2 = float4(surfaceData.subsurfaceRadius, y, z, w);
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
     {
@@ -404,9 +416,23 @@ void DecodeFromGBuffer(
     }
     else if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        int subsurfaceProfile = (SSS_N_PROFILES - 0.9) * inGBuffer2.a;
         float subsurfaceRadius = inGBuffer2.r;
-        float thickness = inGBuffer2.g;
+
+        float y = inGBuffer2.g;
+        float z = inGBuffer2.b;
+        float w = inGBuffer2.a;
+
+        // Use 16 bits to encode the thickness, and up to 8 bits to encode the profile ID.
+        // We need a lot of precision to minimize banding of NdotV-weighted thickness.
+        int   lo = int(y * ((1 << 8) - 1));             // 8 bit low
+        int   hi = int(z * ((1 << 8) - 1));             // 8 bit high
+        int   ip = int(w * ((1 << 8) - 1));             // [0, 255]
+        int   it = lo + (hi << 8);                      // [0, 65535]
+        float ft = saturate(it * rcp((1 << 16) - 1));   // [0, 1]
+
+        float thickness = ft;
+        int subsurfaceProfile = ip;
+
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
     }
     else if (supportsSpecular && bsdfData.materialId == MATERIALID_LIT_SPECULAR)
@@ -760,10 +786,10 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        const float w = 0.15;
-        float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
+        float LdotV = dot(L, V); // Also computed in BSDF()
+        // Compute the normal at the back of the object as R = reflect(N, -V)
+        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
+        float illuminance = saturate(-LdotV);
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -866,11 +892,10 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        const float w = 0.15;
-        float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
-        illuminance *= attenuation;
+        float LdotV = dot(L, V); // Also computed in BSDF()
+        // Compute the normal at the back of the object as R = reflect(N, -V)
+        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
+        float illuminance = saturate(-LdotV * attenuation);
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -952,11 +977,10 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        const float w = 0.15;
-        float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
-        illuminance *= clipFactor;
+        float LdotV = dot(L, V); // Also computed in BSDF()
+        // Compute the normal at the back of the object as R = reflect(N, -V)
+        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
+        float illuminance = saturate(-LdotV * clipFactor);
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
