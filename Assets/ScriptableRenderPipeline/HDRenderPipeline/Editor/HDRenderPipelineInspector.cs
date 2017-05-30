@@ -162,6 +162,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(styles.settingsLabel);
             EditorGUI.indentLevel++;
 
+            /*
             EditorGUI.BeginChangeCheck();
 
             renderContext.lightLoopProducer = (LightLoopProducer)EditorGUILayout.ObjectField(new GUIContent("Light Loop"), renderContext.lightLoopProducer, typeof(LightLoopProducer), false);
@@ -170,6 +171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 HackSetDirty(renderContext); // Repaint
             }
+            */
 
             SssSettingsUI(renderContext);
             ShadowSettingsUI(renderContext);
