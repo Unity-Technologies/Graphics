@@ -115,6 +115,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return mat;
         }
 
+        public static Material CreateEngineMaterial(Shader shader)
+        {
+            var mat = new Material(shader)
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            return mat;
+        }
+
         public static void Destroy(UnityObject obj)
         {
             if (obj != null)

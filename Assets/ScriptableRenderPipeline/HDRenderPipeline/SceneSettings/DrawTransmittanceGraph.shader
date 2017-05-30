@@ -29,9 +29,9 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "../../../ShaderLibrary/Common.hlsl"
-            #include "../../../ShaderLibrary/Color.hlsl"
-            #include "../../ShaderVariables.hlsl"
+            #include "../../ShaderLibrary/Common.hlsl"
+            #include "../../ShaderLibrary/Color.hlsl"
+            #include "../ShaderVariables.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
