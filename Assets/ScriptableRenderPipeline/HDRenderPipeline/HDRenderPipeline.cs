@@ -198,8 +198,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitializeDebugMaterials()
         {
-            m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
-            m_DebugDisplayLatlong = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayLatlong");
+            m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial(m_Asset.renderPipelineResources.debugViewMaterialGBufferShader);
+            m_DebugDisplayLatlong = Utilities.CreateEngineMaterial(m_Asset.renderPipelineResources.debugDisplayLatlongShader);
         }
 
         public void OnSceneLoad()
