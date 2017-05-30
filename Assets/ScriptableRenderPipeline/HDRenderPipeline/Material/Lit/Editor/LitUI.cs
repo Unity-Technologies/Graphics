@@ -230,7 +230,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void ShaderSSSInputGUI(Material material)
         {
-            HDRenderPipelineInstance hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
             if (subsurfaceProfile == null)
             {

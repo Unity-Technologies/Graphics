@@ -547,7 +547,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 // Validate each individual asset and update caches.
-                HDRenderPipelineInstance hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+                HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
                 hdPipeline.sssSettings.OnValidate();
             }
         }

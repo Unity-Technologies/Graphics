@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             SceneSettingsManager.instance.AddSceneSettings(this);
 
-            HDRenderPipelineInstance hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
             if (hdPipeline != null)
             {

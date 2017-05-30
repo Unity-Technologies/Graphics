@@ -7,7 +7,7 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [CustomEditor(typeof(HDRenderPipeline))]
+    [CustomEditor(typeof(HDRenderPipelineAsset))]
     public class HDRenderPipelineInspector : Editor
     {
         private class Styles
@@ -42,47 +42,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Tile pass Settings
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
-            public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] { "Punctual Light", "Area Light", "Env Light"};
-            public readonly GUIContent splitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
-            public readonly GUIContent bigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
-            public readonly GUIContent clustered = new GUIContent("Enable clustered", "Toggle");
-            public readonly GUIContent enableTileAndCluster = new GUIContent("Enable Tile/clustered", "Toggle");
+            public readonly GUIContent enableTileAndCluster = new GUIContent("Enable tile/clustered", "Toggle");
+            public readonly GUIContent enableSplitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
             public readonly GUIContent enableComputeLightEvaluation = new GUIContent("Enable Compute Light Evaluation", "Toggle");
+            public readonly GUIContent enableComputeFeatureVariants = new GUIContent("Enable Compute Features Variants", "Toggle");
+            public readonly GUIContent enableClustered = new GUIContent("Enable clustered", "Toggle");
+            public readonly GUIContent enableFptlForOpaqueWhenClustered = new GUIContent("Enable Fptl For Opaque When Clustered", "Toggle");
+            public readonly GUIContent enableBigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
+            public readonly GUIContent tileDebugByCategory = new GUIContent("Enable Debug By Category", "Toggle");
 
             // Sky Settings
             public readonly GUIContent skyParams = new GUIContent("Sky Settings");
-
-            // Debug Display Settings
-            public readonly GUIContent debugging = new GUIContent("Debugging");
-            public readonly GUIContent debugOverlayRatio = new GUIContent("Overlay Ratio");
-
-            // Material debug
-            public readonly GUIContent materialDebugLabel = new GUIContent("Material Debug");
-            public readonly GUIContent debugViewMaterial = new GUIContent("DebugView Material", "Display various properties of Materials.");
-            public readonly GUIContent debugViewEngine = new GUIContent("DebugView Engine", "Display various properties of Materials.");
-            public readonly GUIContent debugViewMaterialVarying = new GUIContent("DebugView Attributes", "Display varying input of Materials.");
-            public readonly GUIContent debugViewMaterialGBuffer = new GUIContent("DebugView GBuffer", "Display GBuffer properties.");
-
-            // Rendering Debug
-            public readonly GUIContent renderingDebugSettings = new GUIContent("Rendering Debug");
-            public readonly GUIContent displayOpaqueObjects = new GUIContent("Display Opaque Objects", "Toggle opaque objects rendering on and off.");
-            public readonly GUIContent displayTransparentObjects = new GUIContent("Display Transparent Objects", "Toggle transparent objects rendering on and off.");
-            public readonly GUIContent enableDistortion = new GUIContent("Enable Distortion");
-            public readonly GUIContent enableSSS = new GUIContent("Enable Subsurface Scattering");
-
-            // Lighting Debug
-            public readonly GUIContent lightingDebugSettings = new GUIContent("Lighting Debug");
-            public readonly GUIContent shadowDebugEnable = new GUIContent("Enable Shadows");
-            public readonly GUIContent lightingVisualizationMode = new GUIContent("Lighting Debug Mode");
-            public readonly GUIContent[] debugViewLightingStrings = { new GUIContent("None"), new GUIContent("Diffuse Lighting"), new GUIContent("Specular Lighting"), new GUIContent("Visualize Cascades") };
-            public readonly int[] debugViewLightingValues = { (int)DebugLightingMode.None, (int)DebugLightingMode.DiffuseLighting, (int)DebugLightingMode.SpecularLighting, (int)DebugLightingMode.VisualizeCascade };
-            public readonly GUIContent shadowDebugVisualizationMode = new GUIContent("Shadow Maps Debug Mode");
-            public readonly GUIContent shadowDebugVisualizeShadowIndex = new GUIContent("Visualize Shadow Index");
-            public readonly GUIContent lightingDebugOverrideSmoothness = new GUIContent("Override Smoothness");
-            public readonly GUIContent lightingDebugOverrideSmoothnessValue = new GUIContent("Smoothness Value");
-            public readonly GUIContent lightingDebugAlbedo = new GUIContent("Lighting Debug Albedo");
-            public readonly GUIContent lightingDisplaySkyReflection = new GUIContent("Display Sky Reflection");
-            public readonly GUIContent lightingDisplaySkyReflectionMipmap = new GUIContent("Reflection Mipmap");
         }
 
         private static Styles s_Styles = null;
@@ -100,6 +70,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private SerializedProperty m_DefaultDiffuseMaterial;
         private SerializedProperty m_DefaultShader;
 
+        // TilePass settings
+        SerializedProperty m_enableTileAndCluster;
+        SerializedProperty m_enableSplitLightEvaluation;
+        SerializedProperty m_enableComputeLightEvaluation;
+        SerializedProperty m_enableComputeFeatureVariants;
+        SerializedProperty m_enableClustered;
+        SerializedProperty m_enableFptlForOpaqueWhenClustered;
+        SerializedProperty m_enableBigTilePrepass;
+        SerializedProperty m_tileDebugByCategory;
+
         // Rendering Settings
         SerializedProperty m_RenderingUseForwardOnly = null;
         SerializedProperty m_RenderingUseDepthPrepass = null;
@@ -113,6 +93,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DefaultDiffuseMaterial = serializedObject.FindProperty("m_DefaultDiffuseMaterial");
             m_DefaultShader = serializedObject.FindProperty("m_DefaultShader");
 
+            // Following way of getting property allow to handle change of properties name with serializations
+
+            // Tile settings
+            m_enableTileAndCluster = FindProperty(x => x.tileSettings.enableTileAndCluster);
+            m_enableSplitLightEvaluation = FindProperty(x => x.tileSettings.enableSplitLightEvaluation);
+            m_enableComputeLightEvaluation = FindProperty(x => x.tileSettings.enableComputeLightEvaluation);
+            m_enableComputeFeatureVariants = FindProperty(x => x.tileSettings.enableComputeFeatureVariants);
+            m_enableClustered = FindProperty(x => x.tileSettings.enableClustered);
+            m_enableFptlForOpaqueWhenClustered = FindProperty(x => x.tileSettings.enableFptlForOpaqueWhenClustered);
+            m_enableBigTilePrepass = FindProperty(x => x.tileSettings.enableBigTilePrepass);
+            m_tileDebugByCategory = FindProperty(x => x.tileSettings.tileDebugByCategory);
+
+            // Shadow settings
+
+            //TODO!
+
             // Rendering settings
             m_RenderingUseForwardOnly = FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
             m_RenderingUseDepthPrepass = FindProperty(x => x.renderingSettings.useDepthPrepass);
@@ -122,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_NumProfiles = m_Profiles.FindPropertyRelative("Array.size");
         }
 
-        SerializedProperty FindProperty<TValue>(Expression<Func<HDRenderPipeline, TValue>> expr)
+        SerializedProperty FindProperty<TValue>(Expression<Func<HDRenderPipelineAsset, TValue>> expr)
         {
             var path = Utilities.GetFieldPath(expr);
             return serializedObject.FindProperty(path);
@@ -136,7 +132,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 method.Invoke(asset, new object[0]);
         }
 
-        private void SssSettingsUI(HDRenderPipeline pipe)
+        private void TileSettingsUI(HDRenderPipelineAsset renderContext)
+        {
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField(styles.tileLightLoopSettings);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+
+            EditorGUILayout.PropertyField(m_enableTileAndCluster, styles.enableTileAndCluster);
+            EditorGUILayout.PropertyField(m_enableSplitLightEvaluation, styles.enableSplitLightEvaluation);
+            EditorGUILayout.PropertyField(m_enableComputeLightEvaluation, styles.enableComputeLightEvaluation);
+            EditorGUILayout.PropertyField(m_enableComputeFeatureVariants, styles.enableComputeFeatureVariants);
+            EditorGUILayout.PropertyField(m_enableClustered, styles.enableClustered);
+            EditorGUILayout.PropertyField(m_enableFptlForOpaqueWhenClustered, styles.enableFptlForOpaqueWhenClustered);
+            EditorGUILayout.PropertyField(m_enableBigTilePrepass, styles.enableBigTilePrepass);
+            EditorGUILayout.PropertyField(m_tileDebugByCategory, styles.tileDebugByCategory);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                HackSetDirty(renderContext); // Repaint
+            }
+            EditorGUI.indentLevel--;
+        }
+
+        private void SssSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
 
@@ -157,30 +177,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void SettingsUI(HDRenderPipeline renderContext)
+        private void SettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.LabelField(styles.settingsLabel);
             EditorGUI.indentLevel++;
-
-            EditorGUI.BeginChangeCheck();
-
-            renderContext.lightLoopProducer = (LightLoopProducer)EditorGUILayout.ObjectField(new GUIContent("Light Loop"), renderContext.lightLoopProducer, typeof(LightLoopProducer), false);
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                HackSetDirty(renderContext); // Repaint
-            }
 
             SssSettingsUI(renderContext);
             ShadowSettingsUI(renderContext);
             TextureSettingsUI(renderContext);
             RendereringSettingsUI(renderContext);
-            //TilePassUI(renderContext);
+            TileSettingsUI(renderContext);
 
             EditorGUI.indentLevel--;
         }
 
-        private void ShadowSettingsUI(HDRenderPipeline renderContext)
+        private void ShadowSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
             var shadowSettings = renderContext.shadowSettings;
@@ -199,7 +210,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void RendereringSettingsUI(HDRenderPipeline renderContext)
+        private void RendereringSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.renderingSettingsLabel);
@@ -209,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void TextureSettingsUI(HDRenderPipeline renderContext)
+        private void TextureSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
             var textureSettings = renderContext.textureSettings;
@@ -237,10 +248,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            var renderContext = target as HDRenderPipeline;
-            HDRenderPipelineInstance renderpipelineInstance = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+            var renderContext = target as HDRenderPipelineAsset;
+            HDRenderPipeline renderpipeline = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
-            if (!renderContext || renderpipelineInstance == null)
+            if (!renderContext || renderpipeline == null)
                 return;
 
             serializedObject.Update();
