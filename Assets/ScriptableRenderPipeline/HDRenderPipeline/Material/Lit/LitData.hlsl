@@ -375,7 +375,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     if (transmissionMode != SSS_TRSM_MODE_THIN)
     {
         // Convert thickness along the normal to thickness along the viewing direction.
-        surfaceData.thickness *= saturate(dot(interpolatedVertexNormal, V));
+        surfaceData.thickness *= saturate(dot(interpolatedVertexNormal, V) + 0.01);
     }
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
