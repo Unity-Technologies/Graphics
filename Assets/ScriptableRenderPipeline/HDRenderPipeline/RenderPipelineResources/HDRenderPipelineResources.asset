@@ -35,8 +35,10 @@ MonoBehaviour:
     type: 3}
   drawTransmittanceGraphShader: {fileID: 4800000, guid: 4517edda0467bb14489d5eccc9973ba2,
     type: 3}
-  blitCubemap: {fileID: 0}
-  buildProbabilityTables: {fileID: 0}
-  computeGgxIblSampleData: {fileID: 0}
-  GGXConvolve: {fileID: 0}
+  blitCubemap: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
+  buildProbabilityTables: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c,
+    type: 3}
+  computeGgxIblSampleData: {fileID: 7200000, guid: 764a24bb47ef5ba4781d9ae82ca07445,
+    type: 3}
+  GGXConvolve: {fileID: 4800000, guid: 123ed592ad5c2494b8aed301fd609e7b, type: 3}
   skyboxCubemap: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}

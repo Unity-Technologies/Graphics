@@ -31,10 +31,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             instance.drawTransmittanceGraphShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/DrawTransmittanceGraph.shader");
 
             // Sky
-            instance.blitCubemap = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/BlitCubemap.shader");
-            instance.buildProbabilityTables = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/BuildProbabilityTables.compute");
-            instance.computeGgxIblSampleData = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/ComputeGgxIblSampleData.compute");
-            instance.GGXConvolve = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/GGXConvolve.shader");
+            instance.blitCubemap = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Sky/BlitCubemap.shader");
+            instance.buildProbabilityTables = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Sky/BuildProbabilityTables.compute");
+            instance.computeGgxIblSampleData = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Sky/ComputeGgxIblSampleData.compute");
+            instance.GGXConvolve = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Sky/GGXConvolve.shader");
 
             // Skybox/Cubemap is a builtin shader, must use Sahder.Find to access it. It is fine because we are in the editor
             instance.skyboxCubemap = Shader.Find("Skybox/Cubemap");
