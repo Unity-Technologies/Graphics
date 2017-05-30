@@ -115,6 +115,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return mat;
         }
 
+        public static Material CreateEngineMaterial(Shader shader)
+        {
+            var mat = new Material(shader)
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            return mat;
+        }
+
         public static void Destroy(UnityObject obj)
         {
             if (obj != null)
@@ -324,18 +333,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     material.DisableKeyword(keywords[i]);
                 }
             }
-        }
-
-        public static HDRenderPipeline GetHDRenderPipeline()
-        {
-            HDRenderPipeline renderContext = GraphicsSettings.renderPipelineAsset as HDRenderPipeline;
-            if (renderContext == null)
-            {
-                Debug.LogWarning("HDRenderPipeline is not instantiated.");
-                return null;
-            }
-
-            return renderContext;
         }
 
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.

@@ -10,215 +10,6 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [ExecuteInEditMode]
-    // This HDRenderPipeline assume linear lighting. Don't work with gamma.
-    public class HDRenderPipeline : RenderPipelineAsset
-    {
-        const string k_HDRenderPipelinePath = "Assets/ScriptableRenderPipeline/HDRenderPipeline/HDRenderPipeline.asset";
-
-#if UNITY_EDITOR
-        [MenuItem("RenderPipeline/Create HDRenderPipeline")]
-        static void CreateHDRenderPipeline()
-        {
-            var instance = CreateInstance<HDRenderPipeline>();
-            AssetDatabase.CreateAsset(instance, k_HDRenderPipelinePath);
-        }
-
-        [UnityEditor.MenuItem("HDRenderPipeline/UpdateHDRenderPipeline")]
-        static void UpdateHDRenderPipeline()
-        {
-            var guids = AssetDatabase.FindAssets("t:HDRenderPipeline");
-            foreach (var guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                var pipeline = AssetDatabase.LoadAssetAtPath<HDRenderPipeline>(path);
-                EditorUtility.SetDirty(pipeline);
-            }
-        }
-
-        [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Light Data\" (if not present)")]
-        static void AddAdditionalLightData()
-        {
-            Light[] lights = FindObjectsOfType(typeof(Light)) as Light[];
-
-            foreach (Light light in lights)
-            {
-                // Do not add a component if there already is one.
-                if (light.GetComponent<AdditionalLightData>() == null)
-                {
-                    light.gameObject.AddComponent<AdditionalLightData>();
-                }
-            }
-        }
-
-#endif
-
-        private HDRenderPipeline()
-        {}
-
-        [SerializeField]
-        private LightLoopProducer m_LightLoopProducer;
-        public LightLoopProducer lightLoopProducer
-        {
-            get { return m_LightLoopProducer; }
-            set { m_LightLoopProducer = value; }
-        }
-
-        protected override IRenderPipeline InternalCreatePipeline()
-        {
-            return new HDRenderPipelineInstance(this);
-        }
-
-        // NOTE:
-        // All those properties are public because of how HDRenderPipelineInspector retrieve those properties via serialization/reflection
-        // Those that are not will be refatored later.
-
-        // Debugging
-        public DebugDisplaySettings debugDisplaySettings = new DebugDisplaySettings();
-
-        // Renderer Settings (per project)
-        public RenderingSettings            renderingSettings = new RenderingSettings();
-        public SubsurfaceScatteringSettings sssSettings = new SubsurfaceScatteringSettings();
-
-        [SerializeField]
-        ShadowSettings               m_ShadowSettings  = ShadowSettings.Default;
-        [SerializeField]
-        TextureSettings              m_TextureSettings = TextureSettings.Default;
-
-        public ShadowSettings shadowSettings                { get { return m_ShadowSettings; } }
-        public TextureSettings textureSettings              { get { return m_TextureSettings; } set { m_TextureSettings = value; } }
-
-        // Renderer Settings (per "scene")
-        [SerializeField] private CommonSettings             m_CommonSettings;
-        [SerializeField] private SkySettings                m_SkySettings;
-
-        public CommonSettings commonSettingsToUse
-        {
-            get
-            {
-                if (CommonSettingsSingleton.overrideSettings)
-                    return CommonSettingsSingleton.overrideSettings;
-
-                return m_CommonSettings;
-            }
-        }
-
-        public SkySettings skySettings
-        {
-            get { return m_SkySettings; }
-            set { m_SkySettings = value; }
-        }
-
-        public SkySettings skySettingsToUse
-        {
-            get
-            {
-                if (SkySettingsSingleton.overrideSettings)
-                    return SkySettingsSingleton.overrideSettings;
-
-                return m_SkySettings;
-            }
-        }
-
-        [SerializeField] private Material m_DefaultDiffuseMaterial;
-        [SerializeField] private Shader m_DefaultShader;
-
-        public Material DefaultDiffuseMaterial
-        {
-            get { return m_DefaultDiffuseMaterial; }
-            private set { m_DefaultDiffuseMaterial = value; }
-        }
-
-        public Shader DefaultShader
-        {
-            get { return m_DefaultShader; }
-            private set { m_DefaultShader = value; }
-        }
-
-        public override Shader GetDefaultShader()
-        {
-            return m_DefaultShader;
-        }
-
-        public override Material GetDefaultMaterial()
-        {
-            return m_DefaultDiffuseMaterial;
-        }
-
-        public override Material GetDefaultParticleMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultLineMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultTerrainMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultUIMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultUIOverdrawMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefaultUIETC1SupportedMaterial()
-        {
-            return null;
-        }
-
-        public override Material GetDefault2DMaterial()
-        {
-            return null;
-        }
-
-        public void ApplyDebugDisplaySettings()
-        {
-            m_ShadowSettings.enabled = debugDisplaySettings.lightingDebugSettings.enableShadows;
-
-            LightingDebugSettings lightingDebugSettings = debugDisplaySettings.lightingDebugSettings;
-            Vector4 debugAlbedo = new Vector4(lightingDebugSettings.debugLightingAlbedo.r, lightingDebugSettings.debugLightingAlbedo.g, lightingDebugSettings.debugLightingAlbedo.b, 0.0f);
-            Vector4 debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
-
-            Shader.SetGlobalInt("_DebugViewMaterial", (int)debugDisplaySettings.GetDebugMaterialIndex());
-            Shader.SetGlobalInt("_DebugLightingMode", (int)debugDisplaySettings.GetDebugLightingMode());
-            Shader.SetGlobalVector("_DebugLightingAlbedo", debugAlbedo);
-            Shader.SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
-        }
-
-        public void UpdateCommonSettings()
-        {
-            if (commonSettingsToUse != null)
-            {
-                var commonSettings = commonSettingsToUse.settings;
-
-                m_ShadowSettings.directionalLightCascadeCount = commonSettings.shadowCascadeCount;
-                m_ShadowSettings.directionalLightCascades = new Vector3(commonSettings.shadowCascadeSplit0, commonSettings.shadowCascadeSplit1, commonSettings.shadowCascadeSplit2);
-                m_ShadowSettings.maxShadowDistance = commonSettings.shadowMaxDistance;
-                m_ShadowSettings.directionalLightNearPlaneOffset = commonSettings.shadowNearPlaneOffset;
-            }
-        }
-
-        public void OnValidate()
-        {
-            debugDisplaySettings.OnValidate();
-            sssSettings.OnValidate();
-        }
-
-        void OnEnable()
-        {
-            debugDisplaySettings.RegisterDebug();
-        }
-    }
-
     [Serializable]
     public class RenderingSettings
     {
@@ -292,9 +83,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTextureReadWrite[] sRGBWrites = new RenderTextureReadWrite[MaxGbuffer];
     }
 
-    public class HDRenderPipelineInstance : RenderPipeline
+    public class HDRenderPipeline : RenderPipeline
     {
-        private readonly HDRenderPipeline m_Owner;
+        private readonly HDRenderPipelineAsset m_Asset;
 
         // TODO: Find a way to automatically create/iterate through deferred material
         // TODO TO CHECK: SebL I move allocation from Build() to here, but there was a comment "// Our object can be garbage collected, so need to be allocate here", it is still true ?
@@ -340,20 +131,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
 
         readonly SkyManager m_SkyManager = new SkyManager();
-        private readonly BaseLightLoop m_LightLoop;
+        readonly LightLoop m_LightLoop = new LightLoop();
 
         private DebugDisplaySettings debugDisplaySettings
         {
-            get { return m_Owner.debugDisplaySettings; }
+            get { return m_Asset.debugDisplaySettings; }
         }
 
         public SubsurfaceScatteringSettings sssSettings
         {
-            get { return m_Owner.sssSettings; }
+            get { return m_Asset.sssSettings; }
         }
-        public HDRenderPipelineInstance(HDRenderPipeline owner)
+        public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
-            m_Owner = owner;
+            m_Asset = asset;
 
             m_CameraColorBuffer             = Shader.PropertyToID("_CameraColorTexture");
             m_CameraSubsurfaceBuffer        = Shader.PropertyToID("_CameraSubsurfaceTexture");
@@ -396,16 +187,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DistortionBuffer = Shader.PropertyToID("_DistortionTexture");
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
 
-            m_LitRenderLoop.Build();
+            m_LitRenderLoop.Build(asset.renderPipelineResources);
 
-            if (owner.lightLoopProducer)
-                m_LightLoop = owner.lightLoopProducer.CreateLightLoop();
+            m_LightLoop.Build(asset.renderPipelineResources, asset.tileSettings, asset.textureSettings);
 
-            if (m_LightLoop != null)
-                m_LightLoop.Build(owner.textureSettings);
-
-            m_SkyManager.Build();
-            m_SkyManager.skySettings = owner.skySettingsToUse;
+            m_SkyManager.Build(asset.renderPipelineResources);
+            m_SkyManager.skySettings = asset.skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
             m_SsaoEffect = new ScreenSpaceAmbientOcclusionEffect(m_gbufferManager.GetGBuffers());
@@ -413,14 +200,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitializeDebugMaterials()
         {
-            m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugViewMaterialGBuffer");
-            m_DebugDisplayLatlong = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DebugDisplayLatlong");
+            m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial(m_Asset.renderPipelineResources.debugViewMaterialGBufferShader);
+            m_DebugDisplayLatlong = Utilities.CreateEngineMaterial(m_Asset.renderPipelineResources.debugDisplayLatlongShader);
         }
 
         public void OnSceneLoad()
         {
             // Recreate the textures which went NULL, and set 'isInit' to 'false'.
-            m_LitRenderLoop.Build();
+            m_LitRenderLoop.Build(m_Asset.renderPipelineResources);
         }
 
         public override void Dispose()
@@ -484,7 +271,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: This is the wrong way to handle resize/allocation. We can have several different camera here, mean that the loop on camera will allocate and deallocate
             // the below buffer which is bad. Best is to have a set of buffer for each camera that is persistent and reallocate resource if need
             // For now consider we have only one camera that go to this code, the main one.
-            m_SkyManager.skySettings = m_Owner.skySettingsToUse;
+            m_SkyManager.skySettings = m_Asset.skySettingsToUse;
             m_SkyManager.Resize(camera.nearClipPlane, camera.farClipPlane); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
 
             if (m_LightLoop == null)
@@ -596,8 +383,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_LightLoop != null)
                 m_LightLoop.NewFrame();
 
-            m_Owner.ApplyDebugDisplaySettings();
-            m_Owner.UpdateCommonSettings();
+            m_Asset.ApplyDebugDisplaySettings();
+            m_Asset.UpdateCommonSettings();
 
             // Set Frame constant buffer
             // TODO...
@@ -647,7 +434,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // If full forward rendering, we did not do any rendering yet, so don't need to copy the buffer.
             // If Deferred then the depth buffer is full (regular GBuffer + ForwardOnly depth prepass are done so we can copy it safely.
-            if (!m_Owner.renderingSettings.useForwardRenderingOnly)
+            if (!m_Asset.renderingSettings.useForwardRenderingOnly)
             {
                 CopyDepthBufferIfNeeded(renderContext);
 
@@ -668,14 +455,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new Utilities.ProfilingSample("Build Light list and render shadows", renderContext))
                     {
-                        m_LightLoop.PrepareLightsForGPU(m_Owner.shadowSettings, cullResults, camera);
+                        m_LightLoop.PrepareLightsForGPU(m_Asset.shadowSettings, cullResults, camera);
                         m_LightLoop.RenderShadows(renderContext, cullResults);
                         renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
                         m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT); // TODO: Use async compute here to run light culling during shadow
                     }
                 }
 
-                PushGlobalParams(hdCamera, renderContext, m_Owner.sssSettings);
+                PushGlobalParams(hdCamera, renderContext, m_Asset.sssSettings);
 
                 // Caution: We require sun light here as some sky use the sun light to render, mean UpdateSkyEnvironment
                 // must be call after BuildGPULightLists.
@@ -687,7 +474,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We compute subsurface scattering here. Therefore, no objects rendered afterwards will exhibit SSS.
                 // Currently, there is no efficient way to switch between SRT and MRT for the forward pass;
                 // therefore, forward-rendered objects do not output split lighting required for the SSS pass.
-                CombineSubsurfaceScattering(hdCamera, renderContext, m_Owner.sssSettings);
+                CombineSubsurfaceScattering(hdCamera, renderContext, m_Asset.sssSettings);
 
                 // For opaque forward we have split rendering in two categories
                 // Material that are always forward and material that can be deferred or forward depends on render pipeline options (like switch to rendering forward only mode)
@@ -699,7 +486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // If full forward rendering, we did just rendered everything, so we can copy the depth buffer
                 // If Deferred nothing needs copying anymore.
-                if (m_Owner.renderingSettings.useForwardRenderingOnly)
+                if (m_Asset.renderingSettings.useForwardRenderingOnly)
                 {
                     CopyDepthBufferIfNeeded(renderContext);
                 }
@@ -778,7 +565,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // If we are forward only we will do a depth prepass
             // TODO: Depth prepass should be enabled based on light loop settings. LightLoop define if they need a depth prepass + forward only...
-            if (!m_Owner.renderingSettings.useDepthPrepass)
+            if (!m_Asset.renderingSettings.useDepthPrepass)
                 return;
 
             using (new Utilities.ProfilingSample("Depth Prepass", renderContext))
@@ -792,7 +579,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderGBuffer(CullResults cull, Camera camera, ScriptableRenderContext renderContext)
         {
-            if (m_Owner.renderingSettings.ShouldUseForwardRenderingOnly())
+            if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
             {
                 return;
             }
@@ -813,7 +600,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // If we are forward only we don't need to render ForwardOnlyOpaqueDepthOnly object
             // But in case we request a prepass we render it
-            if (m_Owner.renderingSettings.ShouldUseForwardRenderingOnly() && !m_Owner.renderingSettings.useDepthPrepass)
+            if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() && !m_Asset.renderingSettings.useDepthPrepass)
                 return;
 
             using (new Utilities.ProfilingSample("Forward opaque depth", renderContext))
@@ -833,7 +620,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Render GBuffer opaque
-            if (!m_Owner.renderingSettings.ShouldUseForwardRenderingOnly())
+            if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
             {
                 Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewMaterialGBuffer);
 
@@ -861,7 +648,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
-            if (m_Owner.renderingSettings.ShouldUseForwardRenderingOnly() || m_LightLoop == null)
+            if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() || m_LightLoop == null)
             {
                 return;
             }
@@ -882,7 +669,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void CombineSubsurfaceScattering(HDCamera hdCamera, ScriptableRenderContext context, SubsurfaceScatteringSettings sssParameters)
         {
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
-            if (m_Owner.renderingSettings.ShouldUseForwardRenderingOnly()) return;
+            if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly()) return;
 
             if (!debugDisplaySettings.renderingDebugSettings.enableSSS) return;
 
@@ -932,7 +719,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // TODO: Currently we can't render opaque object forward when deferred is enabled
             // miss option
-            if (!m_Owner.renderingSettings.ShouldUseForwardRenderingOnly() && renderOpaque)
+            if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() && renderOpaque)
                 return;
 
             string passName = debugDisplaySettings.IsDebugDisplayEnabled() ? "ForwardDisplayDebug" : "Forward";
@@ -976,7 +763,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new Utilities.ProfilingSample("Velocity", renderContext))
             {
                 // If opaque velocity have been render during GBuffer no need to render it here
-                if ((ShaderConfig.s_VelocityInGbuffer == 1) || m_Owner.renderingSettings.ShouldUseForwardRenderingOnly())
+                if ((ShaderConfig.s_VelocityInGbuffer == 1) || m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                     return;
 
                 int w = camera.pixelWidth;
@@ -1105,7 +892,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.GetTemporaryRT(m_CameraSubsurfaceBuffer,        w, h,  0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
                     cmd.GetTemporaryRT(m_CameraFilteringBuffer,         w, h,  0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
 
-                    if (!m_Owner.renderingSettings.ShouldUseForwardRenderingOnly())
+                    if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                     {
                         m_gbufferManager.InitGBuffers(w, h, cmd);
                     }
@@ -1137,7 +924,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Clear GBuffers
-                if (!m_Owner.renderingSettings.ShouldUseForwardRenderingOnly())
+                if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
                 {
                     using (new Utilities.ProfilingSample("Clear GBuffer", renderContext))
                     {

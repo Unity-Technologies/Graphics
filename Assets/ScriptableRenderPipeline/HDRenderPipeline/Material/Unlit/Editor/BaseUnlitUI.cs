@@ -25,6 +25,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
             public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
+
+            public static string advancedText = "Advanced Options";
         }
 
         public enum SurfaceType
@@ -311,7 +313,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 MaterialPropertiesGUI(material);
 
                 DoEmissionArea(material);
+
+                GUILayout.Label(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
+                // NB renderqueue editor is not shown on purpose: we want to override it based on blend mode
                 m_MaterialEditor.EnableInstancingField();
+                m_MaterialEditor.DoubleSidedGIField();
             }
 
             if (EditorGUI.EndChangeCheck())

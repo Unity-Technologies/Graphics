@@ -1,0 +1,53 @@
+// Precomputes data for IntegrateLD(). See that function for a detailed description.
+
+#include "../../ShaderLibrary/Common.hlsl"
+#include "../../ShaderLibrary/ImageBasedLighting.hlsl"
+
+#ifdef SHADER_API_MOBILE
+#define MAX_IBL_SAMPLE_CNT 34
+#else
+#define MAX_IBL_SAMPLE_CNT 89
+#endif
+
+RWTexture2D<float4> output; // [MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS]
+
+#pragma kernel ComputeGgxIblSampleData
+
+[numthreads(MAX_IBL_SAMPLE_CNT, UNITY_SPECCUBE_LOD_STEPS, 1)]
+void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
+{
+    uint sampleIndex = groupThreadId.x;
+    uint mipLevel    = groupThreadId.y + 1;
+    uint sampleCount = GetIBLRuntimeFilterSampleCount(mipLevel);
+
+    if (sampleIndex >= sampleCount)
+    {
+        output[groupThreadId.xy] = float4(0, 0, 0, 0);
+        return;
+    }
+
+    float perceptualRoughness = MipmapLevelToPerceptualRoughness(mipLevel);
+    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+
+    float bias = 0.5 * roughness;
+
+    float2 u = Fibonacci2d(sampleIndex, sampleCount);
+    u.x = lerp(u.x, 0, bias);
+
+    float3 localL;
+    float  NdotL, NdotH, VdotH;
+
+    SampleGGXDir(u, float3(0, 0, 1), k_identity3x3, roughness, localL, NdotL, NdotH, VdotH, true);
+
+    if (NdotL <= 0)
+    {
+        // We are not supposed to generate wasteful samples.
+        output[groupThreadId.xy] = float4(0, 0, 0, 0);
+        return;
+    }
+
+    float pdf    = D_GGX(NdotH, roughness) * 0.25;
+    float omegaS = rcp(sampleCount * pdf);
+
+    output[groupThreadId.xy] = float4(localL, omegaS);
+}
