@@ -18,7 +18,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UnityEditor.AssetDatabase.CreateAsset(instance, TilePassProducer);
 
 
-            instance.m_PassResources = AssetDatabase.LoadAssetAtPath<TilePassResources>(TilePassResources.tilePassResources);
         }
 
 #endif
@@ -70,9 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        private TilePassResources m_PassResources;
 
-        public TilePassResources passResources
         {
             get { return m_PassResources; }
             set { m_PassResources = value; }

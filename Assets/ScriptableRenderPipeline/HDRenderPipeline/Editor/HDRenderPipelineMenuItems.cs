@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipelineMenuItems
     {
-        // This script is a helper for the artits to re-synchronise all layered materials
+        // This script is a helper for the artists to re-synchronise all layered materials
         [MenuItem("HDRenderPipeline/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
@@ -81,6 +81,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // TEMP: will be remove after data upgrade
         [MenuItem("HDRenderPipeline/Swap standard and SSS material IDs")]
         static void SwapStandardAndSssMaterialIds()
         {
@@ -121,6 +122,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // Funtion used only to check performance of data with and without tessellation
         [MenuItem("HDRenderPipeline/Debug/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()
         {

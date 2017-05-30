@@ -22,4 +22,4 @@ MonoBehaviour:
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     tileDebugByCategory: 0
-  m_PassResources: {fileID: 11400000, guid: 7f2998544b2ac3848822b80ec3e6c446, type: 2}
+  m_PassResources: {fileID: 11400000, guid: 42086e81f4f0c724f96f7f09cc995354, type: 2}
