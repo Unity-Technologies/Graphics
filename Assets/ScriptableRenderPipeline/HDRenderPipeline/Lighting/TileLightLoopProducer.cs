@@ -16,9 +16,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var instance = CreateInstance<TileLightLoopProducer>();
             UnityEditor.AssetDatabase.CreateAsset(instance, TilePassProducer);
-
-
-            instance.m_PassResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(RenderPipelineResources.renderPipelineResourcesPath);
         }
 
 #endif
@@ -69,18 +66,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_TileSettings = value; }
         }
 
-        [SerializeField]
-        private RenderPipelineResources m_PassResources;
-
-        public RenderPipelineResources passResources
+        public override BaseLightLoop CreateLightLoop(RenderPipelineResources renderPipelineResources)
         {
-            get { return m_PassResources; }
-            set { m_PassResources = value; }
-        }
-
-        public override BaseLightLoop CreateLightLoop()
-        {
-            return new LightLoop(this);
+            return new LightLoop(this, renderPipelineResources);
         }
     }
 }

@@ -189,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LitRenderLoop.Build();
 
             if (asset.lightLoopProducer)
-                m_LightLoop = asset.lightLoopProducer.CreateLightLoop();
+                m_LightLoop = asset.lightLoopProducer.CreateLightLoop(asset.renderPipelineResources);
 
             if (m_LightLoop != null)
                 m_LightLoop.Build(asset.textureSettings);

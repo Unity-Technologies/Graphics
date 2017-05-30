@@ -21,6 +21,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var instance = CreateInstance<HDRenderPipelineAsset>();
             AssetDatabase.CreateAsset(instance, k_HDRenderPipelinePath);
+
+            // If it exist, load renderPipelineResources
+            instance.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(RenderPipelineResources.renderPipelineResourcesPath);
         }
 
         [UnityEditor.MenuItem("HDRenderPipeline/Add \"Additional Light Data\" (if not present)")]
@@ -53,6 +56,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return m_LightLoopProducer; }
             set { m_LightLoopProducer = value; }
+        }
+
+        [SerializeField]
+        private RenderPipelineResources m_RenderPipelineResources;
+        public RenderPipelineResources renderPipelineResources
+        {
+            get { return m_RenderPipelineResources; }
+            set { m_RenderPipelineResources = value; }
         }
 
         // NOTE:

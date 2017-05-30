@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string buildPerVoxelLightListShaderPath = "Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/lightlistbuild-clustered.compute";
         public const string shadeOpaqueShaderPath = "Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/shadeopaque.compute";
 
-        [UnityEditor.MenuItem("HDRenderPipeline/CreateRenderPipelineResources")]
+        [UnityEditor.MenuItem("RenderPipeline/HDRenderPipeline/Create Resources Asset")]
         static void CreateRenderPipelineResources()
         {
             var instance = CreateInstance<RenderPipelineResources>();
