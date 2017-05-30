@@ -78,7 +78,7 @@ inline void NormalMap(v2f i, out half3 normal)
 #endif
 }
 
-inline void SpecularGloss(half2 uv, half3 diffuse, half alpha, out half4 specularGloss)
+inline void SpecularGloss(half2 uv, half alpha, out half4 specularGloss)
 {
 #ifdef _SPECGLOSSMAP
     specularGloss = tex2D(_SpecGlossMap, uv) * _SpecColor;
@@ -90,12 +90,12 @@ inline void SpecularGloss(half2 uv, half3 diffuse, half alpha, out half4 specula
 #endif
 }
 
-inline void Emission(v2f i, out half3 emission)
+inline void Emission(half2 uv, inout half3 color)
 {
-#ifdef _EMISSION_MAP
-    emission = tex2D(_EmissionMap, i.uv01.xy) * _EmissionColor;
+#ifdef _EMISSION
+    color += tex2D(_EmissionMap, uv) * _EmissionColor;
 #else
-    emission = _EmissionColor;
+    color += _EmissionColor;
 #endif
 }
 
