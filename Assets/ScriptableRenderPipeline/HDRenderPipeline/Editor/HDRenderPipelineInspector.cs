@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_NumProfiles = m_Profiles.FindPropertyRelative("Array.size");
         }
 
-        SerializedProperty FindProperty<TValue>(Expression<Func<HDRenderPipeline, TValue>> expr)
+        SerializedProperty FindProperty<TValue>(Expression<Func<HDRenderPipelineAsset, TValue>> expr)
         {
             var path = Utilities.GetFieldPath(expr);
             return serializedObject.FindProperty(path);
@@ -136,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 method.Invoke(asset, new object[0]);
         }
 
-        private void SssSettingsUI(HDRenderPipeline pipe)
+        private void SssSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
 
@@ -157,7 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void SettingsUI(HDRenderPipeline renderContext)
+        private void SettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.LabelField(styles.settingsLabel);
             EditorGUI.indentLevel++;
@@ -180,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void ShadowSettingsUI(HDRenderPipeline renderContext)
+        private void ShadowSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
             var shadowSettings = renderContext.shadowSettings;
@@ -199,7 +199,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void RendereringSettingsUI(HDRenderPipeline renderContext)
+        private void RendereringSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.renderingSettingsLabel);
@@ -209,7 +209,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        private void TextureSettingsUI(HDRenderPipeline renderContext)
+        private void TextureSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
             var textureSettings = renderContext.textureSettings;
@@ -237,10 +237,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            var renderContext = target as HDRenderPipeline;
-            HDRenderPipelineInstance renderpipelineInstance = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+            var renderContext = target as HDRenderPipelineAsset;
+            HDRenderPipeline renderpipeline = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
-            if (!renderContext || renderpipelineInstance == null)
+            if (!renderContext || renderpipeline == null)
                 return;
 
             serializedObject.Update();

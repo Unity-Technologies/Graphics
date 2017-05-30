@@ -156,14 +156,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [MenuItem("HDRenderPipeline/Export Sky to Image")]
         static void ExportSkyToImage()
         {
-            HDRenderPipelineInstance renderpipelineInstance = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
-            if(renderpipelineInstance == null)
+            HDRenderPipeline renderpipeline = UnityEngine.Experimental.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if(renderpipeline == null)
             {
                 Debug.LogError("HDRenderPipeline is not instantiated.");
                 return;
             }
 
-            Texture2D result = renderpipelineInstance.ExportSkyToTexture();
+            Texture2D result = renderpipeline.ExportSkyToTexture();
             if(result == null)
             {
                 return;

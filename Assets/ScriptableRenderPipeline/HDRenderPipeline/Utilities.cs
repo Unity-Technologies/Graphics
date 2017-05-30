@@ -326,18 +326,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static HDRenderPipeline GetHDRenderPipeline()
-        {
-            HDRenderPipeline renderContext = GraphicsSettings.renderPipelineAsset as HDRenderPipeline;
-            if (renderContext == null)
-            {
-                Debug.LogWarning("HDRenderPipeline is not instantiated.");
-                return null;
-            }
-
-            return renderContext;
-        }
-
         // Draws a full screen triangle as a faster alternative to drawing a full screen quad.
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material, HDCamera camera,
             RenderTargetIdentifier colorBuffer,
