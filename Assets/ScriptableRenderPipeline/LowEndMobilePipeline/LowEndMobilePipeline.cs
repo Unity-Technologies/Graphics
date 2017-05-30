@@ -154,7 +154,6 @@ namespace UnityEngine.Experimental.Rendering.LowendMobile
             }
 
             context.Submit();
-            Shader.globalRenderPipeline = prevPipe;
         }
 
         private void BuildShadowSettings()

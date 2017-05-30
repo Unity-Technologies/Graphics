@@ -105,7 +105,7 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
         m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMapProp);
 
         EditorGUILayout.Space();
-        m_MaterialEditor.TexturePropertySingleLine(Styles.emissionMapLabel, emissionMapProp, emissionColorProp);
+        DoEmission();
 
         EditorGUILayout.Space();
         DoReflection();
@@ -211,6 +211,21 @@ public class LowendMobilePipelineMaterialEditor : ShaderGUI
                     kMinShininessValue, 1.0f);
             if (EditorGUI.EndChangeCheck())
                 shininessProp.floatValue = shininess;
+        }
+    }
+
+    private void DoEmission()
+    {
+        if (m_MaterialEditor.EmissionEnabledProperty())
+        {
+            bool hadEmissionMap = emissionMapProp.textureValue != null;
+            m_MaterialEditor.TexturePropertySingleLine(Styles.emissionMapLabel, emissionMapProp, emissionColorProp);
+
+            float maxValue = emissionColorProp.colorValue.maxColorComponent;
+            if (emissionMapProp.textureValue != null && !hadEmissionMap && maxValue <= 0.0f)
+                emissionColorProp.colorValue = Color.white;
+
+            m_MaterialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
         }
     }
 
