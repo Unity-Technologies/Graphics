@@ -44,5 +44,5 @@ VFXFlowAnchor #connector.anchorHighlight{
 
 VFXFlowEdge
 {
-	edge-width:3;
+	edge-width:4;
 }
