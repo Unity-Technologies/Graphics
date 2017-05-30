@@ -52,10 +52,17 @@
 // Include
 //-------------------------------------------------------------------------------------
 
+#include "../../../ShaderLibrary/Common.hlsl"
+#include "../../Debug/DebugDisplay.hlsl"
 
 // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
+// deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
 // the deferred shader will require to use multicompile.
 #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
+#include "../../ShaderConfig.cs.hlsl"
+#include "../../ShaderVariables.hlsl"
+#include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
+#include "../../Lighting/TilePass/FeatureFlags.hlsl"
 //-------------------------------------------------------------------------------------
 // variable declaration
 //-------------------------------------------------------------------------------------
@@ -91,6 +98,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, groupId);
 	uint featureFlags = 0xFFFFFFFF;
 #endif
+
     float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).x;
     UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
