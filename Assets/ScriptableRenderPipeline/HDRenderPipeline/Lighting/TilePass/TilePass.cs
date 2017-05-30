@@ -406,10 +406,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             TileLightLoopProducer.TileSettings m_PassSettings;
             private RenderPipelineResources m_PassResources;
 
-            public LightLoop(TileLightLoopProducer producer)
+            public LightLoop(TileLightLoopProducer producer, RenderPipelineResources renderPipelineResources)
             {
                 m_PassSettings = producer.tileSettings;
-                m_PassResources = producer.passResources;
+                m_PassResources = renderPipelineResources;
             }
 
             public override void Build(TextureSettings textureSettings)
