@@ -64,7 +64,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
             ZWrite[_ZWrite]
 
             CGPROGRAM
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
@@ -159,7 +159,7 @@ Shader "ScriptableRenderPipeline/LowEndMobile/NonPBR"
                     LightInput lightData;
                     half NdotL;
                     INITIALIZE_LIGHT(lightData, lightIndex);
-                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL); 
+                    color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL);
 #ifdef _SHADOWS
                     if (lightIndex == 0)
                     {

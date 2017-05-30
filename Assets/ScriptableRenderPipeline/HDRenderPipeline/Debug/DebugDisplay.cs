@@ -14,13 +14,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VisualizeCascade
     }
 
-    [Serializable]
     public class DebugDisplaySettings
     {
         public float debugOverlayRatio = 0.33f;
-        public bool displayMaterialDebug = false;
-        public bool displayRenderingDebug = false;
-        public bool displayLightingDebug = false;
 
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
@@ -101,20 +97,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Rate", () => 1.0f / Time.deltaTime, null, true);
             DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Time", () => Time.deltaTime * 1000.0f, null, true);
 
-            DebugMenuManager.instance.AddDebugItem<int>("Material", "Material",() => materialDebugSettings.debugViewMaterial, (value) => SetDebugViewMaterial((int)value), false, new DebugItemDrawerIntEnum(DebugDisplaySettings.debugViewMaterialStrings, DebugDisplaySettings.debugViewMaterialValues));
-            DebugMenuManager.instance.AddDebugItem<int>("Material", "Engine",() => materialDebugSettings.debugViewEngine, (value) => SetDebugViewEngine((int)value), false, new DebugItemDrawerIntEnum(DebugDisplaySettings.debugViewEngineStrings, DebugDisplaySettings.debugViewEngineValues));
+            DebugMenuManager.instance.AddDebugItem<int>("Material", "Material",() => materialDebugSettings.debugViewMaterial, (value) => SetDebugViewMaterial((int)value), false, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewMaterialStrings, DebugDisplaySettings.debugViewMaterialValues));
+            DebugMenuManager.instance.AddDebugItem<int>("Material", "Engine",() => materialDebugSettings.debugViewEngine, (value) => SetDebugViewEngine((int)value), false, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewEngineStrings, DebugDisplaySettings.debugViewEngineValues));
             DebugMenuManager.instance.AddDebugItem<Attributes.DebugViewVarying>("Material", "Attributes",() => materialDebugSettings.debugViewVarying, (value) => SetDebugViewVarying((Attributes.DebugViewVarying)value));
-            DebugMenuManager.instance.AddDebugItem<int>("Material", "GBuffer",() => materialDebugSettings.debugViewGBuffer, (value) => SetDebugViewGBuffer((int)value), false, new DebugItemDrawerIntEnum(DebugDisplaySettings.debugViewMaterialGBufferStrings, DebugDisplaySettings.debugViewMaterialGBufferValues));
+            DebugMenuManager.instance.AddDebugItem<int>("Material", "GBuffer",() => materialDebugSettings.debugViewGBuffer, (value) => SetDebugViewGBuffer((int)value), false, new DebugItemHandlerIntEnum(DebugDisplaySettings.debugViewMaterialGBufferStrings, DebugDisplaySettings.debugViewMaterialGBufferValues));
 
-            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, bool>("Enable Shadows", () => lightingDebugSettings.enableShadows, (value) => lightingDebugSettings.enableShadows = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, ShadowMapDebugMode>("Shadow Debug Mode", () => lightingDebugSettings.shadowDebugMode, (value) => lightingDebugSettings.shadowDebugMode = (ShadowMapDebugMode)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, uint>("Shadow Map Index", () => lightingDebugSettings.shadowMapIndex, (value) => lightingDebugSettings.shadowMapIndex = (uint)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, DebugLightingMode>("Lighting Debug Mode", () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, bool>("Override Smoothness", () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, float>("Override Smoothness Value", () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, false, new DebugItemDrawFloatMinMax(0.0f, 1.0f));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, Color>("Debug Lighting Albedo", () => lightingDebugSettings.debugLightingAlbedo, (value) => lightingDebugSettings.debugLightingAlbedo = (Color)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>("Enable Shadows", () => lightingDebugSettings.enableShadows, (value) => lightingDebugSettings.enableShadows = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, ShadowMapDebugMode>("Shadow Debug Mode", () => lightingDebugSettings.shadowDebugMode, (value) => lightingDebugSettings.shadowDebugMode = (ShadowMapDebugMode)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>("Shadow Map Index", () => lightingDebugSettings.shadowMapIndex, (value) => lightingDebugSettings.shadowMapIndex = (uint)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, DebugLightingMode>("Lighting Debug Mode", () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>("Override Smoothness", () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>("Override Smoothness Value", () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, false, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, Color>("Debug Lighting Albedo", () => lightingDebugSettings.debugLightingAlbedo, (value) => lightingDebugSettings.debugLightingAlbedo = (Color)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Lighting", "Display Sky Reflection", () => lightingDebugSettings.displaySkyReflection, (value) => lightingDebugSettings.displaySkyReflection = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugMenu, float>("Sky Reflection Mipmap", () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value, false, new DebugItemDrawFloatMinMax(0.0f, 1.0f));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>("Sky Reflection Mipmap", () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value, false, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
 
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Opaque",() => renderingDebugSettings.displayOpaqueObjects, (value) => renderingDebugSettings.displayOpaqueObjects = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Transparency",() => renderingDebugSettings.displayTransparentObjects, (value) => renderingDebugSettings.displayTransparentObjects = (bool)value);
