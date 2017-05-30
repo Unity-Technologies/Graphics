@@ -57,11 +57,10 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             //-------------------------------------------------------------------------------------
 
             // Computes the value of the integrand over a disk: (2 * PI * r) * KernelVal().
-            // N.b.: the returned value is multiplied by 4.
+            // N.b.: the returned value is multiplied by 4. It is irrelevant due to weight renormalization.
             float3 KernelValCircle(float r, float3 S)
             {
                 float3 expOneThird = exp((-r * (1.0 / 3.0)) * S);
-                // We can skip the multiplication by 0.25 due to weight renormalization.
                 return /* 0.25 * */ S * (expOneThird + expOneThird * expOneThird * expOneThird);
             }
 

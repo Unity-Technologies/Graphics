@@ -209,6 +209,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [NonSerialized] public uint          transmissionFlags;         // 2 bit/profile; 0 = None, 1 = ThinObject, 2 = ThickObject
         [NonSerialized] public float[]       thicknessRemaps;           // Remap: 0 = start, 1 = end - start
         [NonSerialized] public Vector4[]     shapeParameters;           // RGB = S = 1 / D, A = filter radius
+        [NonSerialized] public Vector4[]     surfaceAlbedos;            // RGB = color, A = unused
         [NonSerialized] public float[]       filterKernelsNearField;    // 0 = radius, 1 = reciprocal of the PDF
         [NonSerialized] public float[]       filterKernelsFarField;     // 0 = radius, 1 = reciprocal of the PDF
 
@@ -279,6 +280,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 shapeParameters = new Vector4[shapeParametersLen];
             }
 
+            const int surfaceAlbedosLen = SssConstants.SSS_N_PROFILES;
+            if (surfaceAlbedos == null || surfaceAlbedos.Length != surfaceAlbedosLen)
+            {
+                surfaceAlbedos = new Vector4[surfaceAlbedosLen];
+            }
+
             const int filterKernelsNearFieldLen = 2 * SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_NEAR_FIELD;
             if (filterKernelsNearField == null || filterKernelsNearField.Length != filterKernelsNearFieldLen)
             {
@@ -305,6 +312,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 thicknessRemaps[2 * i + 1] = profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x;
                 shapeParameters[i]         = profiles[i].shapeParameter;
                 shapeParameters[i].w       = profiles[i].scatteringDistance;
+                surfaceAlbedos[i]          = profiles[i].surfaceAlbedo;
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                 {
@@ -324,6 +332,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int i = SssConstants.SSS_NEUTRAL_PROFILE_ID;
 
                 shapeParameters[i] = Vector4.zero;
+                surfaceAlbedos[i]  = Vector4.zero;
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                 {

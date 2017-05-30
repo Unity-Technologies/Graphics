@@ -69,7 +69,6 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
                 float3 S = _ShapeParameter.rgb;
                 float3 T = 0.5 * exp(-d * S) + 0.5 * exp(-d * S * (1.0 / 3.0));
 
-                // N.b.: we multiply by the surface albedo of the actual geometry during shading.
                 return float4(T * _SurfaceAlbedo.rgb, 1);
             }
             ENDHLSL
