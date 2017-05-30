@@ -370,8 +370,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, interpolatedVertexNormal, _HorizonFade);
 
-    // Convert thickness along the normal to thickness along the viewing direction.
-    surfaceData.thickness *= saturate(dot(interpolatedVertexNormal, V));
+    uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2, 2 * surfaceData.subsurfaceProfile);
+
+    if (transmissionMode != SSS_TRSM_MODE_THIN)
+    {
+        // Convert thickness along the normal to thickness along the viewing direction.
+        surfaceData.thickness *= saturate(dot(interpolatedVertexNormal, V));
+    }
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
