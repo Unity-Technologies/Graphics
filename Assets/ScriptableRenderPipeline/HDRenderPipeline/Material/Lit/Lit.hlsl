@@ -125,7 +125,7 @@ float3 ComputeTransmittance(float3 S, float3 surfaceAlbedo, float thickness, flo
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
     // thickness /= radiusScale;
 
-    float3 expOneThird = exp((-thickness * (1.0 / 3.0)) * S);
+    float3 expOneThird = exp(((-1.0 / 3.0) * thickness) * S);
 
     return 0.5 * (expOneThird + expOneThird * expOneThird * expOneThird) * surfaceAlbedo;
 }

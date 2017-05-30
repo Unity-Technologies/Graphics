@@ -60,7 +60,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // N.b.: the returned value is multiplied by 4. It is irrelevant due to weight renormalization.
             float3 KernelValCircle(float r, float3 S)
             {
-                float3 expOneThird = exp((-r * (1.0 / 3.0)) * S);
+                float3 expOneThird = exp(((-1.0 / 3.0) * r) * S);
                 return /* 0.25 * */ S * (expOneThird + expOneThird * expOneThird * expOneThird);
             }
 
@@ -144,6 +144,9 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                     // Perform integration over the screen-aligned plane in the view space.
                     // TODO: it would be more accurate to use the tangent plane in the world space.
+
+                    int invalidSampleCount = 0;
+
                     [unroll]
                     for (uint i = 1; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
                     {
@@ -159,6 +162,14 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
 
                         [flatten]
+                        if (rawDepth == 0)
+                        {
+                            // Our sample comes from a region without any geometry.
+                            invalidSampleCount++;
+                            continue;
+                        }
+
+                        [flatten]
                         if (any(sampleIrradiance) == false)
                         {
                             // The irradiance is 0. This could happen for 2 reasons.
@@ -167,6 +178,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                             // Our blur is energy-preserving, so 'sampleWeight' should be set to 0.
                             // We do not terminate the loop since we want to gather the contribution
                             // of the remaining samples (e.g. in case of hair covering skin).
+                            invalidSampleCount++;
                             continue;
                         }
 
@@ -179,11 +191,20 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         totalWeight     += sampleWeight;
                     }
 
+                    [branch]
+                    if (invalidSampleCount > SSS_N_SAMPLES_NEAR_FIELD / 2)
+                    {
+                        // Do not blur.
+                        samplePosition   = posInput.unPositionSS;
+                        sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
+                        return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                    }
+
                     return float4(bsdfData.diffuseColor * totalIrradiance / totalWeight, 1);
                 }
                 else
                 {
-                    return float4(0, 0, 0, 0); // TODO
+                    return float4(0, 0, 0, 1); // TODO
                 }
             }
             ENDHLSL
