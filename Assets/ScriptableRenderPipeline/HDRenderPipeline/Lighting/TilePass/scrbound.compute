@@ -3,6 +3,8 @@
 
 #pragma kernel ScreenBoundsAABB
 
+#include "../../../ShaderLibrary/common.hlsl"
+#include "TilePass.cs.hlsl"
 
 uniform int g_iNrVisibLights;
 uniform float4x4 g_mInvProjection;
@@ -32,12 +34,14 @@ unsigned int GetClip(const float4 P);
 int ClipAgainstPlane(const int iSrcIndex, const int iNrSrcVerts, const int subLigt, const int p);
 void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, out float2 vMax, float4x4 InvProjection, float3 pos_view_space, float r);
 
+#include "LightingConvexHullUtils.hlsl"
 
 
 [numthreads(NR_THREADS, 1, 1)]
 void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
 	uint groupID = u3GroupID.x;
+
 	//uint vindex = groupID * NR_THREADS + threadID;
 	unsigned int g = groupID;
 	unsigned int t = threadID;
@@ -45,7 +49,9 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	const int subLigt = (int) (t/8);
 	const int lgtIndex = subLigt+(int) g*8;
 	const int sideIndex = (int) (t%8);
+
 	SFiniteLightBound lgtDat = g_data[lgtIndex];
+
 	const float3 boxX = lgtDat.boxAxisX.xyz;
 	const float3 boxY = lgtDat.boxAxisY.xyz;
 	const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip axis (so it points away from the light direction for a spot-light)
@@ -72,6 +78,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 			const unsigned int uFlag3 = GetClip(vP3);
 
 			const float4 vPnts[] = {vP0, vP1, vP2, vP3};
+
 			// screen-space AABB of one quad (assuming no intersection)
 			float3 vMin, vMax;
 			for(int k=0; k<4; k++)
@@ -82,6 +89,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 				fW = fS * (fWabs<FLT_EPSILON ? FLT_EPSILON : fWabs);
 				float3 vP = float3(vPnts[k].x/fW, vPnts[k].y/fW, vPnts[k].z/fW);
 				if(k==0) { vMin=vP; vMax=vP; }
+
 				vMax = max(vMax, vP); vMin = min(vMin, vP);
 			}
 
@@ -139,10 +147,12 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
 						float3 vFaceMi = float3(posX[subLigt*MAX_PNTS*2 + sideIndex + 0], posY[subLigt*MAX_PNTS*2 + sideIndex + 0], posZ[subLigt*MAX_PNTS*2 + sideIndex + 0]);
 						float3 vFaceMa = float3(posX[subLigt*MAX_PNTS*2 + sideIndex + 6], posY[subLigt*MAX_PNTS*2 + sideIndex + 6], posZ[subLigt*MAX_PNTS*2 + sideIndex + 6]);
+
 						for(int k=0; k<2; k++)
 						{
 							float3 vP = k==0 ? vFaceMi : vFaceMa;
 							if(f==0 && k==0) { vMin=vP; vMax=vP; }
+
 							vMax = max(vMax, vP); vMin = min(vMin, vP);
 						}
 					}
@@ -151,15 +161,18 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 			}
 			else		// :( need true clipping
 			{
+
 				for(f=0; f<6; f++)
 				{
 					float3 q0, q1, q2, q3;
 					GetQuad(q0, q1, q2, q3, boxX, boxY, boxZ, center, scaleXY, f);
+
 					// 4 vertices to a quad of the convex hull in post projection space
 					const float4 vP0 = mul(g_mProjection, float4(q0, 1));
 					const float4 vP1 = mul(g_mProjection, float4(q1, 1));
 					const float4 vP2 = mul(g_mProjection, float4(q2, 1));
 					const float4 vP3 = mul(g_mProjection, float4(q3, 1));
+
 
 					int iSrcIndex = 0;
 
@@ -191,12 +204,15 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 						for(int k=0; k<iNrSrcVerts; k++)
 						{
 							float4 vCur = float4(posX[offs_src+k], posY[offs_src+k], posZ[offs_src+k], posW[offs_src+k]);
+
 							// project and apply toward AABB
 							float3 vP = float3(vCur.x/vCur.w, vCur.y/vCur.w, vCur.z/vCur.w);
 							if(!bSetBoundYet) { vMin=vP; vMax=vP; bSetBoundYet=true; }
+
 							vMax = max(vMax, vP); vMin = min(vMin, vP);
 						}
 					}
+
 				}
 
 				////////////////////// look for camera frustum verts that need to be included. That is frustum vertices inside the convex hull for the light
@@ -204,6 +220,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 				for(i=0; i<8; i++)	// establish 8 camera frustum vertices
 				{
 					float3 vVertPSpace = float3((i&1)!=0 ? 1 : (-1), (i&2)!=0 ? 1 : (-1), (i&4)!=0 ? 1 : 0);
+
 					float4 v4ViewSpace = mul(g_mInvProjection, float4(vVertPSpace,1));
 					float3 vViewSpace = float3(v4ViewSpace.x/v4ViewSpace.w, v4ViewSpace.y/v4ViewSpace.w, v4ViewSpace.z/v4ViewSpace.w);
 
@@ -234,10 +251,12 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 						float3 vP = float3((i&1)!=0 ? 1 : (-1), (i&2)!=0 ? 1 : (-1), (i&4)!=0 ? 1 : 0);
 
 						if(!bSetBoundYet) { vMin=vP; vMax=vP; bSetBoundYet=true; }
+
 						vMax = max(vMax, vP); vMin = min(vMin, vP);
 					}
 				}
 			}
+
 
 
 
@@ -259,6 +278,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 					float2 vMi, vMa;
 					bool2 bMi, bMa;
 					CalcBound(bMi, bMa, vMi, vMa, g_mInvProjection, center, radius);
+
 					vMin.xy = bMi ? max(vMin.xy, vMi) : vMin.xy;
 					vMax.xy = bMa ? min(vMax.xy, vMa) : vMax.xy;
 				}
@@ -298,6 +318,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 			// to see if the light is occluded: vMin.z*VIEWPORT_SCALE_Z > MipTexelMaxDepth
 			//g_vBoundsBuffer[lgtIndex+0] = float3(0.5*vMin.x+0.5, -0.5*vMax.y+0.5, vMin.z*VIEWPORT_SCALE_Z);
 			//g_vBoundsBuffer[lgtIndex+g_iNrVisibLights] = float3(0.5*vMax.x+0.5, -0.5*vMin.y+0.5, vMax.z*VIEWPORT_SCALE_Z);
+
 			// changed for unity
 			g_vBoundsBuffer[lgtIndex+0] = float3(0.5*vMin.x+0.5, 0.5*vMin.y+0.5, vMin.z*VIEWPORT_SCALE_Z);
 			g_vBoundsBuffer[lgtIndex+(int) g_iNrVisibLights] = float3(0.5*vMax.x+0.5, 0.5*vMax.y+0.5, vMax.z*VIEWPORT_SCALE_Z);
@@ -334,6 +355,7 @@ int ClipAgainstPlane(const int iSrcIndex, const int iNrSrcVerts, const int subLi
 				++nrVertsDst;
 			}
 		}
+
 		if(bIsCurVisib)
 		{
 			//assert(nrVertsDst<MAX_PNTS);
@@ -365,6 +387,7 @@ float4 GenNewVert(const float4 vVisib, const float4 vInvisib, const int p)
 	const int index = ((uint) p)/2;
 	float x1 = index==0 ? vVisib.x : (index==1 ? vVisib.y : vVisib.z);
 	float x0 = index==0 ? vInvisib.x : (index==1 ? vInvisib.y : vInvisib.z);
+
 	//fS*((vVisib.w-vInvisib.w)*t + vInvisib.w) = (x1-x0)*t + x0;
 
 	const float fT = (fS*vInvisib.w-x0)/((x1-x0) - fS*(vVisib.w-vInvisib.w));
@@ -430,6 +453,7 @@ void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, ou
 	float4 planeX1 = TransformPlaneToPostSpace(InvProjection, float4(planeX.z, 0, planeX.w, 0));
 	float4 planeY0 = TransformPlaneToPostSpace(InvProjection, float4(0, planeY.x, planeY.y, 0));
 	float4 planeY1 = TransformPlaneToPostSpace(InvProjection, float4(0, planeY.z, planeY.w, 0));
+
 
 	// convert planes to the forms (1,0,0,D) and (0,1,0,D)
 	// 2D bound is given by -D components
