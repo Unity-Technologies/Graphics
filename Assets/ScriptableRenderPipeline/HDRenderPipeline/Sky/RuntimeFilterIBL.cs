@@ -21,6 +21,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool          m_SupportMIS = !TextureCache.isMobileBuildTarget;
 
+        RenderPipelineResources m_RenderPipelinesResources;
+
+        public IBLFilterGGX(RenderPipelineResources renderPipelinesResources)
+        {
+            m_RenderPipelinesResources = renderPipelinesResources;
+        }
+
         public bool IsInitialized()
         {
             return m_GgxIblSampleData != null;
@@ -35,20 +42,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!m_ComputeGgxIblSampleDataCS)
             {
-                m_ComputeGgxIblSampleDataCS     = Resources.Load<ComputeShader>("ComputeGgxIblSampleData");
+                m_ComputeGgxIblSampleDataCS     = m_RenderPipelinesResources.computeGgxIblSampleData;
                 m_ComputeGgxIblSampleDataKernel = m_ComputeGgxIblSampleDataCS.FindKernel("ComputeGgxIblSampleData");
             }
 
             if (!m_BuildProbabilityTablesCS && SupportMIS)
             {
-                m_BuildProbabilityTablesCS   = Resources.Load<ComputeShader>("BuildProbabilityTables");
+                m_BuildProbabilityTablesCS   = m_RenderPipelinesResources.buildProbabilityTables;
                 m_ConditionalDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeConditionalDensities");
                 m_MarginalRowDensitiesKernel = m_BuildProbabilityTablesCS.FindKernel("ComputeMarginalRowDensities");
             }
 
             if (!m_GgxConvolveMaterial)
             {
-                m_GgxConvolveMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/GGXConvolve");
+                m_GgxConvolveMaterial = Utilities.CreateEngineMaterial(m_RenderPipelinesResources.GGXConvolve);
             }
 
             if (!m_GgxIblSampleData)

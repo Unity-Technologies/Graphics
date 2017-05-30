@@ -16,10 +16,10 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayShadowMap"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "../../../ShaderLibrary/Common.hlsl"
+            #include "../../ShaderLibrary/Common.hlsl"
 
             #define SHADOW_TILEPASS // TODO: Not sure it must be define, ask uygar
-            #include "../../../ShaderLibrary/Shadow/Shadow.hlsl"
+            #include "../../ShaderLibrary/Shadow/Shadow.hlsl"
             #undef SHADOW_TILEPASS
 
             SamplerState ltc_linear_clamp_sampler;
@@ -50,7 +50,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayShadowMap"
             {
                 ShadowContext shadowContext = InitShadowContext();
 
-                // Caution: ShadowContext is define in Shadowcontext.hlsl for current render pipeline. This shader must be in sync with its content else it doesn't work. 
+                // Caution: ShadowContext is define in Shadowcontext.hlsl for current render pipeline. This shader must be in sync with its content else it doesn't work.
                 return SAMPLE_TEXTURE2D_ARRAY(_ShadowmapExp_PCF, ltc_linear_clamp_sampler, input.texcoord, 0).xxxx;
             }
 
