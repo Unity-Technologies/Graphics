@@ -212,8 +212,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             base.Dispose();
 
-            if (m_LightLoop != null)
-                m_LightLoop.Cleanup();
+            m_LightLoop.Cleanup();
 
             m_LitRenderLoop.Cleanup();
 
@@ -267,10 +266,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // the below buffer which is bad. Best is to have a set of buffer for each camera that is persistent and reallocate resource if need
             // For now consider we have only one camera that go to this code, the main one.
             m_SkyManager.skySettings = m_Asset.skySettingsToUse;
-            m_SkyManager.Resize(camera.nearClipPlane, camera.farClipPlane); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
-
-            if (m_LightLoop == null)
-                return;
+            m_SkyManager.Resize(camera.nearClipPlane, camera.farClipPlane); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (useful for lookdev)
 
             bool resolutionChanged = camera.pixelWidth != m_CurrentWidth || camera.pixelHeight != m_CurrentHeight;
 
@@ -374,9 +370,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LitRenderLoop.RenderInit(renderContext);
 
             // Do anything we need to do upon a new frame.
-
-            if (m_LightLoop != null)
-                m_LightLoop.NewFrame();
+            m_LightLoop.NewFrame();
 
             m_Asset.ApplyDebugDisplaySettings();
             m_Asset.UpdateCommonSettings();
@@ -440,15 +434,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-                if (m_LightLoop != null)
+                using (new Utilities.ProfilingSample("Build Light list and render shadows", renderContext))
                 {
-                    using (new Utilities.ProfilingSample("Build Light list and render shadows", renderContext))
-                    {
-                        m_LightLoop.PrepareLightsForGPU(m_Asset.shadowSettings, cullResults, camera);
-                        m_LightLoop.RenderShadows(renderContext, cullResults);
-                        renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
-                        m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT); // TODO: Use async compute here to run light culling during shadow
-                    }
+                    m_LightLoop.PrepareLightsForGPU(m_Asset.shadowSettings, cullResults, camera);
+                    m_LightLoop.RenderShadows(renderContext, cullResults);
+                    renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
+                    m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT); // TODO: Use async compute here to run light culling during shadow
                 }
 
                 PushGlobalParams(hdCamera, renderContext, m_Asset.sssSettings);
@@ -637,7 +628,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
-            if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly() || m_LightLoop == null)
+            if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
             {
                 return;
             }
@@ -685,12 +676,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
-            m_SkyManager.UpdateEnvironment(hdCamera, m_LightLoop == null ? null :  m_LightLoop.GetCurrentSunLight(), renderContext);
+            m_SkyManager.UpdateEnvironment(hdCamera,m_LightLoop.GetCurrentSunLight(), renderContext);
         }
 
         void RenderSky(HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
-            m_SkyManager.RenderSky(hdCamera, m_LightLoop == null ? null : m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, renderContext);
+            m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, renderContext);
         }
 
         public Texture2D ExportSkyToTexture()
@@ -700,8 +691,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderLightingDebug(HDCamera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier colorBuffer)
         {
-            if (m_LightLoop != null)
-                m_LightLoop.RenderLightingDebug(camera, renderContext, colorBuffer);
+            m_LightLoop.RenderLightingDebug(camera, renderContext, colorBuffer);
         }
 
         void RenderForward(CullResults cullResults, Camera camera, ScriptableRenderContext renderContext, bool renderOpaque)
@@ -717,8 +707,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
-                if (m_LightLoop != null)
-                    m_LightLoop.RenderForward(camera, renderContext, renderOpaque);
+                m_LightLoop.RenderForward(camera, renderContext, renderOpaque);
 
                 if (renderOpaque)
                 {
@@ -740,8 +729,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
-                if (m_LightLoop != null)
-                    m_LightLoop.RenderForward(camera, renderContext, true);
+                m_LightLoop.RenderForward(camera, renderContext, true);
 
                 RenderOpaqueRenderList(cullResults, camera, renderContext, passName, Utilities.kRendererConfigurationBakedLighting);
             }
@@ -854,8 +842,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             renderContext.ExecuteCommandBuffer(debugCB);
 
-            if (m_LightLoop != null)
-                m_LightLoop.RenderDebugOverlay(camera, renderContext, debugDisplaySettings, ref x, ref y, overlaySize, camera.pixelWidth);
+            m_LightLoop.RenderDebugOverlay(camera, renderContext, debugDisplaySettings, ref x, ref y, overlaySize, camera.pixelWidth);
         }
 
         void InitAndClearBuffer(Camera camera, ScriptableRenderContext renderContext)
