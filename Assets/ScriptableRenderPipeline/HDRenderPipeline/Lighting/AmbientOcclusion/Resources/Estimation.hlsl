@@ -1,7 +1,7 @@
 #ifndef UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_ESTIMATION
 #define UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_ESTIMATION
 
-#include "Common.hlsl"
+#include "CommonAmbientOcclusion.hlsl"
 
 half _Intensity;
 float _Radius;
@@ -26,7 +26,14 @@ float3 PickSamplePoint(float2 uv, float index)
 // Distance-based AO estimator based on Morgan 2011 http://goo.gl/2iz3P
 half4 Frag(Varyings input) : SV_Target
 {
-    float2 uv = input.texcoord;
+    // input.positionCS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+    float uv = posInput.positionSS;
+
+    half3 unused;
+    BSDFData bsdfData;
+    FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
+    DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
 
     // Parameters used in coordinate conversion
     float3x3 proj = (float3x3)unity_CameraProjection;
@@ -34,14 +41,15 @@ half4 Frag(Varyings input) : SV_Target
     float2 p13_31 = float2(unity_CameraProjection._13, unity_CameraProjection._23);
 
     // View space normal and depth
-    half3 norm_o = SampleNormal(uv);
-    float depth_o = SampleDepth(uv);
+    half3 norm_o = SampleNormal(bsdfData);
+    float depth_o = SampleDepth(posInput.unPositionSS);
 
     // Reconstruct the view-space position.
     float3 vpos_o = ReconstructViewPos(uv, depth_o, p11_22, p13_31);
 
     float ao = 0.0;
 
+    // TODO: Setup several variant based on number of sample count to avoid dynamic loop here
     for (int s = 0; s < _SampleCount; s++)
     {
         // Sample point
@@ -54,7 +62,7 @@ half4 Frag(Varyings input) : SV_Target
         float2 uv_s1_01 = (spos_s1.xy / vpos_s1.z + 1.0) * 0.5;
 
         // Depth at the sample point
-        float depth_s1 = SampleDepth(uv_s1_01);
+        float depth_s1 = SampleDepth(uint2(uv_s1_01 * _ScreenSize.xy));
 
         // Relative position of the sample point
         float3 vpos_s2 = ReconstructViewPos(uv_s1_01, depth_s1, p11_22, p13_31);

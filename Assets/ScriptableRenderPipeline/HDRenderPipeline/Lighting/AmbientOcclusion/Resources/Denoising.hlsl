@@ -1,7 +1,7 @@
 #ifndef UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_DENOISING
 #define UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_DENOISING
 
-#include "Common.hlsl"
+#include "CommonAmbientOcclusion.hlsl"
 
 half _Downsample;
 
@@ -11,6 +11,10 @@ float4 _MainTex_TexelSize;
 
 half4 Frag(Varyings input) : SV_Target
 {
+    // input.positionCS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+    float uv = posInput.positionSS;
+
 #if defined(AO_DENOISE_HORIZONTAL)
 
     // Horizontal pass: Always use 2 texels interval to match to
@@ -25,8 +29,6 @@ half4 Frag(Varyings input) : SV_Target
 
 #endif
 
-    float2 uv = input.texcoord;
-
     // 5-tap Gaussian with linear sampling.
     half4 p0  = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
     half4 p1a = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv - delta * 1.3846153846);
@@ -35,7 +37,13 @@ half4 Frag(Varyings input) : SV_Target
     half4 p2b = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + delta * 3.2307692308);
 
 #if defined(AO_DENOISE_CENTER_NORMAL)
-    half3 n0 = SampleNormal(uv);
+
+    half3 unused;
+    BSDFData bsdfData;
+    FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
+    DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
+
+    half3 n0 = SampleNormal(bsdfData);
 #else
     half3 n0 = GetPackedNormal(p0);
 #endif

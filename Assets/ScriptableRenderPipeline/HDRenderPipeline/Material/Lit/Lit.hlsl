@@ -1522,7 +1522,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     specularLighting = preLD.rgb * preLightData.specularFGD;
 
     // Apply specular occlusion on it
-    specularLighting *= bsdfData.specularOcclusion;
+    specularLighting *= bsdfData.specularOcclusion * GetSpecularOcclusion(preLightData.NdotV, lightLoopContext.ambientOcclusion, bsdfData.roughness);
     diffuseLighting = float3(0.0, 0.0, 0.0);
 
 #endif

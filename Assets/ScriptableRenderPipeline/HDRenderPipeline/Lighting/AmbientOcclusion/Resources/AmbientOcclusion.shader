@@ -37,10 +37,9 @@ Shader "Hidden/HDPipeline/ScreenSpace/AmbientOcclusion"
             ENDHLSL
         }
 
-        // 3: Composition
+        // 3: Final filtering
         Pass
         {
-            Blend Zero OneMinusSrcColor, Zero OneMinusSrcAlpha
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag
