@@ -1867,10 +1867,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.Dispose();
             }
 
-            public void RenderDeferredLighting(HDCamera hdCamera, ScriptableRenderContext renderContext,
-                                                        DebugDisplaySettings debugDisplaySettings,
-                                                        RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
-                                                        bool outputSplitLightingForSSS)
+            public void RenderDeferredLighting( HDCamera hdCamera, ScriptableRenderContext renderContext,
+                                                DebugDisplaySettings debugDisplaySettings,
+                                                RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
+                                                bool outputSplitLightingForSSS)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
@@ -1953,6 +1953,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture1", Shader.PropertyToID("_GBufferTexture1"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture2", Shader.PropertyToID("_GBufferTexture2"));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_GBufferTexture3", Shader.PropertyToID("_GBufferTexture3"));
+                                cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_AmbientOcclusionTexture", Shader.PropertyToID("_AmbientOcclusionTexture"));
 
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_LtcData", Shader.GetGlobalTexture(Shader.PropertyToID("_LtcData")));
                                 cmd.SetComputeTextureParam(shadeOpaqueShader, kernel, "_PreIntegratedFGD", Shader.GetGlobalTexture("_PreIntegratedFGD"));

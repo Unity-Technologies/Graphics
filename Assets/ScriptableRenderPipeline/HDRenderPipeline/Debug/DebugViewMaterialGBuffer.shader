@@ -29,7 +29,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             struct Attributes
             {
-                float3 positionOS : POSITION;
+                uint vertexID : SV_VertexID;
             };
 
             struct Varyings
@@ -39,11 +39,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             Varyings Vert(Attributes input)
             {
-                // TODO: implement SV_vertexID full screen quad
                 Varyings output;
-                float3 positionWS = TransformObjectToWorld(input.positionOS);
-                output.positionCS = TransformWorldToHClip(positionWS);
-
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
