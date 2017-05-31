@@ -195,7 +195,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skySettings = asset.skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
-            m_SsaoEffect = new ScreenSpaceAmbientOcclusionEffect(m_gbufferManager.GetGBuffers());
+            m_SsaoEffect = new ScreenSpaceAmbientOcclusionEffect();
+            m_SsaoEffect.Build(asset.renderPipelineResources);
         }
 
         void InitializeDebugMaterials()
@@ -224,8 +225,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.Cleanup();
 
-            if (m_SsaoEffect != null)
-                m_SsaoEffect.Cleanup();
+            m_SsaoEffect.Cleanup();
 
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = SupportedRenderingFeatures.Default;
@@ -437,12 +437,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_Asset.renderingSettings.useForwardRenderingOnly)
             {
                 CopyDepthBufferIfNeeded(renderContext);
-
-                // Now the depth texture and the GBuffer are ready. We can run some screen-space effects on it.
-                if (m_Owner.commonSettingsToUse != null)
-                {
-                    m_SsaoEffect.Render(m_Owner.commonSettingsToUse.screenSpaceAmbientOcclusionSettings, camera, renderContext, GetDepthTexture());
-                }
             }
 
             if (debugDisplaySettings.IsDebugMaterialDisplayEnabled())
@@ -455,10 +449,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new Utilities.ProfilingSample("Build Light list and render shadows", renderContext))
                     {
+                        // TODO: Everything here (SSAO, Shadow, Build light list, material and light classification can be parallelize with Async compute)
+                        // Note: Currently there is no SSAO in forward as we don't have normal
+                        ScreenSpaceAmbientOcclusionSettings.Settings ssaoSettings = m_Asset.ssaoSettingsToUse;
+                        if (/* ssaoSettings != null && */ !m_Asset.renderingSettings.useForwardRenderingOnly)
+                        {
+                            m_SsaoEffect.Render(m_Asset.ssaoSettingsToUse, camera, renderContext, GetDepthTexture());
+                        }
+
                         m_LightLoop.PrepareLightsForGPU(m_Asset.shadowSettings, cullResults, camera);
                         m_LightLoop.RenderShadows(renderContext, cullResults);
                         renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
-                        m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT); // TODO: Use async compute here to run light culling during shadow
+                        m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT);
                     }
                 }
 

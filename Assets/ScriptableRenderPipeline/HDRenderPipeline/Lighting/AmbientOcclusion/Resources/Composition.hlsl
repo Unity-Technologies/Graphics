@@ -1,7 +1,7 @@
 #ifndef UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_COMPOSITION
 #define UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_COMPOSITION
 
-#include "Common.hlsl"
+#include "CommonAmbientOcclusion.hlsl"
 
 half _Downsample;
 
@@ -9,17 +9,13 @@ TEXTURE2D(_MainTex);
 SAMPLER2D(sampler_MainTex);
 float4 _MainTex_TexelSize;
 
-struct CompositionOutput
+half4 Frag(Varyings input)
 {
-    half4 gbuffer0 : SV_Target0;
-    half4 gbuffer3 : SV_Target1;
-};
+    // input.positionCS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+    float uv = posInput.positionSS;
 
-CompositionOutput Frag(Varyings input)
-{
-    float2 delta = _MainTex_TexelSize.xy / _Downsample;
-
-    float2 uv = input.texcoord;
+    float2 delta = _MainTex_TexelSize.xy / _Downsample; // TODO: is it correct, we have already bilateral upsample here ?
 
     // 5-tap box blur filter.
     half4 p0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
@@ -45,10 +41,7 @@ CompositionOutput Frag(Varyings input)
     ao += GetPackedAO(p4) * w4;
     ao /= w0 + w1 + w2 + w3 + w4;
 
-    CompositionOutput output;
-    output.gbuffer0 = half4(0.0, 0.0, 0.0, ao);
-    output.gbuffer3 = half4((half3)ao, 0.0);
-    return output;
+    return half4(ao, 0, 0, 0);
 }
 
 #endif // UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_COMPOSITION

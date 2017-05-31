@@ -140,6 +140,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
+#ifdef APPLY_AMBIENT_OCCLUSION
+    context.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusionTexture, unPositionSS).x;
+#else
+    context.ambientOcclusion = 1.0;
+#endif
     context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
@@ -156,8 +161,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         {
             float3 localDiffuseLighting, localSpecularLighting;
 
-            EvaluateBSDF_Directional(context, V, posInput, prelightData, _DirectionalLightDatas[i], bsdfData,
-                localDiffuseLighting, localSpecularLighting);
+            EvaluateBSDF_Directional(   context, V, posInput, prelightData, _DirectionalLightDatas[i], bsdfData,
+                                        localDiffuseLighting, localSpecularLighting);
 
             diffuseLighting += localDiffuseLighting;
             specularLighting += localSpecularLighting;
@@ -177,8 +182,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
         {
             float3 localDiffuseLighting, localSpecularLighting;
 
-            EvaluateBSDF_Punctual(context, V, posInput, prelightData, _LightDatas[FetchIndex(punctualLightStart, i)], bsdfData,
-                localDiffuseLighting, localSpecularLighting);
+            EvaluateBSDF_Punctual(  context, V, posInput, prelightData, _LightDatas[FetchIndex(punctualLightStart, i)], bsdfData,
+                                    localDiffuseLighting, localSpecularLighting);
 
             diffuseLighting += localDiffuseLighting;
             specularLighting += localSpecularLighting;
@@ -201,13 +206,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 
             if(_LightDatas[areaIndex].lightType == GPULIGHTTYPE_LINE)
             {
-                EvaluateBSDF_Line(context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
-                    localDiffuseLighting, localSpecularLighting);
+                EvaluateBSDF_Line(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
+                                    localDiffuseLighting, localSpecularLighting);
             }
             else
             {
-                EvaluateBSDF_Area(context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
-                    localDiffuseLighting, localSpecularLighting);
+                EvaluateBSDF_Area(  context, V, posInput, prelightData, _LightDatas[areaIndex], bsdfData,
+                                    localDiffuseLighting, localSpecularLighting);
             }
 
 
@@ -285,7 +290,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     // TODO: currently apply GI at the same time as reflection
 #ifdef PROCESS_ENV_LIGHT
     // Add indirect diffuse + emissive (if any)
-    diffuseLighting += bakeDiffuseLighting;
+    diffuseLighting += bakeDiffuseLighting * context.ambientOcclusion;
 #endif
 
     ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
@@ -305,6 +310,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
+#ifdef APPLY_AMBIENT_OCCLUSION
+    context.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusionTexture, unPositionSS).x;
+#else
+    context.ambientOcclusion = 1.0;
+#endif
     context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
@@ -398,7 +408,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
     specularLighting += iblSpecularLighting;
 
     // Add indirect diffuse + emissive (if any)
-    diffuseLighting += bakeDiffuseLighting;
+    diffuseLighting += bakeDiffuseLighting * context.ambientOcclusion;
 
     ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
 }

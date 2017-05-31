@@ -2,21 +2,16 @@
 #define UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_COMMON
 
 #include "../../../../ShaderLibrary/Common.hlsl"
-#include "../../../../ShaderLibrary/Packing.hlsl"
 
-// Uniforms given from the camera.
-float4x4 unity_WorldToCamera;
-float4x4 unity_CameraProjection;
-float4 _ZBufferParams;
-float4 _ScreenParams;
-
-// GBuffer RT1 (10:10:8/2:2)
-// Normal (RG), PerceptualRoughness (B), MaterialID (A).
-TEXTURE2D(_CameraGBufferTexture1);
-SAMPLER2D(sampler_CameraGBufferTexture1);
+#include "../../../ShaderConfig.cs.hlsl"
+#include "../../../ShaderVariables.hlsl"
+#define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl
+#include "../../../Material/Material.hlsl"
 
 TEXTURE2D(_CameraDepthTexture);
 SAMPLER2D(sampler_CameraDepthTexture);
+
+DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
 // The constant below determines the contrast of occlusion. This allows
 // users to control over/under occlusion. At the moment, this is not exposed
@@ -88,29 +83,15 @@ half3 GetPackedNormal(half4 p)
 }
 
 // Depth/normal sampling
-float SampleDepth(float2 uv)
+float SampleDepth(uint2 unPositionSS)
 {
-    float z = SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, uv).x;
-    return LinearEyeDepth(z, _ZBufferParams) + CheckBounds(uv, z);
+    float z = LOAD_TEXTURE2D(_CameraDepthTexture, unPositionSS).x;
+    return LinearEyeDepth(z, _ZBufferParams) + CheckBounds(uv, z); // TODO: We should use the stencil to not affect the sky and save CheckBounds cost
 }
 
-half3 SampleNormal(float2 uv)
+half3 SampleNormal(BSDFData bsdfData)
 {
-    float4 packed = SAMPLE_TEXTURE2D(_CameraGBufferTexture1, sampler_CameraGBufferTexture1, uv);
-
-    float roughness;
-    uint index;
-    UnpackFloatInt10bit(packed.z, 4.0, roughness, index);
-
-    float3 norm;
-#ifdef USE_NORMAL_TETRAHEDRON_ENCODING
-    norm = UnpackNormalTetraEncode(packed.xy * 2.0 - 1.0, index);
-#else
-    packed.xy *= float2((index & 1) ? 1.0 : -1.0, (index & 2) ? 1.0 : -1.0);
-    norm = UnpackNormalOctEncode(packed.xy);
-#endif
-
-    return mul((float3x3)unity_WorldToCamera, norm);
+    return mul((float3x3)unity_WorldToCamera, bsdfData.normalWS);
 }
 
 // Normal vector comparer (for geometry-aware weighting)
@@ -118,6 +99,8 @@ half CompareNormal(half3 d1, half3 d2)
 {
     return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
 }
+
+// TODO: Test. We may need to use full matrix here to reconver VS position as it may not work in case of oblique projection (planar reflection)
 
 // Reconstruct view-space position from UV and depth.
 // p11_22 = (unity_CameraProjection._11, unity_CameraProjection._22)
@@ -130,23 +113,18 @@ float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
 // Default vertex shader
 struct Attributes
 {
-    float3 vertex : POSITION;
+    uint vertexID : SV_VertexID;
 };
 
 struct Varyings
 {
-    float4 vertex : SV_POSITION;
-    float2 texcoord : TEXCOORD0;
+    float4 positionCS : SV_POSITION;
 };
 
 Varyings Vert(Attributes input)
 {
     Varyings output;
-    output.vertex = float4(input.vertex.xy, 0.0, 1.0);
-    output.texcoord = (input.vertex.xy + 1.0) * 0.5;
-#if UNITY_UV_STARTS_AT_TOP
-    output.texcoord.y = 1.0 - output.texcoord.y;
-#endif
+    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
     return output;
 }
 

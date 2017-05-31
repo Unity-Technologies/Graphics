@@ -57,7 +57,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_Settings; }
             set { m_Settings = value; }
         }
-
-        public ScreenSpaceAmbientOcclusionSettings screenSpaceAmbientOcclusionSettings;
     }
 }

@@ -74,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ShadowSettings m_ShadowSettings = ShadowSettings.Default;
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
-        
+
         public ShadowSettings shadowSettings
         {
             get { return m_ShadowSettings; }
@@ -105,11 +105,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        /*
         public SkySettings skySettings
         {
             get { return m_SkySettings; }
             set { m_SkySettings = value; }
         }
+        */
 
         public SkySettings skySettingsToUse
         {
@@ -121,6 +123,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_SkySettings;
             }
         }
+
+        [SerializeField]
+        private ScreenSpaceAmbientOcclusionSettings.Settings m_SsaoSettings;
+
+        public ScreenSpaceAmbientOcclusionSettings.Settings ssaoSettingsToUse
+        {
+            get
+            {
+                if (ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings)
+                    return ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings.settings;
+
+                return m_SsaoSettings;
+            }
+        }
+
+        // Default Material / Shader
 
         [SerializeField]
         Material m_DefaultDiffuseMaterial;
