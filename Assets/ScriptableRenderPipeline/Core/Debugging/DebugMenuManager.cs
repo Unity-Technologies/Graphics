@@ -70,14 +70,16 @@ namespace UnityEngine.Experimental.Rendering
             m_UpdateFromItemStateRequired = true;
         }
 
+        // debug state will be null at runtime.
         public DebugItemState FindDebugItemState(string itemName, string menuName)
         {
-            return m_DebugMenuState.FindDebugItemState(itemName, menuName);
+            return (m_DebugMenuState != null) ? m_DebugMenuState.FindDebugItemState(itemName, menuName) : null;
         }
 
         public void AddDebugItemState(DebugItemState state)
         {
-            m_DebugMenuState.AddDebugItemState(state);
+            if(m_DebugMenuState != null)
+                m_DebugMenuState.AddDebugItemState(state);
         }
 
         public DebugPanel GetDebugPanel(int index)
