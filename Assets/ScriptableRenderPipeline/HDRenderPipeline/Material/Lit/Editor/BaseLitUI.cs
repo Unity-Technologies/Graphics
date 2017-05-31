@@ -275,7 +275,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            bool depthOffsetEnable = material.GetFloat(kDepthOffsetEnable) > 0.0f;
+            // Depth offset is only enabled if per pixel displacement is
+            bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && (material.GetFloat(kEnablePerPixelDisplacement) > 0.0f);
             SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
             // Set the reference value for the stencil test.
