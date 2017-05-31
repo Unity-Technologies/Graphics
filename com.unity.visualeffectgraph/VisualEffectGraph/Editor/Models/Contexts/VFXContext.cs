@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Type = System.Type;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -23,7 +24,7 @@ namespace UnityEditor.VFX
     public enum VFXDataType
     {
         kNone =         0,
-        kEvent =        1 << 0,
+        kSpawnEvent =   1 << 0,
         kParticle =     1 << 1,
     };
 
@@ -52,11 +53,24 @@ namespace UnityEditor.VFX
                 m_ContextType = VFXContextType.kNone;
                 throw new ArgumentException(string.Format("Illegal context type: {0}", invalidContext));
             }
+
+            if (m_Inputs == null)
+                m_Inputs = new List<VFXContext>();
+
+            if (m_Outputs == null)
+                m_Outputs = new List<VFXContext>();
         }
 
         public virtual VFXContextType contextType   { get { return m_ContextType; } }
         public virtual VFXDataType inputType        { get { return m_InputType; } }
         public virtual VFXDataType outputType       { get { return m_OutputType; } }
+
+        public override void CollectDependencies(HashSet<Object> objs)
+        {
+            base.CollectDependencies(objs);
+            if (m_Data != null)
+                m_Data.CollectDependencies(objs);
+        }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
@@ -96,6 +110,51 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
+        public void LinkTo(VFXContext context)
+        {
+            InnerLink(this, context);
+        }
+
+        public void LinkFrom(VFXContext context)
+        {
+            InnerLink(context, this);
+        }
+
+        public void Unlink(VFXContext context)
+        {
+            if (m_Outputs.Contains(context))
+                InnerUnlink(this, context);
+            if (m_Inputs.Contains(context))
+                InnerUnlink(context, this);
+        }
+
+        private static void InnerLink(VFXContext from, VFXContext to)
+        {
+            if (from == to || from == null || to == null)
+                throw new ArgumentException("from and to cannot be the same or null");
+
+            if (from.outputType == VFXDataType.kNone || to.inputType == VFXDataType.kNone || from.outputType != to.inputType)
+                throw new ArgumentException(string.Format("Incompatible data type between {0} and {1}", from.outputType, to.inputType));
+
+            if (from.m_Outputs.Contains(to) || to.m_Inputs.Contains(from))
+                throw new ArgumentException(string.Format("Contexts {0} and {1} are already linked", from, to));
+
+            from.m_Outputs.Add(to);
+            to.m_Inputs.Add(from);
+
+            //from.Invalidate(InvalidationCause.kStructureChanged);
+            //to.Invalidate(InvalidationCause.kStructureChanged);
+        }
+
+        private static void InnerUnlink(VFXContext from, VFXContext to)
+        {
+            from.m_Outputs.Remove(to);
+            to.m_Inputs.Remove(from);
+
+            //from.Invalidate(InvalidationCause.kStructureChanged);
+            //to.Invalidate(InvalidationCause.kStructureChanged);
+        }
+
         private void AddExpressionsToContext(HashSet<VFXExpression> expressions, IVFXSlotContainer slotContainer)
         {
             int nbSlots = slotContainer.GetNbInputSlots();
@@ -116,13 +175,40 @@ namespace UnityEditor.VFX
             return null;
         }
 
+        public void SetData(VFXData data)
+        {
+            if (m_Data != data)
+            {
+                if (m_Data != null)
+                    m_Data.OnContextRemoved(this);
+                m_Data = data;
+                if (m_Data != null)
+                    m_Data.OnContextAdded(this);
+
+                Invalidate(InvalidationCause.kStructureChanged);
+            }
+        }
+
+        public VFXData GetData()
+        {
+            return m_Data;
+        }
+
         // Not serialized nor exposed
         private VFXContextType m_ContextType;
         private VFXDataType m_InputType;
         private VFXDataType m_OutputType;
 
         [SerializeField]
+        private VFXData m_Data;
+
+        [SerializeField]
         private CoordinateSpace m_Space;
+
+        [SerializeField]
+        private List<VFXContext> m_Inputs;
+        [SerializeField]
+        private List<VFXContext> m_Outputs;
 
         public CoordinateSpace space
         {
