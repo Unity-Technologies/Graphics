@@ -50,8 +50,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
-#define MIN_N_DOT_V           0.0001        // The minimum value of 'NdotV'
-#define MILLIMETERS_TO_METERS 0.001
+#define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
 
 uint   _EnableSSS;                          // Globally toggles subsurface scattering on/off
 uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
@@ -793,15 +792,8 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
         float illuminance = saturate(-LdotV);
 
-        // For thin objects, we can reuse the shadowing status for the back of the object.
-        [branch] if (!bsdfData.useThinObjectMode)
-        {
-            // TODO: precompute?
-            float  d = bsdfData.thickness * (2 * MILLIMETERS_TO_METERS);
-            float3 P = positionWS - d * V;
-            shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, P, bsdfData.normalWS, lightData.shadowIndex, L, posInput.unPositionSS);
-        }
-
+        // For low thickness, we can reuse the shadowing status for the back of the object.
+        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
@@ -906,16 +898,8 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
         float illuminance = saturate(-LdotV * attenuation);
 
-        // For thin objects, we can reuse the shadowing status for the back of the object.
-        [branch] if (!bsdfData.useThinObjectMode)
-        {
-            // TODO: precompute?
-            float  d = bsdfData.thickness * (2 * MILLIMETERS_TO_METERS);
-            float3 P = positionWS - d * V;
-            float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-            shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, P + offset, bsdfData.normalWS, lightData.shadowIndex, L, posInput.unPositionSS);
-        }
-
+        // For low thickness, we can reuse the shadowing status for the back of the object.
+        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
@@ -999,15 +983,8 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
         // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
         float illuminance = saturate(-LdotV * clipFactor);
 
-        // For thin objects, we can reuse the shadowing status for the back of the object.
-        [branch] if (!bsdfData.useThinObjectMode)
-        {
-            // TODO: precompute?
-            float  d = bsdfData.thickness * (2 * MILLIMETERS_TO_METERS);
-            float3 P = positionWS - d * V;
-            shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, P, bsdfData.normalWS, lightData.shadowIndex, L, posInput.unPositionSS);
-        }
-
+        // For low thickness, we can reuse the shadowing status for the back of the object.
+        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
