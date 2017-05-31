@@ -42,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (settings.enable == false || isForward)
             {
                 var cmd2 = new CommandBuffer { name = "Setup neutral Ambient Occlusion (1x1)" };
-                cmd2.SetGlobalTexture("_AmbientOcclusionTexture", PostProcessing.RuntimeUtilities.whiteTexture);
+                cmd2.SetGlobalTexture("_AmbientOcclusionTexture", PostProcessing.RuntimeUtilities.blackTexture); // Neutral is black, see the comment in the shaders
                 renderContext.ExecuteCommandBuffer(cmd2);
                 cmd2.Dispose();
 
