@@ -344,7 +344,7 @@ Light:
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
-  m_ShadowAngle: 5
+  m_ShadowAngle: 1
 --- !u!4 &1161206972
 Transform:
   m_ObjectHideFlags: 0
