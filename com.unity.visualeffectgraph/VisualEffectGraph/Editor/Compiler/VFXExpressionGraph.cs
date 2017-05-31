@@ -147,13 +147,13 @@ namespace UnityEditor.VFX
             List<string> names = new List<string>();
             foreach (var mapper in m_ContextsToCPUExpressions.Values)
             {
-                var name = mapper.GetName(exp);
+                var name = mapper.GetData(exp).name;
                 if (name != null)
                     names.Add(name);
             }
             foreach (var mapper in m_ContextsToGPUExpressions.Values)
             {
-                var name = mapper.GetName(exp);
+                var name = mapper.GetData(exp).name;
                 if (name != null)
                     names.Add(name);
             }
@@ -170,7 +170,7 @@ namespace UnityEditor.VFX
             if (inMapper != null)
             {
                 foreach (var exp in inMapper.expressions)
-                    outMapper.AddExpression(GetReduced(exp), inMapper.GetName(exp));
+                    outMapper.AddExpression(GetReduced(exp), inMapper.GetData(exp));
             }
 
             return outMapper;

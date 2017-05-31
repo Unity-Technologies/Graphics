@@ -216,14 +216,14 @@ namespace UnityEditor.VFX
                         foreach (var exp in cpuMapper.expressions)
                         {
                             VFXExpressionSemanticDesc desc;
-                            desc.blockID = 0xFFFFFFFF; //TODO
+                            var mappedData = cpuMapper.GetData(exp);
+                            desc.blockID = (uint)mappedData.blockId;
                             desc.contextID = (uint)contextId;
                             int expIndex = expressionGraph.GetFlattenedIndex(exp);
-                            string name = cpuMapper.GetName(exp);
                             if (expIndex == -1)
-                                throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", name));
+                                throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", mappedData.name));
                             desc.expressionIndex = (uint)expIndex;
-                            desc.name = name;
+                            desc.name = mappedData.name;
                             expressionSemantics.Add(desc);
                         }
 
@@ -232,7 +232,7 @@ namespace UnityEditor.VFX
                             Debug.Log("GPU EXPRESSIONS FOR " + contextId);
                         foreach (var exp in gpuMapper.expressions)
                         {
-                            Debug.Log(string.Format("--- {0} {1} {2}", gpuMapper.GetName(exp), exp.ValueType, expressionGraph.GetFlattenedIndex(exp)));
+                            Debug.Log(string.Format("--- {0} {1} {2}", gpuMapper.GetData(exp).name, exp.ValueType, expressionGraph.GetFlattenedIndex(exp)));
                         }
                     }
 

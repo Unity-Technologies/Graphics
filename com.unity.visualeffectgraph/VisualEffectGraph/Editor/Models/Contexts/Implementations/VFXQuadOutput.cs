@@ -16,8 +16,8 @@ namespace UnityEditor.VFX
         public override VFXExpressionMapper GetGPUExpressions()
         {
             var mapper = new VFXExpressionMapper("uniform");
-            foreach (var block in children)
-                mapper.AddExpressionFromSlotContainer(block);
+            for (int i = 0; i < GetNbChildren(); ++i)
+                mapper.AddExpressionFromSlotContainer(GetChild(i), i);
             return mapper;
         }
 

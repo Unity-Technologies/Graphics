@@ -51,14 +51,20 @@ namespace UnityEditor.VFX
 
     class VFXExpressionMapper
     {
+        public struct Data
+        {
+            public string name;
+            public int blockId;
+        }
+
         public VFXExpressionMapper(string prefix = null)
         {
             m_Prefix = prefix;
         }
 
-        public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsToNames.Keys; } }
+        public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsData.Keys; } }
 
-        public void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, VFXExpressionGraph graph = null)
+        public void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, int blockId, VFXExpressionGraph graph = null)
         {
             foreach (var master in slotContainer.inputSlots)
             {
@@ -69,7 +75,7 @@ namespace UnityEditor.VFX
                         exp = graph.GetReduced(exp);
 
                     if (!Contains(exp))
-                        AddExpression(exp, slot.fullName);
+                        AddExpression(exp, slot.fullName, blockId);
                 }
             }
         }
@@ -78,9 +84,10 @@ namespace UnityEditor.VFX
         {
             var mapper = new VFXExpressionMapper(prefix);
 
-            mapper.AddExpressionFromSlotContainer(context, graph);
+            mapper.AddExpressionFromSlotContainer(context, -1, graph);
             foreach (var block in context.children)
-                mapper.AddExpressionFromSlotContainer(block, graph);
+                for (int i = 0; i < context.GetNbChildren(); ++i)
+                    mapper.AddExpressionFromSlotContainer(context[i], i, graph);
 
             // DEBUG
             /*if (binder.m_ExpressionsToNames.Count > 0)
@@ -93,24 +100,29 @@ namespace UnityEditor.VFX
             return mapper;
         }
 
-        public string GetName(VFXExpression exp)
+        public Data GetData(VFXExpression exp)
         {
-            string name;
-            m_ExpressionsToNames.TryGetValue(exp, out name);
-            return name;
+            Data data;
+            m_ExpressionsData.TryGetValue(exp, out data);
+            return data;
         }
 
         public bool Contains(VFXExpression exp)
         {
-            return m_ExpressionsToNames.ContainsKey(exp);
+            return m_ExpressionsData.ContainsKey(exp);
         }
 
-        public void AddExpression(VFXExpression exp, string name)
+        public void AddExpression(VFXExpression exp, Data data)
+        {
+            AddExpression(exp, data.name, data.blockId);
+        }
+
+        public void AddExpression(VFXExpression exp, string name, int blockId = -1)
         {
             if (exp == null || name == null)
                 throw new ArgumentNullException();
 
-            if (m_ExpressionsToNames.ContainsKey(exp))
+            if (m_ExpressionsData.ContainsKey(exp))
                 throw new ArgumentException(string.Format("Expression {0} is already registered", exp));
 
             string finalName = "";
@@ -126,10 +138,13 @@ namespace UnityEditor.VFX
             }
 
             m_NamesToSuffix[name] = currentSuffix;
-            m_ExpressionsToNames[exp] = finalName;
+            var data = new Data();
+            data.name = finalName;
+            data.blockId = blockId;
+            m_ExpressionsData[exp] = data;
         }
 
-        private Dictionary<VFXExpression, string> m_ExpressionsToNames = new Dictionary<VFXExpression, string>();
+        private Dictionary<VFXExpression, Data> m_ExpressionsData = new Dictionary<VFXExpression, Data>();
         private Dictionary<string, int> m_NamesToSuffix = new Dictionary<string, int>();
         private string m_Prefix;
     }
