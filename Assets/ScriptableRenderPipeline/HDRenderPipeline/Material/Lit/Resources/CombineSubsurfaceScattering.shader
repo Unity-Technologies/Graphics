@@ -30,7 +30,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #pragma fragment Frag
 
             #define SSS_PASS
-            #define METERS_TO_MILLIMETERS 1000
+            #define MILLIMETERS_PER_METER 1000
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -65,10 +65,10 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             }
 
             // Computes F(x)/P(x), s.t. x = sqrt(r^2 + z^2).
-            float3 ComputeBilateralWeight(float3 S, float r, float z, float distScale, float rcpPdf)
+            float3 ComputeBilateralWeight(float3 S, float r, float z, float rcpDistScale, float rcpPdf)
             {
                 // Reducing the integration distance is equivalent to stretching the integration axis.
-                float3 valX = KernelValCircle(sqrt(r * r + z * z) * rcp(distScale), S);
+                float3 valX = KernelValCircle(sqrt(r * r + z * z) * rcpDistScale, S);
 
                 // The reciprocal of the PDF could be reinterpreted as a 'dx' term in Int{F(x)dx}.
                 // As we shift the location of the value on the curve during integration,
@@ -117,8 +117,10 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float3 cornerPosVS = ComputeViewSpacePosition(cornerPosSS,         rawDepth, _InvProjMatrix);
 
                 // Compute the view-space dimensions of the pixel as a quad projected onto geometry.
-                float2 metersPerPixel = 2 * (cornerPosVS.xy - centerPosVS.xy);
-                float2 scaledPixPerMm = distScale * rcp(METERS_TO_MILLIMETERS * metersPerPixel);
+                float2 unitsPerPixel  = 2 * (cornerPosVS.xy - centerPosVS.xy);
+                float  metersPerUnit  = _WorldScales[profileID];
+                float  millimPerUnit  = MILLIMETERS_PER_METER * metersPerUnit;
+                float2 scaledPixPerMm = distScale * rcp(millimPerUnit * unitsPerPixel);
 
                 // Take the first (central) sample.
                 float2 samplePosition   = posInput.unPositionSS;
@@ -175,8 +177,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                         // Apply bilateral weighting.
                         float sampleZ = LinearEyeDepth(rawDepth, _ZBufferParams);
-                        float z       = METERS_TO_MILLIMETERS * sampleZ - (METERS_TO_MILLIMETERS * centerPosVS.z);
-                        sampleWeight  = ComputeBilateralWeight(shapeParam, r, z, distScale, sampleRcpPdf);
+                        float z       = millimPerUnit * sampleZ - (millimPerUnit * centerPosVS.z);
+                        sampleWeight  = ComputeBilateralWeight(shapeParam, r, z, rcp(distScale), sampleRcpPdf);
 
                         totalIrradiance += sampleWeight * sampleIrradiance;
                         totalWeight     += sampleWeight;

@@ -465,6 +465,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalInt(     "_TexturingModeFlags", (int)sssParameters.texturingModeFlags);
             Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
             cmd.SetGlobalFloatArray( "_ThicknessRemaps",         sssParameters.thicknessRemaps);
+            cmd.SetGlobalFloatArray( "_WorldScales",             sssParameters.worldScales);
             cmd.SetGlobalVectorArray("_ShapeParameters",         sssParameters.shapeParameters);
             cmd.SetGlobalVectorArray("_SurfaceAlbedos",          sssParameters.surfaceAlbedos);
 
