@@ -94,7 +94,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly GBufferManager m_gbufferManager = new GBufferManager();
 
         // Various set of material use in render loop
-        readonly Material m_FilterSubsurfaceScattering;
         readonly Material m_FilterAndCombineSubsurfaceScattering;
 
         private Material m_DebugViewMaterialGBuffer;
@@ -111,7 +110,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // It is stored within 'm_CameraSubsurfaceBufferRT'.
         readonly RenderTargetIdentifier m_CameraColorBufferRT;
         readonly RenderTargetIdentifier m_CameraSubsurfaceBufferRT;
-        readonly RenderTargetIdentifier m_CameraFilteringBufferRT;
         readonly RenderTargetIdentifier m_VelocityBufferRT;
         readonly RenderTargetIdentifier m_DistortionBufferRT;
 
@@ -150,17 +148,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraSubsurfaceBuffer        = Shader.PropertyToID("_CameraSubsurfaceTexture");
             m_CameraFilteringBuffer         = Shader.PropertyToID("_CameraFilteringBuffer");
 
-            m_CameraColorBufferRT               = new RenderTargetIdentifier(m_CameraColorBuffer);
-            m_CameraSubsurfaceBufferRT          = new RenderTargetIdentifier(m_CameraSubsurfaceBuffer);
-            m_CameraFilteringBufferRT           = new RenderTargetIdentifier(m_CameraFilteringBuffer);
-
-            m_FilterSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
-            m_FilterSubsurfaceScattering.DisableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
-            m_FilterSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.Zero);
+            m_CameraColorBufferRT      = new RenderTargetIdentifier(m_CameraColorBuffer);
+            m_CameraSubsurfaceBufferRT = new RenderTargetIdentifier(m_CameraSubsurfaceBuffer);
 
             m_FilterAndCombineSubsurfaceScattering = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/CombineSubsurfaceScattering");
-            m_FilterAndCombineSubsurfaceScattering.EnableKeyword("SSS_FILTER_HORIZONTAL_AND_COMBINE");
-            m_FilterAndCombineSubsurfaceScattering.SetFloat("_DstBlend", (float)BlendMode.One);
 
             InitializeDebugMaterials();
 
@@ -318,12 +309,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Broadcast SSS parameters to all shaders.
-            Shader.SetGlobalInt("_EnableSSS", debugDisplaySettings.renderingDebugSettings.enableSSS ? 1 : 0);
-            cmd.SetGlobalFloatArray("_TransmissionType",   sssParameters.transmissionType);
-            Shader.SetGlobalInt("_TexturingModeFlags",  sssParameters.texturingModeFlags);
-            cmd.SetGlobalFloatArray("_ThicknessRemaps", sssParameters.thicknessRemaps);
-            cmd.SetGlobalVectorArray("_TintColors",     sssParameters.tintColors);
-            cmd.SetGlobalVectorArray("_HalfRcpVariancesAndLerpWeights", sssParameters.halfRcpVariancesAndLerpWeights);
+            Shader.SetGlobalInt(     "_EnableSSS",          debugDisplaySettings.renderingDebugSettings.enableSSS ? 1 : 0);
+            Shader.SetGlobalInt(     "_TexturingModeFlags", (int)sssParameters.texturingModeFlags);
+            Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
+            cmd.SetGlobalFloatArray( "_ThicknessRemaps",         sssParameters.thicknessRemaps);
+            cmd.SetGlobalVectorArray("_ShapeParameters",         sssParameters.shapeParameters);
+            cmd.SetGlobalVectorArray("_SurfaceAlbedos",          sssParameters.surfaceAlbedos);
 
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -662,19 +653,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var cmd = new CommandBuffer() { name = "Subsurface Scattering" };
 
-            // Perform the vertical SSS filtering pass.
-            m_FilterSubsurfaceScattering.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
-            m_FilterSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
-            cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT);
-            Utilities.DrawFullScreen(cmd, m_FilterSubsurfaceScattering, hdCamera, m_CameraFilteringBufferRT, m_CameraDepthStencilBufferRT);
+            cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT); // Cannot set a RT on a material
+            m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_WorldScales",            sssParameters.worldScales);
+            m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
+            m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsFarField",  sssParameters.filterKernelsFarField);
 
-            // when recombining the lighting, we apply albedo. This need to be modified in case of debug display with diffuse lighting only.
-            Utilities.SetKeyword(m_FilterAndCombineSubsurfaceScattering, "DEBUG_DISPLAY", debugDisplaySettings.IsDebugDisplayEnabled());
-
-            // Perform the horizontal SSS filtering pass, and combine diffuse and specular lighting.
-            m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_FilterKernels", sssParameters.filterKernels);
-            m_FilterAndCombineSubsurfaceScattering.SetVectorArray("_HalfRcpWeightedVariances", sssParameters.halfRcpWeightedVariances);
-            cmd.SetGlobalTexture("_IrradianceSource", m_CameraFilteringBufferRT);
             Utilities.DrawFullScreen(cmd, m_FilterAndCombineSubsurfaceScattering, hdCamera, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
             context.ExecuteCommandBuffer(cmd);
