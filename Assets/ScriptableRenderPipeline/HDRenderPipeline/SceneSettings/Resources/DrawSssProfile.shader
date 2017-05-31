@@ -1,11 +1,10 @@
-Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
+Shader "Hidden/HDRenderPipeline/DrawSssProfile"
 {
     Properties
     {
         [HideInInspector] _StdDev1("", Vector)   = (0, 0, 0, 0)
         [HideInInspector] _StdDev2("", Vector)   = (0, 0, 0, 0)
         [HideInInspector] _LerpWeight("", Float) = 0
-        [HideInInspector] _TintColor("", Vector) = (0, 0, 0, 0)
     }
 
     SubShader
@@ -28,15 +27,15 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "../../ShaderLibrary/Common.hlsl"
-            #include "../../ShaderLibrary/Color.hlsl"
-            #include "../ShaderVariables.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
+            #include "../../../ShaderLibrary/Color.hlsl"
+            #include "../../ShaderVariables.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _SurfaceAlbedo, _ShapeParameter, _ThicknessRemap;
+            float4 _SurfaceAlbedo, _ShapeParameter;
             float _ScatteringDistance; // See 'SubsurfaceScatteringProfile'
 
             //-------------------------------------------------------------------------------------
@@ -65,11 +64,13 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float  d = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x));
+                float  r = (2 * length(input.texcoord - 0.5)) * _ScatteringDistance;
                 float3 S = _ShapeParameter.rgb;
-                float3 T = 0.5 * exp(-d * S) + 0.5 * exp(-d * S * (1.0 / 3.0));
+                float3 M = S * (exp(-r * S) + exp(-r * S * (1.0 / 3.0))) / (8 * PI * r);
 
-                return float4(T * _SurfaceAlbedo.rgb, 1);
+                // Apply gamma for visualization only. It is not present in the actual formula!
+                // N.b.: we multiply by the surface albedo of the actual geometry during shading.
+                return float4(pow(M * _SurfaceAlbedo.rgb, 1.0 / 3.0), 1);
             }
             ENDHLSL
         }
