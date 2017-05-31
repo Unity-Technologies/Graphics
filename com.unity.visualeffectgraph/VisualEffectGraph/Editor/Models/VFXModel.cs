@@ -8,7 +8,7 @@ using UnityEngine.Profiling;
 namespace UnityEditor.VFX
 {
     [Serializable]
-    abstract class VFXModel : ScriptableObject, ISerializationCallbackReceiver
+    abstract class VFXModel : ScriptableObject
     {
         public enum InvalidationCause
         {
@@ -237,14 +237,6 @@ namespace UnityEditor.VFX
             OnInvalidate(model, cause);
             if (m_Parent != null)
                 m_Parent.Invalidate(model, cause);
-        }
-
-        public virtual void OnBeforeSerialize()
-        {
-        }
-
-        public virtual void OnAfterDeserialize()
-        {
         }
 
         private Guid m_Id; // TODO Not used
