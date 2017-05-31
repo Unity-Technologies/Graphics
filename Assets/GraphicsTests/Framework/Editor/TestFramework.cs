@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering
 
         private static readonly string[] s_PipelinePath =
         {
-            "LowEndMobilePipeline",
+            "LightweightPipeline",
             "HDRenderPipeline",
         };
 
