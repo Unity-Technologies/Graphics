@@ -27,8 +27,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public TexturingMode    texturingMode;
         public TransmissionMode transmissionMode;
         public Vector2          thicknessRemap;             // X = min, Y = max (in millimeters)
+        public float            worldScale;                 // Size of the world unit in meters
         [HideInInspector]
-        public int              settingsIndex;              // For SubsurfaceScatteringSettings.profiles
+        public int              settingsIndex;              // SubsurfaceScatteringSettings.profiles[i]
         [SerializeField]
         Vector3                 m_S;                        // RGB = shape parameter: S = 1 / D
         [SerializeField]
@@ -47,6 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             texturingMode      = TexturingMode.PreAndPostScatter;
             transmissionMode   = TransmissionMode.None;
             thicknessRemap     = new Vector2(0.0f, 5.0f);
+            worldScale         = 1.0f;
             settingsIndex      = SssConstants.SSS_NEUTRAL_PROFILE_ID; // Updated by SubsurfaceScatteringSettings.OnValidate() once assigned
 
             BuildKernel();
@@ -206,10 +208,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public SubsurfaceScatteringProfile[] profiles;
         // Below are the cached values.
         [NonSerialized] public uint          texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-        [NonSerialized] public uint          transmissionFlags;         // 2 bit/profile; 0 = None, 1 = ThinObject, 2 = ThickObject
+        [NonSerialized] public uint          transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
         [NonSerialized] public float[]       thicknessRemaps;           // Remap: 0 = start, 1 = end - start
         [NonSerialized] public Vector4[]     shapeParameters;           // RGB = S = 1 / D, A = filter radius
         [NonSerialized] public Vector4[]     surfaceAlbedos;            // RGB = color, A = unused
+        [NonSerialized] public float[]       worldScales;               // Size of the world unit in meters
         [NonSerialized] public float[]       filterKernelsNearField;    // 0 = radius, 1 = reciprocal of the PDF
         [NonSerialized] public float[]       filterKernelsFarField;     // 0 = radius, 1 = reciprocal of the PDF
 
@@ -256,6 +259,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 profiles[i].thicknessRemap.y = Mathf.Max(profiles[i].thicknessRemap.y, 0);
                 profiles[i].thicknessRemap.x = Mathf.Clamp(profiles[i].thicknessRemap.x, 0, profiles[i].thicknessRemap.y);
+                profiles[i].worldScale       = Mathf.Max(profiles[i].worldScale, 0.001f);
 
                 profiles[i].BuildKernel();
             }
@@ -265,13 +269,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCache()
         {
-            
             texturingModeFlags = transmissionFlags = 0;
 
             const int thicknessRemapsLen = SssConstants.SSS_N_PROFILES * 2;
             if (thicknessRemaps == null || thicknessRemaps.Length != thicknessRemapsLen)
             {
                 thicknessRemaps = new float[thicknessRemapsLen];
+            }
+
+            const int worldScalesLen = SssConstants.SSS_N_PROFILES;
+            if (worldScales == null || worldScales.Length != worldScalesLen)
+            {
+                worldScales = new float[worldScalesLen];
             }
 
             const int shapeParametersLen = SssConstants.SSS_N_PROFILES;
@@ -310,6 +319,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 thicknessRemaps[2 * i]     = profiles[i].thicknessRemap.x;
                 thicknessRemaps[2 * i + 1] = profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x;
+                worldScales[i]             = profiles[i].worldScale;
                 shapeParameters[i]         = profiles[i].shapeParameter;
                 shapeParameters[i].w       = profiles[i].scatteringDistance;
                 surfaceAlbedos[i]          = profiles[i].surfaceAlbedo;
@@ -333,6 +343,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 shapeParameters[i] = Vector4.zero;
                 surfaceAlbedos[i]  = Vector4.zero;
+                worldScales[i]     = 1.0f;
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                 {
@@ -419,6 +430,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             };
             public readonly GUIContent   sssProfileMinMaxThickness = new GUIContent("Min-Max Thickness", "Shows the values of the thickness remap below (in millimeters).");
             public readonly GUIContent   sssProfileThicknessRemap  = new GUIContent("Thickness Remap", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");
+            public readonly GUIContent   sssProfileWorldScale      = new GUIContent("World Scale", "Size of the world unit in meters.");
 
             public readonly GUIStyle     centeredMiniBoldLabel     = new GUIStyle(GUI.skin.label);
 
@@ -447,7 +459,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private RenderTexture      m_ProfileImage, m_TransmittanceImage;
         private Material           m_ProfileMaterial, m_TransmittanceMaterial;
         private SerializedProperty m_LenVolMeanFreePath, m_ScatteringDistance, m_SurfaceAlbedo, m_S,
-                                   m_TexturingMode, m_TransmissionMode, m_ThicknessRemap;
+                                   m_TexturingMode, m_TransmissionMode, m_ThicknessRemap, m_WorldScale;
 
         void OnEnable()
         {
@@ -458,6 +470,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_TexturingMode         = serializedObject.FindProperty("texturingMode");
             m_TransmissionMode      = serializedObject.FindProperty("transmissionMode");
             m_ThicknessRemap        = serializedObject.FindProperty("thicknessRemap");
+            m_WorldScale            = serializedObject.FindProperty("worldScale");
 
             m_ProfileMaterial       = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawSssProfile");
             m_TransmittanceMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
@@ -486,6 +499,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Vector2 thicknessRemap = m_ThicknessRemap.vector2Value;
                 EditorGUILayout.MinMaxSlider(styles.sssProfileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0.0f, 50.0f);
                 m_ThicknessRemap.vector2Value = thicknessRemap;
+                EditorGUILayout.PropertyField(m_WorldScale, styles.sssProfileWorldScale);
 
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField(styles.sssProfilePreview0, styles.centeredMiniBoldLabel);
