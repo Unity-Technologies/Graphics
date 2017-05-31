@@ -465,7 +465,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalInt(     "_TexturingModeFlags", (int)sssParameters.texturingModeFlags);
             Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
             cmd.SetGlobalFloatArray( "_ThicknessRemaps",         sssParameters.thicknessRemaps);
-            cmd.SetGlobalFloatArray( "_WorldScales",             sssParameters.worldScales);
             cmd.SetGlobalVectorArray("_ShapeParameters",         sssParameters.shapeParameters);
             cmd.SetGlobalVectorArray("_SurfaceAlbedos",          sssParameters.surfaceAlbedos);
 
@@ -811,6 +810,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var cmd = new CommandBuffer() { name = "Subsurface Scattering" };
 
             cmd.SetGlobalTexture("_IrradianceSource", m_CameraSubsurfaceBufferRT); // Cannot set a RT on a material
+            m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_WorldScales",            sssParameters.worldScales);
             m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsNearField", sssParameters.filterKernelsNearField);
             m_FilterAndCombineSubsurfaceScattering.SetFloatArray("_FilterKernelsFarField",  sssParameters.filterKernelsFarField);
 

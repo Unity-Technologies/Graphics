@@ -46,6 +46,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
+            float _WorldScales[SSS_N_PROFILES];                                         // Size of the world unit in meters
             float _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD][2]; // 0 = radius, 1 = reciprocal of the PDF
             float _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD][2];   // 0 = radius, 1 = reciprocal of the PDF
 
