@@ -86,7 +86,7 @@ half3 GetPackedNormal(half4 p)
 float SampleDepth(uint2 unPositionSS)
 {
     float z = LOAD_TEXTURE2D(_CameraDepthTexture, unPositionSS).x;
-    return LinearEyeDepth(z, _ZBufferParams) + CheckBounds(uv, z); // TODO: We should use the stencil to not affect the sky and save CheckBounds cost
+    return LinearEyeDepth(z, _ZBufferParams) + CheckBounds(float2(0.5, 0.5), z); // TODO: We should use the stencil to not affect the sky and save CheckBounds cost - also uv can't be out of bounds on xy... so put a constant here
 }
 
 half3 SampleNormal(BSDFData bsdfData)

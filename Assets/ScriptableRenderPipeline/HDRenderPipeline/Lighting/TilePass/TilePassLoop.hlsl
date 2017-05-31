@@ -141,7 +141,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 {
     LightLoopContext context;
 #ifdef APPLY_AMBIENT_OCCLUSION
-    context.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusionTexture, unPositionSS).x;
+    context.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
 #else
     context.ambientOcclusion = 1.0;
 #endif
@@ -311,7 +311,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
 {
     LightLoopContext context;
 #ifdef APPLY_AMBIENT_OCCLUSION
-    context.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusionTexture, unPositionSS).x;
+    context.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
 #else
     context.ambientOcclusion = 1.0;
 #endif
