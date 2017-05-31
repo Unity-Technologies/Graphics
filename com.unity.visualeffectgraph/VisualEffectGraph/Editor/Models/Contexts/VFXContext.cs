@@ -95,7 +95,8 @@ namespace UnityEditor.VFX
 
         public bool Accept(VFXBlock block, int index = -1)
         {
-            return (block.compatibleContexts & contextType) != 0;
+            var testedType = contextType == VFXContextType.kOutput ? inputType : outputType;
+            return ((block.compatibleContexts & contextType) != 0) && (block.compatibleData == testedType);
         }
 
         protected override void OnAdded()
