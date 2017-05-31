@@ -155,6 +155,12 @@ namespace UnityEditor.VFX
             //to.Invalidate(InvalidationCause.kStructureChanged);
         }
 
+        public int GetNbInputs()                { return m_Inputs.Count; }
+        public int GetNbOutputs()               { return m_Outputs.Count; }
+
+        public VFXContext GetInput(int index)   { return m_Inputs[index]; }
+        public VFXContext GetOutput(int index)  { return m_Outputs[index]; }
+
         private void AddExpressionsToContext(HashSet<VFXExpression> expressions, IVFXSlotContainer slotContainer)
         {
             int nbSlots = slotContainer.GetNbInputSlots();
