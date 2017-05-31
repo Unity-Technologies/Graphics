@@ -179,6 +179,12 @@ float GetHorizonOcclusion(float3 V, float3 normalWS, float3 vertexNormal, float 
     return specularOcclusion * specularOcclusion;
 }
 
+// Ref: Moving Frostbite to PBR - Gotanda siggraph 2011
+float GetSpecularOcclusion(float NdotV, float ambientOcclusion, float roughness)
+{
+	return saturate(PositivePow(NdotV + ambientOcclusion, exp2(-16.0 * roughness - 1.0)) - 1.0 + ambientOcclusion);
+}
+
 //-----------------------------------------------------------------------------
 // Helper functions
 //-----------------------------------------------------------------------------

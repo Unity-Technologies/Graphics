@@ -120,8 +120,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private RenderTargetIdentifier m_CameraDepthStencilBufferRT;
         private RenderTargetIdentifier m_CameraDepthStencilBufferCopyRT;
 
-        // Post-processing context (recycled on every frame to avoid GC alloc)
+        // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
+        readonly ScreenSpaceAmbientOcclusionEffect m_SsaoEffect;
 
         // Detect when windows size is changing
         int m_CurrentWidth;
@@ -194,6 +195,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.skySettings = asset.skySettingsToUse;
 
             m_PostProcessContext = new PostProcessRenderContext();
+            m_SsaoEffect = new ScreenSpaceAmbientOcclusionEffect();
+            m_SsaoEffect.Build(asset.renderPipelineResources);
         }
 
         void InitializeDebugMaterials()
@@ -220,6 +223,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Utilities.Destroy(m_DebugDisplayLatlong);
 
             m_SkyManager.Cleanup();
+
+            m_SsaoEffect.Cleanup();
 
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = SupportedRenderingFeatures.Default;
@@ -436,10 +441,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new Utilities.ProfilingSample("Build Light list and render shadows", renderContext))
                 {
+                    // TODO: Everything here (SSAO, Shadow, Build light list, material and light classification can be parallelize with Async compute)
+                    m_SsaoEffect.Render(m_Asset.ssaoSettingsToUse, hdCamera, renderContext, GetDepthTexture(), m_Asset.renderingSettings.useForwardRenderingOnly);
                     m_LightLoop.PrepareLightsForGPU(m_Asset.shadowSettings, cullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cullResults);
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
-                    m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT); // TODO: Use async compute here to run light culling during shadow
+                    m_LightLoop.BuildGPULightLists(camera, renderContext, m_CameraDepthStencilBufferRT);
                 }
 
                 PushGlobalParams(hdCamera, renderContext, m_Asset.sssSettings);
