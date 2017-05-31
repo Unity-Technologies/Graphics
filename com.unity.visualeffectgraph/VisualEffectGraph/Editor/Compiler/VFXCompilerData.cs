@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
                         exp = graph.GetReduced(exp);
 
                     if (!Contains(exp))
-                        AddExpression(exp, slot.property.name);
+                        AddExpression(exp, slot.fullName);
                 }
             }
         }

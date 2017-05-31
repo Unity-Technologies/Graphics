@@ -107,6 +107,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        public string fullName
+        {
+            get
+            {
+                string name = property.name;
+                if (GetParent() != null)
+                    name = GetParent().fullName + "_" + name;
+                return name;
+            }
+        }
+
         public VFXExpression GetExpression()
         {
             if (!m_ExpressionTreeUpToDate)

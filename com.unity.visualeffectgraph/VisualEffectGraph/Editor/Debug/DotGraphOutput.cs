@@ -15,17 +15,6 @@ namespace UnityEditor.VFX
             graph.OutputToDotFile("d:\\testDot.dot");
         }
 
-        private static string GetRecursiveName(VFXSlot slot)
-        {
-            string name = slot.property.name;
-            while (slot.GetParent() != null)
-            {
-                slot = slot.GetParent();
-                name = slot.property.name + "." + name;
-            }
-            return name;
-        }
-
         public static void DebugExpressionGraph(VFXGraph graph, VFXExpression.Context.ReductionOption option)
         {
             var expressionGraph = new VFXExpressionGraph();
