@@ -58,7 +58,6 @@ uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 
 float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
 float4 _ShapeParameters[SSS_N_PROFILES];    // RGB = S = 1 / D; A = filter radius
 float4 _SurfaceAlbedos[SSS_N_PROFILES];     // RGB = color, A = unused
-float  _WorldScales[SSS_N_PROFILES];        // Size of the world unit in meters
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
