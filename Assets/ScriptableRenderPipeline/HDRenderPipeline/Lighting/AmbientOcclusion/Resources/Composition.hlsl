@@ -41,7 +41,7 @@ half4 Frag(Varyings input) : SV_Target0
     ao += GetPackedAO(p4) * w4;
     ao /= w0 + w1 + w2 + w3 + w4;
 
-    return half4(ao, 0, 0, 0);
+    return half4(1 - ao, 0, 0, 0);
 }
 
 #endif // UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_COMPOSITION

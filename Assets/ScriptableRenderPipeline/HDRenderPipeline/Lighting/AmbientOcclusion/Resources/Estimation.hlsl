@@ -27,12 +27,12 @@ float3 PickSamplePoint(float2 uv, float index)
 half4 Frag(Varyings input) : SV_Target
 {
     // input.positionCS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw / _Downsample);
     float2 uv = posInput.positionSS;
 
     half3 unused;
     BSDFData bsdfData;
-    FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
+    FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS / _Downsample);
     DECODE_FROM_GBUFFER(gbuffer, 0xFFFFFFFF, bsdfData, unused);
 
     // Parameters used in coordinate conversion
@@ -42,7 +42,7 @@ half4 Frag(Varyings input) : SV_Target
 
     // View space normal and depth
     half3 norm_o = SampleNormal(bsdfData);
-    float depth_o = SampleDepth(posInput.unPositionSS);
+    float depth_o = SampleDepth(posInput.unPositionSS / _Downsample);
 
     // Reconstruct the view-space position.
     float3 vpos_o = ReconstructViewPos(uv, depth_o, p11_22, p13_31);
@@ -75,7 +75,7 @@ half4 Frag(Varyings input) : SV_Target
     }
 
     // TODO: Check with Keijiro but ao is inverted here...
-    ao = 1.0 - ao;
+    //ao = 1.0 - ao;
 
     // Apply intensity normalization/amplifier/contrast.
     ao = pow(max(0, ao * _Radius * _Intensity / _SampleCount), kContrast);
