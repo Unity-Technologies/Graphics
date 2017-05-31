@@ -16,6 +16,14 @@ namespace UnityEditor.VFX
             { 4, new VFXValue<Vector4>(Vector4.one, true) },
         };
 
+        public static readonly Dictionary<int, VFXExpression> MinusOneExpression = new Dictionary<int, VFXExpression>
+        {
+            { 1, new VFXValue<float>(-1.0f, true) },
+            { 2, new VFXValue<Vector2>(-Vector2.one, true) },
+            { 3, new VFXValue<Vector3>(-Vector3.one, true) },
+            { 4, new VFXValue<Vector4>(-Vector4.one, true) },
+        };
+
         public static readonly Dictionary<int, VFXExpression> HalfExpression = new Dictionary<int, VFXExpression>
         {
             { 1, new VFXValue<float>(0.5f, true) },
@@ -31,6 +39,12 @@ namespace UnityEditor.VFX
             { 3, new VFXValue<Vector3>(Vector3.zero, true) },
             { 4, new VFXValue<Vector4>(Vector4.zero, true) },
         };
+
+        static public VFXExpression Negate(VFXExpression input)
+        {
+            var minusOne = VFXOperatorUtility.MinusOneExpression[VFXExpression.TypeToSize(input.ValueType)];
+            return new VFXExpressionMul(minusOne, input);
+        }
 
         static public VFXExpression Clamp(VFXExpression input, VFXExpression min, VFXExpression max)
         {
