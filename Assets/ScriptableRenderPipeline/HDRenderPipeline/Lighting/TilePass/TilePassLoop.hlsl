@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
 
@@ -140,7 +140,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
-    context.ambientOcclusion = 1; // LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
+    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
+    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
+    context.ambientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
     context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
@@ -305,8 +308,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 diffuseLighting,
                 out float3 specularLighting)
 {
-    LightLoopContext context;
-    context.ambientOcclusion = 1; // LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
+    LightLoopContext context;    
+    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
+    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
+    context.ambientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
     context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();

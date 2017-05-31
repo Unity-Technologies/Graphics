@@ -74,9 +74,6 @@ half4 Frag(Varyings input) : SV_Target
         ao += a1 / a2;
     }
 
-    // TODO: Check with Keijiro but ao is inverted here...
-    //ao = 1.0 - ao;
-
     // Apply intensity normalization/amplifier/contrast.
     ao = pow(max(0, ao * _Radius * _Intensity / _SampleCount), kContrast);
 

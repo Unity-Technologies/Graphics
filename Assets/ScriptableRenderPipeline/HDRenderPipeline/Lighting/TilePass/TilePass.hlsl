@@ -142,6 +142,3 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 // ----------------------------------------------------------------------------
 
 TEXTURE2D(_AmbientOcclusionTexture);
-
-// TODO: Create a variant for it
-#define APPLY_AMBIENT_OCCLUSION

@@ -41,7 +41,10 @@ half4 Frag(Varyings input) : SV_Target0
     ao += GetPackedAO(p4) * w4;
     ao /= w0 + w1 + w2 + w3 + w4;
 
-    return half4(1 - ao, 0, 0, 0);
+    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0.
+    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
+    return half4(ao, 0, 0, 0); // <= we don't invert ao here but when we sample the texture for reasons explain above
 }
 
 #endif // UNITY_HDRENDERPIPELINE_AMBIENTOCCLUSION_COMPOSITION
