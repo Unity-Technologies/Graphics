@@ -207,15 +207,31 @@ namespace UnityEditor.VFX
                     var models = new HashSet<Object>();
                     CollectDependencies(models);
 
-                    var compilerData = new VFXCompilerData(expressionGraph);
+                    var expressionSemantics = new List<VFXExpressionSemanticDesc>();
                     foreach (var context in models.OfType<VFXContext>())
-                        context.Compile(compilerData);
+                    {
+                        var cpuMapper = expressionGraph.BuildCPUMapper(context);
+                        int contextId = context.GetHashCode(); // TODO change that
 
-                    // TODO Generate rt mapper
+                        foreach (var exp in cpuMapper.expressions)
+                        {
+                            VFXExpressionSemanticDesc desc;
+                            desc.blockID = 0xFFFFFFFF; //TODO
+                            desc.contextID = (uint)contextId;
+                            int expIndex = expressionGraph.GetFlattenedIndex(exp);
+                            string name = cpuMapper.GetName(exp);
+                            if (expIndex == -1)
+                                throw new Exception(string.Format("Cannot find mapped expression {0} in flattened graph", name));
+                            desc.expressionIndex = (uint)expIndex;
+                            desc.name = name;
+                            expressionSemantics.Add(desc);
+                        }
+                    }
 
                     var expressionSheet = new VFXExpressionSheet();
                     expressionSheet.expressions = expressionDescs;
                     expressionSheet.values = expressionValues.ToArray();
+                    expressionSheet.semantics = expressionSemantics.ToArray();
 
                     vfxAsset.ClearPropertyData();
                     vfxAsset.SetExpressionSheet(expressionSheet);

@@ -19,42 +19,6 @@ namespace UnityEditor.VFX
         public VFXExpressionGraph()
         {}
 
-        private void AddExpressionsToContext(HashSet<VFXExpression> expressions, IVFXSlotContainer slotContainer)
-        {
-            int nbSlots = slotContainer.GetNbInputSlots();
-            for (int i = 0; i < nbSlots; ++i)
-            {
-                var slot = slotContainer.GetInputSlot(i);
-                slot.GetExpressions(expressions);
-            }
-        }
-
-        private VFXExpression.Context CreateLocalExpressionContext(VFXContext context, VFXExpression.Context.ReductionOption option)
-        {
-            var expressionContext = new VFXExpression.Context(option);
-            var expressions = new HashSet<VFXExpression>();
-
-            // First add context slots
-            AddExpressionsToContext(expressions, context);
-
-            // Then block slots
-            foreach (var child in context.children)
-                AddExpressionsToContext(expressions, child);
-
-            foreach (var exp in expressions)
-                expressionContext.RegisterExpression(exp);
-
-            return expressionContext;
-        }
-
-        private VFXExpression.Context CreateFromMapper(VFXExpressionMapper mapper, VFXExpression.Context.ReductionOption option)
-        {
-            var expressionContext = new VFXExpression.Context(option);
-            foreach (var exp in mapper.expressions)
-                expressionContext.RegisterExpression(exp);
-            return expressionContext;
-        }
-
         private void AddExpressionDataRecursively(Dictionary<VFXExpression, ExpressionData> dst, VFXExpression exp, int depth = 0)
         {
             ExpressionData data;
@@ -66,6 +30,13 @@ namespace UnityEditor.VFX
                 foreach (var parent in exp.Parents)
                     AddExpressionDataRecursively(dst, parent, depth + 1);
             }
+        }
+
+        private void ProcessMapper(VFXExpressionMapper mapper, VFXExpression.Context exprContext, HashSet<VFXExpression> expressions)
+        {
+            foreach (var exp in mapper.expressions)
+                exprContext.RegisterExpression(exp);
+            expressions.UnionWith(mapper.expressions);
         }
 
         public void CompileExpressions(VFXGraph graph, VFXExpression.Context.ReductionOption option)
@@ -97,17 +68,13 @@ namespace UnityEditor.VFX
 
                     if (cpuMapper != null)
                     {
-                        foreach (var exp in cpuMapper.expressions)
-                            expressionContext.RegisterExpression(exp);
-                        cpuExpressions.UnionWith(cpuMapper.expressions);
+                        ProcessMapper(cpuMapper, expressionContext, cpuExpressions);
                         m_ContextsToCPUExpressions.Add(context, cpuMapper);
                     }
 
                     if (gpuMapper != null)
                     {
-                        foreach (var exp in gpuMapper.expressions)
-                            expressionContext.RegisterExpression(exp);
-                        gpuExpressions.UnionWith(gpuMapper.expressions);
+                        ProcessMapper(gpuMapper, expressionContext, gpuExpressions);
                         m_ContextsToGPUExpressions.Add(context, gpuMapper);
                     }
 
@@ -123,7 +90,11 @@ namespace UnityEditor.VFX
                 foreach (var exp in m_ExpressionsToReduced.Values)
                     AddExpressionDataRecursively(m_ExpressionsData, exp);
 
-                var sortedList = m_ExpressionsData.Where(kvp => !kvp.Key.Is(VFXExpression.Flags.PerElement)).ToList(); // remove per element expression from flattened data
+                var sortedList = m_ExpressionsData.Where(kvp =>
+                    {
+                        var exp = kvp.Key;
+                        return !exp.Is(VFXExpression.Flags.PerElement);
+                    }).ToList(); // remove per element expression from flattened data // TODO Remove uniform constants too
                 sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));
                 m_FlattenedExpressions = sortedList.Select(kvp => kvp.Key).ToList();
 

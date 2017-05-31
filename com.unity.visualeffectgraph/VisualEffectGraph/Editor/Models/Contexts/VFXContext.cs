@@ -116,13 +116,6 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        public virtual void Compile(VFXCompilerData data)
-        {
-            // TODO Temp this should not go here
-            var uniforms = VFXExpressionMapper.FromContext(this, data.graph, "uniform");
-            data.AddUniformExpressionMapper(this, uniforms);
-        }
-
         // Not serialized nor exposed
         private VFXContextType m_ContextType;
         private VFXDataType m_InputType;

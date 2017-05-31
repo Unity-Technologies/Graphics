@@ -8,13 +8,6 @@ namespace UnityEditor.VFX
 {
     static class DotGraphOutput
     {
-        public static void Test()
-        {
-            DotGraph graph = new DotGraph();
-            graph.AddElement(new DotEdge(new DotNode("node 1"), new DotNode("node 2")));
-            graph.OutputToDotFile("d:\\testDot.dot");
-        }
-
         public static void DebugExpressionGraph(VFXGraph graph, VFXExpression.Context.ReductionOption option)
         {
             var expressionGraph = new VFXExpressionGraph();
@@ -57,11 +50,7 @@ namespace UnityEditor.VFX
                 {
                     string allOwnersStr = string.Empty;
                     foreach (var str in mainExpressions[exp])
-                    {
-                        // var topOwner = slot.GetMasterSlot().owner;
-                        // allOwnersStr += string.Format("\n{0} - {1}", topOwner.GetType().Name, GetRecursiveName(slot));
                         allOwnersStr += "\n" + str;
-                    }
 
                     name += string.Format("{0}", allOwnersStr);
 
