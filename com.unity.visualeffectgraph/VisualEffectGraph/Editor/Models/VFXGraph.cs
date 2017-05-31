@@ -210,9 +210,9 @@ namespace UnityEditor.VFX
                     var expressionSemantics = new List<VFXExpressionSemanticDesc>();
                     foreach (var context in models.OfType<VFXContext>())
                     {
-                        var cpuMapper = expressionGraph.BuildCPUMapper(context);
                         int contextId = context.GetHashCode(); // TODO change that
 
+                        var cpuMapper = expressionGraph.BuildCPUMapper(context);
                         foreach (var exp in cpuMapper.expressions)
                         {
                             VFXExpressionSemanticDesc desc;
@@ -225,6 +225,14 @@ namespace UnityEditor.VFX
                             desc.expressionIndex = (uint)expIndex;
                             desc.name = name;
                             expressionSemantics.Add(desc);
+                        }
+
+                        var gpuMapper = expressionGraph.BuildGPUMapper(context);
+                        if (gpuMapper.expressions.Count() > 0)
+                            Debug.Log("GPU EXPRESSIONS FOR " + contextId);
+                        foreach (var exp in gpuMapper.expressions)
+                        {
+                            Debug.Log(string.Format("--- {0} {1} {2}", gpuMapper.GetName(exp), exp.ValueType, expressionGraph.GetFlattenedIndex(exp)));
                         }
                     }
 

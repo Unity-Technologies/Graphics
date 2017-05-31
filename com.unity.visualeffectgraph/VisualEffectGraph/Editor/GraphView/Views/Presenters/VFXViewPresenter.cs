@@ -584,7 +584,7 @@ namespace UnityEditor.VFX.UI
                     DestroyImmediate(m_VFXAsset);*/
 
                 Clear();
-                Debug.Log(string.Format("SET GRAPH ASSET new:{0} old:{1} force:{2}", vfx, m_VFXAsset, force));
+                //Debug.Log(string.Format("SET GRAPH ASSET new:{0} old:{1} force:{2}", vfx, m_VFXAsset, force));
 
                 if (m_Graph != null)
                 {
