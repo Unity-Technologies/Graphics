@@ -8,6 +8,7 @@ namespace UnityEditor.VFX
     {
         public override string name                         { get { return "Test"; } }
         public override VFXContextType compatibleContexts   { get { return VFXContextType.kAll; } }
+        public override VFXDataType compatibleData          { get { return VFXDataType.kParticle; } }
 
         public class InputProperties
         {

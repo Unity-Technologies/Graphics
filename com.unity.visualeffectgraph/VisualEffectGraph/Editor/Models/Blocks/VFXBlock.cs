@@ -19,6 +19,9 @@ namespace UnityEditor.VFX
                 Invalidate(this, InvalidationCause.kStructureChanged);
             }
         }
+
         public abstract VFXContextType compatibleContexts { get; }
+        public abstract VFXDataType compatibleData { get; }
+        public virtual string source { get { return null; } }
     }
 }
