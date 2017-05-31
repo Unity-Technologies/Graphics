@@ -450,13 +450,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     using (new Utilities.ProfilingSample("Build Light list and render shadows", renderContext))
                     {
                         // TODO: Everything here (SSAO, Shadow, Build light list, material and light classification can be parallelize with Async compute)
-                        // Note: Currently there is no SSAO in forward as we don't have normal
-                        ScreenSpaceAmbientOcclusionSettings.Settings ssaoSettings = m_Asset.ssaoSettingsToUse;
-                        if (/* ssaoSettings != null && */ !m_Asset.renderingSettings.useForwardRenderingOnly)
-                        {
-                            m_SsaoEffect.Render(m_Asset.ssaoSettingsToUse, camera, renderContext, GetDepthTexture());
-                        }
-
+                        m_SsaoEffect.Render(m_Asset.ssaoSettingsToUse, camera, renderContext, GetDepthTexture(), m_Asset.renderingSettings.useForwardRenderingOnly);
                         m_LightLoop.PrepareLightsForGPU(m_Asset.shadowSettings, cullResults, camera);
                         m_LightLoop.RenderShadows(renderContext, cullResults);
                         renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
@@ -660,11 +654,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (debugDisplaySettings.renderingDebugSettings.enableSSS)
             {
                 // Output split lighting for materials tagged with the SSS stencil bit.
-                m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, debugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), true);
+                m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, debugDisplaySettings, m_Asset.ssaoSettingsToUse, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), true);
             }
 
             // Output combined lighting for all the other materials.
-            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, debugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), false);
+            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, debugDisplaySettings, m_Asset.ssaoSettingsToUse, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), false);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.

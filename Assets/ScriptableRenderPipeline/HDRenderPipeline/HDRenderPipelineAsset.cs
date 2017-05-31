@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        private ScreenSpaceAmbientOcclusionSettings.Settings m_SsaoSettings;
+        private ScreenSpaceAmbientOcclusionSettings.Settings m_SsaoSettings = ScreenSpaceAmbientOcclusionSettings.Settings.s_Defaultsettings;
 
         public ScreenSpaceAmbientOcclusionSettings.Settings ssaoSettingsToUse
         {

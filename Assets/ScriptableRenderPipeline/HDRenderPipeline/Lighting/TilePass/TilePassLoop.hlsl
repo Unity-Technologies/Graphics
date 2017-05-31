@@ -140,11 +140,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
-#ifdef APPLY_AMBIENT_OCCLUSION
     context.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
-#else
-    context.ambientOcclusion = 1.0;
-#endif
     context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
@@ -310,11 +306,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData prelightData, BS
                 out float3 specularLighting)
 {
     LightLoopContext context;
-#ifdef APPLY_AMBIENT_OCCLUSION
     context.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.unPositionSS).x;
-#else
-    context.ambientOcclusion = 1.0;
-#endif
     context.sampleShadow = 0;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();

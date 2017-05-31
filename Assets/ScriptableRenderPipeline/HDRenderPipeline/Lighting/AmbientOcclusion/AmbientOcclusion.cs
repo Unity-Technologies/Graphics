@@ -10,18 +10,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable]
         public struct Settings
         {
-            [Range(0, 2)]
+            bool m_Enable;
+
             [SerializeField]
             float m_Intensity;
             [SerializeField]
             float m_Radius;
 
-            [Range(1, 32)]
             [SerializeField]
             int m_SampleCount;
             [SerializeField]
             bool m_Downsampling;
 
+            public bool enable { set { m_Enable = value; } get { return m_Enable; } }
             public float intensity { set { m_Intensity = value; OnValidate(); } get { return m_Intensity; } }
             public float radius { set { m_Radius = value; OnValidate(); } get { return m_Radius; } }
             public int sampleCount { set { m_SampleCount = value; OnValidate(); } get { return m_SampleCount; } }
@@ -36,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public static readonly Settings s_Defaultsettings = new Settings
             {
+                m_Enable = false,
                 m_Intensity = 1.0f,
                 m_Radius = 0.5f,
                 m_SampleCount = 8,
@@ -44,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-         Settings m_Settings = Settings.s_Defaultsettings;
+        Settings m_Settings = Settings.s_Defaultsettings;
 
         public Settings settings
         {
@@ -92,13 +94,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Sheet = new PropertySheet(material);
         }
 
-        public void Render(ScreenSpaceAmbientOcclusionSettings.Settings settings, Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier depthID)
+        public void Render(ScreenSpaceAmbientOcclusionSettings.Settings settings, Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier depthID, bool isForward)
         {
-            /* if (settings == null) return; */ // TODO
-
             const RenderTextureFormat kFormat = RenderTextureFormat.ARGB32;
             const RenderTextureReadWrite kRWMode = RenderTextureReadWrite.Linear;
             const FilterMode kFilter = FilterMode.Bilinear;
+
+            // Note: Currently there is no SSAO in forward as we don't have normal buffer
+            if (settings.enable == false || isForward)
+            {
+                var cmd2 = new CommandBuffer { name = "Ambient Occlusion (1x1)" };
+                // TODO: Create a white 1x1 texture to setup here when AO is disabled (we could also do a variant in shader, but this increase number of combination)
+                cmd2.GetTemporaryRT(Uniforms._AOBuffer, 1, 1, 0, kFilter, kFormat, kRWMode);
+                cmd2.SetRenderTarget(Uniforms._AOBuffer);
+                cmd2.ClearRenderTarget(false, true, Color.white);
+                // Setup texture for lighting pass (automatic of unity)
+                cmd2.SetGlobalTexture("_AmbientOcclusionTexture", Uniforms._AOBuffer);
+
+                // Register the command buffer and release it.
+                renderContext.ExecuteCommandBuffer(cmd2);
+                cmd2.Dispose();
+
+                return ;
+            }
 
             var width = camera.pixelWidth;
             var height = camera.pixelHeight;
