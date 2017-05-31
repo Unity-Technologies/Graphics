@@ -38,17 +38,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             const FilterMode kFilter = FilterMode.Bilinear;
 
             // Note: Currently there is no SSAO in forward as we don't have normal buffer
+            // If SSAO is disable, simply put a white 1x1 texture
             if (settings.enable == false || isForward)
             {
-                var cmd2 = new CommandBuffer { name = "Ambient Occlusion (1x1)" };
-                // TODO: Create a white 1x1 texture to setup here when AO is disabled (we could also do a variant in shader, but this increase number of combination)
-                cmd2.GetTemporaryRT(Uniforms._AOBuffer, 1, 1, 0, kFilter, kFormat, kRWMode);
-                cmd2.SetRenderTarget(Uniforms._AOBuffer);
-                cmd2.ClearRenderTarget(false, true, Color.white);
-                // Setup texture for lighting pass (automatic of unity)
-                cmd2.SetGlobalTexture("_AmbientOcclusionTexture", Uniforms._AOBuffer);
-
-                // Register the command buffer and release it.
+                var cmd2 = new CommandBuffer { name = "Setup neutral Ambient Occlusion (1x1)" };
+                cmd2.SetGlobalTexture("_AmbientOcclusionTexture", PostProcessing.RuntimeUtilities.whiteTexture);
                 renderContext.ExecuteCommandBuffer(cmd2);
                 cmd2.Dispose();
 
@@ -103,13 +97,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Cleanup()
         {
-            if (m_Material != null)
-            {
-                if (Application.isPlaying)
-                    Object.Destroy(m_Material);
-                else
-                    Object.DestroyImmediate(m_Material);
-            }
+            Utilities.Destroy(m_Material);
         }
     }
 }

@@ -654,11 +654,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (debugDisplaySettings.renderingDebugSettings.enableSSS)
             {
                 // Output split lighting for materials tagged with the SSS stencil bit.
-                m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, debugDisplaySettings, m_Asset.ssaoSettingsToUse, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), true);
+                m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, debugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), true);
             }
 
             // Output combined lighting for all the other materials.
-            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, debugDisplaySettings, m_Asset.ssaoSettingsToUse, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), false);
+            m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, debugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), false);
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.

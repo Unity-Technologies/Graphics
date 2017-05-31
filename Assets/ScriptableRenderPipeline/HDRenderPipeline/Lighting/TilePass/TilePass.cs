@@ -1869,7 +1869,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void RenderDeferredLighting( HDCamera hdCamera, ScriptableRenderContext renderContext,
                                                 DebugDisplaySettings debugDisplaySettings,
-                                                ScreenSpaceAmbientOcclusionSettings.Settings ambientOcclusionSettings,
                                                 RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthStencilTexture,
                                                 bool outputSplitLightingForSSS)
             {
