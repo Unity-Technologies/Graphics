@@ -5,7 +5,7 @@ namespace UnityEditor.Experimental.Rendering
 {
     public class TestFrameworkCustomBuild
     {
-        private static readonly string s_TestSceneFolder = "/GraphicsTests/RenderPipeline/LowEndMobilePipeline/Scenes";
+        private static readonly string s_TestSceneFolder = "/GraphicsTests/RenderPipeline/LightweightPipeline/Scenes";
         private static readonly string s_BuildFolder = "/TestScenesBuild";
 
         [MenuItem("RenderPipeline/TestFramework/Build-iOS")]
