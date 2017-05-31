@@ -13,7 +13,7 @@ half4 Frag(Varyings input) : SV_Target
 {
     // input.positionCS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-    float uv = posInput.positionSS;
+    float2 uv = posInput.positionSS;
 
 #if defined(AO_DENOISE_HORIZONTAL)
 

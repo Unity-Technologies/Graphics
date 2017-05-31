@@ -9,11 +9,11 @@ TEXTURE2D(_MainTex);
 SAMPLER2D(sampler_MainTex);
 float4 _MainTex_TexelSize;
 
-half4 Frag(Varyings input)
+half4 Frag(Varyings input) : SV_Target0
 {
     // input.positionCS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-    float uv = posInput.positionSS;
+    float2 uv = posInput.positionSS;
 
     float2 delta = _MainTex_TexelSize.xy / _Downsample; // TODO: is it correct, we have already bilateral upsample here ?
 
