@@ -111,12 +111,13 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float  maxDistance = _ShapeParameters[profileID].a;
 
                 // Reconstruct the view-space position.
+                float2 cornerPosSS = posInput.positionSS + 0.5 * _ScreenSize.zw;
                 float  rawDepth    = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r;
                 float3 centerPosVS = ComputeViewSpacePosition(posInput.positionSS, rawDepth, _InvProjMatrix);
+                float3 cornerPosVS = ComputeViewSpacePosition(cornerPosSS,         rawDepth, _InvProjMatrix);
 
-                // Compute the dimensions of the surface fragment viewed as a quad facing the camera.
-                // TODO: this could be done more accurately using a matrix precomputed on the CPU.
-                float2 metersPerPixel = float2(ddx_fine(centerPosVS.x), ddy_fine(centerPosVS.y));
+                // Compute the view-space dimensions of the pixel as a quad projected onto geometry.
+                float2 metersPerPixel = 2 * (cornerPosVS.xy - centerPosVS.xy);
                 float2 scaledPixPerMm = distScale * rcp(METERS_TO_MILLIMETERS * metersPerPixel);
 
                 // Take the first (central) sample.
@@ -145,8 +146,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     // Perform integration over the screen-aligned plane in the view space.
                     // TODO: it would be more accurate to use the tangent plane in the world space.
 
-                    int validSampleCount = 0;
-
                     [unroll]
                     for (uint i = 1; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
                     {
@@ -162,18 +161,12 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
 
                         [flatten]
-                        if (rawDepth == 0)
-                        {
-                            // Our sample comes from a region without any geometry.
-                            continue;
-                        }
-
-                        [flatten]
                         if (any(sampleIrradiance) == false)
                         {
-                            // The irradiance is 0. This could happen for 2 reasons.
+                            // The irradiance is 0. This could happen for 3 reasons.
                             // Most likely, the surface fragment does not have an SSS material.
-                            // Alternatively, the surface fragment could be completely shadowed.
+                            // Alternatively, our sample comes from a region without any geometry.
+                            // Finally, the surface fragment could be completely shadowed.
                             // Our blur is energy-preserving, so 'sampleWeight' should be set to 0.
                             // We do not terminate the loop since we want to gather the contribution
                             // of the remaining samples (e.g. in case of hair covering skin).
@@ -187,17 +180,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                         totalIrradiance += sampleWeight * sampleIrradiance;
                         totalWeight     += sampleWeight;
-
-                        validSampleCount++;
-                    }
-
-                    [branch]
-                    if (validSampleCount < SSS_N_SAMPLES_NEAR_FIELD / 2)
-                    {
-                        // Do not blur.
-                        samplePosition   = posInput.unPositionSS;
-                        sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
-                        return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
                     }
 
                     return float4(bsdfData.diffuseColor * totalIrradiance / totalWeight, 1);
