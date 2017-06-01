@@ -293,12 +293,24 @@ namespace UnityEngine.MaterialGraph
             foreach (var param in info.GetParameters())
                 args.Add(GetDefault(param.ParameterType));
 
-            return info.Invoke(this, args.ToArray()) as string;
+            var result = info.Invoke(this, args.ToArray()) as string;
+
+            if (string.IsNullOrEmpty(result))
+                return string.Empty;
+
+            result = result.Replace("{precision}", precision.ToString());
+            foreach (var slot in GetSlots<MaterialSlot>())
+            {
+                var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
+                var replacement = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
+                result = result.Replace(toReplace, replacement);
+            }
+            return result;
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            string function = GetFunctionHeader() + GetFunctionBody(GetFunctionToConvert()).Replace("{precision}", precision.ToString());
+            string function = GetFunctionHeader() + GetFunctionBody(GetFunctionToConvert());
             visitor.AddShaderChunk(function, true);
         }
 
