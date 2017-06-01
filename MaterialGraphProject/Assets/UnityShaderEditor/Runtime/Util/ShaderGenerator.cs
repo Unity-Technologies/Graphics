@@ -154,7 +154,7 @@ namespace UnityEngine.MaterialGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}{1})", rawOutput, textureSampleUVHack ? ".xx" : string.Empty);
+                            return string.Format("({0}{1})", rawOutput, ".xx");
                         case ConcreteSlotValueType.Vector3:
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xy)", rawOutput);
@@ -165,7 +165,7 @@ namespace UnityEngine.MaterialGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}{1})", rawOutput, textureSampleUVHack ? ".xxx" : string.Empty);
+                            return string.Format("({0}{1})", rawOutput, ".xxx");
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xyz)", rawOutput);
                         default:
@@ -175,7 +175,7 @@ namespace UnityEngine.MaterialGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}{1})", rawOutput, textureSampleUVHack ? ".xxxx" : string.Empty);
+                            return string.Format("({0}{1})", rawOutput, ".xxxx");
                         default:
                             return kErrorString;
                     }
@@ -295,10 +295,10 @@ namespace UnityEngine.MaterialGraph
             if (requiresViewDir || requiresViewDirTangentSpace)
             {
                 shaderBodyVisitor.AddShaderChunk(
-                    "float3 " 
-                    + ShaderGeneratorNames.WorldSpaceViewDirection 
-                    + " = normalize(UnityWorldSpaceViewDir(" 
-                    + ShaderGeneratorNames.WorldSpacePosition 
+                    "float3 "
+                    + ShaderGeneratorNames.WorldSpaceViewDirection
+                    + " = normalize(UnityWorldSpaceViewDir("
+                    + ShaderGeneratorNames.WorldSpacePosition
                     + "));", true);
             }
 
@@ -355,15 +355,15 @@ namespace UnityEngine.MaterialGraph
                     (activeNode as IGeneratesFunction).GenerateNodeFunction(shaderFunctionVisitor, generationMode);
                 if (activeNode is IGeneratesBodyCode)
                     (activeNode as IGeneratesBodyCode).GenerateNodeCode(shaderBodyVisitor, generationMode);
- 
+
                 activeNode.GeneratePropertyBlock(shaderPropertiesVisitor, generationMode);
                 activeNode.GeneratePropertyUsages(shaderPropertyUsagesVisitor, generationMode);
             }
-           
+
             shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id) + ";", true);
 
             ListPool<INode>.Release(activeNodeList);
-           
+
             template = template.Replace("${ShaderName}", shaderName);
             template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
             template = template.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(3));
