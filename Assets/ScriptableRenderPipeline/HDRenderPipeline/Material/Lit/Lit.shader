@@ -15,7 +15,8 @@ Shader "HDRenderPipeline/Lit"
 
         _SpecularOcclusionMap("SpecularOcclusion", 2D) = "white" {}
 
-        _NormalMap("NormalMap", 2D) = "bump" {}
+        _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
+        _NormalMapOS("NormalMapOS", 2D) = "white" {} // Object space normal map - no good default value
         _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
 
         _HeightMap("HeightMap", 2D) = "black" {}

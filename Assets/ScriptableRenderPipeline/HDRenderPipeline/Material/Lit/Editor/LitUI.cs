@@ -123,6 +123,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kHorizonFade = "_HorizonFade";
         protected MaterialProperty normalMap = null;
         protected const string kNormalMap = "_NormalMap";
+        protected MaterialProperty normalMapOS = null;
+        protected const string kNormalMapOS = "_NormalMapOS";
         protected MaterialProperty normalScale = null;
         protected const string kNormalScale = "_NormalScale";
         protected MaterialProperty normalMapSpace = null;
@@ -194,6 +196,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             specularOcclusionMap = FindProperty(kSpecularOcclusionMap, props);
             horizonFade = FindProperty(kHorizonFade, props);
             normalMap = FindProperty(kNormalMap, props);
+            normalMapOS = FindProperty(kNormalMapOS, props);
             normalScale = FindProperty(kNormalScale, props);
             normalMapSpace = FindProperty(kNormalMapSpace, props);
             heightMap = FindProperty(kHeightMap, props);
@@ -317,7 +320,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.HelpBox(Styles.normalMapSpaceWarning.text, MessageType.Error);
             }
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
+            // We have two different property for object space and tangent space normal map to allow
+            // 1. to go back and forth
+            // 2. to avoid the warning that ask to fix the object normal map texture (normalOS are just linear RGB texture
+            if ((NormalMapSpace)normalMapSpace.floatValue == NormalMapSpace.TangentSpace)
+            {
+                m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
+            }
+            else
+            {
+                // No scaling in object space
+                m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMapOS);
+            }
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap);
             if (!heightMap.hasMixedValue && heightMap.textureValue != null)
@@ -422,14 +436,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupBaseLitKeywords(material);
             SetupBaseLitMaterialPass(material);
 
+            NormalMapSpace normalMapSpace = (NormalMapSpace)material.GetFloat(kNormalMapSpace);
+
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
             SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
-            SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
+            SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (normalMapSpace == NormalMapSpace.TangentSpace));
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
 
-            SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
+            if (normalMapSpace == NormalMapSpace.TangentSpace)
+            {
+                // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for it
+                SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap));
+            }
+            else // Object space
+            {
+                // With details map, we always use a normal map but in case of objects space there is no good default, so the result will be weird until users fix it
+                SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS) || material.GetTexture(kDetailMap));
+            }
             SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap));
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
