@@ -51,6 +51,9 @@ SAMPLER2D(sampler_SpecularOcclusionMap);
 
 TEXTURE2D(_NormalMap);
 SAMPLER2D(sampler_NormalMap);
+TEXTURE2D(_NormalMapOS);
+SAMPLER2D(sampler_NormalMapOS);
+
 float _NormalScale;
 
 TEXTURE2D(_DetailMask);
@@ -123,6 +126,7 @@ PROP_DECL_TEX2D(_MaskMap);
 PROP_DECL_TEX2D(_SpecularOcclusionMap);
 
 PROP_DECL_TEX2D(_NormalMap);
+PROP_DECL_TEX2D(_NormalMapOS);
 PROP_DECL(float, _NormalScale);
 float4 _NormalMap0_TexelSize; // Unity facility. This will provide the size of the base normal to the shader
 
