@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -300,7 +300,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-            else if(element is VFXBlockPresenter)
+            else if (element is VFXBlockPresenter)
             {
                 var block = element as VFXBlockPresenter;
 
