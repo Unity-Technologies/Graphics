@@ -1,28 +1,31 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Basic/Subtract")]
-    class SubtractNode : Function2Input, IGeneratesFunction
+    class SubtractNode : CodeFunctionNode
     {
         public SubtractNode()
         {
             name = "Subtract";
         }
 
-        protected override string GetFunctionName() {return "unity_subtract_" + precision; }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        protected override MethodInfo GetFunctionToConvert()
         {
-            var outputString = new ShaderGenerator();
+            return GetType().GetMethod("Unity_Subtract", BindingFlags.Static | BindingFlags.NonPublic);
+        }
 
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return arg1 - arg2;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        static string Unity_Subtract(
+            [Slot(0, Binding.None)] DynamicDimensionVector first,
+            [Slot(1, Binding.None)] DynamicDimensionVector second,
+            [Slot(2, Binding.None)] out DynamicDimensionVector result)
+        {
+            return
+                @"
+{
+    result = first - second;
+}
+";
         }
     }
 }

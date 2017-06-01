@@ -1,29 +1,30 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
     [Title("Vector/Projection Node")]
-    public class VectorProjectionNode : Function2Input, IGeneratesFunction
+    public class VectorProjectionNode : CodeFunctionNode
     {
         public VectorProjectionNode()
         {
             name = "VectorProjection";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_vector_projection_" + precision;
+            return GetType().GetMethod("Unity_VectorProjection", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        static string Unity_VectorProjection(
+            [Slot(0, Binding.None)] DynamicDimensionVector first,
+            [Slot(1, Binding.None)] DynamicDimensionVector second,
+            [Slot(2, Binding.None)] out DynamicDimensionVector result)
         {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return arg2 * dot(arg1, arg2) / dot(arg2, arg2);", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    result = second * dot(first, second) / dot(second, second);
+}";
         }
     }
 }

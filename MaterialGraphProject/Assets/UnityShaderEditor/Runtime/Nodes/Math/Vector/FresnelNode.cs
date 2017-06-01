@@ -1,43 +1,31 @@
-using UnityEngine.Graphing;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Vector/Fresnel")]
-    class FresnelNode : Function2Input, IGeneratesFunction
+    class FresnelNode : CodeFunctionNode
     {
         public FresnelNode()
         {
             name = "Fresnel";
         }
 
-        protected override MaterialSlot GetInputSlot1()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
+            return GetType().GetMethod("Unity_Fresnel", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override MaterialSlot GetInputSlot2()
+        static string Unity_Fresnel(
+            [Slot(0, Binding.None)] Vector3 first,
+            [Slot(1, Binding.None)] Vector3 second,
+            [Slot(2, Binding.None)] out Vector1 result)
         {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector1, Vector4.zero);
-        }
-
-        protected override string GetFunctionName() { return "unity_fresnel_" + precision; }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return (1.0 - dot (normalize (arg1), normalize (arg2)));", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    result = (1.0 - dot (normalize (first), normalize (second)));
+}
+";
         }
     }
 }

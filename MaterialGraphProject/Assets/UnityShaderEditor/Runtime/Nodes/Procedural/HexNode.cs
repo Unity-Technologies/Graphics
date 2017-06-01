@@ -1,58 +1,33 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Hex")]
-    public class HexNode : Function2Input, IGeneratesFunction
+    public class HexNode : CodeFunctionNode
     {
         public HexNode()
         {
             name = "Hex";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_hex_" + precision;
+            return GetType().GetMethod("Unity_Hex", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override string GetInputSlot1Name()
+        static string Unity_Hex(
+            [Slot(0, Binding.None)] Vector2 uv,
+            [Slot(1, Binding.None)] Vector1 thickness,
+            [Slot(2, Binding.None)] out Vector1 result)
         {
-            return "UV";
-        }
-
-        protected override MaterialSlot GetInputSlot1()
-        {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        protected override string GetInputSlot2Name()
-        {
-            return "Thickness";
-        }
-
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector1, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector1, Vector2.zero);
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("uv", "thickness"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk("uv.y += fmod(floor(uv.x), 2.0) * 0.5;", false);
-            outputString.AddShaderChunk("uv = abs(frac(uv) - 0.5);", false);
-            outputString.AddShaderChunk("return step(thickness, abs(max(uv.x * 1.5 + uv.y, uv.y * 2.0) - 1.0));", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    uv.y += fmod(floor(uv.x), 2.0) * 0.5;
+    uv = abs(frac(uv) - 0.5);
+    result =  step(thickness, abs(max(uv.x * 1.5 + uv.y, uv.y * 2.0) - 1.0));
+}
+";
         }
     }
 }

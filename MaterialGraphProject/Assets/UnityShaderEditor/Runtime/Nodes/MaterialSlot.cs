@@ -145,7 +145,7 @@ namespace UnityEngine.MaterialGraph
         public string shaderOutputName
         {
             get { return m_ShaderOutputName; }
-            set { m_ShaderOutputName = value; }
+            private set { m_ShaderOutputName = value; }
         }
 
         public bool showValue

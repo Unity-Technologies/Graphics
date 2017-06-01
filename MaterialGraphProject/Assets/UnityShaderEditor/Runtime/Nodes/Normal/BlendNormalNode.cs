@@ -1,46 +1,32 @@
-﻿using UnityEngine.Graphing;
+﻿using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Normal/Blend Normal")]
-    public class BlendNormalNode : Function2Input, IGeneratesFunction
+    public class BlendNormalNode : CodeFunctionNode
     {
         public BlendNormalNode()
         {
             name = "BlendNormal";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_blendnormal_" + precision;
+            return GetType().GetMethod("Unity_Blendnormal", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override MaterialSlot GetInputSlot1()
+        static string Unity_Blendnormal(
+            [Slot(0, Binding.None)] Vector3 first,
+            [Slot(1, Binding.None)] Vector3 second,
+            [Slot(2, Binding.None)] out Vector3 result)
         {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
-        }
+            result = Vector3.one;
 
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return normalize("+precision+"3(arg1.rg + arg2.rg, arg1.b * arg2.b));", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return @"
+{
+    result = normalize({precision}3(first.rg + second.rg, first.b * second.b));
+}
+";
         }
     }
 }

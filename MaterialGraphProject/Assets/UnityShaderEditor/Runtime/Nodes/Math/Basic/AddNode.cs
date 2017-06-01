@@ -1,29 +1,31 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Basic/Add")]
-    public class AddNode : Function2Input, IGeneratesFunction
+    public class AddNode : CodeFunctionNode
     {
         public AddNode()
         {
             name = "Add";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_add_" + precision;
+            return GetType().GetMethod("Unity_Add", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        static string Unity_Add(
+            [Slot(0, Binding.None)] DynamicDimensionVector first,
+            [Slot(1, Binding.None)] DynamicDimensionVector second,
+            [Slot(2, Binding.None)] out DynamicDimensionVector result)
         {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return arg1 + arg2;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    result = first + second;
+}
+";
         }
     }
 }
