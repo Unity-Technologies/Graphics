@@ -26,15 +26,15 @@ namespace UnityEngine.MaterialGraph
 {
     //rotation matrix
     uv.xy -= 0.5;
-    {0} s = sin(rotation);
-    {0} c = cos(rotation);
+    {precision} s = sin(rotation);
+    {precision} c = cos(rotation);
 
 
     //center rotation matrix
-    {0}2x2 rMatrix = float2x2(c, -s, s, c);
+    {precision}2x2 rMatrix = float2x2(c, -s, s, c);
     rMatrix *= 0.5;
     rMatrix += 0.5;
-    rMatrix = rMatrix*2 - 1
+    rMatrix = rMatrix*2 - 1;
 
     //multiply the UVs by the rotation matrix
     uv.xy = mul(uv.xy, rMatrix);
