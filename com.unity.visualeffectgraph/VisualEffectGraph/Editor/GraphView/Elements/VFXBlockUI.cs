@@ -27,6 +27,9 @@ namespace UnityEditor.VFX.UI
 
             presenter.Model.enabled = !presenter.Model.enabled;
         }
+        public override void OnSelected()
+        {
+        }
 
         // This function is a placeholder for common stuff to do before we delegate the action to the drop target
         private void HandleDropEvent(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)
@@ -34,7 +37,7 @@ namespace UnityEditor.VFX.UI
             if (dropTarget == null)
                 return;
 
-            switch ((EventType)evt.GetEventTypeId())
+            switch ((EventType)evt.imguiEvent.type)
             {
                 case EventType.DragUpdated:
                     dropTarget.DragUpdated(evt, selection, dropTarget);
