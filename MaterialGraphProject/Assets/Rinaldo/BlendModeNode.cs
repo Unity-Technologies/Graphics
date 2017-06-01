@@ -96,7 +96,7 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    result = botom / (top + 0.000000000001);
+    result = bottom / (top + 0.000000000001);
 }";
         }
 
@@ -120,9 +120,9 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    {precision}{dimension2} result1 = 1.0 - 2.0 * (1.0 - top) * (1.0 - bottom);
-    {precision}{dimension2} result2 = 2.0 * top * bottom;
-    {precision}{dimension2} zeroOrOne = step(top, 0.5);
+    {precision}{slot2dimension} result1 = 1.0 - 2.0 * (1.0 - top) * (1.0 - bottom);
+    {precision}{slot2dimension} result2 = 2.0 * top * bottom;
+    {precision}{slot2dimension} zeroOrOne = step(top, 0.5);
     result = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
 }";
         }
@@ -135,11 +135,11 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    result = step(1-top, bottom)
+    result = step(1-top, bottom);
 }";
         }
 
-        static string Unity_BlendHardLighten(
+        static string Unity_BlendLighten(
             [Slot(0, Binding.None)] DynamicDimensionVector top,
             [Slot(1, Binding.None)] DynamicDimensionVector bottom,
             [Slot(2, Binding.None)] out DynamicDimensionVector result)
@@ -231,9 +231,9 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    {precision}{dimension2} result1 = 1.0 - 2.0 * (1.0 - top) * (1.0 - bottom);
-    {precision}{dimension2} result2 = 2.0 * top * bottom;
-    {precision}{dimension2} zeroOrOne = step(bottom, 0.5);
+    {precision}{slot2dimension} result1 = 1.0 - 2.0 * (1.0 - top) * (1.0 - bottom);
+    {precision}{slot2dimension} result2 = 2.0 * top * bottom;
+    {precision}{slot2dimension} zeroOrOne = step(bottom, 0.5);
     result = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
 }
 ";
@@ -247,8 +247,8 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    {precision}{dimension2} check = step (0.5, top);
-    {precision}{dimension2} result1 = check * max(2.0*(top - 0.5), bottom);
+    {precision}{slot2dimension} check = step (0.5, top);
+    {precision}{slot2dimension} result1 = check * max(2.0*(top - 0.5), bottom);
     result = result1 + (1.0 - check) * min(2.0 * top, bottom);
 }
 ";
@@ -262,9 +262,9 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    {precision}{dimension2} result1= 2.0 * bottom * top +bottom*top - 2.0 * bottom*bottom*top;
-    {precision}{dimension2} result2= 2.0* sqrt(bottom) * top - sqrt(bottom) + 2.0 * bottom - 2.0 * bottom*top;
-    {precision}{dimension2} zeroOrOne = step(0.5, top);
+    {precision}{slot2dimension} result1= 2.0 * bottom * top +bottom*top - 2.0 * bottom*bottom*top;
+    {precision}{slot2dimension} result2= 2.0* sqrt(bottom) * top - sqrt(bottom) + 2.0 * bottom - 2.0 * bottom*top;
+    {precision}{slot2dimension} zeroOrOne = step(0.5, top);
     result = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
 }
 ";
@@ -278,9 +278,9 @@ namespace UnityEngine.MaterialGraph
             return
                 @"
 {
-    {precision}{dimension2} result1 = 1.0-(1.0-bottom)/(2.0*top);
-    {precision}{dimension2} result2 = bottom/(2.0*(1.0-top));
-    {precision}{dimension2} zeroOrOne = step(0.5, top);
+    {precision}{slot2dimension} result1 = 1.0-(1.0-bottom)/(2.0*top);
+    {precision}{slot2dimension} result2 = bottom/(2.0*(1.0-top));
+    {precision}{slot2dimension} zeroOrOne = step(0.5, top);
     result = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
 }
 ";

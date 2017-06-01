@@ -20,23 +20,7 @@
         PinLight,
         Screen,
         SoftLight,
-        Substract,
+        Subtract,
         VividLight
-
-
-/* Old Order 
-Multiply
-Screen
-Darken
-Lighten
-Difference
-Negation
-Exclusion
-Overlay
-HardLight
-SoftLight
-Dodge (ColorDodge)
-Burn (ColorBurn)
-*/
     }
 }
