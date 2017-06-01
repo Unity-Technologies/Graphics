@@ -275,17 +275,9 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     {
         // Use 16 bits to encode the thickness, and up to 8 bits to encode the profile ID.
         // We need a lot of precision to minimize banding of NdotV-weighted thickness.
-        int   ip = surfaceData.subsurfaceProfile;   // [0, 255]
-        float ft = surfaceData.thickness;           // [0, 1]
-        int   it = int(ft * ((1 << 16) - 1));       // [0, 65535]
-        int   lo = it & ((1 << 8) - 1);             // 8 bit low
-        int   hi = (it >> 8) & ((1 << 8) - 1);      // 8 bit high
-
-        float y = saturate(lo * rcp((1 << 8) - 1));
-        float z = saturate(hi * rcp((1 << 8) - 1));
-        float w = saturate(ip * rcp((1 << 8) - 1));
-
-        outGBuffer2 = float4(surfaceData.subsurfaceRadius, y, z, w);
+        outGBuffer2 = float4(surfaceData.subsurfaceRadius,
+                             PackFloatToR8G8(surfaceData.thickness),
+                             PackByte(surfaceData.subsurfaceProfile));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
     {
@@ -416,22 +408,11 @@ void DecodeFromGBuffer(
     }
     else if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        float subsurfaceRadius = inGBuffer2.r;
-
-        float y = inGBuffer2.g;
-        float z = inGBuffer2.b;
-        float w = inGBuffer2.a;
-
         // Use 16 bits to encode the thickness, and up to 8 bits to encode the profile ID.
         // We need a lot of precision to minimize banding of NdotV-weighted thickness.
-        int   lo = int(y * ((1 << 8) - 1));             // 8 bit low
-        int   hi = int(z * ((1 << 8) - 1));             // 8 bit high
-        int   ip = int(w * ((1 << 8) - 1));             // [0, 255]
-        int   it = lo + (hi << 8);                      // [0, 65535]
-        float ft = saturate(it * rcp((1 << 16) - 1));   // [0, 1]
-
-        float thickness = ft;
-        int subsurfaceProfile = ip;
+        float subsurfaceRadius  = inGBuffer2.x;
+        float thickness         = UnpackFloatFromR8G8(inGBuffer2.yz);
+        int   subsurfaceProfile = UnpackByte(inGBuffer2.w);
 
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
     }

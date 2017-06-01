@@ -92,9 +92,10 @@
 
 #ifndef INTRINSIC_BITFIELD_EXTRACT
 // unsigned integer bit field extract implementation
-uint BitFieldExtract(uint data, uint size, uint offset)
+uint BitFieldExtract(uint data, uint numBits, uint offset)
 {
-    return (data >> offset) & ((1 << size) - 1);
+    uint mask = 0xFFFFFFFFu >> (32u - numBits);
+    return (data >> offset) & mask;
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
 
