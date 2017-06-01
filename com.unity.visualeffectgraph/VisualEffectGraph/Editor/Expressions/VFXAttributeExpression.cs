@@ -69,6 +69,20 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override bool Equals(object obj)
+        {
+            if (!(obj is VFXAttributeExpression))
+                return false;
+
+            var other = (VFXAttributeExpression)obj;
+            return ValueType == other.ValueType && attributeName == other.attributeName;
+        }
+
+        public override int GetHashCode()
+        {
+            return attributeName.GetHashCode();
+        }
+
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             return this;

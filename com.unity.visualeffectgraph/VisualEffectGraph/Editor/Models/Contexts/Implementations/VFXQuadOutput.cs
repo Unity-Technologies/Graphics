@@ -12,20 +12,5 @@ namespace UnityEditor.VFX
         {
             public Texture2D texture;
         }
-
-        public override VFXExpressionMapper GetGPUExpressions()
-        {
-            var mapper = new VFXExpressionMapper("uniform");
-            for (int i = 0; i < GetNbChildren(); ++i)
-                mapper.AddExpressionFromSlotContainer(GetChild(i), i);
-            return mapper;
-        }
-
-        public override VFXExpressionMapper GetCPUExpressions()
-        {
-            var mapper = new VFXExpressionMapper("");
-            mapper.AddExpression(GetInputSlot(0).GetExpression(), "texture");
-            return mapper;
-        }
     }
 }
