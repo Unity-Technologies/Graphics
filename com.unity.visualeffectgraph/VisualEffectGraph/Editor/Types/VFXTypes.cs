@@ -95,6 +95,15 @@ namespace UnityEditor.VFX
     }
 
     [VFXType]
+    struct DirectionType : Spaceable
+    {
+        CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }
+
+        public CoordinateSpace space;
+        public Vector3 direction;
+    }
+
+    [VFXType]
     struct Vector : Spaceable
     {
         CoordinateSpace Spaceable.space { get { return this.space; } set { this.space = value; } }

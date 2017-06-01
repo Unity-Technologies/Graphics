@@ -113,6 +113,13 @@ namespace UnityEditor.VFX
             return Sqrt(dot);
         }
 
+        static public VFXExpression Normalize(VFXExpression v)
+        {
+            var invLength = new VFXExpressionDivide(VFXOperatorUtility.OneExpression[1], VFXOperatorUtility.Length(v));
+            var invLengthVector = VFXOperatorUtility.CastFloat(invLength, v.ValueType);
+            return new VFXExpressionMul(v, invLengthVector);
+        }
+
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
         {
             if (expression.ValueType == VFXValueType.kFloat)
