@@ -114,7 +114,13 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 
 #ifndef LAYERED_LIT_SHADER
 
+// Want to use only one sampler for normalmap either we use OS or TS.
+#ifdef _NORMALMAP_TANGENT_SPACE
 #define SAMPLER_NORMALMAP_IDX sampler_NormalMap
+#else
+#define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS
+#endif
+
 #define SAMPLER_DETAILMASK_IDX sampler_DetailMask
 #define SAMPLER_DETAILMAP_IDX sampler_DetailMap
 #define SAMPLER_MASKMAP_IDX sampler_MaskMap
@@ -392,13 +398,29 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 // for this we put the constraint that the sampler are the same in a layered material for all textures of the same type
 // then we take the sampler matching the first textures use of this type
 #if defined(_NORMALMAP0)
-#define SAMPLER_NORMALMAP_IDX sampler_NormalMap0
+    #if defined(_NORMALMAP_TANGENT_SPACE0)
+    #define SAMPLER_NORMALMAP_IDX sampler_NormalMap0
+    #else
+    #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS0
+    #endif
 #elif defined(_NORMALMAP1)
-#define SAMPLER_NORMALMAP_IDX sampler_NormalMap1
+    #if defined(_NORMALMAP_TANGENT_SPACE1)
+    #define SAMPLER_NORMALMAP_IDX sampler_NormalMap1
+    #else
+    #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS1
+    #endif
 #elif defined(_NORMALMAP2)
-#define SAMPLER_NORMALMAP_IDX sampler_NormalMap2
+    #if defined(_NORMALMAP_TANGENT_SPACE2)
+    #define SAMPLER_NORMALMAP_IDX sampler_NormalMap2
+    #else
+    #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS2
+    #endif
 #else
-#define SAMPLER_NORMALMAP_IDX sampler_NormalMap3
+    #if defined(_NORMALMAP_TANGENT_SPACE3)
+    #define SAMPLER_NORMALMAP_IDX sampler_NormalMap3
+    #else
+    #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS3
+    #endif
 #endif
 
 #if defined(_DETAIL_MAP0)

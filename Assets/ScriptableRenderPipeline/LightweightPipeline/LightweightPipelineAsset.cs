@@ -55,33 +55,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         #region PipelineAssetSettings
 
         [SerializeField] private int m_MaxPixelLights = 1;
-
         [SerializeField] private bool m_SupportsVertexLight = true;
-
         [SerializeField] private bool m_EnableLightmaps = true;
-
         [SerializeField] private bool m_EnableAmbientProbe = true;
-
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
-
         [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._1024;
-
         [SerializeField] private float m_ShadowNearPlaneOffset = 2.0f;
-
         [SerializeField] private float m_ShadowDistance = 50.0f;
-
         [SerializeField] private float m_MinShadowNormalBias = 0.0005f;
-
         [SerializeField] private float m_ShadowNormalBias = 0.05f;
-
         [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.NO_CASCADES;
-
         [SerializeField] private float m_Cascade2Split = 0.25f;
-
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
 
         [SerializeField] private Material m_DefaultDiffuseMaterial;
-
+        [SerializeField] private Material m_DefaultSpriteMaterial;
         [SerializeField] private Shader m_DefaultShader;
 
         public int MaxSupportedPixelLights
@@ -162,18 +150,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             private set { m_Cascade4Split = value; }
         }
 
-        public Material DefaultDiffuseMaterial
-        {
-            get { return m_DefaultDiffuseMaterial; }
-            private set { m_DefaultDiffuseMaterial = value; }
-        }
-
-        public Shader DefaultShader
-        {
-            get { return m_DefaultShader; }
-            private set { m_DefaultShader = value; }
-        }
-
         #endregion
         public override Material GetDefaultMaterial()
         {
@@ -212,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override Material GetDefault2DMaterial()
         {
-            return m_DefaultDiffuseMaterial;
+            return m_DefaultSpriteMaterial;
         }
         public override Shader GetDefaultShader()
         {

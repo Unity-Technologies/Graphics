@@ -78,12 +78,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             BuildShadowSettings();
             m_ShadowMapProperty = Shader.PropertyToID("_ShadowMap");
             m_ShadowMapRTID = new RenderTargetIdentifier(m_ShadowMapProperty);
+            Shader.globalRenderPipeline = "LightweightPipeline";
+        }
+
+        public override void Dispose()
+        {
+            Shader.globalRenderPipeline = "";
         }
 
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
-            var prevPipe = Shader.globalRenderPipeline;
-            Shader.globalRenderPipeline = "LightweightPipeline";
             base.Render(context, cameras);
 
             foreach (Camera camera in cameras)
