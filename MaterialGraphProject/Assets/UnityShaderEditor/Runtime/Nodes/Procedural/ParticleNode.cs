@@ -1,57 +1,32 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Particle")]
-    public class ParticleNode : Function2Input, IGeneratesFunction
+    public class ParticleNode : CodeFunctionNode
     {
         public ParticleNode()
         {
             name = "Particle";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_particle_" + precision;
+            return GetType().GetMethod("Unity_Particle", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override string GetInputSlot1Name()
+        static string Unity_Particle(
+            [Slot(0, Binding.None)] Vector2 uv,
+            [Slot(1, Binding.None)] Vector1 scaleFactor,
+            [Slot(2, Binding.None)] out Vector1 result)
         {
-            return "UV";
-        }
-
-        protected override string GetInputSlot2Name()
-        {
-            return "ScaleFactor";
-        }
-
-        protected override MaterialSlot GetInputSlot1()
-        {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector1, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector1, Vector2.zero);
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("uv", "scaleFactor"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk("uv = uv * 2.0 - 1.0;", false);
-            outputString.AddShaderChunk("return abs(1.0/length(uv * scaleFactor));", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    uv = uv * 2.0 - 1.0;;
+    result = abs(1.0/length(uv * scaleFactor));
+}
+";
         }
     }
 }

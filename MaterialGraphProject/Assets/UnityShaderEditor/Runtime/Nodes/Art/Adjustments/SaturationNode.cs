@@ -1,56 +1,37 @@
-using UnityEngine.Graphing;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
-	[Title ("Art/Adjustments/Saturation")]
-	public class SaturationNode : Function2Input, IGeneratesFunction
-	{
-		public SaturationNode()
-		{
-			name = "Saturation";
-		}
-
-		protected override string GetFunctionName ()
-		{
-			return "unity_saturation_" + precision;
-		}
-
-		protected override MaterialSlot GetInputSlot1 ()
-		{
-			return new MaterialSlot (InputSlot1Id, GetInputSlot1Name (), kInputSlot1ShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
-		}
-
-        protected override MaterialSlot GetInputSlot2()
+    [Title("Art/Adjustments/Saturation")]
+    public class SaturationNode : CodeFunctionNode
+    {
+        public SaturationNode()
         {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
+            name = "Saturation";
         }
 
-        protected override MaterialSlot GetOutputSlot ()
-		{
-			return new MaterialSlot (OutputSlotId, GetOutputSlotName (), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
-		}
-
-        protected override string GetInputSlot2Name()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "Saturation";
+            return GetType().GetMethod("Unity_Saturation", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        // RGB Saturation (closer to a vibrance effect than actual saturation)
-        // Recommended workspace: ACEScg (linear)
-        // Optimal range: [0.0, 2.0]
-        // From PostProcessing
-        public void GenerateNodeFunction (ShaderGenerator visitor, GenerationMode generationMode)
-		{
-			var outputString = new ShaderGenerator ();
-			outputString.AddShaderChunk (GetFunctionPrototype ("arg1", "arg2"), false);
-			outputString.AddShaderChunk ("{", false);
-			outputString.Indent ();
-            outputString.AddShaderChunk(precision+" luma = dot(arg1, " + precision + outputDimension + "(0.2126729, 0.7151522, 0.0721750));", false);
-            outputString.AddShaderChunk ("return luma.xxx + arg2.xxx * (arg1 - luma.xxx);", false);
-            outputString.Deindent ();
-			outputString.AddShaderChunk ("}", false);
+        static string Unity_Saturation(
+            [Slot(0, Binding.None)] Vector3 first,
+            [Slot(1, Binding.None)] Vector1 second,
+            [Slot(2, Binding.None)] out Vector3 result)
+        {
+            result = Vector3.zero;
 
-            visitor.AddShaderChunk (outputString.GetShaderString (0), true);
-		}
-	}
+            return @"
+{
+    // RGB Saturation (closer to a vibrance effect than actual saturation)
+    // Recommended workspace: ACEScg (linear)
+    // Optimal range: [0.0, 2.0]
+    // From PostProcessing
+    {precision} luma = dot(first, {precision}3(0.2126729, 0.7151522, 0.0721750));
+    result = luma.xxx + first.xxx * (second - luma.xxx);
+}
+";
+        }
+    }
 }

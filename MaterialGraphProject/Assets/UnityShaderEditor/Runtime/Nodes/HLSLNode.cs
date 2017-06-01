@@ -1,207 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("TEST/Add Node")]
-    public class SnippetAddNode : SimpleNode
-    {
-
-        protected  override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Add", BindingFlags.Static | BindingFlags.NonPublic);
-        }
-
-        static void Unity_Add(out DynamicDimensionVector result, [Bind(BindChannel.MeshUV0)]DynamicDimensionVector first, DynamicDimensionVector second)
-        {
-        }
-
-        protected override string GetFunctionBody()
-        {
-            return
-@"
-{
-    result = first + second;
-}
-";
-        }
-    }
-
-    [Title("TEST/POM Node")]
-    public class SnippetPOMNode : SimpleNode
-    {
-        protected  override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_POM", BindingFlags.Static | BindingFlags.NonPublic);
-        }
-
-        static void Unity_POM(
-            out Vector2 result,
-            Sampler2D tex,
-            ShaderSingle heightScale,
-            [Bind(BindChannel.MeshUV0)] Vector2 UVs,
-            [Bind(BindChannel.ViewDirectionTangentSpace)] Vector3 viewTangentSpace,
-            [Bind(BindChannel.Normal)] Vector3 worldSpaceNormal,
-            [Bind(BindChannel.ViewDirection)] Vector3 worldSpaceViewDirection)
-        {
-            result = Vector2.zero;
-        }
-
-        protected override string GetFunctionBody()
-        {
-            return
-@"
-{
-    float2 height_map_dimensions = float2(256.0f, 256.0f);      //HARDCODE
-    //height_map.tex.GetDimensions(height_map_dimensions.x, height_map_dimensions.y);
-
-    float2 texcoord= UVs;
-
-    // Compute the current gradients:
-    float2 texcoords_per_size = texcoord * height_map_dimensions;
-
-    // Compute all 4 derivatives in x and y in a single instruction to optimize:
-    float2 dx, dy;
-    float4 temp_ddx = ddx(float4(texcoords_per_size, texcoord));
-    dx.xy = temp_ddx.zw;
-    float4 temp_ddy = ddy(float4(texcoords_per_size, texcoord));
-    dy.xy = temp_ddy.zw;
-
-    // Start the current sample located at the input texture coordinate, which would correspond
-    // to computing a bump mapping result:
-    float2 result_texcoord = texcoord;
-
-    float height_scale_value = heightScale;
-    float height_scale_adjust = height_scale_value;
-
-    float per_pixel_height_scale_value = height_scale_value * heightScale;
-
-    // Parallax occlusion mapping offset computation
-    //--------------
-
-    // Utilize dynamic flow control to change the number of samples per ray
-    // depending on the viewing angle for the surface. Oblique angles require
-    // smaller step sizes to achieve more accurate precision for computing displacement.
-    // We express the sampling rate as a linear function of the angle between
-    // the geometric normal and the view direction ray:
-    float max_samples = 30.0f;
-    float min_samples = 4.0f;
-
-    float view_dot_normal= dot(worldSpaceNormal, worldSpaceViewDirection);
-
-    int number_of_steps = (int)lerp(max_samples, min_samples, saturate(view_dot_normal));
-
-    // Intersect the view ray with the height field profile along the direction of
-    // the parallax offset ray (computed in the vertex shader. Note that the code is
-    // designed specifically to take advantage of the dynamic flow control constructs
-    // in HLSL and is very sensitive to specific syntax. When converting to other examples,
-    // if still want to use dynamic flow control in the resulting assembly shader,
-    // care must be applied.
-    //
-    // In the below steps we approximate the height field profile as piecewise linear
-    // curve. We find the pair of endpoints between which the intersection between the
-    // height field profile and the view ray is found and then compute line segment
-    // intersection for the view ray and the line segment formed by the two endpoints.
-    // This intersection is the displacement offset from the original texture coordinate.
-    // See the above SI3D 06 paper for more details about the process and derivation.
-    //
-
-    float current_height = 0.0;
-    float step_size = 1.0 / (float)number_of_steps;
-
-    float previous_height = 1.0;
-    float next_height = 0.0;
-
-
-    int step_index = 0;
-
-    // Optimization: this should move to vertex shader, however, we compute it here for simplicity of
-    // integration into our shaders for now.
-    float3 normalized_view_dir_in_tangent_space = normalize(viewTangentSpace.xyz);
-
-    // Compute initial parallax displacement direction:
-    float2 parallax_direction = normalize(viewTangentSpace.xy);
-
-    // The length of this vector determines the furthest amount of displacement:
-    float parallax_direction_length = length(normalized_view_dir_in_tangent_space);
-
-
-    float max_parallax_amount = sqrt(parallax_direction_length * parallax_direction_length - viewTangentSpace.z * viewTangentSpace.z) / viewTangentSpace.z;
-
-    // Compute the actual reverse parallax displacement vector:
-    float2 parallax_offset_in_tangent_space = parallax_direction * max_parallax_amount;
-
-    // Need to scale the amount of displacement to account for different height ranges
-    // in height maps. This is controlled by an artist-editable parameter:
-    parallax_offset_in_tangent_space *= saturate(heightScale);
-    float2 texcoord_offset_per_step = step_size * parallax_offset_in_tangent_space;
-
-    float2 current_texcoord_offset = texcoord;
-    float current_bound = 1.0;
-    float current_parallax_amount = 0.0;
-
-    float2 pt1 = 0;
-    float2 pt2 = 0;
-
-
-    float2 temp_texcoord_offset = 0;
-
-    while (step_index < number_of_steps)
-    {
-        current_texcoord_offset -= texcoord_offset_per_step;
-
-        // Sample height map which in this case is stored in the alpha channel of the normal map:
-        current_height = tex2Dgrad(tex, current_texcoord_offset, dx, dy).r;
-
-        current_bound -= step_size;
-
-        if (current_height > current_bound)
-        {
-            pt1 = float2(current_bound, current_height);
-            pt2 = float2(current_bound + step_size, previous_height);
-            temp_texcoord_offset = current_texcoord_offset - texcoord_offset_per_step;
-            step_index = number_of_steps + 1;
-        }
-        else
-        {
-            step_index++;
-            previous_height = current_height;
-        }
-     }   // End of while ( step_index < number_of_steps)
-
-
-    float delta2 = pt2.x - pt2.y;
-    float delta1 = pt1.x - pt1.y;
-
-    float denominator = delta2 - delta1;
-
-    // SM 3.0 and above requires a check for divide by zero since that operation
-    // will generate an 'Inf' number instead of 0
-    if (denominator== 0.0f)
-    {
-        current_parallax_amount= 0.0f;
-    }
-    else
-    {
-        current_parallax_amount= (pt1.x* delta2 - pt2.x* delta1) / denominator;
-    }
-
-    float2 parallax_offset = parallax_offset_in_tangent_space * (1.0f - current_parallax_amount);
-
-    // The computed texture offset for the displaced point on the pseudo-extruded surface:
-    float2 parallaxed_texcoord = texcoord - parallax_offset;
-
-    result = parallaxed_texcoord;
-}
-";
-        }
-    }
-
-    public abstract class SimpleNode : AbstractMaterialNode
+    public abstract class CodeFunctionNode : AbstractMaterialNode
         , IGeneratesBodyCode
         , IGeneratesFunction
         , IMayRequireNormal
@@ -214,19 +21,20 @@ namespace UnityEngine.MaterialGraph
         , IMayRequireVertexColor
         , IMayRequireViewDirectionTangentSpace
     {
-        private List<KeyValuePair<int, ParameterInfo>> m_ParamMap = new List<KeyValuePair<int, ParameterInfo>>();
+        [NonSerialized]
+        private List<SlotAttribute> m_Slots = new List<SlotAttribute>();
 
         public override bool hasPreview
         {
             get { return true; }
         }
 
-        public SimpleNode()
+        public CodeFunctionNode()
         {
             UpdateNodeAfterDeserialization();
         }
 
-        protected struct ShaderSingle
+        protected struct Vector1
         {}
 
         protected struct Texture2D
@@ -241,7 +49,7 @@ namespace UnityEngine.MaterialGraph
         protected struct DynamicDimensionVector
         {}
 
-        protected enum BindChannel
+        protected enum Binding
         {
             None,
             Normal,
@@ -258,35 +66,35 @@ namespace UnityEngine.MaterialGraph
             ViewDirectionTangentSpace
         }
 
-        private static string BindChannelToShaderName(BindChannel channel)
+        private static string BindChannelToShaderName(Binding channel)
         {
             switch (channel)
             {
-                case BindChannel.None:
+                case Binding.None:
                     return "ERROR!";
-                case BindChannel.Normal:
+                case Binding.Normal:
                     return ShaderGeneratorNames.WorldSpaceNormal;
-                case BindChannel.Tangent:
+                case Binding.Tangent:
                     return ShaderGeneratorNames.WorldSpaceTangent;
-                case BindChannel.Bitangent:
+                case Binding.Bitangent:
                     return ShaderGeneratorNames.WorldSpaceBitangent;
-                case BindChannel.MeshUV0:
+                case Binding.MeshUV0:
                     return ShaderGeneratorNames.GetUVName(UVChannel.uv0);
-                case BindChannel.MeshUV1:
+                case Binding.MeshUV1:
                     return ShaderGeneratorNames.GetUVName(UVChannel.uv1);
-                case BindChannel.MeshUV2:
+                case Binding.MeshUV2:
                     return ShaderGeneratorNames.GetUVName(UVChannel.uv2);
-                case BindChannel.MeshUV3:
+                case Binding.MeshUV3:
                     return ShaderGeneratorNames.GetUVName(UVChannel.uv3);
-                case BindChannel.ScreenPosition:
+                case Binding.ScreenPosition:
                     return ShaderGeneratorNames.ScreenPosition;
-                case BindChannel.ViewDirection:
+                case Binding.ViewDirection:
                     return ShaderGeneratorNames.WorldSpaceViewDirection;
-                case BindChannel.WorldPosition:
+                case Binding.WorldPosition:
                     return ShaderGeneratorNames.WorldSpacePosition;
-                case BindChannel.VertexColor:
+                case Binding.VertexColor:
                     return ShaderGeneratorNames.VertexColor;
-                case BindChannel.ViewDirectionTangentSpace:
+                case Binding.ViewDirectionTangentSpace:
                     return ShaderGeneratorNames.TangentSpaceViewDirection;
                 default:
                     throw new ArgumentOutOfRangeException("channel", channel, null);
@@ -294,14 +102,28 @@ namespace UnityEngine.MaterialGraph
         }
 
         [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-        protected class BindAttribute : Attribute
+        protected class SlotAttribute : Attribute
         {
-            public BindChannel channel { get; private set; }
+            public int slotId { get; private set; }
+            public Binding binding { get; private set; }
 
-            public BindAttribute(BindChannel mChannel)
+            public SlotAttribute(int mslotId, Binding mImplicitBinding)
             {
-                channel = mChannel;
+                slotId = mslotId;
+                binding = mImplicitBinding;
             }
+        }
+
+        protected static MethodInfo GetMethodInfo(LambdaExpression expression)
+        {
+            MethodCallExpression outermostExpression = expression.Body as MethodCallExpression;
+ 
+            if (outermostExpression == null)
+            {
+                throw new ArgumentException("Invalid Expression. Expression should consist of a Method call only.");
+            }
+ 
+            return outermostExpression.Method;
         }
 
         protected abstract MethodInfo GetFunctionToConvert();
@@ -312,7 +134,7 @@ namespace UnityEngine.MaterialGraph
             if (p.ParameterType.IsByRef)
                 t = p.ParameterType.GetElementType();
 
-            if (t == typeof(ShaderSingle))
+            if (t == typeof(Vector1))
             {
                 return SlotValueType.Vector1;
             }
@@ -350,30 +172,31 @@ namespace UnityEngine.MaterialGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             var method = GetFunctionToConvert();
-            var returnType = method.ReturnType;
 
-            if (returnType != typeof(void))
-                return;
+            if (method == null)
+                throw new ArgumentException("Mapped method is null on node" + this);
 
-            var inStart = 1;
-            var outStart = -1;
+            if (method.ReturnType != typeof(string))
+                throw new ArgumentException("Mapped function should return string");
+
+            // validate no duplicates
+            var slotAtributes = method.GetParameters().Select(GetSlotAttribute).ToList();
+            if (slotAtributes.Any(x => x == null))
+                throw new ArgumentException("Missing SlotAttribute does not exist on " + method.Name);
+
+            if(slotAtributes.GroupBy(x=>x.slotId).Any(x => x.Count() > 1))
+                throw new ArgumentException("Duplicate SlotAttribute on " + method.Name);
+
             List<MaterialSlot> slots = new List<MaterialSlot>();
             foreach (var par in method.GetParameters())
             {
-                if (par.IsOut)
-                {
-                    slots.Add(new MaterialSlot(outStart, par.Name, par.Name, SlotType.Output,
+                var slotid = GetSlotAttribute(par);
+
+                slots.Add(new MaterialSlot(slotid.slotId, par.Name, par.Name, par.IsOut ? SlotType.Output : SlotType.Input,
                         ConvertTypeToSlotValueType(par), Vector4.zero));
-                    m_ParamMap.Add(new KeyValuePair<int, ParameterInfo>(outStart, par));
-                    outStart--;
-                }
-                else
-                {
-                    slots.Add(new MaterialSlot(inStart, par.Name, par.Name, SlotType.Input,
-                        ConvertTypeToSlotValueType(par), Vector4.zero));
-                    m_ParamMap.Add(new KeyValuePair<int, ParameterInfo>(inStart, par));
-                    inStart++;
-                }
+
+
+                m_Slots.Add(slotid);
             }
             foreach (var slot in slots)
             {
@@ -386,12 +209,12 @@ namespace UnityEngine.MaterialGraph
         {
             foreach (var outSlot in GetOutputSlots<MaterialSlot>())
             {
-                visitor.AddShaderChunk(GetParamName(outSlot) + " " + GetVariableNameForSlot(outSlot.id) + ";", true);
+                visitor.AddShaderChunk(GetParamTypeName(outSlot) + " " + GetVariableNameForSlot(outSlot.id) + ";", true);
             }
 
             string call = GetFunctionName() + "(";
             bool first = true;
-            foreach (var arg in GetSlots<MaterialSlot>())
+            foreach (var arg in GetSlots<MaterialSlot>().OrderBy(x => x.id))
             {
                 if (!first)
                 {
@@ -404,11 +227,12 @@ namespace UnityEngine.MaterialGraph
                     var inEdges = owner.GetEdges(arg.slotReference);
                     if (!inEdges.Any())
                     {
-                        var info = m_ParamMap.Where(x => x.Key == arg.id).Select(x => x.Value).FirstOrDefault();
+
+                        var info = m_Slots.FirstOrDefault(x => x.slotId == arg.id);
                         if (info != null)
                         {
-                            var bindingInfo = GetSlotBinding(arg, info);
-                            if (bindingInfo != BindChannel.None)
+                            var bindingInfo = info.binding;
+                            if (bindingInfo != Binding.None)
                             {
                                 call += BindChannelToShaderName(bindingInfo);
                                 continue;
@@ -426,7 +250,7 @@ namespace UnityEngine.MaterialGraph
             visitor.AddShaderChunk(call, true);
         }
 
-        private string GetParamName(MaterialSlot slot)
+        private string GetParamTypeName(MaterialSlot slot)
         {
             return ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
         }
@@ -441,49 +265,54 @@ namespace UnityEngine.MaterialGraph
             string header = "void " + GetFunctionName() + "(";
 
             var first = true;
-            foreach (var kvp in m_ParamMap)
+            foreach (var slot in GetSlots<MaterialSlot>().OrderBy(x => x.id))
             {
                 if (!first)
                     header += ", ";
 
                 first = false;
 
-                var slot = FindSlot<MaterialSlot>(kvp.Key);
-                if (slot == null)
-                    throw new ArgumentException("something is wrong");
-
-                if (kvp.Value.IsOut)
+                if (slot.isOutputSlot)
                     header += "out ";
-                header += GetParamName(slot) + " " + kvp.Value.Name;
+
+                header += GetParamTypeName(slot) + " " + slot.shaderOutputName;
             }
 
             header += ")";
             return header;
         }
 
-        protected abstract string GetFunctionBody();
+        private static object GetDefault(Type type)
+        {
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
+        }
+
+        private string GetFunctionBody(MethodInfo info)
+        {
+            var args = new List<object>();
+            foreach (var param in info.GetParameters())
+                args.Add(GetDefault(param.ParameterType));
+
+            return info.Invoke(this, args.ToArray()) as string;
+        }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            string function = GetFunctionHeader() + GetFunctionBody();
+            string function = GetFunctionHeader() + GetFunctionBody(GetFunctionToConvert()).Replace("{precision}", precision.ToString());
             visitor.AddShaderChunk(function, true);
         }
 
-        private bool NodeRequiresBinding(BindChannel channel)
+        private bool NodeRequiresBinding(Binding channel)
         {
-            foreach (var kvp in m_ParamMap)
+            foreach (var slot in GetSlots<MaterialSlot>())
             {
-                var slot = FindSlot<MaterialSlot>(kvp.Key);
-                if (slot == null)
-                    throw new ArgumentException("something is wrong");
-
-                if (SlotRequiresBinding(channel, slot, kvp.Value))
+                if (SlotRequiresBinding(channel, slot))
                     return true;
             }
             return false;
         }
 
-        private bool SlotRequiresBinding(BindChannel channel, [NotNull]MaterialSlot slot, [NotNull]ParameterInfo info)
+        private bool SlotRequiresBinding(Binding channel, [NotNull]MaterialSlot slot)
         {
             if (slot.isOutputSlot)
                 return false;
@@ -492,28 +321,22 @@ namespace UnityEngine.MaterialGraph
             if (inEdges.Any())
                 return false;
 
-            foreach (var attr in info.GetCustomAttributes(typeof(BindAttribute), false).OfType<BindAttribute>())
-            {
-                if (attr.channel == channel)
-                    return true;
-            }
+            var slotAttr = m_Slots.FirstOrDefault(x => x.slotId == slot.id);
+            if (slotAttr != null && slotAttr.binding == channel)
+                return true;
+
             return false;
         }
 
-        private static BindChannel GetSlotBinding([NotNull]MaterialSlot slot, [NotNull]ParameterInfo info)
+        private static SlotAttribute GetSlotAttribute([NotNull]ParameterInfo info)
         {
-            if (slot.isOutputSlot)
-                return BindChannel.None;
-
-            var attrs = info.GetCustomAttributes(typeof(BindAttribute), false).OfType<BindAttribute>().ToList();
-            if (attrs.Count > 0)
-                return attrs.First().channel;
-            return BindChannel.None;
+            var attrs = info.GetCustomAttributes(typeof(SlotAttribute), false).OfType<SlotAttribute>().ToList();
+            return attrs.FirstOrDefault();
         }
 
         public bool RequiresNormal()
         {
-            return NodeRequiresBinding(BindChannel.Normal);
+            return NodeRequiresBinding(Binding.Normal);
         }
 
         public bool RequiresMeshUV(UVChannel channel)
@@ -521,13 +344,13 @@ namespace UnityEngine.MaterialGraph
             switch (channel)
             {
                 case UVChannel.uv0:
-                    return NodeRequiresBinding(BindChannel.MeshUV0);
+                    return NodeRequiresBinding(Binding.MeshUV0);
                 case UVChannel.uv1:
-                    return NodeRequiresBinding(BindChannel.MeshUV1);
+                    return NodeRequiresBinding(Binding.MeshUV1);
                 case UVChannel.uv2:
-                    return NodeRequiresBinding(BindChannel.MeshUV2);
+                    return NodeRequiresBinding(Binding.MeshUV2);
                 case UVChannel.uv3:
-                    return NodeRequiresBinding(BindChannel.MeshUV3);
+                    return NodeRequiresBinding(Binding.MeshUV3);
                 default:
                     throw new ArgumentOutOfRangeException("channel", channel, null);
             }
@@ -535,49 +358,39 @@ namespace UnityEngine.MaterialGraph
 
         public bool RequiresScreenPosition()
         {
-            return NodeRequiresBinding(BindChannel.ScreenPosition);
+            return NodeRequiresBinding(Binding.ScreenPosition);
         }
 
         public bool RequiresViewDirection()
         {
-            return NodeRequiresBinding(BindChannel.ViewDirection);
+            return NodeRequiresBinding(Binding.ViewDirection);
         }
 
         public bool RequiresViewDirectionTangentSpace()
         {
 
-            return NodeRequiresBinding(BindChannel.ViewDirectionTangentSpace);
+            return NodeRequiresBinding(Binding.ViewDirectionTangentSpace);
         }
 
         public bool RequiresWorldPosition()
         {
-            return NodeRequiresBinding(BindChannel.WorldPosition);
+            return NodeRequiresBinding(Binding.WorldPosition);
         }
 
         public bool RequiresTangent()
         {
-            return NodeRequiresBinding(BindChannel.Tangent);
+            return NodeRequiresBinding(Binding.Tangent);
         }
 
         public bool RequiresBitangent()
         {
-            return NodeRequiresBinding(BindChannel.Bitangent);
+            return NodeRequiresBinding(Binding.Bitangent);
         }
 
         public bool RequiresVertexColor()
         {
 
-            return NodeRequiresBinding(BindChannel.VertexColor);
+            return NodeRequiresBinding(Binding.VertexColor);
         }
-
-        /*
-        public string outputDimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType); }
-        }
-        public string inputDimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType); }
-        }*/
     }
 }

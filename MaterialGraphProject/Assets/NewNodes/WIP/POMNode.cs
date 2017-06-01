@@ -1,334 +1,171 @@
-﻿using UnityEngine.Graphing;
+﻿using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("UV/ParallaxOcclusionMapping")]
-    public class ParallaxOcclusionMappingNode : 
-        AbstractMaterialNode, 
-        IGeneratesBodyCode, 
-        IGeneratesFunction, 
-        IMayRequireMeshUV,
-        IMayRequireViewDirection,
-        IMayRequireNormal,
-        IMayRequireViewDirectionTangentSpace
+    public class ParallaxOcclusionMappingNode : CodeFunctionNode
     {
-        protected const string kInputHeightScaleShaderName = "HeightScale";
-        protected const string kTextureSlotShaderName = "Texture";
-        protected const string kOutputSlotShaderName = "UV";
-
-        public const int HeightScaleSlotId = 0;         // 'height_scale'
-        public const int TextureSlotId = 1;             // 'tex'
-        public const int OutputSlotId = 2;
-
-        public override bool hasPreview
+        protected override MethodInfo GetFunctionToConvert()
         {
-            get { return true; }
+            return GetType().GetMethod("Unity_POM", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public override PreviewMode previewMode
+        static string Unity_POM(
+            [Slot(1, Binding.None)] Sampler2D tex,
+            [Slot(2, Binding.None)] Vector1 heightScale,
+            [Slot(3, Binding.MeshUV0)] Vector2 UVs,
+            [Slot(4, Binding.ViewDirectionTangentSpace)] Vector3 viewTangentSpace,
+            [Slot(5, Binding.Normal)] Vector3 worldSpaceNormal,
+            [Slot(6, Binding.ViewDirection)] Vector3 worldSpaceViewDirection,
+            [Slot(7, Binding.None)] out Vector2 result)
         {
-            get
-            {
-                return PreviewMode.Preview3D;
-            }
+            result = Vector2.zero;
+
+            return
+                @"
+{
+    float2 height_map_dimensions = float2(256.0f, 256.0f);      //HARDCODE
+    //height_map.tex.GetDimensions(height_map_dimensions.x, height_map_dimensions.y);
+
+    float2 texcoord= UVs;
+
+    // Compute the current gradients:
+    float2 texcoords_per_size = texcoord * height_map_dimensions;
+
+    // Compute all 4 derivatives in x and y in a single instruction to optimize:
+    float2 dx, dy;
+    float4 temp_ddx = ddx(float4(texcoords_per_size, texcoord));
+    dx.xy = temp_ddx.zw;
+    float4 temp_ddy = ddy(float4(texcoords_per_size, texcoord));
+    dy.xy = temp_ddy.zw;
+
+    // Start the current sample located at the input texture coordinate, which would correspond
+    // to computing a bump mapping result:
+    float2 result_texcoord = texcoord;
+
+    float height_scale_value = heightScale;
+    float height_scale_adjust = height_scale_value;
+
+    float per_pixel_height_scale_value = height_scale_value * heightScale;
+
+    // Parallax occlusion mapping offset computation
+    //--------------
+
+    // Utilize dynamic flow control to change the number of samples per ray
+    // depending on the viewing angle for the surface. Oblique angles require
+    // smaller step sizes to achieve more accurate precision for computing displacement.
+    // We express the sampling rate as a linear function of the angle between
+    // the geometric normal and the view direction ray:
+    float max_samples = 30.0f;
+    float min_samples = 4.0f;
+
+    float view_dot_normal= dot(worldSpaceNormal, worldSpaceViewDirection);
+
+    int number_of_steps = (int)lerp(max_samples, min_samples, saturate(view_dot_normal));
+
+    // Intersect the view ray with the height field profile along the direction of
+    // the parallax offset ray (computed in the vertex shader. Note that the code is
+    // designed specifically to take advantage of the dynamic flow control constructs
+    // in HLSL and is very sensitive to specific syntax. When converting to other examples,
+    // if still want to use dynamic flow control in the resulting assembly shader,
+    // care must be applied.
+    //
+    // In the below steps we approximate the height field profile as piecewise linear
+    // curve. We find the pair of endpoints between which the intersection between the
+    // height field profile and the view ray is found and then compute line segment
+    // intersection for the view ray and the line segment formed by the two endpoints.
+    // This intersection is the displacement offset from the original texture coordinate.
+    // See the above SI3D 06 paper for more details about the process and derivation.
+    //
+
+    float current_height = 0.0;
+    float step_size = 1.0 / (float)number_of_steps;
+
+    float previous_height = 1.0;
+    float next_height = 0.0;
+
+
+    int step_index = 0;
+
+    // Optimization: this should move to vertex shader, however, we compute it here for simplicity of
+    // integration into our shaders for now.
+    float3 normalized_view_dir_in_tangent_space = normalize(viewTangentSpace.xyz);
+
+    // Compute initial parallax displacement direction:
+    float2 parallax_direction = normalize(viewTangentSpace.xy);
+
+    // The length of this vector determines the furthest amount of displacement:
+    float parallax_direction_length = length(normalized_view_dir_in_tangent_space);
+
+
+    float max_parallax_amount = sqrt(parallax_direction_length * parallax_direction_length - viewTangentSpace.z * viewTangentSpace.z) / viewTangentSpace.z;
+
+    // Compute the actual reverse parallax displacement vector:
+    float2 parallax_offset_in_tangent_space = parallax_direction * max_parallax_amount;
+
+    // Need to scale the amount of displacement to account for different height ranges
+    // in height maps. This is controlled by an artist-editable parameter:
+    parallax_offset_in_tangent_space *= saturate(heightScale);
+    float2 texcoord_offset_per_step = step_size * parallax_offset_in_tangent_space;
+
+    float2 current_texcoord_offset = texcoord;
+    float current_bound = 1.0;
+    float current_parallax_amount = 0.0;
+
+    float2 pt1 = 0;
+    float2 pt2 = 0;
+
+
+    float2 temp_texcoord_offset = 0;
+
+    while (step_index < number_of_steps)
+    {
+        current_texcoord_offset -= texcoord_offset_per_step;
+
+        // Sample height map which in this case is stored in the alpha channel of the normal map:
+        current_height = tex2Dgrad(tex, current_texcoord_offset, dx, dy).r;
+
+        current_bound -= step_size;
+
+        if (current_height > current_bound)
+        {
+            pt1 = float2(current_bound, current_height);
+            pt2 = float2(current_bound + step_size, previous_height);
+            temp_texcoord_offset = current_texcoord_offset - texcoord_offset_per_step;
+            step_index = number_of_steps + 1;
         }
-
-        public ParallaxOcclusionMappingNode()
+        else
         {
-            name = "ParallaxOcclusionMapping";
-            UpdateNodeAfterDeserialization();
+            step_index++;
+            previous_height = current_height;
         }
+     }   // End of while ( step_index < number_of_steps)
 
-        public string GetFunctionName()
-        {
-            return "unity_parallax_occlusion_mapping_" + precision;
-        }
 
-        public sealed override void UpdateNodeAfterDeserialization()
-        {
-            AddSlot(GetInputHeightScaleSlot());
-            AddSlot(GetTextureSlot());
-            AddSlot(GetOutputSlot());
+    float delta2 = pt2.x - pt2.y;
+    float delta1 = pt1.x - pt1.y;
 
-            RemoveSlotsNameNotMatching(validSlots);
-        }
+    float denominator = delta2 - delta1;
 
-        protected int[] validSlots
-        {
-            get { return new[] { HeightScaleSlotId, TextureSlotId, OutputSlotId }; }
-        }
-        protected virtual string GetInputHeightScaleName()
-        {
-            return kInputHeightScaleShaderName;
-        }
-        protected virtual MaterialSlot GetInputHeightScaleSlot()
-        {
-            return new MaterialSlot(
-                HeightScaleSlotId, GetInputHeightScaleName(), kInputHeightScaleShaderName, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
-        }
-        protected virtual MaterialSlot GetTextureSlot()
-        {
-            return new MaterialSlot(TextureSlotId, GetTextureSlotName(), kTextureSlotShaderName, SlotType.Input, SlotValueType.Sampler2D, Vector4.zero);
-        }
+    // SM 3.0 and above requires a check for divide by zero since that operation
+    // will generate an 'Inf' number instead of 0
+    if (denominator== 0.0f)
+    {
+        current_parallax_amount= 0.0f;
+    }
+    else
+    {
+        current_parallax_amount= (pt1.x* delta2 - pt2.x* delta1) / denominator;
+    }
 
-        protected virtual MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector2, Vector4.zero);
-        }
+    float2 parallax_offset = parallax_offset_in_tangent_space * (1.0f - current_parallax_amount);
 
-        protected virtual string GetTextureSlotName()
-        {
-            return kTextureSlotShaderName;
-        }
-        
-        protected virtual string GetOutputSlotName()
-        {
-            return kOutputSlotShaderName;
-        }
+    // The computed texture offset for the displaced point on the pseudo-extruded surface:
+    float2 parallaxed_texcoord = texcoord - parallax_offset;
 
-        private string inputHeightScaleDimension
-        {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(HeightScaleSlotId).concreteValueType); }
-        }
-
-        protected virtual string GetFunctionPrototype(
-            string heightScale, string tex, string UVs, string viewTangentSpace, string worldSpaceNormal, string worldSpaceViewDirection)
-        {
-            return "inline " + precision + "2 " + GetFunctionName() + " (" +
-                precision + inputHeightScaleDimension + " " + heightScale + ", " + 
-                "sampler2D " + tex + ", " +
-                precision + "2 " + UVs + ", " +
-                precision + "3 " + viewTangentSpace + ", " +
-                precision + "3 " + worldSpaceNormal + ", " +
-                precision + "3 " + worldSpaceViewDirection + ")";
-        }
-
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
-                this, 
-                new[] { HeightScaleSlotId, TextureSlotId }, 
-                new[] { OutputSlotId });
-            string heightScaleValue = GetSlotValue(HeightScaleSlotId, generationMode);
-            string textureValue = GetSlotValue(TextureSlotId, generationMode);
-
-            visitor.AddShaderChunk(precision + "2 " + GetVariableNameForSlot(OutputSlotId) + " = " + 
-                GetFunctionCallBody(heightScaleValue, textureValue) + ";", true);
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(
-                    GetFunctionPrototype("heightScale", "tex", "UVs", "viewTangentSpace", "worldSpaceNormal", "worldSpaceViewDirection" ), 
-                    false);
-            
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk(precision + "2 " + "height_map_dimensions = " + precision + "2" + "(256.0f, 256.0f);      //HARDCODE", false);
-            //height_map.tex.GetDimensions(height_map_dimensions.x, height_map_dimensions.y);
-
-            outputString.AddShaderChunk(precision + "2 texcoord= UVs;", false);
-
-            // Compute the current gradients:
-            outputString.AddShaderChunk(precision + "2 " + " texcoords_per_size = texcoord * height_map_dimensions;", false);
-
-            // Compute all 4 derivatives in x and y in a single instruction to optimize:
-            outputString.AddShaderChunk("float2 dx, dy;", false);
-
-            outputString.AddShaderChunk(" float4 temp_ddx = ddx(float4(texcoords_per_size, texcoord));", false);
-
-            outputString.AddShaderChunk("dx.xy = temp_ddx.zw;", false);
-
-            outputString.AddShaderChunk("float4 temp_ddy = ddy(float4(texcoords_per_size, texcoord));", false);
-
-            outputString.AddShaderChunk("dy.xy = temp_ddy.zw;", false);
-
-            // Start the current sample located at the input texture coordinate, which would correspond
-            // to computing a bump mapping result:
-            outputString.AddShaderChunk(precision + "2 " + "result_texcoord = texcoord;", false);
-
-            outputString.AddShaderChunk("float height_scale_value = heightScale;", false);
-            outputString.AddShaderChunk("float height_scale_adjust = height_scale_value;", false);
-
-
-            outputString.AddShaderChunk("float per_pixel_height_scale_value = height_scale_value * heightScale;", false);
-            
-            // Parallax occlusion mapping offset computation 
-            //--------------
-
-            // Utilize dynamic flow control to change the number of samples per ray 
-            // depending on the viewing angle for the surface. Oblique angles require 
-            // smaller step sizes to achieve more accurate precision for computing displacement.
-            // We express the sampling rate as a linear function of the angle between 
-            // the geometric normal and the view direction ray:
-            outputString.AddShaderChunk("float max_samples = 30.0f;", false);
-            outputString.AddShaderChunk("float min_samples = 4.0f;", false);
-
-            outputString.AddShaderChunk("float view_dot_normal= dot(worldSpaceNormal, worldSpaceViewDirection);", false);
-
-            outputString.AddShaderChunk("int number_of_steps = (int)lerp(max_samples, min_samples, saturate(view_dot_normal));", false);
-
-            // Intersect the view ray with the height field profile along the direction of
-            // the parallax offset ray (computed in the vertex shader. Note that the code is
-            // designed specifically to take advantage of the dynamic flow control constructs
-            // in HLSL and is very sensitive to specific syntax. When converting to other examples,
-            // if still want to use dynamic flow control in the resulting assembly shader,
-            // care must be applied.
-            // 
-            // In the below steps we approximate the height field profile as piecewise linear
-            // curve. We find the pair of endpoints between which the intersection between the 
-            // height field profile and the view ray is found and then compute line segment
-            // intersection for the view ray and the line segment formed by the two endpoints.
-            // This intersection is the displacement offset from the original texture coordinate.
-            // See the above SI3D 06 paper for more details about the process and derivation.
-            //
-
-            outputString.AddShaderChunk("float current_height = 0.0;", false);
-            outputString.AddShaderChunk("float step_size = 1.0 / (float)number_of_steps;", false);
-
-            outputString.AddShaderChunk("float previous_height = 1.0;", false);
-            outputString.AddShaderChunk("float next_height = 0.0;", false);
-
-
-            outputString.AddShaderChunk("int step_index = 0;", false);
-
-            // Optimization: this should move to vertex shader, however, we compute it here for simplicity of
-            // integration into our shaders for now.
-            outputString.AddShaderChunk("float3 normalized_view_dir_in_tangent_space = normalize(viewTangentSpace.xyz);", false);
-
-            // Compute initial parallax displacement direction:
-            outputString.AddShaderChunk("float2 parallax_direction = normalize(viewTangentSpace.xy);", false);
-
-            // The length of this vector determines the furthest amount of displacement:
-            outputString.AddShaderChunk("float parallax_direction_length = length(normalized_view_dir_in_tangent_space);", false);
-
-            outputString.AddShaderChunk(
-                "float max_parallax_amount = sqrt(parallax_direction_length * parallax_direction_length - viewTangentSpace.z * viewTangentSpace.z) / viewTangentSpace.z;", false);
-
-            // Compute the actual reverse parallax displacement vector:
-            outputString.AddShaderChunk("float2 parallax_offset_in_tangent_space = parallax_direction * max_parallax_amount;", false);
-
-            // Need to scale the amount of displacement to account for different height ranges
-            // in height maps. This is controlled by an artist-editable parameter:
-            outputString.AddShaderChunk("parallax_offset_in_tangent_space *= saturate(heightScale);", false); 
-
-            outputString.AddShaderChunk("float2 texcoord_offset_per_step = step_size * parallax_offset_in_tangent_space;", false);
-
-            outputString.AddShaderChunk(precision + "2 " + "current_texcoord_offset = texcoord;", false);
-            outputString.AddShaderChunk("float current_bound = 1.0;", false);
-
-            outputString.AddShaderChunk("float current_parallax_amount = 0.0;", false);
-
-            outputString.AddShaderChunk("float2 pt1 = 0;", false);
-            outputString.AddShaderChunk("float2 pt2 = 0;", false);
-
-
-            outputString.AddShaderChunk(precision + "2 " + "temp_texcoord_offset = 0;", false);
-
-            outputString.AddShaderChunk("while (step_index < number_of_steps)", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk("current_texcoord_offset -= texcoord_offset_per_step;", false);
-
-            // Sample height map which in this case is stored in the alpha channel of the normal map:
-            outputString.AddShaderChunk("current_height = tex2Dgrad(tex, current_texcoord_offset, dx, dy).r;", false);
-
-            outputString.AddShaderChunk("current_bound -= step_size;", false);
-
-            outputString.AddShaderChunk("if (current_height > current_bound)", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk("pt1 = float2(current_bound, current_height);", false);
-
-            outputString.AddShaderChunk("pt2 = float2(current_bound + step_size, previous_height);", false);
-
-
-            outputString.AddShaderChunk("temp_texcoord_offset = current_texcoord_offset - texcoord_offset_per_step;", false);
-            
-            outputString.AddShaderChunk("step_index = number_of_steps + 1;", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-            outputString.AddShaderChunk("else", false);
-
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk("step_index++;", false);
-            outputString.AddShaderChunk("previous_height = current_height;", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}   // End of while ( step_index < number_of_steps)", false);
-
-
-            outputString.AddShaderChunk("float delta2 = pt2.x - pt2.y;", false);
-            outputString.AddShaderChunk("float delta1 = pt1.x - pt1.y;", false);
-
-            outputString.AddShaderChunk("float denominator = delta2 - delta1;", false);
-
-            // SM 3.0 and above requires a check for divide by zero since that operation
-            // will generate an 'Inf' number instead of 0
-            outputString.AddShaderChunk("if (denominator== 0.0f) ", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("current_parallax_amount= 0.0f;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-            outputString.AddShaderChunk("else", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("current_parallax_amount= (pt1.x* delta2 - pt2.x* delta1) / denominator;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            outputString.AddShaderChunk("float2 parallax_offset = parallax_offset_in_tangent_space * (1.0f - current_parallax_amount);", false);
-
-            // The computed texture offset for the displaced point on the pseudo-extruded surface:
-            outputString.AddShaderChunk("float2 parallaxed_texcoord = texcoord - parallax_offset;", false);
-
-            outputString.AddShaderChunk("return parallaxed_texcoord;", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
-        }
-
-        protected virtual string GetFunctionCallBody(string heightScale, string texValue)
-        {
-            var channel = UVChannel.uv0;
-            
-            return GetFunctionName() + " (" +
-                heightScale + ", " + 
-                texValue + ", " +
-                channel.GetUVName() + ", " +
-                ShaderGeneratorNames.TangentSpaceViewDirection + ", " +
-                ShaderGeneratorNames.WorldSpaceNormal + ", " +
-                ShaderGeneratorNames.WorldSpaceViewDirection + ")";
-        }
-
-        public bool RequiresMeshUV(UVChannel channel)
-        {
-            return channel == UVChannel.uv0;
-        }
-        public bool RequiresViewDirectionTangentSpace()
-        {
-            return true;
-        }
-        public bool RequiresNormal()
-        {
-            return true;
-        }
-        public bool RequiresViewDirection()
-        {
-            return true;
+    result = parallaxed_texcoord;
+}
+";
         }
     }
 }

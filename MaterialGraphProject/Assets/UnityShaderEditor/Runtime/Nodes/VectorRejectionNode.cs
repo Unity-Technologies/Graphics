@@ -1,29 +1,31 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
     [Title("Vector/Rejection Node")]
-    public class VectorRejectionNode : Function2Input, IGeneratesFunction
+    public class VectorRejectionNode : CodeFunctionNode
     {
         public VectorRejectionNode()
         {
             name = "VectorRejection";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_vector_rejection_" + precision;
+            return GetType().GetMethod("Unity_VectorRejection", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        static string Unity_VectorRejection(
+            [Slot(0, Binding.None)] DynamicDimensionVector first,
+            [Slot(1, Binding.None)] DynamicDimensionVector second,
+            [Slot(2, Binding.None)] out DynamicDimensionVector result)
         {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return arg1 - (arg2 * dot(arg1, arg2) / dot(arg2, arg2));", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    result = first - (second * dot(first, second) / dot(second, second));
+}
+";
         }
     }
 }

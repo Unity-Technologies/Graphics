@@ -1,33 +1,31 @@
-using UnityEngine.Graphing;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Vector/Dot Product")]
-    public class DotNode : Function2Input
+    public class DotNode : CodeFunctionNode
     {
         public DotNode()
         {
             name = "DotProduct";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "dot";
+            return GetType().GetMethod("Unity_DotProduct", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override MaterialSlot GetInputSlot1()
+        static string Unity_DotProduct(
+            [Slot(0, Binding.None)] Vector3 first,
+            [Slot(1, Binding.None)] Vector3 second,
+            [Slot(2, Binding.None)] out Vector1 result)
         {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector1, Vector4.zero);
+            return
+                @"
+{
+    result = dot(first, second);
+}
+";
         }
     }
 }

@@ -88,16 +88,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
         }
 
         [Test]
-        public void CanUpdateMaterialShaderOutputName()
-        {
-            var shaderName = "NewShaderOutputName";
-
-            var slot = m_NodeA.slot;
-            slot.shaderOutputName = shaderName;
-            Assert.AreEqual(shaderName, slot.shaderOutputName);
-        }
-
-        [Test]
         public void MaterialSlotCanGeneratePropertyUsagesForPreview()
         {
             string expected = string.Format("{0} {1};{2}", m_NodeA.precision, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);

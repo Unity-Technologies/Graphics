@@ -1,13 +1,31 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Basic/Power")]
-    public class PowerNode : Function2Input
+    public class PowerNode : CodeFunctionNode
     {
         public PowerNode()
         {
             name = "Power";
         }
 
-        protected override string GetFunctionName() { return "pow"; }
+        protected override MethodInfo GetFunctionToConvert()
+        {
+            return GetType().GetMethod("Unity_Pow", BindingFlags.Static | BindingFlags.NonPublic);
+        }
+
+        static string Unity_Pow(
+            [Slot(0, Binding.None)] DynamicDimensionVector first,
+            [Slot(1, Binding.None)] DynamicDimensionVector second,
+            [Slot(2, Binding.None)] out DynamicDimensionVector result)
+        {
+            return
+            @"
+{
+    result = pow(first, second);
+}
+";
+        }
     }
 }

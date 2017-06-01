@@ -1,26 +1,32 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Advanced/Posterize")]
-    class PosterizeNode : Function2Input, IGeneratesFunction
+    class PosterizeNode : CodeFunctionNode
     {
         public PosterizeNode()
         {
             name = "Posterize";
         }
 
-        protected override string GetFunctionName() {return "unity_posterize_" + precision; }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        protected override MethodInfo GetFunctionToConvert()
         {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("input", "stepsize"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return floor(input / stepsize) * stepsize;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
+            return GetType().GetMethod("Unity_Posterize", BindingFlags.Static | BindingFlags.NonPublic);
+        }
 
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        static string Unity_Posterize(
+            [Slot(0, Binding.None)] DynamicDimensionVector input,
+            [Slot(1, Binding.None)] DynamicDimensionVector stepsize,
+            [Slot(2, Binding.None)] out DynamicDimensionVector result)
+        {
+
+            return
+                @"
+{
+    result = floor(input / stepsize) * stepsize;;
+}
+";
         }
     }
 }

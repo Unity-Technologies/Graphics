@@ -1,26 +1,30 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Basic/Divide")]
-    public class DivNode : Function2Input, IGeneratesFunction
+    public class DivNode : CodeFunctionNode
     {
         public DivNode()
         {
             name = "Divide";
         }
 
-        protected override string GetFunctionName() {return "unity_div_" + precision; }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        protected override MethodInfo GetFunctionToConvert()
         {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return arg1 / arg2;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
+            return GetType().GetMethod("Unity_Div", BindingFlags.Static | BindingFlags.NonPublic);
+        }
 
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        static string Unity_Div(
+            [Slot(0, Binding.None)] DynamicDimensionVector first,
+            [Slot(1, Binding.None)] DynamicDimensionVector second,
+            [Slot(2, Binding.None)] out DynamicDimensionVector result)
+        {
+            return @"
+{
+    result = first / second;
+}
+";
         }
     }
 }
