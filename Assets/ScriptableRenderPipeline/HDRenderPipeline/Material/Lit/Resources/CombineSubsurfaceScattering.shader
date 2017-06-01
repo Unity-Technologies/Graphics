@@ -154,7 +154,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     {
                         // Everything except for the radius is a compile-time constant.
                         float  r   = _FilterKernelsNearField[profileID][i][0];
-                        float  phi = TWO_PI * VanDerCorputBase2(i);
+                        float  phi = TWO_PI * Fibonacci2d(i, SSS_N_SAMPLES_NEAR_FIELD).y;
                         float2 pos = r * float2(cos(phi), sin(phi));
 
                         samplePosition = posInput.unPositionSS + pos * scaledPixPerMm;
