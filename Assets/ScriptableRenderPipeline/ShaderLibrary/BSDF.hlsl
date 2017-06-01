@@ -22,7 +22,7 @@ float F_Schlick(float f0, float u)
     return F_Schlick(f0, 1.0, u); // sub mul mul mul sub mad
 }
 
-float F_t_Schlick(float f0, float f90, float u)
+float F_Transm_Schlick(float f0, float f90, float u)
 {
     float x     = 1.0 - u;
     float x5    = x * x;
@@ -30,7 +30,7 @@ float F_t_Schlick(float f0, float f90, float u)
     return (1.0 - f0) - x5 * (f90 - f0); // sub mul mul mul sub sub mad
 }
 
-float F_t_Schlick(float f0, float u)
+float F_Transm_Schlick(float f0, float u)
 {
     return F_Schlick(f0, 1.0, u); // sub mul mul mul sub mad
 }
@@ -51,7 +51,7 @@ float3 F_Schlick(float3 f0, float u)
     return f0 * (1.0 - x5) + float3(x5, x5, x5); // sub mul mul mul sub mad*3
 }
 
-float3 F_t_Schlick(float3 f0, float u)
+float3 F_Transm_Schlick(float3 f0, float u)
 {
     float x  = 1.0 - u;
     float x2 = x * x;
@@ -255,8 +255,8 @@ float3 DiffuseGGXNoPI(float3 albedo, float NdotV, float NdotL, float NdotH, floa
 {
     float facing    = 0.5 + 0.5 * LdotV;
     float rough     = facing * (0.9 - 0.4 * facing) * ((0.5 + NdotH) / NdotH);
-    float transmitL = F_t_Schlick(0, NdotL);
-    float transmitV = F_t_Schlick(0, NdotV);
+    float transmitL = F_Transm_Schlick(0, NdotL);
+    float transmitV = F_Transm_Schlick(0, NdotV);
     float smooth    = transmitL * transmitV * 1.05;             // Normalize F_t over the hemisphere
     float single    = lerp(smooth, rough, perceptualRoughness); // Rescaled by PI
     // This constant is picked s.t. setting perceptualRoughness, albedo and all angles to 1

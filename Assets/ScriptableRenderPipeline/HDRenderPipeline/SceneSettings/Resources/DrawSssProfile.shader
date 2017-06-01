@@ -1,12 +1,5 @@
 Shader "Hidden/HDRenderPipeline/DrawSssProfile"
 {
-    Properties
-    {
-        [HideInInspector] _StdDev1("", Vector)   = (0, 0, 0, 0)
-        [HideInInspector] _StdDev2("", Vector)   = (0, 0, 0, 0)
-        [HideInInspector] _LerpWeight("", Float) = 0
-    }
-
     SubShader
     {
         Pass

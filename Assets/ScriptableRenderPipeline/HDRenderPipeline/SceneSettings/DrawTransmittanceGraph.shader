@@ -1,13 +1,5 @@
 Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 {
-    Properties
-    {
-        [HideInInspector] _StdDev1("", Vector)   = (0, 0, 0, 0)
-        [HideInInspector] _StdDev2("", Vector)   = (0, 0, 0, 0)
-        [HideInInspector] _LerpWeight("", Float) = 0
-        [HideInInspector] _TintColor("", Vector) = (0, 0, 0, 0)
-    }
-
     SubShader
     {
         Pass
@@ -31,6 +23,8 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             #include "../../ShaderLibrary/Common.hlsl"
             #include "../../ShaderLibrary/Color.hlsl"
             #include "../ShaderVariables.hlsl"
+            #define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl
+            #include "../Material/Material.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
@@ -66,10 +60,9 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             float4 Frag(Varyings input) : SV_Target
             {
                 float  d = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x));
-                float3 S = _ShapeParameter.rgb;
-                float3 T = 0.5 * exp(-d * S) + 0.5 * exp(-d * S * (1.0 / 3.0));
+                float3 T = ComputeTransmittance(_ShapeParameter.rgb, _SurfaceAlbedo.rgb, d, 1);
 
-                return float4(T * _SurfaceAlbedo.rgb, 1);
+                return float4(T, 1);
             }
             ENDHLSL
         }
