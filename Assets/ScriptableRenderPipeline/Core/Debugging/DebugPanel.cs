@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_Handler.ClampValues(m_Getter, m_Setter);
 
                 // Update state for serialization/undo
-                if(record)
+                if(record && m_State != null)
                     m_State.SetValue(m_Getter());
             }
         }

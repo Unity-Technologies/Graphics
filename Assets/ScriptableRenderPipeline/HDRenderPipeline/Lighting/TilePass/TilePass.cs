@@ -1337,7 +1337,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         sortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | shadow << 16 | (uint)lightIndex;
                     }
 
-                    Array.Sort(sortKeys);
+                    Array.Sort(sortKeys, 0, sortCount);
 
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
@@ -1428,7 +1428,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Not necessary yet but call it for future modification with sphere influence volume
-                    Array.Sort(sortKeys);
+                    Array.Sort(sortKeys, 0, sortCount);
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
