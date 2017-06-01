@@ -19,7 +19,11 @@ namespace UnityEditor.VFX.UI
             public VFXBlockElement(int level, T desc, string category, string name)
             {
                 this.level = level;
-                content = new GUIContent(category.Replace("/", " ") + " : " + name /*, VFXEditor.styles.GetIcon(desc.Icon)*/);
+                var str = "";
+                if (!string.IsNullOrEmpty(category))
+                    str = category.Replace("/", " ") + " : ";
+                str += name;
+                content = new GUIContent(str /*, VFXEditor.styles.GetIcon(desc.Icon)*/);
                 descriptor = desc;
             }
         }
@@ -43,7 +47,9 @@ namespace UnityEditor.VFX.UI
             {
                 int depth = 0;
                 var category = GetCategory(desc);
-                if (!string.IsNullOrEmpty(category))
+                if (category == null)
+                    category = "";
+                //if (!string.IsNullOrEmpty(category))
                 {
                     var split = category.Split('/').Where(o => o != "").ToArray();
                     if (!categories.Contains(category))
@@ -97,12 +103,12 @@ namespace UnityEditor.VFX.UI
 
         protected override string GetCategory(VFXModelDescriptor<VFXBlock> desc)
         {
-            return desc.name;
+            return desc.info.category;
         }
 
         protected override string GetName(VFXModelDescriptor<VFXBlock> desc)
         {
-            return desc.info.category;
+            return desc.name;
         }
 
         protected override IEnumerable<VFXModelDescriptor<VFXBlock>> GetDescriptors()

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXInfo(category = "Tests")]
     class VFXUpdateBlockTest : VFXBlock
     {
         public override string name                         { get { return "Update Block"; } }

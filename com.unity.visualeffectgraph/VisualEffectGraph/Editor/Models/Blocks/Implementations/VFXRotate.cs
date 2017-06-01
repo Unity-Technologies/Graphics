@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXInfo(category = "Tests")]
     class VFXRotate : VFXBlock
     {
         public override string name                         { get { return "Rotate"; } }
