@@ -22,7 +22,8 @@ float3 SurfaceGradientFromTBN(float2 deriv, float3 vT, float3 vB)
     return deriv.x * vT + deriv.y * vB;
 }
 
-// surface gradient from an already generated "normal" such as from an object space normal map
+// surface gradient from an already generated "normal" such as from an object or world space normal map
+// CAUTION: nrmVertexNormal and v must be in the same space. i.e world or object
 // this allows us to mix the contribution together with a series of other contributions including tangent space normals
 // v does not need to be unit length as long as it establishes the direction.
 float3 SurfaceGradientFromPerturbedNormal(float3 nrmVertexNormal, float3 v)
