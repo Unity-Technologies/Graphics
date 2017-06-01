@@ -600,28 +600,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void RenderDebugViewMaterial(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext)
         {
             using (new Utilities.ProfilingSample("DisplayDebug ViewMaterial", renderContext))
-            // Render Opaque forward
             {
+                // Render Opaque forward
                 Utilities.SetRenderTarget(renderContext, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, Utilities.kClearAll, Color.black);
                 RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, "ForwardDisplayDebug", Utilities.kRendererConfigurationBakedLighting);
-            }
 
-            // Render GBuffer opaque
-            if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
-            {
-                Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewMaterialGBuffer);
+                // Render GBuffer opaque
+                if (!m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
+                {
+                    Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewMaterialGBuffer);
 
-                // m_gbufferManager.BindBuffers(m_DebugViewMaterialGBuffer);
-                // TODO: Bind depth textures
-                var cmd = new CommandBuffer { name = "DebugViewMaterialGBuffer" };
-                cmd.Blit(null, m_CameraColorBufferRT, m_DebugViewMaterialGBuffer, 0);
-                renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
-            }
+                    // m_gbufferManager.BindBuffers(m_DebugViewMaterialGBuffer);
+                    // TODO: Bind depth textures
+                    var cmd = new CommandBuffer { name = "DebugViewMaterialGBuffer" };
+                    cmd.Blit(null, m_CameraColorBufferRT, m_DebugViewMaterialGBuffer, 0);
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    cmd.Dispose();
+                }
 
-            // Render forward transparent
-            {
-                RenderTransparentRenderList(cull, hdCamera.camera, renderContext, "ForwardDisplayDebug", Utilities.kRendererConfigurationBakedLighting);
+                // Render forward transparent
+                {
+                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, "ForwardDisplayDebug", Utilities.kRendererConfigurationBakedLighting);
+                }
             }
 
             // Last blit

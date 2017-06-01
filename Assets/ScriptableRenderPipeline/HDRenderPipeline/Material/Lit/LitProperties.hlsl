@@ -74,6 +74,8 @@ float _HeightCenter;
 
 TEXTURE2D(_TangentMap);
 SAMPLER2D(sampler_TangentMap);
+TEXTURE2D(_TangentMapOS);
+SAMPLER2D(sampler_TangentMapOS);
 
 float _Anisotropy;
 TEXTURE2D(_AnisotropyMap);

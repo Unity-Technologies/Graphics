@@ -30,6 +30,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(-2.0, 2.0)) = 1
 
         _TangentMap("TangentMap", 2D) = "bump" {}
+        _TangentMapOS("TangentMapOS", 2D) = "white" {}
         _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 

@@ -207,7 +207,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.worldToTangent);
     #else // Object space
     // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
-    float3 tangentOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(_TangentMap, sampler_TangentMap,  layerTexCoord.base.uv), 1.0);
+    float3 tangentOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(_TangentMapOS, sampler_TangentMapOS,  layerTexCoord.base.uv), 1.0);
     surfaceData.tangentWS = TransformObjectToWorldDir(tangentOS);
     #endif
 #else
