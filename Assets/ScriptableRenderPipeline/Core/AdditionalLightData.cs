@@ -55,12 +55,15 @@
             public int[] data;
         };
 
+        [HideInInspector, SerializeField] private int           shadowCascadeCount = 4;
+        [HideInInspector, SerializeField] private float[]       shadowCascadeRatios = new float[3]{ 0.05f, 0.2f, 0.3f };
         [HideInInspector, SerializeField] private int           shadowAlgorithm;
         [HideInInspector, SerializeField] private int           shadowVariant;
         [HideInInspector, SerializeField] private int           shadowPrecision;
         [HideInInspector, SerializeField] private ShadowData    shadowData;
         [HideInInspector, SerializeField] private ShadowData[]  shadowDatas = new ShadowData[0];
 
+        public void GetShadowCascades( out int cascadeCount, out float[] cascadeRatios ) { cascadeCount = shadowCascadeCount; cascadeRatios = shadowCascadeRatios; }
         public void GetShadowAlgorithm( out int algorithm, out int variant, out int precision )    { algorithm = shadowAlgorithm; variant = shadowVariant; precision = shadowPrecision; }
         public void SetShadowAlgorithm( int algorithm, int variant, int precision, int format, int[] data )
         {
@@ -128,6 +131,8 @@
         UnityEditor.SerializedProperty m_ShadowData;
         UnityEditor.SerializedProperty m_ShadowDatas;
 #pragma warning restore 414
+        UnityEditor.SerializedProperty m_ShadowCascadeCount;
+        UnityEditor.SerializedProperty m_ShadowCascadeRatios;
 
         public static void SetRegistry( ShadowRegistry registry ) { m_ShadowRegistry = registry; }
 
@@ -137,6 +142,8 @@
             m_ShadowVariant   = serializedObject.FindProperty( "shadowVariant" );
             m_ShadowData      = serializedObject.FindProperty( "shadowData" );
             m_ShadowDatas     = serializedObject.FindProperty( "shadowDatas" );
+            m_ShadowCascadeCount  = serializedObject.FindProperty( "shadowCascadeCount" );
+            m_ShadowCascadeRatios = serializedObject.FindProperty( "shadowCascadeRatios" );
         }
         public override void OnInspectorGUI()
         {
@@ -150,8 +157,30 @@
                 return;
 
             UnityEditor.EditorGUI.BeginChangeCheck();
+            
             m_ShadowRegistry.Draw( ald.gameObject.GetComponent<Light>() );
             serializedObject.Update();
+
+            // cascade code
+            if( ald.gameObject.GetComponent<Light>().type == LightType.Directional )
+            {
+                UnityEditor.EditorGUI.BeginChangeCheck();
+                UnityEditor.EditorGUILayout.PropertyField( m_ShadowCascadeCount );
+                if( UnityEditor.EditorGUI.EndChangeCheck() )
+                {
+                    const int kMaxCascades = (int) ShadowAtlas.k_MaxCascadesInShader; // depending on where you look this is either 32 or 4, so we're limiting it to 4 for now
+                    int newcnt = m_ShadowCascadeCount.intValue <= 0 ? 1 : (m_ShadowCascadeCount.intValue > kMaxCascades ? kMaxCascades : m_ShadowCascadeCount.intValue);
+                    m_ShadowCascadeCount.intValue = newcnt;
+                    m_ShadowCascadeRatios.arraySize = newcnt-1;
+                }
+                UnityEditor.EditorGUI.indentLevel++;
+                for( int i = 0; i < m_ShadowCascadeRatios.arraySize; i++ )
+                {
+                    UnityEditor.EditorGUILayout.Slider( m_ShadowCascadeRatios.GetArrayElementAtIndex( i ), 0.0f, 1.0f, new GUIContent( "Cascade " + i ) );
+                }
+                UnityEditor.EditorGUI.indentLevel--;
+            }
+
             if( UnityEditor.EditorGUI.EndChangeCheck() )
             {
                 UnityEditor.EditorUtility.SetDirty( ald );
@@ -162,4 +191,4 @@
         }
     }
 #endif
-}
+            }

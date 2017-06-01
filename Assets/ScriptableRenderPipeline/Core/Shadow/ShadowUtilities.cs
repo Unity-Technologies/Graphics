@@ -155,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering
             return proj * view;
         }
 
-        public static Matrix4x4 ExtractDirectionalLightMatrix( VisibleLight vl, uint cascadeIdx, int cascadeCount, Vector3 splitRatio, float nearPlaneOffset, uint width, uint height, out Matrix4x4 view, out Matrix4x4 proj, out Vector4 lightDir, out ShadowSplitData splitData, CullResults cullResults, int lightIndex )
+        public static Matrix4x4 ExtractDirectionalLightMatrix( VisibleLight vl, uint cascadeIdx, int cascadeCount, float[] splitRatio, float nearPlaneOffset, uint width, uint height, out Matrix4x4 view, out Matrix4x4 proj, out Vector4 lightDir, out ShadowSplitData splitData, CullResults cullResults, int lightIndex )
         {
             Debug.Assert( width == height, "Currently the cascaded shadow mapping code requires square cascades." );
             splitData = new ShadowSplitData();
@@ -166,7 +166,10 @@ namespace UnityEngine.Experimental.Rendering
             // TODO: At some point this logic should be moved to C#, then the parameters cullResults and lightIndex can be removed as well
             //       For directional lights shadow data is extracted from the cullResults, so that needs to be somehow provided here.
             //       Check ScriptableShadowsUtility.cpp ComputeDirectionalShadowMatricesAndCullingPrimitives(...) for details.
-            cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives( lightIndex, (int) cascadeIdx, cascadeCount, splitRatio, (int) width, nearPlaneOffset, out view, out proj, out splitData );
+            Vector3 ratios = new Vector3();
+            for( int i = 0, cnt = splitRatio.Length < 3 ? splitRatio.Length : 3; i < cnt; i++ )
+                ratios[i] = splitRatio[i];
+            cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives( lightIndex, (int) cascadeIdx, cascadeCount, ratios, (int) width, nearPlaneOffset, out view, out proj, out splitData );
             // and the compound
             return proj * view;
         }
