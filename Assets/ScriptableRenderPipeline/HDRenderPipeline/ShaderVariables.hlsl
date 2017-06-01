@@ -256,6 +256,12 @@ float3 TransformObjectToWorldDir(float3 dirOS)
     return normalize(mul((float3x3)GetObjectToWorldMatrix(), dirOS));
 }
 
+float3 TransformWorldToObjectDir(float3 dirWS)
+{
+    // Normalize to support uniform scaling
+    return normalize(mul((float3x3)GetWorldToObjectMatrix(), dirWS));
+}
+
 // Transforms normal from object to world space
 float3 TransformObjectToWorldNormal(float3 normalOS)
 {

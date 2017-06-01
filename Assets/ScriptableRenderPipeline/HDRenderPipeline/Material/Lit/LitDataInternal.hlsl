@@ -99,7 +99,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         #ifdef SURFACE_GRADIENT
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D_BIAS(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias).xyz * 2.0 - 1.0;
-        // normalize(normalOS) // TO CHECK: SurfaceGradientFromPerturbedNormal doesn't require normalOS to be normalize, to check
+        // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
         normalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], normalOS);
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D_BIAS(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv, bias), 1.0);
@@ -111,8 +111,8 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         #ifdef SURFACE_GRADIENT
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
-        // normalize(normalOS) // TO CHECK: SurfaceGradientFromPerturbedNormal doesn't require normalOS to be normalize, to check
-        normalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], normalOS);
+        // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
+        normalTS = SurfaceGradientFromPerturbedNormal(TransformWorldToObjectDir(input.worldToTangent[2]), normalOS);
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
         normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
