@@ -98,6 +98,7 @@ namespace UnityEditor.VFX.UIElements
         void IEventHandler.OnLostCapture()
         {
             m_Dragging = false;
+            EditorGUIUtility.SetWantsMouseJumping(0);
         }
 
         void IEventHandler.OnLostKeyboardFocus() {}
