@@ -500,7 +500,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new Utilities.ProfilingSample("Build Light list and render shadows", renderContext))
                 {
                     // TODO: Everything here (SSAO, Shadow, Build light list, material and light classification can be parallelize with Async compute)
-                    m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, GetDepthTexture(), m_Asset.renderingSettings.useForwardRenderingOnly);
+                    m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, m_Asset.renderingSettings.useForwardRenderingOnly);
                     m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, cullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cullResults);
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
