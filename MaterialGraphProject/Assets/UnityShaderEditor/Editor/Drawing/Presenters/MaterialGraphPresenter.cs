@@ -50,7 +50,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(Matrix4Node)] = typeof(Matrix4NodePresenter);
             typeMapper[typeof(MatrixCommonNode)] = typeof(MatrixCommonNodePresenter);
 			typeMapper[typeof(TransformNode)] = typeof(TransformNodePresenter);
-            typeMapper[typeof(ConvolutionFilterNode)] = typeof(ConvolutionFilterNodePresenter);
+//            typeMapper[typeof(ConvolutionFilterNode)] = typeof(ConvolutionFilterNodePresenter);
         }
 
 		public override List<NodeAnchorPresenter> GetCompatibleAnchors(NodeAnchorPresenter startAnchor, NodeAdapter nodeAdapter)
