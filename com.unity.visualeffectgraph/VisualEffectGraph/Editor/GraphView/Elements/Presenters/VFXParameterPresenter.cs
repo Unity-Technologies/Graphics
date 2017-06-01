@@ -93,7 +93,7 @@ namespace UnityEditor.VFX.UI
         {
             if (parameter != null)
             {
-                title = node.outputSlots[0].property.type.Name + " " + node.m_OnEnabledCount;
+                title = node.outputSlots[0].property.type.UserFriendlyName() + " " + node.m_OnEnabledCount;
                 exposed = parameter.exposed;
                 exposedName = parameter.exposedName;
             }
