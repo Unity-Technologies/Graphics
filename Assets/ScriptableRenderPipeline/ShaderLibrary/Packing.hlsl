@@ -1,6 +1,8 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
+#include "Common.hlsl"
+
 //-----------------------------------------------------------------------------
 // Normal packing
 //-----------------------------------------------------------------------------
@@ -238,8 +240,60 @@ float4 UnpackQuat(float4 packedQuat)
 }
 
 //-----------------------------------------------------------------------------
-// Byte packing
+// Integer packing
 //-----------------------------------------------------------------------------
+
+// Packs an integer stored using at most 'numBits' into a [0..1] float.
+float PackInt(uint i, uint numBits)
+{
+    uint maxInt = 0xFFFFFFFFu >> (32u - numBits);
+    return saturate(i * rcp(maxInt));
+}
+
+// Unpacks a [0..1] float into an integer using at most 'numBits'.
+uint UnpackInt(float f, uint numBits)
+{
+    uint maxInt = 0xFFFFFFFFu >> (32u - numBits);
+    return (uint)(f * maxInt + 0.5); // Round instead of truncating
+}
+
+// Packs a [0..255] integer into a [0..1] float.
+float PackByte(uint i)
+{
+    return PackInt(i, 8);
+}
+
+// Unpacks a [0..1] float into a [0..255] integer.
+uint UnpackByte(float f)
+{
+    return UnpackInt(f, 8);
+}
+
+// Packs a [0..65535] integer into a [0..1] float.
+float PackShort(uint i)
+{
+    return PackInt(i, 16);
+}
+
+// Unpacks a [0..1] float into a [0..65535] integer.
+uint UnpackShort(float f)
+{
+    return UnpackInt(f, 16);
+}
+
+// Packs 8 lowermost bits of a [0..65535] integer into a [0..1] float.
+float PackShortLo(uint i)
+{
+    uint lo = BitFieldExtract(i, 8, 0);
+    return PackInt(lo, 8);
+}
+
+// Packs 8 uppermost bits of a [0..65535] integer into a [0..1] float.
+float PackShortHi(uint i)
+{
+    uint hi = BitFieldExtract(i, 8, 8);
+    return PackInt(hi, 8);
+}
 
 float Pack2Byte(float2 inputs)
 {
@@ -323,21 +377,19 @@ void UnpackFloatInt16bit(float val, float maxi, out float f, out int i)
 }
 
 //-----------------------------------------------------------------------------
-// float packing to sint/uint
+// Float packing
 //-----------------------------------------------------------------------------
 
 // src must be between 0.0 and 1.0
-uint PackFloatToUInt(float src, uint size, uint offset)
+uint PackFloatToUInt(float src, uint numBits, uint offset)
 {
-    const float maxValue = float((1u << size) - 1u) + 0.5; // Shader compiler should be able to remove this
-    return uint(src * maxValue) << offset;
+    return UnpackInt(src, numBits) << offset;
 }
 
-float UnpackUIntToFloat(uint src, uint size, uint offset)
+float UnpackUIntToFloat(uint src, uint numBits, uint offset)
 {
-    const float invMaxValue = 1.0 / float((1 << size) - 1);
-
-    return float(BitFieldExtract(src, size, offset)) * invMaxValue;
+    uint maxInt = 0xFFFFFFFFu >> (32u - numBits);
+    return float(BitFieldExtract(src, numBits, offset)) * rcp(maxInt);
 }
 
 uint PackR10G10B10A2(float4 rgba)
@@ -355,5 +407,20 @@ float4 UnpackR10G10B10A2(uint rgba)
     return ouput;
 }
 
+// Both the input and the output are in the [0, 1] range.
+float2 PackFloatToR8G8(float f)
+{
+    uint i = UnpackShort(f);
+    return float2(PackShortLo(i), PackShortHi(i));
+}
+
+// Both the input and the output are in the [0, 1] range.
+float UnpackFloatFromR8G8(float2 f)
+{
+    uint lo = UnpackByte(f.x);
+    uint hi = UnpackByte(f.y);
+    uint cb = (hi << 8) + lo;
+    return PackShort(cb);
+}
 
 #endif // UNITY_PACKING_INCLUDED
