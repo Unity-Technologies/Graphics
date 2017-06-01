@@ -266,7 +266,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Load the profile from the GUI field.
                 int profileID = subsurfaceProfile.settingsIndex;
 
-                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length)
+                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length &&
+                    hdPipeline.sssSettings.profiles[profileID] != null &&
+                    hdPipeline.sssSettings.profiles[profileID] == subsurfaceProfile)
                 {
                     validProfile = true;
                     material.SetInt("_SubsurfaceProfile", profileID);
@@ -281,7 +283,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!validProfile)
             {
                 // Disable SSS for this object.
-                material.SetInt("_SubsurfaceProfile", SubsurfaceScatteringSettings.neutralProfileID);
+                material.SetInt("_SubsurfaceProfile", SssConstants.SSS_NEUTRAL_PROFILE_ID);
             }
 
             m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);
