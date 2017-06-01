@@ -605,8 +605,9 @@ namespace UnityEditor.VFX.UI
                 m_Graph.onInvalidateDelegate += RecomputeExpressionGraph;
 
                 // First trigger
-                SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
                 RecomputeExpressionGraph(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
+                SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
+
 
                 // Doesn't work for some reason
                 //View.FrameAll();
