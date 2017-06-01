@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
-namespace UnityEngine.MaterialGraph
+/*namespace UnityEngine.MaterialGraph
 {
     [Title("Art/Filters/Convolution")]
     public class ConvolutionFilterNode : Function2Input, IGeneratesFunction, IGeneratesBodyCode, IMayRequireMeshUV
@@ -284,4 +284,4 @@ namespace UnityEngine.MaterialGraph
             return edges.Count == 0;
         }
     }
-}
+}*/

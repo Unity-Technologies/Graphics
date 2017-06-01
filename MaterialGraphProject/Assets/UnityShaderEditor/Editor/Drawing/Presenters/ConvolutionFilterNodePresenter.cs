@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    class ConvolutionFilterControlPresenter : GraphControlPresenter
+    /*class ConvolutionFilterControlPresenter : GraphControlPresenter
     {
         enum KernelPresets
         {
@@ -147,5 +147,5 @@ namespace UnityEditor.MaterialGraph.Drawing
             instance.Initialize(node);
             return new List<GraphElementPresenter>(base.GetControlData()) { instance };
         }
-    }
+    }*/
 }
