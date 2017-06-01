@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -295,6 +295,10 @@ namespace UnityEditor.VFX.UI
             m_DragStarted = false;
 
             return EventPropagation.Stop;
+        }
+        public override void OnSelected()
+        {
+            this.SendToFront();
         }
 
         public EventPropagation DeleteSelection()
