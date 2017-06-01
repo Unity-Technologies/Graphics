@@ -133,9 +133,9 @@ namespace UnityEditor.VFX.UI
                     minT * minT * minT * start;
 
 
-                edge = norm * (halfWidth+1);
+                edge = norm * (halfWidth + 1);
 
-                GL.TexCoord3(t,-halfWidth-1,halfWidth);
+                GL.TexCoord3(t, -halfWidth - 1, halfWidth);
                 GL.Vertex(prevPos - edge);
                 GL.TexCoord3(t, 1 + halfWidth, halfWidth);
                 GL.Vertex(prevPos + edge);

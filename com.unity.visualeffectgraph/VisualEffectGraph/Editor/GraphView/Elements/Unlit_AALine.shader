@@ -1,4 +1,4 @@
-﻿Shader "Unlit/AALine"
+Shader "Unlit/AALine"
 {
     Properties
     {

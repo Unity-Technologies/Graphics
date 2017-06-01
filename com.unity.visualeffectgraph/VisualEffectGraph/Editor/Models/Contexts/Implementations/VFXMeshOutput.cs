@@ -5,7 +5,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXMeshOutput : VFXContext
     {
-        public VFXMeshOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) { }
+        public VFXMeshOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
         public override string name { get { return "Mesh Particle Output"; } }
 
         public class InputProperties

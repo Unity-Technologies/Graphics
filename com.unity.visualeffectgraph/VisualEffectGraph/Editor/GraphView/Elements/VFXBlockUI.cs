@@ -27,6 +27,7 @@ namespace UnityEditor.VFX.UI
 
             presenter.Model.enabled = !presenter.Model.enabled;
         }
+
         public override void OnSelected()
         {
         }
