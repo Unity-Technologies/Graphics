@@ -355,6 +355,6 @@ float3 TransformTangentToObject(float3 dirTS, float3x3 worldToTangent)
 
 float3 TransformObjectToTangent(float3 dirOS, float3x3 worldToTangent)
 {
-    return mul(worldToTangent, mul((float3x3)unity_ObjectToWorld, dirOS));
+    return mul(worldToTangent, TransformObjectToWorldDir(dirOS));
 }
 #endif // UNITY_SHADER_VARIABLES_INCLUDED
