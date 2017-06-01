@@ -118,6 +118,7 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 
 // Computes the fraction of light passing through the object.
 // N.b.: it is not just zero scattering (light traveling in a straight path)!
+// We derive the transmittance function from the SSS profile, by normalizing it s.t. R(0) = 1.
 // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar (BSSRDF only).
 float3 ComputeTransmittance(float3 S, float3 surfaceAlbedo, float thickness, float radiusScale)
 {

@@ -375,6 +375,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     if (transmissionMode != SSS_TRSM_MODE_THIN)
     {
         // Convert thickness along the normal to thickness along the viewing direction.
+        // We assume that the thickness along the normal corresponds to the diameter of a sphere.
+        // We then find a position on the sphere which corresponds to the normal, and
+        // compute the length of the chord of the sphere along the viewing direction.
+        // We add a small bias to (hopefully) have non-zero thickness.
         surfaceData.thickness *= saturate(dot(interpolatedVertexNormal, V) + 0.01);
     }
 
