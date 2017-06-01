@@ -64,8 +64,9 @@
 #define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_RADIUS (1042)
 #define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1043)
 #define DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE (1044)
-#define DEBUGVIEW_LIT_BSDFDATA_TRANSMISSION_TYPE (1045)
-#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1046)
+#define DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION (1045)
+#define DEBUGVIEW_LIT_BSDFDATA_USE_THIN_OBJECT_MODE (1046)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE (1047)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit.GBufferMaterial:  static fields
@@ -111,7 +112,8 @@ struct BSDFData
     float subsurfaceRadius;
     float thickness;
     int subsurfaceProfile;
-    int transmissionType;
+    bool enableTransmission;
+    bool useThinObjectMode;
     float3 transmittance;
 };
 
@@ -222,8 +224,11 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACE_PROFILE:
             result = GetIndexColor(bsdfdata.subsurfaceProfile);
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_TRANSMISSION_TYPE:
-            result = GetIndexColor(bsdfdata.transmissionType);
+        case DEBUGVIEW_LIT_BSDFDATA_ENABLE_TRANSMISSION:
+            result = (bsdfdata.enableTransmission) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_USE_THIN_OBJECT_MODE:
+            result = (bsdfdata.useThinObjectMode) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE:
             result = bsdfdata.transmittance;
