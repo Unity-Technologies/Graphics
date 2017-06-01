@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -299,6 +299,12 @@ namespace UnityEditor.VFX.UI
                         slot.UnlinkAll();
                     }
                 }
+            }
+            else if(element is VFXBlockPresenter)
+            {
+                var block = element as VFXBlockPresenter;
+
+                block.ContextPresenter.RemoveBlock(block.Model);
             }
             else
             {
