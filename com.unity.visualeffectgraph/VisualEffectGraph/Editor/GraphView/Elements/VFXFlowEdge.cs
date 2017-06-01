@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.UI
             RenderBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, edgeWidth);
             RenderDisc(points[1], 4, edgeColor);
 
-            VColorMat.SetPass(0);
+            VCircleMat.SetPass(0);
             GL.Begin(GL.TRIANGLES);
             GL.Color(edgeColor);
             GL.Vertex3(to.x - arrowHeight * .5f, to.y, 0);
@@ -58,7 +58,8 @@ namespace UnityEditor.VFX.UI
             GL.End();
         }
 
-        static Material VColorMat;
+        static Material VLineMat;
+        static Material VCircleMat;
 
         // Only flow anchors are of interest to flow edges
         public override IEnumerable<NodeAnchor> GetAllAnchors(bool input, bool output)
@@ -69,11 +70,11 @@ namespace UnityEditor.VFX.UI
 
         void RenderDisc(Vector2 center, float radius, Color color)
         {
-            if (VColorMat == null)
+            if (VCircleMat == null)
             {
-                VColorMat = new Material(Shader.Find("Unlit/VColor"));
+                VCircleMat = new Material(Shader.Find("Unlit/VColor"));
             }
-            VColorMat.SetPass(0);
+            VCircleMat.SetPass(0);
             GL.Begin(GL.TRIANGLE_STRIP);
             GL.Color(color);
 
@@ -89,6 +90,7 @@ namespace UnityEditor.VFX.UI
                 float x = center.x + Mathf.Sin(phi) * radius;
                 float y = Mathf.Cos(phi) * radius;
 
+                //GL.TexCoord3(f,)
                 GL.Vertex3(x, center.y - y, 0);
                 GL.Vertex3(x, center.y + y, 0);
             }
@@ -98,13 +100,13 @@ namespace UnityEditor.VFX.UI
             GL.End();
         }
 
-        void RenderBezier(Vector2 start, Vector2 end, Vector2 tStart, Vector2 tEnd, Color color, float edgeWidth)
+        public static void RenderBezier(Vector2 start, Vector2 end, Vector2 tStart, Vector2 tEnd, Color color, float edgeWidth)
         {
-            if (VColorMat == null)
+            if (VLineMat == null)
             {
-                VColorMat = new Material(Shader.Find("Unlit/VColor"));
+                VLineMat = new Material(Shader.Find("Unlit/AALine"));
             }
-            VColorMat.SetPass(0);
+            VLineMat.SetPass(0);
             GL.Begin(GL.TRIANGLE_STRIP);
             GL.Color(color);
 
@@ -119,6 +121,8 @@ namespace UnityEditor.VFX.UI
 
             float cpt = (start - end).magnitude / 5;
 
+
+            float halfWidth = edgeWidth * 0.5f;
             for (float t = 1 / cpt; t < 1; t += 1 / cpt)
             {
                 float minT = 1 - t;
@@ -128,9 +132,12 @@ namespace UnityEditor.VFX.UI
                     3 * minT * minT * t * tStart +
                     minT * minT * minT * start;
 
-                edge = norm * (edgeWidth * 0.5f);
 
+                edge = norm * (halfWidth + 1);
+
+                GL.TexCoord3(t, -halfWidth - 1, halfWidth);
                 GL.Vertex(prevPos - edge);
+                GL.TexCoord3(t, 1 + halfWidth, halfWidth);
                 GL.Vertex(prevPos + edge);
 
                 dir = (pos - prevPos).normalized;
@@ -139,11 +146,13 @@ namespace UnityEditor.VFX.UI
                 prevPos = pos;
             }
 
-            dir = (end - tEnd).normalized;
+            dir = (end - prevPos).normalized;
             norm = new Vector2(dir.y, -dir.x);
-            edge = norm * (edgeWidth * 0.5f);
+            edge = norm * (halfWidth + 1);
 
+            GL.TexCoord3(1, -halfWidth - 1, halfWidth);
             GL.Vertex(end - edge);
+            GL.TexCoord3(1, 1 + halfWidth, halfWidth);
             GL.Vertex(end + edge);
 
             GL.End();

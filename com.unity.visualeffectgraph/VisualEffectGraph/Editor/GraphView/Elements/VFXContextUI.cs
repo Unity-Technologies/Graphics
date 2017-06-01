@@ -9,7 +9,7 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class BlockContainer : VisualContainer, ISelection, IKeyFocusBlocker
+    class BlockContainer : VisualContainer, IKeyFocusBlocker
     {
         // ISelection implementation
         public List<ISelectable> selection { get; private set; }
@@ -19,48 +19,6 @@ namespace UnityEditor.VFX.UI
         {
             selection = new List<ISelectable>();
             clipChildren = false;
-        }
-
-        public EventPropagation SelectAll()
-        {
-            ClearSelection();
-
-            for (int i = 0; i < childrenCount; ++i)
-            {
-                var child = GetChildAt(0) as VFXBlockUI;
-                if (child != null)
-                    AddToSelection(child);
-            }
-
-            return EventPropagation.Stop;
-        }
-
-        // functions to ISelection extensions
-        public virtual void AddToSelection(ISelectable selectable)
-        {
-            var block = selectable as VFXBlockUI;
-            if (block != null && block.presenter != null)
-                block.presenter.selected = true;
-            selection.Add(selectable);
-        }
-
-        public virtual void RemoveFromSelection(ISelectable selectable)
-        {
-            var block = selectable as VFXBlockUI;
-            if (block != null && block.presenter != null)
-                block.presenter.selected = false;
-            selection.Remove(selectable);
-        }
-
-        public virtual void ClearSelection()
-        {
-            foreach (var block in selection.OfType<VFXBlockUI>())
-            {
-                if (block.presenter != null)
-                    block.presenter.selected = false;
-            }
-
-            selection.Clear();
         }
     }
 
@@ -122,14 +80,6 @@ namespace UnityEditor.VFX.UI
                 clipChildren = false
             };
             m_NodeContainer.clipChildren = false;
-
-            AddManipulator(new ShortcutHandler(
-                    new Dictionary<Event, ShortcutDelegate>
-            {
-                {Event.KeyboardEvent("#a"), SelectAll},
-                {Event.KeyboardEvent("#n"), ClearSelection},
-                {Event.KeyboardEvent("delete"), DeleteSelection},
-            }));
 
             AddChild(m_NodeContainer);
 
@@ -225,17 +175,6 @@ namespace UnityEditor.VFX.UI
             int result = (int)presenter.context.space;
 
             presenter.context.space = (CoordinateSpace)(((int)presenter.context.space + 1) % (int)(CoordinateSpace.SpaceCount));
-        }
-
-        public EventPropagation SelectAll()
-        {
-            return m_BlockContainer.SelectAll();
-        }
-
-        public EventPropagation ClearSelection()
-        {
-            m_BlockContainer.ClearSelection();
-            return EventPropagation.Stop;
         }
 
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks, VFXBlockUI target)
@@ -358,14 +297,9 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        public override void Select(GraphView selectionContainer, bool additive)
+        public override void OnSelected()
         {
-            bool clearBlockSelection = !additive;
-
-            base.Select(selectionContainer, additive);
-
-            if (clearBlockSelection)
-                m_BlockContainer.ClearSelection();
+            this.SendToFront();
         }
 
         public EventPropagation DeleteSelection()

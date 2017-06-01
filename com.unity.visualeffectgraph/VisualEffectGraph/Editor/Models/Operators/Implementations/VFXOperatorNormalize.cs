@@ -15,9 +15,7 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var invLength = new VFXExpressionDivide(VFXOperatorUtility.OneExpression[1], VFXOperatorUtility.Length(inputExpression[0]));
-            var invLengthVector = VFXOperatorUtility.CastFloat(invLength, inputExpression[0].ValueType);
-            return new[] { new VFXExpressionMul(inputExpression[0], invLengthVector) };
+            return new[] { VFXOperatorUtility.Normalize(inputExpression[0]) };
         }
     }
 }

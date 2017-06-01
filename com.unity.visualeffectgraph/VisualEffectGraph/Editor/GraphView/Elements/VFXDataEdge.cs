@@ -74,12 +74,15 @@ namespace UnityEditor.VFX.UI
             Orientation orientation = Orientation.Horizontal;
             Vector3[] points, tangents;
             GetTangents(orientation, from, to, out points, out tangents);
-            if (edgePresenter.selected)
+
+
+            VFXFlowEdge.RenderBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, edgePresenter.selected ? edgeWidth * 2 : edgeWidth);
+            /*if (edgePresenter.selected)
             {
                 Handles.DrawBezier(points[0] + Vector3.down, points[1] + Vector3.down , tangents[0] + Vector3.down , tangents[1] + Vector3.down , edgeColor, null, 2f);
                 Handles.DrawBezier(points[0] + Vector3.up , points[1] + Vector3.up , tangents[0] + Vector3.up , tangents[1] + Vector3.up , edgeColor, null, 2f);
             }
-            Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 2f);
+            Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 2f);*/
         }
     }
 }

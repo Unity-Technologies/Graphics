@@ -300,6 +300,12 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+            else if (element is VFXBlockPresenter)
+            {
+                var block = element as VFXBlockPresenter;
+
+                block.ContextPresenter.RemoveBlock(block.Model);
+            }
             else
             {
                 Debug.LogErrorFormat("Unexpected type : {0}", element.GetType().FullName);
@@ -599,8 +605,9 @@ namespace UnityEditor.VFX.UI
                 m_Graph.onInvalidateDelegate += RecomputeExpressionGraph;
 
                 // First trigger
-                SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
                 RecomputeExpressionGraph(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
+                SyncPresentersFromModel(m_Graph, VFXModel.InvalidationCause.kStructureChanged);
+
 
                 // Doesn't work for some reason
                 //View.FrameAll();

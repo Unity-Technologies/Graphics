@@ -431,7 +431,7 @@ namespace UnityEditor.VFX
 
             // When deserializing, default expression wont be initialized
             if (!m_DefaultExpressionInitialized)
-                masterSlot.InitDefaultExpression();
+                masterSlot.UpdateDefaultExpressionValue();
 
             // Mark all slots in tree as not up to date
             masterSlot.PropagateToChildren(s => { s.m_ExpressionTreeUpToDate = false; });

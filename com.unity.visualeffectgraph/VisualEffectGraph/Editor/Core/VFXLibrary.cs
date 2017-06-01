@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
         public VFXModelDescriptorParameters(Type type) : base(ScriptableObject.CreateInstance<VFXParameter>())
         {
             m_Template.Init(type);
-            m_name = type.Name;
+            m_name = type.UserFriendlyName();
         }
 
         public override VFXParameter CreateInstance()

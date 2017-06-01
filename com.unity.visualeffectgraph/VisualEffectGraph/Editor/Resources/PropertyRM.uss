@@ -70,6 +70,8 @@
     padding-left:3;
     padding-right:3;
     flex:1;
+	min-height:14;
+	min-width:5;
 }
 
 #line
