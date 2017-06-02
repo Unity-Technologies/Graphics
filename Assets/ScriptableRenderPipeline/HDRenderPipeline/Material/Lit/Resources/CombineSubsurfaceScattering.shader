@@ -187,12 +187,12 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float2 centerPosition   = posInput.unPositionSS;
                 float3 centerIrradiance = LOAD_TEXTURE2D(_IrradianceSource, centerPosition).rgb;
 
-                float maxDistancePixels = maxDistance * max(scaledPixPerMm.x, scaledPixPerMm.y);
+                float  maxDistInPixels  = maxDistance * max(scaledPixPerMm.x, scaledPixPerMm.y);
 
                 // We perform point sampling. Therefore, we can avoid the cost
                 // of filtering if we stay within the bounds of the current pixel.
                 [branch]
-                if (maxDistancePixels < 1)
+                if (maxDistInPixels < 1)
                 {
                     #if SSS_DEBUG
                         return float4(0, 0, 1, 1);
@@ -206,7 +206,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 // Use fewer samples for SS regions smaller than 5x5 pixels (rotated by 45 degrees).
                 [branch]
-                if (maxDistancePixels < SSS_LOD_THRESHOLD)
+                if (maxDistInPixels < SSS_LOD_THRESHOLD)
                 {
                     #if SSS_DEBUG
                         return float4(0.5, 0.5, 0, 1);
