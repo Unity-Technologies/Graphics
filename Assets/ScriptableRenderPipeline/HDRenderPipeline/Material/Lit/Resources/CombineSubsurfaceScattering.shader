@@ -84,7 +84,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     millimPerUnit, scaledPixPerMm, rcpDistScale, totalIrradiance, totalWeight)  \
             {                                                                                   \
                 float  r   = kernel[profileID][i][0];                                           \
-                /* The relative sample position is known at the compile time. */                \
+                /* The relative sample position is known at compile time. */                    \
                 float  phi = TWO_PI * Fibonacci2d(i, n).y;                                      \
                 float2 vec = r * float2(cos(phi), sin(phi));                                    \
                                                                                                 \
@@ -94,7 +94,17 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float3 irradiance = LOAD_TEXTURE2D(_IrradianceSource, position).rgb;            \
                                                                                                 \
                 [flatten]                                                                       \
-                if (any(irradiance) == false)                                                   \
+                if (any(irradiance))                                                            \
+                {                                                                               \
+                    /* Apply bilateral weighting. */                                            \
+                    float  d = LinearEyeDepth(depth, _ZBufferParams);                           \
+                    float  z = millimPerUnit * d - (millimPerUnit * centerDepthVS);             \
+                    float3 w = ComputeBilateralWeight(shapeParam, r, z, rcpDistScale, rcpPdf);  \
+                                                                                                \
+                    totalIrradiance += w * irradiance;                                          \
+                    totalWeight     += w;                                                       \
+                }                                                                               \
+                else                                                                            \
                 {                                                                               \
                     /*************************************************************************/ \
                     /* The irradiance is 0. This could happen for 3 reasons.                 */ \
@@ -105,16 +115,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     /* We do not terminate the loop since we want to gather the contribution */ \
                     /* of the remaining samples (e.g. in case of hair covering skin).        */ \
                     /*************************************************************************/ \
-                    continue;                                                                   \
                 }                                                                               \
-                                                                                                \
-                /* Apply bilateral weighting. */                                                \
-                float  d = LinearEyeDepth(depth, _ZBufferParams);                               \
-                float  z = millimPerUnit * d - (millimPerUnit * centerDepthVS);                 \
-                float3 w = ComputeBilateralWeight(shapeParam, r, z, rcpDistScale, rcpPdf);      \
-                                                                                                \
-                totalIrradiance += w * irradiance;                                              \
-                totalWeight     += w;                                                           \
             }
 
             struct Attributes
