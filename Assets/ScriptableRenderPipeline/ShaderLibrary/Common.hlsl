@@ -101,7 +101,7 @@ uint BitFieldExtract(uint data, uint numBits, uint offset)
 
 bool IsBitSet(uint data, uint bitPos)
 {
-    return BitFieldExtract(data, 1, bitPos) != 0;
+    return BitFieldExtract(data, 1u, bitPos) != 0;
 }
 
 #ifndef INTRINSIC_CLAMP

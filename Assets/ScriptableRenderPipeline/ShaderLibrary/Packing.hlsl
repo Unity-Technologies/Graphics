@@ -284,14 +284,14 @@ uint UnpackShort(float f)
 // Packs 8 lowermost bits of a [0..65535] integer into a [0..1] float.
 float PackShortLo(uint i)
 {
-    uint lo = BitFieldExtract(i, 8, 0);
+    uint lo = BitFieldExtract(i, 8u, 0u);
     return PackInt(lo, 8);
 }
 
 // Packs 8 uppermost bits of a [0..65535] integer into a [0..1] float.
 float PackShortHi(uint i)
 {
-    uint hi = BitFieldExtract(i, 8, 8);
+    uint hi = BitFieldExtract(i, 8u, 8u);
     return PackInt(hi, 8);
 }
 

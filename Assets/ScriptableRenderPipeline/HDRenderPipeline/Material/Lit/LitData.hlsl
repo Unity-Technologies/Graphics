@@ -376,7 +376,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Done one time for all layered - cumulate with spec occ alpha for now
     surfaceData.specularOcclusion *= GetHorizonOcclusion(V, surfaceData.normalWS, interpolatedVertexNormal, _HorizonFade);
 
-    uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2, 2 * surfaceData.subsurfaceProfile);
+    uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * surfaceData.subsurfaceProfile);
 
     if (transmissionMode != SSS_TRSM_MODE_THIN)
     {
