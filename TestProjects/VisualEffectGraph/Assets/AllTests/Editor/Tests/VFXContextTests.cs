@@ -116,6 +116,26 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void UnlinkAll()
+        {
+            var from = ScriptableObject.CreateInstance<ContextTestIn>();
+            var to1 = ScriptableObject.CreateInstance<ContextTestOut>();
+            var to2 = ScriptableObject.CreateInstance<ContextTestOut>();
+
+            from.LinkTo(to1);
+            to2.LinkFrom(from);
+
+            from.UnlinkAll();
+
+            Assert.AreEqual(0, from.GetNbInputs());
+            Assert.AreEqual(0, to1.GetNbInputs());
+            Assert.AreEqual(0, to2.GetNbInputs());
+            Assert.AreEqual(0, from.GetNbOutputs());
+            Assert.AreEqual(0, to1.GetNbOutputs());
+            Assert.AreEqual(0, to2.GetNbOutputs());
+        }
+
+        [Test]
         public void Link_Fail()
         {
             var from = ScriptableObject.CreateInstance<ContextTestIn>();
