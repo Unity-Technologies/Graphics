@@ -358,10 +358,34 @@ using UnityEngine.Experimental.Rendering;
 
 			loop.DrawSkybox (camera);
 
+			RenderForward (cullResults, camera, loop, false);
+
 			loop.SetupCameraProperties (camera);
 
 			// present frame buffer.
 			FinalPass(loop);
+		}
+
+		void RenderForward(CullResults cull, Camera camera, ScriptableRenderContext loop, bool opaquesOnly)
+		{
+			var cmd = new CommandBuffer { name = opaquesOnly ? "Prep Opaques Only Forward Pass" : "Prep Forward Pass" };
+
+			//cmd.EnableShaderKeyword(haveTiledSolution ? "TILED_FORWARD" : "REGULAR_FORWARD");
+			//cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", opaquesOnly ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
+			//cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
+
+			loop.ExecuteCommandBuffer(cmd);
+			cmd.Dispose();
+
+			var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardBase"))
+			{
+				sorting = { flags = SortFlags.CommonOpaque }
+			};
+			settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
+			if (opaquesOnly) settings.inputFilter.SetQueuesOpaque();
+			else settings.inputFilter.SetQueuesTransparent();
+
+			loop.DrawRenderers(ref settings);
 		}
 
 		static Matrix4x4 GetFlipMatrix()
