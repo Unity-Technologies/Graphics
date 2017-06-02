@@ -669,9 +669,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
-                SetKeyword(material, "_NORMALMAP_TANGENT_SPACE" + i, ((NormalMapSpace)material.GetFloat(kNormalMapSpace + i)) == NormalMapSpace.TangentSpace);
+                NormalMapSpace normalMapSpace = ((NormalMapSpace)material.GetFloat(kNormalMapSpace + i));
 
-                SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMap + i));
+                SetKeyword(material, "_NORMALMAP_TANGENT_SPACE" + i, normalMapSpace == NormalMapSpace.TangentSpace);
+
+                if (normalMapSpace == NormalMapSpace.TangentSpace)
+                {
+                    SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMap + i) || material.GetTexture(kDetailMap + i));
+                }
+                else
+                {
+                    SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMapOS + i) || material.GetTexture(kDetailMap + i));
+                }
 
                 SetKeyword(material, "_MASKMAP" + i, material.GetTexture(kMaskMap + i));
 

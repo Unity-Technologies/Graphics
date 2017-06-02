@@ -50,17 +50,14 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
-#define MIN_N_DOT_V           0.0001                       // The minimum value of 'NdotV'
+#define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
 
-// SSS parameters
-#define CENTIMETERS_TO_METERS 0.01
-
-uint    _EnableSSS;                                              // Globally toggles subsurface scattering on/off
-uint    _TexturingModeFlags;                                     // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-float    _TransmissionType[SSS_PROFILES_MAX];                    // transmissionType enum - TODO: no int array in Unity :(
-float4  _TintColors[SSS_PROFILES_MAX];                           // For transmission; alpha is unused
-float   _ThicknessRemaps[SSS_PROFILES_MAX][2];                   // Remap: 0 = start, 1 = end - start
-float4  _HalfRcpVariancesAndLerpWeights[SSS_PROFILES_MAX][2];    // 2x Gaussians per color channel, A is the the associated interpolation weight
+uint   _EnableSSS;                          // Globally toggles subsurface scattering on/off
+uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
+uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
+float4 _ShapeParameters[SSS_N_PROFILES];    // RGB = S = 1 / D; A = filter radius
+float4 _SurfaceAlbedos[SSS_N_PROFILES];     // RGB = color, A = unused
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -119,26 +116,19 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
-// Evaluates transmittance for a linear combination of two normalized 2D Gaussians.
-// Computes results for each color channel separately.
-// Ref: Real-Time Realistic Skin Translucency (2010), equation 9 (modified).
-float3 ComputeTransmittance(float3 halfRcpVariance1, float lerpWeight1,
-                            float3 halfRcpVariance2, float lerpWeight2,
-                            float3 tintColor, float thickness, float radiusScale)
+// Computes the fraction of light passing through the object.
+// N.b.: it is not just zero scattering (light traveling in a straight path)!
+// We derive the transmittance function from the SSS profile, by normalizing it s.t. R(0) = 1.
+// Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar (BSSRDF only).
+float3 ComputeTransmittance(float3 S, float3 surfaceAlbedo, float thickness, float radiusScale)
 {
-
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
     // thickness /= radiusScale;
-    thickness /= CENTIMETERS_TO_METERS;
 
-    float t2 = thickness * thickness;
+    float3 expOneThird = exp(((-1.0 / 3.0) * thickness) * S);
 
-    // TODO: 6 exponentials is kind of expensive... Should we use a LUT instead?
-    // T = lerp(exp(-t2 * halfRcpVariance1), exp(-t2 * halfRcpVariance2), lerpWeight2)
-    float3 transmittance = exp(-t2 * halfRcpVariance1) * lerpWeight1
-                         + exp(-t2 * halfRcpVariance2) * lerpWeight2;
-    return transmittance * tintColor;
+    return 0.5 * (expOneThird + expOneThird * expOneThird * expOneThird) * surfaceAlbedo;
 }
 
 void FillMaterialIdStandardData(float3 baseColor, float specular, float metallic, float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
@@ -161,28 +151,35 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     // TODO take from subsurfaceProfile
     bsdfData.fresnel0 = 0.04; // Should be 0.028 for the skin
     bsdfData.subsurfaceProfile = subsurfaceProfile;
-    bsdfData.subsurfaceRadius  = CENTIMETERS_TO_METERS * subsurfaceRadius + 0.0001;
-    bsdfData.thickness         = CENTIMETERS_TO_METERS * (_ThicknessRemaps[subsurfaceProfile][0] +
-                                                          _ThicknessRemaps[subsurfaceProfile][1] * thickness);
+    bsdfData.subsurfaceRadius  = subsurfaceRadius;
+    bsdfData.thickness         = _ThicknessRemaps[subsurfaceProfile][0] +
+                                 _ThicknessRemaps[subsurfaceProfile][1] * thickness;
 
-    bsdfData.transmissionType = (int)_TransmissionType[subsurfaceProfile];
+    uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * subsurfaceProfile);
 
-    if (bsdfData.transmissionType != TRANSMISSIONTYPE_NONE)
+    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE;
+    bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
+
+    if (bsdfData.enableTransmission)
     {
-        bsdfData.transmittance = ComputeTransmittance(  _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][0].xyz,
-                                                        _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][0].w,
-                                                        _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][1].xyz,
-                                                        _HalfRcpVariancesAndLerpWeights[subsurfaceProfile][1].w,
-                                                        _TintColors[subsurfaceProfile].rgb, bsdfData.thickness, bsdfData.subsurfaceRadius);
+        bsdfData.transmittance = ComputeTransmittance(_ShapeParameters[subsurfaceProfile].rgb,
+                                                      _SurfaceAlbedos[subsurfaceProfile].rgb,
+                                                      bsdfData.thickness, bsdfData.subsurfaceRadius);
     }
 
-    #ifndef SSS_FILTER_HORIZONTAL_AND_COMBINE // When doing the SSS comine pass, we must not apply the modification of diffuse color
-    // Handle post-scatter, or pre- and post-scatter texturing.
-    // We modify diffuseColor here so it affect all the lighting + GI (lightprobe / lightmap) (Need to be done also in GBuffer pass) + transmittance
-    // diffuseColor will be solely use during lighting pass. The other contribution will be apply in subsurfacescattering convolution.
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
-    bsdfData.diffuseColor = performPostScatterTexturing ? float3(1.0, 1.0, 1.0) : sqrt(bsdfData.diffuseColor);
+
+    // We modify the albedo here as this code is used by all lighting (including light maps and GI).
+    if (performPostScatterTexturing)
+    {
+    #ifndef SSS_PASS
+        bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
     #endif
+    }
+    else
+    {
+        bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -277,7 +274,11 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subsurfaceProfile * rcp(SSS_PROFILES_MAX - 1));
+        // Use 16 bits to encode the thickness, and up to 8 bits to encode the profile ID.
+        // We need a lot of precision to minimize banding of NdotV-weighted thickness.
+        outGBuffer2 = float4(surfaceData.subsurfaceRadius,
+                             PackFloatToR8G8(surfaceData.thickness),
+                             PackByte(surfaceData.subsurfaceProfile));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
     {
@@ -364,11 +365,11 @@ void DecodeFromGBuffer(
     bsdfData.specularOcclusion = inGBuffer0.a;
 
 #ifdef USE_NORMAL_TETRAHEDRON_ENCODING
-    uint faceIndex;
+    int faceIndex;
     UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, faceIndex);
     bsdfData.normalWS = UnpackNormalTetraEncode(inGBuffer1.xy * 2.0 - 1.0, faceIndex);
 #else
-    uint octNormalSign;
+    int octNormalSign;
     UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, octNormalSign);
     inGBuffer1.r *= (octNormalSign & 1) ? 1.0 : -1.0;
     inGBuffer1.g *= (octNormalSign & 2) ? 1.0 : -1.0;
@@ -408,9 +409,12 @@ void DecodeFromGBuffer(
     }
     else if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        int subsurfaceProfile = (SSS_PROFILES_MAX - 0.9) * inGBuffer2.a;
-        float subsurfaceRadius = inGBuffer2.r;
-        float thickness = inGBuffer2.g;
+        // Use 16 bits to encode the thickness, and up to 8 bits to encode the profile ID.
+        // We need a lot of precision to minimize banding of NdotV-weighted thickness.
+        float subsurfaceRadius  = inGBuffer2.x;
+        float thickness         = UnpackFloatFromR8G8(inGBuffer2.yz);
+        int   subsurfaceProfile = UnpackByte(inGBuffer2.w);
+
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
     }
     else if (supportsSpecular && bsdfData.materialId == MATERIALID_LIT_SPECULAR)
@@ -762,15 +766,15 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         specularLighting *= (cookie.rgb * lightData.color) * (illuminance * lightData.specularScale);
     }
 
-    [branch] if (bsdfData.transmissionType != TRANSMISSIONTYPE_NONE)
+    [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        const float w = 0.15;
-        float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
+        float LdotV = dot(L, V); // Also computed in BSDF()
+        // Compute the normal at the back of the object as R = reflect(N, -V)
+        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
+        float illuminance = saturate(-LdotV);
 
-        // For thin material we can reuse the shadowing status for the back of the object.
-        shadow       = (bsdfData.transmissionType == TRANSMISSIONTYPE_THIN_OBJECT) ? shadow : 1;
+        // For low thickness, we can reuse the shadowing status for the back of the object.
+        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
@@ -868,16 +872,15 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         specularLighting *= (cookie.rgb * lightData.color) * (illuminance * lightData.specularScale);
     }
 
-    [branch] if (bsdfData.transmissionType != TRANSMISSIONTYPE_NONE)
+    [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        const float w = 0.15;
-        float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
-        illuminance *= attenuation;
+        float LdotV = dot(L, V); // Also computed in BSDF()
+        // Compute the normal at the back of the object as R = reflect(N, -V)
+        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
+        float illuminance = saturate(-LdotV * attenuation);
 
-        // For thin material we can reuse the shadowing status for the back of the object.
-        shadow = (bsdfData.transmissionType == TRANSMISSIONTYPE_THIN_OBJECT) ? shadow : 1;
+        // For low thickness, we can reuse the shadowing status for the back of the object.
+        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
@@ -954,16 +957,15 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
         specularLighting *= (cookie.rgb * lightData.color) * (illuminance * lightData.specularScale);
     }
 
-    [branch] if (bsdfData.transmissionType != TRANSMISSIONTYPE_NONE)
+    [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        const float w = 0.15;
-        float illuminance = saturate((dot(-bsdfData.normalWS, L) + w) / ((1.0 + w) * (1.0 + w)));
-        illuminance *= clipFactor;
+        float LdotV = dot(L, V); // Also computed in BSDF()
+        // Compute the normal at the back of the object as R = reflect(N, -V)
+        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
+        float illuminance = saturate(-LdotV * clipFactor);
 
-        // For thin material we can reuse the shadowing status for the back of the object.
-        shadow = (bsdfData.transmissionType == TRANSMISSIONTYPE_THIN_OBJECT) ? shadow : 1;
+        // For low thickness, we can reuse the shadowing status for the back of the object.
+        shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
         // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
@@ -1522,7 +1524,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     specularLighting = preLD.rgb * preLightData.specularFGD;
 
     // Apply specular occlusion on it
-    specularLighting *= bsdfData.specularOcclusion;
+    specularLighting *= bsdfData.specularOcclusion * GetSpecularOcclusion(preLightData.NdotV, lightLoopContext.ambientOcclusion, bsdfData.roughness);
     diffuseLighting = float3(0.0, 0.0, 0.0);
 
 #endif
