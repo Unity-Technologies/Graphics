@@ -183,7 +183,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 // Accumulate filtered irradiance and bilateral weights (for renormalization).
                 float3 totalIrradiance, totalWeight;
 
-                // Use fewer samples for SS regions smaller than 4x4 pixels.
+                // Use fewer samples for SS regions smaller than 5x5 pixels (rotated by 45 degrees).
                 [branch]
                 if (maxDistancePixels < 4)
                 {
