@@ -80,6 +80,42 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 return valX * rcpPdfX;
             }
 
+            #define SSS_ITER(i, n, kernel, profileID, shapeParam, centerPosUnSS, centerDepthVS, millimPerUnit, scaledPixPerMm, rcpDistScale, totalIrradiance, totalWeight) \
+            {                                                                                                                                                              \
+                /* Everything except for the radius is a compile-time constant. */                                                                                         \
+                float  r   = kernel[profileID][i][0];                                                                                                                      \
+                float  phi = TWO_PI * Fibonacci2d(i, n).y;                                                                                                                 \
+                float2 vec = r * float2(cos(phi), sin(phi));                                                                                                               \
+                                                                                                                                                                           \
+                float2 position   = centerPosUnSS + vec * scaledPixPerMm;                                                                                                  \
+                float  rcpPdf     = kernel[profileID][i][1];                                                                                                               \
+                float  depth      = LOAD_TEXTURE2D(_MainDepthTexture, position).r;                                                                                         \
+                float3 irradiance = LOAD_TEXTURE2D(_IrradianceSource, position).rgb;                                                                                       \
+                                                                                                                                                                           \
+                [flatten]                                                                                                                                                  \
+                if (any(irradiance) == false)                                                                                                                              \
+                {                                                                                                                                                          \
+                    /*************************************************************************/                                                                            \
+                    /* The irradiance is 0. This could happen for 3 reasons.                 */                                                                            \
+                    /* Most likely, the surface fragment does not have an SSS material.      */                                                                            \
+                    /* Alternatively, our sample comes from a region without any geometry.   */                                                                            \
+                    /* Finally, the surface fragment could be completely shadowed.           */                                                                            \
+                    /* Our blur is energy-preserving, so 'centerWeight' should be set to 0.  */                                                                            \
+                    /* We do not terminate the loop since we want to gather the contribution */                                                                            \
+                    /* of the remaining samples (e.g. in case of hair covering skin).        */                                                                            \
+                    /*************************************************************************/                                                                            \
+                    continue;                                                                                                                                              \
+                }                                                                                                                                                          \
+                                                                                                                                                                           \
+                /* Apply bilateral weighting. */                                                                                                                           \
+                float  d = LinearEyeDepth(depth, _ZBufferParams);                                                                                                          \
+                float  z = millimPerUnit * d - (millimPerUnit * centerDepthVS);                                                                                            \
+                float3 w = ComputeBilateralWeight(shapeParam, r, z, rcpDistScale, rcpPdf);                                                                                 \
+                                                                                                                                                                           \
+                totalIrradiance += w * irradiance;                                                                                                                         \
+                totalWeight     += w;                                                                                                                                      \
+            }
+
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
@@ -113,10 +149,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float  maxDistance = _ShapeParameters[profileID].a;
 
                 // Reconstruct the view-space position.
-                float2 cornerPosSS = posInput.positionSS + 0.5 * _ScreenSize.zw;
-                float  rawDepth    = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r;
-                float3 centerPosVS = ComputeViewSpacePosition(posInput.positionSS, rawDepth, _InvProjMatrix);
-                float3 cornerPosVS = ComputeViewSpacePosition(cornerPosSS,         rawDepth, _InvProjMatrix);
+                float2 centerPosSS = posInput.positionSS;
+                float2 cornerPosSS = centerPosSS + 0.5 * _ScreenSize.zw;
+                float  centerDepth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.unPositionSS).r;
+                float3 centerPosVS = ComputeViewSpacePosition(centerPosSS, centerDepth, _InvProjMatrix);
+                float3 cornerPosVS = ComputeViewSpacePosition(cornerPosSS, centerDepth, _InvProjMatrix);
 
                 // Compute the view-space dimensions of the pixel as a quad projected onto geometry.
                 float2 unitsPerPixel  = 2 * (cornerPosVS.xy - centerPosVS.xy);
@@ -125,8 +162,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float2 scaledPixPerMm = distScale * rcp(millimPerUnit * unitsPerPixel);
 
                 // Take the first (central) sample.
-                float2 samplePosition   = posInput.unPositionSS;
-                float3 sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
+                float2 centerPosition   = posInput.unPositionSS;
+                float3 centerIrradiance = LOAD_TEXTURE2D(_IrradianceSource, centerPosition).rgb;
 
                 float maxDistancePixels = maxDistance * max(scaledPixPerMm.x, scaledPixPerMm.y);
 
@@ -138,7 +175,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 #if SSS_DEBUG
                     return float4(0, 0, 1, 1);
                 #else
-                    return float4(bsdfData.diffuseColor * sampleIrradiance, 1);
+                    return float4(bsdfData.diffuseColor * centerIrradiance, 1);
                 #endif
                 }
 
@@ -153,48 +190,21 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         return float4(0.5, 0.5, 0, 1);
                     #endif
 
-                    float  sampleRcpPdf = _FilterKernelsFarField[profileID][0][1];
-                    float3 sampleWeight = KernelValCircle(0, shapeParam) * sampleRcpPdf;
+                    float  centerRcpPdf = _FilterKernelsFarField[profileID][0][1];
+                    float3 centerWeight = KernelValCircle(0, shapeParam) * centerRcpPdf;
 
-                    totalIrradiance = sampleWeight * sampleIrradiance;
-                    totalWeight     = sampleWeight;
+                    totalIrradiance = centerWeight * centerIrradiance;
+                    totalWeight     = centerWeight;
 
                     // Perform integration over the screen-aligned plane in the view space.
                     // TODO: it would be more accurate to use the tangent plane in the world space.
                     [unroll]
                     for (uint i = 1; i < SSS_N_SAMPLES_FAR_FIELD; i++)
                     {
-                        // Everything except for the radius is a compile-time constant.
-                        float  r   = _FilterKernelsFarField[profileID][i][0];
-                        float  phi = TWO_PI * Fibonacci2d(i, SSS_N_SAMPLES_FAR_FIELD).y;
-                        float2 pos = r * float2(cos(phi), sin(phi));
-
-                        samplePosition = posInput.unPositionSS + pos * scaledPixPerMm;
-                        sampleRcpPdf   = _FilterKernelsFarField[profileID][i][1];
-
-                        rawDepth         = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
-                        sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
-
-                        [flatten]
-                        if (any(sampleIrradiance) == false)
-                        {
-                            // The irradiance is 0. This could happen for 3 reasons.
-                            // Most likely, the surface fragment does not have an SSS material.
-                            // Alternatively, our sample comes from a region without any geometry.
-                            // Finally, the surface fragment could be completely shadowed.
-                            // Our blur is energy-preserving, so 'sampleWeight' should be set to 0.
-                            // We do not terminate the loop since we want to gather the contribution
-                            // of the remaining samples (e.g. in case of hair covering skin).
-                            continue;
-                        }
-
-                        // Apply bilateral weighting.
-                        float sampleZ = LinearEyeDepth(rawDepth, _ZBufferParams);
-                        float z       = millimPerUnit * sampleZ - (millimPerUnit * centerPosVS.z);
-                        sampleWeight  = ComputeBilateralWeight(shapeParam, r, z, rcp(distScale), sampleRcpPdf);
-
-                        totalIrradiance += sampleWeight * sampleIrradiance;
-                        totalWeight     += sampleWeight;
+                        SSS_ITER(i, SSS_N_SAMPLES_FAR_FIELD, _FilterKernelsFarField,
+                                 profileID, shapeParam, centerPosition, centerPosVS.z,
+                                 millimPerUnit, scaledPixPerMm, rcp(distScale),
+                                 totalIrradiance, totalWeight)
                     }
                 }
                 else
@@ -203,48 +213,21 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                         return float4(1, 0, 0, 1);
                     #endif
 
-                    float  sampleRcpPdf = _FilterKernelsNearField[profileID][0][1];
-                    float3 sampleWeight = KernelValCircle(0, shapeParam) * sampleRcpPdf;
+                    float  centerRcpPdf = _FilterKernelsNearField[profileID][0][1];
+                    float3 centerWeight = KernelValCircle(0, shapeParam) * centerRcpPdf;
 
-                    totalIrradiance = sampleWeight * sampleIrradiance;
-                    totalWeight     = sampleWeight;
+                    totalIrradiance = centerWeight * centerIrradiance;
+                    totalWeight     = centerWeight;
 
                     // Perform integration over the screen-aligned plane in the view space.
                     // TODO: it would be more accurate to use the tangent plane in the world space.
                     [unroll]
                     for (uint i = 1; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
                     {
-                        // Everything except for the radius is a compile-time constant.
-                        float  r   = _FilterKernelsNearField[profileID][i][0];
-                        float  phi = TWO_PI * Fibonacci2d(i, SSS_N_SAMPLES_NEAR_FIELD).y;
-                        float2 pos = r * float2(cos(phi), sin(phi));
-
-                        samplePosition = posInput.unPositionSS + pos * scaledPixPerMm;
-                        sampleRcpPdf   = _FilterKernelsNearField[profileID][i][1];
-
-                        rawDepth         = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
-                        sampleIrradiance = LOAD_TEXTURE2D(_IrradianceSource, samplePosition).rgb;
-
-                        [flatten]
-                        if (any(sampleIrradiance) == false)
-                        {
-                            // The irradiance is 0. This could happen for 3 reasons.
-                            // Most likely, the surface fragment does not have an SSS material.
-                            // Alternatively, our sample comes from a region without any geometry.
-                            // Finally, the surface fragment could be completely shadowed.
-                            // Our blur is energy-preserving, so 'sampleWeight' should be set to 0.
-                            // We do not terminate the loop since we want to gather the contribution
-                            // of the remaining samples (e.g. in case of hair covering skin).
-                            continue;
-                        }
-
-                        // Apply bilateral weighting.
-                        float sampleZ = LinearEyeDepth(rawDepth, _ZBufferParams);
-                        float z       = millimPerUnit * sampleZ - (millimPerUnit * centerPosVS.z);
-                        sampleWeight  = ComputeBilateralWeight(shapeParam, r, z, rcp(distScale), sampleRcpPdf);
-
-                        totalIrradiance += sampleWeight * sampleIrradiance;
-                        totalWeight     += sampleWeight;
+                        SSS_ITER(i, SSS_N_SAMPLES_NEAR_FIELD, _FilterKernelsNearField,
+                                 profileID, shapeParam, centerPosition, centerPosVS.z,
+                                 millimPerUnit, scaledPixPerMm, rcp(distScale),
+                                 totalIrradiance, totalWeight)
                     }
                 }
 
