@@ -8,6 +8,8 @@ namespace UnityEngine.Experimental.Rendering
     // This is the class that handles rendering the debug menu in the editor (as opposed to the runtime version in the player)
     public class DebugMenuEditor : EditorWindow
     {
+        [SerializeField]
+        private DebugMenuState m_DebugMenuState;
 
         [MenuItem("HDRenderPipeline/Debug Menu")]
         static void DisplayDebugMenu()
@@ -18,13 +20,35 @@ namespace UnityEngine.Experimental.Rendering
 
         DebugMenuManager m_DebugMenu = null;
 
-        DebugMenuEditor()
-        {
-        }
-
         void OnEnable()
         {
             m_DebugMenu = DebugMenuManager.instance;
+            DebugItem.OnItemDirty += DebugItem_OnDirty;
+
+            if(m_DebugMenuState == null)
+            {
+                m_DebugMenuState = ScriptableObject.CreateInstance<DebugMenuState>();
+                m_DebugMenuState.hideFlags = HideFlags.DontSave;
+            }
+        }
+
+        void OnDisable()
+        {
+            DebugItem.OnItemDirty -= DebugItem_OnDirty;
+        }
+
+        void OnDestroy()
+        {
+            Object.DestroyImmediate(m_DebugMenuState);
+        }
+
+        void DebugItem_OnDirty(DebugItem item)
+        {
+            DebugItemState debugItemState = m_DebugMenuState.FindDebugItemState(item);
+
+            UnityEditor.Undo.RecordObject(debugItemState, "DebugMenu State Update");
+            debugItemState.SetValue(item.GetValue());
+            EditorUtility.SetDirty(m_DebugMenuState);
         }
 
         void OnGUI()
