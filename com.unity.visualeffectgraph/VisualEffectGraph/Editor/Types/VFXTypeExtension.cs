@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UIElements.GraphView;
 using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    static class VFXTypeExtension 
+    static class VFXTypeExtension
     {
-
-        static Dictionary<Type,string> s_FriendlyName = new Dictionary<Type, string>();
+        static Dictionary<Type, string> s_FriendlyName = new Dictionary<Type, string>();
 
         static VFXTypeExtension()
         {
@@ -33,7 +32,7 @@ namespace UnityEditor.VFX
         public static string UserFriendlyName(this Type type)
         {
             string result;
-            if( s_FriendlyName.TryGetValue(type,out result))
+            if (s_FriendlyName.TryGetValue(type, out result))
             {
                 return result;
             }

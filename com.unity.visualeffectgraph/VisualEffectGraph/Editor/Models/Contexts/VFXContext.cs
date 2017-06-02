@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
         kParticle =     1 << 1,
     };
 
-    class VFXContext : VFXSlotContainerModel<VFXSystem, VFXBlock>
+    class VFXContext : VFXSlotContainerModel<VFXGraph, VFXBlock>
     {
         private VFXContext() {} // Used by serialization
 
@@ -111,6 +111,20 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kExpressionGraphChanged);
         }
 
+        public static bool CanLink(VFXContext from, VFXContext to)
+        {
+            if (from == to || from == null || to == null)
+                return false;
+
+            if (from.outputType == VFXDataType.kNone || to.inputType == VFXDataType.kNone || from.outputType != to.inputType)
+                return false;
+
+            if (from.m_Outputs.Contains(to) || to.m_Inputs.Contains(from))
+                return false;
+
+            return true;
+        }
+
         public void LinkTo(VFXContext context)
         {
             InnerLink(this, context);
@@ -129,22 +143,39 @@ namespace UnityEditor.VFX
                 InnerUnlink(context, this);
         }
 
+        public void UnlinkAll()
+        {
+            foreach (var context in m_Outputs.ToArray())
+                InnerUnlink(this, context);
+            foreach (var context in m_Inputs.ToArray())
+                InnerUnlink(context, this);
+        }
+
+        private bool CanLinkToMany()
+        {
+            return contextType == VFXContextType.kOutput;
+        }
+
         private static void InnerLink(VFXContext from, VFXContext to)
         {
-            if (from == to || from == null || to == null)
-                throw new ArgumentException("from and to cannot be the same or null");
+            if (!CanLink(from, to))
+                throw new ArgumentException(string.Format("Cannot link contexts {0} and {1}", from, to));
 
-            if (from.outputType == VFXDataType.kNone || to.inputType == VFXDataType.kNone || from.outputType != to.inputType)
-                throw new ArgumentException(string.Format("Incompatible data type between {0} and {1}", from.outputType, to.inputType));
+            // Handle constraints on connections TODO Make that overridable
+            foreach (var context in from.m_Outputs.ToArray())
+                if (!context.CanLinkToMany() || context.contextType != to.contextType)
+                    InnerUnlink(from, context);
 
-            if (from.m_Outputs.Contains(to) || to.m_Inputs.Contains(from))
-                throw new ArgumentException(string.Format("Contexts {0} and {1} are already linked", from, to));
+            foreach (var context in to.m_Inputs.ToArray())
+                if (!context.CanLinkToMany() || context.contextType != from.contextType)
+                    InnerUnlink(context, to);
 
             from.m_Outputs.Add(to);
             to.m_Inputs.Add(from);
 
-            //from.Invalidate(InvalidationCause.kStructureChanged);
-            //to.Invalidate(InvalidationCause.kStructureChanged);
+            // TODO Might need a specific event ?
+            from.Invalidate(InvalidationCause.kStructureChanged);
+            to.Invalidate(InvalidationCause.kStructureChanged);
         }
 
         private static void InnerUnlink(VFXContext from, VFXContext to)
@@ -152,15 +183,19 @@ namespace UnityEditor.VFX
             from.m_Outputs.Remove(to);
             to.m_Inputs.Remove(from);
 
-            //from.Invalidate(InvalidationCause.kStructureChanged);
-            //to.Invalidate(InvalidationCause.kStructureChanged);
+            // TODO Might need a specific event ?
+            from.Invalidate(InvalidationCause.kStructureChanged);
+            to.Invalidate(InvalidationCause.kStructureChanged);
         }
 
-        public int GetNbInputs()                { return m_Inputs.Count; }
-        public int GetNbOutputs()               { return m_Outputs.Count; }
+        public int GetNbInputs()                        { return m_Inputs.Count; }
+        public int GetNbOutputs()                       { return m_Outputs.Count; }
 
-        public VFXContext GetInput(int index)   { return m_Inputs[index]; }
-        public VFXContext GetOutput(int index)  { return m_Outputs[index]; }
+        public VFXContext GetInput(int index)           { return m_Inputs[index]; }
+        public VFXContext GetOutput(int index)          { return m_Outputs[index]; }
+
+        public IEnumerable<VFXContext> inputContexts    { get { return m_Inputs; } }
+        public IEnumerable<VFXContext> outputContexts   { get { return m_Inputs; } }
 
         private void AddExpressionsToContext(HashSet<VFXExpression> expressions, IVFXSlotContainer slotContainer)
         {

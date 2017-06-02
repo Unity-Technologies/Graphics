@@ -20,11 +20,8 @@ namespace UnityEditor.VFX.UI
         [SerializeField]
         public Dictionary<Type, List<NodeAnchorPresenter>> m_DataOutputAnchorPresenters = new Dictionary<Type, List<NodeAnchorPresenter>>();
 
-
         // Model / Presenters synchronization
         private Dictionary<VFXModel, IVFXPresenter> m_SyncedModels = new Dictionary<VFXModel, IVFXPresenter>();
-        // As systems are flattened within the view presenter atm, we must keep a list of synced contexts per system
-        private Dictionary<VFXModel, Dictionary<VFXModel, IVFXPresenter>> m_SyncedContexts = new Dictionary<VFXModel, Dictionary<VFXModel, IVFXPresenter>>();
 
         private class PresenterFactory : BaseTypeFactory<VFXModel, GraphElementPresenter>
         {
@@ -139,6 +136,55 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public void RecreateFlowEdges()
+        {
+            HashSet<VFXFlowEdgePresenter> unusedEdges = new HashSet<VFXFlowEdgePresenter>();
+            foreach (var e in m_Elements.OfType<VFXFlowEdgePresenter>())
+            {
+                unusedEdges.Add(e);
+            }
+
+            var contextPresenters = m_Elements.OfType<VFXContextPresenter>();
+            foreach (var outPresenter in contextPresenters.ToArray())
+            {
+                var output = outPresenter.context;
+                foreach (var input in output.inputContexts)
+                {
+                    var inPresenter = elements.OfType<VFXContextPresenter>().FirstOrDefault(x => x.model == input);
+                    if (inPresenter == null)
+                        break;
+
+                    var outputAnchor = inPresenter.outputAnchors[0];
+                    var inputAnchor = outPresenter.inputAnchors[0];
+
+                    var edgePresenter = m_Elements.OfType<VFXFlowEdgePresenter>().FirstOrDefault(t => t.input == inputAnchor && t.output == outputAnchor);
+                    if (edgePresenter != null)
+                        unusedEdges.Remove(edgePresenter);
+                    else
+                    {
+                        edgePresenter = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
+                        edgePresenter.output = inPresenter.outputAnchors[0];
+                        edgePresenter.input = outPresenter.inputAnchors[0];
+                        base.AddElement(edgePresenter);
+                    }
+                }
+
+                foreach (var edge in unusedEdges)
+                {
+                    edge.input = null;
+                    edge.output = null;
+                    m_Elements.Remove(edge);
+                }
+            }
+
+            foreach (var edge in unusedEdges)
+            {
+                edge.input = null;
+                edge.output = null;
+                m_Elements.Remove(edge);
+            }
+        }
+
         private enum RecordEvent
         {
             Add,
@@ -163,8 +209,8 @@ namespace UnityEditor.VFX.UI
 
         private void RecordFlowEdgePresenter(VFXFlowEdgePresenter flowEdge, RecordEvent e)
         {
-            var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner as VFXContext;
-            var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner as VFXContext;
+            var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner;
+            var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner;
             var objects = new Object[] { context0, context1, context0.GetParent(), context1.GetParent() }.Where(o => o != null).ToArray();
             var eventName = string.Format("{0} FlowEdge", e == RecordEvent.Add ? "Add" : "Remove");
             Undo.RecordObjects(objects, eventName);
@@ -184,10 +230,10 @@ namespace UnityEditor.VFX.UI
                 var flowEdge = (VFXFlowEdgePresenter)edge;
                 RecordFlowEdgePresenter(flowEdge, RecordEvent.Add);
 
-                var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner as VFXContext;
-                var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner as VFXContext;
+                var context0 = ((VFXFlowAnchorPresenter)flowEdge.output).Owner;
+                var context1 = ((VFXFlowAnchorPresenter)flowEdge.input).Owner;
 
-                VFXSystem.ConnectContexts(context0, context1, m_Graph);
+                context0.LinkTo(context1);
 
                 // disconnect this edge as it will not be added by add element
                 edge.input = null;
@@ -229,7 +275,13 @@ namespace UnityEditor.VFX.UI
                 VFXContext context = ((VFXContextPresenter)element).context;
                 RecordAll(context.name, RecordEvent.Remove);
 
+                // Remove connections from context
+                foreach (var slot in context.inputSlots)
+                    slot.UnlinkAll();
+                foreach (var slot in context.outputSlots)
+                    slot.UnlinkAll();
 
+                // Remove connections from blocks
                 foreach (VFXBlockPresenter blockPres in (element as VFXContextPresenter).blockPresenters)
                 {
                     foreach (var slot in blockPres.slotContainer.outputSlots)
@@ -242,17 +294,10 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                // First we need to disconnect context if needed
-                VFXSystem.DisconnectContext(context, m_Graph);
-                var system = context.GetParent();
-                var index = system.GetIndex(context);
-                if (index < system.GetNbChildren() - 1)
-                    VFXSystem.DisconnectContext(system.GetChild(index + 1), m_Graph);
-
-                // now context should be in its own system
-                var newSystem = context.GetParent();
-                m_Graph.RemoveChild(newSystem);
-                Undo.DestroyObjectImmediate(newSystem);
+                // remove flow connections from context
+                // TODO update data types
+                context.UnlinkAll();
+                // Detach from graph
                 context.Detach();
             }
             else if (element is VFXNodePresenter)
@@ -280,10 +325,10 @@ namespace UnityEditor.VFX.UI
                 var flowEdge = element as VFXFlowEdgePresenter;
                 RecordFlowEdgePresenter(flowEdge, RecordEvent.Add);
 
-                var anchorPresenter = flowEdge.input;
-                var context = ((VFXFlowAnchorPresenter)anchorPresenter).Owner as VFXContext;
-                if (context != null)
-                    VFXSystem.DisconnectContext(context, m_Graph);
+                var context0 = ((VFXFlowAnchorPresenter)(flowEdge.input)).Owner as VFXContext;
+                var context1 = ((VFXFlowAnchorPresenter)(flowEdge.output)).Owner as VFXContext;
+
+                context0.Unlink(context1);
             }
             else if (element is VFXDataEdgePresenter)
             {
@@ -460,7 +505,7 @@ namespace UnityEditor.VFX.UI
                 var startFlowAnchorPresenter = (VFXFlowAnchorPresenter)startAnchorPresenter;
                 foreach (var anchorPresenter in m_FlowAnchorPresenters)
                 {
-                    VFXModel owner = anchorPresenter.Owner;
+                    VFXContext owner = anchorPresenter.Owner;
                     if (owner == null ||
                         startAnchorPresenter == anchorPresenter ||
                         !anchorPresenter.IsConnectable() ||
@@ -468,41 +513,33 @@ namespace UnityEditor.VFX.UI
                         owner == startFlowAnchorPresenter.Owner)
                         continue;
 
-                    if (owner is VFXContext)
+                    var from = startFlowAnchorPresenter.Owner;
+                    var to = owner;
+                    if (startAnchorPresenter.direction == Direction.Input)
                     {
-                        VFXSystem system = ((VFXContext)owner).GetParent();
-                        if (system == null)
-                            continue;
-
-                        int indexOffset = startAnchorPresenter.direction == Direction.Output ? 0 : 1;
-                        if (system.AcceptChild(startFlowAnchorPresenter.Owner, system.GetIndex(owner) + indexOffset))
-                            res.Add(anchorPresenter);
+                        from = owner;
+                        to = startFlowAnchorPresenter.Owner;
                     }
+
+                    if (VFXContext.CanLink(from, to))
+                        res.Add(anchorPresenter);
                 }
                 return res;
             }
         }
 
-        public VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
-        {
-            VFXContext newContext = desc.CreateInstance();
-            RecordAll(newContext.name, RecordEvent.Add);
-
-            newContext.position = pos;
-
-            // needs to create a temp system to hold the context
-            var system = CreateInstance<VFXSystem>();
-            system.AddChild(newContext);
-            m_Graph.AddChild(system);
-
-            return newContext;
-        }
-
         private void AddVFXModel(Vector2 pos, VFXModel model)
         {
-            model.position = pos;
             RecordAll(model.name, RecordEvent.Add);
+            model.position = pos;
             m_Graph.AddChild(model);
+        }
+
+        public VFXContext AddVFXContext(Vector2 pos, VFXModelDescriptor<VFXContext> desc)
+        {
+            VFXContext model = desc.CreateInstance();
+            AddVFXModel(pos, model);
+            return model;
         }
 
         public VFXOperator AddVFXOperator(Vector2 pos, VFXModelDescriptor<VFXOperator> desc)
@@ -533,31 +570,6 @@ namespace UnityEditor.VFX.UI
             return model;
         }
 
-        private void CreateFlowEdges(VFXSystem system)
-        {
-            if (elements.Count() == 0)
-                return;
-
-            for (int i = 0; i < system.GetNbChildren() - 1; ++i)
-            {
-                var inModel = system.GetChild(i);
-                var outModel = system.GetChild(i + 1);
-                var inPresenter = elements.OfType<VFXContextPresenter>().FirstOrDefault(x => x.model == inModel);
-                var outPresenter = elements.OfType<VFXContextPresenter>().FirstOrDefault(x => x.model == outModel);
-
-                if (inPresenter == null || outPresenter == null)
-                    break;
-
-                var edgePresenter = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
-                edgePresenter.output = inPresenter.outputAnchors[0];
-                edgePresenter.input = outPresenter.inputAnchors[0];
-                base.AddElement(edgePresenter);
-
-
-                //Debug.Log("Create Edge: " + edgePresenter.GetHashCode());
-            }
-        }
-
         public VFXAsset GetVFXAsset()
         {
             return m_VFXAsset;
@@ -577,7 +589,7 @@ namespace UnityEditor.VFX.UI
             m_DataInputAnchorPresenters.Clear();
             m_DataInputAnchorPresenters.Clear();
 
-            m_SyncedContexts.Clear();
+            //m_SyncedContexts.Clear();
             m_SyncedModels.Clear();
         }
 
@@ -623,12 +635,6 @@ namespace UnityEditor.VFX.UI
                     Dictionary<VFXModel, IVFXPresenter> syncedModels = null;
                     if (model is VFXGraph)
                         syncedModels = m_SyncedModels;
-                    else if (model is VFXSystem)
-                        syncedModels = m_SyncedContexts[model];
-
-                    // TODO Temp We remove previous flow edges
-                    if (model is VFXSystem)
-                        RemoveFlowEdges(syncedModels.Values.OfType<VFXContextPresenter>());
 
                     if (syncedModels != null)
                     {
@@ -641,11 +647,8 @@ namespace UnityEditor.VFX.UI
                             AddPresentersFromModel(m, syncedModels);
                     }
 
-                    // TODO Temp We recreate flow edges
-                    if (model is VFXSystem)
-                        CreateFlowEdges((VFXSystem)model);
-                    else
-                        RecreateNodeEdges();
+                    RecreateNodeEdges();
+                    RecreateFlowEdges();
 
                     break;
                 }
@@ -659,23 +662,8 @@ namespace UnityEditor.VFX.UI
 
         private void AddPresentersFromModel(VFXModel model, Dictionary<VFXModel, IVFXPresenter> syncedModels)
         {
-            IVFXPresenter newPresenter = null;
-            if (model is VFXSystem)
-            {
-                VFXSystem system = (VFXSystem)model;
-
-                var syncContexts = new Dictionary<VFXModel, IVFXPresenter>();
-                foreach (var context in system.GetChildren())
-                    AddPresentersFromModel(context, syncContexts);
-                m_SyncedContexts[model] = syncContexts;
-
-                CreateFlowEdges((VFXSystem)model);
-            }
-            else
-            {
-                GraphElementPresenter presenter = m_PresenterFactory.Create(model);
-                newPresenter = presenter as IVFXPresenter;
-            }
+            GraphElementPresenter presenter = m_PresenterFactory.Create(model);
+            IVFXPresenter newPresenter = presenter as IVFXPresenter;
 
             syncedModels[model] = newPresenter;
             if (newPresenter != null)
@@ -685,6 +673,7 @@ namespace UnityEditor.VFX.UI
                 AddElement(presenter);
             }
             RecreateNodeEdges();
+            RecreateFlowEdges();
         }
 
         private void RemovePresentersFromModel(VFXModel model, Dictionary<VFXModel, IVFXPresenter> syncedModels)
@@ -692,38 +681,8 @@ namespace UnityEditor.VFX.UI
             var presenter = syncedModels[model];
             syncedModels.Remove(model);
 
-            if (model is VFXSystem)
-            {
-                RemoveFlowEdges(m_SyncedContexts[model].Values.OfType<VFXContextPresenter>());
-
-                foreach (var context in m_SyncedContexts[model].Keys.ToList())
-                    RemovePresentersFromModel(context, m_SyncedContexts[model]);
-                m_SyncedContexts.Remove(model);
-            }
-
             if (presenter != null)
                 m_Elements.RemoveAll(x => x as IVFXPresenter == presenter); // We don't call RemoveElement as it modifies the model...
-        }
-
-        private void RemoveFlowEdges(IEnumerable<VFXContextPresenter> presenters)
-        {
-            foreach (var p in presenters)
-            {
-                m_Elements.RemoveAll(e =>
-                    {
-                        if (e is VFXFlowEdgePresenter)
-                        {
-                            var edge = (VFXFlowEdgePresenter)e;
-                            if (p.outputAnchors.FirstOrDefault(a => a == edge.output) != null ||
-                                p.inputAnchors.FirstOrDefault(a => a == edge.input) != null)
-                            {
-                                //Debug.Log("Remove Edge: " + edge.GetHashCode());
-                                return true;
-                            }
-                        }
-                        return false;
-                    });
-            }
         }
 
         [SerializeField]

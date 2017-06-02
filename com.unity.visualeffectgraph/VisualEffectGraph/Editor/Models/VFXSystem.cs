@@ -37,40 +37,40 @@ namespace UnityEditor.VFX
         // Connect context0 to context1 and recreate another system if necessary
         public static bool ConnectContexts(VFXContext context0, VFXContext context1, VFXGraph root)
         {
-            if (context0 == context1)
-                return false;
+            /* if (context0 == context1)
+                 return false;
 
-            VFXSystem system0 = context0.GetParent();
-            int context0Index = system0.GetIndex(context0);
+             VFXSystem system0 = context0.GetParent();
+             int context0Index = system0.GetIndex(context0);
 
-            if (system0 == context1.GetParent() && context0Index > context1.GetParent().GetIndex(context1))
-                return false;
+             if (system0 == context1.GetParent() && context0Index > context1.GetParent().GetIndex(context1))
+                 return false;
 
-            if (!system0.AcceptChild(context1, context0Index + 1))
-                return false;
+             if (!system0.AcceptChild(context1, context0Index + 1))
+                 return false;
 
-            if (system0.GetNbChildren() > context0Index + 1)
-            {
-                VFXSystem newSystem = CreateInstance<VFXSystem>();
+             if (system0.GetNbChildren() > context0Index + 1)
+             {
+                 VFXSystem newSystem = CreateInstance<VFXSystem>();
 
-                while (system0.GetNbChildren() > context0Index + 1)
-                    system0.m_Children[context0Index + 1].Attach(newSystem, true);
+                 while (system0.GetNbChildren() > context0Index + 1)
+                     system0.m_Children[context0Index + 1].Attach(newSystem, true);
 
-                root.AddChild(newSystem);
-            }
+                 root.AddChild(newSystem);
+             }
 
-            VFXSystem system1 = context1.GetParent();
-            int context1Index = system1.m_Children.IndexOf(context1);
+             VFXSystem system1 = context1.GetParent();
+             int context1Index = system1.m_Children.IndexOf(context1);
 
-            // Then we append context1 and all following contexts to system0
-            while (system1.GetNbChildren() > context1Index)
-                system1.m_Children[context1Index].Attach(system0, true);
+             // Then we append context1 and all following contexts to system0
+             while (system1.GetNbChildren() > context1Index)
+                 system1.m_Children[context1Index].Attach(system0, true);
 
-            // Remove empty systems
-            if (system0.GetNbChildren() == 0)
-                system0.Detach();
-            if (system1.GetNbChildren() == 0)
-                system1.Detach();
+             // Remove empty systems
+             if (system0.GetNbChildren() == 0)
+                 system0.Detach();
+             if (system1.GetNbChildren() == 0)
+                 system1.Detach();*/
 
             return true;
         }
@@ -79,19 +79,19 @@ namespace UnityEditor.VFX
         // Disconnect a context (from its input) and create another system if necessary
         public static bool DisconnectContext(VFXContext context, VFXGraph root)
         {
-            VFXSystem system = context.GetParent();
-            if (system == null)
-                return false;
+            /* VFXSystem system = context.GetParent();
+             if (system == null)
+                 return false;
 
-            int index = system.GetIndex(context);
-            if (index == 0)
-                return false;
+             int index = system.GetIndex(context);
+             if (index == 0)
+                 return false;
 
-            VFXSystem newSystem = CreateInstance<VFXSystem>();
-            while (system.GetNbChildren() > index)
-                system.GetChild(index).Attach(newSystem, true);
+             VFXSystem newSystem = CreateInstance<VFXSystem>();
+             while (system.GetNbChildren() > index)
+                 system.GetChild(index).Attach(newSystem, true);
 
-            root.AddChild(newSystem);
+             root.AddChild(newSystem);*/
 
             return true;
         }
