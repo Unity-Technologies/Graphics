@@ -10,9 +10,6 @@ namespace UnityEngine.Experimental.Rendering
     public class DebugMenuManager
     {
         private static DebugMenuManager s_Instance = null;
-        private static string s_MenuStateAssetPath = "Assets/DebugMenuState.asset";
-
-        private DebugMenuState m_DebugMenuState = null;
 
         static public DebugMenuManager instance
         {
@@ -21,7 +18,6 @@ namespace UnityEngine.Experimental.Rendering
                 if (s_Instance == null)
                 {
                     s_Instance = new DebugMenuManager();
-                    s_Instance.Initialize();
                 }
 
                 return s_Instance;
@@ -31,7 +27,6 @@ namespace UnityEngine.Experimental.Rendering
         List<DebugPanel>    m_DebugPanels = new List<DebugPanel>();
         DebugPanel          m_PersistentDebugPanel = null;
         DebugMenuUI         m_DebugMenuUI = null;
-        bool                m_UpdateFromItemStateRequired = false;
 
         public int          panelCount          { get { return m_DebugPanels.Count; } }
         public DebugMenuUI  menuUI              { get { return m_DebugMenuUI; } }
@@ -50,36 +45,6 @@ namespace UnityEngine.Experimental.Rendering
                 go.hideFlags = HideFlags.HideAndDontSave;
                 go.AddComponent<DebugMenuUpdater>();
             }
-        }
-
-        private void Initialize()
-        {
-#if UNITY_EDITOR
-            m_DebugMenuState = UnityEditor.AssetDatabase.LoadAssetAtPath<DebugMenuState>(s_MenuStateAssetPath);
-
-            if (m_DebugMenuState == null)
-            {
-                m_DebugMenuState = ScriptableObject.CreateInstance<DebugMenuState>();
-                UnityEditor.AssetDatabase.CreateAsset(m_DebugMenuState, s_MenuStateAssetPath);
-            }
-#endif
-        }
-
-        public void RequireUpdateFromDebugItemState()
-        {
-            m_UpdateFromItemStateRequired = true;
-        }
-
-        // debug state will be null at runtime.
-        public DebugItemState FindDebugItemState(string itemName, string menuName)
-        {
-            return (m_DebugMenuState != null) ? m_DebugMenuState.FindDebugItemState(itemName, menuName) : null;
-        }
-
-        public void AddDebugItemState(DebugItemState state)
-        {
-            if(m_DebugMenuState != null)
-                m_DebugMenuState.AddDebugItemState(state);
         }
 
         public DebugPanel GetDebugPanel(int index)
@@ -135,12 +100,6 @@ namespace UnityEngine.Experimental.Rendering
         public void Update()
         {
             m_DebugMenuUI.Update();
-
-            if(m_UpdateFromItemStateRequired)
-            {
-                m_UpdateFromItemStateRequired = false;
-                m_DebugMenuState.UpdateAllDebugItems();
-            }
         }
 
         private void AddDebugPanel(DebugPanel panel)
