@@ -83,8 +83,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             #define SSS_ITER(i, n, kernel, profileID, shapeParam, centerPosUnSS, centerDepthVS, \
                     millimPerUnit, scaledPixPerMm, rcpDistScale, totalIrradiance, totalWeight)  \
             {                                                                                   \
-                /* Everything except for the radius is a compile-time constant. */              \
                 float  r   = kernel[profileID][i][0];                                           \
+                /* The relative sample position is known at the compile time. */                \
                 float  phi = TWO_PI * Fibonacci2d(i, n).y;                                      \
                 float2 vec = r * float2(cos(phi), sin(phi));                                    \
                                                                                                 \
