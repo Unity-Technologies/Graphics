@@ -4,24 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    public enum VFXValueType
-    {
-        kNone,
-        kFloat,
-        kFloat2,
-        kFloat3,
-        kFloat4,
-        kInt,
-        kUint,
-        kTexture2D,
-        kTexture3D,
-        kTransform,
-        kCurve,
-        kColorGradient,
-        kMesh,
-        kSpline,
-    }
-
     public abstract partial class VFXExpression
     {
         [Flags]
