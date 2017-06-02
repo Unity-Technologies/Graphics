@@ -185,7 +185,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 // Use fewer samples for SS regions smaller than 5x5 pixels (rotated by 45 degrees).
                 [branch]
-                if (maxDistancePixels < 4)
+                if (maxDistancePixels < SSS_LOD_THRESHOLD)
                 {
                     #if SSS_DEBUG
                         return float4(0.5, 0.5, 0, 1);
