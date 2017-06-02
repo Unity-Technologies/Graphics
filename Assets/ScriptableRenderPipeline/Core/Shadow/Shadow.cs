@@ -243,6 +243,18 @@ namespace UnityEngine.Experimental.Rendering
 
             GPUShadowAlgorithm sanitizedAlgo = ShadowUtils.ClearPrecision( sr.shadowAlgorithm );
 
+            int     cascadeCnt = 0;
+            float[] cascadeRatios = null;
+            if( sr.shadowType == GPUShadowType.Directional )
+            {
+                AdditionalLightData ald = lights[sr.index].light.GetComponent<AdditionalLightData>();
+                if( !ald )
+                    return false;
+
+                ald.GetShadowCascades( out cascadeCnt, out cascadeRatios );
+            }
+
+
             if( multiFace )
             {
                 // For lights with multiple faces, the first shadow data contains
@@ -285,7 +297,7 @@ namespace UnityEngine.Experimental.Rendering
                         vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], out ce.current.view, out ce.current.proj, out ce.current.lightDir, out ce.current.splitData );
                     else if( sr.shadowType == GPUShadowType.Directional )
                     {
-                        vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, m_CascadeCount, m_CascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
+                        vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, cascadeCnt, cascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
                         m_TmpSplits[key.faceIdx]    = ce.current.splitData.cullingSphere;
                         if( ce.current.splitData.cullingSphere.w != float.NegativeInfinity )
                             m_TmpSplits[key.faceIdx].w *= ce.current.splitData.cullingSphere.w;
