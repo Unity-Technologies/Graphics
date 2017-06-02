@@ -133,6 +133,25 @@ float3 LerpWhiteTo(float3 b, float t)
     return float3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
 
+// ----------------------------------------------------------------------------
+// SSS/Transmittance
+// ----------------------------------------------------------------------------
+
+// Computes the fraction of light passing through the object.
+// N.b.: it is not just zero scattering (light traveling in a straight path)!
+// We derive the transmittance function from the SSS profile, by normalizing it s.t. R(0) = 1.
+// Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar (BSSRDF only).
+float3 ComputeTransmittance(float3 S, float3 surfaceAlbedo, float thickness, float radiusScale)
+{
+    // Thickness and SSS radius are decoupled for artists.
+    // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
+    // thickness /= radiusScale;
+
+    float3 expOneThird = exp(((-1.0 / 3.0) * thickness) * S);
+
+    return 0.5 * (expOneThird + expOneThird * expOneThird * expOneThird) * surfaceAlbedo;
+}
+
 // MACRO from Legacy Untiy
 // Transforms 2D UV by scale/bias property
 #define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
