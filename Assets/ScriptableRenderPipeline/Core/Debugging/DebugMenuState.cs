@@ -17,13 +17,18 @@ namespace UnityEngine.Experimental.Rendering
         public string panelName = "";
         public string itemName = "";
 
+        protected DebugItem m_DebugItem = null;
+
+        public bool isValid { get { return m_DebugItem != null; } }
+
         public abstract void UpdateDebugItemValue();
         public abstract void SetValue(object value);
 
-        public void Initialize(string itemName, string panelName)
+        public void Initialize(DebugItem item)
         {
-            this.panelName = panelName;
-            this.itemName = itemName;
+            this.panelName = item.panelName;
+            this.itemName = item.name;
+            m_DebugItem = item;
         }
     }
 
@@ -33,26 +38,25 @@ namespace UnityEngine.Experimental.Rendering
 
         public override void SetValue(object value)
         {
-#if UNITY_EDITOR
-            UnityEditor.Undo.RecordObject(this, "DebugMenu State Update");
-            UnityEditor.EditorUtility.SetDirty(this);
-#endif
             this.value = (T)value;
         }
 
         public override void UpdateDebugItemValue()
         {
-            DebugMenuManager dmm = DebugMenuManager.instance;
-            DebugPanel menu = dmm.GetDebugPanel(panelName);
-            if (menu != null)
+            if(m_DebugItem == null)
             {
-                DebugItem item = menu.GetDebugItem(itemName);
-                if (item != null)
+                if (itemName != "" && panelName != "")
                 {
-                    item.SetValue(value, false);
+                    DebugMenuManager dmm = DebugMenuManager.instance;
+                    DebugPanel menu = dmm.GetDebugPanel(panelName);
+                    if (menu != null)
+                    {
+                        m_DebugItem = menu.GetDebugItem(itemName);
+                    }
                 }
             }
 
+            m_DebugItem.SetValue(value, false);
         }
     }
 
@@ -68,8 +72,27 @@ namespace UnityEngine.Experimental.Rendering
             UnityEditor.Undo.undoRedoPerformed += OnUndoRedoPerformed;
 #endif
 
-            // We need to delay the actual update because at this point, some menus might not be created yet (depending on call order) so we can't update their values.
-            DebugMenuManager.instance.RequireUpdateFromDebugItemState();
+            // Populate item states
+            DebugMenuManager dmm = DebugMenuManager.instance;
+            for (int panelIdx = 0 ; panelIdx < dmm.panelCount ; ++panelIdx)
+            {
+                DebugPanel panel = dmm.GetDebugPanel(panelIdx);
+                for(int itemIdx = 0 ; itemIdx < panel.itemCount ; ++itemIdx)
+                {
+                    DebugItem item = panel.GetDebugItem(itemIdx);
+                    DebugItemState debugItemState = FindDebugItemState(item);
+                    if (debugItemState == null)
+                    {
+                        debugItemState = item.handler.CreateDebugItemState();
+                        debugItemState.hideFlags = HideFlags.DontSave;
+                        debugItemState.Initialize(item);
+                        debugItemState.SetValue(item.GetValue());
+                        AddDebugItemState(debugItemState);
+                    }
+                }
+            }
+
+            UpdateAllDebugItems();
         }
 
         public void OnDisable()
@@ -77,59 +100,33 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
             UnityEditor.Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 #endif
-            // We check consistency in OnDisable instead of OnEnable because we compare the serialized state to the currently running debug menu so we need to make sure that all debug menu are properly created (which is not the case in OnEnable depending on call order)
-            CheckConsistency();
         }
 
+        public void OnDestroy()
+        {
+            foreach(var item in m_ItemStateList)
+            {
+                Object.DestroyImmediate(item);
+            }
+        }
 
-#if UNITY_EDITOR
         void OnUndoRedoPerformed()
         {
             // Maybe check a hash or something? So that we don't do that at each redo...
             UpdateAllDebugItems();
+#if UNITY_EDITOR
             UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-        }
 #endif
-
-        void CheckConsistency()
-        {
-            // Remove all objects that may have been removed from the debug menu since last serialization
-            DebugMenuManager dmm = DebugMenuManager.instance;
-            List<DebugItemState> tempList = new List<DebugItemState>();
-            foreach(var itemState in  m_ItemStateList)
-            {
-                DebugItem item = null;
-                DebugPanel menu = dmm.GetDebugPanel(itemState.panelName);
-                if(menu != null)
-                {
-                    item = menu.GetDebugItem(itemState.itemName);
-                }
-
-                // Item no longer exist, clean up its state from the asset.
-                if (item == null)
-                {
-                    tempList.Add(itemState);
-                }
-            }
-
-            foreach(var itemState in tempList)
-            {
-                m_ItemStateList.Remove(itemState);
-                Object.DestroyImmediate(itemState, true);
-            }
         }
 
         public void AddDebugItemState(DebugItemState state)
         {
-#if UNITY_EDITOR
-            UnityEditor.AssetDatabase.AddObjectToAsset(state, this);
-#endif
             m_ItemStateList.Add(state);
         }
 
-        public DebugItemState FindDebugItemState(string itemName, string menuName)
+        public DebugItemState FindDebugItemState(DebugItem item)
         {
-            return m_ItemStateList.Find(x => x.itemName == itemName && x.panelName == menuName);
+            return m_ItemStateList.Find(x => x.itemName == item.name && x.panelName == item.panelName);
         }
 
         public void UpdateAllDebugItems()
