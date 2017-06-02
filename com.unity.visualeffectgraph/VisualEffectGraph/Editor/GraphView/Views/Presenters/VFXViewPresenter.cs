@@ -662,8 +662,7 @@ namespace UnityEditor.VFX.UI
 
         private void AddPresentersFromModel(VFXModel model, Dictionary<VFXModel, IVFXPresenter> syncedModels)
         {
-            GraphElementPresenter presenter = m_PresenterFactory.Create(model);
-            IVFXPresenter newPresenter = presenter as IVFXPresenter;
+            IVFXPresenter newPresenter = m_PresenterFactory.Create(model) as IVFXPresenter;
 
             syncedModels[model] = newPresenter;
             if (newPresenter != null)
