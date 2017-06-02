@@ -64,14 +64,24 @@ namespace UnityEditor.VFX.Test
             var graph = asset.GetOrCreateGraph();
             graph.RemoveAllChildren();
 
-            VFXSystem system0 = ScriptableObject.CreateInstance<VFXSystem>();
-            system0.AddChild(ScriptableObject.CreateInstance<VFXBasicInitialize>());
-            system0.AddChild(ScriptableObject.CreateInstance<VFXBasicUpdate>());
-            system0.AddChild(ScriptableObject.CreateInstance<VFXBasicOutput>());
+            var init0 = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var update0 = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var output0 = ScriptableObject.CreateInstance<VFXBasicOutput>();
 
-            VFXSystem system1 = ScriptableObject.CreateInstance<VFXSystem>();
-            system1.AddChild(ScriptableObject.CreateInstance<VFXBasicInitialize>());
-            system1.AddChild(ScriptableObject.CreateInstance<VFXBasicOutput>());
+            graph.AddChild(init0);
+            graph.AddChild(update0);
+            graph.AddChild(output0);
+
+            init0.LinkTo(update0);
+            update0.LinkTo(output0);
+
+            var init1 = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var output1 = ScriptableObject.CreateInstance<VFXBasicOutput>();
+
+            init1.LinkTo(output1);
+
+            graph.AddChild(init1);
+            graph.AddChild(output1);
 
             // Add some block
             var block0 = ScriptableObject.CreateInstance<VFXInitBlockTest>();
@@ -81,12 +91,10 @@ namespace UnityEditor.VFX.Test
             // Add some operator
             VFXOperator add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
 
-            system0[0].AddChild(block0);
-            system0[1].AddChild(block1);
-            system0[2].AddChild(block2);
+            init0.AddChild(block0);
+            update0.AddChild(block1);
+            output0.AddChild(block2);
 
-            graph.AddChild(system0);
-            graph.AddChild(system1);
             graph.AddChild(add);
         }
 
@@ -94,28 +102,26 @@ namespace UnityEditor.VFX.Test
         {
             VFXGraph graph = asset.GetOrCreateGraph();
 
-            Assert.AreEqual(3, graph.GetNbChildren());
+            Assert.AreEqual(6, graph.GetNbChildren());
 
-            Assert.AreEqual(3, graph[0].GetNbChildren());
-            Assert.AreEqual(2, graph[1].GetNbChildren());
-            Assert.AreEqual(0, graph[2].GetNbChildren());
+            Assert.AreEqual(1, graph[0].GetNbChildren());
+            Assert.AreEqual(1, graph[1].GetNbChildren());
+            Assert.AreEqual(1, graph[2].GetNbChildren());
+            Assert.AreEqual(0, graph[3].GetNbChildren());
+            Assert.AreEqual(0, graph[4].GetNbChildren());
+            Assert.AreEqual(0, graph[5].GetNbChildren());
 
-            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(1));
-            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(2));
-            Assert.IsNotNull(((VFXSystem)(graph[1])).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(graph[1])).GetChild(1));
+            Assert.IsNotNull((graph[0]).GetChild(0));
+            Assert.IsNotNull((graph[1]).GetChild(0));
+            Assert.IsNotNull((graph[2]).GetChild(0));
 
-            Assert.AreEqual(VFXContextType.kInit, ((VFXSystem)(graph[0])).GetChild(0).contextType);
-            Assert.AreEqual(VFXContextType.kUpdate, ((VFXSystem)(graph[0])).GetChild(1).contextType);
-            Assert.AreEqual(VFXContextType.kOutput, ((VFXSystem)(graph[0])).GetChild(2).contextType);
-            Assert.AreEqual(VFXContextType.kInit, ((VFXSystem)(graph[1])).GetChild(0).contextType);
-            Assert.AreEqual(VFXContextType.kOutput, ((VFXSystem)(graph[1])).GetChild(1).contextType);
+            Assert.AreEqual(VFXContextType.kInit,   ((VFXContext)(graph[0])).contextType);
+            Assert.AreEqual(VFXContextType.kUpdate, ((VFXContext)(graph[1])).contextType);
+            Assert.AreEqual(VFXContextType.kOutput, ((VFXContext)(graph[2])).contextType);
+            Assert.AreEqual(VFXContextType.kInit,   ((VFXContext)(graph[3])).contextType);
+            Assert.AreEqual(VFXContextType.kOutput, ((VFXContext)(graph[4])).contextType);
 
-            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(0).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(1).GetChild(0));
-            Assert.IsNotNull(((VFXSystem)(graph[0])).GetChild(2).GetChild(0));
-            Assert.IsNotNull((VFXOperatorAdd)graph[2]);
+            Assert.IsNotNull(graph[5] as VFXOperatorAdd);
         }
 
         private void CheckIsolatedOperatorAdd(VFXOperatorAdd add)

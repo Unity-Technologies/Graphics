@@ -201,10 +201,8 @@ namespace UnityEditor.VFX.UI
             var contexts = selection.OfType<VFXContextUI>().Select(p => p.GetPresenter<VFXContextPresenter>().context.Clone<VFXContext>());
             foreach (var context in contexts)
             {
-                var system = ScriptableObject.CreateInstance<VFXSystem>();
-                system.AddChild(context);
                 context.position = context.position + new Vector2(50, 50);
-                GetPresenter<VFXViewPresenter>().GetGraph().AddChild(system);
+                GetPresenter<VFXViewPresenter>().GetGraph().AddChild(context);
             }
 
             var operators = selection.OfType<Node>().Select(p => p.GetPresenter<VFXNodePresenter>().node.Clone<VFXSlotContainerModel<VFXModel, VFXModel>>());
