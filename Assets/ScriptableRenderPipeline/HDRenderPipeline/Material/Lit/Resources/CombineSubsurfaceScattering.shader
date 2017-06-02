@@ -192,7 +192,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 // We perform point sampling. Therefore, we can avoid the cost
                 // of filtering if we stay within the bounds of the current pixel.
                 [branch]
-                if (maxDistancePixels < 0.5)
+                if (maxDistancePixels < 1)
                 {
                     #if SSS_DEBUG
                         return float4(0, 0, 1, 1);
