@@ -157,7 +157,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(0, 0));
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
                 float3 unused;
 
@@ -194,11 +194,11 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [branch]
                 if (maxDistancePixels < 0.5)
                 {
-                #if SSS_DEBUG
-                    return float4(0, 0, 1, 1);
-                #else
-                    return float4(bsdfData.diffuseColor * centerIrradiance, 1);
-                #endif
+                    #if SSS_DEBUG
+                        return float4(0, 0, 1, 1);
+                    #else
+                        return float4(bsdfData.diffuseColor * centerIrradiance, 1);
+                    #endif
                 }
 
                 // Accumulate filtered irradiance and bilateral weights (for renormalization).
@@ -208,25 +208,25 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [branch]
                 if (maxDistancePixels < SSS_LOD_THRESHOLD)
                 {
-                #if SSS_DEBUG
-                    return float4(0.5, 0.5, 0, 1);
-                #endif
-
-                    SSS_LOOP(SSS_N_SAMPLES_FAR_FIELD, _FilterKernelsFarField,
-                             profileID, shapeParam, centerPosition, centerPosVS.z,
-                             millimPerUnit, scaledPixPerMm, rcp(distScale),
-                             totalIrradiance, totalWeight)
+                    #if SSS_DEBUG
+                        return float4(0.5, 0.5, 0, 1);
+                    #else
+                        SSS_LOOP(SSS_N_SAMPLES_FAR_FIELD, _FilterKernelsFarField,
+                                 profileID, shapeParam, centerPosition, centerPosVS.z,
+                                 millimPerUnit, scaledPixPerMm, rcp(distScale),
+                                 totalIrradiance, totalWeight)
+                    #endif
                 }
                 else
                 {
-                #if SSS_DEBUG
-                    return float4(1, 0, 0, 1);
-                #endif
-
-                    SSS_LOOP(SSS_N_SAMPLES_NEAR_FIELD, _FilterKernelsNearField,
-                             profileID, shapeParam, centerPosition, centerPosVS.z,
-                             millimPerUnit, scaledPixPerMm, rcp(distScale),
-                             totalIrradiance, totalWeight)
+                    #if SSS_DEBUG
+                        return float4(1, 0, 0, 1);
+                    #else
+                        SSS_LOOP(SSS_N_SAMPLES_NEAR_FIELD, _FilterKernelsNearField,
+                                 profileID, shapeParam, centerPosition, centerPosVS.z,
+                                 millimPerUnit, scaledPixPerMm, rcp(distScale),
+                                 totalIrradiance, totalWeight)
+                    #endif
                 }
 
                 return float4(bsdfData.diffuseColor * totalIrradiance / totalWeight, 1);
