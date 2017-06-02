@@ -54,13 +54,14 @@ Texture2DMS<float>			depthTex;
 #endif
 
 uniform uint4				srcRect; // .xy = offset, .zw = width/height
-uniform uint4				dstRect; // .xy = offset, .z  = array slice , .w = Flags: 1 := 16bpp, 2 := 2 channels pp
+uniform uint4				dstRect; // .xy = offset, .z  = array slice , .w = Flags: 1 := 16bpp, 2 := 2 channels pp, 4:= reversed z
 
 uniform float4 blurWeightsStorage[3]; // Unity expects float arrays to be tightly packed
 static float   blurWeights[12] = (float[12])blurWeightsStorage;
 
 static const int kBits_16	 = 1; // 16 bits per channel
 static const int kChannels_2 = 2; // 2 channels per pixel
+static const int kReversed_z = 4; // depth buffer contains reversed z
 
 #if (SHADOW_MOMENT_ALGORITHM == VSM)
 #	define SHADOW_MOMENTS 2
@@ -147,6 +148,7 @@ void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : S
 	const int4 validSrc = int4( srcRect.xy, srcRect.xy + srcRect.zw - 1 );
 	int2 srcIdx = ((int2) dispatchId.xy) - blurBorder.xx + srcRect.xy;
 	int2 ldsIdx = groupThreadId.xy;
+	const bool reverse_z = (dstRect.w & kReversed_z) != 0;
 
 	// calculate an average moment over all samples for a given pixel and load the result into LDS
 	uint iw, ih, is;
@@ -167,13 +169,15 @@ void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : S
 #if MAX_MSAA > 1
 			for( is = 0; is < sampleCnt; is++ )
 			{
-				float  depth = depthTex.Load( Clamp( srcIdx, validSrc.xy, validSrc.zw ), is ).x;
+				float  depth = depthTex.Load( int3( Clamp( srcIdx, validSrc.xy, validSrc.zw ), is ) ).x;
+					   depth = reverse_z ? (1.0 - depth) : depth;
 				moment_t moments = DepthToMoments( depth );
 				avgMoments += sampleWeights[is] * moments;
 			}
 			avgMoments *= sumWeights;
 #else
-			avgMoments = DepthToMoments( depthTex.Load( int3( Clamp( srcIdx, validSrc.xy, validSrc.zw ), 0 ) ).x );
+			float depth = depthTex.Load( int3( Clamp( srcIdx, validSrc.xy, validSrc.zw ), 0 ) ).x;
+			avgMoments = DepthToMoments( reverse_z ? (1.0-depth) : depth );
 #endif
 			moments[ldsIdx.y][ldsIdx.x] = avgMoments;
 		

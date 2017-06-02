@@ -15,13 +15,8 @@ float ShadowMoments_ChebyshevsInequality( float2 moments, float depth, float min
 	float mD = depth - moments.x;
 	float p = variance / (variance + mD * mD);
 
-#if UNITY_REVERSED_Z
-	p = saturate( (p - lightLeakBias) / (1.0f - lightLeakBias) );
-	return max( p, depth >= moments.x );
-#else
 	p = saturate( p / (1.0f - lightLeakBias) );
 	return max( p, depth <= moments.x );
-#endif
 }
 
 // helper for EVSM
@@ -104,11 +99,7 @@ float ShadowMoments_SolveDelta3MSM( float3 z, float2 b, float lightLeakBias )
 	float quotient = (switchVal[0] * z[2] - b[0] * (switchVal[0] + z[2]) + b[1]) / ((z[2] - switchVal[1]) * (z[0] - z[1]));
 	float attenuation = saturate( switchVal[2] + switchVal[3] * quotient );
 
-#if UNITY_REVERSED_Z // probably
-	return saturate( (attenuation - lightLeakBias) / (1.0f - lightLeakBias) );
-#else
 	return saturate( ((1.0 - attenuation) - lightLeakBias) / (1.0f - lightLeakBias) );
-#endif
 }
 
 float ShadowMoments_SolveDelta4MSM( float3 z, float4 b, float lightLeakBias)
@@ -118,9 +109,5 @@ float ShadowMoments_SolveDelta4MSM( float3 z, float4 b, float lightLeakBias)
 	float w1Factor = (z[0] > zFree) ? 1.0 : 0.0;
 	float attenuation = saturate( (b[1] - b[0] + (b[2] - b[0] - (zFree + 1.0) * (b[1] - b[0])) * (zFree - w1Factor - z[0]) / (z[0] * (z[0] - zFree))) / (zFree - w1Factor) + 1.0 - b[0] );
 
-#if UNITY_REVERSED_Z // probably
-	return saturate( (attenuation - lightLeakBias) / (1.0f - lightLeakBias) );
-#else
 	return saturate( ((1.0 - attenuation) - lightLeakBias) / (1.0f - lightLeakBias) );
-#endif
 }

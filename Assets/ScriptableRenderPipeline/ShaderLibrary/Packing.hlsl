@@ -1,6 +1,8 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
+#include "Common.hlsl"
+
 //-----------------------------------------------------------------------------
 // Normal packing
 //-----------------------------------------------------------------------------
@@ -134,7 +136,7 @@ float3 UnpackNormalmapRGorAG(float4 packedNormal, float scale = 1.0)
 //-----------------------------------------------------------------------------
 
 // Ref: http://realtimecollisiondetection.net/blog/?p=15
-float4 PackLogLuv(float3 vRGB)
+float4 PackToLogLuv(float3 vRGB)
 {
     // M matrix, for encoding
     const float3x3 M = float3x3(
@@ -152,7 +154,7 @@ float4 PackLogLuv(float3 vRGB)
     return vResult;
 }
 
-float3 UnpackLogLuv(float4 vLogLuv)
+float3 UnpackFromLogLuv(float4 vLogLuv)
 {
     // Inverse M matrix, for decoding
     const float3x3 InverseM = float3x3(
@@ -170,7 +172,7 @@ float3 UnpackLogLuv(float4 vLogLuv)
 }
 
 // The standard 32-bit HDR color format
-uint PackR11G11B10f(float3 rgb)
+uint PackToR11G11B10f(float3 rgb)
 {
     uint r = (f32tof16(rgb.x) << 17) & 0xFFE00000;
     uint g = (f32tof16(rgb.y) << 6) & 0x001FFC00;
@@ -178,7 +180,7 @@ uint PackR11G11B10f(float3 rgb)
     return r | g | b;
 }
 
-float3 UnpackR11G11B10f(uint rgb)
+float3 UnpackFromR11G11B10f(uint rgb)
 {
     float r = f16tof32((rgb >> 17) & 0x7FF0);
     float g = f16tof32((rgb >> 6) & 0x7FF0);
@@ -238,8 +240,60 @@ float4 UnpackQuat(float4 packedQuat)
 }
 
 //-----------------------------------------------------------------------------
-// Byte packing
+// Integer packing
 //-----------------------------------------------------------------------------
+
+// Packs an integer stored using at most 'numBits' into a [0..1] float.
+float PackInt(uint i, uint numBits)
+{
+    uint maxInt = 0xFFFFFFFFu >> (32u - numBits);
+    return saturate(i * rcp(maxInt));
+}
+
+// Unpacks a [0..1] float into an integer of size 'numBits'.
+uint UnpackInt(float f, uint numBits)
+{
+    uint maxInt = 0xFFFFFFFFu >> (32u - numBits);
+    return (uint)(f * maxInt + 0.5); // Round instead of truncating
+}
+
+// Packs a [0..255] integer into a [0..1] float.
+float PackByte(uint i)
+{
+    return PackInt(i, 8);
+}
+
+// Unpacks a [0..1] float into a [0..255] integer.
+uint UnpackByte(float f)
+{
+    return UnpackInt(f, 8);
+}
+
+// Packs a [0..65535] integer into a [0..1] float.
+float PackShort(uint i)
+{
+    return PackInt(i, 16);
+}
+
+// Unpacks a [0..1] float into a [0..65535] integer.
+uint UnpackShort(float f)
+{
+    return UnpackInt(f, 16);
+}
+
+// Packs 8 lowermost bits of a [0..65535] integer into a [0..1] float.
+float PackShortLo(uint i)
+{
+    uint lo = BitFieldExtract(i, 8u, 0u);
+    return PackInt(lo, 8);
+}
+
+// Packs 8 uppermost bits of a [0..65535] integer into a [0..1] float.
+float PackShortHi(uint i)
+{
+    uint hi = BitFieldExtract(i, 8u, 8u);
+    return PackInt(hi, 8);
+}
 
 float Pack2Byte(float2 inputs)
 {
@@ -323,29 +377,27 @@ void UnpackFloatInt16bit(float val, float maxi, out float f, out int i)
 }
 
 //-----------------------------------------------------------------------------
-// float packing to sint/uint
+// Float packing
 //-----------------------------------------------------------------------------
 
 // src must be between 0.0 and 1.0
-uint PackFloatToUInt(float src, uint size, uint offset)
+uint PackFloatToUInt(float src, uint numBits, uint offset)
 {
-    const float maxValue = float((1u << size) - 1u) + 0.5; // Shader compiler should be able to remove this
-    return uint(src * maxValue) << offset;
+    return UnpackInt(src, numBits) << offset;
 }
 
-float UnpackUIntToFloat(uint src, uint size, uint offset)
+float UnpackUIntToFloat(uint src, uint numBits, uint offset)
 {
-    const float invMaxValue = 1.0 / float((1 << size) - 1);
-
-    return float(BitFieldExtract(src, size, offset)) * invMaxValue;
+    uint maxInt = 0xFFFFFFFFu >> (32u - numBits);
+    return float(BitFieldExtract(src, numBits, offset)) * rcp(maxInt);
 }
 
-uint PackR10G10B10A2(float4 rgba)
+uint PackToR10G10B10A2(float4 rgba)
 {
     return (PackFloatToUInt(rgba.x, 10, 0) | PackFloatToUInt(rgba.y, 10, 10) | PackFloatToUInt(rgba.z, 10, 20) | PackFloatToUInt(rgba.w, 2, 30));
 }
 
-float4 UnpackR10G10B10A2(uint rgba)
+float4 UnpackFromR10G10B10A2(uint rgba)
 {
     float4 ouput;
     ouput.x = UnpackUIntToFloat(rgba, 10, 0);
@@ -355,5 +407,20 @@ float4 UnpackR10G10B10A2(uint rgba)
     return ouput;
 }
 
+// Both the input and the output are in the [0, 1] range.
+float2 PackFloatToR8G8(float f)
+{
+    uint i = UnpackShort(f);
+    return float2(PackShortLo(i), PackShortHi(i));
+}
+
+// Both the input and the output are in the [0, 1] range.
+float UnpackFloatFromR8G8(float2 f)
+{
+    uint lo = UnpackByte(f.x);
+    uint hi = UnpackByte(f.y);
+    uint cb = (hi << 8) + lo;
+    return PackShort(cb);
+}
 
 #endif // UNITY_PACKING_INCLUDED

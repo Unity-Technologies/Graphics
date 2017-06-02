@@ -78,6 +78,10 @@ CBUFFER_END
 
 struct LightLoopContext
 {
+    // Visible from Material
+    float ambientOcclusion;
+
+    // Not visible from Material (user should not use these properties in Material)
     int sampleShadow;
     int sampleReflection;
     ShadowContext shadowContext;
@@ -132,3 +136,9 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, sampler_SkyTexture, texCoord, lod);
     }
 }
+
+//-----------------------------------------------------------------------------
+// AmbientOcclusion
+// ----------------------------------------------------------------------------
+
+TEXTURE2D(_AmbientOcclusionTexture);

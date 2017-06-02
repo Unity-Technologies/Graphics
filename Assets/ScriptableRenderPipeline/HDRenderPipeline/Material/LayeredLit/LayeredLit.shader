@@ -43,6 +43,11 @@ Shader "HDRenderPipeline/LayeredLit"
         _NormalMap2("NormalMap2", 2D) = "bump" {}
         _NormalMap3("NormalMap3", 2D) = "bump" {}
 
+        _NormalMapOS0("NormalMapOS0", 2D) = "white" {}
+        _NormalMapOS1("NormalMapOS1", 2D) = "white" {}
+        _NormalMapOS2("NormalMapOS2", 2D) = "white" {}
+        _NormalMapOS3("NormalMapOS3", 2D) = "white" {}
+
         _NormalScale0("_NormalScale0", Range(0.0, 2.0)) = 1
         _NormalScale1("_NormalScale1", Range(0.0, 2.0)) = 1
         _NormalScale2("_NormalScale2", Range(0.0, 2.0)) = 1
@@ -208,7 +213,7 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
         [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
-        [ToggleOff] _DoubleSidedMirrorEnable("Double sided mirror enable", Float) = 1.0
+        [Enum(None, 0, Mirror, 1, Flip, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         [ToggleOff]  _EnablePerPixelDisplacement("Enable per pixel displacement", Float) = 0.0
@@ -563,7 +568,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #define DEBUG_DISPLAY
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../Debug/DebugDisplay.hlsl"
-            #include "../../Lighting/Forward.hlsl"            
+            #include "../../Lighting/Forward.hlsl"
             // TEMP until pragma work in include
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
 

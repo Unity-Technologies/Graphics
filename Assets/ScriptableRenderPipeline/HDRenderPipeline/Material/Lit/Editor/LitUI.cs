@@ -24,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
+            public static GUIContent normalMapOSText = new GUIContent("Normal Map OS", "Normal Map (BC7/DXT1/RGB)");
             public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
             public static GUIContent horizonFadeText = new GUIContent("Horizon Fade (Spec occlusion)", "horizon fade is use to control specular occlusion");
 
@@ -31,7 +32,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent heightMapAmplitudeText = new GUIContent("Height Map Amplitude", "Height Map amplitude in world units.");
             public static GUIContent heightMapCenterText = new GUIContent("Height Map Center", "Center of the heightmap in the texture (between 0 and 1)");
 
-            public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC5) - DXT5 for test");
+            public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
+            public static GUIContent tangentMapOSText = new GUIContent("Tangent Map OS", "Tangent Map (BC7/DXT1/RGB)");
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
             public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (B)", "Anisotropy");
 
@@ -123,6 +125,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kHorizonFade = "_HorizonFade";
         protected MaterialProperty normalMap = null;
         protected const string kNormalMap = "_NormalMap";
+        protected MaterialProperty normalMapOS = null;
+        protected const string kNormalMapOS = "_NormalMapOS";
         protected MaterialProperty normalScale = null;
         protected const string kNormalScale = "_NormalScale";
         protected MaterialProperty normalMapSpace = null;
@@ -135,6 +139,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kHeightCenter = "_HeightCenter";
         protected MaterialProperty tangentMap = null;
         protected const string kTangentMap = "_TangentMap";
+        protected MaterialProperty tangentMapOS = null;
+        protected const string kTangentMapOS = "_TangentMapOS";
         protected MaterialProperty anisotropy = null;
         protected const string kAnisotropy = "_Anisotropy";
         protected MaterialProperty anisotropyMap = null;
@@ -194,12 +200,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             specularOcclusionMap = FindProperty(kSpecularOcclusionMap, props);
             horizonFade = FindProperty(kHorizonFade, props);
             normalMap = FindProperty(kNormalMap, props);
+            normalMapOS = FindProperty(kNormalMapOS, props);
             normalScale = FindProperty(kNormalScale, props);
             normalMapSpace = FindProperty(kNormalMapSpace, props);
             heightMap = FindProperty(kHeightMap, props);
             heightAmplitude = FindProperty(kHeightAmplitude, props);
             heightCenter = FindProperty(kHeightCenter, props);
             tangentMap = FindProperty(kTangentMap, props);
+            tangentMapOS = FindProperty(kTangentMapOS, props);
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
             specularColor = FindProperty(kSpecularColor, props);
@@ -230,7 +238,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void ShaderSSSInputGUI(Material material)
         {
-            HDRenderPipelineInstance hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipelineInstance;
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
             if (subsurfaceProfile == null)
             {
@@ -258,7 +266,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Load the profile from the GUI field.
                 int profileID = subsurfaceProfile.settingsIndex;
 
-                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length)
+                if (0 <= profileID && profileID < hdPipeline.sssSettings.profiles.Length &&
+                    hdPipeline.sssSettings.profiles[profileID] != null &&
+                    hdPipeline.sssSettings.profiles[profileID] == subsurfaceProfile)
                 {
                     validProfile = true;
                     material.SetInt("_SubsurfaceProfile", profileID);
@@ -273,7 +283,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!validProfile)
             {
                 // Disable SSS for this object.
-                material.SetInt("_SubsurfaceProfile", SubsurfaceScatteringSettings.neutralProfileID);
+                material.SetInt("_SubsurfaceProfile", SssConstants.SSS_NEUTRAL_PROFILE_ID);
             }
 
             m_MaterialEditor.ShaderProperty(subsurfaceRadius, Styles.subsurfaceRadiusText);
@@ -284,7 +294,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void ShaderStandardInputGUI()
         {
-            m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
+            if ((NormalMapSpace)normalMapSpace.floatValue == NormalMapSpace.TangentSpace)
+            {
+                m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
+            }
+            else
+            {
+                m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapOSText, tangentMapOS);
+            }
             m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
             m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
         }
@@ -317,7 +334,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.HelpBox(Styles.normalMapSpaceWarning.text, MessageType.Error);
             }
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
+            // We have two different property for object space and tangent space normal map to allow
+            // 1. to go back and forth
+            // 2. to avoid the warning that ask to fix the object normal map texture (normalOS are just linear RGB texture
+            if ((NormalMapSpace)normalMapSpace.floatValue == NormalMapSpace.TangentSpace)
+            {
+                m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
+            }
+            else
+            {
+                // No scaling in object space
+                m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapOSText, normalMapOS);
+            }
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap);
             if (!heightMap.hasMixedValue && heightMap.textureValue != null)
@@ -422,19 +450,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupBaseLitKeywords(material);
             SetupBaseLitMaterialPass(material);
 
+            NormalMapSpace normalMapSpace = (NormalMapSpace)material.GetFloat(kNormalMapSpace);
+
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
             SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
-            SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
+            SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (normalMapSpace == NormalMapSpace.TangentSpace));
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
 
-            SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
+            if (normalMapSpace == NormalMapSpace.TangentSpace)
+            {
+                // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for it
+                SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap));
+                SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
+            }
+            else // Object space
+            {
+                // With details map, we always use a normal map but in case of objects space there is no good default, so the result will be weird until users fix it
+                SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS) || material.GetTexture(kDetailMap));
+                SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMapOS));
+            }
             SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap));
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
-            SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
             SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
             SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
             SetKeyword(material, "_SUBSURFACE_RADIUS_MAP", material.GetTexture(kSubsurfaceRadiusMap));

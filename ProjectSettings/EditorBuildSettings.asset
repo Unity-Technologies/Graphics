@@ -5,12 +5,6 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/TestScenes/HDTest/HDRenderLoopTest.unity
     guid: 0b16df2ba8fd0f244a826da853bc2d3b
-  - enabled: 1
-    path: Assets/TestScenes/HDTest/NewBatcherBench1.unity
-    guid: efeef759b5144ef4fa1cfc182ddbaea5
-  - enabled: 0
-    path: Assets/TestScenes/HDTest/NewBatcherBench2.unity
-    guid: 1816611d7c1a9bc41bbe1ae56076f699

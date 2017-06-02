@@ -256,6 +256,12 @@ float3 TransformObjectToWorldDir(float3 dirOS)
     return normalize(mul((float3x3)GetObjectToWorldMatrix(), dirOS));
 }
 
+float3 TransformWorldToObjectDir(float3 dirWS)
+{
+    // Normalize to support uniform scaling
+    return normalize(mul((float3x3)GetWorldToObjectMatrix(), dirWS));
+}
+
 // Transforms normal from object to world space
 float3 TransformObjectToWorldNormal(float3 normalOS)
 {
@@ -355,6 +361,6 @@ float3 TransformTangentToObject(float3 dirTS, float3x3 worldToTangent)
 
 float3 TransformObjectToTangent(float3 dirOS, float3x3 worldToTangent)
 {
-    return mul(worldToTangent, mul((float3x3)unity_ObjectToWorld, dirOS));
+    return mul(worldToTangent, TransformObjectToWorldDir(dirOS));
 }
 #endif // UNITY_SHADER_VARIABLES_INCLUDED

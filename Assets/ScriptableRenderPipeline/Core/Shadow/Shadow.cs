@@ -243,6 +243,18 @@ namespace UnityEngine.Experimental.Rendering
 
             GPUShadowAlgorithm sanitizedAlgo = ShadowUtils.ClearPrecision( sr.shadowAlgorithm );
 
+            int     cascadeCnt = 0;
+            float[] cascadeRatios = null;
+            if( sr.shadowType == GPUShadowType.Directional )
+            {
+                AdditionalLightData ald = lights[sr.index].light.GetComponent<AdditionalLightData>();
+                if( !ald )
+                    return false;
+
+                ald.GetShadowCascades( out cascadeCnt, out cascadeRatios );
+            }
+
+
             if( multiFace )
             {
                 // For lights with multiple faces, the first shadow data contains
@@ -285,7 +297,7 @@ namespace UnityEngine.Experimental.Rendering
                         vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], out ce.current.view, out ce.current.proj, out ce.current.lightDir, out ce.current.splitData );
                     else if( sr.shadowType == GPUShadowType.Directional )
                     {
-                        vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, m_CascadeCount, m_CascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
+                        vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, cascadeCnt, cascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
                         m_TmpSplits[key.faceIdx]    = ce.current.splitData.cullingSphere;
                         if( ce.current.splitData.cullingSphere.w != float.NegativeInfinity )
                             m_TmpSplits[key.faceIdx].w *= ce.current.splitData.cullingSphere.w;
@@ -589,6 +601,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             bpp_16        = 1 << 0,
             channels_2    = 1 << 1,
+            reversed_z    = 1 << 2
         }
         protected readonly Flags m_Flags;
 
@@ -602,7 +615,7 @@ namespace UnityEngine.Experimental.Rendering
         readonly ValRange m_DefEVSM_PosExponent_16  = new ValRange( "Positive Exponent" , 1.0f, 1.0f    ,  5.54f , 1.0f   );
         readonly ValRange m_DefEVSM_NegExponent_16  = new ValRange( "Negative Exponent" , 1.0f, 1.0f    ,  5.54f , 1.0f   );
         readonly ValRange m_DefMSM_LightLeakBias    = new ValRange( "Light leak bias"   , 0.0f, 0.5f    ,  0.99f , 1.0f   );
-        readonly ValRange m_DefMSM_MomentBias       = new ValRange( "Moment Bias"       , 0.0f, 0.3f    ,  1.0f  , 0.0001f);
+        readonly ValRange m_DefMSM_MomentBias       = new ValRange( "Moment Bias"       , 0.0f, 0.0f    ,  1.0f  , 0.0001f);
         readonly ValRange m_DefMSM_DepthBias        = new ValRange( "Depth Bias"        , 0.0f, 0.1f    ,  1.0f  , 0.1f   );
 
         public static RenderTextureFormat GetFormat( bool use_16_BitsPerChannel, bool use_2_Channels, bool use_MSM )
@@ -621,6 +634,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_Flags |= (base.m_ShadowmapFormat == RenderTextureFormat.ARGBHalf || base.m_ShadowmapFormat == RenderTextureFormat.RGHalf || base.m_ShadowmapFormat == RenderTextureFormat.ARGB64) ? Flags.bpp_16 : 0;
             m_Flags |= (base.m_ShadowmapFormat == RenderTextureFormat.RGFloat  || base.m_ShadowmapFormat == RenderTextureFormat.RGHalf) ? Flags.channels_2 : 0;
+            m_Flags |= SystemInfo.usesReversedZBuffer ? Flags.reversed_z : 0;
 
             m_Shadowmap.enableRandomWrite = true;
             m_SampleCount  = 1; // TODO: Unity can't bind msaa rts as textures, yet, so this has to remain 1 for now
