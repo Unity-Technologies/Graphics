@@ -59,12 +59,12 @@ namespace UnityEditor.VFX
                 HashSet<VFXExpression> cpuExpressions = new HashSet<VFXExpression>();
                 HashSet<VFXExpression> gpuExpressions = new HashSet<VFXExpression>();
 
+                var expressionContext = new VFXExpression.Context(option);
+
                 foreach (var context in contexts.ToArray())
                 {
                     var cpuMapper = context.GetCPUExpressions();
                     var gpuMapper = context.GetGPUExpressions();
-
-                    var expressionContext = new VFXExpression.Context(option);
 
                     if (cpuMapper != null)
                     {
@@ -77,14 +77,14 @@ namespace UnityEditor.VFX
                         ProcessMapper(gpuMapper, expressionContext, gpuExpressions);
                         m_ContextsToGPUExpressions.Add(context, gpuMapper);
                     }
-
-                    expressionContext.Compile();
-
-                    foreach (var exp in expressionContext.RegisteredExpressions)
-                        m_ExpressionsToReduced.Add(exp, expressionContext.GetReduced(exp));
-
-                    m_Expressions.UnionWith(expressionContext.BuildAllReduced());
                 }
+
+                expressionContext.Compile();
+
+                foreach (var exp in expressionContext.RegisteredExpressions)
+                    m_ExpressionsToReduced.Add(exp, expressionContext.GetReduced(exp));
+
+                m_Expressions.UnionWith(expressionContext.BuildAllReduced());
 
                 // flatten
                 foreach (var exp in m_ExpressionsToReduced.Values)
