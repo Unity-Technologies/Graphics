@@ -12,7 +12,23 @@ namespace UnityEditor.VFX
             set { m_Capacity = value; }
         }
 
+        public Bounds bbox
+        {
+            get { return m_Bounds; }
+            set { m_Bounds = value; }
+        }
+
+        public bool worldSpace
+        {
+            get { return m_WorldSpace; }
+            set { m_WorldSpace = value; }
+        }
+
         [SerializeField]
         private uint m_Capacity = 1024;
+        [SerializeField]
+        private Bounds m_Bounds;
+        [SerializeField]
+        private bool m_WorldSpace;
     }
 }
