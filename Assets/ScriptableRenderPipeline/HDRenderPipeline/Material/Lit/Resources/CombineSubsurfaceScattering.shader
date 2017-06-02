@@ -66,16 +66,16 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 return /* 0.25 * */ S * (expOneThird + expOneThird * expOneThird * expOneThird);
             }
 
-            // Computes F(x)/P(x), s.t. x = sqrt(r^2 + z^2).
-            float3 ComputeBilateralWeight(float3 S, float r, float z, float rcpDistScale, float rcpPdf)
+            // Computes F(x)/P(x), s.t. x = sqrt(r^2 + t^2).
+            float3 ComputeBilateralWeight(float3 S, float r, float t, float rcpDistScale, float rcpPdf)
             {
                 // Reducing the integration distance is equivalent to stretching the integration axis.
-                float3 valX = KernelValCircle(sqrt(r * r + z * z) * rcpDistScale, S);
+                float3 valX = KernelValCircle(sqrt(r * r + t * t) * rcpDistScale, S);
 
                 // The reciprocal of the PDF could be reinterpreted as a 'dx' term in Int{F(x)dx}.
                 // As we shift the location of the value on the curve during integration,
                 // the length of the segment 'dx' under the curve changes approximately linearly.
-                float rcpPdfX = rcpPdf * (1 + abs(z) / r);
+                float rcpPdfX = rcpPdf * (1 + abs(t) / r);
 
                 return valX * rcpPdfX;
             }
@@ -90,16 +90,17 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                                                                                                 \
                 float2 position   = centerPosUnSS + vec * scaledPixPerMm;                       \
                 float  rcpPdf     = kernel[profileID][i][1];                                    \
-                float  depth      = LOAD_TEXTURE2D(_MainDepthTexture, position).r;              \
                 float3 irradiance = LOAD_TEXTURE2D(_IrradianceSource, position).rgb;            \
                                                                                                 \
+                /* TODO: see if making this a [branch] improves performance. */                 \
                 [flatten]                                                                       \
                 if (any(irradiance))                                                            \
                 {                                                                               \
                     /* Apply bilateral weighting. */                                            \
-                    float  d = LinearEyeDepth(depth, _ZBufferParams);                           \
-                    float  z = millimPerUnit * d - (millimPerUnit * centerDepthVS);             \
-                    float3 w = ComputeBilateralWeight(shapeParam, r, z, rcpDistScale, rcpPdf);  \
+                    float  z = LOAD_TEXTURE2D(_MainDepthTexture, position).r;                   \
+                    float  d = LinearEyeDepth(z, _ZBufferParams);                               \
+                    float  t = millimPerUnit * d - (millimPerUnit * centerDepthVS);             \
+                    float3 w = ComputeBilateralWeight(shapeParam, r, t, rcpDistScale, rcpPdf);  \
                                                                                                 \
                     totalIrradiance += w * irradiance;                                          \
                     totalWeight     += w;                                                       \
