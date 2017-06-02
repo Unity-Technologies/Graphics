@@ -119,6 +119,25 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 }                                                                               \
             }
 
+            #define SSS_LOOP(n, kernel, profileID, shapeParam, centerPosUnSS, centerDepthVS,    \
+                    millimPerUnit, scaledPixPerMm, rcpDistScale, totalIrradiance, totalWeight)  \
+            {                                                                                   \
+                float  centerRcpPdf = kernel[profileID][0][1];                                  \
+                float3 centerWeight = KernelValCircle(0, shapeParam) * centerRcpPdf;            \
+                                                                                                \
+                totalIrradiance = centerWeight * centerIrradiance;                              \
+                totalWeight     = centerWeight;                                                 \
+                                                                                                \
+                /* Perform integration over the screen-aligned plane in the view space. */      \
+                /* TODO: it would be more accurate to use the tangent plane instead.    */      \
+                [unroll]                                                                        \
+                for (uint i = 1; i < n; i++)                                                    \
+                {                                                                               \
+                    SSS_ITER(i, n, kernel, profileID, shapeParam, centerPosUnSS, centerDepthVS, \
+                    millimPerUnit, scaledPixPerMm, rcpDistScale, totalIrradiance, totalWeight)  \
+                }                                                                               \
+            }
+
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
@@ -189,49 +208,25 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 [branch]
                 if (maxDistancePixels < SSS_LOD_THRESHOLD)
                 {
-                    #if SSS_DEBUG
-                        return float4(0.5, 0.5, 0, 1);
-                    #endif
+                #if SSS_DEBUG
+                    return float4(0.5, 0.5, 0, 1);
+                #endif
 
-                    float  centerRcpPdf = _FilterKernelsFarField[profileID][0][1];
-                    float3 centerWeight = KernelValCircle(0, shapeParam) * centerRcpPdf;
-
-                    totalIrradiance = centerWeight * centerIrradiance;
-                    totalWeight     = centerWeight;
-
-                    // Perform integration over the screen-aligned plane in the view space.
-                    // TODO: it would be more accurate to use the tangent plane in the world space.
-                    [unroll]
-                    for (uint i = 1; i < SSS_N_SAMPLES_FAR_FIELD; i++)
-                    {
-                        SSS_ITER(i, SSS_N_SAMPLES_FAR_FIELD, _FilterKernelsFarField,
-                                 profileID, shapeParam, centerPosition, centerPosVS.z,
-                                 millimPerUnit, scaledPixPerMm, rcp(distScale),
-                                 totalIrradiance, totalWeight)
-                    }
+                    SSS_LOOP(SSS_N_SAMPLES_FAR_FIELD, _FilterKernelsFarField,
+                             profileID, shapeParam, centerPosition, centerPosVS.z,
+                             millimPerUnit, scaledPixPerMm, rcp(distScale),
+                             totalIrradiance, totalWeight)
                 }
                 else
                 {
-                    #if SSS_DEBUG
-                        return float4(1, 0, 0, 1);
-                    #endif
+                #if SSS_DEBUG
+                    return float4(1, 0, 0, 1);
+                #endif
 
-                    float  centerRcpPdf = _FilterKernelsNearField[profileID][0][1];
-                    float3 centerWeight = KernelValCircle(0, shapeParam) * centerRcpPdf;
-
-                    totalIrradiance = centerWeight * centerIrradiance;
-                    totalWeight     = centerWeight;
-
-                    // Perform integration over the screen-aligned plane in the view space.
-                    // TODO: it would be more accurate to use the tangent plane in the world space.
-                    [unroll]
-                    for (uint i = 1; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
-                    {
-                        SSS_ITER(i, SSS_N_SAMPLES_NEAR_FIELD, _FilterKernelsNearField,
-                                 profileID, shapeParam, centerPosition, centerPosVS.z,
-                                 millimPerUnit, scaledPixPerMm, rcp(distScale),
-                                 totalIrradiance, totalWeight)
-                    }
+                    SSS_LOOP(SSS_N_SAMPLES_NEAR_FIELD, _FilterKernelsNearField,
+                             profileID, shapeParam, centerPosition, centerPosVS.z,
+                             millimPerUnit, scaledPixPerMm, rcp(distScale),
+                             totalIrradiance, totalWeight)
                 }
 
                 return float4(bsdfData.diffuseColor * totalIrradiance / totalWeight, 1);
