@@ -38,8 +38,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Subsurface Scattering Settings
             public readonly GUIContent[] sssProfiles    = new GUIContent[SssConstants.SSS_N_PROFILES - 1] { new GUIContent("Profile #1"), new GUIContent("Profile #2"), new GUIContent("Profile #3"), new GUIContent("Profile #4"), new GUIContent("Profile #5"),
-                                                                                                            new GUIContent("Profile #6"), new GUIContent("Profile #7"), new GUIContent("Profile #8"), new GUIContent("Profile #9"), new GUIContent("Profile #10"),
-                                                                                                            new GUIContent("Profile #11"), new GUIContent("Profile #12"), new GUIContent("Profile #13"), new GUIContent("Profile #14"), new GUIContent("Profile #15") };
+                                                                                                            new GUIContent("Profile #6"), new GUIContent("Profile #7")/*, new GUIContent("Profile #8"), new GUIContent("Profile #9"), new GUIContent("Profile #10"),
+                                                                                                            new GUIContent("Profile #11"), new GUIContent("Profile #12"), new GUIContent("Profile #13"), new GUIContent("Profile #14"), new GUIContent("Profile #15")*/ };
             public readonly GUIContent   sssNumProfiles = new GUIContent("Number of profiles");
 
             // Tile pass Settings
