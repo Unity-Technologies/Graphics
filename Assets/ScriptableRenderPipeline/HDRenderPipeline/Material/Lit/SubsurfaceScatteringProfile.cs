@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int SSS_N_PROFILES           = 8;  // Max. number of profiles, including the slot taken by the neutral profile
         public const int SSS_NEUTRAL_PROFILE_ID   = SSS_N_PROFILES - 1; // Does not result in blurring
         public const int SSS_N_SAMPLES_NEAR_FIELD = 55; // Used for extreme close ups; must be a Fibonacci number
-        public const int SSS_N_SAMPLES_FAR_FIELD  = 34; // Used at a regular distance; must be a Fibonacci number
+        public const int SSS_N_SAMPLES_FAR_FIELD  = 21; // Used at a regular distance; must be a Fibonacci number
         public const int SSS_TRSM_MODE_NONE       = 0;
         public const int SSS_TRSM_MODE_THIN       = 1;
     }
@@ -105,7 +105,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ScatteringDistance = m_FilterKernelNearField[SssConstants.SSS_N_SAMPLES_NEAR_FIELD - 1].x;
 
-            // TODO: far field.
+            // Importance sample the far field kernel.
+            for (int i = 0; i < SssConstants.SSS_N_SAMPLES_FAR_FIELD; i++)
+            {
+                float p = i * (1.0f / SssConstants.SSS_N_SAMPLES_FAR_FIELD);
+                float r = KernelCdfInverse(p, s);
+
+                // N.b.: computation of normalized weights, and multiplication by the surface albedo
+                // of the actual geometry is performed at runtime (in the shader).
+                m_FilterKernelFarField[i].x = r;
+                m_FilterKernelFarField[i].y = 1.0f / KernelPdf(r, s);
+            }
         }
 
         public Vector3 shapeParameter
