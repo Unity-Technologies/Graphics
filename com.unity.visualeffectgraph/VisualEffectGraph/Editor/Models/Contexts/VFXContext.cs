@@ -59,17 +59,24 @@ namespace UnityEditor.VFX
 
             if (m_Outputs == null)
                 m_Outputs = new List<VFXContext>();
+
+            if (m_Data == null)
+                SetDefaultData(false);
         }
 
         public virtual VFXContextType contextType   { get { return m_ContextType; } }
         public virtual VFXDataType inputType        { get { return m_InputType; } }
         public virtual VFXDataType outputType       { get { return m_OutputType; } }
+        public virtual VFXDataType ownedType        { get { return contextType == VFXContextType.kOutput ? inputType : outputType; } }
 
         public override void CollectDependencies(HashSet<Object> objs)
         {
             base.CollectDependencies(objs);
             if (m_Data != null)
+            {
+                objs.Add(m_Data);
                 m_Data.CollectDependencies(objs);
+            }
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -170,6 +177,9 @@ namespace UnityEditor.VFX
                 if (!context.CanLinkToMany() || context.contextType != from.contextType)
                     InnerUnlink(context, to);
 
+            if (from.ownedType == to.ownedType)
+                to.InnerSetData(from.GetData(), false);
+
             from.m_Outputs.Add(to);
             to.m_Inputs.Add(from);
 
@@ -180,6 +190,9 @@ namespace UnityEditor.VFX
 
         private static void InnerUnlink(VFXContext from, VFXContext to)
         {
+            if (from.ownedType == to.ownedType)
+                to.SetDefaultData(false);
+
             from.m_Outputs.Remove(to);
             to.m_Inputs.Remove(from);
 
@@ -217,7 +230,17 @@ namespace UnityEditor.VFX
             return null;
         }
 
+        private void SetDefaultData(bool notify)
+        {
+            InnerSetData(VFXData.CreateDataType(ownedType), notify);
+        }
+
         public void SetData(VFXData data)
+        {
+            InnerSetData(data, true);
+        }
+
+        public void InnerSetData(VFXData data, bool notify)
         {
             if (m_Data != data)
             {
@@ -227,7 +250,13 @@ namespace UnityEditor.VFX
                 if (m_Data != null)
                     m_Data.OnContextAdded(this);
 
-                Invalidate(InvalidationCause.kStructureChanged);
+                if (notify)
+                    Invalidate(InvalidationCause.kStructureChanged);
+
+                // Propagate data downwards
+                foreach (var output in m_Outputs)
+                    if (output.ownedType == ownedType)
+                        output.InnerSetData(data, notify);
             }
         }
 
