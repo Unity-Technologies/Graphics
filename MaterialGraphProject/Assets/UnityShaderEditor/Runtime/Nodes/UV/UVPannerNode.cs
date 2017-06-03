@@ -1,68 +1,32 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("UV/UV Panner")]
-    public class PannerNode : Function3Input, IGeneratesFunction
+    public class PannerNode : CodeFunctionNode
     {
         public PannerNode()
         {
             name = "UVPanner";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_uvpanner_" + precision;
+            return GetType().GetMethod("Unity_UVPanner", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override string GetInputSlot1Name()
+        static string Unity_UVPanner(
+            [Slot(0, Binding.MeshUV0)] Vector2 uv,
+            [Slot(1, Binding.None)] Vector1 horizontalOffset,
+            [Slot(2, Binding.None)] Vector1 verticalOffset,
+            [Slot(3, Binding.None)] out Vector2 result)
         {
-            return "UV";
-        }
-
-        protected override string GetInputSlot2Name()
-        {
-            return "HorizontalOffset";
-        }
-
-        protected override string GetInputSlot3Name()
-        {
-            return "VerticalOffset";
-        }
-        
-        protected override MaterialSlot GetInputSlot1()
-        {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector1, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetInputSlot3()
-        {
-            return new MaterialSlot(InputSlot3Id, GetInputSlot3Name(), kInputSlot3ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector1, Vector4.zero);
-        }
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        public override bool hasPreview
-        {
-            get { return true; }
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("UV", "HorizontalOffset", "VerticalOffset"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return float2(UV.x + HorizontalOffset, UV.y + VerticalOffset);", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            result = Vector2.zero;
+            return
+                @"
+{
+     result = float2(uv.x + horizontalOffset, uv.y + verticalOffset);
+}";
         }
     }
 }

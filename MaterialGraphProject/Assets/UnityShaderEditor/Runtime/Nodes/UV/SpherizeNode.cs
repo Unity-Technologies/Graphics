@@ -1,77 +1,35 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("UV/Spherize")]
-    public class SpherizeNode : Function3Input, IGeneratesFunction
+    public class SpherizeNode : CodeFunctionNode
     {
         public SpherizeNode()
         {
             name = "Spherize";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_spherize_" + precision;
+            return GetType().GetMethod("Unity_Spherize", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override string GetInputSlot1Name()
+        static string Unity_Spherize(
+            [Slot(0, Binding.MeshUV0)] Vector2 uv,
+            [Slot(1, Binding.None)] Vector2 position,
+            [Slot(2, Binding.None)] Vector2 radiusAndStrength,
+            [Slot(3, Binding.None)] out Vector2 result)
         {
-            return "UV";
-        }
-
-        protected override MaterialSlot GetInputSlot1()
-        {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        protected override string GetInputSlot2Name()
-        {
-            return "Position";
-        }
-
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        protected override string GetInputSlot3Name()
-        {
-            return "RadiusAndStrength";
-        }
-
-        protected override MaterialSlot GetInputSlot3()
-        {
-            return new MaterialSlot(InputSlot3Id, GetInputSlot3Name(), kInputSlot3ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector3.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("uv", "position", "radiusAndStrength"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            //vec2 fromUVToPoint = pos - uv;
-            //dist = length(fromUVToPoint);
-
-            //float mag = (1.0 - (dist / radius)) * strength;
-            //mag *= step(dist, radius);
-
-            //return uv + (mag * fromUVToPoint);
-
-            outputString.AddShaderChunk("float2 fromUVToPoint = position - uv;", false);
-            outputString.AddShaderChunk("float dist = length(fromUVToPoint);", false);
-            outputString.AddShaderChunk("float mag = ((1.0 - (dist / radiusAndStrength.x)) * radiusAndStrength.y) * step(dist, radiusAndStrength.x);", false);
-            outputString.AddShaderChunk("return uv + (mag * fromUVToPoint);", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            result = Vector2.zero;
+            return
+                @"
+{
+     {precision}2 fromUVToPoint = position - uv;
+     {precision} dist = length(fromUVToPoint);
+     {precision} mag = ((1.0 - (dist / radiusAndStrength.x)) * radiusAndStrength.y) * step(dist, radiusAndStrength.x);
+     return uv + (mag * fromUVToPoint);
+}";
         }
     }
 }

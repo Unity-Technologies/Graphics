@@ -81,7 +81,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void TestGenerateNodeCodeGeneratesCorrectCode()
         {
             string expected = string.Format("half {0} = unity_test_half ({1}, {2}, {3}, {4});{5}"
-                    , m_TestNode.GetVariableNameForSlot(Function3Input.OutputSlotId)
+                    , m_TestNode.GetVariableNameForSlot(Function4Input.OutputSlotId)
                     , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
                     , m_InputTwo.GetVariableNameForSlot(Vector1Node.OutputSlotId)
                     , m_InputThree.GetVariableNameForSlot(Vector1Node.OutputSlotId)

@@ -1,71 +1,36 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Line")]
-    public class LineNode : Function3Input, IGeneratesFunction
+    public class LineNode : CodeFunctionNode
     {
         public LineNode()
         {
             name = "Line";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_linenode_" + precision;
+            return GetType().GetMethod("Unity_Linenode", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override string GetInputSlot1Name()
+        static string Unity_Linenode(
+            [Slot(0, Binding.MeshUV0)] Vector2 uv,
+            [Slot(1, Binding.None)] Vector2 startPoint,
+            [Slot(2, Binding.None)] Vector2 endPoint,
+            [Slot(3, Binding.None)] out Vector1 result)
         {
-            return "UV";
-        }
-
-        protected override string GetInputSlot2Name()
-        {
-            return "StartPoint";
-        }
-
-        protected override string GetInputSlot3Name()
-        {
-            return "EndPoint";
-        }
-
-        protected override MaterialSlot GetInputSlot1()
-        {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetInputSlot3()
-        {
-            return new MaterialSlot(InputSlot3Id, GetInputSlot3Name(), kInputSlot3ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector1, Vector2.zero);
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("uv", "a", "b"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk("float2 aTob = b - a;", false);
-            outputString.AddShaderChunk("float2 aTop = uv - a;", false);
-            outputString.AddShaderChunk("float t = dot(aTop, aTob) / dot(aTob, aTob);", false);
-            outputString.AddShaderChunk("t = clamp(t, 0.0, 1.0);", false);
-            outputString.AddShaderChunk("float d = 1.0 / length(uv - (a + aTob * t));", false);
-            outputString.AddShaderChunk("return clamp(d, 0.0, 1.0);", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    {precision}2 aTob = endPoint - startPoint;
+    {precision}2 aTop = uv - startPoint;
+    {precision} t = dot(aTop, aTob) / dot(aTob, aTob);
+    t = clamp(t, 0.0, 1.0);
+    {precision} d = 1.0 / length(uv - (startPoint + aTob * t));
+    return clamp(d, 0.0, 1.0);
+}";
         }
     }
 }
