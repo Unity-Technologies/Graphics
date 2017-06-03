@@ -1,28 +1,31 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Interpolation/SmoothStep")]
-    class SmoothStepNode : Function3Input
+    class SmoothStepNode : CodeFunctionNode
     {
         public SmoothStepNode()
         {
             name = "SmoothStep";
         }
 
-		protected override string GetInputSlot1Name()
-		{
-			return "InputA";
-		}
+        protected override MethodInfo GetFunctionToConvert()
+        {
+            return GetType().GetMethod("Unity_Smoothstep", BindingFlags.Static | BindingFlags.NonPublic);
+        }
 
-		protected override string GetInputSlot2Name()
-		{
-			return "InputB";
-		}
-
-		protected override string GetInputSlot3Name()
-		{
-			return "T";
-		}
-
-        protected override string GetFunctionName() {return "smoothstep"; }
+        static string Unity_Smoothstep(
+            [Slot(0, Binding.None)] DynamicDimensionVector inputA,
+            [Slot(1, Binding.None)] DynamicDimensionVector inputB,
+            [Slot(2, Binding.None)] DynamicDimensionVector t,
+            [Slot(3, Binding.None)] out DynamicDimensionVector result)
+        {
+            return
+                @"
+{
+    result = smoothstep(inputA, inputB, t);
+}";
+        }
     }
 }

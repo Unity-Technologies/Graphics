@@ -1,63 +1,31 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Checkerboard")]
-    public class CheckerboardNode : Function3Input, IGeneratesFunction
+    public class CheckerboardNode : CodeFunctionNode
     {
         public CheckerboardNode()
         {
             name = "Checkerboard";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_checkerboard_" + precision;
+            return GetType().GetMethod("Unity_Checkerboard", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override string GetInputSlot1Name()
+        static string Unity_Checkerboard(
+            [Slot(0, Binding.MeshUV0)] Vector2 uv,
+            [Slot(1, Binding.None)] Vector1 horizontalTileScale,
+            [Slot(2, Binding.None)] Vector1 verticalTileScale,
+            [Slot(3, Binding.None)] out Vector1 result)
         {
-            return "UV";
-        }
-
-        protected override string GetInputSlot2Name()
-        {
-            return "HorizontalTileScale";
-        }
-
-        protected override string GetInputSlot3Name()
-        {
-            return "VerticalTileScale";
-        }
-
-        protected override MaterialSlot GetInputSlot1()
-        {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector1, new Vector4(10,0,0,0));
-        }
-
-        protected override MaterialSlot GetInputSlot3()
-        {
-            return new MaterialSlot(InputSlot3Id, GetInputSlot3Name(), kInputSlot3ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector1, new Vector4(10, 0, 0, 0));
-        }
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector1, Vector2.zero);
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("uv", "horizontalTileScale", "verticalTileScale"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return abs(floor(fmod(floor(uv.x * horizontalTileScale) + floor(uv.y * verticalTileScale), 2.0)));", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    result = abs(floor(fmod(floor(uv.x * horizontalTileScale) + floor(uv.y * verticalTileScale), 2.0)));
+}";
         }
     }
 }
