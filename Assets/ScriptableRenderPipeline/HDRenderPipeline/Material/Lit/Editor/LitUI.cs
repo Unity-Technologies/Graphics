@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Experimental.Rendering.HDPipeline.Lit;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -358,15 +357,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            switch ((MaterialId)materialID.floatValue)
+            switch ((Lit.MaterialId)materialID.floatValue)
             {
-                case MaterialId.LitSSS:
+                case Lit.MaterialId.LitSSS:
                     ShaderSSSInputGUI(material);
                     break;
-                case MaterialId.LitStandard:
+                case Lit.MaterialId.LitStandard:
                     ShaderStandardInputGUI();
                     break;
-                case MaterialId.LitSpecular:
+                case Lit.MaterialId.LitSpecular:
                     m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
                     break;
                 default:

@@ -5,7 +5,7 @@ using UnityEngine;
 //-----------------------------------------------------------------------------
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    namespace Builtin
+    public class Builtin // Note: This particular class doesn't derive from RenderPipelineMaterial
     {
         //-----------------------------------------------------------------------------
         // BuiltinData
@@ -58,28 +58,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 emissiveColor; // HDR value
         };
 
-        public class RenderLoop : Object
+        public static RenderTextureFormat GetVelocityBufferFormat()
         {
-            public static RenderTextureFormat GetVelocityBufferFormat()
-            {
-                return RenderTextureFormat.RGHalf; // TODO: We should use 16bit normalized instead, better precision // RGInt
-            }
+            return RenderTextureFormat.RGHalf; // TODO: We should use 16bit normalized instead, better precision // RGInt
+        }
 
-            public static RenderTextureReadWrite GetVelocityBufferReadWrite()
-            {
-                return RenderTextureReadWrite.Linear;
-            }
+        public static RenderTextureReadWrite GetVelocityBufferReadWrite()
+        {
+            return RenderTextureReadWrite.Linear;
+        }
 
-            public static RenderTextureFormat GetDistortionBufferFormat()
-            {
-                // TODO: // This format need to be additive blendable and include distortionBlur, blend mode different for alpha value
-                return RenderTextureFormat.ARGBHalf;
-            }
+        public static RenderTextureFormat GetDistortionBufferFormat()
+        {
+            // TODO: // This format need to be additive blendable and include distortionBlur, blend mode different for alpha value
+            return RenderTextureFormat.ARGBHalf;
+        }
 
-            public static RenderTextureReadWrite GetDistortionBufferReadWrite()
-            {
-                return RenderTextureReadWrite.Linear;
-            }
+        public static RenderTextureReadWrite GetDistortionBufferReadWrite()
+        {
+            return RenderTextureReadWrite.Linear;
         }
     }
 }
