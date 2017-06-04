@@ -176,57 +176,96 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        string GetSubNameSpaceName(Type type)
+        public class MaterialItem
         {
-            return type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1) + "/";
-        }
+            public String className;
+            public Type surfaceDataType;
+            public Type bsdfDataType;
+        };
 
         void BuildDebugRepresentation()
         {
             if (!isDebugViewMaterialInit)
             {
-                var varyingNames = Enum.GetNames(typeof(Attributes.DebugViewVarying));
-                debugViewMaterialVaryingStrings = new GUIContent[varyingNames.Length];
-                debugViewMaterialVaryingValues = new int[varyingNames.Length];
-                var gbufferNames = Enum.GetNames(typeof(Attributes.DebugViewGbuffer));
-                debugViewMaterialGBufferStrings = new GUIContent[gbufferNames.Length + typeof(Lit.BSDFData).GetFields().Length];
-                debugViewMaterialGBufferValues = new int[gbufferNames.Length + typeof(Lit.BSDFData).GetFields().Length];
+                List<RenderPipelineMaterial> materialList = Utilities.GetRenderPipelineMaterialList();
+                RenderPipelineMaterial deferredMaterial = null;
 
-                var num = typeof(Builtin.BuiltinData).GetFields().Length * 2 // BuildtinData are duplicated for each material
-                    + typeof(Lit.SurfaceData).GetFields().Length
-                    + typeof(Unlit.SurfaceData).GetFields().Length
-                    + 1; // None
+                // TODO: Share this code to retrieve deferred material with HDRenderPipeline
+                // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
+                Type bsdfDataDeferredType = null;
+                foreach (RenderPipelineMaterial material in materialList)
+                {
+                    if (material.GetMaterialGBufferCount() > 0)
+                    {
+                        deferredMaterial = material;
+                        bsdfDataDeferredType = material.GetType().GetNestedType("BSDFData");
+                    }
+                }
+
+                // TODO: Handle the case of no Gbuffer material
+                Debug.Assert(deferredMaterial != null);
+
+                List<MaterialItem> materialItems = new List<MaterialItem>();
+
+                int numSurfaceDataFields = 0;
+                int numBSDFDataFields = 0;
+                foreach (RenderPipelineMaterial material in materialList)
+                {
+                    MaterialItem item = new MaterialItem();
+
+                    item.className = material.GetType().Name;
+
+                    item.surfaceDataType = material.GetType().GetNestedType("SurfaceData");
+                    numSurfaceDataFields += item.surfaceDataType.GetFields().Length;
+
+                    item.bsdfDataType = material.GetType().GetNestedType("BSDFData");
+                    numBSDFDataFields += item.bsdfDataType.GetFields().Length;
+
+                    materialItems.Add(item);
+                }
+
+                // Material properties debug
+                var num =   typeof(Builtin.BuiltinData).GetFields().Length * materialList.Count // BuildtinData are duplicated for each material
+                            + numSurfaceDataFields + 1; // +1 for None case
 
                 debugViewMaterialStrings = new GUIContent[num];
                 debugViewMaterialValues = new int[num];
-
-                num = typeof(Lit.BSDFData).GetFields().Length
-                    + typeof(Unlit.BSDFData).GetFields().Length
-                    + 1; // None
-
-                debugViewEngineStrings = new GUIContent[num];
-                debugViewEngineValues = new int[num];
-
-
-                // Special case for None since it cannot be inferred from SurfaceDAta/BuiltinData
+                // Special case for None since it cannot be inferred from SurfaceData/BuiltinData
                 debugViewMaterialStrings[0] = new GUIContent("None");
                 debugViewMaterialValues[0] = 0;
                 var index = 1;
                 // 0 is a reserved number and should not be used (allow to track error)
-                FillWithProperties(typeof(Builtin.BuiltinData), debugViewMaterialStrings, debugViewMaterialValues, GetSubNameSpaceName(typeof(Lit.SurfaceData)), ref index);
-                FillWithProperties(typeof(Lit.SurfaceData), debugViewMaterialStrings, debugViewMaterialValues, GetSubNameSpaceName(typeof(Lit.SurfaceData)), ref index);
-                FillWithProperties(typeof(Builtin.BuiltinData), debugViewMaterialStrings, debugViewMaterialValues, GetSubNameSpaceName(typeof(Unlit.SurfaceData)), ref index);
-                FillWithProperties(typeof(Unlit.SurfaceData), debugViewMaterialStrings, debugViewMaterialValues, GetSubNameSpaceName(typeof(Unlit.SurfaceData)), ref index);
+                foreach (MaterialItem item in materialItems)
+                {
+                    // BuiltinData are duplicated for each material
+                    FillWithProperties(typeof(Builtin.BuiltinData), debugViewMaterialStrings, debugViewMaterialValues, item.className, ref index);
+                    FillWithProperties(item.surfaceDataType, debugViewMaterialStrings, debugViewMaterialValues, item.className, ref index);
+                }
 
-                // Engine
+                // Engine properties debug
+                num = numBSDFDataFields + 1; // +1 for None case
+                debugViewEngineStrings = new GUIContent[num];
+                debugViewEngineValues = new int[num];
+                // 0 is a reserved number and should not be used (allow to track error)
                 debugViewEngineStrings[0] = new GUIContent("None");
                 debugViewEngineValues[0] = 0;
                 index = 1;
-                FillWithProperties(typeof(Lit.BSDFData), debugViewEngineStrings, debugViewEngineValues, GetSubNameSpaceName(typeof(Lit.BSDFData)), ref index);
-                FillWithProperties(typeof(Unlit.BSDFData), debugViewEngineStrings, debugViewEngineValues, GetSubNameSpaceName(typeof(Unlit.BSDFData)), ref index);
+                foreach (MaterialItem item in materialItems)
+                {
+                    FillWithProperties(item.bsdfDataType, debugViewEngineStrings, debugViewEngineValues, item.className, ref index);
+                }
 
+                // Attributes debug
+                var varyingNames = Enum.GetNames(typeof(Attributes.DebugViewVarying));
+                debugViewMaterialVaryingStrings = new GUIContent[varyingNames.Length];
+                debugViewMaterialVaryingValues = new int[varyingNames.Length];
                 index = 0;
                 FillWithPropertiesEnum(typeof(Attributes.DebugViewVarying), debugViewMaterialVaryingStrings, debugViewMaterialVaryingValues, "", ref index);
+
+                // Gbuffer debug
+                var gbufferNames = Enum.GetNames(typeof(Attributes.DebugViewGbuffer));
+                debugViewMaterialGBufferStrings = new GUIContent[gbufferNames.Length + bsdfDataDeferredType.GetFields().Length];
+                debugViewMaterialGBufferValues = new int[gbufferNames.Length + bsdfDataDeferredType.GetFields().Length];
                 index = 0;
                 FillWithPropertiesEnum(typeof(Attributes.DebugViewGbuffer), debugViewMaterialGBufferStrings, debugViewMaterialGBufferValues, "", ref index);
                 FillWithProperties(typeof(Lit.BSDFData), debugViewMaterialGBufferStrings, debugViewMaterialGBufferValues, "", ref index);

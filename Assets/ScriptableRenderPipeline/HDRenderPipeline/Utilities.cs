@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 using UnityEngine.Rendering;
-
 using UnityObject = UnityEngine.Object;
+using System.Reflection;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -27,6 +27,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class Utilities
     {
+        public static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
+        {
+            List<RenderPipelineMaterial> materialList = new List<RenderPipelineMaterial>();
+
+            var baseType = typeof(RenderPipelineMaterial);
+            var assembly = baseType.Assembly;
+
+            System.Type[] types = assembly.GetTypes();
+            foreach (System.Type type in types)
+            {
+                if (type.IsSubclassOf(baseType))
+                {
+                    // Create an instance object of the given type
+                    var obj = (RenderPipelineMaterial)Activator.CreateInstance(type);
+                    materialList.Add(obj);
+                }
+            }
+
+            return materialList;
+        }
+
         public const RendererConfiguration kRendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
 
 
