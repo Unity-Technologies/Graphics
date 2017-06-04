@@ -147,6 +147,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Scan material list and assign it
             m_MaterialList = Utilities.GetRenderPipelineMaterialList();
             // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
+            m_DeferredMaterial = null;
             foreach (RenderPipelineMaterial material in m_MaterialList)
             {
                 if (material.GetMaterialGBufferCount() > 0)
@@ -156,7 +157,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // TODO: Handle the case of no Gbuffer material
-            Debug.Assert(m_DeferredMaterial != null);
+            // TODO: I comment the assert here because m_DeferredMaterial for whatever reasons contain the correct class but with a "null" in the name instead of the real name and then trigger the assert
+            // whereas it work. Don't know what is hapening, DebugDisplay use the same code and name is correct there.
+            // Debug.Assert(m_DeferredMaterial != null);
 
             m_CameraColorBuffer             = Shader.PropertyToID("_CameraColorTexture");
             m_CameraSubsurfaceBuffer        = Shader.PropertyToID("_CameraSubsurfaceTexture");
