@@ -123,7 +123,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightingDebugSettings.OnValidate();
         }
 
-        void FillWithProperties(Type type, GUIContent[] debugViewMaterialStrings, int[] debugViewMaterialValues, string strSubNameSpace, ref int index)
+        // className include the additional "/"
+        void FillWithProperties(Type type, GUIContent[] debugViewMaterialStrings, int[] debugViewMaterialValues, string className, ref int index)
         {
             var attributes = type.GetCustomAttributes(true);
             // Get attribute to get the start number of the value for the enum
@@ -151,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                fieldName = strSubNameSpace + fieldName;
+                fieldName = className + fieldName;
 
                 debugViewMaterialStrings[index] = new GUIContent(fieldName);
                 debugViewMaterialValues[index] = attr.paramDefinesStart + (int)localIndex;
@@ -213,7 +214,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     MaterialItem item = new MaterialItem();
 
-                    item.className = material.GetType().Name;
+                    item.className = material.GetType().Name + "/";
 
                     item.surfaceDataType = material.GetType().GetNestedType("SurfaceData");
                     numSurfaceDataFields += item.surfaceDataType.GetFields().Length;
