@@ -1895,7 +1895,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         else
                         {
                             // If SSS is disable, do lighting for both split lighting and no split lighting
-                            if (debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
+                            if (!debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
                             {
                                 m_SingleDeferredMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.NoLighting);
                                 m_SingleDeferredMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.NotEqual);
@@ -2035,18 +2035,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 else
                                 {
                                     // If SSS is disable, do lighting for both split lighting and no split lighting
-                                    if (debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
+                                    if (!debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
                                     {
                                         m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.NoLighting);
                                         m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.NotEqual);
 
-                                        m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.NoLighting);
-                                        m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.NotEqual);
+                                        m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.NoLighting);
+                                        m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.NotEqual);
                                     }
                                     else
                                     {
-                                        m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
-                                        m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
+                                        m_DeferredDirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
+                                        m_DeferredDirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
 
                                         m_DeferredIndirectMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.RegularLighting);
                                         m_DeferredIndirectMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.Equal);
@@ -2069,7 +2069,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 else
                                 {
                                     // If SSS is disable, do lighting for both split lighting and no split lighting
-                                    if (debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
+                                    if (!debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
                                     {
                                         m_DeferredAllMaterialSRT.SetInt("_StencilRef", (int)StencilLightingUsage.NoLighting);
                                         m_DeferredAllMaterialSRT.SetInt("_StencilCmp", (int)CompareFunction.NotEqual);
