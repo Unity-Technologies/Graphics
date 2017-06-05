@@ -118,20 +118,6 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
-// Computes the fraction of light passing through the object.
-// Evaluate Int{0, inf}{2 * Pi * r * R(sqrt(r^2 + d^2))}, where R is the diffusion profile.
-// Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar (BSSRDF only).
-float3 ComputeTransmittance(float3 S, float3 volumeAlbedo, float thickness, float radiusScale)
-{
-    // Thickness and SSS radius are decoupled for artists.
-    // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
-    // thickness /= radiusScale;
-
-    float3 expOneThird = exp(((-1.0 / 3.0) * thickness) * S);
-
-    return 0.25 * (expOneThird + 3 * expOneThird * expOneThird * expOneThird) * volumeAlbedo;
-}
-
 void FillMaterialIdStandardData(float3 baseColor, float specular, float metallic, float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
 {
     bsdfData.diffuseColor = baseColor * (1.0 - metallic);
