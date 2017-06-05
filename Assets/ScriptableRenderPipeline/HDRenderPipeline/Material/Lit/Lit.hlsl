@@ -51,6 +51,8 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
 #define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
+#define SSS_WRAP_ANGLE (PI/12)              // Used for wrap lighting
+#define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
 uint   _EnableSSS;                          // Globally toggles subsurface scattering on/off
 uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
@@ -770,8 +772,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
         // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        const float w = 0.3;
-        illuminance = saturate((-NdotL + w) / ((1.0 + w) * (1.0 + w)));
+        illuminance = saturate((-NdotL + SSS_WRAP_LIGHT) / ((1 + SSS_WRAP_LIGHT) * (1 + SSS_WRAP_LIGHT)));
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -877,8 +878,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
         // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        const float w = 0.3;
-        illuminance = saturate((-NdotL + w) / ((1.0 + w) * (1.0 + w)));
+        illuminance = saturate((-NdotL + SSS_WRAP_LIGHT) / ((1 + SSS_WRAP_LIGHT) * (1 + SSS_WRAP_LIGHT)));
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -963,8 +963,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
         // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        const float w = 0.3;
-        illuminance = saturate((-NdotL + w) / ((1.0 + w) * (1.0 + w)));
+        illuminance = saturate((-NdotL + SSS_WRAP_LIGHT) / ((1 + SSS_WRAP_LIGHT) * (1 + SSS_WRAP_LIGHT)));
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
