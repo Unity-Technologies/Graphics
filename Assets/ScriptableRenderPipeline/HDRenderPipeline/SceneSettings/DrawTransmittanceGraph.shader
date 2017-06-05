@@ -30,7 +30,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _SurfaceAlbedo, _ShapeParameter, _ThicknessRemap;
+            float4 _VolumeAlbedo, _ShapeParameter, _ThicknessRemap;
             float _ScatteringDistance; // See 'SubsurfaceScatteringProfile'
 
             //-------------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             float4 Frag(Varyings input) : SV_Target
             {
                 float  d = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x));
-                float3 T = ComputeTransmittance(_ShapeParameter.rgb, _SurfaceAlbedo.rgb, d, 1);
+                float3 T = ComputeTransmittance(_ShapeParameter.rgb, _VolumeAlbedo.rgb, d, 1);
 
                 return float4(T, 1);
             }

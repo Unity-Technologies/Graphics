@@ -57,7 +57,7 @@ uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScat
 uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
 float4 _ShapeParameters[SSS_N_PROFILES];    // RGB = S = 1 / D; A = filter radius
-float4 _SurfaceAlbedos[SSS_N_PROFILES];     // RGB = color, A = unused
+float4 _VolumeAlbedos[SSS_N_PROFILES];      // RGB = color, A = unused
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -120,7 +120,7 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 // N.b.: it is not just zero scattering (light traveling in a straight path)!
 // We derive the transmittance function from the SSS profile, by normalizing it s.t. R(0) = 1.
 // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar (BSSRDF only).
-float3 ComputeTransmittance(float3 S, float3 surfaceAlbedo, float thickness, float radiusScale)
+float3 ComputeTransmittance(float3 S, float3 volumeAlbedo, float thickness, float radiusScale)
 {
     // Thickness and SSS radius are decoupled for artists.
     // In theory, we should modify the thickness by the inverse of the radius scale of the profile.
@@ -128,7 +128,7 @@ float3 ComputeTransmittance(float3 S, float3 surfaceAlbedo, float thickness, flo
 
     float3 expOneThird = exp(((-1.0 / 3.0) * thickness) * S);
 
-    return 0.5 * (expOneThird + expOneThird * expOneThird * expOneThird) * surfaceAlbedo;
+    return 0.5 * (expOneThird + expOneThird * expOneThird * expOneThird) * volumeAlbedo;
 }
 
 void FillMaterialIdStandardData(float3 baseColor, float specular, float metallic, float roughness, float3 normalWS, float3 tangentWS, float anisotropy, inout BSDFData bsdfData)
@@ -163,7 +163,7 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     if (bsdfData.enableTransmission)
     {
         bsdfData.transmittance = ComputeTransmittance(_ShapeParameters[subsurfaceProfile].rgb,
-                                                      _SurfaceAlbedos[subsurfaceProfile].rgb,
+                                                      _VolumeAlbedos[subsurfaceProfile].rgb,
                                                       bsdfData.thickness, bsdfData.subsurfaceRadius);
     }
 
