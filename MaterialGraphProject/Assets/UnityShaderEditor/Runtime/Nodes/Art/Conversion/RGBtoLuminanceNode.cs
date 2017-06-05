@@ -1,42 +1,30 @@
-using UnityEngine.Graphing;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
-	[Title ("Art/Conversion/RGBtoLuminance")]
-	public class RGBtoLuminanceNode : Function1Input, IGeneratesFunction
-	{
-		public RGBtoLuminanceNode()
-		{
-			name = "RGBtoLuminance";
-		}
+    [Title("Art/Conversion/RGBtoLuminance")]
+    public class RGBtoLuminanceNode : CodeFunctionNode
+    {
+        public RGBtoLuminanceNode()
+        {
+            name = "RGBtoLuminance";
+        }
 
-		protected override string GetFunctionName ()
-		{
-			return "unity_rgbtoluminance_" + precision;
-		}
+        protected override MethodInfo GetFunctionToConvert()
+        {
+            return GetType().GetMethod("Unity_RGBToLuminance", BindingFlags.Static | BindingFlags.NonPublic);
+        }
 
-		protected override MaterialSlot GetInputSlot ()
-		{
-			return new MaterialSlot (InputSlotId, GetInputSlotName (), kInputSlotShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
-		}
-
-		protected override MaterialSlot GetOutputSlot ()
-		{
-			return new MaterialSlot (OutputSlotId, GetOutputSlotName (), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector1, Vector4.zero);
-		}
-
-        // Convert rgb to luminance with rgb in linear space with sRGB primaries and D65 white point (from PostProcessing)
-        public void GenerateNodeFunction (ShaderGenerator visitor, GenerationMode generationMode)
-		{
-			var outputString = new ShaderGenerator ();
-			outputString.AddShaderChunk (GetFunctionPrototype ("arg1"), false);
-			outputString.AddShaderChunk ("{", false);
-			outputString.Indent ();
-			outputString.AddShaderChunk ("return dot(arg1, "+precision+outputDimension+"(0.2126729, 0.7151522, 0.0721750));", false);
-            outputString.Deindent ();
-			outputString.AddShaderChunk ("}", false);
-
-			visitor.AddShaderChunk (outputString.GetShaderString (0), true);
-		}
-	}
+        static string Unity_RGBToLuminance(
+            [Slot(0, Binding.None)] Vector3 rgb,
+            [Slot(1, Binding.None)] out Vector1 luminance)
+        {
+            return
+                @"
+{
+    luminance = dot(rgb, {precision}3(0.2126729, 0.7151522, 0.0721750));
+}
+";
+        }
+    }
 }

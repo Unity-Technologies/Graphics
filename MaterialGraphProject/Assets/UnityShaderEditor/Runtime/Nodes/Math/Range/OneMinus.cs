@@ -1,29 +1,30 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
-	[Title ("Math/Range/OneMinus")]
-	public class OneMinusNode : Function1Input, IGeneratesFunction
-	{
-		public OneMinusNode ()
-		{
-			name = "OneMinus";
-		}
+    [Title("Math/Range/OneMinus")]
+    public class OneMinusNode : CodeFunctionNode
+    {
+        public OneMinusNode()
+        {
+            name = "OneMinus";
+        }
 
-		protected override string GetFunctionName ()
-		{
-			return "unity_oneminus_" + precision;
-		}
+        protected override MethodInfo GetFunctionToConvert()
+        {
+            return GetType().GetMethod("Unity_OneMinus", BindingFlags.Static | BindingFlags.NonPublic);
+        }
 
-		public void GenerateNodeFunction (ShaderGenerator visitor, GenerationMode generationMode)
-		{
-			var outputString = new ShaderGenerator ();
-			outputString.AddShaderChunk (GetFunctionPrototype ("arg1"), false);
-			outputString.AddShaderChunk ("{", false);
-			outputString.Indent ();
-			outputString.AddShaderChunk ("return arg1 * -1 + 1;", false);
-			outputString.Deindent ();
-			outputString.AddShaderChunk ("}", false);
-
-			visitor.AddShaderChunk (outputString.GetShaderString (0), true);
-		}
-	}
+        static string Unity_OneMinus(
+            [Slot(0, Binding.None)] DynamicDimensionVector argument,
+            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+        {
+            return
+                @"
+{
+    result = argument * -1 + 1;;
+}
+";
+        }
+    }
 }

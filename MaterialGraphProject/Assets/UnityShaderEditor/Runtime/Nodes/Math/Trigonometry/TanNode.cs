@@ -1,13 +1,30 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Trigonometry/Tan")]
-    public class TanNode : Function1Input
+    public class TanNode : CodeFunctionNode
     {
         public TanNode()
         {
             name = "Tan";
         }
 
-        protected override string GetFunctionName() { return "tan"; }
+        protected override MethodInfo GetFunctionToConvert()
+        {
+            return GetType().GetMethod("Unity_Tan", BindingFlags.Static | BindingFlags.NonPublic);
+        }
+
+        static string Unity_Tan(
+            [Slot(0, Binding.None)] DynamicDimensionVector argument,
+            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+        {
+            return
+                @"
+{
+    result = tan(argument);
+}
+";
+        }
     }
 }

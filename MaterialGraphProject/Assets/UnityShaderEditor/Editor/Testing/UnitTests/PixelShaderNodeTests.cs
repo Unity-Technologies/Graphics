@@ -37,12 +37,12 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_PixelNode.GetSlotReference(AbstractSurfaceMasterNode.NormalSlotId));
 
-            m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_Abs.GetSlotReference(Function1Input.InputSlotId));
-            m_Graph.Connect(m_Abs.GetSlotReference(Function1Input.OutputSlotId), m_PixelNode.GetSlotReference(AbstractSurfaceMasterNode.AlbedoSlotId));
+           // m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_Abs.GetSlotReference(Function1Input.InputSlotId));
+            //m_Graph.Connect(m_Abs.GetSlotReference(Function1Input.OutputSlotId), m_PixelNode.GetSlotReference(AbstractSurfaceMasterNode.AlbedoSlotId));
         }
 
 
-        [Test]
+      /*  [Test]
         public void TestNodeGeneratesCorrectNodeCode()
         {
             string expected = string.Format("half {0} = 0.2;" + Environment.NewLine
@@ -59,6 +59,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             Assert.AreEqual(expected, generator.GetShaderString(0));
             Assert.AreEqual(string.Empty, generator.GetPragmaString());
-        }
+        }*/
     }
 }

@@ -12,7 +12,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnGUIHandler();
 
-            var tNode = node as SwizzleNode;
+            /*var tNode = node as SwizzleNode;
             if (tNode == null)
                 return;
 
@@ -25,7 +25,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (EditorGUI.EndChangeCheck())
             {
                 tNode.swizzleChannels = newSwizzleChannels;
-            }
+            }*/
         }
 
         public override float GetHeight()

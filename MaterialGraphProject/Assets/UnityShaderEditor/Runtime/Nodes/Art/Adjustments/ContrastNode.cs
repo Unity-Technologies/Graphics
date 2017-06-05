@@ -28,7 +28,7 @@ namespace UnityEngine.MaterialGraph
     // Contrast (reacts better when applied in log)
     // Optimal range: [0.0, 2.0]]
     // From PostProcessing
-    result =  (input - midpoint) * contrast + midPoint;
+    result =  (input - midPoint) * contrast + midPoint;
 }";
 	    }
 	}

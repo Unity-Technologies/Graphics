@@ -1,46 +1,31 @@
-using UnityEngine.Graphing;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Matrix/TransposeMatrix")]
-    public class MatrixTransposeNode : Function1Input, IGeneratesFunction
+    public class MatrixTransposeNode : CodeFunctionNode
     {
         public MatrixTransposeNode()
         {
             name = "TransposeMatrix";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_matrix_transpose_" + precision;
+            return GetType().GetMethod("unity_MatrixTranspose_", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public override bool hasPreview
+        static string unity_MatrixTranspose_(
+            [Slot(0, Binding.None)] Matrix4x4 inMatrix,
+            [Slot(1, Binding.None)] out Matrix4x4 outMatrix)
         {
-            get { return false; }
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return transpose(arg1);", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
-        }
-
-        protected override MaterialSlot GetInputSlot()
-        {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Matrix4, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Matrix4, Vector4.zero);
+            outMatrix = Matrix4x4.identity;
+            return
+                @"
+{
+    outMatrix = transpose(inMatrix);
+}
+";
         }
     }
 }

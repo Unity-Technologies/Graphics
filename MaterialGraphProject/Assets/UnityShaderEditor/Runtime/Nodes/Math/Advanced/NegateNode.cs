@@ -1,29 +1,30 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Advanced/Negate")]
-    public class NegateNode : Function1Input, IGeneratesFunction
+    public class NegateNode : CodeFunctionNode
     {
         public NegateNode()
         {
             name = "Negate";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_negate_" + precision;
+            return GetType().GetMethod("Unity_Negate", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        static string Unity_Negate(
+            [Slot(0, Binding.None)] DynamicDimensionVector argument,
+            [Slot(1, Binding.None)] out DynamicDimensionVector result)
         {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return -1 * arg1;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    result = -1 * argument;
+}
+";
         }
     }
 }

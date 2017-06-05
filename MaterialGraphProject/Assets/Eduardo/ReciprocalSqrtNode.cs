@@ -1,19 +1,31 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Advanced/Reciprocal Square Root")]
-    public class ReciprocalSqrtNode : Function1Input
+    public class ReciprocalSqrtNode : CodeFunctionNode
     {
         public ReciprocalSqrtNode()
         {
             name = "ReciprocalSquareRoot";
         }
 
-        public override bool hasPreview
+        protected override MethodInfo GetFunctionToConvert()
         {
-            get { return false; }
+            return GetType().GetMethod("Unity_Rsqrt", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override string GetFunctionName() { return "rsqrt"; }
+        static string Unity_Rsqrt(
+            [Slot(0, Binding.None)] DynamicDimensionVector first,
+            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+        {
+            return
+                @"
+{
+    result = rsqrt(argument);
+}
+";
+        }
     }
 }
 

@@ -1,13 +1,30 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Advanced/Absolute")]
-    public class AbsoluteNode : Function1Input
+    public class AbsoluteNode : CodeFunctionNode
     {
         public AbsoluteNode()
         {
             name = "Absolute";
         }
 
-        protected override string GetFunctionName() {return "abs"; }
+        protected override MethodInfo GetFunctionToConvert()
+        {
+            return GetType().GetMethod("Unity_Absolute", BindingFlags.Static | BindingFlags.NonPublic);
+        }
+
+        static string Unity_Absolute(
+            [Slot(0, Binding.None)] DynamicDimensionVector argument,
+            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+        {
+            return
+                @"
+{
+    result = abs(argument);
+}
+";
+        }
     }
 }

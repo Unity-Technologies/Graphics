@@ -1,48 +1,32 @@
-﻿using UnityEngine.Graphing;
+﻿using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("UV/Cartesian To Polar")]
-    public class CartesianToPolarNode : Function1Input, IGeneratesFunction
+    public class CartesianToPolarNode : CodeFunctionNode
     {
         public CartesianToPolarNode()
         {
             name = "CartesianToPolar";
         }
-
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_cartesiantopolar_" + precision;
+            return GetType().GetMethod("Unity_CartesianToPolar", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override string GetInputSlotName()
+        static string Unity_CartesianToPolar(
+            [Slot(0, Binding.MeshUV0)] Vector2 uv,
+            [Slot(1, Binding.None)] out Vector3 result)
         {
-            return "UV";
-        }
-
-        protected override MaterialSlot GetInputSlot()
-        {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector2, Vector2.zero);
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("uv"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("float radius = length(uv);", false);
-            outputString.AddShaderChunk("float angle = atan2(uv.x, uv.y);", false);
-            outputString.AddShaderChunk("return float2(radius, angle);", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            result = Vector3.zero;
+            return
+                @"
+{
+    {precision} radius = length(uv);
+    {precision} angle = atan2(uv.x, uv.y);
+    result = float2(radius, angle);
+}
+";
         }
     }
 }
