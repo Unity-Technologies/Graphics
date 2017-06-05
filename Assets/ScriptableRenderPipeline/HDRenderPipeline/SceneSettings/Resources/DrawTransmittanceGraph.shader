@@ -20,11 +20,11 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "../../ShaderLibrary/Common.hlsl"
-            #include "../../ShaderLibrary/Color.hlsl"
-            #include "../ShaderVariables.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
+            #include "../../../ShaderLibrary/Color.hlsl"
+            #include "../../ShaderVariables.hlsl"
             #define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl
-            #include "../Material/Material.hlsl"
+            #include "../../Material/Material.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
@@ -62,7 +62,8 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
                 float  d = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x));
                 float3 T = ComputeTransmittance(_ShapeParameter.rgb, _VolumeAlbedo.rgb, d, 1);
 
-                return float4(T, 1);
+                // Apply gamma for visualization only.
+                return float4(pow(T, 1.0 / 3), 1);
             }
             ENDHLSL
         }

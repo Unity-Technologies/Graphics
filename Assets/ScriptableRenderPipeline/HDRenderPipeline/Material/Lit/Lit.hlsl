@@ -715,7 +715,8 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     float3 positionWS = posInput.positionWS;
 
     float3 L = -lightData.forward; // Lights are pointing backward in Unity
-    float illuminance = saturate(dot(bsdfData.normalWS, L));
+    float NdotL = dot(bsdfData.normalWS, L);
+    float illuminance = saturate(NdotL);
 
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -767,10 +768,10 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        float LdotV = dot(L, V); // Also computed in BSDF()
-        // Compute the normal at the back of the object as R = reflect(N, -V)
-        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
-        float illuminance = saturate(-LdotV);
+        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
+        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        const float w = 0.3;
+        illuminance = saturate((-NdotL + w) / ((1.0 + w) * (1.0 + w)));
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -808,7 +809,8 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     float attenuation = GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius);
     // Reminder: lights are ortiented backward (-Z)
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
-    float illuminance = saturate(dot(bsdfData.normalWS, L)) * attenuation;
+    float NdotL = dot(bsdfData.normalWS, L);
+    float illuminance = saturate(NdotL * attenuation);
 
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -873,10 +875,10 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        float LdotV = dot(L, V); // Also computed in BSDF()
-        // Compute the normal at the back of the object as R = reflect(N, -V)
-        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
-        float illuminance = saturate(-LdotV * attenuation);
+        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
+        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        const float w = 0.3;
+        illuminance = saturate((-NdotL + w) / ((1.0 + w) * (1.0 + w)));
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -925,7 +927,8 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     float clipFactor = ((positionLS.z >= 0) && (abs(positionNDC.x) <= 1 && abs(positionNDC.y) <= 1)) ? 1 : 0;
 
     float3 L = -lightData.forward; // Lights are pointing backward in Unity
-    float illuminance = saturate(dot(bsdfData.normalWS, L) * clipFactor);
+    float NdotL = dot(bsdfData.normalWS, L);
+    float illuminance = saturate(NdotL * clipFactor);
 
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -958,10 +961,10 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        float LdotV = dot(L, V); // Also computed in BSDF()
-        // Compute the normal at the back of the object as R = reflect(N, -V)
-        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
-        float illuminance = saturate(-LdotV * clipFactor);
+        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
+        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        const float w = 0.3;
+        illuminance = saturate((-NdotL + w) / ((1.0 + w) * (1.0 + w)));
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
