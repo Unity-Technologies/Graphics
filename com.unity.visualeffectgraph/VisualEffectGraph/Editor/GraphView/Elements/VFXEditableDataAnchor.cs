@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -154,7 +154,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_GUIStyles.ConfigureForElement(this);
 
-                bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXContextDataAnchorPresenter>(), m_GUIStyles);
+                bool changed = m_PropertyIM.OnGUI(GetPresenter<VFXDataAnchorPresenter>(), m_GUIStyles);
 
                 if (changed)
                 {
