@@ -21,7 +21,6 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
             //-------------------------------------------------------------------------------------
 
             #include "../../../ShaderLibrary/Common.hlsl"
-            #include "../../../ShaderLibrary/Color.hlsl"
             #include "../../ShaderVariables.hlsl"
 
             //-------------------------------------------------------------------------------------

@@ -20,11 +20,9 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
             // Include
             //-------------------------------------------------------------------------------------
 
+            #include "../../../ShaderLibrary/CommonMaterial.hlsl"
             #include "../../../ShaderLibrary/Common.hlsl"
-            #include "../../../ShaderLibrary/Color.hlsl"
             #include "../../ShaderVariables.hlsl"
-            #define UNITY_MATERIAL_LIT // Needs to be defined before including Material.hlsl
-            #include "../../Material/Material.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs

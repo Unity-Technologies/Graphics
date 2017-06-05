@@ -141,10 +141,10 @@ namespace UnityEngine.Experimental.Rendering
             string finalValue = new string(valueWithMaxDecimals.ToCharArray(), 0, index + 1);
 
             // Add leading zeros until we reach where the current order is being edited.
-            if(m_CurrentIncrementIndex > 0)
+            if (m_CurrentIncrementIndex > 0)
             {
                 float incrementValue = Mathf.Pow(10.0f, (float)m_CurrentIncrementIndex);
-                if(incrementValue > currentValue)
+                if (incrementValue > currentValue)
                 {
                     float compareValue = currentValue + 1.0f; // Start at 1.0f because we know that we are going to increment by 10 or more
                     while (incrementValue > compareValue)
@@ -156,18 +156,18 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // When selecting which decimal/order you want to edit, we show brackets around the figure to show the user.
-            if(m_SelectIncrementMode)
+            if (m_SelectIncrementMode)
             {
                 separatorIndex = finalValue.LastIndexOf(separator); // separator may have changed place if we added leading zeros
                 int bracketIndex = separatorIndex - m_CurrentIncrementIndex;
-                if(m_CurrentIncrementIndex >= 0) // Skip separator
+                if (m_CurrentIncrementIndex >= 0) // Skip separator
                     bracketIndex -= 1;
 
                 finalValue = finalValue.Insert(bracketIndex, "[");
                 finalValue = finalValue.Insert(bracketIndex + 2, "]");
             }
 
-            if(isNegative)
+            if (isNegative)
                 finalValue = finalValue.Insert(0, "-");
 
             m_Value.GetComponent<UI.Text>().text = finalValue;
@@ -181,7 +181,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public override void OnIncrement()
         {
-            if(!m_SelectIncrementMode)
+            if (!m_SelectIncrementMode)
             {
                 m_DebugItem.SetValue((float)m_DebugItem.GetValue() + Mathf.Pow(10.0f, (float)m_CurrentIncrementIndex));
             }
@@ -203,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 m_CurrentIncrementIndex += 1; // * 10 (10^m_CurrentIncrementIndex)
             }
-            Update();            
+            Update();
         }
     }
 
@@ -227,10 +227,10 @@ namespace UnityEngine.Experimental.Rendering
             string finalValue = string.Format("{0}", value);
 
             // Add leading zeros until we reach where the current order is being edited.
-            if(m_CurrentIncrementIndex > 0)
+            if (m_CurrentIncrementIndex > 0)
             {
                 int incrementValue = (int)System.Math.Pow(10, m_CurrentIncrementIndex);
-                if(incrementValue > value)
+                if (incrementValue > value)
                 {
                     int compareValue = System.Math.Max(value, 1);
                     while (incrementValue > compareValue)
@@ -242,7 +242,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // When selecting which decimal/order you want to edit, we show brackets around the figure to show the user.
-            if(m_SelectIncrementMode)
+            if (m_SelectIncrementMode)
             {
                 int bracketIndex = finalValue.Length - 1 - m_CurrentIncrementIndex;
 
@@ -250,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering
                 finalValue = finalValue.Insert(bracketIndex + 2, "]");
             }
 
-            if(isNegative)
+            if (isNegative)
                 finalValue = finalValue.Insert(0, "-");
 
             m_Value.GetComponent<UI.Text>().text = finalValue;
@@ -361,7 +361,7 @@ namespace UnityEngine.Experimental.Rendering
 
         private int FindIndexForValue(int value)
         {
-            for(int i = 0 ; i < m_Values.Length ; ++i)
+            for (int i = 0; i < m_Values.Length; ++i)
             {
                 if (m_Values[i] == value)
                     return i;
@@ -372,7 +372,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public override void Update()
         {
-            if(m_CurrentValueIndex != -1)
+            if (m_CurrentValueIndex != -1)
             {
                 m_Value.GetComponent<UI.Text>().text = m_ValueNames[m_CurrentValueIndex].text;
             }
