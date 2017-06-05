@@ -61,8 +61,8 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
                 float3 M = S * (exp(-r * S) + exp(-r * S * (1.0 / 3.0))) / (8 * PI * r);
 
                 // N.b.: we multiply by the surface albedo of the actual geometry during shading.
-                // Apply gamma for visualization only.
-                return float4(pow(M * _SurfaceAlbedo.rgb, 1.0 / 3.0), 1);
+                // Apply gamma for visualization only. Do not apply gamma to the color.
+                return float4(pow(M, 1.0 / 3.0) * _SurfaceAlbedo.rgb, 1);
             }
             ENDHLSL
         }
