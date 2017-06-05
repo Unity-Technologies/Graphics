@@ -30,7 +30,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var cNode = node as UnityEngine.MaterialGraph.GradientNode;
             if (cNode == null)
                 return;
-        
+
             if(gradientobj == null || prevnode != cNode)
             {
                 prevnode = cNode;
@@ -39,7 +39,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 {
                     gradientobj.gradient = cNode.gradient;
                 }
-                
+
                 hserializedObject = new SerializedObject(gradientobj);
                 hcolorGradient = hserializedObject.FindProperty("gradient");
             }
@@ -49,10 +49,10 @@ namespace UnityEditor.MaterialGraph.Drawing
             cNode.gradient = gradientobj.gradient;
 
             Event e = Event.current;
-            
+
             if (EditorWindow.focusedWindow != null && prevWindow != EditorWindow.focusedWindow.ToString() && EditorWindow.focusedWindow.ToString() != "(UnityEditor.GradientPicker)")
             {
-               cNode.UpdateGradient();
+                cNode.UpdateGradient();
                 prevWindow = EditorWindow.focusedWindow.ToString();
                 Debug.Log("Update Gradient Shader");
             }
