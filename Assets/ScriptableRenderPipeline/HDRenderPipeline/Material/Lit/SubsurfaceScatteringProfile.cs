@@ -425,8 +425,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public readonly GUIContent   sssTransmittancePreview0     = new GUIContent("Transmittance Preview");
             public readonly GUIContent   sssTransmittancePreview1     = new GUIContent("Shows the fraction of light passing through the object for thickness values from the remap.");
             public readonly GUIContent   sssTransmittancePreview2     = new GUIContent("Can be viewed as a cross section of a slab of material illuminated by white light from the left.");
-            public readonly GUIContent   sssProfileSurfaceAlbedo      = new GUIContent("Surface Albedo", "Color which determines the shape of the profile. Alpha is ignored.");
-            public readonly GUIContent   sssProfileVolumeAlbedo       = new GUIContent("Volume Albedo", "Color which tints transmitted light. Alpha is ignored.");
+            public readonly GUIContent   sssProfileSurfaceAlbedo      = new GUIContent("Surface Albedo", "Color which determines the shape of the profile. Alpha is ignored. Typically, it is similar to the diffuse color.");
+            public readonly GUIContent   sssProfileVolumeAlbedo       = new GUIContent("Volume Albedo", "Color which tints transmitted light. Alpha is ignored. Typically, it is a more saturated version of the diffuse color.");
             public readonly GUIContent   sssProfileLenVolMeanFreePath = new GUIContent("Volume Mean Free Path", "The length of the volume mean free path (in millimeters) describes the average distance a photon travels within the volume before an extinction event occurs. Determines the effective radius of the filter.");
             public readonly GUIContent   sssProfileScatteringDistance = new GUIContent("Scattering Distance", "Effective radius of the filter (in millimeters). The blur is energy-preserving, so a wide filter results in a large area with small contributions of individual samples. Reducing the distance increases the sharpness of the result.");
             public readonly GUIContent   sssTexturingMode             = new GUIContent("Texturing Mode", "Specifies when the diffuse texture should be applied.");
