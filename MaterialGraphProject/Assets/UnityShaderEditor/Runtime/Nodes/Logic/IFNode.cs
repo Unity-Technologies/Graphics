@@ -1,19 +1,20 @@
-﻿using UnityEngine.MaterialGraph;
+﻿using System;
+using System.Reflection;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Logic/If")]
-    public class IfNode : Function4Input, IGeneratesFunction
+    public class IfNode : CodeFunctionNode
     {
         public enum ComparisonOperationType
         {
             Equal = 0,
             NotEqual,
             GreaterThan,
-            GreaterThanOfEqual,
+            GreaterThanOrEqual,
             LessThan,
-            LessThanOfEqual
+            LessThanOrEqual
         }
 
         [SerializeField]
@@ -40,101 +41,98 @@ namespace UnityEngine.MaterialGraph
             name = "If";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_if_" + precision;
-        }
-
-        protected override string GetInputSlot1Name()
-        {
-            return "A";
-        }
-
-        protected override string GetInputSlot2Name()
-        {
-            return "B";
-        }
-
-        protected override string GetInputSlot3Name()
-        {
-            return "True Value";
-        }
-
-        protected override string GetInputSlot4Name()
-        {
-            return "False Value";
-        }
-
-        protected override MaterialSlot GetInputSlot1()
-        {
-            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetInputSlot2()
-        {
-            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetInputSlot3()
-        {
-            return new MaterialSlot(InputSlot3Id, GetInputSlot3Name(), kInputSlot3ShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("a", "b", "trueOutputValue", "falseOutputValue"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-
-            if (m_comparisonOperation == ComparisonOperationType.Equal)
+            switch (ComparisonOperation)
             {
-                outputString.AddShaderChunk("if (a == b)", false);
-            }
-            else if (m_comparisonOperation == ComparisonOperationType.NotEqual)
-            {
-                outputString.AddShaderChunk("if (a != b)", false);
-            }
-            else if (m_comparisonOperation == ComparisonOperationType.GreaterThan)
-            {
-                outputString.AddShaderChunk("if (a > b)", false);
-            }
-            else if (m_comparisonOperation == ComparisonOperationType.GreaterThanOfEqual)
-            {
-                outputString.AddShaderChunk("if (a >= b)", false);
-            }
-            else if (m_comparisonOperation == ComparisonOperationType.LessThan)
-            {
-                outputString.AddShaderChunk("if (a < b)", false);
-            }
-            else if (m_comparisonOperation == ComparisonOperationType.LessThanOfEqual)
-            {
-                outputString.AddShaderChunk("if (a <= b)", false);
+                case ComparisonOperationType.Equal:
+                    return GetType().GetMethod("Unity_IfEqual", BindingFlags.Static | BindingFlags.NonPublic);
+                case ComparisonOperationType.NotEqual:
+                    return GetType().GetMethod("Unity_IfNotEqual", BindingFlags.Static | BindingFlags.NonPublic);
+                case ComparisonOperationType.GreaterThan:
+                    return GetType().GetMethod("Unity_IfGreaterThan", BindingFlags.Static | BindingFlags.NonPublic);
+                case ComparisonOperationType.GreaterThanOrEqual:
+                    return GetType().GetMethod("Unity_IfGreaterThanOrEqual", BindingFlags.Static | BindingFlags.NonPublic);
+                case ComparisonOperationType.LessThan:
+                    return GetType().GetMethod("Unity_IfLessThan", BindingFlags.Static | BindingFlags.NonPublic);
+                case ComparisonOperationType.LessThanOrEqual:
+                    return GetType().GetMethod("Unity_IfLessThanOrEqual", BindingFlags.Static | BindingFlags.NonPublic);
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return trueOutputValue;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-            outputString.AddShaderChunk("else", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return falseOutputValue;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
+        }
 
+        const string functionTemplate = @"
+{
+    if({comparitor})
+    {
+        result = trueValue;
+    }
+    else
+    {
+        result = falseValue;
+    }
+}
+";
+        static string Unity_IfEqual(
+            [Slot(0, Binding.None)] DynamicDimensionVector a,
+            [Slot(1, Binding.None)] DynamicDimensionVector b,
+            [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
+            [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
+            [Slot(4, Binding.None)] DynamicDimensionVector result )
+        {
+            return functionTemplate.Replace("{comparitor}", "a == b");
+        }
 
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
+        static string Unity_IfNotEqual(
+            [Slot(0, Binding.None)] DynamicDimensionVector a,
+            [Slot(1, Binding.None)] DynamicDimensionVector b,
+            [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
+            [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
+            [Slot(4, Binding.None)] DynamicDimensionVector result )
+        {
+            return functionTemplate.Replace("{comparitor}", "a != b");
+        }
 
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        static string Unity_IfGreaterThan(
+            [Slot(0, Binding.None)] DynamicDimensionVector a,
+            [Slot(1, Binding.None)] DynamicDimensionVector b,
+            [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
+            [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
+            [Slot(4, Binding.None)] DynamicDimensionVector result )
+        {
+            return functionTemplate.Replace("{comparitor}", "a > b");
+        }
+
+        static string Unity_IfGreaterThanOrEqual(
+            [Slot(0, Binding.None)] DynamicDimensionVector a,
+            [Slot(1, Binding.None)] DynamicDimensionVector b,
+            [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
+            [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
+            [Slot(4, Binding.None)] DynamicDimensionVector result )
+        {
+            return functionTemplate.Replace("{comparitor}", "a >= b");
+        }
+
+        static string Unity_IfLessThan(
+            [Slot(0, Binding.None)] DynamicDimensionVector a,
+            [Slot(1, Binding.None)] DynamicDimensionVector b,
+            [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
+            [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
+            [Slot(4, Binding.None)] DynamicDimensionVector result )
+        {
+            return functionTemplate.Replace("{comparitor}", "a < b");
+        }
+
+        static string Unity_IfLessThanOrEqual(
+            [Slot(0, Binding.None)] DynamicDimensionVector a,
+            [Slot(1, Binding.None)] DynamicDimensionVector b,
+            [Slot(2, Binding.None)] DynamicDimensionVector trueValue,
+            [Slot(3, Binding.None)] DynamicDimensionVector falseValue,
+            [Slot(4, Binding.None)] DynamicDimensionVector result )
+        {
+            return functionTemplate.Replace("{comparitor}", "a <= b");
         }
     }
 }

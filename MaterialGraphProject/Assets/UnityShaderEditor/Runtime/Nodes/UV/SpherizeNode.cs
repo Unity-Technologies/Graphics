@@ -28,7 +28,7 @@ namespace UnityEngine.MaterialGraph
      {precision}2 fromUVToPoint = position - uv;
      {precision} dist = length(fromUVToPoint);
      {precision} mag = ((1.0 - (dist / radiusAndStrength.x)) * radiusAndStrength.y) * step(dist, radiusAndStrength.x);
-     return uv + (mag * fromUVToPoint);
+     result = uv + (mag * fromUVToPoint);
 }";
         }
     }

@@ -1,69 +1,35 @@
-using UnityEngine.Graphing;
+using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Vector/TangentToWorld")]
-    public class TangentToWorldNode : Function1Input, IGeneratesFunction, IMayRequireNormal, IMayRequireTangent, IMayRequireBitangent
+    public class TangentToWorldNode : CodeFunctionNode
     {
         public TangentToWorldNode()
         {
             name = "TangentToWorld";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_tangenttoworld_" + precision;
+            return GetType().GetMethod("Unity_TangentToWorld", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override MaterialSlot GetInputSlot()
+        static string Unity_TangentToWorld(
+            [Slot(0, Binding.None)] Vector3 inVector,
+            [Slot(1, Binding.None)] out Vector3 result,
+            [Slot(2, Binding.Tangent)] Vector3 tangent,
+            [Slot(3, Binding.Bitangent)] Vector3 biTangent,
+            [Slot(4, Binding.Normal)] Vector3 normal)
         {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
-        }
-
-        protected override string GetFunctionPrototype(string argName)
-        {
-            return "inline " + precision + outputDimension + " " + GetFunctionName() + " ("
-                   + precision + inputDimension + " " + argName + ", float3 tangent, float3 bitangent, float3 normal )";
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            //outputString.AddShaderChunk("float3x3 tangentToWorld = transpose(float3x3(" + ShaderGeneratorNames.WorldSpaceTangent + ", " + ShaderGeneratorNames.WorldSpaceBitangent + ", " + ShaderGeneratorNames.WorldSpaceNormal + "));", false);
-            outputString.AddShaderChunk("float3x3 tangentToWorld = transpose(float3x3(tangent, bitangent, normal));", false);
-            outputString.AddShaderChunk("return saturate(mul(tangentToWorld, normalize(arg1)));", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
-        }
-
-        protected override string GetFunctionCallBody(string inputValue)
-        {
-            return GetFunctionName() + " (" + inputValue + ", "+ShaderGeneratorNames.WorldSpaceTangent + ", " + ShaderGeneratorNames.WorldSpaceBitangent + ", " + ShaderGeneratorNames.WorldSpaceNormal +")";
-        }
-
-        public bool RequiresNormal()
-        {
-            return true;
-        }
-
-        public bool RequiresTangent()
-        {
-            return true;
-        }
-
-        public bool RequiresBitangent()
-        {
-            return true;
+            result = Vector3.zero;
+            return
+                @"
+{
+    {precision}3x3 tangentToWorld = transpose({precision}3x3(tangent, biTangent, normal));
+    result= saturate(mul(tangentToWorld, normalize(inVector)));
+}
+";
         }
     }
 }

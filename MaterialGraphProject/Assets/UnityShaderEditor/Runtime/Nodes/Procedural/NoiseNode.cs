@@ -1,104 +1,75 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Noise")]
-    public class NoiseNode : Function1Input, IGeneratesFunction
+    public class NoiseNode : CodeFunctionNode
     {
         public NoiseNode()
         {
             name = "Noise";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_noise_" + precision;
+            return GetType().GetMethod("Unity_Noise", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override string GetInputSlotName()
+        static string Unity_Noise(
+            [Slot(0, Binding.MeshUV0)] Vector2 uv,
+            [Slot(1, Binding.None)] out Vector1 noise)
         {
-            return "UV";
+            return
+                @"
+{
+    float t = 0.0;
+    for(int i = 0; i < 3; i++)
+    {
+        float freq = pow(2.0, float(i));
+        float amp = pow(0.5, float(3-i));
+        t += unity_valueNoise(float2(uv.x/freq, uv.y/freq))*amp;
+    }
+    noise = t;
+}
+";
         }
 
-        protected override MaterialSlot GetInputSlot()
+        public override void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, UnityEngine.Graphing.SlotType.Input, SlotValueType.Vector2, Vector2.zero);
-        }
+            string functionPreamble = @"
+inline float unity_noise_randomValue (float2 uv)
+{
+    return frac(sin(dot(uv, float2(12.9898, 78.233)))*43758.5453);
+}
 
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, UnityEngine.Graphing.SlotType.Output, SlotValueType.Vector1, Vector2.zero);
-        }
+inline float unity_noise_interpolate (float a, float b, float t)
+{
+    return (1.0-t)*a + (t*b);
+}
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
+inline float unity_valueNoise (float2 uv)
+{
+    float2 i = floor(uv);
+    float2 f = frac(uv);
+    f = f * f * (3.0 - 2.0 * f);
 
-            outputString.AddShaderChunk("inline float unity_noise_randomValue (float2 uv)", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
+    uv = abs(frac(uv) - 0.5);
+    float2 c0 = i + float2(0.0, 0.0);
+    float2 c1 = i + float2(1.0, 0.0);
+    float2 c2 = i + float2(0.0, 1.0);
+    float2 c3 = i + float2(1.0, 1.0);
+    float r0 = unity_noise_randomValue(c0);
+    float r1 = unity_noise_randomValue(c1);
+    float r2 = unity_noise_randomValue(c2);
+    float r3 = unity_noise_randomValue(c3);
 
-            outputString.AddShaderChunk("return frac(sin(dot(uv, float2(12.9898, 78.233)))*43758.5453);", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-
-            outputString.AddShaderChunk("inline float unity_noise_interpolate (float a, float b, float t)", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk("return (1.0-t)*a + (t*b);", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            outputString.AddShaderChunk("inline float unity_valueNoise (float2 uv)", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk("float2 i = floor(uv);", false);
-            outputString.AddShaderChunk("float2 f = frac(uv);", false);
-            outputString.AddShaderChunk("f = f * f * (3.0 - 2.0 * f);", false);
-
-            outputString.AddShaderChunk("uv = abs(frac(uv) - 0.5);", false);
-            outputString.AddShaderChunk("float2 c0 = i + float2(0.0, 0.0);", false);
-            outputString.AddShaderChunk("float2 c1 = i + float2(1.0, 0.0);", false);
-            outputString.AddShaderChunk("float2 c2 = i + float2(0.0, 1.0);", false);
-            outputString.AddShaderChunk("float2 c3 = i + float2(1.0, 1.0);", false);
-            outputString.AddShaderChunk("float r0 = unity_noise_randomValue(c0);", false);
-            outputString.AddShaderChunk("float r1 = unity_noise_randomValue(c1);", false);
-            outputString.AddShaderChunk("float r2 = unity_noise_randomValue(c2);", false);
-            outputString.AddShaderChunk("float r3 = unity_noise_randomValue(c3);", false);
-
-            outputString.AddShaderChunk("float bottomOfGrid = unity_noise_interpolate(r0, r1, f.x);", false);
-            outputString.AddShaderChunk("float topOfGrid = unity_noise_interpolate(r2, r3, f.x);", false);
-            outputString.AddShaderChunk("float t = unity_noise_interpolate(bottomOfGrid, topOfGrid, f.y);", false);
-            outputString.AddShaderChunk("return t;", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-
-            outputString.AddShaderChunk(GetFunctionPrototype("uv"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk("float t = 0.0;", false);
-            outputString.AddShaderChunk("for(int i = 0; i < 3; i++)", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
-            outputString.AddShaderChunk("float freq = pow(2.0, float(i));", false);
-            outputString.AddShaderChunk("float amp = pow(0.5, float(3-i));", false);
-            outputString.AddShaderChunk("t += unity_valueNoise(float2(uv.x/freq, uv.y/freq))*amp;", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-            outputString.AddShaderChunk("return t;", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+    float bottomOfGrid = unity_noise_interpolate(r0, r1, f.x);
+    float topOfGrid = unity_noise_interpolate(r2, r3, f.x);
+    float t = unity_noise_interpolate(bottomOfGrid, topOfGrid, f.y);
+    return t;
+}";
+            visitor.AddShaderChunk(functionPreamble, true);
+            base.GenerateNodeFunction(visitor, generationMode);
         }
     }
 }

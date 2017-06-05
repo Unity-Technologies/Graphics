@@ -1,29 +1,30 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Vector/DDXY")]
-    public class DDXYNode : Function1Input, IGeneratesFunction
+    public class DDXYNode : CodeFunctionNode
     {
         public DDXYNode()
         {
             name = "DDXY";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_ddxy_" + precision;
+            return GetType().GetMethod("Unity_DDXY", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        static string Unity_DDXY(
+            [Slot(0, Binding.None)] Vector1 argument,
+            [Slot(1, Binding.None)] out Vector1 result)
         {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return abs(ddx(arg1) + ddy(arg1));", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    result = abs(ddx(argument) + ddy(argument));
+}
+";
         }
     }
 }

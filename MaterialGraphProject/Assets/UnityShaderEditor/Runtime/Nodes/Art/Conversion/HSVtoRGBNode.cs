@@ -1,45 +1,35 @@
+using System.Reflection;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
 	[Title ("Art/Conversion/HSVtoRGB")]
-	public class HSVtoRGBNode : Function1Input, IGeneratesFunction
+	public class HSVtoRGBNode : CodeFunctionNode
 	{
 		public HSVtoRGBNode ()
 		{
 			name = "HSVtoRGB";
 		}
 
-		protected override string GetFunctionName ()
-		{
-			return "unity_hsvtorgb_" + precision;
-		}
+	    protected override MethodInfo GetFunctionToConvert()
+	    {
+	        return GetType().GetMethod("Unity_HSVToRGB", BindingFlags.Static | BindingFlags.NonPublic);
+	    }
 
-		protected override MaterialSlot GetInputSlot ()
-		{
-			return new MaterialSlot (InputSlotId, GetInputSlotName (), kInputSlotShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
-		}
-
-		protected override MaterialSlot GetOutputSlot ()
-		{
-			return new MaterialSlot (OutputSlotId, GetOutputSlotName (), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
-		}
-
-		//TODO:Externalize
-		//Reference code from:https://github.com/Unity-Technologies/PostProcessing/blob/master/PostProcessing/Resources/Shaders/ColorGrading.cginc#L175
-		public void GenerateNodeFunction (ShaderGenerator visitor, GenerationMode generationMode)
-		{
-			var outputString = new ShaderGenerator ();
-			outputString.AddShaderChunk (GetFunctionPrototype ("arg1"), false);
-			outputString.AddShaderChunk ("{", false);
-			outputString.Indent ();
-			outputString.AddShaderChunk (precision + "4 K = " + precision + "4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);", false);
-			outputString.AddShaderChunk (precision + "3 P = abs(frac(arg1.xxx + K.xyz) * 6.0 - K.www);", false);
-			outputString.AddShaderChunk ("return arg1.z * lerp(K.xxx, saturate(P - K.xxx), arg1.y);", false);
-			outputString.Deindent ();
-			outputString.AddShaderChunk ("}", false);
-
-			visitor.AddShaderChunk (outputString.GetShaderString (0), true);
-		}
+	    static string Unity_HSVToRGB(
+	        [Slot(0, Binding.None)] Vector3 hsv,
+	        [Slot(1, Binding.None)] out Vector3 rgb)
+	    {
+	        rgb = Vector3.zero;
+	        return
+	            @"
+{
+    //Reference code from:https://github.com/Unity-Technologies/PostProcessing/blob/master/PostProcessing/Resources/Shaders/ColorGrading.cginc#L175
+    {precision}4 K = {precision}4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    {precision}3 P = abs(frac(hsv.xxx + K.xyz) * 6.0 - K.www);
+    rgb = hsv.z * lerp(K.xxx, saturate(P - K.xxx), hsv.y);
+}
+";
+	    }
 	}
 }

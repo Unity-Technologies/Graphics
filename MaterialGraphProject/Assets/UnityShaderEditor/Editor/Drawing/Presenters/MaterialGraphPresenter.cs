@@ -40,7 +40,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             typeMapper[typeof(AbstractSurfaceMasterNode)] = typeof(SurfaceMasterPresenter);
             typeMapper[typeof(LevelsNode)] = typeof(LevelsNodePresenter);
             typeMapper[typeof(ConstantsNode)] = typeof(ConstantsNodePresenter);
-            typeMapper[typeof(SwizzleNode)] = typeof(SwizzleNodePresenter);
+            //typeMapper[typeof(SwizzleNode)] = typeof(SwizzleNodePresenter);
 			typeMapper[typeof(BlendModeNode)] = typeof(BlendModeNodePresenter);
             typeMapper[typeof(AddManyNode)] = typeof(AddManyNodePresenter);
             typeMapper[typeof(IfNode)] = typeof(IfNodePresenter);
@@ -59,8 +59,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                               .Where(nap => nap.IsConnectable() &&
                                      nap.orientation == startAnchor.orientation &&
                                      nap.direction != startAnchor.direction &&
-                                     nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null && 
-									(startAnchor is GraphAnchorPresenter && ((GraphAnchorPresenter)nap).slot is MaterialSlot && 
+                                     nodeAdapter.GetAdapter(nap.source, startAnchor.source) != null &&
+									(startAnchor is GraphAnchorPresenter && ((GraphAnchorPresenter)nap).slot is MaterialSlot &&
 									((MaterialSlot)((GraphAnchorPresenter)startAnchor).slot).IsCompatibleWithInputSlotType(((MaterialSlot)((GraphAnchorPresenter)nap).slot).valueType)))
                               .ToList();
         }

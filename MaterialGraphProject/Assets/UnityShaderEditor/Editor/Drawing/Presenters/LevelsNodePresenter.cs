@@ -16,11 +16,11 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (tNode == null)
                 return;
 
-            tNode.inputMin   = EditorGUILayout.FloatField("InputMin:", tNode.inputMin);
+            /*tNode.inputMin   = EditorGUILayout.FloatField("InputMin:", tNode.inputMin);
             tNode.inputMax   = EditorGUILayout.FloatField("InputMax:", tNode.inputMax);
             tNode.inputGamma = EditorGUILayout.FloatField("InputGamma:", tNode.inputGamma);
             tNode.outputMin  = EditorGUILayout.FloatField("OutputMin:", tNode.outputMin);
-            tNode.outputMax  = EditorGUILayout.FloatField("OutputMax:", tNode.outputMax);
+            tNode.outputMax  = EditorGUILayout.FloatField("OutputMax:", tNode.outputMax);*/
         }
 
         public override float GetHeight()

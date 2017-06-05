@@ -156,6 +156,7 @@ namespace UnityEngine.Graphing
                 catch (Exception e)
                 {
                     Debug.LogException(e);
+                    Debug.LogError(element.JSONnodeData);
                 }
             }
             return result;

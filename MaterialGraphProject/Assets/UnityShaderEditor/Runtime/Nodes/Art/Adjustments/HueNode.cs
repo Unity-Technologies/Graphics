@@ -1,45 +1,33 @@
-﻿using UnityEngine.Graphing;
+﻿using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Art/Adjustments/Hue")]
-    public class HueNode : Function1Input, IGeneratesFunction
+    public class HueNode : CodeFunctionNode
     {
         public HueNode()
         {
             name = "Hue";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_hue_" + precision;
+            return GetType().GetMethod("Unity_Hue", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override MaterialSlot GetInputSlot()
+        static string Unity_Hue(
+            [Slot(0, Binding.None)] Vector1 argument,
+            [Slot(1, Binding.None)] out Vector3 result)
         {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
-        }
-
-        protected override MaterialSlot GetOutputSlot()
-        {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
-        }
-
-        //TODO:Externalize
-        //Reference code from:https://github.com/Unity-Technologies/PostProcessing/blob/master/PostProcessing/Resources/Shaders/ColorGrading.cginc#L175
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk(precision + "4 K = " + precision + "4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);", false);
-            outputString.AddShaderChunk(precision + "3 P = abs(frac(arg1.xxx + K.xyz) * 6.0 - K.www);", false);
-            outputString.AddShaderChunk("return 1 * lerp(K.xxx, saturate(P - K.xxx), 1);", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            result = Vector3.zero;
+            return
+                @"
+{
+    {precision}4 K = {precision}4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    {precision}3 P = abs(frac(argument.xxx + K.xyz) * 6.0 - K.www);
+    result = 1 * lerp(K.xxx, saturate(P - K.xxx), 1);
+}
+";
         }
     }
 }

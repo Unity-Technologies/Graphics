@@ -1,10 +1,11 @@
+using System.Reflection;
 using UnityEngine.Graphing;
 
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Normal/Unpack Normal")]
-    internal class UnpackNormalNode : Function1Input
+    internal class UnpackNormalNode : CodeFunctionNode
     {
         public UnpackNormalNode()
         {
@@ -16,22 +17,22 @@ namespace UnityEngine.MaterialGraph
             get { return false; }
         }
 
-        protected override MaterialSlot GetInputSlot()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Vector4, Vector4.zero);
+            return GetType().GetMethod("Unity_UnpackNormal", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        protected override MaterialSlot GetOutputSlot()
+        static string Unity_Sign(
+            [Slot(0, Binding.None)] Vector4 packedNormal,
+            [Slot(1, Binding.None)] out Vector3 normal)
         {
-            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
-        }
-
-        protected override string GetInputSlotName() {return "PackedNormal"; }
-        protected override string GetOutputSlotName() {return "Normal"; }
-
-        protected override string GetFunctionName()
-        {
-            return "UnpackNormal";
+            normal = Vector3.up;
+            return
+                @"
+{
+    normal = UnpackNormal(packedNormal);
+}
+";
         }
     }
 }

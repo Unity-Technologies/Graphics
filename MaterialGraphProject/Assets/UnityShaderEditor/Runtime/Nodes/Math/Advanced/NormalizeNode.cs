@@ -1,13 +1,30 @@
+using System.Reflection;
+
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Advanced/Normalize")]
-    class NormalizeNode : Function1Input
+    class NormalizeNode : CodeFunctionNode
     {
         public NormalizeNode()
         {
             name = "Normalize";
         }
 
-        protected override string GetFunctionName() { return "normalize"; }
+        protected override MethodInfo GetFunctionToConvert()
+        {
+            return GetType().GetMethod("Unity_Normalize", BindingFlags.Static | BindingFlags.NonPublic);
+        }
+
+        static string Unity_Normalize(
+            [Slot(0, Binding.None)] DynamicDimensionVector argument,
+            [Slot(1, Binding.None)] out DynamicDimensionVector result)
+        {
+            return
+                @"
+{
+    result = normalize(argument);
+}
+";
+        }
     }
 }

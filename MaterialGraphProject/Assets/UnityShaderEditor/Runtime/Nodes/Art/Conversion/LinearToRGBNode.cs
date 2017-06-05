@@ -1,43 +1,35 @@
+using System.Reflection;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
 	[Title ("Art/Conversion/LineartoRGB")]
-	public class LineartoRGBNode : Function1Input, IGeneratesFunction
+	public class LineartoRGBNode : CodeFunctionNode
 	{
 		public LineartoRGBNode()
 		{
 			name = "LineartoRGB";
 		}
 
-		protected override string GetFunctionName ()
-		{
-			return "unity_lineartorgb_" + precision;
-		}
+	    protected override MethodInfo GetFunctionToConvert()
+	    {
+	        return GetType().GetMethod("Unity_LinearToRGB", BindingFlags.Static | BindingFlags.NonPublic);
+	    }
 
-		protected override MaterialSlot GetInputSlot ()
-		{
-			return new MaterialSlot (InputSlotId, GetInputSlotName (), kInputSlotShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
-		}
-
-		protected override MaterialSlot GetOutputSlot ()
-		{
-			return new MaterialSlot (OutputSlotId, GetOutputSlotName (), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
-		}
-
-		public void GenerateNodeFunction (ShaderGenerator visitor, GenerationMode generationMode)
-		{
-			var outputString = new ShaderGenerator ();
-			outputString.AddShaderChunk (GetFunctionPrototype ("arg1"), false);
-			outputString.AddShaderChunk ("{", false);
-			outputString.Indent ();
-            outputString.AddShaderChunk (precision + "3 sRGBLo = arg1 * 12.92;", false);
-            outputString.AddShaderChunk (precision + "3 sRGBHi = (pow(max(abs(arg1), 1.192092896e-07), "+precision+ "3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;", false);
-            outputString.AddShaderChunk ("return " + precision + "3(arg1 <= 0.0031308) ? sRGBLo : sRGBHi;", false);
-			outputString.Deindent ();
-			outputString.AddShaderChunk ("}", false);
-
-            visitor.AddShaderChunk (outputString.GetShaderString (0), true);
-		}
+	    static string Unity_LinearToRGB(
+	        [Slot(0, Binding.None)] Vector3 linearColor,
+	        [Slot(1, Binding.None)] out Vector3 rgb)
+	    {
+	        rgb = Vector3.zero;
+	        return
+	            @"
+{
+    //Reference code from:https://github.com/Unity-Technologies/PostProcessing/blob/master/PostProcessing/Resources/Shaders/ColorGrading.cginc#L175
+    {precision}3 sRGBLo = linearColor * 12.92;
+    {precision}3 sRGBHi = (pow(max(abs(linearColor), 1.192092896e-07), {precision}3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
+    rgb = {precision}3(linearColor <= 0.0031308) ? sRGBLo : sRGBHi;
+}
+";
+	    }
 	}
 }

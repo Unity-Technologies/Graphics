@@ -106,11 +106,20 @@ namespace UnityEngine.MaterialGraph
         {
             public int slotId { get; private set; }
             public Binding binding { get; private set; }
+            public Vector4? defaultValue { get; private set; }
 
             public SlotAttribute(int mslotId, Binding mImplicitBinding)
             {
                 slotId = mslotId;
                 binding = mImplicitBinding;
+                defaultValue = null;
+            }
+
+            public SlotAttribute(int mslotId, Binding mImplicitBinding, int defaultX, int defaultY, int defaultZ, int defaultW)
+            {
+                slotId = mslotId;
+                binding = mImplicitBinding;
+                defaultValue = new Vector4(defaultX, defaultY, defaultZ, defaultW);
             }
         }
 
@@ -166,6 +175,10 @@ namespace UnityEngine.MaterialGraph
             {
                 return SlotValueType.Dynamic;
             }
+            if (t == typeof(Matrix4x4))
+            {
+                return SlotValueType.Matrix4;
+            }
             throw new ArgumentException("Unsupported type " + t);
         }
 
@@ -190,13 +203,13 @@ namespace UnityEngine.MaterialGraph
             List<MaterialSlot> slots = new List<MaterialSlot>();
             foreach (var par in method.GetParameters())
             {
-                var slotid = GetSlotAttribute(par);
+                var attribute = GetSlotAttribute(par);
 
-                slots.Add(new MaterialSlot(slotid.slotId, par.Name, par.Name, par.IsOut ? SlotType.Output : SlotType.Input,
-                        ConvertTypeToSlotValueType(par), Vector4.zero));
+                slots.Add(new MaterialSlot(attribute.slotId, par.Name, par.Name, par.IsOut ? SlotType.Output : SlotType.Input,
+                        ConvertTypeToSlotValueType(par), attribute.defaultValue ?? Vector4.zero));
 
 
-                m_Slots.Add(slotid);
+                m_Slots.Add(attribute);
             }
             foreach (var slot in slots)
             {
@@ -308,7 +321,7 @@ namespace UnityEngine.MaterialGraph
             return result;
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public virtual void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             string function = GetFunctionHeader() + GetFunctionBody(GetFunctionToConvert());
             visitor.AddShaderChunk(function, true);

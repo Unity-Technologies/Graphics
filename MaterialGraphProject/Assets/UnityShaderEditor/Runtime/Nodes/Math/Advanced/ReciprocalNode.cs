@@ -1,29 +1,30 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Advanced/Reciprocal")]
-    public class ReciprocalNode : Function1Input, IGeneratesFunction
+    public class ReciprocalNode : CodeFunctionNode
     {
         public ReciprocalNode()
         {
             name = "Reciprocal";
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_reciprocal_" + precision;
+            return GetType().GetMethod("Unity_Reciprocal", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        static string Unity_Reciprocal(
+            [Slot(0, Binding.None)] DynamicDimensionVector argument,
+            [Slot(1, Binding.None)] out DynamicDimensionVector result)
         {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("arg1"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return 1.0/arg1;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    result = 1.0/argument;
+}
+";
         }
     }
 }
