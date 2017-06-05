@@ -757,7 +757,6 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
         illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT);
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
@@ -863,7 +862,6 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
         illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * attenuation;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
