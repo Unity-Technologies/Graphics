@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -123,6 +123,9 @@ namespace UnityEditor.VFX.UI
 
 
             float halfWidth = edgeWidth * 0.5f;
+
+            float vertexHalfWidth = halfWidth + 2;
+
             for (float t = 1 / cpt; t < 1; t += 1 / cpt)
             {
                 float minT = 1 - t;
@@ -132,12 +135,11 @@ namespace UnityEditor.VFX.UI
                     3 * minT * minT * t * tStart +
                     minT * minT * minT * start;
 
+                edge = norm * vertexHalfWidth;
 
-                edge = norm * (halfWidth + 1);
-
-                GL.TexCoord3(t, -halfWidth - 1, halfWidth);
+                GL.TexCoord3(t, -vertexHalfWidth, halfWidth);
                 GL.Vertex(prevPos - edge);
-                GL.TexCoord3(t, 1 + halfWidth, halfWidth);
+                GL.TexCoord3(t, vertexHalfWidth, halfWidth);
                 GL.Vertex(prevPos + edge);
 
                 dir = (pos - prevPos).normalized;
@@ -148,11 +150,11 @@ namespace UnityEditor.VFX.UI
 
             dir = (end - prevPos).normalized;
             norm = new Vector2(dir.y, -dir.x);
-            edge = norm * (halfWidth + 1);
+            edge = norm * vertexHalfWidth;
 
-            GL.TexCoord3(1, -halfWidth - 1, halfWidth);
+            GL.TexCoord3(1, -vertexHalfWidth, halfWidth);
             GL.Vertex(end - edge);
-            GL.TexCoord3(1, 1 + halfWidth, halfWidth);
+            GL.TexCoord3(1, vertexHalfWidth, halfWidth);
             GL.Vertex(end + edge);
 
             GL.End();
