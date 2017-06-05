@@ -56,7 +56,8 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            m_DebugItem.SetValue(value, false);
+            if(m_DebugItem != null) // Can happen if not all menu are populated yet (depends on call order...)
+                m_DebugItem.SetValue(value, false);
         }
     }
 
@@ -71,13 +72,12 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
             UnityEditor.Undo.undoRedoPerformed += OnUndoRedoPerformed;
 #endif
-
             // Populate item states
             DebugMenuManager dmm = DebugMenuManager.instance;
-            for (int panelIdx = 0 ; panelIdx < dmm.panelCount ; ++panelIdx)
+            for (int panelIdx = 0; panelIdx < dmm.panelCount; ++panelIdx)
             {
                 DebugPanel panel = dmm.GetDebugPanel(panelIdx);
-                for(int itemIdx = 0 ; itemIdx < panel.itemCount ; ++itemIdx)
+                for (int itemIdx = 0; itemIdx < panel.itemCount; ++itemIdx)
                 {
                     DebugItem item = panel.GetDebugItem(itemIdx);
                     DebugItemState debugItemState = FindDebugItemState(item);
@@ -92,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            UpdateAllDebugItems();
+            DebugMenuManager.instance.SetDebugMenuState(this);
         }
 
         public void OnDisable()
@@ -135,6 +135,9 @@ namespace UnityEngine.Experimental.Rendering
             {
                 itemState.UpdateDebugItemValue();
             }
+#if UNITY_EDITOR
+            UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
         }
     }
 }
