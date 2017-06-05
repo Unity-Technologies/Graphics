@@ -51,13 +51,15 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
 #define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
+#define SSS_WRAP_ANGLE (PI/12)              // Used for wrap lighting
+#define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
 uint   _EnableSSSAndTransmission;           // Globally toggles subsurface and transmission scattering on/off
 uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
 float4 _ShapeParameters[SSS_N_PROFILES];    // RGB = S = 1 / D; A = filter radius
-float4 _SurfaceAlbedos[SSS_N_PROFILES];     // RGB = color, A = unused
+float4 _VolumeAlbedos[SSS_N_PROFILES];      // RGB = color, A = unused
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -148,7 +150,7 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
     if (bsdfData.enableTransmission)
     {
         bsdfData.transmittance = ComputeTransmittance(_ShapeParameters[subsurfaceProfile].rgb,
-                                                      _SurfaceAlbedos[subsurfaceProfile].rgb,
+                                                      _VolumeAlbedos[subsurfaceProfile].rgb,
                                                       bsdfData.thickness, bsdfData.subsurfaceRadius);
     }
 
@@ -706,7 +708,8 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     float3 positionWS = posInput.positionWS;
 
     float3 L = -lightData.forward; // Lights are pointing backward in Unity
-    float illuminance = saturate(dot(bsdfData.normalWS, L));
+    float NdotL = dot(bsdfData.normalWS, L);
+    float illuminance = saturate(NdotL);
 
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -758,10 +761,9 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        float LdotV = dot(L, V); // Also computed in BSDF()
-        // Compute the normal at the back of the object as R = reflect(N, -V)
-        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
-        float illuminance = saturate(-LdotV);
+        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
+        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT);
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -799,7 +801,8 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     float attenuation = GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius);
     // Reminder: lights are ortiented backward (-Z)
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
-    float illuminance = saturate(dot(bsdfData.normalWS, L)) * attenuation;
+    float NdotL = dot(bsdfData.normalWS, L);
+    float illuminance = saturate(NdotL * attenuation);
 
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -864,10 +867,9 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        float LdotV = dot(L, V); // Also computed in BSDF()
-        // Compute the normal at the back of the object as R = reflect(N, -V)
-        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
-        float illuminance = saturate(-LdotV * attenuation);
+        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
+        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * attenuation;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -916,7 +918,8 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     float clipFactor = ((positionLS.z >= 0) && (abs(positionNDC.x) <= 1 && abs(positionNDC.y) <= 1)) ? 1 : 0;
 
     float3 L = -lightData.forward; // Lights are pointing backward in Unity
-    float illuminance = saturate(dot(bsdfData.normalWS, L) * clipFactor);
+    float NdotL = dot(bsdfData.normalWS, L);
+    float illuminance = saturate(NdotL * clipFactor);
 
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -949,10 +952,8 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        float LdotV = dot(L, V); // Also computed in BSDF()
-        // Compute the normal at the back of the object as R = reflect(N, -V)
-        // float RdotL = NdotL - 2 * preLightData.NdotV * LdotV;
-        float illuminance = saturate(-LdotV * clipFactor);
+        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * clipFactor;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;

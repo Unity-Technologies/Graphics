@@ -1,12 +1,5 @@
-Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
+Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 {
-    Properties
-    {
-        [HideInInspector] _StdDev1("", Color) = (0, 0, 0)
-        [HideInInspector] _StdDev2("", Color) = (0, 0, 0)
-        [HideInInspector] _LerpWeight("", Float) = 0
-    }
-
     SubShader
     {
         Pass
@@ -27,15 +20,16 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
             // Include
             //-------------------------------------------------------------------------------------
 
-            #include "../../ShaderLibrary/Common.hlsl"
-            #include "../../ShaderLibrary/Color.hlsl"
-            #include "../ShaderVariables.hlsl"
+            #include "../../../ShaderLibrary/CommonMaterial.hlsl"
+            #include "../../../ShaderLibrary/Common.hlsl"
+            #include "../../ShaderVariables.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _StdDev1, _StdDev2; float _LerpWeight; // See 'SubsurfaceScatteringParameters'
+            float4 _VolumeAlbedo, _ShapeParameter, _ThicknessRemap;
+            float _ScatteringDistance; // See 'SubsurfaceScatteringProfile'
 
             //-------------------------------------------------------------------------------------
             // Implementation
@@ -63,19 +57,11 @@ Shader "Hidden/HDRenderPipeline/DrawGaussianProfile"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float  dist = length(input.texcoord - 0.5);
+                float  d = (_ThicknessRemap.x + input.texcoord.x * (_ThicknessRemap.y - _ThicknessRemap.x));
+                float3 T = ComputeTransmittance(_ShapeParameter.rgb, float3(1, 1, 1), d, 1);
 
-                float3 var1 = _StdDev1.rgb * _StdDev1.rgb;
-                float3 var2 = _StdDev2.rgb * _StdDev2.rgb;
-
-                // Evaluate the linear combination of two 2D Gaussians instead of
-                // product of a linear combination of two normalized 1D Gaussians
-                // since we do not want to bother artists with the lack of radial symmetry.
-
-                float3 magnitude = lerp(exp(-dist * dist / (2 * var1)) / (TWO_PI * var1),
-                                        exp(-dist * dist / (2 * var2)) / (TWO_PI * var2), _LerpWeight);
-
-                return float4(magnitude, 1);
+                // Apply gamma for visualization only. Do not apply gamma to the color.
+                return float4(pow(T, 1.0 / 3) * _VolumeAlbedo.rgb, 1);
             }
             ENDHLSL
         }

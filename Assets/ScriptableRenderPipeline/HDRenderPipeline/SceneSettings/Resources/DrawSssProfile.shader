@@ -21,7 +21,6 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
             //-------------------------------------------------------------------------------------
 
             #include "../../../ShaderLibrary/Common.hlsl"
-            #include "../../../ShaderLibrary/Color.hlsl"
             #include "../../ShaderVariables.hlsl"
 
             //-------------------------------------------------------------------------------------
@@ -61,9 +60,9 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
                 float3 S = _ShapeParameter.rgb;
                 float3 M = S * (exp(-r * S) + exp(-r * S * (1.0 / 3.0))) / (8 * PI * r);
 
-                // Apply gamma for visualization only. It is not present in the actual formula!
                 // N.b.: we multiply by the surface albedo of the actual geometry during shading.
-                return float4(pow(M * _SurfaceAlbedo.rgb, 1.0 / 3.0), 1);
+                // Apply gamma for visualization only. Do not apply gamma to the color.
+                return float4(pow(M, 1.0 / 3.0) * _SurfaceAlbedo.rgb, 1);
             }
             ENDHLSL
         }
