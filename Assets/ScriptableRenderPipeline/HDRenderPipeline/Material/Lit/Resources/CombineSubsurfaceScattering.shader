@@ -89,7 +89,6 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float2 vec = r * float2(cos(phi), sin(phi));                                    \
                                                                                                 \
                 float2 position   = centerPosUnSS + vec * scaledPixPerMm;                       \
-                float  rcpPdf     = kernel[profileID][i][1];                                    \
                 float3 irradiance = LOAD_TEXTURE2D(_IrradianceSource, position).rgb;            \
                                                                                                 \
                 /* TODO: see if making this a [branch] improves performance. */                 \
@@ -100,7 +99,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                     float  z = LOAD_TEXTURE2D(_MainDepthTexture, position).r;                   \
                     float  d = LinearEyeDepth(z, _ZBufferParams);                               \
                     float  t = millimPerUnit * d - (millimPerUnit * centerDepthVS);             \
-                    float3 w = ComputeBilateralWeight(shapeParam, r, t, rcpDistScale, rcpPdf);  \
+                    float  p = kernel[profileID][i][1];                                         \
+                    float3 w = ComputeBilateralWeight(shapeParam, r, t, rcpDistScale, p);       \
                                                                                                 \
                     totalIrradiance += w * irradiance;                                          \
                     totalWeight     += w;                                                       \
@@ -184,6 +184,7 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
                 float2 scaledPixPerMm = distScale * rcp(millimPerUnit * unitsPerPixel);
 
                 // Take the first (central) sample.
+                // TODO: copy its neighborhood into LDS.
                 float2 centerPosition   = posInput.unPositionSS;
                 float3 centerIrradiance = LOAD_TEXTURE2D(_IrradianceSource, centerPosition).rgb;
 
