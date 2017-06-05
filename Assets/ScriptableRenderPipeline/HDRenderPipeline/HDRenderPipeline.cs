@@ -51,7 +51,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             for (int index = 0; index < gbufferCount; index++)
             {
-                /* RTs[index] = */
                 cmd.GetTemporaryRT(IDs[index], width, height, 0, FilterMode.Point, formats[index], sRGBWrites[index]);
             }
         }
@@ -66,16 +65,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             return colorMRTs;
         }
-
-        /*
-        public void BindBuffers(Material mat)
-        {
-            for (int index = 0; index < gbufferCount; index++)
-            {
-                mat.SetTexture(IDs[index], RTs[index]);
-            }
-        }
-        */
 
         public int gbufferCount { get; set; }
         int[] IDs = new int[MaxGbuffer];
@@ -121,6 +110,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Post-processing context and screen-space effects (recycled on every frame to avoid GC alloc)
         readonly PostProcessRenderContext m_PostProcessContext;
         readonly ScreenSpaceAmbientOcclusionEffect m_SsaoEffect;
+
+        // Stencil usage in HDRenderPipeline.
+        // Currently we use only 2 bits to identify the kind of lighting that is expected from the render pipeline
+        // Usage is define in LightDefinitions.cs
+        [Flags]
+        public enum StencilBits
+        {
+            Lighting = 3,                    // 0
+            All = 255                        // 0xFF
+        }
 
         // Detect when windows size is changing
         int m_CurrentWidth;
@@ -326,7 +325,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Broadcast SSS parameters to all shaders.
-            Shader.SetGlobalInt(     "_EnableSSS",          debugDisplaySettings.renderingDebugSettings.enableSSS ? 1 : 0);
+            Shader.SetGlobalInt(     "_EnableSSSAndTransmission",          debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission ? 1 : 0);
             Shader.SetGlobalInt(     "_TexturingModeFlags", (int)sssParameters.texturingModeFlags);
             Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
             cmd.SetGlobalFloatArray( "_ThicknessRemaps",         sssParameters.thicknessRemaps);
@@ -617,7 +616,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewMaterialGBuffer);
 
-                    // m_gbufferManager.BindBuffers(m_DebugViewMaterialGBuffer);
                     // TODO: Bind depth textures
                     var cmd = new CommandBuffer { name = "DebugViewMaterialGBuffer" };
                     cmd.Blit(null, m_CameraColorBufferRT, m_DebugViewMaterialGBuffer, 0);
@@ -649,9 +647,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderTargetIdentifier[] colorRTs = { m_CameraColorBufferRT, m_CameraSubsurfaceBufferRT };
 
-            if (debugDisplaySettings.renderingDebugSettings.enableSSS)
+            if (debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission)
             {
-                // Output split lighting for materials tagged with the SSS stencil bit.
+                // Output split lighting for materials asking for it (via stencil buffer)
                 m_LightLoop.RenderDeferredLighting(hdCamera, renderContext, debugDisplaySettings, colorRTs, m_CameraDepthStencilBufferRT, new RenderTargetIdentifier(GetDepthTexture()), true);
             }
 
@@ -663,9 +661,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void CombineSubsurfaceScattering(HDCamera hdCamera, ScriptableRenderContext context, SubsurfaceScatteringSettings sssParameters)
         {
             // Currently, forward-rendered objects do not output split lighting required for the SSS pass.
-            if (m_Asset.renderingSettings.ShouldUseForwardRenderingOnly()) return;
-
-            if (!debugDisplaySettings.renderingDebugSettings.enableSSS) return;
+            if (!debugDisplaySettings.renderingDebugSettings.enableSSSAndTransmission || m_Asset.renderingSettings.ShouldUseForwardRenderingOnly())
+                return;
 
             var cmd = new CommandBuffer() { name = "Subsurface Scattering" };
 

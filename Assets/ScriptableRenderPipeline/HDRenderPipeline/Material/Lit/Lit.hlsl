@@ -52,7 +52,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 
 #define MIN_N_DOT_V    0.0001               // The minimum value of 'NdotV'
 
-uint   _EnableSSS;                          // Globally toggles subsurface scattering on/off
+uint   _EnableSSSAndTransmission;           // Globally toggles subsurface and transmission scattering on/off
 uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
@@ -142,7 +142,7 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 
     uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * subsurfaceProfile);
 
-    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE;
+    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE && (_EnableSSSAndTransmission > 0);
     bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
 
     if (bsdfData.enableTransmission)
@@ -154,17 +154,22 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
 
-    // We modify the albedo here as this code is used by all lighting (including light maps and GI).
-    if (performPostScatterTexturing)
+#if SHADERPASS != SHADERPASS_LIGHT_TRANSPORT // In case of GI pass don't modify the diffuseColor
+    if (_EnableSSSAndTransmission > 0) // If we globally disable SSS effect, don't modify diffuseColor
     {
-    #ifndef SSS_PASS
-        bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
-    #endif
+        // We modify the albedo here as this code is used by all lighting (including light maps and GI).
+        if (performPostScatterTexturing)
+        {
+        #ifndef SSS_PASS
+            bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
+        #endif
+        }
+        else
+        {
+            bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
+        }
     }
-    else
-    {
-        bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
-    }
+#endif
 }
 
 //-----------------------------------------------------------------------------
