@@ -758,7 +758,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
         // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        illuminance = saturate((-NdotL + SSS_WRAP_LIGHT) / ((1 + SSS_WRAP_LIGHT) * (1 + SSS_WRAP_LIGHT)));
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT);
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -864,7 +864,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
         // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        illuminance = saturate((-NdotL + SSS_WRAP_LIGHT) / ((1 + SSS_WRAP_LIGHT) * (1 + SSS_WRAP_LIGHT)));
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * attenuation;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
@@ -948,8 +948,7 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
     [branch] if (bsdfData.enableTransmission)
     {
         // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        illuminance = saturate((-NdotL + SSS_WRAP_LIGHT) / ((1 + SSS_WRAP_LIGHT) * (1 + SSS_WRAP_LIGHT)));
+        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * clipFactor;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
