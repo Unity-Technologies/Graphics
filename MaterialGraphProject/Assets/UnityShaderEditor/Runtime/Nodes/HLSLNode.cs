@@ -29,7 +29,7 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
-        public CodeFunctionNode()
+        protected CodeFunctionNode()
         {
             UpdateNodeAfterDeserialization();
         }
@@ -115,7 +115,7 @@ namespace UnityEngine.MaterialGraph
                 defaultValue = null;
             }
 
-            public SlotAttribute(int mslotId, Binding mImplicitBinding, int defaultX, int defaultY, int defaultZ, int defaultW)
+            public SlotAttribute(int mslotId, Binding mImplicitBinding, float defaultX, float defaultY, float defaultZ, float defaultW)
             {
                 slotId = mslotId;
                 binding = mImplicitBinding;
@@ -270,7 +270,8 @@ namespace UnityEngine.MaterialGraph
 
         private string GetFunctionName()
         {
-            return GetFunctionToConvert().Name + "_" + precision;
+            var function = GetFunctionToConvert();
+            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision;
         }
 
         private string GetFunctionHeader()

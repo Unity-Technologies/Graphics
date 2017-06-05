@@ -1,55 +1,47 @@
-﻿namespace UnityEngine.MaterialGraph
+﻿using System.Reflection;
+
+namespace UnityEngine.MaterialGraph
 {
     [Title("Art/Adjustments/ColorBalance")]
-    public class ColorBalanceNode : FunctionNInNOut, IGeneratesFunction
+    public class ColorBalanceNode : CodeFunctionNode
     {
         public ColorBalanceNode()
         {
             name = "ColorBalance";
-            AddSlot("Color", "inputColor", Graphing.SlotType.Input, SlotValueType.Vector4, Vector4.one);
-            AddSlot("AdjustRGB", "adjustRGB", Graphing.SlotType.Input, SlotValueType.Vector3, Vector3.zero);
-            AddSlot("RGBA", "finalColor", Graphing.SlotType.Output, SlotValueType.Vector4, Vector4.zero);
-            UpdateNodeAfterDeserialization();
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_colorbalance_" + precision;
+            return GetType().GetMethod("Unity_ColorBalance", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public override bool hasPreview
+        static string Unity_ColorBalance(
+            [Slot(0, Binding.None)] Vector4 inputColor,
+            [Slot(1, Binding.None)] Vector3 adjustRGB,
+            [Slot(2, Binding.None)] out Vector4 outColor)
         {
-            get { return true; }
-        }
+            outColor = Vector4.zero;
+            return
+                @"
+{
+    float red = 0;
+    float green = 0;
+    float blue = 0;
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype(), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
+    red = 1.00f / (1-adjustRGB.r) * inputColor.r;
+    green = 1.00f / (1-adjustRGB.g) * inputColor.g;
+    blue = 1.00f / (1-adjustRGB.b) * inputColor.b;
 
-            outputString.AddShaderChunk("float red = 0;", false);
-            outputString.AddShaderChunk("float green = 0;", false);
-            outputString.AddShaderChunk("float blue = 0;", false);
+    red = clamp(red,0.00f,1.00f);
+    green = clamp(green,0.00f,1.00f);
+    blue = clamp(blue,0.00f,1.00f);
 
-            outputString.AddShaderChunk("red = 1.00f / (1-adjustRGB.r) * inputColor.r;", false);
-            outputString.AddShaderChunk("green = 1.00f / (1-adjustRGB.g) * inputColor.g;", false);
-            outputString.AddShaderChunk("blue = 1.00f / (1-adjustRGB.b) * inputColor.b;", false);
-
-            outputString.AddShaderChunk("red = clamp(red,0.00f,1.00f);", false);
-            outputString.AddShaderChunk("green = clamp(green,0.00f,1.00f);", false);
-            outputString.AddShaderChunk("blue = clamp(blue,0.00f,1.00f);", false);
-
-            outputString.AddShaderChunk("finalColor.r = red;", false);
-            outputString.AddShaderChunk("finalColor.g = green;", false);
-            outputString.AddShaderChunk("finalColor.b = blue;", false);
-            outputString.AddShaderChunk("finalColor.a = inputColor.a;", false);
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+    outColor.r = red;
+    outColor.g = green;
+    outColor.b = blue;
+    outColor.a = inputColor.a;
+}
+";
         }
     }
 }

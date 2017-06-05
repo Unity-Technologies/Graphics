@@ -1,11 +1,11 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using System.Reflection;
+using System.Text;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Gradient Editor")]
-    public class GradientNode : FunctionNInNOut, IGeneratesFunction
+    public class GradientNode : CodeFunctionNode
     {
         [SerializeField]
         private Gradient m_gradient;
@@ -15,21 +15,15 @@ namespace UnityEngine.MaterialGraph
             get { return m_gradient; }
             set
             {
-
                 if (m_gradient == value)
-                {
                     return;
-                }
 
                 m_gradient = value;
                 if (onModified != null)
-                {
                     onModified(this, ModificationScope.Graph);
-                }
             }
         }
 
-        
         public void UpdateGradient()
         {
             if (onModified != null)
@@ -39,117 +33,79 @@ namespace UnityEngine.MaterialGraph
 
            // Debug.Log("UPDATED GRAPH");
         }
-        
-
-
 
         public GradientNode()
         {
             name = "Gradient";
-            AddSlot("Value", "v", Graphing.SlotType.Input, SlotValueType.Vector1, Vector4.one);
-            AddSlot("RGBA", "finalColor", Graphing.SlotType.Output, SlotValueType.Vector4, Vector4.zero);
-            AddSlot("R", "finalR", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
-            AddSlot("G", "finalG", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
-            AddSlot("B", "finalB", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
-            AddSlot("A", "finalA", Graphing.SlotType.Output, SlotValueType.Vector1, Vector4.zero);
-            UpdateNodeAfterDeserialization();
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_Gradient_" + precision;
+            return GetType().GetMethod("Unity_Gradient", BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
-        public override bool hasPreview
-        {
-            get { return true; }
-        }
 
-        protected override string GetFunctionCall(GenerationMode generationMode)
+        string Unity_Gradient(
+            [Slot(0, Binding.None)] Vector1 value,
+            [Slot(1, Binding.None)] out Vector4 result)
         {
-            //here we don't want to generate final value as the parameters are used as output
-            //TODO allow to define parameters as ouput in the function prototype and handle
-            //that automatically
-            return base.GetFunctionCall(GenerationMode.Preview);
-        }
+            result = Vector4.zero;
 
-        private void GNF(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
 
             GradientColorKey[] colorkeys = m_gradient.colorKeys;
             GradientAlphaKey[] alphakeys = m_gradient.alphaKeys;
 
             //Start
-
-            outputString.AddShaderChunk(GetFunctionPrototype(), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-
+            StringBuilder outputString = new StringBuilder();
+            string start = @"
+{
+";
+            outputString.Append(start);
             //Color
-
             Color c;
             float cp;
             for (int i = 0; i < colorkeys.Length; i++)
             {
                 c = colorkeys[i].color;
                 cp = colorkeys[i].time;
-                outputString.AddShaderChunk("float3 color" + i + "=float3(" + c.r + "," + c.g + "," + c.b + ");", false);
-                outputString.AddShaderChunk("float colorp" + i + "=" + cp + ";", false);
+                outputString.AppendLine(string.Format("\t{{precision}}3 color{0}=float3({1},{2},{3});", i, c.r, c.g, c.b));
+                outputString.AppendLine(string.Format("\t{{precision}} colorp{0}={1};", i, cp));
             }
 
-            outputString.AddShaderChunk("float3 gradcolor = color0;", false);
+            outputString.AppendLine("\t{precision}3 gradcolor = color0;");
 
             for (int i = 0; i < colorkeys.Length - 1; i++)
             {
                 int j = i + 1;
-                outputString.AddShaderChunk("float colorLerpPosition" + i + "=smoothstep(colorp" + i + ",colorp" + j + ",v);", false);
-                outputString.AddShaderChunk("gradcolor = lerp(gradcolor,color" + j + ",colorLerpPosition" + i + ");", false);
+                outputString.AppendLine(string.Format("\t{{precision}} colorLerpPosition{0}=smoothstep(colorp{0},colorp{1},value);",i,j));
+                outputString.AppendLine(string.Format("\tgradcolor = lerp(gradcolor,color{0},colorLerpPosition{1});",j, i));
             }
 
             //Alpha
-
             float a;
             float ap;
             for (int i = 0; i < alphakeys.Length; i++)
             {
                 a = alphakeys[i].alpha;
                 ap = alphakeys[i].time;
-                outputString.AddShaderChunk("float alpha" + i + "=" + a + ";", false);
-                outputString.AddShaderChunk("float alphap" + i + "=" + ap + ";", false);
+                outputString.AppendLine(string.Format("\t{{precision}} alpha{0}={1};", i, a));
+                outputString.AppendLine(string.Format("\t{{precision}} alphap{0}={1};", i, ap));
             }
 
-            outputString.AddShaderChunk("float gradalpha = alpha0;", false);
+            outputString.AppendLine("\t{precision} gradalpha = alpha0;");
 
             for (int i = 0; i < alphakeys.Length - 1; i++)
             {
                 int j = i + 1;
-                outputString.AddShaderChunk("float alphaLerpPosition" + i + "=smoothstep(alphap" + i + ",alphap" + j + ",v);", false);
-                outputString.AddShaderChunk("gradalpha = lerp(gradalpha,alpha" + j + ",alphaLerpPosition" + i + ");", false);
+                outputString.AppendLine(string.Format("\t{{precision}} alphaLerpPosition{0}=smoothstep(alphap{0},alphap{1},value);", i, j));
+                outputString.AppendLine(string.Format("\tgradalpha = lerp(gradalpha,alpha{0},alphaLerpPosition{1});",j, i));
             }
 
             //Result
+            outputString.AppendLine("\tresult = float4(gradcolor,gradalpha);");
+            outputString.AppendLine("}");
 
-            outputString.AddShaderChunk("finalColor = float4(gradcolor,gradalpha);", false);
-            outputString.AddShaderChunk("finalR = finalColor.r;", false);
-            outputString.AddShaderChunk("finalG = finalColor.g;", false);
-            outputString.AddShaderChunk("finalB = finalColor.b;", false);
-            outputString.AddShaderChunk("finalA = finalColor.a;", false);
-
-            //End
-
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
-
-            //yield return null;
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            GNF(visitor, generationMode);
-            
-
+            return outputString.ToString();
         }
     }
 }

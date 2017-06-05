@@ -16,7 +16,7 @@ namespace UnityEngine.MaterialGraph
         }
 
         static string Unity_Hex(
-            [Slot(0, Binding.None)] Vector2 uv,
+            [Slot(0, Binding.MeshUV0)] Vector2 uv,
             [Slot(1, Binding.None)] Vector1 thickness,
             [Slot(2, Binding.None)] out Vector1 result)
         {

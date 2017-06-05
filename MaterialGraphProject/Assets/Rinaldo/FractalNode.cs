@@ -1,56 +1,41 @@
-﻿using UnityEngine.Graphing;
-using System.Linq;
-using System.Collections;
+﻿using System.Reflection;
 
 namespace UnityEngine.MaterialGraph
 {
     [Title("Procedural/Fractal")]
-    public class FractalNode : FunctionNInNOut, IGeneratesFunction
+    public class FractalNode : CodeFunctionNode
     {
 
         public FractalNode()
         {
             name = "Fractal";
-            AddSlot("UV", "texCoord", Graphing.SlotType.Input, SlotValueType.Vector2, Vector4.zero);
-            AddSlot("Pan", "Pan", Graphing.SlotType.Input, SlotValueType.Vector2, new Vector4(0.5f,0,0,0));
-            AddSlot("Zoom", "Zoom", Graphing.SlotType.Input, SlotValueType.Vector1, new Vector4(3,0,0,0));
-            AddSlot("Aspect", "Aspect", Graphing.SlotType.Input, SlotValueType.Vector1, new Vector4(0.9f,0,0,0));
-
-            AddSlot("FracResult", "fractalRes", Graphing.SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
-
-            UpdateNodeAfterDeserialization();
         }
 
-        protected override string GetFunctionName()
+        protected override MethodInfo GetFunctionToConvert()
         {
-            return "unity_Fractal";
+            return GetType().GetMethod("Unity_Fractal", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        public override bool hasPreview
+        static string Unity_Fractal(
+            [Slot(0, Binding.MeshUV0)] Vector2 uv,
+            [Slot(1, Binding.None, 0.5f, 0, 0, 0)] Vector2 pan,
+            [Slot(2, Binding.None, 3, 0, 0, 0)] Vector1 zoom,
+            [Slot(3, Binding.None, 0.9f, 0, 0, 0)] Vector1 aspect,
+            [Slot(4, Binding.None)] out Vector1 result)
         {
-            get { return true; }
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype(), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.AddShaderChunk("const int Iterations = 128;", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("float2 c = (texCoord - 0.5) * Zoom * float2(1, Aspect) - Pan;", false);
-            outputString.AddShaderChunk("float2 v = 0;", false);
-            outputString.AddShaderChunk("for (int n = 0; n < Iterations && dot(v,v) < 4; n++)", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("v = float2(v.x * v.x - v.y * v.y, v.x * v.y * 2) + c;", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("fractalRes = (dot(v, v) > 4) ? (float)n / (float)Iterations : 0;", false);
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            return
+                @"
+{
+    const int Iterations = 128;
+    float2 c = (uv - 0.5) * zoom * float2(1, aspect) - pan;
+    float2 v = 0;
+    for (int n = 0; n < Iterations && dot(v,v) < 4; n++)
+    {
+        v = float2(v.x * v.x - v.y * v.y, v.x * v.y * 2) + c;
+    }
+    result = (dot(v, v) > 4) ? (float)n / (float)Iterations : 0;
+}
+";
         }
     }
 }
