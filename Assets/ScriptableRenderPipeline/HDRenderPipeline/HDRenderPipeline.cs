@@ -330,7 +330,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalInt(     "_TransmissionFlags",  (int)sssParameters.transmissionFlags);
             cmd.SetGlobalFloatArray( "_ThicknessRemaps",         sssParameters.thicknessRemaps);
             cmd.SetGlobalVectorArray("_ShapeParameters",         sssParameters.shapeParameters);
-            cmd.SetGlobalVectorArray("_SurfaceAlbedos",          sssParameters.surfaceAlbedos);
+            cmd.SetGlobalVectorArray("_VolumeAlbedos",           sssParameters.volumeAlbedos);
 
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
