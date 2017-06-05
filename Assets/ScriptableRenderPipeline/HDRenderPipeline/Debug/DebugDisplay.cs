@@ -115,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Opaque",() => renderingDebugSettings.displayOpaqueObjects, (value) => renderingDebugSettings.displayOpaqueObjects = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Display Transparency",() => renderingDebugSettings.displayTransparentObjects, (value) => renderingDebugSettings.displayTransparentObjects = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Distortion",() => renderingDebugSettings.enableDistortion, (value) => renderingDebugSettings.enableDistortion = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Subsurface Scattering",() => renderingDebugSettings.enableSSS, (value) => renderingDebugSettings.enableSSS = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>("Rendering", "Enable Subsurface Scattering",() => renderingDebugSettings.enableSSSAndTransmission, (value) => renderingDebugSettings.enableSSSAndTransmission = (bool)value);
         }
 
         public void OnValidate()
@@ -373,7 +373,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool displayOpaqueObjects = true;
         public bool displayTransparentObjects = true;
         public bool enableDistortion = true;
-        public bool enableSSS = true;
+        public bool enableSSSAndTransmission = true;
     }
 
     public enum ShadowMapDebugMode

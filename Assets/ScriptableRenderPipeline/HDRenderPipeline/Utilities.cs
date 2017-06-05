@@ -16,15 +16,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ClearDepth = 2
     }
 
-    [Flags]
-    public enum StencilBits
-    {
-        None   = 0,                         // 0
-        SSS    = 1 + Lit.MaterialId.LitSSS, // 1
-        NonSSS = 2 + Lit.MaterialId.LitSSS, // 2
-        All    = 255                        // 0xFF
-    }
-
     public class Utilities
     {
         public static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
@@ -44,6 +35,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     materialList.Add(obj);
                 }
             }
+
+            // Note: If there is a need for an optimization in the future of this function, user can simply fill the materialList manually by commenting the code abode and
+            // adding to the list material they used in their game.
+            //  materialList.Add(new Lit());
+            //  materialList.Add(new Unlit());
+            // ...
 
             return materialList;
         }
