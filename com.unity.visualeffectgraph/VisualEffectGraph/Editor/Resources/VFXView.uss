@@ -471,7 +471,7 @@ VFXOutputDataAnchor #type
 VFXDataEdge
 {
 	border-color : #787878;
-	edge-width:2;
+	edge-width:1;
 }
 
 VFXDataEdge.typesingle

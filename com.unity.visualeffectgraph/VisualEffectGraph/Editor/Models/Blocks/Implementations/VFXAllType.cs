@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -13,6 +13,8 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             public float aFloat = 123.456f;
+            [Range(-32,150)]
+            public float aRange = 123.456f;
             public Gradient aGradient = new Gradient();
             public Vector2 aVector2 = Vector2.left;
             public Vector3 aVector3 = Vector3.forward;
@@ -29,6 +31,20 @@ namespace UnityEditor.VFX
             public bool aBool;
             public AnimationCurve curve = new AnimationCurve(new Keyframe[] { new Keyframe(0, 0), new Keyframe(1, 1)});
             public Mesh aMesh;
+        }
+
+
+        public enum RotateMode
+        {
+            Quaternion,
+            Euler
+        }
+
+        [System.Serializable]
+        public class Settings
+        {
+            public RotateMode mode;
+            public bool rotateTwice;
         }
     }
 }

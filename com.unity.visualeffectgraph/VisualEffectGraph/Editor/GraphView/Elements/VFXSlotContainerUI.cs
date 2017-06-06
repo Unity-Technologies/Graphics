@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -45,6 +45,9 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+
+        public VisualContainer m_SettingsContainer;
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();
@@ -54,6 +57,35 @@ namespace UnityEditor.VFX.UI
                 return;
 
             SetPosition(presenter.position);
+
+            if( m_SettingsContainer == null && presenter.settings != null)
+            {
+                object settings = presenter.settings;
+
+                m_SettingsContainer = new VisualContainer{name="settings"};
+
+                leftContainer.InsertChild(1,m_SettingsContainer); //between title and input
+
+                foreach(var setting in presenter.settings)
+                {
+                    AddSetting(setting);
+                }
+
+            }
+            if( m_SettingsContainer != null)
+            {
+                for(int i = 0; i < m_SettingsContainer.childrenCount; ++i)
+                {
+                    PropertyRM prop = m_SettingsContainer.GetChildAt(i) as PropertyRM;
+                    if (prop != null)
+                        prop.Update();
+                }
+            }
+        }
+
+        protected void AddSetting(VFXSettingPresenter setting)
+        {
+            m_SettingsContainer.AddChild(PropertyRM.Create(setting, 100));
         }
 
         public VFXContextUI context

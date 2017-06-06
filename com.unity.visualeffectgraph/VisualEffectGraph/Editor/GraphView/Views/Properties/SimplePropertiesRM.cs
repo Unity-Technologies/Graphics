@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -20,6 +20,17 @@ namespace UnityEditor.VFX.UI
         public override ValueControl<int> CreateField()
         {
             return new IntField(m_Label);
+        }
+    }
+    class EnumPropertyRM : SimplePropertyRM<int>
+    {
+        public EnumPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        {
+        }
+
+        public override ValueControl<int> CreateField()
+        {
+            return new EnumField(m_Label,m_Provider.anchorType);
         }
     }
 

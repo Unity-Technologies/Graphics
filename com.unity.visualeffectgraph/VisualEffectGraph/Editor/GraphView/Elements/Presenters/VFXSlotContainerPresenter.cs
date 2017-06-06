@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
@@ -37,6 +37,21 @@ namespace UnityEditor.VFX.UI
 
             //TODO unregister when the block is destroyed
             (m_Model as VFXModel).onInvalidateDelegate += OnInvalidate;
+
+
+            object settings = m_Model.settings;
+            if( settings != null )
+            {
+                m_Settings = new VFXSettingPresenter[settings.GetType().GetFields().Length];
+                int cpt = 0;
+                foreach (var member in settings.GetType().GetFields())
+                {
+                    VFXSettingPresenter settingPresenter = VFXSettingPresenter.CreateInstance<VFXSettingPresenter>();
+
+                    settingPresenter.Init(this.m_Model, member.Name, member.FieldType);
+                    m_Settings[cpt++] = settingPresenter;
+                }
+            }
 
             OnInvalidate((m_Model as VFXModel), VFXModel.InvalidationCause.kStructureChanged);
         }
@@ -116,10 +131,28 @@ namespace UnityEditor.VFX.UI
                 {
                     yield return kv.Value;
                 }
+                foreach(var v in m_Settings)
+                {
+                    yield return v;
+                }
             }
         }
+
+        public IEnumerable<VFXSettingPresenter> settings
+        {
+            get { return m_Settings; }
+        }
+
+        public IEnumerable<VFXContextDataInputAnchorPresenter> anchors
+        {
+            get { return m_Anchors.Values; }
+        }
+
         [SerializeField]
         private Dictionary<VFXSlot, VFXContextDataInputAnchorPresenter> m_Anchors = new Dictionary<VFXSlot, VFXContextDataInputAnchorPresenter>();
+
+        [SerializeField]
+        private VFXSettingPresenter[] m_Settings;
 
         [SerializeField]
         private IVFXSlotContainer m_Model;
