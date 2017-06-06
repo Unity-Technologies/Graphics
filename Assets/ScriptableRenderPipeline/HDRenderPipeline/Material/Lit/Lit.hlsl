@@ -756,17 +756,16 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT);
+        // Use the reversed normal from the front for the back of the object.
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL));
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
-        // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
-        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
+        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
-        float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
+        float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         diffuseLighting += transmittedLight;
@@ -861,17 +860,16 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * attenuation;
+        // Use the reversed normal from the front for the back of the object.
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL)) * attenuation;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
-        // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
-        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
+        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
-        float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
+        float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         diffuseLighting += transmittedLight;
@@ -945,17 +943,16 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * clipFactor;
+        // Use the reversed normal from the front for the back of the object.
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL)) * clipFactor;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
-        // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
-        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
+        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
-        float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
+        float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         diffuseLighting += transmittedLight;
