@@ -135,16 +135,15 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    float4 tangentWS = float4(input.interpolators2.xyz, input.interpolators2.w > 0.0 ? 1.0 : -1.0);
+    float4 tangentWS = float4(input.interpolators2.xyz, input.interpolators2.w > 0.0 ? 1.0 : -1.0);	// must not be normalized (mikkts requirement)
     
     // Normalize normalWS vector but keep the renormFactor to apply it to bitangent and tangent
 	float3 unnormalizedNormalWS = input.interpolators1.xyz;
     float renormFactor = 1.0 / length(unnormalizedNormalWS);
 
-    // no normalizes is mandatory for tangentWS
-
     // bitangent on the fly option in xnormal to reduce vertex shader outputs.
-    float3x3 worldToTangent = CreateWorldToTangent(unnormalizedNormalWS, tangentWS.xyz, tangentWS.w);		// this is the mikktspace transformation (must use unnormalized attributes)
+	// this is the mikktspace transformation (must use unnormalized attributes)
+    float3x3 worldToTangent = CreateWorldToTangent(unnormalizedNormalWS, tangentWS.xyz, tangentWS.w);
 
 	// surface gradient based formulation requires a unit length initial normal. We can maintain compliance with mikkts
 	// by uniformly scaling all 3 vectors since normalization of the perturbed normal will cancel it.
