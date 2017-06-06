@@ -261,11 +261,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        // Use 16 bits to encode the thickness, and up to 8 bits to encode the profile ID.
-        // We need a lot of precision to minimize banding of NdotV-weighted thickness.
-        outGBuffer2 = float4(surfaceData.subsurfaceRadius,
-                             PackFloatToR8G8(surfaceData.thickness),
-                             PackByte(surfaceData.subsurfaceProfile));
+        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0, PackByte(surfaceData.subsurfaceProfile));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
     {
@@ -396,10 +392,8 @@ void DecodeFromGBuffer(
     }
     else if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        // Use 16 bits to encode the thickness, and up to 8 bits to encode the profile ID.
-        // We need a lot of precision to minimize banding of NdotV-weighted thickness.
         float subsurfaceRadius  = inGBuffer2.x;
-        float thickness         = UnpackFloatFromR8G8(inGBuffer2.yz);
+        float thickness         = inGBuffer2.y;
         int   subsurfaceProfile = UnpackByte(inGBuffer2.w);
 
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
