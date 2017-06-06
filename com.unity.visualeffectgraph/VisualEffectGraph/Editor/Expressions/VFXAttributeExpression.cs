@@ -4,6 +4,27 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    [Flags]
+    enum VFXAttributeMode
+    {
+        None        = 0,
+        Read        = 1 << 0,
+        Write       = 1 << 1,
+        ReadWrite   = Read | Write,
+    }
+
+    struct VFXAttribute
+    {
+        public string name;
+        public VFXValueType type;
+    }
+
+    struct VFXAttributeInfo
+    {
+        public VFXAttribute attrib;
+        public VFXAttributeMode mode;
+    }
+
     sealed class VFXAttributeExpression : VFXExpression
     {
         private static readonly VFXAttributeExpression Seed              = new VFXAttributeExpression("seed", VFXValueType.kUint);
@@ -39,8 +60,8 @@ namespace UnityEditor.VFX
 
         private VFXAttributeExpression(string name, VFXValueType type) : base(Flags.PerElement)
         {
-            m_AttributeName = name;
-            m_ValueType = type;
+            m_Attribute.name = name;
+            m_Attribute.type = type;
         }
 
         public override VFXExpressionOp Operation
@@ -51,23 +72,25 @@ namespace UnityEditor.VFX
             }
         }
 
-        private VFXValueType m_ValueType;
         public override VFXValueType ValueType
         {
             get
             {
-                return m_ValueType;
+                return m_Attribute.type;
             }
         }
 
-        private string m_AttributeName;
         public string attributeName
         {
             get
             {
-                return m_AttributeName;
+                return m_Attribute.name;
             }
         }
+
+        public VFXAttribute attribute { get { return m_Attribute; } }
+        private VFXAttribute m_Attribute;
+
 
         public override bool Equals(object obj)
         {

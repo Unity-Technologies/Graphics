@@ -1,7 +1,8 @@
-using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
 using Type = System.Type;
-using System.Reflection;
 
 namespace UnityEditor.VFX
 {
@@ -22,6 +23,7 @@ namespace UnityEditor.VFX
 
         public abstract VFXContextType compatibleContexts { get; }
         public abstract VFXDataType compatibleData { get; }
+        public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual string source { get { return null; } }
     }
 }

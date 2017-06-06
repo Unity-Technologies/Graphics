@@ -243,6 +243,8 @@ namespace UnityEditor.VFX
 
                     vfxAsset.ClearPropertyData();
                     vfxAsset.SetExpressionSheet(expressionSheet);
+
+                    GenerateAttributesData(models.OfType<VFXData>(),expressionGraph); 
                 }
                 catch (Exception e)
                 {
@@ -250,6 +252,57 @@ namespace UnityEditor.VFX
                 }
 
                 m_ExpressionGraphDirty = false;
+            }
+        }
+
+        private static void GenerateAttributesData(IEnumerable<VFXData> datas,VFXExpressionGraph graph)
+        {
+            foreach (var data in datas)
+                GenerateAttributeData(data, graph);
+        }
+
+        private static void GenerateAttributeData(VFXData data, VFXExpressionGraph graph)
+        {
+            data.ClearAttributes();
+            foreach (var context in data.owners)
+            {
+                data.AddAttributes(context, context.attributes);
+                foreach (var blocks in context.children)
+                    data.AddAttributes(context, blocks.attributes);
+
+                CollectInputAttributes(data, context, graph);
+            }
+
+            data.DebugLogAttributes();
+        }
+
+        private static void CollectInputAttributes(VFXData data, VFXContext context, VFXExpressionGraph graph)
+        {
+            foreach (var slot in context.inputSlots)
+                data.AddAttributes(context,CollectInputAttributes(graph.GetReduced(slot.GetExpression())));
+
+            foreach (var block in context.children)
+                foreach (var slot in block.inputSlots)
+                    data.AddAttributes(context, CollectInputAttributes(graph.GetReduced(slot.GetExpression())));
+        }
+
+        private static IEnumerable<VFXAttributeInfo> CollectInputAttributes(VFXExpression exp)
+        {
+            if (exp is VFXAttributeExpression)
+            {
+                VFXAttributeInfo info;
+                info.attrib = ((VFXAttributeExpression)exp).attribute; // TODO
+                info.mode = VFXAttributeMode.Read;
+                yield return info;
+            }
+            else if (exp.Is(VFXExpression.Flags.PerElement)) // Testing per element allows to early out as it is propagated
+            {
+                foreach (var parent in exp.Parents)
+                {
+                    var res = CollectInputAttributes(parent);
+                    foreach (var info in res)
+                        yield return info;
+                }
             }
         }
 
