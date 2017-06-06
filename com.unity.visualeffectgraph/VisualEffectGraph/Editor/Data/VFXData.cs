@@ -46,6 +46,23 @@ namespace UnityEditor.VFX
             m_Owners.Remove(context);
         }
 
+        public bool IsAttributeRead(VFXAttribute attrib)    { return (GetAttributeMode(attrib) & VFXAttributeMode.Read) != 0; }
+        public bool IsAttributeWritten(VFXAttribute attrib) { return (GetAttributeMode(attrib) & VFXAttributeMode.Write) != 0; }
+        public bool AttributeExists(VFXAttribute attrib)    { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
+
+        public VFXAttributeMode GetAttributeMode(VFXAttribute attrib)
+        {
+            VFXAttributeMode mode = VFXAttributeMode.None;
+            Dictionary<VFXContext, VFXAttributeMode> contexts;
+            if (m_AttributesToContexts.TryGetValue(attrib, out contexts))
+            {
+                foreach (var context in contexts)
+                    mode |= context.Value;
+            }
+
+            return mode;
+        }
+
         public void CollectAttributes(VFXExpressionGraph graph)
         {
             m_ContextsToAttributes.Clear();
@@ -84,6 +101,12 @@ namespace UnityEditor.VFX
 
         private void AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
         {
+            if (attribInfo.mode == VFXAttributeMode.None)
+                throw new ArgumentException("Cannot add an attribute without mode");
+
+            if ((attribInfo.mode & VFXAttributeMode.Write) != 0 && context.contextType == VFXContextType.kOutput)
+                throw new ArgumentException("Output contexts cannot write attributes");
+
             Dictionary<VFXAttribute, VFXAttributeMode> attribs;
             if (!m_ContextsToAttributes.TryGetValue(context, out attribs))
             {
@@ -97,14 +120,14 @@ namespace UnityEditor.VFX
             if (attribs.ContainsKey(attrib))
                 mode |= attribs[attrib];
 
-            if (mode != VFXAttributeMode.None)
-                attribs[attrib] = mode;
+            //if (mode != VFXAttributeMode.None)
+            attribs[attrib] = mode;
         }
 
         private void AddAttributes(VFXContext context, IEnumerable<VFXAttributeInfo> attribInfos)
         {
             foreach (var attribInfo in attribInfos)
-                AddAttribute(context,attribInfo);
+                AddAttribute(context, attribInfo);
         }
 
         // Collect attribute expressions linked to a context
@@ -144,12 +167,12 @@ namespace UnityEditor.VFX
             Debug.Log(string.Format("Attributes for data {0} of type {1}", GetHashCode(), GetType()));
             foreach (var context in owners)
             {
-                Dictionary<VFXAttribute,VFXAttributeMode> attributeInfos;
+                Dictionary<VFXAttribute, VFXAttributeMode> attributeInfos;
                 if (m_ContextsToAttributes.TryGetValue(context, out attributeInfos))
                 {
                     Debug.Log(string.Format("\tContext {0}", context.GetHashCode()));
                     foreach (var kvp in attributeInfos)
-                        Debug.Log(string.Format("\t\tAttribute {0} {1} {2}", kvp.Key.name,kvp.Key.type,kvp.Value));
+                        Debug.Log(string.Format("\t\tAttribute {0} {1} {2}", kvp.Key.name, kvp.Key.type, kvp.Value));
                 }
             }
         }
