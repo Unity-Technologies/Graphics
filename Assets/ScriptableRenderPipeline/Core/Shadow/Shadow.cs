@@ -1165,8 +1165,6 @@ namespace UnityEngine.Experimental.Rendering
                 float   distToCam       = (campos - lpos).magnitude;
                 bool    add             = (distToCam < ald.shadowFadeDistance || vl.lightType == LightType.Directional) && m_ShadowSettings.enabled;
 
-                float[] cascadeSplitsDummy = new float[3];
-
                 if( add )
                 {
                     switch( vl.lightType )
@@ -1174,7 +1172,7 @@ namespace UnityEngine.Experimental.Rendering
                         case LightType.Directional:
                             add = --m_MaxShadows[(int)GPUShadowType.Directional, 0] >= 0;
                             shadowType = GPUShadowType.Directional;
-                            ald.GetShadowCascades(out facecount, out cascadeSplitsDummy);
+                            facecount = ald.cascadeCount;
                             break;
                         case LightType.Point:
                             add = --m_MaxShadows[(int)GPUShadowType.Point, 0] >= 0;
