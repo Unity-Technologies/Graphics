@@ -90,6 +90,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedProperty m_Profiles = null;
         SerializedProperty m_NumProfiles = null;
 
+        // Shadow Settings
+        SerializedProperty m_ShadowAtlasWidth = null;
+        SerializedProperty m_ShadowAtlasHeight = null;
+
+        // Texture Settings
+        SerializedProperty m_SpotCookieSize = null;
+        SerializedProperty m_PointCookieSize = null;
+        SerializedProperty m_ReflectionCubemapSize = null;
+
         private void InitializeProperties()
         {
             m_DefaultDiffuseMaterial = serializedObject.FindProperty("m_DefaultDiffuseMaterial");
@@ -108,8 +117,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_tileDebugByCategory = FindProperty(x => x.tileSettings.tileDebugByCategory);
 
             // Shadow settings
+            m_ShadowAtlasWidth = FindProperty(x => x.shadowInitParams.shadowAtlasWidth);
+            m_ShadowAtlasHeight = FindProperty(x => x.shadowInitParams.shadowAtlasHeight);
 
-            //TODO!
+            // Texture settings
+            m_SpotCookieSize = FindProperty(x => x.textureSettings.spotCookieSize);
+            m_PointCookieSize = FindProperty(x => x.textureSettings.pointCookieSize);
+            m_ReflectionCubemapSize = FindProperty(x => x.textureSettings.reflectionCubemapSize);
 
             // Rendering settings
             m_RenderingUseForwardOnly = FindProperty(x => x.renderingSettings.useForwardRenderingOnly);
@@ -196,14 +210,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void ShadowSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
-            var shadowSettings = renderContext.shadowSettings;
 
             EditorGUILayout.LabelField(styles.shadowSettings);
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
 
-            shadowSettings.shadowAtlasWidth = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasWidth, shadowSettings.shadowAtlasWidth));
-            shadowSettings.shadowAtlasHeight = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasHeight, shadowSettings.shadowAtlasHeight));
+            EditorGUILayout.PropertyField(m_ShadowAtlasWidth, styles.shadowsAtlasWidth);
+            EditorGUILayout.PropertyField(m_ShadowAtlasHeight, styles.shadowsAtlasHeight);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -225,19 +238,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void TextureSettingsUI(HDRenderPipelineAsset renderContext)
         {
             EditorGUILayout.Space();
-            var textureSettings = renderContext.textureSettings;
 
             EditorGUILayout.LabelField(styles.textureSettings);
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
 
-            textureSettings.spotCookieSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.spotCookieSize, textureSettings.spotCookieSize), 16, 1024));
-            textureSettings.pointCookieSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.pointCookieSize, textureSettings.pointCookieSize), 16, 1024));
-            textureSettings.reflectionCubemapSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.reflectionCubemapSize, textureSettings.reflectionCubemapSize), 64, 1024));
+            EditorGUILayout.PropertyField(m_SpotCookieSize, styles.spotCookieSize);
+            EditorGUILayout.PropertyField(m_PointCookieSize, styles.pointCookieSize);
+            EditorGUILayout.PropertyField(m_ReflectionCubemapSize, styles.reflectionCubemapSize);
 
             if (EditorGUI.EndChangeCheck())
             {
-                renderContext.textureSettings = textureSettings;
                 HackSetDirty(renderContext); // Repaint
             }
             EditorGUI.indentLevel--;

@@ -63,6 +63,7 @@
         [HideInInspector, SerializeField] private ShadowData    shadowData;
         [HideInInspector, SerializeField] private ShadowData[]  shadowDatas = new ShadowData[0];
 
+        public int cascadeCount { get { return shadowCascadeCount; } }
         public void GetShadowCascades( out int cascadeCount, out float[] cascadeRatios ) { cascadeCount = shadowCascadeCount; cascadeRatios = shadowCascadeRatios; }
         public void GetShadowAlgorithm( out int algorithm, out int variant, out int precision )    { algorithm = shadowAlgorithm; variant = shadowVariant; precision = shadowPrecision; }
         public void SetShadowAlgorithm( int algorithm, int variant, int precision, int format, int[] data )

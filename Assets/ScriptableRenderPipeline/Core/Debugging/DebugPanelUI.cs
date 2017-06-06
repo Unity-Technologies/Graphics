@@ -48,6 +48,9 @@ namespace UnityEngine.Experimental.Rendering
 
         public void RebuildGUI()
         {
+            if (m_Root == null)
+                return;
+
             for (int i = 0; i < m_Root.transform.childCount; ++i)
             {
                 Object.DestroyImmediate(m_Root.transform.GetChild(i).gameObject);

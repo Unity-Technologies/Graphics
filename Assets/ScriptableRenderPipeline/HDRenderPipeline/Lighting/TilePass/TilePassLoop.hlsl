@@ -30,12 +30,13 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
         int shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows(positionWS, dirShadowSplitSpheres);
 
         if (shadowSplitIndex == -1)
+        {
             diffuseLighting = float3(0.0, 0.0, 0.0);
+        }
         else
         {
             diffuseLighting = s_CascadeColors[shadowSplitIndex] * shadow;
         }
-
     }
 #endif
 }
