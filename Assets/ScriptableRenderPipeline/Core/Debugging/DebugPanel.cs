@@ -113,6 +113,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (handler == null)
                 handler = new DefaultDebugItemHandler();
+
+            DebugItem oldItem = GetDebugItem(itemName);
+            if (oldItem != null)
+                RemoveDebugItem(oldItem);
+
             DebugItem newItem = new DebugItem(itemName, m_Name, typeof(ItemType), getter, setter, dynamicDisplay, handler);
             handler.SetDebugItem(newItem);
             m_Items.Add(newItem);
