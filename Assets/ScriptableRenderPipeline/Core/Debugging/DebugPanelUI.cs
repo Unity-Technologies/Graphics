@@ -51,17 +51,18 @@ namespace UnityEngine.Experimental.Rendering
             if (m_Root == null)
                 return;
 
-            for (int i = 0; i < m_Root.transform.childCount; ++i)
+            foreach (Transform child in m_Root.transform)
             {
-                Object.DestroyImmediate(m_Root.transform.GetChild(i).gameObject);
+                GameObject.Destroy(child.gameObject);
             }
+
             BuildGUIImpl(m_Root);
         }
 
         // Default Implementation: just build all items with provided handler.
         public virtual void BuildGUIImpl(GameObject parent)
         {
-            DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_DebugPanel.name), m_DebugPanel.name, 14, TextAnchor.MiddleLeft, m_Root);
+            DebugMenuUI.CreateTextElement(string.Format("{0} Title", m_DebugPanel.name), m_DebugPanel.name, 14, TextAnchor.MiddleLeft, parent);
 
             m_ItemsUI.Clear();
             for (int i = 0; i < m_DebugPanel.itemCount; i++)
@@ -96,6 +97,11 @@ namespace UnityEngine.Experimental.Rendering
             return null;
         }
 
+        public void ResetSelectedItem()
+        {
+            SetSelectedItem(-1);
+        }
+
         void SetSelectedItem(int index)
         {
             if (m_SelectedItem != -1)
@@ -104,7 +110,8 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_SelectedItem = index;
-            m_ItemsUI[m_SelectedItem].SetSelected(true);
+            if(m_SelectedItem != -1)
+                m_ItemsUI[m_SelectedItem].SetSelected(true);
         }
 
         public void SetSelected(bool value)
