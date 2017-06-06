@@ -63,6 +63,26 @@ namespace UnityEditor.VFX
             return mode;
         }
 
+        public int GetNbAttributes()
+        {
+            return m_AttributesToContexts.Count;
+        }
+
+        public IEnumerable<VFXAttributeInfo> GetAttributes()
+        {
+            foreach (var attrib in m_AttributesToContexts)
+            {
+                VFXAttributeInfo info;
+                info.attrib = attrib.Key;
+                info.mode = VFXAttributeMode.None;
+
+                foreach (var context in attrib.Value)
+                    info.mode |= context.Value;
+
+                yield return info;
+            }
+        }
+
         public void CollectAttributes(VFXExpressionGraph graph)
         {
             m_ContextsToAttributes.Clear();
