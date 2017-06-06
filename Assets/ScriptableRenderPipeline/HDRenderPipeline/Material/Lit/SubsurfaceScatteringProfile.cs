@@ -504,6 +504,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ThicknessRemap        = serializedObject.FindProperty("thicknessRemap");
             m_WorldScale            = serializedObject.FindProperty("worldScale");
 
+            // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime
             m_ProfileMaterial       = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawSssProfile");
             m_TransmittanceMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
 
