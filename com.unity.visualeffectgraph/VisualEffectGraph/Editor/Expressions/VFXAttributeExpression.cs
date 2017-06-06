@@ -21,6 +21,13 @@ namespace UnityEditor.VFX
 
     struct VFXAttributeInfo
     {
+        public VFXAttributeInfo(string name,VFXValueType type,VFXAttributeMode mode)
+        {
+            attrib.name = name;
+            attrib.type = type;
+            this.mode = mode;
+        }
+
         public VFXAttribute attrib;
         public VFXAttributeMode mode;
     }

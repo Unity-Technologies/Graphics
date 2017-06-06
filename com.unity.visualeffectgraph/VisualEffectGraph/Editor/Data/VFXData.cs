@@ -46,18 +46,49 @@ namespace UnityEditor.VFX
             m_Owners.Remove(context);
         }
 
-        public void ClearAttributes()
+        public void CollectAttributes(VFXExpressionGraph graph)
         {
-            contextToAttributes.Clear();
+            m_ContextsToAttributes.Clear();
+            m_AttributesToContexts.Clear();
+
+            foreach (var context in owners)
+            {
+                AddAttributes(context, context.attributes);
+                foreach (var blocks in context.children)
+                    AddAttributes(context, blocks.attributes);
+
+                CollectInputAttributes(context, graph);
+            }
+
+            // Create attributesToContexts from contextsToAttributes
+            foreach (var contextKvp in m_ContextsToAttributes)
+            {
+                var context = contextKvp.Key;
+                foreach (var attribKvp in contextKvp.Value)
+                {
+                    var attrib = attribKvp.Key;
+                    Dictionary<VFXContext, VFXAttributeMode> contexts;
+                    if (!m_AttributesToContexts.TryGetValue(attrib, out contexts))
+                    {
+                        contexts = new Dictionary<VFXContext, VFXAttributeMode>();
+                        m_AttributesToContexts.Add(attrib, contexts);
+                    }
+
+                    contexts[context] = attribKvp.Value;
+                }
+            }
+
+            //TMP Debug only
+            DebugLogAttributes();
         }
 
-        public void AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
+        private void AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
         {
             Dictionary<VFXAttribute, VFXAttributeMode> attribs;
-            if (!contextToAttributes.TryGetValue(context, out attribs))
+            if (!m_ContextsToAttributes.TryGetValue(context, out attribs))
             {
                 attribs = new Dictionary<VFXAttribute, VFXAttributeMode>();
-                contextToAttributes.Add(context, attribs);
+                m_ContextsToAttributes.Add(context, attribs);
             }
 
             var attrib = attribInfo.attrib;
@@ -70,19 +101,51 @@ namespace UnityEditor.VFX
                 attribs[attrib] = mode;
         }
 
-        public void AddAttributes(VFXContext context, IEnumerable<VFXAttributeInfo> attribInfos)
+        private void AddAttributes(VFXContext context, IEnumerable<VFXAttributeInfo> attribInfos)
         {
             foreach (var attribInfo in attribInfos)
                 AddAttribute(context,attribInfo);
         }
 
-        public void DebugLogAttributes()
+        // Collect attribute expressions linked to a context
+        private void CollectInputAttributes(VFXContext context, VFXExpressionGraph graph)
+        {
+            foreach (var slot in context.inputSlots)
+                AddAttributes(context, CollectInputAttributes(graph.GetReduced(slot.GetExpression())));
+
+            foreach (var block in context.children)
+                foreach (var slot in block.inputSlots)
+                    AddAttributes(context, CollectInputAttributes(graph.GetReduced(slot.GetExpression())));
+        }
+
+        // Collect attribute expressions recursively
+        private IEnumerable<VFXAttributeInfo> CollectInputAttributes(VFXExpression exp)
+        {
+            if (exp is VFXAttributeExpression)
+            {
+                VFXAttributeInfo info;
+                info.attrib = ((VFXAttributeExpression)exp).attribute; // TODO
+                info.mode = VFXAttributeMode.Read;
+                yield return info;
+            }
+            else if (exp.Is(VFXExpression.Flags.PerElement)) // Testing per element allows to early out as it is propagated
+            {
+                foreach (var parent in exp.Parents)
+                {
+                    var res = CollectInputAttributes(parent);
+                    foreach (var info in res)
+                        yield return info;
+                }
+            }
+        }
+
+        private void DebugLogAttributes()
         {
             Debug.Log(string.Format("Attributes for data {0} of type {1}", GetHashCode(), GetType()));
             foreach (var context in owners)
             {
                 Dictionary<VFXAttribute,VFXAttributeMode> attributeInfos;
-                if (contextToAttributes.TryGetValue(context,out attributeInfos))
+                if (m_ContextsToAttributes.TryGetValue(context, out attributeInfos))
                 {
                     Debug.Log(string.Format("\tContext {0}", context.GetHashCode()));
                     foreach (var kvp in attributeInfos)
@@ -97,6 +160,7 @@ namespace UnityEditor.VFX
         //[NonSerialized]
         public int m_TestId;
 
-        private Dictionary<VFXContext, Dictionary<VFXAttribute,VFXAttributeMode>> contextToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute,VFXAttributeMode>>();
+        private Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> m_ContextsToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>>();
+        private Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>> m_AttributesToContexts = new Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>>();
     }
 }
