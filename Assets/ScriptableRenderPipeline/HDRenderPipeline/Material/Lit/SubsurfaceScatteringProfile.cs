@@ -1,6 +1,6 @@
 using System;
 #if UNITY_EDITOR
-    using UnityEditor;
+using UnityEditor;
 #endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -93,13 +93,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // PDF(r, s) = s * (Exp[-r * s] + Exp[-r * s / 3]) / 4
             // CDF(r, s) = 1 - 1/4 * Exp[-r * s] - 3/4 * Exp[-r * s / 3]
             // ------------------------------------------------------------------------------------
-            
+
             // Importance sample the near field kernel.
             for (int i = 0; i < SssConstants.SSS_N_SAMPLES_NEAR_FIELD; i++)
             {
                 float p = i * (1.0f / SssConstants.SSS_N_SAMPLES_NEAR_FIELD);
                 float r = KernelCdfInverse(p, s);
-                
+
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
                 // of the actual geometry is performed at runtime (in the shader).
                 m_FilterKernelNearField[i].x = r;
@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set in BuildKernel().
             get { return m_FilterKernelNearField; }
         }
-        
+
         public Vector2[] filterKernelFarField
         {
             // Set in BuildKernel().
@@ -386,7 +386,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
     public class SubsurfaceScatteringProfileFactory
     {
-        [MenuItem("Assets/Create/Subsurface Scattering Profile", priority = 666)]
+        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Profile", priority = 666)]
         static void MenuCreateSubsurfaceScatteringProfile()
         {
             Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -502,7 +502,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 EditorGUILayout.PropertyField(m_SurfaceAlbedo, styles.sssProfileSurfaceAlbedo);
                 m_LenVolMeanFreePath.floatValue = EditorGUILayout.Slider(styles.sssProfileLenVolMeanFreePath, m_LenVolMeanFreePath.floatValue, 0.01f, 1.0f);
-                
+
                 GUI.enabled = false;
                 EditorGUILayout.PropertyField(m_ScatteringDistance, styles.sssProfileScatteringDistance);
                 GUI.enabled = true;
@@ -537,7 +537,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ProfileMaterial.SetVector("_SurfaceAlbedo",     A);
             m_ProfileMaterial.SetVector("_ShapeParameter",    S);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImage, m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
-            
+
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.sssTransmittancePreview0, styles.centeredMiniBoldLabel);
             EditorGUILayout.LabelField(styles.sssTransmittancePreview1, EditorStyles.centeredGreyMiniLabel);
