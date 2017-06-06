@@ -47,9 +47,10 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float _WorldScales[SSS_N_PROFILES];                                         // Size of the world unit in meters
-            float _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD][2]; // 0 = radius, 1 = reciprocal of the PDF
-            float _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD][2];   // 0 = radius, 1 = reciprocal of the PDF
+            float4 _SurfaceShapeParams[SSS_N_PROFILES];                                  // RGB = S = 1 / D, A = filter radius
+            float  _WorldScales[SSS_N_PROFILES];                                         // Size of the world unit in meters
+            float  _FilterKernelsNearField[SSS_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD][2]; // 0 = radius, 1 = reciprocal of the PDF
+            float  _FilterKernelsFarField[SSS_N_PROFILES][SSS_N_SAMPLES_FAR_FIELD][2];   // 0 = radius, 1 = reciprocal of the PDF
 
             TEXTURE2D(_IrradianceSource);             // Includes transmitted light
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture); // Contains the albedo and SSS parameters
@@ -167,8 +168,8 @@ Shader "Hidden/HDRenderPipeline/CombineSubsurfaceScattering"
 
                 int    profileID   = bsdfData.subsurfaceProfile;
                 float  distScale   = bsdfData.subsurfaceRadius;
-                float3 shapeParam  = _ShapeParameters[profileID].rgb;
-                float  maxDistance = _ShapeParameters[profileID].a;
+                float3 shapeParam  = _SurfaceShapeParams[profileID].rgb;
+                float  maxDistance = _SurfaceShapeParams[profileID].a;
 
                 // Reconstruct the view-space position.
                 float2 centerPosSS = posInput.positionSS;

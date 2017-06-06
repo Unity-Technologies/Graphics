@@ -27,7 +27,7 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
             // Inputs & outputs
             //-------------------------------------------------------------------------------------
 
-            float4 _SurfaceAlbedo, _ShapeParameter;
+            float4 _SurfaceAlbedo, _SurfaceShapeParam;
             float _ScatteringDistance; // See 'SubsurfaceScatteringProfile'
 
             //-------------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ Shader "Hidden/HDRenderPipeline/DrawSssProfile"
             float4 Frag(Varyings input) : SV_Target
             {
                 float  r = (2 * length(input.texcoord - 0.5)) * _ScatteringDistance;
-                float3 S = _ShapeParameter.rgb;
+                float3 S = _SurfaceShapeParam.rgb;
                 float3 M = S * (exp(-r * S) + exp(-r * S * (1.0 / 3.0))) / (8 * PI * r);
 
                 // N.b.: we multiply by the surface albedo of the actual geometry during shading.
