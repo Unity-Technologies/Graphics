@@ -176,6 +176,13 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Update()
         {
+            // A bit dirty... this will happen when we exit playmode.
+            // The problem happens when the persistent menu is not empty and we leave playmode.
+            // In this case, the gameObjects will be destroyed but not the ItemUIs (because we can't know when we exit playmode)
+            // To avoid accessing destroyed GameObjects we test the root...
+            if (m_Root == null)
+                return;
+
             foreach (var itemUI in m_ItemsUI)
             {
                 if (itemUI.dynamicDisplay)
