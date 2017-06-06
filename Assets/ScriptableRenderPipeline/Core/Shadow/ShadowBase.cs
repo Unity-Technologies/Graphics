@@ -4,38 +4,26 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    // Class holding parameters for the initialization of the Shadow System
+    [Serializable]
+    public class ShadowInitParameters
+    {
+        public const int kDefaultShadowAtlasSize = 4096;
+
+        public int      shadowAtlasWidth = kDefaultShadowAtlasSize;
+        public int      shadowAtlasHeight = kDefaultShadowAtlasSize;
+    }
+
+    // Class used to pass parameters to the shadow system on a per frame basis.
     [Serializable]
     public class ShadowSettings
     {
-        public bool     enabled;
-        public int      shadowAtlasWidth;
-        public int      shadowAtlasHeight;
+        public const float kDefaultMaxShadowDistance = 1000.0f;
+        public const float kDefaultDirectionalNearPlaneOffset = 5.0f;
 
-        public float    maxShadowDistance;
-        public int      directionalLightCascadeCount;
-        public Vector3  directionalLightCascades;
-        public float    directionalLightNearPlaneOffset;
-
-        static ShadowSettings defaultShadowSettings = null;
-
-        public static ShadowSettings Default
-        {
-            get
-            {
-                if (defaultShadowSettings == null)
-                {
-                    defaultShadowSettings = new ShadowSettings();
-                    defaultShadowSettings.enabled = true;
-                    defaultShadowSettings.shadowAtlasHeight = defaultShadowSettings.shadowAtlasWidth = 4096;
-                    defaultShadowSettings.directionalLightCascadeCount = 1;
-                    defaultShadowSettings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
-                    defaultShadowSettings.directionalLightCascadeCount = 4;
-                    defaultShadowSettings.directionalLightNearPlaneOffset = 5;
-                    defaultShadowSettings.maxShadowDistance = 1000.0F;
-                }
-                return defaultShadowSettings;
-            }
-        }
+        public bool     enabled = true;
+        public float    maxShadowDistance = kDefaultMaxShadowDistance;
+        public float    directionalLightNearPlaneOffset = kDefaultDirectionalNearPlaneOffset;
     }
 
     [GenerateHLSL]
