@@ -21,8 +21,6 @@ namespace UnityEngine.Experimental.Rendering
         protected          uint                       m_ActiveEntriesCount;
         protected          FrameId                    m_FrameId;
         protected          string                     m_ShaderKeyword;
-        protected          int                        m_CascadeCount;
-        protected          Vector3                    m_CascadeRatios;
         protected          uint                       m_TexSlot;
         protected          uint                       m_SampSlot;
         protected          uint[]                     m_TmpWidths  = new uint[ShadowmapBase.ShadowRequest.k_MaxFaceCount];
@@ -75,8 +73,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             public BaseInit baseInit;           // the base class's initializer
             public string   shaderKeyword;      // the global shader keyword to use when rendering the shadowmap
-            public int      cascadeCount;       // the number of cascades to use (these are global in ShadowSettings for now for some reason)
-            public Vector3  cascadeRatios;      // cascade split ratios
         }
 
         // UI stuff
@@ -165,8 +161,6 @@ namespace UnityEngine.Experimental.Rendering
         public void Initialize( AtlasInit init )
         {
             m_ShaderKeyword      = init.shaderKeyword;
-            m_CascadeCount       = init.cascadeCount;
-            m_CascadeRatios      = init.cascadeRatios;
         }
 
         override public void ReserveSlots( ShadowContextStorage sc )
@@ -1178,7 +1172,7 @@ namespace UnityEngine.Experimental.Rendering
                         case LightType.Directional:
                             add = --m_MaxShadows[(int)GPUShadowType.Directional, 0] >= 0;
                             shadowType = GPUShadowType.Directional;
-                            facecount = m_ShadowSettings.directionalLightCascadeCount;
+                            facecount = ald.cascadeCount;
                             break;
                         case LightType.Point:
                             add = --m_MaxShadows[(int)GPUShadowType.Point, 0] >= 0;

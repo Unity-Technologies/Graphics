@@ -31,6 +31,9 @@ namespace UnityEngine.Experimental.Rendering
         public int          panelCount          { get { return m_DebugPanels.Count; } }
         public DebugMenuUI  menuUI              { get { return m_DebugMenuUI; } }
 
+        private DebugMenuState m_DebugMenuState = null;
+        private bool m_DebugMenuStateDirty = false;
+
         DebugMenuManager()
         {
             m_PersistentDebugPanel = new DebugPanel<DebugPanelUI>("Persistent");
@@ -99,6 +102,12 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Update()
         {
+            if(m_DebugMenuState != null && m_DebugMenuStateDirty)
+            {
+                m_DebugMenuStateDirty = false;
+                m_DebugMenuState.UpdateAllDebugItems();
+            }
+
             m_DebugMenuUI.Update();
         }
 
@@ -110,11 +119,13 @@ namespace UnityEngine.Experimental.Rendering
 
         public void AddDebugItem<DebugPanelType, DebugItemType>(string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemHandler handler = null) where DebugPanelType : DebugPanel
         {
-            DebugPanelType debugMenu = GetDebugPanel<DebugPanelType>();
-            if (debugMenu != null)
+            DebugPanelType debugPanel = GetDebugPanel<DebugPanelType>();
+            if (debugPanel != null)
             {
-                debugMenu.AddDebugItem<DebugItemType>(name, getter, setter, dynamicDisplay, handler);
+                debugPanel.AddDebugItem<DebugItemType>(name, getter, setter, dynamicDisplay, handler);
             }
+
+            m_DebugMenuStateDirty = true;
         }
 
         public void AddDebugItem<DebugItemType>(string debugPanelName, string name, Func<object> getter, Action<object> setter = null, bool dynamicDisplay = false, DebugItemHandler handler = null)
@@ -131,6 +142,14 @@ namespace UnityEngine.Experimental.Rendering
             {
                 debugPanel.AddDebugItem<DebugItemType>(name, getter, setter, dynamicDisplay, handler);
             }
+
+            m_DebugMenuStateDirty = true;
+        }
+
+        public void SetDebugMenuState(DebugMenuState state)
+        {
+            m_DebugMenuStateDirty = true;
+            m_DebugMenuState = state;
         }
     }
 }

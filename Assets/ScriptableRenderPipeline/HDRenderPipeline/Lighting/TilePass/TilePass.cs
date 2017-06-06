@@ -14,13 +14,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer    s_ShadowDataBuffer;
         static ComputeBuffer    s_ShadowPayloadBuffer;
 
-        public ShadowSetup(ShadowSettings shadowSettings, out IShadowManager shadowManager)
+        public ShadowSetup(ShadowInitParameters shadowInit, ShadowSettings shadowSettings, out IShadowManager shadowManager)
         {
             s_ShadowDataBuffer      = new ComputeBuffer( k_MaxShadowDataSlots, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowData ) ) );
             s_ShadowPayloadBuffer   = new ComputeBuffer( k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowPayload ) ) );
             ShadowAtlas.AtlasInit atlasInit;
-            atlasInit.baseInit.width           = (uint)shadowSettings.shadowAtlasWidth;
-            atlasInit.baseInit.height          = (uint)shadowSettings.shadowAtlasHeight;
+            atlasInit.baseInit.width           = (uint)shadowInit.shadowAtlasWidth;
+            atlasInit.baseInit.height          = (uint)shadowInit.shadowAtlasHeight;
             atlasInit.baseInit.slices          = 1;
             atlasInit.baseInit.shadowmapBits   = 32;
             atlasInit.baseInit.shadowmapFormat = RenderTextureFormat.Shadowmap;
@@ -30,8 +30,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             atlasInit.baseInit.maxPayloadCount = 0;
             atlasInit.baseInit.shadowSupport   = ShadowmapBase.ShadowSupport.Directional | ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
             atlasInit.shaderKeyword            = null;
-            atlasInit.cascadeCount             = shadowSettings.directionalLightCascadeCount;
-            atlasInit.cascadeRatios            = shadowSettings.directionalLightCascades;
 
             var varianceInit = atlasInit;
             varianceInit.baseInit.shadowmapFormat = ShadowVariance.GetFormat( false, false, true );
@@ -410,9 +408,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             List<int>               m_ShadowRequests = new List<int>();
             Dictionary<int, int>    m_ShadowIndices = new Dictionary<int, int>();
 
-            void InitShadowSystem(ShadowSettings shadowSettings)
+            void InitShadowSystem(ShadowInitParameters initParam, ShadowSettings shadowSettings)
             {
-                m_ShadowSetup = new ShadowSetup(shadowSettings, out m_ShadowMgr);
+                m_ShadowSetup = new ShadowSetup(initParam, shadowSettings, out m_ShadowMgr);
             }
 
             void DeinitShadowSystem()
@@ -457,7 +455,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public LightLoop()
             {}
 
-            public void Build(RenderPipelineResources renderPipelineResources, TileSettings tileSettings, TextureSettings textureSettings)
+            public void Build(RenderPipelineResources renderPipelineResources, TileSettings tileSettings, TextureSettings textureSettings, ShadowInitParameters shadowInit, ShadowSettings shadowSettings)
             {
                 m_Resources = renderPipelineResources;
                 m_TileSettings = tileSettings;
@@ -606,7 +604,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
 #endif
 
-                InitShadowSystem(ShadowSettings.Default);
+                InitShadowSystem(shadowInit, shadowSettings);
             }
 
             public void Cleanup()
