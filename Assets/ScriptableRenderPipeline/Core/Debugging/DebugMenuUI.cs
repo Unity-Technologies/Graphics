@@ -34,6 +34,14 @@ namespace UnityEngine.Experimental.Rendering
             m_DebugMenuManager = manager;
         }
 
+        // HACK: for some reason, the layout of the selected menu may fail if the previous menu in the list is disabled
+        // Disabling and re-enabling everything seems to fix the issue...
+        private void HackSelectPanel()
+        {
+            m_MainMenuRoot.SetActive(false);
+            m_MainMenuRoot.SetActive(true);
+        }
+
         public void EnablePersistentView(bool value)
         {
             m_PersistentPanelRoot.SetActive(value);
@@ -48,10 +56,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_DebugPanelUIs[m_ActivePanelIndex].SetSelected(true);
 
-            // HACK: for some reason, the layout of the selected menu may fail if the previous menu in the list is disabled
-            // Disabling and re-enabling everything seems to fix the issue...
-            m_MainMenuRoot.SetActive(false);
-            m_MainMenuRoot.SetActive(true);
+            HackSelectPanel();
         }
 
         public void NextDebugPanel()
@@ -60,10 +65,7 @@ namespace UnityEngine.Experimental.Rendering
             m_ActivePanelIndex = (m_ActivePanelIndex + 1) % m_DebugPanelUIs.Count;
             m_DebugPanelUIs[m_ActivePanelIndex].SetSelected(true);
 
-            // HACK: for some reason, the layout of the selected menu may fail if the previous menu in the list is disabled
-            // Disabling and re-enabling everything seems to fix the issue...
-            m_MainMenuRoot.SetActive(false);
-            m_MainMenuRoot.SetActive(true);
+            HackSelectPanel();
         }
 
         public void ToggleMenu()
@@ -133,7 +135,9 @@ namespace UnityEngine.Experimental.Rendering
             else
             {
                 m_PersistentDebugPanelUI.SetSelected(true);
+                m_PersistentDebugPanelUI.ResetSelectedItem();
                 EnablePersistentView(true);
+                HackSelectPanel();
             }
         }
 
