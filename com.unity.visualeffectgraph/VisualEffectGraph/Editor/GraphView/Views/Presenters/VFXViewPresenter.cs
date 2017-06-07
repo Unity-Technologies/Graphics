@@ -153,8 +153,8 @@ namespace UnityEditor.VFX.UI
                     if (inPresenter == null)
                         break;
 
-                    var outputAnchor = inPresenter.outputAnchors[0];
-                    var inputAnchor = outPresenter.inputAnchors[0];
+                    var outputAnchor = inPresenter.flowOutputAnchors.First();
+                    var inputAnchor = outPresenter.flowInputAnchors.First();
 
                     var edgePresenter = m_Elements.OfType<VFXFlowEdgePresenter>().FirstOrDefault(t => t.input == inputAnchor && t.output == outputAnchor);
                     if (edgePresenter != null)
@@ -162,8 +162,8 @@ namespace UnityEditor.VFX.UI
                     else
                     {
                         edgePresenter = ScriptableObject.CreateInstance<VFXFlowEdgePresenter>();
-                        edgePresenter.output = inPresenter.outputAnchors[0];
-                        edgePresenter.input = outPresenter.inputAnchors[0];
+                        edgePresenter.output = inPresenter.flowOutputAnchors.First();
+                        edgePresenter.input = outPresenter.flowInputAnchors.First();
                         base.AddElement(edgePresenter);
                     }
                 }

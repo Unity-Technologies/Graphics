@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine;
@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
 
                 if (presenter.direction == Direction.Input)
                 {
-                    foreach (var outputAnchor in nodePresenter.outputAnchors)
+                    foreach (var outputAnchor in nodePresenter.flowOutputAnchors)
                     {
                         if (compatibleAnchors.Contains(outputAnchor))
                         {
@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    foreach (var inputAnchor in nodePresenter.inputAnchors)
+                    foreach (var inputAnchor in nodePresenter.flowInputAnchors)
                     {
                         if (compatibleAnchors.Contains(inputAnchor))
                         {

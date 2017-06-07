@@ -39,6 +39,8 @@ namespace UnityEditor.VFX.UI
             m_Model = model;
             m_ViewPresenter = viewPresenter;
 
+            base.position = new Rect(model.position,Vector2.one);
+
             object settings = slotContainer.settings;
             if (settings != null)
             {
