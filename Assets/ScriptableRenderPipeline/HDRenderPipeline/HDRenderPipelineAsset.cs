@@ -72,19 +72,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Texture Settings
         public TextureSettings textureSettings = new TextureSettings();
 
-        private ScreenSpaceAmbientOcclusionSettings.Settings m_SsaoSettings = ScreenSpaceAmbientOcclusionSettings.Settings.s_Defaultsettings;
-
-        public ScreenSpaceAmbientOcclusionSettings.Settings ssaoSettingsToUse
-        {
-            get
-            {
-                if (ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings)
-                    return ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings.settings;
-
-                return m_SsaoSettings;
-            }
-        }
-
         // Default Material / Shader
 
         [SerializeField]
