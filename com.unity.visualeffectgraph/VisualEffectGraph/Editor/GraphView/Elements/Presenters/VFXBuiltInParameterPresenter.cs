@@ -3,18 +3,15 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBuiltInParameterPresenter : VFXSlotContainerPresenter
+    class VFXBuiltInParameterPresenter : VFXParameterSlotContainerPresenter
     {
         public VFXBuiltInParameter builtInParameter { get { return model as VFXBuiltInParameter; } }
-        /*
-        protected override void Reset()
+
+        public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
-            if (builtInParameter)
-            {
-                title = builtInParameter.expressionOp.ToString() + " " + node.m_OnEnabledCount;
-            }
-            base.Reset();
+            base.Init(model, viewPresenter);
+
+            title = builtInParameter.expressionOp.ToString() + " " + model.m_OnEnabledCount;
         }
-        */
     }
 }

@@ -3,17 +3,15 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXAttributeParameterPresenter : VFXSlotContainerPresenter
+    class VFXAttributeParameterPresenter : VFXParameterSlotContainerPresenter
     {
         public VFXAttributeParameter attributeParameter { get { return model as VFXAttributeParameter; } }
-        /*
-        protected override void Reset()
+
+        public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
-            if (attributeParameter)
-            {
-                title = attributeParameter.attributeName;
-            }
-            base.Reset();
-        }*/
+            base.Init(model, viewPresenter);
+
+            title = attributeParameter.attributeName;
+        }
     }
 }

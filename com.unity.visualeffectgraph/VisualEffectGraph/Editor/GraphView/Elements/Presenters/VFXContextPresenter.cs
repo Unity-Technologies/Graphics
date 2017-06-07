@@ -168,11 +168,6 @@ namespace UnityEditor.VFX.UI
 
             draggedBlocks = draggedBlocks.OrderBy(t => t.index).GroupBy(t => t.contextPresenter).SelectMany<IGrouping<VFXContextPresenter, VFXBlockPresenter>, VFXBlockPresenter>(t => t.Select(u => u));
 
-            /*foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
-            {
-                draggedBlock.ContextPresenter.RemoveBlock(draggedBlock.Model);
-            }*/
-
             int insertIndex = blockPresenter.index;
             if (after) insertIndex++;
 

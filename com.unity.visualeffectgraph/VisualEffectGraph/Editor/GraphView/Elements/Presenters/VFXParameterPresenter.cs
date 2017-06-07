@@ -23,40 +23,38 @@ namespace UnityEditor.VFX.UI
     }
     class VFXParameterPresenter : VFXParameterSlotContainerPresenter, IPropertyRMProvider
     {
-        [SerializeField]
-        private string m_exposedName;
-        [SerializeField]
-        private bool m_exposed;
 
 
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
+            title = parameter.outputSlots[0].property.type.UserFriendlyName() + " " + model.m_OnEnabledCount;
+
+            exposed = parameter.exposed;
+            exposedName = parameter.exposedName;
         }
 
         public string exposedName
         {
-            get { return m_exposedName; }
+            get { return parameter.exposedName; }
             set
             {
-                m_exposedName = value;
-                if (parameter.exposedName != m_exposedName)
+                if (parameter.exposedName != value)
                 {
                     Undo.RecordObject(parameter, "Exposed Name");
-                    parameter.exposedName = m_exposedName;
+                    parameter.exposedName = value;
                 }
             }
         }
         public bool exposed
         {
-            get { return m_exposed; }
+            get { return parameter.exposed; }
             set
             {
-                m_exposed = value;
-                if (parameter.exposed != m_exposed)
+                if (parameter.exposed != value)
                 {
                     Undo.RecordObject(parameter, "Exposed");
-                    parameter.exposed = m_exposed;
+                    parameter.exposed = value;
                 }
             }
         }
@@ -99,18 +97,7 @@ namespace UnityEditor.VFX.UI
         }
 
         int IPropertyRMProvider.depth { get { return 0; }}
-        /*
-        protected override void Reset()
-        {
-            if (parameter != null)
-            {
-                title = node.outputSlots[0].property.type.UserFriendlyName() + " " + node.m_OnEnabledCount;
-                exposed = parameter.exposed;
-                exposedName = parameter.exposedName;
-            }
-            base.Reset();
-        }
-        */
+
         void IPropertyRMProvider.ExpandPath()
         {
             throw new NotImplementedException();
