@@ -207,7 +207,7 @@ namespace UnityEditor.VFX.Test
 
             Func<IVFXSlotContainer, VFXSlotContainerPresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.Cast<VFXSlotContainerPresenter>();
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
                     return allPresenter.FirstOrDefault(o => o.slotContainer == slotContainer);
                 };
 
@@ -253,7 +253,7 @@ namespace UnityEditor.VFX.Test
             CreateTestAsset();
             Func<VFXSlotContainerPresenter[]> fnAllOperatorPresenter = delegate()
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.Cast<VFXSlotContainerPresenter>();
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
                     return allPresenter.OfType<VFXOperatorPresenter>().ToArray();
                 };
 
@@ -310,7 +310,7 @@ namespace UnityEditor.VFX.Test
 
             Func<Type, VFXSlotContainerPresenter> fnFindPresenter = delegate(Type type)
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.Cast<VFXSlotContainerPresenter>();
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
                     return allPresenter.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
@@ -356,7 +356,7 @@ namespace UnityEditor.VFX.Test
 
             Func<Type, VFXSlotContainerPresenter> fnFindPresenter = delegate(Type type)
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.Cast<VFXSlotContainerPresenter>();
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
                     return allPresenter.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
@@ -453,7 +453,7 @@ namespace UnityEditor.VFX.Test
 
             Func<IVFXSlotContainer, VFXSlotContainerPresenter> fnFindPresenter = delegate(IVFXSlotContainer slotContainer)
                 {
-                    var allPresenter = m_ViewPresenter.allChildren.Cast<VFXSlotContainerPresenter>();
+                    var allPresenter = m_ViewPresenter.allChildren.OfType<VFXSlotContainerPresenter>();
                     return allPresenter.FirstOrDefault(o => o.slotContainer == slotContainer);
                 };
 

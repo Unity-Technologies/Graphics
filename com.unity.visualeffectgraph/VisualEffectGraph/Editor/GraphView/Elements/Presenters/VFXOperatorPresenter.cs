@@ -53,6 +53,7 @@ namespace UnityEditor.VFX.UI
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);
+            title = Operator.name + " " + Operator.m_OnEnabledCount;
         }
 
         public VFXOperator Operator
@@ -62,14 +63,5 @@ namespace UnityEditor.VFX.UI
                 return model as VFXOperator;
             }
         }
-        /*
-        protected override void Reset()
-        {
-            if (Operator != null)
-            {
-                title = Operator.name + " " + Operator.m_OnEnabledCount;
-            }
-            base.Reset();
-        }*/
     }
 }

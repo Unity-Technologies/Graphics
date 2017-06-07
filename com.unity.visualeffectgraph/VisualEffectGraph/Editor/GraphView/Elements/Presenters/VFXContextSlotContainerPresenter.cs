@@ -55,6 +55,8 @@ namespace UnityEditor.VFX.UI
                 }
             }
             OnInvalidate(m_Model, VFXModel.InvalidationCause.kStructureChanged);
+            //TODO unregister when the block is destroyed
+            m_Model.onInvalidateDelegate += OnInvalidate;
         }
 
         protected void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
@@ -66,9 +68,19 @@ namespace UnityEditor.VFX.UI
                 List<NodeAnchorPresenter> newAnchors = new List<NodeAnchorPresenter>();
 
                 UpdateSlots(newAnchors, slotContainer.inputSlots,true, true);
+
+                foreach( var anchor in inputAnchors.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
+                {
+                    viewPresenter.UnregisterDataAnchorPresenter(anchor);
+                }
                 m_InputAnchors = newAnchors;
                 newAnchors = new List<NodeAnchorPresenter>();
                 UpdateSlots(newAnchors, slotContainer.outputSlots,true, false);
+
+                foreach (var anchor in outputAnchors.Except(newAnchors).Cast<VFXDataAnchorPresenter>())
+                {
+                    viewPresenter.UnregisterDataAnchorPresenter(anchor);
+                }
                 m_OutputAnchors = newAnchors;
             }
         }
@@ -84,12 +96,14 @@ namespace UnityEditor.VFX.UI
                     propPresenter = AddDataAnchor(slot,input);
                 }
                 newAnchors.Add(propPresenter);
+                viewPresenter.RegisterDataAnchorPresenter(propPresenter);
 
                 propPresenter.UpdateInfos(expanded);
 
                 UpdateSlots(newAnchors, slot.children, expanded && slot.expanded,input);
             }
         }
+
         public VFXDataAnchorPresenter GetPropertyPresenter(VFXSlot slot,bool input)
         {
             VFXDataAnchorPresenter result = null;
@@ -152,7 +166,6 @@ namespace UnityEditor.VFX.UI
             {
                 VFXContextDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXContextDataInputAnchorPresenter>();
                 anchorPresenter.Init(slot, this);
-                contextPresenter.viewPresenter.RegisterDataAnchorPresenter(anchorPresenter);
 
                 return anchorPresenter;
             }
@@ -163,9 +176,6 @@ namespace UnityEditor.VFX.UI
         {
             m_ContextPresenter = contextPresenter;
             base.Init(model,contextPresenter.viewPresenter);
-
-            //TODO unregister when the block is destroyed
-            (m_Model as VFXModel).onInvalidateDelegate += OnInvalidate;
         }
 
         public VFXContextPresenter contextPresenter

@@ -60,15 +60,15 @@ namespace UnityEditor.VFX.Test
         {
             VFXFlowEdgePresenter edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
 
-            edgePresenter.output = initContext.outputAnchors.First();
-            edgePresenter.input = updateContext.inputAnchors.First();
+            edgePresenter.output = initContext.flowOutputAnchors.First();
+            edgePresenter.input = updateContext.flowInputAnchors.First();
 
             m_ViewPresenter.AddElement(edgePresenter);
 
             edgePresenter = VFXFlowEdgePresenter.CreateInstance<VFXFlowEdgePresenter>();
 
-            edgePresenter.output = updateContext.outputAnchors.First();
-            edgePresenter.input = outputContext.inputAnchors.First();
+            edgePresenter.output = updateContext.flowOutputAnchors.First();
+            edgePresenter.input = outputContext.flowInputAnchors.First();
 
             m_ViewPresenter.AddElement(edgePresenter);
         }

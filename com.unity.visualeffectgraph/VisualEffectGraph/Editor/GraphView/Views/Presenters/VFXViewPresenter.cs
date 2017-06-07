@@ -367,46 +367,26 @@ namespace UnityEditor.VFX.UI
             m_FlowAnchorPresenters.Remove(presenter);
         }
 
-        public void RegisterDataAnchorPresenter(VFXContextDataInputAnchorPresenter presenter)
+        public void RegisterDataAnchorPresenter(VFXDataAnchorPresenter presenter)
         {
             List<NodeAnchorPresenter> list;
-            if (!m_DataInputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
+
+            Dictionary<Type, List<NodeAnchorPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
+            
+            if (!dict.TryGetValue(presenter.anchorType, out list))
             {
                 list = new List<NodeAnchorPresenter>();
-                m_DataInputAnchorPresenters[presenter.anchorType] = list;
+                dict[presenter.anchorType] = list;
             }
             if (!list.Contains(presenter))
                 list.Add(presenter);
         }
 
-        public void UnregisterDataAnchorPresenter(VFXContextDataInputAnchorPresenter presenter)
+        public void UnregisterDataAnchorPresenter(VFXDataAnchorPresenter presenter)
         {
-            List<NodeAnchorPresenter> list;
-            if (m_DataInputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
-            {
-                list.Remove(presenter);
-            }
-        }
+            Dictionary<Type, List<NodeAnchorPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
 
-        public void RegisterDataAnchorPresenter(VFXContextDataOutputAnchorPresenter presenter)
-        {
-            List<NodeAnchorPresenter> list;
-            if (!m_DataOutputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
-            {
-                list = new List<NodeAnchorPresenter>();
-                m_DataOutputAnchorPresenters[presenter.anchorType] = list;
-            }
-            if (!list.Contains(presenter))
-                list.Add(presenter);
-        }
-
-        public void UnregisterDataAnchorPresenter(VFXContextDataOutputAnchorPresenter presenter)
-        {
-            List<NodeAnchorPresenter> list;
-            if (m_DataOutputAnchorPresenters.TryGetValue(presenter.anchorType, out list))
-            {
-                list.Remove(presenter);
-            }
+            dict[presenter.anchorType].Remove(presenter);
         }
 
         private static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> listParent)
@@ -476,10 +456,10 @@ namespace UnityEditor.VFX.UI
                             var toSlot = candidate.model;
                             return toSlot.CanLink(startAnchorOperatorPresenter.model);
                         }).ToList();
-
+                    
                     // For edge starting with an output, we must add all data anchors from all blocks
                     List<NodeAnchorPresenter> presenters;
-                    if (!m_DataInputAnchorPresenters.TryGetValue(startAnchorPresenter.anchorType, out presenters))
+                    /*if (!m_DataInputAnchorPresenters.TryGetValue(startAnchorPresenter.anchorType, out presenters))
                     {
                         presenters = new List<NodeAnchorPresenter>();
                         m_DataInputAnchorPresenters[startAnchorPresenter.anchorType] = presenters;
@@ -488,6 +468,8 @@ namespace UnityEditor.VFX.UI
                     {
                         presenters = m_DataInputAnchorPresenters[startAnchorPresenter.anchorType];
                     }
+                    */
+                    presenters = new List<NodeAnchorPresenter>();
 
                     allCandidates = allCandidates.Concat(presenters);
                 }
@@ -586,7 +568,7 @@ namespace UnityEditor.VFX.UI
 
             m_FlowAnchorPresenters.Clear();
             m_DataInputAnchorPresenters.Clear();
-            m_DataInputAnchorPresenters.Clear();
+            m_DataOutputAnchorPresenters.Clear();
 
             //m_SyncedContexts.Clear();
             m_SyncedModels.Clear();

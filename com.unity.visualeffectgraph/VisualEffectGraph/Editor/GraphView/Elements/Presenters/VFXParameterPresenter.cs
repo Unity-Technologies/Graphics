@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
     {
         protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
         {
-            var anchor = new VFXParameterOutputDataAnchorPresenter();
+            var anchor = VFXParameterOutputDataAnchorPresenter.CreateInstance<VFXParameterOutputDataAnchorPresenter>();
             anchor.Init(slot, this);
             anchor.anchorType = slot.property.type;
             anchor.name = slot.property.type.UserFriendlyName();
