@@ -37,6 +37,7 @@ namespace UnityEditor.VFX.UI
         public virtual void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             m_Model = model;
+            m_ViewPresenter = viewPresenter;
 
             object settings = slotContainer.settings;
             if (settings != null)
@@ -51,6 +52,7 @@ namespace UnityEditor.VFX.UI
                     m_Settings[cpt++] = settingPresenter;
                 }
             }
+            OnInvalidate(m_Model, VFXModel.InvalidationCause.kStructureChanged);
         }
 
         protected void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
@@ -63,7 +65,7 @@ namespace UnityEditor.VFX.UI
 
                 UpdateSlots(newAnchors, slotContainer.inputSlots,true, true);
                 m_InputAnchors = newAnchors;
-                newAnchors.Clear();
+                newAnchors = new List<NodeAnchorPresenter>();
                 UpdateSlots(newAnchors, slotContainer.outputSlots,true, false);
                 m_OutputAnchors = newAnchors;
             }
@@ -91,9 +93,9 @@ namespace UnityEditor.VFX.UI
             VFXDataAnchorPresenter result = null;
 
             if( input )
-                result = m_InputAnchors.Cast<VFXDataAnchorPresenter>().Where(t=> t.model == slot ).FirstOrDefault();
+                result = inputAnchors.Cast<VFXDataAnchorPresenter>().Where(t=> t.model == slot ).FirstOrDefault();
             else
-                result = m_OutputAnchors.Cast<VFXDataAnchorPresenter>().Where(t => t.model == slot).FirstOrDefault();
+                result = outputAnchors.Cast<VFXDataAnchorPresenter>().Where(t => t.model == slot).FirstOrDefault();
 
             return result;
         }
@@ -157,13 +159,11 @@ namespace UnityEditor.VFX.UI
 
         public void Init(VFXModel model, VFXContextPresenter contextPresenter)
         {
-            base.Init(model,contextPresenter.viewPresenter);
             m_ContextPresenter = contextPresenter;
+            base.Init(model,contextPresenter.viewPresenter);
 
             //TODO unregister when the block is destroyed
             (m_Model as VFXModel).onInvalidateDelegate += OnInvalidate;
-
-            OnInvalidate((m_Model as VFXModel), VFXModel.InvalidationCause.kStructureChanged);
         }
 
         public VFXContextPresenter contextPresenter

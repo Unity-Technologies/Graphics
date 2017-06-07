@@ -490,7 +490,7 @@ namespace UnityEditor.VFX.UI
 
             HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
 
-            foreach (var inanchorpresenter in presenter.inputAnchors)
+            foreach (var inanchorpresenter in presenter.flowInputAnchors)
             {
                 var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == inanchorpresenter);
                 if (existing == null)
@@ -513,7 +513,7 @@ namespace UnityEditor.VFX.UI
 
             HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
 
-            foreach (var outanchorpresenter in presenter.outputAnchors)
+            foreach (var outanchorpresenter in presenter.flowOutputAnchors)
             {
                 var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.presenter == outanchorpresenter);
                 if (existing == null)

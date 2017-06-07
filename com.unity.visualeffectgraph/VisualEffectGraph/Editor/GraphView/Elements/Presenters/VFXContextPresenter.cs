@@ -54,12 +54,14 @@ namespace UnityEditor.VFX.UI
 
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
+            inputAnchors.Clear();
+            outputAnchors.Clear();
+
+            m_ContextPresenter = this;
             base.Init(model, viewPresenter);
 
             UnregisterAnchors();
 
-            inputAnchors.Clear();
-            outputAnchors.Clear();
 
             if (context.inputType != VFXDataType.kNone)
             {
