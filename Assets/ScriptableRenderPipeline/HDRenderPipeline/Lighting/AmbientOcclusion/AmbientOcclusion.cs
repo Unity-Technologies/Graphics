@@ -20,8 +20,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Material m_Material;
 
-        readonly RenderTargetIdentifier m_AmbientOcclusionRT;
-
         public ScreenSpaceAmbientOcclusionEffect()
         {}
 
@@ -31,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Material.hideFlags = HideFlags.DontSave;
         }
 
-        public void Render(ScreenSpaceAmbientOcclusionSettings.Settings settings, HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier depthID, bool isForward)
+        public void Render(ScreenSpaceAmbientOcclusionSettings.Settings settings, HDRenderPipeline hdRP, HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier depthID, bool isForward)
         {
             const RenderTextureFormat kFormat = RenderTextureFormat.ARGB32;
             const RenderTextureReadWrite kRWMode = RenderTextureReadWrite.Linear;
@@ -69,6 +67,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalTexture(Uniforms._MainTex, depthID);
             Utilities.DrawFullScreen(cmd, m_Material, hdCamera, Uniforms._TempTex1, null, 0);
 
+            hdRP.PushFullScreenDebugTexture(cmd, Uniforms._TempTex1, hdCamera.camera, renderContext, FullScreenDebugMode.SSAOBeforeFiltering);
+
             // Denoising (horizontal pass).
             cmd.GetTemporaryRT(Uniforms._TempTex2, width, height, 0, kFilter, kFormat, kRWMode);
             cmd.SetGlobalTexture(Uniforms._MainTex, Uniforms._TempTex1);
@@ -89,6 +89,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Setup texture for lighting pass (automagic of unity)
             cmd.SetGlobalTexture("_AmbientOcclusionTexture", Uniforms._AOBuffer);
+
+            hdRP.PushFullScreenDebugTexture(cmd, Uniforms._AOBuffer, hdCamera.camera, renderContext, FullScreenDebugMode.SSAO);
 
             // Register the command buffer and release it.
             renderContext.ExecuteCommandBuffer(cmd);
