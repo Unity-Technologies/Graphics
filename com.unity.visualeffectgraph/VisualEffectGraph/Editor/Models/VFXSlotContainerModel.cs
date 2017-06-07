@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -25,11 +25,11 @@ namespace UnityEditor.VFX
         void Invalidate(VFXModel.InvalidationCause cause);
         void UpdateOutputs();
 
-        void SetSettingValue(string name,object value);
+        void SetSettingValue(string name, object value);
 
-        object settings{get; }
+        object settings {get; }
 
-        bool expanded{ get; set; }
+        bool expanded { get; set; }
     }
 
     abstract class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
@@ -40,17 +40,17 @@ namespace UnityEditor.VFX
         public virtual ReadOnlyCollection<VFXSlot> outputSlots { get { return m_OutputSlots.AsReadOnly(); } }
 
 
-        public object settings { get{ return m_Settings != null ? m_Settings.Get() : null; } }
+        public object settings { get { return m_Settings != null ? m_Settings.Get() : null; } }
 
         public bool expanded { get; set; }
 
         [SerializeField]
         private VFXSerializableObject m_Settings;
 
-        
+
         public T GetSettings<T>() where T : class
         {
-            return m_Settings!= null? m_Settings.Get<T>() : null;
+            return m_Settings != null ? m_Settings.Get<T>() : null;
         }
 
         public virtual int GetNbInputSlots()            { return m_InputSlots.Count; }
@@ -143,7 +143,6 @@ namespace UnityEditor.VFX
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} output slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
-
         }
 
         public override void CollectDependencies(HashSet<Object> objs)
@@ -248,7 +247,7 @@ namespace UnityEditor.VFX
             System.Type type = GetType().GetNestedType(GetSettingsTypeName());
             if (type != null)
             {
-                if( ! type.IsClass)
+                if (!type.IsClass)
                 {
                     Debug.LogError("Settings type must be a class:" + type.FullName);
                     return;
@@ -297,7 +296,7 @@ namespace UnityEditor.VFX
         public void SetSettingValue(string name, object value)
         {
             object sett = m_Settings.Get();
-            if( settings != null)
+            if (settings != null)
                 settings.GetType().GetField(name).SetValue(sett, value);
 
             m_Settings.Set(sett);

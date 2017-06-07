@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
@@ -11,10 +11,9 @@ namespace UnityEditor.VFX.UI
 {
     class VFXContextSlotContainerPresenter : VFXSlotContainerPresenter
     {
-
-        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot,bool input)
+        protected override VFXDataAnchorPresenter AddDataAnchor(VFXSlot slot, bool input)
         {
-            if( input )
+            if (input)
             {
                 VFXContextDataInputAnchorPresenter anchorPresenter = CreateInstance<VFXContextDataInputAnchorPresenter>();
                 anchorPresenter.Init(slot, this);
@@ -27,7 +26,7 @@ namespace UnityEditor.VFX.UI
         public void Init(VFXModel model, VFXContextPresenter contextPresenter)
         {
             m_ContextPresenter = contextPresenter;
-            base.Init(model,contextPresenter.viewPresenter);
+            base.Init(model, contextPresenter.viewPresenter);
         }
 
         public VFXContextPresenter contextPresenter

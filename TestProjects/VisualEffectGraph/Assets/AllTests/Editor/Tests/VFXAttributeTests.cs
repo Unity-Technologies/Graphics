@@ -24,9 +24,13 @@ namespace UnityEditor.VFX.Test
             public List<VFXAttributeInfo> attributeInfos = new List<VFXAttributeInfo>();
         }
 
-        private class ContextTestInit : ContextTest { public ContextTestInit() : base(VFXContextType.kInit) {}
+        private class ContextTestInit : ContextTest
+        {
+            public ContextTestInit() : base(VFXContextType.kInit) {}
         }
-        private class ContextTestOutput : ContextTest { public ContextTestOutput() : base(VFXContextType.kOutput) {}
+        private class ContextTestOutput : ContextTest
+        {
+            public ContextTestOutput() : base(VFXContextType.kOutput) {}
         }
 
         private VFXAttribute Attrib1 = new VFXAttribute("attrib1", VFXValueType.kFloat);

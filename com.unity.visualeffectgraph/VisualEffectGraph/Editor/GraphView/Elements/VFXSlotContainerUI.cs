@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -44,8 +44,6 @@ namespace UnityEditor.VFX.UI
         public override void SetPosition(Rect newPos)
         {
         }
-
-
 
         public override void OnDataChanged()
         {

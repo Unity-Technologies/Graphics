@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -372,7 +372,7 @@ namespace UnityEditor.VFX.UI
             List<NodeAnchorPresenter> list;
 
             Dictionary<Type, List<NodeAnchorPresenter>> dict = presenter.direction == Direction.Input ? m_DataInputAnchorPresenters : m_DataOutputAnchorPresenters;
-            
+
             if (!dict.TryGetValue(presenter.anchorType, out list))
             {
                 list = new List<NodeAnchorPresenter>();
@@ -456,7 +456,7 @@ namespace UnityEditor.VFX.UI
                             var toSlot = candidate.model;
                             return toSlot.CanLink(startAnchorOperatorPresenter.model);
                         }).ToList();
-                    
+
                     // For edge starting with an output, we must add all data anchors from all blocks
                     List<NodeAnchorPresenter> presenters;
                     /*if (!m_DataInputAnchorPresenters.TryGetValue(startAnchorPresenter.anchorType, out presenters))

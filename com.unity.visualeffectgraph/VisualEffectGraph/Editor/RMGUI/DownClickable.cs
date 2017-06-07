@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Experimental.UIElements
+namespace UnityEngine.Experimental.UIElements
 {
     public class DownClickable : MouseManipulator
     {
@@ -24,7 +24,7 @@
 
         protected void OnMouseDown(MouseEventBase evt)
         {
-            if( clicked != null)
+            if (clicked != null)
             {
                 clicked();
                 evt.StopPropagation();

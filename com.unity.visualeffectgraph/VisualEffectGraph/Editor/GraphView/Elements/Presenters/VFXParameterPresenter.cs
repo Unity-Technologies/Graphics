@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UIElements.GraphView;
 using UnityEngine;
 
@@ -19,12 +19,9 @@ namespace UnityEditor.VFX.UI
             anchor.name = slot.property.type.UserFriendlyName();
             return anchor;
         }
-
     }
     class VFXParameterPresenter : VFXParameterSlotContainerPresenter, IPropertyRMProvider
     {
-
-
         public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
             base.Init(model, viewPresenter);

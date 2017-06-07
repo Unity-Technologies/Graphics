@@ -1,4 +1,4 @@
-﻿using UIElements.GraphView;
+using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -140,7 +140,7 @@ namespace UnityEditor.VFX.UI
                 if (presenter == null) // If the presenter does not exist for this model, create it
                 {
                     presenter = CreateInstance<VFXBlockPresenter>();
-                    presenter.Init(block,this);
+                    presenter.Init(block, this);
                     presenter.expanded = !block.collapsed;
                     presenter.title = string.Format("{0} ({1})", block.name, s_Counter++);
                 }

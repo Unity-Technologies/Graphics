@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -33,7 +33,6 @@ namespace UnityEditor.VFX.UI
                 {
                     AddSetting(setting);
                 }
-
             }
             if (m_SettingsContainer != null)
             {
@@ -50,7 +49,6 @@ namespace UnityEditor.VFX.UI
         {
             m_SettingsContainer.AddChild(PropertyRM.Create(setting, 100));
         }
-
     }
 
     class VFXOperatorUI : VFXSlotContainerUI, IKeyFocusBlocker

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.UI
 
             Type type = presenter.anchorType;
 
-            if( type.IsEnum)
+            if (type.IsEnum)
             {
                 propertyType = typeof(EnumPropertyRM);
             }

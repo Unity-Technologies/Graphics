@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UIElements.GraphView;
@@ -13,20 +13,20 @@ namespace UnityEditor.VFX.UI
 
         System.Type m_SettingType;
 
-        public System.Type anchorType { get{ return m_SettingType; } }
+        public System.Type anchorType { get { return m_SettingType; } }
 
         public override UnityEngine.Object[] GetObjectsToWatch()
         {
             return new UnityEngine.Object[] { this, m_Owner as UnityEngine.Object };
         }
 
-        public void Init(IVFXSlotContainer owner,string name,System.Type type)
+        public void Init(IVFXSlotContainer owner, string name, System.Type type)
         {
             m_Owner = owner;
             this.name = name;
             m_SettingType = type;
-            
         }
+
         public object value
         {
             get
@@ -41,9 +41,9 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            set { m_Owner.SetSettingValue(name,VFXConverter.ConvertTo(value, anchorType)); }
+            set { m_Owner.SetSettingValue(name, VFXConverter.ConvertTo(value, anchorType)); }
         }
-        
+
 
         public string path
         {
