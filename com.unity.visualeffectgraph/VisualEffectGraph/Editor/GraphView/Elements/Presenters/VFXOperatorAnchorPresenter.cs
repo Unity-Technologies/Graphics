@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +8,9 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXOperatorAnchorPresenter : VFXDataAnchorPresenter
     {
-        public void Init(VFXModel owner, VFXSlot model, VFXNodePresenter source)
+        public void Init(VFXSlot model, VFXSlotContainerPresenter scPresenter)
         {
-            base.Init(owner, model, source);
+            base.Init(model, scPresenter);
         }
     }
 

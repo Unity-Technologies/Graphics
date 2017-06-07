@@ -9,16 +9,16 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSlotContainerUI : VFXNodeUI
+    class VFXContextSlotContainerUI : VFXSlotContainerUI
     {
-        public VFXSlotContainerUI()
+        public VFXContextSlotContainerUI()
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Position;
 
             leftContainer.alignContent = Align.Stretch;
 
-            AddToClassList("VFXSlotContainerUI");
+            AddToClassList("VFXContextSlotContainerUI");
         }
 
         public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
@@ -46,46 +46,16 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        public VisualContainer m_SettingsContainer;
 
         public override void OnDataChanged()
         {
             base.OnDataChanged();
-            var presenter = GetPresenter<VFXSlotContainerPresenter>();
+            var presenter = GetPresenter<VFXContextSlotContainerPresenter>();
 
             if (presenter == null)
                 return;
 
             SetPosition(presenter.position);
-
-            if( m_SettingsContainer == null && presenter.settings != null)
-            {
-                object settings = presenter.settings;
-
-                m_SettingsContainer = new VisualContainer{name="settings"};
-
-                leftContainer.InsertChild(1,m_SettingsContainer); //between title and input
-
-                foreach(var setting in presenter.settings)
-                {
-                    AddSetting(setting);
-                }
-
-            }
-            if( m_SettingsContainer != null)
-            {
-                for(int i = 0; i < m_SettingsContainer.childrenCount; ++i)
-                {
-                    PropertyRM prop = m_SettingsContainer.GetChildAt(i) as PropertyRM;
-                    if (prop != null)
-                        prop.Update();
-                }
-            }
-        }
-
-        protected void AddSetting(VFXSettingPresenter setting)
-        {
-            m_SettingsContainer.AddChild(PropertyRM.Create(setting, 100));
         }
 
         public VFXContextUI context

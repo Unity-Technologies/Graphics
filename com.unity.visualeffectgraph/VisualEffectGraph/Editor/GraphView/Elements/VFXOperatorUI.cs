@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -9,7 +9,51 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXOperatorUI : VFXNodeUI, IKeyFocusBlocker
+    class VFXSlotContainerUI : VFXNodeUI
+    {
+        public VisualContainer m_SettingsContainer;
+
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+            var presenter = GetPresenter<VFXContextSlotContainerPresenter>();
+
+            if (presenter == null)
+                return;
+
+            if (m_SettingsContainer == null && presenter.settings != null)
+            {
+                object settings = presenter.settings;
+
+                m_SettingsContainer = new VisualContainer { name = "settings" };
+
+                leftContainer.InsertChild(1, m_SettingsContainer); //between title and input
+
+                foreach (var setting in presenter.settings)
+                {
+                    AddSetting(setting);
+                }
+
+            }
+            if (m_SettingsContainer != null)
+            {
+                for (int i = 0; i < m_SettingsContainer.childrenCount; ++i)
+                {
+                    PropertyRM prop = m_SettingsContainer.GetChildAt(i) as PropertyRM;
+                    if (prop != null)
+                        prop.Update();
+                }
+            }
+        }
+
+        protected void AddSetting(VFXSettingPresenter setting)
+        {
+            m_SettingsContainer.AddChild(PropertyRM.Create(setting, 100));
+        }
+
+    }
+
+    class VFXOperatorUI : VFXSlotContainerUI, IKeyFocusBlocker
     {
         private Button m_Settings; //place holder for inner operator settings
 
@@ -48,7 +92,7 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
             var presenter = GetPresenter<VFXOperatorPresenter>();
-            if (presenter == null || presenter.node == null)
+            if (presenter == null || presenter.Operator == null)
                 return;
 
             if (presenter.settings == null)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -45,11 +45,11 @@ namespace UnityEditor.VFX.UI
 
         VisualElement       m_DragDisplay;
 
-        VFXSlotContainerUI  m_OwnData;
+        VFXContextSlotContainerUI  m_OwnData;
 
         protected GraphViewTypeFactory typeFactory { get; set; }
 
-        public VFXSlotContainerUI ownData { get { return m_OwnData; }}
+        public VFXContextSlotContainerUI ownData { get { return m_OwnData; }}
 
         public VFXContextUI()
         {
@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.UI
             m_NodeContainer.AddChild(m_Header);
 
 
-            m_OwnData = new VFXSlotContainerUI();
+            m_OwnData = new VFXContextSlotContainerUI();
             m_Header.AddChild(m_HeaderContainer);
             m_Header.AddChild(m_OwnData);
 
@@ -187,7 +187,7 @@ namespace UnityEditor.VFX.UI
                     accept = false;
                     break;
                 }
-                if (!GetPresenter<VFXContextPresenter>().model.AcceptChild(block.GetPresenter<VFXBlockPresenter>().Model))
+                if (!GetPresenter<VFXContextPresenter>().model.AcceptChild(block.GetPresenter<VFXBlockPresenter>().block))
                 {
                     accept = false;
                     break;
@@ -279,7 +279,7 @@ namespace UnityEditor.VFX.UI
             foreach (var blockui in blocksUI)
             {
                 VFXBlockPresenter blockPres = blockui.GetPresenter<VFXBlockPresenter>();
-                presenter.AddBlock(-1, blockPres.Model);
+                presenter.AddBlock(-1, blockPres.block);
             }
 
             m_DragStarted = false;
@@ -333,7 +333,7 @@ namespace UnityEditor.VFX.UI
                 return;
 
             VFXContextPresenter contextPresenter = GetPresenter<VFXContextPresenter>();
-            contextPresenter.RemoveBlock(block.GetPresenter<VFXBlockPresenter>().Model);
+            contextPresenter.RemoveBlock(block.GetPresenter<VFXBlockPresenter>().block);
         }
 
         private void InstantiateBlock(VFXBlockPresenter blockPresenter)
@@ -374,7 +374,7 @@ namespace UnityEditor.VFX.UI
             }
             foreach (var blockPresenter in blockPresenters)
             {
-                if (blockPresenter.Model != null)
+                if (blockPresenter.block != null)
                 {
                     VFXBlockUI blockUI;
                     if (blocksUIs.TryGetValue(blockPresenter, out blockUI))
@@ -537,9 +537,9 @@ namespace UnityEditor.VFX.UI
             RefreshContext();
 
 
-            m_OwnData.presenter = presenter.slotContainerPresenter;
+            m_OwnData.presenter = presenter;
 
-            bool slotsVisible = presenter.slotContainerPresenter.inputAnchors.Count > 0;
+            bool slotsVisible = presenter.inputAnchors.Count() > 0;
             if (slotsVisible && m_OwnData.parent == null)
             {
                 m_Header.AddChild(m_OwnData);

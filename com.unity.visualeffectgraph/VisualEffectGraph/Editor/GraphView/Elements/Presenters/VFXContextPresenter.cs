@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,55 +6,29 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextPresenter : GraphElementPresenter, IVFXPresenter
+    class VFXContextPresenter : VFXContextSlotContainerPresenter
     {
-        private VFXViewPresenter m_ViewPresenter;
-        public VFXViewPresenter ViewPresenter { get { return m_ViewPresenter; } }
+        public VFXContext context       { get { return model as VFXContext; } }
 
         [SerializeField]
-        private VFXContext m_Model;
-        public VFXContext context       { get { return m_Model; } }
-        public virtual VFXModel model   { get { return m_Model; } }
-
-        public override UnityEngine.Object[] GetObjectsToWatch()
+        private List<VFXBlockPresenter> m_BlockPresenters = new List<VFXBlockPresenter>();
+        public IEnumerable<VFXBlockPresenter> blockPresenters
         {
-            return new UnityEngine.Object[] { this, m_Model };
-        }
-
-        public override Rect position
-        {
-            get
-            {
-                return base.position;
-            }
-
-            set
-            {
-                base.position = value;
-                Undo.RecordObject(model, "Position");
-                model.position = position.position;
-            }
+            get { return m_BlockPresenters; }
         }
 
         [SerializeField]
-        private List<VFXBlockPresenter> m_BlockPresenters;
-        public List<VFXBlockPresenter> blockPresenters
+        protected List<VFXFlowAnchorPresenter> m_FlowInputAnchors = new List<VFXFlowAnchorPresenter>();
+        public IEnumerable<VFXFlowAnchorPresenter> flowInputAnchors
         {
-            get { return m_BlockPresenters ?? (m_BlockPresenters = new List<VFXBlockPresenter>()); }
+            get { return m_FlowInputAnchors; }
         }
 
         [SerializeField]
-        protected List<VFXFlowAnchorPresenter> m_InputAnchors;
-        public List<VFXFlowAnchorPresenter> inputAnchors
+        protected List<VFXFlowAnchorPresenter> m_FlowOutputAnchors = new List<VFXFlowAnchorPresenter>();
+        public IEnumerable<VFXFlowAnchorPresenter> flowOutputAnchors
         {
-            get { return m_InputAnchors ?? (m_InputAnchors = new List<VFXFlowAnchorPresenter>()); }
-        }
-
-        [SerializeField]
-        protected List<VFXFlowAnchorPresenter> m_OutputAnchors;
-        public List<VFXFlowAnchorPresenter> outputAnchors
-        {
-            get { return m_OutputAnchors ?? (m_OutputAnchors = new List<VFXFlowAnchorPresenter>()); }
+            get { return m_FlowOutputAnchors; }
         }
 
         protected new void OnEnable()
@@ -72,52 +46,40 @@ namespace UnityEditor.VFX.UI
 
         private void UnregisterAnchors()
         {
-            foreach (var anchor in inputAnchors)
-                ViewPresenter.UnregisterFlowAnchorPresenter(anchor);
-            foreach (var anchor in outputAnchors)
-                ViewPresenter.UnregisterFlowAnchorPresenter(anchor);
+            foreach (var anchor in flowInputAnchors)
+                viewPresenter.UnregisterFlowAnchorPresenter(anchor);
+            foreach (var anchor in flowOutputAnchors)
+                viewPresenter.UnregisterFlowAnchorPresenter(anchor);
         }
 
-        public virtual void Init(VFXModel model, VFXViewPresenter viewPresenter)
+        public override void Init(VFXModel model, VFXViewPresenter viewPresenter)
         {
-            m_ViewPresenter = viewPresenter;
-            m_Model = (VFXContext)model;
-
-            position = new Rect(model.position.x, model.position.y, position.width, position.height);
+            base.Init(model, viewPresenter);
 
             UnregisterAnchors();
 
             inputAnchors.Clear();
             outputAnchors.Clear();
 
-            // TODO : ACCESS INPUTS AND OUTPUTS
-            // WIP STUFF
             if (context.inputType != VFXDataType.kNone)
             {
                 var inAnchor = CreateInstance<VFXFlowInputAnchorPresenter>();
                 inAnchor.Init(context);
-                inputAnchors.Add(inAnchor);
-                ViewPresenter.RegisterFlowAnchorPresenter(inAnchor);
+                m_FlowInputAnchors.Add(inAnchor);
+                viewPresenter.RegisterFlowAnchorPresenter(inAnchor);
             }
 
             if (context.outputType != VFXDataType.kNone)
             {
                 var outAnchor = CreateInstance<VFXFlowOutputAnchorPresenter>();
                 outAnchor.Init(context);
-                outputAnchors.Add(outAnchor);
-                ViewPresenter.RegisterFlowAnchorPresenter(outAnchor);
+                m_FlowOutputAnchors.Add(outAnchor);
+                viewPresenter.RegisterFlowAnchorPresenter(outAnchor);
             }
 
             model.onInvalidateDelegate += OnModelInvalidate;
             SyncPresenters();
-
-            m_SlotContainerPresenter = VFXSlotContainerPresenter.CreateInstance<VFXSlotContainerPresenter>();
-            m_SlotContainerPresenter.Init(model as IVFXSlotContainer, this);
         }
-
-        VFXSlotContainerPresenter m_SlotContainerPresenter;
-
-        public VFXSlotContainerPresenter slotContainerPresenter { get {return m_SlotContainerPresenter; } }
 
         private void OnModelInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
@@ -162,6 +124,11 @@ namespace UnityEditor.VFX.UI
             Undo.DestroyObjectImmediate(block);
         }
 
+        public int FindBlockIndexOf(VFXBlockPresenter presenter)
+        {
+            return m_BlockPresenters.IndexOf(presenter);
+        }
+
         static int s_Counter = 1;
 
         private void SyncPresenters()
@@ -169,11 +136,11 @@ namespace UnityEditor.VFX.UI
             var m_NewPresenters = new List<VFXBlockPresenter>();
             foreach (var block in context.GetChildren())
             {
-                var presenter = blockPresenters.Find(p => p.Model == block);
+                var presenter = m_BlockPresenters.Find(p => p.model == block);
                 if (presenter == null) // If the presenter does not exist for this model, create it
                 {
                     presenter = CreateInstance<VFXBlockPresenter>();
-                    presenter.Init(block, this);
+                    presenter.Init(block,this);
                     presenter.expanded = !block.collapsed;
                     presenter.title = string.Format("{0} ({1})", block.name, s_Counter++);
                 }
@@ -199,7 +166,7 @@ namespace UnityEditor.VFX.UI
         {
             //Sort draggedBlock in the order we want them to appear and not the selected order ( blocks in the same context should appear in the same order as they where relative to each other).
 
-            draggedBlocks = draggedBlocks.OrderBy(t => t.index).GroupBy(t => t.ContextPresenter).SelectMany<IGrouping<VFXContextPresenter, VFXBlockPresenter>, VFXBlockPresenter>(t => t.Select(u => u));
+            draggedBlocks = draggedBlocks.OrderBy(t => t.index).GroupBy(t => t.contextPresenter).SelectMany<IGrouping<VFXContextPresenter, VFXBlockPresenter>, VFXBlockPresenter>(t => t.Select(u => u));
 
             /*foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
             {
@@ -211,7 +178,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (VFXBlockPresenter draggedBlock in draggedBlocks)
             {
-                this.ReorderBlock(insertIndex++, draggedBlock.Model);
+                this.ReorderBlock(insertIndex++, draggedBlock.block);
             }
         }
     }

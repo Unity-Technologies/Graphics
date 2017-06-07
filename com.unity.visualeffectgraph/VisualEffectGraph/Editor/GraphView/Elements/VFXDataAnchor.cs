@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -163,10 +163,9 @@ namespace UnityEditor.VFX.UI
 
             if (endNode != null)
             {
-                VFXLinkablePresenter nodePresenter = endNode.GetPresenter<VFXLinkablePresenter>();
+                VFXSlotContainerPresenter nodePresenter = endNode.GetPresenter<VFXSlotContainerPresenter>();
 
                 var compatibleAnchors = nodePresenter.viewPresenter.GetCompatibleAnchors(presenter, null);
-
 
                 if (nodePresenter != null)
                 {

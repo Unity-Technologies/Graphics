@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
@@ -160,9 +160,9 @@ namespace UnityEditor.VFX.Test
                 var newBlock = block.CreateInstance();
                 contextPresenter.AddBlock(0, newBlock);
 
-                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).Count(), 1);
+                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 
-                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).First() as VFXBlockPresenter;
+                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).First() as VFXBlockPresenter;
 
                 Assert.NotNull(blockPresenter);
             }
@@ -194,9 +194,9 @@ namespace UnityEditor.VFX.Test
                 var newBlock = block.CreateInstance();
                 contextPresenter.AddBlock(0, newBlock);
 
-                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).Count(), 1);
+                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 
-                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).First() as VFXBlockPresenter;
+                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).First() as VFXBlockPresenter;
 
                 Assert.NotNull(blockPresenter);
             }
@@ -227,9 +227,9 @@ namespace UnityEditor.VFX.Test
                 var newBlock = block.CreateInstance();
                 contextPresenter.AddBlock(0, newBlock);
 
-                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).Count(), 1);
+                Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 
-                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).First() as VFXBlockPresenter;
+                var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).First() as VFXBlockPresenter;
 
                 Assert.NotNull(blockPresenter);
             }
@@ -260,15 +260,15 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsTrue(newBlock is VFXAllType);
 
-            Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).Count(), 1);
+            Assert.AreEqual(contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).Count(), 1);
 
-            var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).Model == newBlock).First() as VFXBlockPresenter;
+            var blockPresenter = contextPresenter.allChildren.Where(t => t is VFXBlockPresenter && (t as VFXBlockPresenter).block == newBlock).First() as VFXBlockPresenter;
 
             Assert.NotNull(blockPresenter);
 
             Assert.NotZero(blockPresenter.allChildren.Where(t => t is VFXContextDataInputAnchorPresenter && (t as VFXContextDataInputAnchorPresenter).name == "aVector3").Count());
 
-            VFXSlot slot = blockPresenter.Model.inputSlots.First(t => t.name == "aVector3");
+            VFXSlot slot = blockPresenter.block.inputSlots.First(t => t.name == "aVector3");
 
 
             var aVector3Presenter = blockPresenter.allChildren.Where(t => t is VFXContextDataInputAnchorPresenter && (t as VFXContextDataInputAnchorPresenter).name == "aVector3").First() as VFXContextDataInputAnchorPresenter;

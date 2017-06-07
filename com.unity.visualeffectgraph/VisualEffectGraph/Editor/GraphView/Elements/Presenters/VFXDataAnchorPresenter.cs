@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UIElements.GraphView;
@@ -8,10 +8,6 @@ namespace UnityEditor.VFX.UI
     abstract class VFXDataAnchorPresenter : NodeAnchorPresenter, IPropertyRMProvider
     {
         [SerializeField]
-        VFXModel m_Owner;
-        public VFXModel Owner { get { return m_Owner; } }
-
-        [SerializeField]
         private VFXSlot m_Model;
         public VFXSlot model { get { return m_Model; } }
 
@@ -20,9 +16,9 @@ namespace UnityEditor.VFX.UI
             return new UnityEngine.Object[] { this, m_Model };
         }
 
-        private VFXLinkablePresenter m_SourceNode;
+        private VFXSlotContainerPresenter m_SourceNode;
 
-        public VFXLinkablePresenter sourceNode
+        public VFXSlotContainerPresenter sourceNode
         {
             get
             {
@@ -30,11 +26,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void Init(VFXModel owner, VFXSlot model, VFXLinkablePresenter nodePresenter)
+        public void Init(VFXSlot model, VFXSlotContainerPresenter scPresenter)
         {
-            m_Owner = owner;
             m_Model = model;
-            m_SourceNode = nodePresenter;
+            m_SourceNode = scPresenter;
 
             anchorType = model.property.type;
             name = model.property.name;
@@ -64,6 +59,11 @@ namespace UnityEditor.VFX.UI
                 }
                 parent = parent.GetParent();
             }
+        }
+
+        public void UpdateInfos(bool expanded)
+        {
+            anchorType = model.property.type;
         }
 
         public object value
@@ -116,7 +116,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool expandable
         {
-            get { return VFXBlockPresenter.IsTypeExpandable(anchorType); }
+            get { return VFXContextSlotContainerPresenter.IsTypeExpandable(anchorType); }
         }
 
         public virtual string iconName

@@ -1,12 +1,12 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBuiltInParameterPresenter : VFXNodePresenter, IVFXPresenter
+    class VFXBuiltInParameterPresenter : VFXSlotContainerPresenter
     {
-        public VFXBuiltInParameter builtInParameter { get { return node as VFXBuiltInParameter; } }
-
+        public VFXBuiltInParameter builtInParameter { get { return model as VFXBuiltInParameter; } }
+        /*
         protected override void Reset()
         {
             if (builtInParameter)
@@ -15,5 +15,6 @@ namespace UnityEditor.VFX.UI
             }
             base.Reset();
         }
+        */
     }
 }

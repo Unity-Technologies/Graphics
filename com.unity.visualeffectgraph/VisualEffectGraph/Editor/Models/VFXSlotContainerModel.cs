@@ -28,9 +28,11 @@ namespace UnityEditor.VFX
         void SetSettingValue(string name,object value);
 
         object settings{get; }
+
+        bool expanded{ get; set; }
     }
 
-    class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
+    abstract class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
         where ParentType : VFXModel
         where ChildrenType : VFXModel
     {
@@ -38,7 +40,9 @@ namespace UnityEditor.VFX
         public virtual ReadOnlyCollection<VFXSlot> outputSlots { get { return m_OutputSlots.AsReadOnly(); } }
 
 
-        public object settings { get{ return m_Settings.Get(); } }
+        public object settings { get{ return m_Settings != null ? m_Settings.Get() : null; } }
+
+        public bool expanded { get; set; }
 
         [SerializeField]
         private VFXSerializableObject m_Settings;
@@ -46,7 +50,7 @@ namespace UnityEditor.VFX
         
         public T GetSettings<T>() where T : class
         {
-            return m_Settings.Get<T>();
+            return m_Settings!= null? m_Settings.Get<T>() : null;
         }
 
         public virtual int GetNbInputSlots()            { return m_InputSlots.Count; }
@@ -250,7 +254,6 @@ namespace UnityEditor.VFX
                     return;
                 }
                 m_Settings = new VFXSerializableObject(type);
-                //m_Settings.Set(System.Activator.CreateInstance(type));
             }
         }
 

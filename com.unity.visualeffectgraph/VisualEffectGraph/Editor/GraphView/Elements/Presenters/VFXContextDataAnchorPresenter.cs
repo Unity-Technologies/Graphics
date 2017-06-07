@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UIElements.GraphView;
@@ -9,23 +9,13 @@ namespace UnityEditor.VFX.UI
     {
         public override bool expandable
         {
-            get { return VFXBlockPresenter.IsTypeExpandable(anchorType); }
+            get { return VFXContextSlotContainerPresenter.IsTypeExpandable(anchorType); }
         }
 
 
-        public void Init(VFXModel owner, VFXSlot model, VFXSlotContainerPresenter nodePresenter)
+        public void Init(VFXSlot model, VFXContextSlotContainerPresenter scPresenter)
         {
-            base.Init(owner, model, nodePresenter);
-        }
-
-        public void UpdateInfos(bool expanded)
-        {
-            anchorType = model.property.type;
-        }
-
-        public VFXBlockPresenter blockPresenter
-        {
-            get { return sourceNode as VFXBlockPresenter; }
+            base.Init(model, scPresenter);
         }
     }
 
