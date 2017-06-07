@@ -98,6 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private Material m_DebugViewMaterialGBuffer;
         private Material m_DebugDisplayLatlong;
+        private Material m_DebugFullScreen;
 
         // Various buffer
         readonly int m_CameraColorBuffer;
@@ -134,6 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Debugging
         public DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
+        private int m_DebugFullScreenTempRT;
 
         public SubsurfaceScatteringSettings sssSettings
         {
@@ -143,6 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private CommonSettings.Settings m_CommonSettings = CommonSettings.Settings.s_Defaultsettings;
         private SkySettings m_SkySettings;
+        private ScreenSpaceAmbientOcclusionSettings.Settings m_SsaoSettings = ScreenSpaceAmbientOcclusionSettings.Settings.s_Defaultsettings;
 
         public CommonSettings.Settings commonSettingsToUse
         {
@@ -163,6 +166,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return SkySettingsSingleton.overrideSettings;
 
                 return m_SkySettings;
+            }
+        }
+
+        public ScreenSpaceAmbientOcclusionSettings.Settings ssaoSettingsToUse
+        {
+            get
+            {
+                if (ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings)
+                    return ScreenSpaceAmbientOcclusionSettingsSingleton.overrideSettings.settings;
+
+                return m_SsaoSettings;
             }
         }
 
@@ -216,12 +230,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SsaoEffect.Build(asset.renderPipelineResources);
 
             m_DebugDisplaySettings.RegisterDebug();
+            m_DebugFullScreenTempRT = Shader.PropertyToID("_DebugFullScreenTexture");
         }
 
         void InitializeDebugMaterials()
         {
             m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial(m_Asset.renderPipelineResources.debugViewMaterialGBufferShader);
             m_DebugDisplayLatlong = Utilities.CreateEngineMaterial(m_Asset.renderPipelineResources.debugDisplayLatlongShader);
+            m_DebugFullScreen = Utilities.CreateEngineMaterial(m_Asset.renderPipelineResources.debugFullScreenShader);
         }
 
         public void OnSceneLoad()
@@ -469,7 +485,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new Utilities.ProfilingSample("Build Light list and render shadows", renderContext))
                 {
                     // TODO: Everything here (SSAO, Shadow, Build light list, material and light classification can be parallelize with Async compute)
-                    m_SsaoEffect.Render(m_Asset.ssaoSettingsToUse, hdCamera, renderContext, GetDepthTexture(), m_Asset.renderingSettings.useForwardRenderingOnly);
+                    m_SsaoEffect.Render(ssaoSettingsToUse, this, hdCamera, renderContext, GetDepthTexture(), m_Asset.renderingSettings.useForwardRenderingOnly);
                     m_LightLoop.PrepareLightsForGPU(m_ShadowSettings, cullResults, camera);
                     m_LightLoop.RenderShadows(renderContext, cullResults);
                     renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
@@ -533,7 +549,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            RenderDebugOverlay(camera, renderContext);
+            RenderDebug(hdCamera, renderContext);
 
             // bind depth surface for editor grid/gizmo/selection rendering
             if (camera.cameraType == CameraType.SceneView)
@@ -850,19 +866,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.SetGlobalVector("_DebugLightingSmoothness", debugSmoothness);
         }
 
-        void RenderDebugOverlay(Camera camera, ScriptableRenderContext renderContext)
+        public void PushFullScreenDebugTexture(CommandBuffer cb, int textureID, Camera camera, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
+        {
+            if(debugMode == m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode)
+            {
+                cb.GetTemporaryRT(m_DebugFullScreenTempRT, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                cb.Blit(textureID, m_DebugFullScreenTempRT);
+            }
+        }
+
+        void RenderDebug(HDCamera camera, ScriptableRenderContext renderContext)
         {
             // We don't want any overlay for these kind of rendering
-            if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
+            if (camera.camera.cameraType == CameraType.Reflection || camera.camera.cameraType == CameraType.Preview)
                 return;
 
             CommandBuffer debugCB = new CommandBuffer();
-            debugCB.name = "Debug Overlay";
+            debugCB.name = "Render Debug";
 
+            // First render full screen debug texture
+            if(m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode != FullScreenDebugMode.None)
+            {
+                debugCB.SetGlobalTexture("_DebugFullScreenTexture", m_DebugFullScreenTempRT);
+                m_DebugFullScreen.SetFloat("_FullScreenDebugMode", (float)m_DebugDisplaySettings.lightingDebugSettings.fullScreenDebugMode);
+                Utilities.DrawFullScreen(debugCB, m_DebugFullScreen, camera, BuiltinRenderTextureType.CameraTarget);
+            }
+
+            // Then overlays
             float x = 0;
             float overlayRatio = m_DebugDisplaySettings.debugOverlayRatio;
-            float overlaySize = Math.Min(camera.pixelHeight, camera.pixelWidth) * overlayRatio;
-            float y = camera.pixelHeight - overlaySize;
+            float overlaySize = Math.Min(camera.camera.pixelHeight, camera.camera.pixelWidth) * overlayRatio;
+            float y = camera.camera.pixelHeight - overlaySize;
 
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
 
@@ -873,14 +907,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Texture skyReflection = m_SkyManager.skyReflection;
                 propertyBlock.SetTexture("_InputCubemap", skyReflection);
                 propertyBlock.SetFloat("_Mipmap", lightingDebug.skyReflectionMipmap);
-                debugCB.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                debugCB.SetViewport(new Rect(x, y, overlaySize,  overlaySize));
                 debugCB.DrawProcedural(Matrix4x4.identity, m_DebugDisplayLatlong, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
-                Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+                Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.camera.pixelWidth);
             }
 
             renderContext.ExecuteCommandBuffer(debugCB);
 
-            m_LightLoop.RenderDebugOverlay(camera, renderContext, m_DebugDisplaySettings, ref x, ref y, overlaySize, camera.pixelWidth);
+            m_LightLoop.RenderDebugOverlay(camera.camera, renderContext, m_DebugDisplaySettings, ref x, ref y, overlaySize, camera.camera.pixelWidth);
         }
 
         void InitAndClearBuffer(Camera camera, ScriptableRenderContext renderContext)
