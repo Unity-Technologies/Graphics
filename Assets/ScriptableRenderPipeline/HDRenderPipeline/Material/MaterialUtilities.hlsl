@@ -98,6 +98,8 @@ void ApplyDoubleSidedFlipOrMirror(inout FragInputs input)
 
     #ifdef SURFACE_GRADIENT
     // TOCHECK: seems that we don't need to invert any genBasisTB(), sign cancel. Which is expected as we deal with surface gradient.
+
+    // TODO: For surface gradient we must invert or mirror the normal just after the interpolation. It will allow to work with layered with all basis. Currently it is not the case
     #endif
 #endif
 }
