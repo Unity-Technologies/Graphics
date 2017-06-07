@@ -8,77 +8,96 @@
 // As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
 // This need to be fixed.
 
-#define UNITY_MATRIX_M unity_ObjectToWorld
-
-// These are updated per eye in VR
-#define UNITY_MATRIX_V unity_MatrixV
-#define UNITY_MATRIX_P glstate_matrix_projection
-#define UNITY_MATRIX_VP unity_MatrixVP
-
-#ifdef UNITY_SINGLE_PASS_STEREO
-    #define UNITY_MATRIX_MVP mul(unity_MatrixVP, unity_ObjectToWorld)
-#else
-    #define UNITY_MATRIX_MVP glstate_matrix_mvp
+#if defined (DIRECTIONAL_COOKIE) || defined (DIRECTIONAL)
+    #define USING_DIRECTIONAL_LIGHT
 #endif
 
-// These use the camera center position in VR
-#define UNITY_MATRIX_MV glstate_matrix_modelview0
-#define UNITY_MATRIX_T_MV glstate_matrix_transpose_modelview0
-#define UNITY_MATRIX_IT_MV glstate_matrix_invtrans_modelview0
+#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+    #define USING_STEREO_MATRICES
+#endif
 
+#if defined(USING_STEREO_MATRICES)
+    #define glstate_matrix_projection unity_StereoMatrixP[unity_StereoEyeIndex]
+    #define unity_MatrixV unity_StereoMatrixV[unity_StereoEyeIndex]
+    #define unity_MatrixInvV unity_StereoMatrixInvV[unity_StereoEyeIndex]
+    #define unity_MatrixVP unity_StereoMatrixVP[unity_StereoEyeIndex]
+
+    #define unity_CameraProjection unity_StereoCameraProjection[unity_StereoEyeIndex]
+    #define unity_CameraInvProjection unity_StereoCameraInvProjection[unity_StereoEyeIndex]
+    #define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
+    #define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
+    #define _WorldSpaceCameraPos unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
+#endif
+
+#define UNITY_MATRIX_P glstate_matrix_projection
+#define UNITY_MATRIX_V unity_MatrixV
+#define UNITY_MATRIX_I_V unity_MatrixInvV
+#define UNITY_MATRIX_VP unity_MatrixVP
+#define UNITY_MATRIX_M unity_ObjectToWorld
+
+#define UNITY_MATRIX_MVP mul(unity_MatrixVP, unity_ObjectToWorld)
+#define UNITY_MATRIX_MV mul(unity_MatrixV, unity_ObjectToWorld)
+#define UNITY_MATRIX_T_MV transpose(UNITY_MATRIX_MV)
+#define UNITY_MATRIX_IT_MV transpose(mul(unity_WorldToObject, unity_MatrixInvV))
+
+#define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
 
 // ----------------------------------------------------------------------------
 
-
 CBUFFER_START(UnityPerCamera)
-// Time (t = time since current level load) values from Unity
-float4 _Time; // (t/20, t, t*2, t*3)
-float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
-float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
-float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
+    // Time (t = time since current level load) values from Unity
+    float4 _Time; // (t/20, t, t*2, t*3)
+    float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
+    float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
+    float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
 
 #if !defined(USING_STEREO_MATRICES)
-float3 _WorldSpaceCameraPos;
+    float3 _WorldSpaceCameraPos;
 #endif
 
-// x = 1 or -1 (-1 if projection is flipped)
-// y = near plane
-// z = far plane
-// w = 1/far plane
-float4 _ProjectionParams;
+    // x = 1 or -1 (-1 if projection is flipped)
+    // y = near plane
+    // z = far plane
+    // w = 1/far plane
+    float4 _ProjectionParams;
 
-// x = width
-// y = height
-// z = 1 + 1.0/width
-// w = 1 + 1.0/height
-float4 _ScreenParams;
+    // x = width
+    // y = height
+    // z = 1 + 1.0/width
+    // w = 1 + 1.0/height
+    float4 _ScreenParams;
 
-// Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
-// x = 1-far/near
-// y = far/near
-// z = x/far
-// w = y/far
-float4 _ZBufferParams;
+    // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
+    // x = 1-far/near
+    // y = far/near
+    // z = x/far
+    // w = y/far
+    // or in case of a reversed depth buffer (UNITY_REVERSED_Z is 1)
+    // x = -1+far/near
+    // y = 1
+    // z = x/far
+    // w = 1/far
+    float4 _ZBufferParams;
 
-// x = orthographic camera's width
-// y = orthographic camera's height
-// z = unused
-// w = 1.0 if camera is ortho, 0.0 if perspective
-float4 unity_OrthoParams;
+    // x = orthographic camera's width
+    // y = orthographic camera's height
+    // z = unused
+    // w = 1.0 if camera is ortho, 0.0 if perspective
+    float4 unity_OrthoParams;
 CBUFFER_END
 
 
 CBUFFER_START(UnityPerCameraRare)
-float4 unity_CameraWorldClipPlanes[6];
+    float4 unity_CameraWorldClipPlanes[6];
 
 #if !defined(USING_STEREO_MATRICES)
-// Projection matrices of the camera. Note that this might be different from projection matrix
-// that is set right now, e.g. while rendering shadows the matrices below are still the projection
-// of original camera.
-float4x4 unity_CameraProjection;
-float4x4 unity_CameraInvProjection;
-float4x4 unity_WorldToCamera;
-float4x4 unity_CameraToWorld;
+    // Projection matrices of the camera. Note that this might be different from projection matrix
+    // that is set right now, e.g. while rendering shadows the matrices below are still the projection
+    // of original camera.
+    float4x4 unity_CameraProjection;
+    float4x4 unity_CameraInvProjection;
+    float4x4 unity_WorldToCamera;
+    float4x4 unity_CameraToWorld;
 #endif
 CBUFFER_END
 
@@ -120,57 +139,64 @@ CBUFFER_END
 
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoGlobals)
-float4x4 unity_StereoMatrixP[2];
-float4x4 unity_StereoMatrixV[2];
-float4x4 unity_StereoMatrixInvV[2];
-float4x4 unity_StereoMatrixVP[2];
+    float4x4 unity_StereoMatrixP[2];
+    float4x4 unity_StereoMatrixV[2];
+    float4x4 unity_StereoMatrixInvV[2];
+    float4x4 unity_StereoMatrixVP[2];
 
-float4x4 unity_StereoCameraProjection[2];
-float4x4 unity_StereoCameraInvProjection[2];
-float4x4 unity_StereoWorldToCamera[2];
-float4x4 unity_StereoCameraToWorld[2];
+    float4x4 unity_StereoCameraProjection[2];
+    float4x4 unity_StereoCameraInvProjection[2];
+    float4x4 unity_StereoWorldToCamera[2];
+    float4x4 unity_StereoCameraToWorld[2];
 
-float3 unity_StereoWorldSpaceCameraPos[2];
-float4 unity_StereoScaleOffset[2];
-CBUFFER_END
-
-#ifdef UNITY_SUPPORT_MULTIVIEW
-#define unity_StereoEyeIndex UNITY_VIEWID
-UNITY_DECLARE_MULTIVIEW(2);
-#else
-CBUFFER_START(UnityStereoEyeIndex)
-int unity_StereoEyeIndex;
+    float3 unity_StereoWorldSpaceCameraPos[2];
+    float4 unity_StereoScaleOffset[2];
 CBUFFER_END
 #endif
 
+#if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+CBUFFER_START(UnityStereoEyeIndices)
+    float4 unity_StereoEyeIndices[2];
+CBUFFER_END
+#endif
+
+#if defined(UNITY_STEREO_MULTIVIEW_ENABLED) && defined(SHADER_STAGE_VERTEX)
+    #define unity_StereoEyeIndex UNITY_VIEWID
+    UNITY_DECLARE_MULTIVIEW(2);
+#elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+    static uint unity_StereoEyeIndex;
+#elif defined(UNITY_SINGLE_PASS_STEREO)
+    CBUFFER_START(UnityStereoEyeIndex)
+        int unity_StereoEyeIndex;
+    CBUFFER_END
 #endif
 
 CBUFFER_START(UnityPerDrawRare)
-float4x4 glstate_matrix_transpose_modelview0;
+    float4x4 glstate_matrix_transpose_modelview0;
 CBUFFER_END
-
 
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerFrame)
-
-float4 glstate_lightmodel_ambient;
-float4 unity_AmbientSky;
-float4 unity_AmbientEquator;
-float4 unity_AmbientGround;
-float4 unity_IndirectSpecColor;
+    float4 glstate_lightmodel_ambient;
+    float4 unity_AmbientSky;
+    float4 unity_AmbientEquator;
+    float4 unity_AmbientGround;
+    float4 unity_IndirectSpecColor;
 
 #if !defined(USING_STEREO_MATRICES)
-float4x4 glstate_matrix_projection;
-float4x4 unity_MatrixV;
-float4x4 unity_MatrixInvV;
-float4x4 unity_MatrixVP;
-int unity_StereoEyeIndex;
+    float4x4 glstate_matrix_projection;
+    float4x4 unity_MatrixV;
+    float4x4 unity_MatrixInvV;
+    float4x4 unity_MatrixVP;
+    float4 unity_StereoScaleOffset;
+    int unity_StereoEyeIndex;
 #endif
 
-float4 unity_ShadowColor;
-
+    float4 unity_ShadowColor;
 CBUFFER_END
+
+// ----------------------------------------------------------------------------
 
 TEXTURE2D_FLOAT(_MainDepthTexture);
 SAMPLER2D(sampler_MainDepthTexture);
