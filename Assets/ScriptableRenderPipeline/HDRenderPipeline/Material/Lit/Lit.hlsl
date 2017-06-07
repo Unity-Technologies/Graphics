@@ -54,11 +54,11 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define SSS_WRAP_ANGLE (PI/12)              // Used for wrap lighting
 #define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
 
-uint   _EnableSSS;                          // Globally toggles subsurface scattering on/off
+uint   _EnableSSSAndTransmission;           // Globally toggles subsurface and transmission scattering on/off
 uint   _TexturingModeFlags;                 // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
 uint   _TransmissionFlags;                  // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
 float  _ThicknessRemaps[SSS_N_PROFILES][2]; // Remap: 0 = start, 1 = end - start
-float4 _ShapeParameters[SSS_N_PROFILES];    // RGB = S = 1 / D; A = filter radius
+float4 _VolumeShapeParams[SSS_N_PROFILES];  // RGB = S = 1 / D; A = unused
 float4 _VolumeAlbedos[SSS_N_PROFILES];      // RGB = color, A = unused
 
 //-----------------------------------------------------------------------------
@@ -144,28 +144,35 @@ void FillMaterialIdSSSData(float3 baseColor, int subsurfaceProfile, float subsur
 
     uint transmissionMode = BitFieldExtract(_TransmissionFlags, 2u, 2u * subsurfaceProfile);
 
-    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE;
+    bsdfData.enableTransmission = transmissionMode != SSS_TRSM_MODE_NONE && (_EnableSSSAndTransmission > 0);
     bsdfData.useThinObjectMode  = transmissionMode == SSS_TRSM_MODE_THIN;
 
     if (bsdfData.enableTransmission)
     {
-        bsdfData.transmittance = ComputeTransmittance(_ShapeParameters[subsurfaceProfile].rgb,
+        bsdfData.transmittance = ComputeTransmittance(_VolumeShapeParams[subsurfaceProfile].rgb,
                                                       _VolumeAlbedos[subsurfaceProfile].rgb,
                                                       bsdfData.thickness, bsdfData.subsurfaceRadius);
     }
 
     bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, subsurfaceProfile);
 
-    // We modify the albedo here as this code is used by all lighting (including light maps and GI).
-    if (performPostScatterTexturing)
+#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) // In case of GI pass don't modify the diffuseColor
+    if (0)
+#else
+    if (_EnableSSSAndTransmission > 0) // If we globally disable SSS effect, don't modify diffuseColor
+#endif
     {
-    #ifndef SSS_PASS
-        bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
-    #endif
-    }
-    else
-    {
-        bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
+        // We modify the albedo here as this code is used by all lighting (including light maps and GI).
+        if (performPostScatterTexturing)
+        {
+        #ifndef SSS_PASS
+            bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
+        #endif
+        }
+        else
+        {
+            bsdfData.diffuseColor = sqrt(bsdfData.diffuseColor);
+        }
     }
 }
 
@@ -261,11 +268,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        // Use 16 bits to encode the thickness, and up to 8 bits to encode the profile ID.
-        // We need a lot of precision to minimize banding of NdotV-weighted thickness.
-        outGBuffer2 = float4(surfaceData.subsurfaceRadius,
-                             PackFloatToR8G8(surfaceData.thickness),
-                             PackByte(surfaceData.subsurfaceProfile));
+        outGBuffer2 = float4(surfaceData.subsurfaceRadius, surfaceData.thickness, 0, PackByte(surfaceData.subsurfaceProfile));
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
     {
@@ -396,10 +399,8 @@ void DecodeFromGBuffer(
     }
     else if (supportsSSS && bsdfData.materialId == MATERIALID_LIT_SSS)
     {
-        // Use 16 bits to encode the thickness, and up to 8 bits to encode the profile ID.
-        // We need a lot of precision to minimize banding of NdotV-weighted thickness.
         float subsurfaceRadius  = inGBuffer2.x;
-        float thickness         = UnpackFloatFromR8G8(inGBuffer2.yz);
+        float thickness         = inGBuffer2.y;
         int   subsurfaceProfile = UnpackByte(inGBuffer2.w);
 
         FillMaterialIdSSSData(baseColor, subsurfaceProfile, subsurfaceRadius, thickness, bsdfData);
@@ -756,18 +757,16 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT);
+        // Use the reversed normal from the front for the back of the object.
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL));
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
-        // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
-        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
+        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
-        float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
+        float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         diffuseLighting += transmittedLight;
@@ -862,18 +861,16 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * attenuation;
+        // Use the reversed normal from the front for the back of the object.
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL)) * attenuation;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
-        // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
-        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
+        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
-        float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
+        float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         diffuseLighting += transmittedLight;
@@ -947,17 +944,16 @@ void EvaluateBSDF_Projector(LightLoopContext lightLoopContext,
 
     [branch] if (bsdfData.enableTransmission)
     {
-        // Reverse the normal + do some wrap lighting to have a nicer transition between regular lighting and transmittance
-        illuminance = ComputeWrappedDiffuseLighting(NdotL, SSS_WRAP_LIGHT) * clipFactor;
+        // Use the reversed normal from the front for the back of the object.
+        illuminance = F_Transm_Schlick(bsdfData.fresnel0, saturate(-NdotL)) * clipFactor;
 
         // For low thickness, we can reuse the shadowing status for the back of the object.
         shadow       = bsdfData.useThinObjectMode ? shadow : 1;
         illuminance *= shadow * cookie.a;
 
-        // The difference between the Disney Diffuse and the Lambertian BRDF for transmission is negligible.
-        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale * Lambert());
+        float3 backLight = (cookie.rgb * lightData.color) * (illuminance * lightData.diffuseScale);
         // TODO: multiplication by 'diffuseColor' and 'transmittance' is the same for each light.
-        float3 transmittedLight = backLight * bsdfData.diffuseColor * bsdfData.transmittance;
+        float3 transmittedLight = backLight * (bsdfData.diffuseColor * bsdfData.transmittance);
 
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         diffuseLighting += transmittedLight;

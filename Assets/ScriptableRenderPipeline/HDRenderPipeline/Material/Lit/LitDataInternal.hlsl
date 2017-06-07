@@ -199,7 +199,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
 
-    surfaceData.materialId = (_EnableSSS || _MaterialID != MATERIALID_LIT_SSS) ? _MaterialID : MATERIALID_LIT_STANDARD;
+    // TODO: In order to let the compiler optimize in case of forward rendering this need to be a variant (shader feature) and not a parameter!
+    surfaceData.materialId = _MaterialID;
 
 #ifdef _TANGENTMAP
     #ifdef _NORMALMAP_TANGENT_SPACE_IDX // Normal and tangent use same space
@@ -238,6 +239,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #ifdef _THICKNESSMAP
     surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
 #endif
+
+    surfaceData.thickness = 1 - surfaceData.thickness; // Reverse for artists
 
     surfaceData.specularColor = _SpecularColor.rgb;
 #ifdef _SPECULARCOLORMAP

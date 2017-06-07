@@ -1,6 +1,6 @@
 using System;
 #if UNITY_EDITOR
-    using UnityEditor;
+using UnityEditor;
 #endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -33,7 +33,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [HideInInspector]
         public int              settingsIndex;              // SubsurfaceScatteringSettings.profiles[i]
         [SerializeField]
-        Vector3                 m_S;                        // RGB = shape parameter: S = 1 / D
+        Vector3                 m_SurfaceShapeParam;        // RGB = shape parameter: S = 1 / D
+        [SerializeField]
+        Vector3                 m_VolumeShapeParam;         // RGB = shape parameter: S = 1 / D
         [SerializeField]
         float                   m_ScatteringDistance;       // Filter radius (in millimeters)
         [SerializeField]
@@ -70,22 +72,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FilterKernelFarField = new Vector2[SssConstants.SSS_N_SAMPLES_FAR_FIELD];
             }
 
-            m_S = new Vector3();
+            m_SurfaceShapeParam = new Vector3();
 
             // Evaluate the fit for diffuse surface transmission.
-            m_S.x = FindFitForS(surfaceAlbedo.r);
-            m_S.y = FindFitForS(surfaceAlbedo.g);
-            m_S.z = FindFitForS(surfaceAlbedo.b);
+            m_SurfaceShapeParam.x = FindFitForS(surfaceAlbedo.r);
+            m_SurfaceShapeParam.y = FindFitForS(surfaceAlbedo.g);
+            m_SurfaceShapeParam.z = FindFitForS(surfaceAlbedo.b);
+            m_VolumeShapeParam.x  = FindFitForS(volumeAlbedo.r);
+            m_VolumeShapeParam.y  = FindFitForS(volumeAlbedo.g);
+            m_VolumeShapeParam.z  = FindFitForS(volumeAlbedo.b);
 
             // Compute { 1 / D = S / L } as you can substitute s = 1 / d in all formulas.
-            m_S.x *= 1.0f / lenVolMeanFreePath;
-            m_S.y *= 1.0f / lenVolMeanFreePath;
-            m_S.z *= 1.0f / lenVolMeanFreePath;
+            m_SurfaceShapeParam *= 1.0f / lenVolMeanFreePath;
+            m_VolumeShapeParam  *= 1.0f / lenVolMeanFreePath;
 
             // We importance sample the color channel with the highest albedo value,
             // since higher albedo values result in scattering over a larger distance.
             // S(A) is a monotonically decreasing function.
-            float s = Mathf.Min(m_S.x, m_S.y, m_S.z);
+            float s = Mathf.Min(m_SurfaceShapeParam.x, m_SurfaceShapeParam.y, m_SurfaceShapeParam.z);
 
             // Importance sample the normalized diffusion profile for the computed value of 's'.
             // ------------------------------------------------------------------------------------
@@ -93,13 +97,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // PDF(r, s) = s * (Exp[-r * s] + Exp[-r * s / 3]) / 4
             // CDF(r, s) = 1 - 1/4 * Exp[-r * s] - 3/4 * Exp[-r * s / 3]
             // ------------------------------------------------------------------------------------
-            
+
             // Importance sample the near field kernel.
             for (int i = 0; i < SssConstants.SSS_N_SAMPLES_NEAR_FIELD; i++)
             {
                 float p = i * (1.0f / SssConstants.SSS_N_SAMPLES_NEAR_FIELD);
                 float r = KernelCdfInverse(p, s);
-                
+
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
                 // of the actual geometry is performed at runtime (in the shader).
                 m_FilterKernelNearField[i].x = r;
@@ -121,10 +125,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public Vector3 shapeParameter
+        public Vector3 surfaceShapeParameter
         {
             // Set in BuildKernel().
-            get { return m_S; }
+            get { return m_SurfaceShapeParam; }
+        }
+
+        public Vector3 volumeShapeParameter
+        {
+            // Set in BuildKernel().
+            get { return m_VolumeShapeParam; }
         }
 
         public float scatteringDistance
@@ -138,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set in BuildKernel().
             get { return m_FilterKernelNearField; }
         }
-        
+
         public Vector2[] filterKernelFarField
         {
             // Set in BuildKernel().
@@ -223,7 +233,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [NonSerialized] public uint          texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
         [NonSerialized] public uint          transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
         [NonSerialized] public float[]       thicknessRemaps;           // Remap: 0 = start, 1 = end - start
-        [NonSerialized] public Vector4[]     shapeParameters;           // RGB = S = 1 / D, A = filter radius
+        [NonSerialized] public Vector4[]     surfaceShapeParams;        // RGB = S = 1 / D, A = filter radius
+        [NonSerialized] public Vector4[]     volumeShapeParams;         // RGB = S = 1 / D, A = unused
         [NonSerialized] public Vector4[]     volumeAlbedos;             // RGB = color, A = unused
         [NonSerialized] public float[]       worldScales;               // Size of the world unit in meters
         [NonSerialized] public float[]       filterKernelsNearField;    // 0 = radius, 1 = reciprocal of the PDF
@@ -239,7 +250,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             texturingModeFlags     = 0;
             transmissionFlags      = 0;
             thicknessRemaps        = null;
-            shapeParameters        = null;
+            surfaceShapeParams     = null;
+            volumeShapeParams      = null;
             filterKernelsNearField = null;
             filterKernelsFarField  = null;
 
@@ -290,22 +302,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 thicknessRemaps = new float[thicknessRemapsLen];
             }
 
-            const int worldScalesLen = SssConstants.SSS_N_PROFILES;
-            if (worldScales == null || worldScales.Length != worldScalesLen)
+            if (worldScales == null || worldScales.Length != SssConstants.SSS_N_PROFILES)
             {
-                worldScales = new float[worldScalesLen];
+                worldScales = new float[SssConstants.SSS_N_PROFILES];
             }
 
-            const int shapeParametersLen = SssConstants.SSS_N_PROFILES;
-            if (shapeParameters == null || shapeParameters.Length != shapeParametersLen)
+            if (surfaceShapeParams == null || surfaceShapeParams.Length != SssConstants.SSS_N_PROFILES)
             {
-                shapeParameters = new Vector4[shapeParametersLen];
+                surfaceShapeParams = new Vector4[SssConstants.SSS_N_PROFILES];
             }
 
-            const int volumeAlbedosLen = SssConstants.SSS_N_PROFILES;
-            if (volumeAlbedos == null || volumeAlbedos.Length != volumeAlbedosLen)
+            if (volumeShapeParams == null || volumeShapeParams.Length != SssConstants.SSS_N_PROFILES)
             {
-                volumeAlbedos = new Vector4[volumeAlbedosLen];
+                volumeShapeParams = new Vector4[SssConstants.SSS_N_PROFILES];
+            }
+
+            if (volumeAlbedos == null || volumeAlbedos.Length != SssConstants.SSS_N_PROFILES)
+            {
+                volumeAlbedos = new Vector4[SssConstants.SSS_N_PROFILES];
             }
 
             const int filterKernelsNearFieldLen = 2 * SssConstants.SSS_N_PROFILES * SssConstants.SSS_N_SAMPLES_NEAR_FIELD;
@@ -333,8 +347,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 thicknessRemaps[2 * i]     = profiles[i].thicknessRemap.x;
                 thicknessRemaps[2 * i + 1] = profiles[i].thicknessRemap.y - profiles[i].thicknessRemap.x;
                 worldScales[i]             = profiles[i].worldScale;
-                shapeParameters[i]         = profiles[i].shapeParameter;
-                shapeParameters[i].w       = profiles[i].scatteringDistance;
+                surfaceShapeParams[i]      = profiles[i].surfaceShapeParameter;
+                surfaceShapeParams[i].w    = profiles[i].scatteringDistance;
+                volumeShapeParams[i]       = profiles[i].volumeShapeParameter;
                 volumeAlbedos[i]           = profiles[i].volumeAlbedo;
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
@@ -354,9 +369,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int i = SssConstants.SSS_NEUTRAL_PROFILE_ID;
 
-                shapeParameters[i] = Vector4.zero;
-                volumeAlbedos[i]   = Vector4.zero;
-                worldScales[i]     = 1.0f;
+                surfaceShapeParams[i] = Vector4.zero;
+                volumeShapeParams[i]  = Vector4.zero;
+                volumeAlbedos[i]      = Vector4.zero;
+                worldScales[i]        = 1.0f;
 
                 for (int j = 0, n = SssConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
                 {
@@ -386,7 +402,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
     public class SubsurfaceScatteringProfileFactory
     {
-        [MenuItem("Assets/Create/Subsurface Scattering Profile", priority = 666)]
+        [MenuItem("Assets/Create/HDRenderPipeline/Subsurface Scattering Profile", priority = 666)]
         static void MenuCreateSubsurfaceScatteringProfile()
         {
             Texture2D icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -472,7 +488,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private RenderTexture      m_ProfileImage, m_TransmittanceImage;
         private Material           m_ProfileMaterial, m_TransmittanceMaterial;
-        private SerializedProperty m_LenVolMeanFreePath, m_ScatteringDistance, m_SurfaceAlbedo, m_VolumeAlbedo, m_S,
+        private SerializedProperty m_LenVolMeanFreePath, m_ScatteringDistance, m_SurfaceAlbedo, m_VolumeAlbedo, m_SurfaceShapeParam, m_VolumeShapeParam,
                                    m_TexturingMode, m_TransmissionMode, m_ThicknessRemap, m_WorldScale;
 
         void OnEnable()
@@ -481,12 +497,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_VolumeAlbedo          = serializedObject.FindProperty("volumeAlbedo");
             m_LenVolMeanFreePath    = serializedObject.FindProperty("lenVolMeanFreePath");
             m_ScatteringDistance    = serializedObject.FindProperty("m_ScatteringDistance");
-            m_S                     = serializedObject.FindProperty("m_S");
+            m_SurfaceShapeParam     = serializedObject.FindProperty("m_SurfaceShapeParam");
+            m_VolumeShapeParam      = serializedObject.FindProperty("m_VolumeShapeParam");
             m_TexturingMode         = serializedObject.FindProperty("texturingMode");
             m_TransmissionMode      = serializedObject.FindProperty("transmissionMode");
             m_ThicknessRemap        = serializedObject.FindProperty("thicknessRemap");
             m_WorldScale            = serializedObject.FindProperty("worldScale");
 
+            // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime
             m_ProfileMaterial       = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawSssProfile");
             m_TransmittanceMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderPipeline/DrawTransmittanceGraph");
 
@@ -502,7 +520,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 EditorGUILayout.PropertyField(m_SurfaceAlbedo, styles.sssProfileSurfaceAlbedo);
                 m_LenVolMeanFreePath.floatValue = EditorGUILayout.Slider(styles.sssProfileLenVolMeanFreePath, m_LenVolMeanFreePath.floatValue, 0.01f, 1.0f);
-                
+
                 GUI.enabled = false;
                 EditorGUILayout.PropertyField(m_ScatteringDistance, styles.sssProfileScatteringDistance);
                 GUI.enabled = true;
@@ -525,19 +543,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
             }
 
-            float   d = m_ScatteringDistance.floatValue;
-            Vector4 A = m_SurfaceAlbedo.colorValue;
-            Vector4 V = m_VolumeAlbedo.colorValue;
-            Vector3 S = m_S.vector3Value;
-            Vector2 R = m_ThicknessRemap.vector2Value;
+            float   d  = m_ScatteringDistance.floatValue;
+            Vector4 aS = m_SurfaceAlbedo.colorValue;
+            Vector4 aV = m_VolumeAlbedo.colorValue;
+            Vector3 sS = m_SurfaceShapeParam.vector3Value;
+            Vector3 sV = m_VolumeShapeParam.vector3Value;
+            Vector2 R  = m_ThicknessRemap.vector2Value;
             bool transmissionEnabled = m_TransmissionMode.intValue != (int)SubsurfaceScatteringProfile.TransmissionMode.None;
 
             // Draw the profile.
             m_ProfileMaterial.SetFloat("_ScatteringDistance", d);
-            m_ProfileMaterial.SetVector("_SurfaceAlbedo",     A);
-            m_ProfileMaterial.SetVector("_ShapeParameter",    S);
+            m_ProfileMaterial.SetVector("_SurfaceAlbedo",     aS);
+            m_ProfileMaterial.SetVector("_SurfaceShapeParam", sS);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(256, 256), m_ProfileImage, m_ProfileMaterial, ScaleMode.ScaleToFit, 1.0f);
-            
+
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.sssTransmittancePreview0, styles.centeredMiniBoldLabel);
             EditorGUILayout.LabelField(styles.sssTransmittancePreview1, EditorStyles.centeredGreyMiniLabel);
@@ -546,8 +565,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Draw the transmittance graph.
             m_TransmittanceMaterial.SetFloat("_ScatteringDistance", d);
-            m_TransmittanceMaterial.SetVector("_VolumeAlbedo",      transmissionEnabled ? V : Vector4.zero);
-            m_TransmittanceMaterial.SetVector("_ShapeParameter",    S);
+            m_TransmittanceMaterial.SetVector("_VolumeAlbedo",      transmissionEnabled ? aV : Vector4.zero);
+            m_TransmittanceMaterial.SetVector("_VolumeShapeParam",  sV);
             m_TransmittanceMaterial.SetVector("_ThicknessRemap",    R);
             EditorGUI.DrawPreviewTexture(GUILayoutUtility.GetRect(16, 16), m_TransmittanceImage, m_TransmittanceMaterial, ScaleMode.ScaleToFit, 16.0f);
 
