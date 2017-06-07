@@ -306,6 +306,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             float3x3 worldToTangent = input.worldToTangent;
 
         #ifdef SURFACE_GRADIENT
+            // TODO: Check it is required to normalize, maybe it is ok ?
             // The TBN is not normalize, normalize it to do per pixel displacement
             worldToTangent[1] = normalize(worldToTangent[1]);
             worldToTangent[2] = normalize(worldToTangent[2]);
@@ -1266,11 +1267,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
-#ifdef SURFACE_GRADIENT
-    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent when using surface gradient
-#else
-    surfaceData.tangentWS = input.worldToTangent[0].xyz;
-#endif
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
     // Init other parameters
     surfaceData.materialId = 1; // MaterialId.LitStandard
     surfaceData.anisotropy = 0;
