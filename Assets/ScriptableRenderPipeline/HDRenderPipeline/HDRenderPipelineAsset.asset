@@ -33,7 +33,7 @@ MonoBehaviour:
     specularGlobalDimmer: 1
     tileDebugByCategory: 0
   shadowInitParams:
-    shadowAtlasWidth: 2048
+    shadowAtlasWidth: 4096
     shadowAtlasHeight: 4096
   textureSettings:
     spotCookieSize: 128

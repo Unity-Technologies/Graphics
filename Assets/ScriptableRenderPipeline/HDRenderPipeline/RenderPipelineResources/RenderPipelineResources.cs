@@ -28,8 +28,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             instance.shadeOpaqueShader = UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/TilePass/shadeopaque.compute");
 
             // SceneSettings
-            instance.drawGaussianProfileShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/DrawGaussianProfile.shader");
-            instance.drawTransmittanceGraphShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/DrawTransmittanceGraph.shader");
+            // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
+            // instance.drawSssProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/DrawSssProfile.shader");
+            // instance.drawTransmittanceGraphShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/SceneSettings/DrawTransmittanceGraph.shader");
 
             // Sky
             instance.blitCubemap = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Sky/BlitCubemap.shader");
@@ -64,8 +65,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader shadeOpaqueShader;
 
         // SceneSettings
-        public Shader drawGaussianProfileShader;
-        public Shader drawTransmittanceGraphShader;
+        // These shaders don't need to be reference by RenderPipelineResource as they are not use at runtime (only to draw in editor)
+        // public Shader drawSssProfile;
+        // public Shader drawTransmittanceGraphShader;
 
         // Sky
         public Shader blitCubemap;

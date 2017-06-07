@@ -95,7 +95,7 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 
     float3 sigmaX = dPdx - dot(dPdx, vertexNormalWS) * vertexNormalWS;
     float3 sigmaY = dPdy - dot(dPdy, vertexNormalWS) * vertexNormalWS;
-    //float flipSign = dot(sigmaY, cross(nrmVertexNormal, sigmaX) ) ? -1.0 : 1.0;
+    //float flipSign = dot(sigmaY, cross(vertexNormalWS, sigmaX) ) ? -1.0 : 1.0;
     float flipSign = dot(dPdy, cross(vertexNormalWS, dPdx)) < 0.0 ? -1.0 : 1.0; // gives same as the commented out line above
 
     // TODO: Optimize! The compiler will not be able to remove the tangent space that are not use because it can't know due to our UVMapping constant we use for both base and details

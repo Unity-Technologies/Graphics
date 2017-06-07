@@ -7,7 +7,7 @@ using System;
 //-----------------------------------------------------------------------------
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    namespace Unlit
+    public class Unlit : RenderPipelineMaterial
     {
         //-----------------------------------------------------------------------------
         // SurfaceData
