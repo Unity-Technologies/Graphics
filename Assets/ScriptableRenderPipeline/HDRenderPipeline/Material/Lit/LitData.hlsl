@@ -305,13 +305,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
             float3x3 worldToTangent = input.worldToTangent;
 
-        #ifdef SURFACE_GRADIENT
-            // TODO: Check it is required to normalize, maybe it is ok ?
-            // The TBN is not normalize, normalize it to do per pixel displacement
-            worldToTangent[1] = normalize(worldToTangent[1]);
-            worldToTangent[2] = normalize(worldToTangent[2]);
-        #endif
-
+            // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
             float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, worldToTangent);
             NdotV = viewDirTS.z;
 
@@ -1048,12 +1042,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 
             float3x3 worldToTangent = input.worldToTangent;
 
-        #ifdef SURFACE_GRADIENT
-            // The TBN is not normalize, normalize it to do per pixel displacement
-            worldToTangent[1] = normalize(worldToTangent[1]);
-            worldToTangent[2] = normalize(worldToTangent[2]);
-        #endif
-
+            // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
             // For planar the view vector is the world view vector (unless we want to support object triplanar ? and in this case used TransformWorldToObject)
             // TODO: do we support object triplanar ? See ComputeLayerTexCoord
             float3 viewDirTS = isPlanar ? float3(-V.xz, V.y) : TransformWorldToTangent(V, worldToTangent);
@@ -1267,7 +1256,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
-    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     // Init other parameters
     surfaceData.materialId = 1; // MaterialId.LitStandard
     surfaceData.anisotropy = 0;
