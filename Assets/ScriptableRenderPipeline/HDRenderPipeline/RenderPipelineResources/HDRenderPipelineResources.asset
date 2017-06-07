@@ -19,6 +19,8 @@ MonoBehaviour:
     type: 3}
   debugViewTilesShader: {fileID: 4800000, guid: c7c2bd17b06ceb4468e14081aaf1b96f,
     type: 3}
+  debugFullScreenShader: {fileID: 4800000, guid: e874aca2df8300a488258738c31f85cf,
+    type: 3}
   deferredShader: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
   clearDispatchIndirectShader: {fileID: 7200000, guid: fc1f553acb80a6446a32d33e403d0656,
     type: 3}

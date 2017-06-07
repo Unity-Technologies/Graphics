@@ -2128,7 +2128,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
                     {
                         m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, (int)lightingDebug.shadowMapIndex, x, y, overlaySize, overlaySize);
-                        Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+                        Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
 
                         // TODO: @Julien exchange shadowmapIndex by lightIndex and draw all slide like below
                         /*
@@ -2153,7 +2153,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                     {
                         m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, -1, x, y, overlaySize, overlaySize);
-                        Utilities.NextOverlayCoord(ref x, ref y, overlaySize, camera.pixelWidth);
+                        Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
                     }
                 }
             }

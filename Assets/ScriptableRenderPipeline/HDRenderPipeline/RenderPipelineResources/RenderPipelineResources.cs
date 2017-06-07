@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             instance.debugDisplayShadowMapShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Debug/DebugDisplayShadowMap.Shader");
             instance.debugViewMaterialGBufferShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Debug/DebugViewMaterialGBuffer.Shader");
             instance.debugViewTilesShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Debug/DebugViewTiles.Shader");
+            instance.debugFullScreenShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Debug/DebugFullScreen.Shader");
 
             instance.deferredShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/ScriptableRenderPipeline/HDRenderPipeline/Lighting/Deferred.Shader");
 
@@ -50,6 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Shader debugDisplayShadowMapShader;
         public Shader debugViewMaterialGBufferShader;
         public Shader debugViewTilesShader;
+        public Shader debugFullScreenShader;
 
         // Lighting resources
         public Shader deferredShader;

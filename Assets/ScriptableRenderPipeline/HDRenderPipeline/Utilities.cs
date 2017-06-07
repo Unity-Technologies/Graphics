@@ -397,14 +397,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Helper to help to display debug info on screen
-        public static void NextOverlayCoord(ref float x, ref float y, float overlaySize, float width)
+        static float overlayLineHeight = -1.0f;
+        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, float width)
         {
-            x += overlaySize;
+            x += overlayWidth;
+            overlayLineHeight = Mathf.Max(overlayHeight, overlayLineHeight);
             // Go to next line if it goes outside the screen.
-            if (x + overlaySize > width)
+            if (x + overlayWidth > width)
             {
                 x = 0;
-                y -= overlaySize;
+                y -= overlayLineHeight;
+                overlayLineHeight = -1.0f;
             }
         }
     }
