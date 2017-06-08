@@ -11,18 +11,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  m_RenderPipelineResources: {fileID: 11400000, guid: 42086e81f4f0c724f96f7f09cc995354,
-    type: 2}
+  m_RenderPipelineResources: {fileID: 0}
   renderingSettings:
     useForwardRenderingOnly: 0
     useDepthPrepass: 0
   sssSettings:
-    numProfiles: 2
+    numProfiles: 1
     profiles:
-    - {fileID: 11400000, guid: d6ee4403015766f4093158d69216c0bf, type: 2}
-    - {fileID: 11400000, guid: 906339bac2066fc4aa22a3652e1283ef, type: 2}
+    - {fileID: 0}
   tileSettings:
-    enableTileAndCluster: 0
+    enableTileAndCluster: 1
     enableSplitLightEvaluation: 1
     enableComputeLightEvaluation: 0
     enableComputeFeatureVariants: 0
@@ -39,6 +37,5 @@ MonoBehaviour:
     spotCookieSize: 128
     pointCookieSize: 512
     reflectionCubemapSize: 128
-  m_DefaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
-    type: 2}
-  m_DefaultShader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
+  m_DefaultDiffuseMaterial: {fileID: 0}
+  m_DefaultShader: {fileID: 0}
