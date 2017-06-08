@@ -1,4 +1,4 @@
-#define MAX_LIGHTS 8
+#define MAX_VISIBLE_LIGHTS 16
 
 #define INITIALIZE_LIGHT(light, lightIndex) \
                             light.pos = globalLightPos[lightIndex]; \
@@ -50,11 +50,15 @@ struct v2f
 // The variables are very similar to built-in unity_LightColor, unity_LightPosition,
 // unity_LightAtten, unity_SpotDirection as used by the VertexLit shaders, except here
 // we use world space positions instead of view space.
-half4 globalLightColor[MAX_LIGHTS];
-float4 globalLightPos[MAX_LIGHTS];
-half4 globalLightSpotDir[MAX_LIGHTS];
-half4 globalLightAtten[MAX_LIGHTS];
-float4  globalLightData; // x: pixelLightCount, y = totalLightCount (pixel + vert), z = minShadowNormalBiasOffset, w = shadowNormalBiasOffset
+half4 globalLightColor[MAX_VISIBLE_LIGHTS];
+float4 globalLightPos[MAX_VISIBLE_LIGHTS];
+half4 globalLightSpotDir[MAX_VISIBLE_LIGHTS];
+half4 globalLightAtten[MAX_VISIBLE_LIGHTS];
+float4  globalLightData; // x: pixelLightCount, y = shadowLightIndex, z = minShadowNormalBiasOffset, w = shadowNormalBiasOffset
+
+// Per object light list data
+half4 unity_LightIndicesOffsetAndCount;
+StructuredBuffer<uint> globalLightIndexList;
 
 half _Shininess;
 samplerCUBE _Cube;
