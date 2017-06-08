@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering
             m_CameraNames[GetCameraCount() - 1] = new GUIContent("Original Camera");
             m_CameraIndices[GetCameraCount() - 1] = GetCameraCount() - 1;
 
-            DebugMenuManager.instance.AddDebugItem<int>("Camera", "Camera Switcher", () => m_CurrentCameraIndex, (value) => SetCameraIndex((int)value), false, new DebugItemHandlerIntEnum(m_CameraNames, m_CameraIndices));
+            DebugMenuManager.instance.AddDebugItem<int>("Camera", "Camera Switcher", () => m_CurrentCameraIndex, (value) => SetCameraIndex((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(m_CameraNames, m_CameraIndices));
         }
 
         int GetCameraCount()
