@@ -114,8 +114,11 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
 #if defined(_VERTEX_LIGHTS)
                 half4 diffuseAndSpecular = half4(1.0, 1.0, 1.0, 1.0);
-                for (int lightIndex = globalLightData.x; lightIndex < globalLightData.y; ++lightIndex)
+                int vertexLightStart = unity_LightIndicesOffsetAndCount.x + globalLightData.x;
+                int vertexLightEnd = vertexLightStart + (unity_LightIndicesOffsetAndCount.y - globalLightData.x);
+                for (int lightIter = vertexLightStart; lightIter < vertexLightEnd; ++lightIter)
                 {
+                    int lightIndex = globalLightIndexList[lightIter];
                     LightInput lightInput;
                     half NdotL;
                     INITIALIZE_LIGHT(lightInput, lightIndex);
@@ -151,17 +154,17 @@ Shader "ScriptableRenderPipeline/LightweightPipeline/NonPBR"
 
                 half3 viewDir = i.viewDir.xyz;
 
-                // TODO: Restrict pixel lights by 4. This way we can keep moderate constrain for most LD project
-                // and can benefit from better data layout/avoid branching by doing vec math.
                 half3 color = half3(0, 0, 0);
-                for (int lightIndex = 0; lightIndex < globalLightData.x; ++lightIndex)
+                int pixelLightEnd = unity_LightIndicesOffsetAndCount.x + min(globalLightData.x, unity_LightIndicesOffsetAndCount.y);
+                for (int lightIter = unity_LightIndicesOffsetAndCount.x; lightIter < pixelLightEnd; ++lightIter)
                 {
-                    LightInput lightData;
+                    int lightIndex = globalLightIndexList[lightIter];
+                    LightInput  lightData;
                     half NdotL;
                     INITIALIZE_LIGHT(lightData, lightIndex);
                     color += EvaluateOneLight(lightData, diffuse, specularGloss, normal, i.posWS, viewDir, NdotL);
 #ifdef _SHADOWS
-                    if (lightIndex == 0)
+                    if (lightIndex == globalLightData.y)
                     {
                         #if _NORMALMAP
                         float3 vertexNormal = float3(i.tangentToWorld0.z, i.tangentToWorld1.z, i.tangentToWorld2.z);
