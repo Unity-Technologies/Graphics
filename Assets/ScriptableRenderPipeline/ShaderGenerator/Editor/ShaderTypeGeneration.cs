@@ -571,7 +571,14 @@ namespace UnityEditor.Experimental.Rendering
                 {
                     if (field.FieldType.IsPrimitive)
                     {
-                        m_Statics[field.Name] = field.GetValue(null).ToString();
+                        // Unity convention is to start static of constant with k_ or s_, remove this part
+                        string name = InsertUnderscore(field.Name);
+                        if (name.StartsWith("k_") || name.StartsWith("s_"))
+                        {
+                            name = name.Substring(2);
+                        }
+                        string defineName = name.ToUpper();
+                        m_Statics[defineName] = field.GetValue(null).ToString();
                     }
                     continue;
                 }
