@@ -236,8 +236,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.thickness *= SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMap, sampler_ThicknessMap, layerTexCoord.base).r;
 #endif
 
-    surfaceData.thickness = 1 - surfaceData.thickness; // Reverse for artists
-
     surfaceData.specularColor = _SpecularColor.rgb;
 #ifdef _SPECULARCOLORMAP
     surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
