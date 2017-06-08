@@ -1,13 +1,13 @@
-Shader "Hidden/HDRenderPipeline/DebugDisplayShadowMap"
+Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
 {
     HLSLINCLUDE
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 metal // TEMP: unitl we go futher in dev
 
-        #include "../../ShaderLibrary/Common.hlsl"
+        #include "../../../ShaderLibrary/Common.hlsl"
 
         #define SHADOW_TILEPASS // TODO: Not sure it must be define, ask uygar
-        #include "../../ShaderLibrary/Shadow/Shadow.hlsl"
+        #include "../../../ShaderLibrary/Shadow/Shadow.hlsl"
         #undef SHADOW_TILEPASS
 
         float4 _TextureScaleBias;

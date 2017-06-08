@@ -398,9 +398,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Light m_CurrentSunLight = null;
             public Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
-            // For displaying shadow map
-            Material m_DebugDisplayShadowMap;
-
             // shadow related stuff
             FrameId                 m_FrameId = new FrameId();
             ShadowSetup             m_ShadowSetup; // doesn't actually have to reside here, it would be enough to pass the IShadowManager in from the outside
@@ -593,7 +590,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_SingleDeferredMaterialMRT.SetInt("_DstBlend", (int)BlendMode.Zero);
 
                 m_DebugViewTilesMaterial = Utilities.CreateEngineMaterial(m_Resources.debugViewTilesShader);
-                m_DebugDisplayShadowMap = Utilities.CreateEngineMaterial(m_Resources.debugDisplayShadowMapShader);
 
                 m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
                 m_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
@@ -657,8 +653,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Utilities.Destroy(m_SingleDeferredMaterialSRT);
                 Utilities.Destroy(m_SingleDeferredMaterialMRT);
-
-                Utilities.Destroy(m_DebugDisplayShadowMap);
 
                 Utilities.Destroy(s_DefaultAdditionalLightDataGameObject);
                 s_DefaultAdditionalLightDataGameObject = null;
@@ -2134,13 +2128,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         uint faceCount = m_ShadowMgr.GetShadowRequestFaceCount(lightingDebug.shadowMapIndex);
                         for (uint i = 0; i < faceCount; ++i )
                         {
-                            m_ShadowMgr.DisplayShadows(renderContext, m_DebugDisplayShadowMap, (int)lightingDebug.shadowMapIndex, i, x, y, overlaySize, overlaySize);
+                            m_ShadowMgr.DisplayShadows(renderContext, (int)lightingDebug.shadowMapIndex, i, x, y, overlaySize, overlaySize);
                             Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
                         }
                     }
                     else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                     {
-                        m_ShadowMgr.DisplayShadowAtlas(renderContext, m_DebugDisplayShadowMap, lightingDebug.shadowAtlasIndex, x, y, overlaySize, overlaySize);
+                        m_ShadowMgr.DisplayShadowAtlas(renderContext, lightingDebug.shadowAtlasIndex, x, y, overlaySize, overlaySize);
                         Utilities.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, camera.pixelWidth);
                     }
                 }
