@@ -1,4 +1,4 @@
-using UIElements.GraphView;
+﻿using UIElements.GraphView;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX.UI
             Node endNode = null;
             foreach (var node in view.GetAllNodes())
             {
-                if (node.localBound.Contains(position))
+                if (node.globalBound.Contains(position))
                 {
                     endNode = node;
                 }

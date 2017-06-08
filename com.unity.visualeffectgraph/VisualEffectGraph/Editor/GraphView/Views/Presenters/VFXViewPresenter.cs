@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIElements.GraphView;
@@ -421,6 +421,7 @@ namespace UnityEditor.VFX.UI
             {
                 var allOperatorPresenter = elements.OfType<VFXSlotContainerPresenter>();
 
+
                 IEnumerable<NodeAnchorPresenter> allCandidates = Enumerable.Empty<NodeAnchorPresenter>();
 
                 if (startAnchorPresenter.direction == Direction.Input)
@@ -445,6 +446,10 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
+                    var allBlockPresenter = elements.OfType<VFXContextPresenter>().SelectMany(t => t.blockPresenters);
+
+                    allOperatorPresenter = allOperatorPresenter.Concat(allBlockPresenter.Cast<VFXSlotContainerPresenter>());
+
                     var startAnchorOperatorPresenter = (startAnchorPresenter as VFXDataAnchorPresenter);
                     var currentOperator = startAnchorOperatorPresenter.sourceNode.slotContainer;
                     var parentOperators = new HashSet<IVFXSlotContainer>();
@@ -452,7 +457,7 @@ namespace UnityEditor.VFX.UI
                     allOperatorPresenter = allOperatorPresenter.Where(o => !parentOperators.Contains(o.slotContainer));
                     allCandidates = allOperatorPresenter.SelectMany(o => o.inputAnchors).Where(o =>
                         {
-                            var candidate = o as VFXOperatorAnchorPresenter;
+                            var candidate = o as VFXDataAnchorPresenter;
                             var toSlot = candidate.model;
                             return toSlot.CanLink(startAnchorOperatorPresenter.model);
                         }).ToList();
