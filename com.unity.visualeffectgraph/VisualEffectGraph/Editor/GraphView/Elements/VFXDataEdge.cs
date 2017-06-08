@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.UI
 
             if (inputPresenter != null && inputPresenter.sourceNode is VFXBlockPresenter)
             {
-                to = to + new Vector2(-7, 0);
+                to = to + new Vector2(-10, 0);
             }
 
 
