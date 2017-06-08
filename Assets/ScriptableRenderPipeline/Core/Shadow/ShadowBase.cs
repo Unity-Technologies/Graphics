@@ -718,7 +718,7 @@ namespace UnityEngine.Experimental.Rendering
         abstract public void ReserveSlots( ShadowContextStorage sc );
         abstract public void Fill( ShadowContextStorage cs );
         abstract protected void Register( GPUShadowType type, ShadowRegistry registry );
-        abstract public void DisplayShadowMap(ScriptableRenderContext renderContext, Material displayMaterial, Vector4 scaleBias, float screenX, float screenY, float screenSizeX, float screenSizeY);
+        abstract public void DisplayShadowMap(ScriptableRenderContext renderContext, Vector4 scaleBias, float screenX, float screenY, float screenSizeX, float screenSizeY);
     }
 
     interface IShadowManager
@@ -736,8 +736,8 @@ namespace UnityEngine.Experimental.Rendering
         // Renders all shadows for lights the were deemed shadow casters after the last call to ProcessShadowRequests
         void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
         // Debug function to display a shadow at the screen coordinate with the provided material.
-        void DisplayShadows(ScriptableRenderContext renderContext, Material displayMaterial, int shadowMapIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
-        void DisplayShadowAtlas(ScriptableRenderContext renderContext, Material displayMaterial, uint atlasIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
+        void DisplayShadows(ScriptableRenderContext renderContext, int shadowMapIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
+        void DisplayShadowAtlas(ScriptableRenderContext renderContext, uint atlasIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
         // Synchronize data with GPU buffers
         void SyncData();
         // Binds resources to shader stages just before rendering the lighting pass
@@ -756,8 +756,8 @@ namespace UnityEngine.Experimental.Rendering
     {
         public  abstract void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, VisibleLight[] lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices );
         public  abstract void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CullResults cullResults, VisibleLight[] lights );
-        public  abstract void DisplayShadows(ScriptableRenderContext renderContext, Material displayMaterial, int shadowMapIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
-        public  abstract void DisplayShadowAtlas(ScriptableRenderContext renderContext, Material displayMaterial, uint atlasIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
+        public  abstract void DisplayShadows(ScriptableRenderContext renderContext, int shadowMapIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
+        public  abstract void DisplayShadowAtlas(ScriptableRenderContext renderContext, uint atlasIndex, float screenX, float screenY, float screenSizeX, float screenSizeY);
         public  abstract void SyncData();
         public  abstract void BindResources( ScriptableRenderContext renderContext );
         public  abstract void UpdateCullingParameters( ref CullingParameters cullingParams );
