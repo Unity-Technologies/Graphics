@@ -368,9 +368,9 @@ void DecodeFromGBuffer(
 
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
-    int supportsStandard = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_STANDARD | FEATURE_FLAG_MATERIAL_LIT_ANISO)) != 0;
-    int supportsSSS = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_SSS)) != 0;
-    int supportsSpecular = (featureFlags & (FEATURE_FLAG_MATERIAL_LIT_SPECULAR)) != 0;
+    int supportsStandard = (featureFlags & (MATERIALFEATUREFLAGS_LIT_STANDARD | MATERIALFEATUREFLAGS_LIT_ANISO)) != 0;
+    int supportsSSS = (featureFlags & (MATERIALFEATUREFLAGS_LIT_SSS)) != 0;
+    int supportsSpecular = (featureFlags & (MATERIALFEATUREFLAGS_LIT_SPECULAR)) != 0;
 
     if(supportsStandard + supportsSSS + supportsSpecular > 1)
     {
@@ -392,7 +392,7 @@ void DecodeFromGBuffer(
         float3 tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
         FillMaterialIdStandardData(baseColor, specular, metallic, bsdfData.roughness, bsdfData.normalWS, tangentWS, anisotropy, bsdfData);
 
-        if ((featureFlags & FEATURE_FLAG_MATERIAL_LIT_ANISO) && (featureFlags & FEATURE_FLAG_MATERIAL_LIT_STANDARD) == 0 || anisotropy > 0)
+        if ((featureFlags & MATERIALFEATUREFLAGS_LIT_ANISO) && (featureFlags & MATERIALFEATUREFLAGS_LIT_STANDARD) == 0 || anisotropy > 0)
         {
             bsdfData.materialId = MATERIALID_LIT_ANISO;
         }
@@ -452,15 +452,15 @@ uint MaterialFeatureFlagsFromGBuffer(
     uint featureFlags = 0;
     if (materialId == MATERIALID_LIT_STANDARD)
     {
-        featureFlags |= (anisotropy > 0) ? FEATURE_FLAG_MATERIAL_LIT_ANISO : FEATURE_FLAG_MATERIAL_LIT_STANDARD;
+        featureFlags |= (anisotropy > 0) ? MATERIALFEATUREFLAGS_LIT_ANISO : MATERIALFEATUREFLAGS_LIT_STANDARD;
     }
     else if (materialId == MATERIALID_LIT_SSS)
     {
-        featureFlags |= FEATURE_FLAG_MATERIAL_LIT_SSS;
+        featureFlags |= MATERIALFEATUREFLAGS_LIT_SSS;
     }
     else if (materialId == MATERIALID_LIT_SPECULAR)
     {
-        featureFlags |= FEATURE_FLAG_MATERIAL_LIT_SPECULAR;
+        featureFlags |= MATERIALFEATUREFLAGS_LIT_SPECULAR;
     }
     return featureFlags;
 }

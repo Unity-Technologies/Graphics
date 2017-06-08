@@ -8,7 +8,7 @@
 #define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
-#define MAX_NR_BIGTILE_LIGHTS				(MAX_NR_BIGTILE_LIGHTS_PLUSONE-1)
+#define MAX_NR_BIGTILE_LIGHTS				(MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE-1)
 
 
 uniform int g_iNrVisibLights;
@@ -31,7 +31,7 @@ RWStructuredBuffer<uint> g_vLightList : register( u0 );		// don't support RWBuff
 
 
 // 2kB (room for roughly 30 wavefronts)
-groupshared unsigned int lightsListLDS[MAX_NR_BIGTILE_LIGHTS_PLUSONE];
+groupshared unsigned int lightsListLDS[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE];
 groupshared uint lightOffs;
 
 
@@ -50,7 +50,7 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 	float fSy = g_mScrProjection[1].y;
 	float fCy = g_mScrProjection[1].z;
 
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
 	return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
 #else
 	return fLinDepth*float3( -((v2ScrPos.x+fCx)/fSx), -((v2ScrPos.y+fCy)/fSy), 1.0 );
@@ -132,7 +132,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 
 
 	// sort lights
-	SORTLIST(lightsListLDS, iNrCoarseLights, MAX_NR_BIGTILE_LIGHTS_PLUSONE, t, NR_THREADS);
+	SORTLIST(lightsListLDS, iNrCoarseLights, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE, t, NR_THREADS);
 
 	if(t==0) lightOffs = 0;
 	GroupMemoryBarrierWithGroupSync();
@@ -144,14 +144,14 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	int offs = tileIDX.y*nrBigTilesX + tileIDX.x;
 
 	for(i=t; i<(iNrCoarseLights+1); i+=NR_THREADS)
-		g_vLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*offs + i] = i==0 ? iNrCoarseLights : lightsListLDS[max(i-1, 0)];
+		g_vLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*offs + i] = i==0 ? iNrCoarseLights : lightsListLDS[max(i-1, 0)];
 }
 
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
 {
-#if USE_LEFTHAND_CAMERASPACE
+#if USE_LEFT_HAND_CAMERA_SPACE
 	float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0);
 #else
 	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0);
@@ -186,7 +186,7 @@ float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane)
 	float x = (i&1)==0 ? viTilLL.x : viTilUR.x;
 	float y = (i&2)==0 ? viTilLL.y : viTilUR.y;
 	float z = (i&4)==0 ? g_fNearPlane : fTileFarPlane;
-#if !USE_LEFTHAND_CAMERASPACE
+#if !USE_LEFT_HAND_CAMERA_SPACE
 	z = -z;
 #endif
 	return GetViewPosFromLinDepth( float2(x, y), z);
