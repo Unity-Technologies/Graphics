@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UIElements.GraphView;
@@ -120,6 +120,8 @@ namespace UnityEditor.VFX.UI
             //GL.Vertex(start);
 
             float cpt = (start - end).magnitude / 5;
+            if (cpt < 3)
+                cpt = 3;
 
 
             float halfWidth = edgeWidth * 0.5f + 0.5f;
